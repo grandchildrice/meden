@@ -81,7 +81,7 @@ fn star_matches_everything() {
 /// Deny always wins: a requirement on a denied capability is violated,
 /// whatever the grants are.
 #[kani::proof]
-#[kani::unwind(4)]
+#[kani::unwind(12)]
 fn deny_wins() {
     let req = any_req();
     let policy = Policy {
@@ -96,7 +96,7 @@ fn deny_wins() {
 
 /// `allowed` is exactly "every requirement granted and none denied".
 #[kani::proof]
-#[kani::unwind(4)]
+#[kani::unwind(12)]
 fn allowed_iff_granted_and_not_denied() {
     let reqs = [any_req(), any_req()];
     let policy = Policy {
@@ -112,7 +112,7 @@ fn allowed_iff_granted_and_not_denied() {
 
 /// Adding a grant never turns an allowance into a denial.
 #[kani::proof]
-#[kani::unwind(4)]
+#[kani::unwind(12)]
 fn grants_are_monotone() {
     let reqs = [any_req(), any_req()];
     let mut policy = Policy {
@@ -129,7 +129,7 @@ fn grants_are_monotone() {
 /// A scoped grant never covers an unscoped requirement; an unscoped grant
 /// covers every requirement on its capability.
 #[kani::proof]
-#[kani::unwind(4)]
+#[kani::unwind(12)]
 fn scope_rules() {
     let cap = any_cap();
     let g = any_grant();
@@ -146,7 +146,7 @@ fn scope_rules() {
 /// The tier rule: only `proved` can verify; a Lean-only TCB verifies without
 /// approval; a foreign TCB verifies only with an approved backend.
 #[kani::proof]
-#[kani::unwind(4)]
+#[kani::unwind(12)]
 fn tier_rule() {
     const RESULTS: [Result; 4] = [
         Result::Proved,
