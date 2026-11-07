@@ -22,7 +22,7 @@ jobs:
     name: rust (fmt, clippy, test, doc)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.98.1
@@ -39,7 +39,7 @@ jobs:
     name: cargo-deny (licenses, advisories, sources)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: EmbarkStudios/cargo-deny-action@v2
         with:
           command: check
@@ -60,7 +60,7 @@ jobs:
           - scope_rules
           - tier_rule
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: model-checking/kani-github-action@v1
         with:
           args: -p tagent-core --harness kani_harness::${{ matrix.harness }}
@@ -69,7 +69,7 @@ jobs:
     name: lean (spec builds, no sorry, standard axioms only)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: leanprover/lean-action@v1
         with:
           lake-package-directory: lean
@@ -86,7 +86,7 @@ jobs:
           if grep -E 'sorryAx' audit.txt; then echo "sorryAx present"; exit 1; fi
           if grep -E "depends on axioms" audit.txt | grep -vE '^\S+ depends on axioms: \[(propext|Classical\.choice|Quot\.sound)(, (propext|Classical\.choice|Quot\.sound))*\]$' | grep -q .; then
             echo "non-standard axiom present"; exit 1; fi
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: tagent-spec
           path: lean/.lake/build/bin/tagent-spec
@@ -102,13 +102,13 @@ jobs:
     name: python adapter (ruff, pytest against the binary)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.98.1
       - uses: Swatinem/rust-cache@v2
       - run: cargo build -p tagent-cli
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
       - run: uv sync --group dev
         working-directory: python
       - run: uv run ruff check .
@@ -123,12 +123,12 @@ jobs:
     needs: [lean]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.98.1
       - uses: Swatinem/rust-cache@v2
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: tagent-spec
           path: oracle
