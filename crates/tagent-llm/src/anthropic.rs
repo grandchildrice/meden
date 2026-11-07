@@ -32,7 +32,9 @@ impl Anthropic {
     /// This client, pointed somewhere else.
     #[must_use]
     pub fn with_base_url(mut self, base_url: &str) -> Self {
-        self.base_url = base_url.trim_end_matches('/').to_owned();
+        base_url
+            .trim_end_matches('/')
+            .clone_into(&mut self.base_url);
         self
     }
 
@@ -115,6 +117,9 @@ struct Block {
 
 #[cfg(test)]
 mod tests {
+    // Tests fail by panicking; that is their job.
+    #![allow(clippy::panic)]
+
     use super::*;
 
     #[test]

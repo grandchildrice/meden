@@ -256,8 +256,7 @@ mod tests {
     #[test]
     fn a_reply_that_echoes_the_prompt_still_yields_the_plan() {
         let reply = format!(
-            "You asked: A plan is {{\"steps\": [...]}} where each step...\n\nHere it is:\n{}",
-            EXAMPLE_PLAN
+            "You asked: A plan is {{\"steps\": [...]}} where each step...\n\nHere it is:\n{EXAMPLE_PLAN}"
         );
         match parse_plan(&reply) {
             Ok(plan) => assert_eq!(plan.tools(), vec!["fetch", "send_email"]),

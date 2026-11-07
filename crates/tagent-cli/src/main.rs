@@ -12,6 +12,7 @@ use std::process::ExitCode;
 
 mod attest;
 mod demo;
+mod tui;
 
 use anyhow::{Context, Result};
 use clap::{Args, Parser, Subcommand};
@@ -53,6 +54,9 @@ enum Command {
     Demo(DemoArgs),
     /// List the models this machine could plan with.
     Providers,
+    /// Open the interface: pick a model, give it an instruction, watch the
+    /// gate decide.
+    Tui,
     /// Ask a model for a plan and print exactly what it said.
     ///
     /// For working out why a model's plans are rejected.
@@ -216,39 +220,15 @@ fn run() -> Result<ExitCode> {
             Ok(exit_for(tier.is_verified()))
         }
         Command::Gate(a) => run_gate(&a, &mut out),
-        Command::Raw(a) => {
-            let provider = pick_provider(a.provider.as_deref(), a.model.as_deref())?;
-            let registry = demo::registry();
-            let tools = registry
-                .names()
-                .filter_map(|n| registry.get(n).map(|t| t.signature().clone()))
-                .collect();
-            let request = tagent_agent::PlanRequest::new(demo::INSTRUCTION, tools);
-            let reply = provider
-                .chat(
-                    &tagent_agent::system_prompt(&request),
-                    &tagent_agent::user_prompt(&request),
-                )
-                .map_err(|e| anyhow::anyhow!("{e}"))?;
-            writeln!(out, "--- {} characters ---", reply.chars().count())?;
-            writeln!(out, "{reply}")?;
-            Ok(ExitCode::SUCCESS)
-        }
-        Command::Providers => {
-            let found = tagent_llm::detect();
-            if found.is_empty() {
-                writeln!(out, "nothing found.")?;
-                writeln!(
-                    out,
-                    "install one of claude, codex, hermes or ollama, or set {}.",
-                    tagent_llm::ENV_BASE_URL
-                )?;
-                return Ok(exit_for(false));
+        Command::Raw(a) => run_raw(&a, &mut out),
+        Command::Providers => list_providers(&mut out),
+        Command::Tui => {
+            let providers = tagent_llm::detect();
+            if std::env::var(tui::ENV_SELFTEST).is_ok() {
+                writeln!(out, "{}", tui::selftest(providers)?)?;
+                return Ok(ExitCode::SUCCESS);
             }
-            for p in &found {
-                writeln!(out, "{:<22} {}", p.id, p.label)?;
-                writeln!(out, "{:<22} model {}  ({})", "", p.model, p.note)?;
-            }
+            tui::run(providers)?;
             Ok(ExitCode::SUCCESS)
         }
         Command::Demo(a) => {
@@ -334,6 +314,45 @@ fn run_gate(a: &GateArgs, out: &mut impl Write) -> Result<ExitCode> {
     Ok(exit_for(report.admitted))
 }
 
+/// Ask a model for a plan and print exactly what it said.
+fn run_raw(a: &DemoArgs, out: &mut impl Write) -> Result<ExitCode> {
+    let provider = pick_provider(a.provider.as_deref(), a.model.as_deref())?;
+    let registry = demo::registry();
+    let tools = registry
+        .names()
+        .filter_map(|n| registry.get(n).map(|t| t.signature().clone()))
+        .collect();
+    let request = tagent_agent::PlanRequest::new(demo::INSTRUCTION, tools);
+    let reply = provider
+        .chat(
+            &tagent_agent::system_prompt(&request),
+            &tagent_agent::user_prompt(&request),
+        )
+        .map_err(|e| anyhow::anyhow!("{e}"))?;
+    writeln!(out, "--- {} characters ---", reply.chars().count())?;
+    writeln!(out, "{reply}")?;
+    Ok(ExitCode::SUCCESS)
+}
+
+/// Print what this machine could plan with.
+fn list_providers(out: &mut impl Write) -> Result<ExitCode> {
+    let found = tagent_llm::detect();
+    if found.is_empty() {
+        writeln!(out, "nothing found.")?;
+        writeln!(
+            out,
+            "install one of claude, codex, hermes or ollama, or set {}.",
+            tagent_llm::ENV_BASE_URL
+        )?;
+        return Ok(exit_for(false));
+    }
+    for p in &found {
+        writeln!(out, "{:<22} {}", p.id, p.label)?;
+        writeln!(out, "{:<22} model {}  ({})", "", p.model, p.note)?;
+    }
+    Ok(ExitCode::SUCCESS)
+}
+
 /// The model to plan with: the one asked for, or the first one detected.
 fn pick_provider(id: Option<&str>, model: Option<&str>) -> Result<tagent_llm::Provider> {
     let found = tagent_llm::detect();
@@ -348,7 +367,7 @@ fn pick_provider(id: Option<&str>, model: Option<&str>) -> Result<tagent_llm::Pr
             .context("no model found; try `tagent providers`")?,
     };
     if let Some(m) = model {
-        provider.model = m.to_owned();
+        m.clone_into(&mut provider.model);
     }
     Ok(provider)
 }

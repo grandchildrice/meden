@@ -189,6 +189,9 @@ impl Quarantined for OpenAiCompatible {
 
 #[cfg(test)]
 mod tests {
+    // Tests fail by panicking; that is their job.
+    #![allow(clippy::panic)]
+
     use super::*;
 
     #[test]

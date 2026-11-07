@@ -350,6 +350,9 @@ fn list_models(base_url: &str, api_key: Option<&str>) -> Option<Vec<String>> {
 
 #[cfg(test)]
 mod tests {
+    // Tests fail by panicking; that is their job.
+    #![allow(clippy::panic)]
+
     use super::*;
 
     #[test]

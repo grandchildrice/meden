@@ -61,7 +61,7 @@ pub use prompt::{parse_plan, system_prompt, user_prompt};
 
 pub use planner::{
     Outcome, PlanRequest, Planner, PlannerError, Quarantined, ScriptedPlanner, Session,
-    SessionReport,
+    SessionEvent, SessionReport,
 };
 pub use tool::{Args, ParamSpec, Registry, Tool, ToolError, ToolSig};
 pub use value::{Data, Value};

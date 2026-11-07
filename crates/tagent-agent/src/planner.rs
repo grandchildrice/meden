@@ -162,12 +162,36 @@ impl SessionReport {
     }
 }
 
+/// What a session is doing, for a caller that wants to show progress.
+///
+/// Asking a model takes long enough that a person watching needs to be told
+/// something is happening, and the interesting part — which calls the gate
+/// refused — is worth showing as it happens rather than at the end.
+#[derive(Debug)]
+pub enum SessionEvent<'a> {
+    /// About to ask the planner for a plan.
+    Asking {
+        /// Which attempt this is, from one.
+        attempt: usize,
+    },
+    /// An attempt finished, allowed or refused.
+    Attempted {
+        /// Which attempt this was, from one.
+        attempt: usize,
+        /// What the planner wrote.
+        plan: &'a Plan,
+        /// What the gate decided about each call in it.
+        trace: &'a Trace,
+    },
+}
+
 /// One instruction, carried out by asking a planner and running what it says.
 pub struct Session<'a, P: Planner> {
     registry: &'a Registry,
     config: &'a GateConfig,
     planner: &'a P,
     quarantined: Option<&'a dyn Quarantined>,
+    observer: Option<&'a dyn Fn(SessionEvent<'_>)>,
     max_attempts: usize,
 }
 
@@ -179,8 +203,16 @@ impl<'a, P: Planner> Session<'a, P> {
             config,
             planner,
             quarantined: None,
+            observer: None,
             max_attempts: 3,
         }
+    }
+
+    /// This session, reporting progress to `observer` as it goes.
+    #[must_use]
+    pub fn with_observer(mut self, observer: &'a dyn Fn(SessionEvent<'_>)) -> Self {
+        self.observer = Some(observer);
+        self
     }
 
     /// This session, able to run plans that read untrusted text.
@@ -211,7 +243,10 @@ impl<'a, P: Planner> Session<'a, P> {
         }
         let mut attempts = Vec::new();
 
-        for _ in 0..self.max_attempts {
+        for attempt in 1..=self.max_attempts {
+            if let Some(observe) = self.observer {
+                observe(SessionEvent::Asking { attempt });
+            }
             let plan = match self.planner.plan(&request) {
                 Ok(p) => p,
                 Err(e) => {
@@ -222,6 +257,13 @@ impl<'a, P: Planner> Session<'a, P> {
                 }
             };
             let (trace, result) = interpreter.run(&plan, &mut Env::new());
+            if let Some(observe) = self.observer {
+                observe(SessionEvent::Attempted {
+                    attempt,
+                    plan: &plan,
+                    trace: &trace,
+                });
+            }
             attempts.push((plan, trace));
             match result {
                 Ok(value) => {

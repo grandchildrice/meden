@@ -9,7 +9,7 @@
 //! Only what is needed is read: the name, base URL, model and the *name* of
 //! the environment variable holding each key. A key's value is looked up and
 //! passed to the request; it is never logged, and `Debug` on a
-//! [`Provider`](crate::Provider) carries it only as far as the caller does.
+//! [`Provider`] carries it only as far as the caller does.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -175,6 +175,9 @@ pub fn providers_in(home: &Path) -> Vec<Provider> {
 
 #[cfg(test)]
 mod tests {
+    // Tests fail by panicking; that is their job.
+    #![allow(clippy::panic)]
+
     use super::*;
 
     const CONFIG: &str = r"
@@ -233,9 +236,8 @@ custom_providers:
 
     #[test]
     fn a_provider_whose_key_is_missing_is_not_offered() {
-        let dir = match tempfile::tempdir() {
-            Ok(d) => d,
-            Err(_) => return,
+        let Ok(dir) = tempfile::tempdir() else {
+            return;
         };
         let _ = std::fs::write(dir.path().join("config.yaml"), CONFIG);
         let _ = std::fs::write(dir.path().join(".env"), "OLLAMA_API_KEY=secret\n");
@@ -260,9 +262,8 @@ custom_providers:
 
     #[test]
     fn a_home_without_a_config_offers_nothing() {
-        let dir = match tempfile::tempdir() {
-            Ok(d) => d,
-            Err(_) => return,
+        let Ok(dir) = tempfile::tempdir() else {
+            return;
         };
         assert!(providers_in(dir.path()).is_empty());
     }
