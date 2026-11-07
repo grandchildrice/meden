@@ -46,6 +46,7 @@ cargo test --workspace
 cargo test -p tagent-cli --test conformance     # uses lean/.lake/build/bin/tagent-spec
 cargo install --locked kani-verifier && cargo kani setup
 cargo kani -p tagent-core && cargo kani -p tagent-agent
+cargo run -p tagent-cli -- invariants --explain
 ```
 
 ## Writing a Kani harness
@@ -74,6 +75,28 @@ the harnesses tractable; the existing ones in `kani_harness.rs` in both
    bound or compare element by element, as `chars_eq` does. An unwinding
    assertion inside `memcmp` is reported as a failed check and looks, at
    first glance, like the code under test is wrong.
+
+## Changing a catalogued theorem
+
+`invariants/catalogue.json` records, for each property an attestation may
+claim, the Lean theorem that states it and the hash of that theorem's
+statement. `tagent invariants` re-reads the sources and fails if they have
+diverged, and that check is required to merge.
+
+So if you change the statement of a catalogued theorem, the build will stop
+and tell you which entry no longer matches. What to do depends on what you
+changed:
+
+- **Reformatted it.** Nothing to do. Whitespace is collapsed before hashing,
+  so rewrapping a line is not a change.
+- **Changed it, and the entry's sentence is still true of it.** Update
+  `statement_sha256` in the same commit. `tagent invariants` prints the new
+  hash.
+- **Changed what it says.** Then the entry's English sentence describes
+  something that is no longer being proved. Rewrite the sentence too, or give
+  the new statement a new id and retire the old one. Do not move a hash onto
+  a statement the sentence no longer fits: the sentence is what a human
+  approved, and the hash is the only thing holding the two together.
 
 ## What a change needs
 
