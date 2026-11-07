@@ -27,6 +27,13 @@ pub struct ParamSpec {
     /// never reach such a parameter, which is what stops a fetched web page
     /// from choosing who an email goes to.
     pub control: bool,
+    /// Must a call supply this argument?
+    ///
+    /// A parameter with a default is not missing when it is left out, and
+    /// refusing a call for leaving one out costs capability and buys no
+    /// safety: the gate's business is where an argument came from, not
+    /// whether the planner felt like writing it.
+    pub required: bool,
 }
 
 impl ParamSpec {
@@ -35,6 +42,7 @@ impl ParamSpec {
         ParamSpec {
             name: name.to_owned(),
             control: true,
+            required: true,
         }
     }
 
@@ -43,7 +51,15 @@ impl ParamSpec {
         ParamSpec {
             name: name.to_owned(),
             control: false,
+            required: true,
         }
+    }
+
+    /// This parameter, with a default, so a call may leave it out.
+    #[must_use]
+    pub fn optional(mut self) -> Self {
+        self.required = false;
+        self
     }
 }
 
@@ -97,6 +113,14 @@ impl ToolSig {
     /// The named parameter.
     pub fn param(&self, name: &str) -> Option<&ParamSpec> {
         self.params.iter().find(|p| p.name == name)
+    }
+
+    /// May a call leave this parameter out?
+    ///
+    /// Unknown parameters answer `false`: a name the signature does not
+    /// mention is not a parameter with a default, it is a mistake.
+    pub fn is_optional(&self, param: &str) -> bool {
+        self.params.iter().any(|p| p.name == param && !p.required)
     }
 
     /// The parameters that steer the call.

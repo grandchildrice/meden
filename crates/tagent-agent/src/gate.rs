@@ -188,7 +188,7 @@ pub fn admit(tool: &dyn Tool, args: &Args, config: &GateConfig) -> Result<(), Re
     let name = sig.name.clone();
 
     for param in &sig.params {
-        if !args.contains_key(&param.name) {
+        if param.required && !args.contains_key(&param.name) {
             return Err(Refusal::MissingArgument {
                 tool: name,
                 param: param.name.clone(),
@@ -235,11 +235,21 @@ pub fn admit(tool: &dyn Tool, args: &Args, config: &GateConfig) -> Result<(), Re
 
     // 3. Confidentiality: nothing may go to a reader it does not permit.
     if let Some(target_param) = &sig.discloses_to {
-        let Some(target) = args.get(target_param) else {
-            return Err(Refusal::MissingArgument {
-                tool: name,
-                param: target_param.clone(),
-            });
+        let target = match args.get(target_param) {
+            Some(value) => value,
+            // A disclosing parameter that is declared optional and left out
+            // names nobody, and a call that names nobody discloses to nobody:
+            // a calendar event with no participants is visible to its owner
+            // alone. A *required* one that is missing is a different matter —
+            // the call would reach the tool with no principal and there would
+            // be nothing to check it against.
+            None if sig.is_optional(target_param) => return Ok(()),
+            None => {
+                return Err(Refusal::MissingArgument {
+                    tool: name,
+                    param: target_param.clone(),
+                })
+            }
         };
         let Some(principal) = target.as_str() else {
             return Err(Refusal::DisclosureTargetNotText {
@@ -468,7 +478,7 @@ mod tests {
                 "x",
                 Label {
                     sources: [].into_iter().collect(),
-                    readers: Readers::only(["alice"]),
+                    readers: crate::label::Readers::only(["alice"]),
                 },
             ),
         );
@@ -555,5 +565,153 @@ mod tests {
         assert!(l.sources.contains(&Source::User));
         assert!(l.sources.contains(&Source::tool("fetch")));
         assert!(l.sources.contains(&Source::tool("send_email")));
+    }
+}
+
+#[cfg(test)]
+mod optional_argument_tests {
+    // Tests fail by panicking; that is their job.
+    #![allow(clippy::panic)]
+
+    use super::*;
+    use crate::tool::{Args, ParamSpec, Tool, ToolError, ToolSig};
+    use crate::value::{Data, Value};
+    use tagent_core::{Policy, Requirement};
+
+    struct Lookup(ToolSig);
+    impl Tool for Lookup {
+        fn signature(&self) -> &ToolSig {
+            &self.0
+        }
+        fn requirements(&self, _args: &Args) -> Vec<Requirement> {
+            Vec::new()
+        }
+        fn call(&self, _args: &Args) -> Result<Value, ToolError> {
+            Ok(Value::literal(Data::Unit))
+        }
+    }
+
+    fn tool() -> Lookup {
+        Lookup(ToolSig::new(
+            "recent",
+            vec![
+                ParamSpec::data("query"),
+                // `n` has a default: leaving it out is not an omission.
+                ParamSpec::data("how_many").optional(),
+            ],
+        ))
+    }
+
+    fn config() -> GateConfig {
+        GateConfig::new(Policy::from_labels("demo", &[], &[]).unwrap_or_default())
+    }
+
+    #[test]
+    fn an_argument_with_a_default_may_be_left_out() {
+        let tool = tool();
+        let args: Args = [("query".to_owned(), Value::str("march", Label::user()))]
+            .into_iter()
+            .collect();
+        assert!(
+            admit(&tool, &args, &config()).is_ok(),
+            "a parameter with a default was treated as missing"
+        );
+    }
+
+    #[test]
+    fn one_without_a_default_may_not_be() {
+        let tool = tool();
+        let args: Args = [(
+            "how_many".to_owned(),
+            Value::new(Data::Int(3), Label::user()),
+        )]
+        .into_iter()
+        .collect();
+        assert!(
+            matches!(
+                admit(&tool, &args, &config()),
+                Err(Refusal::MissingArgument { .. })
+            ),
+            "a required parameter was allowed to be missing"
+        );
+    }
+}
+
+#[cfg(test)]
+mod optional_disclosure_tests {
+    // Tests fail by panicking; that is their job.
+    #![allow(clippy::panic)]
+
+    use super::*;
+    use crate::tool::{Args, ParamSpec, Tool, ToolError, ToolSig};
+    use crate::value::{Data, Value};
+    use tagent_core::{Policy, Requirement};
+
+    struct MakeEvent(ToolSig);
+    impl Tool for MakeEvent {
+        fn signature(&self) -> &ToolSig {
+            &self.0
+        }
+        fn requirements(&self, _args: &Args) -> Vec<Requirement> {
+            Vec::new()
+        }
+        fn call(&self, _args: &Args) -> Result<Value, ToolError> {
+            Ok(Value::literal(Data::Unit))
+        }
+    }
+
+    fn tool() -> MakeEvent {
+        MakeEvent(
+            ToolSig::new(
+                "create_event",
+                vec![
+                    ParamSpec::data("title"),
+                    ParamSpec::control("participants").optional(),
+                ],
+            )
+            .disclosing_to("participants"),
+        )
+    }
+
+    fn config() -> GateConfig {
+        GateConfig::new(Policy::from_labels("demo", &[], &[]).unwrap_or_default())
+    }
+
+    fn secret(text: &str) -> Value {
+        Value::str(
+            text,
+            Label {
+                sources: [Source::User].into_iter().collect(),
+                readers: crate::label::Readers::only(["alice"]),
+            },
+        )
+    }
+
+    #[test]
+    fn naming_nobody_discloses_to_nobody() {
+        let args: Args = [("title".to_owned(), secret("salary review"))]
+            .into_iter()
+            .collect();
+        assert!(
+            admit(&tool(), &args, &config()).is_ok(),
+            "an event with no participants was treated as a disclosure"
+        );
+    }
+
+    #[test]
+    fn naming_somebody_is_still_checked() {
+        let args: Args = [
+            ("title".to_owned(), secret("salary review")),
+            ("participants".to_owned(), Value::str("bob", Label::user())),
+        ]
+        .into_iter()
+        .collect();
+        assert!(
+            matches!(
+                admit(&tool(), &args, &config()),
+                Err(Refusal::Disclosure { .. })
+            ),
+            "a secret title went to someone who may not read it"
+        );
     }
 }

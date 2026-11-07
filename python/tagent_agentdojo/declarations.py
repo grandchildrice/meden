@@ -269,7 +269,18 @@ def tool_specs(runtime: Any, declarations: dict[str, Declaration]) -> list[dict[
             "name": tool.name,
             "description": (tool.description or "").strip(),
             "params": [
-                {"name": name, "control": name in steering} for name in tool.parameters.model_fields
+                {
+                    "name": name,
+                    "control": name in steering,
+                    # A parameter with a default is not missing when it is
+                    # left out. Calling every field required refused ordinary
+                    # calls — `get_most_recent_transactions` without its `n` —
+                    # and bought nothing: the gate rules on where an argument
+                    # came from, not on whether the planner bothered to write
+                    # one.
+                    "required": field.is_required(),
+                }
+                for name, field in tool.parameters.model_fields.items()
             ],
             "requires": list(declaration.get("requires", ())),
         }

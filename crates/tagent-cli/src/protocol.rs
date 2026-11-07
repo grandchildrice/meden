@@ -77,6 +77,18 @@ pub struct ParamSpecJson {
     /// Does it steer what the call does?
     #[serde(default)]
     pub control: bool,
+    /// Must a call supply it?
+    ///
+    /// Defaults to required, because a host that says nothing about a
+    /// parameter is better served by a refusal it can read than by a call
+    /// that reaches a tool without an argument it needed.
+    #[serde(default = "yes")]
+    pub required: bool,
+}
+
+/// The default for [`ParamSpecJson::required`].
+const fn yes() -> bool {
+    true
 }
 
 /// What the host sends to start a session.
@@ -331,6 +343,7 @@ pub fn run(
             .map(|p| ParamSpec {
                 name: p.name.clone(),
                 control: p.control,
+                required: p.required,
             })
             .collect();
         let mut sig = ToolSig::new(&spec.name, params).describing(&spec.description);
