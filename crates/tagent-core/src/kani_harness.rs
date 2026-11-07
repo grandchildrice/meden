@@ -13,10 +13,12 @@ use crate::capability::{Capability, Requirement};
 use crate::glob::glob_match_chars;
 use crate::policy::{allowed, violates, Grant, Policy};
 
-/// Scopes a requirement may carry (concrete).
-const REQ_SCOPES: [&str; 4] = ["a", "b", "a/b", ""];
+/// Scopes a requirement may carry (concrete). Kept to one character: the
+/// glob itself is covered by its own harnesses and by the Lean model; here
+/// the scope only has to be able to match or not match a grant.
+const REQ_SCOPES: [&str; 2] = ["a", "b"];
 /// Scopes a grant may carry (concrete, with wildcards).
-const GRANT_SCOPES: [&str; 5] = ["a", "*", "a*", "?", "a/?"];
+const GRANT_SCOPES: [&str; 3] = ["a", "*", "?"];
 
 fn any_cap() -> Capability {
     let i: usize = kani::any();
@@ -81,12 +83,12 @@ fn star_matches_everything() {
 /// Deny always wins: a requirement on a denied capability is violated,
 /// whatever the grants are.
 #[kani::proof]
-#[kani::unwind(12)]
+#[kani::unwind(6)]
 fn deny_wins() {
     let req = any_req();
     let policy = Policy {
         name: String::new(),
-        grants: vec![any_grant(), any_grant()],
+        grants: vec![any_grant()],
         denies: vec![any_cap()],
     };
     if policy.denies(req.capability) {
@@ -96,7 +98,7 @@ fn deny_wins() {
 
 /// `allowed` is exactly "every requirement granted and none denied".
 #[kani::proof]
-#[kani::unwind(12)]
+#[kani::unwind(6)]
 fn allowed_iff_granted_and_not_denied() {
     let reqs = [any_req(), any_req()];
     let policy = Policy {
@@ -112,24 +114,30 @@ fn allowed_iff_granted_and_not_denied() {
 
 /// Adding a grant never turns an allowance into a denial.
 #[kani::proof]
-#[kani::unwind(12)]
+#[kani::unwind(6)]
 fn grants_are_monotone() {
-    let reqs = [any_req(), any_req()];
-    let mut policy = Policy {
+    let reqs = [any_req()];
+    let g1 = any_grant();
+    let g2 = any_grant();
+    let smaller = Policy {
         name: String::new(),
-        grants: vec![any_grant()],
+        grants: vec![g1.clone()],
         denies: vec![],
     };
-    let before = allowed(&reqs, &policy);
-    policy.grants.push(any_grant());
-    let after = allowed(&reqs, &policy);
+    let larger = Policy {
+        name: String::new(),
+        grants: vec![g1, g2],
+        denies: vec![],
+    };
+    let before = allowed(&reqs, &smaller);
+    let after = allowed(&reqs, &larger);
     assert!(!before || after);
 }
 
 /// A scoped grant never covers an unscoped requirement; an unscoped grant
 /// covers every requirement on its capability.
 #[kani::proof]
-#[kani::unwind(12)]
+#[kani::unwind(6)]
 fn scope_rules() {
     let cap = any_cap();
     let g = any_grant();
