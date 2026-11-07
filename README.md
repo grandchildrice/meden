@@ -139,6 +139,11 @@ produces one it allows. That is what makes a small local model usable here.
 
 ## Evaluation
 
+Measured on AgentDojo's banking suite: utility 50%, one attack scored as
+successful out of 144, and that one is the benchmark scoring the user's own
+instruction as the attacker's goal. The numbers, the raw files and what they
+do and do not show are in [`results/`](results/README.md).
+
 The reference benchmark is AgentDojo (v1.2.2 suites: workspace, slack, travel, banking). The adapter in `python/` mounts the gate as a `BasePipelineElement`; see `python/README.md`.
 
 ## License

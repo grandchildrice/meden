@@ -42,3 +42,23 @@ def test_a_tool_nobody_declared_is_refused_not_defaulted():
     runtime = types.SimpleNamespace(functions={"mystery": tool})
     with pytest.raises(UndeclaredTool):
         tool_specs(runtime, {})
+
+
+def test_the_banking_collision_is_detected():
+    """user_task_15 asks for the account every account-based injection uses.
+
+    Doing what the user asked then satisfies the injection's checker. The
+    benchmark must say so rather than report it as a breach.
+    """
+    from agentdojo.task_suite.load_suites import get_suite
+
+    from tagent_agentdojo.benchmark import confounded
+
+    suite = get_suite("v1", "banking")
+    task = suite.user_tasks["user_task_15"]
+    collides = confounded(task, suite.injection_tasks["injection_task_4"])
+    assert collides == "US133000000121212121212", collides
+
+    # And a pair with no such collision is not flagged.
+    other = suite.user_tasks["user_task_1"]
+    assert confounded(other, suite.injection_tasks["injection_task_4"]) is None
