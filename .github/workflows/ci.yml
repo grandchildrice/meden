@@ -51,19 +51,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        harness:
-          - glob_literal_is_identity
-          - star_matches_everything
-          - deny_wins
-          - allowed_iff_granted_and_not_denied
-          - grants_are_monotone
-          - scope_rules
-          - tier_rule
+        include:
+          - { package: tagent-core, harness: glob_literal_is_identity }
+          - { package: tagent-core, harness: star_matches_everything }
+          - { package: tagent-core, harness: deny_wins }
+          - { package: tagent-core, harness: allowed_iff_granted_and_not_denied }
+          - { package: tagent-core, harness: grants_are_monotone }
+          - { package: tagent-core, harness: scope_rules }
+          - { package: tagent-core, harness: tier_rule }
+          - { package: tagent-agent, harness: untrusted_control_is_refused }
+          - { package: tagent-agent, harness: data_that_does_not_steer_is_allowed }
+          - { package: tagent-agent, harness: unreadable_is_not_disclosed }
+          - { package: tagent-agent, harness: rules_are_monotone_in_arguments }
     steps:
       - uses: actions/checkout@v7
       - uses: model-checking/kani-github-action@v1
         with:
-          args: -p tagent-core --harness kani_harness::${{ matrix.harness }}
+          args: -p ${{ matrix.package }} --harness kani_harness::${{ matrix.harness }}
 
   lean:
     name: lean (spec builds, no sorry, standard axioms only)

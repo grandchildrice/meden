@@ -1,6 +1,11 @@
 [workspace]
 resolver = "2"
-members = ["crates/tagent-core", "crates/tagent-skill", "crates/tagent-cli"]
+members = [
+    "crates/tagent-core",
+    "crates/tagent-skill",
+    "crates/tagent-agent",
+    "crates/tagent-cli",
+]
 
 [workspace.package]
 version = "0.1.0"

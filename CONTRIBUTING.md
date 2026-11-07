@@ -5,15 +5,15 @@
 **A pull request merges when CI is green. No human approval is required.**
 
 That is only safe because CI checks what a reviewer would otherwise have to
-check by hand. Twelve checks are required on `main`:
+check by hand. Sixteen checks are required on `main`:
 
 | Check | What it guarantees |
 | --- | --- |
 | `rust` | `cargo fmt`, `clippy -D warnings` with `unwrap_used`, `expect_used`, `panic`, `indexing_slicing` and `arithmetic_side_effects` denied, `#![forbid(unsafe_code)]` in every crate, all tests, and `cargo doc` without warnings. |
 | `cargo-deny` | No dependency with a disallowed license, a known advisory, or an unknown source. |
 | `lean` | `lean/TAgentSpec` builds, contains no `sorry`, and every audited theorem depends only on `propext`, `Classical.choice` and `Quot.sound`. Also runs `tagent attest lean` end to end. |
-| `conformance` | The Rust implementation and the Lean model agree on 1,200 random policy, glob and tier cases from a fixed-seed generator. |
-| `kani (…)` | Seven jobs, one per harness: each property holds for *every* input within its bounds, panics and overflow included. |
+| `conformance` | The Rust implementation and the Lean model agree on 1,500 random policy, glob, tier and information-flow cases from a fixed-seed generator. |
+| `kani (…)` | Eleven jobs, one per harness: each property holds for *every* input within its bounds, panics and overflow included. |
 | `python adapter` | The AgentDojo adapter lints and its tests pass against the built binary. |
 
 Pushes to `main` are restricted to maintainers; everyone else contributes
@@ -28,6 +28,7 @@ that weakens a theorem fails `lean`. Satisfying both is the review.
 
 ```
 crates/tagent-core    capability vocabulary, glob, policy, attestation tiers (no I/O, no unsafe)
+crates/tagent-agent   the agent core: labelled values, plan language, interpreter
 crates/tagent-skill   SKILL.md frontend (Agent Skills / OpenClaw metadata)
 crates/tagent-cli     the `tagent` binary, including the `attest lean` verifier plugin
 lean/                 TAgentSpec (model + theorems) and the `tagent-spec` oracle
@@ -44,19 +45,21 @@ cargo test --workspace
 (cd lean && lake build && lake env lean Audit.lean)
 cargo test -p tagent-cli --test conformance     # uses lean/.lake/build/bin/tagent-spec
 cargo install --locked kani-verifier && cargo kani setup
-cargo kani -p tagent-core
+cargo kani -p tagent-core && cargo kani -p tagent-agent
 ```
 
 ## Writing a Kani harness
 
 The hosted runner is small, and CBMC will happily exhaust it. Four rules keep
-the harnesses tractable; the existing ones in
-`crates/tagent-core/src/kani_harness.rs` follow all four.
+the harnesses tractable; the existing ones in `kani_harness.rs` in both
+`tagent-core` and `tagent-agent` follow all four.
 
-1. **No heap.** State the rule on borrowed slices (`GrantRef`, `ReqRef`,
-   `&[char]`, `&[&str]`) and give the harness stack arrays. The owned API
-   delegates to the borrowed one, and a property test pins the two together,
-   so the harness still constrains what callers use. A `Vec` in a harness is
+1. **No heap.** State the rule on data the harness can hold on the stack and
+   let the real API delegate to it, with a property test pinning the two
+   together. `tagent-core` does this with borrowed slices (`GrantRef`,
+   `ReqRef`, `&[char]`, `&[&str]`); `tagent-agent` does it by reducing a
+   label to the two booleans the flow rule actually depends on
+   (`integrity_ok_flags`, `disclosure_ok_flags`). A `Vec` in a harness is
    what made an earlier version run the runner out of memory.
 2. **No panicking operation.** Index through `get`, never `a[i]`, so slice
    bounds checks stay out of the model. Use `assert!`, not `assert_eq!`,

@@ -749,6 +749,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "tagent-agent"
+version = "0.1.0"
+dependencies = [
+ "proptest",
+ "serde",
+ "serde_json",
+ "tagent-core",
+ "thiserror",
+]
+
+[[package]]
 name = "tagent-cli"
 version = "0.1.0"
 dependencies = [
@@ -758,6 +769,7 @@ dependencies = [
  "predicates",
  "serde",
  "serde_json",
+ "tagent-agent",
  "tagent-core",
  "tagent-skill",
  "tempfile",

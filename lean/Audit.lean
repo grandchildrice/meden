@@ -22,3 +22,14 @@ open TAgentSpec
 #print axioms tier_foreign_approved
 #print axioms verified_implies_lean_only
 #print axioms tested_never_verifies
+#print axioms Readers.meet_allows
+#print axioms Readers.anyone_meet
+#print axioms Label.join_trusted
+#print axioms Label.join_untrusted_left
+#print axioms Label.join_untrusted_right
+#print axioms Label.join_allows
+#print axioms Label.mem_join_left
+#print axioms Label.mem_join_right
+#print axioms untrusted_control_refused
+#print axioms unreadable_not_disclosed
+#print axioms integrity_cons

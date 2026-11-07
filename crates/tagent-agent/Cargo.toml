@@ -1,0 +1,21 @@
+[package]
+name = "tagent-agent"
+description = "The capability-typed agent core: labelled values, a restricted plan language, and an interpreter that calls tools through the gate"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+tagent-core = { path = "../tagent-core", version = "0.1.0" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+proptest = "1"
+
+[lints]
+workspace = true

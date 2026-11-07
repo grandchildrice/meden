@@ -54,6 +54,18 @@ structure GlobCase where
   text : String
   deriving FromJson
 
+structure JArg where
+  control : Bool
+  sources : List String
+  readers : Option (List String) := none
+  deriving FromJson
+
+structure FlowCase where
+  trusted : List String
+  principal : String
+  args : List JArg
+  deriving FromJson
+
 structure TierCase where
   result : String
   tcb : List String
@@ -65,6 +77,7 @@ structure Input where
   policy_cases : List PolicyCase := []
   glob_cases : List GlobCase := []
   tier_cases : List TierCase := []
+  flow_cases : List FlowCase := []
   deriving FromJson
 
 def JPolicy.toPolicy (p : JPolicy) : Policy :=
@@ -90,6 +103,27 @@ def runPolicy (c : PolicyCase) : Bool :=
 def runGlob (c : GlobCase) : Bool :=
   globMatch c.pattern.toList c.text.toList
 
+def sourceOf (s : String) : Source :=
+  match s with
+  | "runtime" => .runtime
+  | "user" => .user
+  | "assistant" => .assistant
+  | _ => .tool (if s.startsWith "tool:" then (s.drop 5).toString else s)
+
+def readersOf : Option (List String) → Readers
+  | none => .anyone
+  | some ps => .only ps
+
+def argOf (a : JArg) : Arg :=
+  { control := a.control
+    label := { sources := a.sources.map sourceOf, readers := readersOf a.readers } }
+
+def runIntegrity (c : FlowCase) : Bool :=
+  integrityOk (c.trusted.map sourceOf) (c.args.map argOf)
+
+def runDisclosure (c : FlowCase) : Bool :=
+  disclosureOk c.principal (c.args.map argOf)
+
 def runTier (c : TierCase) : String :=
   match vresultOf? c.result with
   | some r => (tierOf r c.tcb c.backend c.approved).name
@@ -110,6 +144,8 @@ def main : IO UInt32 := do
     let out : Json := Json.mkObj
       [ ("policy", toJson (input.policy_cases.map runPolicy))
       , ("glob", toJson (input.glob_cases.map runGlob))
-      , ("tier", toJson (input.tier_cases.map runTier)) ]
+      , ("tier", toJson (input.tier_cases.map runTier))
+      , ("integrity", toJson (input.flow_cases.map runIntegrity))
+      , ("disclosure", toJson (input.flow_cases.map runDisclosure)) ]
     IO.println out.compress
     return 0

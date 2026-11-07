@@ -13,6 +13,7 @@ The gate itself is held to the same standard. Its rules are stated in Lean 4 wit
 | Path | Purpose |
 | --- | --- |
 | `crates/tagent-core` | Capability vocabulary, scope globs, policies and decisions, attestation tiers. No I/O, no `unsafe`, no panics. |
+| `crates/tagent-agent` | The agent core: labelled values, the restricted plan language, and the interpreter that runs a plan through the gate. |
 | `crates/tagent-skill` | Reads an [Agent Skills](https://agentskills.io) package (`SKILL.md` + scripts, including OpenClaw's `metadata.openclaw.requires`) and extracts the capabilities it would need. |
 | `crates/tagent-cli` | The `tagent` binary: `extract`, `check`, `decide`, `tier`, `gate`, `digest`, and the first verifier plugin, `attest lean`. |
 | `examples/` | A benign and a ClawHub-style malicious skill, and two policies. |
@@ -65,6 +66,9 @@ Stated and proved in `lean/TAgentSpec`, mirrored by Kani harnesses and property 
 - Adding a grant or removing a deny never turns an allowance into a denial.
 - A scoped grant never covers an unscoped requirement; a wildcard-free scope matches only itself; `*` matches everything.
 - Only a `proved` attestation can be *verified*; a Lean-only TCB verifies without approval; a foreign TCB verifies only with an approved backend; tests and scans never verify.
+- Trust cannot be laundered: combining untrusted data with trusted data never yields data that may steer an action.
+- If any argument that steers a call carries an untrusted source, the call is refused, whatever the input says.
+- If any argument may not be read by the principal a call discloses to, the call is refused.
 
 ## Evaluation
 

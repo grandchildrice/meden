@@ -24,6 +24,7 @@ use std::process::{Command, Stdio};
 
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use tagent_agent::{disclosure_ok, integrity_ok, Label, Readers, Source};
 use tagent_core::attestation::{tier_of, Result as VResult, Tier};
 use tagent_core::glob::glob_match;
 use tagent_core::{check, Capability, Grant, Policy, Requirement};
@@ -89,11 +90,56 @@ struct TierCase {
     approved: Vec<String>,
 }
 
+/// One argument as the flow rules see it.
+#[derive(Serialize)]
+struct FlowArg {
+    control: bool,
+    sources: Vec<String>,
+    /// `None` means anyone may read.
+    readers: Option<Vec<String>>,
+}
+
+#[derive(Serialize)]
+struct FlowCase {
+    trusted: Vec<String>,
+    principal: String,
+    args: Vec<FlowArg>,
+}
+
+fn source_name(s: &Source) -> String {
+    match s {
+        Source::Runtime => "runtime".to_owned(),
+        Source::User => "user".to_owned(),
+        Source::Assistant => "assistant".to_owned(),
+        Source::Tool(n) => format!("tool:{n}"),
+    }
+}
+
+fn parse_source(name: &str) -> Source {
+    match name {
+        "runtime" => Source::Runtime,
+        "user" => Source::User,
+        "assistant" => Source::Assistant,
+        other => Source::tool(other.strip_prefix("tool:").unwrap_or(other)),
+    }
+}
+
+fn label_of(arg: &FlowArg) -> Label {
+    Label {
+        sources: arg.sources.iter().map(|s| parse_source(s)).collect(),
+        readers: match &arg.readers {
+            None => Readers::Public,
+            Some(ps) => Readers::only(ps.clone()),
+        },
+    }
+}
+
 #[derive(Serialize)]
 struct Input {
     policy_cases: Vec<PolicyCase>,
     glob_cases: Vec<GlobCase>,
     tier_cases: Vec<TierCase>,
+    flow_cases: Vec<FlowCase>,
 }
 
 #[derive(Deserialize)]
@@ -101,6 +147,8 @@ struct Output {
     policy: Vec<bool>,
     glob: Vec<bool>,
     tier: Vec<String>,
+    integrity: Vec<bool>,
+    disclosure: Vec<bool>,
 }
 
 fn oracle_path() -> Option<PathBuf> {
@@ -191,10 +239,45 @@ fn rust_agrees_with_lean_oracle() {
         })
         .collect();
 
+    let source_pool = [
+        Source::Runtime,
+        Source::User,
+        Source::Assistant,
+        Source::tool("fetch"),
+        Source::tool("vault"),
+    ];
+    let principal_pool = ["alice", "bob", "carol"];
+    let flow_cases: Vec<FlowCase> = (0..300)
+        .map(|_| {
+            let trusted = (0..rng.below(4))
+                .map(|_| source_name(&source_pool[rng.below(source_pool.len())]))
+                .collect();
+            let args = (0..rng.below(4))
+                .map(|_| FlowArg {
+                    control: rng.chance(1, 2),
+                    sources: (0..rng.below(3))
+                        .map(|_| source_name(&source_pool[rng.below(source_pool.len())]))
+                        .collect(),
+                    readers: rng.chance(1, 2).then(|| {
+                        (0..rng.below(3))
+                            .map(|_| principal_pool[rng.below(principal_pool.len())].to_owned())
+                            .collect()
+                    }),
+                })
+                .collect();
+            FlowCase {
+                trusted,
+                principal: principal_pool[rng.below(principal_pool.len())].to_owned(),
+                args,
+            }
+        })
+        .collect();
+
     let input = Input {
         policy_cases,
         glob_cases,
         tier_cases,
+        flow_cases,
     };
     let mut child = Command::new(&bin)
         .stdin(Stdio::piped())
@@ -231,5 +314,26 @@ fn rust_agrees_with_lean_oracle() {
     for (i, c) in input.tier_cases.iter().enumerate() {
         let rust = tier_name(tier_of(c.result, &c.tcb, &c.backend, &c.approved));
         assert_eq!(rust, output.tier[i], "tier case {i}: {}", json!(c));
+    }
+
+    assert_eq!(output.integrity.len(), input.flow_cases.len());
+    assert_eq!(output.disclosure.len(), input.flow_cases.len());
+    for (i, c) in input.flow_cases.iter().enumerate() {
+        let trusted = c.trusted.iter().map(|s| parse_source(s)).collect();
+        let labelled: Vec<(bool, Label)> =
+            c.args.iter().map(|a| (a.control, label_of(a))).collect();
+        assert_eq!(
+            integrity_ok(&trusted, &labelled),
+            output.integrity[i],
+            "integrity case {i}: {}",
+            json!(c)
+        );
+        let labels: Vec<Label> = c.args.iter().map(label_of).collect();
+        assert_eq!(
+            disclosure_ok(&c.principal, &labels),
+            output.disclosure[i],
+            "disclosure case {i}: {}",
+            json!(c)
+        );
     }
 }

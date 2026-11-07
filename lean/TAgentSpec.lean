@@ -2,6 +2,7 @@ import TAgentSpec.Capability
 import TAgentSpec.Glob
 import TAgentSpec.Policy
 import TAgentSpec.Attestation
+import TAgentSpec.Flow
 
 /-!
 # TAgentSpec
