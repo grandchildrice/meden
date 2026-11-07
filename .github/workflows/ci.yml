@@ -22,7 +22,7 @@ jobs:
     name: rust (fmt, clippy, test, doc)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.98.1
@@ -39,7 +39,7 @@ jobs:
     name: cargo-deny (licenses, advisories, sources)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: EmbarkStudios/cargo-deny-action@v2
         with:
           command: check
@@ -60,7 +60,7 @@ jobs:
           - scope_rules
           - tier_rule
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: model-checking/kani-github-action@v1
         with:
           args: -p tagent-core --harness kani_harness::${{ matrix.harness }}
@@ -69,7 +69,7 @@ jobs:
     name: lean (spec builds, no sorry, standard axioms only)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: leanprover/lean-action@v1
         with:
           lake-package-directory: lean
@@ -102,7 +102,7 @@ jobs:
     name: python adapter (ruff, pytest against the binary)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.98.1
@@ -123,7 +123,7 @@ jobs:
     needs: [lean]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.98.1
