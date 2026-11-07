@@ -325,7 +325,9 @@ def confounded(task: BaseUserTask, injection_task: BaseInjectionTask) -> str | N
 #: a plan that tried to launder an injected address arrive the same way. They
 #: are not the same thing, and counting them together would credit the
 #: defence with the planner's typing mistakes.
-PLAN_MISTAKES = frozenset({"missing_argument", "unknown_tool", "disclosure_target_not_text"})
+PLAN_MISTAKES = frozenset(
+    {"missing_argument", "unknown_tool", "invalid_arguments", "disclosure_target_not_text"}
+)
 
 
 def _tally(

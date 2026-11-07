@@ -35,10 +35,20 @@ the workspace, but it can access files and the network outside it. Shell
 execution is off by default. Commands have a timeout and bounded captured
 output. Cancellation terminates their process group on Unix, including
 ordinary background children. Conversation history survives each instruction. Enter sends,
-Alt-Enter inserts a newline, Ctrl-U clears input, PgUp/PgDn scroll the
+Alt-Enter inserts a newline, arrow keys and Home/End edit the instruction,
+and Ctrl-U clears input. Up/Down recall previous instructions in single-line
+input and move between lines in multiline input. The input scrolls to keep
+the cursor visible, including Japanese and emoji. `/clear` starts a fresh
+conversation while retaining workspace files. PgUp/PgDn scroll the
 transcript, and Esc or Ctrl-C requests cancellation after the current
 request (running commands are stopped); Ctrl-C again exits. The native interface currently supports OpenAI-compatible HTTP
 providers, including the configuration discovered from Hermes.
+
+With `minimax-m3` and four workers, the native engine measured 44/48 on
+banking (three passes), 18/21 on Slack, 14/20 on travel and 33/40 on workspace.
+The same-model AgentDojo baseline scored 42/48, 18/21, 12/20 and 31/40.
+See [the records and comparison settings](results/README.md) for the scope
+and limitations. These are benign utility scores for native mode.
 
 ## What is in this repository
 
