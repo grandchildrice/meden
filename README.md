@@ -140,12 +140,13 @@ produces one it allows. That is what makes a small local model usable here.
 ## Evaluation
 
 Measured on AgentDojo's banking suite against two baselines, same model
-throughout. An ordinary tool-calling agent scores 94% utility and is breached
-3 times in 144; this runtime scores 50-56% and is breached none. But the same
-runtime with its flow rules switched off is also breached none, so on this
-suite it is the planner/reader split doing the work and not the labels, and
-the 94% says the split is expensive. The numbers, the raw files and what they
-do and do not show are in [`results/`](results/README.md).
+throughout. The baseline is AgentDojo's own undefended pipeline, built by
+`AgentPipeline.from_config`: it scores 88% utility and is breached 3 times in
+144. This runtime scores 50-56% and is breached none. But the same runtime
+with its flow rules switched off is also breached none, so on this suite it
+is the planner/reader split doing the work and not the labels, and the 88%
+says the split is expensive. The numbers, the raw files and what they do and
+do not show are in [`results/`](results/README.md).
 
 The reference benchmark is AgentDojo (v1.2.2 suites: workspace, slack, travel, banking). The adapter in `python/` mounts the gate as a `BasePipelineElement`; see `python/README.md`.
 
