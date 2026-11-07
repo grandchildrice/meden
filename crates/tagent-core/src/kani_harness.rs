@@ -1,18 +1,22 @@
-//! Bounded model-checking harnesses, run with `cargo kani` in CI.
+//! Bounded model-checking harnesses, run with `cargo kani -p tagent-core` in CI.
 //!
 //! Each harness states a property over *all* inputs within a small bound.
 //! Kani (CBMC) explores them exhaustively, so a passing harness is a proof of
 //! the property for those bounds, including absence of panics and arithmetic
-//! overflow. The bounds are deliberately tiny: the point is the shape of the
-//! argument, not coverage, which the Lean model and the conformance tests
-//! provide.
+//! overflow. Scopes are drawn from a fixed menu of concrete strings by a
+//! symbolic index: the choice is exhaustive, the strings are not symbolic,
+//! which keeps the SAT problems small. The Lean model carries the unbounded
+//! argument; these harnesses pin the Rust code to it.
 
 use crate::attestation::{tier_of, Result, Tier};
 use crate::capability::{Capability, Requirement};
 use crate::glob::glob_match_chars;
-use crate::policy::{check, Grant, Policy};
+use crate::policy::{allowed, violates, Grant, Policy};
 
-const ALPHABET: [char; 4] = ['a', 'b', '*', '?'];
+/// Scopes a requirement may carry (concrete).
+const REQ_SCOPES: [&str; 4] = ["a", "b", "a/b", ""];
+/// Scopes a grant may carry (concrete, with wildcards).
+const GRANT_SCOPES: [&str; 5] = ["a", "*", "a*", "?", "a/?"];
 
 fn any_cap() -> Capability {
     let i: usize = kani::any();
@@ -20,25 +24,25 @@ fn any_cap() -> Capability {
     Capability::ALL[i]
 }
 
-fn any_scope<const N: usize>(wild: bool) -> Option<String> {
-    if kani::any() {
-        return None;
-    }
-    let len: usize = kani::any();
-    kani::assume(len <= N);
-    let mut s = String::with_capacity(N);
-    for _ in 0..len {
-        let i: usize = kani::any();
-        kani::assume(i < if wild { 4 } else { 2 });
-        s.push(ALPHABET[i]);
-    }
-    Some(s)
+fn any_req() -> Requirement {
+    let scoped: bool = kani::any();
+    let i: usize = kani::any();
+    kani::assume(i < REQ_SCOPES.len());
+    Requirement::new(any_cap(), scoped.then_some(REQ_SCOPES[i]))
+}
+
+fn any_grant() -> Grant {
+    let scoped: bool = kani::any();
+    let i: usize = kani::any();
+    kani::assume(i < GRANT_SCOPES.len());
+    Grant::new(any_cap(), scoped.then_some(GRANT_SCOPES[i]))
 }
 
 /// `glob_match` never panics and a wildcard-free pattern matches only itself.
 #[kani::proof]
-#[kani::unwind(6)]
+#[kani::unwind(5)]
 fn glob_literal_is_identity() {
+    const ALPHABET: [char; 2] = ['a', 'b'];
     let n: usize = kani::any();
     kani::assume(n <= 3);
     let m: usize = kani::any();
@@ -47,73 +51,96 @@ fn glob_literal_is_identity() {
     let mut t = [' '; 3];
     for i in 0..n {
         let c: usize = kani::any();
-        kani::assume(c < 2);
+        kani::assume(c < ALPHABET.len());
         p[i] = ALPHABET[c];
     }
     for i in 0..m {
         let c: usize = kani::any();
-        kani::assume(c < 2);
+        kani::assume(c < ALPHABET.len());
         t[i] = ALPHABET[c];
     }
-    let matched = glob_match_chars(&p[..n], &t[..m]);
-    assert_eq!(matched, p[..n] == t[..m]);
+    assert_eq!(glob_match_chars(&p[..n], &t[..m]), p[..n] == t[..m]);
 }
 
-/// A lone `*` matches everything; `*` never panics on any text.
+/// A lone `*` matches every text (and never panics on wildcards in the text).
 #[kani::proof]
 #[kani::unwind(6)]
 fn star_matches_everything() {
+    const ALPHABET: [char; 4] = ['a', 'b', '*', '?'];
     let m: usize = kani::any();
     kani::assume(m <= 4);
     let mut t = [' '; 4];
     for i in 0..m {
         let c: usize = kani::any();
-        kani::assume(c < 4);
+        kani::assume(c < ALPHABET.len());
         t[i] = ALPHABET[c];
     }
     assert!(glob_match_chars(&['*'], &t[..m]));
 }
 
-/// Deny always wins: a requirement whose capability is denied is never allowed.
+/// Deny always wins: a requirement on a denied capability is violated,
+/// whatever the grants are.
 #[kani::proof]
-#[kani::unwind(8)]
+#[kani::unwind(4)]
 fn deny_wins() {
-    let req = Requirement::new(any_cap(), any_scope::<2>(false).as_deref());
-    let grants = vec![
-        Grant::new(any_cap(), any_scope::<2>(true).as_deref()),
-        Grant::new(any_cap(), any_scope::<2>(true).as_deref()),
-    ];
-    let denies = vec![any_cap()];
+    let req = any_req();
     let policy = Policy {
         name: String::new(),
-        grants,
-        denies,
-    };
-    let d = check(std::slice::from_ref(&req), &policy);
-    if policy.denies(req.capability) {
-        assert!(!d.allowed);
-    }
-    assert_eq!(d.allowed, d.reasons.is_empty());
-}
-
-/// Allowed iff every requirement is granted and none denied (two requirements).
-#[kani::proof]
-#[kani::unwind(8)]
-fn allowed_iff_granted_and_not_denied() {
-    let reqs = [
-        Requirement::new(any_cap(), any_scope::<2>(false).as_deref()),
-        Requirement::new(any_cap(), any_scope::<2>(false).as_deref()),
-    ];
-    let policy = Policy {
-        name: String::new(),
-        grants: vec![Grant::new(any_cap(), any_scope::<2>(true).as_deref())],
+        grants: vec![any_grant(), any_grant()],
         denies: vec![any_cap()],
     };
-    let d = check(&reqs, &policy);
+    if policy.denies(req.capability) {
+        assert!(violates(&policy, &req));
+    }
+}
+
+/// `allowed` is exactly "every requirement granted and none denied".
+#[kani::proof]
+#[kani::unwind(4)]
+fn allowed_iff_granted_and_not_denied() {
+    let reqs = [any_req(), any_req()];
+    let policy = Policy {
+        name: String::new(),
+        grants: vec![any_grant()],
+        denies: vec![any_cap()],
+    };
     let expected = reqs
         .iter()
         .all(|r| !policy.denies(r.capability) && policy.grants(r));
-    assert_eq!(d.allowed, expected);
+    assert_eq!(allowed(&reqs, &policy), expected);
+}
+
+/// Adding a grant never turns an allowance into a denial.
+#[kani::proof]
+#[kani::unwind(4)]
+fn grants_are_monotone() {
+    let reqs = [any_req(), any_req()];
+    let mut policy = Policy {
+        name: String::new(),
+        grants: vec![any_grant()],
+        denies: vec![],
+    };
+    let before = allowed(&reqs, &policy);
+    policy.grants.push(any_grant());
+    let after = allowed(&reqs, &policy);
+    assert!(!before || after);
+}
+
+/// A scoped grant never covers an unscoped requirement; an unscoped grant
+/// covers every requirement on its capability.
+#[kani::proof]
+#[kani::unwind(4)]
+fn scope_rules() {
+    let cap = any_cap();
+    let g = any_grant();
+    let unscoped_req = Requirement::new(cap, None);
+    if g.capability == cap && g.scope.is_some() {
+        assert!(!g.covers(&unscoped_req));
+    }
+    let req = any_req();
+    if req.capability == cap {
+        assert!(Grant::new(cap, None).covers(&req));
+    }
 }
 
 /// The tier rule: only `proved` can verify; a Lean-only TCB verifies without
@@ -121,15 +148,15 @@ fn allowed_iff_granted_and_not_denied() {
 #[kani::proof]
 #[kani::unwind(4)]
 fn tier_rule() {
-    let results = [
+    const RESULTS: [Result; 4] = [
         Result::Proved,
         Result::Tested,
         Result::Scanned,
         Result::Failed,
     ];
     let ri: usize = kani::any();
-    kani::assume(ri < 4);
-    let result = results[ri];
+    kani::assume(ri < RESULTS.len());
+    let result = RESULTS[ri];
     let foreign: bool = kani::any();
     let tcb = if foreign {
         vec!["z3".to_owned()]
