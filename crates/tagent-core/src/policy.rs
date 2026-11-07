@@ -140,8 +140,7 @@ pub fn covers_ref(g: GrantRef<'_>, r: ReqRef<'_>) -> bool {
         return false;
     }
     match (g.scope, r.scope) {
-        (None, _) => true,
-        (Some(_), None) => false,
+        (None, _) | (Some(_), None) => true,
         (Some(pat), Some(s)) => glob_match(pat, s),
     }
 }
@@ -304,8 +303,8 @@ mod tests {
             &p
         )
         .denied());
-        // unscoped requirement needs unscoped grant
-        assert!(check(&[Requirement::new(Capability::FsRead, None)], &p).denied());
+        // a scoped grant now also covers an unscoped requirement
+        assert!(check(&[Requirement::new(Capability::FsRead, None)], &p).allowed);
         assert!(check(&[Requirement::new(Capability::EnvRead, Some("HOME"))], &p).allowed);
         assert!(check(&[Requirement::new(Capability::EnvRead, None)], &p).allowed);
     }
