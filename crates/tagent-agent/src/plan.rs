@@ -52,6 +52,18 @@ pub enum Expr {
         /// The field name.
         key: String,
     },
+    /// Ask the quarantined reader a question about untrusted text.
+    ///
+    /// This is how a plan makes use of what a tool returned without the
+    /// planner ever reading it. The answer carries the text's own label, so
+    /// it is data: it can be carried, mailed and shown, but it cannot steer
+    /// a call, which is what stops the answer becoming a laundering channel.
+    Ask {
+        /// What to ask about the text. Written by the planner.
+        question: String,
+        /// The untrusted text.
+        text: Box<Expr>,
+    },
     /// An element of a list.
     Index {
         /// The list.
@@ -98,6 +110,15 @@ impl Expr {
         }
     }
 
+    /// Ask the quarantined reader about this value.
+    #[must_use]
+    pub fn ask(self, question: &str) -> Self {
+        Expr::Ask {
+            question: question.to_owned(),
+            text: Box::new(self),
+        }
+    }
+
     /// An element access.
     #[must_use]
     pub fn at(self, index: usize) -> Self {
@@ -128,6 +149,7 @@ impl Expr {
                 }
             }
             Expr::Field { base, .. } | Expr::Index { base, .. } => base.collect_tools(out),
+            Expr::Ask { text, .. } => text.collect_tools(out),
             Expr::Str(_) | Expr::Int(_) | Expr::Bool(_) | Expr::Var(_) => {}
         }
     }

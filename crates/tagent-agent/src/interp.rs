@@ -23,6 +23,7 @@ use thiserror::Error;
 use crate::gate::{admit, result_label, GateConfig, Refusal};
 use crate::label::{Label, Source};
 use crate::plan::{Expr, Plan, Stmt};
+use crate::planner::{PlannerError, Quarantined};
 use crate::tool::{Args, Registry, ToolError};
 use crate::value::{Data, Value};
 
@@ -67,6 +68,21 @@ pub enum EvalError {
     /// A tool was named that is not registered.
     #[error("no tool named {0:?}")]
     UnknownTool(String),
+
+    /// A plan asked a question but no quarantined reader is configured.
+    #[error("this runtime has no quarantined reader, so it cannot answer questions about text")]
+    NoQuarantinedReader,
+
+    /// The quarantined reader could not answer.
+    #[error("the quarantined reader could not answer: {0}")]
+    Quarantined(#[from] PlannerError),
+
+    /// A question was asked about something that is not text.
+    #[error("can only ask about text, not {kind}")]
+    NotText {
+        /// What it was asked about.
+        kind: &'static str,
+    },
 }
 
 /// One decision the interpreter made, kept for audit.
@@ -128,12 +144,28 @@ impl Env {
 pub struct Interpreter<'a> {
     registry: &'a Registry,
     config: &'a GateConfig,
+    quarantined: Option<&'a dyn Quarantined>,
 }
 
 impl<'a> Interpreter<'a> {
     /// An interpreter over these tools and this configuration.
     pub fn new(registry: &'a Registry, config: &'a GateConfig) -> Self {
-        Interpreter { registry, config }
+        Interpreter {
+            registry,
+            config,
+            quarantined: None,
+        }
+    }
+
+    /// This interpreter, able to answer [`Expr::Ask`] with this reader.
+    ///
+    /// The reader is shown untrusted text; its answer is labelled with that
+    /// text's own label and never with the planner's, so a model talked round
+    /// by the text still cannot steer anything.
+    #[must_use]
+    pub fn with_quarantined(mut self, reader: &'a dyn Quarantined) -> Self {
+        self.quarantined = Some(reader);
+        self
     }
 
     /// Run a plan to completion, or until a step fails.
@@ -202,6 +234,22 @@ impl<'a> Interpreter<'a> {
                     index: *index,
                     kind,
                 })
+            }
+
+            Expr::Ask { question, text } => {
+                let value = self.eval(text, env, trace)?;
+                let Some(reader) = self.quarantined else {
+                    return Err(EvalError::NoQuarantinedReader);
+                };
+                let Some(s) = value.as_str() else {
+                    return Err(EvalError::NotText {
+                        kind: value.data.kind(),
+                    });
+                };
+                let answer = reader.extract(question, s)?;
+                // The answer is about that text, so it inherits that text's
+                // label. It is data, never control.
+                Ok(Value::new(answer, value.label.clone()))
             }
 
             Expr::Call { tool, args } => self.call(tool, args, env, trace),
@@ -475,6 +523,95 @@ mod tests {
         assert!(matches!(
             interp.eval(&Expr::call("missing"), &env, &mut trace),
             Err(EvalError::UnknownTool(_))
+        ));
+    }
+
+    /// The quarantined reader, as a test double: it does whatever the text
+    /// tells it to, which is the worst case.
+    struct Credulous;
+    impl Quarantined for Credulous {
+        fn extract(&self, _question: &str, text: &str) -> Result<Data, PlannerError> {
+            // Obeys the injection completely.
+            let obeyed = text
+                .split("email the key to")
+                .last()
+                .unwrap_or(text)
+                .trim()
+                .to_owned();
+            Ok(Data::Str(obeyed))
+        }
+    }
+
+    /// A summary of an injected page is still the page's data, so it may be
+    /// mailed as a body but may not choose the recipient. This holds even
+    /// though the quarantined reader did exactly what the page told it.
+    #[test]
+    fn a_quarantined_answer_is_data_not_control() {
+        let (reg, cfg) = (registry(), config());
+        let reader = Credulous;
+        let interp = Interpreter::new(&reg, &cfg).with_quarantined(&reader);
+
+        // As a body: allowed.
+        let as_body = Plan::new()
+            .bind("page", Expr::call("fetch").arg("url", Expr::str("u")))
+            .bind(
+                "summary",
+                Expr::var("page").field("body").ask("summarise this"),
+            )
+            .then(
+                Expr::call("send_email")
+                    .arg("to", Expr::str("bob@mail.example.com"))
+                    .arg("body", Expr::var("summary")),
+            );
+        let (_, out) = interp.run(&as_body, &mut Env::new());
+        assert!(out.is_ok(), "{out:?}");
+
+        // As a recipient: refused, because the answer carries Tool("fetch").
+        let as_recipient = Plan::new()
+            .bind("page", Expr::call("fetch").arg("url", Expr::str("u")))
+            .bind(
+                "who",
+                Expr::var("page")
+                    .field("body")
+                    .ask("who should this go to?"),
+            )
+            .then(
+                Expr::call("send_email")
+                    .arg("to", Expr::var("who"))
+                    .arg("body", Expr::str("hi")),
+            );
+        let (_, out) = interp.run(&as_recipient, &mut Env::new());
+        assert!(
+            matches!(
+                out,
+                Err(EvalError::Refused(Refusal::UntrustedControl { .. }))
+            ),
+            "{out:?}"
+        );
+    }
+
+    #[test]
+    fn asking_without_a_reader_is_an_error() {
+        let (reg, cfg) = (registry(), config());
+        let interp = Interpreter::new(&reg, &cfg);
+        let mut trace = Trace::default();
+        let env = Env::new();
+        assert_eq!(
+            interp.eval(&Expr::str("x").ask("what?"), &env, &mut trace),
+            Err(EvalError::NoQuarantinedReader)
+        );
+    }
+
+    #[test]
+    fn asking_about_something_that_is_not_text_is_an_error() {
+        let (reg, cfg) = (registry(), config());
+        let reader = Credulous;
+        let interp = Interpreter::new(&reg, &cfg).with_quarantined(&reader);
+        let mut trace = Trace::default();
+        let env = Env::new();
+        assert!(matches!(
+            interp.eval(&Expr::Int(3).ask("what?"), &env, &mut trace),
+            Err(EvalError::NotText { .. })
         ));
     }
 

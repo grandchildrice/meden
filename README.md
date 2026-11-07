@@ -23,6 +23,12 @@ The gate itself is held to the same standard. Its rules are stated in Lean 4 wit
 
 ## Design in one paragraph
 
+Untrusted text is read by a *quarantined* model, never by the planner: a
+plan says `{"ask": {"question": "...", "text": EXPR}}`, and the answer
+carries the text's own label. So a summary of an injected page can be mailed
+as a body but cannot choose the recipient, even when the quarantined model
+did exactly what the page told it.
+
 The gate never sees a verifier, only an **attestation**: artifact hash, property id, verifier name and version, result, trusted computing base, assumptions, proof hash. Verifiers are plugins. Evidence whose TCB is Lean 4 alone is accepted mechanically; evidence from other provers (Verus/Z3, …) is accepted once a human has approved the property mapping and is labelled with its TCB; tests and scans never confer *verified*. Enforcement points are plugins too: the same policy kernel runs behind `tagent decide` and can be mounted on pi (`beforeToolCall`), Hermes (`pre_tool_call`) or OpenClaw (`before_tool_call`).
 
 ## The demonstration
