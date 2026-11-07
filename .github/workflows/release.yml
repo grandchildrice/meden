@@ -1,0 +1,122 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The tag to build, for a dry run
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, target: x86_64-unknown-linux-gnu }
+          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu }
+          - { os: macos-latest, target: aarch64-apple-darwin }
+          - { os: macos-13, target: x86_64-apple-darwin }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc }
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.98.1
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+      - run: cargo build --release -p tagent-cli --target ${{ matrix.target }}
+
+      - name: Package
+        shell: bash
+        run: |
+          set -euo pipefail
+          bin=tagent
+          [ "${{ runner.os }}" = "Windows" ] && bin=tagent.exe
+          staging=$(mktemp -d)
+          cp "target/${{ matrix.target }}/release/$bin" "$staging/"
+          cp LICENSE README.md "$staging/"
+          tar -czf "tagent-${{ matrix.target }}.tar.gz" -C "$staging" .
+          sha256sum "tagent-${{ matrix.target }}.tar.gz" > "tagent-${{ matrix.target }}.tar.gz.sha256" \
+            || shasum -a 256 "tagent-${{ matrix.target }}.tar.gz" > "tagent-${{ matrix.target }}.tar.gz.sha256"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: tagent-${{ matrix.target }}
+          path: |
+            tagent-${{ matrix.target }}.tar.gz
+            tagent-${{ matrix.target }}.tar.gz.sha256
+          if-no-files-found: error
+
+  publish:
+    name: collect and release
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Build checksums.json for the npm package
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, pathlib
+          out = {}
+          for archive in sorted(pathlib.Path("dist").glob("*.tar.gz")):
+              out[archive.name] = hashlib.sha256(archive.read_bytes()).hexdigest()
+          pathlib.Path("npm/checksums.json").write_text(json.dumps(out, indent=2) + "\n")
+          print(json.dumps(out, indent=2))
+          PY
+
+      - name: Check the npm version matches the tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME:-${{ inputs.tag }}}"
+          want="${tag#v}"
+          have=$(node -p "require('./npm/package.json').version")
+          if [ "$want" != "$have" ]; then
+            echo "tag $tag does not match npm/package.json version $have"; exit 1
+          fi
+          node npm/test.js
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: npm-package
+          path: npm/
+          if-no-files-found: error
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.tar.gz
+            dist/*.sha256
+          generate_release_notes: true
+
+      # Publishing to npm needs a token this workflow does not have by
+      # default. Add NPM_TOKEN to the repository secrets to turn this on;
+      # until then the packaged directory is attached as an artifact and can
+      # be published by hand with `npm publish npm/`.
+      - name: Publish to npm
+        if: startsWith(github.ref, 'refs/tags/') && env.NPM_TOKEN != ''
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+          npm publish npm/ --access public

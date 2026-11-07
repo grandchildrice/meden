@@ -122,6 +122,18 @@ jobs:
         env:
           TAGENT_BIN: ${{ github.workspace }}/target/debug/tagent
 
+  npm:
+    name: npm package (launcher checks, packs cleanly)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node npm/test.js
+      - run: npm pack --dry-run
+        working-directory: npm
+
   conformance:
     name: conformance (rust == lean on random cases)
     needs: [lean]

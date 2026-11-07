@@ -1,0 +1,39 @@
+{
+  "name": "tagent",
+  "version": "0.1.0",
+  "description": "Proof-driven development for agent actions: a capability-typed runtime that refuses tool calls steered by untrusted data",
+  "keywords": [
+    "llm",
+    "agent",
+    "prompt-injection",
+    "capability",
+    "formal-verification",
+    "lean4",
+    "security"
+  ],
+  "homepage": "https://github.com/grandchildrice/t-agent#readme",
+  "bugs": "https://github.com/grandchildrice/t-agent/issues",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/grandchildrice/t-agent.git",
+    "directory": "npm"
+  },
+  "bin": {
+    "tagent": "launcher.js"
+  },
+  "scripts": {
+    "postinstall": "node install.js",
+    "test": "node test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "launcher.js",
+    "install.js",
+    "platform.js",
+    "checksums.json",
+    "README.md"
+  ]
+}
