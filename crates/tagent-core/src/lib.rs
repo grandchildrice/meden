@@ -26,4 +26,7 @@ pub use attestation::{
     Artifact, Attestation, AttestationError, Proof, Property, Result, Tier, Verifier,
 };
 pub use capability::{Capability, Requirement};
-pub use policy::{allowed, check, violates, Decision, Grant, Policy};
+pub use policy::{
+    allowed, allowed_ref, check, covers_ref, violates, violates_ref, Decision, Grant, GrantRef,
+    Policy, ReqRef,
+};

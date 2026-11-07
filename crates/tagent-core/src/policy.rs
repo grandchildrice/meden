@@ -41,20 +41,9 @@ impl Grant {
         Ok(Self { capability, scope })
     }
 
-    /// Does this grant cover the requirement?
-    ///
-    /// An unscoped grant covers every scope. A scoped grant covers only
-    /// scoped requirements whose scope matches the glob: an unscoped
-    /// requirement asks for the whole capability and needs an unscoped grant.
+    /// Does this grant cover the requirement? See [`covers_ref`].
     pub fn covers(&self, req: &Requirement) -> bool {
-        if self.capability != req.capability {
-            return false;
-        }
-        match (&self.scope, &req.scope) {
-            (None, _) => true,
-            (Some(_), None) => false,
-            (Some(pat), Some(s)) => glob_match(pat, s),
-        }
+        covers_ref(self.as_ref(), req.as_ref())
     }
 
     /// `cap` or `cap[glob]`.
@@ -100,6 +89,72 @@ impl From<Grant> for GrantRepr {
     fn from(g: Grant) -> Self {
         GrantRepr::Label(g.label())
     }
+}
+
+/// A borrowed grant: the rule is stated on these so it can be checked on
+/// stack data (Kani) as well as on owned policies.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct GrantRef<'a> {
+    /// The capability granted.
+    pub capability: Capability,
+    /// Glob the requirement's scope must match; `None` grants it unscoped.
+    pub scope: Option<&'a str>,
+}
+
+/// A borrowed requirement.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ReqRef<'a> {
+    /// The capability required.
+    pub capability: Capability,
+    /// Optional scope.
+    pub scope: Option<&'a str>,
+}
+
+impl Grant {
+    /// Borrow.
+    pub fn as_ref(&self) -> GrantRef<'_> {
+        GrantRef {
+            capability: self.capability,
+            scope: self.scope.as_deref(),
+        }
+    }
+}
+
+impl Requirement {
+    /// Borrow.
+    pub fn as_ref(&self) -> ReqRef<'_> {
+        ReqRef {
+            capability: self.capability,
+            scope: self.scope.as_deref(),
+        }
+    }
+}
+
+/// Does the grant cover the requirement? (`TAgentSpec.Grant.covers`)
+///
+/// An unscoped grant covers every scope. A scoped grant covers only scoped
+/// requirements whose scope matches the glob: an unscoped requirement asks
+/// for the whole capability and needs an unscoped grant.
+pub fn covers_ref(g: GrantRef<'_>, r: ReqRef<'_>) -> bool {
+    if g.capability != r.capability {
+        return false;
+    }
+    match (g.scope, r.scope) {
+        (None, _) => true,
+        (Some(_), None) => false,
+        (Some(pat), Some(s)) => glob_match(pat, s),
+    }
+}
+
+/// Is the requirement violated: denied, or covered by no grant?
+/// (`TAgentSpec.Policy.violates`)
+pub fn violates_ref(denies: &[Capability], grants: &[GrantRef<'_>], r: ReqRef<'_>) -> bool {
+    denies.contains(&r.capability) || !grants.iter().any(|g| covers_ref(*g, r))
+}
+
+/// Are all requirements allowed? (`TAgentSpec.Policy.allowed`)
+pub fn allowed_ref(denies: &[Capability], grants: &[GrantRef<'_>], reqs: &[ReqRef<'_>]) -> bool {
+    reqs.iter().all(|r| !violates_ref(denies, grants, *r))
 }
 
 /// A named set of grants and denies.
@@ -324,6 +379,22 @@ mod tests {
             let expected = reqs.iter().all(|r| !policy.denies(r.capability) && policy.grants(r));
             prop_assert_eq!(d.allowed, expected);
             prop_assert_eq!(d.reasons.is_empty(), d.allowed);
+        }
+
+        #[test]
+        fn owned_and_borrowed_rules_agree(
+            reqs in proptest::collection::vec((arb_cap(), proptest::option::of("[ab/]{0,4}")), 0..4),
+            grants in proptest::collection::vec((arb_cap(), proptest::option::of("[ab/*?]{0,4}")), 0..4),
+            denies in proptest::collection::vec(arb_cap(), 0..3),
+        ) {
+            let reqs: Vec<Requirement> = reqs.iter().map(|(c, s)| Requirement::new(*c, s.as_deref())).collect();
+            let policy = Policy { name: "p".into(), grants: grants.iter().map(|(c, s)| Grant::new(*c, s.as_deref())).collect(), denies };
+            let grefs: Vec<GrantRef<'_>> = policy.grants.iter().map(Grant::as_ref).collect();
+            let rrefs: Vec<ReqRef<'_>> = reqs.iter().map(Requirement::as_ref).collect();
+            prop_assert_eq!(allowed(&reqs, &policy), allowed_ref(&policy.denies, &grefs, &rrefs));
+            for r in &reqs {
+                prop_assert_eq!(violates(&policy, r), violates_ref(&policy.denies, &grefs, r.as_ref()));
+            }
         }
 
         #[test]
