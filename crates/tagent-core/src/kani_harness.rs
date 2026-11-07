@@ -68,10 +68,19 @@ fn any_char() -> char {
     ALPHABET.get(i).copied().unwrap_or('a')
 }
 
+/// Slice equality without `memcmp`.
+///
+/// `&[char] == &[char]` lowers to a byte-wise `memcmp`, whose builtin loop
+/// would need an unwind bound of four times the length; comparing element by
+/// element keeps the bound proportional to the number of characters.
+fn chars_eq(a: &[char], b: &[char]) -> bool {
+    a.len() == b.len() && a.iter().zip(b.iter()).all(|(x, y)| x == y)
+}
+
 /// `glob_match_chars` never panics, and a wildcard-free pattern matches
 /// exactly itself.
 #[kani::proof]
-#[kani::unwind(5)]
+#[kani::unwind(6)]
 fn glob_literal_is_identity() {
     let p = [any_char(), any_char(), any_char()];
     let t = [any_char(), any_char(), any_char()];
@@ -81,7 +90,7 @@ fn glob_literal_is_identity() {
     kani::assume(m <= t.len());
     let pattern = p.get(..n).unwrap_or(&[]);
     let text = t.get(..m).unwrap_or(&[]);
-    assert!(glob_match_chars(pattern, text) == (pattern == text));
+    assert!(glob_match_chars(pattern, text) == chars_eq(pattern, text));
 }
 
 /// A lone `*` matches every text, wildcards in the text included.
@@ -158,8 +167,11 @@ fn scope_rules() {
 
 /// The tier rule: only `proved` can verify; a Lean-only TCB verifies without
 /// approval; a foreign TCB verifies only with an approved backend.
+///
+/// The bound covers the builtin `memcmp` loop: the rule compares backend and
+/// TCB names, and the longest of them (`verus+z3`) is eight bytes.
 #[kani::proof]
-#[kani::unwind(4)]
+#[kani::unwind(12)]
 fn tier_rule() {
     let ri: u8 = kani::any();
     kani::assume(ri < 4);
