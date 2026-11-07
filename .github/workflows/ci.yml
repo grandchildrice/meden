@@ -74,7 +74,7 @@ jobs:
           if grep -E 'sorryAx' audit.txt; then echo "sorryAx present"; exit 1; fi
           if grep -E "depends on axioms" audit.txt | grep -vE '^\S+ depends on axioms: \[(propext|Classical\.choice|Quot\.sound)(, (propext|Classical\.choice|Quot\.sound))*\]$' | grep -q .; then
             echo "non-standard axiom present"; exit 1; fi
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: tagent-spec
           path: lean/.lake/build/bin/tagent-spec
