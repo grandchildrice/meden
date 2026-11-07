@@ -1,0 +1,16 @@
+{
+  "binary": "/home/gohan/workspace/t-agent/target/eval/meden-native-v2",
+  "sha256": "40a19b38c02c92cb2ea68cff5754871aa9c3d13df8a52bd85ef8be7976786b68",
+  "provider": "hermes:ollama-cloud",
+  "model": "minimax-m3",
+  "success": true,
+  "agent_ran_passing_tests": true,
+  "tests_unchanged": true,
+  "final_source": "def add(a, b):\n    return a + b\n",
+  "independent_test_exit_code": 0,
+  "independent_test_output": "test_add (test_calc.TestAdd.test_add) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK\n",
+  "tui_exit_code": 0,
+  "terminal_restored": true,
+  "seconds": 9.667908859904855,
+  "transcript": "../results/tui-live-smoke.terminal.txt"
+}

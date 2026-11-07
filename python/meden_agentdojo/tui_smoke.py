@@ -142,7 +142,8 @@ class TestAdd(unittest.TestCase):
     report["seconds"] = time.monotonic() - started
     args.out.parent.mkdir(parents=True, exist_ok=True)
     transcript = args.out.with_suffix(".terminal.txt")
-    transcript.write_text(re.sub(r"\x1b\[[0-?]*[ -/]*[@-~]", "", output.decode(errors="replace")))
+    plain = re.sub(r"\x1b\[[0-?]*[ -/]*[@-~]", "", output.decode(errors="replace"))
+    transcript.write_text("\n".join(line.rstrip() for line in plain.splitlines()) + "\n")
     report["transcript"] = str(transcript)
     args.out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps(report, ensure_ascii=False, indent=2))

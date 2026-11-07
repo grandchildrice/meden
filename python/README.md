@@ -100,3 +100,12 @@ them here would overstate the result.
 ```bash
 MEDEN_BIN=../target/debug/meden uv run pytest
 ```
+
+A live-model TUI check is separate from the deterministic tests and score
+measurements. It uses real file edits and shell execution in a temporary
+workspace, then independently checks the original tests:
+
+```bash
+uv run python -m meden_agentdojo.tui_smoke --binary ../target/release/meden \
+  --provider hermes:ollama-cloud --model minimax-m3 --out ../results/tui-live-smoke.json
+```

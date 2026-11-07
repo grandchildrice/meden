@@ -15,9 +15,10 @@ the arrangement AgentDojo's own numbers are produced with:
 Everything that would otherwise be a judgement call is therefore AgentDojo's:
 the system message (its `data/system_messages.yaml` default, four
 instructions that a hand-written one leaves out), the YAML tool-output
-format, the fifteen-iteration loop, temperature zero, and the three-attempt
-retry. The only thing supplied here is the client, because `from_config`
-reaches a local model at `localhost` and ours answers elsewhere.
+format, the fifteen-iteration loop, and the three-attempt retry. Its zero
+temperature setting is omitted from HTTP requests by this AgentDojo version,
+so the server supplies the sampling default. We supply the remote client
+and append a final observer that records the unchanged conversation.
 """
 
 from __future__ import annotations
@@ -25,8 +26,8 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from agentdojo.agent_pipeline import AgentPipeline, PipelineConfig
-from agentdojo.agent_pipeline.llms.openai_llm import OpenAILLM
+from agentdojo.agent_pipeline import AgentPipeline, BasePipelineElement, PipelineConfig
+from agentdojo.agent_pipeline.llms.openai_llm import OpenAILLM, _message_to_openai
 
 from .pipeline import GateReport
 
@@ -84,7 +85,29 @@ def build(
     # `from_config` names a pipeline after its provider, and takes the name
     # from `llm.name` when the llm is passed as an object — which is None.
     pipeline.name = AGENTDOJO_LOCAL_PROVIDER
-    # The benchmark reads a gate report off whatever it ran. There is no gate
-    # here, and saying so plainly beats faking one.
-    pipeline.last_report = GateReport(outcome="done", summary="no gate")
+    pipeline.last_report = GateReport(summary="not run")
+
+    class Observe(BasePipelineElement):
+        def query(self, query, runtime, env, messages, extra_args):
+            try:
+                last = messages[-1] if messages else {}
+                pending = last.get("role") != "assistant" or bool(last.get("tool_calls"))
+                blocks = (last.get("content") or []) if last.get("role") == "assistant" else []
+                answer = "".join(block.get("content") or "" for block in blocks) or None
+                pipeline.last_report = GateReport(
+                    outcome="incomplete" if pending else "done",
+                    summary="AgentDojo baseline; no gate",
+                    answer=answer,
+                    messages=[_message_to_openai(message, model) for message in messages],
+                )
+            except Exception as error:  # noqa: BLE001 - logging must not alter task execution
+                pipeline.last_report = GateReport(
+                    outcome="unreported",
+                    summary=f"baseline observer failed: {type(error).__name__}",
+                )
+            return query, runtime, env, messages, extra_args
+
+    # Observe after the factory's complete pipeline. This changes no message,
+    # model request, tool call or environment; the HTTP replay test checks it.
+    pipeline.elements = [*pipeline.elements, Observe()]
     return pipeline

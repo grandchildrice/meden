@@ -171,10 +171,18 @@ produces one it allows. That is what makes a small local model usable here.
 
 ## Evaluation
 
+The native conversational agent reached **44/48 (92%)** benign utility over
+three banking passes, compared with **42/48 (88%)** for AgentDojo's own
+baseline on the same model with four workers. This is a capability-policy
+configuration; it does not establish flow-rule protection or results on the
+other suites. A live-model TUI check also verified a code fix, unchanged
+tests, passing shell execution and terminal restoration. Raw evidence and
+the historical isolated-planner measurements are in [`results/`](results/README.md).
+
 Measured on AgentDojo's banking suite against two baselines, same model
 throughout. The baseline is AgentDojo's own undefended pipeline, built by
 `AgentPipeline.from_config`: it scores 88% utility and is breached 3 times in
-144. This runtime scores 50-56% and is breached none. But the same runtime
+144. The historical isolated planner scores 50-56% and is breached none. But the same planner
 with its flow rules switched off is also breached none, so on this suite it
 is the planner/reader split doing the work and not the labels, and the 88%
 says the split is expensive. The numbers, the raw files and what they do and

@@ -9,13 +9,11 @@ import json
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-import openai
 import pytest
-from agentdojo.agent_pipeline import AgentPipeline, OpenAILLM, PipelineConfig
 from agentdojo.functions_runtime import FunctionsRuntime
 from agentdojo.task_suite.load_suites import get_suite
 
-from meden_agentdojo import find_meden
+from meden_agentdojo import find_meden, toolcalling
 from meden_agentdojo.declarations import BANKING
 from meden_agentdojo.pipeline import MedenPipeline
 
@@ -106,15 +104,8 @@ def test_native_http_conversation_matches_agentdojo(monkeypatch):
     monkeypatch.setenv("MEDEN_LLM_MODEL", "fixture")
     monkeypatch.delenv("MEDEN_LLM_API_KEY", raising=False)
     suite = get_suite("v1", "banking")
-    reference = AgentPipeline.from_config(
-        PipelineConfig(
-            llm=OpenAILLM(openai.OpenAI(api_key="fixture", base_url=base), "fixture"),
-            model_id=None,
-            defense=None,
-            system_message_name=None,
-            system_message=None,
-        )
-    )
+    monkeypatch.setattr(toolcalling, "api_key", lambda: "fixture")
+    reference = toolcalling.build(model="fixture", base_url=base)
     native = MedenPipeline(BANKING, binary, provider="configured", mode="tool-calling")
     environments = []
     try:
@@ -131,3 +122,22 @@ def test_native_http_conversation_matches_agentdojo(monkeypatch):
     assert environments[0] == environments[1]
     assert native.last_report.answer == "Refunded 5.29."
     assert len(native.last_report.messages) == 8
+    assert reference.last_report.outcome == "done"
+    assert reference.last_report.answer == native.last_report.answer
+    assert reference.last_report.messages == native.last_report.messages
+
+
+def test_baseline_observer_failure_does_not_change_the_conversation(monkeypatch):
+    monkeypatch.setattr(toolcalling, "api_key", lambda: "fixture")
+    pipeline = toolcalling.build(model="fixture", base_url="http://127.0.0.1:1/v1")
+
+    def broken_encoder(*args):
+        raise RuntimeError("observer failure")
+
+    monkeypatch.setattr(toolcalling, "_message_to_openai", broken_encoder)
+    runtime, env, extra = object(), object(), {}
+    messages = [{"role": "assistant", "content": [], "tool_calls": None}]
+    result = pipeline.elements[-1].query("query", runtime, env, messages, extra)
+    assert result == ("query", runtime, env, messages, extra)
+    assert result[3] is messages
+    assert pipeline.last_report.outcome == "unreported"

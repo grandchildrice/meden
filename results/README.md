@@ -48,6 +48,7 @@ At four workers, three current benign passes give:
 | --- | --- | --- |
 | Rust native v1, capability policy only | 38/48 (79%) | 14/16, 13/16, 11/16 |
 | AgentDojo baseline | 42/48 (88%) | 14/16, 14/16, 14/16 |
+| Rust native v2, capability policy only | 44/48 (92%) | 13/16, 16/16, 15/16 |
 
 The raw records are `banking-native-3-passes.json` and
 `banking-baseline-current-3-passes.json`. These runs used the frozen binary
@@ -56,7 +57,28 @@ The initial native 14/16 alone did not establish parity. A stronger HTTP
 fixture, using compact JSON and non-ASCII arguments, subsequently exposed a
 history difference: AgentDojo reserializes tool arguments using Python JSON
 defaults, while v1 echoed the raw model string. That difference is now fixed
-and covered by the replay test; the effect on utility requires a new run.
+and covered by the replay test. `banking-native-v2-3-passes.json` records
+the subsequent run with frozen binary `40a19b38c02c92cb`: 44/48. This is
+baseline-level utility on banking, not evidence of statistically superior
+performance, and not evidence about the isolated planner or other suites.
+
+`tui-live-smoke.json` and its terminal transcript record a live `minimax-m3`
+TUI run with the same v2 binary. The agent corrected a subtraction bug in
+`calc.py`, left the test file unchanged, ran the passing tests through the
+shell tool, and exited with restored terminal settings. An independent run
+of the original tests also passed. No scripted model was used for this run.
+`tui-live-smoke-bash.json` repeats that check successfully against the later
+binary whose Unix shell tool uses Bash. Bash-specific syntax is also covered
+by the shell unit test.
+
+The baseline's old `outcome` fields in `banking-baseline-current-3-passes.json`
+were fallback report values, not observed session statuses. Its utility
+booleans come directly from AgentDojo and are the values used above. The
+runner now appends a pass-through observer to record baseline answers,
+statuses and API history; the HTTP replay test verifies that this observer
+does not change requests or effects. Native-mode `max_attempts` in older
+records is an unused planner setting; native tool execution is limited to
+15 groups. New reports record that budget explicitly.
 
 | File | Configuration |
 | --- | --- |

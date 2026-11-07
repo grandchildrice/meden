@@ -28,6 +28,7 @@ import shutil
 import sys
 import time
 from dataclasses import asdict, dataclass, field
+from importlib.metadata import version
 from pathlib import Path
 from typing import Any
 
@@ -570,7 +571,8 @@ def main(argv: list[str] | None = None) -> int:
         help="baseline: the same agent with nothing declared as steering, "
         "so the flow rules refuse nothing",
     )
-    parser.add_argument("--max-attempts", type=int, default=3)
+    parser.add_argument("--max-attempts", type=int, default=3,
+                        help="isolated planner attempts; native agents use 15 tool groups")
     parser.add_argument(
         "--workers",
         type=int,
@@ -589,6 +591,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.undefended and args.agent != "meden":
         parser.error("--undefended applies only to --agent meden (the isolated planner)")
+    if args.max_attempts != 3 and args.agent != "meden":
+        parser.error("--max-attempts applies only to --agent meden (the isolated planner)")
 
     suite = get_suite("v1", args.suite)
     declarations = SUITES[args.suite]
@@ -638,7 +642,9 @@ def main(argv: list[str] | None = None) -> int:
         built=provenance(binary),
         settings={
             "workers": args.workers,
-            "max_attempts": args.max_attempts,
+            "max_attempts": args.max_attempts if args.agent == "meden" else None,
+            "max_tool_iterations": 15 if args.agent != "meden" else None,
+            "agentdojo_package": version("agentdojo"),
             "repeat": args.repeat,
             "agent": args.agent,
             "model": args.model,

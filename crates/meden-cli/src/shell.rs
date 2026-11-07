@@ -27,7 +27,7 @@ pub fn enable(
     control: Arc<Control>,
 ) -> Result<()> {
     let mut sig = ToolSig::new("bash", vec![ParamSpec::control("command"), ParamSpec::data("timeout_seconds").optional()])
-        .describing("Run a shell command in the workspace directory (sh on Unix, cmd on Windows). Use it to search, build and test. This is not a sandbox: the command has the current account's file and network permissions. Timeout defaults to 60 seconds, maximum 300. Output is bounded; inspect exit status and errors before claiming success.");
+        .describing("Run a shell command in the workspace directory (Bash on Unix, cmd on Windows). Use it to search, build and test. This is not a sandbox: the command has the current account's file and network permissions. Timeout defaults to 60 seconds, maximum 300. Output is bounded; inspect exit status and errors before claiming success.");
     sig.parameters_schema = Some(json!({"type":"object","properties":{
         "command":{"type":"string"},"timeout_seconds":{"type":"integer","minimum":1,"maximum":300}
     },"required":["command"],"additionalProperties":false}));
@@ -78,8 +78,8 @@ impl Tool for Shell {
         };
         #[cfg(not(windows))]
         let mut child = {
-            let mut child = Command::new("sh");
-            child.args(["-c", command]);
+            let mut child = Command::new("bash");
+            child.args(["--noprofile", "--norc", "-c", command]);
             child
         };
         child.current_dir(&self.root);
@@ -129,6 +129,18 @@ mod tests {
         )
         .expect("enable");
         let tool = registry.get("bash").expect("bash");
+        let bash_syntax = [(
+            "command".to_owned(),
+            Value::literal(Data::Str(
+                "set -o pipefail; values=(one two); [[ ${values[1]} == two ]]".into(),
+            )),
+        )]
+        .into_iter()
+        .collect();
+        assert!(
+            tool.call(&bash_syntax).is_ok(),
+            "the bash tool must support Bash syntax"
+        );
         assert!(meden_core::check(&tool.requirements(&Args::new()), &policy).allowed);
         let args = [(
             "command".to_owned(),
