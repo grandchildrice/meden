@@ -1640,7 +1640,7 @@ wheels = [
 ]
 
 [[package]]
-name = "tagent-agentdojo"
+name = "meden-agentdojo"
 version = "0.1.0"
 source = { editable = "." }
 

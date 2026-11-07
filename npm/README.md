@@ -1,9 +1,9 @@
-# tagent
+# meden
 
 **Proof-driven development for agent actions.**
 
 ```bash
-npx tagent tui
+npx meden tui
 ```
 
 Pick a model, give it an instruction, and watch which tool calls the runtime
@@ -13,9 +13,9 @@ Studio — including anything already configured in Hermes, so there is
 usually nothing to set up.
 
 ```bash
-npx tagent providers   # what this machine can plan with
-npx tagent demo        # the prompt-injection scenario, no model needed
-npx tagent demo --live # the same, with a real model writing the plans
+npx meden providers   # what this machine can plan with
+npx meden demo        # the prompt-injection scenario, no model needed
+npx meden demo --live # the same, with a real model writing the plans
 ```
 
 ## What it does
@@ -32,7 +32,7 @@ taken in; the recipient still cannot come from the page.
 
 The rules are specified in Lean 4 with proofs, model-checked with Kani, and
 checked for conformance against the Lean model on every change. See the
-[repository](https://github.com/grandchildrice/t-agent).
+[repository](https://github.com/grandchildrice/meden).
 
 ## Installing
 
@@ -40,10 +40,10 @@ checked for conformance against the Lean model on every change. See the
 from source instead:
 
 ```bash
-cargo install --git https://github.com/grandchildrice/t-agent tagent-cli
+cargo install --git https://github.com/grandchildrice/meden meden-cli
 ```
 
-Set `TAGENT_BIN` to use a binary you built yourself.
+Set `MEDEN_BIN` to use a binary you built yourself.
 
 ## License
 

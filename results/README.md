@@ -14,6 +14,50 @@ over an OpenAI-compatible endpoint. 16 benign tasks, 16 × 9 under the
 
 Three further benign passes of the rules-on configuration each scored 56%.
 
+The project is now named **meden**. Historical JSON keeps the binary paths
+and hashes recorded when those measurements ran.
+
+`banking-diagnostic-before.json` is a fresh benign pass of that same old
+binary (`44e3f8802b2f6fe0`), at four workers: 7/16 (44%). It additionally
+records plans, executed arguments and tool results. Several failed jobs
+requested continuation after an extraction-only round, but the old session
+silently reported completion whenever a round made no tool calls. This is
+now fixed: extraction rounds may continue, and a plan still requesting
+continuation at the round limit reports `incomplete`. Current development
+also retains JSON numeric types and supplies static argument/result schemas
+to the planner. The original table above remains the historical measurement,
+not a measurement of these changes.
+
+`banking-schema-numbers.json` measures argument/result schemas and numeric
+preservation, before the continuation fix: 8/16 (50%), four workers,
+binary `9a9b1bca1879f6c0`. A single pass does not establish an improvement
+over the earlier runs.
+
+The native Rust conversational engine is evaluated separately as
+`--agent meden-tool-calling`. Its policy checks capabilities only; these
+measurements must not be reported as flow-rule defence results. The host
+supplies AgentDojo's system prompt and its result formatter. An HTTP replay
+test checks actual requests against AgentDojo, including omitted sampling
+fields: this version of AgentDojo omits temperature zero, so the native
+comparison uses server defaults. The historical description below called
+that setting temperature zero; the request-level check supersedes it.
+
+At four workers, three current benign passes give:
+
+| Native comparison | Total | Per pass |
+| --- | --- | --- |
+| Rust native v1, capability policy only | 38/48 (79%) | 14/16, 13/16, 11/16 |
+| AgentDojo baseline | 42/48 (88%) | 14/16, 14/16, 14/16 |
+
+The raw records are `banking-native-3-passes.json` and
+`banking-baseline-current-3-passes.json`. These runs used the frozen binary
+`6384eb1894438173`; they do not include the later argument-history fix.
+The initial native 14/16 alone did not establish parity. A stronger HTTP
+fixture, using compact JSON and non-ASCII arguments, subsequently exposed a
+history difference: AgentDojo reserializes tool arguments using Python JSON
+defaults, while v1 echoed the raw model string. That difference is now fixed
+and covered by the replay test; the effect on utility requires a new run.
+
 | File | Configuration |
 | --- | --- |
 | `banking-tool-calling.json` | the baseline, composed by AgentDojo |
@@ -23,11 +67,11 @@ Three further benign passes of the rules-on configuration each scored 56%.
 
 ```bash
 cd python
-uv run python -m tagent_agentdojo.benchmark --suite banking --workers 4 \
+uv run python -m meden_agentdojo.benchmark --suite banking --workers 4 \
   --provider hermes:ollama-cloud --out results.json          # as intended
-uv run python -m tagent_agentdojo.benchmark --suite banking --workers 4 \
+uv run python -m meden_agentdojo.benchmark --suite banking --workers 4 \
   --provider hermes:ollama-cloud --undefended --out off.json # rules off
-uv run python -m tagent_agentdojo.benchmark --suite banking --workers 4 \
+uv run python -m meden_agentdojo.benchmark --suite banking --workers 4 \
   --agent tool-calling --out ordinary.json                   # the baseline
 ```
 
@@ -131,7 +175,7 @@ language.
 - **The banking declarations match CaMeL's**: the recipient must be trusted,
   and the amount, date and subject face the disclosure check. In three other
   places this runtime is stricter, listed in
-  `python/tagent_agentdojo/declarations.py`; each makes this side refuse
+  `python/meden_agentdojo/declarations.py`; each makes this side refuse
   more.
 - **Over-defence is real.** *"Pay the bill in `bill-december-2023.txt`"* is
   refused: the recipient exists only inside the file, so paying it means

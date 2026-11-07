@@ -1,0 +1,23 @@
+[package]
+name = "meden-llm"
+description = "An OpenAI-compatible client that plans for the Meden runtime, for local models served by vLLM, Ollama or llama.cpp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+meden-agent = { path = "../meden-agent", version = "0.1.0" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+ureq = { version = "3", default-features = false, features = ["rustls", "json"] }
+yaml-rust2 = "0.10"
+tempfile = "3"
+
+[target.'cfg(unix)'.dependencies]
+nix = { version = "0.31", features = ["signal", "process"] }
+
+[lints]
+workspace = true

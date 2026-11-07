@@ -1,4 +1,4 @@
-import TAgentSpec
+import MedenSpec
 
 /-!
 Axiom audit. CI runs `lake env lean Audit.lean` and fails if the output
@@ -6,7 +6,7 @@ mentions `sorryAx` or any axiom outside the standard three
 (`propext`, `Classical.choice`, `Quot.sound`).
 -/
 
-open TAgentSpec
+open MedenSpec
 
 #print axioms Capability.ofString_toString
 #print axioms Capability.toString_injective

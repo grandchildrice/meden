@@ -20,7 +20,7 @@ class _Recorder(BasePipelineElement):
     name = "vllm_parsed"
 
     def __init__(self) -> None:
-        from tagent_agentdojo.pipeline import GateReport
+        from meden_agentdojo.pipeline import GateReport
 
         self.last_report = GateReport(outcome="done", summary="recorded")
 
@@ -54,7 +54,7 @@ def _calls_made_by(runner: str) -> list[tuple[str, str, dict]]:
         tasks = list(suite.user_tasks.values())[:2]
         injections = list(suite.injection_tasks.values())[:2]
         if runner == "ours":
-            from tagent_agentdojo.benchmark import Pool, Totals, run_attacks
+            from meden_agentdojo.benchmark import Pool, Totals, run_attacks
 
             pool = Pool(lambda: pipeline, 1)
             run_attacks(
@@ -121,7 +121,7 @@ def test_the_baseline_is_the_pipeline_agentdojo_builds() -> None:
     from agentdojo.agent_pipeline import AgentPipeline, PipelineConfig
     from agentdojo.agent_pipeline.agent_pipeline import load_system_message
 
-    from tagent_agentdojo.toolcalling import AGENTDOJO_LOCAL_PROVIDER
+    from meden_agentdojo.toolcalling import AGENTDOJO_LOCAL_PROVIDER
 
     class _Llm(BasePipelineElement):
         name = None
@@ -141,3 +141,26 @@ def test_the_baseline_is_the_pipeline_agentdojo_builds() -> None:
     assert reference.elements[0].system_message == load_system_message(None)
     assert "Do not assume the current year" in reference.elements[0].system_message
     assert AGENTDOJO_LOCAL_PROVIDER == "vllm_parsed"
+
+
+def test_a_failed_task_does_not_reuse_the_previous_tasks_report():
+    from types import SimpleNamespace
+
+    from meden_agentdojo.benchmark import Pool, _one_run
+    from meden_agentdojo.pipeline import GateReport
+
+    previous = GateReport(outcome="done", summary="previous task")
+    pipeline = SimpleNamespace(last_report=previous)
+    pool = Pool(lambda: pipeline, 1)
+
+    class FailingSuite:
+        def run_task_with_pipeline(self, *args, **kwargs):
+            raise RuntimeError("current task failed")
+
+    utility, security, report = _one_run(
+        pool, FailingSuite(), SimpleNamespace(ID="task"), None, {}
+    )
+    assert not utility and not security
+    assert report is not previous
+    assert report.outcome == "failed"
+    assert report.summary == "current task failed"

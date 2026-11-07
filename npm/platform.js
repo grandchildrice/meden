@@ -20,17 +20,17 @@ function target() {
 
 /** What the binary is called once unpacked. */
 function binaryName() {
-  return process.platform === 'win32' ? 'tagent.exe' : 'tagent';
+  return process.platform === 'win32' ? 'meden.exe' : 'meden';
 }
 
 /** The archive uploaded for a target. */
 function archiveName(triple) {
-  return `tagent-${triple}.tar.gz`;
+  return `meden-${triple}.tar.gz`;
 }
 
 /** Where a release archive lives. */
 function downloadUrl(version, triple) {
-  const base = 'https://github.com/grandchildrice/t-agent/releases/download';
+  const base = 'https://github.com/grandchildrice/meden/releases/download';
   return `${base}/v${version}/${archiveName(triple)}`;
 }
 

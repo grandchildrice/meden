@@ -1,4 +1,4 @@
-# tagent-agentdojo
+# meden-agentdojo
 
 Runs [AgentDojo](https://github.com/ethz-spylab/agentdojo) against the
 capability-typed runtime, so the claim the runtime makes can be checked
@@ -11,14 +11,29 @@ allow a call the gate refused, and nothing here can refuse one it allowed.
 ## Running it
 
 ```bash
-cargo build --release -p tagent-cli          # from the repository root
+cargo build --release -p meden-cli          # from the repository root
 cd python && uv sync --group dev --extra agentdojo
 
-uv run python -m tagent_agentdojo.benchmark \
+uv run python -m meden_agentdojo.benchmark \
   --suite banking --provider hermes:ollama-cloud --out results.json
+
+# Meden's own native tool-calling engine (capability policy only):
+uv run python -m meden_agentdojo.benchmark --agent meden-tool-calling \
+  --suite banking --provider hermes:ollama-cloud --benign-only --workers 4 \
+  --out native.json
 ```
 
-`tagent providers` lists what it can plan with. `--benign-only` measures
+`--agent meden` uses the isolated planner and flow rules. `--agent
+meden-tool-calling` runs the Rust conversation engine, with capability checks
+and no provenance/disclosure enforcement. `--agent tool-calling` is
+AgentDojo's own undefended baseline. The native adapter takes the system
+prompt and YAML result formatter directly from AgentDojo. A deterministic
+HTTP test compares complete request sequences against the baseline,
+including tool order, schemas, message blocks and sampling fields. At this
+AgentDojo version, its zero temperature is omitted from the HTTP request,
+so both native agents use the server's sampling defaults.
+
+`meden providers` lists what it can plan with. `--benign-only` measures
 utility and stops; `--limit` and `--injection-limit` cut the run down while
 you are setting it up. A full banking run is 16 tasks benign and 16 × 9 under
 attack.
@@ -83,5 +98,5 @@ them here would overstate the result.
 ## Tests
 
 ```bash
-TAGENT_BIN=../target/debug/tagent uv run pytest
+MEDEN_BIN=../target/debug/meden uv run pytest
 ```

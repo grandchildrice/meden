@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 'use strict';
 
-// Find the tagent binary and run it.
+// Find the meden binary and run it.
 //
-// In order: an explicit TAGENT_BIN, one already downloaded beside this file,
+// In order: an explicit MEDEN_BIN, one already downloaded beside this file,
 // a local cargo build (so a checkout runs its own code), then the release
 // for this platform.
 
@@ -26,7 +26,7 @@ function version() {
 /** A binary already present, or null. */
 function existingBinary() {
   const candidates = [];
-  if (process.env.TAGENT_BIN) candidates.push(process.env.TAGENT_BIN);
+  if (process.env.MEDEN_BIN) candidates.push(process.env.MEDEN_BIN);
   candidates.push(path.join(BIN_DIR, platform.binaryName()));
   // A checkout runs its own build rather than a download.
   for (const profile of ['release', 'debug']) {
@@ -59,7 +59,7 @@ async function fetchBinary() {
   if (!triple) {
     throw new Error(
       `no prebuilt binary for ${platform.describe()}; build from source: ` +
-        'cargo install --git https://github.com/grandchildrice/t-agent tagent-cli'
+        'cargo install --git https://github.com/grandchildrice/meden meden-cli'
     );
   }
 
@@ -82,7 +82,7 @@ async function fetchBinary() {
   }
 
   fs.mkdirSync(BIN_DIR, { recursive: true });
-  const tmp = path.join(os.tmpdir(), `tagent-${process.pid}.tar.gz`);
+  const tmp = path.join(os.tmpdir(), `meden-${process.pid}.tar.gz`);
   fs.writeFileSync(tmp, bytes);
   try {
     // tar is present on Linux, macOS and Windows 10 onwards.
@@ -104,12 +104,12 @@ async function main() {
   try {
     binary = await fetchBinary();
   } catch (err) {
-    console.error(`tagent: ${err.message}`);
+    console.error(`meden: ${err.message}`);
     process.exit(1);
   }
   const result = spawnSync(binary, process.argv.slice(2), { stdio: 'inherit' });
   if (result.error) {
-    console.error(`tagent: could not run ${binary}: ${result.error.message}`);
+    console.error(`meden: could not run ${binary}: ${result.error.message}`);
     process.exit(1);
   }
   process.exit(result.status === null ? 1 : result.status);

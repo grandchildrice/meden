@@ -1,8 +1,8 @@
 import pytest
 
-from tagent_agentdojo import CapabilityGate, Requirement, TagentClient, ToolCall, find_tagent
+from meden_agentdojo import CapabilityGate, MedenClient, Requirement, ToolCall, find_meden
 
-pytestmark = pytest.mark.skipif(find_tagent() is None, reason="tagent binary not built")
+pytestmark = pytest.mark.skipif(find_meden() is None, reason="meden binary not built")
 
 
 def _send_email(call: ToolCall) -> list[Requirement]:
@@ -17,7 +17,7 @@ def _read_file(call: ToolCall) -> list[Requirement]:
 def _gate() -> CapabilityGate:
     g = CapabilityGate(
         policy={"name": "ws", "grants": ["fs.read[/workspace/*]", "net.egress[*.example.com]"]},
-        client=TagentClient(),
+        client=MedenClient(),
     )
     g.register("send_email", _send_email)
     g.register("read_file", _read_file)

@@ -1,9 +1,9 @@
-name = "TAgentSpec"
-defaultTargets = ["TAgentSpec", "tagent-spec"]
+name = "MedenSpec"
+defaultTargets = ["MedenSpec", "meden-spec"]
 
 [[lean_lib]]
-name = "TAgentSpec"
+name = "MedenSpec"
 
 [[lean_exe]]
-name = "tagent-spec"
+name = "meden-spec"
 root = "Main"

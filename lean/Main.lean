@@ -1,8 +1,8 @@
 import Lean.Data.Json
-import TAgentSpec
+import MedenSpec
 
 /-!
-# tagent-spec
+# meden-spec
 
 Executable oracle for the conformance test. Reads one JSON document from
 stdin:
@@ -16,10 +16,10 @@ stdin:
 ```
 
 and prints `{"policy": [bool], "glob": [bool], "tier": [string]}` computed by
-the definitions in `TAgentSpec`.
+the definitions in `MedenSpec`.
 -/
 
-open Lean TAgentSpec
+open Lean MedenSpec
 
 instance : FromJson Capability where
   fromJson? j := do
@@ -92,7 +92,7 @@ def vresultOf? : String → Option VResult
   | "failed" => some .failed
   | _ => none
 
-def TAgentSpec.Tier.name : Tier → String
+def MedenSpec.Tier.name : Tier → String
   | .verified => "verified"
   | .verifiedWithTcb => "verified-with-tcb"
   | .notVerified => "not-verified"
@@ -138,7 +138,7 @@ def main : IO UInt32 := do
   let text ← readAll stdin ""
   match Json.parse text >>= fromJson? (α := Input) with
   | .error e =>
-    IO.eprintln s!"tagent-spec: {e}"
+    IO.eprintln s!"meden-spec: {e}"
     return 1
   | .ok input =>
     let out : Json := Json.mkObj

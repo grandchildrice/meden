@@ -34,27 +34,27 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.target }}
-      - run: cargo build --release -p tagent-cli --target ${{ matrix.target }}
+      - run: cargo build --release -p meden-cli --target ${{ matrix.target }}
 
       - name: Package
         shell: bash
         run: |
           set -euo pipefail
-          bin=tagent
-          [ "${{ runner.os }}" = "Windows" ] && bin=tagent.exe
+          bin=meden
+          [ "${{ runner.os }}" = "Windows" ] && bin=meden.exe
           staging=$(mktemp -d)
           cp "target/${{ matrix.target }}/release/$bin" "$staging/"
           cp LICENSE README.md "$staging/"
-          tar -czf "tagent-${{ matrix.target }}.tar.gz" -C "$staging" .
-          sha256sum "tagent-${{ matrix.target }}.tar.gz" > "tagent-${{ matrix.target }}.tar.gz.sha256" \
-            || shasum -a 256 "tagent-${{ matrix.target }}.tar.gz" > "tagent-${{ matrix.target }}.tar.gz.sha256"
+          tar -czf "meden-${{ matrix.target }}.tar.gz" -C "$staging" .
+          sha256sum "meden-${{ matrix.target }}.tar.gz" > "meden-${{ matrix.target }}.tar.gz.sha256" \
+            || shasum -a 256 "meden-${{ matrix.target }}.tar.gz" > "meden-${{ matrix.target }}.tar.gz.sha256"
 
       - uses: actions/upload-artifact@v7
         with:
-          name: tagent-${{ matrix.target }}
+          name: meden-${{ matrix.target }}
           path: |
-            tagent-${{ matrix.target }}.tar.gz
-            tagent-${{ matrix.target }}.tar.gz.sha256
+            meden-${{ matrix.target }}.tar.gz
+            meden-${{ matrix.target }}.tar.gz.sha256
           if-no-files-found: error
 
   publish:

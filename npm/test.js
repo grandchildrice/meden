@@ -17,7 +17,7 @@ for (const [key, triple] of Object.entries(platform.TARGETS)) {
   assert.match(triple, /^(x86_64|aarch64)-/, `odd triple for ${key}: ${triple}`);
   const url = platform.downloadUrl('1.2.3', triple);
   assert.ok(url.includes('/v1.2.3/'), url);
-  assert.ok(url.endsWith(`tagent-${triple}.tar.gz`), url);
+  assert.ok(url.endsWith(`meden-${triple}.tar.gz`), url);
 }
 
 // This platform is one of them, or the launcher explains itself.

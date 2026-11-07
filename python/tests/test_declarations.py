@@ -15,7 +15,7 @@ def test_every_suite_is_fully_declared():
 
     from agentdojo.task_suite.load_suites import get_suite
 
-    from tagent_agentdojo.declarations import SUITES, tool_specs
+    from meden_agentdojo.declarations import SUITES, tool_specs
 
     for name, declarations in SUITES.items():
         suite = get_suite("v1", name)
@@ -26,6 +26,13 @@ def test_every_suite_is_fully_declared():
             f"{name}: a tool reached the planner with no description, "
             "which is how it cannot tell two tools apart"
         )
+        # The ordinary tool-calling baseline gets these schemas. Dropping
+        # types/defaults here forces the planner to guess valid arguments.
+        from pydantic import TypeAdapter
+
+        for spec, tool in zip(specs, suite.tools, strict=True):
+            assert spec["parameters_schema"] == tool.parameters.model_json_schema()
+            assert spec["result_schema"] == TypeAdapter(tool.return_type).json_schema()
 
 
 def test_a_tool_nobody_declared_is_refused_not_defaulted():
@@ -33,7 +40,7 @@ def test_a_tool_nobody_declared_is_refused_not_defaulted():
 
     import pytest
 
-    from tagent_agentdojo.declarations import UndeclaredTool, tool_specs
+    from meden_agentdojo.declarations import UndeclaredTool, tool_specs
 
     class Param:
         model_fields = {"x": None}
@@ -52,7 +59,7 @@ def test_the_banking_collision_is_detected():
     """
     from agentdojo.task_suite.load_suites import get_suite
 
-    from tagent_agentdojo.benchmark import confounded
+    from meden_agentdojo.benchmark import confounded
 
     suite = get_suite("v1", "banking")
     task = suite.user_tasks["user_task_15"]
