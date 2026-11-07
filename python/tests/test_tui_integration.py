@@ -41,7 +41,7 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path, allow_s
                 },
             )
         )
-    replies.extend(["Updated note.txt.", "Status is ready."])
+    replies.extend(["Updated note.txt.", "Status is ready.", "A fresh conversation."])
     first_turn_count = 4 if allow_shell else 3
 
     class Handler(BaseHTTPRequestHandler):
@@ -116,25 +116,45 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path, allow_s
         wait_for(lambda: b"fixture" in output)
         os.write(master, b"\r")
         wait_for(lambda: b"alt-enter" in output)
-        os.write(master, b"Update the status to ready.\r")
+        # Correct a typo in the middle with cursor keys, then submit from End.
+        os.write(
+            master,
+            b"Update the status to reXady." + b"\x1b[D" * 4 + b"\x7f\x1b[F\r",
+        )
         wait_for(
             lambda: len(requests) == first_turn_count and note.read_text() == "status: ready\n"
         )
         wait_for(lambda: b"retained" in output)
         assert note.read_text() == "status: ready\n"
+        assert requests[0]["messages"][-1]["content"][0]["text"] == (
+            "Update the status to ready."
+        )
         assert (
             "bash" in [tool["function"]["name"] for tool in requests[0]["tools"]]
         ) is allow_shell
         if allow_shell:
             assert (tmp_path / "check.txt").read_text() == "passed"
-        os.write(master, b"Which status now?\r")
+        # Bracketed paste must preserve Unicode and multiline input as one turn.
+        follow_up = "Which status now?\n日本語で答えて。"
+        os.write(master, b"\x1b[200~" + follow_up.encode() + b"\x1b[201~\r")
         wait_for(lambda: len(requests) == first_turn_count + 1)
-        wait_for(lambda: b"ready." in output)
+        # A recorded HTTP request (or text from an earlier turn) does not
+        # mean the UI is accepting input yet. Wait for the editor to return.
+        wait_for(lambda: output.count(b"alt-enter") >= 3)
         messages = requests[-1]["messages"]
         assert len(messages) == (10 if allow_shell else 8)
         assert messages[-1]["role"] == "user"
-        assert messages[-1]["content"][0]["text"] == "Which status now?"
+        assert messages[-1]["content"][0]["text"] == follow_up
         assert any(message.get("tool_call_id") == "call-2" for message in messages)
+        os.write(master, b"/clear\r")
+        wait_for(lambda: b"cleared" in output)
+        assert len(requests) == first_turn_count + 1
+        os.write(master, b"Fresh turn.\r")
+        wait_for(lambda: len(requests) == first_turn_count + 2)
+        wait_for(lambda: output.count(b"alt-enter") >= 4)
+        assert len(requests[-1]["messages"]) == 2
+        assert requests[-1]["messages"][-1]["content"][0]["text"] == "Fresh turn."
+        assert note.read_text() == "status: ready\n"
         os.write(master, b"\x03")
         process.wait(timeout=5)
         assert process.returncode == 0

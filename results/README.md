@@ -1,5 +1,54 @@
 # Measured
 
+## Current native benign utility
+
+The Rust conversational engine now reaches baseline-level benign utility
+in these measurements. Both agents use `minimax-m3` through
+`hermes:ollama-cloud`, four workers, AgentDojo 0.1.35 / suite version `v1`,
+and the same 15 tool-execution iterations. The baseline is constructed by
+AgentDojo itself. HTTP replay tests compare the complete request sequence,
+including system instructions, schemas, tool results and sampling fields.
+
+| Suite | Meden native v2 | AgentDojo baseline | Passes per agent |
+| --- | --- | --- | --- |
+| banking | 44/48 (92%) | 42/48 (88%) | 3 |
+| Slack | 18/21 (86%) | 18/21 (86%) | 1 |
+| travel | 14/20 (70%) | 12/20 (60%) | 1 |
+| workspace | 33/40 (83%) | 31/40 (78%) | 1 |
+
+Banking native passes scored 13/16, 16/16 and 15/16; the baseline scored
+14/16 each time. The other suites extend coverage with one pass each;
+their individual differences do not establish statistical superiority.
+These are benign-task measurements, not prompt-injection defence results.
+Native mode enforces capabilities only. The isolated planner retains its
+integrity/disclosure rules and is measured separately below.
+
+The frozen native binary has SHA-256 prefix `40a19b38c02c92cb`. Raw task
+records, exact conversations and execution settings are in:
+
+- [banking native](banking-native-v2-3-passes.json),
+  [banking baseline](banking-baseline-current-3-passes.json)
+- [Slack native](slack-native-v2.json), [Slack baseline](slack-baseline-current.json)
+- [travel native](travel-native-v2.json), [travel baseline](travel-baseline-current.json)
+- [workspace native](workspace-native-v2.json),
+  [workspace baseline](workspace-baseline-current.json)
+
+For a reproducible comparison, build once and keep the binary fixed while
+running both agents. Repeat for `slack`, `travel` and `workspace`:
+
+```bash
+cargo build --release -p meden-cli
+cd python
+MEDEN_BIN=../target/release/meden uv run python -m meden_agentdojo.benchmark \
+  --agent meden-tool-calling --suite banking --provider hermes:ollama-cloud \
+  --model minimax-m3 --benign-only --workers 4 --repeat 3 --out native.json
+MEDEN_BIN=../target/release/meden uv run python -m meden_agentdojo.benchmark \
+  --agent tool-calling --suite banking --provider hermes:ollama-cloud \
+  --model minimax-m3 --benign-only --workers 4 --repeat 3 --out baseline.json
+```
+
+## Historical isolated-planner comparison
+
 AgentDojo's banking suite, same open model planning every row: `minimax-m3`
 over an OpenAI-compatible endpoint. 16 benign tasks, 16 × 9 under the
 `important_instructions` attack, `--workers 4`, binary `44e3f8802b2f6fe0`.
@@ -70,6 +119,16 @@ of the original tests also passed. No scripted model was used for this run.
 `tui-live-smoke-bash.json` repeats that check successfully against the later
 binary whose Unix shell tool uses Bash. Bash-specific syntax is also covered
 by the shell unit test.
+
+`tui-live-smoke-current.json` and its terminal transcript verify the current
+TUI with the real model over two user turns: first repair `add`, then add
+`subtract` and its tests in the same conversation. The original tests stayed
+unchanged, the agent reran them after the follow-up, independent tests for
+both functions passed, and exit restored the terminal settings. The report
+contains the prompts, final source and binary digest. Deterministic PTY
+tests additionally exercise cursor editing, Unicode multiline paste,
+conversation retention and `/clear` starting a fresh model history without
+changing files.
 
 The baseline's old `outcome` fields in `banking-baseline-current-3-passes.json`
 were fallback report values, not observed session statuses. Its utility
@@ -188,8 +247,9 @@ language.
 - **The worker count is part of the measurement.** All taken at
   `--workers 4`. Do not set a number from one setting beside one from
   another.
-- **One pass is not a measurement.** Per-task outcomes move between passes
-  even at temperature zero, although the rate held at 56% across three.
+- **Report repeat counts.** Per-task outcomes move between passes. Banking
+  was repeated three times; the current other-suite figures are single-pass
+  coverage checks and do not establish a repeatable improvement.
 - **The policy grants every capability.** What refuses a call here is the
   provenance of its arguments and nothing else. A deployment would restrict
   capabilities too and refuse more; crediting those refusals to the flow

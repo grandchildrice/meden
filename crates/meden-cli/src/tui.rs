@@ -23,6 +23,9 @@ use meden_llm::{Provider, Transport};
 use ratatui::prelude::*;
 use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Wrap};
 
+mod input;
+use input::Input;
+
 enum Update {
     Asking(usize),
     Text(String),
@@ -57,7 +60,7 @@ struct App {
     providers: Vec<Provider>,
     picker: ListState,
     root: PathBuf,
-    instruction: String,
+    instruction: Input,
     screen: Screen,
     lines: Vec<TranscriptLine>,
     busy: bool,
@@ -79,7 +82,7 @@ impl App {
             providers,
             picker,
             root,
-            instruction: String::new(),
+            instruction: Input::default(),
             screen: Screen::Picking,
             lines: Vec::new(),
             busy: false,
@@ -114,7 +117,20 @@ impl App {
         }));
     }
     fn start(&mut self) {
-        if self.busy || self.instruction.trim().is_empty() {
+        if self.busy || self.instruction.text().trim().is_empty() {
+            return;
+        }
+        if self.instruction.text().trim() == "/clear" {
+            self.worker = None;
+            self.rx = None;
+            self.worker_provider = None;
+            self.instruction.clear();
+            self.lines.clear();
+            self.scroll_back = 0;
+            self.say(
+                "Conversation cleared. Workspace files retained.",
+                Style::new().fg(Color::DarkGray),
+            );
             return;
         }
         let Some(provider) = self.selected().cloned() else {
@@ -135,7 +151,7 @@ impl App {
             });
         }
         self.processes.flag().store(false, Ordering::SeqCst);
-        let instruction = std::mem::take(&mut self.instruction);
+        let instruction = self.instruction.take();
         self.say(format!("> {instruction}"), Style::new().fg(Color::Cyan));
         self.scroll_back = 0;
         if self
@@ -363,7 +379,7 @@ where
         let event = event::read()?;
         if let event::Event::Paste(text) = event {
             if app.screen == Screen::Instructing {
-                app.instruction.push_str(&text);
+                app.instruction.insert(&text);
             }
             continue;
         }
@@ -393,7 +409,7 @@ where
                 app.scroll_back = app.scroll_back.saturating_sub(10);
                 continue;
             }
-            KeyCode::End => {
+            KeyCode::End if app.screen != Screen::Instructing => {
                 app.scroll_back = 0;
                 continue;
             }
@@ -410,17 +426,30 @@ where
             Screen::Instructing => match key.code {
                 KeyCode::Esc | KeyCode::Tab => app.screen = Screen::Picking,
                 KeyCode::Enter if key.modifiers.contains(KeyModifiers::ALT) => {
-                    app.instruction.push('\n');
+                    app.instruction.insert("\n");
                 }
                 KeyCode::Enter => app.start(),
                 KeyCode::Backspace => {
-                    app.instruction.pop();
+                    app.instruction.backspace();
+                }
+                KeyCode::Delete => app.instruction.delete(),
+                KeyCode::Left => app.instruction.left(),
+                KeyCode::Right => app.instruction.right(),
+                KeyCode::Home => app.instruction.home(),
+                KeyCode::End => app.instruction.end(),
+                KeyCode::Up => app.instruction.up(),
+                KeyCode::Down => app.instruction.down(),
+                KeyCode::Char('a') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    app.instruction.home();
+                }
+                KeyCode::Char('e') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    app.instruction.end();
                 }
                 KeyCode::Char('u') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                     app.instruction.clear();
                 }
                 KeyCode::Char(c) if !key.modifiers.contains(KeyModifiers::CONTROL) => {
-                    app.instruction.push(c);
+                    app.instruction.insert(&c.to_string());
                 }
                 _ => {}
             },
@@ -492,10 +521,20 @@ fn draw(frame: &mut Frame<'_>, app: &App) {
             .saturating_sub(app.scroll_back);
         frame.render_widget(body.scroll((scroll, 0)), middle);
     }
+    if app.screen == Screen::Instructing {
+        draw_input(frame, &app.instruction, bottom);
+        return;
+    }
     let (title, text) = match app.screen {
-        Screen::Picking => (" controls ", "↑↓ choose · enter: continue · q: quit".to_owned()),
-        Screen::Instructing => (" instruction · enter: send · alt-enter: newline · ctrl-u: clear · tab: model · ctrl-c: quit ", format!("> {}", visible(&app.instruction))),
-        Screen::Running => (" working ", "esc / ctrl-c: cancel after current request".to_owned()),
+        Screen::Picking => (
+            " controls ",
+            "↑↓ choose · enter: continue · q: quit".to_owned(),
+        ),
+        Screen::Instructing => return,
+        Screen::Running => (
+            " working ",
+            "esc / ctrl-c: cancel after current request".to_owned(),
+        ),
     };
     frame.render_widget(
         Paragraph::new(text)
@@ -503,6 +542,36 @@ fn draw(frame: &mut Frame<'_>, app: &App) {
             .block(Block::default().borders(Borders::ALL).title(title)),
         bottom,
     );
+}
+
+fn draw_input(frame: &mut Frame<'_>, input: &Input, bottom: Rect) {
+    let block = Block::bordered().title(
+        " instruction · enter: send · alt-enter: newline · ↑↓ history · /clear · tab: model ",
+    );
+    let inner = block.inner(bottom);
+    frame.render_widget(block, bottom);
+    if inner.width >= 4 && inner.height > 0 {
+        let view = input.view(usize::from(inner.width));
+        let scroll = view
+            .row
+            .saturating_sub(usize::from(inner.height).saturating_sub(1));
+        let lines: Vec<_> = view
+            .lines
+            .into_iter()
+            .skip(scroll)
+            .take(usize::from(inner.height))
+            .map(Line::raw)
+            .collect();
+        frame.render_widget(Paragraph::new(lines), inner);
+        frame.set_cursor_position((
+            inner
+                .x
+                .saturating_add(u16::try_from(view.column).unwrap_or(0)),
+            inner
+                .y
+                .saturating_add(u16::try_from(view.row.saturating_sub(scroll)).unwrap_or(0)),
+        ));
+    }
 }
 
 /// Render the interface once without a terminal.
@@ -565,6 +634,23 @@ mod tests {
         let mut app = App::new(providers(), PathBuf::new(), false);
         app.start();
         assert!(!app.busy);
+    }
+    #[test]
+    fn long_input_keeps_cursor_visible_when_editing_in_the_middle() {
+        let mut app = App::new(providers(), PathBuf::new(), false);
+        app.screen = Screen::Instructing;
+        app.instruction.insert(&"日本語🙂abc ".repeat(40));
+        let mut terminal =
+            Terminal::new(ratatui::backend::TestBackend::new(40, 16)).expect("terminal");
+        terminal.draw(|frame| draw(frame, &app)).expect("draw");
+        let cursor = terminal.get_cursor_position().expect("cursor");
+        assert!(cursor.x > 0 && cursor.x < 39 && cursor.y >= 12 && cursor.y < 15);
+        app.instruction.home();
+        terminal.draw(|frame| draw(frame, &app)).expect("draw");
+        assert_eq!(
+            terminal.get_cursor_position().expect("cursor"),
+            Position::new(3, 12)
+        );
     }
     #[test]
     fn a_disconnected_worker_becomes_editable() {

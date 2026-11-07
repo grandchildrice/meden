@@ -103,7 +103,8 @@ MEDEN_BIN=../target/debug/meden uv run pytest
 
 A live-model TUI check is separate from the deterministic tests and score
 measurements. It uses real file edits and shell execution in a temporary
-workspace, then independently checks the original tests:
+workspace across two user turns (a bug fix, then a feature addition), then
+independently checks the original tests and the new function:
 
 ```bash
 uv run python -m meden_agentdojo.tui_smoke --binary ../target/release/meden \

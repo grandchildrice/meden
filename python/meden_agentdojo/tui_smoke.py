@@ -52,6 +52,15 @@ class TestAdd(unittest.TestCase):
         self.assertEqual(add(-4, 3), -1)
         Path("passing-test.marker").write_text("passed")
 """
+    independent_follow_up = """import unittest
+from calc import subtract
+
+class TestSubtract(unittest.TestCase):
+    def test_subtract(self):
+        self.assertEqual(subtract(7, 2), 5)
+        self.assertEqual(subtract(-4, 3), -7)
+        self.assertEqual(subtract(3, 3), 0)
+"""
     output = bytearray()
     started = time.monotonic()
     with tempfile.TemporaryDirectory(prefix="meden-tui-smoke-") as directory:
@@ -102,12 +111,34 @@ class TestAdd(unittest.TestCase):
             os.write(master, prompt.encode() + b"\r")
             wait_for(lambda: output.count(b"alt-enter") >= 2)
             report["agent_ran_passing_tests"] = (workspace / "passing-test.marker").exists()
+            report["first_turn_source"] = (workspace / "calc.py").read_text()
+            report["tests_unchanged_after_first_turn"] = test.read_text() == original_test
+            (workspace / "passing-test.marker").unlink(missing_ok=True)
+            follow_up = (
+                "In the same workspace, add subtract(a, b) to calc.py. Preserve add and "
+                "leave test_calc.py unchanged. Create test_subtract.py with unittest cases "
+                "for subtract(7, 2) == 5, subtract(-4, 3) == -7, and subtract(3, 3) == 0. "
+                f"Run {shlex.quote(sys.executable)} -m unittest -v "
+                "test_calc.py test_subtract.py and verify that both test files pass."
+            )
+            report["prompts"] = [prompt, follow_up]
+            os.write(master, follow_up.encode() + b"\r")
+            wait_for(lambda: output.count(b"alt-enter") >= 3)
+            report["agent_retested_after_follow_up"] = (
+                workspace / "passing-test.marker"
+            ).exists()
+            follow_up_test = workspace / "test_subtract.py"
+            report["agent_wrote_follow_up_tests"] = follow_up_test.is_file()
+            report["follow_up_tests"] = (
+                follow_up_test.read_text() if follow_up_test.is_file() else None
+            )
             report["tests_unchanged"] = test.read_text() == original_test
             report["final_source"] = (workspace / "calc.py").read_text()
             # Always use the original tests for the independent check.
             test.write_text(original_test)
+            (workspace / "verify_subtract.py").write_text(independent_follow_up)
             check = subprocess.run(
-                [sys.executable, "-m", "unittest", "-v", "test_calc.py"],
+                [sys.executable, "-m", "unittest", "-v", "test_calc.py", "verify_subtract.py"],
                 cwd=directory,
                 capture_output=True,
                 text=True,
@@ -122,6 +153,9 @@ class TestAdd(unittest.TestCase):
             report["terminal_restored"] = termios.tcgetattr(slave) == initial
             report["success"] = bool(
                 report["agent_ran_passing_tests"]
+                and report["tests_unchanged_after_first_turn"]
+                and report["agent_retested_after_follow_up"]
+                and report["agent_wrote_follow_up_tests"]
                 and report["tests_unchanged"]
                 and check.returncode == 0
                 and process.returncode == 0
