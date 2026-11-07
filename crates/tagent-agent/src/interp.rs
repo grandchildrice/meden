@@ -15,6 +15,24 @@
 //! `Assistant`. [`Interpreter::run`] enforces the half it can see, refusing
 //! to bind a value the planner was never allowed to read; the other half is
 //! the planner's own prompt, which arrives with the model client.
+//!
+//! # Where that invariant is not absolute
+//!
+//! Two things do flow back to the planner, and both are narrowed on purpose
+//! rather than assumed harmless.
+//!
+//! A refused call is explained to the planner by
+//! [`Refusal::safe_summary`](crate::gate::Refusal::safe_summary), and a plan
+//! that went wrong by [`EvalError::safe_summary`]. Both are built only from
+//! what the planner itself wrote and from fixed text.
+//!
+//! A plan that asks to continue is told the *shape* of each binding by
+//! [`Value::shape`](crate::value::Value::shape): one of six kinds, and
+//! whether it may steer. The kind of a value can depend on what a tool
+//! returned, so this is a channel, and the honest figure is under three bits
+//! per binding per round with rounds bounded — not zero. What it cannot do at
+//! any width is steer a call, because the gate checks the planner's output
+//! like everything else.
 
 use std::collections::BTreeMap;
 

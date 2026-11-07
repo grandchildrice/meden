@@ -148,24 +148,31 @@ impl Value {
 
     /// A description of this value's *shape*, carrying none of its content.
     ///
-    /// This is what the planner is allowed to learn about a tool's output.
-    /// It says the kind, the size and where the value came from, and it says
-    /// nothing else — not the text, not the numbers, and deliberately not the
-    /// field names of a map. A map built from a fetched page can have
+    /// This is the whole of what a planner is allowed to learn about a tool's
+    /// output: which of six kinds it is, and whether it may steer a call. Not
+    /// the text, not the numbers, not the length, and deliberately not the
+    /// field names of a map — a record parsed from a fetched page has
     /// attacker-chosen keys, so printing keys would be the same laundering
-    /// channel as printing the text: untrusted words reaching the model whose
-    /// literals are trusted to steer calls.
+    /// channel as printing the text.
+    ///
+    /// Counts are left out for the same reason, and the reason is worth being
+    /// plain about. The kind of a value *can* depend on what a tool returned,
+    /// so this is not a zero-bandwidth channel into the planner: an attacker
+    /// who controls a tool's output controls a few bits of it. Dropping the
+    /// lengths takes the channel from "as many bits as the text is long" to
+    /// under three bits per binding per round, with rounds bounded. What it
+    /// cannot do at any width is steer a call directly, because the planner's
+    /// literals are checked by the same gate as everything else.
     pub fn shape(&self, trusted: &std::collections::BTreeSet<crate::label::Source>) -> String {
         let kind = match &self.data {
-            Data::Unit => "nothing".to_owned(),
-            Data::Bool(_) => "a true/false value".to_owned(),
-            Data::Int(_) => "a number".to_owned(),
-            Data::Str(t) => format!("text, {} characters", t.chars().count()),
-            Data::List(items) => format!("a list of {} items", items.len()),
-            Data::Map(fields) => format!("a record with {} fields", fields.len()),
+            Data::Unit => "nothing",
+            Data::Bool(_) => "a true/false value",
+            Data::Int(_) => "a number",
+            Data::Str(_) => "text",
+            Data::List(_) => "a list",
+            Data::Map(_) => "a record",
         };
-        let label = self.deep_label();
-        let trust = if label.trusted_for_control(trusted) {
+        let trust = if self.deep_label().trusted_for_control(trusted) {
             "trusted"
         } else {
             "untrusted, so it cannot steer a call"
@@ -370,5 +377,77 @@ mod tests {
             format!("{}", Data::List(vec![Value::literal(Data::Int(1))])),
             "[1]"
         );
+    }
+}
+
+#[cfg(test)]
+mod shape_tests {
+    // Tests fail by panicking; that is their job.
+    #![allow(clippy::panic)]
+
+    use super::*;
+    use crate::label::{baseline_trust, Source};
+    use proptest::prelude::*;
+
+    fn untrusted(data: Data) -> Value {
+        Value::new(data, Label::public([Source::tool("fetch")]))
+    }
+
+    proptest! {
+        /// Two strings a tool might return look the same to the planner.
+        ///
+        /// This is the property the design needs: what the planner is told
+        /// about untrusted text does not vary with the text. If it did, an
+        /// attacker who controls a tool's output would be writing, a little
+        /// at a time, into the model whose literals steer calls.
+        #[test]
+        fn text_shapes_do_not_vary_with_the_text(a: String, b: String) {
+            let trusted = baseline_trust();
+            prop_assert_eq!(
+                untrusted(Data::Str(a)).shape(&trusted),
+                untrusted(Data::Str(b)).shape(&trusted)
+            );
+        }
+
+        /// Nor with how much of it there is.
+        #[test]
+        fn list_shapes_do_not_vary_with_the_contents(a: Vec<i64>, b: Vec<i64>) {
+            let trusted = baseline_trust();
+            let make = |xs: Vec<i64>| {
+                untrusted(Data::List(
+                    xs.into_iter().map(|n| Value::new(Data::Int(n), Label::public([]))).collect(),
+                ))
+            };
+            prop_assert_eq!(make(a).shape(&trusted), make(b).shape(&trusted));
+        }
+
+        /// And a record looks the same whatever its fields are called.
+        ///
+        /// Stated as an equality rather than "the key does not appear",
+        /// because a one-letter key appears in any English sentence by
+        /// coincidence. Equality says the real thing: the planner cannot
+        /// tell two records apart by their keys.
+        #[test]
+        fn record_shapes_do_not_vary_with_the_field_names(a: String, b: String) {
+            let trusted = baseline_trust();
+            let record = |key: String| {
+                untrusted(Data::Map(
+                    [(key, Value::new(Data::Int(1), Label::public([])))]
+                        .into_iter()
+                        .collect(),
+                ))
+            };
+            prop_assert_eq!(record(a).shape(&trusted), record(b).shape(&trusted));
+        }
+    }
+
+    #[test]
+    fn trust_is_the_one_thing_the_shape_does_report() {
+        let trusted = baseline_trust();
+        let mine = Value::str("hello", Label::user());
+        let theirs = untrusted(Data::Str("hello".to_owned()));
+        assert!(mine.shape(&trusted).contains("trusted"));
+        assert!(theirs.shape(&trusted).contains("untrusted"));
+        assert_ne!(mine.shape(&trusted), theirs.shape(&trusted));
     }
 }
