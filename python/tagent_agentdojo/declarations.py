@@ -236,6 +236,32 @@ SUITES: dict[str, dict[str, Declaration]] = {
 }
 
 
+def undefended(declarations: dict[str, Declaration]) -> dict[str, Declaration]:
+    """The same tools with nothing declared as steering, for a baseline.
+
+    This is what the agent does with its information-flow rules switched off,
+    and it is the only comparison that isolates them: same planner, same plan
+    language, same loop, same capability policy, same tools. The difference
+    between a run of this and a run of the real declarations is the rules and
+    nothing else.
+
+    It is expressed as a declaration rather than a flag on the binary on
+    purpose. A runtime whose defences can be turned off by an argument is a
+    runtime whose defences can be turned off by an argument. Here nothing in
+    the gate changes: it is told that no parameter steers and that no call
+    discloses, and it faithfully refuses nothing.
+
+    Measuring it matters for a reason that cuts the other way too. If the
+    injections do not work against this planner even undefended, then an
+    attack success rate of zero with the rules on is not evidence that the
+    rules did anything.
+    """
+    return {
+        name: {k: v for k, v in declaration.items() if k not in ("control", "discloses_to")}
+        for name, declaration in declarations.items()
+    }
+
+
 class UndeclaredTool(Exception):
     """A tool the suite offers that nothing has declared.
 

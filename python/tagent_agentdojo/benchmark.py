@@ -35,7 +35,7 @@ from agentdojo.attacks.attack_registry import load_attack
 from agentdojo.base_tasks import BaseInjectionTask, BaseUserTask
 from agentdojo.task_suite.load_suites import get_suite
 
-from .declarations import SUITES, UndeclaredTool
+from .declarations import SUITES, UndeclaredTool, undefended
 from .pipeline import TAgentPipeline
 
 
@@ -108,6 +108,9 @@ class Totals:
 
     suite: str
     provider: str
+    #: `flow-rules` or `none`. A run with no defence is a baseline, not a
+    #: result, and the file says which it is.
+    defence: str = "flow-rules"
     #: Which binary produced these numbers, and from which commit.
     built: dict[str, str] = field(default_factory=dict)
     #: Tasks run with no injection.
@@ -184,6 +187,7 @@ class Totals:
         lines = [
             f"suite                 {self.suite}",
             f"planner               {self.provider}",
+            f"defence               {self.defence}",
             f"binary                {self.built.get('sha256', '?')}"
             f"  (checkout at {self.built.get('repo_head', '?')})",
             f"utility               {self.utility:.0%}"
@@ -479,6 +483,12 @@ def main(argv: list[str] | None = None) -> int:
         "--injection-limit", type=int, default=None, help="only the first N injections"
     )
     parser.add_argument("--benign-only", action="store_true", help="measure utility and stop")
+    parser.add_argument(
+        "--undefended",
+        action="store_true",
+        help="baseline: the same agent with nothing declared as steering, "
+        "so the flow rules refuse nothing",
+    )
     parser.add_argument("--max-attempts", type=int, default=3)
     parser.add_argument(
         "--workers",
@@ -499,6 +509,11 @@ def main(argv: list[str] | None = None) -> int:
 
     suite = get_suite("v1", args.suite)
     declarations = SUITES[args.suite]
+    if args.undefended:
+        declarations = undefended(declarations)
+        print("BASELINE: no parameter is declared as steering, so the flow")
+        print("rules refuse nothing. These numbers are what the defence is")
+        print("measured against, not a result.\n")
     binary = find_binary()
 
     def make_pipeline() -> TAgentPipeline:
@@ -518,6 +533,7 @@ def main(argv: list[str] | None = None) -> int:
     totals = Totals(
         suite=args.suite,
         provider=args.provider or "first detected",
+        defence="none" if args.undefended else "flow-rules",
         built=provenance(binary),
     )
 
