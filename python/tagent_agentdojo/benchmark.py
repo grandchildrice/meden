@@ -20,7 +20,10 @@ uv run python -m tagent_agentdojo.benchmark --suite banking --limit 3
 from __future__ import annotations
 
 import argparse
+import concurrent.futures as cf
+import contextlib
 import json
+import queue
 import shutil
 import sys
 import time
@@ -37,10 +40,15 @@ from .pipeline import TAgentPipeline
 
 
 def provenance(binary: str) -> dict[str, str]:
-    """What was measured: which binary, built from which commit.
+    """What was measured: which binary, and what the checkout looked like.
 
-    Recorded because a result is only a result if someone can say what
-    produced it — and because rebuilding the binary while a run is in flight
+    The digest is the authoritative part — it identifies the exact program
+    that produced these numbers. `repo_head` is the checkout's HEAD when the
+    run *started*, which is not necessarily the commit the binary was built
+    from: nothing here can know that. It is recorded as a hint, and named so
+    it does not read as a claim.
+
+    Recorded at all because rebuilding the binary while a run is in flight
     silently mixes two different programs into one number. With the digest in
     the file, that mistake is visible afterwards instead of invisible.
     """
@@ -53,7 +61,7 @@ def provenance(binary: str) -> dict[str, str]:
     except OSError as e:  # noqa: BLE001 - provenance is best-effort
         out["sha256"] = f"unreadable: {e}"
     try:
-        out["commit"] = subprocess.run(
+        out["repo_head"] = subprocess.run(
             ["git", "-C", str(Path(binary).resolve().parent), "rev-parse", "--short", "HEAD"],
             capture_output=True,
             text=True,
@@ -61,7 +69,7 @@ def provenance(binary: str) -> dict[str, str]:
             timeout=10,
         ).stdout.strip()
     except (OSError, subprocess.SubprocessError):
-        out["commit"] = "unknown"
+        out["repo_head"] = "unknown"
     return out
 
 
@@ -171,7 +179,7 @@ class Totals:
             f"suite                 {self.suite}",
             f"planner               {self.provider}",
             f"binary                {self.built.get('sha256', '?')}"
-            f" @ {self.built.get('commit', '?')}",
+            f"  (checkout at {self.built.get('repo_head', '?')})",
             f"utility               {self.utility:.0%}"
             f"  ({self.benign_successes}/{self.benign_runs})",
         ]
@@ -232,31 +240,124 @@ def _tally(
     )
 
 
-def run_benign(
-    suite: Any,
-    pipeline: TAgentPipeline,
-    tasks: list[BaseUserTask],
-    totals: Totals,
-    repeat: int = 0,
-) -> None:
-    """Every task, with nothing injected."""
-    for task in tasks:
+class Pool:
+    """A few pipelines, lent out one at a time.
+
+    Tasks are independent and each spends most of its time waiting on a
+    model, so running several at once is the difference between a benchmark
+    someone runs and one they read about. Each worker needs its own pipeline
+    because a pipeline keeps the last run's gate report on itself, and two
+    threads sharing one would overwrite each other's.
+    """
+
+    def __init__(self, make: Any, workers: int) -> None:
+        self.free: queue.SimpleQueue[TAgentPipeline] = queue.SimpleQueue()
+        for _ in range(max(1, workers)):
+            self.free.put(make())
+
+    @contextlib.contextmanager
+    def borrow(self):
+        pipeline = self.free.get()
         try:
-            utility, _ = suite.run_task_with_pipeline(
-                pipeline, task, injection_task=None, injections={}
+            yield pipeline
+        finally:
+            self.free.put(pipeline)
+
+
+def _one_run(
+    pool: Pool,
+    suite: Any,
+    task: BaseUserTask,
+    injection_task: BaseInjectionTask | None,
+    injections: dict,
+) -> tuple[bool, bool, Any]:
+    """Run one task, returning utility, attack success and the gate report."""
+    with pool.borrow() as pipeline:
+        try:
+            utility, security = suite.run_task_with_pipeline(
+                pipeline, task, injection_task=injection_task, injections=injections
             )
         except UndeclaredTool:
             raise
         except Exception as e:  # noqa: BLE001 - one bad task must not end the run
-            print(f"  {task.ID}: error: {e}", file=sys.stderr)
-            utility = False
+            label = task.ID if injection_task is None else f"{task.ID}/{injection_task.ID}"
+            print(f"  {label}: error: {e}", file=sys.stderr)
+            utility, security = False, False
+        return bool(utility), bool(security), pipeline.last_report
+
+
+def _run_all(
+    pool: Pool,
+    suite: Any,
+    work: list[tuple[BaseUserTask, BaseInjectionTask | None, dict]],
+    totals: Totals,
+    repeat: int,
+    workers: int,
+) -> None:
+    """Run every piece of work, in parallel when asked, reporting in order."""
+    results: dict[int, tuple[bool, bool, Any]] = {}
+    if workers <= 1:
+        for i, (task, injection_task, injections) in enumerate(work):
+            results[i] = _one_run(pool, suite, task, injection_task, injections)
+            _report_one(work, results, totals, repeat, i)
+        return
+
+    with cf.ThreadPoolExecutor(max_workers=workers) as pool_of_threads:
+        futures = {
+            pool_of_threads.submit(_one_run, pool, suite, task, injection_task, injections): i
+            for i, (task, injection_task, injections) in enumerate(work)
+        }
+        # Report in submission order, so the output of a parallel run reads
+        # the same as a serial one and two runs can be compared line by line.
+        next_to_report = 0
+        for future in cf.as_completed(futures):
+            results[futures[future]] = future.result()
+            while next_to_report in results:
+                _report_one(work, results, totals, repeat, next_to_report)
+                next_to_report += 1
+
+
+def _report_one(
+    work: list[tuple[BaseUserTask, BaseInjectionTask | None, dict]],
+    results: dict[int, tuple[bool, bool, Any]],
+    totals: Totals,
+    repeat: int,
+    i: int,
+) -> None:
+    task, injection_task, _ = work[i]
+    utility, security, report = results[i]
+    if injection_task is None:
         totals.benign_runs += 1
         totals.benign_successes += int(utility)
-        _tally(totals, pipeline.last_report, task.ID, bool(utility), repeat=repeat)
+        _tally(totals, report, task.ID, utility, repeat=repeat)
         print(f"  {task.ID:<12} utility={'yes' if utility else 'no '}", flush=True)
+    else:
+        totals.attack_runs += 1
+        totals.attack_utility += int(utility)
+        totals.attack_successes += int(security)
+        _tally(totals, report, task.ID, utility, injection_task.ID, security, repeat=repeat)
+        print(
+            f"  {task.ID:<12} {injection_task.ID:<14} "
+            f"utility={'yes' if utility else 'no '} "
+            f"attack={'SUCCEEDED' if security else 'failed'}",
+            flush=True,
+        )
+
+
+def run_benign(
+    pool: Pool,
+    suite: Any,
+    tasks: list[BaseUserTask],
+    totals: Totals,
+    repeat: int = 0,
+    workers: int = 1,
+) -> None:
+    """Every task, with nothing injected."""
+    _run_all(pool, suite, [(t, None, {}) for t in tasks], totals, repeat, workers)
 
 
 def run_attacks(
+    pool: Pool,
     suite: Any,
     pipeline: TAgentPipeline,
     tasks: list[BaseUserTask],
@@ -264,39 +365,21 @@ def run_attacks(
     attack_name: str,
     totals: Totals,
     repeat: int = 0,
+    workers: int = 1,
 ) -> None:
-    """Every task against every injection."""
+    """Every task against every injection.
+
+    The injected text is composed up front, in one thread: an attack object
+    is not documented as safe to share, and composing is cheap next to
+    running.
+    """
     attack = load_attack(attack_name, suite, pipeline)
-    for task in tasks:
-        for injection_task in injections:
-            placed = attack.attack(task, injection_task)
-            try:
-                utility, security = suite.run_task_with_pipeline(
-                    pipeline, task, injection_task=injection_task, injections=placed
-                )
-            except UndeclaredTool:
-                raise
-            except Exception as e:  # noqa: BLE001
-                print(f"  {task.ID}/{injection_task.ID}: error: {e}", file=sys.stderr)
-                utility, security = False, False
-            totals.attack_runs += 1
-            totals.attack_utility += int(utility)
-            totals.attack_successes += int(security)
-            _tally(
-                totals,
-                pipeline.last_report,
-                task.ID,
-                bool(utility),
-                injection_task.ID,
-                bool(security),
-                repeat=repeat,
-            )
-            print(
-                f"  {task.ID:<12} {injection_task.ID:<14} "
-                f"utility={'yes' if utility else 'no '} "
-                f"attack={'SUCCEEDED' if security else 'failed'}",
-                flush=True,
-            )
+    work = [
+        (task, injection_task, attack.attack(task, injection_task))
+        for task in tasks
+        for injection_task in injections
+    ]
+    _run_all(pool, suite, work, totals, repeat, workers)
 
 
 def find_binary() -> str:
@@ -331,6 +414,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--benign-only", action="store_true", help="measure utility and stop")
     parser.add_argument("--max-attempts", type=int, default=3)
     parser.add_argument(
+        "--workers",
+        type=int,
+        default=1,
+        help="tasks to run at once; each waits on a model, so this is "
+        "most of what decides how long a run takes",
+    )
+    parser.add_argument(
         "--repeat",
         type=int,
         default=1,
@@ -342,20 +432,26 @@ def main(argv: list[str] | None = None) -> int:
 
     suite = get_suite("v1", args.suite)
     declarations = SUITES[args.suite]
-    pipeline = TAgentPipeline(
-        declarations=declarations,
-        binary=find_binary(),
-        provider=args.provider,
-        model=args.model,
-        max_attempts=args.max_attempts,
-    )
+    binary = find_binary()
+
+    def make_pipeline() -> TAgentPipeline:
+        return TAgentPipeline(
+            declarations=declarations,
+            binary=binary,
+            provider=args.provider,
+            model=args.model,
+            max_attempts=args.max_attempts,
+        )
+
+    pipeline = make_pipeline()
+    pool = Pool(make_pipeline, args.workers)
 
     tasks = list(suite.user_tasks.values())[: args.limit]
     injections = list(suite.injection_tasks.values())[: args.injection_limit]
     totals = Totals(
         suite=args.suite,
         provider=args.provider or "first detected",
-        built=provenance(pipeline.binary),
+        built=provenance(binary),
     )
 
     started = time.monotonic()
@@ -363,11 +459,19 @@ def main(argv: list[str] | None = None) -> int:
         if args.repeat > 1:
             print(f"pass {pass_number + 1} of {args.repeat}")
         print(f"{len(tasks)} user tasks, no injection")
-        run_benign(suite, pipeline, tasks, totals, repeat=pass_number)
+        run_benign(pool, suite, tasks, totals, repeat=pass_number, workers=args.workers)
         if not args.benign_only:
             print(f"{len(tasks)} tasks x {len(injections)} injections")
             run_attacks(
-                suite, pipeline, tasks, injections, args.attack, totals, repeat=pass_number
+                pool,
+                suite,
+                pipeline,
+                tasks,
+                injections,
+                args.attack,
+                totals,
+                repeat=pass_number,
+                workers=args.workers,
             )
     totals.seconds = time.monotonic() - started
 
