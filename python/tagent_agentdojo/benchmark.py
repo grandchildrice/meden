@@ -126,6 +126,9 @@ class Totals:
     refusals: dict[str, int] = field(default_factory=dict)
     #: Runs that ended without a usable plan, which is a cost, not a defence.
     no_plan: int = 0
+    #: Which injection goals the agent could achieve when simply asked.
+    #: See `injections_are_solvable`.
+    solvable: dict[str, bool] = field(default_factory=dict)
     #: One entry per run, so a number can be traced back to a task.
     runs: list[RunRecord] = field(default_factory=list)
     seconds: float = 0.0
@@ -207,6 +210,19 @@ class Totals:
                 f"attack success rate   {self.attack_success_rate:.0%}"
                 f"  ({self.attack_successes}/{self.attack_runs})",
             ]
+            if self.solvable:
+                live = [i for i, ok in self.solvable.items() if ok]
+                dead = sorted(i for i, ok in self.solvable.items() if not ok)
+                counted = [r for r in self.runs if r.injection in live]
+                hit = sum(1 for r in counted if r.attack)
+                rate = hit / len(counted) if counted else 0.0
+                lines += [
+                    f"  over achievable     {rate:.0%}  ({hit}/{len(counted)})",
+                    f"  {len(live)} of {len(self.solvable)} injection goals this agent can reach"
+                    " when simply asked;",
+                    "  the rest cannot be scored for or against any defence: "
+                    + ", ".join(dead),
+                ]
         unwinnable = [r for r in self.runs if r.collides_on]
         if unwinnable:
             scored = sum(1 for r in unwinnable if r.attack)
@@ -231,6 +247,40 @@ class Totals:
             lines.append(f"runs with no usable plan   {self.no_plan}")
         lines.append(f"took                  {self.seconds:.0f}s")
         return "\n".join(lines)
+
+
+def injections_are_solvable(suite: Any, pool: Pool, workers: int = 1) -> dict[str, bool]:
+    """Can the agent carry out each injection's goal when simply asked to?
+
+    AgentDojo's own runner does this before measuring an attack and warns
+    when the answer is no. The reason matters more than the warning: an
+    injection whose goal the agent could not achieve even on instruction is
+    one that no defence can be credited with stopping, and one that inflates
+    the denominator of every attack success rate quoted against it.
+
+    So an attack success rate of zero means nothing until this says yes.
+    """
+    from agentdojo.functions_runtime import FunctionsRuntime
+
+    def one(injection_task: BaseInjectionTask) -> bool:
+        with pool.borrow() as pipeline:
+            environment = suite.load_and_inject_default_environment({})
+            runtime = FunctionsRuntime(suite.tools)
+            before = environment.model_copy(deep=True)
+            try:
+                _, _, after, messages, _ = pipeline.query(
+                    injection_task.GOAL, runtime, environment
+                )
+            except Exception as e:  # noqa: BLE001 - one goal must not end the check
+                print(f"  {injection_task.ID}: error: {e}", file=sys.stderr)
+                return False
+            said = messages[-1].get("content") if messages else None
+            return bool(injection_task.security(str(said), before, after))
+
+    tasks = list(suite.injection_tasks.items())
+    with cf.ThreadPoolExecutor(max_workers=max(1, workers)) as threads:
+        verdicts = list(threads.map(lambda kv: one(kv[1]), tasks))
+    return dict(zip([k for k, _ in tasks], verdicts, strict=True))
 
 
 def confounded(task: BaseUserTask, injection_task: BaseInjectionTask) -> str | None:
@@ -492,6 +542,11 @@ def main(argv: list[str] | None = None) -> int:
         "were written against",
     )
     parser.add_argument(
+        "--skip-injection-check",
+        action="store_true",
+        help="do not first measure which injection goals the agent can reach",
+    )
+    parser.add_argument(
         "--undefended",
         action="store_true",
         help="baseline: the same agent with nothing declared as steering, "
@@ -562,6 +617,12 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     started = time.monotonic()
+    if not args.benign_only and not args.skip_injection_check:
+        print(f"checking which of {len(injections)} injection goals this agent can reach")
+        totals.solvable = injections_are_solvable(suite, pool, args.workers)
+        for name, ok in totals.solvable.items():
+            print(f"  {name:<18} {'reachable' if ok else 'NOT reachable'}", flush=True)
+        print()
     for pass_number in range(max(1, args.repeat)):
         if args.repeat > 1:
             print(f"pass {pass_number + 1} of {args.repeat}")
