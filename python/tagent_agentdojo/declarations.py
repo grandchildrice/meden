@@ -26,6 +26,27 @@ Declaration = dict[str, Any]
 # to be trusted and leaves the amount, date and subject to the
 # confidentiality check; marking those as steering too would refuse more and
 # make the comparison flattering rather than fair.
+# Where these are stricter than CaMeL, and why it is said out loud
+# ----------------------------------------------------------------
+# CaMeL's policies are disjunctive: an untrusted recipient is accepted if
+# everything being sent is readable by that recipient. This runtime's
+# integrity rule has no such escape — a parameter that steers must be
+# trusted, full stop — so on three kinds of tool it refuses where CaMeL
+# allows:
+#
+#   send_email / send_direct_message   CaMeL: trusted recipient OR the body
+#                                      is readable by whoever it names.
+#   get_webpage                        CaMeL: the url need only be public.
+#   reschedule_calendar_event,
+#   append_to_file                     CaMeL consults the environment for who
+#                                      may read the event or the file; this
+#                                      adapter cannot, so it requires the
+#                                      handle itself to be trusted.
+#
+# Every one of those makes this side refuse more, not less. A utility number
+# measured here is therefore a floor against CaMeL's, and an attack-success
+# number is not flattered by the difference.
+
 BANKING: dict[str, Declaration] = {
     # Reading. Nothing here changes the world, so nothing steers.
     "get_iban": {"requires": ["secret.read[own-iban]"]},
@@ -60,10 +81,12 @@ BANKING: dict[str, Declaration] = {
 }
 
 SLACK: dict[str, Declaration] = {
+    # Reading. CaMeL treats all of these as having no side effect, so neither
+    # does this: a tool that only looks does not steer anything.
     "get_channels": {},
-    "read_channel_messages": {"control": ["channel"], "requires": ["fs.read[{channel}]"]},
-    "read_inbox": {"control": ["user"], "requires": ["fs.read[inbox]"]},
-    "get_users_in_channel": {"control": ["channel"]},
+    "read_channel_messages": {"requires": ["fs.read[{channel}]"]},
+    "read_inbox": {"requires": ["fs.read[inbox]"]},
+    "get_users_in_channel": {},
     "get_webpage": {"control": ["url"], "requires": ["net.egress[{url}]"]},
     "add_user_to_channel": {
         "control": ["user", "channel"],
@@ -91,10 +114,125 @@ SLACK: dict[str, Declaration] = {
     },
 }
 
+
+#: One tool per line, mirroring CaMeL's `travel.py`. Everything that only
+#: looks something up steers nothing; a reservation is steered by what is
+#: being reserved and when.
+TRAVEL: dict[str, Declaration] = {
+    # Looking things up.
+    "get_user_information": {},
+    "get_all_hotels_in_city": {},
+    "get_hotels_prices": {},
+    "get_rating_reviews_for_hotels": {},
+    "get_hotels_address": {},
+    "get_all_restaurants_in_city": {},
+    "get_cuisine_type_for_restaurants": {},
+    "get_restaurants_address": {},
+    "get_rating_reviews_for_restaurants": {},
+    "get_dietary_restrictions_for_all_restaurants": {},
+    "get_contact_information_for_restaurants": {},
+    "get_price_for_restaurants": {},
+    "check_restaurant_opening_hours": {},
+    "get_all_car_rental_companies_in_city": {},
+    "get_car_types_available": {},
+    "get_rating_reviews_for_car_rental": {},
+    "get_car_fuel_options": {},
+    "get_car_rental_address": {},
+    "get_car_price_per_day": {},
+    "get_flight_information": {},
+    "search_calendar_events": {},
+    "get_day_calendar_events": {},
+    # Booking. CaMeL requires every field of a reservation to be trusted,
+    # because a reservation made on an injected page's terms is still a
+    # reservation.
+    "reserve_hotel": {
+        "control": ["hotel", "start_day", "end_day"],
+        "requires": ["net.egress[booking]"],
+    },
+    "reserve_car_rental": {
+        "control": ["company", "start_time", "end_time"],
+        "requires": ["net.egress[booking]"],
+    },
+    "reserve_restaurant": {
+        "control": ["restaurant", "start_time"],
+        "requires": ["net.egress[booking]"],
+    },
+    # The calendar and the outbox.
+    "create_calendar_event": {
+        "control": ["participants"],
+        "discloses_to": "participants",
+        "requires": ["fs.write[calendar]"],
+    },
+    "cancel_calendar_event": {
+        "control": ["event_id"],
+        "requires": ["fs.write[calendar]"],
+    },
+    "send_email": {
+        "control": ["recipients", "cc", "bcc"],
+        "discloses_to": "recipients",
+        "requires": ["net.egress[{recipients}]"],
+    },
+}
+
+#: Mirrors CaMeL's `workspace.py`. Note `create_file`: writing a file the
+#: user alone can see is not a disclosure, and CaMeL allows it unconditionally
+#: for that reason. Sharing it is the act that needs a trusted address.
+WORKSPACE: dict[str, Declaration] = {
+    # Looking things up.
+    "get_unread_emails": {},
+    "get_sent_emails": {},
+    "get_received_emails": {},
+    "get_draft_emails": {},
+    "search_emails": {},
+    "search_contacts_by_name": {},
+    "search_contacts_by_email": {},
+    "get_current_day": {},
+    "search_calendar_events": {},
+    "get_day_calendar_events": {},
+    "search_files_by_filename": {},
+    "get_file_by_id": {},
+    "list_files": {},
+    "search_files": {},
+    # The outbox.
+    "send_email": {
+        "control": ["recipients", "cc", "bcc"],
+        "discloses_to": "recipients",
+        "requires": ["net.egress[{recipients}]"],
+    },
+    "delete_email": {"control": ["email_id"], "requires": ["fs.write[inbox]"]},
+    # The calendar.
+    "create_calendar_event": {
+        "control": ["participants"],
+        "discloses_to": "participants",
+        "requires": ["fs.write[calendar]"],
+    },
+    "cancel_calendar_event": {"control": ["event_id"], "requires": ["fs.write[calendar]"]},
+    "reschedule_calendar_event": {
+        "control": ["event_id"],
+        "requires": ["fs.write[calendar]"],
+    },
+    "add_calendar_event_participants": {
+        "control": ["event_id", "participants"],
+        "discloses_to": "participants",
+        "requires": ["fs.write[calendar]"],
+    },
+    # The drive.
+    "create_file": {"requires": ["fs.write[drive]"]},
+    "delete_file": {"control": ["file_id"], "requires": ["fs.write[drive]"]},
+    "share_file": {
+        "control": ["email"],
+        "discloses_to": "email",
+        "requires": ["net.egress[{email}]"],
+    },
+    "append_to_file": {"control": ["file_id"], "requires": ["fs.write[drive]"]},
+}
+
 #: Every suite this knows how to declare.
 SUITES: dict[str, dict[str, Declaration]] = {
     "banking": BANKING,
     "slack": SLACK,
+    "travel": TRAVEL,
+    "workspace": WORKSPACE,
 }
 
 
