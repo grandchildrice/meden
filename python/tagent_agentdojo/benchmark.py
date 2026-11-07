@@ -75,6 +75,8 @@ class RunRecord:
     """
 
     task: str
+    #: Which pass over the suite this was, counting from zero.
+    repeat: int = 0
     #: The injection task, when one was placed.
     injection: str | None = None
     #: Did the user's task succeed?
@@ -126,6 +128,20 @@ class Totals:
     def attack_success_rate(self) -> float:
         return self.attack_successes / self.attack_runs if self.attack_runs else 0.0
 
+    def utility_by_repeat(self) -> list[float]:
+        """Utility measured separately in each pass over the suite.
+
+        A planner set to temperature zero still answers differently from one
+        run to the next, and on sixteen tasks the swing has been wider than
+        the gap to the target. One number from one pass is not a measurement
+        of anything; the spread is the honest report.
+        """
+        passes: dict[int, list[bool]] = {}
+        for run in self.runs:
+            if run.injection is None:
+                passes.setdefault(run.repeat, []).append(run.utility)
+        return [sum(r) / len(r) for _, r in sorted(passes.items()) if r]
+
     def benign_failures(self) -> dict[str, list[str]]:
         """Benign tasks that failed, grouped by what to blame.
 
@@ -159,6 +175,13 @@ class Totals:
             f"utility               {self.utility:.0%}"
             f"  ({self.benign_successes}/{self.benign_runs})",
         ]
+        spread = self.utility_by_repeat()
+        if len(spread) > 1:
+            each = ", ".join(f"{u:.0%}" for u in spread)
+            lines.append(
+                f"  by pass             {each}"
+                f"  (low {min(spread):.0%}, high {max(spread):.0%})"
+            )
         if self.attack_runs:
             lines += [
                 f"utility under attack  {self.utility_under_attack:.0%}"
@@ -188,6 +211,7 @@ def _tally(
     utility: bool,
     injection: str | None = None,
     attack: bool | None = None,
+    repeat: int = 0,
 ) -> None:
     for tool, rule in report.refusals:
         key = f"{rule} ({tool})" if rule == "policy" else rule
@@ -197,6 +221,7 @@ def _tally(
     totals.runs.append(
         RunRecord(
             task=task,
+            repeat=repeat,
             injection=injection,
             utility=bool(utility),
             attack=attack,
@@ -208,7 +233,11 @@ def _tally(
 
 
 def run_benign(
-    suite: Any, pipeline: TAgentPipeline, tasks: list[BaseUserTask], totals: Totals
+    suite: Any,
+    pipeline: TAgentPipeline,
+    tasks: list[BaseUserTask],
+    totals: Totals,
+    repeat: int = 0,
 ) -> None:
     """Every task, with nothing injected."""
     for task in tasks:
@@ -223,7 +252,7 @@ def run_benign(
             utility = False
         totals.benign_runs += 1
         totals.benign_successes += int(utility)
-        _tally(totals, pipeline.last_report, task.ID, bool(utility))
+        _tally(totals, pipeline.last_report, task.ID, bool(utility), repeat=repeat)
         print(f"  {task.ID:<12} utility={'yes' if utility else 'no '}", flush=True)
 
 
@@ -234,6 +263,7 @@ def run_attacks(
     injections: list[BaseInjectionTask],
     attack_name: str,
     totals: Totals,
+    repeat: int = 0,
 ) -> None:
     """Every task against every injection."""
     attack = load_attack(attack_name, suite, pipeline)
@@ -259,6 +289,7 @@ def run_attacks(
                 bool(utility),
                 injection_task.ID,
                 bool(security),
+                repeat=repeat,
             )
             print(
                 f"  {task.ID:<12} {injection_task.ID:<14} "
@@ -299,6 +330,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--benign-only", action="store_true", help="measure utility and stop")
     parser.add_argument("--max-attempts", type=int, default=3)
+    parser.add_argument(
+        "--repeat",
+        type=int,
+        default=1,
+        help="passes over the suite; more than one reports the spread, "
+        "which a single pass cannot",
+    )
     parser.add_argument("--out", type=Path, default=None, help="write totals as JSON")
     args = parser.parse_args(argv)
 
@@ -321,11 +359,16 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     started = time.monotonic()
-    print(f"{len(tasks)} user tasks, no injection")
-    run_benign(suite, pipeline, tasks, totals)
-    if not args.benign_only:
-        print(f"{len(tasks)} tasks x {len(injections)} injections")
-        run_attacks(suite, pipeline, tasks, injections, args.attack, totals)
+    for pass_number in range(max(1, args.repeat)):
+        if args.repeat > 1:
+            print(f"pass {pass_number + 1} of {args.repeat}")
+        print(f"{len(tasks)} user tasks, no injection")
+        run_benign(suite, pipeline, tasks, totals, repeat=pass_number)
+        if not args.benign_only:
+            print(f"{len(tasks)} tasks x {len(injections)} injections")
+            run_attacks(
+                suite, pipeline, tasks, injections, args.attack, totals, repeat=pass_number
+            )
     totals.seconds = time.monotonic() - started
 
     print()

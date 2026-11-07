@@ -23,6 +23,12 @@ utility and stops; `--limit` and `--injection-limit` cut the run down while
 you are setting it up. A full banking run is 16 tasks benign and 16 × 9 under
 attack.
 
+**Run it more than once.** A planner at temperature zero still answers
+differently from one pass to the next, and on sixteen tasks the swing has
+been wider than the differences anyone is trying to measure. `--repeat N`
+makes N passes and reports each one, so the spread is visible instead of
+being rounded away into a single confident number.
+
 ## What it reports
 
 Three numbers, kept apart because they answer different questions.
