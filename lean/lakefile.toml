@@ -1,0 +1,9 @@
+name = "TAgentSpec"
+defaultTargets = ["TAgentSpec", "tagent-spec"]
+
+[[lean_lib]]
+name = "TAgentSpec"
+
+[[lean_exe]]
+name = "tagent-spec"
+root = "Main"

@@ -1,0 +1,29 @@
+[package]
+name = "tagent-cli"
+description = "The tagent command: check skills, decide tool calls, classify attestations"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "tagent"
+path = "src/main.rs"
+
+[dependencies]
+tagent-core = { path = "../tagent-core", version = "0.1.0" }
+tagent-skill = { path = "../tagent-skill", version = "0.1.0" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+clap = { version = "4", features = ["derive"] }
+anyhow = "1"
+
+[dev-dependencies]
+tempfile = "3"
+assert_cmd = "2"
+predicates = "3"
+
+[lints]
+workspace = true

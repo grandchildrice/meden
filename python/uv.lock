@@ -1640,12 +1640,9 @@ wheels = [
 ]
 
 [[package]]
-name = "t-agent"
-version = "0.0.1"
+name = "tagent-agentdojo"
+version = "0.1.0"
 source = { editable = "." }
-dependencies = [
-    { name = "pyyaml" },
-]
 
 [package.optional-dependencies]
 agentdojo = [
@@ -1659,10 +1656,7 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "agentdojo", marker = "extra == 'agentdojo'", specifier = ">=0.1.35" },
-    { name = "pyyaml", specifier = ">=6.0" },
-]
+requires-dist = [{ name = "agentdojo", marker = "extra == 'agentdojo'", specifier = ">=0.1.35" }]
 provides-extras = ["agentdojo"]
 
 [package.metadata.requires-dev]

@@ -1,0 +1,120 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  rust:
+    name: rust (fmt, clippy, test, doc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.98.1
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+      - run: cargo test --workspace --all-features
+      - run: cargo doc --workspace --no-deps
+        env:
+          RUSTDOCFLAGS: -D warnings
+
+  deny:
+    name: cargo-deny (licenses, advisories, sources)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check
+
+  kani:
+    name: kani (bounded model checking)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: model-checking/kani-github-action@v1
+        with:
+          args: -p tagent-core
+
+  lean:
+    name: lean (spec builds, no sorry, standard axioms only)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: lean
+          use-mathlib-cache: false
+          test: false
+      - name: forbid sorry
+        run: |
+          if grep -rn --include='*.lean' -E '\bsorry\b' lean/TAgentSpec lean/TAgentSpec.lean lean/Main.lean; then
+            echo "sorry found"; exit 1; fi
+      - name: audit axioms
+        working-directory: lean
+        run: |
+          lake env lean Audit.lean | tee audit.txt
+          if grep -E 'sorryAx' audit.txt; then echo "sorryAx present"; exit 1; fi
+          if grep -E "depends on axioms" audit.txt | grep -vE '^\S+ depends on axioms: \[(propext|Classical\.choice|Quot\.sound)(, (propext|Classical\.choice|Quot\.sound))*\]$' | grep -q .; then
+            echo "non-standard axiom present"; exit 1; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tagent-spec
+          path: lean/.lake/build/bin/tagent-spec
+          if-no-files-found: error
+
+  python:
+    name: python adapter (ruff, pytest against the binary)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.98.1
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build -p tagent-cli
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --group dev
+        working-directory: python
+      - run: uv run ruff check .
+        working-directory: python
+      - run: uv run pytest -q
+        working-directory: python
+        env:
+          TAGENT_BIN: ${{ github.workspace }}/target/debug/tagent
+
+  conformance:
+    name: conformance (rust == lean on random cases)
+    needs: [lean]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.98.1
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/download-artifact@v4
+        with:
+          name: tagent-spec
+          path: oracle
+      - run: chmod +x oracle/tagent-spec
+      - run: cargo test -p tagent-cli --test conformance -- --nocapture
+        env:
+          TAGENT_SPEC_BIN: ${{ github.workspace }}/oracle/tagent-spec
