@@ -1,3 +1,11 @@
+# Rust
+target/
+**/*.rs.bk
+
+# Lean
+.lake/
+
+# Python
 .venv/
 __pycache__/
 *.pyc
@@ -6,6 +14,6 @@ __pycache__/
 dist/
 build/
 *.egg-info/
+
 .env
 .DS_Store
-.lake/
