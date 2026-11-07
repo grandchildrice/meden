@@ -167,10 +167,24 @@ impl Decision {
     }
 }
 
+/// Is the requirement violated under the policy (denied, or not granted)?
+///
+/// This is the whole decision rule; [`check`] only adds the human-readable
+/// reasons. Mirrors `TAgentSpec.Policy.violates`.
+pub fn violates(policy: &Policy, req: &Requirement) -> bool {
+    policy.denies(req.capability) || !policy.grants(req)
+}
+
+/// Are all requirements allowed? Mirrors `TAgentSpec.Policy.allowed`.
+pub fn allowed(requirements: &[Requirement], policy: &Policy) -> bool {
+    requirements.iter().all(|r| !violates(policy, r))
+}
+
 /// Check a set of requirements against a policy.
 ///
 /// Requirements are considered in the order of their label (then evidence),
 /// so the reasons are deterministic whatever order the caller used.
+/// `check(rs, p).allowed == allowed(rs, p)` always.
 pub fn check(requirements: &[Requirement], policy: &Policy) -> Decision {
     let mut reqs: Vec<&Requirement> = requirements.iter().collect();
     reqs.sort_by(|a, b| {
@@ -310,6 +324,17 @@ mod tests {
             let expected = reqs.iter().all(|r| !policy.denies(r.capability) && policy.grants(r));
             prop_assert_eq!(d.allowed, expected);
             prop_assert_eq!(d.reasons.is_empty(), d.allowed);
+        }
+
+        #[test]
+        fn check_agrees_with_allowed(
+            reqs in proptest::collection::vec((arb_cap(), proptest::option::of("[ab/]{0,4}")), 0..4),
+            grants in proptest::collection::vec((arb_cap(), proptest::option::of("[ab/*?]{0,4}")), 0..4),
+            denies in proptest::collection::vec(arb_cap(), 0..3),
+        ) {
+            let reqs: Vec<Requirement> = reqs.iter().map(|(c, s)| Requirement::new(*c, s.as_deref())).collect();
+            let policy = Policy { name: "p".into(), grants: grants.iter().map(|(c, s)| Grant::new(*c, s.as_deref())).collect(), denies };
+            prop_assert_eq!(check(&reqs, &policy).allowed, allowed(&reqs, &policy));
         }
 
         #[test]
