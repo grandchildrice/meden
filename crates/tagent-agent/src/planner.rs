@@ -66,6 +66,9 @@ impl PlanRequest {
                 let _ = write!(out, " — discloses its arguments to {target}");
             }
             out.push('\n');
+            if !sig.description.is_empty() {
+                let _ = writeln!(out, "    {}", sig.description.trim());
+            }
         }
         out
     }

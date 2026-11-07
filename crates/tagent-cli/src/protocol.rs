@@ -38,6 +38,9 @@ use tagent_core::{Capability, Policy, Requirement};
 pub struct ToolSpec {
     /// Its name.
     pub name: String,
+    /// What it does, in a sentence.
+    #[serde(default)]
+    pub description: String,
     /// Its parameters.
     #[serde(default)]
     pub params: Vec<ParamSpecJson>,
@@ -50,6 +53,14 @@ pub struct ToolSpec {
     /// scope from the `to` argument of the call being made.
     #[serde(default)]
     pub requires: Vec<String>,
+    /// Who may read what this tool returns.
+    ///
+    /// Absent means anyone. Naming principals here is how a deployment says
+    /// that a tool returns something confidential: the result's readers are
+    /// narrowed to this list, and any later call that would disclose it to
+    /// someone else is refused.
+    #[serde(default)]
+    pub returns_readers: Option<Vec<String>>,
 }
 
 /// One parameter, as the host describes it.
@@ -96,6 +107,13 @@ pub enum Out {
         tool: String,
         /// Its arguments, as plain JSON.
         args: serde_json::Value,
+    },
+    /// What the planner wrote, so a host can log it.
+    Plan {
+        /// Which attempt.
+        attempt: usize,
+        /// The plan, as JSON.
+        plan: serde_json::Value,
     },
     /// What the gate decided about a call.
     Decision {
@@ -224,6 +242,7 @@ impl Link {
 struct HostTool {
     sig: ToolSig,
     requires: Vec<String>,
+    returns_readers: Option<Vec<String>>,
     link: Arc<Link>,
 }
 
@@ -247,8 +266,12 @@ impl Tool for HostTool {
         );
         let answer = self.link.call(&self.sig.name, &plain)?;
         // The interpreter labels this with the tool; the label here only has
-        // to be the neutral one it joins onto.
-        let label = Label::public([Source::tool(&self.sig.name)]);
+        // to be the neutral one it joins onto, narrowed to the readers the
+        // deployment declared for this tool.
+        let mut label = Label::public([Source::tool(&self.sig.name)]);
+        if let Some(readers) = &self.returns_readers {
+            label = label.restrict_to(&tagent_agent::Readers::only(readers.clone()));
+        }
         Ok(Value::new(data_from_json(&answer, &label), label))
     }
 }
@@ -304,11 +327,12 @@ pub fn run(
                 control: p.control,
             })
             .collect();
-        let mut sig = ToolSig::new(&spec.name, params);
+        let mut sig = ToolSig::new(&spec.name, params).describing(&spec.description);
         sig.discloses_to.clone_from(&spec.discloses_to);
         registry.register(Box::new(HostTool {
             sig,
             requires: spec.requires.clone(),
+            returns_readers: spec.returns_readers.clone(),
             link: Arc::clone(&link),
         }));
     }
@@ -321,18 +345,23 @@ pub fn run(
     let observer = |event: SessionEvent<'_>| {
         let message = match event {
             SessionEvent::Asking { attempt } => vec![Out::Asking { attempt }],
-            SessionEvent::Attempted { attempt, trace, .. } => trace
-                .calls
-                .iter()
-                .map(|c| Out::Decision {
-                    attempt,
-                    tool: c.tool.clone(),
-                    allowed: c.allowed(),
-                    refusal: c.outcome.as_ref().err().map(ToString::to_string),
-                    summary: c.outcome.as_ref().err().map(Refusal::safe_summary),
-                    rule: c.outcome.as_ref().err().map(rule_name),
-                })
-                .collect(),
+            SessionEvent::Attempted {
+                attempt,
+                plan,
+                trace,
+            } => std::iter::once(Out::Plan {
+                attempt,
+                plan: serde_json::to_value(plan).unwrap_or(serde_json::Value::Null),
+            })
+            .chain(trace.calls.iter().map(|c| Out::Decision {
+                attempt,
+                tool: c.tool.clone(),
+                allowed: c.allowed(),
+                refusal: c.outcome.as_ref().err().map(ToString::to_string),
+                summary: c.outcome.as_ref().err().map(Refusal::safe_summary),
+                rule: c.outcome.as_ref().err().map(rule_name),
+            }))
+            .collect(),
         };
         for m in &message {
             let _ = link.send(m);

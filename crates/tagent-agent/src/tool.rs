@@ -52,6 +52,12 @@ impl ParamSpec {
 pub struct ToolSig {
     /// Tool name, also the provenance recorded on its results.
     pub name: String,
+    /// What the tool does, in a sentence, for the planner's prompt.
+    ///
+    /// A planner that cannot tell `get_balance` from `get_iban` writes plans
+    /// that fail for reasons that have nothing to do with the gate, so this
+    /// is not decoration.
+    pub description: String,
     /// Its parameters.
     pub params: Vec<ParamSpec>,
     /// The parameter whose value names the principal this call discloses its
@@ -67,9 +73,17 @@ impl ToolSig {
     pub fn new(name: &str, params: Vec<ParamSpec>) -> Self {
         ToolSig {
             name: name.to_owned(),
+            description: String::new(),
             params,
             discloses_to: None,
         }
+    }
+
+    /// This signature, with a description for the planner.
+    #[must_use]
+    pub fn describing(mut self, description: &str) -> Self {
+        description.clone_into(&mut self.description);
+        self
     }
 
     /// This signature, declaring that it discloses to the principal named by

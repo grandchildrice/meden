@@ -76,13 +76,6 @@ pub enum EvalError {
     /// The quarantined reader could not answer.
     #[error("the quarantined reader could not answer: {0}")]
     Quarantined(#[from] PlannerError),
-
-    /// A question was asked about something that is not text.
-    #[error("can only ask about text, not {kind}")]
-    NotText {
-        /// What it was asked about.
-        kind: &'static str,
-    },
 }
 
 /// One decision the interpreter made, kept for audit.
@@ -241,15 +234,21 @@ impl<'a> Interpreter<'a> {
                 let Some(reader) = self.quarantined else {
                     return Err(EvalError::NoQuarantinedReader);
                 };
-                let Some(s) = value.as_str() else {
-                    return Err(EvalError::NotText {
-                        kind: value.data.kind(),
-                    });
+                // Anything can be read, not only text: a list of
+                // transactions is exactly the sort of thing a plan needs
+                // summarised, and refusing it would push the planner into
+                // reading the data itself, which is the one thing the design
+                // does not allow.
+                let rendered = match value.as_str() {
+                    Some(s) => s.to_owned(),
+                    None => serde_json::to_string_pretty(&crate::value::data_to_json(&value.data))
+                        .unwrap_or_default(),
                 };
-                let answer = reader.extract(question, s)?;
-                // The answer is about that text, so it inherits that text's
-                // label. It is data, never control.
-                Ok(Value::new(answer, value.label.clone()))
+                let answer = reader.extract(question, &rendered)?;
+                // The answer is about that value, so it inherits that value's
+                // label, including everything nested inside it. It is data,
+                // never control.
+                Ok(Value::new(answer, value.deep_label()))
             }
 
             Expr::Call { tool, args } => self.call(tool, args, env, trace),
@@ -602,17 +601,29 @@ mod tests {
         );
     }
 
+    /// A plan often needs a list summarised, so asking about one works and
+    /// the answer keeps the list's label.
     #[test]
-    fn asking_about_something_that_is_not_text_is_an_error() {
+    fn asking_about_a_list_works_and_keeps_its_label() {
         let (reg, cfg) = (registry(), config());
         let reader = Credulous;
         let interp = Interpreter::new(&reg, &cfg).with_quarantined(&reader);
         let mut trace = Trace::default();
-        let env = Env::new();
-        assert!(matches!(
-            interp.eval(&Expr::Int(3).ask("what?"), &env, &mut trace),
-            Err(EvalError::NotText { .. })
-        ));
+        let mut env = Env::new();
+        env.bind(
+            "rows",
+            Value::new(
+                Data::List(vec![Value::str(
+                    "a",
+                    Label::public([Source::tool("ledger")]),
+                )]),
+                Label::runtime(),
+            ),
+        );
+        let answer = interp.eval(&Expr::var("rows").ask("total?"), &env, &mut trace);
+        let answer = answer.unwrap_or_else(|_| Value::literal(Data::Unit));
+        assert!(matches!(answer.data, Data::Str(_)));
+        assert!(answer.label.sources.contains(&Source::tool("ledger")));
     }
 
     #[test]

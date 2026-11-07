@@ -29,7 +29,7 @@ impl OpenAiCompatible {
             api_key: None,
             timeout: Duration::from_secs(120),
             temperature: 0.0,
-            max_tokens: 8192,
+            max_tokens: 32768,
         }
     }
 
