@@ -90,7 +90,7 @@ jobs:
           toolchain: 1.98.1
       - uses: Swatinem/rust-cache@v2
       - run: cargo build -p tagent-cli
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
       - run: uv sync --group dev
         working-directory: python
       - run: uv run ruff check .
