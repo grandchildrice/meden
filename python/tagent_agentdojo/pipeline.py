@@ -67,10 +67,36 @@ def _to_jsonable(value: Any) -> Any:
     return str(value)
 
 
+#: How to spell the planner so AgentDojo's attacks address it correctly.
+#:
+#: The `important_instructions` attack writes "You are <model>" into the
+#: injected text, and takes <model> from the pipeline's name. An injection
+#: addressed to the wrong model is a weaker injection, so getting this right
+#: makes the attack stronger, not the defence better. The keys are substrings
+#: AgentDojo looks for; the fallback is `local`, which it reads as "Local
+#: model" and which is what an open model served over an OpenAI-compatible
+#: endpoint is.
+_VICTIM_NAMES = {
+    "claude": "claude-3-5-sonnet-20241022",
+    "anthropic": "claude-3-5-sonnet-20241022",
+    "gpt": "gpt-4o-2024-05-13",
+    "openai": "gpt-4o-2024-05-13",
+    "codex": "gpt-4o-2024-05-13",
+    "gemini": "gemini-2.0-flash-001",
+}
+
+
+def victim_name(provider: str | None, model: str | None) -> str:
+    """What to call the planner, in the vocabulary AgentDojo's attacks use."""
+    haystack = f"{provider or ''} {model or ''}".lower()
+    for key, spelling in _VICTIM_NAMES.items():
+        if key in haystack:
+            return spelling
+    return "local"
+
+
 class TAgentPipeline(BasePipelineElement):
     """An AgentDojo pipeline element backed by the capability-typed runtime."""
-
-    name = "tagent"
 
     def __init__(
         self,
@@ -89,6 +115,9 @@ class TAgentPipeline(BasePipelineElement):
         self.policy = policy or PERMISSIVE_POLICY
         self.max_attempts = max_attempts
         self.timeout = timeout
+        #: Read by AgentDojo's attacks to address the injection to the right
+        #: model. See `victim_name`.
+        self.name = f"tagent ({victim_name(provider, model)})"
         #: The report from the most recent `query`, for a caller collecting
         #: statistics.
         self.last_report = GateReport()
