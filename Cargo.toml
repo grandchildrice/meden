@@ -4,6 +4,7 @@ members = [
     "crates/tagent-core",
     "crates/tagent-skill",
     "crates/tagent-agent",
+    "crates/tagent-llm",
     "crates/tagent-cli",
 ]
 

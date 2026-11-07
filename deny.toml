@@ -18,6 +18,10 @@ allow = [
   "Zlib",
   "MPL-2.0",
   "CC0-1.0",
+  # webpki-roots ships the Mozilla CA root store as data under the Community
+  # Data License Agreement. It is a permissive data licence, and the contents
+  # are the same root certificates every TLS client uses.
+  "CDLA-Permissive-2.0",
 ]
 confidence-threshold = 0.9
 

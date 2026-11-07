@@ -11,6 +11,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 mod attest;
+mod demo;
 
 use anyhow::{Context, Result};
 use clap::{Args, Parser, Subcommand};
@@ -48,6 +49,19 @@ enum Command {
     /// Produce an attestation with a verifier plugin.
     #[command(subcommand)]
     Attest(AttestCommand),
+    /// Run the prompt-injection scenario end to end.
+    Demo(DemoArgs),
+}
+
+#[derive(Args)]
+struct DemoArgs {
+    /// Ask a real model for the plans instead of using scripted ones.
+    ///
+    /// Reads TAGENT_LLM_BASE_URL and TAGENT_LLM_MODEL, and optionally
+    /// TAGENT_LLM_API_KEY. Any OpenAI-compatible server will do: vLLM,
+    /// Ollama or llama.cpp.
+    #[arg(long)]
+    live: bool,
 }
 
 #[derive(Subcommand)]
@@ -192,6 +206,17 @@ fn run() -> Result<ExitCode> {
             Ok(exit_for(tier.is_verified()))
         }
         Command::Gate(a) => run_gate(&a, &mut out),
+        Command::Demo(a) => {
+            if a.live {
+                let client =
+                    tagent_llm::OpenAiCompatible::from_env().map_err(|e| anyhow::anyhow!("{e}"))?;
+                writeln!(io::stderr(), "planning with {}", client.base_url())?;
+                demo::run(&client, &mut out)?;
+            } else {
+                demo::run(&demo::scripted(), &mut out)?;
+            }
+            Ok(ExitCode::SUCCESS)
+        }
         Command::Attest(AttestCommand::Lean(a)) => {
             let (att, tier) = attest::run(&a)?;
             let json = serde_json::to_string_pretty(&att)?;

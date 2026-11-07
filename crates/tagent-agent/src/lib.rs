@@ -42,6 +42,7 @@ pub mod interp;
 pub mod label;
 pub mod plan;
 pub mod planner;
+pub mod prompt;
 pub mod tool;
 pub mod value;
 
@@ -55,6 +56,8 @@ pub use gate::{
 pub use interp::{CallRecord, Env, EvalError, Interpreter, Trace};
 pub use label::{baseline_trust, Label, Readers, Source};
 pub use plan::{Expr, Plan, Stmt};
+pub use prompt::{parse_plan, system_prompt, user_prompt};
+
 pub use planner::{
     Outcome, PlanRequest, Planner, PlannerError, Quarantined, ScriptedPlanner, Session,
     SessionReport,
