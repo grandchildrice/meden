@@ -1,0 +1,10 @@
+/home/gohan/workspace/t-agent/target/debug/deps/arraydeque-a72065dacc8103c2.d: /home/gohan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arraydeque-0.5.1/src/lib.rs /home/gohan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arraydeque-0.5.1/src/behavior.rs /home/gohan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arraydeque-0.5.1/src/error.rs /home/gohan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arraydeque-0.5.1/src/range.rs
+
+/home/gohan/workspace/t-agent/target/debug/deps/libarraydeque-a72065dacc8103c2.rlib: /home/gohan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arraydeque-0.5.1/src/lib.rs /home/gohan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arraydeque-0.5.1/src/behavior.rs /home/gohan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arraydeque-0.5.1/src/error.rs /home/gohan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arraydeque-0.5.1/src/range.rs
+
+/home/gohan/workspace/t-agent/target/debug/deps/libarraydeque-a72065dacc8103c2.rmeta: /home/gohan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arraydeque-0.5.1/src/lib.rs /home/gohan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arraydeque-0.5.1/src/behavior.rs /home/gohan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arraydeque-0.5.1/src/error.rs /home/gohan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arraydeque-0.5.1/src/range.rs
+
+/home/gohan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arraydeque-0.5.1/src/lib.rs:
+/home/gohan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arraydeque-0.5.1/src/behavior.rs:
+/home/gohan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arraydeque-0.5.1/src/error.rs:
+/home/gohan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arraydeque-0.5.1/src/range.rs:
