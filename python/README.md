@@ -29,6 +29,15 @@ been wider than the differences anyone is trying to measure. `--repeat N`
 makes N passes and reports each one, so the spread is visible instead of
 being rounded away into a single confident number.
 
+`--workers N` runs N tasks at once. Almost all of a run is spent waiting on
+a model, so this is most of what decides how long one takes: four workers
+turned eight banking runs from about an hour into four minutes. Keep the
+setting fixed across runs you intend to compare. A parallel pass has scored
+lower here than serial passes of the same suite, and whether that is the
+concurrency or the ordinary swing is not something these runs can tell
+apart — so do not read a number measured at one setting against a number
+measured at another.
+
 ## What it reports
 
 Three numbers, kept apart because they answer different questions.
