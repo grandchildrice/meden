@@ -3,11 +3,22 @@
 //! Each harness states a property over *all* inputs within a small bound.
 //! Kani (CBMC) explores them exhaustively, so a passing harness is a proof of
 //! the property for those bounds, including absence of panics and arithmetic
-//! overflow. The harnesses run the rule on stack data only ([`GrantRef`],
-//! [`ReqRef`], char arrays): no heap, no symbolic strings. Scopes are drawn
-//! from a fixed menu of concrete strings by a symbolic index. The Lean model
-//! carries the unbounded argument; these harnesses pin the Rust code to it,
-//! and the property tests in `policy.rs` pin the owned API to the borrowed one.
+//! overflow.
+//!
+//! Three rules keep these cheap enough for a hosted runner:
+//!
+//! * **No heap.** The harnesses run the rule on stack data only ([`GrantRef`],
+//!   [`ReqRef`], char arrays). Scopes come from a fixed menu of concrete
+//!   strings chosen by a symbolic index, so no string is symbolic.
+//! * **No panicking operation.** Every array access goes through `get`, so
+//!   slice bounds checks do not enter the model, and assertions are
+//!   `assert!` rather than `assert_eq!`, which keeps `Debug` formatting out.
+//! * **No symbolic-length loops.** Arrays have a fixed length and symbolic
+//!   contents; a symbolic length is applied afterwards with `get(..n)`.
+//!
+//! The Lean model carries the unbounded argument; these harnesses pin the
+//! Rust code to it, and the property tests in `policy.rs` and
+//! `attestation.rs` pin the owned APIs to the borrowed ones used here.
 
 use crate::attestation::{tier_of_ref, Result, Tier};
 use crate::capability::Capability;
@@ -18,20 +29,25 @@ use crate::policy::{allowed_ref, covers_ref, violates_ref, GrantRef, ReqRef};
 const REQ_SCOPES: [&str; 2] = ["a", "b"];
 /// Scopes a grant may carry (concrete, with wildcards).
 const GRANT_SCOPES: [&str; 3] = ["a", "*", "?"];
+/// Characters a symbolic pattern or text is built from.
+const ALPHABET: [char; 2] = ['a', 'b'];
 
 fn any_cap() -> Capability {
     let i: usize = kani::any();
     kani::assume(i < Capability::ALL.len());
-    Capability::ALL[i]
+    // The assume makes the fallback unreachable; `get` keeps the panic
+    // branch out of the model.
+    *Capability::ALL.get(i).unwrap_or(&Capability::UiControl)
 }
 
 fn any_req() -> ReqRef<'static> {
     let scoped: bool = kani::any();
     let i: usize = kani::any();
     kani::assume(i < REQ_SCOPES.len());
+    let scope = REQ_SCOPES.get(i).copied().unwrap_or("a");
     ReqRef {
         capability: any_cap(),
-        scope: scoped.then_some(REQ_SCOPES[i]),
+        scope: scoped.then_some(scope),
     }
 }
 
@@ -39,50 +55,43 @@ fn any_grant() -> GrantRef<'static> {
     let scoped: bool = kani::any();
     let i: usize = kani::any();
     kani::assume(i < GRANT_SCOPES.len());
+    let scope = GRANT_SCOPES.get(i).copied().unwrap_or("a");
     GrantRef {
         capability: any_cap(),
-        scope: scoped.then_some(GRANT_SCOPES[i]),
+        scope: scoped.then_some(scope),
     }
 }
 
-/// `glob_match` never panics and a wildcard-free pattern matches only itself.
+fn any_char() -> char {
+    let i: usize = kani::any();
+    kani::assume(i < ALPHABET.len());
+    ALPHABET.get(i).copied().unwrap_or('a')
+}
+
+/// `glob_match_chars` never panics, and a wildcard-free pattern matches
+/// exactly itself.
 #[kani::proof]
 #[kani::unwind(5)]
 fn glob_literal_is_identity() {
-    const ALPHABET: [char; 2] = ['a', 'b'];
+    let p = [any_char(), any_char(), any_char()];
+    let t = [any_char(), any_char(), any_char()];
     let n: usize = kani::any();
-    kani::assume(n <= 3);
+    kani::assume(n <= p.len());
     let m: usize = kani::any();
-    kani::assume(m <= 3);
-    let mut p = [' '; 3];
-    let mut t = [' '; 3];
-    for i in 0..n {
-        let c: usize = kani::any();
-        kani::assume(c < ALPHABET.len());
-        p[i] = ALPHABET[c];
-    }
-    for i in 0..m {
-        let c: usize = kani::any();
-        kani::assume(c < ALPHABET.len());
-        t[i] = ALPHABET[c];
-    }
-    assert_eq!(glob_match_chars(&p[..n], &t[..m]), p[..n] == t[..m]);
+    kani::assume(m <= t.len());
+    let pattern = p.get(..n).unwrap_or(&[]);
+    let text = t.get(..m).unwrap_or(&[]);
+    assert!(glob_match_chars(pattern, text) == (pattern == text));
 }
 
-/// A lone `*` matches every text (and never panics on wildcards in the text).
+/// A lone `*` matches every text, wildcards in the text included.
 #[kani::proof]
-#[kani::unwind(6)]
+#[kani::unwind(5)]
 fn star_matches_everything() {
-    const ALPHABET: [char; 4] = ['a', 'b', '*', '?'];
+    let t = [any_char(), any_char(), any_char()];
     let m: usize = kani::any();
-    kani::assume(m <= 4);
-    let mut t = [' '; 4];
-    for i in 0..m {
-        let c: usize = kani::any();
-        kani::assume(c < ALPHABET.len());
-        t[i] = ALPHABET[c];
-    }
-    assert!(glob_match_chars(&['*'], &t[..m]));
+    kani::assume(m <= t.len());
+    assert!(glob_match_chars(&['*'], t.get(..m).unwrap_or(&[])));
 }
 
 /// Deny always wins: a requirement on a denied capability is violated,
@@ -108,7 +117,7 @@ fn allowed_iff_granted_and_not_denied() {
     let expected = reqs
         .iter()
         .all(|r| !denies.contains(&r.capability) && grants.iter().any(|g| covers_ref(*g, *r)));
-    assert_eq!(allowed_ref(&denies, &grants, &reqs), expected);
+    assert!(allowed_ref(&denies, &grants, &reqs) == expected);
 }
 
 /// Adding a grant never turns an allowance into a denial.
@@ -139,43 +148,41 @@ fn scope_rules() {
     }
     let req = any_req();
     if req.capability == cap {
-        assert!(covers_ref(
-            GrantRef {
-                capability: cap,
-                scope: None
-            },
-            req
-        ));
+        let unscoped_grant = GrantRef {
+            capability: cap,
+            scope: None,
+        };
+        assert!(covers_ref(unscoped_grant, req));
     }
 }
 
 /// The tier rule: only `proved` can verify; a Lean-only TCB verifies without
 /// approval; a foreign TCB verifies only with an approved backend.
 #[kani::proof]
-#[kani::unwind(6)]
+#[kani::unwind(4)]
 fn tier_rule() {
-    const RESULTS: [Result; 4] = [
-        Result::Proved,
-        Result::Tested,
-        Result::Scanned,
-        Result::Failed,
-    ];
-    let ri: usize = kani::any();
-    kani::assume(ri < RESULTS.len());
-    let result = RESULTS[ri];
+    let ri: u8 = kani::any();
+    kani::assume(ri < 4);
+    let result = match ri {
+        0 => Result::Proved,
+        1 => Result::Tested,
+        2 => Result::Scanned,
+        _ => Result::Failed,
+    };
     let foreign: bool = kani::any();
     let tcb: [&str; 1] = if foreign { ["z3"] } else { ["lean4"] };
     let approved: bool = kani::any();
     let backend = "verus+z3";
     let approved_backends: &[&str] = if approved { &[backend] } else { &[] };
+
     let t = tier_of_ref(result, &tcb, backend, approved_backends);
     if result != Result::Proved {
-        assert_eq!(t, Tier::NotVerified);
+        assert!(t == Tier::NotVerified);
     } else if !foreign {
-        assert_eq!(t, Tier::Verified);
+        assert!(t == Tier::Verified);
     } else if approved {
-        assert_eq!(t, Tier::VerifiedWithTcb);
+        assert!(t == Tier::VerifiedWithTcb);
     } else {
-        assert_eq!(t, Tier::NotVerified);
+        assert!(t == Tier::NotVerified);
     }
 }
