@@ -9,7 +9,7 @@
 //! carries the unbounded argument; these harnesses pin the Rust code to it,
 //! and the property tests in `policy.rs` pin the owned API to the borrowed one.
 
-use crate::attestation::{tier_of, Result, Tier};
+use crate::attestation::{tier_of_ref, Result, Tier};
 use crate::capability::Capability;
 use crate::glob::glob_match_chars;
 use crate::policy::{allowed_ref, covers_ref, violates_ref, GrantRef, ReqRef};
@@ -152,7 +152,7 @@ fn scope_rules() {
 /// The tier rule: only `proved` can verify; a Lean-only TCB verifies without
 /// approval; a foreign TCB verifies only with an approved backend.
 #[kani::proof]
-#[kani::unwind(12)]
+#[kani::unwind(6)]
 fn tier_rule() {
     const RESULTS: [Result; 4] = [
         Result::Proved,
@@ -164,19 +164,11 @@ fn tier_rule() {
     kani::assume(ri < RESULTS.len());
     let result = RESULTS[ri];
     let foreign: bool = kani::any();
-    let tcb = if foreign {
-        vec!["z3".to_owned()]
-    } else {
-        vec!["lean4".to_owned()]
-    };
+    let tcb: [&str; 1] = if foreign { ["z3"] } else { ["lean4"] };
     let approved: bool = kani::any();
     let backend = "verus+z3";
-    let approved_backends = if approved {
-        vec![backend.to_owned()]
-    } else {
-        vec![]
-    };
-    let t = tier_of(result, &tcb, backend, &approved_backends);
+    let approved_backends: &[&str] = if approved { &[backend] } else { &[] };
+    let t = tier_of_ref(result, &tcb, backend, approved_backends);
     if result != Result::Proved {
         assert_eq!(t, Tier::NotVerified);
     } else if !foreign {
