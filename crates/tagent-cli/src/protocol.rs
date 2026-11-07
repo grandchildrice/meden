@@ -19,6 +19,12 @@
 //! agent → {"type": "decision", "attempt": 1, "tool": "read_file", "allowed": true}
 //! agent → {"type": "done", "outcome": "done", "answer": "...", "refusals": []}
 //! ```
+//!
+//! A session is not one plan. The planner may be asked again — because the
+//! gate refused a call, because the plan went wrong on its own terms, or
+//! because the plan set `"continues": true` to read something before it could
+//! say what to do with it. So expect several `asking`, `plan` and `call`
+//! messages before `done`, bounded by `max_attempts`.
 
 use std::collections::BTreeMap;
 use std::io::{BufRead, Write};
