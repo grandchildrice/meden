@@ -172,13 +172,51 @@ fn split_frontmatter(text: &str) -> (serde_json::Value, String) {
         .strip_prefix("\r\n")
         .or_else(|| body.strip_prefix('\n'))
         .unwrap_or(body);
-    let fm: serde_json::Value = serde_yaml_ng::from_str(raw).unwrap_or(serde_json::Value::Null);
+    let fm = yaml_to_json_doc(raw);
     let fm = if fm.is_object() {
         fm
     } else {
         serde_json::Value::Object(serde_json::Map::default())
     };
     (fm, body.to_owned())
+}
+
+/// Parse a YAML document into JSON. Anything unparsable becomes `null`.
+fn yaml_to_json_doc(raw: &str) -> serde_json::Value {
+    match yaml_rust2::YamlLoader::load_from_str(raw) {
+        Ok(docs) => docs.first().map_or(serde_json::Value::Null, yaml_to_json),
+        Err(_) => serde_json::Value::Null,
+    }
+}
+
+fn yaml_to_json(y: &yaml_rust2::Yaml) -> serde_json::Value {
+    use yaml_rust2::Yaml;
+    match y {
+        Yaml::Real(s) => s
+            .parse::<f64>()
+            .ok()
+            .and_then(serde_json::Number::from_f64)
+            .map_or(
+                serde_json::Value::String(s.clone()),
+                serde_json::Value::Number,
+            ),
+        Yaml::Integer(i) => serde_json::Value::Number((*i).into()),
+        Yaml::String(s) => serde_json::Value::String(s.clone()),
+        Yaml::Boolean(b) => serde_json::Value::Bool(*b),
+        Yaml::Array(a) => serde_json::Value::Array(a.iter().map(yaml_to_json).collect()),
+        Yaml::Hash(h) => serde_json::Value::Object(
+            h.iter()
+                .map(|(k, v)| {
+                    let key = match k {
+                        Yaml::String(s) => s.clone(),
+                        other => yaml_to_json(other).to_string(),
+                    };
+                    (key, yaml_to_json(v))
+                })
+                .collect(),
+        ),
+        Yaml::Alias(_) | Yaml::Null | Yaml::BadValue => serde_json::Value::Null,
+    }
 }
 
 /// Byte offset of a line that is exactly `---`, or `None`.
@@ -197,8 +235,7 @@ fn openclaw_block(fm: &serde_json::Value) -> serde_json::Value {
     let meta = match fm.get("metadata") {
         Some(serde_json::Value::String(s)) => json5::from_str::<serde_json::Value>(s)
             .ok()
-            .or_else(|| serde_yaml_ng::from_str::<serde_json::Value>(s).ok())
-            .unwrap_or(serde_json::Value::Null),
+            .unwrap_or_else(|| yaml_to_json_doc(s)),
         Some(v) => v.clone(),
         None => serde_json::Value::Null,
     };
