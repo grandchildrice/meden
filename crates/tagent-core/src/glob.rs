@@ -8,18 +8,61 @@
 //! structural recursion and the two can be compared exhaustively on small
 //! alphabets.
 //!
-//! The implementation is the classic iterative two-pointer algorithm with a
-//! single backtrack point, so it uses constant extra space and cannot
-//! overflow the stack on adversarial patterns.
+//! Both implementations are the classic iterative two-pointer algorithm with
+//! a single backtrack point, so they use constant extra space, allocate
+//! nothing, and cannot overflow the stack on adversarial patterns.
+
+use std::str::Chars;
 
 /// Does `pattern` match `text`?
+///
+/// Allocation-free: the backtrack point is a pair of cloned [`Chars`]
+/// iterators, which are two pointers each.
 pub fn glob_match(pattern: &str, text: &str) -> bool {
-    let p: Vec<char> = pattern.chars().collect();
-    let t: Vec<char> = text.chars().collect();
-    glob_match_chars(&p, &t)
+    let mut p = pattern.chars();
+    let mut t = text.chars();
+    // (pattern just after the last '*', text at the position that '*' has
+    // absorbed up to).
+    let mut star: Option<(Chars<'_>, Chars<'_>)> = None;
+
+    loop {
+        let mut p_next = p.clone();
+        let pc = p_next.next();
+        let mut t_next = t.clone();
+        let tc = t_next.next();
+        match (pc, tc) {
+            (None, None) => return true,
+            (Some('*'), _) => {
+                p = p_next;
+                star = Some((p.clone(), t.clone()));
+            }
+            (Some(a), Some(b)) if a == '?' || a == b => {
+                p = p_next;
+                t = t_next;
+            }
+            // Mismatch, or one side exhausted: let the last '*' absorb one
+            // more character, if there is one and if there was a '*'.
+            _ => match &star {
+                Some((star_p, star_t)) => {
+                    let mut absorbed = star_t.clone();
+                    if absorbed.next().is_none() {
+                        return false;
+                    }
+                    p = star_p.clone();
+                    t = absorbed.clone();
+                    star = Some((star_p.clone(), absorbed));
+                }
+                None => return false,
+            },
+        }
+    }
 }
 
 /// [`glob_match`] on already decoded characters.
+///
+/// Same relation as [`glob_match`]; kept because the model-checking
+/// harnesses can hand it stack arrays. A property test pins the two
+/// together.
 pub fn glob_match_chars(p: &[char], t: &[char]) -> bool {
     let mut pi = 0usize; // index into pattern
     let mut ti = 0usize; // index into text
@@ -99,6 +142,20 @@ mod tests {
             let pc: Vec<char> = p.chars().collect();
             let tc: Vec<char> = t.chars().collect();
             prop_assert_eq!(glob_match_chars(&pc, &tc), reference(&pc, &tc));
+        }
+
+        #[test]
+        fn str_and_slice_versions_agree(p in "[ab/.*?]{0,7}", t in "[ab/.]{0,7}") {
+            let pc: Vec<char> = p.chars().collect();
+            let tc: Vec<char> = t.chars().collect();
+            prop_assert_eq!(glob_match(&p, &t), glob_match_chars(&pc, &tc));
+        }
+
+        #[test]
+        fn str_version_agrees_with_reference(p in "[ab*?]{0,6}", t in "[ab]{0,6}") {
+            let pc: Vec<char> = p.chars().collect();
+            let tc: Vec<char> = t.chars().collect();
+            prop_assert_eq!(glob_match(&p, &t), reference(&pc, &tc));
         }
 
         #[test]

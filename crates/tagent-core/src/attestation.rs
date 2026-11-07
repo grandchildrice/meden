@@ -181,24 +181,47 @@ impl Attestation {
     }
 }
 
-/// The tier rule on its own, shared with the Kani harness and the conformance
-/// test so it can be exercised without building whole attestations.
+/// The tier rule, generic over how the strings are owned.
+///
+/// This is the whole classification; [`Attestation::tier`] only supplies the
+/// fields. Mirrors `TAgentSpec.tierOf`.
+pub fn tier_rule<S: AsRef<str>, B: AsRef<str>>(
+    result: Result,
+    tcb: &[S],
+    backend: &str,
+    approved_backends: &[B],
+) -> Tier {
+    if result != Result::Proved {
+        return Tier::NotVerified;
+    }
+    if tcb.iter().all(|c| in_lean_only_tcb(c.as_ref())) {
+        return Tier::Verified;
+    }
+    if approved_backends.iter().any(|b| b.as_ref() == backend) {
+        return Tier::VerifiedWithTcb;
+    }
+    Tier::NotVerified
+}
+
+/// [`tier_rule`] on owned strings.
 pub fn tier_of(
     result: Result,
     tcb: &[String],
     backend: &str,
     approved_backends: &[String],
 ) -> Tier {
-    if result != Result::Proved {
-        return Tier::NotVerified;
-    }
-    if tcb.iter().all(|c| in_lean_only_tcb(c)) {
-        return Tier::Verified;
-    }
-    if approved_backends.iter().any(|b| b == backend) {
-        return Tier::VerifiedWithTcb;
-    }
-    Tier::NotVerified
+    tier_rule(result, tcb, backend, approved_backends)
+}
+
+/// [`tier_rule`] on borrowed strings, so the model-checking harness can hand
+/// it stack data.
+pub fn tier_of_ref(
+    result: Result,
+    tcb: &[&str],
+    backend: &str,
+    approved_backends: &[&str],
+) -> Tier {
+    tier_rule(result, tcb, backend, approved_backends)
 }
 
 #[cfg(test)]
@@ -259,6 +282,27 @@ mod tests {
             att(Result::Failed, &["lean4"], "lean4", true).tier(&[]),
             Tier::NotVerified
         );
+    }
+
+    #[test]
+    fn owned_and_borrowed_tier_rules_agree() {
+        for result in [
+            Result::Proved,
+            Result::Tested,
+            Result::Scanned,
+            Result::Failed,
+        ] {
+            for tcb in [vec!["lean4"], vec!["z3", "verus"], vec![]] {
+                for approved in [vec![], vec!["verus+z3"]] {
+                    let owned_tcb: Vec<String> = tcb.iter().map(|s| (*s).to_owned()).collect();
+                    let owned_ap: Vec<String> = approved.iter().map(|s| (*s).to_owned()).collect();
+                    assert_eq!(
+                        tier_of(result, &owned_tcb, "verus+z3", &owned_ap),
+                        tier_of_ref(result, &tcb, "verus+z3", &approved)
+                    );
+                }
+            }
+        }
     }
 
     #[test]

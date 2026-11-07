@@ -45,14 +45,25 @@ jobs:
           command: check
 
   kani:
-    name: kani (bounded model checking)
+    name: kani (${{ matrix.harness }})
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        harness:
+          - glob_literal_is_identity
+          - star_matches_everything
+          - deny_wins
+          - allowed_iff_granted_and_not_denied
+          - grants_are_monotone
+          - scope_rules
+          - tier_rule
     steps:
       - uses: actions/checkout@v4
       - uses: model-checking/kani-github-action@v1
         with:
-          args: -p tagent-core
+          args: -p tagent-core --harness kani_harness::${{ matrix.harness }}
 
   lean:
     name: lean (spec builds, no sorry, standard axioms only)
