@@ -19,15 +19,25 @@ The gate itself is held to the same standard. Its rules are stated in Lean 4 wit
 | `crates/tagent-cli` | The `tagent` binary: `extract`, `check`, `decide`, `tier`, `gate`, `digest`, and the first verifier plugin, `attest lean`. |
 | `examples/` | A benign and a ClawHub-style malicious skill, and two policies. |
 | `lean/` | `TAgentSpec`: the model and its theorems, plus the `tagent-spec` oracle used by the conformance test. |
-| `python/` | AgentDojo adapter that mounts the gate as a pipeline element, calling the binary. |
+| `python/` | AgentDojo adapter and benchmark: mounts the gate as a pipeline element and reports utility, attack success rate, and why each task failed. |
 
 ## Design in one paragraph
 
 Untrusted text is read by a *quarantined* model, never by the planner: a
-plan says `{"ask": {"question": "...", "text": EXPR}}`, and the answer
-carries the text's own label. So a summary of an injected page can be mailed
-as a body but cannot choose the recipient, even when the quarantined model
-did exactly what the page told it.
+plan says `{"ask": "...", "text": EXPR}`, and the answer carries the text's
+own label. So a summary of an injected page can be mailed as a body but
+cannot choose the recipient, even when the quarantined model did exactly
+what the page told it.
+
+Keeping the planner blind is the whole basis for trusting its literals, so
+the two things that do flow back to it are narrowed deliberately. A refusal
+is explained without quoting any argument. A plan that needs to read before
+it can act sets `"continues": true` and is told, for each value it bound,
+which of six kinds it is and whether it may steer — never the content, and
+not the length or the field names either. That is a channel, not nothing:
+under three bits per binding per round, with rounds bounded. It cannot steer
+a call at any width, because the gate checks the planner's output like
+everything else.
 
 The gate never sees a verifier, only an **attestation**: artifact hash, property id, verifier name and version, result, trusted computing base, assumptions, proof hash. Verifiers are plugins. Evidence whose TCB is Lean 4 alone is accepted mechanically; evidence from other provers (Verus/Z3, …) is accepted once a human has approved the property mapping and is labelled with its TCB; tests and scans never confer *verified*. Enforcement points are plugins too: the same policy kernel runs behind `tagent decide` and can be mounted on pi (`beforeToolCall`), Hermes (`pre_tool_call`) or OpenClaw (`before_tool_call`).
 
