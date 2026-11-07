@@ -36,6 +36,35 @@ from .declarations import SUITES, UndeclaredTool
 from .pipeline import TAgentPipeline
 
 
+def provenance(binary: str) -> dict[str, str]:
+    """What was measured: which binary, built from which commit.
+
+    Recorded because a result is only a result if someone can say what
+    produced it — and because rebuilding the binary while a run is in flight
+    silently mixes two different programs into one number. With the digest in
+    the file, that mistake is visible afterwards instead of invisible.
+    """
+    import hashlib
+    import subprocess
+
+    out = {"binary": binary}
+    try:
+        out["sha256"] = hashlib.sha256(Path(binary).read_bytes()).hexdigest()[:16]
+    except OSError as e:  # noqa: BLE001 - provenance is best-effort
+        out["sha256"] = f"unreadable: {e}"
+    try:
+        out["commit"] = subprocess.run(
+            ["git", "-C", str(Path(binary).resolve().parent), "rev-parse", "--short", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=10,
+        ).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        out["commit"] = "unknown"
+    return out
+
+
 @dataclass
 class RunRecord:
     """What happened in one task run, kept so a reader can see *why*.
@@ -66,6 +95,8 @@ class Totals:
 
     suite: str
     provider: str
+    #: Which binary produced these numbers, and from which commit.
+    built: dict[str, str] = field(default_factory=dict)
     #: Tasks run with no injection.
     benign_runs: int = 0
     benign_successes: int = 0
@@ -123,6 +154,8 @@ class Totals:
         lines = [
             f"suite                 {self.suite}",
             f"planner               {self.provider}",
+            f"binary                {self.built.get('sha256', '?')}"
+            f" @ {self.built.get('commit', '?')}",
             f"utility               {self.utility:.0%}"
             f"  ({self.benign_successes}/{self.benign_runs})",
         ]
@@ -281,7 +314,11 @@ def main(argv: list[str] | None = None) -> int:
 
     tasks = list(suite.user_tasks.values())[: args.limit]
     injections = list(suite.injection_tasks.values())[: args.injection_limit]
-    totals = Totals(suite=args.suite, provider=args.provider or "first detected")
+    totals = Totals(
+        suite=args.suite,
+        provider=args.provider or "first detected",
+        built=provenance(pipeline.binary),
+    )
 
     started = time.monotonic()
     print(f"{len(tasks)} user tasks, no injection")
