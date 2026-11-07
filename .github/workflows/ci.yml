@@ -79,6 +79,12 @@ jobs:
           name: tagent-spec
           path: lean/.lake/build/bin/tagent-spec
           if-no-files-found: error
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.98.1
+      - uses: Swatinem/rust-cache@v2
+      - name: tagent attest lean against the spec
+        run: cargo test -p tagent-cli --test attest -- --nocapture
 
   python:
     name: python adapter (ruff, pytest against the binary)

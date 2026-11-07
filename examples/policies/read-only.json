@@ -1,0 +1,5 @@
+{
+  "name": "read-only",
+  "grants": ["fs.read[/workspace/*]"],
+  "denies": ["shell.exec", "secret.read", "package.install"]
+}
