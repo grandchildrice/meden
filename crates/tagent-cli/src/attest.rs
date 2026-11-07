@@ -52,14 +52,69 @@ pub struct LeanArgs {
     #[arg(long)]
     pub property: String,
     /// File whose SHA-256 identifies the property statement.
+    ///
+    /// Leave this out to take the statement from the invariant catalogue,
+    /// which is the usual way: the catalogue knows which theorem the property
+    /// id refers to, and refuses to attest if that theorem no longer states
+    /// what was approved.
+    #[arg(long, conflicts_with = "catalogue")]
+    pub statement: Option<PathBuf>,
+    /// The invariant catalogue to resolve --property against.
     #[arg(long)]
-    pub statement: PathBuf,
+    pub catalogue: Option<PathBuf>,
+    /// The directory the catalogue's paths are relative to.
+    #[arg(long, default_value = "lean")]
+    pub lean: PathBuf,
     /// Skip `lake build` (assume the project is built).
     #[arg(long)]
     pub no_build: bool,
     /// Write the attestation here instead of stdout.
     #[arg(long)]
     pub out: Option<PathBuf>,
+}
+
+/// The hash that identifies what was proved.
+///
+/// Taken from the catalogue when one is given, which is the point of having
+/// a catalogue: the property id then refers to a theorem whose statement a
+/// human approved, and attesting stops if that theorem has since changed.
+/// `--statement` remains for a property that is not catalogued yet, and
+/// carries no such guarantee.
+fn statement_hash(a: &LeanArgs) -> Result<String> {
+    match (&a.catalogue, &a.statement) {
+        (Some(path), _) => {
+            let catalogue = crate::catalogue::Catalogue::load(path)?;
+            let entry = catalogue.get(&a.property).with_context(|| {
+                format!(
+                    "{} is not in {}; add it, or say what it means with --statement",
+                    a.property,
+                    path.display()
+                )
+            })?;
+            if entry.lean.theorem != a.theorem {
+                bail!(
+                    "{} is catalogued as {}, not {}",
+                    a.property,
+                    entry.lean.theorem,
+                    a.theorem
+                );
+            }
+            match entry.check(&a.lean) {
+                crate::catalogue::Status::Matches => Ok(entry.statement_sha256.clone()),
+                other => bail!(
+                    "{} does not state what the catalogue says it states ({other:?}); \
+                     attesting it would carry an approval it no longer has",
+                    a.theorem
+                ),
+            }
+        }
+        (None, Some(path)) => {
+            let bytes =
+                fs::read(path).with_context(|| format!("reading statement {}", path.display()))?;
+            Ok(sha256_hex(&bytes))
+        }
+        (None, None) => bail!("give --catalogue (preferred) or --statement"),
+    }
 }
 
 /// Run the provider. Returns the attestation and whether it is verified.
@@ -69,8 +124,7 @@ pub fn run(a: &LeanArgs) -> Result<(Attestation, Tier)> {
         (None, Some(h)) => h.clone(),
         _ => bail!("give exactly one of --skill or --artifact-sha256"),
     };
-    let statement_bytes = fs::read(&a.statement)
-        .with_context(|| format!("reading statement {}", a.statement.display()))?;
+    let statement_sha256 = statement_hash(a)?;
 
     if !a.no_build {
         let status = Command::new("lake")
@@ -104,7 +158,7 @@ pub fn run(a: &LeanArgs) -> Result<(Attestation, Tier)> {
         },
         property: Property {
             id: a.property.clone(),
-            statement_sha256: sha256_hex(&statement_bytes),
+            statement_sha256,
         },
         verifier: Verifier {
             name: "lean4".to_owned(),

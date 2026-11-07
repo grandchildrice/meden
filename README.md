@@ -19,6 +19,7 @@ The gate itself is held to the same standard. Its rules are stated in Lean 4 wit
 | `crates/tagent-cli` | The `tagent` binary: `extract`, `check`, `decide`, `tier`, `gate`, `digest`, and the first verifier plugin, `attest lean`. |
 | `examples/` | A benign and a ClawHub-style malicious skill, and two policies. |
 | `lean/` | `TAgentSpec`: the model and its theorems, plus the `tagent-spec` oracle used by the conformance test. |
+| `invariants/` | The catalogue: what each property id means, and which theorem states it. |
 | `python/` | AgentDojo adapter and benchmark: mounts the gate as a pipeline element and reports utility, attack success rate, and why each task failed. |
 
 ## Design in one paragraph
@@ -38,6 +39,15 @@ not the length or the field names either. That is a channel, not nothing:
 under three bits per binding per round, with rounds bounded. It cannot steer
 a call at any width, because the gate checks the planner's output like
 everything else.
+
+What a property id *means* is written down. `invariants/catalogue.json`
+gives each id an English sentence, the Lean theorem that states it, and the
+hash of that theorem's statement; `tagent invariants --explain` prints the
+lot and fails if a statement has changed. Without it the tier rules check
+only the trusted computing base, so a verifier could prove `True`, call it
+anything, and be believed. The catalogue does not check that the sentence
+describes the theorem — a human does that once, when the entry is added. It
+makes sure the thing they read is the thing still being proved.
 
 The gate never sees a verifier, only an **attestation**: artifact hash, property id, verifier name and version, result, trusted computing base, assumptions, proof hash. Verifiers are plugins. Evidence whose TCB is Lean 4 alone is accepted mechanically; evidence from other provers (Verus/Z3, …) is accepted once a human has approved the property mapping and is labelled with its TCB; tests and scans never confer *verified*. Enforcement points are plugins too: the same policy kernel runs behind `tagent decide` and can be mounted on pi (`beforeToolCall`), Hermes (`pre_tool_call`) or OpenClaw (`before_tool_call`).
 

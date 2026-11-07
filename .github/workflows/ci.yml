@@ -101,6 +101,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: tagent attest lean against the spec
         run: cargo test -p tagent-cli --test attest -- --nocapture
+      - name: the invariant catalogue describes these sources
+        run: cargo run -p tagent-cli -- invariants --explain
 
   python:
     name: python adapter (ruff, pytest against the binary)

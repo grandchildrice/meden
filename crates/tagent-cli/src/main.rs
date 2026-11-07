@@ -11,6 +11,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 mod attest;
+mod catalogue;
 mod demo;
 mod protocol;
 mod tui;
@@ -67,6 +68,24 @@ enum Command {
     ///
     /// For working out why a model's plans are rejected.
     Raw(DemoArgs),
+    /// Check the invariant catalogue against the Lean sources.
+    ///
+    /// An attestation names a property by id. This says what each id means
+    /// and whether the theorem it points at still states it.
+    Invariants(InvariantArgs),
+}
+
+#[derive(Args)]
+struct InvariantArgs {
+    /// The catalogue file.
+    #[arg(long, default_value = "invariants/catalogue.json")]
+    catalogue: PathBuf,
+    /// The directory the catalogue's paths are relative to.
+    #[arg(long, default_value = "lean")]
+    lean: PathBuf,
+    /// Print what each invariant means, not only whether it matches.
+    #[arg(long)]
+    explain: bool,
 }
 
 #[derive(Args)]
@@ -242,6 +261,7 @@ fn run() -> Result<ExitCode> {
         }
         Command::Gate(a) => run_gate(&a, &mut out),
         Command::Raw(a) => run_raw(&a, &mut out),
+        Command::Invariants(a) => check_invariants(&a, &mut out),
         Command::Providers => list_providers(&mut out),
         Command::Run(a) => run_protocol(&a, &mut out),
         Command::Tui => {
@@ -464,4 +484,60 @@ fn exit_for(ok: bool) -> ExitCode {
     } else {
         ExitCode::from(EXIT_DENIED)
     }
+}
+
+/// Report whether each catalogued invariant still says what it said.
+///
+/// A property id in an attestation is only worth something if it refers to a
+/// fixed statement. This is the check that keeps it fixed: it re-reads the
+/// Lean source and compares the hash, so weakening a theorem breaks the
+/// entry that a human once approved instead of quietly inheriting its
+/// approval.
+fn check_invariants(a: &InvariantArgs, out: &mut impl Write) -> Result<ExitCode> {
+    let catalogue = catalogue::Catalogue::load(&a.catalogue)?;
+    let results = catalogue.verify(&a.lean);
+    let mut bad = 0usize;
+    for (entry, status) in &results {
+        let note = match status {
+            catalogue::Status::Matches => "ok".to_owned(),
+            catalogue::Status::Changed { found } => {
+                bad = bad.saturating_add(1);
+                format!(
+                    "CHANGED: the source now hashes to {}",
+                    &found[..16.min(found.len())]
+                )
+            }
+            catalogue::Status::Missing => {
+                bad = bad.saturating_add(1);
+                format!(
+                    "MISSING: no theorem {} in {}",
+                    entry.lean.theorem, entry.lean.file
+                )
+            }
+            catalogue::Status::Unreadable(e) => {
+                bad = bad.saturating_add(1);
+                format!("UNREADABLE: {e}")
+            }
+        };
+        writeln!(out, "{:<48} {note}", entry.id)?;
+        if a.explain {
+            writeln!(out, "    {}", entry.means)?;
+            writeln!(out, "    {} :: {}", entry.lean.file, entry.lean.theorem)?;
+        }
+    }
+    writeln!(
+        out,
+        "\n{} invariants, {} in order",
+        results.len(),
+        results.len().saturating_sub(bad)
+    )?;
+    if bad > 0 {
+        writeln!(
+            out,
+            "A catalogued statement changed. Read the new one, and if it still \n\
+             says what the entry claims, update the hash in the same commit."
+        )?;
+        return Ok(ExitCode::FAILURE);
+    }
+    Ok(ExitCode::SUCCESS)
 }
