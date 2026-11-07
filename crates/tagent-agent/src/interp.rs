@@ -78,6 +78,57 @@ pub enum EvalError {
     Quarantined(#[from] PlannerError),
 }
 
+impl EvalError {
+    /// Could the planner fix this by writing a different plan?
+    ///
+    /// A field read off a string is the planner's mistake and a retry is
+    /// worth the tokens. A tool that failed, a host that hung up, a reader
+    /// that could not be reached are not: the next plan would hit the same
+    /// wall, and the operator is better served by the real reason than by
+    /// three attempts and a sanitised one.
+    pub const fn planner_can_fix(&self) -> bool {
+        match self {
+            EvalError::Unbound(_)
+            | EvalError::NoField { .. }
+            | EvalError::NoElement { .. }
+            | EvalError::UnknownTool(_) => true,
+            EvalError::Refused(_)
+            | EvalError::Tool { .. }
+            | EvalError::NoQuarantinedReader
+            | EvalError::Quarantined(_) => false,
+        }
+    }
+
+    /// What may be told to the planner about this failure.
+    ///
+    /// Everything here is either written by the planner itself (a variable
+    /// name, a field name, a tool name) or fixed text. Nothing a tool
+    /// produced is quoted: a tool's output is what an attacker controls, and
+    /// sending it to the planner would launder injected words into a model
+    /// whose literals this runtime trusts to steer calls.
+    pub fn safe_summary(&self) -> String {
+        match self {
+            EvalError::Refused(r) => r.safe_summary(),
+            EvalError::Unbound(name) => format!("{name:?} was not bound by an earlier step"),
+            EvalError::NoField { key, kind } => format!(
+                "the plan read a field {key:?} off {kind}, which has no fields; \
+                 to use text a tool returned, ask about it instead"
+            ),
+            EvalError::NoElement { index, kind } => {
+                format!("the plan read element {index} of {kind}, which does not have one")
+            }
+            EvalError::Tool { tool, .. } => {
+                format!("the tool {tool:?} ran and reported an error")
+            }
+            EvalError::UnknownTool(name) => format!("there is no tool named {name:?}"),
+            EvalError::NoQuarantinedReader => {
+                "this runtime cannot answer questions about text".to_owned()
+            }
+            EvalError::Quarantined(_) => "the reader could not answer the question".to_owned(),
+        }
+    }
+}
+
 /// One decision the interpreter made, kept for audit.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CallRecord {
