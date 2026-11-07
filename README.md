@@ -14,7 +14,8 @@ The gate itself is held to the same standard. Its rules are stated in Lean 4 wit
 | --- | --- |
 | `crates/tagent-core` | Capability vocabulary, scope globs, policies and decisions, attestation tiers. No I/O, no `unsafe`, no panics. |
 | `crates/tagent-skill` | Reads an [Agent Skills](https://agentskills.io) package (`SKILL.md` + scripts, including OpenClaw's `metadata.openclaw.requires`) and extracts the capabilities it would need. |
-| `crates/tagent-cli` | The `tagent` binary: `extract`, `check`, `decide`, `tier`, `gate`, `digest`. |
+| `crates/tagent-cli` | The `tagent` binary: `extract`, `check`, `decide`, `tier`, `gate`, `digest`, and the first verifier plugin, `attest lean`. |
+| `examples/` | A benign and a ClawHub-style malicious skill, and two policies. |
 | `lean/` | `TAgentSpec`: the model and its theorems, plus the `tagent-spec` oracle used by the conformance test. |
 | `python/` | AgentDojo adapter that mounts the gate as a pipeline element, calling the binary. |
 
@@ -40,6 +41,14 @@ tagent check path/to/skill/ --policy policy.json      # exit 0 allowed, 2 denied
 # Admission: policy plus a verified attestation whose artifact hash matches the package digest
 tagent digest path/to/skill/
 tagent gate path/to/skill/ --policy policy.json --attestation proof.json --approve verus+z3
+
+# Verifier plugin: turn a Lean 4 theorem into an attestation (proved only if the
+# theorem depends on nothing beyond propext, Classical.choice, Quot.sound)
+tagent attest lean --skill examples/skills/csv-summary --project lean \
+  --module TAgentSpec.Policy --theorem TAgentSpec.Policy.deny_wins \
+  --property inv.v0.deny-wins --statement lean/TAgentSpec/Policy.lean --out att.json
+tagent gate examples/skills/csv-summary --policy examples/policies/read-only.json --attestation att.json
+# -> policy: allowed / evidence: verified / admitted: true
 
 # Runtime hook: decide a requirement set (what a tool call needs) against a policy
 echo '{"policy":{"name":"ws","grants":["net.egress[*.example.com]"]},

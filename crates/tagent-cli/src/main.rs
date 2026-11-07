@@ -10,6 +10,8 @@ use std::io::{self, Read, Write};
 use std::path::PathBuf;
 use std::process::ExitCode;
 
+mod attest;
+
 use anyhow::{Context, Result};
 use clap::{Args, Parser, Subcommand};
 use serde::{Deserialize, Serialize};
@@ -43,6 +45,15 @@ enum Command {
     Gate(GateArgs),
     /// Print the content digest of a skill package.
     Digest(ExtractArgs),
+    /// Produce an attestation with a verifier plugin.
+    #[command(subcommand)]
+    Attest(AttestCommand),
+}
+
+#[derive(Subcommand)]
+enum AttestCommand {
+    /// Attest a theorem in a Lean 4 (Lake) project.
+    Lean(attest::LeanArgs),
 }
 
 #[derive(Args)]
@@ -181,6 +192,17 @@ fn run() -> Result<ExitCode> {
             Ok(exit_for(tier.is_verified()))
         }
         Command::Gate(a) => run_gate(&a, &mut out),
+        Command::Attest(AttestCommand::Lean(a)) => {
+            let (att, tier) = attest::run(&a)?;
+            let json = serde_json::to_string_pretty(&att)?;
+            match &a.out {
+                Some(path) => fs::write(path, format!("{json}\n"))
+                    .with_context(|| format!("writing {}", path.display()))?,
+                None => writeln!(out, "{json}")?,
+            }
+            writeln!(io::stderr(), "tier: {}", tier_name(tier))?;
+            Ok(exit_for(tier.is_verified()))
+        }
     }
 }
 

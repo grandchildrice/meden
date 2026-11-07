@@ -1,0 +1,12 @@
+{
+  "name": "developer",
+  "grants": [
+    "fs.read[/workspace/*]",
+    "fs.write[/workspace/*]",
+    "net.egress[*.github.com]",
+    "net.egress[*.pypi.org]",
+    "env.read",
+    "package.install"
+  ],
+  "denies": ["secret.read"]
+}
