@@ -138,7 +138,9 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path, allow_s
         follow_up = "Which status now?\n日本語で答えて。"
         os.write(master, b"\x1b[200~" + follow_up.encode() + b"\x1b[201~\r")
         wait_for(lambda: len(requests) == first_turn_count + 1)
-        wait_for(lambda: b"ready." in output)
+        # A recorded HTTP request (or text from an earlier turn) does not
+        # mean the UI is accepting input yet. Wait for the editor to return.
+        wait_for(lambda: output.count(b"alt-enter") >= 3)
         messages = requests[-1]["messages"]
         assert len(messages) == (10 if allow_shell else 8)
         assert messages[-1]["role"] == "user"
@@ -149,7 +151,7 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path, allow_s
         assert len(requests) == first_turn_count + 1
         os.write(master, b"Fresh turn.\r")
         wait_for(lambda: len(requests) == first_turn_count + 2)
-        wait_for(lambda: b"fresh" in output)
+        wait_for(lambda: output.count(b"alt-enter") >= 4)
         assert len(requests[-1]["messages"]) == 2
         assert requests[-1]["messages"][-1]["content"][0]["text"] == "Fresh turn."
         assert note.read_text() == "status: ready\n"
