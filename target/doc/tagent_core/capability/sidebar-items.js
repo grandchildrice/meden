@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Capability"],"fn":["parse_label"],"struct":["Requirement","UnknownCapability"]};

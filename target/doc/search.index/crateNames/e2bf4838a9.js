@@ -1,0 +1,1 @@
+rd_("ftagentktagent_coreltagent_skill")

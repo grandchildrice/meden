@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["MAX_SCANNED_FILE"],"enum":["SkillError"],"fn":["extract_requirements","load_skill"],"struct":["SkillPackage"]};
