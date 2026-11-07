@@ -41,6 +41,7 @@ pub mod gate;
 pub mod interp;
 pub mod label;
 pub mod plan;
+pub mod planner;
 pub mod tool;
 pub mod value;
 
@@ -54,5 +55,9 @@ pub use gate::{
 pub use interp::{CallRecord, Env, EvalError, Interpreter, Trace};
 pub use label::{baseline_trust, Label, Readers, Source};
 pub use plan::{Expr, Plan, Stmt};
+pub use planner::{
+    Outcome, PlanRequest, Planner, PlannerError, Quarantined, ScriptedPlanner, Session,
+    SessionReport,
+};
 pub use tool::{Args, ParamSpec, Registry, Tool, ToolError, ToolSig};
 pub use value::{Data, Value};
