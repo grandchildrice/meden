@@ -484,6 +484,14 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--benign-only", action="store_true", help="measure utility and stop")
     parser.add_argument(
+        "--agent",
+        choices=["tagent", "tool-calling"],
+        default="tagent",
+        help="tool-calling runs AgentDojo's own agent on the same model, "
+        "where the model reads tool output itself; that is what the attacks "
+        "were written against",
+    )
+    parser.add_argument(
         "--undefended",
         action="store_true",
         help="baseline: the same agent with nothing declared as steering, "
@@ -525,6 +533,18 @@ def main(argv: list[str] | None = None) -> int:
             max_attempts=args.max_attempts,
         )
 
+    if args.agent == "tool-calling":
+        from .toolcalling import build
+
+        model = args.model or "minimax-m3"
+
+        def make_pipeline() -> Any:  # noqa: F811 - the other agent entirely
+            return build(model=model)
+
+        print("BASELINE: AgentDojo's own tool-calling agent on the same")
+        print("model. One model holds the conversation, calls tools and")
+        print("reads what they return. No gate, no planner/reader split.\n")
+
     pipeline = make_pipeline()
     pool = Pool(make_pipeline, args.workers)
 
@@ -533,7 +553,11 @@ def main(argv: list[str] | None = None) -> int:
     totals = Totals(
         suite=args.suite,
         provider=args.provider or "first detected",
-        defence="none" if args.undefended else "flow-rules",
+        defence=(
+            "none (tool-calling agent)"
+            if args.agent == "tool-calling"
+            else "none" if args.undefended else "flow-rules"
+        ),
         built=provenance(binary),
     )
 
