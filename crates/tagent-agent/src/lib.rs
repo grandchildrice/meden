@@ -64,4 +64,4 @@ pub use planner::{
     SessionEvent, SessionReport,
 };
 pub use tool::{Args, ParamSpec, Registry, Tool, ToolError, ToolSig};
-pub use value::{Data, Value};
+pub use value::{data_from_json, data_to_json, Data, Value};

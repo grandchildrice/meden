@@ -161,6 +161,61 @@ impl Value {
     }
 }
 
+/// Plain JSON for a value's data, with the labels dropped.
+///
+/// A host that executes tools wants ordinary JSON, not the tagged form
+/// [`Data`] serialises to. Labels are not sent: the host does not need them,
+/// and a label is a claim this runtime makes rather than one it accepts.
+pub fn data_to_json(data: &Data) -> serde_json::Value {
+    match data {
+        Data::Unit => serde_json::Value::Null,
+        Data::Bool(b) => serde_json::Value::Bool(*b),
+        Data::Int(i) => serde_json::Value::Number((*i).into()),
+        Data::Str(s) => serde_json::Value::String(s.clone()),
+        Data::List(items) => {
+            serde_json::Value::Array(items.iter().map(|v| data_to_json(&v.data)).collect())
+        }
+        Data::Map(fields) => serde_json::Value::Object(
+            fields
+                .iter()
+                .map(|(k, v)| (k.clone(), data_to_json(&v.data)))
+                .collect(),
+        ),
+    }
+}
+
+/// Read plain JSON back as data, labelling every part with `label`.
+///
+/// Everything a host returns carries the same label, because the runtime
+/// knows only that it came from that tool.
+pub fn data_from_json(json: &serde_json::Value, label: &Label) -> Data {
+    match json {
+        serde_json::Value::Null => Data::Unit,
+        serde_json::Value::Bool(b) => Data::Bool(*b),
+        serde_json::Value::Number(n) => n
+            .as_i64()
+            .map_or_else(|| Data::Str(n.to_string()), Data::Int),
+        serde_json::Value::String(s) => Data::Str(s.clone()),
+        serde_json::Value::Array(items) => Data::List(
+            items
+                .iter()
+                .map(|v| Value::new(data_from_json(v, label), label.clone()))
+                .collect(),
+        ),
+        serde_json::Value::Object(fields) => Data::Map(
+            fields
+                .iter()
+                .map(|(k, v)| {
+                    (
+                        k.clone(),
+                        Value::new(data_from_json(v, label), label.clone()),
+                    )
+                })
+                .collect(),
+        ),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     // Tests fail by panicking; that is their job.
@@ -251,6 +306,32 @@ mod tests {
         );
         assert!(v.deep_label().allows_reader("bob"));
         assert!(!v.deep_label().allows_reader("alice"));
+    }
+
+    #[test]
+    fn plain_json_round_trips() {
+        let json: serde_json::Value =
+            serde_json::from_str(r#"{"a":1,"b":["x",true,null],"c":{"d":"e"}}"#)
+                .unwrap_or(serde_json::Value::Null);
+        let label = Label::public([Source::tool("host")]);
+        let data = data_from_json(&json, &label);
+        assert_eq!(data_to_json(&data), json);
+
+        // Everything inside carries the tool's label.
+        let v = Value::new(data, label.clone());
+        let inner = v
+            .field("c")
+            .and_then(|c| c.field("d"))
+            .unwrap_or_else(|| Value::literal(Data::Unit));
+        assert!(inner.label.sources.contains(&Source::tool("host")));
+    }
+
+    #[test]
+    fn a_number_too_large_for_an_integer_becomes_text() {
+        let json: serde_json::Value =
+            serde_json::from_str("1e400").unwrap_or(serde_json::Value::Null);
+        let data = data_from_json(&json, &Label::runtime());
+        assert!(matches!(data, Data::Str(_) | Data::Unit), "{data:?}");
     }
 
     #[test]

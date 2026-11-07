@@ -12,6 +12,7 @@ use std::process::ExitCode;
 
 mod attest;
 mod demo;
+mod protocol;
 mod tui;
 
 use anyhow::{Context, Result};
@@ -57,6 +58,11 @@ enum Command {
     /// Open the interface: pick a model, give it an instruction, watch the
     /// gate decide.
     Tui,
+    /// Run one session with the tools owned by another process.
+    ///
+    /// Reads a JSON opening message on standard input and then speaks JSON
+    /// lines both ways. This is how a benchmark harness drives the runtime.
+    Run(RunArgs),
     /// Ask a model for a plan and print exactly what it said.
     ///
     /// For working out why a model's plans are rejected.
@@ -133,6 +139,21 @@ struct GateArgs {
     /// Machine-readable output.
     #[arg(long)]
     json: bool,
+}
+
+#[derive(Args)]
+struct RunArgs {
+    /// Print how the declared tools read back, then stop.
+    ///
+    /// For checking a host's declarations without running anything.
+    #[arg(long)]
+    describe: bool,
+    /// Which model to plan with, by the id `tagent providers` shows.
+    #[arg(long)]
+    provider: Option<String>,
+    /// The model name, when the provider needs one choosing.
+    #[arg(long)]
+    model: Option<String>,
 }
 
 /// Input of `tagent decide`.
@@ -222,6 +243,7 @@ fn run() -> Result<ExitCode> {
         Command::Gate(a) => run_gate(&a, &mut out),
         Command::Raw(a) => run_raw(&a, &mut out),
         Command::Providers => list_providers(&mut out),
+        Command::Run(a) => run_protocol(&a, &mut out),
         Command::Tui => {
             let providers = tagent_llm::detect();
             if std::env::var(tui::ENV_SELFTEST).is_ok() {
@@ -312,6 +334,30 @@ fn run_gate(a: &GateArgs, out: &mut impl Write) -> Result<ExitCode> {
         writeln!(out, "admitted: {}", report.admitted)?;
     }
     Ok(exit_for(report.admitted))
+}
+
+/// Run one session with the tools owned by another process.
+fn run_protocol(a: &RunArgs, out: &mut impl Write) -> Result<ExitCode> {
+    let start = {
+        let stdin = io::stdin();
+        let mut input = stdin.lock();
+        protocol::read_start(&mut input)?
+    };
+    if a.describe {
+        for (tool, notes) in protocol::describe(&start) {
+            writeln!(out, "{tool}: {}", notes.join(", "))?;
+        }
+        return Ok(ExitCode::SUCCESS);
+    }
+    let provider = pick_provider(a.provider.as_deref(), a.model.as_deref())?;
+    protocol::run(
+        &start,
+        &provider,
+        Some(&provider),
+        Box::new(io::BufReader::new(io::stdin())),
+        Box::new(io::stdout()),
+    )?;
+    Ok(ExitCode::SUCCESS)
 }
 
 /// Ask a model for a plan and print exactly what it said.
