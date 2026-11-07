@@ -146,6 +146,33 @@ impl Value {
         }
     }
 
+    /// A description of this value's *shape*, carrying none of its content.
+    ///
+    /// This is what the planner is allowed to learn about a tool's output.
+    /// It says the kind, the size and where the value came from, and it says
+    /// nothing else — not the text, not the numbers, and deliberately not the
+    /// field names of a map. A map built from a fetched page can have
+    /// attacker-chosen keys, so printing keys would be the same laundering
+    /// channel as printing the text: untrusted words reaching the model whose
+    /// literals are trusted to steer calls.
+    pub fn shape(&self, trusted: &std::collections::BTreeSet<crate::label::Source>) -> String {
+        let kind = match &self.data {
+            Data::Unit => "nothing".to_owned(),
+            Data::Bool(_) => "a true/false value".to_owned(),
+            Data::Int(_) => "a number".to_owned(),
+            Data::Str(t) => format!("text, {} characters", t.chars().count()),
+            Data::List(items) => format!("a list of {} items", items.len()),
+            Data::Map(fields) => format!("a record with {} fields", fields.len()),
+        };
+        let label = self.deep_label();
+        let trust = if label.trusted_for_control(trusted) {
+            "trusted"
+        } else {
+            "untrusted, so it cannot steer a call"
+        };
+        format!("{kind} ({trust})")
+    }
+
     /// The label of this value joined with the labels of everything inside
     /// it, which is what disclosing the whole value would reveal.
     pub fn deep_label(&self) -> Label {

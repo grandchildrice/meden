@@ -37,6 +37,30 @@ from .pipeline import TAgentPipeline
 
 
 @dataclass
+class RunRecord:
+    """What happened in one task run, kept so a reader can see *why*.
+
+    A single utility number cannot distinguish "the gate refused this" from
+    "the planner could not do the arithmetic", and those call for opposite
+    fixes. Every run records both.
+    """
+
+    task: str
+    #: The injection task, when one was placed.
+    injection: str | None = None
+    #: Did the user's task succeed?
+    utility: bool = False
+    #: Did the injection achieve its goal? `None` when none was placed.
+    attack: bool | None = None
+    #: How the session ended: `done`, `refused`, `failed` or `no_plan`.
+    outcome: str = "failed"
+    #: The rules that refused a call here, in order.
+    refused_by: list[str] = field(default_factory=list)
+    #: A sentence about how it ended.
+    summary: str = ""
+
+
+@dataclass
 class Totals:
     """What a run came to."""
 
@@ -55,6 +79,8 @@ class Totals:
     refusals: dict[str, int] = field(default_factory=dict)
     #: Runs that ended without a usable plan, which is a cost, not a defence.
     no_plan: int = 0
+    #: One entry per run, so a number can be traced back to a task.
+    runs: list[RunRecord] = field(default_factory=list)
     seconds: float = 0.0
 
     @property
@@ -68,6 +94,30 @@ class Totals:
     @property
     def attack_success_rate(self) -> float:
         return self.attack_successes / self.attack_runs if self.attack_runs else 0.0
+
+    def benign_failures(self) -> dict[str, list[str]]:
+        """Benign tasks that failed, grouped by what to blame.
+
+        The distinction the headline number hides: a task the gate refused is
+        a cost of the defence, a task the planner botched is a cost of the
+        model, and only the first is evidence about this design.
+        """
+        causes: dict[str, list[str]] = {}
+        for run in self.runs:
+            if run.injection is not None or run.utility:
+                continue
+            if "untrusted_control" in run.refused_by:
+                cause = "refused: integrity rule"
+            elif "disclosure" in run.refused_by:
+                cause = "refused: confidentiality rule"
+            elif run.refused_by:
+                cause = f"refused: {run.refused_by[0]}"
+            elif run.outcome == "no_plan":
+                cause = "planner wrote no usable plan"
+            else:
+                cause = "ran, but answer was wrong"
+            causes.setdefault(cause, []).append(run.task)
+        return causes
 
     def report(self) -> str:
         lines = [
@@ -87,18 +137,41 @@ class Totals:
             lines.append("refusals by rule")
             for rule, n in sorted(self.refusals.items(), key=lambda kv: -kv[1]):
                 lines.append(f"  {rule:<28} {n}")
+        failures = self.benign_failures()
+        if failures:
+            lines.append("benign tasks that failed, by cause")
+            for cause, ids in sorted(failures.items()):
+                lines.append(f"  {cause:<28} {len(ids)}  {', '.join(ids)}")
         if self.no_plan:
             lines.append(f"runs with no usable plan   {self.no_plan}")
         lines.append(f"took                  {self.seconds:.0f}s")
         return "\n".join(lines)
 
 
-def _tally(totals: Totals, report: Any) -> None:
+def _tally(
+    totals: Totals,
+    report: Any,
+    task: str,
+    utility: bool,
+    injection: str | None = None,
+    attack: bool | None = None,
+) -> None:
     for tool, rule in report.refusals:
         key = f"{rule} ({tool})" if rule == "policy" else rule
         totals.refusals[key] = totals.refusals.get(key, 0) + 1
     if report.outcome == "no_plan":
         totals.no_plan += 1
+    totals.runs.append(
+        RunRecord(
+            task=task,
+            injection=injection,
+            utility=bool(utility),
+            attack=attack,
+            outcome=report.outcome,
+            refused_by=[rule for _, rule in report.refusals],
+            summary=report.summary,
+        )
+    )
 
 
 def run_benign(
@@ -117,7 +190,7 @@ def run_benign(
             utility = False
         totals.benign_runs += 1
         totals.benign_successes += int(utility)
-        _tally(totals, pipeline.last_report)
+        _tally(totals, pipeline.last_report, task.ID, bool(utility))
         print(f"  {task.ID:<12} utility={'yes' if utility else 'no '}", flush=True)
 
 
@@ -146,7 +219,14 @@ def run_attacks(
             totals.attack_runs += 1
             totals.attack_utility += int(utility)
             totals.attack_successes += int(security)
-            _tally(totals, pipeline.last_report)
+            _tally(
+                totals,
+                pipeline.last_report,
+                task.ID,
+                bool(utility),
+                injection_task.ID,
+                bool(security),
+            )
             print(
                 f"  {task.ID:<12} {injection_task.ID:<14} "
                 f"utility={'yes' if utility else 'no '} "

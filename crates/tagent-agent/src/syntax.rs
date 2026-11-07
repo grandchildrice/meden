@@ -233,6 +233,16 @@ enum StmtRepr {
         #[serde(rename = "do")]
         value: Expr,
     },
+    /// A bare EXPR, meaning the same as `{"do": EXPR}`.
+    ///
+    /// Models drop the wrapper, and a step written `{"call": ...}` means
+    /// exactly what `{"do": {"call": ...}}` means. Accepting it changes no
+    /// rule: the expression is the same expression, checked by the same gate.
+    /// Refusing it would only throw away correct plans over punctuation.
+    ///
+    /// It must come last: an untagged enum tries its variants in order, and
+    /// this one would otherwise swallow the `let` and `do` forms.
+    Bare(Expr),
 }
 
 #[derive(Serialize, Deserialize)]
@@ -265,7 +275,7 @@ impl<'de> Deserialize<'de> for Stmt {
                 name: binding.name,
                 value: binding.value,
             },
-            StmtRepr::Do { value } => Stmt::Do(value),
+            StmtRepr::Do { value } | StmtRepr::Bare(value) => Stmt::Do(value),
         })
     }
 }
@@ -370,5 +380,41 @@ mod tests {
         assert!(json.contains("\"$page.body\""), "{json}");
         assert!(!json.contains("\"tool\""), "still nesting calls: {json}");
         assert_eq!(Plan::from_json(&json).ok(), Some(plan));
+    }
+}
+
+#[cfg(test)]
+mod leniency_tests {
+    // Tests fail by panicking; that is their job.
+    #![allow(clippy::panic)]
+
+    use crate::plan::{Expr, Plan, Stmt};
+
+    #[test]
+    fn a_step_may_omit_the_do_wrapper() {
+        let plan =
+            Plan::from_json(r#"{"steps":[{"call":"fetch","args":{"url":"u"}}],"continues":true}"#);
+        let plan = match plan {
+            Ok(p) => p,
+            Err(e) => panic!("a bare expression should parse as a step: {e}"),
+        };
+        assert!(plan.continues, "continues was dropped");
+        assert_eq!(
+            plan.steps.first(),
+            Some(&Stmt::Do(Expr::call("fetch").arg("url", Expr::str("u"))))
+        );
+    }
+
+    #[test]
+    fn the_wrapped_forms_still_win() {
+        let plan = Plan::from_json(r#"{"steps":[{"let":"x","value":"hi"}]}"#).unwrap_or_default();
+        assert_eq!(
+            plan.steps.first(),
+            Some(&Stmt::Let {
+                name: "x".to_owned(),
+                value: Expr::str("hi"),
+            }),
+            "a let step was swallowed by the bare form"
+        );
     }
 }

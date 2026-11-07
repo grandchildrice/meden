@@ -179,6 +179,17 @@ pub enum Stmt {
 pub struct Plan {
     /// The steps, in order.
     pub steps: Vec<Stmt>,
+    /// Whether the planner intends to write a further plan once this one has
+    /// run.
+    ///
+    /// A plan is normally the whole job. Some jobs cannot be written in one
+    /// go: "pay the bill in this file" needs the file read before the payment
+    /// can be expressed. Setting this asks for another round, in which the
+    /// planner is told the *shape* of what each variable now holds — its kind,
+    /// its size and whether it is trusted — and never its content. See
+    /// [`crate::value::Value::shape`] for why that line is drawn there.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub continues: bool,
 }
 
 impl Plan {
@@ -201,6 +212,13 @@ impl Plan {
     #[must_use]
     pub fn then(mut self, value: Expr) -> Self {
         self.steps.push(Stmt::Do(value));
+        self
+    }
+
+    /// This plan, marked as needing a further round.
+    #[must_use]
+    pub fn continuing(mut self) -> Self {
+        self.continues = true;
         self
     }
 

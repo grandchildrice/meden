@@ -27,7 +27,7 @@ impl OpenAiCompatible {
             base_url: base_url.trim_end_matches('/').to_owned(),
             model: model.to_owned(),
             api_key: None,
-            timeout: Duration::from_secs(120),
+            timeout: Duration::from_secs(300),
             temperature: 0.0,
             max_tokens: 32768,
         }

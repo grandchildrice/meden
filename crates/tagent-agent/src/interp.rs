@@ -131,6 +131,11 @@ impl Env {
     pub fn get(&self, name: &str) -> Option<&Value> {
         self.vars.get(name)
     }
+
+    /// Every binding, in name order.
+    pub fn iter(&self) -> impl Iterator<Item = (&str, &Value)> {
+        self.vars.iter().map(|(k, v)| (k.as_str(), v))
+    }
 }
 
 /// Runs plans against a registry and a gate configuration.

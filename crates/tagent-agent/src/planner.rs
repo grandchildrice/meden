@@ -31,6 +31,13 @@ pub struct PlanRequest {
     /// Why earlier attempts were refused, oldest first. Each entry comes from
     /// [`Refusal::safe_summary`] and so quotes no argument value.
     pub feedback: Vec<String>,
+    /// Variables an earlier plan in this session bound, as `(name, shape)`.
+    ///
+    /// The shape comes from [`crate::value::Value::shape`]: a kind, a size
+    /// and whether the value is trusted. Never its content, because the
+    /// planner's own literals are trusted to steer calls and untrusted words
+    /// reaching it would launder straight back out as one.
+    pub known: Vec<(String, String)>,
 }
 
 impl PlanRequest {
@@ -40,6 +47,7 @@ impl PlanRequest {
             instruction: instruction.to_owned(),
             tools,
             feedback: Vec::new(),
+            known: Vec::new(),
         }
     }
 
@@ -245,6 +253,9 @@ impl<'a, P: Planner> Session<'a, P> {
             interpreter = interpreter.with_quarantined(reader);
         }
         let mut attempts = Vec::new();
+        // Kept across rounds: a plan that asked to continue has already bound
+        // names the next one may use.
+        let mut env = Env::new();
 
         for attempt in 1..=self.max_attempts {
             if let Some(observe) = self.observer {
@@ -259,7 +270,8 @@ impl<'a, P: Planner> Session<'a, P> {
                     }
                 }
             };
-            let (trace, result) = interpreter.run(&plan, &mut Env::new());
+            let continues = plan.continues;
+            let (trace, result) = interpreter.run(&plan, &mut env);
             if let Some(observe) = self.observer {
                 observe(SessionEvent::Attempted {
                     attempt,
@@ -267,13 +279,30 @@ impl<'a, P: Planner> Session<'a, P> {
                     trace: &trace,
                 });
             }
+            // A plan that asked to continue but called nothing has stalled:
+            // it is about to ask for the same thing again, and in a run with
+            // no one to answer it that is a loop, not a question.
+            let progressed = !trace.calls.is_empty();
             attempts.push((plan, trace));
             match result {
                 Ok(value) => {
+                    // A plan that asked for another round gets one, so long
+                    // as it got somewhere and the budget allows. What it is
+                    // told about the round just run is the *shape* of each
+                    // binding and nothing more.
+                    if continues && progressed && attempt < self.max_attempts {
+                        request.known = env
+                            .iter()
+                            .map(|(name, value)| {
+                                (name.to_owned(), value.shape(&self.config.trusted))
+                            })
+                            .collect();
+                        continue;
+                    }
                     return SessionReport {
                         outcome: Outcome::Done(value),
                         attempts,
-                    }
+                    };
                 }
                 Err(EvalError::Refused(refusal)) => {
                     // Tell the planner why, without quoting any value.
@@ -495,5 +524,140 @@ mod tests {
             .with_max_attempts(0)
             .run("do it");
         assert_eq!(report.attempts.len(), 1);
+    }
+}
+
+#[cfg(test)]
+mod continuation_tests {
+    // Tests fail by panicking; that is their job.
+    #![allow(clippy::panic, clippy::expect_used, clippy::items_after_statements)]
+
+    use super::*;
+    use crate::label::Label;
+    use crate::plan::Expr;
+    use crate::tool::{Args, ParamSpec, Tool, ToolError};
+    use tagent_core::{Capability, Policy, Requirement};
+
+    /// A tool returning untrusted text, as a file or a web page would.
+    struct ReadFile(ToolSig);
+    impl Tool for ReadFile {
+        fn signature(&self) -> &ToolSig {
+            &self.0
+        }
+        fn requirements(&self, _args: &Args) -> Vec<Requirement> {
+            vec![Requirement::with_evidence(
+                Capability::FsRead,
+                Some("bill.txt"),
+                "read_file.path",
+            )]
+        }
+        fn call(&self, _args: &Args) -> Result<Value, ToolError> {
+            Ok(Value::str(
+                "Pay GB00SECRET1234567 the sum of 42.00",
+                Label::public([crate::label::Source::tool("read_file")]),
+            ))
+        }
+    }
+
+    fn setup() -> (Registry, GateConfig) {
+        let registry = Registry::new().with(Box::new(ReadFile(ToolSig::new(
+            "read_file",
+            vec![ParamSpec::control("path")],
+        ))));
+        let config = GateConfig::new(
+            Policy::from_labels("demo", &["fs.read[bill.txt]"], &[]).unwrap_or_default(),
+        );
+        (registry, config)
+    }
+
+    #[test]
+    fn a_continuing_plan_is_given_another_round() {
+        let (registry, config) = setup();
+        let first = Plan::new()
+            .bind(
+                "bill",
+                Expr::call("read_file").arg("path", Expr::str("bill.txt")),
+            )
+            .continuing();
+        let second = Plan::new().then(Expr::var("bill").ask("who is to be paid"));
+        let planner = ScriptedPlanner::new([first, second]);
+        let session = Session::new(&registry, &config, &planner);
+        let report = session.run("pay the bill in bill.txt");
+        assert!(
+            report.attempts.len() == 2,
+            "expected a second round, got {} attempt(s)",
+            report.attempts.len()
+        );
+    }
+
+    #[test]
+    fn a_finished_plan_is_not_given_another_round() {
+        let (registry, config) = setup();
+        let only = Plan::new().bind(
+            "bill",
+            Expr::call("read_file").arg("path", Expr::str("bill.txt")),
+        );
+        let extra = Plan::new().then(Expr::str("should never run"));
+        let planner = ScriptedPlanner::new([only, extra]);
+        let session = Session::new(&registry, &config, &planner);
+        let report = session.run("read the bill");
+        assert!(
+            report.attempts.len() == 1,
+            "a plan that did not ask to continue got another round"
+        );
+    }
+
+    #[test]
+    fn the_second_round_is_told_a_shape_and_never_the_content() {
+        let (registry, config) = setup();
+        // A planner that records what it was told, and asks to continue once.
+        struct Recorder {
+            seen: std::cell::RefCell<Vec<PlanRequest>>,
+            calls: std::cell::Cell<usize>,
+        }
+        impl Planner for Recorder {
+            fn plan(&self, request: &PlanRequest) -> Result<Plan, PlannerError> {
+                self.seen.borrow_mut().push(request.clone());
+                let n = self.calls.get();
+                self.calls.set(n.saturating_add(1));
+                if n == 0 {
+                    Ok(Plan::new()
+                        .bind(
+                            "bill",
+                            Expr::call("read_file").arg("path", Expr::str("bill.txt")),
+                        )
+                        .continuing())
+                } else {
+                    Ok(Plan::new().then(Expr::str("done")))
+                }
+            }
+        }
+        let planner = Recorder {
+            seen: std::cell::RefCell::new(Vec::new()),
+            calls: std::cell::Cell::new(0),
+        };
+        let session = Session::new(&registry, &config, &planner);
+        let _ = session.run("pay the bill in bill.txt");
+
+        let seen = planner.seen.borrow();
+        let second = seen.get(1).expect("a second request");
+        let told = crate::prompt::user_prompt(second);
+        assert!(
+            told.contains("$bill"),
+            "the second round was not told the name: {told}"
+        );
+        assert!(
+            told.contains("untrusted"),
+            "the second round was not told it is untrusted: {told}"
+        );
+        // The thing that must not happen.
+        assert!(
+            !told.contains("GB00SECRET1234567"),
+            "the file's content reached the planner: {told}"
+        );
+        assert!(
+            !told.contains("42.00"),
+            "the file's content reached the planner: {told}"
+        );
     }
 }

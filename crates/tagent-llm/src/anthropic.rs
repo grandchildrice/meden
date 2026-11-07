@@ -25,7 +25,7 @@ impl Anthropic {
             model: model.to_owned(),
             base_url: "https://api.anthropic.com/v1".to_owned(),
             max_tokens: 8192,
-            timeout: Duration::from_secs(120),
+            timeout: Duration::from_secs(300),
         }
     }
 
