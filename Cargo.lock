@@ -1141,7 +1141,9 @@ dependencies = [
  "serde",
  "serde_json",
  "tagent-agent",
+ "tempfile",
  "ureq",
+ "yaml-rust2",
 ]
 
 [[package]]

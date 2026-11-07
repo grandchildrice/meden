@@ -51,17 +51,27 @@ enum Command {
     Attest(AttestCommand),
     /// Run the prompt-injection scenario end to end.
     Demo(DemoArgs),
+    /// List the models this machine could plan with.
+    Providers,
+    /// Ask a model for a plan and print exactly what it said.
+    ///
+    /// For working out why a model's plans are rejected.
+    Raw(DemoArgs),
 }
 
 #[derive(Args)]
 struct DemoArgs {
     /// Ask a real model for the plans instead of using scripted ones.
     ///
-    /// Reads TAGENT_LLM_BASE_URL and TAGENT_LLM_MODEL, and optionally
-    /// TAGENT_LLM_API_KEY. Any OpenAI-compatible server will do: vLLM,
-    /// Ollama or llama.cpp.
+    /// Without --provider, the first model `tagent providers` lists is used.
     #[arg(long)]
     live: bool,
+    /// Which model to plan with, by the id `tagent providers` shows.
+    #[arg(long)]
+    provider: Option<String>,
+    /// The model name, when the provider needs one choosing.
+    #[arg(long)]
+    model: Option<String>,
 }
 
 #[derive(Subcommand)]
@@ -206,12 +216,51 @@ fn run() -> Result<ExitCode> {
             Ok(exit_for(tier.is_verified()))
         }
         Command::Gate(a) => run_gate(&a, &mut out),
+        Command::Raw(a) => {
+            let provider = pick_provider(a.provider.as_deref(), a.model.as_deref())?;
+            let registry = demo::registry();
+            let tools = registry
+                .names()
+                .filter_map(|n| registry.get(n).map(|t| t.signature().clone()))
+                .collect();
+            let request = tagent_agent::PlanRequest::new(demo::INSTRUCTION, tools);
+            let reply = provider
+                .chat(
+                    &tagent_agent::system_prompt(&request),
+                    &tagent_agent::user_prompt(&request),
+                )
+                .map_err(|e| anyhow::anyhow!("{e}"))?;
+            writeln!(out, "--- {} characters ---", reply.chars().count())?;
+            writeln!(out, "{reply}")?;
+            Ok(ExitCode::SUCCESS)
+        }
+        Command::Providers => {
+            let found = tagent_llm::detect();
+            if found.is_empty() {
+                writeln!(out, "nothing found.")?;
+                writeln!(
+                    out,
+                    "install one of claude, codex, hermes or ollama, or set {}.",
+                    tagent_llm::ENV_BASE_URL
+                )?;
+                return Ok(exit_for(false));
+            }
+            for p in &found {
+                writeln!(out, "{:<22} {}", p.id, p.label)?;
+                writeln!(out, "{:<22} model {}  ({})", "", p.model, p.note)?;
+            }
+            Ok(ExitCode::SUCCESS)
+        }
         Command::Demo(a) => {
             if a.live {
-                let client =
-                    tagent_llm::OpenAiCompatible::from_env().map_err(|e| anyhow::anyhow!("{e}"))?;
-                writeln!(io::stderr(), "planning with {}", client.base_url())?;
-                demo::run(&client, &mut out)?;
+                let provider = pick_provider(a.provider.as_deref(), a.model.as_deref())?;
+                writeln!(
+                    io::stderr(),
+                    "planning with {} ({})",
+                    provider.label,
+                    provider.model
+                )?;
+                demo::run_with(&provider, Some(&provider), &mut out)?;
             } else {
                 demo::run(&demo::scripted(), &mut out)?;
             }
@@ -283,6 +332,25 @@ fn run_gate(a: &GateArgs, out: &mut impl Write) -> Result<ExitCode> {
         writeln!(out, "admitted: {}", report.admitted)?;
     }
     Ok(exit_for(report.admitted))
+}
+
+/// The model to plan with: the one asked for, or the first one detected.
+fn pick_provider(id: Option<&str>, model: Option<&str>) -> Result<tagent_llm::Provider> {
+    let found = tagent_llm::detect();
+    let mut provider = match id {
+        Some(wanted) => found
+            .into_iter()
+            .find(|p| p.id == wanted)
+            .with_context(|| format!("no provider called {wanted:?}; try `tagent providers`"))?,
+        None => found
+            .into_iter()
+            .next()
+            .context("no model found; try `tagent providers`")?,
+    };
+    if let Some(m) = model {
+        provider.model = m.to_owned();
+    }
+    Ok(provider)
 }
 
 fn read_policy(path: &PathBuf) -> Result<Policy> {

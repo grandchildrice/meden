@@ -167,6 +167,7 @@ pub struct Session<'a, P: Planner> {
     registry: &'a Registry,
     config: &'a GateConfig,
     planner: &'a P,
+    quarantined: Option<&'a dyn Quarantined>,
     max_attempts: usize,
 }
 
@@ -177,8 +178,16 @@ impl<'a, P: Planner> Session<'a, P> {
             registry,
             config,
             planner,
+            quarantined: None,
             max_attempts: 3,
         }
+    }
+
+    /// This session, able to run plans that read untrusted text.
+    #[must_use]
+    pub fn with_quarantined(mut self, reader: &'a dyn Quarantined) -> Self {
+        self.quarantined = Some(reader);
+        self
     }
 
     /// This session, with a different attempt limit. Zero means one attempt.
@@ -196,7 +205,10 @@ impl<'a, P: Planner> Session<'a, P> {
             .filter_map(|n| self.registry.get(n).map(|t| t.signature().clone()))
             .collect();
         let mut request = PlanRequest::new(instruction, tools);
-        let interpreter = Interpreter::new(self.registry, self.config);
+        let mut interpreter = Interpreter::new(self.registry, self.config);
+        if let Some(reader) = self.quarantined {
+            interpreter = interpreter.with_quarantined(reader);
+        }
         let mut attempts = Vec::new();
 
         for _ in 0..self.max_attempts {

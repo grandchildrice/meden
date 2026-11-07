@@ -10,22 +10,28 @@
 //!
 //! ```json
 //! {"steps": [
-//!   {"let": {"name": "page",
-//!            "value": {"call": {"tool": "fetch",
-//!                               "args": {"url": {"str": "https://example.com"}}}}}},
-//!   {"do": {"call": {"tool": "summarise",
-//!                    "args": {"text": {"field": {"base": {"var": "page"},
-//!                                                "key": "body"}}}}}}
+//!   {"let": "page", "value": {"call": "fetch", "args": {"url": "https://example.com"}}},
+//!   {"do": {"call": "summarise", "args": {"text": "$page.body"}}}
 //! ]}
 //! ```
+//!
+//! The surface syntax is deliberately flat, and why is worth reading:
+//! [`crate::syntax`].
 
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
 /// An expression in a plan.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+///
+/// Literals are written plainly: `"text"`, `5` and `true` are a string, an
+/// integer and a boolean. A list is a JSON array. Everything else is a
+/// one-key object naming what it is. Accepting the plain forms matters more
+/// than it looks: a model asked to wrap every literal in `{"str": ...}`
+/// forgets, and then a correct plan is thrown away over its punctuation.
+///
+/// The verbose forms are still accepted, so `{"str": "text"}` parses too.
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Expr {
     /// A text literal.
     Str(String),
@@ -42,7 +48,6 @@ pub enum Expr {
         /// The tool's name.
         tool: String,
         /// Its arguments, by parameter name.
-        #[serde(default)]
         args: BTreeMap<String, Expr>,
     },
     /// A named field of a map.
@@ -156,8 +161,7 @@ impl Expr {
 }
 
 /// One step of a plan.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Stmt {
     /// Evaluate an expression and bind it to a name.
     Let {

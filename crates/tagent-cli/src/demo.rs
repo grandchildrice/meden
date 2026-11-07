@@ -14,7 +14,7 @@ use std::io::Write;
 
 use anyhow::Result;
 use tagent_agent::label::Label;
-use tagent_agent::planner::{Outcome, Planner, ScriptedPlanner, Session};
+use tagent_agent::planner::{Outcome, Planner, Quarantined, ScriptedPlanner, Session};
 use tagent_agent::tool::{Args, ParamSpec, Tool, ToolError, ToolSig};
 use tagent_agent::{Data, Expr, GateConfig, Plan, Registry, Value};
 use tagent_core::{Capability, Policy, Requirement};
@@ -154,11 +154,24 @@ fn corrected_plan() -> Plan {
 
 /// Run the demo, writing a readable account to `out`.
 ///
-/// `planner` decides who writes the plans. Returns true when the session
-/// ended without the attacker's address being mailed, which the gate
-/// guarantees: a send whose recipient came from the page is refused before
-/// the tool runs, so it is never reached.
+/// `planner` decides who writes the plans. Returns true when the scenario
+/// played out: either the planner was taken in and the runtime refused it,
+/// or the planner was not taken in. False means something else went wrong,
+/// such as the model being unreachable.
 pub fn run(planner: &dyn Planner, out: &mut impl Write) -> Result<bool> {
+    run_with(planner, None, out)
+}
+
+/// [`run`], with a quarantined reader for plans that summarise the page.
+///
+/// A plan may say `{"ask": ...}` to have untrusted text read for it. Without
+/// a reader that step fails, which is a configuration problem rather than a
+/// refusal, so the demo supplies one when a live model is in use.
+pub fn run_with(
+    planner: &dyn Planner,
+    reader: Option<&dyn Quarantined>,
+    out: &mut impl Write,
+) -> Result<bool> {
     let registry = registry();
     let config = GateConfig::new(policy());
 
@@ -171,7 +184,12 @@ pub fn run(planner: &dyn Planner, out: &mut impl Write) -> Result<bool> {
          suspicious. The only thing wrong with it is that it came from the page.\n"
     )?;
 
-    let report = Session::new(&registry, &config, &PlannerRef(planner)).run(INSTRUCTION);
+    let planner_ref = PlannerRef(planner);
+    let mut session = Session::new(&registry, &config, &planner_ref);
+    if let Some(r) = reader {
+        session = session.with_quarantined(r);
+    }
+    let report = session.run(INSTRUCTION);
 
     for (i, (plan, trace)) in report.attempts.iter().enumerate() {
         let n = i.saturating_add(1);
@@ -189,11 +207,34 @@ pub fn run(planner: &dyn Planner, out: &mut impl Write) -> Result<bool> {
     }
 
     writeln!(out)?;
+
+    let refused_for_provenance = report.attempts.iter().any(|(_, t)| {
+        t.calls.iter().any(|c| {
+            matches!(
+                &c.outcome,
+                Err(tagent_agent::Refusal::UntrustedControl { .. })
+            )
+        })
+    });
+
     let safe = match &report.outcome {
+        Outcome::Done(_) if refused_for_provenance => {
+            writeln!(
+                out,
+                "the planner took the page's address, the runtime refused it, and the \
+                 corrected plan ran."
+            )?;
+            true
+        }
         Outcome::Done(_) => {
             writeln!(
                 out,
-                "the plan ran, and the attacker's address was never used."
+                "this planner was not taken in, so the runtime had nothing to refuse."
+            )?;
+            writeln!(
+                out,
+                "run without --live to see what happens when a planner is taken in; the \
+                 guarantee is that it does not matter which."
             )?;
             true
         }
@@ -203,11 +244,11 @@ pub fn run(planner: &dyn Planner, out: &mut impl Write) -> Result<bool> {
         }
         Outcome::Failed(e) => {
             writeln!(out, "the plan failed: {e}")?;
-            true
+            false
         }
         Outcome::NoPlan(e) => {
             writeln!(out, "no plan: {e}")?;
-            true
+            false
         }
     };
 
@@ -246,6 +287,7 @@ mod tests {
 
         let text = String::from_utf8(out).unwrap_or_default();
         assert!(text.contains("send_email REFUSED"), "{text}");
+        assert!(text.contains("the runtime refused it"), "{text}");
         // The policy allows the address, so the refusal has to come from the
         // integrity rule, not from an allowlist.
         assert!(

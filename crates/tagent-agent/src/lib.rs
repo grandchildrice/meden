@@ -43,6 +43,7 @@ pub mod label;
 pub mod plan;
 pub mod planner;
 pub mod prompt;
+pub mod syntax;
 pub mod tool;
 pub mod value;
 
