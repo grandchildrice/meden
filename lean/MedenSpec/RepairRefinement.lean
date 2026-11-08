@@ -1,7 +1,7 @@
 import MedenSpec.Generated.Repair
 
-/-! Check scheduling over actual conversation outcomes. This does not admit
-evidence or prove the I/O loop, source freshness, flag attribution or atomics. -/
+/-! Check scheduling over actual conversation outcomes. Evidence acceptance,
+the I/O loop, source freshness, flag attribution and atomics are separate obligations. -/
 namespace MedenSpec.Repair
 
 inductive Turn where
