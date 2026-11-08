@@ -110,6 +110,21 @@ An HTTP response is not proof that an upload was accepted by the service.
 Raw HTTP export does not provide Git/email audience adapters or a
 proof-of-correctness release gate.
 
+## Meden release evidence
+
+`meden verify-release --repository owner/repo --commit FULL_40_HEX_COMMIT
+--directory dist` is a host administration command for Meden's own releases.
+It reads staged archives and source/checksum sidecars, contacts only the
+fixed GitHub API for exact-source CI evidence and emits a manifest only
+after the evidence gate permits it. `GH_TOKEN` or `GITHUB_TOKEN` is optional
+authorization for that API. Archive/source contents are not uploaded.
+
+This command is outside the conversation's model tools and `run` protocol;
+there is no model-controlled receipt callback or API destination. A model
+invoking it inside a coding worker still has the worker's offline boundary.
+It does not establish verification of the user's project. See
+[release inputs, policy and trust assumptions](release.md).
+
 ## Output
 
 Each output line is a JSON object whose `type` identifies an event:

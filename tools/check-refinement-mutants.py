@@ -27,7 +27,11 @@ GROUPS = [
         "proof": "EvidenceRefinement",
         "test": "evidence::tests::exact_current_evidence_is_required_for_each_obligation",
         "mutations": [
-            ("untrusted_evidence", "origin != EvidenceOrigin::Checker", "false"),
+            (
+                "untrusted_evidence",
+                "origin != EvidenceOrigin::Checker",
+                "origin != EvidenceOrigin::Checker && false",
+            ),
             ("stale_evidence", "receipt.subject != *current", "false"),
             (
                 "kind_substitution",
@@ -35,8 +39,12 @@ GROUPS = [
                 "*expected != receipt.obligation && expected.kind == receipt.obligation.kind",
             ),
             ("reused_result", "receipt.position != self.completed", "false"),
-            ("stale_progress", "self.completed = 0", "self.completed = self.completed"),
-            ("stale_delivery", "&& self.subject == *current", "&& true"),
+            ("stale_progress", "self.completed = 0", "let _ = self.completed"),
+            (
+                "stale_delivery",
+                "&& self.subject == *current",
+                "&& (self.subject == *current || true)",
+            ),
             ("unreviewed_contract", "self.phase != EvidencePhase::Reviewed", "false"),
         ],
     },
@@ -122,7 +130,7 @@ def main():
                     "Unknown identifier",
                     "unknown module prefix",
                 )
-                if any(error in output for error in operational_errors):
+                if any(error.casefold() in output.casefold() for error in operational_errors):
                     raise RuntimeError(
                         f"{name}: operational proof failure does not count\n{output}"
                     )

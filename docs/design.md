@@ -195,7 +195,7 @@ Pin and validate each tool before declaring an adapter supported.
 | Lean | Control specifications, mathematical project contracts, checked proofs and refinement theorems | Only the checked statements and admitted assumptions |
 | Charon + Aeneas | Extract a supported Rust implementation into Lean for proofs against the specification | Extraction/toolchain and external models remain explicit trust dependencies |
 | Verus / PDD Kit | Rust verification and reviewed-intent workflow integration | Verus obligations and trusted wrappers; not automatically a Lean proof |
-| Bend | Implement and prove language-level laws where appropriate | Language semantics, checker and translation/backend limitations must be recorded |
+| [Bend](https://github.com/bendlang/bend/blob/main/guide/GUIDE.md) | Project laws and implementation proofs, with a pinned `--verdict` check | Its Lean-proved BendTT kernel checks translated terms; parser/translation and native backend correspondence are separate boundaries |
 | h5i | Rust web application kernels and extraction/build recipes | Only extracted and checked application components |
 | Aristotle | Optional external verification/proof-generation service | Exact exported inputs, service capabilities and locally checkable returned artifacts; unavailable in local-only sessions |
 | TLA+ / TLC / TLAPS | Protocol, concurrency and retry/state-machine reasoning | TLC results are for the checked model/configuration; a source refinement needs its own argument |
@@ -206,6 +206,14 @@ Backend results retain their own logic and trust base. A Verus result, Bend
 law, TLC run or fuzz campaign is not converted into a Lean theorem by
 renaming it. The shared kernel checks evidence metadata and accepted
 requirements; it does not prove every external verifier correct.
+
+For a future Bend adapter, the host would freeze the accepted `LAWS.bend`
+while workers edit implementation and `PROOF.bend`. A clean offline checker
+would recheck their bound input closure; worker output saying that proofs
+passed would carry no authority. Bend's existing law/proof interface is a
+backend capability to connect, not something Meden needs to reimplement.
+The orchestration adds intent review, isolation, invalidation, artifact
+binding and a common user interface across backends.
 
 The first project path is a small Rust computation/state machine extracted
 into Lean. First validate a compatible pinned Rust/Charon/Aeneas/Lean
