@@ -185,6 +185,8 @@ fn list_models(base_url: &str, api_key: Option<&str>) -> Option<Vec<String>> {
     }
 
     let config = ureq::Agent::config_builder()
+        .proxy(None)
+        .max_redirects(0)
         .timeout_global(Some(Duration::from_millis(700)))
         .build();
     let agent: ureq::Agent = config.into();
@@ -193,6 +195,9 @@ fn list_models(base_url: &str, api_key: Option<&str>) -> Option<Vec<String>> {
         request = request.header("authorization", &format!("Bearer {key}"));
     }
     let mut response = request.call().ok()?;
+    if !response.status().is_success() {
+        return None;
+    }
     let parsed: Models = response.body_mut().read_json().ok()?;
     Some(parsed.data.into_iter().map(|m| m.id).collect())
 }

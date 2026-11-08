@@ -40,54 +40,46 @@ impl ChatModel for OpenAiCompatible {
             object.insert("tool_choice".to_owned(), serde_json::json!("auto"));
         }
         let config = ureq::Agent::config_builder()
+            .proxy(None)
+            .max_redirects(0)
             .timeout_global(Some(self.timeout))
             .build();
         let agent: ureq::Agent = config.into();
         let url = format!("{}/chat/completions", self.base_url);
-        for attempt in 0_u32..3 {
-            let mut request = agent.post(&url);
-            if let Some(key) = &self.api_key {
-                request = request.header("authorization", &format!("Bearer {key}"));
-            }
-            let mut response = match request.send_json(&body) {
-                Ok(response) => response,
-                Err(error) => {
-                    let permanent =
-                        matches!(error, ureq::Error::StatusCode(400 | 401 | 403 | 404 | 422));
-                    if permanent || attempt == 2 {
-                        return Err(ModelError::Unavailable(error.to_string()));
-                    }
-                    std::thread::sleep(Duration::from_secs(1_u64 << attempt));
-                    continue;
-                }
-            };
-            let response: serde_json::Value = response
-                .body_mut()
-                .read_json()
-                .map_err(|e| ModelError::InvalidResponse(format!("unreadable API reply: {e}")))?;
-            let choice = response
-                .get("choices")
-                .and_then(serde_json::Value::as_array)
-                .and_then(|choices| choices.first())
-                .ok_or_else(|| {
-                    ModelError::InvalidResponse("API reply had no choices".to_owned())
-                })?;
-            if choice
-                .get("finish_reason")
-                .and_then(serde_json::Value::as_str)
-                == Some("length")
-            {
-                return Err(ModelError::InvalidResponse(
-                    "the model reply was truncated".to_owned(),
-                ));
-            }
-            return serde_json::from_value(choice.get("message").cloned().unwrap_or_default())
-                .map_err(|e| {
-                    ModelError::InvalidResponse(format!("invalid assistant message: {e}"))
-                });
+        let mut request = agent.post(&url);
+        if let Some(key) = &self.api_key {
+            request = request.header("authorization", &format!("Bearer {key}"));
         }
-        Err(ModelError::Unavailable(
-            "model retries exhausted".to_owned(),
-        ))
+        // A failed exchange may already have delivered the confidential body.
+        // Neither a redirect nor an automatic retry grants another send.
+        let mut response = request.send_json(&body).map_err(|_| {
+            ModelError::Unavailable("model request failed or delivery is uncertain".into())
+        })?;
+        if !response.status().is_success() {
+            return Err(ModelError::Unavailable(format!(
+                "model endpoint returned HTTP {}",
+                response.status().as_u16()
+            )));
+        }
+        let response: serde_json::Value = response
+            .body_mut()
+            .read_json()
+            .map_err(|e| ModelError::InvalidResponse(format!("unreadable API reply: {e}")))?;
+        let choice = response
+            .get("choices")
+            .and_then(serde_json::Value::as_array)
+            .and_then(|choices| choices.first())
+            .ok_or_else(|| ModelError::InvalidResponse("API reply had no choices".to_owned()))?;
+        if choice
+            .get("finish_reason")
+            .and_then(serde_json::Value::as_str)
+            == Some("length")
+        {
+            return Err(ModelError::InvalidResponse(
+                "the model reply was truncated".to_owned(),
+            ));
+        }
+        serde_json::from_value(choice.get("message").cloned().unwrap_or_default())
+            .map_err(|e| ModelError::InvalidResponse(format!("invalid assistant message: {e}")))
     }
 }

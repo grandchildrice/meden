@@ -24,6 +24,11 @@ Page-cache/review integration and complete mediation of the headless host
 tool interface remain unfinished. Benign scores and kernel proofs do not
 establish the whole requirement.
 
+Model inference and provider discovery disable environment proxies and
+automatic redirects. Each inference exchange is attempted once, including
+when delivery is uncertain; non-success HTTP responses are rejected. This
+fixes transport behavior, not the still-missing processor authorization.
+
 ## Existing implementation boundaries
 
 The TUI and `exec` import the original tree into a new persistent private

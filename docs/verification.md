@@ -225,6 +225,15 @@ review and the complete malicious-page acceptance suite remain work.
 
 ## Tests of actual HTTP delivery
 
+The [model transport tests](../python/tests/test_model_transport.py) drive
+the actual CLI against local HTTP receivers. They observe that 302/307/308
+responses do not forward confidential context, a 503 or a connection closed
+after receiving the body does not trigger an automatic resend, and an
+environment proxy receives neither inference context nor discovery
+credentials. A legitimate direct response still completes the conversation.
+These transport checks do not establish processor authorization or local
+inference confinement.
+
 The standalone [HTTP export component](../crates/meden-runtime/src/transfer.rs)
 uses the refined `reserve` function under a mutex. Its target and body are
 owned immutable snapshots; host approval is a separate method that is not
