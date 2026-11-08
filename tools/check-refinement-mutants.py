@@ -39,7 +39,11 @@ GROUPS = [
                 "*expected != receipt.obligation",
                 "*expected != receipt.obligation && expected.kind == receipt.obligation.kind",
             ),
-            ("reused_result", "receipt.position != self.completed", "(receipt.position != self.completed && false)"),
+            (
+                "reused_result",
+                "receipt.position != self.completed",
+                "(receipt.position != self.completed && false)",
+            ),
             ("stale_progress", "self.completed = 0", "let _ = self.completed"),
             (
                 "stale_delivery",
