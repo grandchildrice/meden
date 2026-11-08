@@ -1081,8 +1081,11 @@ dependencies = [
 name = "meden-runtime"
 version = "0.1.0"
 dependencies = [
+ "meden-core",
  "nix 0.31.3",
+ "serde_json",
  "tempfile",
+ "ureq",
 ]
 
 [[package]]

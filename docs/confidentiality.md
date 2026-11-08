@@ -277,10 +277,11 @@ new measurements with the recorded baseline under documented settings.
 
 ## Implementation status
 
-The current prototype has a standalone offline Linux runner and an
-exact-transfer decision kernel with seven Lean theorems. Neither is yet
-connected to every production effect. The TUI's optional shell still has
-host permissions. The complete R1 acceptance suite has not passed.
+The current prototype has a standalone offline Linux runner, a transfer
+decision kernel with seven specification and two Rust refinement theorems,
+and an immutable HTTP export using that kernel under a mutex. These are
+not yet connected to every production effect. The TUI's optional shell still
+has host permissions. The complete R1 acceptance suite has not passed.
 
 The product migration order is maintained in [design.md](design.md), and
 current proof, conformance and real-process test scopes are documented in

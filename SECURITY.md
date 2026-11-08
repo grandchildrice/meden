@@ -19,9 +19,9 @@ the boundary. See [the product design](docs/design.md) and
 
 **This requirement is not implemented or verified today.** The current
 development TUI uses direct HTTP model clients and an optional unrestricted
-shell. It has no trusted outbound transfer broker, no enforced processor
-authorization and does not yet use the new OS-level coding runner. Its
-benign AgentDojo scores and the formal kernel checks do not establish this
+shell. Its outbound paths do not yet use the new transfer broker, it has no
+enforced processor authorization, and it does not yet use the new OS-level
+coding runner. Its benign AgentDojo scores and the formal kernel checks do not establish this
 requirement.
 
 ## Existing implementation boundaries
@@ -55,9 +55,11 @@ that every real outbound effect passes through those rules.
 `meden-runtime` now provides a standalone Linux Bubblewrap runner. Its
 integration test uses real subprocesses, a host-only file and a live host
 TCP receiver. It checks offline execution and workspace editing, but the
-production file tools and optional shell are not yet confined by it. An
-immutable transfer broker, model-processor authorization and complete
-effect mediation remain unimplemented. See
+production file tools and optional shell are not yet confined by it. A new
+standalone immutable HTTP export uses the refined kernel before real sends;
+tests cover exact bytes, one-use concurrency, redirects and failed delivery.
+Production routing, processor authorization and complete effect mediation
+remain unimplemented. See
 [verification scope](docs/verification.md) for the precise proof and test
 boundaries.
 

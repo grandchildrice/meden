@@ -70,9 +70,9 @@ responsibility of the host implementation.
 
 The Rust counterpart is
 [`meden-core/src/transfer.rs`](../crates/meden-core/src/transfer.rs).
-Its existence alone does not constrain a network request: the eventual
-broker must actually reserve under its lock and dispatch the same immutable
-request. Integration of that broker is still in progress.
+The standalone HTTP export component now reserves through it under a mutex
+before dispatching its immutable request. The TUI's model client and other
+effects are not yet routed through that component.
 
 ## Rust-to-Lean refinement of the transfer kernel
 
@@ -120,8 +120,9 @@ source linkage; it does not replace the general refinement theorems.
 
 These theorems establish a decision/state-update refinement. They do not
 establish a complete control trace or that every real network operation is
-mediated. The production broker, concurrency and interface obligations in
-[assurance.md](assurance.md) remain open.
+mediated. Full broker refinement and interface obligations in
+[assurance.md](assurance.md) remain open; the HTTP component tests below
+exercise real reservation and delivery, including concurrency.
 
 ## Lean: capability and scope rules
 
@@ -204,6 +205,24 @@ copying, confinement of every file tool, the model gateway, transfer review,
 page fetching and end-to-end malicious-page tests remain implementation
 work. The old development shell still has host permissions until that
 migration is complete.
+
+## Tests of actual HTTP delivery
+
+The standalone [HTTP export component](../crates/meden-runtime/src/transfer.rs)
+uses the refined `reserve` function under a mutex. Its target and body are
+owned immutable snapshots; host approval is a separate method that is not
+exposed as a model tool. Dispatch uses a fresh client with proxies and
+redirects disabled. Failures leave authorization spent.
+
+Four tests observe real TCP receivers: no send before approval or across
+sessions, exact frozen binary payload after the source changes, concurrent
+one-use consumption, no forwarding on a 307 redirect, and no reuse after
+the receiver obtains the payload but closes without acknowledging it.
+These tests use literal loopback HTTP; they do not prove the HTTP/TLS stack
+or establish complete controller/transport refinement. The component
+supports one raw POST, not Git/email adapters or service audience discovery.
+It is not yet the TUI's outbound path. Authorization recovery after process
+restart and complete effect mediation remain implementation work.
 
 ## Reproduce locally
 

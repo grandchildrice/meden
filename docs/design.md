@@ -317,7 +317,8 @@ added orchestration must produce observable value.
 ## Migration from the prototype
 
 The current repository contains a Rust conversation/TUI, HTTP connections,
-workspace tools, a capability kernel and a standalone Bubblewrap runner.
+workspace tools, a capability kernel, a standalone Bubblewrap runner and
+an immutable one-use HTTP export component.
 Seventeen Lean theorem entry points and 5,000 Rust/Lean conformance cases
 are checked today. The production transfer decision and state update are
 extracted with pinned Charon/Aeneas and refine the Lean specification.
