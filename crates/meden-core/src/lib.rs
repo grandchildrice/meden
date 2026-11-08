@@ -8,14 +8,15 @@
 //! Bounded properties of this crate are also model-checked with Kani (see
 //! `src/kani_harness.rs`).
 //!
-//! The crate forbids `unsafe` code and performs no I/O. The transfer and
-//! export-review kernels have extraction-based refinement proofs; policy
+//! The crate forbids `unsafe` code and performs no I/O. The transfer,
+//! export-review and evidence kernels have extraction-based refinement proofs; policy
 //! and glob conformance/model checks have their own narrower scope. Lints
 //! are development checks, not a mathematical proof of whole-crate behavior.
 
 #![forbid(unsafe_code)]
 
 pub mod capability;
+pub mod evidence;
 pub mod export_control;
 pub mod glob;
 pub mod policy;

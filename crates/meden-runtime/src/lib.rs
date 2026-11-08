@@ -3,6 +3,7 @@
 
 pub mod pages;
 pub mod process;
+pub mod release;
 #[cfg(target_os = "linux")]
 pub mod sandbox;
 pub mod transfer;

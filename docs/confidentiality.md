@@ -291,8 +291,11 @@ socket IPC. It is the CLI/TUI default and never falls back to HTTP; its
 launcher/transport have tests rather than refinement proofs. See
 [local inference](local-inference.md). Raw immutable HTTP
 file exports now have TUI/CLI host review and one-attempt dispatch; model
-proposals never grant approval. Git/email audience adapters and an
-evidence-gated release workflow are still absent.
+proposals never grant approval. Git/email audience adapters and a general
+user-project evidence-gated delivery workflow are still absent. The separate
+[Meden release gate](release.md) uses the refined evidence kernel to require
+scoped CI for exact source and staged archives under trusted build/GitHub
+assumptions; it does not establish this confidentiality requirement.
 The separate host `prefetch` command fetches a fixed batch of up to eight
 bounded HTTPS documents. It rejects nonpublic resolved socket addresses,
 proxies, credentials and redirects; the returned text never loads subresources.

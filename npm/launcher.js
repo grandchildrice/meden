@@ -85,7 +85,7 @@ async function fetchBinary() {
   const tmp = path.join(os.tmpdir(), `meden-${process.pid}.tar.gz`);
   fs.writeFileSync(tmp, bytes);
   try {
-    // tar is present on Linux, macOS and Windows 10 onwards.
+    // The supported Linux platforms provide tar.
     execFileSync('tar', ['-xzf', tmp, '-C', BIN_DIR], { stdio: 'inherit' });
   } finally {
     fs.rmSync(tmp, { force: true });
@@ -95,7 +95,7 @@ async function fetchBinary() {
   if (!fs.existsSync(binary)) {
     throw new Error(`${archive} did not contain ${platform.binaryName()}`);
   }
-  if (process.platform !== 'win32') fs.chmodSync(binary, 0o755);
+  fs.chmodSync(binary, 0o755);
   return binary;
 }
 

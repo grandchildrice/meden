@@ -5,16 +5,38 @@ on:
     tags: ["v*"]
   workflow_dispatch:
     inputs:
-      tag:
-        description: The tag to build, for a dry run
+      ref:
+        description: Source ref for an artifact-only dry run
         required: true
+        default: main
 
 permissions:
-  contents: write
+  contents: read
+  actions: read
 
 jobs:
+  source:
+    name: resolve exact source
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.source.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          persist-credentials: false
+      - name: Resolve source commit
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_sha=$(git rev-parse --verify 'HEAD^{commit}')
+          [[ "$source_sha" =~ ^[0-9a-f]{40}$ ]]
+          printf 'sha=%s\n' "$source_sha" >> "$GITHUB_OUTPUT"
+
   build:
     name: ${{ matrix.target }}
+    needs: [source]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -22,11 +44,11 @@ jobs:
         include:
           - { os: ubuntu-latest, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu }
-          - { os: macos-latest, target: aarch64-apple-darwin }
-          - { os: macos-13, target: x86_64-apple-darwin }
-          - { os: windows-latest, target: x86_64-pc-windows-msvc }
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.source.outputs.sha }}
+          persist-credentials: false
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.98.1
@@ -34,89 +56,130 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.target }}
-      - run: cargo build --release -p meden-cli --target ${{ matrix.target }}
-
-      - name: Package
-        shell: bash
+      - run: cargo build --locked --release -p meden-cli --target "$BUILD_TARGET"
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
+      - name: Exercise the offline backend on the actual release architecture
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
         run: |
           set -euo pipefail
-          bin=meden
-          [ "${{ runner.os }}" = "Windows" ] && bin=meden.exe
+          sudo apt-get update && sudo apt-get install -y bubblewrap
+          smoke_source=$(mktemp -d)
+          printf true | "target/$BUILD_TARGET/release/meden" exec --workspace "$smoke_source"
+      - name: Package exact-source archive and build provenance
+        shell: bash
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
+          SOURCE_SHA: ${{ needs.source.outputs.sha }}
+        run: |
+          set -euo pipefail
           staging=$(mktemp -d)
-          cp "target/${{ matrix.target }}/release/$bin" "$staging/"
+          cp "target/$BUILD_TARGET/release/meden" "$staging/"
           cp LICENSE README.md "$staging/"
-          tar -czf "meden-${{ matrix.target }}.tar.gz" -C "$staging" .
-          sha256sum "meden-${{ matrix.target }}.tar.gz" > "meden-${{ matrix.target }}.tar.gz.sha256" \
-            || shasum -a 256 "meden-${{ matrix.target }}.tar.gz" > "meden-${{ matrix.target }}.tar.gz.sha256"
-
+          archive="meden-$BUILD_TARGET.tar.gz"
+          tar -czf "$archive" -C "$staging" .
+          sha256sum "$archive" > "$archive.sha256"
+          python3 - <<'PY'
+          import json, os, pathlib, subprocess
+          target = os.environ["BUILD_TARGET"]
+          provenance = {
+              "repository": os.environ["GITHUB_REPOSITORY"],
+              "commit": os.environ["SOURCE_SHA"],
+              "target": target,
+              "rustc": subprocess.check_output(["rustc", "--version"], text=True).strip(),
+              "locked_release": True,
+          }
+          pathlib.Path(f"meden-{target}.tar.gz.source.json").write_text(
+              json.dumps(provenance, indent=2) + "\n"
+          )
+          PY
       - uses: actions/upload-artifact@v7
         with:
           name: meden-${{ matrix.target }}
           path: |
             meden-${{ matrix.target }}.tar.gz
             meden-${{ matrix.target }}.tar.gz.sha256
+            meden-${{ matrix.target }}.tar.gz.source.json
           if-no-files-found: error
 
   publish:
-    name: collect and release
-    needs: [build]
+    name: verify evidence and collect release
+    needs: [source, build]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.source.outputs.sha }}
+          persist-credentials: false
       - uses: actions/download-artifact@v8
         with:
           path: dist
           merge-multiple: true
-
-      - name: Build checksums.json for the npm package
-        shell: bash
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.98.1
+      - uses: Swatinem/rust-cache@v2
+      - name: Gate staged artifacts on exact-source CI evidence
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_SHA: ${{ needs.source.outputs.sha }}
         run: |
           set -euo pipefail
+          cargo run --locked -p meden-cli -- verify-release \
+            --repository "$GITHUB_REPOSITORY" --commit "$SOURCE_SHA" \
+            --directory dist > release-evidence.json
+      - name: Build npm checksums from the gate's bound archive manifest
+        run: |
           python3 - <<'PY'
-          import hashlib, json, pathlib
-          out = {}
-          for archive in sorted(pathlib.Path("dist").glob("*.tar.gz")):
-              out[archive.name] = hashlib.sha256(archive.read_bytes()).hexdigest()
-          pathlib.Path("npm/checksums.json").write_text(json.dumps(out, indent=2) + "\n")
-          print(json.dumps(out, indent=2))
+          import json, pathlib
+          report = json.loads(pathlib.Path("release-evidence.json").read_text())
+          assert report["release_eligible"] is True
+          checksums = {a["name"]: a["sha256"] for a in report["artifacts"]}
+          pathlib.Path("npm/checksums.json").write_text(json.dumps(checksums, indent=2) + "\n")
           PY
-
-      - name: Check the npm version matches the tag
-        shell: bash
+      - name: Check npm version for tag publication
+        if: github.event_name == 'push'
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          tag="${GITHUB_REF_NAME:-${{ inputs.tag }}}"
-          want="${tag#v}"
+          want="${RELEASE_TAG#v}"
           have=$(node -p "require('./npm/package.json').version")
-          if [ "$want" != "$have" ]; then
-            echo "tag $tag does not match npm/package.json version $have"; exit 1
-          fi
-          node npm/test.js
-
+          [ "$want" = "$have" ]
+      - run: node npm/test.js
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-evidence
+          path: release-evidence.json
+          if-no-files-found: error
       - uses: actions/upload-artifact@v7
         with:
           name: npm-package
           path: npm/
           if-no-files-found: error
-
       - name: Release
-        if: startsWith(github.ref, 'refs/tags/')
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/*.tar.gz
             dist/*.sha256
+            dist/*.source.json
+            release-evidence.json
           generate_release_notes: true
-
-      # Publishing to npm needs a token this workflow does not have by
-      # default. Add NPM_TOKEN to the repository secrets to turn this on;
-      # until then the packaged directory is attached as an artifact and can
-      # be published by hand with `npm publish npm/`.
-      - name: Publish to npm
-        if: startsWith(github.ref, 'refs/tags/') && env.NPM_TOKEN != ''
+      - name: Publish to npm when configured
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
-          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+          if [ -z "${NPM_TOKEN:-}" ]; then
+            echo 'npm publication is not configured'
+            exit 0
+          fi
+          printf '//registry.npmjs.org/:_authToken=%s\n' "$NPM_TOKEN" > ~/.npmrc
           npm publish npm/ --access public

@@ -114,6 +114,16 @@ update and stores its decision before dispatch. Correct attribution of
 typed origins by UI/protocol/transport code, reference lookup, rendering and
 the I/O loop remain unproved; this is not whole-controller refinement.
 
+The third extracted kernel checks exact evidence correspondence. Only typed
+checker results matching the accepted obligation, evidence kind, checker,
+position and current subject advance completion. Changed input bindings
+invalidate progress. Lean proves all six production operations and coverage
+over finite compositions. Typed origin attribution and complete/correct
+subject construction remain host responsibilities. Its first consumer is
+[Meden's own release gate](docs/release.md), which uses GitHub CI evidence
+and trusted build provenance. It does not verify a user's project or prove
+the GitHub/OS/compiler/hash assumptions.
+
 The production worker tests observe host-only files, inherited file/socket
 capabilities, IPv4/IPv6 attempts, detached subprocesses, hard links, symlink
 escapes and actual edits. PTY tests drive real file/Bash calls across user
@@ -124,8 +134,8 @@ actual target/method/content type and exact bytes; a session-bound reference
 cannot be changed into another proposal, and approval cannot precede review.
 The model has no approve/review/send tool. Tests cover changed files,
 cross-session references, rejection, replay, redirects and uncertain delivery.
-Complete outbound routing, inference confinement and evidence-gated publishing
-remain implementation work. See [verification scope](docs/verification.md)
+Complete outbound routing, an isolation proof and general user-project
+evidence-gated publishing remain implementation work. See [verification scope](docs/verification.md)
 for exact proof and test boundaries.
 
 ## Reporting

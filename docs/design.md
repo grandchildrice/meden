@@ -303,8 +303,9 @@ distributed scheduler, universal IR or a second planner first.
 | 5. Broader first-party assurance | Extend specifications/refinement across first-party TUI, CLI and adapters; publish remaining dependencies and trust assumptions before claiming whole-product coverage |
 | 6. Domain acceptance | Reproducible finance and hardware examples with independent requirements, injected faults, boundary integration checks and domain review |
 
-Increment 1 already uses an offline workspace and a fixed local endpoint;
-increment 3 completes the entire confidentiality boundary. Earlier
+The prototype already supplies the offline workspace and local inference
+needed for increment 1; its project proof workflow remains unfinished.
+Increment 3 completes the entire confidentiality boundary. Earlier
 increments must not claim R1 or operate as a mission-critical release.
 
 Measure completion without expertise (user actions and intervention count),
@@ -319,15 +320,24 @@ added orchestration must produce observable value.
 The current repository contains a Rust conversation/TUI, HTTP connections,
 workspace tools, a capability kernel, a Bubblewrap runner integrated with
 TUI/exec file and Bash tools, and an immutable one-use HTTP export component.
-Twenty-three Lean theorem entry points and 5,000 Rust/Lean conformance cases
+Forty Lean theorem entry points and 5,000 Rust/Lean conformance cases
 are checked today. The production transfer decision and state update are
 extracted with pinned Charon/Aeneas and refine the Lean specification.
 The export-review lifecycle is now a second extracted kernel, with exact
 transition refinement and an unbounded finite-composition dispatch bound.
+The evidence-completion kernel is a third extracted kernel: accepted exact
+obligations require matching checker receipts on the current subject, with
+progress invalidated when inputs change. Lean proves correspondence for all
+six operations and evidence coverage across arbitrary finite compositions.
+Its first production consumer is [Meden's own release gate](release.md),
+which binds scoped CI checks to source and the actual staged archives under
+explicit GitHub/build/OS/compiler/hash assumptions.
 The application's parser, origin attribution, I/O loop and locking still
 need their own correspondence; these kernel traces do not prove them.
-There is no accepted contract store, evidence controller or release gate
-yet. Inference checks a host-approved, immutable session processor binding
+There is no general user-project accepted contract store, checker workflow
+or evidence-gated delivery yet. Meden's own release checklist is fixed trusted
+host policy, not an implemented natural-language project contract flow.
+Inference checks a host-approved, immutable session processor binding
 with the refined kernel. Local CLI/TUI inference now uses a separate offline
 CPU process and dedicated inode-pinned Unix socket; it has adversarial tests,
 not an OS/refinement proof. HTTP providers remain explicit, approved options.

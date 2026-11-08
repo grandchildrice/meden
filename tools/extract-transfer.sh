@@ -20,14 +20,24 @@ case ${1:-} in
 esac
 extract_tmp=$(mktemp -d)
 trap 'rm -rf "$extract_tmp"' EXIT
-for unit in transfer control; do
+for unit in transfer control evidence; do
   case "$unit" in
-    transfer) rust_root=meden_core::transfer::reserve; model=Transfer ;;
-    control) rust_root=meden_core::export_control::step; model=Control ;;
+    transfer) rust_roots=(meden_core::transfer::reserve); model=Transfer ;;
+    control) rust_roots=(meden_core::export_control::step); model=Control ;;
+    evidence)
+      rust_roots=()
+      for method in propose review accept refresh record eligible; do
+        rust_roots+=("meden_core::evidence::Gate::$method")
+      done
+      model=Evidence ;;
   esac
+  extract_roots=()
+  for rust_root in "${rust_roots[@]}"; do
+    extract_roots+=(--start-from "$rust_root")
+  done
   CARGO_TARGET_DIR="$PWD/target/verification/rust" \
     "$charon_bin" cargo --preset=aeneas --sysroot default \
-    --start-from "$rust_root" \
+    "${extract_roots[@]}" \
     --dest-file "$extract_tmp/$unit.llbc" -- --locked --lib -p meden-core
   "$aeneas_bin" -backend lean -namespace MedenImpl -dest "$extract_tmp" \
     -abort-on-error -warnings-as-errors -no-progress-bar "$extract_tmp/$unit.llbc"

@@ -8,9 +8,6 @@
 const TARGETS = {
   'linux x64': 'x86_64-unknown-linux-gnu',
   'linux arm64': 'aarch64-unknown-linux-gnu',
-  'darwin x64': 'x86_64-apple-darwin',
-  'darwin arm64': 'aarch64-apple-darwin',
-  'win32 x64': 'x86_64-pc-windows-msvc',
 };
 
 /** The Rust target triple for this machine, or null if there is no build for it. */
@@ -20,7 +17,7 @@ function target() {
 
 /** What the binary is called once unpacked. */
 function binaryName() {
-  return process.platform === 'win32' ? 'meden.exe' : 'meden';
+  return 'meden';
 }
 
 /** The archive uploaded for a target. */

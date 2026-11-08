@@ -22,6 +22,25 @@ GROUPS = [
         ],
     },
     {
+        "kernel": "evidence",
+        "model": "Evidence",
+        "proof": "EvidenceRefinement",
+        "test": "evidence::tests::exact_current_evidence_is_required_for_each_obligation",
+        "mutations": [
+            ("untrusted_evidence", "origin != EvidenceOrigin::Checker", "false"),
+            ("stale_evidence", "receipt.subject != *current", "false"),
+            (
+                "kind_substitution",
+                "*expected != receipt.obligation",
+                "*expected != receipt.obligation && expected.kind == receipt.obligation.kind",
+            ),
+            ("reused_result", "receipt.position != self.completed", "false"),
+            ("stale_progress", "self.completed = 0", "self.completed = self.completed"),
+            ("stale_delivery", "&& self.subject == *current", "&& true"),
+            ("unreviewed_contract", "self.phase != EvidencePhase::Reviewed", "false"),
+        ],
+    },
+    {
         "kernel": "export_control",
         "model": "Control",
         "proof": "ExportControlRefinement",
@@ -95,6 +114,18 @@ def main():
                 )
                 output = result.stdout + result.stderr
                 (logs / f"{name}.txt").write_text(output)
+                operational_errors = (
+                    "maximum number of heartbeats",
+                    "maximum recursion depth",
+                    "stack overflow",
+                    "Unknown constant",
+                    "Unknown identifier",
+                    "unknown module prefix",
+                )
+                if any(error in output for error in operational_errors):
+                    raise RuntimeError(
+                        f"{name}: operational proof failure does not count\n{output}"
+                    )
                 proof_errors = (
                     "unsolved goals",
                     "made no progress",

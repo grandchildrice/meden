@@ -44,6 +44,15 @@ enum Command {
         #[arg(long, required = true)]
         url: Vec<String>,
     },
+    /// Check Meden release archives against exact-source GitHub CI evidence.
+    VerifyRelease {
+        #[arg(long)]
+        repository: String,
+        #[arg(long)]
+        commit: String,
+        #[arg(long)]
+        directory: PathBuf,
+    },
     #[command(hide = true)]
     WorkerFile,
     #[command(hide = true)]
@@ -124,6 +133,13 @@ fn main() -> ExitCode {
 fn run() -> Result<()> {
     match Cli::parse().command {
         Command::WorkerLaunch { arguments } => meden_runtime::process::exec_clean(&arguments)?,
+        Command::VerifyRelease {
+            repository,
+            commit,
+            directory,
+        } => {
+            verify_release(&repository, &commit, &directory)?;
+        }
         Command::Prefetch { url } => {
             let pages = meden_runtime::pages::Pages::prefetch(&url)?;
             serde_json::to_writer(io::stdout().lock(), &pages)?;
@@ -210,6 +226,16 @@ fn run() -> Result<()> {
             )?;
         }
     }
+    Ok(())
+}
+
+fn verify_release(repository: &str, commit: &str, directory: &std::path::Path) -> Result<()> {
+    let token = std::env::var("GH_TOKEN")
+        .or_else(|_| std::env::var("GITHUB_TOKEN"))
+        .ok();
+    let report = meden_runtime::release::verify(repository, commit, directory, token.as_deref())?;
+    serde_json::to_writer(io::stdout().lock(), &report)?;
+    println!();
     Ok(())
 }
 

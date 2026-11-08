@@ -1,50 +1,33 @@
 # meden
 
-Conversational coding agent.
+A conversational coding agent with isolated local inference, offline workspace
+tools and scoped Lean refinement proofs. Development prototype; whole-product
+correctness and the user-project verification workflow remain unfinished.
+
+Linux x64/arm64, Bubblewrap and Bash are required. Prepare a compatible
+llama.cpp server and GGUF weights before confidential work:
 
 ```bash
-npx meden tui
-```
-
-Choose an OpenAI-compatible HTTP model, give it an instruction, and work on
-real workspace files. The TUI retains conversation between instructions and
-can use model connections discovered from Hermes configuration.
-
-The first product requirement is that reading an external page must not
-enable the agent to send confidential files to an unapproved recipient.
-That boundary is planned, not implemented. The current optional
-`--allow-shell` runs commands with the current account's filesystem and
-network access. See the
-[design and current limits](https://github.com/grandchildrice/meden#meden).
-
-```bash
-npx meden providers
+export MEDEN_LOCAL_ENGINE=/path/to/llama-server
+export MEDEN_LOCAL_MODEL=/path/to/model.gguf
 npx meden tui --workspace /path/to/project
 ```
 
-## What it does
+The local model stays in a separate offline namespace. File tools and Bash
+share a retained private project copy; the original is unchanged. HTTP model
+connections are explicit and require host approval. Model proposals cannot
+approve transfers. Documentation can be prefetched and attached as a fixed
+local cache. See [setup and current limits](https://github.com/grandchildrice/meden#readme).
 
-The conversation engine reads tool results, proposes calls and checks the
-current capability policy before execution. Workspace tools list/read,
-write and edit files. Bash is opt-in. This is a development prototype and
-does not yet prevent disclosure within granted capabilities.
-
-The isolated planner, skill attestations and command-line model wrappers
-have been removed. The CLI exposes `tui`, `providers` and `run` only. Existing
-Lean/Kani checks cover the active capability/policy kernel, not the planned
-end-to-end confidentiality boundary.
-
-## Installing
-
-`npx` fetches the binary for your platform from the GitHub release. To build
-from source instead:
+`npx` fetches the supported binary from GitHub releases; `MEDEN_BIN` selects a
+local build. To install from source:
 
 ```bash
 cargo install --git https://github.com/grandchildrice/meden meden-cli
 ```
 
-Set `MEDEN_BIN` to use a binary you built yourself.
-
-## License
+Lean proofs cover the documented decision/state kernels. Release evidence
+binds the source's required CI checks to staged archive hashes and trusted
+build provenance; it is not proof of the complete delivered application.
 
 Apache-2.0.

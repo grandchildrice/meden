@@ -1,10 +1,10 @@
 # Assurance and refinement plan
 
-Status: product assurance plan. The transfer decision and export review
-control kernels have Rust-to-Lean refinement, including finite compositions
-of the extracted review transition. The broader obligations below remain
+Status: product assurance plan. The transfer, export review and evidence
+kernels have Rust-to-Lean refinement, including finite compositions
+of the extracted review and evidence operations. The broader obligations below remain
 proposed. This defines completion criteria for
-[the product architecture](design.md). The current twenty-three Lean theorem
+[the product architecture](design.md). The current forty Lean theorem
 entry points, six Kani harnesses and conformance checks are listed in
 [verification.md](verification.md).
 
@@ -121,7 +121,12 @@ The intended Lean properties include:
 | CTL-07 | A single-use export is reserved once, before dispatch, for the exact recipient/content/session; uncertain delivery does not restore permission |
 | CTL-08 | A local session issues no command for external inference, proving, telemetry or caches; explicit transfers remain subject to their authorizations |
 
-These are target theorem statements. Transfer proofs cover exact reservation
+These are whole-controller target statements. The evidence kernel establishes
+exact current-subject completion and input invalidation for its typed state
+and receipts, contributing to CTL-02 through CTL-06. Its first consumer is
+Meden's own release checklist. Checker attribution, complete input construction,
+general project contract management and effect routing remain separate gaps.
+Transfer proofs cover exact reservation
 in CTL-07. Export review-control proofs cover typed-origin gating and at most
 one dispatch across arbitrary finite compositions of that extracted step.
 They do not prove origin attribution by the UI/parser, the I/O dispatcher,
@@ -218,12 +223,12 @@ Cryptographic hashes bind local artifacts under a collision-resistance
 assumption; hashes do not prove semantics, execution locality or compiler
 correctness.
 
-## CI and release gates to add
+## CI and release gates
 
-[Current CI](verification.md) is not this proposed gate. Add these checks
-as their implementation becomes real, and then make them required. The
-first two now run for transfer and export review-control kernels, including
-eight real Rust mutations that must fail unchanged refinement proofs:
+[Current CI](verification.md) covers scoped kernels, not the complete
+proposed product. Extend these checks as each path becomes real. The first
+two now run for transfer, export review and evidence kernels, including
+fifteen real Rust mutations that must fail unchanged refinement proofs:
 
 1. Re-extract production Rust under pinned toolchains. Fail on unsupported
    code, extraction drift or unrecorded external models.
@@ -237,10 +242,16 @@ eight real Rust mutations that must fail unchanged refinement proofs:
    coverage/evidence/dependency report. Gate publication on the required
    proof and integration results for that exact artifact.
 
-The existing release workflow currently packages binaries without this
-proof/evidence gate. Changing design documents does not make its releases
-verified. The migration must connect the real publication path, not just
-add a new unused check.
+[Meden's own release workflow](release.md) now uses the evidence kernel
+before publication. It resolves one source commit, builds both supported
+Linux targets, exercises their offline backend, hashes the actual archives
+and requires all twelve scoped CI checks from the latest main-push run and
+current attempt for that source. It also checks the exact CI definition.
+An artifact-only manual run exercises this same gate without publishing.
+This is the first production consumer, not the general project-verification
+workflow. CI/build provenance attribution, final publication and the adapter's
+I/O have tests and workflow controls rather than Lean refinement. A green
+manifest cannot be interpreted as whole-product correctness or full R1.
 
 Track the remaining trusted base explicitly: accepted human meaning and
 environment assumptions, extraction tools and external models, proof/checker

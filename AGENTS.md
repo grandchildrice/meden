@@ -11,6 +11,7 @@
   `docs/assurance.md` defines proposed proof obligations;
   `docs/verification.md` records checks that actually run today.
 - Preserve accepted intent, evidence/source/artifact linkage and local data
-  control. The isolated planner is retired. The transfer decision and export
-  review-control kernels have Rust-to-Lean refinement; full interface/tool coverage and
-  outbound confidentiality remain targets.
+  control. The isolated planner is retired. The transfer, export review and
+  evidence kernels have Rust-to-Lean refinement. The evidence kernel gates
+  Meden's own releases; general user-project verification, full interface/tool
+  coverage and outbound confidentiality remain targets.

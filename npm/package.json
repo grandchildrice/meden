@@ -1,7 +1,9 @@
 {
   "name": "meden",
   "version": "0.1.0",
-  "description": "Proof-driven development for agent actions: a capability-typed runtime that refuses tool calls steered by untrusted data",
+  "description": "Local coding agent with Lean checked control kernels and isolated execution",
+  "os": ["linux"],
+  "cpu": ["x64", "arm64"],
   "keywords": [
     "llm",
     "agent",

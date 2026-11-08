@@ -19,7 +19,7 @@ established by the current CI badge.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate both Rust kernels, `lake build`, proof scan/audit, eight Rust mutation checks | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate three Rust kernels, `lake build`, proof scan/audit, fifteen Rust mutation checks | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A result or resulting transfer state differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -175,6 +175,75 @@ on review, and fail to consume approval. Each must fail the real Rust test,
 generate a compiling model, and fail the unchanged refinement proof. Both
 source/model pairs are restored and normal proofs rebuilt afterwards.
 
+## Evidence completion: exact current subject and extracted traces
+
+[`evidence.rs`](../crates/meden-core/src/evidence.rs) is the third production
+kernel. Its state keeps one subject, immutable ordered obligations, a
+draft/reviewed/accepted phase and a private completion cursor. A subject binds
+session, accepted contract and input bytes. Each obligation has an exact
+statement, evidence kind and checker binding. Host code constructs canonical
+bindings and assigns origins; no model-facing deserializer creates receipts.
+
+The six operations propose, review, accept, refresh, record and eligibility
+are extracted without manual model edits to
+[`Generated/Evidence.lean`](../lean/MedenSpec/Generated/Evidence.lean).
+Review/accept require host origin and a nonempty reviewed contract. A
+receipt advances only the next position and must be a passed checker-origin
+result matching the gate's current subject and exact obligation. Evidence
+kinds are compared, not ranked or promoted. A controller refresh may change
+input bindings within the same session/contract; it resets progress. A
+different contract needs a new proposal and acceptance.
+
+| Audited theorem | Checked claim |
+| --- | --- |
+| `Evidence.record_iff` | Exact conditions for recording the next receipt |
+| `Evidence.model_cannot_record` | Model-origin text cannot discharge an obligation |
+| `Evidence.stale_cannot_record` | A mismatching receipt subject cannot advance progress |
+| `Evidence.no_replay` | A used position cannot discharge the next obligation |
+| `Evidence.no_kind_substitution` | A changed evidence kind cannot discharge the obligation |
+| `Evidence.changed_inputs_invalidate` | Changed inputs reset progress |
+| `Evidence.eligible_iff` | Eligibility is accepted, nonempty, complete and current |
+| `Evidence.trace_covered` | Every completed position retains matching passed receipt coverage after arbitrary finite events |
+| `Evidence.eligible_requires_all_evidence` | Eligibility implies coverage of every accepted obligation on the exact current subject |
+| `EvidenceRefinement.propose_refines` | Extracted production initialization agrees with the specification |
+| `EvidenceRefinement.review_refines` | Extracted review result and state agree |
+| `EvidenceRefinement.accept_refines` | Extracted acceptance result and state agree |
+| `EvidenceRefinement.refresh_refines` | Extracted input refresh result and state agree |
+| `EvidenceRefinement.record_refines` | Extracted receipt result and complete state agree, including vector/index/overflow boundaries |
+| `EvidenceRefinement.eligible_refines` | Extracted eligibility agrees |
+| `EvidenceTrace.trace_refines` | Arbitrary finite compositions of actual extracted operations agree with the specification |
+| `EvidenceTrace.extracted_requires_all_evidence` | Actual extracted eligibility after such compositions requires all exact current evidence |
+
+The independent [specification](../lean/MedenSpec/Evidence.lean),
+[refinement](../lean/MedenSpec/EvidenceRefinement.lean) and
+[trace proofs](../lean/MedenSpec/EvidenceTrace.lean) use induction and symbolic
+proofs, not a finite test search. The audit log in the trace theorem records
+receipt coverage; it is not an implemented persistence/crash-recovery layer.
+This is composition of extracted operations, not extraction of the host's
+I/O loop. Canonical subject construction, origin attribution, checker
+soundness, serialization, persistence and actual effects remain assumptions
+or separate implementation obligations.
+
+The first consumer is [Meden's own release gate](release.md), not a general
+user-project verification workflow. The runtime reads actual staged archive
+bytes, validates source/build sidecars and obtains current exact-source CI
+results directly from the fixed GitHub API. The compiled twelve-check policy
+is trusted host configuration. Files are reread before eligibility. Tests
+reject wrong source, changed run attempt, missing/duplicate/failed checks,
+changed archives even with updated checksums and malformed provenance. The
+workflow connects this decision to actual publication; its manual mode is
+artifact-only. GitHub/build/OS/compiler/hash trust and unproved adapters
+remain explicit in the manifest and release documentation.
+
+Seven additional actual Rust mutations disable producer checks, receipt
+freshness, evidence-kind matching, position matching, reset on changed input,
+current-subject delivery matching or review-before-accept. Each must fail
+the Rust regression test, regenerate a compiling model and fail the unchanged
+refinement proof. Combined with transfer/review checks, CI rejects fifteen
+faults. Timeouts, exhausted proof resources, unknown identifiers and missing
+modules do not count as semantic rejection. All source/model pairs are
+restored and normal combined proofs rebuilt afterwards.
+
 ## Lean: capability and scope rules
 
 These specifications cover the capability kernel already used by tool
@@ -198,7 +267,7 @@ Definitions and additional lemmas are in
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the twenty-three
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the forty
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -308,7 +377,7 @@ On Nix, a private `uv` Python shadowing a public Python is skipped rather
 than binding the private cache into the sandbox. The attack test exposed
 this actual execution failure before the selection was corrected.
 
-These controller, parser, router and OS behaviors have tests; the twenty-three
+These controller, parser, router and OS behaviors have tests; the forty
 Lean theorem entry points still cover their stated kernels. The shared
 session has no whole-controller refinement theorem yet.
 
@@ -428,10 +497,14 @@ real model weights are required for these deterministic CI tests.
 
 A separate local smoke check used llama.cpp 0.9.0, build 12110 (`cd959ba`),
 and Qwen3-0.6B Q4_K_M to return a greeting through actual `meden run`. This
-confirms engine compatibility, not general coding ability. Setup, limits,
+confirms engine compatibility, not general coding ability. A separate live
+coding pilot with the same small model changed the supplied test, left the
+incorrect implementation intact and reported success; an independent test
+failed. The conversation's `done` event is therefore not project-verification
+evidence. Setup, limits,
 failure behavior and OS/asset trust assumptions are documented in
 [local inference](local-inference.md). The launcher, protocol and OS boundary
-are not Lean-refined; the number and scope of Lean theorem roots stay at 23.
+are not Lean-refined; they add no theorem roots to the forty audited here.
 
 ## Tests of actual HTTP delivery
 

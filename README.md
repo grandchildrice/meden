@@ -39,7 +39,7 @@ HTTP connections and optional Hermes configuration.
   exact, single-use outbound authorization, checked in CI.
 
 > Development prototype. Local-only orchestration, project proof workflows,
-> controller-wide refinement and evidence-gated delivery are design targets.
+> controller-wide refinement and user-project evidence-gated delivery are design targets.
 > TUI file/Bash tools and `exec` now run in private offline workspaces.
 > Local inference runs in a separate offline namespace; HTTP connections
 > require host approval and may still be remote. See [verification scope](docs/verification.md)
@@ -123,7 +123,7 @@ The agent can propose a file export for review. `/exports` in the TUI shows
 the actual HTTP destination and frozen bytes; only a local `y` key sends
 once. File changes after preparation cannot replace those bytes. The CLI
 provides equivalent host review commands. This is raw HTTP export, with
-Git/email adapters and evidence-gated release still unfinished.
+Git/email adapters and evidence-gated user-project delivery still unfinished.
 
 For model-driven automation, `meden run --workspace ...` accepts
 `{"instruction":"..."}` objects, one per line, and emits JSON events. It
@@ -154,9 +154,12 @@ require explicit authorization. The TUI, CLI and tools share one controller.
 The target controller will be specified in Lean, with refinement proofs
 connecting its production Rust implementation. Extending those proofs
 across Meden's own TUI, CLI and tool behavior is part of the product goal.
-Transfer decisions and the export review-control kernel now have Rust-to-Lean
-refinement proofs, including arbitrary finite review-event compositions. The
-remaining controller and effect paths are still implementation work.
+Transfer, export review and evidence kernels now have Rust-to-Lean refinement
+proofs, including arbitrary finite compositions for review and evidence.
+[Meden's own releases](docs/release.md) use the evidence kernel to bind
+scoped CI results, source and staged Linux archives before publication.
+General user-project contracts, verification adapters and the remaining
+controller/effect paths are still implementation work.
 
 [Architecture and implementation order →](docs/design.md) ·
 [Assurance and refinement obligations →](docs/assurance.md)
@@ -206,7 +209,7 @@ and effects and independently check changed code.
 | Package | Responsibility |
 | --- | --- |
 | `meden-agent` | Conversation, native tool calls and tool interfaces |
-| `meden-core` | Capability policy and exact-transfer decision kernels |
+| `meden-core` | Capability policy, transfer, export review and evidence kernels |
 | `meden-llm` | HTTP model clients and connection discovery |
 | `meden-runtime` | Host execution, process lifecycle and offline Linux isolation |
 | `meden-cli` | Shared coding session, TUI and isolated JSON Lines automation |
