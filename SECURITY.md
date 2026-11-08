@@ -21,8 +21,17 @@ the boundary. See [the product design](docs/design.md) and
 now execute in private offline Linux workspaces. Inference uses a separate
 host-approved processor gateway; local inference server confinement remains
 unfinished.
-Page caching and complete controller refinement remain unfinished. Benign scores and kernel proofs do not
-establish the whole requirement.
+Complete controller refinement remains unfinished. Benign scores and kernel
+proofs do not establish the whole requirement.
+
+Documentation now uses a separate host-selected `prefetch` command and an
+immutable `--pages` snapshot shared by CLI/TUI. The model can only list/read
+cached text; a miss or model-selected URL cannot trigger a fetch. Prefetch
+permits bounded HTTPS GETs, rejects nonpublic resolved connection addresses,
+and disables proxies, credentials, redirects and subresource loading. The
+prefetcher is trusted host Rust code; it is not an OS-confined network worker
+and has no refinement proof. Cache files are host configuration, not
+authenticated evidence of web origin. See [the cache contract](docs/cli.md#documentation-cache).
 
 Model inference and provider discovery disable environment proxies and
 automatic redirects. Each inference exchange is attempted once, including

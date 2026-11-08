@@ -29,6 +29,7 @@ impl Session {
         gateway: Arc<Gateway>,
         processes: Arc<Control>,
         exports: &Arc<crate::exports::Exports>,
+        pages: &Arc<meden_runtime::pages::Pages>,
     ) -> Result<Self> {
         anyhow::ensure!(
             exports.matches(workspace.path()),
@@ -36,6 +37,7 @@ impl Session {
         );
         let (mut registry, policy) = crate::workspace::environment(&workspace, &processes)?;
         crate::exports::register(&mut registry, &workspace, &processes, exports);
+        crate::pages::register(&mut registry, pages);
         let order = registry.names().map(str::to_owned).collect::<Vec<_>>();
         let tools = conversation::tool_definitions(&registry, &order);
         Ok(Self {

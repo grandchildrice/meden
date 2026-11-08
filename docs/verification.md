@@ -271,7 +271,7 @@ The live-model smoke harness's independent checker also uses `exec`;
 it does not execute model-generated code on the host.
 
 These tests cover production worker paths, not a Lean proof of OS effects.
-Local inference confinement, page cache, whole-controller refinement and
+Local inference confinement, whole-controller refinement and
 the complete malicious-page acceptance suite remain work.
 
 ## Shared CLI and TUI execution
@@ -300,8 +300,8 @@ Real host TCP/UDP receivers observe no unauthorized traffic. Actual code
 editing and tests still succeed, followed by an independent check in another
 offline copy. This validates current production paths under full model
 control, not general coding-model utility or the complete R1 suite. It
-does not implement the approved page prefetcher. Export review has its own
-production tests below.
+tests both imported page fixtures and host-supplied immutable caches. Export
+review and the separate prefetcher have their own production/component tests.
 
 Toolchain selection uses only resources visible in the public mount layout.
 On Nix, a private `uv` Python shadowing a public Python is skipped rather
@@ -311,6 +311,45 @@ this actual execution failure before the selection was corrected.
 These controller, parser, router and OS behaviors have tests; the twenty-three
 Lean theorem entry points still cover their stated kernels. The shared
 session has no whole-controller refinement theorem yet.
+
+## Fixed documentation prefetch and cache
+
+The [prefetcher](../crates/meden-runtime/src/pages.rs) accepts a fixed batch
+of exact host-selected URLs in the separate `meden prefetch` command. Its
+production resolver rejects nonpublic/special-use socket addresses, including
+mixed public/private answers. The default direct connector receives the
+checked addresses without resolving the hostname again; proxies are disabled.
+HTTPS, normal TLS identity checks, no redirects/credentials/subresources and
+response/count/time budgets are part of the actual fetch path.
+
+`--pages` loads a bounded JSON snapshot before workspace import or inference.
+The [shared model tools](../crates/meden-cli/src/pages.rs) only list handles
+and read immutable text. A miss or URL argument cannot start network I/O.
+All loaded content/metadata remain untrusted. The cache format does not
+authenticate origin and the host must not turn confidential model decisions
+into a new prefetch invocation. The fetcher remains trusted host code rather
+than an OS-confined network worker. Its DNS/TLS/routing/library assumptions
+are listed in [the CLI contract](cli.md#documentation-cache).
+
+Rust tests check address boundaries, mixed DNS answers, exact resolved
+addresses, malformed/oversized caches and Unicode pagination. The production
+resolver is also tested against a real private receiver, which observes no
+connection. Separate response-reader tests use an explicitly test-only local
+HTTP client to exercise the shared production response path and configuration:
+inert script text, size refusal, exact GET without cookies/authorization, and
+no second connection on a redirect. This test client bypasses public-IP/HTTPS
+guards and is never installed in the application.
+
+The [public CLI test](../python/tests/test_pages.py) observes zero connections
+to private targets or environment proxies and rejects malformed caches before
+session startup. The [adversarial test](../python/tests/test_run_integration.py)
+also loads a cached injection and a confidential canary, replaces the host
+cache after startup, then exercises forged URL reads, cache misses, encoded
+data and direct network attempts. Local coding and an independent offline
+check still pass; observed TCP/UDP receivers get no unauthorized traffic.
+The PTY test reads Unicode cached text and compares the entire model request
+sequence with CLI, including follow-up context. These are empirical checks;
+they add no Lean theorem or whole-R1 claim.
 
 ## Processor approval in production
 

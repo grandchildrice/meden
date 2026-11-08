@@ -286,10 +286,24 @@ private persistent copy, and inherited descriptors are closed before launch.
 Inference now uses a host-approved processor gateway checked before each
 exchange. TUI approval and CLI exact-endpoint matching bind the session,
 endpoint, provider/model and credential for up to eight hours. Local
-inference confinement and page caching still need work. Raw immutable HTTP
+inference confinement still needs work. Raw immutable HTTP
 file exports now have TUI/CLI host review and one-attempt dispatch; model
 proposals never grant approval. Git/email audience adapters and an
 evidence-gated release workflow are still absent.
+The separate host `prefetch` command fetches a fixed batch of up to eight
+bounded HTTPS documents. It rejects nonpublic resolved socket addresses,
+proxies, credentials and redirects; the returned text never loads subresources.
+TUI and `run` load a `--pages` file before workspace import/inference and expose
+only immutable local handles, including after `/clear` or a processor change.
+A model-selected URL or cache miss cannot perform a fetch. The prefetcher is
+trusted host code, not an OS-confined fetch worker; it receives no workspace
+or model context. Cache files are trusted configuration, not authenticated
+evidence of page origin. Fetch/cache behavior has tests, not refinement.
+The public-address policy conservatively excludes special/transition ranges
+from the [IANA IPv4](https://www.iana.org/assignments/iana-ipv4-special-registry/)
+and [IPv6 registries](https://www.iana.org/assignments/iana-ipv6-special-registry/),
+and allows IPv6 only within ordinary global unicast space. Local routing,
+DNS and TLS remain trust assumptions; address checks do not prove the network.
 The production review lifecycle now uses a separately extracted Rust
 kernel. Its Lean transition/refinement and arbitrary finite-composition
 proofs establish typed-origin approval gating and at most one dispatch;

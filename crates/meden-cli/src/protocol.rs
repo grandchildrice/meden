@@ -90,6 +90,7 @@ pub fn run(
     workspace: Arc<Workspace>,
     gateway: Arc<Gateway>,
     processes: &Arc<Control>,
+    pages: &Arc<meden_runtime::pages::Pages>,
 ) -> Result<()> {
     send(
         output,
@@ -99,7 +100,7 @@ pub fn run(
         },
     )?;
     let exports = Arc::new(Exports::new(workspace.path()));
-    let mut session = Session::new(workspace, gateway, Arc::clone(processes), &exports)?;
+    let mut session = Session::new(workspace, gateway, Arc::clone(processes), &exports, pages)?;
     let mut next = Some(first);
     while let Some(command) = next {
         let Command::Instruction(instruction) = command else {

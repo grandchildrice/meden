@@ -30,9 +30,25 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
     source_note = project / "note.txt"
     note = source_note
     note.write_text("status: draft\n")
+    cache = tmp_path / "pages.json"
+    document = "Untrusted documentation: 日本語🙂 <script>fetch('/secret')</script>"
+    cache.write_text(
+        json.dumps(
+            {
+                "pages": [
+                    {
+                        "url": "https://docs.example.test/",
+                        "content_type": "text/html",
+                        "body": document,
+                    }
+                ]
+            }
+        )
+    )
     requests = []
     destinations = []
     replies = [
+        ("read_cached_page", {"id": 0}),
         ("read_file", {"path": "note.txt"}),
         ("edit_file", {"path": "note.txt", "old_text": "draft", "new_text": "ready"}),
     ]
@@ -51,7 +67,7 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
             "Read by the second processor.",
         ]
     )
-    first_turn_count = 4
+    first_turn_count = 5
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *args):
@@ -113,7 +129,7 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
     env.pop("MEDEN_LLM_API_KEY", None)
     env.pop("OPENAI_API_KEY", None)
     env.pop("OLLAMA_API_KEY", None)
-    command = [binary, "tui", "--workspace", str(project)]
+    command = [binary, "tui", "--workspace", str(project), "--pages", str(cache)]
     process = subprocess.Popen(
         command,
         stdin=slave,
@@ -169,7 +185,8 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
         # mean the UI is accepting input yet. Wait for the editor to return.
         wait_for(lambda: output.count(b"alt-enter") >= 3)
         messages = requests[-1]["messages"]
-        assert len(messages) == 10
+        assert len(messages) == 12
+        assert document in json.dumps(messages, ensure_ascii=False)
         assert messages[-1]["role"] == "user"
         assert messages[-1]["content"][0]["text"] == follow_up
         assert any(message.get("tool_call_id") == "call-2" for message in messages)
@@ -198,7 +215,9 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
         os.write(master, b"Read the current status.\r")
         wait_for(lambda: len(requests) == first_turn_count + 4)
         wait_for(lambda: output.count(b"alt-enter") >= 6)
-        assert destinations == [server.server_port] * 6 + [other.server_port] * 2
+        assert (
+            destinations == [server.server_port] * (first_turn_count + 2) + [other.server_port] * 2
+        )
         assert len(requests[-2]["messages"]) == 2
         assert "status: ready" in requests[-1]["messages"][-1]["content"][0]["text"]
         os.write(master, b"\x03")
@@ -210,7 +229,7 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
         )
         # The headless path must use the same real tools, requests and
         # conversation history as the terminal for these two user turns.
-        tui_requests = list(requests[:5])
+        tui_requests = list(requests[: first_turn_count + 1])
         requests.clear()
         destinations.clear()
         completed = subprocess.run(
@@ -219,6 +238,8 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
                 "run",
                 "--workspace",
                 str(project),
+                "--pages",
+                str(cache),
                 "--provider",
                 "configured",
                 "--approve-processor",

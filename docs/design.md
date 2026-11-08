@@ -334,6 +334,10 @@ the external host-tool bridge has been removed. All built-in file/Bash tools
 and `exec` use retained private copies. TUI/CLI host review now connects the
 refined reservation kernel to raw immutable HTTP file exports. This is not
 yet a checked-artifact delivery workflow or a Git/email adapter.
+Host-selected documentation can now be prefetched with bounded public HTTPS
+GETs and attached as an immutable TUI/CLI cache. Model selection and cache misses
+perform no network operation. The fetch/cache adapter has tests, not refinement;
+the prefetch command remains trusted host code rather than an OS-confined worker.
 
 Reuse the conversation as an untrusted proposal/repair loop, move authority
 to the small controller, connect every file/process tool to the private

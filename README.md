@@ -98,6 +98,19 @@ printf 'python3 -m unittest -v' | ./target/release/meden exec --workspace /path/
 `exec` returns JSON with the retained workspace path and execution result.
 Applying changes back to the original project remains a separate workflow.
 
+Prepare documentation before confidential work, then attach the saved snapshot:
+
+```bash
+meden prefetch --url https://lean-lang.org/ > pages.json
+meden tui --workspace /path/to/project --pages pages.json
+```
+
+The model can list/read those cached documents, including raw HTML as inert
+text. Selecting a page or missing handle never fetches anything. `prefetch`
+accepts up to eight exact HTTPS URLs and rejects private/special-use IPs,
+redirects and oversized responses. `run` accepts the same `--pages` option.
+[Documentation cache →](docs/cli.md#documentation-cache)
+
 The agent can propose a file export for review. `/exports` in the TUI shows
 the actual HTTP destination and frozen bytes; only a local `y` key sends
 once. File changes after preparation cannot replace those bytes. The CLI

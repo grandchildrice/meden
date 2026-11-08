@@ -35,6 +35,46 @@ Later inputs are processed in order after the previous turn finishes.
 Stdin is a trusted user/controller channel. Do not forward model or tool
 text into it as control commands.
 
+## Documentation cache
+
+Fetch the exact host-selected documentation batch before starting confidential
+work. No model chooses the requests or their order:
+
+```bash
+meden prefetch --url https://lean-lang.org/ \
+  --url https://docs.python.org/3/library/unittest.html > pages.json
+meden tui --workspace /path/to/project --pages pages.json
+# Or add --pages pages.json to meden run.
+```
+
+`prefetch` emits one JSON object only after the entire batch succeeds. At most
+eight distinct URLs are accepted, each at most 8192 bytes. Requests are HTTPS
+GETs with empty bodies, without URL credentials/fragments, environment proxies,
+cookies or automatic redirects. The resolver rejects nonpublic/special-use IPs
+and mixed public/private answers before TCP connection; the checked socket
+addresses are passed directly to the connector. TLS identity validation stays
+enabled. It does not load scripts, links, images or other subresources.
+Responses must be successful UTF-8 documents, at most 1 MiB each; content-type
+metadata is limited to 1024 bytes. A failure does not output a partial cache.
+
+The cache is loaded once into host memory before workspace import/inference.
+It cannot be changed by editing the workspace or the cache file later. Loading
+it performs no DNS/network requests. `list_cached_pages` returns the local
+handles and metadata; `read_cached_page(id, offset?, limit?)` returns inert text.
+Offsets count Unicode scalar values from zero; the default chunk is 16000
+characters, maximum 32000, with `next_offset` for continuation. A missing handle
+returns an error, and URL/approval arguments are rejected. There is no fetch
+tool, reload command or cache-miss fallback. `/clear` and processor changes
+retain the same documentation snapshot.
+
+Treat cache files as trusted host configuration and all document contents and
+response metadata as untrusted. This JSON format does not authenticate a page's
+origin or prove its contents. Do not run `prefetch` with model-generated URLs
+after reading confidential data: the URL itself can disclose that data. The
+prefetcher is trusted host Rust code, not an OS-confined network worker. DNS,
+routing, TLS and the HTTP library remain trust assumptions; the cache/fetch
+implementation does not yet have Rust-to-Lean refinement.
+
 ## Exact file exports
 
 The model may call `propose_export(path, target)`. This snapshots at most
@@ -92,7 +132,8 @@ effect. End stdin to finish the session.
 
 The CLI runs tools itself. Events are observations, not requests for a host
 to execute code. The fixed tools are `read_file`, `list_files`, `write_file`,
-`edit_file`, `bash` and `propose_export`. File/process operations use the offline copy at
+`edit_file`, `bash`, `propose_export`, `list_cached_pages` and `read_cached_page`.
+File/process operations use the offline copy at
 `/workspace`; unsupported send/network tools are refused. There is no host
 callback, plugin registration or unrestricted fallback.
 

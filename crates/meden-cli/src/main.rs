@@ -8,6 +8,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 use std::sync::{atomic::AtomicBool, Arc};
 mod exports;
+mod pages;
 mod protocol;
 mod session;
 mod shell;
@@ -35,6 +36,13 @@ enum Command {
         /// Project to import; the original is not modified.
         #[arg(long, default_value = ".")]
         workspace: PathBuf,
+    },
+    /// Fetch a fixed host-selected documentation batch to JSON on stdout.
+    /// Run before confidential work; pass the saved file with --pages.
+    Prefetch {
+        /// Exact HTTPS request URL; repeat for up to eight pages.
+        #[arg(long, required = true)]
+        url: Vec<String>,
     },
     #[command(hide = true)]
     WorkerFile,
@@ -66,6 +74,9 @@ struct WorkspaceArgs {
     /// Workspace to read and edit.
     #[arg(long, default_value = ".")]
     workspace: PathBuf,
+    /// Host-supplied documentation JSON, loaded once before the session.
+    #[arg(long, value_name = "FILE")]
+    pages: Option<PathBuf>,
 }
 fn main() -> ExitCode {
     match run() {
@@ -83,6 +94,11 @@ fn main() -> ExitCode {
 fn run() -> Result<()> {
     match Cli::parse().command {
         Command::WorkerLaunch { arguments } => meden_runtime::process::exec_clean(&arguments)?,
+        Command::Prefetch { url } => {
+            let pages = meden_runtime::pages::Pages::prefetch(&url)?;
+            serde_json::to_writer(io::stdout().lock(), &pages)?;
+            println!();
+        }
         Command::Exec { workspace } => execute(&workspace)?,
         Command::WorkerFile => worker_file::run()?,
         Command::WorkerImport => meden_runtime::workspace::import_tree(
@@ -101,6 +117,7 @@ fn run() -> Result<()> {
             }
         }
         Command::Tui(args) => {
+            let pages = load_pages(args.pages.as_deref())?;
             let providers = if args.model.provider.is_some() || args.model.model.is_some() {
                 vec![pick_provider(
                     args.model.provider.as_deref(),
@@ -113,9 +130,11 @@ fn run() -> Result<()> {
                 providers,
                 &args.workspace,
                 args.model.approve_processor.as_deref(),
+                pages,
             )?;
         }
         Command::Run(args) => {
+            let pages = load_pages(args.pages.as_deref())?;
             let approved = args.model.approve_processor.as_deref().context(
                 "run requires --approve-processor with the exact /chat/completions URL; this permits sending conversation and tool results to that processor for this session (up to eight hours)",
             )?;
@@ -140,10 +159,18 @@ fn run() -> Result<()> {
                 workspace,
                 gateway,
                 &processes,
+                &pages,
             )?;
         }
     }
     Ok(())
+}
+
+fn load_pages(path: Option<&std::path::Path>) -> Result<Arc<meden_runtime::pages::Pages>> {
+    Ok(Arc::new(match path {
+        Some(path) => meden_runtime::pages::Pages::load(std::fs::File::open(path)?)?,
+        None => meden_runtime::pages::Pages::default(),
+    }))
 }
 
 fn approve_processor(gateway: &meden_llm::Gateway, approved: &str) -> Result<()> {

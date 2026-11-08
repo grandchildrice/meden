@@ -56,6 +56,7 @@ struct App {
     workspace: Option<Arc<Workspace>>,
     gateway: Option<Arc<Gateway>>,
     exports: Arc<Exports>,
+    pages: Arc<meden_runtime::pages::Pages>,
     reviewing_export: Option<Reference>,
     export_offset: usize,
     instruction: Input,
@@ -83,6 +84,7 @@ impl App {
             workspace: None,
             gateway: None,
             exports,
+            pages: Arc::default(),
             reviewing_export: None,
             export_offset: 0,
             instruction: Input::default(),
@@ -333,12 +335,15 @@ impl App {
             };
             let processes = Arc::clone(&self.processes);
             let exports = Arc::clone(&self.exports);
+            let pages = Arc::clone(&self.pages);
             self.worker = Some(commands);
             self.rx = Some(results);
             self.worker_gateway = Some(Arc::clone(&gateway));
             self.lines.clear();
             thread::spawn(move || {
-                worker(&gateway, &workspace, &tasks, &updates, &processes, &exports);
+                worker(
+                    &gateway, &workspace, &tasks, &updates, &processes, &exports, &pages,
+                );
             });
         }
         self.processes.flag().store(false, Ordering::SeqCst);
@@ -442,12 +447,14 @@ fn worker(
     tx: &Sender<Update>,
     processes: &Arc<Control>,
     exports: &Arc<Exports>,
+    pages: &Arc<meden_runtime::pages::Pages>,
 ) {
     let mut session = match crate::session::Session::new(
         Arc::clone(workspace),
         Arc::clone(gateway),
         Arc::clone(processes),
         exports,
+        pages,
     ) {
         Ok(session) => session,
         Err(error) => {
@@ -529,13 +536,19 @@ impl Drop for TerminalGuard {
 }
 
 /// Open a native-tool-calling interface for the selected workspace.
-pub fn run(providers: Vec<Provider>, root: &Path, approved: Option<&str>) -> Result<()> {
+pub fn run(
+    providers: Vec<Provider>,
+    root: &Path,
+    approved: Option<&str>,
+    pages: Arc<meden_runtime::pages::Pages>,
+) -> Result<()> {
     anyhow::ensure!(
         !providers.is_empty(),
         "TUI requires an OpenAI-compatible HTTP provider; see `meden providers`"
     );
     let workspace = Arc::new(Workspace::import(root, &std::env::current_exe()?)?);
     let mut app = App::new(providers, workspace.path().to_owned());
+    app.pages = pages;
     app.workspace = Some(workspace);
     if let Some(endpoint) = approved {
         let provider = app
