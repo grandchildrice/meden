@@ -187,7 +187,7 @@ job explicitly supplies the manifest and runs them.
 Its `meden-ledger-evidence` artifact retains both successful cases' actual
 source, native libraries, proof inputs and eight-root audit reports.
 
-The separate Meden control audit contains 42 roots, including the extracted
+The separate Meden control audit contains 52 roots, including the extracted
 acceptance getter now used by both interfaces. The eight ledger roots are
 checked afresh per candidate. Neither count proves the entire TUI, CLI,
 protocol parser, origin attribution, job adapter or filesystem behavior.

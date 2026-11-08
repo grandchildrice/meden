@@ -4,7 +4,7 @@ Status: product assurance plan. The transfer, export review and evidence
 kernels have Rust-to-Lean refinement, including finite compositions
 of the extracted review and evidence operations. The broader obligations below remain
 proposed. This defines completion criteria for
-[the product architecture](design.md). The current forty-two Lean theorem
+[the product architecture](design.md). The current fifty-two Lean theorem
 entry points, six Kani harnesses and conformance checks are listed in
 [verification.md](verification.md).
 
@@ -135,6 +135,11 @@ executor assumption, not a whole-controller cancellation proof.
 Transfer proofs cover exact reservation
 in CTL-07. Export review-control proofs cover typed-origin gating and at most
 one dispatch across arbitrary finite compositions of that extracted step.
+The combined production state now owns its frozen request and emits that
+exact request only after review and matching session/expiry checks. Its
+extracted finite compositions preserve the request and emit at most one
+effect, contributing to CTL-01 and CTL-07. The runtime consumes only this
+returned description; its JSON/URI decoder remains an unproved adapter.
 They do not prove origin attribution by the UI/parser, the I/O dispatcher,
 locking or the complete controller. CTL-08 also requires a real
 confinement argument: a transition theorem cannot disable a process's
@@ -234,7 +239,7 @@ correctness.
 [Current CI](verification.md) covers scoped kernels, not the complete
 proposed product. Extend these checks as each path becomes real. The first
 two now run for transfer, export review and evidence kernels, including
-sixteen real Rust mutations that must fail unchanged refinement proofs:
+twenty real Rust mutations that must fail unchanged refinement proofs:
 
 1. Re-extract production Rust under pinned toolchains. Fail on unsupported
    code, extraction drift or unrecorded external models.

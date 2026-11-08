@@ -51,3 +51,13 @@ open MedenSpec
 #print axioms MedenSpec.EvidenceRefinement.record_refines
 #print axioms MedenSpec.EvidenceTrace.trace_refines
 #print axioms MedenSpec.EvidenceTrace.extracted_requires_all_evidence
+#print axioms MedenSpec.Dispatch.effect_iff
+#print axioms MedenSpec.Dispatch.frozen_preserved
+#print axioms MedenSpec.Dispatch.trace_frozen
+#print axioms MedenSpec.Dispatch.at_most_one_effect
+#print axioms MedenSpec.DispatchRefinement.new_refines
+#print axioms MedenSpec.DispatchRefinement.request_refines
+#print axioms MedenSpec.DispatchRefinement.phase_refines
+#print axioms MedenSpec.DispatchRefinement.advance_refines
+#print axioms MedenSpec.DispatchRefinement.trace_refines
+#print axioms MedenSpec.DispatchRefinement.extracted_trace_safe

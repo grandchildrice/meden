@@ -313,7 +313,10 @@ DNS and TLS remain trust assumptions; address checks do not prove the network.
 The production review lifecycle now uses a separately extracted Rust
 kernel. Its Lean transition/refinement and arbitrary finite-composition
 proofs establish typed-origin approval gating and at most one dispatch;
-origin attribution and the I/O dispatcher are still outside those proofs.
+the combined request-owning state additionally has refinement and finite
+trace proofs for the exact emitted request and at most one effect. Runtime
+dispatch consumes only that returned description. Origin attribution,
+description decoding and the I/O dispatcher remain outside those proofs.
 TUI and headless `run` now share the fixed offline coding session; the old
 external host-tool protocol has been removed. The complete R1 acceptance
 suite has not passed.

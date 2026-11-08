@@ -903,11 +903,14 @@ fn draw_export_review(frame: &mut Frame<'_>, app: &App, middle: Rect) {
     let Ok(summary) = entry.summary() else {
         return;
     };
+    let Ok(preview) = entry.preview(app.export_offset) else {
+        return;
+    };
     let text = format!(
         "Export #{} · state: {}\nDestination: {}\nMethod: POST\nContent-Type: application/octet-stream\nSource name (untrusted): {}\nFrozen body: {} bytes · byte offset {}\n\n{}\nThese exact bytes are retained outside the worker. Sending does not reopen the source file. No redirects or automatic retries. Approval is for one attempt, including uncertain delivery.",
         summary.reference.id, summary.state, visible(&summary.target),
         visible(&summary.source).replace('\n', "⏎"), summary.bytes, app.export_offset,
-        entry.preview(app.export_offset),
+        preview,
     );
     frame.render_widget(
         Paragraph::new(text)

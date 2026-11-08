@@ -20,10 +20,14 @@ case ${1:-} in
 esac
 extract_tmp=$(mktemp -d)
 trap 'rm -rf "$extract_tmp"' EXIT
-for unit in transfer control evidence; do
+for unit in control evidence; do
   case "$unit" in
-    transfer) rust_roots=(meden_core::transfer::reserve); model=Transfer ;;
-    control) rust_roots=(meden_core::export_control::step); model=Control ;;
+    control)
+      rust_roots=(meden_core::transfer::reserve meden_core::export_control::step)
+      for method in new request phase advance; do
+        rust_roots+=("meden_core::export_control::State::$method")
+      done
+      model=Control ;;
     evidence)
       rust_roots=()
       for method in propose review accept is_accepted refresh record eligible; do

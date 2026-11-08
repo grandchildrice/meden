@@ -5,16 +5,54 @@ use std::io;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-use meden_core::transfer::{self, Permit, Request};
+use meden_core::export_control::{Event, Origin, Phase, State};
+use meden_core::transfer::Request;
+use serde::Deserialize;
 
 /// One prepared POST. Target and payload cannot change after preparation.
 /// No constructor, inspection or approval operation performs network I/O.
 pub struct Export {
-    target: String,
-    payload: Vec<u8>,
-    request: Request,
+    state: Mutex<State>,
     created: Instant,
-    permit: Mutex<Option<Permit>>,
+}
+
+/// Host review derived from the same immutable request used by the kernel.
+pub struct Snapshot {
+    /// Current review/reservation lifecycle.
+    pub phase: Phase,
+    /// Exact normalized destination.
+    pub target: String,
+    /// Exact body bytes, independent of later workspace changes.
+    pub payload: Vec<u8>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Headers {
+    #[serde(rename = "content-type")]
+    content_type: String,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Post {
+    method: String,
+    target: String,
+    headers: Headers,
+    body: Vec<u8>,
+}
+
+impl Post {
+    fn decode(request: &Request) -> io::Result<Self> {
+        let post: Self = serde_json::from_slice(&request.request)?;
+        if post.method != "POST"
+            || post.headers.content_type != "application/octet-stream"
+            || post.target.as_bytes() != request.recipient
+        {
+            return Err(io::Error::other("invalid frozen POST description"));
+        }
+        Ok(post)
+    }
 }
 
 impl Export {
@@ -45,80 +83,104 @@ impl Export {
             "headers": {"content-type":"application/octet-stream"}, "body": payload,
         }))?;
         Ok(Self {
-            request: Request {
+            state: Mutex::new(State::new(Request {
                 session: session.to_vec(),
                 recipient: target.as_bytes().to_vec(),
                 request: description,
-            },
-            target,
-            payload: payload.to_vec(),
+            })),
             created: Instant::now(),
-            permit: Mutex::new(None),
         })
     }
 
-    /// Actual destination for trusted review, derived from the frozen URI.
-    pub fn target(&self) -> &str {
-        &self.target
+    /// Read the kernel's actual frozen request for trusted host presentation.
+    pub fn snapshot(&self) -> io::Result<Snapshot> {
+        let state = self
+            .state
+            .lock()
+            .map_err(|_| io::Error::other("export state unavailable"))?;
+        let post = Post::decode(state.request())?;
+        Ok(Snapshot {
+            phase: state.phase(),
+            target: post.target,
+            payload: post.body,
+        })
     }
 
-    /// Actual bytes for trusted review, independent of later file changes.
-    pub fn payload(&self) -> &[u8] {
-        &self.payload
+    /// Mark inspection through the host channel, never a model tool.
+    pub fn review_from_host(&self) -> io::Result<()> {
+        self.host_transition(Event::Review)
     }
 
-    /// Issue one approval through the trusted host UI/controller only.
-    /// Never register this method as a model tool. An existing approval,
-    /// including a spent/expired one, is never reset by this operation.
-    pub fn approve_from_host(&self, valid_for: Duration) -> io::Result<()> {
+    /// Decline through the host channel, without producing an effect.
+    pub fn reject_from_host(&self) -> io::Result<()> {
+        self.host_transition(Event::Reject)
+    }
+
+    fn host_transition(&self, event: Event) -> io::Result<()> {
+        let mut state = self
+            .state
+            .lock()
+            .map_err(|_| io::Error::other("export state unavailable"))?;
+        if !state.advance(Origin::Host, event, 0, 0, &[]).accepted {
+            return Err(io::Error::other("export transition refused"));
+        }
+        Ok(())
+    }
+
+    /// Host approval and reservation are one kernel transition under one lock.
+    /// The executor decodes only its returned request. None means delivery
+    /// failed or is uncertain, with the attempt still consumed. Never expose
+    /// this method as a model tool.
+    pub fn send(&self, current_session: &[u8], valid_for: Duration) -> io::Result<Option<u16>> {
         let duration = u64::try_from(valid_for.as_millis()).map_err(io::Error::other)?;
         let expires = self
             .now()?
             .checked_add(duration)
             .filter(|_| duration > 0)
             .ok_or_else(|| io::Error::other("invalid approval lifetime"))?;
-        let mut slot = self
-            .permit
-            .lock()
-            .map_err(|_| io::Error::other("approval lock unavailable"))?;
-        if slot.is_some() {
-            return Err(io::Error::other(
-                "approval already issued; prepare a new export",
-            ));
-        }
-        *slot = Some(Permit {
-            request: self.request.clone(),
-            expires,
-            spent: false,
-        });
-        Ok(())
+        self.send_before(current_session, expires)
     }
 
-    /// Reserve under the mutex, then deliver the same immutable request.
-    /// The current session comes from the host, not model arguments. The
-    /// returned status is a delivery result, not permission to follow a URL.
-    /// Any transport failure leaves approval spent, even on uncertain delivery.
-    pub fn send(&self, current_session: &[u8]) -> io::Result<u16> {
-        {
-            let mut slot = self
-                .permit
+    fn send_before(&self, current_session: &[u8], expires: u64) -> io::Result<Option<u16>> {
+        let effect = {
+            let mut state = self
+                .state
                 .lock()
-                .map_err(|_| io::Error::other("approval lock unavailable"))?;
-            let approved = slot.as_mut().is_some_and(|permit| {
-                transfer::reserve(
-                    self.now().unwrap_or(u64::MAX),
+                .map_err(|_| io::Error::other("export state unavailable"))?;
+            state
+                .advance(
+                    Origin::Host,
+                    Event::Approve,
+                    self.now()?,
+                    expires,
                     current_session,
-                    permit,
-                    &self.request,
                 )
-            });
-            if !approved {
-                return Err(io::Error::new(
-                    io::ErrorKind::PermissionDenied,
-                    "no matching unspent transfer approval",
-                ));
-            }
+                .effect
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::PermissionDenied,
+                        "export needs prior review and a valid approval for this session; no replay",
+                    )
+                })?
+        };
+        let sent = Self::dispatch(&effect);
+        let event = if sent.is_ok() {
+            Event::ResponseReceived
+        } else {
+            Event::DeliveryUncertain
+        };
+        let mut state = self
+            .state
+            .lock()
+            .map_err(|_| io::Error::other("export state unavailable"))?;
+        if !state.advance(Origin::Transport, event, 0, 0, &[]).accepted {
+            return Err(io::Error::other("export result refused"));
         }
+        Ok(sent.ok())
+    }
+
+    fn dispatch(effect: &Request) -> io::Result<u16> {
+        let post = Post::decode(effect)?;
         // A fresh client cannot replay a request from a pooled connection.
         // Disable environment proxies and all automatic redirect hops.
         let config = ureq::Agent::config_builder()
@@ -129,9 +191,9 @@ impl Export {
             .build();
         let agent: ureq::Agent = config.into();
         agent
-            .post(&self.target)
+            .post(&post.target)
             .header("content-type", "application/octet-stream")
-            .send(self.payload.as_slice())
+            .send(post.body.as_slice())
             .map(|response| response.status().as_u16())
             .map_err(|_| io::Error::other("delivery failed or uncertain; approval remains spent"))
     }
@@ -184,7 +246,11 @@ mod tests {
                 .set_read_timeout(Some(Duration::from_secs(5)))
                 .expect("timeout");
             let mut reader = BufReader::new(stream);
+            let mut request_line = String::new();
+            reader.read_line(&mut request_line).expect("request line");
+            assert!(request_line.starts_with("POST /approved HTTP/1."));
             let mut length = 0;
+            let mut content_type = false;
             loop {
                 let mut line = String::new();
                 assert!(reader.read_line(&mut line).expect("header") > 0);
@@ -195,8 +261,13 @@ mod tests {
                     if key.eq_ignore_ascii_case("content-length") {
                         length = value.trim().parse().expect("body length");
                     }
+                    if key.eq_ignore_ascii_case("content-type") {
+                        assert_eq!(value.trim(), "application/octet-stream");
+                        content_type = true;
+                    }
                 }
             }
+            assert!(content_type, "missing frozen content type");
             let mut payload = vec![0; length];
             reader.read_exact(&mut payload).expect("body");
             if !reply.is_empty() {
@@ -214,31 +285,69 @@ mod tests {
     }
 
     #[test]
+    fn description_decoder_rejects_changed_recipient_method_and_headers() {
+        let receiver = listener();
+        let export = Export::prepare(b"s", &target(&receiver), b"secret").expect("prepare");
+        let frozen = export.state.lock().expect("state").request().clone();
+        for field in ["target", "method", "headers"] {
+            let mut description: serde_json::Value =
+                serde_json::from_slice(&frozen.request).expect("description");
+            *description.get_mut(field).expect("description field") = match field {
+                "target" => serde_json::json!("https://unapproved.example/"),
+                "method" => serde_json::json!("GET"),
+                _ => {
+                    serde_json::json!({"content-type":"application/octet-stream", "cookie":"secret"})
+                }
+            };
+            let changed = Request {
+                request: serde_json::to_vec(&description).expect("encode"),
+                ..frozen.clone()
+            };
+            assert!(Post::decode(&changed).is_err());
+        }
+        assert!(receiver.accept().is_err());
+    }
+
+    #[test]
     fn no_send_before_approval_and_only_frozen_bytes_reach_the_approved_receiver() {
         let receiver = listener();
         let mut source = b"CONFIDENTIAL-CANARY\0\xff".to_vec();
         let export = Export::prepare(b"session", &target(&receiver), &source).expect("prepare");
-        assert_eq!(export.target(), target(&receiver));
-        assert_eq!(export.payload(), source);
         assert_eq!(
-            export.send(b"session").expect_err("unapproved").kind(),
+            export.snapshot().expect("snapshot").target,
+            target(&receiver)
+        );
+        assert_eq!(export.snapshot().expect("snapshot").payload, source);
+        assert_eq!(
+            export
+                .send(b"session", Duration::from_secs(60))
+                .expect_err("unreviewed")
+                .kind(),
             io::ErrorKind::PermissionDenied
         );
         assert!(receiver.accept().is_err());
-        export
-            .approve_from_host(Duration::from_secs(60))
-            .expect("host approval");
-        assert!(export.send(b"other-session").is_err());
+        let foreign = Export::prepare(b"session", &target(&receiver), &source).expect("prepare");
+        foreign.review_from_host().expect("host review");
+        assert!(foreign
+            .send(b"other-session", Duration::from_secs(60))
+            .is_err());
+        assert!(foreign.send(b"session", Duration::from_secs(60)).is_err());
         assert!(receiver.accept().is_err());
+        export.review_from_host().expect("host review");
         source.fill(b'x');
         let observed = receive(&receiver, ok());
-        assert_eq!(export.send(b"session").expect("delivery"), 200);
+        assert_eq!(
+            export
+                .send(b"session", Duration::from_secs(60))
+                .expect("delivery"),
+            Some(200)
+        );
         assert_eq!(
             observed.join().expect("receiver"),
             b"CONFIDENTIAL-CANARY\0\xff"
         );
-        assert!(export.send(b"session").is_err());
-        assert!(export.approve_from_host(Duration::from_secs(60)).is_err());
+        export.review_from_host().expect("inspection cannot reopen");
+        assert!(export.send(b"session", Duration::from_secs(60)).is_err());
         assert!(receiver.accept().is_err());
     }
 
@@ -253,16 +362,14 @@ mod tests {
             assert!(Export::prepare(b"s", invalid, b"secret").is_err());
         }
         let export = Export::prepare(b"s", &target(&receiver), b"secret").expect("prepare");
-        export
-            .approve_from_host(Duration::from_millis(1))
-            .expect("approval");
-        thread::sleep(Duration::from_millis(10));
+        export.review_from_host().expect("review");
+        assert!(export.send(b"s", Duration::ZERO).is_err());
         assert_eq!(
-            export.send(b"s").expect_err("expired").kind(),
+            export.send_before(b"s", 0).expect_err("expired").kind(),
             io::ErrorKind::PermissionDenied
         );
         assert!(receiver.accept().is_err());
-        assert!(export.approve_from_host(Duration::from_secs(60)).is_err());
+        assert!(export.send(b"s", Duration::from_secs(60)).is_err());
     }
 
     #[test]
@@ -270,9 +377,7 @@ mod tests {
         let receiver = listener();
         let export =
             Arc::new(Export::prepare(b"s", &target(&receiver), b"one copy").expect("prepare"));
-        export
-            .approve_from_host(Duration::from_secs(60))
-            .expect("approval");
+        export.review_from_host().expect("review");
         let observed = receive(&receiver, ok());
         let barrier = Arc::new(Barrier::new(4));
         let threads: Vec<_> = (0..4)
@@ -281,7 +386,9 @@ mod tests {
                 let barrier = Arc::clone(&barrier);
                 thread::spawn(move || {
                     barrier.wait();
-                    export.send(b"s").is_ok()
+                    export
+                        .send(b"s", Duration::from_secs(60))
+                        .is_ok_and(|status| status.is_some())
                 })
             })
             .collect();
@@ -303,13 +410,16 @@ mod tests {
         let other = listener();
         let observed = receive(&approved, format!("HTTP/1.1 307 Temporary Redirect\r\nLocation: {}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n", target(&other)));
         let export = Export::prepare(b"s", &target(&approved), b"secret").expect("prepare");
-        export
-            .approve_from_host(Duration::from_secs(60))
-            .expect("approval");
-        assert_eq!(export.send(b"s").expect("redirect status"), 307);
+        export.review_from_host().expect("review");
+        assert_eq!(
+            export
+                .send(b"s", Duration::from_secs(60))
+                .expect("redirect status"),
+            Some(307)
+        );
         assert_eq!(observed.join().expect("receiver"), b"secret");
         assert!(other.accept().is_err());
-        assert!(export.send(b"s").is_err());
+        assert!(export.send(b"s", Duration::from_secs(60)).is_err());
     }
 
     #[test]
@@ -317,12 +427,13 @@ mod tests {
         let receiver = listener();
         let observed = receive(&receiver, String::new());
         let export = Export::prepare(b"s", &target(&receiver), b"secret").expect("prepare");
-        export
-            .approve_from_host(Duration::from_secs(60))
-            .expect("approval");
-        assert!(export.send(b"s").is_err());
+        export.review_from_host().expect("review");
+        assert!(export
+            .send(b"s", Duration::from_secs(60))
+            .expect("uncertain result")
+            .is_none());
         assert_eq!(observed.join().expect("receiver"), b"secret");
-        assert!(export.send(b"s").is_err());
+        assert!(export.send(b"s", Duration::from_secs(60)).is_err());
         assert!(receiver.accept().is_err());
     }
 }

@@ -109,10 +109,14 @@ that every real outbound effect passes through those rules.
 The production export review-control kernel is separately extracted and
 refined. Lean proves that only a host approval of a reviewed proposal grants
 dispatch, and that arbitrary finite compositions of the extracted step
-grant at most one dispatch. The queue uses this step for every lifecycle
-update and stores its decision before dispatch. Correct attribution of
+grant at most one dispatch. A combined production state now owns the frozen
+request and performs review/reservation under one runtime mutex. Its
+Rust-to-Lean refinement proves exact emitted-request correspondence and at
+most one effect over arbitrary finite compositions. The runtime decodes and
+sends only the returned request; separate CLI phase and pending permit
+states have been removed. Correct attribution of
 typed origins by UI/protocol/transport code, reference lookup, rendering and
-the I/O loop remain unproved; this is not whole-controller refinement.
+the JSON/URI decoder and I/O loop remain unproved; this is not whole-controller refinement.
 
 The third extracted kernel checks exact evidence correspondence. Only typed
 checker results matching the accepted obligation, evidence kind, checker,

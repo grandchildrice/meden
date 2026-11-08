@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parent.parent
 GROUPS = [
     {
         "kernel": "transfer",
-        "model": "Transfer",
+        "model": "Control",
         "proof": "TransferRefinement",
         "test": "transfer::tests::changing_session_recipient_or_payload_cannot_spend_a_permit",
         "mutations": [
@@ -77,6 +77,31 @@ GROUPS = [
             ),
         ],
     },
+    {
+        "kernel": "export_control",
+        "model": "Control",
+        "proof": "DispatchRefinement",
+        "prerequisites": ["TransferRefinement", "ExportControlRefinement"],
+        "test": "export_control::tests::effects_are_frozen_reviewed_session_bound_and_single_use",
+        "mutations": [
+            (
+                "forged_effect_origin",
+                "let decision = step(self.phase, origin, event);",
+                "let decision = step(self.phase, { let _ = origin; Origin::Host }, event);",
+            ),
+            (
+                "substituted_effect_payload",
+                "Some(self.request.clone())",
+                "Some(Request { request: Vec::new(), ..self.request.clone() })",
+            ),
+            (
+                "uncommitted_effect_attempt",
+                "self.phase = decision.phase;",
+                "self.phase = self.phase;",
+            ),
+            ("missing_authorized_effect", "Some(self.request.clone())", "None"),
+        ],
+    },
 ]
 
 
@@ -118,6 +143,8 @@ def main():
                 require_success(
                     ["lake", "build", f"MedenSpec.Generated.{group['model']}"], ROOT / "lean"
                 )
+                for prerequisite in group.get("prerequisites", []):
+                    require_success(["lake", "build", f"MedenSpec.{prerequisite}"], ROOT / "lean")
                 result = run(
                     ["lake", "env", "lean", f"MedenSpec/{group['proof']}.lean"], ROOT / "lean"
                 )

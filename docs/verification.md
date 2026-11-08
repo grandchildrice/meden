@@ -19,7 +19,7 @@ established by the current CI badge.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate three Rust kernels, `lake build`, proof scan/audit, sixteen Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate transfer/review/dispatch and evidence kernels, `lake build`, proof scan/audit, twenty Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A result or resulting transfer state differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -91,10 +91,12 @@ bindings; processor grants and exact one-use exports have separate scopes.
 The production functions `meden_core::transfer::allowed` and `reserve`,
 including the derived full-request equality and in-place spent-state
 update, are extracted by Charon and translated by Aeneas. The checked-in
-[generated model](../lean/MedenSpec/Generated/Transfer.lean) is not edited
+[generated model](../lean/MedenSpec/Generated/Control.lean) is not edited
 by hand. [extract-transfer.sh](../tools/extract-transfer.sh) regenerates it
 from the real crate and requires an exact diff. Unknown extracted functions
 or proof holes make the script fail.
+Transfer and review/dispatch share this generated module so their production
+composition uses the same extracted types and functions.
 
 The pinned chain is Rust `nightly-2026-09-17`, Charon
 `8cae8fd1905946de61147a65ecdd7122cc6b491b`, Aeneas
@@ -140,9 +142,10 @@ exercise real reservation and delivery, including concurrency.
 ## Export review control: actual Rust and finite traces
 
 [`export_control.rs`](../crates/meden-core/src/export_control.rs) now owns
-every proposal lifecycle update used by the TUI/CLI queue. The queue stores
-its returned phase under a mutex **before** using `dispatch` to authorize a
-send. Model proposal, host review/reject/approve and actual transport-result
+every proposal lifecycle update used by the TUI/CLI queue. The runtime now
+owns one frozen-request/lifecycle state under a mutex and uses the combined
+operation below to return the permitted request. The separate CLI phase
+state and pending runtime permit have been removed. Model proposal, host review/reject/approve and actual transport-result
 call sites assign typed origins; origin is not read from model arguments.
 The old independent phase-update branches are removed.
 
@@ -185,6 +188,50 @@ approve before review, accept a model approval, reopen a terminal proposal
 on review, and fail to consume approval. Each must fail the real Rust test,
 generate a compiling model, and fail the unchanged refinement proof. Both
 source/model pairs are restored and normal proofs rebuilt afterwards.
+
+## Combined review and reservation: exact effect requests
+
+Production `export_control::State` owns the immutable complete request and
+its phase. `State::advance` commits the review decision, creates/spends the
+exact permit and returns `Outcome.effect` only for an eligible host approval.
+After a reviewed approval attempt, even an expired or foreign-session
+reservation cannot reopen the proposal. No operation replaces its request.
+
+The independent [Dispatch specification](../lean/MedenSpec/Dispatch.lean)
+defines authorization by reviewed phase, host origin, approval event, exact
+session and exclusive expiry. The [refinement](../lean/MedenSpec/DispatchRefinement.lean)
+checks the actual extracted Rust operation, including request cloning and
+the composition with `transfer::reserve`.
+
+| Audited theorem | Checked claim |
+| --- | --- |
+| `Dispatch.effect_iff` | An emitted request is exactly the frozen request, and all review/session/time conditions hold |
+| `Dispatch.frozen_preserved` | Every operation retains the original complete request |
+| `Dispatch.trace_frozen` | Every request emitted in a finite trace equals its initial frozen request |
+| `Dispatch.at_most_one_effect` | Any finite trace emits at most one request |
+| `DispatchRefinement.new_refines` | Actual construction starts pending with the exact supplied request |
+| `DispatchRefinement.request_refines` | The production review getter exposes the same request used for effects |
+| `DispatchRefinement.phase_refines` | The production status getter reports the kernel's phase |
+| `DispatchRefinement.advance_refines` | Actual Rust returns successfully and matches the complete specification outcome/state for all represented inputs |
+| `DispatchRefinement.trace_refines` | Finite compositions of actual extracted operations match the specification state and complete emitted requests |
+| `DispatchRefinement.extracted_trace_safe` | Actual extracted compositions preserve the request and emit at most one copy of it |
+
+The runtime uses only the returned effect as its network input. Both host
+review and dispatch decode the same complete JSON description; the decoder
+requires POST, exactly the fixed content type and a target equal to the
+reserved recipient. Real receiver tests check method, path, content type and
+binary body, plus concurrent approvals, expiry, foreign sessions, redirects
+and uncertain delivery. Four further Rust mutations forge the origin,
+replace the emitted body, omit the committed phase or suppress a valid
+effect. Each must fail native assertions and the unchanged refinement after
+successful extraction/model compilation.
+
+The finite driver composes the production operation; it is not an
+extraction of the I/O loop. Typed-origin attribution, reference lookup,
+JSON/URI decoding and encoding, presentation, mutex semantics, clocks,
+HTTP/TLS, compiler and OS remain explicit trust dependencies or unproved
+adapters. This narrows the executor boundary but does not establish complete
+outbound routing or R1 end to end.
 
 ## Evidence completion: exact current subject and extracted traces
 
@@ -255,7 +302,7 @@ Eight additional actual Rust mutations disable producer checks, receipt
 freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
-refinement proof. Combined with transfer/review checks, CI rejects sixteen
+refinement proof. Combined with transfer/review/dispatch checks, CI rejects twenty
 faults. Timeouts, exhausted proof resources, unknown identifiers and missing
 modules do not count as semantic rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -275,6 +322,12 @@ assumptions. Native tests exercise both orderings and real process cancellation.
 
 These specifications cover the capability kernel already used by tool
 dispatch. They are separate from the new outbound-transfer permit.
+The policy/glob Rust implementation still has conformance and bounded
+checks, without extraction-based refinement. An extraction attempt with
+the pinned tools reaches unsupported Unicode-iterator branching and
+borrowed iterator operations; the upstream character-iterator model also
+has an opaque `next` definition. Those gaps are not replaced by project
+axioms or a byte-only interpretation of Unicode scopes.
 
 | Audited theorem | Proven property |
 | --- | --- |
@@ -294,7 +347,7 @@ Definitions and additional lemmas are in
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the forty-two
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the fifty-two
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -404,7 +457,7 @@ On Nix, a private `uv` Python shadowing a public Python is skipped rather
 than binding the private cache into the sandbox. The attack test exposed
 this actual execution failure before the selection was corrected.
 
-These controller, parser, router and OS behaviors have tests; the forty-two
+These controller, parser, router and OS behaviors have tests; the fifty-two
 Lean theorem entry points still cover their stated kernels. The shared
 session has no whole-controller refinement theorem yet.
 
@@ -531,7 +584,7 @@ failed. The conversation's `done` event is therefore not project-verification
 evidence. Setup, limits,
 failure behavior and OS/asset trust assumptions are documented in
 [local inference](local-inference.md). The launcher, protocol and OS boundary
-are not Lean-refined; they add no theorem roots to the forty-two audited here.
+are not Lean-refined; they add no theorem roots to the fifty-two audited here.
 
 ## Tests of actual HTTP delivery
 

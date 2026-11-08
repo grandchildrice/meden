@@ -266,7 +266,7 @@ fn export_command(command: Command, exports: &Exports, output: &mut impl Write) 
                     summary: entry.summary()?,
                     method: "POST",
                     content_type: "application/octet-stream",
-                    body_hex: entry.hex(0, usize::MAX),
+                    body_hex: entry.hex(0, usize::MAX)?,
                 }
             }
             Command::ApproveExport(reference) => {

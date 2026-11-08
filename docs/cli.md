@@ -186,7 +186,8 @@ session data; an integrating application is responsible for any onward
 transfer it chooses to perform. The CLI escapes JSON output and filters
 terminal control characters in human-facing errors/provider listings.
 
-The export lifecycle kernel has transition and finite-composition refinement
-proofs. Origin attribution, the shared I/O controller, parser and OS effects
+The combined export lifecycle/reservation kernel has transition and
+finite-composition refinement proofs for exact emitted requests and at most
+one effect. Origin attribution, description decoding, the shared I/O controller, parser and OS effects
 are not yet fully refined in Lean. [Current verification](verification.md) records which kernel
 functions are proved and which production behaviors have integration tests.

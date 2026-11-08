@@ -1,5 +1,5 @@
 import MedenSpec.Transfer
-import MedenSpec.Generated.Transfer
+import MedenSpec.Generated.Control
 import MedenSpec.ByteVectors
 
 /-! Refinement of the generated production Rust transfer kernel. Extraction,

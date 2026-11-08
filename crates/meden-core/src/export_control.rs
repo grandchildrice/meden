@@ -1,5 +1,7 @@
 //! Pure export-review control kernel, extracted and refined in Lean.
 
+use crate::transfer::{self, Permit, Request};
+
 /// Lifecycle of one immutable proposal. Terminal states cannot be reopened.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Phase {
@@ -102,9 +104,141 @@ pub fn step(phase: Phase, origin: Origin, event: Event) -> Decision {
     }
 }
 
+/// One frozen request and its review/reservation state. No operation replaces
+/// the request or reopens an attempted proposal.
+#[derive(Debug)]
+pub struct State {
+    phase: Phase,
+    request: Request,
+}
+
+/// The executor receives the permitted request itself, rather than choosing
+/// bytes after a Boolean authorization. This type has no deserializer.
+#[derive(Debug)]
+pub struct Outcome {
+    /// Whether the review/lifecycle operation was valid.
+    pub accepted: bool,
+    /// Exact immutable inputs for one authorized effect, if any.
+    pub effect: Option<Request>,
+}
+
+impl State {
+    /// A model proposal starts without review or dispatch authority.
+    pub fn new(request: Request) -> Self {
+        Self {
+            phase: Phase::Pending,
+            request,
+        }
+    }
+
+    /// Host presentation of the same request used for dispatch.
+    pub fn request(&self) -> &Request {
+        &self.request
+    }
+
+    /// Host presentation of the kernel's lifecycle, without a cached Boolean.
+    pub fn phase(&self) -> Phase {
+        self.phase
+    }
+
+    /// Commit the review transition before emitting any effect. A host
+    /// approval creates and spends one exact permit in this same transition;
+    /// even a refused/uncertain attempt cannot recreate dispatch authority.
+    pub fn advance(
+        &mut self,
+        origin: Origin,
+        event: Event,
+        now: u64,
+        expires: u64,
+        session: &[u8],
+    ) -> Outcome {
+        let decision = step(self.phase, origin, event);
+        self.phase = decision.phase;
+        let effect = if decision.dispatch {
+            let mut permit = Permit {
+                request: self.request.clone(),
+                expires,
+                spent: false,
+            };
+            if transfer::reserve(now, session, &mut permit, &self.request) {
+                Some(self.request.clone())
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+        Outcome {
+            accepted: decision.accepted,
+            effect,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn effects_are_frozen_reviewed_session_bound_and_single_use() {
+        let request = Request {
+            session: b"session".to_vec(),
+            recipient: b"https://approved.example/path".to_vec(),
+            request: b"complete frozen request".to_vec(),
+        };
+        for origin in [Origin::Model, Origin::Host, Origin::Transport] {
+            let mut state = State::new(request.clone());
+            assert_eq!(state.phase(), Phase::Pending);
+            assert!(
+                !state
+                    .advance(Origin::Model, Event::Review, 0, 0, b"session")
+                    .accepted
+            );
+            assert!(state
+                .advance(Origin::Host, Event::Approve, 0, 10, b"session")
+                .effect
+                .is_none());
+            assert!(
+                state
+                    .advance(Origin::Host, Event::Review, 0, 0, b"session")
+                    .accepted
+            );
+            let out = state.advance(origin, Event::Approve, 9, 10, b"session");
+            if origin == Origin::Host {
+                assert_eq!(out.effect, Some(request.clone()));
+                assert_eq!(state.phase(), Phase::Attempted);
+                state.advance(
+                    Origin::Transport,
+                    Event::DeliveryUncertain,
+                    0,
+                    0,
+                    b"session",
+                );
+                state.advance(Origin::Host, Event::Review, 0, 0, b"session");
+                assert!(state
+                    .advance(Origin::Host, Event::Approve, 9, 10, b"session")
+                    .effect
+                    .is_none());
+            } else {
+                assert!(out.effect.is_none());
+                assert_eq!(state.phase(), Phase::Reviewed);
+            }
+            assert_eq!(state.request(), &request);
+        }
+        for (now, session) in [(10, b"session".as_slice()), (9, b"foreign".as_slice())] {
+            let mut state = State::new(request.clone());
+            state.advance(Origin::Host, Event::Review, 0, 0, b"session");
+            assert!(state
+                .advance(Origin::Host, Event::Approve, now, 10, session)
+                .effect
+                .is_none());
+            assert_eq!(state.phase(), Phase::Attempted);
+            assert!(state
+                .advance(Origin::Host, Event::Approve, 9, 10, b"session")
+                .effect
+                .is_none());
+        }
+    }
 
     #[test]
     fn dispatch_requires_review_host_origin_and_a_fresh_attempt() {

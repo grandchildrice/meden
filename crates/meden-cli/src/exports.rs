@@ -7,7 +7,6 @@ use std::time::Duration;
 use anyhow::{Context, Result};
 use meden_agent::tool::{Args, Tool, ToolError, ToolSig};
 use meden_agent::Registry;
-use meden_core::export_control::{self, Decision, Event, Origin, Phase};
 use meden_core::{Capability, Requirement};
 use meden_runtime::process::{self, Control, Limits, Termination};
 use meden_runtime::transfer::Export;
@@ -37,47 +36,42 @@ pub struct Prepared {
     reference: Reference,
     source: String,
     export: Export,
-    state: Mutex<Phase>,
 }
 
 impl Prepared {
-    fn advance(&self, origin: Origin, event: Event) -> Result<Decision> {
-        let mut phase = self
-            .state
-            .lock()
-            .map_err(|_| anyhow::anyhow!("export state unavailable"))?;
-        let decision = export_control::step(*phase, origin, event);
-        *phase = decision.phase;
-        Ok(decision)
-    }
     pub fn summary(&self) -> Result<Summary> {
+        let snapshot = self.export.snapshot()?;
         Ok(Summary {
             reference: self.reference.clone(),
             source: self.source.clone(),
-            target: self.export.target().to_owned(),
-            bytes: self.export.payload().len(),
-            state: self
-                .state
-                .lock()
-                .map_err(|_| anyhow::anyhow!("export state unavailable"))?
-                .label(),
+            target: snapshot.target,
+            bytes: snapshot.payload.len(),
+            state: snapshot.phase.label(),
         })
     }
 
     /// Exact bytes in hex, independent of terminal escapes or UTF-8 decoding.
-    pub fn hex(&self, offset: usize, limit: usize) -> String {
+    pub fn hex(&self, offset: usize, limit: usize) -> Result<String> {
         let mut text = String::new();
-        for byte in self.export.payload().iter().skip(offset).take(limit) {
+        for byte in self
+            .export
+            .snapshot()?
+            .payload
+            .iter()
+            .skip(offset)
+            .take(limit)
+        {
             let _ = write!(text, "{byte:02x}");
         }
-        text
+        Ok(text)
     }
 
-    pub fn preview(&self, offset: usize) -> String {
+    pub fn preview(&self, offset: usize) -> Result<String> {
         let mut text = String::new();
         for (line, chunk) in self
             .export
-            .payload()
+            .snapshot()?
+            .payload
             .get(offset..)
             .unwrap_or_default()
             .chunks(16)
@@ -99,7 +93,7 @@ impl Prepared {
             }
             text.push('\n');
         }
-        text
+        Ok(text)
     }
 }
 
@@ -143,42 +137,24 @@ impl Exports {
 
     pub fn reject(&self, reference: &Reference) -> Result<Summary> {
         let entry = self.get(reference)?;
-        anyhow::ensure!(
-            entry.advance(Origin::Host, Event::Reject)?.accepted,
-            "export already resolved"
-        );
+        entry.export.reject_from_host()?;
         entry.summary()
     }
 
     /// Expose the actual frozen request to a trusted interface before approval.
     pub fn review(&self, reference: &Reference) -> Result<Arc<Prepared>> {
         let entry = self.get(reference)?;
-        anyhow::ensure!(
-            entry.advance(Origin::Host, Event::Review)?.accepted,
-            "export review refused"
-        );
+        entry.export.review_from_host()?;
         Ok(entry)
     }
 
     /// Only call from the host UI/protocol; never register as a model tool.
     pub fn send(&self, reference: &Reference) -> Result<(Summary, Option<u16>)> {
         let entry = self.get(reference)?;
-        anyhow::ensure!(
-            entry.advance(Origin::Host, Event::Approve)?.dispatch,
-            "export must be reviewed and unresolved; no replay"
-        );
-        entry.export.approve_from_host(Duration::from_secs(60))?;
-        let sent = entry.export.send(self.session.as_bytes());
-        let event = if sent.is_ok() {
-            Event::ResponseReceived
-        } else {
-            Event::DeliveryUncertain
-        };
-        anyhow::ensure!(
-            entry.advance(Origin::Transport, event)?.accepted,
-            "export result refused"
-        );
-        Ok((entry.summary()?, sent.ok()))
+        let sent = entry
+            .export
+            .send(self.session.as_bytes(), Duration::from_secs(60))?;
+        Ok((entry.summary()?, sent))
     }
 
     fn propose(&self, source: &str, target: &str, bytes: &[u8]) -> Result<Summary> {
@@ -195,9 +171,6 @@ impl Exports {
             },
             source: source.to_owned(),
             export,
-            state: Mutex::new(
-                export_control::step(Phase::Pending, Origin::Model, Event::Propose).phase,
-            ),
         });
         let summary = prepared.summary()?;
         entries.push(prepared);

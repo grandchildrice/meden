@@ -20,8 +20,18 @@ set_option maxRecDepth 2048
 
 namespace MedenImpl
 
+/-- Trait implementation: [core::slice::cmp::{impl core::cmp::PartialEq<[U]> for [T]}]
+    Source: '/rustc/library/core/src/slice/cmp.rs', lines 14:0-16:28
+    Name pattern: [core::cmp::PartialEq<[@T], [@U]>] -/
+@[reducible, rust_trait_impl "core::cmp::PartialEq<[@T], [@U]>"]
+def Slice.Insts.CoreCmpPartialEqSlice {T : Type _} {U : Type _}
+  (cmpPartialEqInst : core.cmp.PartialEq T U) : core.cmp.PartialEq (Slice T)
+  (Slice U) := {
+  eq := core.slice.cmp.PartialEqSlice.eq cmpPartialEqInst
+}
+
 /-- [meden_core::export_control::Phase]
-    Source: 'crates/meden-core/src/export_control.rs', lines 5:0-18:1
+    Source: 'crates/meden-core/src/export_control.rs', lines 7:0-20:1
     Visibility: public -/
 @[discriminant isize]
 inductive export_control.Phase where
@@ -33,7 +43,7 @@ inductive export_control.Phase where
 | DeliveryUncertain : export_control.Phase
 
 /-- [meden_core::export_control::Origin]
-    Source: 'crates/meden-core/src/export_control.rs', lines 36:0-43:1
+    Source: 'crates/meden-core/src/export_control.rs', lines 38:0-45:1
     Visibility: public -/
 @[discriminant isize]
 inductive export_control.Origin where
@@ -42,7 +52,7 @@ inductive export_control.Origin where
 | Transport : export_control.Origin
 
 /-- [meden_core::export_control::Event]
-    Source: 'crates/meden-core/src/export_control.rs', lines 47:0-60:1
+    Source: 'crates/meden-core/src/export_control.rs', lines 49:0-62:1
     Visibility: public -/
 @[discriminant isize]
 inductive export_control.Event where
@@ -54,7 +64,7 @@ inductive export_control.Event where
 | DeliveryUncertain : export_control.Event
 
 /-- [meden_core::export_control::Decision]
-    Source: 'crates/meden-core/src/export_control.rs', lines 64:0-71:1
+    Source: 'crates/meden-core/src/export_control.rs', lines 66:0-73:1
     Visibility: public -/
 structure export_control.Decision where
   phase : export_control.Phase
@@ -62,7 +72,7 @@ structure export_control.Decision where
   dispatch : Bool
 
 /-- [meden_core::export_control::step]:
-    Source: 'crates/meden-core/src/export_control.rs', lines 75:0-103:1
+    Source: 'crates/meden-core/src/export_control.rs', lines 77:0-105:1
     Visibility: public -/
 def export_control.step
   (phase : export_control.Phase) (origin : export_control.Origin)
@@ -249,5 +259,147 @@ def export_control.step
         ok { phase, accepted := false, dispatch := false }
     | export_control.Origin.Transport =>
       ok { phase, accepted := false, dispatch := false }
+
+/-- [meden_core::transfer::Request]
+    Source: 'crates/meden-core/src/transfer.rs', lines 9:0-16:1
+    Visibility: public -/
+structure transfer.Request where
+  session : alloc.vec.Vec Std.U8
+  recipient : alloc.vec.Vec Std.U8
+  request : alloc.vec.Vec Std.U8
+
+/-- [meden_core::export_control::State]
+    Source: 'crates/meden-core/src/export_control.rs', lines 110:0-113:1
+    Visibility: public -/
+structure export_control.State where
+  phase : export_control.Phase
+  request : transfer.Request
+
+/-- [meden_core::export_control::Outcome]
+    Source: 'crates/meden-core/src/export_control.rs', lines 118:0-123:1
+    Visibility: public -/
+structure export_control.Outcome where
+  accepted : Bool
+  effect : Option transfer.Request
+
+/-- [meden_core::export_control::{meden_core::export_control::State}::new]:
+    Source: 'crates/meden-core/src/export_control.rs', lines 127:4-132:5
+    Visibility: public -/
+def export_control.State.new
+  (request : transfer.Request) : Result export_control.State := do
+  ok { phase := export_control.Phase.Pending, request }
+
+/-- [meden_core::export_control::{meden_core::export_control::State}::request]:
+    Source: 'crates/meden-core/src/export_control.rs', lines 135:4-137:5
+    Visibility: public -/
+def export_control.State.impl.request
+  (self : export_control.State) : Result transfer.Request := do
+  ok self.request
+
+/-- [meden_core::export_control::{meden_core::export_control::State}::phase]:
+    Source: 'crates/meden-core/src/export_control.rs', lines 140:4-142:5
+    Visibility: public -/
+def export_control.State.impl.phase
+  (self : export_control.State) : Result export_control.Phase := do
+  ok self.phase
+
+/-- [meden_core::transfer::Permit]
+    Source: 'crates/meden-core/src/transfer.rs', lines 21:0-28:1
+    Visibility: public -/
+structure transfer.Permit where
+  request : transfer.Request
+  expires : Std.U64
+  spent : Bool
+
+/-- [meden_core::transfer::{impl core::cmp::PartialEq<meden_core::transfer::Request> for meden_core::transfer::Request}::eq]:
+    Source: 'crates/meden-core/src/transfer.rs', lines 8:23-8:32
+    Visibility: public -/
+def transfer.Request.Insts.CoreCmpPartialEqRequest.eq
+  (self : transfer.Request) (other : transfer.Request) : Result Bool := do
+  let b ←
+    alloc.vec.partial_eq.PartialEqVec.eq core.cmp.PartialEqU8 self.session
+      other.session
+  if b
+  then
+    let b1 ←
+      alloc.vec.partial_eq.PartialEqVec.eq core.cmp.PartialEqU8 self.recipient
+        other.recipient
+    if b1
+    then
+      alloc.vec.partial_eq.PartialEqVec.eq core.cmp.PartialEqU8 self.request
+        other.request
+    else ok false
+  else ok false
+
+/-- [meden_core::transfer::allowed]:
+    Source: 'crates/meden-core/src/transfer.rs', lines 31:0-37:1
+    Visibility: public -/
+def transfer.allowed
+  (now : Std.U64) (session : Slice Std.U8) (permit : transfer.Permit)
+  (request : transfer.Request) :
+  Result Bool
+  := do
+  let request_session := alloc.vec.Vec.deref request.session
+  let b ←
+    core.slice.cmp.PartialEqSlice.eq core.cmp.PartialEqU8 request_session
+      session
+  if b
+  then
+    let b1 ←
+      transfer.Request.Insts.CoreCmpPartialEqRequest.eq permit.request request
+    if b1
+    then if now < permit.expires
+         then ok (¬ permit.spent)
+         else ok false
+    else ok false
+  else ok false
+
+/-- [meden_core::transfer::reserve]:
+    Source: 'crates/meden-core/src/transfer.rs', lines 41:0-45:1
+    Visibility: public -/
+def transfer.reserve
+  (now : Std.U64) (session : Slice Std.U8) (permit : transfer.Permit)
+  (request : transfer.Request) :
+  Result (Bool × transfer.Permit)
+  := do
+  let accepted ← transfer.allowed now session permit request
+  ok (accepted, { permit with spent := (permit.spent || accepted) })
+
+/-- [meden_core::transfer::{impl core::clone::Clone for meden_core::transfer::Request}::clone]:
+    Source: 'crates/meden-core/src/transfer.rs', lines 8:9-8:14
+    Visibility: public -/
+def transfer.Request.Insts.CoreCloneClone.clone
+  (self : transfer.Request) : Result transfer.Request := do
+  let v ← alloc.vec.CloneVec.clone core.clone.CloneU8 self.session
+  let v1 ← alloc.vec.CloneVec.clone core.clone.CloneU8 self.recipient
+  let v2 ← alloc.vec.CloneVec.clone core.clone.CloneU8 self.request
+  ok { session := v, recipient := v1, request := v2 }
+
+/-- [meden_core::export_control::{meden_core::export_control::State}::advance]:
+    Source: 'crates/meden-core/src/export_control.rs', lines 147:4-175:5
+    Visibility: public -/
+def export_control.State.advance
+  (self : export_control.State) (origin : export_control.Origin)
+  (event : export_control.Event) (now : Std.U64) (expires : Std.U64)
+  (session : Slice Std.U8) :
+  Result (export_control.Outcome × export_control.State)
+  := do
+  let decision ← export_control.step self.phase origin event
+  if decision.dispatch
+  then
+    let r ← transfer.Request.Insts.CoreCloneClone.clone self.request
+    let (b, _) ←
+      transfer.reserve now session { request := r, expires, spent := false }
+        self.request
+    if b
+    then
+      ok ({ accepted := decision.accepted, effect := (some r) },
+        { self with phase := decision.phase })
+    else
+      ok ({ accepted := decision.accepted, effect := none },
+        { self with phase := decision.phase })
+  else
+    ok ({ accepted := decision.accepted, effect := none },
+      { self with phase := decision.phase })
 
 end MedenImpl
