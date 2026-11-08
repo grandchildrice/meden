@@ -1,8 +1,9 @@
 # meden
 
-A conversational coding agent with isolated local inference, offline workspace
-tools and scoped Lean refinement proofs. Development prototype; whole-product
-correctness and the user-project verification workflow remain unfinished.
+A coding agent for proof-driven development: formal verification through
+natural language, with local LLMs. Includes offline workspace tools and scoped
+Lean refinement proofs. Development prototype; whole-product correctness and
+the user-project verification workflow remain unfinished.
 
 Linux x64/arm64, Bubblewrap and Bash are required. Prepare a compatible
 llama.cpp server and GGUF weights before confidential work:

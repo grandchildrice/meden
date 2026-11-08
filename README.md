@@ -19,8 +19,9 @@
   <a href="results/README.md">Benchmarks</a>
 </p>
 
-Meden is building a local-first development orchestrator: describe what to
-build and what must never go wrong, then connect that intent to code,
+Meden is a coding agent for proof-driven development, bringing formal
+verification into a local-first, natural-language workflow. Describe what
+to build and what must never go wrong, then connect that intent to code,
 formal contracts, verification and the artifact you deliver. The target is
 one natural-language workflow across Lean, Rust verification, language
 checkers, model checking and fuzzing, with explicit evidence for each
