@@ -4,6 +4,11 @@ import Spec
 open Aeneas Aeneas.Std Result
 namespace LedgerProof
 set_option maxHeartbeats 2000000
+-- The shared strategy intentionally contains steps/rewrites that some source
+-- forms do not need. Keep candidate diagnostics focused on failed proof goals.
+set_option linter.unusedSimpArgs false
+set_option linter.unusedTactic false
+set_option linter.unreachableTactic false
 
 def abstractState (s : LedgerImpl.ledger.LedgerState) : LedgerContract.State :=
   ⟨s.debit.val, s.credit.val, s.sequence.val⟩
