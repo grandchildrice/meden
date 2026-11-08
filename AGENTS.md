@@ -14,6 +14,8 @@
   control. The isolated planner is retired. The transfer, export review and
   evidence kernels have Rust-to-Lean refinement. The combined export state
   owns its frozen request; the runtime dispatches only its returned effect.
+  The actual Crossterm approval predicate is extracted and refined too;
+  decoding, screen routing and physical input provenance are separate gaps.
   The evidence kernel gates
   Meden's own releases and the fixed Rust ledger project verifier. General
   contracts/backends, full interface/tool coverage and outbound

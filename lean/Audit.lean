@@ -61,3 +61,7 @@ open MedenSpec
 #print axioms MedenSpec.DispatchRefinement.advance_refines
 #print axioms MedenSpec.DispatchRefinement.trace_refines
 #print axioms MedenSpec.DispatchRefinement.extracted_trace_safe
+#print axioms MedenSpec.ApprovalRefinement.approves_refines
+#print axioms MedenSpec.ApprovalRefinement.paste_cannot_approve
+#print axioms MedenSpec.ApprovalRefinement.modified_key_cannot_approve
+#print axioms MedenSpec.ApprovalRefinement.nonpress_cannot_approve

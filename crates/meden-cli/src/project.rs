@@ -370,7 +370,7 @@ pub fn register(
         "project belongs to another workspace"
     );
     for (name, operation, description) in [
-        ("propose_ledger", Operation::Propose, "Propose the fixed Rust ledger-v1 contract for host review. This does not accept it. Read the returned meaning/API; code goes in ledger.rs. No attributes, calls, macros or loops. The example body is unimplemented and must be replaced."),
+        ("propose_ledger", Operation::Propose, "Propose the fixed Rust ledger-v1 contract for host review. This does not accept it. Read the returned meaning/API; ledger.rs contains only the struct and function, without imports or other items. Use finite if/return expressions and u64 arithmetic; saturating_add/sub are supported. No attributes, free function calls, other methods, macros, loops or match/if-let. The example body is unimplemented and must be replaced."),
         ("verify_ledger", Operation::Verify, "Independently check current ledger.rs against the host-accepted contract using the offline Rust-to-Lean backend. Tests alone do not suffice. Success retains exact code, proof and native library outside the writable workspace; any later source change makes current evidence stale."),
         ("project_status", Operation::Status, "Read host-derived contract, evidence freshness and exact checked artifact status. A model's prose or forged proof/report files never make this status verified.") ] {
         registry.register(Box::new(ProjectTool { project:Arc::clone(project),workspace:Arc::clone(workspace),control:Arc::clone(control),

@@ -14,13 +14,18 @@ case $("$aeneas_bin" -version) in
   *) echo 'Unsupported Aeneas revision' >&2; exit 1 ;;
 esac
 
-case ${1:-} in
-  ''|--write) ;;
-  *) echo 'Usage: tools/extract-transfer.sh [--write]' >&2; exit 2 ;;
+units=(control evidence approval)
+case "$#:${1:-}:${2:-}" in
+  0::|1:--write:) ;;
+  2:--write:control|2:--write:evidence|2:--write:approval) units=("$2") ;;
+  *) echo 'Usage: tools/extract-transfer.sh [--write [control|evidence|approval]]' >&2; exit 2 ;;
 esac
 extract_tmp=$(mktemp -d)
 trap 'rm -rf "$extract_tmp"' EXIT
-for unit in control evidence; do
+for unit in "${units[@]}"; do
+  namespace=MedenImpl
+  cargo_args=(--locked --lib -p meden-core)
+  extraction_args=()
   case "$unit" in
     control)
       rust_roots=(meden_core::transfer::reserve meden_core::export_control::step)
@@ -34,6 +39,15 @@ for unit in control evidence; do
         rust_roots+=("meden_core::evidence::Gate::$method")
       done
       model=Evidence ;;
+    approval)
+      rust_roots=(meden::tui::approval::approves)
+      namespace=MedenUIImpl
+      cargo_args=(--locked --bin meden -p meden-cli)
+      # Extract the actual event/bitflag/char comparisons, rather than importing
+      # unknown library functions. Keep unrelated standard internals opaque.
+      extraction_args=(--extract-opaque-bodies --include crossterm --include bitflags
+        --opaque core --opaque alloc --opaque std --include core::cmp::impls)
+      model=Approval ;;
   esac
   extract_roots=()
   for rust_root in "${rust_roots[@]}"; do
@@ -41,9 +55,9 @@ for unit in control evidence; do
   done
   CARGO_TARGET_DIR="$PWD/target/verification/rust" \
     "$charon_bin" cargo --preset=aeneas --sysroot default \
-    "${extract_roots[@]}" \
-    --dest-file "$extract_tmp/$unit.llbc" -- --locked --lib -p meden-core
-  "$aeneas_bin" -backend lean -namespace MedenImpl -dest "$extract_tmp" \
+    "${extraction_args[@]}" "${extract_roots[@]}" \
+    --dest-file "$extract_tmp/$unit.llbc" -- "${cargo_args[@]}"
+  "$aeneas_bin" -backend lean -namespace "$namespace" -dest "$extract_tmp" \
     -abort-on-error -warnings-as-errors -no-progress-bar "$extract_tmp/$unit.llbc"
   if grep -En '\b(axiom|sorry|admit)\b' "$extract_tmp/$model.lean"; then
     echo 'Extraction left an unknown definition or proof hole' >&2

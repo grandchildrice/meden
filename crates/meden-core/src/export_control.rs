@@ -46,7 +46,7 @@ pub enum Origin {
 
 /// Proposed control operation; its origin is checked independently.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Event {
+pub enum ExportEvent {
     /// Initialize a new prepared proposal.
     Propose,
     /// Inspect exact immutable inputs.
@@ -74,21 +74,25 @@ pub struct Decision {
 
 /// Denial preserves the state and emits no dispatch. A model/transport event
 /// cannot act as a host approval, and review cannot reopen a terminal state.
-pub fn step(phase: Phase, origin: Origin, event: Event) -> Decision {
+pub fn step(phase: Phase, origin: Origin, event: ExportEvent) -> Decision {
     let next = match (phase, origin, event) {
-        (Phase::Pending, Origin::Model, Event::Propose) => Phase::Pending,
-        (Phase::Pending, Origin::Host, Event::Review) => Phase::Reviewed,
-        (_, Origin::Host, Event::Review) => phase,
-        (Phase::Pending | Phase::Reviewed, Origin::Host, Event::Reject) => Phase::Rejected,
-        (Phase::Reviewed, Origin::Host, Event::Approve) => {
+        (Phase::Pending, Origin::Model, ExportEvent::Propose) => Phase::Pending,
+        (Phase::Pending, Origin::Host, ExportEvent::Review) => Phase::Reviewed,
+        (_, Origin::Host, ExportEvent::Review) => phase,
+        (Phase::Pending | Phase::Reviewed, Origin::Host, ExportEvent::Reject) => Phase::Rejected,
+        (Phase::Reviewed, Origin::Host, ExportEvent::Approve) => {
             return Decision {
                 phase: Phase::Attempted,
                 accepted: true,
                 dispatch: true,
             };
         }
-        (Phase::Attempted, Origin::Transport, Event::ResponseReceived) => Phase::ResponseReceived,
-        (Phase::Attempted, Origin::Transport, Event::DeliveryUncertain) => Phase::DeliveryUncertain,
+        (Phase::Attempted, Origin::Transport, ExportEvent::ResponseReceived) => {
+            Phase::ResponseReceived
+        }
+        (Phase::Attempted, Origin::Transport, ExportEvent::DeliveryUncertain) => {
+            Phase::DeliveryUncertain
+        }
         _ => {
             return Decision {
                 phase,
@@ -147,7 +151,7 @@ impl State {
     pub fn advance(
         &mut self,
         origin: Origin,
-        event: Event,
+        event: ExportEvent,
         now: u64,
         expires: u64,
         session: &[u8],
@@ -191,32 +195,32 @@ mod tests {
             assert_eq!(state.phase(), Phase::Pending);
             assert!(
                 !state
-                    .advance(Origin::Model, Event::Review, 0, 0, b"session")
+                    .advance(Origin::Model, ExportEvent::Review, 0, 0, b"session")
                     .accepted
             );
             assert!(state
-                .advance(Origin::Host, Event::Approve, 0, 10, b"session")
+                .advance(Origin::Host, ExportEvent::Approve, 0, 10, b"session")
                 .effect
                 .is_none());
             assert!(
                 state
-                    .advance(Origin::Host, Event::Review, 0, 0, b"session")
+                    .advance(Origin::Host, ExportEvent::Review, 0, 0, b"session")
                     .accepted
             );
-            let out = state.advance(origin, Event::Approve, 9, 10, b"session");
+            let out = state.advance(origin, ExportEvent::Approve, 9, 10, b"session");
             if origin == Origin::Host {
                 assert_eq!(out.effect, Some(request.clone()));
                 assert_eq!(state.phase(), Phase::Attempted);
                 state.advance(
                     Origin::Transport,
-                    Event::DeliveryUncertain,
+                    ExportEvent::DeliveryUncertain,
                     0,
                     0,
                     b"session",
                 );
-                state.advance(Origin::Host, Event::Review, 0, 0, b"session");
+                state.advance(Origin::Host, ExportEvent::Review, 0, 0, b"session");
                 assert!(state
-                    .advance(Origin::Host, Event::Approve, 9, 10, b"session")
+                    .advance(Origin::Host, ExportEvent::Approve, 9, 10, b"session")
                     .effect
                     .is_none());
             } else {
@@ -227,14 +231,14 @@ mod tests {
         }
         for (now, session) in [(10, b"session".as_slice()), (9, b"foreign".as_slice())] {
             let mut state = State::new(request.clone());
-            state.advance(Origin::Host, Event::Review, 0, 0, b"session");
+            state.advance(Origin::Host, ExportEvent::Review, 0, 0, b"session");
             assert!(state
-                .advance(Origin::Host, Event::Approve, now, 10, session)
+                .advance(Origin::Host, ExportEvent::Approve, now, 10, session)
                 .effect
                 .is_none());
             assert_eq!(state.phase(), Phase::Attempted);
             assert!(state
-                .advance(Origin::Host, Event::Approve, 9, 10, b"session")
+                .advance(Origin::Host, ExportEvent::Approve, 9, 10, b"session")
                 .effect
                 .is_none());
         }
@@ -251,7 +255,7 @@ mod tests {
                 Phase::ResponseReceived,
                 Phase::DeliveryUncertain,
             ] {
-                let result = step(phase, origin, Event::Approve);
+                let result = step(phase, origin, ExportEvent::Approve);
                 assert_eq!(
                     result.dispatch,
                     phase == Phase::Reviewed && origin == Origin::Host
@@ -273,12 +277,12 @@ mod tests {
             let mut attempts = 0;
             for _ in 0..4 {
                 for event in [
-                    Event::Propose,
-                    Event::Review,
-                    Event::Approve,
-                    Event::ResponseReceived,
-                    Event::DeliveryUncertain,
-                    Event::Reject,
+                    ExportEvent::Propose,
+                    ExportEvent::Review,
+                    ExportEvent::Approve,
+                    ExportEvent::ResponseReceived,
+                    ExportEvent::DeliveryUncertain,
+                    ExportEvent::Reject,
                 ] {
                     for origin in [Origin::Model, Origin::Host, Origin::Transport] {
                         let result = step(phase, origin, event);

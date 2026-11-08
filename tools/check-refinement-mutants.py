@@ -57,18 +57,18 @@ GROUPS = [
         "mutations": [
             (
                 "unreviewed_approval",
-                "(Phase::Reviewed, Origin::Host, Event::Approve)",
-                "(Phase::Pending | Phase::Reviewed, Origin::Host, Event::Approve)",
+                "(Phase::Reviewed, Origin::Host, ExportEvent::Approve)",
+                "(Phase::Pending | Phase::Reviewed, Origin::Host, ExportEvent::Approve)",
             ),
             (
                 "model_approval",
-                "(Phase::Reviewed, Origin::Host, Event::Approve)",
-                "(Phase::Reviewed, Origin::Model, Event::Approve)",
+                "(Phase::Reviewed, Origin::Host, ExportEvent::Approve)",
+                "(Phase::Reviewed, Origin::Model, ExportEvent::Approve)",
             ),
             (
                 "review_reopens_terminal",
-                "(_, Origin::Host, Event::Review) => phase",
-                "(_, Origin::Host, Event::Review) => Phase::Reviewed",
+                "(_, Origin::Host, ExportEvent::Review) => phase",
+                "(_, Origin::Host, ExportEvent::Review) => Phase::Reviewed",
             ),
             (
                 "approval_does_not_close",
@@ -102,7 +102,34 @@ GROUPS = [
             ("missing_authorized_effect", "Some(self.request.clone())", "None"),
         ],
     },
+    {
+        "source": "crates/meden-cli/src/tui/approval.rs",
+        "package": "meden-cli",
+        "model": "Approval",
+        "proof": "ApprovalRefinement",
+        "test": "tui::approval::tests::only_unmodified_key_presses_can_approve",
+        "mutations": [
+            (
+                "repeat_approval",
+                "key.kind == KeyEventKind::Press",
+                "(key.kind == KeyEventKind::Press || key.kind == KeyEventKind::Repeat)",
+            ),
+            ("modified_approval", "key.modifiers.is_empty()", "(key.modifiers.is_empty() || true)"),
+            (
+                "enter_approval",
+                "key.code == KeyCode::Char('y')",
+                "(key.code == KeyCode::Char('y') || key.code == KeyCode::Enter)",
+            ),
+            ("paste_approval", "} else {\n        false\n", "} else {\n        true\n"),
+        ],
+    },
 ]
+
+
+def source_path(group):
+    if "source" in group:
+        return ROOT / group["source"]
+    return ROOT / f"crates/meden-core/src/{group['kernel']}.rs"
 
 
 def run(args, cwd=ROOT):
@@ -119,7 +146,7 @@ def main():
     originals = {}
     for group in GROUPS:
         for path in [
-            ROOT / f"crates/meden-core/src/{group['kernel']}.rs",
+            source_path(group),
             ROOT / f"lean/MedenSpec/Generated/{group['model']}.lean",
         ]:
             originals[path] = path.read_bytes()
@@ -128,18 +155,30 @@ def main():
     require_success(["lake", "build", "MedenProof"], ROOT / "lean")
     try:
         for group in GROUPS:
-            kernel = ROOT / f"crates/meden-core/src/{group['kernel']}.rs"
+            kernel = source_path(group)
             for name, old, new in group["mutations"]:
                 source = originals[kernel].decode()
                 if source.count(old) != 1:
                     raise RuntimeError(f"{name}: expected exactly one mutation target")
                 kernel.write_text(source.replace(old, new))
-                test = run(["cargo", "test", "-p", "meden-core", group["test"], "--", "--exact"])
+                test = run(
+                    [
+                        "cargo",
+                        "test",
+                        "-p",
+                        group.get("package", "meden-core"),
+                        group["test"],
+                        "--",
+                        "--exact",
+                    ]
+                )
                 test_output = test.stdout + test.stderr
                 (logs / f"{name}-rust.txt").write_text(test_output)
                 if test.returncode == 0 or "test result: FAILED" not in test_output:
                     raise RuntimeError(f"{name}: expected an observed Rust failure\n{test_output}")
-                require_success(["bash", "tools/extract-transfer.sh", "--write"])
+                require_success(
+                    ["bash", "tools/extract-transfer.sh", "--write", group["model"].lower()]
+                )
                 require_success(
                     ["lake", "build", f"MedenSpec.Generated.{group['model']}"], ROOT / "lean"
                 )

@@ -19,7 +19,7 @@ established by the current CI badge.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate transfer/review/dispatch and evidence kernels, `lake build`, proof scan/audit, twenty Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate transfer/review/dispatch, evidence and TUI approval kernels, `lake build`, proof scan/audit, twenty-four Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A result or resulting transfer state differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -233,6 +233,41 @@ HTTP/TLS, compiler and OS remain explicit trust dependencies or unproved
 adapters. This narrows the executor boundary but does not establish complete
 outbound routing or R1 end to end.
 
+## Actual TUI approval input
+
+All three approval screens (processor, export and project contract) call
+[`approval::approves`](../crates/meden-cli/src/tui/approval.rs). The predicate
+accepts only a `Press` event for lowercase `y` with no modifier bits. Paste,
+repeat, release, Enter and other events return false.
+
+The [generated model](../lean/MedenSpec/Generated/Approval.lean) is extracted
+from the production CLI binary's real Crossterm event types, including the
+bitflags and character equality implementations. Unknown library functions
+cannot be substituted by assumptions: the extraction script rejects them.
+The generated files remain untouched. The export kernel's event type is
+named `ExportEvent` to avoid the pinned generator's anonymous-instance name
+collision with Crossterm's `Event` when importing both models.
+
+[`ApprovalRefinement.lean`](../lean/MedenSpec/ApprovalRefinement.lean) checks:
+
+| Audited theorem | Checked claim |
+| --- | --- |
+| `approves_refines` | The actual predicate terminates and equals the stated condition for every represented Crossterm event |
+| `paste_cannot_approve` | Any paste string returns false |
+| `modified_key_cannot_approve` | Any key with nonzero modifier bits returns false |
+| `nonpress_cannot_approve` | Repeat and release events return false |
+
+Four Rust mutations admit repeats, ignore modifiers, accept Enter or accept
+non-key events. Each must fail the native input assertions, compile as a
+fresh extracted model and fail the unchanged refinement proof. Native tests
+also enumerate all 256 modifier bit patterns. Real PTY tests exercise the
+contract review, pasted text and retained project proof artifact.
+
+This proves the predicate over decoded events. Terminal decoding, physical
+input provenance, screen routing, rendering and the I/O loop still require
+separate assurance; the theorem does not prove that arbitrary terminal bytes
+can never be decoded as a key or establish complete outbound confidentiality.
+
 ## Evidence completion: exact current subject and extracted traces
 
 [`evidence.rs`](../crates/meden-core/src/evidence.rs) is the third production
@@ -302,8 +337,8 @@ Eight additional actual Rust mutations disable producer checks, receipt
 freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
-refinement proof. Combined with transfer/review/dispatch checks, CI rejects twenty
-faults. Timeouts, exhausted proof resources, unknown identifiers and missing
+refinement proof. Combined with transfer/review/dispatch and TUI approval checks, CI rejects
+twenty-four faults. Timeouts, exhausted proof resources, unknown identifiers and missing
 modules do not count as semantic rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
 
@@ -347,7 +382,7 @@ Definitions and additional lemmas are in
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the fifty-two
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the fifty-six
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -457,7 +492,7 @@ On Nix, a private `uv` Python shadowing a public Python is skipped rather
 than binding the private cache into the sandbox. The attack test exposed
 this actual execution failure before the selection was corrected.
 
-These controller, parser, router and OS behaviors have tests; the fifty-two
+These controller, parser, router and OS behaviors have tests; the fifty-six
 Lean theorem entry points still cover their stated kernels. The shared
 session has no whole-controller refinement theorem yet.
 
@@ -584,7 +619,7 @@ failed. The conversation's `done` event is therefore not project-verification
 evidence. Setup, limits,
 failure behavior and OS/asset trust assumptions are documented in
 [local inference](local-inference.md). The launcher, protocol and OS boundary
-are not Lean-refined; they add no theorem roots to the fifty-two audited here.
+are not Lean-refined; they add no theorem roots to the fifty-six audited here.
 
 ## Tests of actual HTTP delivery
 

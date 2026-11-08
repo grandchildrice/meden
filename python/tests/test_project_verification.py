@@ -24,7 +24,10 @@ ALTERNATIVE = """pub struct LedgerState { pub debit: u64, pub credit: u64, pub s
 pub fn transfer(state: LedgerState, actor: u64, id: u64, amount: u64) -> LedgerState {
     if actor == 0 && id > state.sequence && amount != 0 && amount <= state.debit
         && amount <= u64::MAX - state.credit {
-        LedgerState { debit: state.debit - amount, credit: state.credit + amount, sequence: id }
+        LedgerState {
+            debit: state.debit.saturating_sub(amount),
+            credit: state.credit.saturating_add(amount), sequence: id
+        }
     } else { state }
 }
 """

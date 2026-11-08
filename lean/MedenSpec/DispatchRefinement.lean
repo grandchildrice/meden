@@ -7,7 +7,7 @@ returned request is the executor's input; its decoding and I/O are not proved
 by this module. -/
 namespace MedenSpec.DispatchRefinement
 open Aeneas Aeneas.Std Result ByteVectors
-open MedenImpl.export_control (State Outcome Origin Event)
+open MedenImpl.export_control (State Outcome Origin ExportEvent)
 open ExportControlRefinement (phase origin event)
 open TransferRefinement (request permit)
 set_option maxHeartbeats 4000000
@@ -46,7 +46,7 @@ theorem phase_refines (s : State) :
       ok (state s).phase := by
   simp [MedenImpl.export_control.State.impl.phase, state]
 
-theorem advance_refines (s : State) (o : Origin) (e : Event)
+theorem advance_refines (s : State) (o : Origin) (e : ExportEvent)
     (now expires : U64) (session : Slice U8) :
     (do let out ← MedenImpl.export_control.State.advance s o e now expires session
         ok (outcome out.1, state out.2)) =
@@ -61,7 +61,7 @@ theorem advance_refines (s : State) (o : Origin) (e : Event)
 
 structure Action where
   origin : Origin
-  event : Event
+  event : ExportEvent
   now : U64
   expires : U64
   session : Slice U8

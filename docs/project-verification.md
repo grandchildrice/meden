@@ -82,9 +82,11 @@ application or financial certification.
 2. Parse the untrusted source inside an offline worker. Accept only the
    declared struct/function API and a finite pure subset: local variables,
    `if`, `return`, record/field operations, comparisons, Boolean operations
-   and `u64` addition/subtraction. Attributes, macros, calls, loops, nested
-   items, unsafe code and conditional compilation are unsupported. This
-   syntax check is a boundary, not the correctness proof.
+   and `u64` addition/subtraction, including `saturating_add` and
+   `saturating_sub`. Imports, attributes, macros, free function calls, other
+   methods, loops, `match`/`if let`, nested items, unsafe code and conditional
+   compilation are unsupported. This syntax check is a boundary, not the
+   correctness proof.
 3. Create a fresh job with the exact source and Meden's fixed Cargo files,
    example tests, specification, proof harness and shell recipe. Ignore the
    project's Cargo configuration, `build.rs`, Lean files, cached `.olean`
@@ -187,9 +189,9 @@ job explicitly supplies the manifest and runs them.
 Its `meden-ledger-evidence` artifact retains both successful cases' actual
 source, native libraries, proof inputs and eight-root audit reports.
 
-The separate Meden control audit contains 52 roots, including the extracted
-acceptance getter now used by both interfaces. The eight ledger roots are
-checked afresh per candidate. Neither count proves the entire TUI, CLI,
+The separate Meden control audit contains 56 roots, including the extracted
+acceptance getter used by both interfaces and the actual TUI key predicate.
+The eight ledger roots are checked afresh per candidate. Neither count proves the entire TUI, CLI,
 protocol parser, origin attribution, job adapter or filesystem behavior.
 
 Trust dependencies include the accepted contract's meaning, trusted bundle

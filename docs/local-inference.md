@@ -54,7 +54,7 @@ remote fallback. CLI exit zero means protocol handling completed: inspect
 ## Supported scope and evidence
 
 The current launcher is Linux/CPU-only, uses a 16384-token context and fixes
-the alias `meden-local`. Model reasoning is capped at 512 tokens per response.
+the alias `meden-local`. Extended model reasoning is disabled in this CPU profile.
 Prompt processing and generation share the 300-second exchange limit;
 either can still time out. It does not expose GPU devices or arbitrary
 engine arguments. The executable must support `--host PATH.sock`, `--model`,

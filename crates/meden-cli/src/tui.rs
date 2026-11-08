@@ -27,6 +27,7 @@ use meden_runtime::workspace::Workspace;
 use ratatui::prelude::*;
 use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Wrap};
 
+mod approval;
 mod input;
 use input::Input;
 
@@ -167,7 +168,7 @@ impl App {
     }
     fn review_key(&mut self, key: crossterm::event::KeyEvent) {
         match key.code {
-            KeyCode::Char('y') if key.modifiers.is_empty() => self.approve_processor(),
+            _ if approval::approves(&event::Event::Key(key)) => self.approve_processor(),
             KeyCode::Char('n') | KeyCode::Esc => self.screen = Screen::Picking,
             _ => {}
         }
@@ -226,7 +227,7 @@ impl App {
             return;
         };
         let result = match key.code {
-            KeyCode::Char('y') if key.modifiers.is_empty() => {
+            _ if approval::approves(&event::Event::Key(key)) => {
                 self.exports.send(&reference).map(|(summary, code)| {
                     format!(
                         "Export #{}: {} · HTTP {:?} · {}",
@@ -291,7 +292,7 @@ impl App {
     }
     fn contract_key(&mut self, key: crossterm::event::KeyEvent) {
         match key.code {
-            KeyCode::Char('y') if key.modifiers.is_empty() => {
+            _ if approval::approves(&event::Event::Key(key)) => {
                 if self.project.accepted() {
                     self.screen = Screen::Instructing;
                     return;

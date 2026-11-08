@@ -102,7 +102,7 @@ impl Sandbox {
                 "--ctx-size",
                 "16384",
                 "--reasoning-budget",
-                "512",
+                "0",
             ],
             None,
             &[(&engine, "/local-engine"), (&model, "/model.gguf")],

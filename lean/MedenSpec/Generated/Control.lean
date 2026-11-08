@@ -51,17 +51,17 @@ inductive export_control.Origin where
 | Host : export_control.Origin
 | Transport : export_control.Origin
 
-/-- [meden_core::export_control::Event]
+/-- [meden_core::export_control::ExportEvent]
     Source: 'crates/meden-core/src/export_control.rs', lines 49:0-62:1
     Visibility: public -/
 @[discriminant isize]
-inductive export_control.Event where
-| Propose : export_control.Event
-| Review : export_control.Event
-| Reject : export_control.Event
-| Approve : export_control.Event
-| ResponseReceived : export_control.Event
-| DeliveryUncertain : export_control.Event
+inductive export_control.ExportEvent where
+| Propose : export_control.ExportEvent
+| Review : export_control.ExportEvent
+| Reject : export_control.ExportEvent
+| Approve : export_control.ExportEvent
+| ResponseReceived : export_control.ExportEvent
+| DeliveryUncertain : export_control.ExportEvent
 
 /-- [meden_core::export_control::Decision]
     Source: 'crates/meden-core/src/export_control.rs', lines 66:0-73:1
@@ -72,11 +72,11 @@ structure export_control.Decision where
   dispatch : Bool
 
 /-- [meden_core::export_control::step]:
-    Source: 'crates/meden-core/src/export_control.rs', lines 77:0-105:1
+    Source: 'crates/meden-core/src/export_control.rs', lines 77:0-109:1
     Visibility: public -/
 def export_control.step
   (phase : export_control.Phase) (origin : export_control.Origin)
-  (event : export_control.Event) :
+  (event : export_control.ExportEvent) :
   Result export_control.Decision
   := do
   match phase with
@@ -84,46 +84,46 @@ def export_control.step
     match origin with
     | export_control.Origin.Model =>
       match event with
-      | export_control.Event.Propose =>
+      | export_control.ExportEvent.Propose =>
         ok
           {
             phase := export_control.Phase.Pending,
             accepted := true,
             dispatch := false
           }
-      | export_control.Event.Review =>
+      | export_control.ExportEvent.Review =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.Reject =>
+      | export_control.ExportEvent.Reject =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.Approve =>
+      | export_control.ExportEvent.Approve =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.ResponseReceived =>
+      | export_control.ExportEvent.ResponseReceived =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.DeliveryUncertain =>
+      | export_control.ExportEvent.DeliveryUncertain =>
         ok { phase, accepted := false, dispatch := false }
     | export_control.Origin.Host =>
       match event with
-      | export_control.Event.Propose =>
+      | export_control.ExportEvent.Propose =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.Review =>
+      | export_control.ExportEvent.Review =>
         ok
           {
             phase := export_control.Phase.Reviewed,
             accepted := true,
             dispatch := false
           }
-      | export_control.Event.Reject =>
+      | export_control.ExportEvent.Reject =>
         ok
           {
             phase := export_control.Phase.Rejected,
             accepted := true,
             dispatch := false
           }
-      | export_control.Event.Approve =>
+      | export_control.ExportEvent.Approve =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.ResponseReceived =>
+      | export_control.ExportEvent.ResponseReceived =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.DeliveryUncertain =>
+      | export_control.ExportEvent.DeliveryUncertain =>
         ok { phase, accepted := false, dispatch := false }
     | export_control.Origin.Transport =>
       ok { phase, accepted := false, dispatch := false }
@@ -133,27 +133,27 @@ def export_control.step
       ok { phase, accepted := false, dispatch := false }
     | export_control.Origin.Host =>
       match event with
-      | export_control.Event.Propose =>
+      | export_control.ExportEvent.Propose =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.Review =>
+      | export_control.ExportEvent.Review =>
         ok { phase, accepted := true, dispatch := false }
-      | export_control.Event.Reject =>
+      | export_control.ExportEvent.Reject =>
         ok
           {
             phase := export_control.Phase.Rejected,
             accepted := true,
             dispatch := false
           }
-      | export_control.Event.Approve =>
+      | export_control.ExportEvent.Approve =>
         ok
           {
             phase := export_control.Phase.Attempted,
             accepted := true,
             dispatch := true
           }
-      | export_control.Event.ResponseReceived =>
+      | export_control.ExportEvent.ResponseReceived =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.DeliveryUncertain =>
+      | export_control.ExportEvent.DeliveryUncertain =>
         ok { phase, accepted := false, dispatch := false }
     | export_control.Origin.Transport =>
       ok { phase, accepted := false, dispatch := false }
@@ -163,17 +163,17 @@ def export_control.step
       ok { phase, accepted := false, dispatch := false }
     | export_control.Origin.Host =>
       match event with
-      | export_control.Event.Propose =>
+      | export_control.ExportEvent.Propose =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.Review =>
+      | export_control.ExportEvent.Review =>
         ok { phase, accepted := true, dispatch := false }
-      | export_control.Event.Reject =>
+      | export_control.ExportEvent.Reject =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.Approve =>
+      | export_control.ExportEvent.Approve =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.ResponseReceived =>
+      | export_control.ExportEvent.ResponseReceived =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.DeliveryUncertain =>
+      | export_control.ExportEvent.DeliveryUncertain =>
         ok { phase, accepted := false, dispatch := false }
     | export_control.Origin.Transport =>
       ok { phase, accepted := false, dispatch := false }
@@ -183,36 +183,36 @@ def export_control.step
       ok { phase, accepted := false, dispatch := false }
     | export_control.Origin.Host =>
       match event with
-      | export_control.Event.Propose =>
+      | export_control.ExportEvent.Propose =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.Review =>
+      | export_control.ExportEvent.Review =>
         ok { phase, accepted := true, dispatch := false }
-      | export_control.Event.Reject =>
+      | export_control.ExportEvent.Reject =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.Approve =>
+      | export_control.ExportEvent.Approve =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.ResponseReceived =>
+      | export_control.ExportEvent.ResponseReceived =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.DeliveryUncertain =>
+      | export_control.ExportEvent.DeliveryUncertain =>
         ok { phase, accepted := false, dispatch := false }
     | export_control.Origin.Transport =>
       match event with
-      | export_control.Event.Propose =>
+      | export_control.ExportEvent.Propose =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.Review =>
+      | export_control.ExportEvent.Review =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.Reject =>
+      | export_control.ExportEvent.Reject =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.Approve =>
+      | export_control.ExportEvent.Approve =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.ResponseReceived =>
+      | export_control.ExportEvent.ResponseReceived =>
         ok
           {
             phase := export_control.Phase.ResponseReceived,
             accepted := true,
             dispatch := false
           }
-      | export_control.Event.DeliveryUncertain =>
+      | export_control.ExportEvent.DeliveryUncertain =>
         ok
           {
             phase := export_control.Phase.DeliveryUncertain,
@@ -225,17 +225,17 @@ def export_control.step
       ok { phase, accepted := false, dispatch := false }
     | export_control.Origin.Host =>
       match event with
-      | export_control.Event.Propose =>
+      | export_control.ExportEvent.Propose =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.Review =>
+      | export_control.ExportEvent.Review =>
         ok { phase, accepted := true, dispatch := false }
-      | export_control.Event.Reject =>
+      | export_control.ExportEvent.Reject =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.Approve =>
+      | export_control.ExportEvent.Approve =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.ResponseReceived =>
+      | export_control.ExportEvent.ResponseReceived =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.DeliveryUncertain =>
+      | export_control.ExportEvent.DeliveryUncertain =>
         ok { phase, accepted := false, dispatch := false }
     | export_control.Origin.Transport =>
       ok { phase, accepted := false, dispatch := false }
@@ -245,17 +245,17 @@ def export_control.step
       ok { phase, accepted := false, dispatch := false }
     | export_control.Origin.Host =>
       match event with
-      | export_control.Event.Propose =>
+      | export_control.ExportEvent.Propose =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.Review =>
+      | export_control.ExportEvent.Review =>
         ok { phase, accepted := true, dispatch := false }
-      | export_control.Event.Reject =>
+      | export_control.ExportEvent.Reject =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.Approve =>
+      | export_control.ExportEvent.Approve =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.ResponseReceived =>
+      | export_control.ExportEvent.ResponseReceived =>
         ok { phase, accepted := false, dispatch := false }
-      | export_control.Event.DeliveryUncertain =>
+      | export_control.ExportEvent.DeliveryUncertain =>
         ok { phase, accepted := false, dispatch := false }
     | export_control.Origin.Transport =>
       ok { phase, accepted := false, dispatch := false }
@@ -269,35 +269,35 @@ structure transfer.Request where
   request : alloc.vec.Vec Std.U8
 
 /-- [meden_core::export_control::State]
-    Source: 'crates/meden-core/src/export_control.rs', lines 110:0-113:1
+    Source: 'crates/meden-core/src/export_control.rs', lines 114:0-117:1
     Visibility: public -/
 structure export_control.State where
   phase : export_control.Phase
   request : transfer.Request
 
 /-- [meden_core::export_control::Outcome]
-    Source: 'crates/meden-core/src/export_control.rs', lines 118:0-123:1
+    Source: 'crates/meden-core/src/export_control.rs', lines 122:0-127:1
     Visibility: public -/
 structure export_control.Outcome where
   accepted : Bool
   effect : Option transfer.Request
 
 /-- [meden_core::export_control::{meden_core::export_control::State}::new]:
-    Source: 'crates/meden-core/src/export_control.rs', lines 127:4-132:5
+    Source: 'crates/meden-core/src/export_control.rs', lines 131:4-136:5
     Visibility: public -/
 def export_control.State.new
   (request : transfer.Request) : Result export_control.State := do
   ok { phase := export_control.Phase.Pending, request }
 
 /-- [meden_core::export_control::{meden_core::export_control::State}::request]:
-    Source: 'crates/meden-core/src/export_control.rs', lines 135:4-137:5
+    Source: 'crates/meden-core/src/export_control.rs', lines 139:4-141:5
     Visibility: public -/
 def export_control.State.impl.request
   (self : export_control.State) : Result transfer.Request := do
   ok self.request
 
 /-- [meden_core::export_control::{meden_core::export_control::State}::phase]:
-    Source: 'crates/meden-core/src/export_control.rs', lines 140:4-142:5
+    Source: 'crates/meden-core/src/export_control.rs', lines 144:4-146:5
     Visibility: public -/
 def export_control.State.impl.phase
   (self : export_control.State) : Result export_control.Phase := do
@@ -376,11 +376,11 @@ def transfer.Request.Insts.CoreCloneClone.clone
   ok { session := v, recipient := v1, request := v2 }
 
 /-- [meden_core::export_control::{meden_core::export_control::State}::advance]:
-    Source: 'crates/meden-core/src/export_control.rs', lines 147:4-175:5
+    Source: 'crates/meden-core/src/export_control.rs', lines 151:4-179:5
     Visibility: public -/
 def export_control.State.advance
   (self : export_control.State) (origin : export_control.Origin)
-  (event : export_control.Event) (now : Std.U64) (expires : Std.U64)
+  (event : export_control.ExportEvent) (now : Std.U64) (expires : Std.U64)
   (session : Slice Std.U8) :
   Result (export_control.Outcome × export_control.State)
   := do

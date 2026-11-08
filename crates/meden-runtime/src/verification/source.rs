@@ -22,7 +22,7 @@ pub fn validate_ledger_source(source: &str) -> io::Result<()> {
     let file = syn::parse_file(source).map_err(|e| unsupported(&e.to_string()))?;
     if !file.attrs.is_empty() || file.items.len() != 2 {
         return Err(unsupported(
-            "expected only LedgerState and transfer, without attributes",
+            "expected only the LedgerState struct and transfer function; remove use/import statements, other items and attributes",
         ));
     }
     let mut structure = None;
@@ -96,11 +96,12 @@ pub fn validate_ledger_source(source: &str) -> io::Result<()> {
     let mut checker = Pure {
         valid: true,
         nodes: 0,
+        reason: "use finite if/return expressions, local variables, fields, comparisons and u64 addition/subtraction; attributes, calls, macros, loops and nested items are unsupported",
     };
     checker.visit_signature(signature);
     checker.visit_block(&f.block);
     if !checker.valid {
-        return Err(unsupported("use finite if/return expressions, local variables, fields, comparisons and u64 addition/subtraction; attributes, calls, macros, loops and nested items are unsupported"));
+        return Err(unsupported(checker.reason));
     }
     Ok(())
 }
@@ -112,6 +113,7 @@ fn unsupported(message: &str) -> io::Error {
 struct Pure {
     valid: bool,
     nodes: usize,
+    reason: &'static str,
 }
 
 impl<'ast> Visit<'ast> for Pure {
@@ -158,6 +160,23 @@ impl<'ast> Visit<'ast> for Pure {
                 }
                 Expr::Struct(e) => e.path.is_ident("LedgerState"),
                 Expr::Unary(e) => matches!(e.op, syn::UnOp::Not(_)),
+                Expr::MethodCall(e) => {
+                    let supported = (e.method == "saturating_add" || e.method == "saturating_sub")
+                        && e.args.len() == 1
+                        && e.turbofish.is_none();
+                    if !supported {
+                        self.reason = "only u64.saturating_add and u64.saturating_sub method calls are supported; checked_add, unwrap, unwrap_or and other methods are unsupported";
+                    }
+                    supported
+                }
+                Expr::Call(_) => {
+                    self.reason = "free function calls are unsupported; use the returned API, finite if/return expressions and u64 operations";
+                    false
+                }
+                Expr::Match(_) | Expr::Let(_) => {
+                    self.reason = "match and if-let patterns are unsupported; use finite Boolean conditions and early returns";
+                    false
+                }
                 _ => false,
             };
         if self.valid {
@@ -200,6 +219,24 @@ mod tests {
     #[test]
     fn candidate_cannot_change_its_meaning_between_extraction_and_delivery() {
         assert!(validate_ledger_source(SOURCE).is_ok());
+        let saturating = SOURCE
+            .replace(
+                "state.debit -= amount",
+                "state.debit = state.debit.saturating_sub(amount)",
+            )
+            .replace(
+                "state.credit += amount",
+                "state.credit = state.credit.saturating_add(amount)",
+            );
+        assert!(validate_ledger_source(&saturating).is_ok());
+        for method in ["checked_add", "wrapping_add", "rotate_left", "unwrap_or"] {
+            let candidate = SOURCE.replace(
+                "state.credit += amount",
+                &format!("state.credit = state.credit.{method}(amount)"),
+            );
+            assert!(validate_ledger_source(&candidate)
+                .is_err_and(|error| error.to_string().contains("only u64.saturating_add")));
+        }
         for extra in ["#[cfg(charon)]", "#[inline]", "#[path=\"other.rs\"]"] {
             assert!(validate_ledger_source(&format!("{extra}\n{SOURCE}")).is_err());
         }

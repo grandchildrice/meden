@@ -5,7 +5,7 @@ use std::io;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-use meden_core::export_control::{Event, Origin, Phase, State};
+use meden_core::export_control::{ExportEvent, Origin, Phase, State};
 use meden_core::transfer::Request;
 use serde::Deserialize;
 
@@ -108,15 +108,15 @@ impl Export {
 
     /// Mark inspection through the host channel, never a model tool.
     pub fn review_from_host(&self) -> io::Result<()> {
-        self.host_transition(Event::Review)
+        self.host_transition(ExportEvent::Review)
     }
 
     /// Decline through the host channel, without producing an effect.
     pub fn reject_from_host(&self) -> io::Result<()> {
-        self.host_transition(Event::Reject)
+        self.host_transition(ExportEvent::Reject)
     }
 
-    fn host_transition(&self, event: Event) -> io::Result<()> {
+    fn host_transition(&self, event: ExportEvent) -> io::Result<()> {
         let mut state = self
             .state
             .lock()
@@ -150,7 +150,7 @@ impl Export {
             state
                 .advance(
                     Origin::Host,
-                    Event::Approve,
+                    ExportEvent::Approve,
                     self.now()?,
                     expires,
                     current_session,
@@ -165,9 +165,9 @@ impl Export {
         };
         let sent = Self::dispatch(&effect);
         let event = if sent.is_ok() {
-            Event::ResponseReceived
+            ExportEvent::ResponseReceived
         } else {
-            Event::DeliveryUncertain
+            ExportEvent::DeliveryUncertain
         };
         let mut state = self
             .state
