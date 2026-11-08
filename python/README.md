@@ -2,7 +2,7 @@
 
 AgentDojo owns the environment and tool implementations. The Rust binary
 owns conversation, native tool calling and capability checks. The Python
-adapter connects them over JSON Lines. There is one Meden execution path;
+adapter connects them over JSON Lines. There is one Meden conversation engine;
 the isolated planner, flow-rule declarations and standalone gate hook were
 removed without compatibility aliases.
 
@@ -11,6 +11,11 @@ a hand-written agent. The replay test compares full HTTP conversations,
 including schemas, message ordering, argument serialization and tool output.
 Both agents use fifteen tool groups and the server's sampling defaults
 (AgentDojo omits temperature zero at the HTTP boundary).
+
+The model client makes one direct attempt per inference exchange; it does
+not follow redirects, use environment proxies or automatically resend an
+uncertain request. AgentDojo's baseline retains its own retry behavior.
+Request replay checks compare successful exchanges, not transport failures.
 
 ## Run
 
@@ -48,4 +53,8 @@ uv run python -m meden_agentdojo.tui_smoke --binary ../target/release/meden \
 The live-model check drives two real TUI turns: a bug fix, then a feature
 addition. It independently checks the original tests and added function,
 real file effects, successful agent-run tests and restored terminal settings.
+TUI edits remain in a retained private offline copy, with the original
+project unchanged. The independent checker uses `meden exec` in another
+offline copy. Linux, Bubblewrap, Bash and Python are required. The headless
+AgentDojo host tools remain outside this isolation boundary.
 Run it separately from benchmark measurements to preserve worker counts.

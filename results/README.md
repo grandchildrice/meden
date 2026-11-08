@@ -4,10 +4,10 @@ The isolated planner and its benchmark flags were removed after commit
 `e9a3e92`. Historical records/commands below describe those older binaries.
 Current `--agent meden` runs the single Rust conversation engine.
 
-## Current native benign utility
+## Recorded native benign utility
 
-The Rust conversational engine now reaches baseline-level benign utility
-in these measurements. Both agents use `minimax-m3` through
+The frozen Rust conversational engine reached baseline-level benign utility
+in these measurements. Both agents used `minimax-m3` through
 `hermes:ollama-cloud`, four workers, AgentDojo 0.1.35 / suite version `v1`,
 and the same 15 tool-execution iterations. The baseline is constructed by
 AgentDojo itself. HTTP replay tests compare the complete request sequence,
@@ -24,8 +24,8 @@ Banking native passes scored 13/16, 16/16 and 15/16; the baseline scored
 14/16 each time. The other suites extend coverage with one pass each;
 their individual differences do not establish statistical superiority.
 These are benign-task measurements, not prompt-injection defence results.
-Native mode enforces capabilities only. The isolated planner retains its
-integrity/disclosure rules and is measured separately below.
+That native binary enforced capabilities only. The retired isolated
+planner's integrity/disclosure rules were measured separately below.
 
 The frozen native binary has SHA-256 prefix `40a19b38c02c92cb`. Raw task
 records, exact conversations and execution settings are in:
@@ -36,6 +36,11 @@ records, exact conversations and execution settings are in:
 - [travel native](travel-native-v2.json), [travel baseline](travel-baseline-current.json)
 - [workspace native](workspace-native-v2.json),
   [workspace baseline](workspace-baseline-current.json)
+
+The current TUI/`exec` tools use private offline copies, and the current
+model client disables automatic retry, redirects and environment proxies.
+These historical scores were not rerun after those changes. The headless
+AgentDojo host-tool path still checks capabilities without confinement.
 
 For a reproducible comparison, build once and keep the binary fixed while
 running both agents. Repeat for `slack`, `travel` and `workspace`:
