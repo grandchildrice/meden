@@ -212,19 +212,34 @@ fn successful(output: &Output, operation: &str) -> io::Result<()> {
         return Err(io::Error::other(format!(
             "{operation} not verified ({:?}):\n{}\n{}",
             output.termination,
-            diagnostic_tail(&output.stdout),
-            diagnostic_tail(&output.stderr)
+            diagnostic_excerpt(&output.stdout),
+            diagnostic_excerpt(&output.stderr)
         )));
     }
     Ok(())
 }
 
-fn diagnostic_tail(text: &str) -> &str {
-    let mut start = text.len().saturating_sub(6_000);
-    while !text.is_char_boundary(start) {
-        start = start.saturating_add(1);
+fn diagnostic_excerpt(text: &str) -> String {
+    const OMITTED: &str = "\n… checker output omitted …\n";
+    const SIDE: usize = (6_000 - OMITTED.len()) / 2;
+    if text.len() <= 6_000 {
+        return text.to_owned();
     }
-    &text[start..]
+    // Preserve the native-test/phase prelude as well as the final failed goal
+    // and audit. A long proof failure must not hide how far checking reached.
+    let mut head = SIDE;
+    while !text.is_char_boundary(head) {
+        head = head.saturating_sub(1);
+    }
+    let mut tail = text.len().saturating_sub(SIDE);
+    while !text.is_char_boundary(tail) {
+        tail = tail.saturating_add(1);
+    }
+    format!(
+        "{}{OMITTED}{}",
+        text.get(..head).unwrap_or_default(),
+        text.get(tail..).unwrap_or_default()
+    )
 }
 
 fn read(path: &Path, maximum: u64) -> io::Result<Vec<u8>> {
@@ -280,6 +295,23 @@ fn audit(stdout: &str) -> io::Result<Vec<String>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn long_unicode_diagnostics_keep_phase_and_final_failure_within_budget() {
+        for padding in 0..4 {
+            let text = format!(
+                "meden-check: tests\ntest result: ok\n{}{}\nCheck.lean: failed\nsorryAx",
+                "x".repeat(padding),
+                "証明".repeat(2_000)
+            );
+            let excerpt = diagnostic_excerpt(&text);
+            assert!(excerpt.len() <= 6_000);
+            assert!(excerpt.starts_with("meden-check: tests\ntest result: ok\n"));
+            assert!(excerpt.ends_with("Check.lean: failed\nsorryAx"));
+            assert!(excerpt.contains("… checker output omitted …"));
+        }
+        assert_eq!(diagnostic_excerpt("short failure"), "short failure");
+    }
 
     #[test]
     fn incomplete_or_forged_axiom_audits_never_become_evidence() {

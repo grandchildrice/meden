@@ -105,6 +105,8 @@ application or financial certification.
    Native counterexamples name the accepted contract requirement and show
    its input, expected state and actual state. These examples guide repair;
    passing them does not establish the refinement theorem.
+   Long failure diagnostics retain both the test/phase prelude and the final
+   proof failure/audit, with an explicit omission marker and a fixed byte budget.
 5. Check [the fixed refinement proof](../verification/ledger/Check.lean).
    `LedgerProof.actual_refines` states that every represented Rust input
    returns successfully and its entire result equals the independent
