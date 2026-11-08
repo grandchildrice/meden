@@ -1,0 +1,53 @@
+{
+  "kind": "single-local-model-pilot",
+  "source_commit": "25d67e080ce92dfe730dea4bd70d0603052e5bda",
+  "worker_sha256": "4d4cbca5276f35dc4eb7237154fdc704d98f8b380f2d69caa402d5ca299633f3",
+  "model": {
+    "name": "Qwen3-14B Q4_K_M",
+    "repository": "Qwen/Qwen3-14B-GGUF",
+    "revision": "530227a7d994db8eca5ab5ced2fb692b614357fd",
+    "gguf_bytes": 9001752960,
+    "sha256": "500a8806e85ee9c83f3ae08420295592451379b4f8cf2d0f41c15dffeb6b81f0"
+  },
+  "execution": {
+    "platform": "Linux CPU",
+    "logical_cpus": 16,
+    "system_memory_gib": 31,
+    "engine": "llama.cpp 0.9.0 build 12110 (cd959ba)",
+    "context_tokens": 16384,
+    "reasoning_budget": 0,
+    "exchange_timeout_seconds": 300,
+    "sampling": "server defaults; seed not recorded",
+    "network": "confined offline; no HTTP fallback",
+    "concurrent_load": "Rust and Lean verification builds on the same workstation"
+  },
+  "instruction": "Build a formally verified local Rust ledger. Transfers must preserve total balance, cannot overdraw an account, reject unauthorized actors and overflow, and retries must not charge twice. Use the supported ledger contract, propose it for my review, then implement and independently prove the accepted contract. Keep data local.",
+  "method": "One natural-language request; the host harness reviewed/accepted only the exact fixed ledger contract. No solution implementation or human code repair was supplied. Ordinary tool results remained visible.",
+  "duration_seconds": 3996.368147172034,
+  "model_requests": 31,
+  "contract_accepted": true,
+  "host_review_decisions": 1,
+  "conversation_outcomes": [
+    "needs_review",
+    "failed"
+  ],
+  "terminal_error": "model unavailable: local inference exchange timed out after 300 seconds; no fallback",
+  "process_exit": 0,
+  "received_signal": null,
+  "host_cleanup": null,
+  "verified": false,
+  "artifact": null,
+  "edit_calls": 16,
+  "identical_replacement_attempts": 6,
+  "successful_file_edits": 10,
+  "observations": [
+    "Native contract examples rejected a credit-overflow panic from unchecked Option::unwrap.",
+    "Subsequent edits avoided the panic but still changed debit when overflowing credit should leave all state unchanged.",
+    "The first tool-group budget exhausted; the host obtained a fresh check and supplied another repair instruction.",
+    "The last inference exchange timed out after 300 seconds. No successful Lean project check or verified artifact was produced."
+  ],
+  "trace_sha256": "514c5ca8f6fe87fea37f0144594245f62b3661420e2aeb357969cc2e30146594",
+  "timing_sha256": "2434230b0540d798f2e0eea13ec71c6b623131ad65dfdbbd4fea4f0ef8efbf0d",
+  "host_actions_sha256": "297f5a622a4781c24e1017e115a0134bd103316a402ee0641154ac4a85780b80",
+  "limitations": "One failed trial, not a task-success rate or whole-system confidentiality result. Shared workstation load prevents isolated performance conclusions. This binary predates the new conversation-flow controller."
+}

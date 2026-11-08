@@ -6,7 +6,20 @@ The old AgentDojo host-tool bridge and benchmark adapter have also been
 removed. Current `meden run` uses the same private offline coding session
 as the TUI; commands below describe historical interfaces, not current ones.
 
-## Local ledger pilot
+## Local ledger pilots
+
+The [Qwen3-14B CPU trial at `25d67e0`](local-ledger-qwen3-14b-25d67e0.json)
+used the same natural-language task with the host checking/repair controller.
+It accepted the fixed contract, made 31 inference requests over about 66
+minutes and ended with a 300-second inference timeout. Native checks rejected
+an overflowing `unwrap` and subsequent incorrect rollback behavior. Six
+of sixteen edit calls requested identical replacements; ten edits changed
+the file, but no successful Lean project check or verified artifact resulted.
+The host obtained a fresh check and resumed repair after the first tool-group
+budget. This ran alongside verification builds on a shared workstation;
+it is not an isolated latency measurement. The record pins the executable,
+model, settings and local trace hashes. It predates the new conversation-flow
+controller. No implementation or human code repair was supplied.
 
 The [single Qwen3-8B CPU pilot at `80fbf44`](local-ledger-qwen3-8b-80fbf44.json)
 accepted the fixed ledger contract but ended `incomplete` after 17 model
@@ -17,7 +30,7 @@ checking/repair after the model tool budget; the trial predates those fixes.
 No solution implementation or human code repair was supplied to the model.
 The record identifies the source, executable and model hashes and commits
 to the retained local trace by hash; the full trace is not published here.
-One failed pilot is not an estimate of task-success rates. Scripted CI
+These failed pilots do not estimate task-success rates. Scripted CI
 proof/repair tests exercise the controller, not real model coding utility.
 
 ## Recorded native benign utility
