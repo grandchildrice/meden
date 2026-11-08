@@ -10,7 +10,7 @@ use anyhow::Result;
 use meden_agent::tool::{Args, Tool, ToolError, ToolSig};
 use meden_agent::Registry;
 use meden_core::{Capability, Grant, Policy, Requirement};
-use meden_llm::process::{self, Control, Limits, Termination};
+use meden_runtime::process::{self, Control, Limits, Termination};
 use serde_json::json;
 use serde_json::Value;
 

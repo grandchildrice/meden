@@ -16,3 +16,10 @@ open MedenSpec
 #print axioms Policy.deny_wins
 #print axioms Policy.grants_monotone
 #print axioms Policy.denies_antitone
+#print axioms Transfer.accepted_iff
+#print axioms Transfer.exact_request
+#print axioms Transfer.accepted_spends
+#print axioms Transfer.no_replay
+#print axioms Transfer.rejection_preserves
+#print axioms Transfer.no_changed_recipient
+#print axioms Transfer.no_changed_content

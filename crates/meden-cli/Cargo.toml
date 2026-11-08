@@ -16,6 +16,7 @@ path = "src/main.rs"
 meden-core = { path = "../meden-core", version = "0.1.0" }
 meden-agent = { path = "../meden-agent", version = "0.1.0" }
 meden-llm = { path = "../meden-llm", version = "0.1.0" }
+meden-runtime = { path = "../meden-runtime", version = "0.1.0" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 clap = { version = "4", features = ["derive"] }

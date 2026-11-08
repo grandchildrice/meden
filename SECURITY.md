@@ -11,8 +11,9 @@ the boundary. See [the design](docs/design.md).
 **This requirement is not implemented or verified today.** The current
 development TUI uses direct HTTP model clients and an optional unrestricted
 shell. It has no trusted outbound transfer broker, no enforced processor
-authorization and no OS-level coding runner. Its benign AgentDojo scores
-and the existing formal kernel checks do not establish this requirement.
+authorization and does not yet use the new OS-level coding runner. Its
+benign AgentDojo scores and the formal kernel checks do not establish this
+requirement.
 
 ## Existing implementation boundaries
 
@@ -34,10 +35,21 @@ reader, skill attestation subsystem and command-line model wrappers have
 been removed. Their historical information-flow claims do not apply to
 this conversational runtime.
 
-The retained `meden-core` capability/policy rules are specified in Lean,
-checked with bounded Kani harnesses, and compared with the Lean oracle on
-1,000 policy/glob cases. These checks cover those kernel rules only. They
-do not establish the planned runner isolation or outbound authorization.
+The retained `meden-core` capability/policy rules are specified in Lean
+and checked with six bounded Kani harnesses. The new exact-transfer kernel
+has seven Lean theorems for request matching, expiry and single use. Rust
+and the executable Lean oracle are compared on 5,000 policy, glob and
+transfer cases. These checks cover decision rules; they do not establish
+that every real outbound effect passes through those rules.
+
+`meden-runtime` now provides a standalone Linux Bubblewrap runner. Its
+integration test uses real subprocesses, a host-only file and a live host
+TCP receiver. It checks offline execution and workspace editing, but the
+production file tools and optional shell are not yet confined by it. An
+immutable transfer broker, model-processor authorization and complete
+effect mediation remain unimplemented. See
+[verification scope](docs/verification.md) for the precise proof and test
+boundaries.
 
 ## Reporting
 

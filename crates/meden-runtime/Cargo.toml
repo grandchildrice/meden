@@ -1,0 +1,18 @@
+[package]
+name = "meden-runtime"
+description = "Host-owned execution and outbound effects for Meden"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+tempfile = "3"
+
+[target.'cfg(unix)'.dependencies]
+nix = { version = "0.31", features = ["signal", "process"] }
+
+[lints]
+workspace = true

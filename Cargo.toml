@@ -4,6 +4,7 @@ members = [
     "crates/meden-core",
     "crates/meden-agent",
     "crates/meden-llm",
+    "crates/meden-runtime",
     "crates/meden-cli",
 ]
 

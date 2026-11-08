@@ -1,0 +1,90 @@
+//! Exact, single-use outbound authorization, modelled in
+//! `lean/MedenSpec/Transfer.lean`. This is a decision kernel, not a network
+//! boundary: the host must control permit creation and mediate every send.
+
+use serde::{Deserialize, Serialize};
+
+/// Identity of one immutable prepared outbound operation.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Request {
+    /// Host-created session identity.
+    pub session: String,
+    /// Effective destination/audience, assigned by the host adapter.
+    pub recipient: String,
+    /// Canonical complete request, including the exact payload.
+    pub request: String,
+}
+
+/// Host-issued permission for one exact request before an exclusive deadline.
+/// This type must never be deserialized from model/tool output as authority.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Permit {
+    /// Exact prepared operation approved by the host/user.
+    pub request: Request,
+    /// Exclusive deadline in the host session's monotonic time domain.
+    pub expires: u64,
+    /// Reservation is permanent, even if network delivery later fails.
+    pub spent: bool,
+}
+
+/// Check all authorization conditions without changing state.
+pub fn allowed(now: u64, session: &str, permit: &Permit, request: &Request) -> bool {
+    request.session == session
+        && permit.request == *request
+        && now < permit.expires
+        && !permit.spent
+}
+
+/// Atomically reserve under the caller's lock, before any external effect.
+/// The returned permission is valid only for the supplied immutable request.
+pub fn reserve(now: u64, session: &str, permit: &mut Permit, request: &Request) -> bool {
+    let accepted = allowed(now, session, permit, request);
+    permit.spent |= accepted;
+    accepted
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn request() -> Request {
+        Request {
+            session: "session-a".into(),
+            recipient: "recipient-a".into(),
+            request: "exact bytes".into(),
+        }
+    }
+
+    #[test]
+    fn changing_session_recipient_or_payload_cannot_spend_a_permit() {
+        let expected = request();
+        let permit = Permit {
+            request: expected.clone(),
+            expires: 10,
+            spent: false,
+        };
+        for changed in [
+            Request {
+                session: "other-session".into(),
+                ..expected.clone()
+            },
+            Request {
+                recipient: "other-recipient".into(),
+                ..expected.clone()
+            },
+            Request {
+                request: "encoded secret or different bytes".into(),
+                ..expected.clone()
+            },
+        ] {
+            let mut state = permit.clone();
+            assert!(!reserve(0, "session-a", &mut state, &changed));
+            assert_eq!(state, permit);
+        }
+        let mut state = permit.clone();
+        assert!(!reserve(10, "session-a", &mut state, &expected));
+        assert_eq!(state, permit);
+        assert!(reserve(9, "session-a", &mut state, &expected));
+        assert!(!reserve(0, "session-a", &mut state, &expected));
+    }
+}

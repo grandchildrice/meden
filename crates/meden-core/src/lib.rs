@@ -16,6 +16,7 @@
 pub mod capability;
 pub mod glob;
 pub mod policy;
+pub mod transfer;
 
 #[cfg(kani)]
 mod kani_harness;

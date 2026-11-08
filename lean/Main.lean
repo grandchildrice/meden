@@ -38,9 +38,20 @@ structure GlobCase where
   text : String
   deriving FromJson
 
+deriving instance FromJson, ToJson for Transfer.Request
+deriving instance FromJson, ToJson for Transfer.Permit
+
+structure TransferCase where
+  now : Nat
+  session : String
+  permit : Transfer.Permit
+  request : Transfer.Request
+  deriving FromJson
+
 structure Input where
   policy_cases : List PolicyCase := []
   glob_cases : List GlobCase := []
+  transfer_cases : List TransferCase := []
   deriving FromJson
 
 def JPolicy.toPolicy (p : JPolicy) : Policy :=
@@ -53,6 +64,10 @@ def runPolicy (c : PolicyCase) : Bool :=
 
 def runGlob (c : GlobCase) : Bool :=
   globMatch c.pattern.toList c.text.toList
+
+def runTransfer (c : TransferCase) : Json :=
+  let (permit, accepted) := Transfer.reserve c.now c.session c.permit c.request
+  Json.mkObj [("accepted", toJson accepted), ("permit", toJson permit)]
 
 partial def readAll (s : IO.FS.Stream) (acc : String) : IO String := do
   let line ← s.getLine
@@ -68,6 +83,7 @@ def main : IO UInt32 := do
   | .ok input =>
     let out : Json := Json.mkObj
       [ ("policy", toJson (input.policy_cases.map runPolicy))
-      , ("glob", toJson (input.glob_cases.map runGlob)) ]
+      , ("glob", toJson (input.glob_cases.map runGlob))
+      , ("transfer", toJson (input.transfer_cases.map runTransfer)) ]
     IO.println out.compress
     return 0

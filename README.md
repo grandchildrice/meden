@@ -1,111 +1,140 @@
-# Meden
+<p align="center">
+  <img src="docs/assets/tui.png" alt="MEDEN running in a real terminal" width="1080" />
+</p>
 
-A conversational coding agent that reads files, external documentation and
-tool results to decide what to do next.
+<h1 align="center">MEDEN</h1>
+<p align="center">A native Rust coding agent. Read. Edit. Build. Test.</p>
 
-The first security requirement is:
+<p align="center">
+  <a href="https://github.com/grandchildrice/meden/actions/workflows/ci.yml"><img src="https://github.com/grandchildrice/meden/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="docs/verification.md"><img src="https://img.shields.io/badge/Lean_4-4.31.0-5f7dbd" alt="Lean 4.31.0 specifications" /></a>
+  <a href="Cargo.toml"><img src="https://img.shields.io/badge/Rust-2021-dea584?logo=rust&amp;logoColor=white" alt="Rust 2021" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-68dadb" alt="Apache 2.0" /></a>
+</p>
+
+<p align="center">
+  <a href="#getting-started">Getting started</a> ·
+  <a href="docs/design.md">Design</a> ·
+  <a href="docs/verification.md">Formal verification</a> ·
+  <a href="results/README.md">Benchmarks</a>
+</p>
+
+Meden works on real files, runs tools and keeps the conversation across
+instructions. Its core is a small native tool-calling loop with host-owned
+tool implementations. It connects to OpenAI-compatible model APIs and can
+reuse model configuration from Hermes.
+
+- **Workspace tools:** list/read files, write files and make exact edits.
+- **Terminal workflow:** multiline Unicode input, history, scrolling,
+  cancellation and `/clear`.
+- **Model choice:** local or hosted OpenAI-compatible HTTP endpoints.
+- **Explicit boundaries:** Lean specifications for capability decisions and
+  exact, single-use outbound authorization, checked in CI.
+
+> Development prototype. The outbound confidentiality requirement is still
+> being implemented. The current optional Bash tool has host filesystem and
+> network permissions. Formal kernel checks do not establish end-to-end
+> confidentiality; see [verification scope](docs/verification.md) and
+> [security limits](SECURITY.md).
+
+## Getting started
+
+Build from source with Rust:
+
+```bash
+cargo build --release -p meden-cli
+./target/release/meden tui --workspace /path/to/project
+```
+
+Select a configured connection explicitly:
+
+```bash
+./target/release/meden providers
+./target/release/meden tui --workspace /path/to/project \
+  --provider hermes:ollama-cloud --model minimax-m3
+```
+
+For another OpenAI-compatible endpoint, set `MEDEN_LLM_BASE_URL`,
+`MEDEN_LLM_MODEL` and, when required, `MEDEN_LLM_API_KEY`. For example:
+
+```bash
+export MEDEN_LLM_BASE_URL=http://localhost:11434/v1
+export MEDEN_LLM_MODEL=your-model
+./target/release/meden tui --workspace . --provider configured
+```
+
+Add `--allow-shell` to enable the current development Bash tool for builds
+and tests. Shell execution is off by default; this switch currently grants
+the account's process permissions, not the new isolated runner.
+
+### Controls
+
+| Key | Action |
+| --- | --- |
+| Enter / Alt-Enter | Send / insert a newline |
+| Arrows, Home, End | Edit input; Up/Down recall single-line history or move between lines |
+| Ctrl-U | Clear input |
+| PgUp / PgDn | Scroll the conversation |
+| Tab | Model picker |
+| Esc / Ctrl-C while running | Request cancellation; Ctrl-C again exits |
+| `/clear` | Start a fresh conversation, retaining files |
+
+## Security by explicit contracts
+
+The first requirement is:
 
 > Reading an external page must not enable the agent to send confidential
 > files to an unapproved recipient.
 
-The [coding agent design](docs/design.md) defines the requirement, trusted
-components, outbound authorization, implementation work and acceptance
-criteria. The target uses one conversation architecture. The isolated
-planner, quarantined reader and their product entry points have been removed.
+The agent can read tool results normally. The target boundary consists of
+an isolated coding runner, a fixed model gateway, a local page cache and
+host-approved outbound transfers. It does not use an isolated planner or
+ask a model to decide whether its own action is authorized.
 
-**Status: development prototype. The confidentiality requirement is not yet
-implemented.** The current TUI can edit files and run commands, but its
-optional Bash tool has the current account's filesystem and network access.
-Capability checks and workspace path checks do not establish the new
-requirement. See [SECURITY.md](SECURITY.md).
+The exact-transfer decision kernel now has seven Lean theorems, including
+full-request matching and no replay after reservation. A standalone Linux
+runner is tested against real connection and host-file attempts. Connecting
+these components to every production effect remains work in progress.
 
-## Run the current TUI
+[Design and acceptance criteria →](docs/design.md) ·
+[CI checks, theorem statements and proof limits →](docs/verification.md)
 
-```bash
-cargo build --release -p meden-cli
-target/release/meden tui --workspace /path/to/project
-# Explicit provider/model, using the configuration discovered from Hermes:
-target/release/meden tui --workspace /path/to/project \
-  --provider hermes:ollama-cloud --model minimax-m3
-# Enable the current unrestricted development shell when needed:
-target/release/meden tui --workspace /path/to/project --allow-shell
-```
+## Benchmarks
 
-The TUI has real directory listing, UTF-8 file reading, file writing and
-exact text replacement tools. It retains conversation across instructions.
-Shell execution is off by default and is not an OS sandbox when enabled.
+Recorded AgentDojo benign utility with `minimax-m3`, four workers:
 
-Enter sends, Alt-Enter inserts a newline, arrow keys and Home/End edit the
-instruction, and Ctrl-U clears input. Up/Down recall previous instructions
-in single-line input and move between lines in multiline input. Japanese
-and emoji are handled at grapheme boundaries, and the input follows the
-cursor. `/clear` starts a fresh conversation while retaining workspace
-files. PgUp/PgDn scroll the transcript. Esc or Ctrl-C requests cancellation;
-running commands are stopped, while a current model request may finish.
-Ctrl-C again exits.
-
-The TUI currently supports OpenAI-compatible HTTP model providers. Hermes
-configuration discovery is a convenience; the future design additionally
-requires authorization before sending confidential context to a provider.
-There is no web-reading tool or outbound transfer broker in the current TUI.
-
-## Target architecture
-
-The conversation engine proposes tool calls. The host executes them through
-an isolated coding runner, a local external-page cache, an authorized model
-gateway and an outbound transfer broker. Shell commands and tests have no
-independent network path. Transfer authorization belongs to the user/host;
-a page or model cannot grant it. External requests, model context, remote
-tools, uploads and diagnostic services are all relevant outbound channels.
-
-These boundaries are planned. The current `--allow-shell` implementation
-and direct HTTP clients must be migrated before the requirement can be
-claimed. Existing Lean/Kani checks cover their specified kernel rules, not
-this future end-to-end architecture.
-
-## Code layout
-
-| Path | Current responsibility |
-| --- | --- |
-| `crates/meden-agent` | Conversation loop, JSON tool API and registry |
-| `crates/meden-cli` | TUI, input editor, workspace tools, development shell and JSON Lines host protocol |
-| `crates/meden-llm` | Model clients, provider discovery including Hermes configuration, and managed process lifecycle |
-| `crates/meden-core` | Capability/policy kernel used by tool dispatch |
-| `python/` | AgentDojo adapters, measurement runner and real PTY/live-model TUI checks |
-| `lean/` | Formal policy/glob specifications and the conformance oracle |
-| `docs/design.md` | Current coding agent design and acceptance requirements |
-| `results/` | Recorded measurements with their configuration and limitations |
-
-The CLI has three commands: `tui`, `providers` and `run`. `run` is a single
-conversational JSON Lines interface for hosts such as the AgentDojo adapter.
-There are no plan modes, CLI model wrappers, skill admission, attestations
-or compatibility aliases. Tool arguments/results use JSON directly.
-
-## Measured utility
-
-Same model (`minimax-m3`) and four workers:
-
-| AgentDojo suite | Meden conversation engine | AgentDojo baseline | Passes per agent |
+| Suite | Meden | AgentDojo baseline | Passes |
 | --- | --- | --- | --- |
 | banking | 44/48 | 42/48 | 3 |
 | Slack | 18/21 | 18/21 | 1 |
 | travel | 14/20 | 12/20 | 1 |
 | workspace | 33/40 | 31/40 | 1 |
 
-These are benign-task results for the existing conversational runtime.
-They do not establish the new confidentiality requirement, injection
-resistance or the utility of the planned isolated coding runner. A live
-model also completed a code repair and feature addition across two TUI
-turns, with independent passing tests and restored terminal settings.
-See [raw evidence and comparison settings](results/README.md).
+These measure the recorded conversational runtime, not the future complete
+confidentiality boundary. The HTTP replay test checks request/effect parity
+with AgentDojo. Live-model TUI checks independently test code changes across
+two turns. [Raw records and settings →](results/README.md)
 
 ## Development
 
-Build, verification and contribution rules are in
-[CONTRIBUTING.md](CONTRIBUTING.md). Work takes place directly on `main`.
-The retired implementation remains available in Git history; measured
-historical reports are preserved with their original configuration.
+| Package | Responsibility |
+| --- | --- |
+| `meden-agent` | Conversation, native tool calls and tool interfaces |
+| `meden-core` | Capability policy and exact-transfer decision kernels |
+| `meden-llm` | HTTP model clients and connection discovery |
+| `meden-runtime` | Host execution, process lifecycle and offline Linux isolation |
+| `meden-cli` | TUI and JSON Lines host interface |
+| `lean/` | Formal specifications, axiom audit and executable oracle |
+| `python/` | AgentDojo adapters and PTY/live-model checks |
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local checks. Maintainer work
+happens directly on `main`; small, loosely coupled implementations take
+priority over backward compatibility.
+
+The hero image is captured from the running TUI, not a mockup. The
+[PTY capture script](tools/capture-tui.py) records actual terminal cells;
+font and terminal dimensions are explicit for reproducibility.
 
 ## License
 
-Apache-2.0.
+[Apache-2.0](LICENSE).

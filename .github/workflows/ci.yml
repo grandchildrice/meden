@@ -28,6 +28,8 @@ jobs:
           toolchain: 1.98.1
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
+      - name: Install Linux isolation backend
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap
       - run: cargo fmt --all --check
       - run: cargo clippy --workspace --all-targets --all-features -- -D warnings
       - run: cargo test --workspace --all-features
@@ -74,10 +76,10 @@ jobs:
           lake-package-directory: lean
           use-mathlib-cache: false
           test: false
-      - name: forbid sorry
+      - name: Forbid unfinished proofs and project axioms
         run: |
-          if grep -rn --include='*.lean' -E '\bsorry\b' lean/MedenSpec lean/MedenSpec.lean lean/Main.lean; then
-            echo "sorry found"; exit 1; fi
+          if grep -rn --include='*.lean' -E '\b(sorry|admit|axiom)\b' lean/MedenSpec lean/MedenSpec.lean lean/Main.lean; then
+            echo "unfinished proof or project axiom found"; exit 1; fi
       - name: audit axioms
         working-directory: lean
         run: |
@@ -106,7 +108,7 @@ jobs:
       # itself, so AgentDojo has to be here.
       - run: uv sync --group dev --extra agentdojo
         working-directory: python
-      - run: uv run ruff check .
+      - run: uv run ruff check . ../tools
         working-directory: python
       - run: uv run pytest -q
         working-directory: python

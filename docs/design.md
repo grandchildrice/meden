@@ -277,7 +277,7 @@ new measurements with the recorded baseline under documented settings.
 | `meden-agent::conversation` | Retain the native conversation engine; place effects behind host-owned interfaces |
 | `meden-cli::tui` and its input editor | Retain interaction/history; add trusted transfer review and session processor authorization |
 | `meden-cli::workspace` | Retarget to the managed workspace; test confinement across all file/shell paths |
-| `meden-cli::shell` / `meden-llm::process` | Keep lifecycle/output controls; replace unrestricted host execution with a tested isolation backend |
+| `meden-cli::shell` / `meden-runtime::process` | Keep lifecycle/output controls; connect the standalone isolation backend to all execution |
 | `meden-llm` HTTP model calls | Route through a fixed, authorized processor configuration; cover retries and redirects |
 | Network integrations | Add immutable request/artifact preparation and a host-owned transfer broker before exposure |
 | `meden-core` policy functions | Reuse narrowly if they fit; recipient authorization is richer than a capability/domain grant |
@@ -292,6 +292,7 @@ Implementation order:
    full page -> model -> malicious tool/shell scenario with no export grant.
 3. Add immutable export preparation, trusted review, destination adapters
    and one-use authorization. Test authorized success as well as bypasses.
+
 The legacy planner CLI/product paths and dedicated benchmark paths have
 already been deleted. The CLI and benchmark now use one conversation
 architecture. Historical reports and retained kernel tests are explicitly
@@ -301,6 +302,12 @@ Do not advertise R1 at an intermediate step where a bypassing execution or
 network path remains. Today's `--allow-shell` is an unrestricted development
 feature, not the runner described here. Runtime behavior is unchanged by
 this design document.
+
+The first components are now present: a standalone offline Linux runner
+and an exact-transfer decision kernel with seven Lean theorems. Neither is
+yet connected to every production effect. The current proof, conformance
+and real-process test scopes are documented in
+[verification.md](verification.md).
 
 ## Implementation references
 

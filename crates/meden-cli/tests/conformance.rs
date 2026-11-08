@@ -23,6 +23,7 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 use meden_core::glob::glob_match;
+use meden_core::transfer::{self, Permit, Request};
 use meden_core::{check, Capability, Grant, Policy, Requirement};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -84,11 +85,26 @@ struct GlobCase {
 struct Input {
     policy_cases: Vec<PolicyCase>,
     glob_cases: Vec<GlobCase>,
+    transfer_cases: Vec<TransferCase>,
+}
+
+#[derive(Serialize)]
+struct TransferCase {
+    now: u64,
+    session: String,
+    permit: Permit,
+    request: Request,
+}
+#[derive(Deserialize)]
+struct TransferResult {
+    accepted: bool,
+    permit: Permit,
 }
 #[derive(Deserialize)]
 struct Output {
     policy: Vec<bool>,
     glob: Vec<bool>,
+    transfer: Vec<TransferResult>,
 }
 
 fn oracle_path() -> Option<PathBuf> {
@@ -142,9 +158,48 @@ fn rust_agrees_with_lean_oracle() {
             text: rng.string(&scope_alpha, 7),
         })
         .collect();
+    let transfer_cases = (0..4000)
+        .map(|_| {
+            let request = Request {
+                session: "session-a".into(),
+                recipient: "recipient-a".into(),
+                request: format!("日本語🙂\\u0000-{}", rng.next()),
+            };
+            let mut proposed = request.clone();
+            match rng.below(4) {
+                0 => proposed.session = "different-session".into(),
+                1 => proposed.recipient = "different-recipient".into(),
+                2 => proposed.request.push('x'),
+                _ => {}
+            }
+            let expires = rng.next();
+            let now = match rng.below(4) {
+                0 => expires,
+                1 => expires.saturating_sub(1),
+                2 => u64::MAX,
+                _ => rng.next(),
+            };
+            TransferCase {
+                now,
+                session: if rng.chance(1, 5) {
+                    "different-session"
+                } else {
+                    "session-a"
+                }
+                .into(),
+                permit: Permit {
+                    request,
+                    expires,
+                    spent: rng.chance(1, 4),
+                },
+                request: proposed,
+            }
+        })
+        .collect();
     let input = Input {
         policy_cases,
         glob_cases,
+        transfer_cases,
     };
     let mut child = Command::new(&bin)
         .stdin(Stdio::piped())
@@ -176,5 +231,12 @@ fn rust_agrees_with_lean_oracle() {
             c.pattern,
             c.text
         );
+    }
+    assert_eq!(output.transfer.len(), input.transfer_cases.len());
+    for (case, expected) in input.transfer_cases.iter().zip(output.transfer) {
+        let mut permit = case.permit.clone();
+        let accepted = transfer::reserve(case.now, &case.session, &mut permit, &case.request);
+        assert_eq!(accepted, expected.accepted);
+        assert_eq!(permit, expected.permit);
     }
 }

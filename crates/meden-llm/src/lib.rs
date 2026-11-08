@@ -2,7 +2,6 @@
 #![forbid(unsafe_code)]
 pub mod hermes;
 pub mod openai;
-pub mod process;
 pub mod provider;
 pub use provider::{detect, Provider};
 /// Explicit model endpoint base URL.

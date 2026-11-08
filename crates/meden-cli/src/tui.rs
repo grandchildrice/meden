@@ -19,8 +19,8 @@ use crossterm::terminal::{
 };
 use crossterm::ExecutableCommand;
 use meden_agent::conversation::{self, Conversation, Event, Status};
-use meden_llm::process::Control;
 use meden_llm::Provider;
+use meden_runtime::process::Control;
 use ratatui::prelude::*;
 use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Wrap};
 
@@ -460,6 +460,7 @@ where
 }
 
 fn draw(frame: &mut Frame<'_>, app: &App) {
+    frame.render_widget(Block::default().bg(Color::Rgb(12, 18, 30)), frame.area());
     let areas = Layout::vertical([
         Constraint::Length(3),
         Constraint::Min(3),
@@ -472,7 +473,7 @@ fn draw(frame: &mut Frame<'_>, app: &App) {
     let model = app.selected().map_or("no model", |p| p.model.as_str());
     frame.render_widget(
         Paragraph::new(visible(&format!(
-            "meden · native / capability policy · shell:{} · {model} · {}",
+            "MEDEN · workspace agent · shell:{} · {model} · {}",
             if app.allow_shell {
                 "on (full process access)"
             } else {
@@ -480,9 +481,16 @@ fn draw(frame: &mut Frame<'_>, app: &App) {
             },
             app.root.display()
         )))
-        .block(Block::bordered()),
+        .style(Style::new().fg(Color::Rgb(104, 218, 219)))
+        .block(Block::bordered().border_style(Style::new().fg(Color::Rgb(53, 75, 96)))),
         top,
     );
+    let welcome = app.screen == Screen::Picking || app.lines.is_empty();
+    let middle = if welcome && middle.width >= 72 && middle.height >= 15 {
+        draw_welcome(frame, middle)
+    } else {
+        middle
+    };
     if app.screen == Screen::Picking {
         let items: Vec<_> = app
             .providers
@@ -539,6 +547,28 @@ fn draw(frame: &mut Frame<'_>, app: &App) {
             .block(Block::default().borders(Borders::ALL).title(title)),
         bottom,
     );
+}
+
+fn draw_welcome(frame: &mut Frame<'_>, middle: Rect) -> Rect {
+    let welcome_areas =
+        Layout::vertical([Constraint::Length(10), Constraint::Min(3)]).split(middle);
+    let logo = vec![
+        Line::from("███╗   ███╗███████╗██████╗ ███████╗███╗   ██╗"),
+        Line::from("████╗ ████║██╔════╝██╔══██╗██╔════╝████╗  ██║"),
+        Line::from("██╔████╔██║█████╗  ██║  ██║█████╗  ██╔██╗ ██║"),
+        Line::from("██║╚██╔╝██║██╔══╝  ██║  ██║██╔══╝  ██║╚██╗██║"),
+        Line::from("██║ ╚═╝ ██║███████╗██████╔╝███████╗██║ ╚████║"),
+        Line::from("╚═╝     ╚═╝╚══════╝╚═════╝ ╚══════╝╚═╝  ╚═══╝"),
+        Line::from(""),
+        Line::from("Read. Edit. Build. Test."),
+    ];
+    frame.render_widget(
+        Paragraph::new(logo)
+            .centered()
+            .style(Style::new().fg(Color::Rgb(104, 218, 219))),
+        welcome_areas.first().copied().unwrap_or_default(),
+    );
+    welcome_areas.get(1).copied().unwrap_or(middle)
 }
 
 fn draw_input(frame: &mut Frame<'_>, input: &Input, bottom: Rect) {

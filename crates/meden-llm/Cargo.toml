@@ -14,10 +14,9 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 ureq = { version = "3", default-features = false, features = ["rustls", "json"] }
 yaml-rust2 = { version = "0.13", default-features = false }
-tempfile = "3"
 
-[target.'cfg(unix)'.dependencies]
-nix = { version = "0.31", features = ["signal", "process"] }
+[dev-dependencies]
+tempfile = "3"
 
 [lints]
 workspace = true

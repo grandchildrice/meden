@@ -1046,6 +1046,7 @@ dependencies = [
  "meden-agent",
  "meden-core",
  "meden-llm",
+ "meden-runtime",
  "ratatui",
  "serde",
  "serde_json",
@@ -1069,12 +1070,19 @@ name = "meden-llm"
 version = "0.1.0"
 dependencies = [
  "meden-agent",
- "nix 0.31.3",
  "serde",
  "serde_json",
  "tempfile",
  "ureq",
  "yaml-rust2",
+]
+
+[[package]]
+name = "meden-runtime"
+version = "0.1.0"
+dependencies = [
+ "nix 0.31.3",
+ "tempfile",
 ]
 
 [[package]]
