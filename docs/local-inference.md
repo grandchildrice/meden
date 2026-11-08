@@ -54,10 +54,13 @@ remote fallback. CLI exit zero means protocol handling completed: inspect
 ## Supported scope and evidence
 
 The current launcher is Linux/CPU-only, uses a 16384-token context and fixes
-the alias `meden-local`. It does not expose GPU devices or arbitrary engine
-arguments. The executable must support `--host PATH.sock`, `--model`,
+the alias `meden-local`. Model reasoning is capped at 512 tokens per response.
+Prompt processing and generation share the 300-second exchange limit;
+either can still time out. It does not expose GPU devices or arbitrary
+engine arguments. The executable must support `--host PATH.sock`, `--model`,
 `--offline`, `--no-webui`, `--no-ui-mcp-proxy`, `--jinja`, `--n-gpu-layers`,
-`--alias` and `--ctx-size`. This was exercised with llama.cpp 0.9.0, build
+`--alias`, `--ctx-size` and `--reasoning-budget`. This was exercised with
+llama.cpp 0.9.0, build
 12110 (`cd959ba`), and a prepared Qwen3-0.6B Q4_K_M GGUF. A real model returned
 a greeting through `meden run`; that smoke check is not a coding benchmark.
 The [smoke model artifact](https://huggingface.co/bartowski/Qwen_Qwen3-0.6B-GGUF/blob/60b85c0e3d8fe0f6474f406922a26d12aca4550d/Qwen_Qwen3-0.6B-Q4_K_M.gguf)

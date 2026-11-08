@@ -145,7 +145,12 @@ impl ChatModel for Local {
                     .post("http://meden.local/v1/chat/completions")
                     .header("content-type", "application/json")
                     .send(bytes.as_slice())
-                    .map_err(|_| failed("local inference exchange failed; no fallback"))?;
+                    .map_err(|error| match error {
+                        ureq::Error::Timeout(_) => failed(
+                            "local inference exchange timed out after 300 seconds; no fallback",
+                        ),
+                        _ => failed("local inference exchange failed; no fallback"),
+                    })?;
                 if !response.status().is_success() {
                     return Err(failed("local inference returned an error"));
                 }

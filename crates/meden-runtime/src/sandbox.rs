@@ -101,6 +101,8 @@ impl Sandbox {
                 "meden-local",
                 "--ctx-size",
                 "16384",
+                "--reasoning-budget",
+                "512",
             ],
             None,
             &[(&engine, "/local-engine"), (&model, "/model.gguf")],
