@@ -32,14 +32,14 @@ GROUPS = [
                 "!receipt.active\n            || origin != EvidenceOrigin::Checker",
                 "!receipt.active\n            || (origin != EvidenceOrigin::Checker && false)",
             ),
-            ("cancelled_evidence", "!receipt.active", "false"),
+            ("cancelled_evidence", "!receipt.active", "(!receipt.active && false)"),
             ("stale_evidence", "receipt.subject != *current", "false"),
             (
                 "kind_substitution",
                 "*expected != receipt.obligation",
                 "*expected != receipt.obligation && expected.kind == receipt.obligation.kind",
             ),
-            ("reused_result", "receipt.position != self.completed", "false"),
+            ("reused_result", "receipt.position != self.completed", "(receipt.position != self.completed && false)"),
             ("stale_progress", "self.completed = 0", "let _ = self.completed"),
             (
                 "stale_delivery",
