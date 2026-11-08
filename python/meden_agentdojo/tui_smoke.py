@@ -13,9 +13,7 @@ import json
 import os
 import re
 import select
-import shlex
 import subprocess
-import sys
 import tempfile
 import time
 from pathlib import Path
@@ -29,7 +27,7 @@ def main(argv: list[str] | None = None) -> int:
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--binary", type=Path, required=True)
-    parser.add_argument("--provider", default="hermes:ollama-cloud")
+    parser.add_argument("--provider", required=True)
     parser.add_argument("--model", default=None)
     parser.add_argument("--timeout", type=float, default=600)
     parser.add_argument("--out", type=Path, required=True)
@@ -64,7 +62,10 @@ class TestSubtract(unittest.TestCase):
     output = bytearray()
     started = time.monotonic()
     with tempfile.TemporaryDirectory(prefix="meden-tui-smoke-") as directory:
-        workspace = Path(directory)
+        source = Path(directory) / "source"
+        source.mkdir()
+        workspace = source
+        data = Path(directory) / "data"
         (workspace / "calc.py").write_text("def add(a, b):\n    return a - b\n")
         test = workspace / "test_calc.py"
         test.write_text(original_test)
@@ -75,14 +76,13 @@ class TestSubtract(unittest.TestCase):
             str(binary),
             "tui",
             "--workspace",
-            directory,
+            str(source),
             "--provider",
             args.provider,
-            "--allow-shell",
         ]
         if args.model:
             command += ["--model", args.model]
-        env = {**os.environ, "TERM": "xterm-256color", "PYTHONDONTWRITEBYTECODE": "1"}
+        env = {**os.environ, "TERM": "xterm-256color", "XDG_DATA_HOME": str(data)}
         process = subprocess.Popen(command, stdin=slave, stdout=slave, stderr=slave, env=env)
 
         def wait_for(predicate):
@@ -99,12 +99,18 @@ class TestSubtract(unittest.TestCase):
 
         try:
             wait_for(lambda: b"choose" in output)
+            copies = list((data / "meden/workspaces").glob("session-*"))
+            if len(copies) != 1:
+                raise RuntimeError("expected one private workspace")
+            workspace = copies[0]
+            test = workspace / "test_calc.py"
+            report["workspace"] = str(workspace)
             os.write(master, b"\r")
             wait_for(lambda: b"alt-enter" in output)
             prompt = (
                 "Fix the implementation in calc.py so add returns the sum of its arguments. "
                 "Do not modify test_calc.py. Run "
-                f"{shlex.quote(sys.executable)} -m unittest -v test_calc.py "
+                "python3 -m unittest -v test_calc.py "
                 "and verify that the tests pass."
             )
             os.write(master, prompt.encode() + b"\r")
@@ -117,15 +123,13 @@ class TestSubtract(unittest.TestCase):
                 "In the same workspace, add subtract(a, b) to calc.py. Preserve add and "
                 "leave test_calc.py unchanged. Create test_subtract.py with unittest cases "
                 "for subtract(7, 2) == 5, subtract(-4, 3) == -7, and subtract(3, 3) == 0. "
-                f"Run {shlex.quote(sys.executable)} -m unittest -v "
+                "Run python3 -m unittest -v "
                 "test_calc.py test_subtract.py and verify that both test files pass."
             )
             report["prompts"] = [prompt, follow_up]
             os.write(master, follow_up.encode() + b"\r")
             wait_for(lambda: output.count(b"alt-enter") >= 3)
-            report["agent_retested_after_follow_up"] = (
-                workspace / "passing-test.marker"
-            ).exists()
+            report["agent_retested_after_follow_up"] = (workspace / "passing-test.marker").exists()
             follow_up_test = workspace / "test_subtract.py"
             report["agent_wrote_follow_up_tests"] = follow_up_test.is_file()
             report["follow_up_tests"] = (
@@ -137,15 +141,25 @@ class TestSubtract(unittest.TestCase):
             test.write_text(original_test)
             (workspace / "verify_subtract.py").write_text(independent_follow_up)
             check = subprocess.run(
-                [sys.executable, "-m", "unittest", "-v", "test_calc.py", "verify_subtract.py"],
-                cwd=directory,
+                [str(binary), "exec", "--workspace", str(workspace)],
+                input="python3 -m unittest -v test_calc.py verify_subtract.py",
                 capture_output=True,
                 text=True,
                 timeout=15,
                 env=env,
             )
             report["independent_test_exit_code"] = check.returncode
-            report["independent_test_output"] = check.stdout + check.stderr
+            check_record = json.loads(check.stdout)
+            check_result = check_record.get("result", {})
+            report["independent_test_output"] = (
+                check_result.get("stdout", "") + check_result.get("stderr", "") + check.stderr
+            )
+            report["independent_workspace"] = check_record["workspace"]
+            report["original_source_unchanged"] = (
+                source / "calc.py"
+            ).read_text() == "def add(a, b):\n    return a - b\n" and (
+                source / "test_calc.py"
+            ).read_text() == original_test
             os.write(master, b"\x03")
             process.wait(timeout=5)
             report["tui_exit_code"] = process.returncode
@@ -157,6 +171,7 @@ class TestSubtract(unittest.TestCase):
                 and report["agent_wrote_follow_up_tests"]
                 and report["tests_unchanged"]
                 and check.returncode == 0
+                and report["original_source_unchanged"]
                 and process.returncode == 0
                 and report["terminal_restored"]
             )

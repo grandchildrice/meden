@@ -1,8 +1,5 @@
-//! Opt-in shell execution. The workspace is a working directory, not a
-//! sandbox: enabling this tool grants the current account's process access.
+//! Offline Bash execution in the same private workspace as file tools.
 
-use std::path::Path;
-use std::process::Command;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -11,27 +8,28 @@ use meden_agent::tool::{Args, Tool, ToolError, ToolSig};
 use meden_agent::Registry;
 use meden_core::{Capability, Grant, Policy, Requirement};
 use meden_runtime::process::{self, Control, Limits, Termination};
+use meden_runtime::workspace::Workspace;
 use serde_json::json;
 use serde_json::Value;
 
 struct Shell {
-    root: std::path::PathBuf,
+    workspace: Arc<Workspace>,
     sig: ToolSig,
     control: Arc<Control>,
 }
 
-/// Add shell execution and its unscoped grant when the operator opts in.
-pub fn enable(
+/// Register offline Bash with the common workspace tool environment.
+pub fn register(
     registry: &mut Registry,
     policy: &mut Policy,
-    root: &Path,
+    workspace: Arc<Workspace>,
     control: Arc<Control>,
 ) -> Result<()> {
-    let sig = ToolSig::new("bash", "Run a shell command in the workspace (Bash on Unix, cmd on Windows). This is not a sandbox: the command has the account's filesystem and network permissions. Inspect failures before claiming success.", json!({"type":"object","properties":{
+    let sig = ToolSig::new("bash", "Run Bash offline in /workspace. Host files, credentials and network services are unavailable. Inspect failures before claiming success.", json!({"type":"object","properties":{
         "command":{"type":"string"},"timeout_seconds":{"type":"integer","minimum":1,"maximum":300}
     },"required":["command"],"additionalProperties":false}));
     registry.register(Box::new(Shell {
-        root: root.canonicalize()?,
+        workspace,
         sig,
         control,
     }));
@@ -67,21 +65,13 @@ impl Tool for Shell {
                 ))
             }
         };
-        #[cfg(windows)]
-        let mut child = {
-            let mut child = Command::new("cmd");
-            child.args(["/D", "/S", "/C", command]);
-            child
-        };
-        #[cfg(not(windows))]
-        let mut child = {
-            let mut child = Command::new("bash");
-            child.args(["--noprofile", "--norc", "-c", command]);
-            child
-        };
-        child.current_dir(&self.root);
-        let output = process::run(
+        let mut child = self
+            .workspace
+            .shell_command()
+            .map_err(|e| ToolError::Failed(e.to_string()))?;
+        let output = process::run_with_input(
             &mut child,
+            command.as_bytes(),
             &Limits {
                 timeout: Duration::from_secs(seconds),
                 capture_bytes: 24_000,
@@ -102,47 +92,5 @@ impl Tool for Shell {
             return Err(ToolError::Failed(result.to_string()));
         }
         Ok(result)
-    }
-}
-
-#[cfg(all(test, unix))]
-mod tests {
-    #![allow(clippy::expect_used)]
-    use super::*;
-    use std::sync::atomic::AtomicBool;
-
-    #[test]
-    fn shell_is_absent_until_enabled_and_failing_commands_are_errors() {
-        let root = tempfile::tempdir().expect("workspace");
-        let (mut registry, mut policy) =
-            crate::workspace::environment(root.path()).expect("environment");
-        assert!(registry.get("bash").is_none());
-        enable(
-            &mut registry,
-            &mut policy,
-            root.path(),
-            Arc::new(Control::new(Arc::new(AtomicBool::new(false)))),
-        )
-        .expect("enable");
-        let tool = registry.get("bash").expect("bash");
-        let bash_syntax = [(
-            "command".to_owned(),
-            json!("set -o pipefail; values=(one two); [[ ${values[1]} == two ]]"),
-        )]
-        .into_iter()
-        .collect();
-        assert!(
-            tool.call(&bash_syntax).is_ok(),
-            "the bash tool must support Bash syntax"
-        );
-        assert!(meden_core::check(&tool.requirements(&Args::new()), &policy).allowed);
-        let args = [("command".to_owned(), json!("printf failure >&2; exit 7"))]
-            .into_iter()
-            .collect();
-        let error = tool.call(&args).expect_err("failed command").to_string();
-        assert!(error.contains("failure"));
-        assert!(error.contains("\"exit_code\":7"));
-        policy.denies.push(Capability::ShellExec);
-        assert!(!meden_core::check(&tool.requirements(&args), &policy).allowed);
     }
 }

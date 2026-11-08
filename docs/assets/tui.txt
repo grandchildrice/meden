@@ -1,5 +1,6 @@
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│MEDEN · workspace agent · shell:off · minimax-m3 · /tmp/meden-demo                                            │
+│MEDEN · private workspace · offline tools · minimax-m3                                                        │
+│files: /tmp/meden-screenshot-data/meden/workspaces/session-I9mtBn                                             │
 └──────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
                                   ███╗   ███╗███████╗██████╗ ███████╗███╗   ██╗
                                   ████╗ ████║██╔════╝██╔══██╗██╔════╝████╗  ██║
@@ -9,10 +10,9 @@
                                   ╚═╝     ╚═╝╚══════╝╚═════╝ ╚══════╝╚═╝  ╚═══╝
 
                                             Read. Edit. Build. Test.
-
+                           Edits stay in this copy; the original project is unchanged.
 
 ┌ conversation · PgUp/PgDn to scroll ──────────────────────────────────────────────────────────────────────────┐
-│                                                                                                              │
 │                                                                                                              │
 │                                                                                                              │
 │                                                                                                              │

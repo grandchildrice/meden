@@ -1047,6 +1047,7 @@ dependencies = [
  "meden-core",
  "meden-llm",
  "meden-runtime",
+ "nix 0.31.3",
  "ratatui",
  "serde",
  "serde_json",

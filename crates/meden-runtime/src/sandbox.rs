@@ -21,6 +21,9 @@ pub struct Sandbox {
     root: PathBuf,
     tools: Vec<(String, PathBuf)>,
     store_paths: BTreeSet<PathBuf>,
+    worker: PathBuf,
+    worker_libraries: Vec<PathBuf>,
+    worker_loader: Option<PathBuf>,
 }
 
 fn find(program: &str) -> Option<PathBuf> {
@@ -32,7 +35,11 @@ fn find(program: &str) -> Option<PathBuf> {
 impl Sandbox {
     /// Prepare an offline execution configuration. Missing isolation support
     /// is an error; there is no unrestricted host fallback.
-    pub fn new(root: &Path) -> io::Result<Self> {
+    pub fn with_worker(root: &Path, worker: &Path) -> io::Result<Self> {
+        Self::configure(root, worker.canonicalize()?)
+    }
+
+    fn configure(root: &Path, worker: PathBuf) -> io::Result<Self> {
         let root = root.canonicalize()?;
         if !root.is_dir() {
             return Err(io::Error::other("workspace must be a directory"));
@@ -53,7 +60,7 @@ impl Sandbox {
         if !tools.iter().any(|(name, _)| name == "bash") {
             return Err(io::Error::other("Bash is required for isolated execution"));
         }
-        let roots: BTreeSet<_> = tools
+        let mut roots: BTreeSet<_> = tools
             .iter()
             .filter_map(|(_, path)| {
                 path.ancestors()
@@ -61,6 +68,46 @@ impl Sandbox {
                     .map(Path::to_owned)
             })
             .collect();
+        let mut worker_libraries = Vec::new();
+        let mut worker_loader = None;
+        if !roots.is_empty() {
+            // The trusted worker may use another libc than the toolchain.
+            // Resolve its public library objects, never expose nix-ld's
+            // whole system profile or the whole Nix store.
+            let output = Command::new(
+                find("ldd").ok_or_else(|| io::Error::other("ldd required for Nix worker"))?,
+            )
+            .arg(&worker)
+            .output()?;
+            if !output.status.success() {
+                let message = String::from_utf8_lossy(&output.stderr);
+                if !message.contains("not a dynamic executable")
+                    && !message.contains("statically linked")
+                {
+                    return Err(io::Error::other("cannot resolve worker libraries"));
+                }
+            }
+            for word in String::from_utf8_lossy(&output.stdout).split_whitespace() {
+                if !word.starts_with('/') {
+                    continue;
+                }
+                let path = Path::new(word).canonicalize()?;
+                if let Some(root) = path
+                    .ancestors()
+                    .find(|p| p.parent() == Some(Path::new("/nix/store")))
+                {
+                    roots.insert(root.to_owned());
+                    if let Some(parent) = path.parent() {
+                        worker_libraries.push(parent.to_owned());
+                    }
+                    if word.ends_with("/ld-linux-x86-64.so.2") {
+                        worker_loader = Some(path);
+                    }
+                }
+            }
+            worker_libraries.sort();
+            worker_libraries.dedup();
+        }
         let mut store_paths = BTreeSet::new();
         if !roots.is_empty() {
             // Bind only the toolchain closure, never the whole Nix store or
@@ -91,13 +138,51 @@ impl Sandbox {
             root,
             tools,
             store_paths,
+            worker,
+            worker_libraries,
+            worker_loader,
         })
     }
 
     /// Build a command in the private namespace with no inherited secrets,
     /// proxies, host sockets, host process tree or outbound network route.
     pub fn command(&self, executable: &str, args: &[impl AsRef<OsStr>]) -> Command {
-        let mut command = Command::new(&self.bwrap);
+        self.build(executable, args, None)
+    }
+
+    /// Invoke the trusted file worker inside the same containment as shell tools.
+    pub fn worker_command(&self) -> io::Result<Command> {
+        self.worker_invocation("worker-file", None)
+    }
+
+    /// Only the trusted importer receives a read-only view of the original.
+    pub fn import_command(&self, source: &Path) -> io::Result<Command> {
+        self.worker_invocation("worker-import", Some(source))
+    }
+
+    fn worker_invocation(&self, operation: &str, source: Option<&Path>) -> io::Result<Command> {
+        let mut args = Vec::new();
+        if !self.worker_libraries.is_empty() {
+            let paths = std::env::join_paths(&self.worker_libraries).map_err(io::Error::other)?;
+            let mut assignment = std::ffi::OsString::from("LD_LIBRARY_PATH=");
+            assignment.push(paths);
+            args.push(assignment);
+        }
+        args.push("/meden-worker".into());
+        args.push(operation.into());
+        Ok(self.build("/bin/env", &args, source))
+    }
+
+    fn build(
+        &self,
+        executable: &str,
+        args: &[impl AsRef<OsStr>],
+        source: Option<&Path>,
+    ) -> Command {
+        // The dedicated Rust launcher closes all inherited capabilities
+        // before execing bwrap. Bubblewrap itself passes inherited fds on.
+        let mut command = Command::new(&self.worker);
+        command.arg("worker-launch").arg("--").arg(&self.bwrap);
         command.args([
             "--unshare-all",
             "--unshare-user",
@@ -140,6 +225,19 @@ impl Sandbox {
             command.args(["--symlink", "/bin/bash", "/bin/sh"]);
         }
         command
+            .arg("--ro-bind")
+            .arg(&self.worker)
+            .arg("/meden-worker");
+        if let Some(loader) = &self.worker_loader {
+            command
+                .args(["--dir", "/lib64", "--symlink"])
+                .arg(loader)
+                .arg("/lib64/ld-linux-x86-64.so.2");
+        }
+        if let Some(source) = source {
+            command.arg("--ro-bind").arg(source).arg("/source");
+        }
+        command
             .arg("--bind")
             .arg(&self.root)
             .arg("/workspace")
@@ -165,75 +263,13 @@ impl Sandbox {
             .arg(executable)
             .args(args)
             .env_clear();
+        if !self.worker_libraries.is_empty() {
+            // Only the host launcher sees this search path. exec_clean clears
+            // it before bwrap and per-worker paths are set inside separately.
+            if let Ok(paths) = std::env::join_paths(&self.worker_libraries) {
+                command.env("LD_LIBRARY_PATH", paths);
+            }
+        }
         command
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #![allow(clippy::expect_used)]
-    use super::*;
-    use crate::process::{self, Control, Limits, Termination};
-    use std::net::TcpListener;
-    use std::sync::{atomic::AtomicBool, Arc};
-
-    #[test]
-    fn real_process_cannot_reach_host_files_or_network_and_can_edit_workspace() {
-        let root = tempfile::tempdir().expect("workspace");
-        let outside = tempfile::tempdir().expect("host directory");
-        let secret = outside.path().join("secret");
-        std::fs::write(&secret, "CONFIDENTIAL-CANARY").expect("host file");
-        let listener = TcpListener::bind("127.0.0.1:0").expect("receiver");
-        listener.set_nonblocking(true).expect("nonblocking");
-        let port = listener.local_addr().expect("address").port();
-        let script = format!(
-            r#"
-import os, socket, pathlib, subprocess
-assert 'HOST_CREDENTIAL' not in os.environ
-assert not pathlib.Path({host_path:?}).exists()
-for host in ['127.0.0.1', '::1', '192.0.2.1']:
-    try:
-        s = socket.create_connection((host, {port}), timeout=.15)
-    except OSError:
-        pass
-    else:
-        s.sendall(b'CONFIDENTIAL-CANARY')
-        raise AssertionError('network escaped')
-assert subprocess.run(['python3', '-c', "import socket; socket.create_connection(('127.0.0.1',{port}),timeout=.1)"], capture_output=True).returncode != 0
-pathlib.Path('edited.txt').write_text('edited offline')
-print('isolated')
-"#,
-            host_path = secret.to_string_lossy()
-        );
-        let sandbox = Sandbox::new(root.path()).expect("isolation configuration");
-        let mut command = sandbox.command("python3", &["-c", &script]);
-        command.env("HOST_CREDENTIAL", "secret inherited by the launcher only");
-        let output = process::run(
-            &mut command,
-            &Limits {
-                timeout: std::time::Duration::from_secs(15),
-                capture_bytes: 24000,
-                output_bytes: 1_000_000,
-            },
-            &Control::new(Arc::new(AtomicBool::new(false))),
-        )
-        .expect("sandbox execution");
-        assert!(
-            matches!(output.termination, Termination::Exited(code) if code.success()),
-            "{}",
-            output.stderr
-        );
-        assert_eq!(
-            std::fs::read_to_string(root.path().join("edited.txt")).expect("effect"),
-            "edited offline"
-        );
-        assert!(
-            listener.accept().is_err(),
-            "receiver must observe zero connections"
-        );
-        assert_eq!(
-            std::fs::read_to_string(secret).expect("host file"),
-            "CONFIDENTIAL-CANARY"
-        );
     }
 }

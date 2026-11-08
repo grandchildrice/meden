@@ -17,27 +17,37 @@ results, while an isolated runner and host-owned outbound controls enforce
 the boundary. See [the product design](docs/design.md) and
 [confidential execution rules](docs/confidentiality.md).
 
-**This requirement is not implemented or verified today.** The current
-development TUI uses direct HTTP model clients and an optional unrestricted
-shell. Its outbound paths do not yet use the new transfer broker, it has no
-enforced processor authorization, and it does not yet use the new OS-level
-coding runner. Its benign AgentDojo scores and the formal kernel checks do not establish this
-requirement.
+**R1 is not yet established end to end.** TUI file/Bash tools and `exec`
+now execute in private offline Linux workspaces. Model HTTP calls still
+bypass the transfer broker and lack enforced processor authorization.
+Page-cache/review integration and complete mediation of the headless host
+tool interface remain unfinished. Benign scores and kernel proofs do not
+establish the whole requirement.
 
 ## Existing implementation boundaries
 
-The conversational agent (`tui` or `run`)
-enforces the capability policy only. It reads tool output and does not
-claim to prevent prompt injection or information disclosure within the
-granted capabilities. Workspace file tools validate paths and symlink
-targets, but are not an OS sandbox or a defence against filesystem races
-with other local processes.
+The TUI and `exec` import the original tree into a new persistent private
+working copy. A trusted importer copies regular files, breaks hard links,
+preserves literal symlinks and rejects sockets/devices/FIFOs. The original
+source is never mounted for untrusted shell/file execution. Edits remain in
+the displayed copy after exit; they are not automatically applied back.
 
-The TUI's `--allow-shell` grants unrestricted shell execution with the
-current account's permissions. The workspace is its initial working
-directory, not containment for shell commands. Timeout and cancellation
-manage process lifetime, not isolation; a command that deliberately escapes
-its Unix process group requires OS-level containment.
+All TUI file operations and Bash execute through the same Bubblewrap
+layout: private network/PID/user namespaces, a clean environment, private
+`/proc` and only the working copy plus read-only public toolchains. A fresh
+single-threaded Rust launcher closes descriptors above 2 before executing
+Bubblewrap; stdin and captured stdout/stderr are the only supplied handles.
+Confidential tool inputs travel through a private anonymous file on stdin,
+not argv or environment variables. A missing backend fails closed.
+
+The host-selected worker executable, toolchain/libraries, workspace storage
+and isolation configuration are trusted. Toolchain mounts must be public
+resources, not confidential storage. OS enforcement and these worker/adapter
+implementations have integration tests, not a Lean refinement proof.
+
+The `run` JSON Lines interface still delegates tool execution to its host.
+It does not yet route those arbitrary host tools through this boundary.
+It must not be treated as an R1 implementation.
 
 The CLI uses HTTP model connections only. The isolated planner, quarantined
 reader, skill attestation subsystem and command-line model wrappers have
@@ -52,16 +62,15 @@ state update. Rust and the executable Lean oracle are compared on 5,000 policy, 
 transfer cases. These checks cover decision rules; they do not establish
 that every real outbound effect passes through those rules.
 
-`meden-runtime` now provides a standalone Linux Bubblewrap runner. Its
-integration test uses real subprocesses, a host-only file and a live host
-TCP receiver. It checks offline execution and workspace editing, but the
-production file tools and optional shell are not yet confined by it. A new
-standalone immutable HTTP export uses the refined kernel before real sends;
-tests cover exact bytes, one-use concurrency, redirects and failed delivery.
-Production routing, processor authorization and complete effect mediation
-remain unimplemented. See
-[verification scope](docs/verification.md) for the precise proof and test
-boundaries.
+The production worker tests observe host-only files, inherited file/socket
+capabilities, IPv4/IPv6 attempts, detached subprocesses, hard links, symlink
+escapes and actual edits. PTY tests drive real file/Bash calls across user
+turns and check terminal restoration and unchanged originals. A standalone
+immutable HTTP export uses the refined kernel before actual sends; tests
+cover exact bytes, one-use concurrency, redirects and uncertain delivery.
+Processor authorization, complete outbound routing and reviewed publishing
+remain implementation work. See [verification scope](docs/verification.md)
+for exact proof and test boundaries.
 
 ## Reporting
 

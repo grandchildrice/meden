@@ -2,12 +2,13 @@
 #![forbid(unsafe_code)]
 use anyhow::{Context, Result};
 use clap::{Args, Parser, Subcommand};
-use std::io::{self, Write};
+use std::io::{self, Read, Write};
 use std::path::PathBuf;
 use std::process::ExitCode;
 mod protocol;
 mod shell;
 mod tui;
+mod worker_file;
 mod workspace;
 
 #[derive(Parser)]
@@ -24,6 +25,21 @@ enum Command {
     Tui(TuiArgs),
     /// Run one conversation using a host's tools over JSON Lines.
     Run(ModelArgs),
+    /// Run Bash from stdin in a new private offline workspace.
+    Exec {
+        /// Project to import; the original is not modified.
+        #[arg(long, default_value = ".")]
+        workspace: PathBuf,
+    },
+    #[command(hide = true)]
+    WorkerFile,
+    #[command(hide = true)]
+    WorkerImport,
+    #[command(hide = true)]
+    WorkerLaunch {
+        #[arg(last = true, required = true)]
+        arguments: Vec<std::ffi::OsString>,
+    },
 }
 #[derive(Args)]
 struct ModelArgs {
@@ -41,9 +57,6 @@ struct TuiArgs {
     /// Workspace to read and edit.
     #[arg(long, default_value = ".")]
     workspace: PathBuf,
-    /// Enable unrestricted development shell execution (not sandboxed).
-    #[arg(long)]
-    allow_shell: bool,
 }
 fn main() -> ExitCode {
     match run() {
@@ -56,6 +69,13 @@ fn main() -> ExitCode {
 }
 fn run() -> Result<()> {
     match Cli::parse().command {
+        Command::WorkerLaunch { arguments } => meden_runtime::process::exec_clean(&arguments)?,
+        Command::Exec { workspace } => execute(&workspace)?,
+        Command::WorkerFile => worker_file::run()?,
+        Command::WorkerImport => meden_runtime::workspace::import_tree(
+            std::path::Path::new("/source"),
+            std::path::Path::new("/workspace"),
+        )?,
         Command::Providers => {
             for p in meden_llm::detect() {
                 println!("{:<22} {} · {} · {}", p.id, p.label, p.model, p.note);
@@ -70,7 +90,7 @@ fn run() -> Result<()> {
             } else {
                 meden_llm::detect()
             };
-            tui::run(providers, &args.workspace, args.allow_shell)?;
+            tui::run(providers, &args.workspace)?;
         }
         Command::Run(args) => {
             let mut input = io::BufReader::new(io::stdin());
@@ -79,6 +99,32 @@ fn run() -> Result<()> {
             protocol::run(&start, &provider, Box::new(input), Box::new(io::stdout()))?;
         }
     }
+    Ok(())
+}
+
+fn execute(source: &std::path::Path) -> Result<()> {
+    use meden_agent::tool::Args;
+    use meden_runtime::process::Control;
+    use meden_runtime::workspace::Workspace;
+    use std::sync::{atomic::AtomicBool, Arc};
+
+    let mut command = String::new();
+    io::stdin().take(16_777_217).read_to_string(&mut command)?;
+    anyhow::ensure!(command.len() <= 16_777_216, "command exceeds input budget");
+    let workspace = Arc::new(Workspace::import(source, &std::env::current_exe()?)?);
+    let control = Arc::new(Control::new(Arc::new(AtomicBool::new(false))));
+    let (registry, _policy) = workspace::environment(&workspace, &control)?;
+    let tool = registry.get("bash").context("missing Bash tool")?;
+    let args: Args = [("command".to_owned(), serde_json::json!(command))]
+        .into_iter()
+        .collect();
+    let result = tool.call(&args);
+    let record = match &result {
+        Ok(output) => serde_json::json!({"workspace":workspace.path(), "result":output}),
+        Err(error) => serde_json::json!({"workspace":workspace.path(), "error":error.to_string()}),
+    };
+    println!("{}", serde_json::to_string(&record)?);
+    result?;
     Ok(())
 }
 /// Select a model connection: the one asked for, or the first one detected.

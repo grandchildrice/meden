@@ -120,6 +120,8 @@ jobs:
         with:
           toolchain: 1.98.1
       - uses: Swatinem/rust-cache@v2
+      - name: Install Linux isolation backend
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap
       - run: cargo build -p meden-cli
       - uses: astral-sh/setup-uv@v7
       # The declaration tests check every suite's tools against AgentDojo

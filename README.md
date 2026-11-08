@@ -39,12 +39,13 @@ connects to OpenAI-compatible APIs and can reuse Hermes configuration.
 
 > Development prototype. Local-only orchestration, project proof workflows,
 > controller-wide refinement and evidence-gated delivery are design targets.
-> Current HTTP connections may be remote; optional Bash has host filesystem
-> and network permissions. See [verification scope](docs/verification.md)
+> TUI file/Bash tools and `exec` now run in private offline workspaces.
+> Model HTTP connections may still be remote and are not yet fully mediated. See [verification scope](docs/verification.md)
 > and [security limits](SECURITY.md).
 
 ## Getting started
 
+The workspace backend currently requires Linux, Bubblewrap and Bash.
 Build from source with Rust:
 
 ```bash
@@ -69,9 +70,22 @@ export MEDEN_LLM_MODEL=your-model
 ./target/release/meden tui --workspace . --provider configured
 ```
 
-Add `--allow-shell` to enable the current development Bash tool for builds
-and tests. Shell execution is off by default; this switch currently grants
-the account's process permissions, not the new isolated runner.
+The project is imported into a private working copy under
+`$XDG_DATA_HOME/meden/workspaces/` (default: `~/.local/share/meden/workspaces/`).
+File tools and Bash share that copy at `/workspace`; the original project
+is unchanged. The TUI displays the result location and retains it on exit.
+There is no host-shell fallback. Dependency caches/toolchains must be
+prepared locally; workers cannot download packages.
+
+Run a command without a model through the same offline tools:
+
+```bash
+printf 'python3 -m unittest -v' | ./target/release/meden exec --workspace /path/to/project
+```
+
+`exec` returns JSON with the retained workspace path and execution result.
+Applying/exporting reviewed changes back to another location is still a
+separate, unfinished workflow.
 
 ### Controls
 
@@ -117,8 +131,9 @@ ask a model to decide whether its own action is authorized.
 The exact-transfer decision kernel now has seven Lean theorems, including
 full-request matching and no replay after reservation, plus two refinement
 theorems connecting the generated Rust model to that specification. A
-standalone Linux runner is tested against real connection and host-file attempts. Connecting
-these components to every production effect remains work in progress.
+Linux runner now confines actual TUI file/Bash tools and `exec`. Tests use
+real host files, inherited descriptors, sockets and receivers. Connecting
+the model gateway and every remaining effect is still work in progress.
 
 [Confidentiality design and acceptance criteria →](docs/confidentiality.md) ·
 [CI checks, theorem statements and proof limits →](docs/verification.md)

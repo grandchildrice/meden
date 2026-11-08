@@ -14,8 +14,7 @@ from meden_agentdojo import find_meden
 
 
 @pytest.mark.skipif(os.name != "posix", reason="PTY and termios test")
-@pytest.mark.parametrize("allow_shell", [False, True])
-def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path, allow_shell):
+def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
     import fcntl
     import pty
     import struct
@@ -24,25 +23,25 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path, allow_s
     binary = find_meden()
     if binary is None:
         pytest.skip("meden binary not built")
-    note = tmp_path / "note.txt"
+    project = tmp_path / "project"
+    project.mkdir()
+    data = tmp_path / "data"
+    source_note = project / "note.txt"
+    note = source_note
     note.write_text("status: draft\n")
     requests = []
     replies = [
         ("read_file", {"path": "note.txt"}),
         ("edit_file", {"path": "note.txt", "old_text": "draft", "new_text": "ready"}),
     ]
-    if allow_shell:
-        replies.append(
-            (
-                "bash",
-                {
-                    "command": 'test "$(cat note.txt)" = "status: ready" '
-                    "&& printf passed > check.txt"
-                },
-            )
+    replies.append(
+        (
+            "bash",
+            {"command": 'test "$(cat note.txt)" = "status: ready" && printf passed > check.txt'},
         )
+    )
     replies.extend(["Updated note.txt.", "Status is ready.", "A fresh conversation."])
-    first_turn_count = 4 if allow_shell else 3
+    first_turn_count = 4
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *args):
@@ -85,13 +84,12 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path, allow_s
     env = {
         **os.environ,
         "TERM": "xterm-256color",
+        "XDG_DATA_HOME": str(data),
         "MEDEN_LLM_BASE_URL": f"http://127.0.0.1:{server.server_port}/v1",
         "MEDEN_LLM_MODEL": "fixture",
     }
     env.pop("MEDEN_LLM_API_KEY", None)
-    command = [binary, "tui", "--workspace", str(tmp_path), "--provider", "configured"]
-    if allow_shell:
-        command.append("--allow-shell")
+    command = [binary, "tui", "--workspace", str(project), "--provider", "configured"]
     process = subprocess.Popen(
         command,
         stdin=slave,
@@ -113,6 +111,10 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path, allow_s
 
     try:
         wait_for(lambda: b"fixture" in output)
+        copies = list((data / "meden/workspaces").glob("session-*"))
+        assert len(copies) == 1
+        workspace = copies[0]
+        note = workspace / "note.txt"
         os.write(master, b"\r")
         wait_for(lambda: b"alt-enter" in output)
         # Correct a typo in the middle with cursor keys, then submit from End.
@@ -125,14 +127,9 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path, allow_s
         )
         wait_for(lambda: b"retained" in output)
         assert note.read_text() == "status: ready\n"
-        assert requests[0]["messages"][-1]["content"][0]["text"] == (
-            "Update the status to ready."
-        )
-        assert (
-            "bash" in [tool["function"]["name"] for tool in requests[0]["tools"]]
-        ) is allow_shell
-        if allow_shell:
-            assert (tmp_path / "check.txt").read_text() == "passed"
+        assert requests[0]["messages"][-1]["content"][0]["text"] == ("Update the status to ready.")
+        assert "bash" in [tool["function"]["name"] for tool in requests[0]["tools"]]
+        assert (workspace / "check.txt").read_text() == "passed"
         # Bracketed paste must preserve Unicode and multiline input as one turn.
         follow_up = "Which status now?\n日本語で答えて。"
         os.write(master, b"\x1b[200~" + follow_up.encode() + b"\x1b[201~\r")
@@ -141,7 +138,7 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path, allow_s
         # mean the UI is accepting input yet. Wait for the editor to return.
         wait_for(lambda: output.count(b"alt-enter") >= 3)
         messages = requests[-1]["messages"]
-        assert len(messages) == (10 if allow_shell else 8)
+        assert len(messages) == 10
         assert messages[-1]["role"] == "user"
         assert messages[-1]["content"][0]["text"] == follow_up
         assert any(message.get("tool_call_id") == "call-2" for message in messages)
@@ -154,6 +151,7 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path, allow_s
         assert len(requests[-1]["messages"]) == 2
         assert requests[-1]["messages"][-1]["content"][0]["text"] == "Fresh turn."
         assert note.read_text() == "status: ready\n"
+        assert source_note.read_text() == "status: draft\n"
         os.write(master, b"\x03")
         process.wait(timeout=5)
         assert process.returncode == 0

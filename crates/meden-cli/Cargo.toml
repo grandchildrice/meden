@@ -27,5 +27,8 @@ tempfile = "3"
 unicode-segmentation = "1"
 unicode-width = "0.2"
 
+[target.'cfg(target_os = "linux")'.dev-dependencies]
+nix = { version = "0.31", features = ["fs"] }
+
 [lints]
 workspace = true

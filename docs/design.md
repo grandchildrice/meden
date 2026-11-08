@@ -317,13 +317,15 @@ added orchestration must produce observable value.
 ## Migration from the prototype
 
 The current repository contains a Rust conversation/TUI, HTTP connections,
-workspace tools, a capability kernel, a standalone Bubblewrap runner and
-an immutable one-use HTTP export component.
+workspace tools, a capability kernel, a Bubblewrap runner integrated with
+TUI/exec file and Bash tools, and an immutable one-use HTTP export component.
 Seventeen Lean theorem entry points and 5,000 Rust/Lean conformance cases
 are checked today. The production transfer decision and state update are
 extracted with pinned Charon/Aeneas and refine the Lean specification.
 There is no accepted contract store, evidence controller or release gate
-yet. Current HTTP providers can be remote and `--allow-shell` is unrestricted.
+yet. HTTP model providers can still be remote and lack a complete
+processor-authorization/gateway boundary. Headless external host tools are
+not yet confined. TUI/exec edits stay in retained private copies.
 
 Reuse the conversation as an untrusted proposal/repair loop, move authority
 to the small controller, connect every file/process tool to the private

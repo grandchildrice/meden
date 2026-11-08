@@ -4,11 +4,50 @@
 
 use std::collections::BTreeSet;
 use std::fs::File;
-use std::io::{self, Read, Seek, SeekFrom};
+use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::process::{Child, Command, ExitStatus, Stdio};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
+
+/// Enter an executable from a fresh single-threaded Linux launcher, closing
+/// every inherited capability except stdin/stdout/stderr. Never call this in
+/// the session process: closing there would race its other threads.
+#[cfg(target_os = "linux")]
+pub fn exec_clean(arguments: &[std::ffi::OsString]) -> io::Result<()> {
+    use std::os::unix::process::CommandExt as _;
+    if std::fs::read_dir("/proc/self/task")?.count() != 1 {
+        return Err(io::Error::other("launcher must be single-threaded"));
+    }
+    let descriptors = std::fs::read_dir("/proc/self/fd")?
+        .map(|entry| {
+            entry?
+                .file_name()
+                .to_string_lossy()
+                .parse::<i32>()
+                .map_err(io::Error::other)
+        })
+        .collect::<io::Result<Vec<_>>>()?;
+    for fd in descriptors.into_iter().filter(|fd| *fd > 2) {
+        match nix::unistd::close(fd) {
+            Ok(()) | Err(nix::errno::Errno::EBADF) => {}
+            Err(error) => return Err(io::Error::from(error)),
+        }
+    }
+    let (program, args) = arguments
+        .split_first()
+        .ok_or_else(|| io::Error::other("missing executable"))?;
+    Err(Command::new(program).args(args).env_clear().exec())
+}
+
+/// Unsupported platforms have no unconfined launcher fallback.
+#[cfg(not(target_os = "linux"))]
+pub fn exec_clean(_arguments: &[std::ffi::OsString]) -> io::Result<()> {
+    Err(io::Error::new(
+        io::ErrorKind::Unsupported,
+        "isolated launch requires Linux",
+    ))
+}
 
 /// Shared cancellation and ownership of spawned process groups.
 pub struct Control {
@@ -133,6 +172,29 @@ fn kill_group(_: u32) {}
 /// on completion too, so ordinary background jobs cannot outlive their tool.
 /// Commands which deliberately escape that group require an OS sandbox.
 pub fn run(command: &mut Command, limits: &Limits, control: &Control) -> io::Result<Output> {
+    run_inner(command, Stdio::null(), limits, control)
+}
+
+/// Supply confidential input through a private anonymous file, never argv
+/// or environment variables. Capture and cancellation have the same limits.
+pub fn run_with_input(
+    command: &mut Command,
+    input: &[u8],
+    limits: &Limits,
+    control: &Control,
+) -> io::Result<Output> {
+    let mut file = tempfile::tempfile()?;
+    file.write_all(input)?;
+    file.rewind()?;
+    run_inner(command, file.into(), limits, control)
+}
+
+fn run_inner(
+    command: &mut Command,
+    stdin: Stdio,
+    limits: &Limits,
+    control: &Control,
+) -> io::Result<Output> {
     let directory = tempfile::tempdir()?;
     let mut stdout = File::options()
         .create_new(true)
@@ -145,7 +207,7 @@ pub fn run(command: &mut Command, limits: &Limits, control: &Control) -> io::Res
         .write(true)
         .open(directory.path().join("stderr"))?;
     command
-        .stdin(Stdio::null())
+        .stdin(stdin)
         .stdout(stdout.try_clone()?)
         .stderr(stderr.try_clone()?);
     #[cfg(unix)]

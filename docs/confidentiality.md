@@ -277,11 +277,13 @@ new measurements with the recorded baseline under documented settings.
 
 ## Implementation status
 
-The current prototype has a standalone offline Linux runner, a transfer
+The current prototype has an offline Linux runner used by TUI/exec, a transfer
 decision kernel with seven specification and two Rust refinement theorems,
 and an immutable HTTP export using that kernel under a mutex. These are
-not yet connected to every production effect. The TUI's optional shell still
-has host permissions. The complete R1 acceptance suite has not passed.
+not yet connected to every production effect. TUI file/Bash tools share a
+private persistent copy, and inherited descriptors are closed before launch.
+Model traffic and headless host tools still need mediation. The complete R1
+acceptance suite has not passed.
 
 The product migration order is maintained in [design.md](design.md), and
 current proof, conformance and real-process test scopes are documented in

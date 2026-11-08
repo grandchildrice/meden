@@ -5,3 +5,4 @@ pub mod process;
 #[cfg(target_os = "linux")]
 pub mod sandbox;
 pub mod transfer;
+pub mod workspace;

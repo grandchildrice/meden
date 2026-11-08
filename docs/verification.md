@@ -191,20 +191,37 @@ supplies the freshly built oracle, so that escape does not apply there.
 
 ## Tests of actual isolation
 
-[`meden-runtime/src/sandbox.rs`](../crates/meden-runtime/src/sandbox.rs)
-constructs an offline Linux environment using Bubblewrap. Its integration
-test launches real Python and child processes, attempts IPv4/IPv6/external
-connections, checks a live host TCP receiver, attempts access to a host-only
-canary file, checks environment filtering and verifies a real workspace edit.
-CI installs Bubblewrap before workspace tests. Unsupported isolation fails;
-the test is not replaced with a mocked tool refusal.
+The [workspace owner](../crates/meden-runtime/src/workspace.rs) imports a
+project with a trusted Rust worker in a read-only source mount. Regular
+files are copied, hard links become independent files, literal symlinks
+are retained, and sockets/devices/FIFOs are rejected. The source is not
+mounted during untrusted tool execution. Results stay in the private copy.
 
-This currently validates a standalone execution component with a private
-test workspace. It is not yet the TUI's execution path. Managed workspace
-copying, confinement of every file tool, the model gateway, transfer review,
-page fetching and end-to-end malicious-page tests remain implementation
-work. The old development shell still has host permissions until that
-migration is complete.
+[Sandbox construction](../crates/meden-runtime/src/sandbox.rs) is now used
+by the actual TUI file tools, Bash and `meden exec`. A dedicated
+[launcher](../crates/meden-runtime/src/process.rs) closes inherited
+capabilities before Bubblewrap starts. This matters: the regression test
+originally demonstrated a real inherited-descriptor escape. Worker inputs
+use an anonymous private stdin file; they are absent from argv/environment.
+
+[CLI integration tests](../crates/meden-cli/tests/isolation.rs) launch the
+real compiled worker, edit/read real files and run Bash/Python. They observe
+host-only files, deliberately inheritable file/socket descriptors,
+IPv4/IPv6/external connection attempts, a live TCP receiver, source sockets,
+hard links, outside symlinks and a detached child which signals readiness
+before its parent exits. They also run the public `exec` path and independently
+check a changed program in another offline snapshot. Missing isolation
+must prevent startup. No mocked tool refusal replaces these observations.
+
+The Python PTY test drives read/edit/Bash, multiple turns and `/clear`,
+checks retained private results and unchanged originals, and verifies
+terminal restoration. Both Rust and Python CI jobs install Bubblewrap.
+The live-model smoke harness's independent checker also uses `exec`;
+it does not execute model-generated code on the host.
+
+These tests cover production worker paths, not a Lean proof of OS effects.
+The fixed model gateway, headless host tools, page cache, trusted export
+review and the complete malicious-page acceptance suite remain work.
 
 ## Tests of actual HTTP delivery
 
@@ -234,6 +251,7 @@ cd ..
 cargo test -p meden-core
 cargo test -p meden-cli --test conformance -- --nocapture
 cargo test -p meden-runtime
+cargo test -p meden-cli --test isolation
 # With the Kani toolchain installed:
 cargo kani -p meden-core
 ```
@@ -257,7 +275,7 @@ The runtime test needs Linux, Bubblewrap, Bash and Python. On NixOS, an
 ephemeral environment works:
 
 ```bash
-nix-shell -p bubblewrap --run 'cargo test -p meden-runtime'
+nix-shell -p bubblewrap --run 'cargo test --workspace --all-features'
 ```
 
 `MEDEN_BWRAP` can select a trusted Bubblewrap binary. It is host
