@@ -27,3 +27,8 @@ open MedenSpec
 #print axioms TransferRefinement.allowed_refines
 #print axioms TransferRefinement.reserve_refines
 #print axioms TransferRefinement.extracted_no_replay
+#print axioms ExportControl.dispatch_iff
+#print axioms ExportControl.at_most_one_dispatch
+#print axioms ExportControlRefinement.step_refines
+#print axioms ExportControlRefinement.trace_refines
+#print axioms ExportControlRefinement.extracted_at_most_one

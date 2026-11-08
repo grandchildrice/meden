@@ -7,6 +7,7 @@ use std::time::Duration;
 use anyhow::{Context, Result};
 use meden_agent::tool::{Args, Tool, ToolError, ToolSig};
 use meden_agent::Registry;
+use meden_core::export_control::{self, Decision, Event, Origin, Phase};
 use meden_core::{Capability, Requirement};
 use meden_runtime::process::{self, Control, Limits, Termination};
 use meden_runtime::transfer::Export;
@@ -39,30 +40,16 @@ pub struct Prepared {
     state: Mutex<Phase>,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum Phase {
-    Pending,
-    Reviewed,
-    Rejected,
-    Attempted,
-    ResponseReceived,
-    DeliveryUncertain,
-}
-
-impl Phase {
-    fn label(self) -> &'static str {
-        match self {
-            Self::Pending => "pending",
-            Self::Reviewed => "reviewed",
-            Self::Rejected => "rejected",
-            Self::Attempted => "attempted",
-            Self::ResponseReceived => "response_received",
-            Self::DeliveryUncertain => "delivery_uncertain",
-        }
-    }
-}
-
 impl Prepared {
+    fn advance(&self, origin: Origin, event: Event) -> Result<Decision> {
+        let mut phase = self
+            .state
+            .lock()
+            .map_err(|_| anyhow::anyhow!("export state unavailable"))?;
+        let decision = export_control::step(*phase, origin, event);
+        *phase = decision.phase;
+        Ok(decision)
+    }
     pub fn summary(&self) -> Result<Summary> {
         Ok(Summary {
             reference: self.reference.clone(),
@@ -156,60 +143,41 @@ impl Exports {
 
     pub fn reject(&self, reference: &Reference) -> Result<Summary> {
         let entry = self.get(reference)?;
-        {
-            let mut state = entry
-                .state
-                .lock()
-                .map_err(|_| anyhow::anyhow!("export state unavailable"))?;
-            anyhow::ensure!(
-                matches!(*state, Phase::Pending | Phase::Reviewed),
-                "export already resolved"
-            );
-            *state = Phase::Rejected;
-        }
+        anyhow::ensure!(
+            entry.advance(Origin::Host, Event::Reject)?.accepted,
+            "export already resolved"
+        );
         entry.summary()
     }
 
     /// Expose the actual frozen request to a trusted interface before approval.
     pub fn review(&self, reference: &Reference) -> Result<Arc<Prepared>> {
         let entry = self.get(reference)?;
-        {
-            let mut state = entry
-                .state
-                .lock()
-                .map_err(|_| anyhow::anyhow!("export state unavailable"))?;
-            if *state == Phase::Pending {
-                *state = Phase::Reviewed;
-            }
-        }
+        anyhow::ensure!(
+            entry.advance(Origin::Host, Event::Review)?.accepted,
+            "export review refused"
+        );
         Ok(entry)
     }
 
     /// Only call from the host UI/protocol; never register as a model tool.
     pub fn send(&self, reference: &Reference) -> Result<(Summary, Option<u16>)> {
         let entry = self.get(reference)?;
-        {
-            let mut state = entry
-                .state
-                .lock()
-                .map_err(|_| anyhow::anyhow!("export state unavailable"))?;
-            anyhow::ensure!(
-                *state == Phase::Reviewed,
-                "export must be reviewed and unresolved; no replay"
-            );
-            *state = Phase::Attempted;
-        }
+        anyhow::ensure!(
+            entry.advance(Origin::Host, Event::Approve)?.dispatch,
+            "export must be reviewed and unresolved; no replay"
+        );
         entry.export.approve_from_host(Duration::from_secs(60))?;
         let sent = entry.export.send(self.session.as_bytes());
-        let state = if sent.is_ok() {
-            Phase::ResponseReceived
+        let event = if sent.is_ok() {
+            Event::ResponseReceived
         } else {
-            Phase::DeliveryUncertain
+            Event::DeliveryUncertain
         };
-        *entry
-            .state
-            .lock()
-            .map_err(|_| anyhow::anyhow!("export state unavailable"))? = state;
+        anyhow::ensure!(
+            entry.advance(Origin::Transport, event)?.accepted,
+            "export result refused"
+        );
         Ok((entry.summary()?, sent.ok()))
     }
 
@@ -227,7 +195,9 @@ impl Exports {
             },
             source: source.to_owned(),
             export,
-            state: Mutex::new(Phase::Pending),
+            state: Mutex::new(
+                export_control::step(Phase::Pending, Origin::Model, Event::Propose).phase,
+            ),
         });
         let summary = prepared.summary()?;
         entries.push(prepared);

@@ -86,6 +86,14 @@ state update. Rust and the executable Lean oracle are compared on 5,000 policy, 
 transfer cases. These checks cover decision rules; they do not establish
 that every real outbound effect passes through those rules.
 
+The production export review-control kernel is separately extracted and
+refined. Lean proves that only a host approval of a reviewed proposal grants
+dispatch, and that arbitrary finite compositions of the extracted step
+grant at most one dispatch. The queue uses this step for every lifecycle
+update and stores its decision before dispatch. Correct attribution of
+typed origins by UI/protocol/transport code, reference lookup, rendering and
+the I/O loop remain unproved; this is not whole-controller refinement.
+
 The production worker tests observe host-only files, inherited file/socket
 capabilities, IPv4/IPv6 attempts, detached subprocesses, hard links, symlink
 escapes and actual edits. PTY tests drive real file/Bash calls across user

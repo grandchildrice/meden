@@ -133,7 +133,8 @@ require explicit authorization. The TUI, CLI and tools share one controller.
 The target controller will be specified in Lean, with refinement proofs
 connecting its production Rust implementation. Extending those proofs
 across Meden's own TUI, CLI and tool behavior is part of the product goal.
-The transfer decision kernel now has Rust-to-Lean refinement proofs; the
+Transfer decisions and the export review-control kernel now have Rust-to-Lean
+refinement proofs, including arbitrary finite review-event compositions. The
 remaining controller and effect paths are still implementation work.
 
 [Architecture and implementation order →](docs/design.md) ·

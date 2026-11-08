@@ -101,6 +101,7 @@ session data; an integrating application is responsible for any onward
 transfer it chooses to perform. The CLI escapes JSON output and filters
 terminal control characters in human-facing errors/provider listings.
 
-The shared controller, parser and OS effects are not yet fully refined in
-Lean. [Current verification](verification.md) records exactly which kernel
+The export lifecycle kernel has transition and finite-composition refinement
+proofs. Origin attribution, the shared I/O controller, parser and OS effects
+are not yet fully refined in Lean. [Current verification](verification.md) records which kernel
 functions are proved and which production behaviors have integration tests.

@@ -19,7 +19,7 @@ established by the current CI badge.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate Rust model, `lake build`, proof scan/audit, four Rust mutation checks | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate both Rust kernels, `lake build`, proof scan/audit, eight Rust mutation checks | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A result or resulting transfer state differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -126,6 +126,55 @@ mediated. Full broker refinement and interface obligations in
 [assurance.md](assurance.md) remain open; the HTTP component tests below
 exercise real reservation and delivery, including concurrency.
 
+## Export review control: actual Rust and finite traces
+
+[`export_control.rs`](../crates/meden-core/src/export_control.rs) now owns
+every proposal lifecycle update used by the TUI/CLI queue. The queue stores
+its returned phase under a mutex **before** using `dispatch` to authorize a
+send. Model proposal, host review/reject/approve and actual transport-result
+call sites assign typed origins; origin is not read from model arguments.
+The old independent phase-update branches are removed.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pending: model proposal
+    Pending --> Reviewed: host review
+    Pending --> Rejected: host reject
+    Reviewed --> Rejected: host reject
+    Reviewed --> Attempted: host approve / dispatch once
+    Attempted --> ResponseReceived: transport response
+    Attempted --> DeliveryUncertain: transport failure
+```
+
+Host review can inspect terminal states without reopening them. Other
+invalid operations preserve state and grant no dispatch. The exact accepted,
+state and dispatch semantics are specified independently in
+[`ExportControl.lean`](../lean/MedenSpec/ExportControl.lean). Production Rust
+is extracted to the untouched [generated model](../lean/MedenSpec/Generated/Control.lean).
+
+| Audited theorem | Checked claim |
+| --- | --- |
+| `ExportControl.dispatch_iff` | Dispatch requires reviewed state, host origin and an approval event |
+| `ExportControl.at_most_one_dispatch` | Any finite event stream from any phase produces at most one dispatch |
+| `ExportControlRefinement.step_refines` | Actual extracted Rust matches all three specification observations |
+| `ExportControlRefinement.trace_refines` | Arbitrary finite compositions of the extracted step match final state and dispatch count |
+| `ExportControlRefinement.extracted_at_most_one` | The extracted Rust compositions never grant two dispatches for one evolving proposal |
+
+The trace proofs use induction, not a bounded event search. The driver
+invokes the actual extracted step with raw implementation states and maps
+only its terminal observation; it is a composition theorem, **not** an
+extraction/refinement of the application's I/O loop or mutex. Initial pending
+state corresponds by the enum mapping, and the model-proposal step is
+covered by the transition theorem. Origin attribution, reference lookup,
+snapshot construction, rendering, locks, compiler/OS and actual HTTP effects
+remain explicit unproved boundaries with integration tests.
+
+The mutation check additionally breaks four actual controller rules:
+approve before review, accept a model approval, reopen a terminal proposal
+on review, and fail to consume approval. Each must fail the real Rust test,
+generate a compiling model, and fail the unchanged refinement proof. Both
+source/model pairs are restored and normal proofs rebuilt afterwards.
+
 ## Lean: capability and scope rules
 
 These specifications cover the capability kernel already used by tool
@@ -149,7 +198,7 @@ Definitions and additional lemmas are in
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the eighteen
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the twenty-three
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -259,7 +308,7 @@ On Nix, a private `uv` Python shadowing a public Python is skipped rather
 than binding the private cache into the sandbox. The attack test exposed
 this actual execution failure before the selection was corrected.
 
-These controller, parser, router and OS behaviors have tests; the eighteen
+These controller, parser, router and OS behaviors have tests; the twenty-three
 Lean theorem entry points still cover their stated kernels. The shared
 session has no whole-controller refinement theorem yet.
 
@@ -369,7 +418,7 @@ cargo test -p meden-cli --test isolation
 cargo kani -p meden-core
 ```
 
-Regenerate the transfer model with the pinned tools in `PATH` (or set
+Regenerate both transfer/control models with the pinned tools in `PATH` (or set
 `CHARON` and `AENEAS` to their trusted paths):
 
 ```bash

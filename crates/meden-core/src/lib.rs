@@ -8,12 +8,15 @@
 //! Bounded properties of this crate are also model-checked with Kani (see
 //! `src/kani_harness.rs`).
 //!
-//! The crate has no `unsafe` code, never panics on any input (all slicing
-//! and arithmetic is checked by Clippy lints), and performs no I/O.
+//! The crate forbids `unsafe` code and performs no I/O. The transfer and
+//! export-review kernels have extraction-based refinement proofs; policy
+//! and glob conformance/model checks have their own narrower scope. Lints
+//! are development checks, not a mathematical proof of whole-crate behavior.
 
 #![forbid(unsafe_code)]
 
 pub mod capability;
+pub mod export_control;
 pub mod glob;
 pub mod policy;
 pub mod transfer;
