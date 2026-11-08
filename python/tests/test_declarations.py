@@ -4,6 +4,7 @@ These run without a model and without the binary, so a declaration that has
 drifted from AgentDojo is caught in CI rather than two hours into a run.
 """
 
+
 def test_every_suite_is_fully_declared():
     """Each suite's tools are all declared, with parameters that exist.
 
@@ -28,11 +29,8 @@ def test_every_suite_is_fully_declared():
         )
         # The ordinary tool-calling baseline gets these schemas. Dropping
         # types/defaults here forces the planner to guess valid arguments.
-        from pydantic import TypeAdapter
-
         for spec, tool in zip(specs, suite.tools, strict=True):
             assert spec["parameters_schema"] == tool.parameters.model_json_schema()
-            assert spec["result_schema"] == TypeAdapter(tool.return_type).json_schema()
 
 
 def test_a_tool_nobody_declared_is_refused_not_defaulted():

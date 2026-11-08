@@ -1,15 +1,4 @@
-"""Driving the runtime from inside an AgentDojo pipeline.
-
-AgentDojo owns the tools and the world they act on. The planning, the labels
-and the gate stay in the Rust binary. This element is the seam: it describes
-the suite's tools, starts `meden run`, executes the calls the runtime asks
-for, and reports what the gate decided.
-
-The messages it builds are the ones AgentDojo scores: an assistant message per
-tool call, a tool message per result, and a final assistant message carrying
-the answer. A call the gate refused never reaches `run_function`, so it leaves
-no trace in the environment, which is exactly what the benchmark measures.
-"""
+"""AgentDojo tools hosted in Python, conversation and policy checks in Rust."""
 
 from __future__ import annotations
 
@@ -36,12 +25,10 @@ class GateReport:
 
     #: One entry per call it ruled on: `(tool, allowed, rule)`.
     decisions: list[tuple[str, bool, str | None]] = field(default_factory=list)
-    #: How the session ended: `done`, `refused`, `failed`, `no_plan`, `incomplete`.
+    #: How the session ended: `done`, `failed`, `incomplete`, `cancelled`.
     outcome: str = "failed"
     #: A sentence about how it ended.
     summary: str = ""
-    #: What the planner wrote, one entry per attempt.
-    plans: list[Any] = field(default_factory=list)
     #: Executed calls and their results, for diagnosing utility failures.
     calls: list[dict[str, Any]] = field(default_factory=list)
     #: Final answer, kept separately from the runtime's status sentence.
@@ -53,11 +40,6 @@ class GateReport:
     def refusals(self) -> list[tuple[str, str]]:
         """The calls that were refused, as `(tool, rule)`."""
         return [(t, r or "unknown") for t, ok, r in self.decisions if not ok]
-
-    @property
-    def refused_for_provenance(self) -> bool:
-        """Did the integrity rule refuse anything?"""
-        return any(rule == "untrusted_control" for _, rule in self.refusals)
 
 
 def _to_jsonable(value: Any) -> Any:
@@ -73,34 +55,6 @@ def _to_jsonable(value: Any) -> Any:
     return str(value)
 
 
-#: How to spell the planner so AgentDojo's attacks address it correctly.
-#:
-#: The `important_instructions` attack writes "You are <model>" into the
-#: injected text, and takes <model> from the pipeline's name. An injection
-#: addressed to the wrong model is a weaker injection, so getting this right
-#: makes the attack stronger, not the defence better. The keys are substrings
-#: AgentDojo looks for; the fallback is `local`, which it reads as "Local
-#: model" and which is what an open model served over an OpenAI-compatible
-#: endpoint is.
-_VICTIM_NAMES = {
-    "claude": "claude-3-5-sonnet-20241022",
-    "anthropic": "claude-3-5-sonnet-20241022",
-    "gpt": "gpt-4o-2024-05-13",
-    "openai": "gpt-4o-2024-05-13",
-    "codex": "gpt-4o-2024-05-13",
-    "gemini": "gemini-2.0-flash-001",
-}
-
-
-def victim_name(provider: str | None, model: str | None) -> str:
-    """What to call the planner, in the vocabulary AgentDojo's attacks use."""
-    haystack = f"{provider or ''} {model or ''}".lower()
-    for key, spelling in _VICTIM_NAMES.items():
-        if key in haystack:
-            return spelling
-    return "local"
-
-
 class MedenPipeline(BasePipelineElement):
     """An AgentDojo pipeline element backed by the capability-typed runtime."""
 
@@ -111,31 +65,21 @@ class MedenPipeline(BasePipelineElement):
         provider: str | None = None,
         model: str | None = None,
         policy: dict[str, Any] | None = None,
-        max_attempts: int = 3,
         timeout: float = 600.0,
-        mode: str = "plan",
     ) -> None:
         self.declarations = declarations
         self.binary = binary
         self.provider = provider
         self.model = model
         self.policy = policy or PERMISSIVE_POLICY
-        self.max_attempts = max_attempts
         self.timeout = timeout
-        if mode not in ("plan", "tool-calling"):
-            raise ValueError(f"unsupported meden mode: {mode}")
-        self.mode = mode
-        #: Read by AgentDojo's attacks to address the injection to the right
-        #: model. See `victim_name`.
-        self.name = f"meden ({victim_name(provider, model)})"
+        self.name = "vllm_parsed"
         #: The report from the most recent `query`, for a caller collecting
         #: statistics.
         self.last_report = GateReport()
 
     def _command(self) -> list[str]:
         command = [self.binary, "run"]
-        if self.mode != "plan":
-            command += ["--mode", self.mode]
         if self.provider:
             command += ["--provider", self.provider]
         if self.model:
@@ -156,14 +100,12 @@ class MedenPipeline(BasePipelineElement):
             "instruction": query,
             "tools": tool_specs(runtime, self.declarations),
             "policy": self.policy,
-            "max_attempts": self.max_attempts,
         }
         report = GateReport()
-        if self.mode == "tool-calling":
-            from agentdojo.agent_pipeline.agent_pipeline import load_system_message
+        from agentdojo.agent_pipeline.agent_pipeline import load_system_message
 
-            start["system_message"] = load_system_message(None)
-            start["max_iterations"] = 15
+        start["system_message"] = load_system_message(None)
+        start["max_iterations"] = 15
         new_messages = list(messages)
 
         process = subprocess.Popen(
@@ -221,17 +163,12 @@ class MedenPipeline(BasePipelineElement):
                     reply: dict[str, Any] = {"id": message["id"]}
                     if error:
                         reply["error"] = error
-                    elif self.mode == "tool-calling":
+                    else:
                         from agentdojo.agent_pipeline.tool_execution import tool_result_to_str
 
                         reply["ok"] = tool_result_to_str(result)
-                    else:
-                        reply["ok"] = _to_jsonable(result)
                     process.stdin.write(json.dumps(reply) + "\n")
                     process.stdin.flush()
-
-                elif kind == "plan":
-                    report.plans.append(message.get("plan"))
 
                 elif kind == "conversation":
                     report.messages = message["messages"]

@@ -83,7 +83,6 @@ class TestSubtract(unittest.TestCase):
         if args.model:
             command += ["--model", args.model]
         env = {**os.environ, "TERM": "xterm-256color", "PYTHONDONTWRITEBYTECODE": "1"}
-        env.pop("MEDEN_TUI_SELFTEST", None)
         process = subprocess.Popen(command, stdin=slave, stdout=slave, stderr=slave, env=env)
 
         def wait_for(predicate):

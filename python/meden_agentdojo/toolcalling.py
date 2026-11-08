@@ -1,12 +1,6 @@
 """AgentDojo's own undefended agent, built by AgentDojo, on our model.
 
-The point of comparison. `--undefended` switches off the flow rules but keeps
-the plan-then-execute split, and that split is itself most of the defence:
-the planner writes its plan before any tool has run, so injected text has no
-route into it. Measuring against that alone would flatter the rules by
-crediting them with the architecture's work.
-
-This is the other baseline, and it is deliberately not hand-written. The
+This baseline, and it is deliberately not hand-written. The
 pipeline comes out of `AgentPipeline.from_config` with no defense, which is
 the arrangement AgentDojo's own numbers are produced with:
 

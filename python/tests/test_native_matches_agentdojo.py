@@ -106,7 +106,7 @@ def test_native_http_conversation_matches_agentdojo(monkeypatch):
     suite = get_suite("v1", "banking")
     monkeypatch.setattr(toolcalling, "api_key", lambda: "fixture")
     reference = toolcalling.build(model="fixture", base_url=base)
-    native = MedenPipeline(BANKING, binary, provider="configured", mode="tool-calling")
+    native = MedenPipeline(BANKING, binary, provider="configured")
     environments = []
     try:
         for pipeline in (reference, native):

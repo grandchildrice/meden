@@ -29,11 +29,10 @@ current capability policy before execution. Workspace tools list/read,
 write and edit files. Bash is opt-in. This is a development prototype and
 does not yet prevent disclosure within granted capabilities.
 
-The old isolated planner and its label-rule demonstrations remain in the
-implementation during migration. They are retired from the product design;
-their Lean/Kani proofs do not apply to the conversational runtime's
-end-to-end confidentiality. See the
-[repository](https://github.com/grandchildrice/meden).
+The isolated planner, skill attestations and command-line model wrappers
+have been removed. The CLI exposes `tui`, `providers` and `run` only. Existing
+Lean/Kani checks cover the active capability/policy kernel, not the planned
+end-to-end confidentiality boundary.
 
 ## Installing
 

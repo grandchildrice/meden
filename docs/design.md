@@ -11,8 +11,8 @@ repository files, external documentation and tool results, then chooses its
 next action. The existing Rust `Conversation` loop is the starting point.
 
 The isolated planner, quarantined reader and restricted plan language are
-removed from the target architecture. They are historical research code,
-not another product mode or a prerequisite for implementing this design.
+removed from the target architecture. Their implementations have been deleted; Git history preserves the research.
+They are not another product mode or a prerequisite for this design.
 There is no user-facing strict/native security-mode choice in the target.
 Existing capability checks may be reused where useful, but they do not
 establish the requirement below.
@@ -281,8 +281,8 @@ new measurements with the recorded baseline under documented settings.
 | `meden-llm` HTTP model calls | Route through a fixed, authorized processor configuration; cover retries and redirects |
 | Network integrations | Add immutable request/artifact preparation and a host-owned transfer broker before exposure |
 | `meden-core` policy functions | Reuse narrowly if they fit; recipient authorization is richer than a capability/domain grant |
-| `planner`, `interp`, `plan`, quarantined reader and old flow rules | Historical research, outside the target design; retire product entry points in the runtime migration |
-| Lean/Kani/conformance tests | Preserve existing evidence for its actual scope; add new properties only for implemented new components |
+| Isolated planner, labelled values, quarantined reader and attestation/skill CLI | Deleted with dedicated tests, dependencies and obsolete formal models; no compatibility layer |
+| Lean/Kani/conformance tests | Retain policy/glob properties for the active kernel; add properties only for implemented new components |
 
 Implementation order:
 
@@ -292,9 +292,10 @@ Implementation order:
    full page -> model -> malicious tool/shell scenario with no export grant.
 3. Add immutable export preparation, trusted review, destination adapters
    and one-use authorization. Test authorized success as well as bypasses.
-4. Retire the legacy planner CLI/product paths and update benchmark entry
-   points around the single conversation architecture. Historical reports
-   and relevant kernel tests remain labeled as historical/limited evidence.
+The legacy planner CLI/product paths and dedicated benchmark paths have
+already been deleted. The CLI and benchmark now use one conversation
+architecture. Historical reports and retained kernel tests are explicitly
+limited evidence, not proof of R1.
 
 Do not advertise R1 at an intermediate step where a bypassing execution or
 network path remains. Today's `--allow-shell` is an unrestricted development

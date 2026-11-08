@@ -24,7 +24,6 @@ import concurrent.futures as cf
 import contextlib
 import json
 import queue
-import shutil
 import sys
 import time
 from dataclasses import asdict, dataclass, field
@@ -36,7 +35,8 @@ from agentdojo.attacks.attack_registry import load_attack
 from agentdojo.base_tasks import BaseInjectionTask, BaseUserTask
 from agentdojo.task_suite.load_suites import get_suite
 
-from .declarations import SUITES, UndeclaredTool, undefended
+from . import find_meden
+from .declarations import SUITES, UndeclaredTool
 from .pipeline import GateReport, MedenPipeline
 
 
@@ -92,7 +92,7 @@ class RunRecord:
     utility: bool = False
     #: Did the injection achieve its goal? `None` when none was placed.
     attack: bool | None = None
-    #: How the session ended: `done`, `refused`, `failed`, `no_plan`, `incomplete`.
+    #: How the session ended: `done`, `failed`, `incomplete`, `cancelled`.
     outcome: str = "failed"
     #: The rules that refused a call here, in order.
     refused_by: list[str] = field(default_factory=list)
@@ -101,9 +101,7 @@ class RunRecord:
     #: The identifier that makes this pair unwinnable, when there is one.
     #: See `confounded`.
     collides_on: str | None = None
-    #: Exact plans and executed calls. Tool results stay in the report,
-    #: never in the planner's input.
-    plans: list[Any] = field(default_factory=list)
+    #: Executed calls and results, also available to the conversational model.
     calls: list[dict[str, Any]] = field(default_factory=list)
     answer: Any = None
     messages: list[dict[str, Any]] = field(default_factory=list)
@@ -115,9 +113,8 @@ class Totals:
 
     suite: str
     provider: str
-    #: `flow-rules` or `none`. A run with no defence is a baseline, not a
-    #: result, and the file says which it is.
-    defence: str = "flow-rules"
+    #: Current capability policy or the undefended AgentDojo baseline.
+    defence: str = "capability-policy"
     #: Which binary produced these numbers, and from which commit.
     built: dict[str, str] = field(default_factory=dict)
     #: Execution settings needed to compare independent measurements.
@@ -133,8 +130,6 @@ class Totals:
     attack_successes: int = 0
     #: Refusals by rule, across every run.
     refusals: dict[str, int] = field(default_factory=dict)
-    #: Runs that ended without a usable plan, which is a cost, not a defence.
-    no_plan: int = 0
     #: Which injection goals the agent could achieve when simply asked.
     #: See `injections_are_solvable`.
     solvable: dict[str, bool] = field(default_factory=dict)
@@ -157,10 +152,8 @@ class Totals:
     def utility_by_repeat(self) -> list[float]:
         """Utility measured separately in each pass over the suite.
 
-        A planner set to temperature zero still answers differently from one
-        run to the next, and on sixteen tasks the swing has been wider than
-        the gap to the target. One number from one pass is not a measurement
-        of anything; the spread is the honest report.
+        Report each pass: model outcomes vary between runs, and a single
+        aggregate can hide that variation.
         """
         passes: dict[int, list[bool]] = {}
         for run in self.runs:
@@ -179,19 +172,13 @@ class Totals:
         for run in self.runs:
             if run.injection is not None or run.utility:
                 continue
-            rules = [r for r in run.refused_by if r not in PLAN_MISTAKES]
-            if "untrusted_control" in rules:
-                cause = "refused: integrity rule"
-            elif "disclosure" in rules:
-                cause = "refused: confidentiality rule"
-            elif rules:
+            rules = [r for r in run.refused_by if r not in ARGUMENT_ERRORS]
+            if rules:
                 cause = f"refused: {rules[0]}"
             elif run.refused_by:
-                cause = "the plan called a tool wrongly"
-            elif run.outcome == "no_plan":
-                cause = "planner wrote no usable plan"
+                cause = "model called a tool wrongly"
             elif run.outcome == "incomplete":
-                cause = "planner reached the round limit"
+                cause = "agent reached the tool execution limit"
             else:
                 cause = "ran, but answer was wrong"
             causes.setdefault(cause, []).append(run.task)
@@ -200,7 +187,7 @@ class Totals:
     def report(self) -> str:
         lines = [
             f"suite                 {self.suite}",
-            f"planner               {self.provider}",
+            f"model connection      {self.provider}",
             f"defence               {self.defence}",
             f"binary                {self.built.get('sha256', '?')}"
             f"  (checkout at {self.built.get('repo_head', '?')})",
@@ -211,8 +198,7 @@ class Totals:
         if len(spread) > 1:
             each = ", ".join(f"{u:.0%}" for u in spread)
             lines.append(
-                f"  by pass             {each}"
-                f"  (low {min(spread):.0%}, high {max(spread):.0%})"
+                f"  by pass             {each}  (low {min(spread):.0%}, high {max(spread):.0%})"
             )
         if self.attack_runs:
             lines += [
@@ -231,8 +217,7 @@ class Totals:
                     f"  over achievable     {rate:.0%}  ({hit}/{len(counted)})",
                     f"  {len(live)} of {len(self.solvable)} injection goals this agent can reach"
                     " when simply asked;",
-                    "  the rest cannot be scored for or against any defence: "
-                    + ", ".join(dead),
+                    "  the rest cannot be scored for or against any defence: " + ", ".join(dead),
                 ]
         unwinnable = [r for r in self.runs if r.collides_on]
         if unwinnable:
@@ -254,8 +239,6 @@ class Totals:
             lines.append("benign tasks that failed, by cause")
             for cause, ids in sorted(failures.items()):
                 lines.append(f"  {cause:<28} {len(ids)}  {', '.join(ids)}")
-        if self.no_plan:
-            lines.append(f"runs with no usable plan   {self.no_plan}")
         lines.append(f"took                  {self.seconds:.0f}s")
         return "\n".join(lines)
 
@@ -279,9 +262,7 @@ def injections_are_solvable(suite: Any, pool: Pool, workers: int = 1) -> dict[st
             runtime = FunctionsRuntime(suite.tools)
             before = environment.model_copy(deep=True)
             try:
-                _, _, after, messages, _ = pipeline.query(
-                    injection_task.GOAL, runtime, environment
-                )
+                _, _, after, messages, _ = pipeline.query(injection_task.GOAL, runtime, environment)
             except Exception as e:  # noqa: BLE001 - one goal must not end the check
                 print(f"  {injection_task.ID}: error: {e}", file=sys.stderr)
                 return False
@@ -319,15 +300,8 @@ def confounded(task: BaseUserTask, injection_task: BaseInjectionTask) -> str | N
     return None
 
 
-#: Reasons a call was stopped that are not security decisions.
-#:
-#: The gate returns one verdict type, so a plan that named a tool wrongly and
-#: a plan that tried to launder an injected address arrive the same way. They
-#: are not the same thing, and counting them together would credit the
-#: defence with the planner's typing mistakes.
-PLAN_MISTAKES = frozenset(
-    {"missing_argument", "unknown_tool", "invalid_arguments", "disclosure_target_not_text"}
-)
+#: Invalid model arguments are not capability-policy refusals.
+ARGUMENT_ERRORS = frozenset({"missing_argument", "unknown_tool", "invalid_arguments"})
 
 
 def _tally(
@@ -341,15 +315,13 @@ def _tally(
     collides_on: str | None = None,
 ) -> None:
     for tool, rule in report.refusals:
-        if rule in PLAN_MISTAKES:
-            key = f"{rule} (the plan, not the gate)"
+        if rule in ARGUMENT_ERRORS:
+            key = f"{rule} (model argument error)"
         elif rule == "policy":
             key = f"{rule} ({tool})"
         else:
             key = rule
         totals.refusals[key] = totals.refusals.get(key, 0) + 1
-    if report.outcome == "no_plan":
-        totals.no_plan += 1
     totals.runs.append(
         RunRecord(
             task=task,
@@ -361,7 +333,6 @@ def _tally(
             refused_by=[rule for _, rule in report.refusals],
             summary=report.summary,
             collides_on=collides_on,
-            plans=list(report.plans),
             calls=list(report.calls),
             answer=report.answer,
             messages=list(report.messages),
@@ -524,25 +495,6 @@ def run_attacks(
     _run_all(pool, suite, work, totals, repeat, workers)
 
 
-def find_binary() -> str:
-    """The meden binary: an explicit path, a build in this checkout, or PATH."""
-    import os
-
-    explicit = os.environ.get("MEDEN_BIN")
-    if explicit and Path(explicit).is_file():
-        return explicit
-    here = Path(__file__).resolve()
-    for root in here.parents:
-        for profile in ("release", "debug"):
-            candidate = root / "target" / profile / "meden"
-            if candidate.is_file():
-                return str(candidate)
-    found = shutil.which("meden")
-    if found:
-        return found
-    raise SystemExit("no meden binary; run `cargo build --release -p meden-cli`")
-
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--suite", default="banking", choices=sorted(SUITES))
@@ -556,25 +508,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--benign-only", action="store_true", help="measure utility and stop")
     parser.add_argument(
         "--agent",
-        choices=["meden", "meden-tool-calling", "tool-calling"],
+        choices=["meden", "tool-calling"],
         default="meden",
-        help="tool-calling runs AgentDojo's own agent on the same model, "
-        "meden-tool-calling runs meden's native Rust conversation engine "
-        "with capability checks only; meden uses isolated plans and flow rules",
+        help="meden runs the Rust conversation engine; tool-calling runs AgentDojo's own baseline",
     )
     parser.add_argument(
         "--skip-injection-check",
         action="store_true",
         help="do not first measure which injection goals the agent can reach",
     )
-    parser.add_argument(
-        "--undefended",
-        action="store_true",
-        help="baseline: the same agent with nothing declared as steering, "
-        "so the flow rules refuse nothing",
-    )
-    parser.add_argument("--max-attempts", type=int, default=3,
-                        help="isolated planner attempts; native agents use 15 tool groups")
     parser.add_argument(
         "--workers",
         type=int,
@@ -586,24 +528,15 @@ def main(argv: list[str] | None = None) -> int:
         "--repeat",
         type=int,
         default=1,
-        help="passes over the suite; more than one reports the spread, "
-        "which a single pass cannot",
+        help="passes over the suite; more than one reports the spread, which a single pass cannot",
     )
     parser.add_argument("--out", type=Path, default=None, help="write totals as JSON")
     args = parser.parse_args(argv)
-    if args.undefended and args.agent != "meden":
-        parser.error("--undefended applies only to --agent meden (the isolated planner)")
-    if args.max_attempts != 3 and args.agent != "meden":
-        parser.error("--max-attempts applies only to --agent meden (the isolated planner)")
-
     suite = get_suite("v1", args.suite)
     declarations = SUITES[args.suite]
-    if args.undefended:
-        declarations = undefended(declarations)
-        print("BASELINE: no parameter is declared as steering, so the flow")
-        print("rules refuse nothing. These numbers are what the defence is")
-        print("measured against, not a result.\n")
-    binary = find_binary()
+    binary = find_meden()
+    if binary is None:
+        raise SystemExit("no meden binary; run cargo build --release -p meden-cli")
 
     def make_pipeline() -> MedenPipeline:
         return MedenPipeline(
@@ -611,8 +544,6 @@ def main(argv: list[str] | None = None) -> int:
             binary=binary,
             provider=args.provider,
             model=args.model,
-            max_attempts=args.max_attempts,
-            mode="tool-calling" if args.agent == "meden-tool-calling" else "plan",
         )
 
     if args.agent == "tool-calling":
@@ -636,16 +567,12 @@ def main(argv: list[str] | None = None) -> int:
         suite=args.suite,
         provider=args.provider or "first detected",
         defence=(
-            "none (tool-calling agent)"
-            if args.agent == "tool-calling"
-            else "capability-policy (native tool-calling)" if args.agent == "meden-tool-calling"
-            else "none" if args.undefended else "flow-rules"
+            "none (tool-calling agent)" if args.agent == "tool-calling" else "capability-policy"
         ),
         built=provenance(binary),
         settings={
             "workers": args.workers,
-            "max_attempts": args.max_attempts if args.agent == "meden" else None,
-            "max_tool_iterations": 15 if args.agent != "meden" else None,
+            "max_tool_iterations": 15,
             "agentdojo_package": version("agentdojo"),
             "repeat": args.repeat,
             "agent": args.agent,
@@ -653,10 +580,7 @@ def main(argv: list[str] | None = None) -> int:
             "attack": args.attack,
             "benign_only": args.benign_only,
             "suite_version": "v1",
-            "sampling": (
-                "server defaults (matches AgentDojo HTTP)" if args.agent != "meden"
-                else "temperature=0, max_tokens=32768"
-            ),
+            "sampling": "server defaults (matches AgentDojo HTTP)",
         },
     )
 

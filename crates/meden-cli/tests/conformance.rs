@@ -1,6 +1,6 @@
 //! Conformance of the Rust implementation with the Lean model.
 //!
-//! Generates random policy, glob and tier cases with a fixed-seed PRNG, runs
+//! Generates random policy and glob cases with a fixed-seed PRNG, runs
 //! the compiled Lean oracle (`lean/.lake/build/bin/meden-spec`, or the path
 //! in `MEDEN_SPEC_BIN`) on them, and compares with `meden-core`.
 //!
@@ -22,8 +22,6 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
-use meden_agent::{disclosure_ok, integrity_ok, Label, Readers, Source};
-use meden_core::attestation::{tier_of, Result as VResult, Tier};
 use meden_core::glob::glob_match;
 use meden_core::{check, Capability, Grant, Policy, Requirement};
 use serde::{Deserialize, Serialize};
@@ -83,72 +81,14 @@ struct GlobCase {
 }
 
 #[derive(Serialize)]
-struct TierCase {
-    result: VResult,
-    tcb: Vec<String>,
-    backend: String,
-    approved: Vec<String>,
-}
-
-/// One argument as the flow rules see it.
-#[derive(Serialize)]
-struct FlowArg {
-    control: bool,
-    sources: Vec<String>,
-    /// `None` means anyone may read.
-    readers: Option<Vec<String>>,
-}
-
-#[derive(Serialize)]
-struct FlowCase {
-    trusted: Vec<String>,
-    principal: String,
-    args: Vec<FlowArg>,
-}
-
-fn source_name(s: &Source) -> String {
-    match s {
-        Source::Runtime => "runtime".to_owned(),
-        Source::User => "user".to_owned(),
-        Source::Assistant => "assistant".to_owned(),
-        Source::Tool(n) => format!("tool:{n}"),
-    }
-}
-
-fn parse_source(name: &str) -> Source {
-    match name {
-        "runtime" => Source::Runtime,
-        "user" => Source::User,
-        "assistant" => Source::Assistant,
-        other => Source::tool(other.strip_prefix("tool:").unwrap_or(other)),
-    }
-}
-
-fn label_of(arg: &FlowArg) -> Label {
-    Label {
-        sources: arg.sources.iter().map(|s| parse_source(s)).collect(),
-        readers: match &arg.readers {
-            None => Readers::Public,
-            Some(ps) => Readers::only(ps.clone()),
-        },
-    }
-}
-
-#[derive(Serialize)]
 struct Input {
     policy_cases: Vec<PolicyCase>,
     glob_cases: Vec<GlobCase>,
-    tier_cases: Vec<TierCase>,
-    flow_cases: Vec<FlowCase>,
 }
-
 #[derive(Deserialize)]
 struct Output {
     policy: Vec<bool>,
     glob: Vec<bool>,
-    tier: Vec<String>,
-    integrity: Vec<bool>,
-    disclosure: Vec<bool>,
 }
 
 fn oracle_path() -> Option<PathBuf> {
@@ -160,14 +100,6 @@ fn oracle_path() -> Option<PathBuf> {
     root.is_file().then_some(root)
 }
 
-fn tier_name(t: Tier) -> &'static str {
-    match t {
-        Tier::Verified => "verified",
-        Tier::VerifiedWithTcb => "verified-with-tcb",
-        Tier::NotVerified => "not-verified",
-    }
-}
-
 #[test]
 fn rust_agrees_with_lean_oracle() {
     let Some(bin) = oracle_path() else {
@@ -177,17 +109,6 @@ fn rust_agrees_with_lean_oracle() {
     let mut rng = Rng(0x9E37_79B9_7F4A_7C15);
     let scope_alpha = ['a', 'b', '/', '.'];
     let glob_alpha = ['a', 'b', '/', '.', '*', '?'];
-    let tcb_pool = [
-        "lean4", "lake", "aeneas", "charon", "rustc", "z3", "verus", "pytest",
-    ];
-    let backends = ["lean4", "lean4+aeneas", "verus+z3", "pytest"];
-    let results = [
-        VResult::Proved,
-        VResult::Tested,
-        VResult::Scanned,
-        VResult::Failed,
-    ];
-
     let policy_cases: Vec<PolicyCase> = (0..400)
         .map(|_| {
             let grants = (0..rng.below(4))
@@ -221,63 +142,9 @@ fn rust_agrees_with_lean_oracle() {
             text: rng.string(&scope_alpha, 7),
         })
         .collect();
-    let tier_cases: Vec<TierCase> = (0..200)
-        .map(|_| {
-            let tcb = (0..rng.below(4))
-                .map(|_| tcb_pool[rng.below(tcb_pool.len())].to_owned())
-                .collect();
-            let backend = backends[rng.below(backends.len())].to_owned();
-            let approved = (0..rng.below(3))
-                .map(|_| backends[rng.below(backends.len())].to_owned())
-                .collect();
-            TierCase {
-                result: results[rng.below(4)],
-                tcb,
-                backend,
-                approved,
-            }
-        })
-        .collect();
-
-    let source_pool = [
-        Source::Runtime,
-        Source::User,
-        Source::Assistant,
-        Source::tool("fetch"),
-        Source::tool("vault"),
-    ];
-    let principal_pool = ["alice", "bob", "carol"];
-    let flow_cases: Vec<FlowCase> = (0..300)
-        .map(|_| {
-            let trusted = (0..rng.below(4))
-                .map(|_| source_name(&source_pool[rng.below(source_pool.len())]))
-                .collect();
-            let args = (0..rng.below(4))
-                .map(|_| FlowArg {
-                    control: rng.chance(1, 2),
-                    sources: (0..rng.below(3))
-                        .map(|_| source_name(&source_pool[rng.below(source_pool.len())]))
-                        .collect(),
-                    readers: rng.chance(1, 2).then(|| {
-                        (0..rng.below(3))
-                            .map(|_| principal_pool[rng.below(principal_pool.len())].to_owned())
-                            .collect()
-                    }),
-                })
-                .collect();
-            FlowCase {
-                trusted,
-                principal: principal_pool[rng.below(principal_pool.len())].to_owned(),
-                args,
-            }
-        })
-        .collect();
-
     let input = Input {
         policy_cases,
         glob_cases,
-        tier_cases,
-        flow_cases,
     };
     let mut child = Command::new(&bin)
         .stdin(Stdio::piped())
@@ -308,32 +175,6 @@ fn rust_agrees_with_lean_oracle() {
             "glob case {i}: {:?} vs {:?}",
             c.pattern,
             c.text
-        );
-    }
-    assert_eq!(output.tier.len(), input.tier_cases.len());
-    for (i, c) in input.tier_cases.iter().enumerate() {
-        let rust = tier_name(tier_of(c.result, &c.tcb, &c.backend, &c.approved));
-        assert_eq!(rust, output.tier[i], "tier case {i}: {}", json!(c));
-    }
-
-    assert_eq!(output.integrity.len(), input.flow_cases.len());
-    assert_eq!(output.disclosure.len(), input.flow_cases.len());
-    for (i, c) in input.flow_cases.iter().enumerate() {
-        let trusted = c.trusted.iter().map(|s| parse_source(s)).collect();
-        let labelled: Vec<(bool, Label)> =
-            c.args.iter().map(|a| (a.control, label_of(a))).collect();
-        assert_eq!(
-            integrity_ok(&trusted, &labelled),
-            output.integrity[i],
-            "integrity case {i}: {}",
-            json!(c)
-        );
-        let labels: Vec<Label> = c.args.iter().map(label_of).collect();
-        assert_eq!(
-            disclosure_ok(&c.principal, &labels),
-            output.disclosure[i],
-            "disclosure case {i}: {}",
-            json!(c)
         );
     }
 }

@@ -8,10 +8,11 @@ use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use meden_agent::tool::{Args, ParamSpec, Tool, ToolError, ToolSig};
-use meden_agent::{Label, Registry, Source, Value};
+use meden_agent::tool::{Args, Tool, ToolError, ToolSig};
+use meden_agent::Registry;
 use meden_core::{Capability, Policy, Requirement};
 use serde_json::json;
+use serde_json::Value;
 
 const OUTPUT_LIMIT: usize = 24_000;
 
@@ -46,12 +47,7 @@ pub fn environment(root: &Path) -> Result<(Registry, Policy)> {
         ("edit_file", Operation::Edit, "Replace exactly one occurrence of old_text with new_text in a UTF-8 workspace file. Read the file first; ambiguous or missing matches fail without writing.",
          json!({"path":{"type":"string"},"old_text":{"type":"string"},"new_text":{"type":"string"}}), vec!["path","old_text","new_text"]),
     ] {
-        let params = properties.as_object().into_iter().flat_map(|p| p.keys()).map(|name| {
-            let param = if name == "path" { ParamSpec::control(name) } else { ParamSpec::data(name) };
-            if required.contains(&name.as_str()) { param } else { param.optional() }
-        }).collect();
-        let mut sig = ToolSig::new(name, params).describing(description);
-        sig.parameters_schema = Some(json!({"type":"object","properties":properties,"required":required,"additionalProperties":false}));
+        let sig = ToolSig::new(name, description, json!({"type":"object","properties":properties,"required":required,"additionalProperties":false}));
         registry.register(Box::new(FileTool { root: root.clone(), sig, operation }));
     }
     let root_scope = root.to_string_lossy();
@@ -184,8 +180,7 @@ impl Tool for FileTool {
         )]
     }
     fn call(&self, args: &Args) -> Result<Value, ToolError> {
-        self.execute(args)
-            .map(|text| Value::str(&text, Label::public([Source::tool(&self.sig.name)])))
+        self.execute(args).map(Value::String)
     }
 }
 
@@ -202,10 +197,9 @@ fn text<'a>(args: &'a Args, name: &str) -> Result<&'a str, ToolError> {
 fn integer(args: &Args, name: &str, default: usize) -> Result<usize, ToolError> {
     match args.get(name) {
         None => Ok(default),
-        Some(Value {
-            data: meden_agent::Data::Int(n),
-            ..
-        }) => usize::try_from(*n).map_err(failed),
+        Some(value) if value.as_u64().is_some() => {
+            usize::try_from(value.as_u64().unwrap_or(0)).map_err(failed)
+        }
         Some(_) => Err(ToolError::Failed(format!("{name} must be an integer"))),
     }
 }
@@ -230,18 +224,12 @@ fn atomic_write(path: &Path, content: &str) -> Result<(), ToolError> {
 mod tests {
     #![allow(clippy::expect_used)]
     use super::*;
-    use meden_agent::data_from_json;
 
     fn args(json: &serde_json::Value) -> Args {
         json.as_object()
             .expect("object")
             .iter()
-            .map(|(key, value)| {
-                (
-                    key.clone(),
-                    Value::literal(data_from_json(value, &Label::runtime())),
-                )
-            })
+            .map(|(key, value)| (key.clone(), value.clone()))
             .collect()
     }
 
@@ -273,9 +261,6 @@ mod tests {
             .call(&args(&json!({"path":"note.txt"})))
             .expect("read");
         assert_eq!(result.as_str(), Some("1: updated\n"));
-        assert!(!result
-            .deep_label()
-            .trusted_for_control(&meden_agent::baseline_trust()));
     }
 
     #[test]

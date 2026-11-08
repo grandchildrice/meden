@@ -1,117 +1,51 @@
 # meden-agentdojo
 
-The product direction is the [conversational coding agent](../docs/design.md).
-The isolated planner is retired from that design. Both adapters currently
-remain for migration and historical comparisons. Their tests and benign
-scores do not establish the new outbound confidentiality requirement.
+AgentDojo owns the environment and tool implementations. The Rust binary
+owns conversation, native tool calling and capability checks. The Python
+adapter connects them over JSON Lines. There is one Meden execution path;
+the isolated planner, flow-rule declarations and standalone gate hook were
+removed without compatibility aliases.
 
-Runs [AgentDojo](https://github.com/ethz-spylab/agentdojo) against the
-capability-typed runtime, so the claim the runtime makes can be checked
-rather than asserted.
+The comparison baseline is AgentDojo's own `AgentPipeline.from_config`, not
+a hand-written agent. The replay test compares full HTTP conversations,
+including schemas, message ordering, argument serialization and tool output.
+Both agents use fifteen tool groups and the server's sampling defaults
+(AgentDojo omits temperature zero at the HTTP boundary).
 
-Every decision is made by the Rust binary. This package only describes the
-suite's tools, relays calls, and records what the gate said. Nothing here can
-allow a call the gate refused, and nothing here can refuse one it allowed.
-
-## Running it
+## Run
 
 ```bash
-cargo build --release -p meden-cli          # from the repository root
-cd python && uv sync --group dev --extra agentdojo
-
-uv run python -m meden_agentdojo.benchmark \
-  --suite banking --provider hermes:ollama-cloud --out results.json
-
-# Meden's own native tool-calling engine (capability policy only):
-uv run python -m meden_agentdojo.benchmark --agent meden-tool-calling \
-  --suite banking --provider hermes:ollama-cloud --benign-only --workers 4 \
-  --out native.json
+cargo build --release -p meden-cli
+cd python
+uv sync --group dev --extra agentdojo
+uv run python -m meden_agentdojo.benchmark --agent meden --suite banking \
+  --provider hermes:ollama-cloud --model minimax-m3 --benign-only --workers 4 \
+  --repeat 3 --out native.json
+uv run python -m meden_agentdojo.benchmark --agent tool-calling --suite banking \
+  --model minimax-m3 --benign-only --workers 4 --repeat 3 --out baseline.json
 ```
 
-`--agent meden` uses the isolated planner and flow rules. `--agent
-meden-tool-calling` runs the Rust conversation engine, with capability checks
-and no provenance/disclosure enforcement. `--agent tool-calling` is
-AgentDojo's own undefended baseline. The native adapter takes the system
-prompt and YAML result formatter directly from AgentDojo. A deterministic
-HTTP test compares complete request sequences against the baseline,
-including tool order, schemas, message blocks and sampling fields. At this
-AgentDojo version, its zero temperature is omitted from the HTTP request,
-so both native agents use the server's sampling defaults.
+Use the same model, endpoint and worker count for comparisons. The baseline
+uses Ollama Cloud by default. Suites: banking, slack, travel and workspace.
+Omit `--benign-only` to measure injections as well; the runner first checks
+which injection goals are reachable and records known scoring collisions.
+Records include settings, binary digest, calls, decisions, answers and exact
+API history. Refusals due to invalid model arguments are kept separate from
+capability denials. These results do not establish the new confidentiality
+requirement in [the design](../docs/design.md).
 
-`meden providers` lists what it can plan with. `--benign-only` measures
-utility and stops; `--limit` and `--injection-limit` cut the run down while
-you are setting it up. A full banking run is 16 tasks benign and 16 × 9 under
-attack.
+## Verify
 
-**Run it more than once.** A planner at temperature zero still answers
-differently from one pass to the next, and on sixteen tasks the swing has
-been wider than the differences anyone is trying to measure. `--repeat N`
-makes N passes and reports each one, so the spread is visible instead of
-being rounded away into a single confident number.
-
-`--workers N` runs N tasks at once. Almost all of a run is spent waiting on
-a model, so this is most of what decides how long one takes: four workers
-turned eight banking runs from about an hour into four minutes. Keep the
-setting fixed across runs you intend to compare. A parallel pass has scored
-lower here than serial passes of the same suite, and whether that is the
-concurrency or the ordinary swing is not something these runs can tell
-apart — so do not read a number measured at one setting against a number
-measured at another.
-
-## What it reports
-
-Three numbers, kept apart because they answer different questions.
-
-| | question |
-|---|---|
-| utility | what the defence costs when no one is attacking |
-| utility under attack | whether the agent still works while under attack |
-| attack success rate | whether the attack got what it wanted |
-
-And then the part that matters more than the numbers: **why calls were
-refused, by rule**, and **why benign tasks failed, by cause**. A task the
-integrity rule refused is a cost of this design. A task the planner botched
-is a cost of the model it was given. Reporting one headline number hides that
-difference, and the two call for opposite fixes.
-
-`results.json` carries a `runs` array with one record per task — its outcome,
-the rules that refused it, and the sentence the session ended on — so any
-number here can be traced back to the task that produced it.
-
-## Declaring tools
-
-`declarations.py` says, for each tool in a suite, which of its parameters
-*steer* the call. A recipient steers; a subject line is carried. That single
-judgement is the whole input to the integrity rule, and it is the work a
-deployment does.
-
-A tool with no declaration raises `UndeclaredTool` rather than defaulting.
-Both defaults are wrong: treating every parameter as steering refuses
-ordinary work, and treating none as steering is the hole the design exists
-to close.
-
-The banking declarations mirror the policy in CaMeL's own AgentDojo
-integration, so that a number measured here can be set beside a number
-measured there. Marking more parameters as steering would refuse more attacks
-and make the comparison flattering rather than fair.
-
-The policy used is `PERMISSIVE_POLICY`, which grants every capability. A
-realistic deployment would also restrict capabilities and would refuse more,
-but those refusals belong to the policy, not to the flow rules, and crediting
-them here would overstate the result.
-
-## Tests
+Build the Rust binary before running tests; do not overwrite it during a run.
 
 ```bash
-MEDEN_BIN=../target/debug/meden uv run pytest
-```
-
-A live-model TUI check is separate from the deterministic tests and score
-measurements. It uses real file edits and shell execution in a temporary
-workspace across two user turns (a bug fix, then a feature addition), then
-independently checks the original tests and the new function:
-
-```bash
+MEDEN_BIN=../target/debug/meden uv run pytest -q
+uv run ruff check .
 uv run python -m meden_agentdojo.tui_smoke --binary ../target/release/meden \
   --provider hermes:ollama-cloud --model minimax-m3 --out ../results/tui-live-smoke.json
 ```
+
+The live-model check drives two real TUI turns: a bug fix, then a feature
+addition. It independently checks the original tests and added function,
+real file effects, successful agent-run tests and restored terminal settings.
+Run it separately from benchmark measurements to preserve worker counts.

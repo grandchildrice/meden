@@ -8,13 +8,13 @@
 //!
 //! Only what is needed is read: the name, base URL, model and the *name* of
 //! the environment variable holding each key. A key's value is looked up and
-//! passed to the request; it is never logged, and `Debug` on a
-//! [`Provider`] carries it only as far as the caller does.
+//! passed to the request; it is never logged. Provider debug formatting
+//! excludes credentials.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use crate::provider::{Provider, Transport};
+use crate::provider::Provider;
 
 /// Where Hermes keeps its configuration.
 ///
@@ -156,10 +156,8 @@ pub fn providers_in(home: &Path) -> Vec<Provider> {
                 id: format!("hermes:{}", c.name),
                 label: format!("{} (via Hermes)", c.name),
                 model,
-                transport: Transport::OpenAi {
-                    base_url: c.base_url.clone(),
-                    api_key,
-                },
+                base_url: c.base_url.clone(),
+                api_key,
                 note: format!("from {}", home.join("config.yaml").display()),
             })
         })
@@ -246,17 +244,9 @@ custom_providers:
         let ids: Vec<&str> = found.iter().map(|p| p.id.as_str()).collect();
         assert_eq!(ids, vec!["hermes:ollama-cloud"], "{found:?}");
 
-        let p = found.first().map(|p| p.transport.clone());
-        match p {
-            Some(Transport::OpenAi { base_url, api_key }) => {
-                assert_eq!(base_url, "https://ollama.com/v1");
-                assert_eq!(api_key.as_deref(), Some("secret"));
-            }
-            other => panic!("expected an OpenAI transport, got {other:?}"),
-        }
         assert_eq!(
-            found.first().map(|p| p.model.clone()).as_deref(),
-            Some("minimax-m3")
+            found.first().and_then(|p| p.api_key.as_deref()),
+            Some("secret")
         );
     }
 

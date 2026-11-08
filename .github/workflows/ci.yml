@@ -58,11 +58,6 @@ jobs:
           - { package: meden-core, harness: allowed_iff_granted_and_not_denied }
           - { package: meden-core, harness: grants_are_monotone }
           - { package: meden-core, harness: scope_rules }
-          - { package: meden-core, harness: tier_rule }
-          - { package: meden-agent, harness: untrusted_control_is_refused }
-          - { package: meden-agent, harness: data_that_does_not_steer_is_allowed }
-          - { package: meden-agent, harness: unreadable_is_not_disclosed }
-          - { package: meden-agent, harness: rules_are_monotone_in_arguments }
     steps:
       - uses: actions/checkout@v7
       - uses: model-checking/kani-github-action@v1
@@ -95,14 +90,6 @@ jobs:
           name: meden-spec
           path: lean/.lake/build/bin/meden-spec
           if-no-files-found: error
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: 1.98.1
-      - uses: Swatinem/rust-cache@v2
-      - name: meden attest lean against the spec
-        run: cargo test -p meden-cli --test attest -- --nocapture
-      - name: the invariant catalogue describes these sources
-        run: cargo run -p meden-cli -- invariants --explain
 
   python:
     name: python adapter (ruff, pytest against the binary)

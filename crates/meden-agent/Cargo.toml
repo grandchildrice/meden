@@ -1,6 +1,6 @@
 [package]
 name = "meden-agent"
-description = "The capability-typed agent core: labelled values, a restricted plan language, and an interpreter that calls tools through the gate"
+description = "Native conversation engine with host-owned tools"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -13,9 +13,6 @@ meden-core = { path = "../meden-core", version = "0.1.0" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
-
-[dev-dependencies]
-proptest = "1"
 
 [lints]
 workspace = true

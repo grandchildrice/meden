@@ -11,7 +11,7 @@ The first security requirement is:
 The [coding agent design](docs/design.md) defines the requirement, trusted
 components, outbound authorization, implementation work and acceptance
 criteria. The target uses one conversation architecture. The isolated
-planner and quarantined reader are retired from the product design.
+planner, quarantined reader and their product entry points have been removed.
 
 **Status: development prototype. The confidentiality requirement is not yet
 implemented.** The current TUI can edit files and run commands, but its
@@ -67,22 +67,19 @@ this future end-to-end architecture.
 
 | Path | Current responsibility |
 | --- | --- |
-| `crates/meden-agent` | Native conversation loop, tool API and registry; also retains historical planner/interpreter code during migration |
+| `crates/meden-agent` | Conversation loop, JSON tool API and registry |
 | `crates/meden-cli` | TUI, input editor, workspace tools, development shell and JSON Lines host protocol |
 | `crates/meden-llm` | Model clients, provider discovery including Hermes configuration, and managed process lifecycle |
-| `crates/meden-core` | Existing capability/policy and attestation kernel; selectively reusable |
-| `crates/meden-skill` | Historical skill metadata extraction |
+| `crates/meden-core` | Capability/policy kernel used by tool dispatch |
 | `python/` | AgentDojo adapters, measurement runner and real PTY/live-model TUI checks |
-| `lean/`, `invariants/` | Formal specifications and catalogued properties of the existing kernel |
+| `lean/` | Formal policy/glob specifications and the conformance oracle |
 | `docs/design.md` | Current coding agent design and acceptance requirements |
-| `docs/archive/` | Retired architecture and research context |
 | `results/` | Recorded measurements with their configuration and limitations |
 
-The current CLI still contains `run --mode plan` (currently its default),
-`demo`, skill admission and attestation commands from the historical design.
-`run --mode tool-calling` and the TUI use the conversation engine. Removing
-legacy product entry points is part of the runtime migration; there is no
-strict-mode branch in the target architecture.
+The CLI has three commands: `tui`, `providers` and `run`. `run` is a single
+conversational JSON Lines interface for hosts such as the AgentDojo adapter.
+There are no plan modes, CLI model wrappers, skill admission, attestations
+or compatibility aliases. Tool arguments/results use JSON directly.
 
 ## Measured utility
 
@@ -105,11 +102,9 @@ See [raw evidence and comparison settings](results/README.md).
 ## Development
 
 Build, verification and contribution rules are in
-[CONTRIBUTING.md](CONTRIBUTING.md). The
-[historical isolated-planner design](docs/archive/isolated-planner.md)
-preserves the old capability/flow-rule demonstrations and commands, with
-their original scope. They are research evidence, not the new security
-contract.
+[CONTRIBUTING.md](CONTRIBUTING.md). Work takes place directly on `main`.
+The retired implementation remains available in Git history; measured
+historical reports are preserved with their original configuration.
 
 ## License
 

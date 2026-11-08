@@ -17,10 +17,9 @@
 //!   contents; a symbolic length is applied afterwards with `get(..n)`.
 //!
 //! The Lean model carries the unbounded argument; these harnesses pin the
-//! Rust code to it, and the property tests in `policy.rs` and
-//! `attestation.rs` pin the owned APIs to the borrowed ones used here.
+//! Rust code to it, and the property tests in `policy.rs` pin the owned APIs
+//! to the borrowed ones used here.
 
-use crate::attestation::{tier_of_ref, Result, Tier};
 use crate::capability::Capability;
 use crate::glob::glob_match_chars;
 use crate::policy::{allowed_ref, covers_ref, violates_ref, GrantRef, ReqRef};
@@ -162,39 +161,5 @@ fn scope_rules() {
             scope: None,
         };
         assert!(covers_ref(unscoped_grant, req));
-    }
-}
-
-/// The tier rule: only `proved` can verify; a Lean-only TCB verifies without
-/// approval; a foreign TCB verifies only with an approved backend.
-///
-/// The bound covers the builtin `memcmp` loop: the rule compares backend and
-/// TCB names, and the longest of them (`verus+z3`) is eight bytes.
-#[kani::proof]
-#[kani::unwind(12)]
-fn tier_rule() {
-    let ri: u8 = kani::any();
-    kani::assume(ri < 4);
-    let result = match ri {
-        0 => Result::Proved,
-        1 => Result::Tested,
-        2 => Result::Scanned,
-        _ => Result::Failed,
-    };
-    let foreign: bool = kani::any();
-    let tcb: [&str; 1] = if foreign { ["z3"] } else { ["lean4"] };
-    let approved: bool = kani::any();
-    let backend = "verus+z3";
-    let approved_backends: &[&str] = if approved { &[backend] } else { &[] };
-
-    let t = tier_of_ref(result, &tcb, backend, approved_backends);
-    if result != Result::Proved {
-        assert!(t == Tier::NotVerified);
-    } else if !foreign {
-        assert!(t == Tier::Verified);
-    } else if approved {
-        assert!(t == Tier::VerifiedWithTcb);
-    } else {
-        assert!(t == Tier::NotVerified);
     }
 }

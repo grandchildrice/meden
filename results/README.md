@@ -1,5 +1,9 @@
 # Measured
 
+The isolated planner and its benchmark flags were removed after commit
+`e9a3e92`. Historical records/commands below describe those older binaries.
+Current `--agent meden` runs the single Rust conversation engine.
+
 ## Current native benign utility
 
 The Rust conversational engine now reaches baseline-level benign utility
@@ -40,12 +44,19 @@ running both agents. Repeat for `slack`, `travel` and `workspace`:
 cargo build --release -p meden-cli
 cd python
 MEDEN_BIN=../target/release/meden uv run python -m meden_agentdojo.benchmark \
-  --agent meden-tool-calling --suite banking --provider hermes:ollama-cloud \
+  --agent meden --suite banking --provider hermes:ollama-cloud \
   --model minimax-m3 --benign-only --workers 4 --repeat 3 --out native.json
 MEDEN_BIN=../target/release/meden uv run python -m meden_agentdojo.benchmark \
   --agent tool-calling --suite banking --provider hermes:ollama-cloud \
   --model minimax-m3 --benign-only --workers 4 --repeat 3 --out baseline.json
 ```
+
+`tui-live-smoke-minimal.json` verifies the later cleanup that removes the
+isolated planner, labels, skill attestations and CLI model wrappers. The
+remaining conversation engine still matches the baseline HTTP replay, and
+this real-model two-turn TUI check passed with independent tests and terminal
+restoration. The suite scores above remain measurements of their original
+frozen binaries; they were not rerun for the cleanup.
 
 ## Historical isolated-planner comparison
 

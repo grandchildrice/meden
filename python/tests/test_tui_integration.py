@@ -88,7 +88,6 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path, allow_s
         "MEDEN_LLM_BASE_URL": f"http://127.0.0.1:{server.server_port}/v1",
         "MEDEN_LLM_MODEL": "fixture",
     }
-    env.pop("MEDEN_TUI_SELFTEST", None)
     env.pop("MEDEN_LLM_API_KEY", None)
     command = [binary, "tui", "--workspace", str(tmp_path), "--provider", "configured"]
     if allow_shell:

@@ -1,334 +1,119 @@
-"""What each benchmark tool is allowed to do, and which of its arguments steer it.
-
-Declaring this is the work a deployment does. Nothing is inferred: a tool with
-no declaration is refused rather than waved through, because a tool whose
-steering parameters nobody named is a tool whose steering parameters nothing
-protects.
-
-A parameter *steers* when it decides what happens in the world — a recipient,
-an amount, a path, a password — rather than merely what is said. The subject
-line of a transfer is carried; the IBAN it goes to is obeyed. That distinction
-is the whole of the integrity rule, so it is the only judgement these tables
-record.
-"""
+"""Explicit capability requirements and exact AgentDojo argument schemas."""
 
 from __future__ import annotations
 
 from typing import Any
 
-#: One entry per tool: which parameters steer, whom the call discloses its
-#: arguments to, what capabilities it needs, and who may read what it returns.
-Declaration = dict[str, Any]
-
-# These mirror the banking policy in CaMeL's own AgentDojo integration
-# (`security_policies/banking.py`), so that a number measured here can be set
-# beside a number measured there. CaMeL requires the *recipient* of a transfer
-# to be trusted and leaves the amount, date and subject to the
-# confidentiality check; marking those as steering too would refuse more and
-# make the comparison flattering rather than fair.
-# Where these are stricter than CaMeL, and why it is said out loud
-# ----------------------------------------------------------------
-# CaMeL's policies are disjunctive: an untrusted recipient is accepted if
-# everything being sent is readable by that recipient. This runtime's
-# integrity rule has no such escape — a parameter that steers must be
-# trusted, full stop — so on three kinds of tool it refuses where CaMeL
-# allows:
-#
-#   send_email / send_direct_message   CaMeL: trusted recipient OR the body
-#                                      is readable by whoever it names.
-#   get_webpage                        CaMeL: the url need only be public.
-#   reschedule_calendar_event,
-#   append_to_file                     CaMeL consults the environment for who
-#                                      may read the event or the file; this
-#                                      adapter cannot, so it requires the
-#                                      handle itself to be trusted.
-#
-# Every one of those makes this side refuse more, not less. A utility number
-# measured here is therefore a floor against CaMeL's, and an attack-success
-# number is not flattered by the difference.
-
-BANKING: dict[str, Declaration] = {
-    # Reading. Nothing here changes the world, so nothing steers.
+BANKING = {
     "get_iban": {"requires": ["secret.read[own-iban]"]},
-    "get_balance": {},
-    "get_most_recent_transactions": {},
-    "get_scheduled_transactions": {},
-    "get_user_info": {},
+    "get_balance": {"requires": []},
+    "get_most_recent_transactions": {"requires": []},
+    "get_scheduled_transactions": {"requires": []},
+    "get_user_info": {"requires": []},
     "read_file": {"requires": ["fs.read[{file_path}]"]},
-    # Acting. The recipient decides where the money goes; the amount, date and
-    # subject travel with it and face the disclosure rule instead.
-    "send_money": {
-        "control": ["recipient"],
-        "discloses_to": "recipient",
-        "requires": ["net.egress[{recipient}]"],
-    },
-    "schedule_transaction": {
-        "control": ["recipient"],
-        "discloses_to": "recipient",
-        "requires": ["net.egress[{recipient}]"],
-    },
-    "update_scheduled_transaction": {
-        "control": ["recipient"],
-        "discloses_to": "recipient",
-        "requires": ["net.egress[{recipient}]"],
-    },
-    # Changing the account itself. Every field here is obeyed.
-    "update_password": {"control": ["password"], "requires": ["secret.read[password]"]},
-    "update_user_info": {
-        "control": ["first_name", "last_name", "street", "city"],
-        "requires": ["fs.write[user-info]"],
-    },
+    "send_money": {"requires": ["net.egress[{recipient}]"]},
+    "schedule_transaction": {"requires": ["net.egress[{recipient}]"]},
+    "update_scheduled_transaction": {"requires": ["net.egress[{recipient}]"]},
+    "update_password": {"requires": ["secret.read[password]"]},
+    "update_user_info": {"requires": ["fs.write[user-info]"]},
 }
 
-SLACK: dict[str, Declaration] = {
-    # Reading. CaMeL treats all of these as having no side effect, so neither
-    # does this: a tool that only looks does not steer anything.
-    "get_channels": {},
+SLACK = {
+    "get_channels": {"requires": []},
     "read_channel_messages": {"requires": ["fs.read[{channel}]"]},
     "read_inbox": {"requires": ["fs.read[inbox]"]},
-    "get_users_in_channel": {},
-    "get_webpage": {"control": ["url"], "requires": ["net.egress[{url}]"]},
-    "add_user_to_channel": {
-        "control": ["user", "channel"],
-        "requires": ["fs.write[{channel}]"],
-    },
-    "send_channel_message": {
-        "control": ["channel"],
-        "discloses_to": "channel",
-        "requires": ["net.egress[{channel}]"],
-    },
-    "send_direct_message": {
-        "control": ["recipient"],
-        "discloses_to": "recipient",
-        "requires": ["net.egress[{recipient}]"],
-    },
-    "invite_user_to_slack": {
-        "control": ["user", "user_email"],
-        "requires": ["net.egress[{user_email}]"],
-    },
-    "remove_user_from_slack": {"control": ["user"], "requires": ["fs.write[workspace]"]},
-    "post_webpage": {
-        "control": ["url"],
-        "discloses_to": "url",
-        "requires": ["net.egress[{url}]"],
-    },
+    "get_users_in_channel": {"requires": []},
+    "get_webpage": {"requires": ["net.egress[{url}]"]},
+    "add_user_to_channel": {"requires": ["fs.write[{channel}]"]},
+    "send_channel_message": {"requires": ["net.egress[{channel}]"]},
+    "send_direct_message": {"requires": ["net.egress[{recipient}]"]},
+    "invite_user_to_slack": {"requires": ["net.egress[{user_email}]"]},
+    "remove_user_from_slack": {"requires": ["fs.write[workspace]"]},
+    "post_webpage": {"requires": ["net.egress[{url}]"]},
 }
 
-
-#: One tool per line, mirroring CaMeL's `travel.py`. Everything that only
-#: looks something up steers nothing; a reservation is steered by what is
-#: being reserved and when.
-TRAVEL: dict[str, Declaration] = {
-    # Looking things up.
-    "get_user_information": {},
-    "get_all_hotels_in_city": {},
-    "get_hotels_prices": {},
-    "get_rating_reviews_for_hotels": {},
-    "get_hotels_address": {},
-    "get_all_restaurants_in_city": {},
-    "get_cuisine_type_for_restaurants": {},
-    "get_restaurants_address": {},
-    "get_rating_reviews_for_restaurants": {},
-    "get_dietary_restrictions_for_all_restaurants": {},
-    "get_contact_information_for_restaurants": {},
-    "get_price_for_restaurants": {},
-    "check_restaurant_opening_hours": {},
-    "get_all_car_rental_companies_in_city": {},
-    "get_car_types_available": {},
-    "get_rating_reviews_for_car_rental": {},
-    "get_car_fuel_options": {},
-    "get_car_rental_address": {},
-    "get_car_price_per_day": {},
-    "get_flight_information": {},
-    "search_calendar_events": {},
-    "get_day_calendar_events": {},
-    # Booking. CaMeL requires every field of a reservation to be trusted,
-    # because a reservation made on an injected page's terms is still a
-    # reservation.
-    "reserve_hotel": {
-        "control": ["hotel", "start_day", "end_day"],
-        "requires": ["net.egress[booking]"],
-    },
-    "reserve_car_rental": {
-        "control": ["company", "start_time", "end_time"],
-        "requires": ["net.egress[booking]"],
-    },
-    "reserve_restaurant": {
-        "control": ["restaurant", "start_time"],
-        "requires": ["net.egress[booking]"],
-    },
-    # The calendar and the outbox.
-    "create_calendar_event": {
-        "control": ["participants"],
-        "discloses_to": "participants",
-        "requires": ["fs.write[calendar]"],
-    },
-    "cancel_calendar_event": {
-        "control": ["event_id"],
-        "requires": ["fs.write[calendar]"],
-    },
-    "send_email": {
-        "control": ["recipients", "cc", "bcc"],
-        "discloses_to": "recipients",
-        "requires": ["net.egress[{recipients}]"],
-    },
+TRAVEL = {
+    "get_user_information": {"requires": []},
+    "get_all_hotels_in_city": {"requires": []},
+    "get_hotels_prices": {"requires": []},
+    "get_rating_reviews_for_hotels": {"requires": []},
+    "get_hotels_address": {"requires": []},
+    "get_all_restaurants_in_city": {"requires": []},
+    "get_cuisine_type_for_restaurants": {"requires": []},
+    "get_restaurants_address": {"requires": []},
+    "get_rating_reviews_for_restaurants": {"requires": []},
+    "get_dietary_restrictions_for_all_restaurants": {"requires": []},
+    "get_contact_information_for_restaurants": {"requires": []},
+    "get_price_for_restaurants": {"requires": []},
+    "check_restaurant_opening_hours": {"requires": []},
+    "get_all_car_rental_companies_in_city": {"requires": []},
+    "get_car_types_available": {"requires": []},
+    "get_rating_reviews_for_car_rental": {"requires": []},
+    "get_car_fuel_options": {"requires": []},
+    "get_car_rental_address": {"requires": []},
+    "get_car_price_per_day": {"requires": []},
+    "get_flight_information": {"requires": []},
+    "search_calendar_events": {"requires": []},
+    "get_day_calendar_events": {"requires": []},
+    "reserve_hotel": {"requires": ["net.egress[booking]"]},
+    "reserve_car_rental": {"requires": ["net.egress[booking]"]},
+    "reserve_restaurant": {"requires": ["net.egress[booking]"]},
+    "create_calendar_event": {"requires": ["fs.write[calendar]"]},
+    "cancel_calendar_event": {"requires": ["fs.write[calendar]"]},
+    "send_email": {"requires": ["net.egress[{recipients}]"]},
 }
 
-#: Mirrors CaMeL's `workspace.py`. Note `create_file`: writing a file the
-#: user alone can see is not a disclosure, and CaMeL allows it unconditionally
-#: for that reason. Sharing it is the act that needs a trusted address.
-WORKSPACE: dict[str, Declaration] = {
-    # Looking things up.
-    "get_unread_emails": {},
-    "get_sent_emails": {},
-    "get_received_emails": {},
-    "get_draft_emails": {},
-    "search_emails": {},
-    "search_contacts_by_name": {},
-    "search_contacts_by_email": {},
-    "get_current_day": {},
-    "search_calendar_events": {},
-    "get_day_calendar_events": {},
-    "search_files_by_filename": {},
-    "get_file_by_id": {},
-    "list_files": {},
-    "search_files": {},
-    # The outbox.
-    "send_email": {
-        "control": ["recipients", "cc", "bcc"],
-        "discloses_to": "recipients",
-        "requires": ["net.egress[{recipients}]"],
-    },
-    "delete_email": {"control": ["email_id"], "requires": ["fs.write[inbox]"]},
-    # The calendar.
-    "create_calendar_event": {
-        "control": ["participants"],
-        "discloses_to": "participants",
-        "requires": ["fs.write[calendar]"],
-    },
-    "cancel_calendar_event": {"control": ["event_id"], "requires": ["fs.write[calendar]"]},
-    "reschedule_calendar_event": {
-        "control": ["event_id"],
-        "requires": ["fs.write[calendar]"],
-    },
-    "add_calendar_event_participants": {
-        "control": ["event_id", "participants"],
-        "discloses_to": "participants",
-        "requires": ["fs.write[calendar]"],
-    },
-    # The drive.
+WORKSPACE = {
+    "get_unread_emails": {"requires": []},
+    "get_sent_emails": {"requires": []},
+    "get_received_emails": {"requires": []},
+    "get_draft_emails": {"requires": []},
+    "search_emails": {"requires": []},
+    "search_contacts_by_name": {"requires": []},
+    "search_contacts_by_email": {"requires": []},
+    "get_current_day": {"requires": []},
+    "search_calendar_events": {"requires": []},
+    "get_day_calendar_events": {"requires": []},
+    "search_files_by_filename": {"requires": []},
+    "get_file_by_id": {"requires": []},
+    "list_files": {"requires": []},
+    "search_files": {"requires": []},
+    "send_email": {"requires": ["net.egress[{recipients}]"]},
+    "delete_email": {"requires": ["fs.write[inbox]"]},
+    "create_calendar_event": {"requires": ["fs.write[calendar]"]},
+    "cancel_calendar_event": {"requires": ["fs.write[calendar]"]},
+    "reschedule_calendar_event": {"requires": ["fs.write[calendar]"]},
+    "add_calendar_event_participants": {"requires": ["fs.write[calendar]"]},
     "create_file": {"requires": ["fs.write[drive]"]},
-    "delete_file": {"control": ["file_id"], "requires": ["fs.write[drive]"]},
-    "share_file": {
-        "control": ["email"],
-        "discloses_to": "email",
-        "requires": ["net.egress[{email}]"],
-    },
-    "append_to_file": {"control": ["file_id"], "requires": ["fs.write[drive]"]},
+    "delete_file": {"requires": ["fs.write[drive]"]},
+    "share_file": {"requires": ["net.egress[{email}]"]},
+    "append_to_file": {"requires": ["fs.write[drive]"]},
 }
 
-#: Every suite this knows how to declare.
-SUITES: dict[str, dict[str, Declaration]] = {
-    "banking": BANKING,
-    "slack": SLACK,
-    "travel": TRAVEL,
-    "workspace": WORKSPACE,
-}
+SUITES = {"banking": BANKING, "slack": SLACK, "travel": TRAVEL, "workspace": WORKSPACE}
 
 
-def undefended(declarations: dict[str, Declaration]) -> dict[str, Declaration]:
-    """The same tools with nothing declared as steering, for a baseline.
-
-    This is what the agent does with its information-flow rules switched off,
-    and it is the only comparison that isolates them: same planner, same plan
-    language, same loop, same capability policy, same tools. The difference
-    between a run of this and a run of the real declarations is the rules and
-    nothing else.
-
-    It is expressed as a declaration rather than a flag on the binary on
-    purpose. A runtime whose defences can be turned off by an argument is a
-    runtime whose defences can be turned off by an argument. Here nothing in
-    the gate changes: it is told that no parameter steers and that no call
-    discloses, and it faithfully refuses nothing.
-
-    Measuring it matters for a reason that cuts the other way too. If the
-    injections do not work against this planner even undefended, then an
-    attack success rate of zero with the rules on is not evidence that the
-    rules did anything.
-    """
-    return {
-        name: {k: v for k, v in declaration.items() if k not in ("control", "discloses_to")}
-        for name, declaration in declarations.items()
-    }
+class UndeclaredTool(ValueError):
+    """A runtime tool has no host declaration."""
 
 
-class UndeclaredTool(Exception):
-    """A tool the suite offers that nothing has declared.
-
-    Raised rather than defaulted, because either default is wrong: treating
-    every argument as steering refuses ordinary work, and treating none as
-    steering is the hole the whole design exists to close.
-    """
-
-
-def tool_specs(runtime: Any, declarations: dict[str, Declaration]) -> list[dict[str, Any]]:
-    """Describe a runtime's tools in the form the agent's protocol expects.
-
-    Raises:
-        UndeclaredTool: if the runtime offers a tool with no declaration.
-    """
-    from pydantic import TypeAdapter
-
+def tool_specs(runtime: Any, declarations: dict) -> list[dict[str, Any]]:
     specs = []
-    for tool in runtime.functions.values():
-        declaration = declarations.get(tool.name)
-        if declaration is None:
-            raise UndeclaredTool(
-                f"{tool.name} has no declaration; add one to declarations.py saying "
-                "which of its parameters steer the call"
-            )
-        steering = set(declaration.get("control", ()))
-        unknown = steering - set(tool.parameters.model_fields)
-        if unknown:
-            raise UndeclaredTool(
-                f"{tool.name} declares parameters it does not have: {sorted(unknown)}"
-            )
-        spec: dict[str, Any] = {
-            "name": tool.name,
-            "description": (tool.description or "").strip(),
-            "parameters_schema": tool.parameters.model_json_schema(),
-            "result_schema": TypeAdapter(tool.return_type).json_schema(),
-            "params": [
-                {
-                    "name": name,
-                    "control": name in steering,
-                    # A parameter with a default is not missing when it is
-                    # left out. Calling every field required refused ordinary
-                    # calls — `get_most_recent_transactions` without its `n` —
-                    # and bought nothing: the gate rules on where an argument
-                    # came from, not on whether the planner bothered to write
-                    # one.
-                    "required": field.is_required(),
-                }
-                for name, field in tool.parameters.model_fields.items()
-            ],
-            "requires": list(declaration.get("requires", ())),
-        }
-        if "discloses_to" in declaration:
-            spec["discloses_to"] = declaration["discloses_to"]
-        if "returns_readers" in declaration:
-            spec["returns_readers"] = list(declaration["returns_readers"])
-        specs.append(spec)
+    for name, tool in runtime.functions.items():
+        if name not in declarations:
+            raise UndeclaredTool(name)
+        specs.append(
+            {
+                "name": name,
+                "description": tool.description,
+                "parameters_schema": tool.parameters.model_json_schema(),
+                "requires": list(declarations[name].get("requires", [])),
+            }
+        )
     return specs
 
 
-#: A policy that grants every capability, so that what refuses a call is the
-#: provenance of its arguments and nothing else.
-#:
-#: This is the configuration that measures the claim actually being made. A
-#: realistic deployment would also restrict capabilities, and would refuse
-#: more; crediting those refusals to the integrity rule would overstate it.
-PERMISSIVE_POLICY: dict[str, Any] = {
+PERMISSIVE_POLICY = {
     "name": "capabilities-granted",
     "grants": [
         "fs.read",

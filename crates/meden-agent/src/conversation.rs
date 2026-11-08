@@ -1,8 +1,7 @@
 //! Ordinary conversation and tool execution, with capability checks.
 //!
-//! Unlike the isolated planner, this model reads tool results. Its arguments
-//! therefore have no trustworthy provenance: this mode enforces the capability
-//! policy, but makes no integrity or confidentiality claim about model choices.
+//! The model reads tool results. Capability checks constrain declared effects;
+//! they do not establish outbound confidentiality or trustworthy model choices.
 
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -10,7 +9,7 @@ use meden_core::{check, Policy};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value as Json};
 
-use crate::{data_from_json, data_to_json, tool::Args, Label, PlannerError, Registry};
+use crate::{tool::Args, Registry};
 
 /// An API function call. Arguments remain text until execution, so malformed
 /// JSON can be returned to the model as an error with its original call id.
@@ -87,10 +86,21 @@ pub fn content(text: &str) -> Json {
     json!([{"type":"text", "text":text}])
 }
 
+/// Model transport or response failure.
+#[derive(Debug, thiserror::Error)]
+pub enum ModelError {
+    /// The model endpoint could not complete the request.
+    #[error("model unavailable: {0}")]
+    Unavailable(String),
+    /// The response cannot be used as an assistant message.
+    #[error("invalid model response: {0}")]
+    InvalidResponse(String),
+}
+
 /// A model that supports native function calling.
 pub trait ChatModel {
     /// Generate the next assistant message from the full conversation.
-    fn reply(&self, messages: &[Json], tools: &[Json]) -> Result<Reply, PlannerError>;
+    fn reply(&self, messages: &[Json], tools: &[Json]) -> Result<Reply, ModelError>;
 }
 
 /// Session completion, distinct from tool errors the model may recover from.
@@ -229,23 +239,20 @@ fn execute(
                 "Arguments must be an object".to_owned(),
             )
         })?;
-        // These labels are only an adapter for the Tool API. They are never
-        // passed to the flow gate or claimed to carry model provenance.
         let args: Args = object
             .iter()
-            .map(|(name, value)| {
-                (
-                    name.clone(),
-                    crate::Value::new(data_from_json(value, &Label::runtime()), Label::runtime()),
-                )
-            })
+            .map(|(name, value)| (name.clone(), value.clone()))
             .collect();
-        for param in &tool.signature().params {
-            if param.required && !args.contains_key(&param.name) {
-                return Err((
-                    "missing_argument",
-                    format!("Missing argument: {}", param.name),
-                ));
+        if let Some(required) = tool
+            .signature()
+            .parameters
+            .get("required")
+            .and_then(Json::as_array)
+        {
+            for name in required.iter().filter_map(Json::as_str) {
+                if !args.contains_key(name) {
+                    return Err(("missing_argument", format!("Missing argument: {name}")));
+                }
             }
         }
         let decision = check(&tool.requirements(&args), policy);
@@ -275,7 +282,7 @@ fn execute(
                 .map_err(|e| ("tool_error", e.to_string()))?;
             Ok(result
                 .as_str()
-                .map_or_else(|| data_to_json(&result.data).to_string(), str::to_owned))
+                .map_or_else(|| result.to_string(), str::to_owned))
         }
     }
 }
@@ -284,12 +291,7 @@ fn execute(
 pub fn tool_definitions(registry: &Registry, order: &[String]) -> Vec<Json> {
     order.iter().filter_map(|name| registry.get(name)).map(|tool| {
         let sig = tool.signature();
-        let schema = sig.parameters_schema.clone().unwrap_or_else(|| {
-            let properties: serde_json::Map<String, Json> = sig.params.iter()
-                .map(|p| (p.name.clone(), json!({"type":"string"}))).collect();
-            let required: Vec<_> = sig.params.iter().filter(|p| p.required).map(|p| &p.name).collect();
-            json!({"type":"object", "properties":properties, "required":required})
-        });
+        let schema = &sig.parameters;
         json!({"type":"function", "function":{"name":sig.name, "description":sig.description, "parameters":schema}})
     }).collect()
 }
@@ -298,8 +300,7 @@ pub fn tool_definitions(registry: &Registry, order: &[String]) -> Vec<Json> {
 mod tests {
     #![allow(clippy::expect_used)]
     use super::*;
-    use crate::tool::{ParamSpec, Tool, ToolError, ToolSig};
-    use crate::{Data, Value};
+    use crate::tool::{Tool, ToolError, ToolSig};
     use meden_core::{Capability, Requirement};
     use std::cell::{Cell, RefCell};
     use std::collections::VecDeque;
@@ -307,11 +308,11 @@ mod tests {
 
     struct Model(RefCell<VecDeque<Reply>>);
     impl ChatModel for Model {
-        fn reply(&self, _: &[Json], _: &[Json]) -> Result<Reply, PlannerError> {
+        fn reply(&self, _: &[Json], _: &[Json]) -> Result<Reply, ModelError> {
             self.0
                 .borrow_mut()
                 .pop_front()
-                .ok_or_else(|| PlannerError::Unavailable("no scripted reply".into()))
+                .ok_or_else(|| ModelError::Unavailable("no scripted reply".into()))
         }
     }
     struct WriteTool {
@@ -329,9 +330,9 @@ mod tests {
                 "write",
             )]
         }
-        fn call(&self, _: &Args) -> Result<Value, ToolError> {
+        fn call(&self, _: &Args) -> Result<Json, ToolError> {
             self.calls.set(self.calls.get().saturating_add(1));
-            Ok(Value::literal(Data::Str("written".into())))
+            Ok(json!("written"))
         }
     }
     fn call(id: &str, arguments: &str) -> ToolCall {
@@ -345,7 +346,7 @@ mod tests {
     }
     fn registry(calls: &Rc<Cell<usize>>) -> Registry {
         Registry::new().with(Box::new(WriteTool {
-            sig: ToolSig::new("write", vec![ParamSpec::data("text")]),
+            sig: ToolSig::new("write", "Write text", json!({"type":"object", "properties":{"text":{"type":"string"}}, "required":["text"]})),
             calls: Rc::clone(calls),
         }))
     }

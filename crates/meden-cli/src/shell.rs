@@ -7,11 +7,12 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Result;
-use meden_agent::tool::{Args, ParamSpec, Tool, ToolError, ToolSig};
-use meden_agent::{data_from_json, Data, Label, Registry, Source, Value};
+use meden_agent::tool::{Args, Tool, ToolError, ToolSig};
+use meden_agent::Registry;
 use meden_core::{Capability, Grant, Policy, Requirement};
 use meden_llm::process::{self, Control, Limits, Termination};
 use serde_json::json;
+use serde_json::Value;
 
 struct Shell {
     root: std::path::PathBuf,
@@ -26,9 +27,7 @@ pub fn enable(
     root: &Path,
     control: Arc<Control>,
 ) -> Result<()> {
-    let mut sig = ToolSig::new("bash", vec![ParamSpec::control("command"), ParamSpec::data("timeout_seconds").optional()])
-        .describing("Run a shell command in the workspace directory (Bash on Unix, cmd on Windows). Use it to search, build and test. This is not a sandbox: the command has the current account's file and network permissions. Timeout defaults to 60 seconds, maximum 300. Output is bounded; inspect exit status and errors before claiming success.");
-    sig.parameters_schema = Some(json!({"type":"object","properties":{
+    let sig = ToolSig::new("bash", "Run a shell command in the workspace (Bash on Unix, cmd on Windows). This is not a sandbox: the command has the account's filesystem and network permissions. Inspect failures before claiming success.", json!({"type":"object","properties":{
         "command":{"type":"string"},"timeout_seconds":{"type":"integer","minimum":1,"maximum":300}
     },"required":["command"],"additionalProperties":false}));
     registry.register(Box::new(Shell {
@@ -59,10 +58,8 @@ impl Tool for Shell {
             .ok_or_else(|| ToolError::Failed("command must be nonempty text".into()))?;
         let seconds = match args.get("timeout_seconds") {
             None => 60,
-            Some(Value {
-                data: Data::Int(n), ..
-            }) if (1..=300).contains(n) => {
-                u64::try_from(*n).map_err(|e| ToolError::Failed(e.to_string()))?
+            Some(value) if value.as_u64().is_some_and(|n| (1..=300).contains(&n)) => {
+                value.as_u64().unwrap_or(60)
             }
             Some(_) => {
                 return Err(ToolError::Failed(
@@ -104,8 +101,7 @@ impl Tool for Shell {
         if !success {
             return Err(ToolError::Failed(result.to_string()));
         }
-        let label = Label::public([Source::tool("bash")]);
-        Ok(Value::new(data_from_json(&result, &label), label))
+        Ok(result)
     }
 }
 
@@ -131,9 +127,7 @@ mod tests {
         let tool = registry.get("bash").expect("bash");
         let bash_syntax = [(
             "command".to_owned(),
-            Value::literal(Data::Str(
-                "set -o pipefail; values=(one two); [[ ${values[1]} == two ]]".into(),
-            )),
+            json!("set -o pipefail; values=(one two); [[ ${values[1]} == two ]]"),
         )]
         .into_iter()
         .collect();
@@ -142,12 +136,9 @@ mod tests {
             "the bash tool must support Bash syntax"
         );
         assert!(meden_core::check(&tool.requirements(&Args::new()), &policy).allowed);
-        let args = [(
-            "command".to_owned(),
-            Value::literal(Data::Str("printf failure >&2; exit 7".into())),
-        )]
-        .into_iter()
-        .collect();
+        let args = [("command".to_owned(), json!("printf failure >&2; exit 7"))]
+            .into_iter()
+            .collect();
         let error = tool.call(&args).expect_err("failed command").to_string();
         assert!(error.contains("failure"));
         assert!(error.contains("\"exit_code\":7"));

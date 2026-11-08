@@ -1,5 +1,6 @@
 //! Interactive native tool-calling agent, backed by real workspace tools.
 
+#[cfg(test)]
 use std::fmt::Write as _;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -19,7 +20,7 @@ use crossterm::terminal::{
 use crossterm::ExecutableCommand;
 use meden_agent::conversation::{self, Conversation, Event, Status};
 use meden_llm::process::Control;
-use meden_llm::{Provider, Transport};
+use meden_llm::Provider;
 use ratatui::prelude::*;
 use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Wrap};
 
@@ -349,10 +350,6 @@ impl Drop for TerminalGuard {
 
 /// Open a native-tool-calling interface for the selected workspace.
 pub fn run(providers: Vec<Provider>, root: &Path, allow_shell: bool) -> Result<()> {
-    let providers: Vec<_> = providers
-        .into_iter()
-        .filter(|p| matches!(p.transport, Transport::OpenAi { .. }))
-        .collect();
     anyhow::ensure!(
         !providers.is_empty(),
         "TUI requires an OpenAI-compatible HTTP provider; see `meden providers`"
@@ -574,10 +571,9 @@ fn draw_input(frame: &mut Frame<'_>, input: &Input, bottom: Rect) {
     }
 }
 
-/// Render the interface once without a terminal.
-pub const ENV_SELFTEST: &str = "MEDEN_TUI_SELFTEST";
 /// Exercise every screen using an in-memory terminal.
-pub fn selftest(providers: Vec<Provider>) -> Result<String> {
+#[cfg(test)]
+fn selftest(providers: Vec<Provider>) -> Result<String> {
     let mut app = App::new(providers, PathBuf::from("/workspace"), false);
     let mut terminal = Terminal::new(ratatui::backend::TestBackend::new(100, 24))?;
     let mut rendered = String::new();
@@ -611,10 +607,8 @@ mod tests {
             id: "test".into(),
             label: "Test".into(),
             model: "m".into(),
-            transport: Transport::OpenAi {
-                base_url: "http://127.0.0.1:1/v1".into(),
-                api_key: None,
-            },
+            base_url: "http://127.0.0.1:1/v1".into(),
+            api_key: None,
             note: String::new(),
         }]
     }

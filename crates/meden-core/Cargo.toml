@@ -1,6 +1,6 @@
 [package]
 name = "meden-core"
-description = "Capability types, policies and attestation tiers for the Meden gate"
+description = "Capability policy checks for the Meden runtime"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -10,12 +10,10 @@ authors.workspace = true
 
 [dependencies]
 serde = { workspace = true }
-serde_json = { workspace = true }
 thiserror = { workspace = true }
-sha2 = "0.11"
-hex = "0.4"
 
 [dev-dependencies]
+serde_json = { workspace = true }
 proptest = "1"
 
 [lints]

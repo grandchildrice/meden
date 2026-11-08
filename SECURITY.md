@@ -16,7 +16,7 @@ and the existing formal kernel checks do not establish this requirement.
 
 ## Existing implementation boundaries
 
-The conversational agent (`tui`, or `run --mode tool-calling`)
+The conversational agent (`tui` or `run`)
 enforces the capability policy only. It reads tool output and does not
 claim to prevent prompt injection or information disclosure within the
 granted capabilities. Workspace file tools validate paths and symlink
@@ -29,27 +29,15 @@ directory, not containment for shell commands. Timeout and cancellation
 manage process lifetime, not isolation; a command that deliberately escapes
 its Unix process group requires OS-level containment.
 
-Command-line model providers execute external programs. Their independent
-actions are outside Meden's gate; only the returned plan is interpreted by
-Meden. Use HTTP model providers when all tool execution must pass through
-this runtime. The native TUI supports HTTP providers only.
+The CLI uses HTTP model connections only. The isolated planner, quarantined
+reader, skill attestation subsystem and command-line model wrappers have
+been removed. Their historical information-flow claims do not apply to
+this conversational runtime.
 
-The isolated planner still exists in the implementation during migration,
-including as the current `run` default. Its labelled interpreter checks
-capability, integrity and disclosure rules under its stated assumptions.
-This is historical research, outside the new product design; it does not
-provide a separate security mode for the target coding agent.
-
-- `meden-core` is the boundary: policy decisions and attestation tiers are
-  specified in Lean, model-checked with Kani within bounds, and checked for
-  conformance against the Lean model on every change.
-- `meden-skill`'s static scan of scripts is **not** a boundary. It
-  over-approximates the capabilities a skill needs so that the policy can
-  refuse it; it does not prove that a skill lacks an effect. Proofs come from
-  attestations.
-- Attestations are trusted only as far as their declared TCB. A `verified`
-  tier means "proved, and the TCB is Lean 4 and its extraction chain"; a
-  `verified-with-tcb` tier names the other prover.
+The retained `meden-core` capability/policy rules are specified in Lean,
+checked with bounded Kani harnesses, and compared with the Lean oracle on
+1,000 policy/glob cases. These checks cover those kernel rules only. They
+do not establish the planned runner isolation or outbound authorization.
 
 ## Reporting
 
