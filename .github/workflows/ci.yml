@@ -125,7 +125,7 @@ jobs:
         run: |
           cargo build --release -p meden-cli
           python3 tools/prepare-verifier.py \
-            --rust "$(rustc --print sysroot)" \
+            --rust "$(rustup run nightly-2026-09-17 rustc --print sysroot)" \
             --charon "$CHARON" --driver "$RUNNER_TEMP/aeneas/charon-driver" \
             --aeneas "$AENEAS" --output "$RUNNER_TEMP/project-verifier.json"
           uv run --project python pytest -q python/tests/test_project_verification.py \
