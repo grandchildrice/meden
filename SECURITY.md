@@ -99,10 +99,10 @@ been removed. Their historical information-flow claims do not apply to
 this conversational runtime.
 
 The retained `meden-core` capability/policy rules are specified in Lean
-and checked with six bounded Kani harnesses. The new exact-transfer kernel
-has seven Lean theorems for request matching, expiry and single use, plus
-two refinement theorems over the extracted production Rust decision and
-state update. Rust and the executable Lean oracle are compared on 5,000 policy, glob and
+and checked with six bounded Kani harnesses. The processor-permission predicate
+has Lean theorems for exact binding, session, expiry and revocation, plus
+refinement of the extracted production Rust permission predicate.
+Rust and the executable Lean oracle are compared on 5,000 policy, glob and
 transfer cases. These checks cover decision rules; they do not establish
 that every real outbound effect passes through those rules.
 
@@ -112,11 +112,14 @@ dispatch, and that arbitrary finite compositions of the extracted step
 grant at most one dispatch. A combined production state now owns the frozen
 request and performs review/reservation under one runtime mutex. Its
 Rust-to-Lean refinement proves exact emitted-request correspondence and at
-most one effect over arbitrary finite compositions. The runtime decodes and
-sends only the returned request; separate CLI phase and pending permit
-states have been removed. Correct attribution of
-typed origins by UI/protocol/transport code, reference lookup, rendering and
-the JSON/URI decoder and I/O loop remain unproved; this is not whole-controller refinement.
+most one effect over arbitrary finite compositions. The runtime consumes a
+borrowed dispatch for the original destination/body. The actual consuming
+accessor and exact getters are refined too; this path has no JSON codec.
+The actual TUI approval predicate and review-target selector are extracted
+and refined, and each handler matches its own target against the host screen.
+Correct attribution of typed origins by UI/protocol/transport code, screen
+transitions, displayed-review correspondence, reference lookup, URI
+normalization and the I/O loop remain unproved; this is not whole-controller refinement.
 
 The third extracted kernel checks exact evidence correspondence. Only typed
 checker results matching the accepted obligation, evidence kind, checker,

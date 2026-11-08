@@ -192,6 +192,8 @@ terminal control characters in human-facing errors/provider listings.
 
 The combined export lifecycle/reservation kernel has transition and
 finite-composition refinement proofs for exact emitted requests and at most
-one effect. Origin attribution, description decoding, the shared I/O controller, parser and OS effects
+one effect. Its consuming dispatch accessor and exact destination/body getters
+are refined too; the approval-to-send path has no JSON codec. Origin attribution,
+URI normalization, the shared I/O controller, parser and OS effects
 are not yet fully refined in Lean. [Current verification](verification.md) records which kernel
 functions are proved and which production behaviors have integration tests.

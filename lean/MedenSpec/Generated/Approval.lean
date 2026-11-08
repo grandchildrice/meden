@@ -481,8 +481,27 @@ def crossterm.event.KeyCode.Insts.CoreCmpPartialEqKeyCode.eq
           __self_0 __arg1_0
   else ok false
 
+/-- [meden::tui::approval::Choice]
+    Source: 'crates/meden-cli/src/tui/approval.rs', lines 9:0-13:1 -/
+@[discriminant isize]
+inductive tui.approval.Choice where
+| Processor : tui.approval.Choice
+| Export : tui.approval.Choice
+| Contract : tui.approval.Choice
+
+/-- [meden::tui::Screen]
+    Source: 'crates/meden-cli/src/tui.rs', lines 43:0-50:1 -/
+@[discriminant isize]
+inductive tui.Screen where
+| Picking : tui.Screen
+| ReviewingProcessor : tui.Screen
+| ReviewingExport : tui.Screen
+| ReviewingContract : tui.Screen
+| Instructing : tui.Screen
+| Running : tui.Screen
+
 /-- [meden::tui::approval::approves]:
-    Source: 'crates/meden-cli/src/tui/approval.rs', lines 5:0-13:1 -/
+    Source: 'crates/meden-cli/src/tui/approval.rs', lines 29:0-37:1 -/
 def tui.approval.approves (event : crossterm.event.Event) : Result Bool := do
   match event with
   | crossterm.event.Event.FocusGained => ok false
@@ -503,5 +522,23 @@ def tui.approval.approves (event : crossterm.event.Event) : Result Bool := do
   | crossterm.event.Event.Mouse _ => ok false
   | crossterm.event.Event.Paste _ => ok false
   | crossterm.event.Event.Resize _ _ => ok false
+
+/-- [meden::tui::approval::route]:
+    Source: 'crates/meden-cli/src/tui/approval.rs', lines 17:0-27:1 -/
+def tui.approval.route
+  (screen : tui.Screen) (event : crossterm.event.Event) :
+  Result (Option tui.approval.Choice)
+  := do
+  let b ← tui.approval.approves event
+  if b
+  then
+    match screen with
+    | tui.Screen.Picking => ok none
+    | tui.Screen.ReviewingProcessor => ok (some tui.approval.Choice.Processor)
+    | tui.Screen.ReviewingExport => ok (some tui.approval.Choice.Export)
+    | tui.Screen.ReviewingContract => ok (some tui.approval.Choice.Contract)
+    | tui.Screen.Instructing => ok none
+    | tui.Screen.Running => ok none
+  else ok none
 
 end MedenUIImpl

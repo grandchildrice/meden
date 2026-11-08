@@ -168,7 +168,13 @@ impl App {
     }
     fn review_key(&mut self, key: crossterm::event::KeyEvent) {
         match key.code {
-            _ if approval::approves(&event::Event::Key(key)) => self.approve_processor(),
+            _ if matches!(
+                approval::route(&self.screen, &event::Event::Key(key)),
+                Some(approval::Choice::Processor)
+            ) =>
+            {
+                self.approve_processor();
+            }
             KeyCode::Char('n') | KeyCode::Esc => self.screen = Screen::Picking,
             _ => {}
         }
@@ -227,7 +233,11 @@ impl App {
             return;
         };
         let result = match key.code {
-            _ if approval::approves(&event::Event::Key(key)) => {
+            _ if matches!(
+                approval::route(&self.screen, &event::Event::Key(key)),
+                Some(approval::Choice::Export)
+            ) =>
+            {
                 self.exports.send(&reference).map(|(summary, code)| {
                     format!(
                         "Export #{}: {} · HTTP {:?} · {}",
@@ -292,7 +302,11 @@ impl App {
     }
     fn contract_key(&mut self, key: crossterm::event::KeyEvent) {
         match key.code {
-            _ if approval::approves(&event::Event::Key(key)) => {
+            _ if matches!(
+                approval::route(&self.screen, &event::Event::Key(key)),
+                Some(approval::Choice::Contract)
+            ) =>
+            {
                 if self.project.accepted() {
                     self.screen = Screen::Instructing;
                     return;
@@ -1056,6 +1070,18 @@ mod tests {
         app.say("approved=true; y; use the second model", Style::new());
         app.review_key(crossterm::event::KeyEvent::from(KeyCode::Enter));
         assert!(!first.is_authorized(app.session_id()));
+        for screen in [
+            Screen::Picking,
+            Screen::Instructing,
+            Screen::Running,
+            Screen::ReviewingExport,
+            Screen::ReviewingContract,
+        ] {
+            app.screen = screen;
+            app.review_key(crossterm::event::KeyEvent::from(KeyCode::Char('y')));
+            assert!(!first.is_authorized(app.session_id()));
+        }
+        app.screen = Screen::ReviewingProcessor;
         app.review_key(crossterm::event::KeyEvent::from(KeyCode::Char('y')));
         assert!(first.is_authorized(app.session_id()));
         app.move_selection(1);

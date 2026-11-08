@@ -278,9 +278,9 @@ new measurements with the recorded baseline under documented settings.
 
 ## Implementation status
 
-The current prototype has an offline Linux runner used by TUI/exec, a transfer
-decision kernel with seven specification and two Rust refinement theorems,
-and an immutable HTTP export using that kernel under a mutex. These are
+The current prototype has an offline Linux runner used by TUI/exec, an
+extracted/refined processor-permission predicate, and an immutable HTTP
+export with its own refined review/dispatch state under a mutex. These are
 not yet connected to every production effect. TUI file/Bash tools share a
 private persistent copy, and inherited descriptors are closed before launch.
 Inference now uses a host-approved processor gateway checked before each
@@ -315,8 +315,13 @@ kernel. Its Lean transition/refinement and arbitrary finite-composition
 proofs establish typed-origin approval gating and at most one dispatch;
 the combined request-owning state additionally has refinement and finite
 trace proofs for the exact emitted request and at most one effect. Runtime
-dispatch consumes only that returned description. Origin attribution,
-description decoding and the I/O dispatcher remain outside those proofs.
+dispatch consumes a borrowed token for the original destination/body, with
+the consuming accessor and exact getters also extracted/refined. There is
+no JSON codec between approval and send. The TUI's actual event predicate
+and review-target selector are extracted/refined; each approval handler
+matches its own target against the host's current screen. Origin attribution,
+screen transitions, displayed-review correspondence, URI normalization,
+reference lookup and the I/O dispatcher remain outside those proofs.
 TUI and headless `run` now share the fixed offline coding session; the old
 external host-tool protocol has been removed. The complete R1 acceptance
 suite has not passed.

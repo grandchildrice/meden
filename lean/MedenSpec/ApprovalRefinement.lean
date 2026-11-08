@@ -1,8 +1,9 @@
 import MedenSpec.Generated.Approval
 
-/-! The production TUI decision over actual Crossterm event types. Terminal
-decoding, physical input provenance, screen routing and rendering remain
-separate obligations; no text is reclassified as a key by this function. -/
+/-! The production TUI approval predicate and review-target selector over
+actual Crossterm events and screen states. Terminal decoding, physical input
+provenance, screen transitions, rendering and I/O remain separate obligations.
+No text is reclassified as a key by these functions. -/
 namespace MedenSpec.ApprovalRefinement
 open Aeneas Aeneas.Std Result
 open MedenUIImpl.crossterm.event
@@ -45,5 +46,48 @@ theorem nonpress_cannot_approve (key : KeyEvent) (h : key.kind ≠ .Press) :
     MedenUIImpl.tui.approval.approves (.Key key) = ok false := by
   rw [approves_refines]
   cases hk : key.kind <;> simp_all [expected]
+
+open MedenUIImpl.tui (Screen)
+open MedenUIImpl.tui.approval (Choice)
+
+def review_screen : Choice → Screen
+  | .Processor => .ReviewingProcessor
+  | .Export => .ReviewingExport
+  | .Contract => .ReviewingContract
+
+def expected_route (screen : Screen) (e : Event) : Option Choice :=
+  if expected e then
+    match screen with
+    | .ReviewingProcessor => some .Processor
+    | .ReviewingExport => some .Export
+    | .ReviewingContract => some .Contract
+    | _ => none
+  else none
+
+theorem route_refines (screen : Screen) (e : Event) :
+    MedenUIImpl.tui.approval.route screen e = ok (expected_route screen e) := by
+  cases h : expected e <;> cases screen <;>
+    simp [MedenUIImpl.tui.approval.route, approves_refines, expected_route, h]
+
+/-- Every approval target is paired with its own review-screen state
+and an actual unmodified lowercase-y key press. -/
+theorem route_iff (screen : Screen) (e : Event) (target : Choice) :
+    MedenUIImpl.tui.approval.route screen e = ok (some target) ↔
+      expected e = true ∧ screen = review_screen target := by
+  rw [route_refines]
+  cases target <;> cases screen <;> cases h : expected e <;>
+    simp [expected_route, review_screen, h]
+
+theorem paste_cannot_route (screen : Screen) (text : String) :
+    MedenUIImpl.tui.approval.route screen (.Paste text) = ok none := by
+  rw [route_refines]
+  rfl
+
+theorem nonreview_cannot_route (screen : Screen) (e : Event)
+    (hp : screen ≠ .ReviewingProcessor) (he : screen ≠ .ReviewingExport)
+    (hc : screen ≠ .ReviewingContract) :
+    MedenUIImpl.tui.approval.route screen e = ok none := by
+  rw [route_refines]
+  cases screen <;> cases h : expected e <;> simp_all [expected_route]
 
 end MedenSpec.ApprovalRefinement

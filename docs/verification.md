@@ -15,11 +15,18 @@ established by the current CI badge.
 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs on pushes to
 `main`, pull requests and merge groups. There are twelve checks:
 
+Main pushes let an active run finish, so frequent commits do not repeatedly
+cancel the full proof/fault suite. The concurrency group retains the latest
+pending run; other refs cancel their older active run. This uses GitHub's
+[conditional concurrency behavior](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency).
+Release still requires successful checks for its exact source and current
+attempt; an older completed run does not cover a newer commit.
+
 | Check | What runs | Failure condition |
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate transfer/review/dispatch, evidence, issued jobs, TUI approval, outer/inner conversation and failure kernels, `lake build`, proof scan/audit, 62 Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate transfer/review/dispatch, evidence, issued jobs, TUI approval, outer/inner conversation and failure kernels, `lake build`, proof scan/audit, 65 Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A decision differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -238,14 +245,18 @@ outbound routing or R1 end to end.
 
 ## Actual TUI approval input
 
-All three approval screens (processor, export and project contract) call
-[`approval::approves`](../crates/meden-cli/src/tui/approval.rs). The predicate
-accepts only a `Press` event for lowercase `y` with no modifier bits. Paste,
-repeat, release, Enter and other events return false.
+All three approval handlers (processor, export and project contract) use
+[`approval::route`](../crates/meden-cli/src/tui/approval.rs) with the actual
+host `Screen` and decoded event. It returns a typed target only for that
+target's own review screen, and each handler matches its expected target.
+The underlying private predicate accepts only a `Press` event for lowercase
+`y` with no modifier bits. Paste, repeat, release, Enter and other events
+grant no approval. Picking, instructing and running screens grant none.
 
 The [generated model](../lean/MedenSpec/Generated/Approval.lean) is extracted
 from the production CLI binary's real Crossterm event types, including the
-bitflags and character equality implementations. Unknown library functions
+bitflags, character equality implementations and the actual six-state
+`Screen` enum. Unknown library functions
 cannot be substituted by assumptions: the extraction script rejects them.
 The generated files remain untouched. The export kernel's event type is
 named `ExportEvent` to avoid the pinned generator's anonymous-instance name
@@ -259,15 +270,27 @@ collision with Crossterm's `Event` when importing both models.
 | `paste_cannot_approve` | Any paste string returns false |
 | `modified_key_cannot_approve` | Any key with nonzero modifier bits returns false |
 | `nonpress_cannot_approve` | Repeat and release events return false |
+| `route_refines` | The actual review-target selector terminates and matches the complete event/screen specification |
+| `route_iff` | A target is returned exactly for an eligible key and that target's own review-screen state |
+| `paste_cannot_route` | No paste string grants any target in any screen |
+| `nonreview_cannot_route` | Picking, instructing and running screens grant no approval for any event |
 
 Four Rust mutations admit repeats, ignore modifiers, accept Enter or accept
 non-key events. Each must fail the native input assertions, compile as a
 fresh extracted model and fail the unchanged refinement proof. Native tests
 also enumerate all 256 modifier bit patterns. Real PTY tests exercise the
-contract review, pasted text and retained project proof artifact.
+contract review, pasted text and retained project proof artifact. Three
+additional actual Rust mutations allow approval outside review, substitute
+the processor target for export, or ignore the input predicate. The native
+routing matrix and unchanged refinement must reject all three after
+successful extraction/model compilation. A real gateway regression also
+calls the processor handler while each other screen is active and checks
+that no processor grant is issued.
 
-This proves the predicate over decoded events. Terminal decoding, physical
-input provenance, screen routing, rendering and the I/O loop still require
+This proves the predicate and target selection over decoded events and a
+given host screen state. Terminal decoding, physical input provenance,
+screen transitions, displayed-review correspondence, target/reference lookup,
+handler effect interpretation and the I/O loop still require
 separate assurance; the theorem does not prove that arbitrary terminal bytes
 can never be decoded as a key or establish complete outbound confidentiality.
 
@@ -616,7 +639,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with transfer/review/dispatch and TUI approval checks, CI rejects
-62 faults, including outer/inner conversation, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
+65 faults, including outer/inner conversation, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -665,7 +688,7 @@ Definitions and additional lemmas are in
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 100
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 104
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan

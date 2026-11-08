@@ -364,7 +364,7 @@ not an OS/refinement proof. HTTP providers remain explicit, approved options.
 TUI and `run` use one coding session;
 the external host-tool bridge has been removed. All built-in file/Bash tools
 and `exec` use retained private copies. TUI/CLI host review now connects the
-refined reservation kernel to raw immutable HTTP file exports. This is not
+refined review/dispatch kernel to raw immutable HTTP file exports. This is not
 yet a checked-artifact delivery workflow or a Git/email adapter.
 Host-selected documentation can now be prefetched with bounded public HTTPS
 GETs and attached as an immutable TUI/CLI cache. Model selection and cache misses

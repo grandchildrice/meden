@@ -46,13 +46,14 @@ for unit in "${units[@]}"; do
       done
       model=Evidence ;;
     approval)
-      rust_roots=(meden::tui::approval::approves)
+      rust_roots=(meden::tui::approval::approves meden::tui::approval::route)
       namespace=MedenUIImpl
       cargo_args=(--locked --bin meden -p meden-cli)
       # Extract the actual event/bitflag/char comparisons, rather than importing
       # unknown library functions. Keep unrelated standard internals opaque.
       extraction_args=(--extract-opaque-bodies --include crossterm --include bitflags
-        --opaque core --opaque alloc --opaque std --include core::cmp::impls)
+        --opaque core --opaque alloc --opaque std --include core::cmp::impls
+        --include core::option::Option)
       model=Approval ;;
     repair)
       namespace=MedenRepairImpl
@@ -98,6 +99,8 @@ for unit in "${units[@]}"; do
       export_control.State.impl.phase export_control.State.advance
       export_control.FrozenRequest.impl.target export_control.FrozenRequest.impl.body
       export_control.Dispatch.into_request)
+  elif [[ $unit == approval ]]; then
+    definitions=(tui.approval.approves tui.approval.route)
   elif [[ $unit == conversation ]]; then
     # External roots can be pruned by the pinned translator. Require the
     # production entry points, rather than accepting helpers alone.

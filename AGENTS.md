@@ -14,8 +14,10 @@
   control. The isolated planner is retired. The transfer, export review and
   evidence kernels have Rust-to-Lean refinement. The combined export state
   owns its frozen request; the runtime dispatches only its returned effect.
-  The actual Crossterm approval predicate is extracted and refined too;
-  decoding, screen routing and physical input provenance are separate gaps.
+  The actual Crossterm approval predicate and review-target selector are
+  extracted and refined too. All approval handlers match the selected target
+  against the host's current screen. Decoding, screen transitions, rendering,
+  effect interpretation and physical input provenance remain separate gaps.
   The outer turn controller lives in the shared runtime. Its actual effects,
   state updates and arbitrary finite compositions are refined, including four
   conversation invocations per host turn, sticky terminal stops and a fresh

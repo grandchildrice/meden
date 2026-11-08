@@ -144,6 +144,30 @@ GROUPS = [
         ],
     },
     {
+        "source": "crates/meden-cli/src/tui/approval.rs",
+        "package": "meden-cli",
+        "model": "Approval",
+        "proof": "ApprovalRefinement",
+        "test": "tui::approval::tests::approval_is_bound_to_the_current_review_target",
+        "mutations": [
+            (
+                "approval_outside_review",
+                "Screen::ReviewingExport => Some(Choice::Export)",
+                "Screen::ReviewingExport | Screen::Instructing => Some(Choice::Export)",
+            ),
+            (
+                "wrong_review_target",
+                "Screen::ReviewingExport => Some(Choice::Export)",
+                "Screen::ReviewingExport => Some(Choice::Processor)",
+            ),
+            (
+                "untrusted_review_input",
+                "if !approves(event) {",
+                "if !approves(event) && false {",
+            ),
+        ],
+    },
+    {
         "source": "crates/meden-runtime/src/verification/turn.rs",
         "package": "meden-runtime",
         "model": "Repair",
