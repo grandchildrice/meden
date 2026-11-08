@@ -2,11 +2,19 @@
 
 ## Current requirement and implementation status
 
+The product target is a local-first verification orchestrator whose control
+and interface/tool behavior are specified and connected to production Rust
+through Lean refinement proofs. That broader assurance is not implemented
+today. The current checks are decision-kernel proofs, bounded checks,
+sampled conformance and tests; see [verification.md](docs/verification.md).
+The proposed assurance chain is in [assurance.md](docs/assurance.md).
+
 The product requirement is that reading an external page must not enable
 the coding agent to send confidential files to an unapproved recipient.
 The target is a single conversational architecture: models may read tool
 results, while an isolated runner and host-owned outbound controls enforce
-the boundary. See [the design](docs/design.md).
+the boundary. See [the product design](docs/design.md) and
+[confidential execution rules](docs/confidentiality.md).
 
 **This requirement is not implemented or verified today.** The current
 development TUI uses direct HTTP model clients and an optional unrestricted

@@ -10,7 +10,9 @@ direct push access use a PR.
 Prefer a small, loosely coupled implementation. Backward compatibility is
 not required at this stage. Delete obsolete code/dependencies rather than
 keeping alternate runtimes or compatibility wrappers. The product direction
-and unimplemented security requirement are in [docs/design.md](docs/design.md).
+is in [docs/design.md](docs/design.md). Keep proposed assurance obligations
+in [docs/assurance.md](docs/assurance.md) distinct from the current checks in
+[docs/verification.md](docs/verification.md).
 
 ## Validation
 
@@ -28,7 +30,7 @@ cargo doc --workspace --no-deps
 cargo build -p meden-cli
 (cd python && uv sync --group dev --extra agentdojo)
 (cd python && MEDEN_BIN=../target/debug/meden uv run pytest -q)
-(cd python && uv run ruff check .)
+(cd python && uv run ruff check . ../tools)
 node npm/test.js
 (cd npm && npm pack --dry-run)
 ```

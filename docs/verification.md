@@ -5,6 +5,11 @@ specification, checks that the implementation agrees with it, and tests of
 real operating-system effects. A green badge does not mean the whole agent
 is proved secure.
 
+This page describes checks that run today. The proposed orchestrator,
+Rust extraction/refinement and artifact delivery requirements are in
+[design.md](design.md) and [assurance.md](assurance.md). They are not
+established by the current CI badge.
+
 ## What CI runs
 
 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs on pushes to

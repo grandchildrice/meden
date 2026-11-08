@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">MEDEN</h1>
-<p align="center">A native Rust coding agent. Read. Edit. Build. Test.</p>
+<p align="center">Natural-language development, backed by checked evidence.</p>
 
 <p align="center">
   <a href="https://github.com/grandchildrice/meden/actions/workflows/ci.yml"><img src="https://github.com/grandchildrice/meden/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
@@ -19,10 +19,16 @@
   <a href="results/README.md">Benchmarks</a>
 </p>
 
-Meden works on real files, runs tools and keeps the conversation across
-instructions. Its core is a small native tool-calling loop with host-owned
-tool implementations. It connects to OpenAI-compatible model APIs and can
-reuse model configuration from Hermes.
+Meden is building a local-first development orchestrator: describe what to
+build and what must never go wrong, then connect that intent to code,
+formal contracts, verification and the artifact you deliver. The target is
+one natural-language workflow across Lean, Rust verification, language
+checkers, model checking and fuzzing, with explicit evidence for each
+requirement.
+
+The current prototype is a native Rust conversational coding agent. It
+works on real files, runs tools and keeps context across instructions. It
+connects to OpenAI-compatible APIs and can reuse Hermes configuration.
 
 - **Workspace tools:** list/read files, write files and make exact edits.
 - **Terminal workflow:** multiline Unicode input, history, scrolling,
@@ -31,11 +37,11 @@ reuse model configuration from Hermes.
 - **Explicit boundaries:** Lean specifications for capability decisions and
   exact, single-use outbound authorization, checked in CI.
 
-> Development prototype. The outbound confidentiality requirement is still
-> being implemented. The current optional Bash tool has host filesystem and
-> network permissions. Formal kernel checks do not establish end-to-end
-> confidentiality; see [verification scope](docs/verification.md) and
-> [security limits](SECURITY.md).
+> Development prototype. Local-only orchestration, project proof workflows,
+> Rust-to-Lean refinement and evidence-gated delivery are design targets.
+> Current HTTP connections may be remote; optional Bash has host filesystem
+> and network permissions. See [verification scope](docs/verification.md)
+> and [security limits](SECURITY.md).
 
 ## Getting started
 
@@ -79,9 +85,25 @@ the account's process permissions, not the new isolated runner.
 | Esc / Ctrl-C while running | Request cancellation; Ctrl-C again exits |
 | `/clear` | Start a fresh conversation, retaining files |
 
-## Security by explicit contracts
+## Product direction
 
-The first requirement is:
+Meden's controller will preserve accepted requirements, choose supported
+verification backends, use counterexamples to guide repairs and allow
+delivery only when the required evidence covers the exact artifact. Local
+inference and local verification protect project data; external services
+require explicit authorization. The TUI, CLI and tools share one controller.
+
+The target controller will be specified in Lean, with refinement proofs
+connecting its production Rust implementation. Extending those proofs
+across Meden's own TUI, CLI and tool behavior is part of the product goal. Today, the
+Rust/Lean checks compare sample cases; they are not refinement proofs.
+
+[Architecture and implementation order →](docs/design.md) ·
+[Assurance and refinement obligations →](docs/assurance.md)
+
+## Confidential development
+
+The confidentiality requirement remains:
 
 > Reading an external page must not enable the agent to send confidential
 > files to an unapproved recipient.
@@ -96,7 +118,7 @@ full-request matching and no replay after reservation. A standalone Linux
 runner is tested against real connection and host-file attempts. Connecting
 these components to every production effect remains work in progress.
 
-[Design and acceptance criteria →](docs/design.md) ·
+[Confidentiality design and acceptance criteria →](docs/confidentiality.md) ·
 [CI checks, theorem statements and proof limits →](docs/verification.md)
 
 ## Benchmarks

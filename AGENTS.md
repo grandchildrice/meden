@@ -6,5 +6,10 @@
 - Prefer a small, loosely coupled implementation. Backward compatibility is
   not required at this stage. Delete obsolete code and its dependencies
   rather than adding compatibility layers or keeping unused alternatives.
-- Follow `docs/design.md`. The isolated planner is retired. The outbound
-  confidentiality requirement is a target, not an implemented guarantee.
+- Follow `docs/design.md`: a local-first natural-language verification
+  orchestrator with a shared Rust controller specified/refined in Lean.
+  `docs/assurance.md` defines proposed proof obligations;
+  `docs/verification.md` records checks that actually run today.
+- Preserve accepted intent, evidence/source/artifact linkage and local data
+  control. The isolated planner is retired. Refinement, full interface/tool
+  coverage and outbound confidentiality are targets, not shipped guarantees.
