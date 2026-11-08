@@ -28,6 +28,8 @@ established by the current CI badge.
 CI pins cargo-deny 0.20.2 and Kani 0.68.0. Kani and Aeneas public bundles
 have fixed SHA-256 checks and bounded download retries. An unavailable or
 incorrect bundle fails preparation; it never skips a harness or proof.
+The downloader uses fixed GitHub release-asset IDs and fresh API requests
+to avoid cached gateway errors and expired redirects.
 This retry policy applies to public CI tool preparation, not confidential
 model exchanges or file exports.
 

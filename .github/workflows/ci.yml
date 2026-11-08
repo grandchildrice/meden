@@ -68,13 +68,13 @@ jobs:
         with:
           toolchain: 1.98.1
       - name: Install pinned Kani with verified public bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           cargo install kani-verifier --locked --version 0.68.0
-          curl --fail --location --retry 4 --retry-all-errors --retry-delay 2 \
-            --connect-timeout 15 --max-time 120 \
-            https://github.com/model-checking/kani/releases/download/kani-0.68.0/kani-0.68.0-x86_64-unknown-linux-gnu.tar.gz \
-            --output "$RUNNER_TEMP/kani.tar.gz"
-          echo "32e2b484d73ede0bbf64a2cf0879c4259422497d8aec4ee67d448de9ae7843d3  $RUNNER_TEMP/kani.tar.gz" | sha256sum --check
+          bash tools/download-ci-asset.sh repos/model-checking/kani/releases/assets/566906903 \
+            32e2b484d73ede0bbf64a2cf0879c4259422497d8aec4ee67d448de9ae7843d3 \
+            "$RUNNER_TEMP/kani.tar.gz"
           cargo kani setup --use-local-bundle "$RUNNER_TEMP/kani.tar.gz"
       - run: cargo kani -p ${{ matrix.package }} --harness kani_harness::${{ matrix.harness }}
 
@@ -88,12 +88,12 @@ jobs:
           toolchain: nightly-2026-09-17
           components: rustc-dev, llvm-tools
       - name: Install pinned Rust extraction tools
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          curl --fail --location --retry 4 --retry-all-errors --retry-delay 2 \
-            --connect-timeout 15 --max-time 120 \
-            https://github.com/AeneasVerif/aeneas/releases/download/nightly-2026.11.07-c5eb4a2/aeneas-linux-x86_64.tar.gz \
-            --output "$RUNNER_TEMP/aeneas.tar.gz"
-          echo "14fbaed4ce8624cf3d668f887d6ebb237a59cc37d7498c792d9f3f97332cbb25  $RUNNER_TEMP/aeneas.tar.gz" | sha256sum --check
+          bash tools/download-ci-asset.sh repos/AeneasVerif/aeneas/releases/assets/719588396 \
+            14fbaed4ce8624cf3d668f887d6ebb237a59cc37d7498c792d9f3f97332cbb25 \
+            "$RUNNER_TEMP/aeneas.tar.gz"
           mkdir "$RUNNER_TEMP/aeneas"
           tar -xzf "$RUNNER_TEMP/aeneas.tar.gz" -C "$RUNNER_TEMP/aeneas" aeneas charon charon-driver rust-toolchain
           echo "CHARON=$RUNNER_TEMP/aeneas/charon" >> "$GITHUB_ENV"
