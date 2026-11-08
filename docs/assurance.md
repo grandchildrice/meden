@@ -1,11 +1,11 @@
 # Assurance and refinement plan
 
 Status: product assurance plan. The transfer, export review and evidence
-kernels, actual TUI approval and check-scheduling predicates have Rust-to-Lean
-refinement, including finite compositions of the extracted review and evidence
-operations. The broader obligations below remain proposed. This defines completion
-criteria for
-[the product architecture](design.md). The current sixty-five Lean theorem
+kernels, issued-job operations, actual TUI approval and check-scheduling
+predicates have Rust-to-Lean refinement, including finite compositions of
+the extracted review, evidence and issued-job operations. The broader
+obligations below remain proposed. This defines completion criteria for
+[the product architecture](design.md). The current seventy-four Lean theorem
 entry points, six Kani harnesses and conformance checks are listed in
 [verification.md](verification.md).
 
@@ -131,8 +131,12 @@ general project contract management and effect routing remain separate gaps.
 The fixed ledger profile now consumes this gate for actual project checks;
 the adapter and interface loop are tested, not extracted/refined. Final local
 receipt/artifact admission is serialized against process cancellation. The
-extracted kernel rejects inactive receipts; the mutex/flag attribution is an
-executor assumption, not a whole-controller cancellation proof.
+extracted job kernel issues session/contract/input-bound, single-use tickets;
+its finite-trace proofs reject older generations after invalidation or
+consumption, even when later jobs use identical inputs. The adapter derives
+receipt activity by consuming that exact ticket. Input construction, origin
+attribution, physical process termination and mutex semantics remain executor
+obligations, not a whole-controller cancellation proof.
 Transfer proofs cover exact reservation
 in CTL-07. Export review-control proofs cover typed-origin gating and at most
 one dispatch across arbitrary finite compositions of that extracted step.
@@ -239,9 +243,9 @@ correctness.
 
 [Current CI](verification.md) covers scoped kernels, not the complete
 proposed product. Extend these checks as each path becomes real. The first
-two now run for transfer, export review, evidence, TUI approval and check-scheduling
-kernels, including twenty-nine real Rust mutations that must fail unchanged
-refinement proofs:
+two now run for transfer, export review, evidence, issued jobs, TUI approval,
+check-scheduling and failure kernels, including forty-three real Rust
+mutations that must fail unchanged refinement proofs:
 
 1. Re-extract production Rust under pinned toolchains. Fail on unsupported
    code, extraction drift or unrecorded external models.

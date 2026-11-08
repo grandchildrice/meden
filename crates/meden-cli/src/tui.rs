@@ -418,7 +418,7 @@ impl App {
     }
     fn cancel(&mut self) {
         if self.busy && !self.processes.flag().load(Ordering::SeqCst) {
-            self.processes.cancel();
+            self.project.cancel(&self.processes);
             self.say(
                 "Stopping tools. The current model request may finish; Ctrl-C again quits.",
                 Style::new().fg(Color::Yellow),
@@ -510,7 +510,7 @@ impl App {
 
 impl Drop for App {
     fn drop(&mut self) {
-        self.processes.cancel();
+        self.project.cancel(&self.processes);
         if let Some(gateway) = &self.gateway {
             let _ = gateway.revoke_from_host();
         }
@@ -678,7 +678,7 @@ where
         if key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL) {
             if app.busy {
                 if app.processes.flag().load(Ordering::SeqCst) {
-                    app.processes.cancel();
+                    app.project.cancel(&app.processes);
                     return Ok(());
                 }
                 app.cancel();

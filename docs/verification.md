@@ -19,7 +19,7 @@ established by the current CI badge.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate transfer/review/dispatch, evidence, TUI approval and check-scheduling kernels, `lake build`, proof scan/audit, twenty-nine Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate transfer/review/dispatch, evidence, issued jobs, TUI approval, scheduling and failure kernels, `lake build`, proof scan/audit, forty-three Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A result or resulting transfer state differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -341,6 +341,61 @@ The theorems cover the failure kernel on the pinned Linux/Unix representation.
 OS status attribution, I/O error mapping, mutexes, conversation routing/history
 and new-host-turn attribution are tested adapters, not a complete session proof.
 
+## Issued checks, cancellation and late results
+
+The production `CheckJobs` state in
+[`evidence.rs`](../crates/meden-core/src/evidence.rs) owns a session, a
+monotonic `u64` sequence and at most one exact active ticket. Tickets have
+private fields and no model-facing deserializer. Only the controller may
+issue one, against an accepted gate and matching session/contract. Issuing
+another supersedes the previous ticket; sequence exhaustion refuses further
+jobs instead of wrapping or reusing an ID.
+
+Completion requires checker origin, the exact active ticket, unchanged
+prepared inputs and the same accepted session/contract. Successful completion
+consumes the ticket. Invalidation clears the active ticket without resetting
+the sequence. Aborting an older job cannot cancel a newer one.
+
+The actual Rust methods are extracted into the same unedited
+[`Generated/Evidence.lean`](../lean/MedenSpec/Generated/Evidence.lean) as the
+evidence gate. The independent specification is
+[`CheckJobs.lean`](../lean/MedenSpec/CheckJobs.lean).
+
+| Audited theorem | Checked claim |
+| --- | --- |
+| `CheckJobsRefinement.new_refines` | Native initialization has an empty active slot and zero sequence in the specified session |
+| `CheckJobsRefinement.start_refines` | Actual job issue, refusal and supersession agree with the specification, including `u64::MAX` |
+| `CheckJobsRefinement.invalidate_refines` | Only controller invalidation clears the active slot, without resetting the sequence |
+| `CheckJobsRefinement.abort_refines` | Only the matching active job can be aborted by the controller |
+| `CheckJobsRefinement.finish_refines` | Completion checks origin, exact ticket/current inputs, acceptance and scope, and consumes success |
+| `CheckJobsRefinement.is_active_refines` | Native active-job observation agrees with the specified state |
+| `CheckJobsTrace.trace_refines` | Arbitrary finite compositions of actual extracted methods agree on state and the issued-ticket log |
+| `CheckJobsTrace.extracted_no_late_result` | After invalidation or consumption, older generations cannot complete after any finite continuation, even with restored identical inputs |
+| `CheckJobsTrace.extracted_result_was_issued` | Every accepted completion after native initialization names a ticket in the log of actually issued jobs |
+
+These are symbolic proofs over supported inputs and arbitrary finite
+traces, not a bound on the number of jobs. The log is proof bookkeeping;
+it is not implemented crash recovery. Nine Rust mutations bypass acceptance,
+origin or session checks, reuse or wrap IDs, retain cancelled or consumed
+tickets, substitute inputs or let an old abort cancel a new job. Each must
+fail a native regression and the unchanged refinement proof after a fresh
+generated model compiles.
+
+The ledger adapter now freezes the candidate and source/worker/checker/resource
+hashes in a `PreparedLedger` before issuing its ticket. Checking consumes
+that preparation. Final admission rechecks resource bindings and compares a
+fresh workspace snapshot against the issued inputs. `Receipt.active` is
+computed by `CheckJobs.finish`, rather than supplied as an unconditional
+flag. The separate evidence gate then binds the proof to its actual output
+artifact. Edits and TUI/CLI cancellation invalidate jobs; resetting the
+process cancellation flag for another turn cannot restore an old ticket.
+
+This is refinement of job operations, not extraction of the session's I/O
+loop. Input construction, hashing/serialization, checker attribution,
+physical process termination, mutexes, persistence and crash recovery remain
+adapter obligations. The current executor runs one session turn at a time;
+these proofs do not establish a concurrent backend scheduler.
+
 ## Evidence completion: exact current subject and extracted traces
 
 [`evidence.rs`](../crates/meden-core/src/evidence.rs) is the third production
@@ -411,7 +466,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with transfer/review/dispatch and TUI approval checks, CI rejects
-thirty-four faults, including check-scheduling and failure-classification faults. Timeouts, exhausted proof
+forty-three faults, including scheduling, failure-classification and issued-job faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -420,11 +475,14 @@ The project adapter now serializes final evidence admission and local artifact
 retention against `Control::cancel` with the same mutex used to register managed
 processes. Cancellation first prevents the admission closure from executing;
 admission first finishes before cancellation returns. The host constructs the
-receipt's `active` observation only in that critical section. The synchronous
+receipt's `active` observation by consuming the matching issued job only in
+that critical section. Logical cancellation also invalidates the job before
+stopping managed processes. The synchronous
 release administration command has no managed-job cancellation and supplies an
 active observation directly. The kernel proves rejection of inactive receipts
-and active-receipt coverage across extracted traces; mutex semantics, reset
-between completed turns and correct attribution by adapters remain trust
+and active-receipt coverage across extracted traces; the job kernel separately
+prevents old generations from completing after reset. Mutex semantics and
+correct attribution by adapters remain trust
 assumptions. Native tests exercise both orderings and real process cancellation.
 
 ## Lean: capability and scope rules
@@ -456,7 +514,7 @@ Definitions and additional lemmas are in
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the sixty-five
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the seventy-four
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -566,7 +624,7 @@ On Nix, a private `uv` Python shadowing a public Python is skipped rather
 than binding the private cache into the sandbox. The attack test exposed
 this actual execution failure before the selection was corrected.
 
-These controller, parser, router and OS behaviors have tests; the sixty-five
+These controller, parser, router and OS behaviors have tests; the seventy-four
 Lean theorem entry points still cover their stated kernels. The shared
 session has no whole-controller refinement theorem yet.
 
@@ -693,7 +751,7 @@ failed. The conversation's `done` event is therefore not project-verification
 evidence. Setup, limits,
 failure behavior and OS/asset trust assumptions are documented in
 [local inference](local-inference.md). The launcher, protocol and OS boundary
-are not Lean-refined; they add no theorem roots to the sixty-five audited here.
+are not Lean-refined; they add no theorem roots to the seventy-four audited here.
 
 ## Tests of actual HTTP delivery
 

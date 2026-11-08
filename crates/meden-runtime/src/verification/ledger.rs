@@ -62,6 +62,30 @@ pub struct Checked {
     files: BTreeMap<String, Vec<u8>>,
 }
 
+/// Exact prepared inputs, before the output artifact exists. The fixed checker
+/// identity includes the accepted specification, examples and invocation recipe.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+pub struct Inputs {
+    /// Frozen candidate source.
+    pub source_sha256: String,
+    /// Compiler, extractor and proof-library content binding.
+    pub bundle_sha256: String,
+    /// Trusted contract and checker recipe.
+    pub checker_sha256: String,
+    /// Worker supplying the syntax boundary.
+    pub worker_sha256: String,
+}
+
+/// Immutable source and resources prepared before issuing a controller job.
+pub struct PreparedLedger<'a> {
+    source: String,
+    bundle: &'a Bundle,
+    worker: PathBuf,
+    inputs: Inputs,
+    job: tempfile::TempDir,
+    sandbox: crate::sandbox::Sandbox,
+}
+
 /// A retained host-owned artifact, produced without rerunning a changed build.
 #[derive(Serialize)]
 pub struct Artifact {
@@ -72,6 +96,15 @@ pub struct Artifact {
 }
 
 impl Checked {
+    /// Bind a completed check back to the exact prepared request.
+    pub fn inputs(&self) -> Inputs {
+        Inputs {
+            source_sha256: self.report.source_sha256.clone(),
+            bundle_sha256: self.report.bundle_sha256.clone(),
+            checker_sha256: self.report.checker_sha256.clone(),
+            worker_sha256: self.report.worker_sha256.clone(),
+        }
+    }
     /// The checked binding, used by the host evidence controller.
     pub fn report(&self) -> &Report {
         &self.report
@@ -100,12 +133,12 @@ impl Checked {
 /// Validate a candidate's supported syntax in an offline worker, then recheck
 /// its actual extracted implementation using fixed trusted proof inputs. A
 /// passing candidate test/log alone never creates a successful result.
-pub fn verify_ledger(
+pub fn prepare_ledger<'a>(
     source: &str,
-    bundle: &Bundle,
+    bundle: &'a Bundle,
     worker: &Path,
     control: &Control,
-) -> Result<Checked, Failure> {
+) -> Result<PreparedLedger<'a>, Failure> {
     if source.len() > 65_536 {
         return Err(Failure::new(
             FailureKind::Unverified,
@@ -128,64 +161,102 @@ pub fn verify_ledger(
     successful(&syntax, "source syntax")?;
     let worker_hash = hash(&read(worker, 268_435_456)?);
     let fingerprint = bundle.fingerprint(control)?;
-    let mut files = BTreeMap::new();
-    for (name, text) in [
-        ("Cargo.toml", MANIFEST),
-        ("Cargo.lock", LOCK),
-        ("lib.rs", LIBRARY),
-        ("ledger.rs", source),
-        ("Spec.lean", SPEC),
-        ("Check.lean", CHECK),
-    ] {
-        fs::write(job.path().join(name), text)?;
-        files.insert(name.to_owned(), text.as_bytes().to_vec());
+    Ok(PreparedLedger {
+        source: source.to_owned(),
+        bundle,
+        worker: worker.to_owned(),
+        inputs: Inputs {
+            source_sha256: hash(source.as_bytes()),
+            bundle_sha256: fingerprint,
+            checker_sha256: ledger_checker_id(),
+            worker_sha256: worker_hash,
+        },
+        job,
+        sandbox,
+    })
+}
+
+impl PreparedLedger<'_> {
+    /// Read the frozen request identity; no output can replace these inputs.
+    pub fn inputs(&self) -> &Inputs {
+        &self.inputs
     }
-    let script = SCRIPT.replace("@LEAN_PATH@", &bundle.lean_path());
-    let output = process::run_with_input(
-        &mut sandbox.verification_command(bundle),
-        script.as_bytes(),
-        &limits,
-        control,
-    )?;
-    successful(&output, "project verification")?;
-    let audit = audit(&output.stdout).map_err(Failure::unavailable)?;
-    if bundle.fingerprint(control)? != fingerprint
-        || hash(&read(worker, 268_435_456)?) != worker_hash
-        || control.flag().load(Ordering::SeqCst)
-    {
-        return Err(Failure::new(
-            FailureKind::Inconclusive,
-            "checker inputs changed or verification was cancelled",
-        ));
-    }
-    for (name, expected) in &files {
-        if read(&job.path().join(name), 131_072)? != *expected {
-            return Err(Failure::unavailable(
-                "verification inputs changed while checking",
+
+    /// Check once against the prepared source/resources, then recheck their
+    /// content binding before producing a successful result.
+    pub fn check(self, control: &Control) -> Result<Checked, Failure> {
+        let Self {
+            source,
+            bundle,
+            worker,
+            inputs,
+            job,
+            sandbox,
+        } = self;
+        let limits = Limits {
+            timeout: Duration::from_secs(240),
+            capture_bytes: 65_536,
+            output_bytes: 16_777_216,
+        };
+        let mut files = BTreeMap::new();
+        for (name, text) in [
+            ("Cargo.toml", MANIFEST),
+            ("Cargo.lock", LOCK),
+            ("lib.rs", LIBRARY),
+            ("ledger.rs", source.as_str()),
+            ("Spec.lean", SPEC),
+            ("Check.lean", CHECK),
+        ] {
+            fs::write(job.path().join(name), text)?;
+            files.insert(name.to_owned(), text.as_bytes().to_vec());
+        }
+        let script = SCRIPT.replace("@LEAN_PATH@", &bundle.lean_path());
+        let output = process::run_with_input(
+            &mut sandbox.verification_command(bundle),
+            script.as_bytes(),
+            &limits,
+            control,
+        )?;
+        successful(&output, "project verification")?;
+        let audit = audit(&output.stdout).map_err(Failure::unavailable)?;
+        if bundle.fingerprint(control)? != inputs.bundle_sha256
+            || hash(&read(&worker, 268_435_456)?) != inputs.worker_sha256
+            || control.flag().load(Ordering::SeqCst)
+        {
+            return Err(Failure::new(
+                FailureKind::Inconclusive,
+                "checker inputs changed or verification was cancelled",
             ));
         }
-    }
-    for (name, path, limit) in [
-        ("Candidate.lean", "Candidate.lean", 2_097_152),
-        ("candidate.llbc", "candidate.llbc", 4_194_304),
-        (
-            "libmeden_ledger.rlib",
-            "build/release/libmeden_ledger.rlib",
-            16_777_216,
-        ),
-    ] {
-        files.insert(name.to_owned(), read(&job.path().join(path), limit)?);
-    }
-    files.insert("check.sh".to_owned(), script.into_bytes());
-    let hashes: BTreeMap<_, _> = files
-        .iter()
-        .map(|(name, bytes)| (name.clone(), hash(bytes)))
-        .collect();
-    let report = Report { contract:LEDGER_CONTRACT, source_sha256:hash(source.as_bytes()),
-        bundle_sha256:fingerprint,checker_sha256:ledger_checker_id(), worker_sha256:worker_hash,
+        for (name, expected) in &files {
+            if read(&job.path().join(name), 131_072)? != *expected {
+                return Err(Failure::unavailable(
+                    "verification inputs changed while checking",
+                ));
+            }
+        }
+        for (name, path, limit) in [
+            ("Candidate.lean", "Candidate.lean", 2_097_152),
+            ("candidate.llbc", "candidate.llbc", 4_194_304),
+            (
+                "libmeden_ledger.rlib",
+                "build/release/libmeden_ledger.rlib",
+                16_777_216,
+            ),
+        ] {
+            files.insert(name.to_owned(), read(&job.path().join(path), limit)?);
+        }
+        files.insert("check.sh".to_owned(), script.into_bytes());
+        let hashes: BTreeMap<_, _> = files
+            .iter()
+            .map(|(name, bytes)| (name.clone(), hash(bytes)))
+            .collect();
+        let report = Report { contract:LEDGER_CONTRACT, source_sha256:inputs.source_sha256,
+        bundle_sha256:inputs.bundle_sha256,checker_sha256:inputs.checker_sha256, worker_sha256:inputs.worker_sha256,
         artifact_sha256:hash(&serde_json::to_vec(&hashes).map_err(Failure::unavailable)?), files:hashes, audit,
         scope:"Full functional refinement of the supported u64 ledger kernel and the listed contract properties, conditional on the reviewed contract, trusted preparer/checker libraries, Charon/Aeneas models, Lean kernel, compiler/native libraries, OS confinement and SHA-256. Not persistence, concurrent transactions, whole-application correctness or certification." };
-    Ok(Checked { report, files })
+        Ok(Checked { report, files })
+    }
 }
 
 fn hash(bytes: &[u8]) -> String {

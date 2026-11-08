@@ -29,10 +29,10 @@ private theorem kind_eq (x y : Kind) :
 private theorem phase_eq (x y : Phase) :
     MedenImpl.evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase.eq x y = ok (decide (phase x = phase y)) := by
   cases x <;> cases y <;> simp [MedenImpl.evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase.eq, EvidencePhase.read_discriminant, phase]
-private theorem origin_eq (x y : Origin) :
+theorem origin_eq (x y : Origin) :
     MedenImpl.evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin.eq x y = ok (decide (origin x = origin y)) := by
   cases x <;> cases y <;> simp [MedenImpl.evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin.eq, EvidenceOrigin.read_discriminant, origin]
-private theorem subject_eq (x y : Subject) :
+theorem subject_eq (x y : Subject) :
     MedenImpl.evidence.Subject.Insts.CoreCmpPartialEqSubject.eq x y = ok (decide (subject x = subject y)) := by
   unfold MedenImpl.evidence.Subject.Insts.CoreCmpPartialEqSubject.eq
   simp only [vec_eq]

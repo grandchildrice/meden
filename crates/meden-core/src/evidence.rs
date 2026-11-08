@@ -177,9 +177,199 @@ impl Gate {
     }
 }
 
+/// An issued check for one exact prepared input. Only the controller creates
+/// tickets; model interfaces do not deserialize them.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct CheckTicket {
+    id: u64,
+    subject: Subject,
+}
+
+/// One session's check lifecycle. Replacing, cancelling or consuming a job
+/// never resets the sequence, including when old source bytes are restored.
+#[derive(Debug)]
+pub struct CheckJobs {
+    session: Vec<u8>,
+    sequence: u64,
+    active: Option<CheckTicket>,
+}
+
+impl CheckJobs {
+    /// The host assigns the session scope once. The registry is not cloneable.
+    pub fn new(session: Vec<u8>) -> Self {
+        Self {
+            session,
+            sequence: 0,
+            active: None,
+        }
+    }
+
+    /// Issue a fresh job only for an accepted contract in this session.
+    /// A new successful issue supersedes the previous active job.
+    #[allow(clippy::question_mark)] // Keep the overflow branch explicit in the extracted transition.
+    pub fn start(
+        &mut self,
+        origin: EvidenceOrigin,
+        gate: &Gate,
+        subject: &Subject,
+    ) -> Option<CheckTicket> {
+        if origin != EvidenceOrigin::Controller
+            || !gate.is_accepted()
+            || self.session != subject.session
+            || gate.subject.session != subject.session
+            || gate.subject.contract != subject.contract
+        {
+            return None;
+        }
+        let Some(next) = self.sequence.checked_add(1) else {
+            return None;
+        };
+        let ticket = CheckTicket {
+            id: next,
+            subject: subject.clone(),
+        };
+        self.sequence = next;
+        self.active = Some(ticket.clone());
+        Some(ticket)
+    }
+
+    /// Only controller-observed invalidation can cancel the pending job.
+    pub fn invalidate(&mut self, origin: EvidenceOrigin) -> bool {
+        if origin != EvidenceOrigin::Controller {
+            return false;
+        }
+        self.active = None;
+        true
+    }
+
+    /// A failed old job cannot cancel a newer job which superseded it.
+    pub fn abort(&mut self, origin: EvidenceOrigin, ticket: &CheckTicket) -> bool {
+        if !self.matches(ticket) {
+            return false;
+        }
+        self.invalidate(origin)
+    }
+
+    /// Consume an exact active job once. This establishes correspondence and
+    /// freshness, not checker soundness; only a validated checker may call it.
+    pub fn finish(
+        &mut self,
+        origin: EvidenceOrigin,
+        gate: &Gate,
+        ticket: &CheckTicket,
+        current: &Subject,
+    ) -> bool {
+        if origin != EvidenceOrigin::Checker
+            || !gate.is_accepted()
+            || !self.matches(ticket)
+            || ticket.subject != *current
+            || self.session != current.session
+            || gate.subject.session != current.session
+            || gate.subject.contract != current.contract
+        {
+            return false;
+        }
+        self.active = None;
+        true
+    }
+
+    /// A status observation grants no completion authority.
+    pub fn is_active(&self) -> bool {
+        self.active.is_some()
+    }
+
+    fn matches(&self, ticket: &CheckTicket) -> bool {
+        match &self.active {
+            Some(active) => active == ticket,
+            None => false,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn issued_jobs_are_session_bound_single_use_and_never_resurrected() -> Result<(), &'static str>
+    {
+        let request = Subject {
+            session: b"one".to_vec(),
+            contract: b"accepted".to_vec(),
+            inputs: b"prepared source+tools".to_vec(),
+        };
+        let obligation = Obligation {
+            statement: b"contract".to_vec(),
+            kind: EvidenceKind::Refinement,
+            checker: b"checker".to_vec(),
+        };
+        let mut gate = Gate::propose(request.clone(), vec![obligation.clone()]);
+        let mut jobs = CheckJobs::new(request.session.clone());
+        assert!(jobs
+            .start(EvidenceOrigin::Controller, &gate, &request)
+            .is_none());
+        assert!(gate.review(EvidenceOrigin::Host) && gate.accept(EvidenceOrigin::Host));
+        for origin in [
+            EvidenceOrigin::Model,
+            EvidenceOrigin::Host,
+            EvidenceOrigin::Checker,
+        ] {
+            assert!(jobs.start(origin, &gate, &request).is_none());
+        }
+        let first = jobs
+            .start(EvidenceOrigin::Controller, &gate, &request)
+            .ok_or("job not issued")?;
+        for origin in [
+            EvidenceOrigin::Model,
+            EvidenceOrigin::Host,
+            EvidenceOrigin::Controller,
+        ] {
+            assert!(!jobs.finish(origin, &gate, &first, &request));
+        }
+        let mut changed = request.clone();
+        changed.inputs.push(1);
+        assert!(!jobs.finish(EvidenceOrigin::Checker, &gate, &first, &changed));
+        let second = jobs
+            .start(EvidenceOrigin::Controller, &gate, &request)
+            .ok_or("job not issued")?;
+        assert!(second.id > first.id);
+        assert!(!jobs.finish(EvidenceOrigin::Checker, &gate, &first, &request));
+        assert!(!jobs.abort(EvidenceOrigin::Controller, &first));
+        assert!(jobs.is_active());
+        assert!(jobs.finish(EvidenceOrigin::Checker, &gate, &second, &request));
+        assert!(!jobs.finish(EvidenceOrigin::Checker, &gate, &second, &request));
+
+        let cancelled = jobs
+            .start(EvidenceOrigin::Controller, &gate, &request)
+            .ok_or("job not issued")?;
+        assert!(!jobs.invalidate(EvidenceOrigin::Model));
+        assert!(jobs.is_active());
+        assert!(jobs.invalidate(EvidenceOrigin::Controller));
+        assert!(!jobs.is_active());
+        assert!(!jobs.finish(EvidenceOrigin::Checker, &gate, &cancelled, &request));
+        let restored = jobs
+            .start(EvidenceOrigin::Controller, &gate, &request)
+            .ok_or("job not issued")?;
+        assert!(restored.id > cancelled.id);
+        assert!(!jobs.finish(EvidenceOrigin::Checker, &gate, &cancelled, &request));
+        assert!(!jobs.abort(EvidenceOrigin::Model, &restored));
+        assert!(jobs.abort(EvidenceOrigin::Controller, &restored));
+        assert!(!jobs.finish(EvidenceOrigin::Checker, &gate, &restored, &request));
+
+        let mut other = request.clone();
+        other.session = b"two".to_vec();
+        let mut other_gate = Gate::propose(other.clone(), vec![obligation]);
+        assert!(other_gate.review(EvidenceOrigin::Host) && other_gate.accept(EvidenceOrigin::Host));
+        assert!(jobs
+            .start(EvidenceOrigin::Controller, &other_gate, &other)
+            .is_none());
+        jobs.sequence = u64::MAX;
+        assert!(jobs
+            .start(EvidenceOrigin::Controller, &gate, &request)
+            .is_none());
+        assert!(!jobs.is_active());
+        Ok(())
+    }
 
     #[test]
     fn exact_current_evidence_is_required_for_each_obligation() {

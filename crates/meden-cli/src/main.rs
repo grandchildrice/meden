@@ -277,12 +277,13 @@ fn verify_ledger(
     let source = read_ledger(std::fs::File::open(source)?)?;
     let bundle = meden_runtime::verification::Bundle::load(bundle)?;
     let control = Control::new(Arc::new(AtomicBool::new(false)));
-    let checked = meden_runtime::verification::verify_ledger(
+    let prepared = meden_runtime::verification::prepare_ledger(
         &source,
         &bundle,
         &std::env::current_exe()?,
         &control,
     )?;
+    let checked = prepared.check(&control)?;
     let artifact = checked.persist(output)?;
     serde_json::to_writer(io::stdout().lock(), &artifact)?;
     println!();

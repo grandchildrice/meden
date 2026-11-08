@@ -5,5 +5,6 @@ import MedenSpec.DispatchRefinement
 import MedenSpec.ApprovalRefinement
 import MedenSpec.RepairRefinement
 import MedenSpec.CheckFailureRefinement
+import MedenSpec.CheckJobsTrace
 
 /-! Proof-only entry point: keep extraction dependencies out of the oracle. -/

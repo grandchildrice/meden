@@ -102,7 +102,9 @@ application or financial certification.
    Imports, attributes, macros, other calls/methods, loops, nested items,
    unsafe code and conditional compilation are unsupported. This syntax
    check is a boundary, not the correctness proof.
-3. Create a fresh job with the exact source and Meden's fixed Cargo files,
+3. Freeze the source and source/worker/checker/resource hashes, then issue a
+   monotonic job ticket in the accepted session/contract scope. Create a
+   fresh job with the exact source and Meden's fixed Cargo files,
    example tests, specification, proof harness and shell recipe. Ignore the
    project's Cargo configuration, `build.rs`, Lean files, cached `.olean`
    files and claimed reports. Mount only prepared public checker resources.
@@ -126,9 +128,11 @@ application or financial certification.
    exits, proof holes, incomplete audits and output/resource exhaustion.
 7. Compile the native Rust library from that same source and fixed build
    configuration. Recheck input/tool content bindings, resnapshot the coding
-   copy, and admit an exact checker-origin receipt through the refined
-   evidence kernel only if the source is still current. Final admission and
-   local retention share a critical section with cancellation: cancellation
+   copy, and consume the exact active issued ticket against those current
+   inputs. Cancelled, edited, superseded or already consumed tickets cannot
+   produce an active checker-origin receipt. Admit that receipt through the
+   refined evidence kernel only if the source is still current. Final admission
+   and local retention share a critical section with cancellation: cancellation
    first refuses admission; admission first finishes before cancellation
    returns. An inactive receipt cannot advance the extracted kernel.
 8. Retain the already checked bytes outside the writable coding copy. Do
@@ -224,10 +228,11 @@ job explicitly supplies the manifest and runs them.
 Its `meden-ledger-evidence` artifact retains all seven successful cases' actual
 source, native libraries, proof inputs and eight-root audit reports.
 
-The separate Meden control audit contains 65 roots, including the extracted
+The separate Meden control audit contains 74 roots, including the extracted
 acceptance getter used by both interfaces, the actual TUI key predicate and
-the check-scheduling decision over real conversation outcomes, and typed
-verification-failure classification and stopping decisions. The eight
+the check-scheduling decision over real conversation outcomes, typed
+verification-failure classification and stopping decisions, and the issued-job
+operations and finite-trace properties. The eight
 ledger roots are checked afresh per candidate. Neither count proves the
 entire TUI, CLI,
 protocol parser, origin attribution, job adapter or filesystem behavior.

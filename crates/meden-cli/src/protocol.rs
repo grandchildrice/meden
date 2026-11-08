@@ -146,7 +146,7 @@ pub fn run(
             next = read_command(input)?;
             continue;
         };
-        let status = run_instruction(&mut session, &instruction, output, processes)?;
+        let status = run_instruction(&mut session, &instruction, output, processes, &project)?;
         if status == Status::Cancelled {
             return Ok(());
         }
@@ -160,6 +160,7 @@ fn run_instruction(
     instruction: &str,
     output: &mut impl Write,
     processes: &Control,
+    project: &crate::project::Project,
 ) -> Result<Status> {
     let writer = RefCell::new(&mut *output);
     let failure = RefCell::new(None);
@@ -186,7 +187,7 @@ fn run_instruction(
         };
         if let Err(error) = send(&mut *writer.borrow_mut(), &message) {
             *failure.borrow_mut() = Some(error);
-            processes.cancel();
+            project.cancel(processes);
         }
     };
     let status = session.run(instruction, &observer);

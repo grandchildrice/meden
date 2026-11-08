@@ -15,18 +15,6 @@ set_option maxHeartbeats 4000000
 def state (s : State) : Dispatch.State := ⟨phase s.phase, request s.request⟩
 def outcome (out : Outcome) : Dispatch.Outcome := ⟨out.accepted, out.effect.map request⟩
 
-private theorem vec_clone (v : alloc.vec.Vec U8) :
-    alloc.vec.CloneVec.clone core.clone.CloneU8 v = ok v := by
-  have h := Slice.clone_spec (s := v.slice)
-    (clone := core.clone.CloneU8.clone) (by intros; rfl)
-  unfold alloc.vec.CloneVec.clone
-  cases hc : Slice.clone core.clone.CloneU8.clone v.slice with
-  | ret out =>
-    have he : v.slice = out := by simpa [hc] using h
-    simp [← he]
-  | vis effect continuation => simp [hc] at h
-  | div => simp [hc] at h
-
 private theorem request_clone (r : MedenImpl.transfer.Request) :
     MedenImpl.transfer.Request.Insts.CoreCloneClone.clone r = ok r := by
   simp [MedenImpl.transfer.Request.Insts.CoreCloneClone.clone, vec_clone]

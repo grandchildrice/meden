@@ -13,7 +13,10 @@ use meden_agent::{
     Registry,
 };
 use meden_core::{
-    evidence::{EvidenceKind, EvidenceOrigin as Origin, Gate, Obligation, Receipt, Subject},
+    evidence::{
+        CheckJobs, CheckTicket, EvidenceKind, EvidenceOrigin as Origin, Gate, Obligation, Receipt,
+        Subject,
+    },
     Capability, Grant, Policy, Requirement,
 };
 use meden_runtime::{
@@ -52,6 +55,7 @@ pub struct Summary {
 
 struct State {
     gate: Option<Gate>,
+    jobs: CheckJobs,
     dirty: bool,
     autorun: bool,
     artifact: Option<Artifact>,
@@ -75,6 +79,7 @@ impl Project {
                     let _ = write!(out, "{b:02x}");
                     out
                 });
+        let jobs = CheckJobs::new(session.as_bytes().to_vec());
         Self {
             reference: Reference {
                 session,
@@ -88,6 +93,7 @@ impl Project {
                 .join("artifacts"),
             state: Mutex::new(State {
                 gate: None,
+                jobs,
                 dirty: false,
                 autorun: false,
                 artifact: None,
@@ -207,6 +213,7 @@ impl Project {
                 gate.refresh(Origin::Controller, self.subject(b"editing".to_vec()));
             }
             state.dirty = true;
+            state.jobs.invalidate(Origin::Controller);
             if state.failure.as_ref().is_some_and(|f| f.kind.repairable()) {
                 state.failure = None;
             }
@@ -221,6 +228,17 @@ impl Project {
         }
     }
 
+    /// Cancel logical jobs before stopping owned processes. The lock order is
+    /// the same as final admission: project state, then process control.
+    pub fn cancel(&self, control: &Control) {
+        if let Ok(mut state) = self.state.lock() {
+            state.jobs.invalidate(Origin::Controller);
+            control.cancel();
+        } else {
+            control.cancel();
+        }
+    }
+
     pub fn failure(&self) -> Option<Failure> {
         self.state.lock().ok().and_then(|s| s.failure.clone())
     }
@@ -230,6 +248,9 @@ impl Project {
             .state
             .lock()
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
+        if state.jobs.is_active() {
+            return Ok(self.summary(&state, false));
+        }
         let current = if let Some(artifact) = &state.artifact {
             self.binding(&artifact.report, &snapshot(workspace, control)?)?
         } else {
@@ -304,6 +325,7 @@ impl Project {
                 "job binding refused"
             );
             state.dirty = true;
+            state.jobs.invalidate(Origin::Controller);
             state.failure = None;
         }
         let source = snapshot(workspace, control)?;
@@ -313,13 +335,50 @@ impl Project {
                 .context("no prepared checker bundle")?,
         )
         .map_err(Failure::unavailable)?;
-        let checked = verification::verify_ledger(
+        let prepared = verification::prepare_ledger(
             &source,
             &bundle,
             &std::env::current_exe().map_err(Failure::unavailable)?,
             control,
         )?;
+        let request = self.subject(serde_json::to_vec(prepared.inputs())?);
+        let ticket = {
+            let mut state = self
+                .state
+                .lock()
+                .map_err(|_| anyhow::anyhow!("project unavailable"))?;
+            control.with_active(|| {
+                let State { gate, jobs, .. } = &mut *state;
+                jobs.start(
+                    Origin::Controller,
+                    gate.as_ref()
+                        .ok_or_else(|| io::Error::other("no contract"))?,
+                    &request,
+                )
+                .ok_or_else(|| io::Error::other("job issue refused"))
+            })?
+        };
+        let result = self.run_job(prepared, &ticket, workspace, control);
+        if result.is_err() {
+            if let Ok(mut state) = self.state.lock() {
+                state.jobs.abort(Origin::Controller, &ticket);
+            }
+        }
+        result
+    }
+
+    fn run_job(
+        &self,
+        prepared: verification::PreparedLedger<'_>,
+        ticket: &CheckTicket,
+        workspace: &Workspace,
+        control: &Control,
+    ) -> Result<Summary> {
+        let checked = prepared.check(control)?;
         let fresh = snapshot(workspace, control)?;
+        let mut inputs = checked.inputs();
+        inputs.source_sha256 = hash(fresh.as_bytes());
+        let current = self.subject(serde_json::to_vec(&inputs)?);
         let subject = self.binding(checked.report(), &fresh)?;
         let mut state = self
             .state
@@ -327,11 +386,12 @@ impl Project {
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
         control
             .with_active(|| {
-                let gate = state
-                    .gate
+                let State { gate, jobs, .. } = &mut *state;
+                let gate = gate
                     .as_mut()
                     .ok_or_else(|| io::Error::other("no contract"))?;
-                if source != fresh || !gate.refresh(Origin::Controller, subject.clone()) {
+                let active = jobs.finish(Origin::Checker, gate, ticket, &current);
+                if !active || !gate.refresh(Origin::Controller, subject.clone()) {
                     return Err(io::Error::other("project changed; evidence is not current"));
                 }
                 let receipt = Receipt {
@@ -339,7 +399,7 @@ impl Project {
                     position: 0,
                     obligation: Self::obligation(),
                     passed: true,
-                    active: true,
+                    active,
                 };
                 if checked.report().checker_sha256 != verification::ledger_checker_id()
                     || !gate.record(Origin::Checker, &subject, &receipt)
@@ -502,11 +562,18 @@ mod tests {
             }
         ));
         assert!(gate.eligible(&subject));
-        project
-            .state
-            .lock()
-            .map_err(|_| anyhow::anyhow!("project unavailable"))?
-            .gate = Some(gate);
+        let ticket = {
+            let mut state = project
+                .state
+                .lock()
+                .map_err(|_| anyhow::anyhow!("project unavailable"))?;
+            let ticket = state
+                .jobs
+                .start(Origin::Controller, &gate, &subject)
+                .context("no job")?;
+            state.gate = Some(gate);
+            ticket
+        };
 
         project.mark_dirty();
         let mut state = project
@@ -514,11 +581,52 @@ mod tests {
             .lock()
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
         assert!(state.dirty);
-        let gate = state.gate.as_mut().context("no contract")?;
+        assert!(!state.jobs.is_active());
+        let State { gate, jobs, .. } = &mut *state;
+        let gate = gate.as_mut().context("no contract")?;
         assert!(gate.is_accepted());
         // Even an identical source after the write needs fresh evidence.
         assert!(gate.refresh(Origin::Controller, subject.clone()));
         assert!(!gate.eligible(&subject));
+        assert!(!jobs.finish(Origin::Checker, gate, &ticket, &subject));
+        Ok(())
+    }
+
+    #[test]
+    fn cancelled_jobs_stay_cancelled_after_the_process_flag_is_reset() -> Result<()> {
+        let project = Project::new(Path::new("/sessions/cancelled"));
+        let subject = project.subject(b"same restored source and tools".to_vec());
+        let mut gate = Gate::propose(subject.clone(), vec![Project::obligation()]);
+        assert!(gate.review(Origin::Host) && gate.accept(Origin::Host));
+        let ticket = {
+            let mut state = project
+                .state
+                .lock()
+                .map_err(|_| anyhow::anyhow!("project unavailable"))?;
+            let t = state
+                .jobs
+                .start(Origin::Controller, &gate, &subject)
+                .context("no job")?;
+            state.gate = Some(gate);
+            t
+        };
+        let control = Control::new(Arc::new(std::sync::atomic::AtomicBool::new(false)));
+        project.cancel(&control);
+        assert!(control.flag().load(std::sync::atomic::Ordering::SeqCst));
+        control
+            .flag()
+            .store(false, std::sync::atomic::Ordering::SeqCst);
+        let mut state = project
+            .state
+            .lock()
+            .map_err(|_| anyhow::anyhow!("project unavailable"))?;
+        let State { gate, jobs, .. } = &mut *state;
+        let gate = gate.as_ref().context("no contract")?;
+        let next = jobs
+            .start(Origin::Controller, gate, &subject)
+            .context("no next job")?;
+        assert!(!jobs.finish(Origin::Checker, gate, &ticket, &subject));
+        assert!(jobs.finish(Origin::Checker, gate, &next, &subject));
         Ok(())
     }
 

@@ -74,3 +74,12 @@ open MedenSpec
 #print axioms MedenSpec.CheckFailureRefinement.operational_stops
 #print axioms MedenSpec.CheckFailureRefinement.failed_worker_refines
 #print axioms MedenSpec.CheckFailureRefinement.truncated_is_inconclusive
+#print axioms MedenSpec.CheckJobsRefinement.new_refines
+#print axioms MedenSpec.CheckJobsRefinement.start_refines
+#print axioms MedenSpec.CheckJobsRefinement.invalidate_refines
+#print axioms MedenSpec.CheckJobsRefinement.abort_refines
+#print axioms MedenSpec.CheckJobsRefinement.finish_refines
+#print axioms MedenSpec.CheckJobsRefinement.is_active_refines
+#print axioms MedenSpec.CheckJobsTrace.trace_refines
+#print axioms MedenSpec.CheckJobsTrace.extracted_no_late_result
+#print axioms MedenSpec.CheckJobsTrace.extracted_result_was_issued

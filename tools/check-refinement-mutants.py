@@ -29,8 +29,8 @@ GROUPS = [
         "mutations": [
             (
                 "untrusted_evidence",
-                "origin != EvidenceOrigin::Checker",
-                "origin != EvidenceOrigin::Checker && false",
+                "!receipt.active\n            || origin != EvidenceOrigin::Checker",
+                "!receipt.active\n            || (origin != EvidenceOrigin::Checker && false)",
             ),
             ("cancelled_evidence", "!receipt.active", "false"),
             ("stale_evidence", "receipt.subject != *current", "false"),
@@ -157,6 +157,63 @@ GROUPS = [
                 "missing_operational_stop",
                 "matches!(failure, Some(kind) if !kind.repairable())",
                 "{ let _ = failure; false }",
+            ),
+        ],
+    },
+    {
+        "source": "crates/meden-core/src/evidence.rs",
+        "package": "meden-core",
+        "model": "Evidence",
+        "proof": "CheckJobsRefinement",
+        "prerequisites": ["EvidenceRefinement"],
+        "test": "evidence::tests::issued_jobs_are_session_bound_single_use_and_never_resurrected",
+        "mutations": [
+            (
+                "unaccepted_check_job",
+                "if origin != EvidenceOrigin::Controller\n            || !gate.is_accepted()",
+                "if origin != EvidenceOrigin::Controller\n"
+                "            || (!gate.is_accepted() && false)",
+            ),
+            (
+                "untrusted_check_job",
+                "if origin != EvidenceOrigin::Controller\n            || !gate.is_accepted()",
+                "if (origin != EvidenceOrigin::Controller && false)\n"
+                "            || !gate.is_accepted()",
+            ),
+            (
+                "foreign_session_check_job",
+                "self.session != subject.session",
+                "(self.session != subject.session && false)",
+            ),
+            (
+                "reused_check_job_id",
+                "self.sequence.checked_add(1)",
+                "self.sequence.checked_add(0)",
+            ),
+            (
+                "wrapped_check_job_id",
+                "self.sequence.checked_add(1)",
+                "Some(self.sequence.wrapping_add(1))",
+            ),
+            (
+                "cancelled_check_job_retained",
+                "self.active = None;\n        true\n    }\n\n    /// A failed old job",
+                "let _ = &self.active;\n        true\n    }\n\n    /// A failed old job",
+            ),
+            (
+                "check_job_input_substitution",
+                "ticket.subject != *current",
+                "(ticket.subject != *current && false)",
+            ),
+            (
+                "completed_check_job_reused",
+                "self.active = None;\n        true\n    }\n\n    /// A status observation",
+                "let _ = &self.active;\n        true\n    }\n\n    /// A status observation",
+            ),
+            (
+                "old_check_job_aborts_new",
+                "if !self.matches(ticket) {",
+                "if !self.matches(ticket) && false {",
             ),
         ],
     },

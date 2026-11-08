@@ -21,6 +21,12 @@
   Typed verification-failure classification and repair-stop decisions are
   extracted/refined; I/O mapping, host-stop routing and history remain tested
   adapters. Operational failures stop automatic repair until a new host turn.
+  Issued-job operations and arbitrary finite compositions are extracted/refined:
+  exact session/contract/input-bound tickets are consumed once, and older
+  generations remain invalid after cancellation or consumption. The ledger
+  adapter prepares inputs before issue and derives receipt activity from this
+  kernel. Input construction, locking, physical cancellation and the full
+  session/executor correspondence remain separate obligations.
   The evidence kernel gates
   Meden's own releases and the fixed Rust ledger project verifier. General
   contracts/backends, full interface/tool coverage and outbound

@@ -4,6 +4,18 @@ import Aeneas
 namespace MedenSpec.ByteVectors
 open Aeneas Aeneas.Std Result
 
+theorem vec_clone (v : alloc.vec.Vec U8) :
+    alloc.vec.CloneVec.clone core.clone.CloneU8 v = ok v := by
+  have h := Slice.clone_spec (s := v.slice)
+    (clone := core.clone.CloneU8.clone) (by intros; rfl)
+  unfold alloc.vec.CloneVec.clone
+  cases hc : Slice.clone core.clone.CloneU8.clone v.slice with
+  | ret out =>
+    have he : v.slice = out := by simpa [hc] using h
+    simp [← he]
+  | vis effect continuation => simp [hc] at h
+  | div => simp [hc] at h
+
 theorem allM_eq (xs ys : List U8) (hlen : xs.length = ys.length) :
     List.allM (fun p : U8 × U8 => ok (decide (p.1 = p.2))) (List.zip xs ys) =
       ok (decide (xs = ys)) := by
