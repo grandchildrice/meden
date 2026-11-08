@@ -20,7 +20,7 @@
     "concurrent_load": "shared workstation; no local Rust/Lean verification builds during this trial"
   },
   "instruction": "Build a formally verified local Rust ledger. Transfers must preserve total balance, cannot overdraw an account, reject unauthorized actors and overflow, and retries must not charge twice. Use the supported ledger contract, propose it for my review, then implement and independently prove the accepted contract. Keep data local.",
-  "method": "One natural-language request in an empty project. The host harness would review/accept only the exact fixed ledger contract, but no proposal was made. No implementation/proof or human code repair was supplied.",
+  "method": "One natural-language request in an empty project. The host harness would review/accept only the exact fixed ledger contract, but no proposal was made. No solution implementation/proof or human code repair was supplied.",
   "duration_seconds": 144.5604664720595,
   "model_requests": 1,
   "tool_calls": 0,

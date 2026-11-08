@@ -16,6 +16,11 @@ ended `done`; the host's project status remained unverified. This was a
 normal model answer, not an inference timeout. It motivates clearer action
 instructions for the worker; those instructions do not replace the host's
 proof and delivery conditions. No solution or human code repair was supplied.
+The [follow-up at `a791089`](local-ledger-qwen25-coder7b-a791089.json)
+used those clearer instructions with the same model and task. It returned
+a shorter answer after about 57 seconds, but still emitted a tool example
+inside `<tools>` tags rather than a native call. No action or proof occurred.
+The free-form example was retained as text and was not executed.
 
 The [Qwen3-14B CPU trial at `25d67e0`](local-ledger-qwen3-14b-25d67e0.json)
 used the same natural-language task with the host checking/repair controller.

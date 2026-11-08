@@ -1,0 +1,45 @@
+{
+  "kind": "single-local-model-pilot",
+  "source_commit": "a791089217957cc837fb591cc2e24e1194365e6c",
+  "worker_sha256": "a2b44fa1cf358a68b97d855ee882081bef035aa4eb9bad3b172fadfd49de1a26",
+  "model": {
+    "name": "Qwen2.5-Coder-7B-Instruct Q4_K_M",
+    "repository": "bartowski/Qwen2.5-Coder-7B-Instruct-GGUF",
+    "revision": "1f629da0c8bed16b9e50cee91c70693650e66c35",
+    "gguf_bytes": 4683074336,
+    "sha256": "1664fccab734674a50763490a8c6931b70e3f2f8ec10031b54806d30e5f956b6"
+  },
+  "execution": {
+    "platform": "Linux CPU",
+    "engine": "llama.cpp 0.9.0 build 12110 (cd959ba)",
+    "context_tokens": 16384,
+    "reasoning_budget": 0,
+    "exchange_timeout_seconds": 300,
+    "sampling": "server defaults; seed not recorded",
+    "network": "confined offline; no HTTP fallback",
+    "concurrent_load": "shared workstation; no local Rust/Lean verification builds during this trial"
+  },
+  "instruction": "Build a formally verified local Rust ledger. Transfers must preserve total balance, cannot overdraw an account, reject unauthorized actors and overflow, and retries must not charge twice. Use the supported ledger contract, propose it for my review, then implement and independently prove the accepted contract. Keep data local.",
+  "method": "One natural-language request in an empty project. The host harness would review/accept only the exact fixed ledger contract, but no proposal was made. No solution implementation/proof or human code repair was supplied.",
+  "duration_seconds": 56.769283703994006,
+  "model_requests": 1,
+  "tool_calls": 0,
+  "contract_accepted": false,
+  "host_review_decisions": 0,
+  "conversation_outcomes": [
+    "done"
+  ],
+  "process_exit": 0,
+  "received_signal": null,
+  "host_cleanup": null,
+  "verified": false,
+  "artifact": null,
+  "observations": [
+    "After clearer native-action instructions, the model emitted a short prose answer containing a propose_ledger example inside <tools> tags, without a native tool call.",
+    "No contract proposal, source edit or project verification occurred. Free-form tool examples remained text and were not executed."
+  ],
+  "limitations": "One failed trial, not a task-success estimate or whole-system confidentiality result. The model emitted a normal answer; this was not an inference timeout or engine startup failure.",
+  "trace_sha256": "a98c83c18859ab82c6666391c37d91163fd6bb642ce89abe0e68fff70783bda5",
+  "timing_sha256": "1fa8bb875f27211784234dc825f00a85e55df458db13353a156c76af8a9ee43f",
+  "host_actions_sha256": "b1910019d46238941d81463332577426bb0aec632c4aececed592a81aaf3abbe"
+}
