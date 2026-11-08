@@ -94,7 +94,7 @@ jobs:
           test: false
       - name: Forbid unfinished proofs and project axioms
         run: |
-          if grep -rn --include='*.lean' -E '\b(sorry|admit|axiom)\b' lean/MedenSpec lean/MedenSpec.lean lean/MedenProof.lean lean/Main.lean; then
+          if grep -rn --include='*.lean' -E '\b(sorry|admit|axiom)\b' lean/MedenSpec lean/MedenSpec.lean lean/MedenProof.lean lean/Main.lean verification/ledger; then
             echo "unfinished proof or project axiom found"; exit 1; fi
       - name: audit axioms
         working-directory: lean
@@ -105,6 +105,26 @@ jobs:
             echo "non-standard axiom present"; exit 1; fi
       - name: Reject semantic faults in the actual Rust implementation
         run: python3 tools/check-refinement-mutants.py
+      - name: Install project verification isolation backend
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap
+      - uses: astral-sh/setup-uv@v7
+      - name: Check real user-project proof and TUI/CLI contract flow offline
+        run: |
+          cargo build --release -p meden-cli
+          python3 tools/prepare-verifier.py \
+            --rust "$(rustc --print sysroot)" \
+            --charon "$CHARON" --driver "$RUNNER_TEMP/aeneas/charon-driver" \
+            --aeneas "$AENEAS" --output "$RUNNER_TEMP/project-verifier.json"
+          uv run --project python pytest -q python/tests/test_project_verification.py \
+            --basetemp "$RUNNER_TEMP/ledger-project-tests"
+        env:
+          MEDEN_BIN: ${{ github.workspace }}/target/release/meden
+          MEDEN_VERIFIER_BUNDLE: ${{ runner.temp }}/project-verifier.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: meden-ledger-evidence
+          path: ${{ runner.temp }}/ledger-project-tests/**/data/meden/artifacts/**
+          if-no-files-found: error
       - uses: actions/upload-artifact@v7
         with:
           name: meden-spec

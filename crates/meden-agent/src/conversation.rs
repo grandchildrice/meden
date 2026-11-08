@@ -52,6 +52,9 @@ pub struct Runtime<'a> {
     pub policy: &'a Policy,
     /// API definitions, in the host's original order.
     pub tools: &'a [Json],
+    /// Host-derived condition requiring user review before another model call.
+    /// This is never read from model arguments or result text.
+    pub needs_review: &'a dyn Fn() -> bool,
 }
 
 impl Reply {
@@ -114,6 +117,8 @@ pub enum Status {
     Incomplete,
     /// Cancellation was requested; no later tools were started.
     Cancelled,
+    /// The host requires a user decision before continuing this conversation.
+    NeedsReview,
 }
 
 /// Progress events for a protocol host or terminal interface.
@@ -220,12 +225,18 @@ impl Conversation {
             if stopped {
                 return Status::Incomplete;
             }
+            if (runtime.needs_review)() {
+                return Status::NeedsReview;
+            }
         }
         Status::Incomplete
     }
 }
 
-fn execute(
+/// Execute a registered call through the same capability and cancellation
+/// checks used by model turns. Controllers use this for independent checks;
+/// it does not register implementations or grant additional authority.
+pub fn execute(
     call: &ToolCall,
     registry: &Registry,
     policy: &Policy,
@@ -384,6 +395,7 @@ mod tests {
                 registry: &registry,
                 policy: &policy,
                 tools: &[],
+                needs_review: &|| false,
             },
             &|_| {},
             &AtomicBool::new(false),
@@ -432,6 +444,7 @@ mod tests {
                 registry: &registry,
                 policy: &policy,
                 tools: &[],
+                needs_review: &|| false,
             },
             &observer,
             &cancelled,
@@ -473,7 +486,8 @@ mod tests {
                     &Runtime {
                         registry: &registry,
                         policy: &policy,
-                        tools: &[]
+                        tools: &[],
+                        needs_review: &|| false,
                     },
                     &observer,
                     &cancelled
@@ -502,7 +516,8 @@ mod tests {
                 &Runtime {
                     registry: &registry,
                     policy: &policy,
-                    tools: &[]
+                    tools: &[],
+                    needs_review: &|| false,
                 },
                 &|_| {},
                 &AtomicBool::new(false)
@@ -513,6 +528,65 @@ mod tests {
         assert_eq!(
             session.messages.last().and_then(|m| m.get("tool_call_id")),
             Some(&json!("extra"))
+        );
+    }
+    #[test]
+    fn host_review_stops_before_another_model_request_and_preserves_paired_history() {
+        let count = Rc::new(Cell::new(0));
+        let registry = registry(&count);
+        let policy = Policy::from_labels("write", &["fs.write"], &[]).expect("policy");
+        let model = Model(RefCell::new(VecDeque::from([
+            Reply {
+                content: None,
+                tool_calls: vec![
+                    call("one", r#"{"text":"one"}"#),
+                    call("two", r#"{"text":"two"}"#),
+                ],
+            },
+            Reply {
+                content: Some("continued after host review".into()),
+                tool_calls: vec![],
+            },
+        ])));
+        let mut session = Conversation::new("test");
+        assert_eq!(
+            session.run(
+                "propose",
+                &model,
+                &Runtime {
+                    registry: &registry,
+                    policy: &policy,
+                    tools: &[],
+                    needs_review: &|| count.get() > 0
+                },
+                &|_| {},
+                &AtomicBool::new(false)
+            ),
+            Status::NeedsReview
+        );
+        assert_eq!(count.get(), 2);
+        assert_eq!(model.0.borrow().len(), 1);
+        let results: Vec<_> = session
+            .messages
+            .iter()
+            .filter(|m| m["role"] == "tool")
+            .map(|m| m["tool_call_id"].clone())
+            .collect();
+        assert_eq!(results, vec![json!("one"), json!("two")]);
+        assert_eq!(
+            session.run(
+                "host accepted",
+                &model,
+                &Runtime {
+                    registry: &registry,
+                    policy: &policy,
+                    tools: &[],
+                    needs_review: &|| false
+                },
+                &|_| {},
+                &AtomicBool::new(false)
+            ),
+            Status::Done("continued after host review".into())
         );
     }
 }

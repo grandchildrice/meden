@@ -44,6 +44,7 @@ open MedenSpec
 #print axioms MedenSpec.EvidenceRefinement.propose_refines
 #print axioms MedenSpec.EvidenceRefinement.review_refines
 #print axioms MedenSpec.EvidenceRefinement.accept_refines
+#print axioms MedenSpec.EvidenceRefinement.is_accepted_refines
 #print axioms MedenSpec.EvidenceRefinement.eligible_refines
 #print axioms MedenSpec.EvidenceRefinement.refresh_refines
 #print axioms MedenSpec.EvidenceRefinement.record_refines

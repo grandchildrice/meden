@@ -38,8 +38,10 @@ HTTP connections and optional Hermes configuration.
 - **Explicit boundaries:** Lean specifications for capability decisions and
   exact, single-use outbound authorization, checked in CI.
 
-> Development prototype. Local-only orchestration, project proof workflows,
-> controller-wide refinement and user-project evidence-gated delivery are design targets.
+> Development prototype. General local orchestration and project proof workflows,
+> controller-wide refinement and general project delivery are design targets.
+> An experimental [Rust ledger workflow](docs/project-verification.md) now
+> connects host acceptance to actual Rust extraction, Lean proof and a retained library.
 > TUI file/Bash tools and `exec` now run in private offline workspaces.
 > Local inference runs in a separate offline namespace; HTTP connections
 > require host approval and may still be remote. See [verification scope](docs/verification.md)
@@ -145,6 +147,7 @@ session as the TUI. [CLI protocol →](docs/cli.md)
 | Esc / Ctrl-C while running | Request cancellation; Ctrl-C again exits |
 | `/clear` | Start a fresh conversation, retaining files |
 | `/exports` / `/exports ID` | Review a pending or specified immutable file export |
+| `/contract` | Review the proposed Rust ledger contract |
 
 ## Product direction
 

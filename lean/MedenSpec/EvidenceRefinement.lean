@@ -76,6 +76,11 @@ theorem eligible_refines (g : Gate) (s : Subject) :
     by_cases hl : g.completed.val = g.obligations.val.length <;>
     simp [phase, gate, Evidence.eligible, h, he, hl, alloc.vec.Vec.is_empty, alloc.vec.Vec.len]
 
+theorem is_accepted_refines (g : Gate) :
+    MedenImpl.evidence.Gate.is_accepted g = ok (decide ((gate g).phase = .accepted)) := by
+  unfold MedenImpl.evidence.Gate.is_accepted
+  cases h : g.phase <;> simp [phase_eq, gate, phase, h]
+
 theorem refresh_refines (g : Gate) (o : Origin) (s : Subject) :
     (do let out ← MedenImpl.evidence.Gate.refresh g o s; ok (out.1, gate out.2)) =
       ok (Evidence.refresh (gate g) (origin o) (subject s)) := by

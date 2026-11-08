@@ -16,6 +16,11 @@ Linux, Bubblewrap, Bash and Python are required for real workspace tests.
 The public toolchain is mounted read-only. Private virtualenvs/caches are
 not added to the mount layout just because they precede a tool in `PATH`.
 
+The three project-verification tests additionally require a release binary
+and a prepared `MEDEN_VERIFIER_BUNDLE`. The Lean CI job supplies that bundle
+and runs them explicitly; other Python runs skip them. See
+[the project checker setup and scope](../docs/project-verification.md).
+
 The tests compare TUI and CLI HTTP requests, conversation history and real
 file effects over multiple instructions. Adversarial cases read an imported
 page fixture and confidential canary, then attempt fabricated send tools,

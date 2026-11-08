@@ -4,7 +4,7 @@ Status: product assurance plan. The transfer, export review and evidence
 kernels have Rust-to-Lean refinement, including finite compositions
 of the extracted review and evidence operations. The broader obligations below remain
 proposed. This defines completion criteria for
-[the product architecture](design.md). The current forty Lean theorem
+[the product architecture](design.md). The current forty-one Lean theorem
 entry points, six Kani harnesses and conformance checks are listed in
 [verification.md](verification.md).
 
@@ -81,8 +81,9 @@ wrappers and TLA+ implementations.
 
 ### A concrete first project
 
-Use a small Rust ledger kernel with checked integer amounts, explicit error
-results, account identities and idempotency keys. Accepted obligations cover
+The [first implemented profile](project-verification.md) uses a small Rust
+ledger transition with integer amounts, unchanged state on rejection, a
+caller-supplied actor and strictly increasing request IDs. Its obligations cover
 balance conservation, no overdraft, authorization, overflow behavior and
 no second charge for the same accepted operation.
 
@@ -126,6 +127,8 @@ exact current-subject completion and input invalidation for its typed state
 and receipts, contributing to CTL-02 through CTL-06. Its first consumer is
 Meden's own release checklist. Checker attribution, complete input construction,
 general project contract management and effect routing remain separate gaps.
+The fixed ledger profile now consumes this gate for actual project checks;
+the adapter and interface loop are tested, not extracted/refined.
 Transfer proofs cover exact reservation
 in CTL-07. Export review-control proofs cover typed-origin gating and at most
 one dispatch across arbitrary finite compositions of that extracted step.

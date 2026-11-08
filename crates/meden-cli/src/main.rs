@@ -9,6 +9,7 @@ use std::process::ExitCode;
 use std::sync::{atomic::AtomicBool, Arc};
 mod exports;
 mod pages;
+mod project;
 mod protocol;
 mod session;
 mod shell;
@@ -53,6 +54,17 @@ enum Command {
         #[arg(long)]
         directory: PathBuf,
     },
+    /// Check a Rust ledger module against the fixed ledger-v1 contract locally.
+    VerifyLedger {
+        #[arg(long)]
+        source: PathBuf,
+        #[arg(long)]
+        bundle: PathBuf,
+        #[arg(long)]
+        output: PathBuf,
+    },
+    #[command(hide = true)]
+    WorkerLedgerSyntax,
     #[command(hide = true)]
     WorkerFile,
     #[command(hide = true)]
@@ -133,6 +145,15 @@ fn main() -> ExitCode {
 fn run() -> Result<()> {
     match Cli::parse().command {
         Command::WorkerLaunch { arguments } => meden_runtime::process::exec_clean(&arguments)?,
+        Command::WorkerLedgerSyntax => {
+            let source = read_ledger(io::stdin().lock())?;
+            meden_runtime::verification::validate_ledger_source(&source)?;
+        }
+        Command::VerifyLedger {
+            source,
+            bundle,
+            output,
+        } => verify_ledger(&source, &bundle, &output)?,
         Command::VerifyRelease {
             repository,
             commit,
@@ -151,17 +172,7 @@ fn run() -> Result<()> {
             std::path::Path::new("/source"),
             std::path::Path::new("/workspace"),
         )?,
-        Command::Providers => {
-            for p in meden_llm::detect() {
-                println!(
-                    "{}",
-                    text::visible(&format!(
-                        "{:<22} {} · {} · {}",
-                        p.id, p.label, p.model, p.note
-                    ))
-                );
-            }
-        }
+        Command::Providers => print_providers(),
         Command::Tui(args) => {
             let pages = load_pages(args.pages.as_deref())?;
             let local = args.model.local_config()?;
@@ -219,7 +230,7 @@ fn run() -> Result<()> {
                 first,
                 &mut input,
                 &mut io::stdout().lock(),
-                workspace,
+                &workspace,
                 gateway,
                 &processes,
                 &pages,
@@ -229,12 +240,51 @@ fn run() -> Result<()> {
     Ok(())
 }
 
+fn print_providers() {
+    for p in meden_llm::detect() {
+        println!(
+            "{}",
+            text::visible(&format!(
+                "{:<22} {} · {} · {}",
+                p.id, p.label, p.model, p.note
+            ))
+        );
+    }
+}
+
 fn verify_release(repository: &str, commit: &str, directory: &std::path::Path) -> Result<()> {
     let token = std::env::var("GH_TOKEN")
         .or_else(|_| std::env::var("GITHUB_TOKEN"))
         .ok();
     let report = meden_runtime::release::verify(repository, commit, directory, token.as_deref())?;
     serde_json::to_writer(io::stdout().lock(), &report)?;
+    println!();
+    Ok(())
+}
+
+fn read_ledger(mut input: impl io::Read) -> Result<String> {
+    let mut bytes = Vec::new();
+    input.by_ref().take(65_537).read_to_end(&mut bytes)?;
+    anyhow::ensure!(bytes.len() <= 65_536, "ledger source exceeds 64 KiB");
+    Ok(String::from_utf8(bytes)?)
+}
+
+fn verify_ledger(
+    source: &std::path::Path,
+    bundle: &std::path::Path,
+    output: &std::path::Path,
+) -> Result<()> {
+    let source = read_ledger(std::fs::File::open(source)?)?;
+    let bundle = meden_runtime::verification::Bundle::load(bundle)?;
+    let control = Control::new(Arc::new(AtomicBool::new(false)));
+    let checked = meden_runtime::verification::verify_ledger(
+        &source,
+        &bundle,
+        &std::env::current_exe()?,
+        &control,
+    )?;
+    let artifact = checked.persist(output)?;
+    serde_json::to_writer(io::stdout().lock(), &artifact)?;
     println!();
     Ok(())
 }

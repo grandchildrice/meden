@@ -26,11 +26,17 @@ pub enum Command {
     ReviewExport(Reference),
     ApproveExport(Reference),
     RejectExport(Reference),
+    ReviewContract(crate::project::Reference),
+    AcceptContract(crate::project::Reference),
+    ProjectStatus(()),
 }
 
 #[derive(Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 enum Out<'a> {
+    Project {
+        summary: crate::project::Summary,
+    },
     Exports {
         exports: Vec<Summary>,
     },
@@ -87,7 +93,7 @@ pub fn run(
     first: Command,
     input: &mut impl BufRead,
     output: &mut impl Write,
-    workspace: Arc<Workspace>,
+    workspace: &Arc<Workspace>,
     gateway: Arc<Gateway>,
     processes: &Arc<Control>,
     pages: &Arc<meden_runtime::pages::Pages>,
@@ -100,81 +106,130 @@ pub fn run(
         },
     )?;
     let exports = Arc::new(Exports::new(workspace.path()));
-    let mut session = Session::new(workspace, gateway, Arc::clone(processes), &exports, pages)?;
+    let project = Arc::new(crate::project::Project::new(workspace.path()));
+    let mut session = Session::new(
+        Arc::clone(workspace),
+        gateway,
+        Arc::clone(processes),
+        &exports,
+        pages,
+        &project,
+    )?;
     let mut next = Some(first);
     while let Some(command) = next {
         let Command::Instruction(instruction) = command else {
-            export_command(command, &exports, output)?;
+            match command {
+                Command::ReviewContract(ref r) => send(
+                    output,
+                    &Out::Project {
+                        summary: project.review(r)?,
+                    },
+                )?,
+                Command::AcceptContract(ref r) => {
+                    send(
+                        output,
+                        &Out::Project {
+                            summary: project.accept(r)?,
+                        },
+                    )?;
+                    next = Some(Command::Instruction("Proceed under the host-accepted Rust ledger-v1 contract. Implement ledger.rs and independently verify it. Repair failures; report unknown if verification cannot finish.".into()));
+                    continue;
+                }
+                Command::ProjectStatus(()) => send(
+                    output,
+                    &Out::Project {
+                        summary: project.status(workspace, processes)?,
+                    },
+                )?,
+                _ => export_command(command, &exports, output)?,
+            }
             next = read_command(input)?;
             continue;
         };
-        let writer = RefCell::new(&mut *output);
-        let failure = RefCell::new(None);
-        let observer = |event: Event<'_>| {
-            if failure.borrow().is_some() {
-                return;
-            }
-            let message = match event {
-                Event::Asking(attempt) => Out::Asking { attempt },
-                Event::Assistant(reply) => Out::Assistant {
-                    text: reply.content.as_deref().unwrap_or_default(),
-                },
-                Event::Decision { call, refusal } => Out::Decision {
-                    tool: &call.function.name,
-                    allowed: refusal.is_none(),
-                    rule: refusal.map(|(rule, _)| rule),
-                    reason: refusal.map(|(_, reason)| reason),
-                },
-                Event::ToolResult { call, text, error } => Out::ToolResult {
-                    tool: &call.function.name,
-                    text,
-                    error,
-                },
-            };
-            if let Err(error) = send(&mut *writer.borrow_mut(), &message) {
-                *failure.borrow_mut() = Some(error);
-                processes.cancel();
-            }
-        };
-        let status = session.run(&instruction, &observer);
-        if let Some(error) = failure.into_inner() {
-            return Err(error);
-        }
-        send(
-            output,
-            &Out::Conversation {
-                messages: session.messages(),
-            },
-        )?;
-        let done = match &status {
-            Status::Done(answer) => Out::Done {
-                outcome: "done",
-                answer: Some(answer),
-                error: None,
-            },
-            Status::Failed(error) => Out::Done {
-                outcome: "failed",
-                answer: None,
-                error: Some(error),
-            },
-            Status::Incomplete => Out::Done {
-                outcome: "incomplete",
-                answer: None,
-                error: None,
-            },
-            Status::Cancelled => Out::Done {
-                outcome: "cancelled",
-                answer: None,
-                error: None,
-            },
-        };
-        send(output, &done)?;
+        let status = run_instruction(&mut session, &instruction, output, processes)?;
         if status == Status::Cancelled {
             return Ok(());
         }
         next = read_command(input)?;
     }
     Ok(())
+}
+
+fn run_instruction(
+    session: &mut Session,
+    instruction: &str,
+    output: &mut impl Write,
+    processes: &Control,
+) -> Result<Status> {
+    let writer = RefCell::new(&mut *output);
+    let failure = RefCell::new(None);
+    let observer = |event: Event<'_>| {
+        if failure.borrow().is_some() {
+            return;
+        }
+        let message = match event {
+            Event::Asking(attempt) => Out::Asking { attempt },
+            Event::Assistant(reply) => Out::Assistant {
+                text: reply.content.as_deref().unwrap_or_default(),
+            },
+            Event::Decision { call, refusal } => Out::Decision {
+                tool: &call.function.name,
+                allowed: refusal.is_none(),
+                rule: refusal.map(|(rule, _)| rule),
+                reason: refusal.map(|(_, reason)| reason),
+            },
+            Event::ToolResult { call, text, error } => Out::ToolResult {
+                tool: &call.function.name,
+                text,
+                error,
+            },
+        };
+        if let Err(error) = send(&mut *writer.borrow_mut(), &message) {
+            *failure.borrow_mut() = Some(error);
+            processes.cancel();
+        }
+    };
+    let status = session.run(instruction, &observer);
+    if let Some(error) = failure.into_inner() {
+        return Err(error);
+    }
+    send(
+        output,
+        &Out::Conversation {
+            messages: session.messages(),
+        },
+    )?;
+    let done = match &status {
+        Status::Done(answer) => Out::Done {
+            outcome: "done",
+            answer: Some(answer),
+            error: None,
+        },
+        Status::Failed(error) => Out::Done {
+            outcome: "failed",
+            answer: None,
+            error: Some(error),
+        },
+        Status::Incomplete => Out::Done {
+            outcome: "incomplete",
+            answer: None,
+            error: None,
+        },
+        Status::Cancelled => Out::Done {
+            outcome: "cancelled",
+            answer: None,
+            error: None,
+        },
+        Status::NeedsReview => Out::Done {
+            outcome: "needs_review",
+            answer: None,
+            error: None,
+        },
+    };
+    let summary = session.project_status()?;
+    send(output, &Out::Project { summary })?;
+    send(output, &done)?;
+    Ok(status)
 }
 
 /// One bounded JSON object per line. Unknown fields cannot register tools,
@@ -229,6 +284,11 @@ fn export_command(command: Command, exports: &Exports, output: &mut impl Write) 
             },
             Command::Instruction(_) => {
                 anyhow::bail!("instruction cannot be dispatched as an export")
+            }
+            Command::ReviewContract(_)
+            | Command::AcceptContract(_)
+            | Command::ProjectStatus(()) => {
+                anyhow::bail!("project command cannot be dispatched as an export")
             }
         })
     })();

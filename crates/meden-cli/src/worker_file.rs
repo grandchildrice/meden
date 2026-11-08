@@ -36,6 +36,10 @@ pub fn run() -> Result<()> {
         }
         .resolve(&args)?;
         let mut bytes = Vec::new();
+        anyhow::ensure!(
+            fs::metadata(&path)?.is_file(),
+            "snapshot source must be a regular file"
+        );
         fs::File::open(path)?
             .take(1_048_577)
             .read_to_end(&mut bytes)?;

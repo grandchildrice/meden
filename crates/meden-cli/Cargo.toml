@@ -19,6 +19,7 @@ meden-llm = { path = "../meden-llm", version = "0.1.0" }
 meden-runtime = { path = "../meden-runtime", version = "0.1.0" }
 serde = { workspace = true }
 serde_json = { workspace = true }
+sha2 = "0.10"
 clap = { version = "4", features = ["derive"] }
 anyhow = "1"
 ratatui = { version = "0.30", features = ["unstable-rendered-line-info"] }

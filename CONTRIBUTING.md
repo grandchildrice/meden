@@ -44,6 +44,12 @@ Linux and Bubblewrap for real isolation checks. See
 [verification.md](docs/verification.md) for theorem statements, bounds and
 local setup.
 
+The Lean CI job additionally prepares the pinned public checker bundle and
+runs the real Rust-ledger proof plus TUI/CLI contract tests. For local runs,
+use a release binary and set `MEDEN_VERIFIER_BUNDLE`; see
+[project-verification.md](docs/project-verification.md). The ordinary Python
+job skips those three bundle-dependent tests; the Lean job requires them.
+
 ## Kani harnesses
 
 Run `cargo kani -p meden-core` with Kani installed. Keep harnesses bounded,

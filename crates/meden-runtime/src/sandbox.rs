@@ -65,7 +65,7 @@ impl Sandbox {
     /// Prepare an offline execution configuration. Missing isolation support
     /// is an error; there is no unrestricted host fallback.
     pub fn with_worker(root: &Path, worker: &Path) -> io::Result<Self> {
-        Self::configure(root, worker.canonicalize()?, None)
+        Self::configure(root, worker.canonicalize()?, &[])
     }
 
     /// A separate offline model process. Only prepared executable/weights and
@@ -83,7 +83,7 @@ impl Sandbox {
                 "local engine and weights must be regular files",
             ));
         }
-        let sandbox = Self::configure(root, worker.canonicalize()?, Some(&engine))?;
+        let sandbox = Self::configure(root, worker.canonicalize()?, &[&engine])?;
         Ok(sandbox.build(
             "/local-engine",
             &[
@@ -107,7 +107,7 @@ impl Sandbox {
         ))
     }
 
-    fn configure(root: &Path, worker: PathBuf, engine: Option<&Path>) -> io::Result<Self> {
+    fn configure(root: &Path, worker: PathBuf, assets: &[&Path]) -> io::Result<Self> {
         let root = root.canonicalize()?;
         if !root.is_dir() {
             return Err(io::Error::other("workspace must be a directory"));
@@ -128,8 +128,10 @@ impl Sandbox {
             .iter()
             .filter_map(|(_, path)| store_root(path).map(Path::to_owned))
             .collect();
-        if let Some(root) = engine.and_then(store_root) {
-            roots.insert(root.to_owned());
+        for asset in assets {
+            if let Some(root) = store_root(asset) {
+                roots.insert(root.to_owned());
+            }
         }
         let mut worker_libraries = Vec::new();
         let mut worker_loader = None;
@@ -137,7 +139,7 @@ impl Sandbox {
             // The trusted worker may use another libc than the toolchain.
             // Resolve its public library objects, never expose nix-ld's
             // whole system profile or the whole Nix store.
-            for binary in std::iter::once(worker.as_path()).chain(engine) {
+            for binary in std::iter::once(worker.as_path()).chain(assets.iter().copied()) {
                 let output = Command::new(
                     find("ldd").ok_or_else(|| io::Error::other("ldd required for Nix worker"))?,
                 )
@@ -210,6 +212,36 @@ impl Sandbox {
     /// proxies, host sockets, host process tree or outbound network route.
     pub fn command(&self, executable: &str, args: &[impl AsRef<OsStr>]) -> Command {
         self.build(executable, args, None, &[])
+    }
+
+    pub(crate) fn for_verification(
+        root: &Path,
+        worker: &Path,
+        bundle: &crate::verification::Bundle,
+    ) -> io::Result<Self> {
+        let executables = bundle.executables();
+        Self::configure(
+            root,
+            worker.canonicalize()?,
+            &executables.iter().map(PathBuf::as_path).collect::<Vec<_>>(),
+        )
+    }
+
+    pub(crate) fn verification_command(&self, bundle: &crate::verification::Bundle) -> Command {
+        let bindings = bundle.bindings();
+        self.build(
+            "/bin/bash",
+            &["--noprofile", "--norc"],
+            None,
+            &bindings
+                .iter()
+                .map(|(p, n)| (p.as_path(), n.as_str()))
+                .collect::<Vec<_>>(),
+        )
+    }
+
+    pub(crate) fn verification_syntax_command(&self) -> io::Result<Command> {
+        self.worker_invocation("worker-ledger-syntax", None)
     }
 
     /// Invoke the trusted file worker inside the same containment as shell tools.

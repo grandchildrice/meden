@@ -72,7 +72,7 @@ supply bounded evidence; Rust, Python, conformance, dependency and packaging
 checks supply empirical evidence. A test is not promoted to a theorem.
 The exact proof and test boundaries are in [verification.md](verification.md).
 
-The kernel's six operations are extracted from production Rust. Lean proves
+The kernel's operations are extracted from production Rust. Lean proves
 their correspondence to the independent specification, and that completion
 after any finite composition requires passed matching receipts for every
 accepted obligation on the current subject. This proves the decision rule

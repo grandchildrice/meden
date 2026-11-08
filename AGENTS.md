@@ -13,5 +13,6 @@
 - Preserve accepted intent, evidence/source/artifact linkage and local data
   control. The isolated planner is retired. The transfer, export review and
   evidence kernels have Rust-to-Lean refinement. The evidence kernel gates
-  Meden's own releases; general user-project verification, full interface/tool
-  coverage and outbound confidentiality remain targets.
+  Meden's own releases and the fixed Rust ledger project verifier. General
+  contracts/backends, full interface/tool coverage and outbound
+  confidentiality remain targets. See docs/project-verification.md.

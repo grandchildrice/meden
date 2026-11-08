@@ -110,6 +110,28 @@ An HTTP response is not proof that an upload was accepted by the service.
 Raw HTTP export does not provide Git/email audience adapters or a
 proof-of-correctness release gate.
 
+## Project contract and verification
+
+With a host-prepared `MEDEN_VERIFIER_BUNDLE`, the model can propose the fixed
+Rust ledger contract using `propose_ledger`. The host reviews and accepts the
+exact reference returned in `project.summary.reference`:
+
+```json
+{"review_contract":{"session":"SESSION_FROM_PROPOSAL","contract":"rust-ledger-v1"}}
+{"accept_contract":{"session":"SESSION_FROM_PROPOSAL","contract":"rust-ledger-v1"}}
+{"project_status":null}
+```
+
+Review must precede acceptance. Acceptance continues development automatically.
+Only this host channel and the TUI review can accept; model tools cannot.
+`verify_ledger` and `project_status` model tools take empty arguments. The
+former invokes the independent fixed backend and requires host acceptance.
+`project.summary.verified` describes the current ledger kernel, independently
+of the model answer or `done.outcome`. Source changes invalidate evidence.
+The summary names the retained artifact directory and its hashes. There is
+no arbitrary receipt callback or model-selected checker/contract path.
+See [contract, preparation and proof scope](project-verification.md).
+
 ## Meden release evidence
 
 `meden verify-release --repository owner/repo --commit FULL_40_HEX_COMMIT
@@ -138,11 +160,14 @@ Each output line is a JSON object whose `type` identifies an event:
 | `tool_result` | Tool name, returned text and error flag |
 | `conversation` | Exact model history after the turn |
 | `done` | `outcome`, optional `answer`, optional `error` |
+| `project` | Host contract state, current kernel verification and artifact/source hashes |
 | `exports` | Current proposal summaries |
 | `export_review` | Summary, method, content type and exact `body_hex` |
 | `export_result` | Summary, optional `http_status`, and optional error |
 
-`done.outcome` is `done`, `failed`, `incomplete` or `cancelled`. Check it:
+`done.outcome` is `done`, `needs_review`, `failed`, `incomplete` or `cancelled`.
+`needs_review` means the host stopped after a contract proposal; review and
+accept the exact reference to continue. Check it:
 exit zero means protocol processing completed, not that every task or test
 succeeded. Tool errors can be returned to the model for repair. A broken
 output stream cancels the conversation; it does not authorize another
@@ -150,7 +175,8 @@ effect. End stdin to finish the session.
 
 The CLI runs tools itself. Events are observations, not requests for a host
 to execute code. The fixed tools are `read_file`, `list_files`, `write_file`,
-`edit_file`, `bash`, `propose_export`, `list_cached_pages` and `read_cached_page`.
+`edit_file`, `bash`, `propose_export`, `list_cached_pages`, `read_cached_page`,
+`propose_ledger`, `verify_ledger` and `project_status`.
 File/process operations use the offline copy at
 `/workspace`; unsupported send/network tools are refused. There is no host
 callback, plugin registration or unrestricted fallback.

@@ -7,4 +7,5 @@ pub mod release;
 #[cfg(target_os = "linux")]
 pub mod sandbox;
 pub mod transfer;
+pub mod verification;
 pub mod workspace;

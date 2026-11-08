@@ -1051,6 +1051,7 @@ dependencies = [
  "ratatui",
  "serde",
  "serde_json",
+ "sha2",
  "tempfile",
  "unicode-segmentation",
  "unicode-width",
@@ -1090,6 +1091,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
+ "syn 2.0.119",
  "tempfile",
  "ureq",
 ]

@@ -31,16 +31,19 @@ mod input;
 use input::Input;
 
 enum Update {
+    Project(crate::project::Summary),
+    ProjectDirty,
     Asking(usize),
     Text(String),
     Tool(String, bool),
-    Done(String),
+    Done(String, bool),
 }
 #[derive(PartialEq, Eq)]
 enum Screen {
     Picking,
     ReviewingProcessor,
     ReviewingExport,
+    ReviewingContract,
     Instructing,
     Running,
 }
@@ -56,6 +59,8 @@ struct App {
     workspace: Option<Arc<Workspace>>,
     gateway: Option<Arc<Gateway>>,
     exports: Arc<Exports>,
+    project: Arc<crate::project::Project>,
+    project_status: Option<crate::project::Summary>,
     pages: Arc<meden_runtime::pages::Pages>,
     reviewing_export: Option<Reference>,
     export_offset: usize,
@@ -77,6 +82,7 @@ impl App {
             picker.select(Some(0));
         }
         let exports = Arc::new(Exports::new(&root));
+        let project = Arc::new(crate::project::Project::new(&root));
         Self {
             providers,
             picker,
@@ -84,6 +90,8 @@ impl App {
             workspace: None,
             gateway: None,
             exports,
+            project,
+            project_status: None,
             pages: Arc::default(),
             reviewing_export: None,
             export_offset: 0,
@@ -271,7 +279,43 @@ impl App {
             _ => {}
         }
     }
+    fn open_contract(&mut self) {
+        match self.project.review(&self.project.current_reference()) {
+            Ok(summary) => {
+                self.project_status = Some(summary);
+                self.scroll_back = 0;
+                self.screen = Screen::ReviewingContract;
+            }
+            Err(error) => self.say(error.to_string(), Style::new().fg(Color::Red)),
+        }
+    }
+    fn contract_key(&mut self, key: crossterm::event::KeyEvent) {
+        match key.code {
+            KeyCode::Char('y') if key.modifiers.is_empty() => {
+                if self.project.accepted() {
+                    self.screen = Screen::Instructing;
+                    return;
+                }
+                match self.project.accept(&self.project.current_reference()) {
+                    Ok(summary) => {
+                        self.project_status = Some(summary);
+                        self.screen = Screen::Instructing;
+                        self.instruction.insert("Proceed under the host-accepted Rust ledger-v1 contract. Implement ledger.rs and independently verify it using verify_ledger. Repair failures; report unknown if verification cannot finish.");
+                        self.start();
+                    }
+                    Err(error) => self.say(error.to_string(), Style::new().fg(Color::Red)),
+                }
+            }
+            KeyCode::Char('n') | KeyCode::Esc => self.screen = Screen::Instructing,
+            _ => {}
+        }
+    }
     fn host_command(&mut self) -> bool {
+        if self.instruction.text().trim() == "/contract" {
+            self.instruction.clear();
+            self.open_contract();
+            return true;
+        }
         if self.instruction.text().trim() == "/clear" {
             self.worker = None;
             self.rx = None;
@@ -336,14 +380,20 @@ impl App {
             let processes = Arc::clone(&self.processes);
             let exports = Arc::clone(&self.exports);
             let pages = Arc::clone(&self.pages);
+            let project = Arc::clone(&self.project);
             self.worker = Some(commands);
             self.rx = Some(results);
             self.worker_gateway = Some(Arc::clone(&gateway));
             self.lines.clear();
             thread::spawn(move || {
-                worker(
-                    &gateway, &workspace, &tasks, &updates, &processes, &exports, &pages,
-                );
+                match crate::session::Session::new(
+                    workspace, gateway, processes, &exports, &pages, &project,
+                ) {
+                    Ok(session) => worker(session, &tasks, &updates),
+                    Err(error) => {
+                        let _ = updates.send(Update::Done(error.to_string(), false));
+                    }
+                }
             });
         }
         self.processes.flag().store(false, Ordering::SeqCst);
@@ -391,6 +441,29 @@ impl App {
         }
         for update in updates {
             match update {
+                Update::Project(summary) => {
+                    if summary.verified
+                        && !self.project_status.as_ref().is_some_and(|old| {
+                            old.verified && old.artifact_sha256 == summary.artifact_sha256
+                        })
+                    {
+                        if let Some(path) = &summary.artifact {
+                            self.say(
+                                format!(
+                                    "Host: verified ledger kernel. Artifact: {}",
+                                    path.display()
+                                ),
+                                Style::new().fg(Color::Green),
+                            );
+                        }
+                    }
+                    self.project_status = Some(summary);
+                }
+                Update::ProjectDirty => {
+                    if let Some(status) = &mut self.project_status {
+                        status.verified = false;
+                    }
+                }
                 Update::Asking(round) => self.say(
                     format!("round {round}: thinking…"),
                     Style::new().fg(Color::DarkGray),
@@ -400,10 +473,13 @@ impl App {
                     text,
                     Style::new().fg(if error { Color::Red } else { Color::Green }),
                 ),
-                Update::Done(text) => {
+                Update::Done(text, needs_review) => {
                     self.busy = false;
                     self.screen = Screen::Instructing;
                     self.say(text, Style::new().fg(Color::DarkGray));
+                    if needs_review {
+                        self.open_contract();
+                    }
                     if let Ok(entries) = self.exports.list() {
                         let pending = entries
                             .iter()
@@ -440,28 +516,7 @@ impl Drop for App {
     }
 }
 
-fn worker(
-    gateway: &Arc<Gateway>,
-    workspace: &Arc<Workspace>,
-    tasks: &Receiver<String>,
-    tx: &Sender<Update>,
-    processes: &Arc<Control>,
-    exports: &Arc<Exports>,
-    pages: &Arc<meden_runtime::pages::Pages>,
-) {
-    let mut session = match crate::session::Session::new(
-        Arc::clone(workspace),
-        Arc::clone(gateway),
-        Arc::clone(processes),
-        exports,
-        pages,
-    ) {
-        Ok(session) => session,
-        Err(error) => {
-            let _ = tx.send(Update::Done(error.to_string()));
-            return;
-        }
-    };
+fn worker(mut session: crate::session::Session, tasks: &Receiver<String>, tx: &Sender<Update>) {
     let observer = |event: Event<'_>| {
         let update = match event {
             Event::Asking(round) => Update::Asking(round),
@@ -495,19 +550,38 @@ fn worker(
                 )
             }
         };
+        if let Event::Decision {
+            call,
+            refusal: None,
+        } = event
+        {
+            if matches!(
+                call.function.name.as_str(),
+                "write_file" | "edit_file" | "bash"
+            ) {
+                let _ = tx.send(Update::ProjectDirty);
+            }
+        }
         let _ = tx.send(update);
     };
     while let Ok(instruction) = tasks.recv() {
         let status = session.run(&instruction, &observer);
+        let needs_review = status == Status::NeedsReview;
         let summary = match status {
             Status::Done(_) => {
                 "Finished. Conversation retained for the next instruction.".to_owned()
             }
             Status::Failed(error) => format!("Failed: {error}"),
-            Status::Incomplete => "Unfinished: tool execution limit reached.".to_owned(),
+            Status::Incomplete => {
+                "Unfinished: verification or tool execution limit reached.".to_owned()
+            }
             Status::Cancelled => "Cancelled. Conversation retained.".to_owned(),
+            Status::NeedsReview => "Review the proposed contract to continue.".to_owned(),
         };
-        if tx.send(Update::Done(summary)).is_err() {
+        if let Ok(status) = session.project_status() {
+            let _ = tx.send(Update::Project(status));
+        }
+        if tx.send(Update::Done(summary, needs_review)).is_err() {
             return;
         }
     }
@@ -615,7 +689,9 @@ where
             KeyCode::PageUp => {
                 app.scroll_back = if matches!(
                     app.screen,
-                    Screen::ReviewingProcessor | Screen::ReviewingExport
+                    Screen::ReviewingProcessor
+                        | Screen::ReviewingExport
+                        | Screen::ReviewingContract
                 ) {
                     app.scroll_back.saturating_sub(10)
                 } else {
@@ -626,7 +702,9 @@ where
             KeyCode::PageDown => {
                 app.scroll_back = if matches!(
                     app.screen,
-                    Screen::ReviewingProcessor | Screen::ReviewingExport
+                    Screen::ReviewingProcessor
+                        | Screen::ReviewingExport
+                        | Screen::ReviewingContract
                 ) {
                     app.scroll_back.saturating_add(10)
                 } else {
@@ -650,6 +728,7 @@ where
             },
             Screen::ReviewingProcessor => app.review_key(key),
             Screen::ReviewingExport => app.export_key(key),
+            Screen::ReviewingContract => app.contract_key(key),
             Screen::Instructing => app.instruction_key(key),
             Screen::Running => {
                 if key.code == KeyCode::Esc {
@@ -663,7 +742,7 @@ where
 fn draw(frame: &mut Frame<'_>, app: &App) {
     frame.render_widget(Block::default().bg(Color::Rgb(12, 18, 30)), frame.area());
     let areas = Layout::vertical([
-        Constraint::Length(4),
+        Constraint::Length(5),
         Constraint::Min(3),
         Constraint::Length(5),
     ])
@@ -671,18 +750,7 @@ fn draw(frame: &mut Frame<'_>, app: &App) {
     let top = areas.first().copied().unwrap_or_default();
     let middle = areas.get(1).copied().unwrap_or_default();
     let bottom = areas.get(2).copied().unwrap_or_default();
-    let model = app.selected().map_or("no model", |p| p.model.as_str());
-    frame.render_widget(
-        Paragraph::new(vec![
-            Line::from(visible(&format!(
-                "MEDEN · private workspace · offline tools · {model}"
-            ))),
-            Line::from(visible(&format!("files: {}", app.root.display()))),
-        ])
-        .style(Style::new().fg(Color::Rgb(104, 218, 219)))
-        .block(Block::bordered().border_style(Style::new().fg(Color::Rgb(53, 75, 96)))),
-        top,
-    );
+    draw_header(frame, app, top);
     let welcome =
         app.screen == Screen::Picking || app.screen == Screen::Instructing && app.lines.is_empty();
     let middle = if welcome && middle.width >= 72 && middle.height >= 15 {
@@ -690,7 +758,17 @@ fn draw(frame: &mut Frame<'_>, app: &App) {
     } else {
         middle
     };
-    if app.screen == Screen::ReviewingExport {
+    if app.screen == Screen::ReviewingContract {
+        let text = format!("{}\n\nSource: ledger.rs\n\n{}\n\nOnly the standalone library kernel is covered. The controller checks its real Rust extraction and Lean proof using fixed inputs outside the writable coding copy. Model prose, edited tests and local proof/result files cannot grant verification.\n\nAccepting continues the requested development under this exact contract.",meden_runtime::verification::LEDGER_CONTRACT,
+            app.project_status.as_ref().map_or("",|s|s.api));
+        frame.render_widget(
+            Paragraph::new(text)
+                .wrap(Wrap { trim: false })
+                .scroll((app.scroll_back, 0))
+                .block(Block::bordered().title(" Rust ledger contract · host control ")),
+            middle,
+        );
+    } else if app.screen == Screen::ReviewingExport {
         draw_export_review(frame, app, middle);
     } else if app.screen == Screen::ReviewingProcessor {
         draw_processor_review(frame, app, middle);
@@ -746,6 +824,10 @@ fn draw(frame: &mut Frame<'_>, app: &App) {
             " exact export · host control ",
             "y: send once · n: reject · esc: back · ←/→: bytes · PgUp/PgDn: scroll".to_owned(),
         ),
+        Screen::ReviewingContract => (
+            " contract review · host control ",
+            "y: accept and continue · n / esc: back · PgUp/PgDn: scroll".to_owned(),
+        ),
         Screen::Instructing => return,
         Screen::Running => (
             " working ",
@@ -757,6 +839,35 @@ fn draw(frame: &mut Frame<'_>, app: &App) {
             .wrap(Wrap { trim: false })
             .block(Block::default().borders(Borders::ALL).title(title)),
         bottom,
+    );
+}
+
+fn draw_header(frame: &mut Frame<'_>, app: &App, top: Rect) {
+    let model = app.selected().map_or("no model", |p| p.model.as_str());
+    frame.render_widget(
+        Paragraph::new(vec![
+            Line::from(visible(&format!(
+                "MEDEN · private workspace · offline tools · {model}"
+            ))),
+            Line::from(visible(&format!("files: {}", app.root.display()))),
+            Line::from(match &app.project_status {
+                Some(s) if s.verified => format!(
+                    "VERIFIED ledger kernel · source {}",
+                    s.source_sha256
+                        .as_deref()
+                        .unwrap_or_default()
+                        .chars()
+                        .take(12)
+                        .collect::<String>()
+                ),
+                Some(s) if s.accepted => "Ledger kernel: current source is not verified".into(),
+                Some(s) if s.proposed => "Ledger contract awaits host acceptance".into(),
+                _ => "Verification: no accepted project contract".into(),
+            }),
+        ])
+        .style(Style::new().fg(Color::Rgb(104, 218, 219)))
+        .block(Block::bordered().border_style(Style::new().fg(Color::Rgb(53, 75, 96)))),
+        top,
     );
 }
 
@@ -870,6 +981,8 @@ fn selftest(providers: Vec<Provider>) -> Result<String> {
     for screen in [
         Screen::Picking,
         Screen::ReviewingProcessor,
+        Screen::ReviewingExport,
+        Screen::ReviewingContract,
         Screen::Instructing,
         Screen::Running,
     ] {

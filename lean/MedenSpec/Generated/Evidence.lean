@@ -261,8 +261,15 @@ def evidence.Gate.accept
       then ok (false, self)
       else ok (true, { self with phase := evidence.EvidencePhase.Accepted })
 
+/-- [meden_core::evidence::{meden_core::evidence::Gate}::is_accepted]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 122:4-124:5
+    Visibility: public -/
+def evidence.Gate.is_accepted (self : evidence.Gate) : Result Bool := do
+  evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase.eq self.phase
+    evidence.EvidencePhase.Accepted
+
 /-- [meden_core::evidence::{meden_core::evidence::Gate}::refresh]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 123:4-135:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 128:4-140:5
     Visibility: public -/
 def evidence.Gate.refresh
   (self : evidence.Gate) (origin : evidence.EvidenceOrigin)
@@ -296,7 +303,7 @@ def evidence.Gate.refresh
         else ok (true, self)
 
 /-- [meden_core::evidence::{meden_core::evidence::Gate}::record]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 140:4-161:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 145:4-166:5
     Visibility: public -/
 def evidence.Gate.record
   (self : evidence.Gate) (origin : evidence.EvidenceOrigin)
@@ -356,7 +363,7 @@ def evidence.Gate.record
             else ok (false, self)
 
 /-- [meden_core::evidence::{meden_core::evidence::Gate}::eligible]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 164:4-169:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 169:4-174:5
     Visibility: public -/
 def evidence.Gate.eligible
   (self : evidence.Gate) (current : evidence.Subject) : Result Bool := do

@@ -1,0 +1,13 @@
+[package]
+name = "meden-ledger"
+version = "0.1.0"
+edition = "2021"
+build = false
+
+[workspace]
+
+[lib]
+path = "lib.rs"
+
+[profile.release]
+overflow-checks = true

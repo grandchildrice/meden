@@ -26,7 +26,7 @@ for unit in transfer control evidence; do
     control) rust_roots=(meden_core::export_control::step); model=Control ;;
     evidence)
       rust_roots=()
-      for method in propose review accept refresh record eligible; do
+      for method in propose review accept is_accepted refresh record eligible; do
         rust_roots+=("meden_core::evidence::Gate::$method")
       done
       model=Evidence ;;

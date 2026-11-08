@@ -19,7 +19,7 @@ established by the current CI badge.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate three Rust kernels, `lake build`, proof scan/audit, fifteen Rust mutation checks | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate three Rust kernels, `lake build`, proof scan/audit, fifteen Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A result or resulting transfer state differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -184,8 +184,8 @@ session, accepted contract and input bytes. Each obligation has an exact
 statement, evidence kind and checker binding. Host code constructs canonical
 bindings and assigns origins; no model-facing deserializer creates receipts.
 
-The six operations propose, review, accept, refresh, record and eligibility
-are extracted without manual model edits to
+Propose, review, accept, refresh, record and eligibility, together with an
+acceptance observation used by the interfaces, are extracted without manual model edits to
 [`Generated/Evidence.lean`](../lean/MedenSpec/Generated/Evidence.lean).
 Review/accept require host origin and a nonempty reviewed contract. A
 receipt advances only the next position and must be a passed checker-origin
@@ -208,6 +208,7 @@ different contract needs a new proposal and acceptance.
 | `EvidenceRefinement.propose_refines` | Extracted production initialization agrees with the specification |
 | `EvidenceRefinement.review_refines` | Extracted review result and state agree |
 | `EvidenceRefinement.accept_refines` | Extracted acceptance result and state agree |
+| `EvidenceRefinement.is_accepted_refines` | Both interfaces observe the extracted acceptance phase |
 | `EvidenceRefinement.refresh_refines` | Extracted input refresh result and state agree |
 | `EvidenceRefinement.record_refines` | Extracted receipt result and complete state agree, including vector/index/overflow boundaries |
 | `EvidenceRefinement.eligible_refines` | Extracted eligibility agrees |
@@ -224,8 +225,11 @@ I/O loop. Canonical subject construction, origin attribution, checker
 soundness, serialization, persistence and actual effects remain assumptions
 or separate implementation obligations.
 
-The first consumer is [Meden's own release gate](release.md), not a general
-user-project verification workflow. The runtime reads actual staged archive
+The first consumer is [Meden's own release gate](release.md). A second
+consumer now connects the fixed Rust ledger contract to actual project
+source, an independent Lean check and a retained library artifact; see
+[project verification](project-verification.md). General contracts/backends
+remain targets. The runtime reads actual staged archive
 bytes, validates source/build sidecars and obtains current exact-source CI
 results directly from the fixed GitHub API. The compiled twelve-check policy
 is trusted host configuration. Files are reread before eligibility. Tests
@@ -267,7 +271,7 @@ Definitions and additional lemmas are in
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the forty
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the forty-one
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -377,7 +381,7 @@ On Nix, a private `uv` Python shadowing a public Python is skipped rather
 than binding the private cache into the sandbox. The attack test exposed
 this actual execution failure before the selection was corrected.
 
-These controller, parser, router and OS behaviors have tests; the forty
+These controller, parser, router and OS behaviors have tests; the forty-one
 Lean theorem entry points still cover their stated kernels. The shared
 session has no whole-controller refinement theorem yet.
 
@@ -504,7 +508,7 @@ failed. The conversation's `done` event is therefore not project-verification
 evidence. Setup, limits,
 failure behavior and OS/asset trust assumptions are documented in
 [local inference](local-inference.md). The launcher, protocol and OS boundary
-are not Lean-refined; they add no theorem roots to the forty audited here.
+are not Lean-refined; they add no theorem roots to the forty-one audited here.
 
 ## Tests of actual HTTP delivery
 

@@ -118,6 +118,11 @@ impl Gate {
         true
     }
 
+    /// Observe acceptance without duplicating the lifecycle in a caller.
+    pub fn is_accepted(&self) -> bool {
+        self.phase == EvidencePhase::Accepted
+    }
+
     /// Bind changed source/configuration/artifact inputs and discard progress.
     /// Session/contract substitution requires a new proposal and host acceptance.
     pub fn refresh(&mut self, origin: EvidenceOrigin, subject: Subject) -> bool {

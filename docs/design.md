@@ -328,23 +328,26 @@ added orchestration must produce observable value.
 The current repository contains a Rust conversation/TUI, HTTP connections,
 workspace tools, a capability kernel, a Bubblewrap runner integrated with
 TUI/exec file and Bash tools, and an immutable one-use HTTP export component.
-Forty Lean theorem entry points and 5,000 Rust/Lean conformance cases
+Forty-one Lean theorem entry points and 5,000 Rust/Lean conformance cases
 are checked today. The production transfer decision and state update are
 extracted with pinned Charon/Aeneas and refine the Lean specification.
 The export-review lifecycle is now a second extracted kernel, with exact
 transition refinement and an unbounded finite-composition dispatch bound.
 The evidence-completion kernel is a third extracted kernel: accepted exact
 obligations require matching checker receipts on the current subject, with
-progress invalidated when inputs change. Lean proves correspondence for all
-six operations and evidence coverage across arbitrary finite compositions.
+progress invalidated when inputs change. Lean proves correspondence for the
+lifecycle operations and acceptance observation, plus evidence coverage
+across arbitrary finite compositions of lifecycle operations.
 Its first production consumer is [Meden's own release gate](release.md),
 which binds scoped CI checks to source and the actual staged archives under
 explicit GitHub/build/OS/compiler/hash assumptions.
 The application's parser, origin attribution, I/O loop and locking still
 need their own correspondence; these kernel traces do not prove them.
-There is no general user-project accepted contract store, checker workflow
-or evidence-gated delivery yet. Meden's own release checklist is fixed trusted
-host policy, not an implemented natural-language project contract flow.
+The first user-project path supports one fixed, host-reviewed Rust ledger
+contract through shared TUI/CLI sessions, actual extraction/Lean checking
+and exact retained library artifacts. [Its scope and setup](project-verification.md)
+exclude general contracts/backends, application persistence and authentication.
+Meden's own release checklist remains fixed trusted host policy.
 Inference checks a host-approved, immutable session processor binding
 with the refined kernel. Local CLI/TUI inference now uses a separate offline
 CPU process and dedicated inode-pinned Unix socket; it has adversarial tests,
