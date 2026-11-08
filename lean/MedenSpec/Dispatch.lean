@@ -1,27 +1,33 @@
 import MedenSpec.ExportControl
-import MedenSpec.Transfer
 
-/-! Review and reservation for one immutable outbound request. The executor
-must consume the returned description; parsing and network I/O remain separate
-trust boundaries. -/
+/-! Review and reservation for one immutable typed outbound request. The HTTP
+adapter consumes a borrowed dispatch; URI normalization and network I/O remain
+separate trust boundaries. -/
 namespace MedenSpec.Dispatch
+
+structure Request where
+  target : String
+  body : List Nat
+  deriving DecidableEq, Repr
 
 structure State where
   phase : ExportControl.Phase
-  request : Transfer.Request
+  session : List Nat
+  request : Request
   deriving DecidableEq, Repr
 
 structure Outcome where
   accepted : Bool
-  effect : Option Transfer.Request
+  effect : Option Request
   deriving DecidableEq, Repr
 
-def initial (r : Transfer.Request) : State := ⟨.pending, r⟩
+def initial (session : List Nat) (target : String) (body : List Nat) : State :=
+  ⟨.pending, session, ⟨target, body⟩⟩
 
 def authorized (s : State) (o : ExportControl.Origin) (e : ExportControl.Event)
     (now expires : Nat) (session : List Nat) : Prop :=
   s.phase = .reviewed ∧ o = .host ∧ e = .approve ∧
-    s.request.session = session ∧ now < expires
+    s.session = session ∧ now < expires
 
 instance (s : State) (o : ExportControl.Origin) (e : ExportControl.Event)
     (now expires : Nat) (session : List Nat) :
@@ -31,10 +37,10 @@ def advance (s : State) (o : ExportControl.Origin) (e : ExportControl.Event)
     (now expires : Nat) (session : List Nat) : Outcome × State :=
   let d := ExportControl.step s.phase o e
   (⟨d.accepted, if authorized s o e now expires session then some s.request else none⟩,
-    ⟨d.phase, s.request⟩)
+    ⟨d.phase, s.session, s.request⟩)
 
 theorem effect_iff (s : State) (o : ExportControl.Origin) (e : ExportControl.Event)
-    (now expires : Nat) (session : List Nat) (r : Transfer.Request) :
+    (now expires : Nat) (session : List Nat) (r : Request) :
     (advance s o e now expires session).1.effect = some r ↔
       authorized s o e now expires session ∧ s.request = r := by
   by_cases h : authorized s o e now expires session <;> simp [advance, h]
@@ -50,7 +56,7 @@ structure Action where
   expires : Nat
   session : List Nat
 
-def run (s : State) : List Action → State × List Transfer.Request
+def run (s : State) : List Action → State × List Request
   | [] => (s, [])
   | a :: rest =>
     let out := advance s a.origin a.event a.now a.expires a.session

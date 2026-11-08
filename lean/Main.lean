@@ -65,9 +65,8 @@ def runPolicy (c : PolicyCase) : Bool :=
 def runGlob (c : GlobCase) : Bool :=
   globMatch c.pattern.toList c.text.toList
 
-def runTransfer (c : TransferCase) : Json :=
-  let (permit, accepted) := Transfer.reserve c.now c.session c.permit c.request
-  Json.mkObj [("accepted", toJson accepted), ("permit", toJson permit)]
+def runTransfer (c : TransferCase) : Bool :=
+  Transfer.allowed c.now c.session c.permit c.request
 
 partial def readAll (s : IO.FS.Stream) (acc : String) : IO String := do
   let line ← s.getLine

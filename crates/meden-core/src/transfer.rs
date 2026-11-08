@@ -1,21 +1,21 @@
-//! Exact, single-use outbound authorization, modelled in
+//! Exact outbound authorization predicate, modelled in
 //! `lean/MedenSpec/Transfer.lean`. This is a decision kernel, not a network
 //! boundary: the host must control permit creation and mediate every send.
 
 use serde::{Deserialize, Serialize};
 
-/// Identity of one immutable prepared outbound operation.
+/// Identity of one immutable approved operation or processor binding.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Request {
     /// Host-created session identity.
     pub session: Vec<u8>,
     /// Effective destination/audience, assigned by the host adapter.
     pub recipient: Vec<u8>,
-    /// Canonical complete request, including the exact payload.
+    /// Canonical approved binding; its interpretation belongs to the adapter.
     pub request: Vec<u8>,
 }
 
-/// Host-issued permission for one exact request before an exclusive deadline.
+/// Host-issued permission for one exact binding before an exclusive deadline.
 /// This type must never be deserialized from model/tool output as authority.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Permit {
@@ -23,7 +23,7 @@ pub struct Permit {
     pub request: Request,
     /// Exclusive deadline in the host session's monotonic time domain.
     pub expires: u64,
-    /// Reservation is permanent, even if network delivery later fails.
+    /// Revoked or consumed permission cannot authorize another operation.
     pub spent: bool,
 }
 
@@ -34,14 +34,6 @@ pub fn allowed(now: u64, session: &[u8], permit: &Permit, request: &Request) -> 
         && permit.request == *request
         && now < permit.expires
         && !permit.spent
-}
-
-/// Atomically reserve under the caller's lock, before any external effect.
-/// The returned permission is valid only for the supplied immutable request.
-pub fn reserve(now: u64, session: &[u8], permit: &mut Permit, request: &Request) -> bool {
-    let accepted = allowed(now, session, permit, request);
-    permit.spent |= accepted;
-    accepted
 }
 
 #[cfg(test)]
@@ -57,7 +49,7 @@ mod tests {
     }
 
     #[test]
-    fn changing_session_recipient_or_payload_cannot_spend_a_permit() {
+    fn exact_session_request_deadline_and_active_permission_are_required() {
         let expected = request();
         let permit = Permit {
             request: expected.clone(),
@@ -78,14 +70,15 @@ mod tests {
                 ..expected.clone()
             },
         ] {
-            let mut state = permit.clone();
-            assert!(!reserve(0, b"session-a", &mut state, &changed));
-            assert_eq!(state, permit);
+            assert!(!allowed(0, b"session-a", &permit, &changed));
         }
-        let mut state = permit.clone();
-        assert!(!reserve(10, b"session-a", &mut state, &expected));
-        assert_eq!(state, permit);
-        assert!(reserve(9, b"session-a", &mut state, &expected));
-        assert!(!reserve(0, b"session-a", &mut state, &expected));
+        assert!(!allowed(0, b"foreign", &permit, &expected));
+        assert!(!allowed(10, b"session-a", &permit, &expected));
+        assert!(allowed(9, b"session-a", &permit, &expected));
+        let revoked = Permit {
+            spent: true,
+            ..permit
+        };
+        assert!(!allowed(0, b"session-a", &revoked, &expected));
     }
 }

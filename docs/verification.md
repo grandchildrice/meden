@@ -19,9 +19,9 @@ established by the current CI badge.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate transfer/review/dispatch, evidence, issued jobs, TUI approval, outer/inner conversation and failure kernels, `lake build`, proof scan/audit, sixty Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate transfer/review/dispatch, evidence, issued jobs, TUI approval, outer/inner conversation and failure kernels, `lake build`, proof scan/audit, 62 Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
-| Conformance | Execute the compiled Lean oracle on the same cases as Rust | A result or resulting transfer state differs |
+| Conformance | Execute the compiled Lean oracle on the same cases as Rust | A decision differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
 | npm | Launcher checks and package dry-run | Invalid launcher behavior or package layout |
 
@@ -41,14 +41,15 @@ the `meden-spec` executable, uploads it as an artifact and passes that exact
 artifact to the conformance job. That job sets `MEDEN_SPEC_BIN`; it does not
 silently substitute an older local build.
 
-## Lean: exact transfer authorization
+## Lean: exact processor permission
 
-[`MedenSpec/Transfer.lean`](../lean/MedenSpec/Transfer.lean) models one
-single-use permit and an immutable outbound request. A request contains a
-host session, recipient identity and canonical complete request contents.
-The intended contents include the operation, target, audience, headers and
-payload. The kernel compares the complete value, not a checksum or a
-model-generated assertion that two requests are equivalent.
+[`MedenSpec/Transfer.lean`](../lean/MedenSpec/Transfer.lean) models the exact
+permission predicate used by the processor gateway. Its `Request` contains a
+host session, recipient identity and canonical approved binding. The gateway
+binds provider, endpoint, model and exact credential; conversation bodies
+are the scope of this reusable grant, rather than part of its equality key.
+The predicate compares the complete binding value, not a checksum or a
+model-generated assertion that two bindings are equivalent.
 
 For a request `r`, permit `p`, current session `s` and monotonic time `t`:
 
@@ -57,8 +58,6 @@ accepted = (r.session = s)
         ∧ (p.request = r)
         ∧ (t < p.expires)
         ∧ (p.spent = false)
-
-new_spent = old_spent OR accepted
 ```
 
 All of the following theorems are checked for arbitrary mathematical inputs, not
@@ -66,37 +65,32 @@ only for a finite test set:
 
 | Theorem in `MedenSpec.Transfer` | Proven property |
 | --- | --- |
-| `accepted_iff` | Reservation succeeds exactly when all four authorization conditions hold |
-| `exact_request` | Every successful reservation equals the approved request, including recipient and complete contents |
-| `accepted_spends` | Successful reservation returns a state in which the permit is spent |
-| `no_replay` | After success, any next request/session/time is rejected using that permit's resulting state |
-| `rejection_preserves` | A rejected request leaves the permit unchanged |
-| `no_changed_recipient` | Changing the recipient makes reservation fail |
-| `no_changed_content` | Changing the canonical contents makes reservation fail |
-
-`no_replay` does not require time to advance. A failed network delivery must
-not roll back the reservation. Permit creation, the monotonic clock,
-canonical request construction, locking and actual dispatch remain the
-responsibility of the host implementation.
+| `accepted_iff` | Permission holds exactly when all four authorization conditions hold |
+| `exact_request` | Every allowed request equals the approved request, including recipient and complete contents |
+| `no_foreign_session` | Another session cannot use the permission |
+| `no_expired` | The exclusive deadline rejects equality and later times |
+| `no_revoked` | A spent/revoked permission never allows a request |
+| `no_changed_recipient` | Changing the recipient makes permission fail |
+| `no_changed_content` | Changing the canonical contents makes permission fail |
 
 The Rust counterpart is
 [`meden-core/src/transfer.rs`](../crates/meden-core/src/transfer.rs).
-The HTTP export component now reserves through it under a mutex before
-dispatching its immutable request, including the TUI/CLI host review path.
-The model gateway uses the same refined `allowed` predicate with processor
-bindings; processor grants and exact one-use exports have separate scopes.
+This predicate does not consume a permission. Processor grants and one-use
+file exports have separate scopes: exports use the stateful review/dispatch
+kernel described below.
+Permit creation, revocation, canonical request construction, the monotonic
+clock and actual transport use remain host implementation obligations.
 
 ## Rust-to-Lean refinement of the transfer kernel
 
-The production functions `meden_core::transfer::allowed` and `reserve`,
-including the derived full-request equality and in-place spent-state
-update, are extracted by Charon and translated by Aeneas. The checked-in
+The production function `meden_core::transfer::allowed`,
+including its derived full-request equality, is extracted by Charon and translated by Aeneas. The checked-in
 [generated model](../lean/MedenSpec/Generated/Control.lean) is not edited
 by hand. [extract-transfer.sh](../tools/extract-transfer.sh) regenerates it
 from the real crate and requires an exact diff. Unknown extracted functions
 or proof holes make the script fail.
-Transfer and review/dispatch share this generated module so their production
-composition uses the same extracted types and functions.
+Transfer and review/dispatch share this generated module; their distinct
+request types reflect reusable processor grants versus one-use file exports.
 
 The pinned chain is Rust `nightly-2026-09-17`, Charon
 `8cae8fd1905946de61147a65ecdd7122cc6b491b`, Aeneas
@@ -109,8 +103,6 @@ Lake pins the Aeneas library and all dependencies in the manifest.
 | Theorem | Proven property |
 | --- | --- |
 | `allowed_refines` | The extracted Rust decision returns successfully and equals the abstract specification for every represented request, permit, session and `u64` time |
-| `reserve_refines` | The acceptance result and the complete updated permit agree with the abstract reservation transition |
-| `extracted_no_replay` | Two calls of the actual extracted Rust reservation function cannot both accept the same evolving permission, for arbitrary later request/session/time |
 
 The proof handles variable-length full byte vectors, not hashes or bounded
 text samples. Rust bytes map injectively to natural-number lists in the
@@ -127,13 +119,13 @@ part of the trusted base, distinct from the pinned extraction compiler.
 
 The [mutation check](../tools/check-refinement-mutants.py) changes actual
 Rust source in four ways: invert request equality, accept an expired permit,
-ignore the spent flag, and fail to record reservation. Each must produce an
+ignore the spent flag, and ignore the current session. Each must produce an
 observed Rust test failure, extract/compile successfully, and fail the
 unchanged correctness proof. Exact original files are restored and the
 normal proof is rebuilt afterwards. This checks proof sensitivity and
 source linkage; it does not replace the general refinement theorems.
 
-These theorems establish a decision/state-update refinement. They do not
+These theorems establish a permission-decision refinement. They do not
 establish a complete control trace or that every real network operation is
 mediated. Full broker refinement and interface obligations in
 [assurance.md](assurance.md) remain open; the HTTP component tests below
@@ -191,17 +183,17 @@ source/model pairs are restored and normal proofs rebuilt afterwards.
 
 ## Combined review and reservation: exact effect requests
 
-Production `export_control::State` owns the immutable complete request and
-its phase. `State::advance` commits the review decision, creates/spends the
-exact permit and returns `Outcome.effect` only for an eligible host approval.
-After a reviewed approval attempt, even an expired or foreign-session
-reservation cannot reopen the proposal. No operation replaces its request.
+Production `export_control::State` owns the session, original destination
+`String`, body bytes and phase. `State::advance` commits the review decision
+and returns a borrowed `Dispatch` only for an eligible host approval. After
+a reviewed approval attempt, even an expired or foreign-session request
+cannot reopen the proposal. No operation replaces its frozen inputs.
 
 The independent [Dispatch specification](../lean/MedenSpec/Dispatch.lean)
 defines authorization by reviewed phase, host origin, approval event, exact
 session and exclusive expiry. The [refinement](../lean/MedenSpec/DispatchRefinement.lean)
-checks the actual extracted Rust operation, including request cloning and
-the composition with `transfer::reserve`.
+checks the actual extracted Rust operation, the consuming dispatch accessor,
+and both destination/body getters used by review and HTTP delivery.
 
 | Audited theorem | Checked claim |
 | --- | --- |
@@ -211,24 +203,35 @@ the composition with `transfer::reserve`.
 | `Dispatch.at_most_one_effect` | Any finite trace emits at most one request |
 | `DispatchRefinement.new_refines` | Actual construction starts pending with the exact supplied request |
 | `DispatchRefinement.request_refines` | The production review getter exposes the same request used for effects |
+| `DispatchRefinement.target_refines` | The actual destination getter returns the original full string |
+| `DispatchRefinement.body_refines` | The actual body getter returns the original exact byte slice |
+| `DispatchRefinement.dispatch_refines` | Consuming the token and calling both actual getters returns exactly its frozen destination/body |
 | `DispatchRefinement.phase_refines` | The production status getter reports the kernel's phase |
 | `DispatchRefinement.advance_refines` | Actual Rust returns successfully and matches the complete specification outcome/state for all represented inputs |
 | `DispatchRefinement.trace_refines` | Finite compositions of actual extracted operations match the specification state and complete emitted requests |
-| `DispatchRefinement.extracted_trace_safe` | Actual extracted compositions preserve the request and emit at most one copy of it |
+| `DispatchRefinement.extracted_trace_safe` | Actual extracted compositions, including consuming/getter observations, preserve the request and emit at most one request |
 
-The runtime uses only the returned effect as its network input. Both host
-review and dispatch decode the same complete JSON description; the decoder
-requires POST, exactly the fixed content type and a target equal to the
-reserved recipient. Real receiver tests check method, path, content type and
-binary body, plus concurrent approvals, expiry, foreign sessions, redirects
-and uncertain delivery. Four further Rust mutations forge the origin,
-replace the emitted body, omit the committed phase or suppress a valid
-effect. Each must fail native assertions and the unchanged refinement after
-successful extraction/model compilation.
+The runtime consumes the returned token by value as its only dispatch input.
+`Dispatch` has a private constructor and no `Clone`, `Copy` or deserializer.
+Its shared borrow exposes immutable `String`/byte-vector storage without
+interior mutability. The runtime holds the per-export lock through the HTTP
+call with its configured five-second timeout. There is no JSON encoding/decoding between
+approval and send; the HTTP method and content type are fixed in the adapter.
+
+Rust's type checker enforces ownership and shared borrowing; Aeneas's value
+model does not prove token linearity or how many physical sends an arbitrary
+consumer performs. A compile-fail example rejects cloning the production
+token. Real receiver tests check method, path, content type and binary body,
+plus concurrent approvals, expiry, foreign sessions, redirects and uncertain
+delivery. Six further Rust mutations forge the origin, corrupt the actual
+body getter, omit the committed phase, suppress a valid effect, ignore the
+export session or admit approval at the exclusive deadline. Each must
+fail native assertions and the unchanged refinement after successful
+extraction/model compilation.
 
 The finite driver composes the production operation; it is not an
 extraction of the I/O loop. Typed-origin attribution, reference lookup,
-JSON/URI decoding and encoding, presentation, mutex semantics, clocks,
+URI normalization, presentation, mutex semantics, clocks,
 HTTP/TLS, compiler and OS remain explicit trust dependencies or unproved
 adapters. This narrows the executor boundary but does not establish complete
 outbound routing or R1 end to end.
@@ -613,7 +616,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with transfer/review/dispatch and TUI approval checks, CI rejects
-sixty faults, including outer/inner conversation, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
+62 faults, including outer/inner conversation, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -662,7 +665,7 @@ Definitions and additional lemmas are in
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 99
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 100
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -694,8 +697,8 @@ batch to the executable Lean oracle and compares with Rust:
 
 - 400 generated policy cases.
 - 600 generated glob cases.
-- 4,000 generated transfer cases, comparing both acceptance and the updated
-  permit. Cases include recipient/content/session changes, already-spent
+- 4,000 generated transfer cases, comparing the permission decision.
+  Cases include recipient/content/session changes, already-spent
   permits, exact expiry, near-expiry and `u64::MAX` times, and Unicode text.
 
 The generator has a fixed seed. These comparisons catch implementation/specification drift. They are
@@ -837,7 +840,7 @@ The existing `allowed_refines` theorem proves the production predicate's
 complete equality/expiry/revocation decision. This reuse introduces no new
 handwritten implementation model or axiom. Processor approval permits
 conversation bodies for inference; it is **not** a one-use exact export and
-does not call `reserve` or add a separate predicate proof. Binding
+does not consume the processor grant or add a separate predicate proof. Binding
 construction, trusted input origins, locking, actual
 HTTP correspondence and UI rendering are integration-tested, not refined.
 Requests already permitted before revocation can finish.
@@ -913,7 +916,7 @@ Transport checks complement the processor approval tests above; they do
 not establish local inference confinement.
 
 The [HTTP export component](../crates/meden-runtime/src/transfer.rs)
-uses the refined `reserve` function under a mutex. Its target and body are
+uses the refined borrowed review/dispatch state under a mutex. Its target and body are
 owned immutable snapshots; host approval is a separate method that is not
 exposed as a model tool. Dispatch uses a fresh client with proxies and
 redirects disabled. Failures leave authorization spent.

@@ -19,14 +19,12 @@ open MedenSpec
 #print axioms Policy.denies_antitone
 #print axioms Transfer.accepted_iff
 #print axioms Transfer.exact_request
-#print axioms Transfer.accepted_spends
-#print axioms Transfer.no_replay
-#print axioms Transfer.rejection_preserves
+#print axioms Transfer.no_foreign_session
+#print axioms Transfer.no_expired
+#print axioms Transfer.no_revoked
 #print axioms Transfer.no_changed_recipient
 #print axioms Transfer.no_changed_content
 #print axioms TransferRefinement.allowed_refines
-#print axioms TransferRefinement.reserve_refines
-#print axioms TransferRefinement.extracted_no_replay
 #print axioms ExportControl.dispatch_iff
 #print axioms ExportControl.at_most_one_dispatch
 #print axioms ExportControlRefinement.step_refines
@@ -57,6 +55,9 @@ open MedenSpec
 #print axioms MedenSpec.Dispatch.at_most_one_effect
 #print axioms MedenSpec.DispatchRefinement.new_refines
 #print axioms MedenSpec.DispatchRefinement.request_refines
+#print axioms MedenSpec.DispatchRefinement.target_refines
+#print axioms MedenSpec.DispatchRefinement.body_refines
+#print axioms MedenSpec.DispatchRefinement.dispatch_refines
 #print axioms MedenSpec.DispatchRefinement.phase_refines
 #print axioms MedenSpec.DispatchRefinement.advance_refines
 #print axioms MedenSpec.DispatchRefinement.trace_refines

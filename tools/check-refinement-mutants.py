@@ -13,12 +13,18 @@ GROUPS = [
         "kernel": "transfer",
         "model": "Control",
         "proof": "TransferRefinement",
-        "test": "transfer::tests::changing_session_recipient_or_payload_cannot_spend_a_permit",
+        "test": (
+            "transfer::tests::exact_session_request_deadline_and_active_permission_are_required"
+        ),
         "mutations": [
             ("request_mismatch", "permit.request == *request", "permit.request != *request"),
             ("expired_permit", "now < permit.expires", "now <= permit.expires"),
             ("spent_permit", "&& !permit.spent", "&& true"),
-            ("missing_reservation", "permit.spent |= accepted", "permit.spent |= false"),
+            (
+                "foreign_transfer_session",
+                "request_session == session",
+                "request_session == session || true",
+            ),
         ],
     },
     {
@@ -85,7 +91,7 @@ GROUPS = [
         "kernel": "export_control",
         "model": "Control",
         "proof": "DispatchRefinement",
-        "prerequisites": ["TransferRefinement", "ExportControlRefinement"],
+        "prerequisites": ["ExportControlRefinement"],
         "test": "export_control::tests::effects_are_frozen_reviewed_session_bound_and_single_use",
         "mutations": [
             (
@@ -95,15 +101,25 @@ GROUPS = [
             ),
             (
                 "substituted_effect_payload",
-                "Some(self.request.clone())",
-                "Some(Request { request: Vec::new(), ..self.request.clone() })",
+                "&self.body",
+                "&[]",
             ),
             (
                 "uncommitted_effect_attempt",
                 "self.phase = decision.phase;",
                 "let _ = decision.phase;",
             ),
-            ("missing_authorized_effect", "Some(self.request.clone())", "None"),
+            (
+                "missing_authorized_effect",
+                "Some(Dispatch {\n                request: &self.request,\n            })",
+                "None",
+            ),
+            (
+                "foreign_export_session",
+                "request_session == session",
+                "(request_session == session || true)",
+            ),
+            ("expired_export_approval", "now < expires", "now <= expires"),
         ],
     },
     {

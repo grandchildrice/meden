@@ -1,28 +1,46 @@
 import MedenSpec.Dispatch
-import MedenSpec.TransferRefinement
+import MedenSpec.ByteVectors
 import MedenSpec.ExportControlRefinement
 
-/-! Refinement of the production combined review/reservation operation. The
-returned request is the executor's input; its decoding and I/O are not proved
-by this module. -/
+/-! Refinement of the production borrowed review/dispatch operation and its
+actual consuming/accessor path. Rust enforces ownership and shared borrowing;
+Aeneas models their values. The HTTP executor itself is not extracted here. -/
 namespace MedenSpec.DispatchRefinement
 open Aeneas Aeneas.Std Result ByteVectors
-open MedenImpl.export_control (State Outcome Origin ExportEvent)
+open MedenImpl.export_control (State Outcome Origin ExportEvent FrozenRequest)
 open ExportControlRefinement (phase origin event)
-open TransferRefinement (request permit)
 set_option maxHeartbeats 4000000
 
-def state (s : State) : Dispatch.State := ⟨phase s.phase, request s.request⟩
-def outcome (out : Outcome) : Dispatch.Outcome := ⟨out.accepted, out.effect.map request⟩
+def request (r : FrozenRequest) : Dispatch.Request := ⟨r.target, bytes r.body.val⟩
+def state (s : State) : Dispatch.State := ⟨phase s.phase, bytes s.session.val, request s.request⟩
+def outcome (out : Outcome) : Dispatch.Outcome :=
+  ⟨out.accepted, out.effect.map fun d => request d.request⟩
 
-private theorem request_clone (r : MedenImpl.transfer.Request) :
-    MedenImpl.transfer.Request.Insts.CoreCloneClone.clone r = ok r := by
-  simp [MedenImpl.transfer.Request.Insts.CoreCloneClone.clone, vec_clone]
+theorem new_refines (session body : alloc.vec.Vec U8) (target : String) :
+    (do let out ← MedenImpl.export_control.State.new session target body; ok (state out)) =
+      ok (Dispatch.initial (bytes session.val) target (bytes body.val)) := by
+  simp [MedenImpl.export_control.State.new, state, request, Dispatch.initial, phase]
 
-theorem new_refines (r : MedenImpl.transfer.Request) :
-    (do let out ← MedenImpl.export_control.State.new r; ok (state out)) =
-      ok (Dispatch.initial (request r)) := by
-  simp [MedenImpl.export_control.State.new, state, Dispatch.initial, phase]
+theorem target_refines (r : FrozenRequest) :
+    MedenImpl.export_control.FrozenRequest.impl.target r = ok (request r).target := rfl
+
+theorem body_refines (r : FrozenRequest) :
+    (do let out ← MedenImpl.export_control.FrozenRequest.impl.body r; ok (bytes out.val)) =
+      ok (request r).body := by
+  simp [MedenImpl.export_control.FrozenRequest.impl.body, request, alloc.vec.Vec.deref]
+
+/-- The exact values read by the runtime after consuming its dispatch token. -/
+def observe (d : MedenImpl.export_control.Dispatch) : Result Dispatch.Request := do
+  let r ← MedenImpl.export_control.Dispatch.into_request d
+  let target ← MedenImpl.export_control.FrozenRequest.impl.target r
+  let body ← MedenImpl.export_control.FrozenRequest.impl.body r
+  ok ⟨target, bytes body.val⟩
+
+theorem dispatch_refines (d : MedenImpl.export_control.Dispatch) :
+    observe d = ok (request d.request) := by
+  simp [observe, MedenImpl.export_control.Dispatch.into_request,
+    MedenImpl.export_control.FrozenRequest.impl.target,
+    MedenImpl.export_control.FrozenRequest.impl.body, request, alloc.vec.Vec.deref]
 
 theorem request_refines (s : State) :
     (do let out ← MedenImpl.export_control.State.impl.request s; ok (request out)) =
@@ -41,11 +59,13 @@ theorem advance_refines (s : State) (o : Origin) (e : ExportEvent)
       ok (Dispatch.advance (state s) (origin o) (event e) now.val expires.val (bytes session.val)) := by
   cases hp : s.phase <;> cases o <;> cases e <;>
     simp [MedenImpl.export_control.State.advance, MedenImpl.export_control.step,
-      hp, request_clone, MedenImpl.transfer.reserve, TransferRefinement.allowed_refines,
+      hp, slice_eq, alloc.vec.Vec.deref,
       state, outcome, phase, origin, event, Dispatch.advance, Dispatch.authorized,
-      ExportControl.step, Transfer.allowed, permit]
+      ExportControl.step, bytes_eq]
   all_goals
-    by_cases h : (request s.request).session = bytes session.val ∧ now.val < expires.val <;> simp [h]
+    by_cases hs : s.session.val = session.val <;>
+      by_cases ht : now.val < expires.val <;> simp_all
+  all_goals split <;> simp_all
 
 structure Action where
   origin : Origin
@@ -69,12 +89,15 @@ private theorem advance_success (s : State) (a : Action) :
 
 /-- Composition of actual extracted transitions. This is not an extraction of
 the UI, mutex or network executor. Its log observes complete emitted requests. -/
-def runExtracted (s : State) : List Action → Result (State × List Transfer.Request)
+def runExtracted (s : State) : List Action → Result (State × List Dispatch.Request)
   | [] => ok (s, [])
   | a :: rest => do
     let out ← MedenImpl.export_control.State.advance s a.origin a.event a.now a.expires a.session
+    let emitted ← match out.1.effect with
+      | none => ok []
+      | some d => do let r ← observe d; ok [r]
     let tail ← runExtracted out.2 rest
-    ok (tail.1, (outcome out.1).effect.toList ++ tail.2)
+    ok (tail.1, emitted ++ tail.2)
 
 private theorem run_success (s : State) (actions : List Action) :
     ∃ out, runExtracted s actions = ok out ∧
@@ -85,7 +108,8 @@ private theorem run_success (s : State) (actions : List Action) :
     obtain ⟨out, hs, ho⟩ := advance_success s a
     obtain ⟨tail, ht, hob⟩ := ih out.2
     refine ⟨(tail.1, (outcome out.1).effect.toList ++ tail.2), ?_, ?_⟩
-    · simp [runExtracted, hs, ht]
+    · simp [runExtracted, hs, ht, outcome]
+      cases out.1.effect <;> simp [dispatch_refines]
     · simp only [Dispatch.run, List.map_cons, action]
       rw [← ho]
       rw [← hob]

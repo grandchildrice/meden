@@ -1,7 +1,5 @@
 //! Pure export-review control kernel, extracted and refined in Lean.
 
-use crate::transfer::{self, Permit, Request};
-
 /// Lifecycle of one immutable proposal. Terminal states cannot be reopened.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Phase {
@@ -113,30 +111,74 @@ pub fn step(phase: Phase, origin: Origin, event: ExportEvent) -> Decision {
 #[derive(Debug)]
 pub struct State {
     phase: Phase,
-    request: Request,
+    session: Vec<u8>,
+    request: FrozenRequest,
 }
 
-/// The executor receives the permitted request itself, rather than choosing
-/// bytes after a Boolean authorization. This type has no deserializer.
+/// Owned destination and bytes, with no mutable access or interior mutability.
 #[derive(Debug)]
-pub struct Outcome {
+pub struct FrozenRequest {
+    target: String,
+    body: Vec<u8>,
+}
+
+impl FrozenRequest {
+    /// Destination supplied at preparation, without reparsing a description.
+    pub fn target(&self) -> &String {
+        &self.target
+    }
+
+    /// Original body bytes supplied at preparation.
+    pub fn body(&self) -> &[u8] {
+        &self.body
+    }
+}
+
+/// A single dispatch borrowing the original frozen request. Its private
+/// constructor, absence of `Clone` and consuming accessor prevent callers
+/// from manufacturing or duplicating dispatch authority.
+///
+/// ```compile_fail
+/// use meden_core::export_control::{ExportEvent, Origin, State};
+/// let mut state = State::new(b"session".to_vec(), "https://example.test/".into(), vec![42]);
+/// state.advance(Origin::Host, ExportEvent::Review, 0, 0, b"session");
+/// let effect = state.advance(Origin::Host, ExportEvent::Approve, 0, 1, b"session")
+///     .effect.unwrap();
+/// let duplicate = effect.clone();
+/// ```
+#[derive(Debug)]
+pub struct Dispatch<'a> {
+    request: &'a FrozenRequest,
+}
+
+impl<'a> Dispatch<'a> {
+    /// Consume the authorization to access its exact immutable request.
+    pub fn into_request(self) -> &'a FrozenRequest {
+        self.request
+    }
+}
+
+/// Complete lifecycle result. Only the kernel constructs a dispatch.
+#[derive(Debug)]
+pub struct Outcome<'a> {
     /// Whether the review/lifecycle operation was valid.
     pub accepted: bool,
     /// Exact immutable inputs for one authorized effect, if any.
-    pub effect: Option<Request>,
+    pub effect: Option<Dispatch<'a>>,
 }
 
 impl State {
     /// A model proposal starts without review or dispatch authority.
-    pub fn new(request: Request) -> Self {
+    pub fn new(session: Vec<u8>, target: String, body: Vec<u8>) -> Self {
         Self {
             phase: Phase::Pending,
-            request,
+            session,
+            request: FrozenRequest { target, body },
         }
     }
 
     /// Host presentation of the same request used for dispatch.
-    pub fn request(&self) -> &Request {
+    pub fn request(&self) -> &FrozenRequest {
         &self.request
     }
 
@@ -146,7 +188,7 @@ impl State {
     }
 
     /// Commit the review transition before emitting any effect. A host
-    /// approval creates and spends one exact permit in this same transition;
+    /// approval borrows the original request in this same transition;
     /// even a refused/uncertain attempt cannot recreate dispatch authority.
     pub fn advance(
         &mut self,
@@ -155,20 +197,14 @@ impl State {
         now: u64,
         expires: u64,
         session: &[u8],
-    ) -> Outcome {
+    ) -> Outcome<'_> {
         let decision = step(self.phase, origin, event);
         self.phase = decision.phase;
-        let effect = if decision.dispatch {
-            let mut permit = Permit {
-                request: self.request.clone(),
-                expires,
-                spent: false,
-            };
-            if transfer::reserve(now, session, &mut permit, &self.request) {
-                Some(self.request.clone())
-            } else {
-                None
-            }
+        let request_session: &[u8] = &self.session;
+        let effect = if decision.dispatch && request_session == session && now < expires {
+            Some(Dispatch {
+                request: &self.request,
+            })
         } else {
             None
         };
@@ -181,17 +217,21 @@ impl State {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use super::*;
+
+    fn state() -> State {
+        State::new(
+            b"session".to_vec(),
+            "https://approved.example/path".into(),
+            b"complete frozen request".to_vec(),
+        )
+    }
 
     #[test]
     fn effects_are_frozen_reviewed_session_bound_and_single_use() {
-        let request = Request {
-            session: b"session".to_vec(),
-            recipient: b"https://approved.example/path".to_vec(),
-            request: b"complete frozen request".to_vec(),
-        };
         for origin in [Origin::Model, Origin::Host, Origin::Transport] {
-            let mut state = State::new(request.clone());
+            let mut state = state();
             assert_eq!(state.phase(), Phase::Pending);
             assert!(
                 !state
@@ -209,7 +249,9 @@ mod tests {
             );
             let out = state.advance(origin, ExportEvent::Approve, 9, 10, b"session");
             if origin == Origin::Host {
-                assert_eq!(out.effect, Some(request.clone()));
+                let request = out.effect.expect("authorized").into_request();
+                assert_eq!(request.target(), "https://approved.example/path");
+                assert_eq!(request.body(), b"complete frozen request");
                 assert_eq!(state.phase(), Phase::Attempted);
                 state.advance(
                     Origin::Transport,
@@ -227,10 +269,11 @@ mod tests {
                 assert!(out.effect.is_none());
                 assert_eq!(state.phase(), Phase::Reviewed);
             }
-            assert_eq!(state.request(), &request);
+            assert_eq!(state.request().target(), "https://approved.example/path");
+            assert_eq!(state.request().body(), b"complete frozen request");
         }
         for (now, session) in [(10, b"session".as_slice()), (9, b"foreign".as_slice())] {
-            let mut state = State::new(request.clone());
+            let mut state = state();
             state.advance(Origin::Host, ExportEvent::Review, 0, 0, b"session");
             assert!(state
                 .advance(Origin::Host, ExportEvent::Approve, now, 10, session)

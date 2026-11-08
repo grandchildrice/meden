@@ -330,8 +330,8 @@ workspace tools, a capability kernel, a Bubblewrap runner integrated with
 TUI/exec file and Bash tools, and an immutable one-use HTTP export component.
 Scoped Lean theorem entry points and 5,000 Rust/Lean conformance cases
 are checked today; [verification.md](verification.md) lists the current audit.
-The production transfer decision and state update are
-extracted with pinned Charon/Aeneas and refine the Lean specification.
+The production processor-permission predicate and export review/dispatch
+operations are extracted with pinned Charon/Aeneas and refine Lean specifications.
 The export-review lifecycle is now a second extracted kernel, with exact
 transition refinement and an unbounded finite-composition dispatch bound.
 The evidence-completion kernel is a third extracted kernel: accepted exact

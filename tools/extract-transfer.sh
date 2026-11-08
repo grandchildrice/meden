@@ -28,7 +28,10 @@ for unit in "${units[@]}"; do
   extraction_args=()
   case "$unit" in
     control)
-      rust_roots=(meden_core::transfer::reserve meden_core::export_control::step)
+      rust_roots=(meden_core::transfer::allowed meden_core::export_control::step
+        meden_core::export_control::FrozenRequest::target
+        meden_core::export_control::FrozenRequest::body
+        meden_core::export_control::Dispatch::into_request)
       for method in new request phase advance; do
         rust_roots+=("meden_core::export_control::State::$method")
       done
@@ -88,19 +91,27 @@ for unit in "${units[@]}"; do
     echo 'Extraction left an unknown definition or proof hole' >&2
     exit 1
   fi
-  if [[ $unit == conversation ]]; then
+  definitions=()
+  if [[ $unit == control ]]; then
+    definitions=(transfer.allowed export_control.step
+      export_control.State.new export_control.State.impl.request
+      export_control.State.impl.phase export_control.State.advance
+      export_control.FrozenRequest.impl.target export_control.FrozenRequest.impl.body
+      export_control.Dispatch.into_request)
+  elif [[ $unit == conversation ]]; then
     # External roots can be pruned by the pinned translator. Require the
     # production entry points, rather than accepting helpers alone.
-    for definition in flow.Flow.begin flow.interrupt flow.Flow.advance \
-      flow.Flow.pending_call flow.Flow.impl.reply flow.Flow.impl.result \
-      flow.Flow.into_outcome conversation.Status.inspection; do
-      if ! awk -v name="$definition" '$1 == "def" && $2 == name { found = 1 }
-        END { exit !found }' "$extract_tmp/$model.lean"; then
-        echo "Missing extracted entry point: $definition" >&2
-        exit 1
-      fi
-    done
+    definitions=(flow.Flow.begin flow.interrupt flow.Flow.advance
+      flow.Flow.pending_call flow.Flow.impl.reply flow.Flow.impl.result
+      flow.Flow.into_outcome conversation.Status.inspection)
   fi
+  for definition in "${definitions[@]}"; do
+    if ! awk -v name="$definition" '$1 == "def" && $2 == name { found = 1 }
+      END { exit !found }' "$extract_tmp/$model.lean"; then
+      echo "Missing extracted entry point: $definition" >&2
+      exit 1
+    fi
+  done
   case ${1:-} in
     --write) cp "$extract_tmp/$model.lean" "lean/MedenSpec/Generated/$model.lean" ;;
     '') diff -u "lean/MedenSpec/Generated/$model.lean" "$extract_tmp/$model.lean" ;;

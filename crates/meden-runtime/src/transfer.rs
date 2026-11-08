@@ -5,9 +5,7 @@ use std::io;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-use meden_core::export_control::{ExportEvent, Origin, Phase, State};
-use meden_core::transfer::Request;
-use serde::Deserialize;
+use meden_core::export_control::{Dispatch, ExportEvent, Origin, Phase, State};
 
 /// One prepared POST. Target and payload cannot change after preparation.
 /// No constructor, inspection or approval operation performs network I/O.
@@ -24,35 +22,6 @@ pub struct Snapshot {
     pub target: String,
     /// Exact body bytes, independent of later workspace changes.
     pub payload: Vec<u8>,
-}
-
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct Headers {
-    #[serde(rename = "content-type")]
-    content_type: String,
-}
-
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct Post {
-    method: String,
-    target: String,
-    headers: Headers,
-    body: Vec<u8>,
-}
-
-impl Post {
-    fn decode(request: &Request) -> io::Result<Self> {
-        let post: Self = serde_json::from_slice(&request.request)?;
-        if post.method != "POST"
-            || post.headers.content_type != "application/octet-stream"
-            || post.target.as_bytes() != request.recipient
-        {
-            return Err(io::Error::other("invalid frozen POST description"));
-        }
-        Ok(post)
-    }
 }
 
 impl Export {
@@ -78,16 +47,8 @@ impl Export {
             ));
         }
         let target = uri.to_string();
-        let description = serde_json::to_vec(&serde_json::json!({
-            "method": "POST", "target": target,
-            "headers": {"content-type":"application/octet-stream"}, "body": payload,
-        }))?;
         Ok(Self {
-            state: Mutex::new(State::new(Request {
-                session: session.to_vec(),
-                recipient: target.as_bytes().to_vec(),
-                request: description,
-            })),
+            state: Mutex::new(State::new(session.to_vec(), target, payload.to_vec())),
             created: Instant::now(),
         })
     }
@@ -98,11 +59,11 @@ impl Export {
             .state
             .lock()
             .map_err(|_| io::Error::other("export state unavailable"))?;
-        let post = Post::decode(state.request())?;
+        let post = state.request();
         Ok(Snapshot {
             phase: state.phase(),
-            target: post.target,
-            payload: post.body,
+            target: post.target().clone(),
+            payload: post.body().to_vec(),
         })
     }
 
@@ -128,8 +89,8 @@ impl Export {
     }
 
     /// Host approval and reservation are one kernel transition under one lock.
-    /// The executor decodes only its returned request. None means delivery
-    /// failed or is uncertain, with the attempt still consumed. Never expose
+    /// The executor consumes a dispatch borrowing that same request. None means
+    /// delivery failed or is uncertain, with the attempt still consumed. Never expose
     /// this method as a model tool.
     pub fn send(&self, current_session: &[u8], valid_for: Duration) -> io::Result<Option<u16>> {
         let duration = u64::try_from(valid_for.as_millis()).map_err(io::Error::other)?;
@@ -142,45 +103,41 @@ impl Export {
     }
 
     fn send_before(&self, current_session: &[u8], expires: u64) -> io::Result<Option<u16>> {
-        let effect = {
-            let mut state = self
-                .state
-                .lock()
-                .map_err(|_| io::Error::other("export state unavailable"))?;
-            state
-                .advance(
-                    Origin::Host,
-                    ExportEvent::Approve,
-                    self.now()?,
-                    expires,
-                    current_session,
+        // Keep the request borrowed and immutable for the bounded HTTP call.
+        // Each export has its own lock; the token cannot outlive its owner.
+        let mut state = self
+            .state
+            .lock()
+            .map_err(|_| io::Error::other("export state unavailable"))?;
+        let effect = state
+            .advance(
+                Origin::Host,
+                ExportEvent::Approve,
+                self.now()?,
+                expires,
+                current_session,
+            )
+            .effect
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::PermissionDenied,
+                    "export needs prior review and a valid approval for this session; no replay",
                 )
-                .effect
-                .ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::PermissionDenied,
-                        "export needs prior review and a valid approval for this session; no replay",
-                    )
-                })?
-        };
-        let sent = Self::dispatch(&effect);
+            })?;
+        let sent = Self::dispatch(effect);
         let event = if sent.is_ok() {
             ExportEvent::ResponseReceived
         } else {
             ExportEvent::DeliveryUncertain
         };
-        let mut state = self
-            .state
-            .lock()
-            .map_err(|_| io::Error::other("export state unavailable"))?;
         if !state.advance(Origin::Transport, event, 0, 0, &[]).accepted {
             return Err(io::Error::other("export result refused"));
         }
         Ok(sent.ok())
     }
 
-    fn dispatch(effect: &Request) -> io::Result<u16> {
-        let post = Post::decode(effect)?;
+    fn dispatch(effect: Dispatch<'_>) -> io::Result<u16> {
+        let post = effect.into_request();
         // A fresh client cannot replay a request from a pooled connection.
         // Disable environment proxies and all automatic redirect hops.
         let config = ureq::Agent::config_builder()
@@ -191,9 +148,9 @@ impl Export {
             .build();
         let agent: ureq::Agent = config.into();
         agent
-            .post(&post.target)
+            .post(post.target())
             .header("content-type", "application/octet-stream")
-            .send(post.body.as_slice())
+            .send(post.body())
             .map(|response| response.status().as_u16())
             .map_err(|_| io::Error::other("delivery failed or uncertain; approval remains spent"))
     }
@@ -282,30 +239,6 @@ mod tests {
 
     fn ok() -> String {
         "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n".into()
-    }
-
-    #[test]
-    fn description_decoder_rejects_changed_recipient_method_and_headers() {
-        let receiver = listener();
-        let export = Export::prepare(b"s", &target(&receiver), b"secret").expect("prepare");
-        let frozen = export.state.lock().expect("state").request().clone();
-        for field in ["target", "method", "headers"] {
-            let mut description: serde_json::Value =
-                serde_json::from_slice(&frozen.request).expect("description");
-            *description.get_mut(field).expect("description field") = match field {
-                "target" => serde_json::json!("https://unapproved.example/"),
-                "method" => serde_json::json!("GET"),
-                _ => {
-                    serde_json::json!({"content-type":"application/octet-stream", "cookie":"secret"})
-                }
-            };
-            let changed = Request {
-                request: serde_json::to_vec(&description).expect("encode"),
-                ..frozen.clone()
-            };
-            assert!(Post::decode(&changed).is_err());
-        }
-        assert!(receiver.accept().is_err());
     }
 
     #[test]

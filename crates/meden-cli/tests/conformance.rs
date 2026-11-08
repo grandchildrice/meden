@@ -96,15 +96,10 @@ struct TransferCase {
     request: Request,
 }
 #[derive(Deserialize)]
-struct TransferResult {
-    accepted: bool,
-    permit: Permit,
-}
-#[derive(Deserialize)]
 struct Output {
     policy: Vec<bool>,
     glob: Vec<bool>,
-    transfer: Vec<TransferResult>,
+    transfer: Vec<bool>,
 }
 
 fn oracle_path() -> Option<PathBuf> {
@@ -233,9 +228,7 @@ fn rust_agrees_with_lean_oracle() {
     }
     assert_eq!(output.transfer.len(), input.transfer_cases.len());
     for (case, expected) in input.transfer_cases.iter().zip(output.transfer) {
-        let mut permit = case.permit.clone();
-        let accepted = transfer::reserve(case.now, &case.session, &mut permit, &case.request);
-        assert_eq!(accepted, expected.accepted);
-        assert_eq!(permit, expected.permit);
+        let accepted = transfer::allowed(case.now, &case.session, &case.permit, &case.request);
+        assert_eq!(accepted, expected);
     }
 }

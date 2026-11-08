@@ -5,7 +5,7 @@ kernels, issued-job operations, actual TUI approval and outer/inner conversation
 control have Rust-to-Lean refinement, including finite compositions of the
 extracted review, evidence, issued-job and outer/inner conversation operations.
 The broader obligations below remain proposed. This defines completion criteria for
-[the product architecture](design.md). The current 99 Lean theorem
+[the product architecture](design.md). The current 100 Lean theorem
 entry points, six Kani harnesses and conformance checks are listed in
 [verification.md](verification.md).
 
@@ -140,14 +140,16 @@ direct recording are private; adapters cannot supply activity flags.
 Input construction, origin attribution, physical process termination and
 mutex semantics remain executor
 obligations, not a whole-controller cancellation proof.
-Transfer proofs cover exact reservation
-in CTL-07. Export review-control proofs cover typed-origin gating and at most
+Transfer predicate proofs cover exact processor permission. Export review-control
+proofs cover typed-origin gating and at most
 one dispatch across arbitrary finite compositions of that extracted step.
 The combined production state now owns its frozen request and emits that
 exact request only after review and matching session/expiry checks. Its
 extracted finite compositions preserve the request and emit at most one
 effect, contributing to CTL-01 and CTL-07. The runtime consumes only this
-returned description; its JSON/URI decoder remains an unproved adapter.
+returned borrowed dispatch. Its consuming accessor and exact destination/body
+getters are extracted/refined; JSON encoding/decoding in this path was removed.
+URI normalization and HTTP I/O remain unproved adapters.
 They do not prove origin attribution by the UI/parser, the I/O dispatcher,
 locking or the complete controller. CTL-08 also requires a real
 confinement argument: a transition theorem cannot disable a process's
@@ -247,7 +249,7 @@ correctness.
 [Current CI](verification.md) covers scoped kernels, not the complete
 proposed product. Extend these checks as each path becomes real. The first
 two now run for transfer, export review, evidence, issued jobs, TUI approval,
-outer/inner conversation control and failure kernels, including sixty real Rust
+outer/inner conversation control and failure kernels, including 62 real Rust
 mutations that must fail unchanged refinement proofs:
 
 1. Re-extract production Rust under pinned toolchains. Fail on unsupported
