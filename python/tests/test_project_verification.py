@@ -32,6 +32,41 @@ pub fn transfer(state: LedgerState, actor: u64, id: u64, amount: u64) -> LedgerS
 }
 """
 NOOP = ALTERNATIVE[: ALTERNATIVE.index("    if actor")] + "    state\n}\n"
+CHECKED_HEADER = """pub struct LedgerState { pub debit: u64, pub credit: u64, pub sequence: u64 }
+pub fn transfer(mut state: LedgerState, actor: u64, id: u64, amount: u64) -> LedgerState {
+    if actor != 0 || id <= state.sequence || amount == 0 { return state; }
+"""
+CHECKED_BODIES = {
+    "let_else": """let Some(debit) = state.debit.checked_sub(amount) else { return state; };
+let Some(credit) = state.credit.checked_add(amount) else { return state; };
+state.debit = debit; state.credit = credit; state.sequence = id; state""",
+    "if_let": """if amount > state.debit { return state; }
+if let Some(credit) = state.credit.checked_add(amount) {
+    state.debit -= amount; state.credit = credit; state.sequence = id; state
+} else { state }""",
+    "match": """if amount > state.debit { return state; }
+match state.credit.checked_add(amount) {
+    Some(credit) => { state.debit -= amount; state.credit = credit; state.sequence = id; state },
+    None => state,
+}""",
+    "unwrap": """let debit = state.debit.checked_sub(amount);
+let credit = state.credit.checked_add(amount);
+if debit.is_none() || credit.is_none() { return state; }
+state.debit = debit.unwrap(); state.credit = credit.unwrap(); state.sequence = id; state""",
+    "unwrap_or": """let original: Option<u64> = Some(amount);
+let amount = original.unwrap_or(0);
+let debit = state.debit.checked_sub(amount);
+let credit = state.credit.checked_add(amount);
+if !debit.is_some() || !credit.is_some() { return state; }
+state.debit = debit.unwrap_or(state.debit);
+state.credit = credit.unwrap_or(state.credit); state.sequence = id; state""",
+}
+
+
+def checked_source(name):
+    return CHECKED_HEADER + CHECKED_BODIES[name] + "\n}\n"
+
+
 ENGINE = r"""
 import json, socketserver, sys
 from http.server import BaseHTTPRequestHandler
@@ -79,7 +114,7 @@ socketserver.UnixStreamServer(sys.argv[sys.argv.index('--host')+1],Handler).serv
 """
 
 
-def setup(tmp_path, exhaustion=False):
+def setup(tmp_path, exhaustion=False, candidate=ALTERNATIVE):
     binary = find_meden()
     assert binary
     source = tmp_path / "source"
@@ -87,7 +122,7 @@ def setup(tmp_path, exhaustion=False):
     engine = tmp_path / "engine"
     engine.write_text(
         "#!/bin/python3\n"
-        + f"NOOP={NOOP!r}\nALTERNATIVE={ALTERNATIVE!r}\nEXHAUSTION={exhaustion!r}\n"
+        + f"NOOP={NOOP!r}\nALTERNATIVE={candidate!r}\nEXHAUSTION={exhaustion!r}\n"
         + ENGINE
     )
     engine.chmod(0o700)
@@ -111,12 +146,12 @@ def setup(tmp_path, exhaustion=False):
     return args, env, source
 
 
-def assert_artifact(directory):
+def assert_artifact(directory, candidate=ALTERNATIVE):
     report = json.loads((directory / "report.json").read_text())
     assert len(report["audit"]) == 8
     assert "actual_refines" in report["audit"][0]
     assert all("sorryAx" not in line for line in report["audit"])
-    assert (directory / "ledger.rs").read_text() == ALTERNATIVE
+    assert (directory / "ledger.rs").read_text() == candidate
     assert (directory / "libmeden_ledger.rlib").read_bytes().startswith(b"!<arch>\n")
     for name, digest in report["files"].items():
         assert hashlib.sha256((directory / name).read_bytes()).hexdigest() == digest
@@ -131,7 +166,8 @@ def assert_artifact(directory):
 def test_cli_host_acceptance_independent_repair_artifact_binding_and_staleness(
     tmp_path, exhaustion
 ):
-    args, env, source = setup(tmp_path, exhaustion)
+    candidate = checked_source("let_else") if exhaustion else ALTERNATIVE
+    args, env, source = setup(tmp_path, exhaustion, candidate)
     process = subprocess.Popen(
         args,
         stdin=subprocess.PIPE,
@@ -191,17 +227,17 @@ def test_cli_host_acceptance_independent_repair_artifact_binding_and_staleness(
             )
         summary = [r["summary"] for r in seen if r["type"] == "project"][-1]
         assert summary["verified"]
-        report = assert_artifact(Path(summary["artifact"]))
+        report = assert_artifact(Path(summary["artifact"]), candidate)
         assert summary["source_sha256"] == report["source_sha256"]
         assert summary["artifact_sha256"] == report["artifact_sha256"]
         assert not (source / "ledger.rs").exists()
         copy = Path(ready["workspace"])
-        (copy / "ledger.rs").write_text(ALTERNATIVE + "\n")
+        (copy / "ledger.rs").write_text(candidate + "\n")
         send({"project_status": None})
         assert not receive("project")["summary"]["verified"]
-        assert_artifact(Path(summary["artifact"]))
+        assert_artifact(Path(summary["artifact"]), candidate)
         # Restoring an old source does not restore discarded evidence progress.
-        (copy / "ledger.rs").write_text(ALTERNATIVE)
+        (copy / "ledger.rs").write_text(candidate)
         send({"project_status": None})
         assert not receive("project")["summary"]["verified"]
         process.stdin.close()
@@ -278,11 +314,11 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
         os.close(slave)
 
 
-def test_native_counterexample_names_accepted_requirement(tmp_path):
+def verify_source(tmp_path, content):
     binary = find_meden()
     assert binary
     source = tmp_path / "ledger.rs"
-    source.write_text(ALTERNATIVE.replace("&& amount <= u64::MAX - state.credit", ""))
+    source.write_text(content)
     output = tmp_path / "artifacts"
     result = subprocess.run(
         [
@@ -298,6 +334,22 @@ def test_native_counterexample_names_accepted_requirement(tmp_path):
         capture_output=True,
         text=True,
         timeout=360,
+    )
+    return result, output
+
+
+@pytest.mark.parametrize("form", ["if_let", "match", "unwrap", "unwrap_or"])
+def test_checked_option_implementations_refine_the_same_contract(tmp_path, form):
+    source = checked_source(form)
+    result, output = verify_source(tmp_path, source)
+    assert result.returncode == 0, result.stderr
+    artifact = json.loads(result.stdout)
+    assert_artifact(Path(artifact["directory"]), source)
+
+
+def test_native_counterexample_names_accepted_requirement(tmp_path):
+    result, output = verify_source(
+        tmp_path, ALTERNATIVE.replace("&& amount <= u64::MAX - state.credit", "")
     )
     assert result.returncode != 0
     assert "contract requirement: credit overflow leaves all state unchanged" in result.stderr
@@ -308,30 +360,19 @@ def test_native_counterexample_names_accepted_requirement(tmp_path):
     assert not output.exists()
 
 
-def test_lean_rejects_bug_that_passes_fixed_examples(tmp_path):
-    binary = find_meden()
-    assert binary
-    source = tmp_path / "ledger.rs"
-    source.write_text(
-        (ROOT / "verification/ledger/ledger.rs")
-        .read_text()
-        .replace("    if actor != 0", "    if amount == 4 { return state; }\n    if actor != 0")
-    )
-    output = tmp_path / "artifacts"
-    result = subprocess.run(
-        [
-            binary,
-            "verify-ledger",
-            "--source",
-            str(source),
-            "--bundle",
-            os.environ["MEDEN_VERIFIER_BUNDLE"],
-            "--output",
-            str(output),
-        ],
-        capture_output=True,
-        text=True,
-        timeout=360,
+@pytest.mark.parametrize("fault", ["wrong-result", "unguarded-unwrap"])
+def test_lean_rejects_bug_that_passes_fixed_examples(tmp_path, fault):
+    source = (ROOT / "verification/ledger/ledger.rs").read_text()
+    if fault == "wrong-result":
+        injection = "    if amount == 4 { return state; }\n"
+    else:
+        injection = """    if amount == 4 {
+        let value: Option<u64> = None;
+        state.credit = value.unwrap();
+    }
+"""
+    result, output = verify_source(
+        tmp_path, source.replace("    if actor != 0", injection + "    if actor != 0")
     )
     assert result.returncode != 0
     assert "test result: ok" in result.stderr, result.stderr

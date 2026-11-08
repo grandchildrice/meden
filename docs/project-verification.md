@@ -87,11 +87,14 @@ application or financial certification.
 2. Parse the untrusted source inside an offline worker. Accept only the
    declared struct/function API and a finite pure subset: local variables,
    `if`, `return`, record/field operations, comparisons, Boolean operations
-   and `u64` addition/subtraction, including `saturating_add` and
-   `saturating_sub`. Imports, attributes, macros, free function calls, other
-   methods, loops, `match`/`if let`, nested items, unsafe code and conditional
-   compilation are unsupported. This syntax check is a boundary, not the
-   correctness proof.
+   and `u64` addition/subtraction, including `saturating_add/sub` and
+   `checked_add/sub`. Checked results support `Some`/`None`, `Option<u64>`,
+   `let-else`, `if let`, `match`, `is_some/is_none`, `unwrap` and `unwrap_or`.
+   Accepting `unwrap` syntax does not establish safety: the unchanged total
+   refinement must also prove that it cannot panic for any input.
+   Imports, attributes, macros, other calls/methods, loops, nested items,
+   unsafe code and conditional compilation are unsupported. This syntax
+   check is a boundary, not the correctness proof.
 3. Create a fresh job with the exact source and Meden's fixed Cargo files,
    example tests, specification, proof harness and shell recipe. Ignore the
    project's Cargo configuration, `build.rs`, Lean files, cached `.olean`
@@ -196,10 +199,17 @@ without overflow rejection reports the named credit-overflow requirement
 and both states, stops before extraction and emits no artifact. Another test
 injects a special-case no-op for amount four: the fixed native examples
 pass, while the unchanged Lean refinement fails and no artifact is emitted.
-These are controller integration tests, not a local LLM coding benchmark.
+Checked arithmetic is exercised through five equivalent source forms:
+the tool-budget CLI repair uses `let-else`; direct real-checker cases use
+`if let`, `match`, guarded `unwrap` and guarded `unwrap_or`. All prove the
+same unchanged total refinement and seven contract consequences. A second
+special-case fault unwraps `None` only for amount four: native examples
+pass, but Lean rejects its possible panic and no artifact is emitted.
+These ten cases are checker/controller integration tests, not a local LLM
+coding benchmark.
 The ordinary Python job skips only these bundle-dependent tests; the Lean
 job explicitly supplies the manifest and runs them.
-Its `meden-ledger-evidence` artifact retains all three successful cases' actual
+Its `meden-ledger-evidence` artifact retains all seven successful cases' actual
 source, native libraries, proof inputs and eight-root audit reports.
 
 The separate Meden control audit contains 60 roots, including the extracted

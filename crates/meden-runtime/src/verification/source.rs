@@ -6,7 +6,10 @@
 use std::io;
 
 use syn::visit::{self, Visit};
-use syn::{BinOp, Expr, Fields, FnArg, Item, Pat, ReturnType, Type, Visibility};
+use syn::{
+    BinOp, Expr, Fields, FnArg, GenericArgument, Item, Pat, PathArguments, ReturnType, Type,
+    Visibility,
+};
 
 fn named(ty: &Type, name: &str) -> bool {
     matches!(ty, Type::Path(p) if p.qself.is_none() && p.path.is_ident(name))
@@ -96,7 +99,7 @@ pub fn validate_ledger_source(source: &str) -> io::Result<()> {
     let mut checker = Pure {
         valid: true,
         nodes: 0,
-        reason: "use finite if/return expressions, local variables, fields, comparisons and u64 addition/subtraction; attributes, calls, macros, loops and nested items are unsupported",
+        reason: "use finite if/match/return expressions, local variables, fields, comparisons, u64 addition/subtraction and supported Option operations; attributes, other calls, macros, loops and nested items are unsupported",
     };
     checker.visit_signature(signature);
     checker.visit_block(&f.block);
@@ -124,6 +127,8 @@ impl<'ast> Visit<'ast> for Pure {
                 Expr::Assign(_)
                 | Expr::Block(_)
                 | Expr::If(_)
+                | Expr::Let(_)
+                | Expr::Match(_)
                 | Expr::Paren(_)
                 | Expr::Return(_) => true,
                 Expr::Binary(e) => matches!(
@@ -161,21 +166,25 @@ impl<'ast> Visit<'ast> for Pure {
                 Expr::Struct(e) => e.path.is_ident("LedgerState"),
                 Expr::Unary(e) => matches!(e.op, syn::UnOp::Not(_)),
                 Expr::MethodCall(e) => {
-                    let supported = (e.method == "saturating_add" || e.method == "saturating_sub")
-                        && e.args.len() == 1
-                        && e.turbofish.is_none();
+                    let arity = match e.method.to_string().as_str() {
+                        "saturating_add" | "saturating_sub" | "checked_add" | "checked_sub"
+                        | "unwrap_or" => Some(1),
+                        "is_some" | "is_none" | "unwrap" => Some(0),
+                        _ => None,
+                    };
+                    let supported = arity == Some(e.args.len()) && e.turbofish.is_none();
                     if !supported {
-                        self.reason = "only u64.saturating_add and u64.saturating_sub method calls are supported; checked_add, unwrap, unwrap_or and other methods are unsupported";
+                        self.reason = "supported methods are u64 saturating_add/sub, checked_add/sub and Option is_some/is_none/unwrap/unwrap_or; other methods, wrong arity and generic method arguments are unsupported";
                     }
                     supported
                 }
-                Expr::Call(_) => {
-                    self.reason = "free function calls are unsupported; use the returned API, finite if/return expressions and u64 operations";
-                    false
-                }
-                Expr::Match(_) | Expr::Let(_) => {
-                    self.reason = "match and if-let patterns are unsupported; use finite Boolean conditions and early returns";
-                    false
+                Expr::Call(e) => {
+                    let supported = e.args.len() == 1
+                        && matches!(e.func.as_ref(), Expr::Path(p) if p.qself.is_none() && p.path.is_ident("Some"));
+                    if !supported {
+                        self.reason = "only Some(value) constructor calls are supported; free function calls are unsupported";
+                    }
+                    supported
                 }
                 _ => false,
             };
@@ -195,10 +204,26 @@ impl<'ast> Visit<'ast> for Pure {
     fn visit_type(&mut self, ty: &'ast Type) {
         self.valid &= ["LedgerState", "u64", "bool"]
             .iter()
-            .any(|name| named(ty, name));
+            .any(|name| named(ty, name))
+            || matches!(ty, Type::Path(p) if p.qself.is_none() && p.path.segments.len() == 1
+                && p.path.segments.first().is_some_and(|segment| segment.ident == "Option"
+                    && matches!(&segment.arguments, PathArguments::AngleBracketed(a)
+                        if a.args.len() == 1 && matches!(a.args.first(), Some(GenericArgument::Type(t)) if named(t, "u64")))));
     }
     fn visit_pat(&mut self, pattern: &'ast Pat) {
-        self.valid &= matches!(pattern, Pat::Ident(_) | Pat::Type(_) | Pat::Wild(_));
+        self.valid &= match pattern {
+            Pat::Ident(_)
+            | Pat::Type(_)
+            | Pat::Wild(_)
+            | Pat::Lit(_)
+            | Pat::Paren(_)
+            | Pat::Or(_) => true,
+            Pat::TupleStruct(p) => {
+                p.qself.is_none() && p.path.is_ident("Some") && p.elems.len() == 1
+            }
+            Pat::Path(p) => p.qself.is_none() && p.path.is_ident("None"),
+            _ => false,
+        };
         if self.valid {
             visit::visit_pat(self, pattern);
         }
@@ -229,13 +254,43 @@ mod tests {
                 "state.credit = state.credit.saturating_add(amount)",
             );
         assert!(validate_ledger_source(&saturating).is_ok());
-        for method in ["checked_add", "wrapping_add", "rotate_left", "unwrap_or"] {
+        let checked = SOURCE
+            .replace(
+                "state.debit -= amount;",
+                "let Some(debit) = state.debit.checked_sub(amount) else { return state; }; state.debit = debit;",
+            )
+            .replace(
+                "state.credit += amount;",
+                "let credit: Option<u64> = state.credit.checked_add(amount); if credit.is_none() { return state; } state.credit = credit.unwrap();",
+            );
+        assert!(validate_ledger_source(&checked).is_ok());
+        let constructor = SOURCE.replace(
+            "state.credit += amount;",
+            "let credit = Some(state.credit + amount); state.credit = credit.unwrap_or(0);",
+        );
+        assert!(validate_ledger_source(&constructor).is_ok());
+        for value in [
+            "env!(\"KEY\")",
+            "std::process::exit(0)",
+            "{ #[cfg(charon)] let x = 0; x }",
+        ] {
+            assert!(validate_ledger_source(
+                &constructor.replace("Some(state.credit + amount)", &format!("Some({value})"))
+            )
+            .is_err());
+        }
+        for method in [
+            "wrapping_add",
+            "rotate_left",
+            "unwrap_unchecked",
+            "unwrap_or_else",
+        ] {
             let candidate = SOURCE.replace(
                 "state.credit += amount",
                 &format!("state.credit = state.credit.{method}(amount)"),
             );
             assert!(validate_ledger_source(&candidate)
-                .is_err_and(|error| error.to_string().contains("only u64.saturating_add")));
+                .is_err_and(|error| error.to_string().contains("supported methods")));
         }
         for extra in ["#[cfg(charon)]", "#[inline]", "#[path=\"other.rs\"]"] {
             assert!(validate_ledger_source(&format!("{extra}\n{SOURCE}")).is_err());
