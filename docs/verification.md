@@ -26,7 +26,7 @@ attempt; an older completed run does not cover a newer commit.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate transfer/review/dispatch, evidence, issued jobs, TUI approval, outer/inner conversation and failure kernels, `lake build`, proof scan/audit, 65 Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate transfer/review/dispatch, evidence, issued jobs, TUI approval, outer/inner conversation, failure and display-scalar kernels, `lake build`, proof scan/audit, 69 Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A decision differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -296,6 +296,54 @@ screen transitions, displayed-review correspondence, target/reference lookup,
 handler effect interpretation and the I/O loop still require
 separate assurance; the theorem does not prove that arbitrary terminal bytes
 can never be decoded as a key or establish complete outbound confidentiality.
+
+## Display transformation: actual Rust code points
+
+Human-facing CLI messages, TUI text, processor metadata, export destination/source
+labels and instruction input use [`text::visible`](../crates/meden-cli/src/text.rs).
+Its actual `visible_codepoint(u32)` helper is extracted in the sixth generated
+module, [Text.lean](../lean/MedenSpec/Generated/Text.lean). The independent
+[specification](../lean/MedenSpec/Text.lean) defines the exact numeric policy:
+
+- Preserve newline U+000A; replace tab with a space and ESC with the visible U+241B symbol.
+- Replace the remaining C0/C1 values U+0000–001F and U+007F–009F with U+FFFD.
+- Replace U+061C, U+200E/F, U+202A–202E and U+2066–2069 with U+FFFD.
+- Preserve every other value. This is an explicit set of values, not a claim
+  to prevent every Unicode visual ambiguity or terminal attack.
+
+[TextRefinement.lean](../lean/MedenSpec/TextRefinement.lean) checks the actual
+production numeric operation, without a favorable substitute for an unsupported
+String function. The constructor-value lemma relates the generated `u32`
+patterns to their exact natural values.
+
+| Audited theorem | Checked claim |
+| --- | --- |
+| `Text.safe` | Output excludes the specified control/directional values, allowing newline |
+| `Text.preserves_safe` | Values outside that forbidden set are unchanged |
+| `Text.valid_output` | A valid Unicode scalar maps to another valid scalar |
+| `Text.idempotent` | A second application does not change the result |
+| `Text.newline_iff` | Exactly the original newline values produce newlines |
+| `TextRefinement.scalar_refines` | Actual Rust terminates and agrees with the specification for every represented `u32` |
+| `TextRefinement.extracted_safe` | Actual extracted output excludes the forbidden set |
+| `TextRefinement.extracted_scalar` | Actual extracted output is a valid scalar when its input is valid |
+| `TextRefinement.stream_refines` | Every finite composition of the extracted operation matches the specified pointwise transformation |
+| `TextRefinement.stream_safe` | Those compositions preserve length and produce only permitted values |
+
+The native regression checks both the numeric result and real String wrapper
+for all 1,112,064 valid Unicode scalars against the previous display policy, including
+Rust's `char::is_control`. Four semantic faults retain ESC, drop newlines,
+retain a directional override or replace ordinary text. Each must compile
+under `-D warnings`, fail native assertions and fail the unchanged refinement.
+These checks cover usefulness as well as rejecting control values.
+
+The finite driver composes the extracted numeric function. It does not extract
+the String iterator/collector, `char` conversion, UTF-8 handling or terminal
+renderer. Extracting the complete wrapper with the pinned tool currently fails
+because the iterator model lacks `map`; the earlier direct `char` match is also
+unsupported. No replacement model or new assumption was introduced to hide
+those limitations. Physical input/output, glyph/cell layout, review authenticity
+and end-to-end R1 remain separate obligations. The length theorem counts numeric
+code points; byte counts and terminal-cell widths have separate semantics.
 
 ## Extracted outer session control
 
@@ -642,7 +690,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with transfer/review/dispatch and TUI approval checks, CI rejects
-65 faults, including outer/inner conversation, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
+69 faults, including outer/inner conversation, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -691,7 +739,7 @@ Definitions and additional lemmas are in
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 104
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 114
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -995,7 +1043,7 @@ cargo test -p meden-cli --test isolation
 cargo kani -p meden-core
 ```
 
-Regenerate both transfer/control models with the pinned tools in `PATH` (or set
+Regenerate all production Rust models with the pinned tools in `PATH` (or set
 `CHARON` and `AENEAS` to their trusted paths):
 
 ```bash

@@ -121,6 +121,13 @@ Correct attribution of typed origins by UI/protocol/transport code, screen
 transitions, displayed-review correspondence, reference lookup, URI
 normalization and the I/O loop remain unproved; this is not whole-controller refinement.
 
+The production numeric display transformation is also extracted/refined.
+It removes the specified control/directional values while preserving ordinary
+values and newlines, and maps valid Unicode scalars to valid scalars. Finite
+compositions are checked too. The String iterator/conversion/collector and
+terminal renderer are separate unproved adapters; this is not a proof of
+display authenticity. See the [exact policy and scope](docs/verification.md#display-transformation-actual-rust-code-points).
+
 The third extracted kernel checks exact evidence correspondence. Only typed
 checker results matching the accepted obligation, evidence kind, checker,
 position and current subject advance completion. Changed input bindings

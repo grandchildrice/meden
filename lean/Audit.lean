@@ -113,3 +113,13 @@ open MedenSpec
 #print axioms MedenSpec.ConversationTrace.extracted_wellFormed
 #print axioms MedenSpec.ConversationTrace.initialized_wellFormed
 #print axioms MedenSpec.ConversationTrace.extracted_record_pairing
+#print axioms MedenSpec.Text.safe
+#print axioms MedenSpec.Text.preserves_safe
+#print axioms MedenSpec.Text.valid_output
+#print axioms MedenSpec.Text.idempotent
+#print axioms MedenSpec.Text.newline_iff
+#print axioms MedenSpec.TextRefinement.scalar_refines
+#print axioms MedenSpec.TextRefinement.extracted_safe
+#print axioms MedenSpec.TextRefinement.extracted_scalar
+#print axioms MedenSpec.TextRefinement.stream_refines
+#print axioms MedenSpec.TextRefinement.stream_safe

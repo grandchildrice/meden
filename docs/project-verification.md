@@ -240,7 +240,7 @@ job explicitly supplies the manifest and runs them.
 Its `meden-ledger-evidence` artifact retains all ten successful cases' actual
 source, native libraries, proof inputs and eight-root audit reports.
 
-The separate Meden control audit contains 104 roots, including the extracted
+The separate Meden control audit contains 114 roots, including the extracted
 acceptance getter used by both interfaces, the actual TUI key predicate and
 the outer-turn protocol over real conversation outcomes, its finite-trace
 conversation budget and sticky stops, the inner conversation controller

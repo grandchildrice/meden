@@ -14,11 +14,11 @@ case $("$aeneas_bin" -version) in
   *) echo 'Unsupported Aeneas revision' >&2; exit 1 ;;
 esac
 
-units=(control evidence approval repair conversation)
+units=(control evidence approval repair conversation text)
 case "$#:${1:-}:${2:-}" in
   0::|1:--write:) ;;
-  2:--write:control|2:--write:evidence|2:--write:approval|2:--write:repair|2:--write:conversation) units=("$2") ;;
-  *) echo 'Usage: tools/extract-transfer.sh [--write [control|evidence|approval|repair|conversation]]' >&2; exit 2 ;;
+  2:--write:control|2:--write:evidence|2:--write:approval|2:--write:repair|2:--write:conversation|2:--write:text) units=("$2") ;;
+  *) echo 'Usage: tools/extract-transfer.sh [--write [control|evidence|approval|repair|conversation|text]]' >&2; exit 2 ;;
 esac
 extract_tmp=$(mktemp -d)
 trap 'rm -rf "$extract_tmp"' EXIT
@@ -77,6 +77,11 @@ for unit in "${units[@]}"; do
         meden_agent::flow::Flow::into_outcome
         meden_agent::conversation::Status::inspection)
       model=Conversation ;;
+    text)
+      namespace=MedenTextImpl
+      cargo_args=(--locked --bin meden -p meden-cli)
+      rust_roots=(meden::text::visible_codepoint)
+      model=Text ;;
   esac
   extract_roots=()
   for rust_root in "${rust_roots[@]}"; do
@@ -101,6 +106,8 @@ for unit in "${units[@]}"; do
       export_control.Dispatch.into_request)
   elif [[ $unit == approval ]]; then
     definitions=(tui.approval.approves tui.approval.route)
+  elif [[ $unit == text ]]; then
+    definitions=(text.visible_codepoint)
   elif [[ $unit == conversation ]]; then
     # External roots can be pruned by the pinned translator. Require the
     # production entry points, rather than accepting helpers alone.

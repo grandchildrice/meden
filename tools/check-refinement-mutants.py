@@ -11,6 +11,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 GROUPS = [
     {
+        "source": "crates/meden-cli/src/text.rs",
+        "package": "meden-cli",
+        "model": "Text",
+        "proof": "TextRefinement",
+        "test": "text::tests::every_unicode_scalar_keeps_the_original_display_policy",
+        "mutations": [
+            ("terminal_escape_retained", "0x1b => 0x241b", "0x1b => 0x1b"),
+            ("display_newline_lost", "0x0a => 0x0a", "0x0a => 0xfffd"),
+            ("directional_override_retained", "0x202a..=0x202e", "0x202a..=0x202d"),
+            ("ordinary_display_text_lost", "_ => code,", "_ => 0xfffd,"),
+        ],
+    },
+    {
         "kernel": "transfer",
         "model": "Control",
         "proof": "TransferRefinement",

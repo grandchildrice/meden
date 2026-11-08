@@ -18,6 +18,10 @@
   extracted and refined too. All approval handlers match the selected target
   against the host's current screen. Decoding, screen transitions, rendering,
   effect interpretation and physical input provenance remain separate gaps.
+  The numeric display transformation is extracted/refined too, including
+  finite compositions, safe output, preserved ordinary values/newlines and valid scalars.
+  Unicode String iteration/conversion/collection and terminal rendering remain
+  separate adapters; the scalar proof does not establish display authenticity.
   The outer turn controller lives in the shared runtime. Its actual effects,
   state updates and arbitrary finite compositions are refined, including four
   conversation invocations per host turn, sticky terminal stops and a fresh

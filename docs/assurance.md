@@ -1,11 +1,12 @@
 # Assurance and refinement plan
 
 Status: product assurance plan. The transfer, export review and evidence
-kernels, issued-job operations, actual TUI approval and outer/inner conversation
-control have Rust-to-Lean refinement, including finite compositions of the
-extracted review, evidence, issued-job and outer/inner conversation operations.
+kernels, issued-job operations, actual TUI approval, outer/inner conversation
+control and numeric display mapping have Rust-to-Lean refinement, including
+finite compositions of review, evidence, issued-job, conversation and numeric
+display operations.
 The broader obligations below remain proposed. This defines completion criteria for
-[the product architecture](design.md). The current 104 Lean theorem
+[the product architecture](design.md). The current 114 Lean theorem
 entry points, six Kani harnesses and conformance checks are listed in
 [verification.md](verification.md).
 
@@ -249,7 +250,7 @@ correctness.
 [Current CI](verification.md) covers scoped kernels, not the complete
 proposed product. Extend these checks as each path becomes real. The first
 two now run for transfer, export review, evidence, issued jobs, TUI approval,
-outer/inner conversation control and failure kernels, including 65 real Rust
+outer/inner conversation, failure and numeric display kernels, including 69 real Rust
 mutations that must fail unchanged refinement proofs:
 
 1. Re-extract production Rust under pinned toolchains. Fail on unsupported
