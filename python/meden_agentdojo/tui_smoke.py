@@ -106,6 +106,8 @@ class TestSubtract(unittest.TestCase):
             test = workspace / "test_calc.py"
             report["workspace"] = str(workspace)
             os.write(master, b"\r")
+            wait_for(lambda: b"host control" in output)
+            os.write(master, b"y")
             wait_for(lambda: b"alt-enter" in output)
             prompt = (
                 "Fix the implementation in calc.py so add returns the sum of its arguments. "

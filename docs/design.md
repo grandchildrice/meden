@@ -323,8 +323,9 @@ Seventeen Lean theorem entry points and 5,000 Rust/Lean conformance cases
 are checked today. The production transfer decision and state update are
 extracted with pinned Charon/Aeneas and refine the Lean specification.
 There is no accepted contract store, evidence controller or release gate
-yet. HTTP model providers can still be remote and lack a complete
-processor-authorization/gateway boundary. Headless external host tools are
+yet. Inference checks a host-approved, immutable session processor binding
+with the refined kernel; providers can still be remote, and local inference
+server confinement is unfinished. Headless external host tools are
 not yet confined. TUI/exec edits stay in retained private copies.
 
 Reuse the conversation as an untrusted proposal/repair loop, move authority

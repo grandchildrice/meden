@@ -220,8 +220,49 @@ The live-model smoke harness's independent checker also uses `exec`;
 it does not execute model-generated code on the host.
 
 These tests cover production worker paths, not a Lean proof of OS effects.
-The fixed model gateway, headless host tools, page cache, trusted export
+Local inference confinement, headless host tools, page cache, trusted export
 review and the complete malicious-page acceptance suite remain work.
+
+## Processor approval in production
+
+The [gateway](../crates/meden-llm/src/gateway.rs) is the only public inference
+client. Connection discovery returns metadata, not a `ChatModel`; the raw
+HTTP implementation is private. TUI and `run` bind the gateway to their
+actual host-created session before giving it to the conversation.
+
+Each inference decision calls the already extracted/proved Rust
+`transfer::allowed` function. Its fields have these processor meanings:
+
+| Kernel field | Processor binding |
+| --- | --- |
+| Session | Retained private workspace identity, or a fresh headless session identity |
+| Recipient | Complete prepared `/chat/completions` URL |
+| Request | Exact JSON bytes of provider ID, endpoint, model and credential |
+| Expiry | Exclusive monotonic deadline, eight hours after host approval |
+| Spent | Revoked; an issued grant cannot be reset on the same gateway |
+
+The existing `allowed_refines` theorem proves the production predicate's
+complete equality/expiry/revocation decision. This reuse introduces no new
+handwritten implementation model or axiom. Processor approval permits
+conversation bodies for inference; it is **not** a one-use exact export and
+does not call `reserve`. The existing seventeen theorem entry points remain
+unchanged. Binding construction, trusted input origins, locking, actual
+HTTP correspondence and UI rendering are integration-tested, not refined.
+Requests already permitted before revocation can finish.
+
+Rust gateway tests reject model-written approvals, another session, changed
+endpoint/model/credential, copied internal grants, expiry and revocation
+while observing zero receiver connections. CLI tests reject missing/mismatched
+approval even when the opening JSON says it is approved. The real PTY test
+requires a local `y` key, rejects Enter/bracketed paste as authority, and
+observes that a second receiver gets no context until fresh approval; normal
+file tools and multi-turn inference still work after authorization.
+
+These tests do not prove local inference confinement: an approved loopback
+service can still forward data unless the service's own egress is confined.
+
+The [processor review screenshot](assets/processor-approval.png) is captured
+from the actual TUI; no inference request is made during capture.
 
 ## Tests of actual HTTP delivery
 
@@ -231,8 +272,8 @@ responses do not forward confidential context, a 503 or a connection closed
 after receiving the body does not trigger an automatic resend, and an
 environment proxy receives neither inference context nor discovery
 credentials. A legitimate direct response still completes the conversation.
-These transport checks do not establish processor authorization or local
-inference confinement.
+Transport checks complement the processor approval tests above; they do
+not establish local inference confinement.
 
 The standalone [HTTP export component](../crates/meden-runtime/src/transfer.rs)
 uses the refined `reserve` function under a mutex. Its target and body are

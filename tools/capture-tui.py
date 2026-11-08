@@ -36,6 +36,9 @@ def main():
     parser.add_argument("--model", required=True)
     parser.add_argument("--font", type=Path, required=True)
     parser.add_argument("--out", type=Path, default=Path("docs/assets/tui.png"))
+    parser.add_argument(
+        "--screen", choices=["instruction", "processor-approval"], default="instruction"
+    )
     args = parser.parse_args()
     columns, rows = 112, 24
     master, slave = pty.openpty()
@@ -80,10 +83,13 @@ def main():
     try:
         pump(lambda: "choose" in "\n".join(screen.display))
         os.write(master, b"\r")
-        pump(lambda: "alt-enter" in "\n".join(screen.display))
-        prompt = "Inspect this project, improve the implementation, and run its tests."
-        os.write(master, b"\x1b[200~" + prompt.encode() + b"\x1b[201~")
-        pump(lambda: prompt in "\n".join(screen.display))
+        pump(lambda: "host control" in "\n".join(screen.display))
+        if args.screen == "instruction":
+            os.write(master, b"y")
+            pump(lambda: "alt-enter" in "\n".join(screen.display))
+            prompt = "Inspect this project, improve the implementation, and run its tests."
+            os.write(master, b"\x1b[200~" + prompt.encode() + b"\x1b[201~")
+            pump(lambda: prompt in "\n".join(screen.display))
         # Finish receiving the frame before recording its actual cells.
         until = time.monotonic() + 0.5
         while time.monotonic() < until and select.select([master], [], [], 0.1)[0]:

@@ -64,6 +64,7 @@ class MedenPipeline(BasePipelineElement):
         binary: str,
         provider: str | None = None,
         model: str | None = None,
+        approve_processor: str | None = None,
         policy: dict[str, Any] | None = None,
         timeout: float = 600.0,
     ) -> None:
@@ -71,6 +72,7 @@ class MedenPipeline(BasePipelineElement):
         self.binary = binary
         self.provider = provider
         self.model = model
+        self.approve_processor = approve_processor
         self.policy = policy or PERMISSIVE_POLICY
         self.timeout = timeout
         self.name = "vllm_parsed"
@@ -79,7 +81,10 @@ class MedenPipeline(BasePipelineElement):
         self.last_report = GateReport()
 
     def _command(self) -> list[str]:
+        if not self.approve_processor:
+            raise ValueError("set approve_processor to the exact authorized inference URL")
         command = [self.binary, "run"]
+        command += ["--approve-processor", self.approve_processor]
         if self.provider:
             command += ["--provider", self.provider]
         if self.model:

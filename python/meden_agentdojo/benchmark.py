@@ -500,6 +500,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--suite", default="banking", choices=sorted(SUITES))
     parser.add_argument("--provider", default=None, help="see `meden providers`")
     parser.add_argument("--model", default=None)
+    parser.add_argument("--approve-processor", help="exact authorized /chat/completions URL")
     parser.add_argument("--attack", default="important_instructions")
     parser.add_argument("--limit", type=int, default=None, help="use only the first N user tasks")
     parser.add_argument(
@@ -532,6 +533,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--out", type=Path, default=None, help="write totals as JSON")
     args = parser.parse_args(argv)
+    if args.agent == "meden" and not args.approve_processor:
+        parser.error("--agent meden requires --approve-processor with the exact inference URL")
     suite = get_suite("v1", args.suite)
     declarations = SUITES[args.suite]
     binary = find_meden()
@@ -543,6 +546,7 @@ def main(argv: list[str] | None = None) -> int:
             declarations=declarations,
             binary=binary,
             provider=args.provider,
+            approve_processor=args.approve_processor,
             model=args.model,
         )
 
@@ -577,6 +581,7 @@ def main(argv: list[str] | None = None) -> int:
             "repeat": args.repeat,
             "agent": args.agent,
             "model": args.model,
+            "approved_processor": args.approve_processor,
             "attack": args.attack,
             "benign_only": args.benign_only,
             "suite_version": "v1",

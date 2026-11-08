@@ -1071,6 +1071,7 @@ name = "meden-llm"
 version = "0.1.0"
 dependencies = [
  "meden-agent",
+ "meden-core",
  "serde",
  "serde_json",
  "tempfile",

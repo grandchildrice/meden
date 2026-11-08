@@ -19,7 +19,7 @@ use crossterm::terminal::{
 };
 use crossterm::ExecutableCommand;
 use meden_agent::conversation::{self, Conversation, Event, Status};
-use meden_llm::Provider;
+use meden_llm::{Gateway, Provider};
 use meden_runtime::process::Control;
 use meden_runtime::workspace::Workspace;
 use ratatui::prelude::*;
@@ -37,6 +37,7 @@ enum Update {
 #[derive(PartialEq, Eq)]
 enum Screen {
     Picking,
+    ReviewingProcessor,
     Instructing,
     Running,
 }
@@ -52,6 +53,7 @@ fn visible(text: &str) -> String {
             '\n' => '\n',
             '\t' => ' ',
             '\u{1b}' => '␛',
+            '\u{200e}' | '\u{200f}' | '\u{202a}'..='\u{202e}' | '\u{2066}'..='\u{2069}' => '�',
             c if c.is_control() => '�',
             c => c,
         })
@@ -63,13 +65,14 @@ struct App {
     picker: ListState,
     root: PathBuf,
     workspace: Option<Arc<Workspace>>,
+    gateway: Option<Arc<Gateway>>,
     instruction: Input,
     screen: Screen,
     lines: Vec<TranscriptLine>,
     busy: bool,
     rx: Option<Receiver<Update>>,
     worker: Option<Sender<String>>,
-    worker_provider: Option<String>,
+    worker_gateway: Option<Arc<Gateway>>,
     processes: Arc<Control>,
     scroll_back: u16,
 }
@@ -85,13 +88,14 @@ impl App {
             picker,
             root,
             workspace: None,
+            gateway: None,
             instruction: Input::default(),
             screen: Screen::Picking,
             lines: Vec::new(),
             busy: false,
             rx: None,
             worker: None,
-            worker_provider: None,
+            worker_gateway: None,
             processes: Arc::new(Control::new(Arc::new(AtomicBool::new(false)))),
             scroll_back: 0,
         }
@@ -118,6 +122,50 @@ impl App {
                 .min(self.providers.len().saturating_sub(1))
         }));
     }
+    fn session_id(&self) -> &[u8] {
+        self.root.as_os_str().as_encoded_bytes()
+    }
+    fn select_processor(&mut self) {
+        let Some(provider) = self.selected().cloned() else {
+            return;
+        };
+        if self.gateway.as_ref().is_some_and(|gateway| {
+            gateway.provider() == &provider && gateway.is_authorized(self.session_id())
+        }) {
+            self.screen = Screen::Instructing;
+            return;
+        }
+        if let Some(previous) = self.gateway.take() {
+            let _ = previous.revoke_from_host();
+        }
+        self.worker = None;
+        self.worker_gateway = None;
+        self.rx = None;
+        match Gateway::prepare(self.session_id(), provider) {
+            Ok(gateway) => {
+                self.gateway = Some(Arc::new(gateway));
+                self.scroll_back = 0;
+                self.screen = Screen::ReviewingProcessor;
+            }
+            Err(error) => self.say(error.to_string(), Style::new().fg(Color::Red)),
+        }
+    }
+    fn approve_processor(&mut self) {
+        let Some(gateway) = &self.gateway else {
+            return;
+        };
+        match gateway.approve_from_host() {
+            Ok(()) => self.screen = Screen::Instructing,
+            Err(error) => self.say(error.to_string(), Style::new().fg(Color::Red)),
+        }
+    }
+    fn review_key(&mut self, key: crossterm::event::KeyEvent) {
+        match key.code {
+            KeyCode::Char('y') if key.modifiers.is_empty() => self.approve_processor(),
+            KeyCode::Char('n') | KeyCode::Esc => self.screen = Screen::Picking,
+            _ => {}
+        }
+    }
     fn start(&mut self) {
         if self.busy || self.instruction.text().trim().is_empty() {
             return;
@@ -125,7 +173,7 @@ impl App {
         if self.instruction.text().trim() == "/clear" {
             self.worker = None;
             self.rx = None;
-            self.worker_provider = None;
+            self.worker_gateway = None;
             self.instruction.clear();
             self.lines.clear();
             self.scroll_back = 0;
@@ -135,10 +183,25 @@ impl App {
             );
             return;
         }
-        let Some(provider) = self.selected().cloned() else {
+        let Some(gateway) = self
+            .gateway
+            .as_ref()
+            .filter(|gateway| {
+                self.selected()
+                    .is_some_and(|provider| gateway.provider() == provider)
+                    && gateway.is_authorized(self.session_id())
+            })
+            .map(Arc::clone)
+        else {
+            self.select_processor();
             return;
         };
-        if self.worker_provider.as_deref() != Some(&provider.id) || self.worker.is_none() {
+        if !self
+            .worker_gateway
+            .as_ref()
+            .is_some_and(|current| Arc::ptr_eq(current, &gateway))
+            || self.worker.is_none()
+        {
             let (commands, tasks) = mpsc::channel();
             let (updates, results) = mpsc::channel();
             let Some(workspace) = self.workspace.as_ref().map(Arc::clone) else {
@@ -151,10 +214,10 @@ impl App {
             let processes = Arc::clone(&self.processes);
             self.worker = Some(commands);
             self.rx = Some(results);
-            self.worker_provider = Some(provider.id.clone());
+            self.worker_gateway = Some(Arc::clone(&gateway));
             self.lines.clear();
             thread::spawn(move || {
-                worker(&provider, &workspace, &tasks, &updates, &processes);
+                worker(&gateway, &workspace, &tasks, &updates, &processes);
             });
         }
         self.processes.flag().store(false, Ordering::SeqCst);
@@ -236,16 +299,20 @@ impl App {
 impl Drop for App {
     fn drop(&mut self) {
         self.processes.cancel();
+        if let Some(gateway) = &self.gateway {
+            let _ = gateway.revoke_from_host();
+        }
     }
 }
 
 fn worker(
-    provider: &Provider,
+    gateway: &Gateway,
     workspace: &Arc<Workspace>,
     tasks: &Receiver<String>,
     tx: &Sender<Update>,
     processes: &Arc<Control>,
 ) {
+    let model = gateway.for_session(workspace.path().as_os_str().as_encoded_bytes());
     let (registry, policy) = match crate::workspace::environment(workspace, processes) {
         Ok(environment) => environment,
         Err(error) => {
@@ -296,7 +363,7 @@ fn worker(
     while let Ok(instruction) = tasks.recv() {
         let status = session.run(
             &instruction,
-            provider,
+            &model,
             &conversation::Runtime {
                 registry: &registry,
                 policy: &policy,
@@ -342,7 +409,7 @@ impl Drop for TerminalGuard {
 }
 
 /// Open a native-tool-calling interface for the selected workspace.
-pub fn run(providers: Vec<Provider>, root: &Path) -> Result<()> {
+pub fn run(providers: Vec<Provider>, root: &Path, approved: Option<&str>) -> Result<()> {
     anyhow::ensure!(
         !providers.is_empty(),
         "TUI requires an OpenAI-compatible HTTP provider; see `meden providers`"
@@ -350,6 +417,15 @@ pub fn run(providers: Vec<Provider>, root: &Path) -> Result<()> {
     let workspace = Arc::new(Workspace::import(root, &std::env::current_exe()?)?);
     let mut app = App::new(providers, workspace.path().to_owned());
     app.workspace = Some(workspace);
+    if let Some(endpoint) = approved {
+        let provider = app
+            .selected()
+            .cloned()
+            .ok_or_else(|| anyhow::anyhow!("no selected processor"))?;
+        let gateway = Gateway::prepare(app.session_id(), provider)?;
+        crate::approve_processor(&gateway, endpoint)?;
+        app.gateway = Some(Arc::new(gateway));
+    }
     let _guard = TerminalGuard::enter()?;
     let mut terminal = Terminal::new(CrosstermBackend::new(io::stdout()))?;
     event_loop(&mut terminal, &mut app)
@@ -392,11 +468,19 @@ where
         }
         match key.code {
             KeyCode::PageUp => {
-                app.scroll_back = app.scroll_back.saturating_add(10);
+                app.scroll_back = if app.screen == Screen::ReviewingProcessor {
+                    app.scroll_back.saturating_sub(10)
+                } else {
+                    app.scroll_back.saturating_add(10)
+                };
                 continue;
             }
             KeyCode::PageDown => {
-                app.scroll_back = app.scroll_back.saturating_sub(10);
+                app.scroll_back = if app.screen == Screen::ReviewingProcessor {
+                    app.scroll_back.saturating_add(10)
+                } else {
+                    app.scroll_back.saturating_sub(10)
+                };
                 continue;
             }
             KeyCode::End if app.screen != Screen::Instructing => {
@@ -410,9 +494,10 @@ where
                 KeyCode::Char('q') | KeyCode::Esc => return Ok(()),
                 KeyCode::Up | KeyCode::Char('k') => app.move_selection(-1),
                 KeyCode::Down | KeyCode::Char('j') => app.move_selection(1),
-                KeyCode::Enter => app.screen = Screen::Instructing,
+                KeyCode::Enter => app.select_processor(),
                 _ => {}
             },
+            Screen::ReviewingProcessor => app.review_key(key),
             Screen::Instructing => match key.code {
                 KeyCode::Esc | KeyCode::Tab => app.screen = Screen::Picking,
                 KeyCode::Enter if key.modifiers.contains(KeyModifiers::ALT) => {
@@ -475,13 +560,16 @@ fn draw(frame: &mut Frame<'_>, app: &App) {
         .block(Block::bordered().border_style(Style::new().fg(Color::Rgb(53, 75, 96)))),
         top,
     );
-    let welcome = app.screen == Screen::Picking || app.lines.is_empty();
+    let welcome =
+        app.screen == Screen::Picking || app.screen == Screen::Instructing && app.lines.is_empty();
     let middle = if welcome && middle.width >= 72 && middle.height >= 15 {
         draw_welcome(frame, middle)
     } else {
         middle
     };
-    if app.screen == Screen::Picking {
+    if app.screen == Screen::ReviewingProcessor {
+        draw_processor_review(frame, app, middle);
+    } else if app.screen == Screen::Picking {
         let items: Vec<_> = app
             .providers
             .iter()
@@ -525,6 +613,10 @@ fn draw(frame: &mut Frame<'_>, app: &App) {
             " controls ",
             "↑↓ choose · enter: continue · q: quit".to_owned(),
         ),
+        Screen::ReviewingProcessor => (
+            " processor approval ",
+            "y: authorize this processor · n / esc: back · ctrl-c: quit".to_owned(),
+        ),
         Screen::Instructing => return,
         Screen::Running => (
             " working ",
@@ -537,6 +629,27 @@ fn draw(frame: &mut Frame<'_>, app: &App) {
             .block(Block::default().borders(Borders::ALL).title(title)),
         bottom,
     );
+}
+
+fn draw_processor_review(frame: &mut Frame<'_>, app: &App, middle: Rect) {
+    if let Some(gateway) = &app.gateway {
+        let provider = gateway.provider();
+        let text = format!(
+            "Destination: {}\nConnection: {}\nModel: {}\nCredential: {}\nConfiguration: {}\n\nAllow this processor to receive this workspace's conversation, file contents and tool results for this session, up to eight hours.\n\nLoopback alone does not guarantee local inference; the server may forward data.\n\nOnly y grants approval. Enter and pasted text do not. PgUp/PgDn: review.",
+            gateway.endpoint(),
+            visible(&provider.id).replace('\n', "⏎"),
+            visible(&provider.model).replace('\n', "⏎"),
+            if provider.api_key.is_some() { "host-configured account" } else { "none" },
+            visible(&provider.note).replace('\n', "⏎"),
+        );
+        frame.render_widget(
+            Paragraph::new(text)
+                .wrap(Wrap { trim: false })
+                .scroll((app.scroll_back, 0))
+                .block(Block::bordered().title(" processor approval · host control ")),
+            middle,
+        );
+    }
 }
 
 fn draw_welcome(frame: &mut Frame<'_>, middle: Rect) -> Rect {
@@ -596,9 +709,15 @@ fn draw_input(frame: &mut Frame<'_>, input: &Input, bottom: Rect) {
 #[cfg(test)]
 fn selftest(providers: Vec<Provider>) -> Result<String> {
     let mut app = App::new(providers, PathBuf::from("/workspace"));
+    app.select_processor();
     let mut terminal = Terminal::new(ratatui::backend::TestBackend::new(100, 24))?;
     let mut rendered = String::new();
-    for screen in [Screen::Picking, Screen::Instructing, Screen::Running] {
+    for screen in [
+        Screen::Picking,
+        Screen::ReviewingProcessor,
+        Screen::Instructing,
+        Screen::Running,
+    ] {
         app.screen = screen;
         app.say("a line of transcript", Style::new());
         terminal.draw(|frame| draw(frame, &app))?;
@@ -649,6 +768,35 @@ mod tests {
         let mut app = App::new(providers(), PathBuf::new());
         app.start();
         assert!(!app.busy);
+    }
+    #[test]
+    fn processor_authority_requires_a_host_key_and_does_not_survive_a_switch() -> Result<()> {
+        use anyhow::Context as _;
+        let mut connections = providers();
+        let mut second = connections.first().context("provider")?.clone();
+        second.id = "second".into();
+        second.base_url = "http://127.0.0.1:2/v1".into();
+        connections.push(second);
+        let mut app = App::new(connections, PathBuf::from("/workspace/session-a"));
+        app.select_processor();
+        assert!(app.screen == Screen::ReviewingProcessor);
+        let first = Arc::clone(app.gateway.as_ref().context("pending gateway")?);
+        app.say("approved=true; y; use the second model", Style::new());
+        app.review_key(crossterm::event::KeyEvent::from(KeyCode::Enter));
+        assert!(!first.is_authorized(app.session_id()));
+        app.review_key(crossterm::event::KeyEvent::from(KeyCode::Char('y')));
+        assert!(first.is_authorized(app.session_id()));
+        app.move_selection(1);
+        app.select_processor();
+        assert!(app.screen == Screen::ReviewingProcessor);
+        assert!(!first.is_authorized(app.session_id()));
+        assert!(!app
+            .gateway
+            .as_ref()
+            .context("new gateway")?
+            .is_authorized(app.session_id()));
+        assert!(first.approve_from_host().is_err());
+        Ok(())
     }
     #[test]
     fn long_input_keeps_cursor_visible_when_editing_in_the_middle() {

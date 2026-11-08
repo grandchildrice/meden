@@ -1,8 +1,10 @@
-//! HTTP model connections and managed child processes.
+//! Host-approved HTTP model connections.
 #![forbid(unsafe_code)]
+mod gateway;
 pub mod hermes;
-pub mod openai;
+mod openai;
 pub mod provider;
+pub use gateway::{Gateway, APPROVAL_LIFETIME};
 pub use provider::{detect, Provider};
 /// Explicit model endpoint base URL.
 pub const ENV_BASE_URL: &str = "MEDEN_LLM_BASE_URL";

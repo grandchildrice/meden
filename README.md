@@ -40,7 +40,8 @@ connects to OpenAI-compatible APIs and can reuse Hermes configuration.
 > Development prototype. Local-only orchestration, project proof workflows,
 > controller-wide refinement and evidence-gated delivery are design targets.
 > TUI file/Bash tools and `exec` now run in private offline workspaces.
-> Model HTTP connections may still be remote and are not yet fully mediated. See [verification scope](docs/verification.md)
+> Model HTTP connections require host approval and may still be remote.
+> Local inference confinement remains unfinished. See [verification scope](docs/verification.md)
 > and [security limits](SECURITY.md).
 
 ## Getting started
@@ -69,6 +70,17 @@ export MEDEN_LLM_BASE_URL=http://localhost:11434/v1
 export MEDEN_LLM_MODEL=your-model
 ./target/release/meden tui --workspace . --provider configured
 ```
+
+Before inference, the TUI shows the actual processor URL and asks whether
+it may receive this workspace's conversation, file contents and tool
+results. A local `y` key grants permission for this session, up to eight
+hours. Choosing another processor requires fresh approval. Loopback alone
+does not establish that a server keeps data local.
+
+Automation must specify the exact inference URL with
+`--approve-processor URL`; for example, a configured local endpoint uses
+`--approve-processor http://localhost:11434/v1/chat/completions`.
+This is required by `run` and optional in the TUI.
 
 The project is imported into a private working copy under
 `$XDG_DATA_HOME/meden/workspaces/` (default: `~/.local/share/meden/workspaces/`).
@@ -133,7 +145,7 @@ full-request matching and no replay after reservation, plus two refinement
 theorems connecting the generated Rust model to that specification. A
 Linux runner now confines actual TUI file/Bash tools and `exec`. Tests use
 real host files, inherited descriptors, sockets and receivers. Connecting
-the model gateway and every remaining effect is still work in progress.
+every remaining effect and confining local inference are still work in progress.
 
 [Confidentiality design and acceptance criteria →](docs/confidentiality.md) ·
 [CI checks, theorem statements and proof limits →](docs/verification.md)

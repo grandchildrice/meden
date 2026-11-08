@@ -30,6 +30,7 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
     note = source_note
     note.write_text("status: draft\n")
     requests = []
+    destinations = []
     replies = [
         ("read_file", {"path": "note.txt"}),
         ("edit_file", {"path": "note.txt", "old_text": "draft", "new_text": "ready"}),
@@ -40,7 +41,15 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
             {"command": 'test "$(cat note.txt)" = "status: ready" && printf passed > check.txt'},
         )
     )
-    replies.extend(["Updated note.txt.", "Status is ready.", "A fresh conversation."])
+    replies.extend(
+        [
+            "Updated note.txt.",
+            "Status is ready.",
+            "A fresh conversation.",
+            ("read_file", {"path": "note.txt"}),
+            "Read by the second processor.",
+        ]
+    )
     first_turn_count = 4
 
     class Handler(BaseHTTPRequestHandler):
@@ -51,6 +60,7 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
             request = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
             reply = replies[len(requests)]
             requests.append(request)
+            destinations.append(self.server.server_port)
             if isinstance(reply, tuple):
                 name, args = reply
                 message = {
@@ -78,6 +88,16 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
+    other = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    other_thread = threading.Thread(target=other.serve_forever, daemon=True)
+    other_thread.start()
+    hermes = tmp_path / "hermes"
+    hermes.mkdir()
+    (hermes / "config.yaml").write_text(
+        "custom_providers:\n  - name: other\n"
+        f"    base_url: http://127.0.0.1:{other.server_port}/v1\n"
+        "    model: fixture-other\n"
+    )
     master, slave = pty.openpty()
     fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 30, 120, 0, 0))
     initial = termios.tcgetattr(slave)
@@ -87,9 +107,12 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
         "XDG_DATA_HOME": str(data),
         "MEDEN_LLM_BASE_URL": f"http://127.0.0.1:{server.server_port}/v1",
         "MEDEN_LLM_MODEL": "fixture",
+        "HERMES_HOME": str(hermes),
     }
     env.pop("MEDEN_LLM_API_KEY", None)
-    command = [binary, "tui", "--workspace", str(project), "--provider", "configured"]
+    env.pop("OPENAI_API_KEY", None)
+    env.pop("OLLAMA_API_KEY", None)
+    command = [binary, "tui", "--workspace", str(project)]
     process = subprocess.Popen(
         command,
         stdin=slave,
@@ -107,7 +130,7 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
             assert process.poll() is None, output.decode(errors="replace")
             if select.select([master], [], [], 0.1)[0]:
                 output.extend(os.read(master, 65536))
-        pytest.fail(f"TUI timed out: {output.decode(errors='replace')}")
+        pytest.fail(f"TUI timed out: {output[-8000:].decode(errors='replace')}")
 
     try:
         wait_for(lambda: b"fixture" in output)
@@ -116,6 +139,13 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
         workspace = copies[0]
         note = workspace / "note.txt"
         os.write(master, b"\r")
+        wait_for(lambda: b"host control" in output)
+        assert requests == []
+        # Enter and a pasted approval cannot grant processor authority.
+        os.write(master, b"\r\x1b[200~y\x1b[201~")
+        time.sleep(0.1)
+        assert requests == []
+        os.write(master, b"y")
         wait_for(lambda: b"alt-enter" in output)
         # Correct a typo in the middle with cursor keys, then submit from End.
         os.write(
@@ -152,6 +182,24 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
         assert requests[-1]["messages"][-1]["content"][0]["text"] == "Fresh turn."
         assert note.read_text() == "status: ready\n"
         assert source_note.read_text() == "status: draft\n"
+        # The final picker entry is our second processor. Other locally
+        # discovered servers can appear in between; no cloud keys are loaded.
+        os.write(master, b"\t" + b"\x1b[B" * 100 + b"\r")
+        wait_for(lambda: output.count(b"host control") >= 2)
+        assert other.server_port not in destinations
+        os.write(master, b"n")
+        time.sleep(0.1)
+        assert other.server_port not in destinations
+        os.write(master, b"\r")
+        wait_for(lambda: output.count(b"host control") >= 3)
+        os.write(master, b"y")
+        wait_for(lambda: output.count(b"alt-enter") >= 5)
+        os.write(master, b"Read the current status.\r")
+        wait_for(lambda: len(requests) == first_turn_count + 4)
+        wait_for(lambda: output.count(b"alt-enter") >= 6)
+        assert destinations == [server.server_port] * 6 + [other.server_port] * 2
+        assert len(requests[-2]["messages"]) == 2
+        assert "status: ready" in requests[-1]["messages"][-1]["content"][0]["text"]
         os.write(master, b"\x03")
         process.wait(timeout=5)
         assert process.returncode == 0
@@ -168,3 +216,6 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
+        other.shutdown()
+        other.server_close()
+        other_thread.join(timeout=5)

@@ -18,8 +18,9 @@ the boundary. See [the product design](docs/design.md) and
 [confidential execution rules](docs/confidentiality.md).
 
 **R1 is not yet established end to end.** TUI file/Bash tools and `exec`
-now execute in private offline Linux workspaces. Model HTTP calls still
-bypass the transfer broker and lack enforced processor authorization.
+now execute in private offline Linux workspaces. Inference uses a separate
+host-approved processor gateway; local inference server confinement remains
+unfinished.
 Page-cache/review integration and complete mediation of the headless host
 tool interface remain unfinished. Benign scores and kernel proofs do not
 establish the whole requirement.
@@ -27,7 +28,22 @@ establish the whole requirement.
 Model inference and provider discovery disable environment proxies and
 automatic redirects. Each inference exchange is attempted once, including
 when delivery is uncertain; non-success HTTP responses are rejected. This
-fixes transport behavior, not the still-missing processor authorization.
+fixes transport behavior; it does not confine the selected server itself.
+
+Every inference exchange checks a processor grant with the refined Rust
+`transfer::allowed` kernel. The binding contains the host session, exact
+inference URL, provider/model and exact credential; it expires after eight
+hours and cannot be reset after revocation. Conversation bodies are the
+processor grant's scope. This is separate from a single-use exact export.
+Already permitted requests can finish after revocation.
+
+The TUI displays the prepared destination and data scope in a host-owned
+review screen; only a local `y` key grants permission. Model/tool text,
+Enter and bracketed paste do not grant it. Provider changes require fresh
+approval. `run` requires `--approve-processor` with the exact inference URL;
+the optional TUI flag uses the same matching rule. No discovered endpoint
+is implicitly approved. A loopback endpoint may forward to a cloud service:
+approved processing is not proof that inference remains local.
 
 ## Existing implementation boundaries
 
@@ -73,7 +89,7 @@ escapes and actual edits. PTY tests drive real file/Bash calls across user
 turns and check terminal restoration and unchanged originals. A standalone
 immutable HTTP export uses the refined kernel before actual sends; tests
 cover exact bytes, one-use concurrency, redirects and uncertain delivery.
-Processor authorization, complete outbound routing and reviewed publishing
+Complete outbound routing, inference confinement and reviewed publishing
 remain implementation work. See [verification scope](docs/verification.md)
 for exact proof and test boundaries.
 

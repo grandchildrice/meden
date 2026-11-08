@@ -1,0 +1,24 @@
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│MEDEN · private workspace · offline tools · minimax-m3                                                        │
+│files: /tmp/meden-processor-capture/meden/workspaces/session-gmo5H2                                           │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ processor approval · host control ───────────────────────────────────────────────────────────────────────────┐
+│Destination: https://ollama.com/v1/chat/completions                                                           │
+│Connection: hermes:ollama-cloud                                                                               │
+│Model: minimax-m3                                                                                             │
+│Credential: host-configured account                                                                           │
+│Configuration: from /home/gohan/.hermes/config.yaml                                                           │
+│                                                                                                              │
+│Allow this processor to receive this workspace's conversation, file contents and tool results for this        │
+│session, up to eight hours.                                                                                   │
+│                                                                                                              │
+│Loopback alone does not guarantee local inference; the server may forward data.                               │
+│                                                                                                              │
+│Only y grants approval. Enter and pasted text do not. PgUp/PgDn: review.                                      │
+│                                                                                                              │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ processor approval ──────────────────────────────────────────────────────────────────────────────────────────┐
+│y: authorize this processor · n / esc: back · ctrl-c: quit                                                    │
+│                                                                                                              │
+│                                                                                                              │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────┘

@@ -49,6 +49,10 @@ struct ModelArgs {
     /// Model identifier for that connection.
     #[arg(long)]
     model: Option<String>,
+    /// Authorize this exact inference URL to receive this session's context
+    /// for up to eight hours. Required for run; optional in the TUI.
+    #[arg(long, value_name = "URL")]
+    approve_processor: Option<String>,
 }
 #[derive(Args)]
 struct TuiArgs {
@@ -90,15 +94,43 @@ fn run() -> Result<()> {
             } else {
                 meden_llm::detect()
             };
-            tui::run(providers, &args.workspace)?;
+            tui::run(
+                providers,
+                &args.workspace,
+                args.model.approve_processor.as_deref(),
+            )?;
         }
         Command::Run(args) => {
+            let approved = args.approve_processor.as_deref().context(
+                "run requires --approve-processor with the exact /chat/completions URL; this permits sending conversation and tool results to that processor for this session (up to eight hours)",
+            )?;
             let mut input = io::BufReader::new(io::stdin());
             let start = protocol::read_start(&mut input)?;
             let provider = pick_provider(args.provider.as_deref(), args.model.as_deref())?;
-            protocol::run(&start, &provider, Box::new(input), Box::new(io::stdout()))?;
+            let identity = tempfile::Builder::new()
+                .prefix("meden-session-")
+                .tempdir()?;
+            let session = identity.path().as_os_str().as_encoded_bytes();
+            let gateway = meden_llm::Gateway::prepare(session, provider)?;
+            approve_processor(&gateway, approved)?;
+            protocol::run(
+                &start,
+                &gateway.for_session(session),
+                Box::new(input),
+                Box::new(io::stdout()),
+            )?;
         }
     }
+    Ok(())
+}
+
+fn approve_processor(gateway: &meden_llm::Gateway, approved: &str) -> Result<()> {
+    anyhow::ensure!(
+        approved == gateway.endpoint(),
+        "processor approval does not match the prepared endpoint {}",
+        gateway.endpoint()
+    );
+    gateway.approve_from_host()?;
     Ok(())
 }
 

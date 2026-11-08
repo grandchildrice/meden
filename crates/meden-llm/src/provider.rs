@@ -1,6 +1,4 @@
-//! Discover HTTP model endpoints; inference authorization remains future work.
-use crate::openai::OpenAiCompatible;
-use meden_agent::conversation::{ChatModel, ModelError, Reply};
+//! Discover connection metadata. Discovery is not inference authorization.
 use std::time::Duration;
 
 /// A discovered OpenAI-compatible model connection.
@@ -25,19 +23,6 @@ impl std::fmt::Debug for Provider {
             .field("id", &self.id)
             .field("model", &self.model)
             .finish_non_exhaustive()
-    }
-}
-impl ChatModel for Provider {
-    fn reply(
-        &self,
-        messages: &[serde_json::Value],
-        tools: &[serde_json::Value],
-    ) -> Result<Reply, ModelError> {
-        let mut client = OpenAiCompatible::new(&self.base_url, &self.model);
-        if let Some(key) = &self.api_key {
-            client = client.with_api_key(key);
-        }
-        client.reply(messages, tools)
     }
 }
 /// An endpoint worth probing, and what it would be called.

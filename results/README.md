@@ -50,6 +50,7 @@ cargo build --release -p meden-cli
 cd python
 MEDEN_BIN=../target/release/meden uv run python -m meden_agentdojo.benchmark \
   --agent meden --suite banking --provider hermes:ollama-cloud \
+  --approve-processor https://ollama.com/v1/chat/completions \
   --model minimax-m3 --benign-only --workers 4 --repeat 3 --out native.json
 MEDEN_BIN=../target/release/meden uv run python -m meden_agentdojo.benchmark \
   --agent tool-calling --suite banking --provider hermes:ollama-cloud \

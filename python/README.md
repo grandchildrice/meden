@@ -25,6 +25,7 @@ cd python
 uv sync --group dev --extra agentdojo
 uv run python -m meden_agentdojo.benchmark --agent meden --suite banking \
   --provider hermes:ollama-cloud --model minimax-m3 --benign-only --workers 4 \
+  --approve-processor https://ollama.com/v1/chat/completions \
   --repeat 3 --out native.json
 uv run python -m meden_agentdojo.benchmark --agent tool-calling --suite banking \
   --model minimax-m3 --benign-only --workers 4 --repeat 3 --out baseline.json
@@ -38,6 +39,12 @@ Records include settings, binary digest, calls, decisions, answers and exact
 API history. Refusals due to invalid model arguments are kept separate from
 capability denials. These results do not establish the new confidentiality
 requirement in [the design](../docs/design.md).
+
+The Meden adapter requires explicit approval of the exact inference URL;
+the provider name alone is not authorization. The CLI checks it before
+sending the conversation or host tool results. Approval lasts for the
+session, up to eight hours. These synthetic benchmark tools still execute
+in the AgentDojo host, outside the private workspace boundary.
 
 ## Verify
 
@@ -53,6 +60,8 @@ uv run python -m meden_agentdojo.tui_smoke --binary ../target/release/meden \
 The live-model check drives two real TUI turns: a bug fix, then a feature
 addition. It independently checks the original tests and added function,
 real file effects, successful agent-run tests and restored terminal settings.
+The harness approves its explicitly selected processor for the synthetic
+test project through the real TUI review screen.
 TUI edits remain in a retained private offline copy, with the original
 project unchanged. The independent checker uses `meden exec` in another
 offline copy. Linux, Bubblewrap, Bash and Python are required. The headless

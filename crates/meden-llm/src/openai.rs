@@ -2,7 +2,7 @@
 use meden_agent::conversation::{ChatModel, ModelError};
 use std::time::Duration;
 /// HTTP client for native assistant messages.
-pub struct OpenAiCompatible {
+pub(crate) struct OpenAiCompatible {
     base_url: String,
     model: String,
     api_key: Option<String>,
