@@ -26,3 +26,4 @@ open MedenSpec
 #print axioms Transfer.no_changed_content
 #print axioms TransferRefinement.allowed_refines
 #print axioms TransferRefinement.reserve_refines
+#print axioms TransferRefinement.extracted_no_replay

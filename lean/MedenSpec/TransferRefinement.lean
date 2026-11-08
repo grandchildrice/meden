@@ -99,4 +99,18 @@ theorem reserve_refines (now : U64) (session : Slice U8)
   rw [allowed_refines]
   simp [Transfer.reserve, permit]
 
+/-- Two actual extracted Rust reservations cannot both accept the same
+permission, even when the second request/session/time are arbitrary. -/
+theorem extracted_no_replay (now later : U64) (session otherSession : Slice U8)
+    (p : MedenImpl.transfer.Permit) (r other : MedenImpl.transfer.Request) :
+    (do let first ← MedenImpl.transfer.reserve now session p r
+        let second ← MedenImpl.transfer.reserve later otherSession first.2 other
+        ok (first.1 && second.1)) = ok false := by
+  unfold MedenImpl.transfer.reserve
+  rw [allowed_refines]
+  simp only [Aeneas.Std.bind_ok]
+  rw [allowed_refines]
+  cases h : Transfer.allowed now.val (bytes session.val) (permit p) (request r) <;>
+    simp [Transfer.allowed, permit]
+
 end MedenSpec.TransferRefinement

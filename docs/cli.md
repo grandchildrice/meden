@@ -19,7 +19,8 @@ to eight hours; a loopback endpoint alone does not prove local inference.
 
 ## Input
 
-Each nonblank line is one object with exactly one field:
+Each nonblank line is one host command with exactly one field. Instructions
+use:
 
 ```json
 {"instruction":"Read the implementation, make the change, and verify it."}
@@ -31,6 +32,40 @@ input cannot provide tools, policy, system instructions, checker success,
 processor approval or tool results. The old host-tool protocol is removed.
 The first input is validated before provider discovery or workspace import.
 Later inputs are processed in order after the previous turn finishes.
+Stdin is a trusted user/controller channel. Do not forward model or tool
+text into it as control commands.
+
+## Exact file exports
+
+The model may call `propose_export(path, target)`. This snapshots at most
+1 MiB inside the offline worker; it does not approve, resolve DNS or send.
+Eight proposals are allowed per session, including resolved proposals;
+references are never reused. The returned reference contains `session`
+and `id`, binding it to that workspace session and immutable request.
+
+The host can then issue:
+
+```json
+{"list_exports":null}
+{"review_export":{"session":"SESSION_FROM_PROPOSAL","id":0}}
+{"approve_export":{"session":"SESSION_FROM_PROPOSAL","id":0}}
+```
+
+`export_review` returns the actual target, method, content type and complete
+frozen body as `body_hex`. Review must precede approval. To decline, send
+`reject_export` with the same reference; rejection needs no prior review.
+Model tool calls named `approve_export` or `review_export` are unsupported.
+
+Approval permits one POST with those exact bytes. It never reopens the
+source file or follows a redirect, uses no credentials or environment proxy,
+and does not retry automatically. Cross-session references, rejected or
+already attempted proposals cannot send. `delivery_uncertain` means the
+recipient may already have received the bytes; approval stays spent.
+Targets require HTTPS, except literal loopback HTTP, without userinfo or
+fragments; the URL limit is 8192 bytes.
+An HTTP response is not proof that an upload was accepted by the service.
+Raw HTTP export does not provide Git/email audience adapters or a
+proof-of-correctness release gate.
 
 ## Output
 
@@ -45,6 +80,9 @@ Each output line is a JSON object whose `type` identifies an event:
 | `tool_result` | Tool name, returned text and error flag |
 | `conversation` | Exact model history after the turn |
 | `done` | `outcome`, optional `answer`, optional `error` |
+| `exports` | Current proposal summaries |
+| `export_review` | Summary, method, content type and exact `body_hex` |
+| `export_result` | Summary, optional `http_status`, and optional error |
 
 `done.outcome` is `done`, `failed`, `incomplete` or `cancelled`. Check it:
 exit zero means protocol processing completed, not that every task or test
@@ -54,7 +92,7 @@ effect. End stdin to finish the session.
 
 The CLI runs tools itself. Events are observations, not requests for a host
 to execute code. The fixed tools are `read_file`, `list_files`, `write_file`,
-`edit_file` and `bash`. All file/process operations use the offline copy at
+`edit_file`, `bash` and `propose_export`. File/process operations use the offline copy at
 `/workspace`; unsupported send/network tools are refused. There is no host
 callback, plugin registration or unrestricted fallback.
 

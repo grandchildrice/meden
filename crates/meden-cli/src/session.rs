@@ -28,8 +28,14 @@ impl Session {
         workspace: Arc<Workspace>,
         gateway: Arc<Gateway>,
         processes: Arc<Control>,
+        exports: &Arc<crate::exports::Exports>,
     ) -> Result<Self> {
-        let (registry, policy) = crate::workspace::environment(&workspace, &processes)?;
+        anyhow::ensure!(
+            exports.matches(workspace.path()),
+            "export queue belongs to another workspace"
+        );
+        let (mut registry, policy) = crate::workspace::environment(&workspace, &processes)?;
+        crate::exports::register(&mut registry, &workspace, &processes, exports);
         let order = registry.names().map(str::to_owned).collect::<Vec<_>>();
         let tools = conversation::tool_definitions(&registry, &order);
         Ok(Self {

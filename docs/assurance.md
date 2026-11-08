@@ -3,7 +3,7 @@
 Status: product assurance plan. The transfer decision kernel now has two
 Rust-to-Lean refinement theorems; the broader obligations below remain
 proposed. This defines completion criteria for
-[the product architecture](design.md). The current seventeen Lean theorem
+[the product architecture](design.md). The current eighteen Lean theorem
 entry points, six Kani harnesses and conformance checks are listed in
 [verification.md](verification.md).
 

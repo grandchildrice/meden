@@ -21,7 +21,7 @@ the boundary. See [the product design](docs/design.md) and
 now execute in private offline Linux workspaces. Inference uses a separate
 host-approved processor gateway; local inference server confinement remains
 unfinished.
-Page-cache/review integration remains unfinished. Benign scores and kernel proofs do not
+Page caching and complete controller refinement remain unfinished. Benign scores and kernel proofs do not
 establish the whole requirement.
 
 Model inference and provider discovery disable environment proxies and
@@ -89,10 +89,14 @@ that every real outbound effect passes through those rules.
 The production worker tests observe host-only files, inherited file/socket
 capabilities, IPv4/IPv6 attempts, detached subprocesses, hard links, symlink
 escapes and actual edits. PTY tests drive real file/Bash calls across user
-turns and check terminal restoration and unchanged originals. A standalone
-immutable HTTP export uses the refined kernel before actual sends; tests
-cover exact bytes, one-use concurrency, redirects and uncertain delivery.
-Complete outbound routing, inference confinement and reviewed publishing
+turns and check terminal restoration and unchanged originals. Immutable
+HTTP exports now use the refined kernel through TUI/CLI host review.
+`propose_export` only reads a bounded offline snapshot. The host sees the
+actual target/method/content type and exact bytes; a session-bound reference
+cannot be changed into another proposal, and approval cannot precede review.
+The model has no approve/review/send tool. Tests cover changed files,
+cross-session references, rejection, replay, redirects and uncertain delivery.
+Complete outbound routing, inference confinement and evidence-gated publishing
 remain implementation work. See [verification scope](docs/verification.md)
 for exact proof and test boundaries.
 

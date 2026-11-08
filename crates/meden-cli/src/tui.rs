@@ -10,6 +10,7 @@ use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
+use crate::exports::{Exports, Reference};
 use crate::text::visible;
 use anyhow::Result;
 use crossterm::event::{
@@ -39,6 +40,7 @@ enum Update {
 enum Screen {
     Picking,
     ReviewingProcessor,
+    ReviewingExport,
     Instructing,
     Running,
 }
@@ -53,6 +55,9 @@ struct App {
     root: PathBuf,
     workspace: Option<Arc<Workspace>>,
     gateway: Option<Arc<Gateway>>,
+    exports: Arc<Exports>,
+    reviewing_export: Option<Reference>,
+    export_offset: usize,
     instruction: Input,
     screen: Screen,
     lines: Vec<TranscriptLine>,
@@ -70,12 +75,16 @@ impl App {
         if !providers.is_empty() {
             picker.select(Some(0));
         }
+        let exports = Arc::new(Exports::new(&root));
         Self {
             providers,
             picker,
             root,
             workspace: None,
             gateway: None,
+            exports,
+            reviewing_export: None,
+            export_offset: 0,
             instruction: Input::default(),
             screen: Screen::Picking,
             lines: Vec::new(),
@@ -153,10 +162,114 @@ impl App {
             _ => {}
         }
     }
-    fn start(&mut self) {
-        if self.busy || self.instruction.text().trim().is_empty() {
+    fn open_export(&mut self, id: Option<usize>) {
+        let result = self.exports.list().and_then(|entries| {
+            entries
+                .into_iter()
+                .find(|entry| {
+                    id.map_or(matches!(entry.state, "pending" | "reviewed"), |id| {
+                        entry.reference.id == id
+                    })
+                })
+                .map(|entry| entry.reference)
+                .ok_or_else(|| anyhow::anyhow!("No matching export proposal."))
+        });
+        match result {
+            Ok(reference) => {
+                if let Err(error) = self.exports.review(&reference) {
+                    self.say(error.to_string(), Style::new().fg(Color::Red));
+                    return;
+                }
+                self.reviewing_export = Some(reference);
+                self.export_offset = 0;
+                self.scroll_back = 0;
+                self.screen = Screen::ReviewingExport;
+            }
+            Err(error) => self.say(error.to_string(), Style::new().fg(Color::Yellow)),
+        }
+    }
+    fn export_key(&mut self, key: crossterm::event::KeyEvent) {
+        if key.code == KeyCode::Esc {
+            self.screen = Screen::Instructing;
             return;
         }
+        if key.code == KeyCode::Left {
+            self.export_offset = self.export_offset.saturating_sub(128);
+            return;
+        }
+        if key.code == KeyCode::Right {
+            if let Some(entry) = self
+                .reviewing_export
+                .as_ref()
+                .and_then(|reference| self.exports.get(reference).ok())
+            {
+                if let Ok(summary) = entry.summary() {
+                    let next = self.export_offset.saturating_add(128);
+                    if next < summary.bytes {
+                        self.export_offset = next;
+                    }
+                }
+            }
+            return;
+        }
+        let Some(reference) = self.reviewing_export.clone() else {
+            return;
+        };
+        let result = match key.code {
+            KeyCode::Char('y') if key.modifiers.is_empty() => {
+                self.exports.send(&reference).map(|(summary, code)| {
+                    format!(
+                        "Export #{}: {} · HTTP {:?} · {}",
+                        summary.reference.id, summary.state, code, summary.target
+                    )
+                })
+            }
+            KeyCode::Char('n') if key.modifiers.is_empty() => self
+                .exports
+                .reject(&reference)
+                .map(|summary| format!("Export #{} rejected.", summary.reference.id)),
+            _ => return,
+        };
+        match result {
+            Ok(message) => self.say(message, Style::new().fg(Color::Yellow)),
+            Err(error) => self.say(error.to_string(), Style::new().fg(Color::Red)),
+        }
+        self.screen = Screen::Instructing;
+        self.reviewing_export = None;
+    }
+    fn instruction_key(&mut self, key: crossterm::event::KeyEvent) {
+        match key.code {
+            KeyCode::Esc | KeyCode::Tab => self.screen = Screen::Picking,
+            KeyCode::Enter if key.modifiers.contains(KeyModifiers::ALT) => {
+                self.instruction.insert("\n");
+            }
+            KeyCode::Enter => self.start(),
+            KeyCode::Backspace => {
+                self.instruction.backspace();
+            }
+            KeyCode::Delete => self.instruction.delete(),
+            KeyCode::Left => self.instruction.left(),
+            KeyCode::Right => self.instruction.right(),
+            KeyCode::Home => self.instruction.home(),
+            KeyCode::End => self.instruction.end(),
+            KeyCode::Up => self.instruction.up(),
+            KeyCode::Down => self.instruction.down(),
+            KeyCode::Char('a') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                self.instruction.home();
+            }
+            KeyCode::Char('e') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                self.instruction.end();
+            }
+            KeyCode::Char('u') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                self.instruction.clear();
+            }
+            KeyCode::Char(c) if !key.modifiers.contains(KeyModifiers::CONTROL) => {
+                self.instruction.insert(&c.to_string());
+            }
+            _ => {}
+        }
+    }
+    fn host_command(&mut self) -> bool {
         if self.instruction.text().trim() == "/clear" {
             self.worker = None;
             self.rx = None;
@@ -168,6 +281,26 @@ impl App {
                 "Conversation cleared. Workspace files retained.",
                 Style::new().fg(Color::DarkGray),
             );
+            return true;
+        }
+        let mut parts = self.instruction.text().split_whitespace();
+        if parts.next() != Some("/exports") {
+            return false;
+        }
+        let id = parts.next().map(str::parse::<usize>).transpose();
+        let extra = parts.next().is_some();
+        self.instruction.clear();
+        match id {
+            Ok(id) if !extra => self.open_export(id),
+            _ => self.say("Use /exports or /exports ID.", Style::new().fg(Color::Red)),
+        }
+        true
+    }
+    fn start(&mut self) {
+        if self.busy || self.instruction.text().trim().is_empty() {
+            return;
+        }
+        if self.host_command() {
             return;
         }
         let Some(gateway) = self
@@ -199,12 +332,13 @@ impl App {
                 return;
             };
             let processes = Arc::clone(&self.processes);
+            let exports = Arc::clone(&self.exports);
             self.worker = Some(commands);
             self.rx = Some(results);
             self.worker_gateway = Some(Arc::clone(&gateway));
             self.lines.clear();
             thread::spawn(move || {
-                worker(&gateway, &workspace, &tasks, &updates, &processes);
+                worker(&gateway, &workspace, &tasks, &updates, &processes, &exports);
             });
         }
         self.processes.flag().store(false, Ordering::SeqCst);
@@ -265,6 +399,15 @@ impl App {
                     self.busy = false;
                     self.screen = Screen::Instructing;
                     self.say(text, Style::new().fg(Color::DarkGray));
+                    if let Ok(entries) = self.exports.list() {
+                        let pending = entries
+                            .iter()
+                            .filter(|entry| matches!(entry.state, "pending" | "reviewed"))
+                            .count();
+                        if pending > 0 {
+                            self.say(format!("Host: {pending} export proposal(s) await review. Use /exports."), Style::new().fg(Color::Yellow));
+                        }
+                    }
                 }
             }
         }
@@ -298,11 +441,13 @@ fn worker(
     tasks: &Receiver<String>,
     tx: &Sender<Update>,
     processes: &Arc<Control>,
+    exports: &Arc<Exports>,
 ) {
     let mut session = match crate::session::Session::new(
         Arc::clone(workspace),
         Arc::clone(gateway),
         Arc::clone(processes),
+        exports,
     ) {
         Ok(session) => session,
         Err(error) => {
@@ -443,7 +588,10 @@ where
         }
         match key.code {
             KeyCode::PageUp => {
-                app.scroll_back = if app.screen == Screen::ReviewingProcessor {
+                app.scroll_back = if matches!(
+                    app.screen,
+                    Screen::ReviewingProcessor | Screen::ReviewingExport
+                ) {
                     app.scroll_back.saturating_sub(10)
                 } else {
                     app.scroll_back.saturating_add(10)
@@ -451,7 +599,10 @@ where
                 continue;
             }
             KeyCode::PageDown => {
-                app.scroll_back = if app.screen == Screen::ReviewingProcessor {
+                app.scroll_back = if matches!(
+                    app.screen,
+                    Screen::ReviewingProcessor | Screen::ReviewingExport
+                ) {
                     app.scroll_back.saturating_add(10)
                 } else {
                     app.scroll_back.saturating_sub(10)
@@ -473,36 +624,8 @@ where
                 _ => {}
             },
             Screen::ReviewingProcessor => app.review_key(key),
-            Screen::Instructing => match key.code {
-                KeyCode::Esc | KeyCode::Tab => app.screen = Screen::Picking,
-                KeyCode::Enter if key.modifiers.contains(KeyModifiers::ALT) => {
-                    app.instruction.insert("\n");
-                }
-                KeyCode::Enter => app.start(),
-                KeyCode::Backspace => {
-                    app.instruction.backspace();
-                }
-                KeyCode::Delete => app.instruction.delete(),
-                KeyCode::Left => app.instruction.left(),
-                KeyCode::Right => app.instruction.right(),
-                KeyCode::Home => app.instruction.home(),
-                KeyCode::End => app.instruction.end(),
-                KeyCode::Up => app.instruction.up(),
-                KeyCode::Down => app.instruction.down(),
-                KeyCode::Char('a') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                    app.instruction.home();
-                }
-                KeyCode::Char('e') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                    app.instruction.end();
-                }
-                KeyCode::Char('u') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                    app.instruction.clear();
-                }
-                KeyCode::Char(c) if !key.modifiers.contains(KeyModifiers::CONTROL) => {
-                    app.instruction.insert(&c.to_string());
-                }
-                _ => {}
-            },
+            Screen::ReviewingExport => app.export_key(key),
+            Screen::Instructing => app.instruction_key(key),
             Screen::Running => {
                 if key.code == KeyCode::Esc {
                     app.cancel();
@@ -542,7 +665,9 @@ fn draw(frame: &mut Frame<'_>, app: &App) {
     } else {
         middle
     };
-    if app.screen == Screen::ReviewingProcessor {
+    if app.screen == Screen::ReviewingExport {
+        draw_export_review(frame, app, middle);
+    } else if app.screen == Screen::ReviewingProcessor {
         draw_processor_review(frame, app, middle);
     } else if app.screen == Screen::Picking {
         let items: Vec<_> = app
@@ -592,6 +717,10 @@ fn draw(frame: &mut Frame<'_>, app: &App) {
             " processor approval ",
             "y: authorize this processor · n / esc: back · ctrl-c: quit".to_owned(),
         ),
+        Screen::ReviewingExport => (
+            " exact export · host control ",
+            "y: send once · n: reject · esc: back · ←/→: bytes · PgUp/PgDn: scroll".to_owned(),
+        ),
         Screen::Instructing => return,
         Screen::Running => (
             " working ",
@@ -625,6 +754,32 @@ fn draw_processor_review(frame: &mut Frame<'_>, app: &App, middle: Rect) {
             middle,
         );
     }
+}
+
+fn draw_export_review(frame: &mut Frame<'_>, app: &App, middle: Rect) {
+    let Some(entry) = app
+        .reviewing_export
+        .as_ref()
+        .and_then(|reference| app.exports.get(reference).ok())
+    else {
+        return;
+    };
+    let Ok(summary) = entry.summary() else {
+        return;
+    };
+    let text = format!(
+        "Export #{} · state: {}\nDestination: {}\nMethod: POST\nContent-Type: application/octet-stream\nSource name (untrusted): {}\nFrozen body: {} bytes · byte offset {}\n\n{}\nThese exact bytes are retained outside the worker. Sending does not reopen the source file. No redirects or automatic retries. Approval is for one attempt, including uncertain delivery.",
+        summary.reference.id, summary.state, visible(&summary.target),
+        visible(&summary.source).replace('\n', "⏎"), summary.bytes, app.export_offset,
+        entry.preview(app.export_offset),
+    );
+    frame.render_widget(
+        Paragraph::new(text)
+            .wrap(Wrap { trim: false })
+            .scroll((app.scroll_back, 0))
+            .block(Block::bordered().title(" immutable export review · host control ")),
+        middle,
+    );
 }
 
 fn draw_welcome(frame: &mut Frame<'_>, middle: Rect) -> Rect {

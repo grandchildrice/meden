@@ -61,7 +61,7 @@ pub fn environment(
     Ok((registry, policy))
 }
 
-fn logical_path(args: &Args) -> Option<PathBuf> {
+pub fn logical_path(args: &Args) -> Option<PathBuf> {
     let path = Path::new(args.get("path")?.as_str()?);
     let relative = if path.is_absolute() {
         path.strip_prefix("/workspace").ok()?

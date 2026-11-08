@@ -70,9 +70,10 @@ responsibility of the host implementation.
 
 The Rust counterpart is
 [`meden-core/src/transfer.rs`](../crates/meden-core/src/transfer.rs).
-The standalone HTTP export component now reserves through it under a mutex
-before dispatching its immutable request. The TUI's model client and other
-effects are not yet routed through that component.
+The HTTP export component now reserves through it under a mutex before
+dispatching its immutable request, including the TUI/CLI host review path.
+The model gateway uses the same refined `allowed` predicate with processor
+bindings; processor grants and exact one-use exports have separate scopes.
 
 ## Rust-to-Lean refinement of the transfer kernel
 
@@ -96,6 +97,7 @@ Lake pins the Aeneas library and all dependencies in the manifest.
 | --- | --- |
 | `allowed_refines` | The extracted Rust decision returns successfully and equals the abstract specification for every represented request, permit, session and `u64` time |
 | `reserve_refines` | The acceptance result and the complete updated permit agree with the abstract reservation transition |
+| `extracted_no_replay` | Two calls of the actual extracted Rust reservation function cannot both accept the same evolving permission, for arbitrary later request/session/time |
 
 The proof handles variable-length full byte vectors, not hashes or bounded
 text samples. Rust bytes map injectively to natural-number lists in the
@@ -147,7 +149,7 @@ Definitions and additional lemmas are in
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the seventeen
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the eighteen
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -220,8 +222,8 @@ The live-model smoke harness's independent checker also uses `exec`;
 it does not execute model-generated code on the host.
 
 These tests cover production worker paths, not a Lean proof of OS effects.
-Local inference confinement, page cache, trusted export
-review and the complete malicious-page acceptance suite remain work.
+Local inference confinement, page cache, whole-controller refinement and
+the complete malicious-page acceptance suite remain work.
 
 ## Shared CLI and TUI execution
 
@@ -249,14 +251,15 @@ Real host TCP/UDP receivers observe no unauthorized traffic. Actual code
 editing and tests still succeed, followed by an independent check in another
 offline copy. This validates current production paths under full model
 control, not general coding-model utility or the complete R1 suite. It
-does not implement the approved page prefetcher or export review.
+does not implement the approved page prefetcher. Export review has its own
+production tests below.
 
 Toolchain selection uses only resources visible in the public mount layout.
 On Nix, a private `uv` Python shadowing a public Python is skipped rather
 than binding the private cache into the sandbox. The attack test exposed
 this actual execution failure before the selection was corrected.
 
-These controller, parser, router and OS behaviors have tests; the seventeen
+These controller, parser, router and OS behaviors have tests; the eighteen
 Lean theorem entry points still cover their stated kernels. The shared
 session has no whole-controller refinement theorem yet.
 
@@ -282,8 +285,8 @@ The existing `allowed_refines` theorem proves the production predicate's
 complete equality/expiry/revocation decision. This reuse introduces no new
 handwritten implementation model or axiom. Processor approval permits
 conversation bodies for inference; it is **not** a one-use exact export and
-does not call `reserve`. The existing seventeen theorem entry points remain
-unchanged. Binding construction, trusted input origins, locking, actual
+does not call `reserve` or add a separate predicate proof. Binding
+construction, trusted input origins, locking, actual
 HTTP correspondence and UI rendering are integration-tested, not refined.
 Requests already permitted before revocation can finish.
 
@@ -312,21 +315,44 @@ credentials. A legitimate direct response still completes the conversation.
 Transport checks complement the processor approval tests above; they do
 not establish local inference confinement.
 
-The standalone [HTTP export component](../crates/meden-runtime/src/transfer.rs)
+The [HTTP export component](../crates/meden-runtime/src/transfer.rs)
 uses the refined `reserve` function under a mutex. Its target and body are
 owned immutable snapshots; host approval is a separate method that is not
 exposed as a model tool. Dispatch uses a fresh client with proxies and
 redirects disabled. Failures leave authorization spent.
 
-Four tests observe real TCP receivers: no send before approval or across
+Five component tests observe real TCP receivers: no send before approval or across
 sessions, exact frozen binary payload after the source changes, concurrent
 one-use consumption, no forwarding on a 307 redirect, and no reuse after
 the receiver obtains the payload but closes without acknowledging it.
+Expired approvals and ambiguous/invalid targets cannot dispatch.
 These tests use literal loopback HTTP; they do not prove the HTTP/TLS stack
 or establish complete controller/transport refinement. The component
 supports one raw POST, not Git/email adapters or service audience discovery.
-It is not yet the TUI's outbound path. Authorization recovery after process
-restart and complete effect mediation remain implementation work.
+The [proposal queue](../crates/meden-cli/src/exports.rs) now connects this to
+both production interfaces. A file worker snapshots at most 1 MiB without
+exposing original/host paths. Full bytes stay in host memory outside the
+worker's writable mount. Session references use an exact hex encoding of
+the workspace path bytes, including non-UTF-8 paths, plus an unreused index.
+Review exposes the immutable request and enables a subsequent host approval;
+the model only has `propose_export`, which never grants authority or sends.
+
+[Real CLI/PTY tests](../python/tests/test_exports.py) observe recipients and
+actual terminal cells. They reject approval before review, another session,
+model-written approval, user rejection and replay. They change the file
+after proposal, then check that only original binary bytes reach the approved
+recipient. A 307 does not reach the other receiver; a receiver which obtains
+the body and disconnects leaves approval spent. Enter and bracketed paste
+do not approve in the TUI, while the local approval key works. Review
+commands issue no model calls. These are integration tests, not a refinement
+proof of the queue, protocol, UI or HTTP stack. The new extracted Rust
+no-replay theorem covers the two core reservation calls, not those adapters.
+
+The canonical operation binds method, URL, content type and exact body.
+Transport-generated framing/TLS and its correspondence remain trust
+dependencies. Service-specific audience resolution, immutable project proof
+evidence, authorization recovery after restart and complete effect mediation
+remain implementation work. The current process retains no grants on exit.
 
 ## Reproduce locally
 

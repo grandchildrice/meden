@@ -8,7 +8,7 @@ license = "Apache-2.0"
 dependencies = []
 
 [dependency-groups]
-dev = ["pytest>=8.0", "ruff>=0.6"]
+dev = ["pytest>=8.0", "ruff>=0.6", "pyte>=0.8.2"]
 
 [build-system]
 requires = ["hatchling"]

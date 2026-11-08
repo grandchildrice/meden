@@ -1,5 +1,5 @@
 //! Immutable HTTP export and one-use reservation before actual delivery.
-//! The host owns approval. This component is not yet connected to TUI tools.
+//! The host owns approval; model tools can only propose immutable snapshots.
 
 use std::io;
 use std::sync::Mutex;
@@ -21,6 +21,11 @@ impl Export {
     /// Freeze a complete request. HTTPS is required except for literal local
     /// loopback receivers; an HTTP redirect is never followed automatically.
     pub fn prepare(session: &[u8], target: &str, payload: &[u8]) -> io::Result<Self> {
+        if target.contains('#') || target.len() > 8192 {
+            return Err(io::Error::other(
+                "transfer URI must be at most 8192 bytes without a fragment",
+            ));
+        }
         let uri: ureq::http::Uri = target
             .parse()
             .map_err(|_| io::Error::other("invalid transfer URI"))?;
@@ -235,6 +240,29 @@ mod tests {
         assert!(export.send(b"session").is_err());
         assert!(export.approve_from_host(Duration::from_secs(60)).is_err());
         assert!(receiver.accept().is_err());
+    }
+
+    #[test]
+    fn invalid_targets_and_expired_approvals_never_dispatch() {
+        let receiver = listener();
+        for invalid in [
+            "https://example.invalid/path#hidden",
+            "http://remote.example/path",
+            "https://user@remote.example/path",
+        ] {
+            assert!(Export::prepare(b"s", invalid, b"secret").is_err());
+        }
+        let export = Export::prepare(b"s", &target(&receiver), b"secret").expect("prepare");
+        export
+            .approve_from_host(Duration::from_millis(1))
+            .expect("approval");
+        thread::sleep(Duration::from_millis(10));
+        assert_eq!(
+            export.send(b"s").expect_err("expired").kind(),
+            io::ErrorKind::PermissionDenied
+        );
+        assert!(receiver.accept().is_err());
+        assert!(export.approve_from_host(Duration::from_secs(60)).is_err());
     }
 
     #[test]

@@ -5,7 +5,7 @@ use meden_agent::tool::{Args, ToolError};
 use serde_json::Value;
 use std::fmt::Write as _;
 use std::fs;
-use std::io::{BufRead, BufReader, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
 
 const OUTPUT_LIMIT: usize = 24_000;
@@ -23,6 +23,26 @@ struct FileOperation {
 
 pub fn run() -> Result<()> {
     let request: Value = serde_json::from_reader(std::io::stdin().lock())?;
+    if request.get("operation").and_then(Value::as_str) == Some("snapshot") {
+        let args: Args = serde_json::from_value(
+            request
+                .get("arguments")
+                .cloned()
+                .context("missing arguments")?,
+        )?;
+        let path = FileOperation {
+            root: PathBuf::from("/workspace"),
+            operation: Operation::Read,
+        }
+        .resolve(&args)?;
+        let mut bytes = Vec::new();
+        fs::File::open(path)?
+            .take(1_048_577)
+            .read_to_end(&mut bytes)?;
+        anyhow::ensure!(bytes.len() <= 1_048_576, "export exceeds 1 MiB");
+        serde_json::to_writer(std::io::stdout().lock(), &bytes)?;
+        return Ok(());
+    }
     let operation = match request.get("operation").and_then(Value::as_str) {
         Some("read_file") => Operation::Read,
         Some("list_files") => Operation::List,

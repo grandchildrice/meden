@@ -7,6 +7,7 @@ use std::io::{self, Read, Write};
 use std::path::PathBuf;
 use std::process::ExitCode;
 use std::sync::{atomic::AtomicBool, Arc};
+mod exports;
 mod protocol;
 mod session;
 mod shell;
@@ -119,8 +120,7 @@ fn run() -> Result<()> {
                 "run requires --approve-processor with the exact /chat/completions URL; this permits sending conversation and tool results to that processor for this session (up to eight hours)",
             )?;
             let mut input = io::BufReader::new(io::stdin());
-            let first =
-                protocol::read_instruction(&mut input)?.context("no instruction received")?;
+            let first = protocol::read_command(&mut input)?.context("no command received")?;
             let provider =
                 pick_provider(args.model.provider.as_deref(), args.model.model.as_deref())?;
             let workspace = Arc::new(Workspace::import(

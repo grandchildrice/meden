@@ -23,6 +23,12 @@ forged approvals, encoded output and TCP/UDP/DNS through actual shell
 execution. Receivers observe traffic and a separate offline copy checks
 the resulting program. These checks are narrower than the full R1 suite.
 
+Export tests also use real CLI streams and decoded terminal cells. They
+review frozen binary bodies, reject forged/cross-session/replayed approvals,
+and observe exact receiver bytes after the source changes. Redirects and
+uncertain delivery never cause automatic resend. The terminal decoder is a
+development dependency, not part of the Rust runtime.
+
 A separate live-model check drives two actual TUI turns and independently
 checks the generated program:
 

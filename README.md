@@ -96,8 +96,13 @@ printf 'python3 -m unittest -v' | ./target/release/meden exec --workspace /path/
 ```
 
 `exec` returns JSON with the retained workspace path and execution result.
-Applying/exporting reviewed changes back to another location is still a
-separate, unfinished workflow.
+Applying changes back to the original project remains a separate workflow.
+
+The agent can propose a file export for review. `/exports` in the TUI shows
+the actual HTTP destination and frozen bytes; only a local `y` key sends
+once. File changes after preparation cannot replace those bytes. The CLI
+provides equivalent host review commands. This is raw HTTP export, with
+Git/email adapters and evidence-gated release still unfinished.
 
 For model-driven automation, `meden run --workspace ...` accepts
 `{"instruction":"..."}` objects, one per line, and emits JSON events. It
@@ -115,6 +120,7 @@ session as the TUI. [CLI protocol →](docs/cli.md)
 | Tab | Model picker |
 | Esc / Ctrl-C while running | Request cancellation; Ctrl-C again exits |
 | `/clear` | Start a fresh conversation, retaining files |
+| `/exports` / `/exports ID` | Review a pending or specified immutable file export |
 
 ## Product direction
 
@@ -147,7 +153,8 @@ ask a model to decide whether its own action is authorized.
 
 The exact-transfer decision kernel now has seven Lean theorems, including
 full-request matching and no replay after reservation, plus two refinement
-theorems connecting the generated Rust model to that specification. A
+theorems connecting the generated Rust model to that specification, plus a
+no-replay theorem over two calls of the extracted Rust function. A
 Linux runner now confines actual TUI file/Bash tools and `exec`. Tests use
 real host files, inherited descriptors, sockets and receivers. Connecting
 every remaining effect and confining local inference are still work in progress.
