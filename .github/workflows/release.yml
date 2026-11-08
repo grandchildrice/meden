@@ -59,12 +59,18 @@ jobs:
       - run: cargo build --locked --release -p meden-cli --target "$BUILD_TARGET"
         env:
           BUILD_TARGET: ${{ matrix.target }}
+      - name: Install Linux isolation backend
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap
+      - name: Load Ubuntu 24.04's packaged Bubblewrap namespace profile
+        if: matrix.os == 'ubuntu-24.04-arm'
+        run: |
+          sudo apt-get install -y apparmor-profiles
+          sudo apparmor_parser -r /usr/share/apparmor/extra-profiles/bwrap-userns-restrict
       - name: Exercise the offline backend on the actual release architecture
         env:
           BUILD_TARGET: ${{ matrix.target }}
         run: |
           set -euo pipefail
-          sudo apt-get update && sudo apt-get install -y bubblewrap
           smoke_source=$(mktemp -d)
           printf true | "target/$BUILD_TARGET/release/meden" exec --workspace "$smoke_source"
       - name: Package exact-source archive and build provenance

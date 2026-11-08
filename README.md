@@ -47,7 +47,10 @@ HTTP connections and optional Hermes configuration.
 
 ## Getting started
 
-The workspace backend currently requires Linux, Bubblewrap and Bash.
+The workspace backend currently requires Linux, Bubblewrap, Bash and host
+permission to create the required namespaces. Ubuntu 24.04 may need its
+packaged Bubblewrap AppArmor profile enabled by an administrator; see
+[the tested runner configuration](docs/release.md#exact-source-to-staged-archives).
 Build from source with Rust:
 
 ```bash

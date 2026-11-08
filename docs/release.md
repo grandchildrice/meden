@@ -14,6 +14,14 @@ to a commit. Both supported targets, `x86_64-unknown-linux-gnu` and
 offline `exec` backend before packaging. Linux is currently the only
 supported workspace runtime; the package no longer advertises other systems.
 
+The Ubuntu 24.04 ARM runner also installs and loads Ubuntu's packaged
+`bwrap-userns-restrict` AppArmor profile before the smoke check. The profile
+allows Bubblewrap's namespace setup and strips namespace capabilities from
+its children; it does not disable the global user-namespace restriction.
+This prerequisite was exposed by the real ARM smoke check. See
+[Ubuntu's explanation](https://discourse.ubuntu.com/t/understanding-apparmor-user-namespace-restriction/58007)
+and the [upstream profile](https://gitlab.com/apparmor/apparmor/-/blob/master/profiles/apparmor/profiles/extras/bwrap-userns-restrict).
+
 Each target produces an archive, SHA-256 sidecar and source provenance JSON.
 The provenance records repository, source commit, target, full Rust version
 and the locked release build. It is an assertion of the trusted build
