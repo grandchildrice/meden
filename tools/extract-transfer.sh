@@ -14,11 +14,11 @@ case $("$aeneas_bin" -version) in
   *) echo 'Unsupported Aeneas revision' >&2; exit 1 ;;
 esac
 
-units=(control evidence approval repair)
+units=(control evidence approval repair conversation)
 case "$#:${1:-}:${2:-}" in
   0::|1:--write:) ;;
-  2:--write:control|2:--write:evidence|2:--write:approval|2:--write:repair) units=("$2") ;;
-  *) echo 'Usage: tools/extract-transfer.sh [--write [control|evidence|approval|repair]]' >&2; exit 2 ;;
+  2:--write:control|2:--write:evidence|2:--write:approval|2:--write:repair|2:--write:conversation) units=("$2") ;;
+  *) echo 'Usage: tools/extract-transfer.sh [--write [control|evidence|approval|repair|conversation]]' >&2; exit 2 ;;
 esac
 extract_tmp=$(mktemp -d)
 trap 'rm -rf "$extract_tmp"' EXIT
@@ -59,8 +59,20 @@ for unit in "${units[@]}"; do
         meden_runtime::verification::failure::failed_worker
         meden_runtime::verification::failure::verification_stops
         meden_runtime::verification::failure::FailureKind::repairable)
-      extraction_args=(--include meden_agent --include std::process --include std::sys --include std::os::unix)
+      extraction_args=(--include std::process --include std::sys --include std::os::unix)
       model=Repair ;;
+    conversation)
+      namespace=MedenConversationImpl
+      cargo_args=(--locked --lib -p meden-agent)
+      rust_roots=(meden_agent::flow::Flow::begin
+        meden_agent::flow::interrupt
+        meden_agent::flow::Flow::advance
+        meden_agent::flow::Flow::pending_call
+        meden_agent::flow::Flow::reply
+        meden_agent::flow::Flow::result
+        meden_agent::flow::Flow::into_outcome
+        meden_agent::conversation::Status::inspection)
+      model=Conversation ;;
   esac
   extract_roots=()
   for rust_root in "${rust_roots[@]}"; do
@@ -75,6 +87,19 @@ for unit in "${units[@]}"; do
   if grep -En '\b(axiom|sorry|admit)\b' "$extract_tmp/$model.lean"; then
     echo 'Extraction left an unknown definition or proof hole' >&2
     exit 1
+  fi
+  if [[ $unit == conversation ]]; then
+    # External roots can be pruned by the pinned translator. Require the
+    # production entry points, rather than accepting helpers alone.
+    for definition in flow.Flow.begin flow.interrupt flow.Flow.advance \
+      flow.Flow.pending_call flow.Flow.impl.reply flow.Flow.impl.result \
+      flow.Flow.into_outcome conversation.Status.inspection; do
+      if ! awk -v name="$definition" '$1 == "def" && $2 == name { found = 1 }
+        END { exit !found }' "$extract_tmp/$model.lean"; then
+        echo "Missing extracted entry point: $definition" >&2
+        exit 1
+      fi
+    done
   fi
   case ${1:-} in
     --write) cp "$extract_tmp/$model.lean" "lean/MedenSpec/Generated/$model.lean" ;;

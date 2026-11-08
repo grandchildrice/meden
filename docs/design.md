@@ -344,6 +344,14 @@ which binds scoped CI checks to source and the actual staged archives under
 explicit GitHub/build/OS/compiler/hash assumptions.
 The application's parser, origin attribution, I/O loop and locking still
 need their own correspondence; these kernel traces do not prove them.
+The shared outer-turn controller now has transition and finite-trace
+refinement, including bounded repair/check cycles and typed operational
+stops. The inner conversation controller also owns its original calls and
+results and has extracted transition, observation and finite-trace proofs
+for request budgets, retained stops and valid call/result positions. The
+actual status classifier connects the two through a proved inspection
+bridge. These control proofs do not establish eventual coding success or
+cover the surrounding JSON, model transport and tool I/O interpreters.
 The first user-project path supports one fixed, host-reviewed Rust ledger
 contract through shared TUI/CLI sessions, actual extraction/Lean checking
 and exact retained library artifacts. [Its scope and setup](project-verification.md)

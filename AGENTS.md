@@ -22,10 +22,14 @@
   check after budget exhaustion. One invocation may make multiple LLM requests.
   Inspection/check signals retain typed failures: unavailable or inconclusive
   source inspection stops instead of reusing an older rejected check.
-  The session dispatches its returned operation; the I/O interpreter, signal
-  attribution and inner conversation loop remain separate obligations.
+  The session dispatches its returned operation; I/O interpretation and signal
+  attribution remain separate obligations.
+  The inner conversation uses its own extracted/refined effect controller;
+  it owns the original reply/call vector, cursor and typed result. Its
+  request budget, latched stops and call/result observations are checked
+  separately from JSON history, model transport and physical dispatch.
   Typed verification-failure classification and repair-stop decisions are
-  extracted/refined; I/O mapping, host-stop routing and history remain tested
+  extracted/refined; I/O mapping, host-stop attribution and history remain tested
   adapters. Operational failures stop automatic repair until a new host turn.
   Issued-job operations and arbitrary finite compositions are extracted/refined:
   exact session/contract/input-bound tickets are consumed once, and older

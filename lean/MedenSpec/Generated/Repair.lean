@@ -44,18 +44,6 @@ def std.process.ExitStatus.Insts.StdOsUnixProcessExitStatusExt.into_raw
   (self : std.process.ExitStatus) : Result Std.I32 := do
   ok self
 
-/-- [meden_agent::conversation::Status]
-    Source: 'crates/meden-agent/src/conversation.rs', lines 111:0-111:15
-    Name pattern: [meden_agent::conversation::Status]
-    Visibility: public -/
-@[discriminant isize, rust_type "meden_agent::conversation::Status"]
-inductive meden_agent.conversation.Status where
-| Done : String → meden_agent.conversation.Status
-| Failed : String → meden_agent.conversation.Status
-| Incomplete : meden_agent.conversation.Status
-| Cancelled : meden_agent.conversation.Status
-| NeedsReview : meden_agent.conversation.Status
-
 /-- [meden_runtime::process::Termination]
     Source: 'crates/meden-runtime/src/process.rs', lines 107:0-116:1
     Visibility: public -/
@@ -135,7 +123,7 @@ def verification.failure.failed_worker
       ok verification.failure.FailureKind.Inconclusive
 
 /-- [meden_runtime::verification::turn::Terminal]
-    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 9:0-20:1
+    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 8:0-19:1
     Visibility: public -/
 @[discriminant isize]
 inductive verification.turn.Terminal where
@@ -146,7 +134,7 @@ inductive verification.turn.Terminal where
 | Exhausted : verification.turn.Terminal
 
 /-- [meden_runtime::verification::turn::Effect]
-    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 24:0-35:1
+    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 23:0-34:1
     Visibility: public -/
 @[discriminant isize]
 inductive verification.turn.Effect where
@@ -157,16 +145,12 @@ inductive verification.turn.Effect where
 | Stop : verification.turn.Terminal → verification.turn.Effect
 
 /-- [meden_runtime::verification::turn::Signal]
-    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 38:0-60:1
+    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 37:0-59:1
     Visibility: public -/
 @[discriminant isize]
 inductive verification.turn.Signal where
 | Start : verification.turn.Signal
-| Conversation :
-  meden_agent.conversation.Status →
-  Bool →
-  Bool →
-  verification.turn.Signal
+| Conversation : Option Bool → Bool → Bool → verification.turn.Signal
 | Current :
   core.result.Result Bool verification.failure.FailureKind →
   verification.turn.Signal
@@ -175,7 +159,7 @@ inductive verification.turn.Signal where
   verification.turn.Signal
 
 /-- [meden_runtime::verification::turn::Stage]
-    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 63:0-69:1 -/
+    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 62:0-68:1 -/
 @[discriminant isize]
 inductive verification.turn.Stage where
 | Ready : verification.turn.Stage
@@ -185,20 +169,20 @@ inductive verification.turn.Stage where
 | Stopped : verification.turn.Terminal → verification.turn.Stage
 
 /-- [meden_runtime::verification::turn::Turn]
-    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 73:0-76:1
+    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 72:0-75:1
     Visibility: public -/
 structure verification.turn.Turn where
   remaining : Std.U8
   stage : verification.turn.Stage
 
 /-- [meden_runtime::verification::turn::{meden_runtime::verification::turn::Turn}::begin]:
-    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 80:4-85:5
+    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 79:4-84:5
     Visibility: public -/
 def verification.turn.Turn.begin : Result verification.turn.Turn := do
   ok { remaining := 4#u8, stage := verification.turn.Stage.Ready }
 
 /-- [meden_runtime::verification::turn::{meden_runtime::verification::turn::Turn}::stop]:
-    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 167:4-170:5 -/
+    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 168:4-171:5 -/
 def verification.turn.Turn.stop
   (self : verification.turn.Turn) (reason : verification.turn.Terminal) :
   Result (verification.turn.Effect × verification.turn.Turn)
@@ -207,7 +191,7 @@ def verification.turn.Turn.stop
     { self with stage := (verification.turn.Stage.Stopped reason) })
 
 /-- [meden_runtime::verification::turn::{meden_runtime::verification::turn::Turn}::repair]:
-    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 158:4-165:5 -/
+    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 159:4-166:5 -/
 def verification.turn.Turn.repair
   (self : verification.turn.Turn) :
   Result (verification.turn.Effect × verification.turn.Turn)
@@ -219,7 +203,7 @@ def verification.turn.Turn.repair
       { self with stage := verification.turn.Stage.Ready })
 
 /-- [meden_runtime::verification::turn::{meden_runtime::verification::turn::Turn}::advance]:
-    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 89:4-156:5
+    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 88:4-157:5
     Visibility: public -/
 def verification.turn.Turn.advance
   (self : verification.turn.Turn) (signal : verification.turn.Signal)
@@ -273,59 +257,23 @@ def verification.turn.Turn.advance
           | verification.turn.Signal.Start =>
             verification.turn.Turn.stop self
               verification.turn.Terminal.Exhausted
-          | verification.turn.Signal.Conversation status accepted changed =>
+          | verification.turn.Signal.Conversation inspection accepted changed
+            =>
             if accepted
             then
               if changed
               then
-                let b1 ←
-                  match status with
-                  | meden_agent.conversation.Status.Done _ => ok true
-                  | meden_agent.conversation.Status.Failed _ => ok false
-                  | meden_agent.conversation.Status.Incomplete => ok true
-                  | meden_agent.conversation.Status.Cancelled => ok false
-                  | meden_agent.conversation.Status.NeedsReview => ok false
-                if b1
-                then
-                  match status with
-                  | meden_agent.conversation.Status.Done _ =>
-                    ok (verification.turn.Effect.Inspect,
-                      {
-                        self
-                          with
-                          stage := (verification.turn.Stage.Inspect false)
-                      })
-                  | meden_agent.conversation.Status.Failed _ =>
-                    ok (verification.turn.Effect.Inspect,
-                      {
-                        self
-                          with
-                          stage := (verification.turn.Stage.Inspect false)
-                      })
-                  | meden_agent.conversation.Status.Incomplete =>
-                    ok (verification.turn.Effect.Inspect,
-                      {
-                        self
-                          with
-                          stage := (verification.turn.Stage.Inspect true)
-                      })
-                  | meden_agent.conversation.Status.Cancelled =>
-                    ok (verification.turn.Effect.Inspect,
-                      {
-                        self
-                          with
-                          stage := (verification.turn.Stage.Inspect false)
-                      })
-                  | meden_agent.conversation.Status.NeedsReview =>
-                    ok (verification.turn.Effect.Inspect,
-                      {
-                        self
-                          with
-                          stage := (verification.turn.Stage.Inspect false)
-                      })
-                else
+                match inspection with
+                | none =>
                   verification.turn.Turn.stop self
                     verification.turn.Terminal.Finish
+                | some fresh =>
+                  ok (verification.turn.Effect.Inspect,
+                    {
+                      self
+                        with
+                        stage := (verification.turn.Stage.Inspect fresh)
+                    })
               else
                 verification.turn.Turn.stop self
                   verification.turn.Terminal.Finish

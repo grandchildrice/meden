@@ -19,7 +19,7 @@ established by the current CI badge.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate transfer/review/dispatch, evidence, issued jobs, TUI approval, scheduling and failure kernels, `lake build`, proof scan/audit, fifty-three Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate transfer/review/dispatch, evidence, issued jobs, TUI approval, outer/inner conversation and failure kernels, `lake build`, proof scan/audit, sixty Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A result or resulting transfer state differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -298,8 +298,9 @@ completed rejection permits repair.
 [`Repair.lean`](../lean/MedenSpec/Repair.lean) specifies this protocol.
 [`RepairRefinement.lean`](../lean/MedenSpec/RepairRefinement.lean) proves
 initialization and the actual extracted transition, including `u8` budget
-boundaries, every represented protocol state and arbitrary text in the actual
-`meden_agent::conversation::Status` variants. The
+boundaries and every represented protocol state. A separately extracted
+`Status::inspection` classifies actual conversation outcomes, including arbitrary
+text, and its composition with this transition is proved below. The
 [unedited generated module](../lean/MedenSpec/Generated/Repair.lean) also
 contains the real runtime failure classifier. Control and process classification
 share that actual extracted failure type.
@@ -330,10 +331,75 @@ budget recovery and operational stops through the independent checker and
 retained artifact path.
 
 Host attribution of signals, file-change observation, current-subject
-inspection, inner conversation/history behavior, physical dispatch, locks and
+inspection, JSON history behavior, physical dispatch, locks and
 cancellation races remain adapter obligations. These are finite compositions
 of extracted controller operations, not extraction of the complete I/O loop
 or a theorem of eventual task success.
+
+## Inner conversation effects and call/result binding
+
+The production [conversation interpreter](../crates/meden-agent/src/conversation.rs)
+uses [Flow](../crates/meden-agent/src/flow.rs) to choose its next operation.
+Flow owns the original assistant reply, tool-call vector, current position,
+typed result, request budget and latched stop. The interpreter looks up the
+call in that state for both execution and result publication; it does not
+supply a replacement call ID when returning a result.
+
+The independent [protocol specification](../lean/MedenSpec/Conversation.lean)
+has seven phases: ready, request notification, model response, assistant
+publication, tool execution, result publication and halted. The production
+controller, getters, outcome classifier and shared final interruption guard
+are extracted as a local `meden-agent` unit into
+[`Generated/Conversation.lean`](../lean/MedenSpec/Generated/Conversation.lean).
+The regeneration script checks that every requested entry point is present;
+an extraction containing only helper definitions is rejected. String creation
+and diagnostic formatting stay in the interpreter. The model retains actual
+string fields without adding opaque string-operation assumptions.
+
+| Audited theorem | Checked claim |
+| --- | --- |
+| `ConversationRefinement.begin_refines` | Actual initialization agrees with the specification, including saturating `usize` arithmetic |
+| `ConversationRefinement.advance_refines` | Every actual effect and complete resulting control state agree, for every represented phase, input and interruption |
+| `ConversationRefinement.interrupt_refines` | Cancellation takes priority over the host stop in the shared final guard |
+| `ConversationRefinement.inspection_refines` | Normal completion permits inspection, budget exhaustion requires a fresh check, and failure/cancellation/review do not request inspection |
+| `ConversationObservations.pending_refines` | The actual call getter returns the original ID, tool and argument text at the selected position |
+| `ConversationObservations.reply_refines` | The assistant observer reads the reply owned by the controller |
+| `ConversationObservations.result_refines` | The result observer reads the stored typed result only in the result-publication phase |
+| `ConversationObservations.outcome_refines` | The actual final status/content agrees with the independent outcome rules |
+| `ConversationObservations.inspection_bridge` | The actual status classifier composed with the outer turn transition agrees with its specification |
+| `ConversationTrace.trace_refines` | Arbitrary finite compositions agree on final state and model-request count |
+| `ConversationTrace.extracted_request_budget` | Such a trace from actual initialization makes at most `groups + 1` model requests |
+| `ConversationTrace.extracted_halted` | Every finite continuation from a halted native state preserves it and makes no model request |
+| `ConversationTrace.extracted_stop_blocks` | A latched stop prevents both model requests and executable tool effects |
+| `ConversationTrace.extracted_stop_persists` | Later observations cannot clear or replace the latched native stop reason |
+| `ConversationTrace.extracted_wellFormed` | Every finite continuation preserves valid call/result positions from a well-formed state; native vector bounds discharge reply-size assumptions |
+| `ConversationTrace.initialized_wellFormed` | The same invariant holds from actual initialization for every finite observation sequence |
+| `ConversationTrace.extracted_record_pairing` | A record effect observes the original pre-transition call slot, with an existing selected call and stored result |
+
+Ordinary conversations allow fifteen executable tool groups and a final
+model request. Calls returned on that final request are recorded as skipped;
+they cannot execute. This gives at most sixteen model requests per invocation,
+within the separate four-invocation outer-turn budget. These are safety bounds,
+not a theorem that a task succeeds or that a host always supplies another input.
+An out-of-order host observation faults the controller and drains the original
+group without starting another model request or executable tool.
+
+A native regression reproduces a previous dispatch bug: the decision observer
+raised a host stop, but the tool still ran once. `execute` now calls the same
+extracted interruption guard after that observer, immediately before dispatch;
+the typed stop returned to Flow remains latched even when a later callback
+clears the external flag. Native tests also exercise multiple original call
+slots, budget exhaustion, malformed host order and `usize::MAX` saturation.
+Seven added Rust faults remove these guards, budget/cursor updates or the
+correct call lookup; the existing two status-classification faults now mutate
+the actual extracted classifier.
+
+This is refinement of the actual inner effect controller and its observations.
+It does not prove JSON parsing/history serialization, model transport,
+observer provenance, registered tool implementations, physical dispatch or
+the complete session I/O loop. Call positions retain the IDs supplied by the
+model; this does not assert that those IDs are unique. Confidentiality still
+requires the separate operating-system and outbound-adapter argument.
 
 ## Typed verification failures and stopping repair
 
@@ -547,7 +613,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with transfer/review/dispatch and TUI approval checks, CI rejects
-fifty-three faults, including scheduling, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
+sixty faults, including outer/inner conversation, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -596,7 +662,7 @@ Definitions and additional lemmas are in
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the eighty-one
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 99
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -706,7 +772,7 @@ On Nix, a private `uv` Python shadowing a public Python is skipped rather
 than binding the private cache into the sandbox. The attack test exposed
 this actual execution failure before the selection was corrected.
 
-These controller, parser, router and OS behaviors have tests; the eighty-one
+These controller, parser, router and OS behaviors have tests; the
 Lean theorem entry points still cover their stated kernels. The shared
 session has no whole-controller refinement theorem yet.
 
@@ -833,7 +899,7 @@ failed. The conversation's `done` event is therefore not project-verification
 evidence. Setup, limits,
 failure behavior and OS/asset trust assumptions are documented in
 [local inference](local-inference.md). The launcher, protocol and OS boundary
-are not Lean-refined; they add no theorem roots to the eighty-one audited here.
+are not Lean-refined; they add no theorem roots to those audited here.
 
 ## Tests of actual HTTP delivery
 

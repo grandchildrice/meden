@@ -137,22 +137,117 @@ GROUPS = [
             "checks_require_authority_and_budget_stops_still_obtain_fresh_evidence"
         ),
         "mutations": [
-            (
-                "budget_skips_check",
-                "matches!(status, Status::Done(_) | Status::Incomplete) {",
-                "matches!(status, Status::Done(_)) {",
-            ),
-            (
-                "failure_restarts_check",
-                "matches!(status, Status::Done(_) | Status::Incomplete) {",
-                "matches!(status, Status::Done(_) | Status::Incomplete | Status::Failed(_)) {",
-            ),
             ("unaccepted_check", "accepted && changed", "(accepted || true) && changed"),
             ("unchanged_check", "accepted && changed", "accepted && (changed || true)"),
             (
                 "budget_reuses_old_rejection",
                 "!fresh && matches!(failure, Some(FailureKind::Unverified))",
                 "(!fresh || true) && matches!(failure, Some(FailureKind::Unverified))",
+            ),
+        ],
+    },
+    {
+        "source": "crates/meden-agent/src/conversation.rs",
+        "package": "meden-runtime",
+        "model": "Conversation",
+        "proof": "ConversationRefinement",
+        "test": (
+            "verification::turn::tests::"
+            "checks_require_authority_and_budget_stops_still_obtain_fresh_evidence"
+        ),
+        "mutations": [
+            ("budget_skips_check", "Self::Incomplete => Some(true)", "Self::Incomplete => None"),
+            (
+                "failure_restarts_check",
+                "Self::Failed(_) | Self::Cancelled | Self::NeedsReview => None",
+                "Self::Failed(_) => Some(false), Self::Cancelled | Self::NeedsReview => None",
+            ),
+        ],
+    },
+    {
+        "source": "crates/meden-agent/src/flow.rs",
+        "package": "meden-agent",
+        "model": "Conversation",
+        "proof": "ConversationRefinement",
+        "test": (
+            "conversation::tests::"
+            "host_stop_observed_during_decision_prevents_dispatch_and_stays_latched"
+        ),
+        "mutations": [
+            (
+                "ignored_host_stop",
+                "        host_stop\n    }",
+                "        let _ = host_stop; None\n    }",
+            ),
+        ],
+    },
+    {
+        "source": "crates/meden-agent/src/flow.rs",
+        "package": "meden-agent",
+        "model": "Conversation",
+        "proof": "ConversationRefinement",
+        "test": (
+            "flow::tests::"
+            "cancellation_at_request_notification_is_sticky_and_maximum_budget_does_not_overflow"
+        ),
+        "mutations": [
+            ("cancelled_request_started", "if cancelled {", "if cancelled && false {"),
+        ],
+    },
+    {
+        "source": "crates/meden-agent/src/flow.rs",
+        "package": "meden-agent",
+        "model": "Conversation",
+        "proof": "ConversationRefinement",
+        "test": (
+            "flow::tests::a_stopped_tool_drains_all_results_without_restarting_after_flags_reset"
+        ),
+        "mutations": [
+            (
+                "stopped_tool_dispatched",
+                "execute: !self.faulted && self.stopped.is_none()",
+                "execute: !self.faulted && (self.stopped.is_none() || true)",
+            ),
+            (
+                "lost_tool_stop",
+                "if let Err(ExecutionError::Stopped(status)) = result {\n"
+                "            self.latch(Some(replace(status, Status::Incomplete)));",
+                "if let Err(ExecutionError::Stopped(status)) = result {\n"
+                "            let _ = replace(status, Status::Incomplete);",
+            ),
+        ],
+    },
+    {
+        "source": "crates/meden-agent/src/flow.rs",
+        "package": "meden-agent",
+        "model": "Conversation",
+        "proof": "ConversationRefinement",
+        "test": (
+            "flow::tests::calls_and_results_stay_frozen_until_acknowledged_and_budget_is_bounded"
+        ),
+        "mutations": [
+            (
+                "unbounded_inference",
+                "self.remaining.saturating_sub(1)",
+                "self.remaining.saturating_sub(0)",
+            ),
+            ("duplicate_call_record", "self.next.saturating_add(1)", "self.next.saturating_add(0)"),
+        ],
+    },
+    {
+        "source": "crates/meden-agent/src/flow.rs",
+        "package": "meden-agent",
+        "model": "Conversation",
+        "proof": "ConversationObservations",
+        "prerequisites": ["ConversationRefinement"],
+        "test": (
+            "flow::tests::calls_and_results_stay_frozen_until_acknowledged_and_budget_is_bounded"
+        ),
+        "mutations": [
+            (
+                "mismatched_call_slot",
+                "self.reply.tool_calls.get(self.next)",
+                "self.reply.tool_calls.get(0)",
             ),
         ],
     },

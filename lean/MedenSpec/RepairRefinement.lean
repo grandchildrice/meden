@@ -17,15 +17,12 @@ def stage : Stage → Repair.Stage
   | .Ready => .ready | .Conversation => .conversation | .Inspect fresh => .inspect fresh
   | .Checking => .checking | .Stopped r => .stopped (terminal r)
 def state (t : Turn) : Repair.State := ⟨t.remaining.val, stage t.stage⟩
-def outcome : meden_agent.conversation.Status → Repair.Outcome
-  | .Done _ => .done | .Failed _ => .failed | .Incomplete => .budget
-  | .Cancelled => .cancelled | .NeedsReview => .review
 def failure : FailureKind → Repair.Failure
   | .Unverified => .unverified | .Unavailable => .unavailable | .Inconclusive => .inconclusive
 def observation : core.result.Result Bool FailureKind → Repair.Observation
   | .Ok verified => .ok verified | .Err kind => .error (failure kind)
 def signal : Signal → Repair.Signal
-  | .Start => .start | .Conversation status accepted changed => .conversation (outcome status) accepted changed
+  | .Start => .start | .Conversation inspection accepted changed => .conversation inspection accepted changed
   | .Current result => .current (observation result) | .Checked result => .checked (observation result)
 
 private theorem stops_refines (f : Option FailureKind) :
@@ -40,7 +37,7 @@ private theorem zero_eq (v : U8) : v = 0#u8 ↔ v.val = 0 := by
   simpa using UScalar.eq_equiv v 0#u8
 
 attribute [local simp] Turn.stop Turn.repair zero_eq effect state stage signal terminal
-  Repair.advance Repair.stop Repair.repair outcome failure observation Repair.operational Aeneas.Std.lift
+  Repair.advance Repair.stop Repair.repair failure observation Repair.operational Aeneas.Std.lift
 
 theorem begin_refines :
     (do let out ← Turn.begin; ok (state out)) = ok Repair.initial := by
@@ -72,14 +69,14 @@ theorem advance_refines (t : Turn) (s : Signal) (cancelled : Bool)
 theorem inspection_requires_acceptance (t final : Turn) (s : Signal) (cancelled : Bool)
     (f : Option FailureKind) (review : Bool)
     (h : Turn.advance t s cancelled f review = ok (.Inspect, final)) :
-    ∃ status, signal s = .conversation status true true ∧ (status = .done ∨ status = .budget) := by
+    ∃ fresh, signal s = .conversation (some fresh) true true := by
   have hm := advance_refines t s cancelled f review
   simp only [h, bind_ok, Result.ok.injEq] at hm
   exact Repair.inspecting_requires_acceptance (state t) (signal s) cancelled (f.map failure) review
     (congrArg Prod.fst hm).symm
 
 theorem budget_gets_fresh_check (t : Turn) (hs : t.stage = .Conversation) :
-    (do let out ← Turn.advance t (.Conversation .Incomplete true true) false (some .Unverified) false
+    (do let out ← Turn.advance t (.Conversation (some true) true true) false (some .Unverified) false
         let next ← Turn.advance out.2 (.Current (.Ok false)) false (some .Unverified) false
         ok next.1) = ok .Check := by
   simp [Turn.advance, hs, stops_refines]

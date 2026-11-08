@@ -2,7 +2,6 @@
 //! observations are typed; model prose and diagnostics do not select effects.
 
 use super::{verification_stops, FailureKind};
-use meden_agent::conversation::Status;
 
 /// Why the current host turn has stopped.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -35,13 +34,13 @@ pub enum Effect {
 }
 
 /// Host-observed completion of a permitted operation.
-pub enum Signal<'a> {
+pub enum Signal {
     /// Request the initial conversation or a permitted repair continuation.
     Start,
     /// The ordinary conversation loop returned.
     Conversation {
-        /// Actual typed outcome, not a parsed claim in the model's answer.
-        status: &'a Status,
+        /// Typed conversation classification; `Some(true)` requires a fresh check.
+        inspection: Option<bool>,
         /// Current contract acceptance observed from the host evidence gate.
         accepted: bool,
         /// A host-observed development operation or accepted-contract autorun.
@@ -88,7 +87,7 @@ impl Turn {
     /// Cancellation, operational failure and pending review stop further effects.
     pub fn advance(
         &mut self,
-        signal: Signal<'_>,
+        signal: Signal,
         cancelled: bool,
         failure: Option<FailureKind>,
         review: bool,
@@ -117,16 +116,18 @@ impl Turn {
             (
                 Stage::Conversation,
                 Signal::Conversation {
-                    status,
+                    inspection,
                     accepted,
                     changed,
                 },
             ) => {
-                if accepted && changed && matches!(status, Status::Done(_) | Status::Incomplete) {
-                    self.stage = Stage::Inspect {
-                        fresh: matches!(status, Status::Incomplete),
-                    };
-                    Effect::Inspect
+                if accepted && changed {
+                    if let Some(fresh) = inspection {
+                        self.stage = Stage::Inspect { fresh };
+                        Effect::Inspect
+                    } else {
+                        self.stop(Terminal::Finish)
+                    }
                 } else {
                     self.stop(Terminal::Finish)
                 }
@@ -173,6 +174,7 @@ impl Turn {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use meden_agent::conversation::Status;
 
     fn policy_case(status: &Status, accepted: bool, changed: bool, next: Option<Effect>) {
         let mut turn = Turn::begin();
@@ -183,7 +185,7 @@ mod tests {
         assert_eq!(
             turn.advance(
                 Signal::Conversation {
-                    status,
+                    inspection: status.inspection(),
                     accepted,
                     changed
                 },
@@ -261,7 +263,7 @@ mod tests {
             assert_eq!(
                 turn.advance(
                     Signal::Conversation {
-                        status: &Status::Incomplete,
+                        inspection: Status::Incomplete.inspection(),
                         accepted: true,
                         changed: true
                     },
@@ -317,7 +319,7 @@ mod tests {
         assert_eq!(
             turn.advance(
                 Signal::Conversation {
-                    status: &Status::Done("proved".into()),
+                    inspection: Status::Done("proved".into()).inspection(),
                     accepted: true,
                     changed: true,
                 },

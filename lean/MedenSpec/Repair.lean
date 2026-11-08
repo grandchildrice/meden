@@ -15,10 +15,6 @@ inductive Effect where
   | model | inspect | check | repair | stop (reason : Terminal)
   deriving DecidableEq
 
-inductive Outcome where
-  | done | failed | budget | cancelled | review
-  deriving DecidableEq
-
 inductive Failure where
   | unverified | unavailable | inconclusive
   deriving DecidableEq
@@ -30,7 +26,7 @@ inductive Observation where
 
 inductive Signal where
   | start
-  | conversation (outcome : Outcome) (accepted changed : Bool)
+  | conversation (inspection : Option Bool) (accepted changed : Bool)
   | current (result : Observation)
   | checked (result : Observation)
   deriving DecidableEq
@@ -68,9 +64,11 @@ def advance (s : State) (event : Signal) (cancelled : Bool)
       | .ready, .start =>
         if 0 < s.remaining then (.model, ⟨s.remaining - 1, .conversation⟩)
         else stop s .exhausted
-      | .conversation, .conversation outcome accepted changed =>
-        if accepted = true ∧ changed = true ∧ (outcome = .done ∨ outcome = .budget)
-        then (.inspect, {s with stage := .inspect (decide (outcome = .budget))})
+      | .conversation, .conversation inspection accepted changed =>
+        if accepted = true ∧ changed = true then
+          match inspection with
+          | some fresh => (.inspect, {s with stage := .inspect fresh})
+          | none => stop s .finish
         else stop s .finish
       | .inspect fresh, .current result =>
         match result with
@@ -118,7 +116,7 @@ theorem step_budget (s : State) (i : Input) :
 theorem inspecting_requires_acceptance (s : State) (event : Signal) (cancelled : Bool)
     (failure : Option Failure) (review : Bool)
     (h : (advance s event cancelled failure review).1 = .inspect) :
-    ∃ outcome, event = .conversation outcome true true ∧ (outcome = .done ∨ outcome = .budget) := by
+    ∃ fresh, event = .conversation (some fresh) true true := by
   cases hs : s.stage <;> cases event <;>
     simp only [advance, hs, stop, repair] at h
   all_goals repeat' (first | simp_all | split at h)

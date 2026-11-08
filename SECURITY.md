@@ -130,6 +130,15 @@ uses it to admit actual Rust-to-Lean project proofs and retain the exact
 checked library. This does not prove arbitrary user projects or the
 GitHub/OS/compiler/hash assumptions. See [the supported project scope](docs/project-verification.md).
 
+The outer-turn and inner conversation controllers now have separate
+Rust-to-Lean refinement and finite-trace properties. The inner controller
+retains original call positions and typed results, bounds model requests
+and preserves a latched stop. The actual interruption predicate is also
+used immediately before tool dispatch after the decision observer. JSON
+history, signal/observer attribution, physical tool effects and the complete
+session interpreter remain outside these proofs; R1 remains an open
+end-to-end obligation.
+
 The production worker tests observe host-only files, inherited file/socket
 capabilities, IPv4/IPv6 attempts, detached subprocesses, hard links, symlink
 escapes and actual edits. PTY tests drive real file/Bash calls across user

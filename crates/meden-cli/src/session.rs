@@ -5,7 +5,9 @@ use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
 use anyhow::Result;
-use meden_agent::conversation::{self, Conversation, Event, FunctionCall, Status, ToolCall};
+use meden_agent::conversation::{
+    self, Conversation, Event, ExecutionError, FunctionCall, Status, ToolCall,
+};
 use meden_agent::Registry;
 use meden_core::Policy;
 use meden_llm::Gateway;
@@ -101,7 +103,7 @@ impl Session {
                         self.processes.flag(),
                     );
                     signal = Signal::Conversation {
-                        status: &status,
+                        inspection: status.inspection(),
                         accepted: self.project.accepted(),
                         changed: changed.get(),
                     };
@@ -161,10 +163,11 @@ impl Session {
             &self.policy,
             observer,
             self.processes.flag(),
+            &|| stopping_failure(&self.project),
         );
         let (text, failure) = match result {
             Ok(text) => (text, None),
-            Err(("tool_error", text)) => (
+            Err(ExecutionError::Tool(text)) => (
                 text,
                 Some(
                     self.project
@@ -172,8 +175,15 @@ impl Session {
                         .map_or(FailureKind::Unavailable, |f| f.kind),
                 ),
             ),
-            Err(("cancelled", text)) => (text, Some(FailureKind::Inconclusive)),
-            Err((_, text)) => (text, Some(FailureKind::Unavailable)),
+            Err(ExecutionError::Stopped(Status::Cancelled)) => (
+                "Tool not executed: turn stopped".into(),
+                Some(FailureKind::Inconclusive),
+            ),
+            Err(ExecutionError::Stopped(_)) => (
+                "Tool not executed: turn stopped".into(),
+                Some(FailureKind::Unavailable),
+            ),
+            Err(ExecutionError::Refused(message)) => (message, Some(FailureKind::Unavailable)),
         };
         observer(Event::ToolResult {
             call: &call,

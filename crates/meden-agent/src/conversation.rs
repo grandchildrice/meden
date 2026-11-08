@@ -9,6 +9,7 @@ use meden_core::{check, Policy};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value as Json};
 
+use crate::flow::{interrupt, Flow, FlowEffect, FlowInput, FlowOutcome};
 use crate::{tool::Args, Registry};
 
 /// An API function call. Arguments remain text until execution, so malformed
@@ -121,6 +122,29 @@ pub enum Status {
     NeedsReview,
 }
 
+impl Status {
+    /// Permit host inspection after normal completion or tool-budget exhaustion.
+    /// `Some(true)` requires a fresh check; this signal is not proof of a project.
+    pub fn inspection(&self) -> Option<bool> {
+        match self {
+            Self::Done(_) => Some(false),
+            Self::Incomplete => Some(true),
+            Self::Failed(_) | Self::Cancelled | Self::NeedsReview => None,
+        }
+    }
+}
+
+/// A tool error remains recoverable; a host stop must survive later callbacks.
+#[derive(Debug)]
+pub enum ExecutionError {
+    /// Invalid arguments, an unknown tool or a capability refusal.
+    Refused(String),
+    /// The registered implementation failed after dispatch.
+    Tool(String),
+    /// The host stopped execution before the implementation was called.
+    Stopped(Status),
+}
+
 /// Progress events for a protocol host or terminal interface.
 pub enum Event<'a> {
     /// A model request is about to start.
@@ -174,74 +198,80 @@ impl Conversation {
     ) -> Status {
         self.messages
             .push(json!({"role":"user", "content":content(instruction)}));
-        for iteration in 0..=self.max_iterations {
-            if cancelled.load(Ordering::Relaxed) {
-                return Status::Cancelled;
-            }
-            if let Some(status) = (runtime.stop)() {
-                return status;
-            }
-            observer(Event::Asking(iteration.saturating_add(1)));
-            if cancelled.load(Ordering::Relaxed) {
-                return Status::Cancelled;
-            }
-            if let Some(status) = (runtime.stop)() {
-                return status;
-            }
-            let reply = match model.reply(&self.messages, runtime.tools) {
-                Ok(reply) => reply,
-                Err(_) if cancelled.load(Ordering::Relaxed) => return Status::Cancelled,
-                Err(error) => return Status::Failed(error.to_string()),
-            };
-            observer(Event::Assistant(&reply));
-            self.messages.push(reply.message());
-            if reply.tool_calls.is_empty() {
-                if cancelled.load(Ordering::Relaxed) {
-                    return Status::Cancelled;
+        let mut flow = Flow::begin(self.max_iterations);
+        let mut input = FlowInput::Start;
+        loop {
+            match flow.advance(
+                &mut input,
+                cancelled.load(Ordering::Relaxed),
+                (runtime.stop)(),
+            ) {
+                FlowEffect::Asking(attempt) => {
+                    observer(Event::Asking(attempt));
+                    input = FlowInput::Observed;
                 }
-                if let Some(status) = (runtime.stop)() {
-                    return status;
+                FlowEffect::Model => {
+                    input = match model.reply(&self.messages, runtime.tools) {
+                        Ok(reply) => FlowInput::Reply(reply),
+                        Err(error) => FlowInput::ModelFailed(Status::Failed(error.to_string())),
+                    };
                 }
-                return Status::Done(reply.content.unwrap_or_default());
-            }
-            // Even cancelled/incomplete assistant groups need paired tool
-            // messages, otherwise the next user turn is invalid API history.
-            let stopped = cancelled.load(Ordering::Relaxed) || iteration == self.max_iterations;
-            let mut host_stop = None;
-            for call in &reply.tool_calls {
-                host_stop = host_stop.or_else(runtime.stop);
-                let result = if stopped || cancelled.load(Ordering::Relaxed) || host_stop.is_some()
-                {
-                    Err(("cancelled", "Tool not executed: turn stopped".to_owned()))
-                } else {
-                    execute(call, runtime.registry, runtime.policy, observer, cancelled)
-                };
-                let (text, error) = match result {
-                    Ok(text) => (text, false),
-                    Err((_, text)) => (text, true),
-                };
-                observer(Event::ToolResult {
-                    call,
-                    text: &text,
-                    error,
-                });
-                self.messages.push(json!({
-                    "role":"tool", "tool_call_id":call.id,
-                    "name":call.function.name,
-                    "content": if error { Json::String(text) } else { content(&text) }
-                }));
-            }
-            if cancelled.load(Ordering::Relaxed) {
-                return Status::Cancelled;
-            }
-            if let Some(status) = host_stop.or_else(runtime.stop) {
-                return status;
-            }
-            if stopped {
-                return Status::Incomplete;
+                FlowEffect::Assistant => {
+                    let reply = flow.reply();
+                    observer(Event::Assistant(reply));
+                    self.messages.push(reply.message());
+                    input = FlowInput::Observed;
+                }
+                FlowEffect::Tool { execute: permitted } => {
+                    let Some(call) = flow.pending_call() else {
+                        return Status::Failed("conversation call unavailable".into());
+                    };
+                    let result = if permitted {
+                        execute(
+                            call,
+                            runtime.registry,
+                            runtime.policy,
+                            observer,
+                            cancelled,
+                            runtime.stop,
+                        )
+                    } else {
+                        Err(ExecutionError::Stopped(Status::Incomplete))
+                    };
+                    input = FlowInput::ToolResult(result);
+                }
+                FlowEffect::Record => {
+                    let (Some(call), Some(result)) = (flow.pending_call(), flow.result()) else {
+                        return Status::Failed("conversation result unavailable".into());
+                    };
+                    let (text, error) = match result {
+                        Ok(text) => (text.as_str(), false),
+                        Err(ExecutionError::Tool(text) | ExecutionError::Refused(text)) => {
+                            (text.as_str(), true)
+                        }
+                        Err(ExecutionError::Stopped(_)) => {
+                            ("Tool not executed: turn stopped", true)
+                        }
+                    };
+                    observer(Event::ToolResult { call, text, error });
+                    self.messages.push(json!({
+                        "role":"tool", "tool_call_id":call.id,
+                        "name":call.function.name,
+                        "content": if error { Json::String(text.to_owned()) } else { content(text) }
+                    }));
+                    input = FlowInput::Observed;
+                }
+                FlowEffect::Stop => {
+                    return match flow.into_outcome() {
+                        FlowOutcome::Finish(text) => Status::Done(text.unwrap_or_default()),
+                        FlowOutcome::Stopped(status) => status,
+                        FlowOutcome::Fault => {
+                            Status::Failed("conversation protocol violated".into())
+                        }
+                    }
+                }
             }
         }
-        Status::Incomplete
     }
 }
 
@@ -254,7 +284,8 @@ pub fn execute(
     policy: &Policy,
     observer: &dyn Fn(Event<'_>),
     cancelled: &AtomicBool,
-) -> Result<String, (&'static str, String)> {
+    stop: &dyn Fn() -> Option<Status>,
+) -> Result<String, ExecutionError> {
     let checked = (|| {
         let tool = registry.get(&call.function.name).ok_or_else(|| {
             (
@@ -301,19 +332,19 @@ pub fn execute(
                 call,
                 refusal: Some((rule, &explanation)),
             });
-            Err((rule, explanation))
+            Err(ExecutionError::Refused(explanation))
         }
         Ok((tool, args)) => {
             observer(Event::Decision {
                 call,
                 refusal: None,
             });
-            if cancelled.load(Ordering::Relaxed) {
-                return Err(("cancelled", "Tool not executed: turn stopped".into()));
+            if let Some(status) = interrupt(cancelled.load(Ordering::Relaxed), stop()) {
+                return Err(ExecutionError::Stopped(status));
             }
             let result = tool
                 .call(&args)
-                .map_err(|e| ("tool_error", e.to_string()))?;
+                .map_err(|e| ExecutionError::Tool(e.to_string()))?;
             Ok(result
                 .as_str()
                 .map_or_else(|| result.to_string(), str::to_owned))
@@ -541,6 +572,51 @@ mod tests {
             session.messages.last().and_then(|m| m.get("tool_call_id")),
             Some(&json!("extra"))
         );
+    }
+
+    #[test]
+    fn host_stop_observed_during_decision_prevents_dispatch_and_stays_latched() {
+        for clear_after_result in [false, true] {
+            let count = Rc::new(Cell::new(0));
+            let registry = registry(&count);
+            let policy = Policy::from_labels("write", &["fs.write"], &[]).expect("policy");
+            let stop = Cell::new(false);
+            let model = Model(RefCell::new(VecDeque::from([Reply {
+                content: None,
+                tool_calls: vec![
+                    call("one", r#"{"text":"one"}"#),
+                    call("two", r#"{"text":"two"}"#),
+                ],
+            }])));
+            let mut session = Conversation::new("test");
+            let observer = |event: Event<'_>| match event {
+                Event::Decision { .. } => stop.set(true),
+                Event::ToolResult { .. } if clear_after_result => stop.set(false),
+                _ => {}
+            };
+            let status = session.run(
+                "work",
+                &model,
+                &Runtime {
+                    registry: &registry,
+                    policy: &policy,
+                    tools: &[],
+                    stop: &|| stop.get().then_some(Status::NeedsReview),
+                },
+                &observer,
+                &AtomicBool::new(false),
+            );
+            assert_eq!(count.get(), 0, "host stop must be rechecked after Decision");
+            assert_eq!(status, Status::NeedsReview);
+            let ids: Vec<_> = session
+                .messages
+                .iter()
+                .filter(|m| m["role"] == "tool")
+                .map(|m| m["tool_call_id"].clone())
+                .collect();
+            assert_eq!(ids, vec![json!("one"), json!("two")]);
+            assert!(model.0.borrow().is_empty());
+        }
     }
     #[test]
     fn host_stop_skips_remaining_tools_and_preserves_paired_history() {
