@@ -18,7 +18,7 @@ use meden_core::{
 };
 use meden_runtime::{
     process::{self, Control, Limits, Termination},
-    verification::{self, Artifact, Bundle, Report},
+    verification::{self, Artifact, Bundle, Failure, FailureKind, Report},
     workspace::Workspace,
 };
 use serde::{Deserialize, Serialize};
@@ -41,6 +41,7 @@ pub struct Summary {
     pub proposed: bool,
     pub accepted: bool,
     pub verified: bool,
+    pub verification_failure: Option<FailureKind>,
     pub contract: &'static str,
     pub source: &'static str,
     pub api: &'static str,
@@ -54,6 +55,7 @@ struct State {
     dirty: bool,
     autorun: bool,
     artifact: Option<Artifact>,
+    failure: Option<Failure>,
 }
 
 pub struct Project {
@@ -89,6 +91,7 @@ impl Project {
                 dirty: false,
                 autorun: false,
                 artifact: None,
+                failure: None,
             }),
         }
     }
@@ -204,7 +207,22 @@ impl Project {
                 gate.refresh(Origin::Controller, self.subject(b"editing".to_vec()));
             }
             state.dirty = true;
+            if state.failure.as_ref().is_some_and(|f| f.kind.repairable()) {
+                state.failure = None;
+            }
         }
+    }
+
+    /// A new host instruction may retry after the operator fixes resources.
+    /// Automatic repair iterations do not enter this boundary again.
+    pub fn begin_turn(&self) {
+        if let Ok(mut state) = self.state.lock() {
+            state.failure = None;
+        }
+    }
+
+    pub fn failure(&self) -> Option<Failure> {
+        self.state.lock().ok().and_then(|s| s.failure.clone())
     }
 
     pub fn status(&self, workspace: &Workspace, control: &Control) -> Result<Summary> {
@@ -238,6 +256,7 @@ impl Project {
             proposed: state.gate.is_some(),
             accepted: state.gate.as_ref().is_some_and(Gate::is_accepted),
             verified: verified && !state.dirty,
+            verification_failure: state.failure.as_ref().map(|f| f.kind),
             contract: verification::LEDGER_CONTRACT,
             source: "ledger.rs",
             api: API,
@@ -254,6 +273,19 @@ impl Project {
     }
 
     pub fn verify(&self, workspace: &Workspace, control: &Control) -> Result<Summary> {
+        let result = self.verify_current(workspace, control);
+        if let Err(error) = &result {
+            let kind = error
+                .downcast_ref::<Failure>()
+                .map_or(FailureKind::Inconclusive, |failure| failure.kind);
+            if let Ok(mut state) = self.state.lock() {
+                state.failure = Some(Failure::new(kind, error));
+            }
+        }
+        result
+    }
+
+    fn verify_current(&self, workspace: &Workspace, control: &Control) -> Result<Summary> {
         {
             let mut state = self
                 .state
@@ -272,15 +304,21 @@ impl Project {
                 "job binding refused"
             );
             state.dirty = true;
+            state.failure = None;
         }
         let source = snapshot(workspace, control)?;
         let bundle = Bundle::load(
             self.bundle
                 .as_deref()
                 .context("no prepared checker bundle")?,
+        )
+        .map_err(Failure::unavailable)?;
+        let checked = verification::verify_ledger(
+            &source,
+            &bundle,
+            &std::env::current_exe().map_err(Failure::unavailable)?,
+            control,
         )?;
-        let checked =
-            verification::verify_ledger(&source, &bundle, &std::env::current_exe()?, control)?;
         let fresh = snapshot(workspace, control)?;
         let subject = self.binding(checked.report(), &fresh)?;
         let mut state = self
@@ -325,7 +363,7 @@ fn snapshot(workspace: &Workspace, control: &Control) -> Result<String> {
     let input =
         serde_json::to_vec(&json!({"operation":"snapshot","arguments":{"path":"ledger.rs"}}))?;
     let output = process::run_with_input(
-        &mut workspace.file_command()?,
+        &mut workspace.file_command().map_err(Failure::unavailable)?,
         &input,
         &Limits {
             timeout: Duration::from_secs(30),
@@ -333,16 +371,22 @@ fn snapshot(workspace: &Workspace, control: &Control) -> Result<String> {
             output_bytes: 1_000_000,
         },
         control,
-    )?;
-    anyhow::ensure!(
-        !output.truncated
-            && matches!(output.termination, Termination::Exited(code) if code.success()),
-        "cannot snapshot ledger.rs: {}",
-        output.stderr
-    );
-    let bytes: Vec<u8> = serde_json::from_str(&output.stdout)?;
-    anyhow::ensure!(bytes.len() <= 65_536, "ledger source exceeds 64 KiB");
-    Ok(String::from_utf8(bytes)?)
+    )
+    .map_err(Failure::unavailable)?;
+    if output.truncated
+        || !matches!(output.termination, Termination::Exited(code) if code.success())
+    {
+        return Err(Failure::new(
+            verification::failed_worker(&output.termination, output.truncated),
+            format!("cannot snapshot ledger.rs: {}", output.stderr),
+        )
+        .into());
+    }
+    let bytes: Vec<u8> = serde_json::from_str(&output.stdout).map_err(Failure::unavailable)?;
+    if bytes.len() > 65_536 {
+        return Err(Failure::new(FailureKind::Unverified, "ledger source exceeds 64 KiB").into());
+    }
+    Ok(String::from_utf8(bytes).map_err(|e| Failure::new(FailureKind::Unverified, e))?)
 }
 
 enum Operation {
@@ -415,6 +459,28 @@ impl Tool for ProjectTool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn only_a_new_host_turn_clears_an_operational_failure() -> Result<()> {
+        let project = Project::new(Path::new("/sessions/failed"));
+        for kind in [
+            FailureKind::Unverified,
+            FailureKind::Unavailable,
+            FailureKind::Inconclusive,
+        ] {
+            project
+                .state
+                .lock()
+                .map_err(|_| anyhow::anyhow!("project unavailable"))?
+                .failure = Some(Failure::new(kind, "model text claims passed=true"));
+            project.mark_dirty();
+            assert_eq!(project.failure().is_some(), !kind.repairable());
+            assert!(!project.stored_status()?.verified);
+            project.begin_turn();
+            assert!(project.failure().is_none());
+        }
+        Ok(())
+    }
 
     #[test]
     fn editing_discards_evidence_before_another_status_read() -> Result<()> {

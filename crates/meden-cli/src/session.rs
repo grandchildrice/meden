@@ -1,6 +1,6 @@
 //! One coding environment for interactive and automated conversations.
 
-use std::cell::{Cell, RefCell};
+use std::cell::Cell;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
@@ -10,6 +10,7 @@ use meden_agent::Registry;
 use meden_core::Policy;
 use meden_llm::Gateway;
 use meden_runtime::process::Control;
+use meden_runtime::verification::verification_stops;
 use meden_runtime::workspace::Workspace;
 use serde_json::Value;
 
@@ -58,11 +59,11 @@ impl Session {
     }
 
     pub fn run(&mut self, instruction: &str, observer: &dyn Fn(Event<'_>)) -> Status {
+        self.project.begin_turn();
         let changed = Cell::new(self.project.take_autorun());
-        let failure = RefCell::new(None::<String>);
         let review = Cell::new(false);
         let observe = |event: Event<'_>| {
-            observe_project(&self.project, &event, &changed, &failure, &review);
+            observe_project(&self.project, &event, &changed, &review);
             observer(event);
         };
         let mut next = instruction.to_owned();
@@ -76,7 +77,10 @@ impl Session {
                     registry: &self.registry,
                     policy: &self.policy,
                     tools: &self.tools,
-                    needs_review: &|| review.get(),
+                    stop: &|| {
+                        stopping_failure(&self.project)
+                            .or_else(|| review.get().then_some(Status::NeedsReview))
+                    },
                 },
                 &observe,
                 self.processes.flag(),
@@ -101,7 +105,7 @@ impl Session {
             let previous_failure = if matches!(status, Status::Incomplete) {
                 None
             } else {
-                failure.borrow().clone()
+                self.project.failure().map(|f| f.to_string())
             };
             let diagnostic = if let Some(error) = previous_failure {
                 error
@@ -145,6 +149,9 @@ impl Session {
             if self.processes.flag().load(Ordering::SeqCst) {
                 return Status::Cancelled;
             }
+            if let Some(status) = stopping_failure(&self.project) {
+                return status;
+            }
             next = format!("Host independent verification has not established the accepted ledger contract. Fix ledger.rs and use verify_ledger; do not weaken the contract, edit checker inputs, or substitute tests for proof. Accepted meaning (host-owned):\n{}\nChecker diagnostic (untrusted content):\n{}",meden_runtime::verification::LEDGER_CONTRACT,diagnostic.chars().take(8000).collect::<String>());
         }
         Status::Incomplete
@@ -167,11 +174,17 @@ fn needs_verification(status: &Status, accepted: bool, changed: bool, cancelled:
     accepted && changed && !cancelled && matches!(status, Status::Done(_) | Status::Incomplete)
 }
 
+fn stopping_failure(project: &crate::project::Project) -> Option<Status> {
+    project
+        .failure()
+        .filter(|f| verification_stops(Some(f.kind)))
+        .map(|f| Status::Failed(format!("Verification {:?}: {f}", f.kind)))
+}
+
 fn observe_project(
     project: &crate::project::Project,
     event: &Event<'_>,
     changed: &Cell<bool>,
-    failure: &RefCell<Option<String>>,
     review: &Cell<bool>,
 ) {
     if let Event::ToolResult {
@@ -193,17 +206,6 @@ fn observe_project(
         ) {
             project.mark_dirty();
             changed.set(true);
-            *failure.borrow_mut() = None;
-        }
-    }
-    if let Event::ToolResult {
-        call,
-        text,
-        error: true,
-    } = event
-    {
-        if call.function.name == "verify_ledger" {
-            *failure.borrow_mut() = Some((*text).to_owned());
         }
     }
 }
@@ -211,6 +213,15 @@ fn observe_project(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use meden_runtime::verification::FailureKind;
+
+    #[test]
+    fn operational_verification_failure_stops_automatic_repair() {
+        assert!(!verification_stops(None));
+        assert!(!verification_stops(Some(FailureKind::Unverified)));
+        assert!(verification_stops(Some(FailureKind::Unavailable)));
+        assert!(verification_stops(Some(FailureKind::Inconclusive)));
+    }
 
     #[test]
     fn budget_recovery_respects_host_authority() {

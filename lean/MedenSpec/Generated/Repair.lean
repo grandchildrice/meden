@@ -33,7 +33,7 @@ inductive meden_agent.conversation.Status where
 | NeedsReview : meden_agent.conversation.Status
 
 /-- [meden::session::needs_verification]:
-    Source: 'crates/meden-cli/src/session.rs', lines 166:0-168:1 -/
+    Source: 'crates/meden-cli/src/session.rs', lines 173:0-175:1 -/
 def session.needs_verification
   (status : meden_agent.conversation.Status) (accepted : Bool) (changed : Bool)
   (cancelled : Bool) :

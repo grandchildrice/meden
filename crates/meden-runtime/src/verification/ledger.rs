@@ -9,6 +9,7 @@ use serde::Serialize;
 use sha2::{Digest, Sha256};
 
 use super::Bundle;
+use super::{failure::failed_worker, Failure, FailureKind};
 use crate::process::{self, Control, Limits, Output, Termination};
 
 /// Plain-language meaning shown through the host contract review channel.
@@ -104,9 +105,12 @@ pub fn verify_ledger(
     bundle: &Bundle,
     worker: &Path,
     control: &Control,
-) -> io::Result<Checked> {
+) -> Result<Checked, Failure> {
     if source.len() > 65_536 {
-        return Err(io::Error::other("ledger source exceeds 64 KiB"));
+        return Err(Failure::new(
+            FailureKind::Unverified,
+            "ledger source exceeds 64 KiB",
+        ));
     }
     let job = tempfile::tempdir()?;
     let sandbox = crate::sandbox::Sandbox::for_verification(job.path(), worker, bundle)?;
@@ -144,18 +148,19 @@ pub fn verify_ledger(
         control,
     )?;
     successful(&output, "project verification")?;
-    let audit = audit(&output.stdout)?;
+    let audit = audit(&output.stdout).map_err(Failure::unavailable)?;
     if bundle.fingerprint(control)? != fingerprint
         || hash(&read(worker, 268_435_456)?) != worker_hash
         || control.flag().load(Ordering::SeqCst)
     {
-        return Err(io::Error::other(
+        return Err(Failure::new(
+            FailureKind::Inconclusive,
             "checker inputs changed or verification was cancelled",
         ));
     }
     for (name, expected) in &files {
         if read(&job.path().join(name), 131_072)? != *expected {
-            return Err(io::Error::other(
+            return Err(Failure::unavailable(
                 "verification inputs changed while checking",
             ));
         }
@@ -178,7 +183,7 @@ pub fn verify_ledger(
         .collect();
     let report = Report { contract:LEDGER_CONTRACT, source_sha256:hash(source.as_bytes()),
         bundle_sha256:fingerprint,checker_sha256:ledger_checker_id(), worker_sha256:worker_hash,
-        artifact_sha256:hash(&serde_json::to_vec(&hashes)?), files:hashes, audit,
+        artifact_sha256:hash(&serde_json::to_vec(&hashes).map_err(Failure::unavailable)?), files:hashes, audit,
         scope:"Full functional refinement of the supported u64 ledger kernel and the listed contract properties, conditional on the reviewed contract, trusted preparer/checker libraries, Charon/Aeneas models, Lean kernel, compiler/native libraries, OS confinement and SHA-256. Not persistence, concurrent transactions, whole-application correctness or certification." };
     Ok(Checked { report, files })
 }
@@ -205,16 +210,19 @@ pub fn ledger_checker_id() -> String {
     format!("{:x}", digest.finalize())
 }
 
-fn successful(output: &Output, operation: &str) -> io::Result<()> {
+fn successful(output: &Output, operation: &str) -> Result<(), Failure> {
     if output.truncated
         || !matches!(output.termination, Termination::Exited(code) if code.success())
     {
-        return Err(io::Error::other(format!(
-            "{operation} not verified ({:?}):\n{}\n{}",
-            output.termination,
-            diagnostic_excerpt(&output.stdout),
-            diagnostic_excerpt(&output.stderr)
-        )));
+        return Err(Failure::new(
+            failed_worker(&output.termination, output.truncated),
+            format!(
+                "{operation} not verified ({:?}):\n{}\n{}",
+                output.termination,
+                diagnostic_excerpt(&output.stdout),
+                diagnostic_excerpt(&output.stderr)
+            ),
+        ));
     }
     Ok(())
 }

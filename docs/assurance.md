@@ -5,7 +5,7 @@ kernels, actual TUI approval and check-scheduling predicates have Rust-to-Lean
 refinement, including finite compositions of the extracted review and evidence
 operations. The broader obligations below remain proposed. This defines completion
 criteria for
-[the product architecture](design.md). The current sixty Lean theorem
+[the product architecture](design.md). The current sixty-five Lean theorem
 entry points, six Kani harnesses and conformance checks are listed in
 [verification.md](verification.md).
 

@@ -82,9 +82,15 @@ class Handler(BaseHTTPRequestHandler):
         global index
         body=json.loads(self.rfile.read(int(self.headers['Content-Length'])))
         if index == 0:
-            reply={'tool_calls':[call('propose_ledger',{}),
-                call('accept_contract',{'accepted':True}),
-                call('verify_ledger',{'passed':True,'artifact':'fake.rlib'})]}
+            reply={'tool_calls':[call('accept_contract',{'accepted':True}),
+                call('verify_ledger',{'passed':True,'artifact':'fake.rlib','failure_kind':'unavailable'}),
+                call('propose_ledger',{})]}
+        elif index == 1 and UNAVAILABLE:
+            calls=[call('write_file',{'path':'ledger.rs','content':NOOP})]
+            if UNAVAILABLE == 'model':
+                calls += [call('verify_ledger',{}),
+                    call('write_file',{'path':'after-fatal.txt','content':'must not run'})]
+            reply={'tool_calls':calls}
         elif index == 1:
             reply={'tool_calls':[call('write_file',{'path':'ledger.rs','content':NOOP}),
                 call('write_file',{'path':'Spec.lean','content':'axiom everything : False'}),
@@ -114,7 +120,7 @@ socketserver.UnixStreamServer(sys.argv[sys.argv.index('--host')+1],Handler).serv
 """
 
 
-def setup(tmp_path, exhaustion=False, candidate=ALTERNATIVE):
+def setup(tmp_path, exhaustion=False, candidate=ALTERNATIVE, unavailable=None):
     binary = find_meden()
     assert binary
     source = tmp_path / "source"
@@ -123,6 +129,7 @@ def setup(tmp_path, exhaustion=False, candidate=ALTERNATIVE):
     engine.write_text(
         "#!/bin/python3\n"
         + f"NOOP={NOOP!r}\nALTERNATIVE={candidate!r}\nEXHAUSTION={exhaustion!r}\n"
+        + f"UNAVAILABLE={unavailable!r}\n"
         + ENGINE
     )
     engine.chmod(0o700)
@@ -312,6 +319,66 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
             process.wait(timeout=5)
         os.close(master)
         os.close(slave)
+
+
+@pytest.mark.parametrize("caller", ["model", "host"])
+def test_missing_host_bundle_stops_tools_and_repair_without_claiming_proof(tmp_path, caller):
+    args, env, _ = setup(tmp_path, unavailable=caller)
+    env["MEDEN_VERIFIER_BUNDLE"] = str(tmp_path / "absent-bundle.json")
+    process = subprocess.Popen(
+        args,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        env=env,
+    )
+    records = queue.Queue()
+    seen = []
+
+    def read():
+        for line in process.stdout:
+            records.put(json.loads(line))
+        records.put({"type": "eof", "error": process.stderr.read()})
+
+    threading.Thread(target=read, daemon=True).start()
+
+    def until_done():
+        while True:
+            event = records.get(timeout=60)
+            seen.append(event)
+            assert event["type"] != "eof", event
+            if event["type"] == "done":
+                return event
+
+    try:
+        process.stdin.write(json.dumps({"instruction": "Build a verified ledger."}) + "\n")
+        process.stdin.flush()
+        assert until_done()["outcome"] == "needs_review"
+        reference = [e["summary"]["reference"] for e in seen if e["type"] == "project"][-1]
+        for command in ["review_contract", "accept_contract"]:
+            process.stdin.write(json.dumps({command: reference}) + "\n")
+        process.stdin.flush()
+        done = until_done()
+        assert done["outcome"] == "failed", seen
+        assert "Verification Unavailable" in done["error"]
+        assert sum(e["type"] == "asking" for e in seen) == (2 if caller == "model" else 3)
+        summary = [e["summary"] for e in seen if e["type"] == "project"][-1]
+        assert summary["accepted"] and not summary["verified"]
+        assert summary["verification_failure"] == "unavailable"
+        assert summary["artifact"] is None
+        workspace = Path(next(e["workspace"] for e in seen if e["type"] == "ready"))
+        assert not (workspace / "after-fatal.txt").exists()
+        if caller == "model":
+            assert any(
+                e["type"] == "tool_result" and "Tool not executed" in e["text"] for e in seen
+            )
+        process.stdin.close()
+        assert process.wait(timeout=10) == 0
+    finally:
+        if process.poll() is None:
+            process.kill()
+            process.wait(timeout=5)
 
 
 def verify_source(tmp_path, content):

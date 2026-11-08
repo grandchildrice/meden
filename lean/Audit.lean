@@ -69,3 +69,8 @@ open MedenSpec
 #print axioms MedenSpec.RepairRefinement.budget_is_checked
 #print axioms MedenSpec.RepairRefinement.checking_requires_authority
 #print axioms MedenSpec.RepairRefinement.terminal_does_not_check
+#print axioms MedenSpec.CheckFailureRefinement.repairable_refines
+#print axioms MedenSpec.CheckFailureRefinement.verification_stops_refines
+#print axioms MedenSpec.CheckFailureRefinement.operational_stops
+#print axioms MedenSpec.CheckFailureRefinement.failed_worker_refines
+#print axioms MedenSpec.CheckFailureRefinement.truncated_is_inconclusive

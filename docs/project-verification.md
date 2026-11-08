@@ -29,6 +29,13 @@ fresh checker result; the final model call was deliberately not executed,
 so its error is not verification evidence. Failed checks return for repair within four conversation/check
 iterations. Cancellation, model failure and pending review stop continuation.
 An unsuccessful checker or exhausted repair budget cannot establish proof.
+Host-attributed failures are separate: missing prepared resources and host-I/O
+errors are `unavailable`; cancellation, recorded time/output limits, truncated
+output and signal termination are `inconclusive`. These stop automatic repair
+and remaining tools in the current model group. They cannot produce proof or
+be overridden by model text. A new host instruction can retry after resource
+repair. `project.summary.verification_failure` exposes the last failure kind;
+`unverified` permits bounded repair but is not proof that the contract is false.
 A conversation may remain incomplete while its kernel is independently
 verified; these are separate statuses. Read-only conversation turns do not
 automatically rerun development.
@@ -207,16 +214,20 @@ the tool-budget CLI repair uses `let-else`; direct real-checker cases use
 same unchanged total refinement and seven contract consequences. A second
 special-case fault unwraps `None` only for amount four: native examples
 pass, but Lean rejects its possible panic and no artifact is emitted.
-These ten cases are checker/controller integration tests, not a local LLM
+Two additional CLI cases remove the host bundle and require both a model tool
+call and independent host checking to stop without another repair request or
+artifact; a queued write after the failed tool must not run.
+These twelve cases are checker/controller integration tests, not a local LLM
 coding benchmark.
 The ordinary Python job skips only these bundle-dependent tests; the Lean
 job explicitly supplies the manifest and runs them.
 Its `meden-ledger-evidence` artifact retains all seven successful cases' actual
 source, native libraries, proof inputs and eight-root audit reports.
 
-The separate Meden control audit contains 60 roots, including the extracted
+The separate Meden control audit contains 65 roots, including the extracted
 acceptance getter used by both interfaces, the actual TUI key predicate and
-the check-scheduling decision over real conversation outcomes. The eight
+the check-scheduling decision over real conversation outcomes, and typed
+verification-failure classification and stopping decisions. The eight
 ledger roots are checked afresh per candidate. Neither count proves the
 entire TUI, CLI,
 protocol parser, origin attribution, job adapter or filesystem behavior.

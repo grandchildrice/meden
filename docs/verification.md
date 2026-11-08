@@ -302,6 +302,45 @@ Flag attribution, source inspection, the fresh-check branch, loop bounds,
 job execution and cancellation races remain unproved adapters. This theorem
 does not prove eventual task success or the entire session loop.
 
+## Typed verification failures and stopping repair
+
+The shared runtime's [failure kernel](../crates/meden-runtime/src/verification/failure.rs)
+distinguishes three host-attributed outcomes. `unverified` means a completed
+check did not establish the contract; it permits bounded source repair.
+`unavailable` covers prepared-resource, host-I/O or checker-protocol errors.
+`inconclusive` covers recorded cancellation, time/output limits, truncated
+output and signal termination. The last two stop automatic repair. A normal
+nonzero child exit is not a mathematical refutation; compiler/extractor
+errors propagated through such an exit may still need host diagnosis.
+
+The [raw extraction](../lean/MedenSpec/Generated/Failure.lean) includes the
+actual termination type and pinned Unix `ExitStatusExt::into_raw` implementation.
+[CheckFailureRefinement](../lean/MedenSpec/CheckFailureRefinement.lean) proves:
+
+| Audited theorem | Checked claim |
+| --- | --- |
+| `repairable_refines` | Only `Unverified` permits automatic source repair |
+| `verification_stops_refines` | The actual stop decision matches the independent failure specification for every optional failure kind |
+| `operational_stops` | Unavailable and inconclusive results both stop |
+| `failed_worker_refines` | For every represented Unix wait word and truncation flag, repair is allowed exactly for complete output and cleared low seven wait-status bits |
+| `truncated_is_inconclusive` | Truncated output cannot be classified as a completed rejection |
+
+Five new mutations admit operational failures, remove the stop, ignore
+truncation, accept signal termination or promote a limited check. Each must
+fail its native assertion and the unchanged refinement after fresh extraction.
+
+The project adapter stores the typed failure independently of diagnostic text.
+Model arguments cannot supply it. The conversation stops remaining tools in
+the same assistant group and pairs their skipped results in API history; it
+issues no further model request. A new host instruction can retry after an
+operator repairs resources. File edits cannot clear an operational stop.
+Real CLI tests cover missing bundles for model-initiated and host-initiated
+checks, forged failure fields, skipped writes and absence of a verified artifact.
+
+The theorems cover the failure kernel on the pinned Linux/Unix representation.
+OS status attribution, I/O error mapping, mutexes, conversation routing/history
+and new-host-turn attribution are tested adapters, not a complete session proof.
+
 ## Evidence completion: exact current subject and extracted traces
 
 [`evidence.rs`](../crates/meden-core/src/evidence.rs) is the third production
@@ -372,7 +411,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with transfer/review/dispatch and TUI approval checks, CI rejects
-twenty-nine faults, including check-scheduling faults. Timeouts, exhausted proof
+thirty-four faults, including check-scheduling and failure-classification faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -417,7 +456,7 @@ Definitions and additional lemmas are in
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the sixty
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the sixty-five
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -527,7 +566,7 @@ On Nix, a private `uv` Python shadowing a public Python is skipped rather
 than binding the private cache into the sandbox. The attack test exposed
 this actual execution failure before the selection was corrected.
 
-These controller, parser, router and OS behaviors have tests; the sixty
+These controller, parser, router and OS behaviors have tests; the sixty-five
 Lean theorem entry points still cover their stated kernels. The shared
 session has no whole-controller refinement theorem yet.
 
@@ -654,7 +693,7 @@ failed. The conversation's `done` event is therefore not project-verification
 evidence. Setup, limits,
 failure behavior and OS/asset trust assumptions are documented in
 [local inference](local-inference.md). The launcher, protocol and OS boundary
-are not Lean-refined; they add no theorem roots to the sixty audited here.
+are not Lean-refined; they add no theorem roots to the sixty-five audited here.
 
 ## Tests of actual HTTP delivery
 

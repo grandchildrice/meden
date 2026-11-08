@@ -52,9 +52,9 @@ pub struct Runtime<'a> {
     pub policy: &'a Policy,
     /// API definitions, in the host's original order.
     pub tools: &'a [Json],
-    /// Host-derived condition requiring user review before another model call.
-    /// This is never read from model arguments or result text.
-    pub needs_review: &'a dyn Fn() -> bool,
+    /// Host-derived stop before another model/tool effect. This is never
+    /// decoded from model arguments or diagnostic text.
+    pub stop: &'a dyn Fn() -> Option<Status>,
 }
 
 impl Reply {
@@ -111,7 +111,7 @@ pub trait ChatModel {
 pub enum Status {
     /// A final assistant answer.
     Done(String),
-    /// Model access failed.
+    /// Model access or a required host service failed.
     Failed(String),
     /// The model still wanted tools at the execution limit.
     Incomplete,
@@ -178,9 +178,15 @@ impl Conversation {
             if cancelled.load(Ordering::Relaxed) {
                 return Status::Cancelled;
             }
+            if let Some(status) = (runtime.stop)() {
+                return status;
+            }
             observer(Event::Asking(iteration.saturating_add(1)));
             if cancelled.load(Ordering::Relaxed) {
                 return Status::Cancelled;
+            }
+            if let Some(status) = (runtime.stop)() {
+                return status;
             }
             let reply = match model.reply(&self.messages, runtime.tools) {
                 Ok(reply) => reply,
@@ -193,13 +199,19 @@ impl Conversation {
                 if cancelled.load(Ordering::Relaxed) {
                     return Status::Cancelled;
                 }
+                if let Some(status) = (runtime.stop)() {
+                    return status;
+                }
                 return Status::Done(reply.content.unwrap_or_default());
             }
             // Even cancelled/incomplete assistant groups need paired tool
             // messages, otherwise the next user turn is invalid API history.
             let stopped = cancelled.load(Ordering::Relaxed) || iteration == self.max_iterations;
+            let mut host_stop = None;
             for call in &reply.tool_calls {
-                let result = if stopped || cancelled.load(Ordering::Relaxed) {
+                host_stop = host_stop.or_else(runtime.stop);
+                let result = if stopped || cancelled.load(Ordering::Relaxed) || host_stop.is_some()
+                {
                     Err(("cancelled", "Tool not executed: turn stopped".to_owned()))
                 } else {
                     execute(call, runtime.registry, runtime.policy, observer, cancelled)
@@ -222,11 +234,11 @@ impl Conversation {
             if cancelled.load(Ordering::Relaxed) {
                 return Status::Cancelled;
             }
+            if let Some(status) = host_stop.or_else(runtime.stop) {
+                return status;
+            }
             if stopped {
                 return Status::Incomplete;
-            }
-            if (runtime.needs_review)() {
-                return Status::NeedsReview;
             }
         }
         Status::Incomplete
@@ -395,7 +407,7 @@ mod tests {
                 registry: &registry,
                 policy: &policy,
                 tools: &[],
-                needs_review: &|| false,
+                stop: &|| None,
             },
             &|_| {},
             &AtomicBool::new(false),
@@ -444,7 +456,7 @@ mod tests {
                 registry: &registry,
                 policy: &policy,
                 tools: &[],
-                needs_review: &|| false,
+                stop: &|| None,
             },
             &observer,
             &cancelled,
@@ -487,7 +499,7 @@ mod tests {
                         registry: &registry,
                         policy: &policy,
                         tools: &[],
-                        needs_review: &|| false,
+                        stop: &|| None,
                     },
                     &observer,
                     &cancelled
@@ -517,7 +529,7 @@ mod tests {
                     registry: &registry,
                     policy: &policy,
                     tools: &[],
-                    needs_review: &|| false,
+                    stop: &|| None,
                 },
                 &|_| {},
                 &AtomicBool::new(false)
@@ -531,62 +543,67 @@ mod tests {
         );
     }
     #[test]
-    fn host_review_stops_before_another_model_request_and_preserves_paired_history() {
-        let count = Rc::new(Cell::new(0));
-        let registry = registry(&count);
-        let policy = Policy::from_labels("write", &["fs.write"], &[]).expect("policy");
-        let model = Model(RefCell::new(VecDeque::from([
-            Reply {
-                content: None,
-                tool_calls: vec![
-                    call("one", r#"{"text":"one"}"#),
-                    call("two", r#"{"text":"two"}"#),
-                ],
-            },
-            Reply {
-                content: Some("continued after host review".into()),
-                tool_calls: vec![],
-            },
-        ])));
-        let mut session = Conversation::new("test");
-        assert_eq!(
-            session.run(
-                "propose",
-                &model,
-                &Runtime {
-                    registry: &registry,
-                    policy: &policy,
-                    tools: &[],
-                    needs_review: &|| count.get() > 0
+    fn host_stop_skips_remaining_tools_and_preserves_paired_history() {
+        for stop in [
+            Status::NeedsReview,
+            Status::Failed("checker unavailable".into()),
+        ] {
+            let count = Rc::new(Cell::new(0));
+            let registry = registry(&count);
+            let policy = Policy::from_labels("write", &["fs.write"], &[]).expect("policy");
+            let model = Model(RefCell::new(VecDeque::from([
+                Reply {
+                    content: None,
+                    tool_calls: vec![
+                        call("one", r#"{"text":"one"}"#),
+                        call("two", r#"{"text":"two"}"#),
+                    ],
                 },
-                &|_| {},
-                &AtomicBool::new(false)
-            ),
-            Status::NeedsReview
-        );
-        assert_eq!(count.get(), 2);
-        assert_eq!(model.0.borrow().len(), 1);
-        let results: Vec<_> = session
-            .messages
-            .iter()
-            .filter(|m| m["role"] == "tool")
-            .map(|m| m["tool_call_id"].clone())
-            .collect();
-        assert_eq!(results, vec![json!("one"), json!("two")]);
-        assert_eq!(
-            session.run(
-                "host accepted",
-                &model,
-                &Runtime {
-                    registry: &registry,
-                    policy: &policy,
-                    tools: &[],
-                    needs_review: &|| false
+                Reply {
+                    content: Some("continued after host review".into()),
+                    tool_calls: vec![],
                 },
-                &|_| {},
-                &AtomicBool::new(false)
-            ),
-            Status::Done("continued after host review".into())
-        );
+            ])));
+            let mut session = Conversation::new("test");
+            assert_eq!(
+                session.run(
+                    "propose",
+                    &model,
+                    &Runtime {
+                        registry: &registry,
+                        policy: &policy,
+                        tools: &[],
+                        stop: &|| (count.get() > 0).then(|| stop.clone())
+                    },
+                    &|_| {},
+                    &AtomicBool::new(false)
+                ),
+                stop
+            );
+            assert_eq!(count.get(), 1);
+            assert_eq!(model.0.borrow().len(), 1);
+            let results: Vec<_> = session
+                .messages
+                .iter()
+                .filter(|m| m["role"] == "tool")
+                .map(|m| m["tool_call_id"].clone())
+                .collect();
+            assert_eq!(results, vec![json!("one"), json!("two")]);
+            assert_eq!(
+                session.run(
+                    "host accepted",
+                    &model,
+                    &Runtime {
+                        registry: &registry,
+                        policy: &policy,
+                        tools: &[],
+                        stop: &|| None
+                    },
+                    &|_| {},
+                    &AtomicBool::new(false)
+                ),
+                Status::Done("continued after host review".into())
+            );
+        }
     }
 }

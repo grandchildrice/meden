@@ -18,6 +18,9 @@
   decoding, screen routing and physical input provenance are separate gaps.
   The check-scheduling predicate over actual conversation outcomes is refined;
   budget exhaustion still reaches independent verification and bounded repair.
+  Typed verification-failure classification and repair-stop decisions are
+  extracted/refined; I/O mapping, host-stop routing and history remain tested
+  adapters. Operational failures stop automatic repair until a new host turn.
   The evidence kernel gates
   Meden's own releases and the fixed Rust ledger project verifier. General
   contracts/backends, full interface/tool coverage and outbound

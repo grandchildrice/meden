@@ -141,6 +141,47 @@ GROUPS = [
             ("cancelled_check", "&& !cancelled", "&& (!cancelled || true)"),
         ],
     },
+    {
+        "source": "crates/meden-runtime/src/verification/failure.rs",
+        "package": "meden-cli",
+        "model": "Failure",
+        "proof": "CheckFailureRefinement",
+        "test": "session::tests::operational_verification_failure_stops_automatic_repair",
+        "mutations": [
+            (
+                "operational_failure_repaired",
+                "matches!(failure, Some(kind) if !kind.repairable())",
+                "matches!(failure, Some(kind) if kind.repairable())",
+            ),
+            (
+                "missing_operational_stop",
+                "matches!(failure, Some(kind) if !kind.repairable())",
+                "{ let _ = failure; false }",
+            ),
+        ],
+    },
+    {
+        "source": "crates/meden-runtime/src/verification/failure.rs",
+        "package": "meden-runtime",
+        "model": "Failure",
+        "proof": "CheckFailureRefinement",
+        "test": "verification::failure::tests::worker_limits_and_signals_are_not_repairable",
+        "mutations": [
+            ("truncated_check_repaired", "if truncated {", "if truncated && false {"),
+            (
+                "signalled_check_repaired",
+                "status.into_raw() & 127 == 0",
+                "{ let _ = status.into_raw(); true }",
+            ),
+            (
+                "limited_check_repaired",
+                "Termination::TimedOut | Termination::Cancelled | Termination::OutputLimit => {\n"
+                "                FailureKind::Inconclusive",
+                "Termination::TimedOut | Termination::Cancelled | Termination::OutputLimit => {\n"
+                "                FailureKind::Unverified",
+            ),
+        ],
+    },
 ]
 
 
