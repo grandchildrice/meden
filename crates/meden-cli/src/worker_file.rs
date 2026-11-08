@@ -161,7 +161,13 @@ impl FileOperation {
                         "old_text must match exactly once; file was not changed".into(),
                     ));
                 }
-                atomic_write(&path, &original.replacen(old, text(args, "new_text")?, 1))?;
+                let new = text(args, "new_text")?;
+                if old == new {
+                    return Err(ToolError::Failed(
+                        "new_text is identical to old_text; file was not changed".into(),
+                    ));
+                }
+                atomic_write(&path, &original.replacen(old, new, 1))?;
                 Ok("File edited.".into())
             }
         }
@@ -247,6 +253,16 @@ mod tests {
         assert_eq!(
             execute(root.path(), Operation::Read, json!({"path":"note"})).expect("read"),
             "1: updated\n"
+        );
+        assert!(execute(
+            root.path(),
+            Operation::Edit,
+            json!({"path":"note", "old_text":"updated", "new_text":"updated"})
+        )
+        .is_err_and(|e| e.to_string().contains("identical")));
+        assert_eq!(
+            fs::read_to_string(root.path().join("note")).expect("unchanged file"),
+            "updated\n"
         );
     }
 

@@ -55,12 +55,20 @@ class Handler(BaseHTTPRequestHandler):
                 call('write_file',{'path':'Spec.lean','content':'axiom everything : False'}),
                 call('write_file',{'path':'Cargo.toml','content':'this is deliberately invalid'}),
                 call('write_file',{'path':'build.rs','content':'panic!("must not execute")'})]}
-        elif index == 2: reply={'content':'Everything is formally verified.'}
-        elif index == 3:
+        elif EXHAUSTION and 2 <= index <= 15:
+            reply={'tool_calls':[call('project_status',{})]}
+        elif EXHAUSTION and index == 16:
+            reply={'tool_calls':[call('verify_ledger',{'passed':True,'artifact':'fake.rlib'})]}
+        elif not EXHAUSTION and index == 2: reply={'content':'Everything is formally verified.'}
+        elif index == (17 if EXHAUSTION else 3):
             assert 'Host independent verification has not established' in json.dumps(body)
             assert 'not verified' in json.dumps(body)
+            if EXHAUSTION:
+                diagnostic=json.dumps(body['messages'][-1]['content'])
+                assert 'test result: FAILED' in diagnostic
+                assert 'Tool not executed' not in diagnostic
             reply={'tool_calls':[call('write_file',{'path':'ledger.rs','content':ALTERNATIVE})]}
-        elif index == 4: reply={'content':'Repaired implementation.'}
+        elif index == (18 if EXHAUSTION else 4): reply={'content':'Repaired implementation.'}
         else: raise AssertionError('unexpected inference request')
         index += 1
         data=json.dumps({'choices':[{'finish_reason':'stop',
@@ -71,13 +79,17 @@ socketserver.UnixStreamServer(sys.argv[sys.argv.index('--host')+1],Handler).serv
 """
 
 
-def setup(tmp_path):
+def setup(tmp_path, exhaustion=False):
     binary = find_meden()
     assert binary
     source = tmp_path / "source"
     source.mkdir()
     engine = tmp_path / "engine"
-    engine.write_text("#!/bin/python3\n" + f"NOOP={NOOP!r}\nALTERNATIVE={ALTERNATIVE!r}\n" + ENGINE)
+    engine.write_text(
+        "#!/bin/python3\n"
+        + f"NOOP={NOOP!r}\nALTERNATIVE={ALTERNATIVE!r}\nEXHAUSTION={exhaustion!r}\n"
+        + ENGINE
+    )
     engine.chmod(0o700)
     model = tmp_path / "fixture.gguf"
     model.write_text("fixture")
@@ -115,8 +127,11 @@ def assert_artifact(directory):
     return report
 
 
-def test_cli_host_acceptance_independent_repair_artifact_binding_and_staleness(tmp_path):
-    args, env, source = setup(tmp_path)
+@pytest.mark.parametrize("exhaustion", [False, True], ids=["false-done", "tool-budget"])
+def test_cli_host_acceptance_independent_repair_artifact_binding_and_staleness(
+    tmp_path, exhaustion
+):
+    args, env, source = setup(tmp_path, exhaustion)
     process = subprocess.Popen(
         args,
         stdin=subprocess.PIPE,
@@ -166,6 +181,14 @@ def test_cli_host_acceptance_independent_repair_artifact_binding_and_staleness(t
         send({"accept_contract": reference})
         assert receive("project")["summary"]["accepted"]
         assert receive("done")["outcome"] == "done", seen[-12:]
+        if exhaustion:
+            assert any(
+                r["type"] == "tool_result"
+                and r["tool"] == "verify_ledger"
+                and r["error"]
+                and "Tool not executed: turn stopped" in r["text"]
+                for r in seen
+            )
         summary = [r["summary"] for r in seen if r["type"] == "project"][-1]
         assert summary["verified"]
         report = assert_artifact(Path(summary["artifact"]))

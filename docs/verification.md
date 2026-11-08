@@ -19,7 +19,7 @@ established by the current CI badge.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate transfer/review/dispatch, evidence and TUI approval kernels, `lake build`, proof scan/audit, twenty-four Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate transfer/review/dispatch, evidence, TUI approval and check-scheduling kernels, `lake build`, proof scan/audit, twenty-nine Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A result or resulting transfer state differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -268,6 +268,40 @@ input provenance, screen routing, rendering and the I/O loop still require
 separate assurance; the theorem does not prove that arbitrary terminal bytes
 can never be decoded as a key or establish complete outbound confidentiality.
 
+## Checks after a model turn or tool budget stop
+
+The shared TUI/CLI [`Session`](../crates/meden-cli/src/session.rs) uses
+`needs_verification` to decide whether changed, accepted work needs a host
+check after the model stops. A normal answer or exhausted tool-group budget
+can continue to the independent checker. Pending review, model errors and
+cancellation stop continuation. This decision schedules work; it cannot
+approve a contract, accept evidence or mark a project verified.
+
+[`RepairRefinement.lean`](../lean/MedenSpec/RepairRefinement.lean) checks the
+[untouched generated model](../lean/MedenSpec/Generated/Repair.lean) over the
+actual `meden_agent::conversation::Status` type, including arbitrary text
+in success/error variants. Model-written claims do not change classification.
+
+| Audited theorem | Checked claim |
+| --- | --- |
+| `needs_verification_refines` | The actual decision terminates and exactly matches the independent required-check predicate for all represented inputs |
+| `budget_is_checked` | Accepted, changed work with no cancellation still needs a check after budget exhaustion |
+| `checking_requires_authority` | A positive decision requires acceptance, a change and no cancellation |
+| `terminal_does_not_check` | Failure, cancellation and pending review return false for every input flag and payload |
+
+Five mutations skip budget checks, admit model errors, omit acceptance,
+omit the change condition or ignore cancellation. Each must fail native
+assertions and the unchanged Lean refinement after a fresh model compiles.
+The real CLI integration test exhausts the model budget, skips its final
+forged verification call, gets a fresh host checker diagnostic and repairs
+to an actual eight-root proof and retained library. A skipped-call error
+cannot replace the independent check. The repair loop remains bounded to
+four conversation/check iterations.
+
+Flag attribution, source inspection, the fresh-check branch, loop bounds,
+job execution and cancellation races remain unproved adapters. This theorem
+does not prove eventual task success or the entire session loop.
+
 ## Evidence completion: exact current subject and extracted traces
 
 [`evidence.rs`](../crates/meden-core/src/evidence.rs) is the third production
@@ -338,8 +372,9 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with transfer/review/dispatch and TUI approval checks, CI rejects
-twenty-four faults. Timeouts, exhausted proof resources, unknown identifiers and missing
-modules do not count as semantic rejection. All source/model pairs are
+twenty-nine faults, including check-scheduling faults. Timeouts, exhausted proof
+resources, unknown identifiers and missing modules do not count as semantic
+rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
 
 The project adapter now serializes final evidence admission and local artifact
@@ -382,7 +417,7 @@ Definitions and additional lemmas are in
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the fifty-six
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the sixty
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -492,7 +527,7 @@ On Nix, a private `uv` Python shadowing a public Python is skipped rather
 than binding the private cache into the sandbox. The attack test exposed
 this actual execution failure before the selection was corrected.
 
-These controller, parser, router and OS behaviors have tests; the fifty-six
+These controller, parser, router and OS behaviors have tests; the sixty
 Lean theorem entry points still cover their stated kernels. The shared
 session has no whole-controller refinement theorem yet.
 
@@ -619,7 +654,7 @@ failed. The conversation's `done` event is therefore not project-verification
 evidence. Setup, limits,
 failure behavior and OS/asset trust assumptions are documented in
 [local inference](local-inference.md). The launcher, protocol and OS boundary
-are not Lean-refined; they add no theorem roots to the fifty-six audited here.
+are not Lean-refined; they add no theorem roots to the sixty audited here.
 
 ## Tests of actual HTTP delivery
 

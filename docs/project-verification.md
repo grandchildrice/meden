@@ -23,10 +23,15 @@ Enter, bracketed paste, model prose and tool arguments cannot accept it.
 
 After acceptance the model implements `ledger.rs`. On a development turn,
 Meden independently checks the candidate even if the model claims it has
-finished without calling `verify_ledger`. A failed check is returned for
-repair, up to four conversation/check iterations. An exhausted, cancelled,
-unsupported or failed check leaves the current source unverified. Read-only
-conversation turns do not automatically rerun development.
+finished without calling `verify_ledger`, or has exhausted its tool-group
+budget. If current proof is missing at a budget stop, the host obtains a
+fresh checker result; the final model call was deliberately not executed,
+so its error is not verification evidence. Failed checks return for repair within four conversation/check
+iterations. Cancellation, model failure and pending review stop continuation.
+An unsuccessful checker or exhausted repair budget cannot establish proof.
+A conversation may remain incomplete while its kernel is independently
+verified; these are separate statuses. Read-only conversation turns do not
+automatically rerun development.
 
 The TUI's host status distinguishes a verified **ledger kernel** from an
 unverified current source. The model's answer is not this status. CLI emits
@@ -180,18 +185,23 @@ against the actual release binary. CLI and real-PTY TUI tests use a scripted
 confined engine: forged acceptance fails, a false completion is independently
 rejected, a different correct implementation is checked, and edited local
 checker/config files cannot substitute for host inputs. The CLI test also
-checks exact retained file hashes and source invalidation. Another test
+checks exact retained file hashes and source invalidation. Its second case
+exhausts the model tool-group budget, skips a forged final verification call,
+requires the host to obtain a real failure diagnostic and repairs through
+the same proof/artifact path. Another test
 injects a special-case no-op for amount four: the fixed native examples
 pass, while the unchanged Lean refinement fails and no artifact is emitted.
 These are controller integration tests, not a local LLM coding benchmark.
 The ordinary Python job skips only these bundle-dependent tests; the Lean
 job explicitly supplies the manifest and runs them.
-Its `meden-ledger-evidence` artifact retains both successful cases' actual
+Its `meden-ledger-evidence` artifact retains all three successful cases' actual
 source, native libraries, proof inputs and eight-root audit reports.
 
-The separate Meden control audit contains 56 roots, including the extracted
-acceptance getter used by both interfaces and the actual TUI key predicate.
-The eight ledger roots are checked afresh per candidate. Neither count proves the entire TUI, CLI,
+The separate Meden control audit contains 60 roots, including the extracted
+acceptance getter used by both interfaces, the actual TUI key predicate and
+the check-scheduling decision over real conversation outcomes. The eight
+ledger roots are checked afresh per candidate. Neither count proves the
+entire TUI, CLI,
 protocol parser, origin attribution, job adapter or filesystem behavior.
 
 Trust dependencies include the accepted contract's meaning, trusted bundle

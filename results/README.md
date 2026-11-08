@@ -6,6 +6,20 @@ The old AgentDojo host-tool bridge and benchmark adapter have also been
 removed. Current `meden run` uses the same private offline coding session
 as the TUI; commands below describe historical interfaces, not current ones.
 
+## Local ledger pilot
+
+The [single Qwen3-8B CPU pilot at `80fbf44`](local-ledger-qwen3-8b-80fbf44.json)
+accepted the fixed ledger contract but ended `incomplete` after 17 model
+requests, with no verified artifact. Native counterexamples rejected overflow
+and loss of balance caused by saturating credit. Three of seven edit calls
+requested identical replacements. This motivated no-op rejection and host
+checking/repair after the model tool budget; the trial predates those fixes.
+No solution implementation or human code repair was supplied to the model.
+The record identifies the source, executable and model hashes and commits
+to the retained local trace by hash; the full trace is not published here.
+One failed pilot is not an estimate of task-success rates. Scripted CI
+proof/repair tests exercise the controller, not real model coding utility.
+
 ## Recorded native benign utility
 
 The frozen Rust conversational engine reached baseline-level benign utility

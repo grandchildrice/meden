@@ -16,6 +16,8 @@
   owns its frozen request; the runtime dispatches only its returned effect.
   The actual Crossterm approval predicate is extracted and refined too;
   decoding, screen routing and physical input provenance are separate gaps.
+  The check-scheduling predicate over actual conversation outcomes is refined;
+  budget exhaustion still reaches independent verification and bounded repair.
   The evidence kernel gates
   Meden's own releases and the fixed Rust ledger project verifier. General
   contracts/backends, full interface/tool coverage and outbound

@@ -1,0 +1,43 @@
+{
+  "kind": "single-local-model-pilot",
+  "source_commit": "80fbf442e4091bef6b5374c115a1854ceed74d28",
+  "worker_sha256": "df3121dc0d685a5a1af3ed263468f8e718dd3e6a3db5244d7d58801f5fc5b361",
+  "model": {
+    "name": "Qwen3-8B Q4_K_M",
+    "gguf_bytes": 5027784224,
+    "sha256": "54fffa050078e984116639c83dfb64b5aa6d4cd474e018b076777c632bbccccd"
+  },
+  "execution": {
+    "platform": "Linux CPU",
+    "engine": "llama.cpp 0.9.0 build 12110 (cd959ba)",
+    "context_tokens": 16384,
+    "reasoning_budget": 0,
+    "exchange_timeout_seconds": 300,
+    "network": "confined offline; no HTTP fallback"
+  },
+  "instruction": [
+    {
+      "type": "text",
+      "text": "Build a formally verified local Rust ledger. Transfers must preserve total balance, cannot overdraw an account, reject unauthorized actors and overflow, and retries must not charge twice. Use the supported ledger contract, propose it for my review, then implement and independently prove the accepted contract. Keep data local."
+    }
+  ],
+  "method": "Natural-language request only; the host harness reviewed/accepted the fixed ledger contract. No solution implementation or human code repair was supplied. Ordinary tool results remained visible to the model.",
+  "duration_seconds": 832.4687635786831,
+  "model_requests": 17,
+  "contract_accepted": true,
+  "conversation_outcomes": [
+    "needs_review",
+    "incomplete"
+  ],
+  "verified": false,
+  "artifact": null,
+  "edit_calls": 7,
+  "identical_replacement_attempts": 3,
+  "observations": [
+    "The model removed an unsupported import after a source-profile diagnostic.",
+    "Native counterexamples rejected overflowing addition and saturating credit without overflow rejection.",
+    "The tool-group budget stopped repair; no successful Lean check or verified artifact was produced."
+  ],
+  "trace_sha256": "74c8a52d7e42bb486061627fdb19680906c6b5093986de763be29f1a93cbff80",
+  "limitations": "One trial, before no-op edit rejection and budget-recovery changes. This does not measure a task-success rate, prove whole-system confidentiality or evaluate current repair behavior."
+}

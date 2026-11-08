@@ -81,7 +81,12 @@ impl Session {
                 &observe,
                 self.processes.flag(),
             );
-            if !matches!(status, Status::Done(_)) || !self.project.accepted() || !changed.get() {
+            if !needs_verification(
+                &status,
+                self.project.accepted(),
+                changed.get(),
+                self.processes.flag().load(Ordering::SeqCst),
+            ) {
                 return status;
             }
             if self
@@ -91,7 +96,13 @@ impl Session {
             {
                 return status;
             }
-            let previous_failure = failure.borrow().clone();
+            // The last tool group at the conversation limit is deliberately
+            // skipped. Its error is not a checker result for the current source.
+            let previous_failure = if matches!(status, Status::Incomplete) {
+                None
+            } else {
+                failure.borrow().clone()
+            };
             let diagnostic = if let Some(error) = previous_failure {
                 error
             } else {
@@ -150,6 +161,12 @@ impl Session {
     }
 }
 
+/// Host check scheduling, not proof acceptance or overall task completion.
+/// Exhausting a model tool budget does not bypass the accepted contract.
+fn needs_verification(status: &Status, accepted: bool, changed: bool, cancelled: bool) -> bool {
+    accepted && changed && !cancelled && matches!(status, Status::Done(_) | Status::Incomplete)
+}
+
 fn observe_project(
     project: &crate::project::Project,
     event: &Event<'_>,
@@ -187,6 +204,34 @@ fn observe_project(
     {
         if call.function.name == "verify_ledger" {
             *failure.borrow_mut() = Some((*text).to_owned());
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn budget_recovery_respects_host_authority() {
+        assert!(needs_verification(&Status::Incomplete, true, true, false));
+        assert!(needs_verification(
+            &Status::Done("unproved claim".into()),
+            true,
+            true,
+            false
+        ));
+        for status in [Status::Incomplete, Status::Done("verified=true".into())] {
+            assert!(!needs_verification(&status, false, true, false));
+            assert!(!needs_verification(&status, true, false, false));
+            assert!(!needs_verification(&status, true, true, true));
+        }
+        for status in [
+            Status::NeedsReview,
+            Status::Cancelled,
+            Status::Failed("verified=true".into()),
+        ] {
+            assert!(!needs_verification(&status, true, true, false));
         }
     }
 }

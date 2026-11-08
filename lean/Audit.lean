@@ -65,3 +65,7 @@ open MedenSpec
 #print axioms MedenSpec.ApprovalRefinement.paste_cannot_approve
 #print axioms MedenSpec.ApprovalRefinement.modified_key_cannot_approve
 #print axioms MedenSpec.ApprovalRefinement.nonpress_cannot_approve
+#print axioms MedenSpec.RepairRefinement.needs_verification_refines
+#print axioms MedenSpec.RepairRefinement.budget_is_checked
+#print axioms MedenSpec.RepairRefinement.checking_requires_authority
+#print axioms MedenSpec.RepairRefinement.terminal_does_not_check

@@ -123,6 +123,24 @@ GROUPS = [
             ("paste_approval", "} else {\n        false\n", "} else {\n        true\n"),
         ],
     },
+    {
+        "source": "crates/meden-cli/src/session.rs",
+        "package": "meden-cli",
+        "model": "Repair",
+        "proof": "RepairRefinement",
+        "test": "session::tests::budget_recovery_respects_host_authority",
+        "mutations": [
+            ("budget_skips_check", "Status::Done(_) | Status::Incomplete", "Status::Done(_)"),
+            (
+                "failure_restarts_check",
+                "Status::Done(_) | Status::Incomplete",
+                "Status::Done(_) | Status::Incomplete | Status::Failed(_)",
+            ),
+            ("unaccepted_check", "accepted && changed", "(accepted || true) && changed"),
+            ("unchanged_check", "accepted && changed", "accepted && (changed || true)"),
+            ("cancelled_check", "&& !cancelled", "&& (!cancelled || true)"),
+        ],
+    },
 ]
 
 

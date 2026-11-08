@@ -14,11 +14,11 @@ case $("$aeneas_bin" -version) in
   *) echo 'Unsupported Aeneas revision' >&2; exit 1 ;;
 esac
 
-units=(control evidence approval)
+units=(control evidence approval repair)
 case "$#:${1:-}:${2:-}" in
   0::|1:--write:) ;;
-  2:--write:control|2:--write:evidence|2:--write:approval) units=("$2") ;;
-  *) echo 'Usage: tools/extract-transfer.sh [--write [control|evidence|approval]]' >&2; exit 2 ;;
+  2:--write:control|2:--write:evidence|2:--write:approval|2:--write:repair) units=("$2") ;;
+  *) echo 'Usage: tools/extract-transfer.sh [--write [control|evidence|approval|repair]]' >&2; exit 2 ;;
 esac
 extract_tmp=$(mktemp -d)
 trap 'rm -rf "$extract_tmp"' EXIT
@@ -48,6 +48,12 @@ for unit in "${units[@]}"; do
       extraction_args=(--extract-opaque-bodies --include crossterm --include bitflags
         --opaque core --opaque alloc --opaque std --include core::cmp::impls)
       model=Approval ;;
+    repair)
+      rust_roots=(meden::session::needs_verification)
+      namespace=MedenRepairImpl
+      cargo_args=(--locked --bin meden -p meden-cli)
+      extraction_args=(--include meden_agent)
+      model=Repair ;;
   esac
   extract_roots=()
   for rust_root in "${rust_roots[@]}"; do

@@ -70,6 +70,13 @@ The [llama.cpp server reference](https://github.com/ggml-org/llama.cpp/tree/mast
 documents the socket listener and native tool-calling API. The selected
 model must supply a compatible chat/tool template.
 
+A [Qwen3-8B ledger pilot](../results/local-ledger-qwen3-8b-80fbf44.json)
+used the real offline engine and natural-language instruction. It ended
+unverified after 17 requests; native counterexamples rejected its repairs.
+It predates budget-recovery and identical-edit rejection. It demonstrates
+neither current task success nor a successful project proof; the scripted
+CI proof tests measure the independent checker/controller instead.
+
 [Adversarial CLI/TUI tests](../python/tests/test_local_inference.py) use a
 deliberately hostile engine and observed TCP/UDP/Unix receivers, including
 inheritable host capabilities, confidential context, forged approval,

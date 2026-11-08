@@ -36,7 +36,7 @@ pub fn environment(
          json!({"path":{"type":"string"}}), vec!["path"]),
         ("write_file", Operation::Write, "Create or replace a UTF-8 file in the workspace. Supply its complete content. Parent directories must already exist.",
          json!({"path":{"type":"string"},"content":{"type":"string"}}), vec!["path","content"]),
-        ("edit_file", Operation::Edit, "Replace exactly one occurrence of old_text with new_text in a UTF-8 workspace file. Read the file first; ambiguous or missing matches fail without writing.",
+        ("edit_file", Operation::Edit, "Replace exactly one occurrence of old_text with different new_text in a UTF-8 workspace file. Read the file first; identical replacements, ambiguous or missing matches fail without writing.",
          json!({"path":{"type":"string"},"old_text":{"type":"string"},"new_text":{"type":"string"}}), vec!["path","old_text","new_text"]),
     ] {
         let sig = ToolSig::new(name, description, json!({"type":"object","properties":properties,"required":required,"additionalProperties":false}));
