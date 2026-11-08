@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">MEDEN</h1>
-<p align="center">Natural-language development, backed by checked evidence.</p>
+<p align="center">Proof-driven development, with ease.</p>
 
 <p align="center">
   <a href="https://github.com/grandchildrice/meden/actions/workflows/ci.yml"><img src="https://github.com/grandchildrice/meden/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>

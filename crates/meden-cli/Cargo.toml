@@ -1,6 +1,6 @@
 [package]
 name = "meden-cli"
-description = "Interactive coding agent and isolated JSON Lines automation"
+description = "Coding agent for proof-driven development: formal verification through natural language, with local LLMs."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

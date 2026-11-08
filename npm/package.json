@@ -1,7 +1,7 @@
 {
   "name": "meden",
   "version": "0.1.0",
-  "description": "Local coding agent with Lean checked control kernels and isolated execution",
+  "description": "Coding agent for proof-driven development: formal verification through natural language, with local LLMs.",
   "os": ["linux"],
   "cpu": ["x64", "arm64"],
   "keywords": [
