@@ -121,7 +121,9 @@ hashing happens before and after execution and is cancellable. Preparing
 and hashing the pinned Lean/Mathlib closure can take substantial time and
 disk space; this is an experimental backend.
 
-A later source change resets evidence progress. Restoring old bytes does
+A permitted file edit or Bash call resets evidence progress before it runs,
+even if the operation restores the old bytes before a status read.
+An observed later source change also resets progress. Restoring old bytes does
 not recreate a discarded receipt. Existing retained artifacts still name
 their own exact inputs; they do not make edited working files verified.
 Changing host checker installations during work is unsupported. This is

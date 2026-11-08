@@ -4,6 +4,9 @@ set -euo pipefail
 ulimit -c 0
 ulimit -v 16777216
 export PATH=/verification/rust/bin:/tools:/bin:/usr/bin
+# Charon embeds rustc and needs this pinned sysroot's driver library. The
+# namespace clears inherited loader paths; only prepared public files apply.
+export LD_LIBRARY_PATH=/verification/rust/lib
 export CARGO_HOME=/tmp/cargo
 export CARGO_TARGET_DIR=/workspace/build
 export CARGO_BUILD_JOBS=2

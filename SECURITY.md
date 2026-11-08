@@ -117,12 +117,14 @@ the I/O loop remain unproved; this is not whole-controller refinement.
 The third extracted kernel checks exact evidence correspondence. Only typed
 checker results matching the accepted obligation, evidence kind, checker,
 position and current subject advance completion. Changed input bindings
-invalidate progress. Lean proves all six production operations and coverage
+invalidate progress. Lean proves all seven production operations and coverage
 over finite compositions. Typed origin attribution and complete/correct
 subject construction remain host responsibilities. Its first consumer is
 [Meden's own release gate](docs/release.md), which uses GitHub CI evidence
-and trusted build provenance. It does not verify a user's project or prove
-the GitHub/OS/compiler/hash assumptions.
+and trusted build provenance. The experimental fixed ledger profile also
+uses it to admit actual Rust-to-Lean project proofs and retain the exact
+checked library. This does not prove arbitrary user projects or the
+GitHub/OS/compiler/hash assumptions. See [the supported project scope](docs/project-verification.md).
 
 The production worker tests observe host-only files, inherited file/socket
 capabilities, IPv4/IPv6 attempts, detached subprocesses, hard links, symlink

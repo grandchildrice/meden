@@ -197,6 +197,12 @@ impl Project {
 
     pub fn mark_dirty(&self) {
         if let Ok(mut state) = self.state.lock() {
+            // Invalidate at the permitting decision, before any write runs.
+            // Restoring the old bytes before a status read must not revive
+            // receipts discarded by a development operation.
+            if let Some(gate) = &mut state.gate {
+                gate.refresh(Origin::Controller, self.subject(b"editing".to_vec()));
+            }
             state.dirty = true;
         }
     }
@@ -409,6 +415,46 @@ impl Tool for ProjectTool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn editing_discards_evidence_before_another_status_read() -> Result<()> {
+        let project = Project::new(Path::new("/sessions/editing"));
+        let subject = project.subject(b"checked inputs".to_vec());
+        let obligation = Project::obligation();
+        let mut gate = Gate::propose(subject.clone(), vec![obligation.clone()]);
+        assert!(gate.review(Origin::Host));
+        assert!(gate.accept(Origin::Host));
+        assert!(gate.record(
+            Origin::Checker,
+            &subject,
+            &Receipt {
+                subject: subject.clone(),
+                position: 0,
+                obligation,
+                passed: true,
+                active: true,
+            }
+        ));
+        assert!(gate.eligible(&subject));
+        project
+            .state
+            .lock()
+            .map_err(|_| anyhow::anyhow!("project unavailable"))?
+            .gate = Some(gate);
+
+        project.mark_dirty();
+        let mut state = project
+            .state
+            .lock()
+            .map_err(|_| anyhow::anyhow!("project unavailable"))?;
+        assert!(state.dirty);
+        let gate = state.gate.as_mut().context("no contract")?;
+        assert!(gate.is_accepted());
+        // Even an identical source after the write needs fresh evidence.
+        assert!(gate.refresh(Origin::Controller, subject.clone()));
+        assert!(!gate.eligible(&subject));
+        Ok(())
+    }
 
     #[test]
     fn host_acceptance_requires_review_of_the_exact_session_contract() -> Result<()> {
