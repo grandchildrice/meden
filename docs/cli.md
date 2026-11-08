@@ -167,8 +167,12 @@ Each output line is a JSON object whose `type` identifies an event:
 
 `done.outcome` is `done`, `needs_review`, `failed`, `incomplete` or `cancelled`.
 `needs_review` means the host stopped after a contract proposal; review and
-accept the exact reference to continue. Check it:
-exit zero means protocol processing completed, not that every task or test
+accept the exact reference to continue. `done` means the model returned a
+final answer; it may have answered without executing a tool. It does not
+establish task completion or project verification. Use the host's current
+project status and bound artifact report to check verification.
+
+Process exit zero means protocol processing completed, not that every task or test
 succeeded. Tool errors can be returned to the model for repair. A broken
 output stream cancels the conversation; it does not authorize another
 effect. End stdin to finish the session.

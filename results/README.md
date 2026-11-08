@@ -8,6 +8,15 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Local ledger pilots
 
+The [Qwen2.5-Coder-7B trial at `6eb6475`](local-ledger-qwen25-coder7b-6eb6475.json)
+returned a tutorial after one inference request and about 145 seconds, with
+JSON tool-call examples in prose. It invoked no native tool, proposed no
+contract and produced no source or verified artifact. The conversation
+ended `done`; the host's project status remained unverified. This was a
+normal model answer, not an inference timeout. It motivates clearer action
+instructions for the worker; those instructions do not replace the host's
+proof and delivery conditions. No solution or human code repair was supplied.
+
 The [Qwen3-14B CPU trial at `25d67e0`](local-ledger-qwen3-14b-25d67e0.json)
 used the same natural-language task with the host checking/repair controller.
 It accepted the fixed contract, made 31 inference requests over about 66

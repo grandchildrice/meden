@@ -1,0 +1,45 @@
+{
+  "kind": "single-local-model-pilot",
+  "source_commit": "6eb6475c2e17626fa539a2b0120e18734a74e1b2",
+  "worker_sha256": "c32828171c9dbc96634f37a221b56fb7e004fe5d9ee3e24ebb7b188e8b204452",
+  "model": {
+    "name": "Qwen2.5-Coder-7B-Instruct Q4_K_M",
+    "repository": "bartowski/Qwen2.5-Coder-7B-Instruct-GGUF",
+    "revision": "1f629da0c8bed16b9e50cee91c70693650e66c35",
+    "gguf_bytes": 4683074336,
+    "sha256": "1664fccab734674a50763490a8c6931b70e3f2f8ec10031b54806d30e5f956b6"
+  },
+  "execution": {
+    "platform": "Linux CPU",
+    "engine": "llama.cpp 0.9.0 build 12110 (cd959ba)",
+    "context_tokens": 16384,
+    "reasoning_budget": 0,
+    "exchange_timeout_seconds": 300,
+    "sampling": "server defaults; seed not recorded",
+    "network": "confined offline; no HTTP fallback",
+    "concurrent_load": "shared workstation; no local Rust/Lean verification builds during this trial"
+  },
+  "instruction": "Build a formally verified local Rust ledger. Transfers must preserve total balance, cannot overdraw an account, reject unauthorized actors and overflow, and retries must not charge twice. Use the supported ledger contract, propose it for my review, then implement and independently prove the accepted contract. Keep data local.",
+  "method": "One natural-language request in an empty project. The host harness would review/accept only the exact fixed ledger contract, but no proposal was made. No implementation/proof or human code repair was supplied.",
+  "duration_seconds": 144.5604664720595,
+  "model_requests": 1,
+  "tool_calls": 0,
+  "contract_accepted": false,
+  "host_review_decisions": 0,
+  "conversation_outcomes": [
+    "done"
+  ],
+  "process_exit": 0,
+  "received_signal": null,
+  "host_cleanup": null,
+  "verified": false,
+  "artifact": null,
+  "observations": [
+    "The model returned a tutorial with JSON tool-call examples and an incompatible example ledger, without invoking any native tool.",
+    "No contract proposal, source edit or project verification occurred. A done conversation outcome did not establish the task or a verified artifact."
+  ],
+  "limitations": "One failed trial, not a task-success estimate or whole-system confidentiality result. The model emitted a normal answer; this was not an inference timeout or engine startup failure.",
+  "trace_sha256": "007709a7081d33f06473f09843e9576986157e792c5a878af35c4a181c3c0bcb",
+  "timing_sha256": "f4635640ebdf650dac4c7ecc50d2edd30a656713c2700e552a1770fc5ed4ccc8",
+  "host_actions_sha256": "b1910019d46238941d81463332577426bb0aec632c4aececed592a81aaf3abbe"
+}
