@@ -97,7 +97,7 @@ GROUPS = [
             (
                 "uncommitted_effect_attempt",
                 "self.phase = decision.phase;",
-                "self.phase = self.phase;",
+                "let _ = decision.phase;",
             ),
             ("missing_authorized_effect", "Some(self.request.clone())", "None"),
         ],
