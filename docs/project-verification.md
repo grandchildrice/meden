@@ -229,11 +229,15 @@ Two status-failure cases first retain real proof, reject an edited source,
 then remove a private worker executable. Host inspection and the model's
 status tool must stop further inference; a queued write must be skipped.
 The retained old artifact remains inspectable without verifying the changed source.
-These fourteen cases are checker/controller integration tests, not a local LLM
+One additional case re-extracts and proves the unmodified Rust source from
+the [successful local-model pilot](../results/local-ledger-qwen3-4b-d3d5fd8.json).
+This keeps that concrete source reproducible through the actual checker;
+the CI case itself supplies a fixed source and does not rerun the LLM.
+These fifteen cases are checker/controller integration tests, not a local LLM
 coding benchmark.
 The ordinary Python job skips only these bundle-dependent tests; the Lean
 job explicitly supplies the manifest and runs them.
-Its `meden-ledger-evidence` artifact retains all nine successful cases' actual
+Its `meden-ledger-evidence` artifact retains all ten successful cases' actual
 source, native libraries, proof inputs and eight-root audit reports.
 
 The separate Meden control audit contains 99 roots, including the extracted

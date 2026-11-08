@@ -1,0 +1,90 @@
+{
+  "kind": "single-local-model-pilot",
+  "source_commit": "d3d5fd84d01aba1fa06d2641462e0942e6749d84",
+  "worker_sha256": "a2b44fa1cf358a68b97d855ee882081bef035aa4eb9bad3b172fadfd49de1a26",
+  "model": {
+    "name": "Qwen3-4B-Instruct-2507 Q4_K_M",
+    "repository": "bartowski/Qwen_Qwen3-4B-Instruct-2507-GGUF",
+    "revision": "ae44f08e1392f39c0e474af10c3ff8355c8b6688",
+    "gguf_bytes": 2497280736,
+    "sha256": "2fde00ce69dd4899c70d020845e2638353015bba0fdf161b3eb965f2bca4464e"
+  },
+  "execution": {
+    "platform": "Linux CPU",
+    "logical_cpus": 16,
+    "system_memory_gib": 31,
+    "engine": "llama.cpp 0.9.0 build 12110 (cd959ba)",
+    "context_tokens": 16384,
+    "reasoning_budget": 0,
+    "exchange_timeout_seconds": 300,
+    "sampling": "server defaults; seed not recorded",
+    "network": "confined offline; no HTTP fallback",
+    "concurrent_load": "shared workstation; no local Rust/Lean builds launched during this trial"
+  },
+  "instruction": "Build a formally verified local Rust ledger. Transfers must preserve total balance, cannot overdraw an account, reject unauthorized actors and overflow, and retries must not charge twice. Use the supported ledger contract, propose it for my review, then implement and independently prove the accepted contract. Keep data local.",
+  "method": "One natural-language request in an empty project. The host harness reviewed/accepted only the exact fixed ledger contract. The model received no solution Rust implementation or human candidate/proof repair. Meden used its normal fixed host specification/refinement harness. Replaying all model write/edit calls reconstructs the retained source byte for byte.",
+  "duration_seconds": 644.236057953909,
+  "model_requests": 9,
+  "contract_accepted": true,
+  "host_review_decisions": 1,
+  "host_commands": 3,
+  "conversation_outcomes": [
+    "needs_review",
+    "done"
+  ],
+  "process_exit": 0,
+  "received_signal": null,
+  "host_cleanup": null,
+  "verified": true,
+  "candidate_source_file": "results/sources/ledger-qwen3-4b-d3d5fd8.rs",
+  "successful_tools": {
+    "propose_ledger": 1,
+    "write_file": 1,
+    "read_file": 1,
+    "edit_file": 1,
+    "verify_ledger": 1
+  },
+  "failed_tools": {
+    "verify_ledger": 1,
+    "edit_file": 2
+  },
+  "observations": [
+    "The first implementation panicked on credit overflow and was independently rejected by a named contract example.",
+    "Two exact-edit calls failed without changing the source. A later model edit added an overflow guard.",
+    "The actual Rust source was extracted, its unchanged Lean contract/refinement and seven consequences passed, and the native library and evidence were retained.",
+    "Independent artifact inspection validated the fixed checker bytes, eight exact audit roots and allowed axioms, source/native/manifest hashes, final current-source binding, and source reconstruction from model calls."
+  ],
+  "evidence": {
+    "source_sha256": "16ecf3e95c04538750b3a52f54b671ff71f335a35659b1a2f4aebe33e6bbb38a",
+    "artifact_sha256": "9e1e50d176e0e39d1679237d4df7793a4066fd79b882c7697343a8075a2439fa",
+    "bundle_sha256": "f4f1961020b89b3f08ffbbab46f43687f3720d545e7a5f8766f2eb65edebeb65",
+    "checker_sha256": "9674d48595626f3142afe035bba936fa89b1df3145e38954d86a0c19fc59945f",
+    "files": {
+      "Candidate.lean": "5fe90ec0ff0fa4d1336a1dfc75d62c1252d4e2d9240def09e57da23120c1d82e",
+      "Cargo.lock": "87c33087e292c234a2ba56a2b2a7bb56fcd7618687cae462ff889795752b8592",
+      "Cargo.toml": "38df71337d6d1f1f473dc14d1eeac5df9d0f2515e763a0fbe9afda4929a7b5d3",
+      "Check.lean": "492653c2db7b2481ad31863bfbc3512228213e57a11bd59deffd91f51354aee9",
+      "Spec.lean": "bc56aa64ff3cdd05d0b54990d99d7306c8d944db9ab61f1216c7075e7c0c191f",
+      "candidate.llbc": "c0906a8c9d829061c2f379a25a27390a463fa1bd86c4f417d79df5cdbd57ba75",
+      "check.sh": "0e4f067788e9e603a877e652cc0ca36049ef1ff1c65d87e55582dddc7b181397",
+      "ledger.rs": "16ecf3e95c04538750b3a52f54b671ff71f335a35659b1a2f4aebe33e6bbb38a",
+      "lib.rs": "01c7f98727996dc3b73c6bfd12ccd2ac5ce5faa47c0d5eb149706248591b05f3",
+      "libmeden_ledger.rlib": "35228560132b5b8b5a471f13b3eec544e5b87f0c1c7689865e8b3efec8dad41f"
+    },
+    "audit": [
+      "'LedgerProof.actual_refines' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'LedgerContract.conservation' depends on axioms: [propext, Quot.sound]",
+      "'LedgerContract.rejection' depends on axioms: [propext]",
+      "'LedgerContract.valid_transfer' depends on axioms: [propext]",
+      "'LedgerContract.unauthorized' depends on axioms: [propext]",
+      "'LedgerContract.old_request' depends on axioms: [propext, Quot.sound]",
+      "'LedgerContract.repeated_request' depends on axioms: [propext]",
+      "'LedgerContract.bounded_result' depends on axioms: [propext, Classical.choice, Quot.sound]"
+    ],
+    "scope": "Full functional refinement of the supported u64 ledger kernel and the listed contract properties, conditional on the reviewed contract, trusted preparer/checker libraries, Charon/Aeneas models, Lean kernel, compiler/native libraries, OS confinement and SHA-256. Not persistence, concurrent transactions, whole-application correctness or certification."
+  },
+  "limitations": "One successful trial after separate failed pilots, not a task-success estimate or a controlled model comparison. The fixed ledger library contract excludes authentication, persistence, concurrency, whole-application correctness and certification. Checker/extraction/compiler/OS/hash trust remains explicit; this does not establish all of Meden or R1.",
+  "trace_sha256": "2f060310fc4f06f5c0adec8783ffe23101c9b5acb726eedf9ad7a310ca38aad3",
+  "timing_sha256": "2c03ad43df34261ec553536f824fb19e06e21a92d57f7d3c204fe1002a88207b",
+  "host_actions_sha256": "44dcc982018820cdfe27aa16ff4d32c10090a0c205d98aaf1b08cc731fcd8ac6"
+}

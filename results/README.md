@@ -8,6 +8,24 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Local ledger pilots
 
+The [Qwen3-4B-Instruct trial at `d3d5fd8`](local-ledger-qwen3-4b-d3d5fd8.json)
+completed this fixed ledger task in about eleven minutes and nine inference
+requests. From an empty project and one natural-language instruction, it
+proposed the supported contract, waited for the harness's exact-contract
+approval, wrote Rust and repaired an independently rejected overflow.
+Two exact-edit attempts also failed before its successful repair. The actual
+Rust extraction, unchanged Lean refinement and seven contract consequences
+passed through Meden's fixed host harness, and the checked native library
+and evidence were retained locally.
+The [unmodified model source](sources/ledger-qwen3-4b-d3d5fd8.rs) is published
+with source/artifact/checker/bundle hashes and the eight axiom audit entries.
+Independent inspection matched all retained file hashes, the current source
+and the source reconstructed solely from model write/edit calls. The model
+received no solution Rust implementation or human code/proof repair. This is
+one successful fixed-profile trial, not a task-success rate, general domain
+support or whole-system confidentiality result. The harness made the single
+review decision automatically only after matching the exact known contract.
+
 The [Qwen2.5-Coder-7B trial at `6eb6475`](local-ledger-qwen25-coder7b-6eb6475.json)
 returned a tutorial after one inference request and about 145 seconds, with
 JSON tool-call examples in prose. It invoked no native tool, proposed no

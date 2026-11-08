@@ -517,9 +517,19 @@ def verify_source(tmp_path, content):
     return result, output
 
 
-@pytest.mark.parametrize("form", ["if_let", "match", "unwrap", "unwrap_or"])
-def test_checked_option_implementations_refine_the_same_contract(tmp_path, form):
-    source = checked_source(form)
+@pytest.mark.parametrize(
+    "source",
+    [
+        pytest.param(checked_source(form), id=form)
+        for form in ("if_let", "match", "unwrap", "unwrap_or")
+    ]
+    + [
+        pytest.param(
+            (ROOT / "results/sources/ledger-qwen3-4b-d3d5fd8.rs").read_text(), id="local-model"
+        )
+    ],
+)
+def test_rust_implementations_refine_the_same_contract(tmp_path, source):
     result, output = verify_source(tmp_path, source)
     assert result.returncode == 0, result.stderr
     artifact = json.loads(result.stdout)
