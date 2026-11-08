@@ -1,11 +1,11 @@
-import MedenSpec.Generated.Failure
+import MedenSpec.Generated.Repair
 
 /-! Classification of actual worker termination values. The pinned Linux/Unix
 wait-word layout has seven low status bits; normal completion has them clear.
 OS attribution, I/O adapters and diagnostic rendering remain separate obligations. -/
 namespace MedenSpec.CheckFailureRefinement
 open Aeneas Aeneas.Std Result
-open MedenCheckImpl
+open MedenRepairImpl
 
 inductive Failure where
   | unverified | unavailable | inconclusive

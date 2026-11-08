@@ -128,21 +128,72 @@ GROUPS = [
         ],
     },
     {
-        "source": "crates/meden-cli/src/session.rs",
-        "package": "meden-cli",
+        "source": "crates/meden-runtime/src/verification/turn.rs",
+        "package": "meden-runtime",
         "model": "Repair",
         "proof": "RepairRefinement",
-        "test": "session::tests::budget_recovery_respects_host_authority",
+        "test": (
+            "verification::turn::tests::"
+            "checks_require_authority_and_budget_stops_still_obtain_fresh_evidence"
+        ),
         "mutations": [
-            ("budget_skips_check", "Status::Done(_) | Status::Incomplete", "Status::Done(_)"),
+            (
+                "budget_skips_check",
+                "matches!(status, Status::Done(_) | Status::Incomplete) {",
+                "matches!(status, Status::Done(_)) {",
+            ),
             (
                 "failure_restarts_check",
-                "Status::Done(_) | Status::Incomplete",
-                "Status::Done(_) | Status::Incomplete | Status::Failed(_)",
+                "matches!(status, Status::Done(_) | Status::Incomplete) {",
+                "matches!(status, Status::Done(_) | Status::Incomplete | Status::Failed(_)) {",
             ),
             ("unaccepted_check", "accepted && changed", "(accepted || true) && changed"),
             ("unchanged_check", "accepted && changed", "accepted && (changed || true)"),
-            ("cancelled_check", "&& !cancelled", "&& (!cancelled || true)"),
+            (
+                "budget_reuses_old_rejection",
+                "!fresh && matches!(failure, Some(FailureKind::Unverified))",
+                "(!fresh || true) && matches!(failure, Some(FailureKind::Unverified))",
+            ),
+        ],
+    },
+    {
+        "source": "crates/meden-runtime/src/verification/turn.rs",
+        "package": "meden-runtime",
+        "model": "Repair",
+        "proof": "RepairRefinement",
+        "test": (
+            "verification::turn::tests::"
+            "terminal_stops_are_sticky_and_only_four_model_rounds_are_permitted"
+        ),
+        "mutations": [
+            ("cancelled_turn_restarted", "if cancelled {", "if cancelled && false {"),
+            (
+                "stopped_turn_reopened",
+                "return Effect::Stop(reason);",
+                "let _ = Effect::Stop(reason); self.stage = Stage::Ready;",
+            ),
+            (
+                "unbounded_model_rounds",
+                "self.remaining.checked_sub(1)",
+                "self.remaining.checked_sub(0)",
+            ),
+        ],
+    },
+    {
+        "source": "crates/meden-runtime/src/verification/turn.rs",
+        "package": "meden-runtime",
+        "model": "Repair",
+        "proof": "RepairRefinement",
+        "test": (
+            "verification::turn::tests::"
+            "unattributed_check_failure_never_starts_automatic_repair"
+        ),
+        "mutations": [
+            (
+                "unattributed_check_repaired",
+                "self.stop(Terminal::Failed)\n                }\n            }\n            _ =>",
+                "self.repair()\n                }\n            }\n            _ =>",
+            ),
         ],
     },
     {
@@ -179,7 +230,7 @@ GROUPS = [
     {
         "source": "crates/meden-runtime/src/verification/failure.rs",
         "package": "meden-cli",
-        "model": "Failure",
+        "model": "Repair",
         "proof": "CheckFailureRefinement",
         "test": "session::tests::operational_verification_failure_stops_automatic_repair",
         "mutations": [
@@ -255,7 +306,7 @@ GROUPS = [
     {
         "source": "crates/meden-runtime/src/verification/failure.rs",
         "package": "meden-runtime",
-        "model": "Failure",
+        "model": "Repair",
         "proof": "CheckFailureRefinement",
         "test": "verification::failure::tests::worker_limits_and_signals_are_not_repairable",
         "mutations": [

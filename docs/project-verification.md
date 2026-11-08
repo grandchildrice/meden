@@ -29,6 +29,9 @@ fresh checker result; the final model call was deliberately not executed,
 so its error is not verification evidence. Failed checks return for repair within four conversation/check
 iterations. Cancellation, model failure and pending review stop continuation.
 An unsuccessful checker or exhausted repair budget cannot establish proof.
+The runtime controller selects the next operation; its extracted finite traces
+permit at most four outer conversation invocations and preserve terminal stops.
+Each invocation may itself make multiple model requests and tool calls.
 Host-attributed failures are separate: missing prepared resources and host-I/O
 errors are `unavailable`; cancellation, recorded time/output limits, truncated
 output and signal termination are `inconclusive`. These stop automatic repair
@@ -229,9 +232,10 @@ job explicitly supplies the manifest and runs them.
 Its `meden-ledger-evidence` artifact retains all seven successful cases' actual
 source, native libraries, proof inputs and eight-root audit reports.
 
-The separate Meden control audit contains 78 roots, including the extracted
+The separate Meden control audit contains 81 roots, including the extracted
 acceptance getter used by both interfaces, the actual TUI key predicate and
-the check-scheduling decision over real conversation outcomes, typed
+the outer-turn protocol over real conversation outcomes, its finite-trace
+conversation budget and sticky stops, typed
 verification-failure classification and stopping decisions, and the issued-job
 operations and finite-trace properties, plus their composed evidence-completion
 transition. The eight

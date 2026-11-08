@@ -65,10 +65,13 @@ open MedenSpec
 #print axioms MedenSpec.ApprovalRefinement.paste_cannot_approve
 #print axioms MedenSpec.ApprovalRefinement.modified_key_cannot_approve
 #print axioms MedenSpec.ApprovalRefinement.nonpress_cannot_approve
-#print axioms MedenSpec.RepairRefinement.needs_verification_refines
-#print axioms MedenSpec.RepairRefinement.budget_is_checked
-#print axioms MedenSpec.RepairRefinement.checking_requires_authority
-#print axioms MedenSpec.RepairRefinement.terminal_does_not_check
+#print axioms MedenSpec.RepairRefinement.begin_refines
+#print axioms MedenSpec.RepairRefinement.advance_refines
+#print axioms MedenSpec.RepairRefinement.inspection_requires_acceptance
+#print axioms MedenSpec.RepairRefinement.budget_gets_fresh_check
+#print axioms MedenSpec.RepairTrace.trace_refines
+#print axioms MedenSpec.RepairTrace.extracted_conversation_budget
+#print axioms MedenSpec.RepairTrace.extracted_stopped
 #print axioms MedenSpec.CheckFailureRefinement.repairable_refines
 #print axioms MedenSpec.CheckFailureRefinement.verification_stops_refines
 #print axioms MedenSpec.CheckFailureRefinement.operational_stops

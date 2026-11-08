@@ -4,6 +4,8 @@ mod bundle;
 mod failure;
 mod ledger;
 mod source;
+/// Shared host-turn controller used by interactive and automated sessions.
+pub mod turn;
 
 pub use bundle::Bundle;
 pub use failure::{failed_worker, verification_stops, Failure, FailureKind};

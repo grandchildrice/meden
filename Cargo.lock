@@ -1086,6 +1086,7 @@ dependencies = [
 name = "meden-runtime"
 version = "0.1.0"
 dependencies = [
+ "meden-agent",
  "meden-core",
  "nix 0.31.3",
  "serde",

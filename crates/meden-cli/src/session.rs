@@ -10,7 +10,10 @@ use meden_agent::Registry;
 use meden_core::Policy;
 use meden_llm::Gateway;
 use meden_runtime::process::Control;
-use meden_runtime::verification::verification_stops;
+use meden_runtime::verification::{
+    turn::{Effect, Signal, Terminal, Turn},
+    verification_stops,
+};
 use meden_runtime::workspace::Workspace;
 use serde_json::Value;
 
@@ -67,98 +70,106 @@ impl Session {
             observer(event);
         };
         let mut next = instruction.to_owned();
-        for _ in 0..4 {
-            let status = self.conversation.run(
-                &next,
-                &self
-                    .gateway
-                    .for_session(self.workspace.path().as_os_str().as_encoded_bytes()),
-                &conversation::Runtime {
-                    registry: &self.registry,
-                    policy: &self.policy,
-                    tools: &self.tools,
-                    stop: &|| {
-                        stopping_failure(&self.project)
-                            .or_else(|| review.get().then_some(Status::NeedsReview))
-                    },
-                },
-                &observe,
-                self.processes.flag(),
-            );
-            if !needs_verification(
-                &status,
-                self.project.accepted(),
-                changed.get(),
+        let mut turn = Turn::begin();
+        let mut signal = Signal::Start;
+        let mut status = Status::Incomplete;
+        let mut diagnostic = String::new();
+        loop {
+            let failure = self.project.failure();
+            match turn.advance(
+                signal,
                 self.processes.flag().load(Ordering::SeqCst),
+                failure.as_ref().map(|f| f.kind),
+                review.get(),
             ) {
-                return status;
-            }
-            if self
-                .project
-                .status(&self.workspace, &self.processes)
-                .is_ok_and(|s| s.verified)
-            {
-                return status;
-            }
-            // The last tool group at the conversation limit is deliberately
-            // skipped. Its error is not a checker result for the current source.
-            let previous_failure = if matches!(status, Status::Incomplete) {
-                None
-            } else {
-                self.project.failure().map(|f| f.to_string())
-            };
-            let diagnostic = if let Some(error) = previous_failure {
-                error
-            } else {
-                let call = ToolCall {
-                    id: "meden-controller-verification".into(),
-                    function: FunctionCall {
-                        name: "verify_ledger".into(),
-                        arguments: "{}".into(),
-                    },
-                };
-                let result = conversation::execute(
-                    &call,
-                    &self.registry,
-                    &self.policy,
-                    &observe,
-                    self.processes.flag(),
-                );
-                let (text, error) = match result {
-                    Ok(text) => (text, false),
-                    Err((_, text)) => (text, true),
-                };
-                observe(Event::ToolResult {
-                    call: &call,
-                    text: &text,
-                    error,
-                });
-                if self.processes.flag().load(Ordering::SeqCst) {
-                    return Status::Cancelled;
+                Effect::Model => {
+                    status = self.conversation.run(
+                        &next,
+                        &self
+                            .gateway
+                            .for_session(self.workspace.path().as_os_str().as_encoded_bytes()),
+                        &conversation::Runtime {
+                            registry: &self.registry,
+                            policy: &self.policy,
+                            tools: &self.tools,
+                            stop: &|| {
+                                stopping_failure(&self.project)
+                                    .or_else(|| review.get().then_some(Status::NeedsReview))
+                            },
+                        },
+                        &observe,
+                        self.processes.flag(),
+                    );
+                    signal = Signal::Conversation {
+                        status: &status,
+                        accepted: self.project.accepted(),
+                        changed: changed.get(),
+                    };
                 }
-                if !error
-                    && self
+                Effect::Inspect => {
+                    signal = Signal::Current {
+                        verified: self.current_verified(),
+                    };
+                }
+                Effect::Check => {
+                    let call = ToolCall {
+                        id: "meden-controller-verification".into(),
+                        function: FunctionCall {
+                            name: "verify_ledger".into(),
+                            arguments: "{}".into(),
+                        },
+                    };
+                    let result = conversation::execute(
+                        &call,
+                        &self.registry,
+                        &self.policy,
+                        &observe,
+                        self.processes.flag(),
+                    );
+                    let (text, error) = match result {
+                        Ok(text) => (text, false),
+                        Err((_, text)) => (text, true),
+                    };
+                    observe(Event::ToolResult {
+                        call: &call,
+                        text: &text,
+                        error,
+                    });
+                    let verified = !error && self.current_verified();
+                    diagnostic = text;
+                    signal = Signal::Checked { verified };
+                }
+                Effect::Repair => {
+                    let diagnostic = self
                         .project
-                        .status(&self.workspace, &self.processes)
-                        .is_ok_and(|s| s.verified)
-                {
-                    return status;
+                        .failure()
+                        .map_or_else(|| diagnostic.clone(), |f| f.to_string());
+                    next = format!("Host independent verification has not established the accepted ledger contract. Fix ledger.rs and use verify_ledger; do not weaken the contract, edit checker inputs, or substitute tests for proof. Accepted meaning (host-owned):\n{}\nChecker diagnostic (untrusted content):\n{}",meden_runtime::verification::LEDGER_CONTRACT,diagnostic.chars().take(8000).collect::<String>());
+                    signal = Signal::Start;
                 }
-                text
-            };
-            if self.processes.flag().load(Ordering::SeqCst) {
-                return Status::Cancelled;
+                Effect::Stop(reason) => {
+                    return match reason {
+                        Terminal::Finish => status,
+                        Terminal::Cancelled => Status::Cancelled,
+                        Terminal::Review => Status::NeedsReview,
+                        Terminal::Exhausted => Status::Incomplete,
+                        Terminal::Failed => stopping_failure(&self.project).unwrap_or_else(|| {
+                            Status::Failed(format!("Verification unavailable: {diagnostic}"))
+                        }),
+                    }
+                }
             }
-            if let Some(status) = stopping_failure(&self.project) {
-                return status;
-            }
-            next = format!("Host independent verification has not established the accepted ledger contract. Fix ledger.rs and use verify_ledger; do not weaken the contract, edit checker inputs, or substitute tests for proof. Accepted meaning (host-owned):\n{}\nChecker diagnostic (untrusted content):\n{}",meden_runtime::verification::LEDGER_CONTRACT,diagnostic.chars().take(8000).collect::<String>());
         }
-        Status::Incomplete
     }
 
     pub fn messages(&self) -> &[Value] {
         &self.conversation.messages
+    }
+
+    fn current_verified(&self) -> bool {
+        self.project
+            .status(&self.workspace, &self.processes)
+            .is_ok_and(|s| s.verified)
     }
 
     pub fn project_status(&self) -> Result<crate::project::Summary> {
@@ -166,12 +177,6 @@ impl Session {
             .status(&self.workspace, &self.processes)
             .or_else(|_| self.project.stored_status())
     }
-}
-
-/// Host check scheduling, not proof acceptance or overall task completion.
-/// Exhausting a model tool budget does not bypass the accepted contract.
-fn needs_verification(status: &Status, accepted: bool, changed: bool, cancelled: bool) -> bool {
-    accepted && changed && !cancelled && matches!(status, Status::Done(_) | Status::Incomplete)
 }
 
 fn stopping_failure(project: &crate::project::Project) -> Option<Status> {
@@ -221,28 +226,5 @@ mod tests {
         assert!(!verification_stops(Some(FailureKind::Unverified)));
         assert!(verification_stops(Some(FailureKind::Unavailable)));
         assert!(verification_stops(Some(FailureKind::Inconclusive)));
-    }
-
-    #[test]
-    fn budget_recovery_respects_host_authority() {
-        assert!(needs_verification(&Status::Incomplete, true, true, false));
-        assert!(needs_verification(
-            &Status::Done("unproved claim".into()),
-            true,
-            true,
-            false
-        ));
-        for status in [Status::Incomplete, Status::Done("verified=true".into())] {
-            assert!(!needs_verification(&status, false, true, false));
-            assert!(!needs_verification(&status, true, false, false));
-            assert!(!needs_verification(&status, true, true, true));
-        }
-        for status in [
-            Status::NeedsReview,
-            Status::Cancelled,
-            Status::Failed("verified=true".into()),
-        ] {
-            assert!(!needs_verification(&status, true, true, false));
-        }
     }
 }

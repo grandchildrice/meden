@@ -14,11 +14,11 @@ case $("$aeneas_bin" -version) in
   *) echo 'Unsupported Aeneas revision' >&2; exit 1 ;;
 esac
 
-units=(control evidence approval repair failure)
+units=(control evidence approval repair)
 case "$#:${1:-}:${2:-}" in
   0::|1:--write:) ;;
-  2:--write:control|2:--write:evidence|2:--write:approval|2:--write:repair|2:--write:failure) units=("$2") ;;
-  *) echo 'Usage: tools/extract-transfer.sh [--write [control|evidence|approval|repair|failure]]' >&2; exit 2 ;;
+  2:--write:control|2:--write:evidence|2:--write:approval|2:--write:repair) units=("$2") ;;
+  *) echo 'Usage: tools/extract-transfer.sh [--write [control|evidence|approval|repair]]' >&2; exit 2 ;;
 esac
 extract_tmp=$(mktemp -d)
 trap 'rm -rf "$extract_tmp"' EXIT
@@ -52,19 +52,15 @@ for unit in "${units[@]}"; do
         --opaque core --opaque alloc --opaque std --include core::cmp::impls)
       model=Approval ;;
     repair)
-      rust_roots=(meden::session::needs_verification)
       namespace=MedenRepairImpl
-      cargo_args=(--locked --bin meden -p meden-cli)
-      extraction_args=(--include meden_agent)
-      model=Repair ;;
-    failure)
-      namespace=MedenCheckImpl
       cargo_args=(--locked --lib -p meden-runtime)
-      rust_roots=(meden_runtime::verification::failure::failed_worker
+      rust_roots=(meden_runtime::verification::turn::Turn::begin
+        meden_runtime::verification::turn::Turn::advance
+        meden_runtime::verification::failure::failed_worker
         meden_runtime::verification::failure::verification_stops
         meden_runtime::verification::failure::FailureKind::repairable)
-      extraction_args=(--include std::process --include std::sys --include std::os::unix)
-      model=Failure ;;
+      extraction_args=(--include meden_agent --include std::process --include std::sys --include std::os::unix)
+      model=Repair ;;
   esac
   extract_roots=()
   for rust_root in "${rust_roots[@]}"; do

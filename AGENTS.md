@@ -16,8 +16,12 @@
   owns its frozen request; the runtime dispatches only its returned effect.
   The actual Crossterm approval predicate is extracted and refined too;
   decoding, screen routing and physical input provenance are separate gaps.
-  The check-scheduling predicate over actual conversation outcomes is refined;
-  budget exhaustion still reaches independent verification and bounded repair.
+  The outer turn controller lives in the shared runtime. Its actual effects,
+  state updates and arbitrary finite compositions are refined, including four
+  conversation invocations per host turn, sticky terminal stops and a fresh
+  check after budget exhaustion. One invocation may make multiple LLM requests.
+  The session dispatches its returned operation; the I/O interpreter, signal
+  attribution and inner conversation loop remain separate obligations.
   Typed verification-failure classification and repair-stop decisions are
   extracted/refined; I/O mapping, host-stop routing and history remain tested
   adapters. Operational failures stop automatic repair until a new host turn.
