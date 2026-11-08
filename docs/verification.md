@@ -25,6 +25,12 @@ established by the current CI badge.
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
 | npm | Launcher checks and package dry-run | Invalid launcher behavior or package layout |
 
+CI pins cargo-deny 0.20.2 and Kani 0.68.0. Kani and Aeneas public bundles
+have fixed SHA-256 checks and bounded download retries. An unavailable or
+incorrect bundle fails preparation; it never skips a harness or proof.
+This retry policy applies to public CI tool preparation, not confidential
+model exchanges or file exports.
+
 Lean is pinned in [`lean/lean-toolchain`](../lean/lean-toolchain). CI builds
 the `meden-spec` executable, uploads it as an artifact and passes that exact
 artifact to the conformance job. That job sets `MEDEN_SPEC_BIN`; it does not
