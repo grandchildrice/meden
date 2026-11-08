@@ -6,7 +6,8 @@ The product target is a local-first verification orchestrator whose control
 and interface/tool behavior are specified and connected to production Rust
 through Lean refinement proofs. That broader assurance is not implemented
 today. The current checks are decision-kernel proofs, bounded checks,
-sampled conformance and tests; see [verification.md](docs/verification.md).
+transfer-kernel refinement, sampled conformance and tests; see
+[verification.md](docs/verification.md).
 The proposed assurance chain is in [assurance.md](docs/assurance.md).
 
 The product requirement is that reading an external page must not enable
@@ -45,8 +46,9 @@ this conversational runtime.
 
 The retained `meden-core` capability/policy rules are specified in Lean
 and checked with six bounded Kani harnesses. The new exact-transfer kernel
-has seven Lean theorems for request matching, expiry and single use. Rust
-and the executable Lean oracle are compared on 5,000 policy, glob and
+has seven Lean theorems for request matching, expiry and single use, plus
+two refinement theorems over the extracted production Rust decision and
+state update. Rust and the executable Lean oracle are compared on 5,000 policy, glob and
 transfer cases. These checks cover decision rules; they do not establish
 that every real outbound effect passes through those rules.
 

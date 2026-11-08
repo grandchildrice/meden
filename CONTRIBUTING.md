@@ -35,8 +35,10 @@ node npm/test.js
 (cd npm && npm pack --dry-run)
 ```
 
-Changes to a formally modelled rule must update the Lean model in the same
-commit. The conformance test compares 400 policy cases, 600 glob cases and
+Changes to a formally modelled rule must update its specification and
+proofs in the same commit. The transfer kernel additionally requires exact
+regeneration with `bash tools/extract-transfer.sh` and passing refinement
+proofs; use `--write` only for a deliberate production update. The conformance test compares 400 policy cases, 600 glob cases and
 4,000 transfer cases against the built oracle. Workspace tests also require
 Linux and Bubblewrap for real isolation checks. See
 [verification.md](docs/verification.md) for theorem statements, bounds and

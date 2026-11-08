@@ -318,10 +318,11 @@ added orchestration must produce observable value.
 
 The current repository contains a Rust conversation/TUI, HTTP connections,
 workspace tools, a capability kernel and a standalone Bubblewrap runner.
-Fifteen Lean theorem entry points and 5,000 Rust/Lean conformance cases are
-checked today. There is no Rust extraction/refinement proof, accepted
-contract store, evidence controller or release gate yet. Current HTTP
-providers can be remote and `--allow-shell` is unrestricted.
+Seventeen Lean theorem entry points and 5,000 Rust/Lean conformance cases
+are checked today. The production transfer decision and state update are
+extracted with pinned Charon/Aeneas and refine the Lean specification.
+There is no accepted contract store, evidence controller or release gate
+yet. Current HTTP providers can be remote and `--allow-shell` is unrestricted.
 
 Reuse the conversation as an untrusted proposal/repair loop, move authority
 to the small controller, connect every file/process tool to the private

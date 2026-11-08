@@ -19,7 +19,7 @@ established by the current CI badge.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | `lake build`, unfinished-proof scan, axiom audit | A proof does not elaborate, a project `sorry`/`admit`/`axiom` appears, or an audited theorem uses an unapproved axiom |
+| Lean | Regenerate Rust model, `lake build`, proof scan/audit, four Rust mutation checks | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A result or resulting transfer state differs |
 | Python | Ruff and AgentDojo/PTY integration tests against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -74,6 +74,55 @@ Its existence alone does not constrain a network request: the eventual
 broker must actually reserve under its lock and dispatch the same immutable
 request. Integration of that broker is still in progress.
 
+## Rust-to-Lean refinement of the transfer kernel
+
+The production functions `meden_core::transfer::allowed` and `reserve`,
+including the derived full-request equality and in-place spent-state
+update, are extracted by Charon and translated by Aeneas. The checked-in
+[generated model](../lean/MedenSpec/Generated/Transfer.lean) is not edited
+by hand. [extract-transfer.sh](../tools/extract-transfer.sh) regenerates it
+from the real crate and requires an exact diff. Unknown extracted functions
+or proof holes make the script fail.
+
+The pinned chain is Rust `nightly-2026-09-17`, Charon
+`8cae8fd1905946de61147a65ecdd7122cc6b491b`, Aeneas
+`c5eb4a28cef65e0aa27743105308243e535a2a2b` and Lean 4.35.0.
+CI downloads the corresponding extractor release with a fixed SHA-256;
+Lake pins the Aeneas library and all dependencies in the manifest.
+
+[TransferRefinement.lean](../lean/MedenSpec/TransferRefinement.lean) proves:
+
+| Theorem | Proven property |
+| --- | --- |
+| `allowed_refines` | The extracted Rust decision returns successfully and equals the abstract specification for every represented request, permit, session and `u64` time |
+| `reserve_refines` | The acceptance result and the complete updated permit agree with the abstract reservation transition |
+
+The proof handles variable-length full byte vectors, not hashes or bounded
+text samples. Rust bytes map injectively to natural-number lists in the
+abstract model; only values 0–255 arise from Rust. Arbitrary binary content,
+embedded NULs and Unicode encodings need no favorable string-comparison
+assumption. Native integer times map to their exact natural values.
+
+Aeneas's Rust standard-library models, extraction, compilation and platform
+semantics remain trust dependencies. There are no project axioms standing
+in for unknown functions in this extraction. CI regenerates the normal
+x86-64 Linux build; this does not prove all release targets/configurations
+or native machine-code correctness. The shipping Rust compiler is still
+part of the trusted base, distinct from the pinned extraction compiler.
+
+The [mutation check](../tools/check-refinement-mutants.py) changes actual
+Rust source in four ways: invert request equality, accept an expired permit,
+ignore the spent flag, and fail to record reservation. Each must produce an
+observed Rust test failure, extract/compile successfully, and fail the
+unchanged correctness proof. Exact original files are restored and the
+normal proof is rebuilt afterwards. This checks proof sensitivity and
+source linkage; it does not replace the general refinement theorems.
+
+These theorems establish a decision/state-update refinement. They do not
+establish a complete control trace or that every real network operation is
+mediated. The production broker, concurrency and interface obligations in
+[assurance.md](assurance.md) remain open.
+
 ## Lean: capability and scope rules
 
 These specifications cover the capability kernel already used by tool
@@ -97,7 +146,7 @@ Definitions and additional lemmas are in
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the fifteen
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the seventeen
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -133,8 +182,9 @@ batch to the executable Lean oracle and compares with Rust:
   permit. Cases include recipient/content/session changes, already-spent
   permits, exact expiry, near-expiry and `u64::MAX` times, and Unicode text.
 
-The generator has a fixed seed. This catches implementation/specification
-drift; it is not a proof that Rust agrees with Lean on every possible input.
+The generator has a fixed seed. These comparisons catch implementation/specification drift. They are
+regression evidence separate from the general transfer refinement proof;
+policy/glob still have no extraction-based refinement theorem.
 With no oracle present, the local test prints a skip notice. CI explicitly
 supplies the freshly built oracle, so that escape does not apply there.
 
@@ -168,6 +218,21 @@ cargo test -p meden-runtime
 # With the Kani toolchain installed:
 cargo kani -p meden-core
 ```
+
+Regenerate the transfer model with the pinned tools in `PATH` (or set
+`CHARON` and `AENEAS` to their trusted paths):
+
+```bash
+bash tools/extract-transfer.sh
+# After a deliberate production change:
+bash tools/extract-transfer.sh --write
+(cd lean && lake build && lake env lean Audit.lean)
+uv run tools/check-refinement-mutants.py
+```
+
+On NixOS, `nix shell github:aeneasverif/aeneas/c5eb4a28cef65e0aa27743105308243e535a2a2b`
+provides the pinned extractors without a permanent system installation.
+The standard Rust/Lean conformance and proof checks remain separate.
 
 The runtime test needs Linux, Bubblewrap, Bash and Python. On NixOS, an
 ephemeral environment works:

@@ -1,8 +1,16 @@
 name = "MedenSpec"
-defaultTargets = ["MedenSpec", "meden-spec"]
+defaultTargets = ["MedenSpec", "MedenProof", "meden-spec"]
+
+[[require]]
+name = "aeneas"
+git = { url = "https://github.com/AeneasVerif/aeneas", subDir = "backends/lean" }
+rev = "c5eb4a28cef65e0aa27743105308243e535a2a2b"
 
 [[lean_lib]]
 name = "MedenSpec"
+
+[[lean_lib]]
+name = "MedenProof"
 
 [[lean_exe]]
 name = "meden-spec"

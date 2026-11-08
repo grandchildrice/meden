@@ -1,9 +1,11 @@
 # Assurance and refinement plan
 
-Status: proposed obligations, not existing proofs. This defines completion
-criteria for [the product architecture](design.md). The current fifteen
-Lean theorem entry points, six Kani harnesses and conformance checks are
-listed separately in [verification.md](verification.md).
+Status: product assurance plan. The transfer decision kernel now has two
+Rust-to-Lean refinement theorems; the broader obligations below remain
+proposed. This defines completion criteria for
+[the product architecture](design.md). The current seventeen Lean theorem
+entry points, six Kani harnesses and conformance checks are listed in
+[verification.md](verification.md).
 
 ## What a result means
 
@@ -118,10 +120,11 @@ The intended Lean properties include:
 | CTL-07 | A single-use export is reserved once, before dispatch, for the exact recipient/content/session; uncertain delivery does not restore permission |
 | CTL-08 | A local session issues no command for external inference, proving, telemetry or caches; explicit transfers remain subject to their authorizations |
 
-These are target theorem statements. Existing Transfer theorems cover part
-of the abstract rule in CTL-07, not the dispatcher, concurrency or complete
-controller. CTL-08 also requires a real confinement argument: a transition
-theorem cannot disable a process's network socket by itself.
+These are target theorem statements. Existing Transfer theorems and Rust
+refinement cover the decision and state-update rule in CTL-07, not the
+dispatcher, concurrency or complete controller. CTL-08 also requires a real
+confinement argument: a transition theorem cannot disable a process's
+network socket by itself.
 
 ### What refinement must establish
 
@@ -215,7 +218,9 @@ correctness.
 ## CI and release gates to add
 
 [Current CI](verification.md) is not this proposed gate. Add these checks
-as their implementation becomes real, and then make them required:
+as their implementation becomes real, and then make them required. The
+first two now run for the transfer decision kernel, including four real
+Rust mutations that must fail its unchanged refinement proof:
 
 1. Re-extract production Rust under pinned toolchains. Fail on unsupported
    code, extraction drift or unrecorded external models.

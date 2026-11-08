@@ -8,11 +8,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Request {
     /// Host-created session identity.
-    pub session: String,
+    pub session: Vec<u8>,
     /// Effective destination/audience, assigned by the host adapter.
-    pub recipient: String,
+    pub recipient: Vec<u8>,
     /// Canonical complete request, including the exact payload.
-    pub request: String,
+    pub request: Vec<u8>,
 }
 
 /// Host-issued permission for one exact request before an exclusive deadline.
@@ -28,8 +28,9 @@ pub struct Permit {
 }
 
 /// Check all authorization conditions without changing state.
-pub fn allowed(now: u64, session: &str, permit: &Permit, request: &Request) -> bool {
-    request.session == session
+pub fn allowed(now: u64, session: &[u8], permit: &Permit, request: &Request) -> bool {
+    let request_session: &[u8] = &request.session;
+    request_session == session
         && permit.request == *request
         && now < permit.expires
         && !permit.spent
@@ -37,7 +38,7 @@ pub fn allowed(now: u64, session: &str, permit: &Permit, request: &Request) -> b
 
 /// Atomically reserve under the caller's lock, before any external effect.
 /// The returned permission is valid only for the supplied immutable request.
-pub fn reserve(now: u64, session: &str, permit: &mut Permit, request: &Request) -> bool {
+pub fn reserve(now: u64, session: &[u8], permit: &mut Permit, request: &Request) -> bool {
     let accepted = allowed(now, session, permit, request);
     permit.spent |= accepted;
     accepted
@@ -49,9 +50,9 @@ mod tests {
 
     fn request() -> Request {
         Request {
-            session: "session-a".into(),
-            recipient: "recipient-a".into(),
-            request: "exact bytes".into(),
+            session: b"session-a".to_vec(),
+            recipient: b"recipient-a".to_vec(),
+            request: b"exact bytes".to_vec(),
         }
     }
 
@@ -65,26 +66,26 @@ mod tests {
         };
         for changed in [
             Request {
-                session: "other-session".into(),
+                session: b"other-session".to_vec(),
                 ..expected.clone()
             },
             Request {
-                recipient: "other-recipient".into(),
+                recipient: b"other-recipient".to_vec(),
                 ..expected.clone()
             },
             Request {
-                request: "encoded secret or different bytes".into(),
+                request: b"encoded secret or different bytes".to_vec(),
                 ..expected.clone()
             },
         ] {
             let mut state = permit.clone();
-            assert!(!reserve(0, "session-a", &mut state, &changed));
+            assert!(!reserve(0, b"session-a", &mut state, &changed));
             assert_eq!(state, permit);
         }
         let mut state = permit.clone();
-        assert!(!reserve(10, "session-a", &mut state, &expected));
+        assert!(!reserve(10, b"session-a", &mut state, &expected));
         assert_eq!(state, permit);
-        assert!(reserve(9, "session-a", &mut state, &expected));
-        assert!(!reserve(0, "session-a", &mut state, &expected));
+        assert!(reserve(9, b"session-a", &mut state, &expected));
+        assert!(!reserve(0, b"session-a", &mut state, &expected));
     }
 }

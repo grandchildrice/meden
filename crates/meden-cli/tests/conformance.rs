@@ -91,7 +91,7 @@ struct Input {
 #[derive(Serialize)]
 struct TransferCase {
     now: u64,
-    session: String,
+    session: Vec<u8>,
     permit: Permit,
     request: Request,
 }
@@ -161,15 +161,15 @@ fn rust_agrees_with_lean_oracle() {
     let transfer_cases = (0..4000)
         .map(|_| {
             let request = Request {
-                session: "session-a".into(),
-                recipient: "recipient-a".into(),
-                request: format!("日本語🙂\\u0000-{}", rng.next()),
+                session: b"session-a".to_vec(),
+                recipient: b"recipient-a".to_vec(),
+                request: format!("日本語🙂\0-{}", rng.next()).into_bytes(),
             };
             let mut proposed = request.clone();
             match rng.below(4) {
-                0 => proposed.session = "different-session".into(),
-                1 => proposed.recipient = "different-recipient".into(),
-                2 => proposed.request.push('x'),
+                0 => proposed.session = b"different-session".to_vec(),
+                1 => proposed.recipient = b"different-recipient".to_vec(),
+                2 => proposed.request.push(b'x'),
                 _ => {}
             }
             let expires = rng.next();
@@ -182,11 +182,10 @@ fn rust_agrees_with_lean_oracle() {
             TransferCase {
                 now,
                 session: if rng.chance(1, 5) {
-                    "different-session"
+                    b"different-session".to_vec()
                 } else {
-                    "session-a"
-                }
-                .into(),
+                    b"session-a".to_vec()
+                },
                 permit: Permit {
                     request,
                     expires,

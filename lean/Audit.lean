@@ -1,4 +1,5 @@
 import MedenSpec
+import MedenProof
 
 /-!
 Axiom audit. CI runs `lake env lean Audit.lean` and fails if the output
@@ -23,3 +24,5 @@ open MedenSpec
 #print axioms Transfer.rejection_preserves
 #print axioms Transfer.no_changed_recipient
 #print axioms Transfer.no_changed_content
+#print axioms TransferRefinement.allowed_refines
+#print axioms TransferRefinement.reserve_refines

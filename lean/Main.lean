@@ -43,7 +43,7 @@ deriving instance FromJson, ToJson for Transfer.Permit
 
 structure TransferCase where
   now : Nat
-  session : String
+  session : List Nat
   permit : Transfer.Permit
   request : Transfer.Request
   deriving FromJson

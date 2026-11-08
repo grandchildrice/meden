@@ -7,7 +7,7 @@
 
 <p align="center">
   <a href="https://github.com/grandchildrice/meden/actions/workflows/ci.yml"><img src="https://github.com/grandchildrice/meden/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <a href="docs/verification.md"><img src="https://img.shields.io/badge/Lean_4-4.31.0-5f7dbd" alt="Lean 4.31.0 specifications" /></a>
+  <a href="docs/verification.md"><img src="https://img.shields.io/badge/Lean_4-4.35.0-5f7dbd" alt="Lean 4.35.0 specifications" /></a>
   <a href="Cargo.toml"><img src="https://img.shields.io/badge/Rust-2021-dea584?logo=rust&amp;logoColor=white" alt="Rust 2021" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-68dadb" alt="Apache 2.0" /></a>
 </p>
@@ -38,7 +38,7 @@ connects to OpenAI-compatible APIs and can reuse Hermes configuration.
   exact, single-use outbound authorization, checked in CI.
 
 > Development prototype. Local-only orchestration, project proof workflows,
-> Rust-to-Lean refinement and evidence-gated delivery are design targets.
+> controller-wide refinement and evidence-gated delivery are design targets.
 > Current HTTP connections may be remote; optional Bash has host filesystem
 > and network permissions. See [verification scope](docs/verification.md)
 > and [security limits](SECURITY.md).
@@ -95,8 +95,9 @@ require explicit authorization. The TUI, CLI and tools share one controller.
 
 The target controller will be specified in Lean, with refinement proofs
 connecting its production Rust implementation. Extending those proofs
-across Meden's own TUI, CLI and tool behavior is part of the product goal. Today, the
-Rust/Lean checks compare sample cases; they are not refinement proofs.
+across Meden's own TUI, CLI and tool behavior is part of the product goal.
+The transfer decision kernel now has Rust-to-Lean refinement proofs; the
+remaining controller and effect paths are still implementation work.
 
 [Architecture and implementation order →](docs/design.md) ·
 [Assurance and refinement obligations →](docs/assurance.md)
@@ -114,8 +115,9 @@ host-approved outbound transfers. It does not use an isolated planner or
 ask a model to decide whether its own action is authorized.
 
 The exact-transfer decision kernel now has seven Lean theorems, including
-full-request matching and no replay after reservation. A standalone Linux
-runner is tested against real connection and host-file attempts. Connecting
+full-request matching and no replay after reservation, plus two refinement
+theorems connecting the generated Rust model to that specification. A
+standalone Linux runner is tested against real connection and host-file attempts. Connecting
 these components to every production effect remains work in progress.
 
 [Confidentiality design and acceptance criteria →](docs/confidentiality.md) ·
