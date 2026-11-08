@@ -5,10 +5,13 @@
 //! listening (Ollama, vLLM, llama.cpp, LM Studio, Hermes' gateway), and keys
 //! already in the environment (Ollama Cloud, Anthropic, OpenAI).
 //!
-//! The point of the runtime is that none of this changes what is guaranteed.
+//! For the historical isolated planner, model selection does not change the
+//! label/policy checks its interpreter performs.
 //! A plan from a 4B model served on a laptop and a plan from a hosted
 //! frontier model meet the same three checks. Which one is in use is a
-//! question of how good the plans are, not of how safe they are.
+//! question of how good the plans are. The native conversation engine does
+//! not enforce those flow rules. Provider discovery is not authorization to
+//! send confidential context; the target design adds that separate boundary.
 
 use std::time::Duration;
 

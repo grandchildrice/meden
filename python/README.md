@@ -1,5 +1,10 @@
 # meden-agentdojo
 
+The product direction is the [conversational coding agent](../docs/design.md).
+The isolated planner is retired from that design. Both adapters currently
+remain for migration and historical comparisons. Their tests and benign
+scores do not establish the new outbound confidentiality requirement.
+
 Runs [AgentDojo](https://github.com/ethz-spylab/agentdojo) against the
 capability-typed runtime, so the claim the runtime makes can be checked
 rather than asserted.

@@ -1,5 +1,13 @@
 //! The capability-typed agent core.
 //!
+//! [`conversation`] is the native conversational runtime used by the TUI
+//! and the target coding agent design. The isolated planner described below
+//! remains as historical research during migration. Its label-rule claims
+//! do not apply to the conversation engine or establish the target's
+//! end-to-end outbound confidentiality requirement.
+//!
+//! Historical isolated-planner architecture:
+//!
 //! An agent here is not a loop that asks a model what to do next and does it.
 //! It is an interpreter for a small language, where every value carries a
 //! label saying where it came from and who may read it, and every tool call
