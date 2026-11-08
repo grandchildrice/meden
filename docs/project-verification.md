@@ -99,6 +99,9 @@ application or financial certification.
 4. Run the fixed native examples with release overflow checks. Extract the
    **actual Rust function** with pinned Charon, translate with Aeneas and
    freshly compile the generated Lean model.
+   Native counterexamples name the accepted contract requirement and show
+   its input, expected state and actual state. These examples guide repair;
+   passing them does not establish the refinement theorem.
 5. Check [the fixed refinement proof](../verification/ledger/Check.lean).
    `LedgerProof.actual_refines` states that every represented Rust input
    returns successfully and its entire result equals the independent
@@ -188,7 +191,9 @@ checker/config files cannot substitute for host inputs. The CLI test also
 checks exact retained file hashes and source invalidation. Its second case
 exhausts the model tool-group budget, skips a forged final verification call,
 requires the host to obtain a real failure diagnostic and repairs through
-the same proof/artifact path. Another test
+the same proof/artifact path. A separate case checks that saturating credit
+without overflow rejection reports the named credit-overflow requirement
+and both states, stops before extraction and emits no artifact. Another test
 injects a special-case no-op for amount four: the fixed native examples
 pass, while the unchanged Lean refinement fails and no artifact is emitted.
 These are controller integration tests, not a local LLM coding benchmark.

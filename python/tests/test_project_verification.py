@@ -278,6 +278,36 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
         os.close(slave)
 
 
+def test_native_counterexample_names_accepted_requirement(tmp_path):
+    binary = find_meden()
+    assert binary
+    source = tmp_path / "ledger.rs"
+    source.write_text(ALTERNATIVE.replace("&& amount <= u64::MAX - state.credit", ""))
+    output = tmp_path / "artifacts"
+    result = subprocess.run(
+        [
+            binary,
+            "verify-ledger",
+            "--source",
+            str(source),
+            "--bundle",
+            os.environ["MEDEN_VERIFIER_BUNDLE"],
+            "--output",
+            str(output),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=360,
+    )
+    assert result.returncode != 0
+    assert "contract requirement: credit overflow leaves all state unchanged" in result.stderr
+    assert "left: (8, 18446744073709551615, 1)" in result.stderr
+    assert "right: (10, 18446744073709551614, 0)" in result.stderr
+    assert "test result: FAILED" in result.stderr
+    assert "meden-check: extraction" not in result.stderr
+    assert not output.exists()
+
+
 def test_lean_rejects_bug_that_passes_fixed_examples(tmp_path):
     binary = find_meden()
     assert binary
