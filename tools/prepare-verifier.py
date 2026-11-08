@@ -31,12 +31,16 @@ def main():
     lean = Path(lake("lean", "--print-prefix")).resolve()
     libraries = []
     for directory in lake("printenv", "LEAN_PATH").split(os.pathsep):
-        path = Path(directory).resolve()
+        if not directory:
+            continue
+        path = (root / "lean" / directory).resolve()
         if path.is_dir() and path not in [
             lean / "lib/lean",
             root / "lean/.lake/build/lib/lean",
         ]:
             libraries.append(str(path))
+    if not any((Path(path) / "Aeneas.olean").is_file() for path in libraries):
+        parser.error("build the pinned Lean/Aeneas dependencies before preparing a checker")
     manifest = {
         "version": 1,
         "rust": str(args.rust.resolve(strict=True)),
