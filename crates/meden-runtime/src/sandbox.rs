@@ -33,6 +33,11 @@ fn find(program: &str) -> Option<PathBuf> {
         .find(|path| path.is_file())
 }
 
+fn store_root(path: &Path) -> Option<&Path> {
+    path.ancestors()
+        .find(|p| p.parent() == Some(Path::new("/nix/store")))
+}
+
 fn public_tools(nix_tools: bool) -> Vec<(String, PathBuf)> {
     let search = std::env::var_os("PATH").unwrap_or_default();
     TOOLS
@@ -60,10 +65,49 @@ impl Sandbox {
     /// Prepare an offline execution configuration. Missing isolation support
     /// is an error; there is no unrestricted host fallback.
     pub fn with_worker(root: &Path, worker: &Path) -> io::Result<Self> {
-        Self::configure(root, worker.canonicalize()?)
+        Self::configure(root, worker.canonicalize()?, None)
     }
 
-    fn configure(root: &Path, worker: PathBuf) -> io::Result<Self> {
+    /// A separate offline model process. Only prepared executable/weights and
+    /// a private scratch/socket directory are mounted; never the coding copy.
+    pub fn inference_command(
+        root: &Path,
+        worker: &Path,
+        engine: &Path,
+        model: &Path,
+    ) -> io::Result<Command> {
+        let engine = engine.canonicalize()?;
+        let model = model.canonicalize()?;
+        if !engine.is_file() || !model.is_file() {
+            return Err(io::Error::other(
+                "local engine and weights must be regular files",
+            ));
+        }
+        let sandbox = Self::configure(root, worker.canonicalize()?, Some(&engine))?;
+        Ok(sandbox.build(
+            "/local-engine",
+            &[
+                "--model",
+                "/model.gguf",
+                "--host",
+                "/workspace/llama.sock",
+                "--offline",
+                "--no-webui",
+                "--no-ui-mcp-proxy",
+                "--jinja",
+                "--n-gpu-layers",
+                "0",
+                "--alias",
+                "meden-local",
+                "--ctx-size",
+                "16384",
+            ],
+            None,
+            &[(&engine, "/local-engine"), (&model, "/model.gguf")],
+        ))
+    }
+
+    fn configure(root: &Path, worker: PathBuf, engine: Option<&Path>) -> io::Result<Self> {
         let root = root.canonicalize()?;
         if !root.is_dir() {
             return Err(io::Error::other("workspace must be a directory"));
@@ -82,46 +126,44 @@ impl Sandbox {
         }
         let mut roots: BTreeSet<_> = tools
             .iter()
-            .filter_map(|(_, path)| {
-                path.ancestors()
-                    .find(|p| p.parent() == Some(Path::new("/nix/store")))
-                    .map(Path::to_owned)
-            })
+            .filter_map(|(_, path)| store_root(path).map(Path::to_owned))
             .collect();
+        if let Some(root) = engine.and_then(store_root) {
+            roots.insert(root.to_owned());
+        }
         let mut worker_libraries = Vec::new();
         let mut worker_loader = None;
         if !roots.is_empty() {
             // The trusted worker may use another libc than the toolchain.
             // Resolve its public library objects, never expose nix-ld's
             // whole system profile or the whole Nix store.
-            let output = Command::new(
-                find("ldd").ok_or_else(|| io::Error::other("ldd required for Nix worker"))?,
-            )
-            .arg(&worker)
-            .output()?;
-            if !output.status.success() {
-                let message = String::from_utf8_lossy(&output.stderr);
-                if !message.contains("not a dynamic executable")
-                    && !message.contains("statically linked")
-                {
-                    return Err(io::Error::other("cannot resolve worker libraries"));
-                }
-            }
-            for word in String::from_utf8_lossy(&output.stdout).split_whitespace() {
-                if !word.starts_with('/') {
-                    continue;
-                }
-                let path = Path::new(word).canonicalize()?;
-                if let Some(root) = path
-                    .ancestors()
-                    .find(|p| p.parent() == Some(Path::new("/nix/store")))
-                {
-                    roots.insert(root.to_owned());
-                    if let Some(parent) = path.parent() {
-                        worker_libraries.push(parent.to_owned());
+            for binary in std::iter::once(worker.as_path()).chain(engine) {
+                let output = Command::new(
+                    find("ldd").ok_or_else(|| io::Error::other("ldd required for Nix worker"))?,
+                )
+                .arg(binary)
+                .output()?;
+                if !output.status.success() {
+                    let message = String::from_utf8_lossy(&output.stderr);
+                    if !message.contains("not a dynamic executable")
+                        && !message.contains("statically linked")
+                    {
+                        return Err(io::Error::other("cannot resolve worker libraries"));
                     }
-                    if word.ends_with("/ld-linux-x86-64.so.2") {
-                        worker_loader = Some(path);
+                }
+                for word in String::from_utf8_lossy(&output.stdout).split_whitespace() {
+                    if !word.starts_with('/') {
+                        continue;
+                    }
+                    let path = Path::new(word).canonicalize()?;
+                    if let Some(root) = store_root(&path) {
+                        roots.insert(root.to_owned());
+                        if let Some(parent) = path.parent().filter(|_| binary == worker) {
+                            worker_libraries.push(parent.to_owned());
+                        }
+                        if binary == worker && word.ends_with("/ld-linux-x86-64.so.2") {
+                            worker_loader = Some(path);
+                        }
                     }
                 }
             }
@@ -167,7 +209,7 @@ impl Sandbox {
     /// Build a command in the private namespace with no inherited secrets,
     /// proxies, host sockets, host process tree or outbound network route.
     pub fn command(&self, executable: &str, args: &[impl AsRef<OsStr>]) -> Command {
-        self.build(executable, args, None)
+        self.build(executable, args, None, &[])
     }
 
     /// Invoke the trusted file worker inside the same containment as shell tools.
@@ -190,7 +232,7 @@ impl Sandbox {
         }
         args.push("/meden-worker".into());
         args.push(operation.into());
-        Ok(self.build("/bin/env", &args, source))
+        Ok(self.build("/bin/env", &args, source, &[]))
     }
 
     fn build(
@@ -198,6 +240,7 @@ impl Sandbox {
         executable: &str,
         args: &[impl AsRef<OsStr>],
         source: Option<&Path>,
+        bindings: &[(&Path, &str)],
     ) -> Command {
         // The dedicated Rust launcher closes all inherited capabilities
         // before execing bwrap. Bubblewrap itself passes inherited fds on.
@@ -256,6 +299,9 @@ impl Sandbox {
         }
         if let Some(source) = source {
             command.arg("--ro-bind").arg(source).arg("/source");
+        }
+        for (source, destination) in bindings {
+            command.arg("--ro-bind").arg(source).arg(destination);
         }
         command
             .arg("--bind")

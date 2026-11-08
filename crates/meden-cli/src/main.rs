@@ -56,7 +56,7 @@ enum Command {
 }
 #[derive(Args)]
 struct ModelArgs {
-    /// Connection ID from `meden providers`.
+    /// Explicit HTTP connection ID, or "auto" to discover connections.
     #[arg(long)]
     provider: Option<String>,
     /// Model identifier for that connection.
@@ -66,6 +66,36 @@ struct ModelArgs {
     /// for up to eight hours. Required for run; optional in the TUI.
     #[arg(long, value_name = "URL")]
     approve_processor: Option<String>,
+    /// Prepared llama-server executable. Defaults to MEDEN_LOCAL_ENGINE.
+    #[arg(long, conflicts_with_all = ["provider", "model", "approve_processor"])]
+    local_engine: Option<PathBuf>,
+    /// Prepared GGUF weights. Defaults to MEDEN_LOCAL_MODEL.
+    #[arg(long, conflicts_with_all = ["provider", "model", "approve_processor"])]
+    local_model: Option<PathBuf>,
+}
+
+impl ModelArgs {
+    fn local_config(&self) -> Result<Option<meden_llm::LocalConfig>> {
+        if self.provider.is_some() {
+            return Ok(None);
+        }
+        anyhow::ensure!(
+            self.model.is_none() && self.approve_processor.is_none(),
+            "HTTP model/approval requires an explicit --provider"
+        );
+        let engine = self
+            .local_engine
+            .clone()
+            .or_else(|| std::env::var_os("MEDEN_LOCAL_ENGINE").map(PathBuf::from));
+        let model = self
+            .local_model
+            .clone()
+            .or_else(|| std::env::var_os("MEDEN_LOCAL_MODEL").map(PathBuf::from));
+        Ok(Some(meden_llm::LocalConfig {
+            engine: engine.context("configure --local-engine and --local-model (or MEDEN_LOCAL_ENGINE/MEDEN_LOCAL_MODEL); HTTP inference requires explicit --provider")?,
+            model: model.context("local inference requires prepared GGUF weights via --local-model or MEDEN_LOCAL_MODEL")?,
+        }))
+    }
 }
 #[derive(Args)]
 struct WorkspaceArgs {
@@ -118,40 +148,57 @@ fn run() -> Result<()> {
         }
         Command::Tui(args) => {
             let pages = load_pages(args.pages.as_deref())?;
-            let providers = if args.model.provider.is_some() || args.model.model.is_some() {
+            let local = args.model.local_config()?;
+            let providers = if local.is_some() {
+                Vec::new()
+            } else if args.model.provider.as_deref() == Some("auto") {
+                meden_llm::detect()
+            } else {
                 vec![pick_provider(
                     args.model.provider.as_deref(),
                     args.model.model.as_deref(),
                 )?]
-            } else {
-                meden_llm::detect()
             };
             tui::run(
                 providers,
                 &args.workspace,
                 args.model.approve_processor.as_deref(),
                 pages,
+                local,
             )?;
         }
         Command::Run(args) => {
             let pages = load_pages(args.pages.as_deref())?;
-            let approved = args.model.approve_processor.as_deref().context(
+            let local = args.model.local_config()?;
+            let approved = if local.is_none() {
+                Some(args.model.approve_processor.as_deref().context(
                 "run requires --approve-processor with the exact /chat/completions URL; this permits sending conversation and tool results to that processor for this session (up to eight hours)",
-            )?;
+            )?)
+            } else {
+                None
+            };
             let mut input = io::BufReader::new(io::stdin());
             let first = protocol::read_command(&mut input)?.context("no command received")?;
-            let provider =
-                pick_provider(args.model.provider.as_deref(), args.model.model.as_deref())?;
             let workspace = Arc::new(Workspace::import(
                 &args.workspace,
                 &std::env::current_exe()?,
             )?);
-            let gateway = Arc::new(meden_llm::Gateway::prepare(
-                workspace.path().as_os_str().as_encoded_bytes(),
-                provider,
-            )?);
-            approve_processor(&gateway, approved)?;
             let processes = Arc::new(Control::new(Arc::new(AtomicBool::new(false))));
+            let session = workspace.path().as_os_str().as_encoded_bytes();
+            let gateway = Arc::new(if let Some(config) = local {
+                meden_llm::Gateway::prepare_local(
+                    session,
+                    &config,
+                    &std::env::current_exe()?,
+                    Arc::clone(&processes),
+                )?
+            } else {
+                let provider =
+                    pick_provider(args.model.provider.as_deref(), args.model.model.as_deref())?;
+                let gateway = meden_llm::Gateway::prepare(session, provider)?;
+                approve_processor(&gateway, approved.context("missing processor approval")?)?;
+                gateway
+            });
             protocol::run(
                 first,
                 &mut input,
@@ -209,11 +256,11 @@ fn execute(source: &std::path::Path) -> Result<()> {
 fn pick_provider(id: Option<&str>, model: Option<&str>) -> Result<meden_llm::Provider> {
     let found = meden_llm::detect();
     let mut provider = match id {
-        Some(wanted) => found
+        Some(wanted) if wanted != "auto" => found
             .into_iter()
             .find(|p| p.id == wanted)
             .with_context(|| format!("no provider called {wanted:?}; try `meden providers`"))?,
-        None => found
+        _ => found
             .into_iter()
             .next()
             .context("no model found; try `meden providers`")?,

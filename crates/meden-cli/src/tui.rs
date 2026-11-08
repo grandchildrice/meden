@@ -541,16 +541,28 @@ pub fn run(
     root: &Path,
     approved: Option<&str>,
     pages: Arc<meden_runtime::pages::Pages>,
+    local: Option<meden_llm::LocalConfig>,
 ) -> Result<()> {
     anyhow::ensure!(
-        !providers.is_empty(),
+        local.is_some() || !providers.is_empty(),
         "TUI requires an OpenAI-compatible HTTP provider; see `meden providers`"
     );
     let workspace = Arc::new(Workspace::import(root, &std::env::current_exe()?)?);
     let mut app = App::new(providers, workspace.path().to_owned());
     app.pages = pages;
     app.workspace = Some(workspace);
-    if let Some(endpoint) = approved {
+    if let Some(config) = local {
+        let gateway = Gateway::prepare_local(
+            app.session_id(),
+            &config,
+            &std::env::current_exe()?,
+            Arc::clone(&app.processes),
+        )?;
+        app.providers = vec![gateway.provider().clone()];
+        app.picker.select(Some(0));
+        app.gateway = Some(Arc::new(gateway));
+        app.screen = Screen::Instructing;
+    } else if let Some(endpoint) = approved {
         let provider = app
             .selected()
             .cloned()

@@ -22,6 +22,7 @@ pub struct Gateway {
     binding: Request,
     created: Instant,
     permit: Mutex<Option<Permit>>,
+    local: Option<crate::local::Local>,
 }
 
 impl Gateway {
@@ -64,7 +65,52 @@ impl Gateway {
             binding,
             created: Instant::now(),
             permit: Mutex::new(None),
+            local: None,
         })
+    }
+
+    /// Prepare and authorize a confined local processor from trusted host
+    /// paths. Starts lazily, with no remote discovery or inference fallback.
+    pub fn prepare_local(
+        session: &[u8],
+        config: &crate::LocalConfig,
+        worker: &std::path::Path,
+        control: std::sync::Arc<meden_runtime::process::Control>,
+    ) -> Result<Self, ModelError> {
+        let local = crate::local::Local::new(config, worker, control)?;
+        let endpoint = "local://isolated-llama".to_owned();
+        let provider = Provider {
+            id: "local".into(),
+            label: "Isolated local model".into(),
+            model: "meden-local".into(),
+            base_url: endpoint.clone(),
+            api_key: None,
+            note: format!("CPU inference · {}", config.model.display()),
+        };
+        let binding = Request {
+            session: session.to_vec(),
+            recipient: endpoint.as_bytes().to_vec(),
+            request: serde_json::to_vec(&serde_json::json!({
+                "engine":config.engine.as_os_str().as_encoded_bytes(),
+                "model":config.model.as_os_str().as_encoded_bytes(),
+            }))
+            .map_err(|_| unavailable())?,
+        };
+        let gateway = Self {
+            provider,
+            endpoint,
+            binding,
+            created: Instant::now(),
+            permit: Mutex::new(None),
+            local: Some(local),
+        };
+        gateway.approve_from_host()?;
+        Ok(gateway)
+    }
+
+    /// True only for a Meden-owned, offline inference process, never by URL.
+    pub fn is_local(&self) -> bool {
+        self.local.is_some()
     }
 
     /// Frozen connection metadata. Credentials must not be rendered.
@@ -105,6 +151,9 @@ impl Gateway {
     pub fn revoke_from_host(&self) -> Result<(), ModelError> {
         if let Some(permit) = self.permit.lock().map_err(|_| unavailable())?.as_mut() {
             permit.spent = true;
+        }
+        if let Some(local) = &self.local {
+            local.stop();
         }
         Ok(())
     }
@@ -153,6 +202,9 @@ impl ChatModel for SessionModel<'_> {
             return Err(ModelError::Unavailable(
                 "no current host approval for this session's processor".into(),
             ));
+        }
+        if let Some(local) = &gateway.local {
+            return local.reply(messages, tools);
         }
         let mut client = OpenAiCompatible::new(&gateway.provider.base_url, &gateway.provider.model);
         if let Some(key) = &gateway.provider.api_key {

@@ -12,7 +12,10 @@ printf '%s\n' '{"instruction":"Inspect the project, fix the bug and run its test
     --approve-processor http://localhost:11434/v1/chat/completions
 ```
 
-Configure the provider as described in the [README](../README.md). The
+The default path uses [confined local inference](local-inference.md), configured
+with `--local-engine`/`--local-model` or `MEDEN_LOCAL_ENGINE`/`MEDEN_LOCAL_MODEL`.
+It performs no HTTP discovery and needs no external processor approval.
+For the explicit HTTP path above, configure the provider as described in the [README](../README.md). The
 approval must match its exact inference URL. It permits that processor to
 receive this session's conversation, file contents and tool results for up
 to eight hours; a loopback endpoint alone does not prove local inference.

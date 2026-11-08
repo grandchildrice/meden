@@ -179,6 +179,7 @@ impl Conversation {
             }
             let reply = match model.reply(&self.messages, runtime.tools) {
                 Ok(reply) => reply,
+                Err(_) if cancelled.load(Ordering::Relaxed) => return Status::Cancelled,
                 Err(error) => return Status::Failed(error.to_string()),
             };
             observer(Event::Assistant(&reply));

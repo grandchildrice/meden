@@ -129,7 +129,16 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
     env.pop("MEDEN_LLM_API_KEY", None)
     env.pop("OPENAI_API_KEY", None)
     env.pop("OLLAMA_API_KEY", None)
-    command = [binary, "tui", "--workspace", str(project), "--pages", str(cache)]
+    command = [
+        binary,
+        "tui",
+        "--workspace",
+        str(project),
+        "--pages",
+        str(cache),
+        "--provider",
+        "auto",
+    ]
     process = subprocess.Popen(
         command,
         stdin=slave,

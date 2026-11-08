@@ -19,8 +19,10 @@ the boundary. See [the product design](docs/design.md) and
 
 **R1 is not yet established end to end.** TUI, `run` file/Bash tools and `exec`
 now execute in private offline Linux workspaces. Inference uses a separate
-host-approved processor gateway; local inference server confinement remains
-unfinished.
+session-bound processor gateway. The default local path now launches an
+offline inference process separate from coding workers, with dedicated
+Unix socket IPC and no access to host credentials or the project tree.
+The launcher/transport have empirical checks, not a Lean isolation proof.
 Complete controller refinement remains unfinished. Benign scores and kernel
 proofs do not establish the whole requirement.
 
@@ -40,7 +42,9 @@ fixes transport behavior; it does not confine the selected server itself.
 
 Every inference exchange checks a processor grant with the refined Rust
 `transfer::allowed` kernel. The binding contains the host session, exact
-inference URL, provider/model and exact credential; it expires after eight
+HTTP inference URL, provider/model and exact credential; for the local path
+it binds the host-selected engine/weights paths and local processor identity.
+It expires after eight
 hours and cannot be reset after revocation. Conversation bodies are the
 processor grant's scope. This is separate from a single-use exact export.
 Already permitted requests can finish after revocation.
@@ -48,10 +52,16 @@ Already permitted requests can finish after revocation.
 The TUI displays the prepared destination and data scope in a host-owned
 review screen; only a local `y` key grants permission. Model/tool text,
 Enter and bracketed paste do not grant it. Provider changes require fresh
-approval. `run` requires `--approve-processor` with the exact inference URL;
+approval. HTTP `run` requires `--approve-processor` with the exact inference URL;
 the optional TUI flag uses the same matching rule. No discovered endpoint
 is implicitly approved. A loopback endpoint may forward to a cloud service:
 approved processing is not proof that inference remains local.
+Local CLI/TUI instead require prepared engine/weights and never discover or
+fall back to those HTTP providers. The local process uses private namespaces,
+read-only assets, a clean environment and closed inherited descriptors.
+Host IPC pins the socket inode without following symlinks; replacing its
+name cannot select another host service. Limits, cancellation, tested
+versions and trust assumptions are in [local inference](docs/local-inference.md).
 
 ## Existing implementation boundaries
 
@@ -82,7 +92,8 @@ events never request execution by the host. A broken output stream cancels
 before the immediately following model/tool effect. This closes an unchecked
 execution path; it does not establish all of R1.
 
-The CLI uses HTTP model connections only. The isolated planner, quarantined
+The CLI uses confined local inference or explicitly selected HTTP connections.
+The isolated planner, quarantined
 reader, skill attestation subsystem and command-line model wrappers have
 been removed. Their historical information-flow claims do not apply to
 this conversational runtime.

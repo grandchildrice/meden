@@ -34,11 +34,7 @@ impl ChatModel for OpenAiCompatible {
         messages: &[serde_json::Value],
         tools: &[serde_json::Value],
     ) -> Result<meden_agent::conversation::Reply, ModelError> {
-        let mut body = serde_json::json!({"model":self.model, "messages":messages});
-        if let Some(object) = body.as_object_mut().filter(|_| !tools.is_empty()) {
-            object.insert("tools".to_owned(), serde_json::json!(tools));
-            object.insert("tool_choice".to_owned(), serde_json::json!("auto"));
-        }
+        let body = request_body(&self.model, messages, tools);
         let config = ureq::Agent::config_builder()
             .proxy(None)
             .max_redirects(0)
@@ -65,21 +61,40 @@ impl ChatModel for OpenAiCompatible {
             .body_mut()
             .read_json()
             .map_err(|e| ModelError::InvalidResponse(format!("unreadable API reply: {e}")))?;
-        let choice = response
-            .get("choices")
-            .and_then(serde_json::Value::as_array)
-            .and_then(|choices| choices.first())
-            .ok_or_else(|| ModelError::InvalidResponse("API reply had no choices".to_owned()))?;
-        if choice
-            .get("finish_reason")
-            .and_then(serde_json::Value::as_str)
-            == Some("length")
-        {
-            return Err(ModelError::InvalidResponse(
-                "the model reply was truncated".to_owned(),
-            ));
-        }
-        serde_json::from_value(choice.get("message").cloned().unwrap_or_default())
-            .map_err(|e| ModelError::InvalidResponse(format!("invalid assistant message: {e}")))
+        decode_response(&response)
     }
+}
+
+pub(crate) fn request_body(
+    model: &str,
+    messages: &[serde_json::Value],
+    tools: &[serde_json::Value],
+) -> serde_json::Value {
+    let mut body = serde_json::json!({"model":model, "messages":messages});
+    if let Some(object) = body.as_object_mut().filter(|_| !tools.is_empty()) {
+        object.insert("tools".to_owned(), serde_json::json!(tools));
+        object.insert("tool_choice".to_owned(), serde_json::json!("auto"));
+    }
+    body
+}
+
+pub(crate) fn decode_response(
+    response: &serde_json::Value,
+) -> Result<meden_agent::conversation::Reply, ModelError> {
+    let choice = response
+        .get("choices")
+        .and_then(serde_json::Value::as_array)
+        .and_then(|choices| choices.first())
+        .ok_or_else(|| ModelError::InvalidResponse("API reply had no choices".to_owned()))?;
+    if choice
+        .get("finish_reason")
+        .and_then(serde_json::Value::as_str)
+        == Some("length")
+    {
+        return Err(ModelError::InvalidResponse(
+            "the model reply was truncated".to_owned(),
+        ));
+    }
+    serde_json::from_value(choice.get("message").cloned().unwrap_or_default())
+        .map_err(|e| ModelError::InvalidResponse(format!("invalid assistant message: {e}")))
 }

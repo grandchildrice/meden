@@ -271,8 +271,8 @@ The live-model smoke harness's independent checker also uses `exec`;
 it does not execute model-generated code on the host.
 
 These tests cover production worker paths, not a Lean proof of OS effects.
-Local inference confinement, whole-controller refinement and
-the complete malicious-page acceptance suite remain work.
+Whole-controller refinement and the complete malicious-page acceptance suite
+remain work. Local inference now has its own confinement tests below.
 
 ## Shared CLI and TUI execution
 
@@ -359,7 +359,7 @@ HTTP implementation is private. TUI and `run` bind the gateway to their
 actual host-created session before giving it to the conversation.
 
 Each inference decision calls the already extracted/proved Rust
-`transfer::allowed` function. Its fields have these processor meanings:
+`transfer::allowed` function. Its fields have these HTTP processor meanings:
 
 | Kernel field | Processor binding |
 | --- | --- |
@@ -391,6 +391,47 @@ service can still forward data unless the service's own egress is confined.
 
 The [processor review screenshot](assets/processor-approval.png) is captured
 from the actual TUI; no inference request is made during capture.
+
+## Isolated local inference in production
+
+The [local backend](../crates/meden-llm/src/local.rs) starts a persistent
+llama.cpp server through the same descriptor-clean launcher and private
+namespace implementation, with a separate scratch directory, read-only
+engine/weights and public runtime closure. The coding copy and host secrets
+are absent. This is now the default CLI/TUI path; no provider discovery or
+HTTP fallback runs. Explicit HTTP connections retain their approval path.
+
+The local gateway reuses the refined `transfer::allowed` decision with the
+actual host session, local processor identity, exact configuration-path
+bytes and eight-hour expiry/revocation state. Host configuration permits
+this confined execution without a remote-recipient approval prompt. Binding
+construction and the meaning of those paths remain trusted implementation
+work; this is not a proof of engine/weight artifact identity.
+
+The [Unix transport](../crates/meden-llm/src/unix.rs) has no DNS/TCP connector.
+It opens a nonsymlink socket with `O_PATH`, checks its inode type and connects
+through the held descriptor. A Rust regression replaces the name with a
+symlink to another receiver after pinning: only the original receiver gets
+the connection. Another regression checks a stalled peer's timeout.
+
+[Production CLI/TUI tests](../python/tests/test_local_inference.py) run a
+hostile engine that reads confidential context and attempts IPv4/IPv6,
+external TCP, UDP, DNS, host Unix sockets, host files, credentials and
+inheritable host descriptors. They observe zero unauthorized deliveries at
+real host receivers. The same engine reads injected cached documentation,
+proposes/forges an export, edits code and executes tests across several
+requests/user turns. An independent offline copy checks the result. The
+real PTY test also cancels pending inference and checks terminal restoration.
+Separate cases reject a socket symlink, HTTP redirect, disconnect and an
+oversized reply without contacting a configured HTTP fallback. No GPU or
+real model weights are required for these deterministic CI tests.
+
+A separate local smoke check used llama.cpp 0.9.0, build 12110 (`cd959ba`),
+and Qwen3-0.6B Q4_K_M to return a greeting through actual `meden run`. This
+confirms engine compatibility, not general coding ability. Setup, limits,
+failure behavior and OS/asset trust assumptions are documented in
+[local inference](local-inference.md). The launcher, protocol and OS boundary
+are not Lean-refined; the number and scope of Lean theorem roots stay at 23.
 
 ## Tests of actual HTTP delivery
 

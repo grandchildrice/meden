@@ -145,6 +145,66 @@ impl Drop for Running<'_> {
     }
 }
 
+/// A persistent process group with no inherited input/output channels. Used
+/// for isolated inference; its only data channel is a dedicated Unix socket.
+pub struct Background {
+    child: Option<Child>,
+    control: Arc<Control>,
+}
+
+impl Background {
+    /// Start under the same spawn/cancel critical section as tool workers.
+    /// No server log is retained or forwarded to the terminal/model.
+    pub fn spawn(command: &mut Command, control: Arc<Control>) -> io::Result<Self> {
+        command
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null());
+        #[cfg(unix)]
+        {
+            use std::os::unix::process::CommandExt as _;
+            command.process_group(0);
+        }
+        let child = {
+            let mut active = control
+                .active
+                .lock()
+                .map_err(|_| io::Error::other("process registry poisoned"))?;
+            if control.cancelled.load(Ordering::SeqCst) {
+                return Err(io::Error::other("process cancelled"));
+            }
+            let child = command.spawn()?;
+            active.insert(child.id());
+            child
+        };
+        Ok(Self {
+            child: Some(child),
+            control,
+        })
+    }
+
+    /// Inspect the owned child; never silently replace a failed model server.
+    pub fn is_running(&mut self) -> io::Result<bool> {
+        self.child
+            .as_mut()
+            .map_or(Ok(false), |child| Ok(child.try_wait()?.is_none()))
+    }
+}
+
+impl Drop for Background {
+    fn drop(&mut self) {
+        if let Some(mut child) = self.child.take() {
+            let mut active = self.control.active.lock().ok();
+            kill_group(child.id());
+            let _ = child.kill();
+            let _ = child.wait();
+            if let Some(active) = active.as_mut() {
+                active.remove(&child.id());
+            }
+        }
+    }
+}
+
 #[cfg(unix)]
 fn kill_group(pid: u32) {
     if let Ok(pid) = i32::try_from(pid) {

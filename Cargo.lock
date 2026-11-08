@@ -1072,6 +1072,8 @@ version = "0.1.0"
 dependencies = [
  "meden-agent",
  "meden-core",
+ "meden-runtime",
+ "nix 0.31.3",
  "serde",
  "serde_json",
  "tempfile",

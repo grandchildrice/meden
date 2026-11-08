@@ -328,8 +328,10 @@ The application's parser, origin attribution, I/O loop and locking still
 need their own correspondence; these kernel traces do not prove them.
 There is no accepted contract store, evidence controller or release gate
 yet. Inference checks a host-approved, immutable session processor binding
-with the refined kernel; providers can still be remote, and local inference
-server confinement is unfinished. TUI and `run` use one coding session;
+with the refined kernel. Local CLI/TUI inference now uses a separate offline
+CPU process and dedicated inode-pinned Unix socket; it has adversarial tests,
+not an OS/refinement proof. HTTP providers remain explicit, approved options.
+TUI and `run` use one coding session;
 the external host-tool bridge has been removed. All built-in file/Bash tools
 and `exec` use retained private copies. TUI/CLI host review now connects the
 refined reservation kernel to raw immutable HTTP file exports. This is not

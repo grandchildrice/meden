@@ -286,7 +286,10 @@ private persistent copy, and inherited descriptors are closed before launch.
 Inference now uses a host-approved processor gateway checked before each
 exchange. TUI approval and CLI exact-endpoint matching bind the session,
 endpoint, provider/model and credential for up to eight hours. Local
-inference confinement still needs work. Raw immutable HTTP
+inference now has a separately confined CPU backend and inode-pinned Unix
+socket IPC. It is the CLI/TUI default and never falls back to HTTP; its
+launcher/transport have tests rather than refinement proofs. See
+[local inference](local-inference.md). Raw immutable HTTP
 file exports now have TUI/CLI host review and one-attempt dispatch; model
 proposals never grant approval. Git/email audience adapters and an
 evidence-gated release workflow are still absent.

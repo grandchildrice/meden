@@ -28,20 +28,21 @@ requirement.
 
 The current prototype is a native Rust conversational coding agent. It
 works on real files, runs tools and keeps context across instructions. It
-connects to OpenAI-compatible APIs and can reuse Hermes configuration.
+uses isolated local inference by default, with explicit OpenAI-compatible
+HTTP connections and optional Hermes configuration.
 
 - **Workspace tools:** list/read files, write files and make exact edits.
 - **Terminal workflow:** multiline Unicode input, history, scrolling,
   cancellation and `/clear`.
-- **Model choice:** local or hosted OpenAI-compatible HTTP endpoints.
+- **Model choice:** confined local llama.cpp inference or approved HTTP processors.
 - **Explicit boundaries:** Lean specifications for capability decisions and
   exact, single-use outbound authorization, checked in CI.
 
 > Development prototype. Local-only orchestration, project proof workflows,
 > controller-wide refinement and evidence-gated delivery are design targets.
 > TUI file/Bash tools and `exec` now run in private offline workspaces.
-> Model HTTP connections require host approval and may still be remote.
-> Local inference confinement remains unfinished. See [verification scope](docs/verification.md)
+> Local inference runs in a separate offline namespace; HTTP connections
+> require host approval and may still be remote. See [verification scope](docs/verification.md)
 > and [security limits](SECURITY.md).
 
 ## Getting started
@@ -51,10 +52,17 @@ Build from source with Rust:
 
 ```bash
 cargo build --release -p meden-cli
+export MEDEN_LOCAL_ENGINE=/path/to/llama-server
+export MEDEN_LOCAL_MODEL=/path/to/model.gguf
 ./target/release/meden tui --workspace /path/to/project
 ```
 
-Select a configured connection explicitly:
+Prepare a compatible llama.cpp executable and GGUF weights first. Inference
+currently uses Linux/CPU with a 16384-token context. The process stays warm
+across turns; it has no external route, workspace access or cloud fallback.
+[Local inference setup and limits →](docs/local-inference.md)
+
+Select an HTTP connection explicitly:
 
 ```bash
 ./target/release/meden providers
@@ -71,13 +79,13 @@ export MEDEN_LLM_MODEL=your-model
 ./target/release/meden tui --workspace . --provider configured
 ```
 
-Before inference, the TUI shows the actual processor URL and asks whether
+Before HTTP inference, the TUI shows the actual processor URL and asks whether
 it may receive this workspace's conversation, file contents and tool
 results. A local `y` key grants permission for this session, up to eight
 hours. Choosing another processor requires fresh approval. Loopback alone
 does not establish that a server keeps data local.
 
-Automation must specify the exact inference URL with
+HTTP automation must specify the exact inference URL with
 `--approve-processor URL`; for example, a configured local endpoint uses
 `--approve-processor http://localhost:11434/v1/chat/completions`.
 This is required by `run` and optional in the TUI.
@@ -171,7 +179,7 @@ theorems connecting the generated Rust model to that specification, plus a
 no-replay theorem over two calls of the extracted Rust function. A
 Linux runner now confines actual TUI file/Bash tools and `exec`. Tests use
 real host files, inherited descriptors, sockets and receivers. Connecting
-every remaining effect and confining local inference are still work in progress.
+every remaining effect and proving the full controller are still work in progress.
 
 [Confidentiality design and acceptance criteria →](docs/confidentiality.md) ·
 [CI checks, theorem statements and proof limits →](docs/verification.md)
