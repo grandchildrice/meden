@@ -225,14 +225,18 @@ pass, but Lean rejects its possible panic and no artifact is emitted.
 Two additional CLI cases remove the host bundle and require both a model tool
 call and independent host checking to stop without another repair request or
 artifact; a queued write after the failed tool must not run.
-These twelve cases are checker/controller integration tests, not a local LLM
+Two status-failure cases first retain real proof, reject an edited source,
+then remove a private worker executable. Host inspection and the model's
+status tool must stop further inference; a queued write must be skipped.
+The retained old artifact remains inspectable without verifying the changed source.
+These fourteen cases are checker/controller integration tests, not a local LLM
 coding benchmark.
 The ordinary Python job skips only these bundle-dependent tests; the Lean
 job explicitly supplies the manifest and runs them.
-Its `meden-ledger-evidence` artifact retains all seven successful cases' actual
+Its `meden-ledger-evidence` artifact retains all nine successful cases' actual
 source, native libraries, proof inputs and eight-root audit reports.
 
-The separate Meden control audit contains 81 roots, including the extracted
+The separate Meden control audit contains 82 roots, including the extracted
 acceptance getter used by both interfaces, the actual TUI key predicate and
 the outer-turn protocol over real conversation outcomes, its finite-trace
 conversation budget and sticky stops, typed

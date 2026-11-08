@@ -49,13 +49,13 @@ pub enum Signal<'a> {
     },
     /// The requested current-source evidence inspection completed.
     Current {
-        /// Exact current evidence is eligible according to the host gate.
-        verified: bool,
+        /// Exact evidence eligibility, or a classified source-inspection failure.
+        result: Result<bool, FailureKind>,
     },
     /// The independent check completed.
     Checked {
-        /// Checker success and exact current evidence eligibility both hold.
-        verified: bool,
+        /// Exact evidence eligibility after checking, or the check/probe failure.
+        result: Result<bool, FailureKind>,
     },
 }
 
@@ -131,25 +131,26 @@ impl Turn {
                     self.stop(Terminal::Finish)
                 }
             }
-            (Stage::Inspect { fresh }, Signal::Current { verified }) => {
-                if verified {
-                    self.stop(Terminal::Finish)
-                } else if !fresh && matches!(failure, Some(FailureKind::Unverified)) {
+            (Stage::Inspect { fresh }, Signal::Current { result }) => match result {
+                Ok(true) => self.stop(Terminal::Finish),
+                Ok(false) if !fresh && matches!(failure, Some(FailureKind::Unverified)) => {
                     self.repair()
-                } else {
+                }
+                Ok(false) | Err(FailureKind::Unverified) => {
                     self.stage = Stage::Checking;
                     Effect::Check
                 }
-            }
-            (Stage::Checking, Signal::Checked { verified }) => {
-                if verified {
-                    self.stop(Terminal::Finish)
-                } else if matches!(failure, Some(FailureKind::Unverified)) {
-                    self.repair()
-                } else {
+                Err(FailureKind::Unavailable | FailureKind::Inconclusive) => {
                     self.stop(Terminal::Failed)
                 }
-            }
+            },
+            (Stage::Checking, Signal::Checked { result }) => match result {
+                Ok(true) => self.stop(Terminal::Finish),
+                Err(FailureKind::Unverified) => self.repair(),
+                Ok(false) | Err(FailureKind::Unavailable | FailureKind::Inconclusive) => {
+                    self.stop(Terminal::Failed)
+                }
+            },
             _ => self.stop(Terminal::Exhausted),
         }
     }
@@ -195,7 +196,7 @@ mod tests {
         if let Some(expected) = next {
             assert_eq!(
                 turn.advance(
-                    Signal::Current { verified: false },
+                    Signal::Current { result: Ok(false) },
                     false,
                     Some(FailureKind::Unverified),
                     false
@@ -272,7 +273,7 @@ mod tests {
             );
             assert_eq!(
                 turn.advance(
-                    Signal::Current { verified: false },
+                    Signal::Current { result: Ok(false) },
                     false,
                     Some(FailureKind::Unverified),
                     false
@@ -281,7 +282,9 @@ mod tests {
             );
             assert_eq!(
                 turn.advance(
-                    Signal::Checked { verified: false },
+                    Signal::Checked {
+                        result: Err(FailureKind::Unverified)
+                    },
                     false,
                     Some(FailureKind::Unverified),
                     false
@@ -299,7 +302,7 @@ mod tests {
         );
         let mut turn = Turn::begin();
         assert_eq!(
-            turn.advance(Signal::Checked { verified: true }, false, None, false),
+            turn.advance(Signal::Checked { result: Ok(true) }, false, None, false),
             Effect::Stop(Terminal::Exhausted)
         );
     }
@@ -325,12 +328,62 @@ mod tests {
             Effect::Inspect
         );
         assert_eq!(
-            turn.advance(Signal::Current { verified: false }, false, None, false),
+            turn.advance(Signal::Current { result: Ok(false) }, false, None, false),
             Effect::Check
         );
         assert_eq!(
-            turn.advance(Signal::Checked { verified: false }, false, None, false),
+            turn.advance(
+                Signal::Checked { result: Ok(false) },
+                false,
+                Some(FailureKind::Unverified),
+                false
+            ),
             Effect::Stop(Terminal::Failed)
         );
+    }
+
+    #[test]
+    fn failed_source_probes_cannot_reuse_an_old_rejection() {
+        for fresh in [false, true] {
+            for kind in [FailureKind::Unavailable, FailureKind::Inconclusive] {
+                for failure in [None, Some(FailureKind::Unverified)] {
+                    let mut turn = Turn {
+                        remaining: 3,
+                        stage: Stage::Inspect { fresh },
+                    };
+                    assert_eq!(
+                        turn.advance(Signal::Current { result: Err(kind) }, false, failure, false),
+                        Effect::Stop(Terminal::Failed)
+                    );
+                    assert_eq!(
+                        turn.advance(Signal::Start, false, None, false),
+                        Effect::Stop(Terminal::Failed)
+                    );
+                    let mut turn = Turn {
+                        remaining: 3,
+                        stage: Stage::Checking,
+                    };
+                    assert_eq!(
+                        turn.advance(Signal::Checked { result: Err(kind) }, false, failure, false),
+                        Effect::Stop(Terminal::Failed)
+                    );
+                }
+            }
+            let mut turn = Turn {
+                remaining: 3,
+                stage: Stage::Inspect { fresh },
+            };
+            assert_eq!(
+                turn.advance(
+                    Signal::Current {
+                        result: Err(FailureKind::Unverified)
+                    },
+                    false,
+                    Some(FailureKind::Unverified),
+                    false
+                ),
+                Effect::Check
+            );
+        }
     }
 }

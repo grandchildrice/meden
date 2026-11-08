@@ -69,6 +69,7 @@ open MedenSpec
 #print axioms MedenSpec.RepairRefinement.advance_refines
 #print axioms MedenSpec.RepairRefinement.inspection_requires_acceptance
 #print axioms MedenSpec.RepairRefinement.budget_gets_fresh_check
+#print axioms MedenSpec.RepairRefinement.inspection_error
 #print axioms MedenSpec.RepairTrace.trace_refines
 #print axioms MedenSpec.RepairTrace.extracted_conversation_budget
 #print axioms MedenSpec.RepairTrace.extracted_stopped

@@ -185,14 +185,34 @@ GROUPS = [
         "model": "Repair",
         "proof": "RepairRefinement",
         "test": (
-            "verification::turn::tests::"
-            "unattributed_check_failure_never_starts_automatic_repair"
+            "verification::turn::tests::unattributed_check_failure_never_starts_automatic_repair"
         ),
         "mutations": [
             (
                 "unattributed_check_repaired",
-                "self.stop(Terminal::Failed)\n                }\n            }\n            _ =>",
-                "self.repair()\n                }\n            }\n            _ =>",
+                "self.stop(Terminal::Failed)\n                }\n            },\n            _ =>",
+                "self.repair()\n                }\n            },\n            _ =>",
+            ),
+        ],
+    },
+    {
+        "source": "crates/meden-runtime/src/verification/turn.rs",
+        "package": "meden-runtime",
+        "model": "Repair",
+        "proof": "RepairRefinement",
+        "test": "verification::turn::tests::failed_source_probes_cannot_reuse_an_old_rejection",
+        "mutations": [
+            (
+                "unavailable_probe_repaired",
+                "                Err(FailureKind::Unavailable | FailureKind::Inconclusive) => {\n"
+                "                    self.stop(Terminal::Failed)",
+                "                Err(FailureKind::Unavailable | FailureKind::Inconclusive) => {\n"
+                "                    self.repair()",
+            ),
+            (
+                "rejected_probe_reuses_old_diagnostic",
+                "Ok(false) | Err(FailureKind::Unverified) => {",
+                "Err(FailureKind::Unverified) => self.repair(),\n                Ok(false) => {",
             ),
         ],
     },

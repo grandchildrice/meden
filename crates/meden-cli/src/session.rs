@@ -12,7 +12,7 @@ use meden_llm::Gateway;
 use meden_runtime::process::Control;
 use meden_runtime::verification::{
     turn::{Effect, Signal, Terminal, Turn},
-    verification_stops,
+    verification_stops, FailureKind,
 };
 use meden_runtime::workspace::Workspace;
 use serde_json::Value;
@@ -108,36 +108,13 @@ impl Session {
                 }
                 Effect::Inspect => {
                     signal = Signal::Current {
-                        verified: self.current_verified(),
+                        result: self.current_verified(&mut diagnostic),
                     };
                 }
                 Effect::Check => {
-                    let call = ToolCall {
-                        id: "meden-controller-verification".into(),
-                        function: FunctionCall {
-                            name: "verify_ledger".into(),
-                            arguments: "{}".into(),
-                        },
+                    signal = Signal::Checked {
+                        result: self.check_current(&observe, &mut diagnostic),
                     };
-                    let result = conversation::execute(
-                        &call,
-                        &self.registry,
-                        &self.policy,
-                        &observe,
-                        self.processes.flag(),
-                    );
-                    let (text, error) = match result {
-                        Ok(text) => (text, false),
-                        Err((_, text)) => (text, true),
-                    };
-                    observe(Event::ToolResult {
-                        call: &call,
-                        text: &text,
-                        error,
-                    });
-                    let verified = !error && self.current_verified();
-                    diagnostic = text;
-                    signal = Signal::Checked { verified };
                 }
                 Effect::Repair => {
                     let diagnostic = self
@@ -166,10 +143,58 @@ impl Session {
         &self.conversation.messages
     }
 
-    fn current_verified(&self) -> bool {
+    fn check_current(
+        &self,
+        observer: &dyn Fn(Event<'_>),
+        diagnostic: &mut String,
+    ) -> std::result::Result<bool, FailureKind> {
+        let call = ToolCall {
+            id: "meden-controller-verification".into(),
+            function: FunctionCall {
+                name: "verify_ledger".into(),
+                arguments: "{}".into(),
+            },
+        };
+        let result = conversation::execute(
+            &call,
+            &self.registry,
+            &self.policy,
+            observer,
+            self.processes.flag(),
+        );
+        let (text, failure) = match result {
+            Ok(text) => (text, None),
+            Err(("tool_error", text)) => (
+                text,
+                Some(
+                    self.project
+                        .failure()
+                        .map_or(FailureKind::Unavailable, |f| f.kind),
+                ),
+            ),
+            Err(("cancelled", text)) => (text, Some(FailureKind::Inconclusive)),
+            Err((_, text)) => (text, Some(FailureKind::Unavailable)),
+        };
+        observer(Event::ToolResult {
+            call: &call,
+            text: &text,
+            error: failure.is_some(),
+        });
+        *diagnostic = text;
+        match failure {
+            Some(kind) => Err(kind),
+            None => self.current_verified(diagnostic),
+        }
+    }
+
+    fn current_verified(&self, diagnostic: &mut String) -> std::result::Result<bool, FailureKind> {
         self.project
             .status(&self.workspace, &self.processes)
-            .is_ok_and(|s| s.verified)
+            .map(|s| s.verified)
+            .map_err(|failure| {
+                *diagnostic = failure.to_string();
+                failure.kind
+            })
     }
 
     pub fn project_status(&self) -> Result<crate::project::Summary> {
@@ -218,7 +243,6 @@ fn observe_project(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use meden_runtime::verification::FailureKind;
 
     #[test]
     fn operational_verification_failure_stops_automatic_repair() {

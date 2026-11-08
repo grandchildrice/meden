@@ -20,6 +20,8 @@
   state updates and arbitrary finite compositions are refined, including four
   conversation invocations per host turn, sticky terminal stops and a fresh
   check after budget exhaustion. One invocation may make multiple LLM requests.
+  Inspection/check signals retain typed failures: unavailable or inconclusive
+  source inspection stops instead of reusing an older rejected check.
   The session dispatches its returned operation; the I/O interpreter, signal
   attribution and inner conversation loop remain separate obligations.
   Typed verification-failure classification and repair-stop decisions are

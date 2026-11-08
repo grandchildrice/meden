@@ -19,7 +19,7 @@ established by the current CI badge.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate transfer/review/dispatch, evidence, issued jobs, TUI approval, scheduling and failure kernels, `lake build`, proof scan/audit, fifty-one Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate transfer/review/dispatch, evidence, issued jobs, TUI approval, scheduling and failure kernels, `lake build`, proof scan/audit, fifty-three Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A result or resulting transfer state differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -287,6 +287,14 @@ review stops the turn. Unclassified check failure also stops automatic
 repair. A stopped controller remains stopped even when flags are later cleared;
 a new host instruction creates a new controller.
 
+Inspection and check signals carry `Result<bool, FailureKind>`. Failed source
+inspection preserves its failure kind instead of becoming `false`. Unavailable
+or inconclusive inspection stops even with a cached completed rejection.
+An unverified inspection requests a fresh check: it cannot establish the source
+identity needed to reuse the earlier diagnostic. A successful check whose
+current evidence is ineligible also stops; only an explicitly classified
+completed rejection permits repair.
+
 [`Repair.lean`](../lean/MedenSpec/Repair.lean) specifies this protocol.
 [`RepairRefinement.lean`](../lean/MedenSpec/RepairRefinement.lean) proves
 initialization and the actual extracted transition, including `u8` budget
@@ -302,6 +310,7 @@ share that actual extracted failure type.
 | `RepairRefinement.advance_refines` | Every native effect and complete resulting state match the independent protocol specification |
 | `RepairRefinement.inspection_requires_acceptance` | Inspection requires an accepted, changed-work conversation signal with a normal or budget outcome; model text cannot replace these flags |
 | `RepairRefinement.budget_gets_fresh_check` | A budget outcome followed by missing current proof requests an independent check even when an older rejection exists and no further conversation budget remains |
+| `RepairRefinement.inspection_error` | Every typed inspection failure with a cached rejection either obtains a fresh check (`Unverified`) or stops (`Unavailable`/`Inconclusive`), after normal or budget-exhausted conversation and for every remaining budget |
 | `RepairTrace.trace_refines` | Arbitrary finite compositions of actual extracted transitions agree on state and the number of conversation invocations |
 | `RepairTrace.extracted_conversation_budget` | Every such trace from actual initialization emits at most four conversation invocations |
 | `RepairTrace.extracted_stopped` | Every finite continuation from a stopped native state preserves it and emits no further conversation invocation |
@@ -311,10 +320,11 @@ The bound is four outer conversation/check cycles, not four total LLM
 requests. Neither the model's final answer nor a controller finish effect
 establishes project proof; that still requires exact current evidence.
 
-Nine Rust mutations skip budget verification, admit failed outcomes, omit
+Eleven Rust mutations skip budget verification, admit failed outcomes, omit
 acceptance or change checks, reuse an older budget rejection, ignore
 cancellation, reopen a stopped turn, remove budget consumption or repair an
-unattributed failure. Each must fail native assertions and the unchanged
+unattributed failure, repair an unavailable inspection or reuse an older
+diagnostic after a rejected inspection. Each must fail native assertions and the unchanged
 refinement after a freshly generated model compiles. Real CLI tests exercise
 budget recovery and operational stops through the independent checker and
 retained artifact path.
@@ -359,6 +369,12 @@ issues no further model request. A new host instruction can retry after an
 operator repairs resources. File edits cannot clear an operational stop.
 Real CLI tests cover missing bundles for model-initiated and host-initiated
 checks, forged failure fields, skipped writes and absence of a verified artifact.
+Two further cases first retain a real verified artifact, then obtain an actual
+rejection of an edited source and remove a private copy of the worker executable.
+Both host inspection and the model's status tool must retain the resulting
+unavailable failure, stop new inference and skip any queued write. The old
+artifact remains intact but cannot verify the current edited source. The status
+adapter latches inspection errors just as the checker adapter latches failures.
 
 The theorems cover the failure kernel on the pinned Linux/Unix representation.
 OS status attribution, I/O error mapping, mutexes, conversation routing/history
@@ -531,7 +547,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with transfer/review/dispatch and TUI approval checks, CI rejects
-fifty-one faults, including scheduling, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
+fifty-three faults, including scheduling, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.

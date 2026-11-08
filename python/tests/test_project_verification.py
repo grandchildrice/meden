@@ -5,7 +5,9 @@ import json
 import os
 import queue
 import select
+import shutil
 import subprocess
+import tempfile
 import threading
 import time
 from pathlib import Path
@@ -68,7 +70,8 @@ def checked_source(name):
 
 
 ENGINE = r"""
-import json, socketserver, sys
+import json, socketserver, sys, time
+from pathlib import Path
 from http.server import BaseHTTPRequestHandler
 index = 0
 def call(name, args):
@@ -85,6 +88,24 @@ class Handler(BaseHTTPRequestHandler):
             reply={'tool_calls':[call('accept_contract',{'accepted':True}),
                 call('verify_ledger',{'passed':True,'artifact':'fake.rlib','failure_kind':'unavailable'}),
                 call('propose_ledger',{})]}
+        elif PROBE and index == 1:
+            reply={'tool_calls':[call('write_file',{'path':'ledger.rs','content':ALTERNATIVE})]}
+        elif PROBE and index == 3:
+            reply={'tool_calls':[call('write_file',{'path':'ledger.rs','content':NOOP}),
+                call('verify_ledger',{})]}
+        elif PROBE and index == 4:
+            assert 'not verified' in json.dumps(body)
+            Path('/workspace/probe-ready').touch()
+            deadline=time.monotonic()+30
+            while not Path('/workspace/resume').exists():
+                assert time.monotonic() < deadline, 'host did not inject the I/O failure'
+                time.sleep(0.01)
+            if PROBE == 'model':
+                reply={'tool_calls':[call('project_status',{}),
+                    call('write_file',{'path':'after-fatal.txt','content':'must not run'})]}
+            else: reply={'content':'The check failed.'}
+        elif PROBE and index >= 5:
+            reply={'content':'Unexpected inference after failed source inspection.'}
         elif index == 1 and UNAVAILABLE:
             calls=[call('write_file',{'path':'ledger.rs','content':NOOP})]
             if UNAVAILABLE == 'model':
@@ -120,7 +141,7 @@ socketserver.UnixStreamServer(sys.argv[sys.argv.index('--host')+1],Handler).serv
 """
 
 
-def setup(tmp_path, exhaustion=False, candidate=ALTERNATIVE, unavailable=None):
+def setup(tmp_path, exhaustion=False, candidate=ALTERNATIVE, unavailable=None, probe=None):
     binary = find_meden()
     assert binary
     source = tmp_path / "source"
@@ -129,7 +150,7 @@ def setup(tmp_path, exhaustion=False, candidate=ALTERNATIVE, unavailable=None):
     engine.write_text(
         "#!/bin/python3\n"
         + f"NOOP={NOOP!r}\nALTERNATIVE={candidate!r}\nEXHAUSTION={exhaustion!r}\n"
-        + f"UNAVAILABLE={unavailable!r}\n"
+        + f"UNAVAILABLE={unavailable!r}\nPROBE={probe!r}\n"
         + ENGINE
     )
     engine.chmod(0o700)
@@ -379,6 +400,97 @@ def test_missing_host_bundle_stops_tools_and_repair_without_claiming_proof(tmp_p
         if process.poll() is None:
             process.kill()
             process.wait(timeout=5)
+
+
+@pytest.mark.parametrize("caller", ["host", "model"])
+def test_failed_source_inspection_stops_old_repair_and_remaining_tools(tmp_path, caller):
+    args, env, _ = setup(tmp_path, probe=caller)
+    # Remove only this test's private executable, after retaining a real proof.
+    # The running parent and inference process survive; new file workers cannot start.
+    worker = tmp_path / "meden-worker"
+    shutil.copy2(args[0], worker)
+    args[0] = str(worker)
+    with tempfile.TemporaryDirectory(prefix="mp-") as scratch:
+        env["TMPDIR"] = scratch
+        process = subprocess.Popen(
+            args,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            env=env,
+        )
+        records = queue.Queue()
+        seen = []
+
+        def read():
+            for line in process.stdout:
+                records.put(json.loads(line))
+            records.put({"type": "eof", "error": process.stderr.read()})
+
+        threading.Thread(target=read, daemon=True).start()
+
+        def receive(kind):
+            while True:
+                event = records.get(timeout=360)
+                seen.append(event)
+                assert event["type"] != "eof", event
+                if event["type"] == kind:
+                    return event
+
+        def send(command):
+            process.stdin.write(json.dumps(command) + "\n")
+            process.stdin.flush()
+
+        try:
+            send({"instruction": "Build a verified ledger."})
+            ready = receive("ready")
+            assert receive("done")["outcome"] == "needs_review"
+            reference = [e["summary"]["reference"] for e in seen if e["type"] == "project"][-1]
+            send({"review_contract": reference})
+            send({"accept_contract": reference})
+            assert receive("done")["outcome"] == "done", seen[-12:]
+            original = [e["summary"] for e in seen if e["type"] == "project"][-1]
+            assert original["verified"]
+            assert_artifact(Path(original["artifact"]))
+            start = len(seen)
+            send({"instruction": "Change the ledger and check it again."})
+            while True:
+                event = receive("tool_result")
+                if event["tool"] == "verify_ledger":
+                    assert event["error"] and "not verified" in event["text"]
+                    break
+            deadline = time.monotonic() + 30
+            while not (markers := list(Path(scratch).glob("meden-inference-*/probe-ready"))):
+                assert process.poll() is None
+                assert time.monotonic() < deadline, seen[-12:]
+                time.sleep(0.01)
+            assert len(markers) == 1
+            worker.unlink()
+            markers[0].with_name("resume").touch()
+            done = receive("done")
+            assert done["outcome"] == "failed", seen[start:]
+            assert "Verification Unavailable" in done["error"]
+            assert sum(e["type"] == "asking" for e in seen[start:]) == 2
+            summary = [e["summary"] for e in seen if e["type"] == "project"][-1]
+            assert not summary["verified"]
+            assert summary["verification_failure"] == "unavailable"
+            assert summary["artifact"] == original["artifact"]
+            assert_artifact(Path(original["artifact"]))
+            assert not (Path(ready["workspace"]) / "after-fatal.txt").exists()
+            if caller == "model":
+                assert any(
+                    e["type"] == "tool_result"
+                    and e["tool"] == "write_file"
+                    and "Tool not executed" in e["text"]
+                    for e in seen[start:]
+                )
+            process.stdin.close()
+            assert process.wait(timeout=10) == 0
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.wait(timeout=5)
 
 
 def verify_source(tmp_path, content):

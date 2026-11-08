@@ -20,11 +20,13 @@ def state (t : Turn) : Repair.State := ⟨t.remaining.val, stage t.stage⟩
 def outcome : meden_agent.conversation.Status → Repair.Outcome
   | .Done _ => .done | .Failed _ => .failed | .Incomplete => .budget
   | .Cancelled => .cancelled | .NeedsReview => .review
-def signal : Signal → Repair.Signal
-  | .Start => .start | .Conversation status accepted changed => .conversation (outcome status) accepted changed
-  | .Current verified => .current verified | .Checked verified => .checked verified
 def failure : FailureKind → Repair.Failure
   | .Unverified => .unverified | .Unavailable => .unavailable | .Inconclusive => .inconclusive
+def observation : core.result.Result Bool FailureKind → Repair.Observation
+  | .Ok verified => .ok verified | .Err kind => .error (failure kind)
+def signal : Signal → Repair.Signal
+  | .Start => .start | .Conversation status accepted changed => .conversation (outcome status) accepted changed
+  | .Current result => .current (observation result) | .Checked result => .checked (observation result)
 
 private theorem stops_refines (f : Option FailureKind) :
     verification.failure.verification_stops f = ok (Repair.operational (f.map failure)) := by
@@ -38,7 +40,7 @@ private theorem zero_eq (v : U8) : v = 0#u8 ↔ v.val = 0 := by
   simpa using UScalar.eq_equiv v 0#u8
 
 attribute [local simp] Turn.stop Turn.repair zero_eq effect state stage signal terminal
-  Repair.advance Repair.stop Repair.repair outcome failure Repair.operational Aeneas.Std.lift
+  Repair.advance Repair.stop Repair.repair outcome failure observation Repair.operational Aeneas.Std.lift
 
 theorem begin_refines :
     (do let out ← Turn.begin; ok (state out)) = ok Repair.initial := by
@@ -78,8 +80,18 @@ theorem inspection_requires_acceptance (t final : Turn) (s : Signal) (cancelled 
 
 theorem budget_gets_fresh_check (t : Turn) (hs : t.stage = .Conversation) :
     (do let out ← Turn.advance t (.Conversation .Incomplete true true) false (some .Unverified) false
-        let next ← Turn.advance out.2 (.Current false) false (some .Unverified) false
+        let next ← Turn.advance out.2 (.Current (.Ok false)) false (some .Unverified) false
         ok next.1) = ok .Check := by
   simp [Turn.advance, hs, stops_refines]
+
+theorem inspection_error (t : Turn) (fresh : Bool)
+    (hs : t.stage = .Inspect fresh) (kind : FailureKind) :
+    (do let out ← Turn.advance t (.Current (.Err kind)) false (some .Unverified) false
+        ok (effect out.1, state out.2)) =
+      ok (match failure kind with
+        | .unverified => (.check, {state t with stage := .checking})
+        | .unavailable | .inconclusive => Repair.stop (state t) .failed) := by
+  rw [advance_refines]
+  cases kind <;> simp [hs]
 
 end MedenSpec.RepairRefinement

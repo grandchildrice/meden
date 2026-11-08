@@ -23,11 +23,16 @@ inductive Failure where
   | unverified | unavailable | inconclusive
   deriving DecidableEq
 
+inductive Observation where
+  | ok (verified : Bool)
+  | error (kind : Failure)
+  deriving DecidableEq
+
 inductive Signal where
   | start
   | conversation (outcome : Outcome) (accepted changed : Bool)
-  | current (verified : Bool)
-  | checked (verified : Bool)
+  | current (result : Observation)
+  | checked (result : Observation)
   deriving DecidableEq
 
 inductive Stage where
@@ -67,13 +72,19 @@ def advance (s : State) (event : Signal) (cancelled : Bool)
         if accepted = true ∧ changed = true ∧ (outcome = .done ∨ outcome = .budget)
         then (.inspect, {s with stage := .inspect (decide (outcome = .budget))})
         else stop s .finish
-      | .inspect fresh, .current verified =>
-        if verified then stop s .finish
-        else if fresh = false ∧ failure = some .unverified then repair s
-        else (.check, {s with stage := .checking})
-      | .checking, .checked verified =>
-        if verified then stop s .finish
-        else if failure = some .unverified then repair s else stop s .failed
+      | .inspect fresh, .current result =>
+        match result with
+        | .ok true => stop s .finish
+        | .ok false =>
+          if fresh = false ∧ failure = some .unverified then repair s
+          else (.check, {s with stage := .checking})
+        | .error .unverified => (.check, {s with stage := .checking})
+        | .error .unavailable | .error .inconclusive => stop s .failed
+      | .checking, .checked result =>
+        match result with
+        | .ok true => stop s .finish
+        | .error .unverified => repair s
+        | .ok false | .error .unavailable | .error .inconclusive => stop s .failed
       | _, _ => stop s .exhausted
 
 structure Input where
@@ -100,9 +111,9 @@ theorem step_budget (s : State) (i : Input) :
   rcases s with ⟨n, stage⟩
   rcases i with ⟨event, cancelled, failure, review⟩
   cases stage <;> cases event <;>
-    simp only [step, advance] <;>
-    (try split_ifs) <;> simp_all [stop, repair, conversations]
-  all_goals first | omega | (split_ifs <;> simp_all)
+    simp only [step, advance]
+  all_goals repeat' (first | simp_all [stop, repair, conversations] | split)
+  all_goals omega
 
 theorem inspecting_requires_acceptance (s : State) (event : Signal) (cancelled : Bool)
     (failure : Option Failure) (review : Bool)
@@ -110,8 +121,7 @@ theorem inspecting_requires_acceptance (s : State) (event : Signal) (cancelled :
     ∃ outcome, event = .conversation outcome true true ∧ (outcome = .done ∨ outcome = .budget) := by
   cases hs : s.stage <;> cases event <;>
     simp only [advance, hs, stop, repair] at h
-  all_goals try split_ifs at h
-  all_goals simp_all
+  all_goals repeat' (first | simp_all | split at h)
 
 theorem trace_budget (s : State) (inputs : List Input) :
     (run s inputs).1.remaining + (run s inputs).2 ≤ s.remaining := by

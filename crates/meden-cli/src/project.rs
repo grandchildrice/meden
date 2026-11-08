@@ -243,7 +243,24 @@ impl Project {
         self.state.lock().ok().and_then(|s| s.failure.clone())
     }
 
-    pub fn status(&self, workspace: &Workspace, control: &Control) -> Result<Summary> {
+    pub fn status(
+        &self,
+        workspace: &Workspace,
+        control: &Control,
+    ) -> std::result::Result<Summary, Failure> {
+        self.current_status(workspace, control).map_err(|error| {
+            let failure = error
+                .downcast_ref::<Failure>()
+                .cloned()
+                .unwrap_or_else(|| Failure::unavailable(error));
+            if let Ok(mut state) = self.state.lock() {
+                state.failure = Some(failure.clone());
+            }
+            failure
+        })
+    }
+
+    fn current_status(&self, workspace: &Workspace, control: &Control) -> Result<Summary> {
         let mut state = self
             .state
             .lock()
@@ -503,7 +520,10 @@ impl Tool for ProjectTool {
         let result = match self.operation {
             Operation::Propose => self.project.propose(),
             Operation::Verify => self.project.verify(&self.workspace, &self.control),
-            Operation::Status => self.project.status(&self.workspace, &self.control),
+            Operation::Status => self
+                .project
+                .status(&self.workspace, &self.control)
+                .map_err(Into::into),
         };
         result
             .and_then(|s| Ok(serde_json::to_value(s)?))

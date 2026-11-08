@@ -247,7 +247,7 @@ correctness.
 [Current CI](verification.md) covers scoped kernels, not the complete
 proposed product. Extend these checks as each path becomes real. The first
 two now run for transfer, export review, evidence, issued jobs, TUI approval,
-outer-session control and failure kernels, including fifty-one real Rust
+outer-session control and failure kernels, including fifty-three real Rust
 mutations that must fail unchanged refinement proofs:
 
 1. Re-extract production Rust under pinned toolchains. Fail on unsupported

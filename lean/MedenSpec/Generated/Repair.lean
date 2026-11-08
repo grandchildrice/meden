@@ -167,8 +167,12 @@ inductive verification.turn.Signal where
   Bool →
   Bool →
   verification.turn.Signal
-| Current : Bool → verification.turn.Signal
-| Checked : Bool → verification.turn.Signal
+| Current :
+  core.result.Result Bool verification.failure.FailureKind →
+  verification.turn.Signal
+| Checked :
+  core.result.Result Bool verification.failure.FailureKind →
+  verification.turn.Signal
 
 /-- [meden_runtime::verification::turn::Stage]
     Source: 'crates/meden-runtime/src/verification/turn.rs', lines 63:0-69:1 -/
@@ -194,7 +198,7 @@ def verification.turn.Turn.begin : Result verification.turn.Turn := do
   ok { remaining := 4#u8, stage := verification.turn.Stage.Ready }
 
 /-- [meden_runtime::verification::turn::{meden_runtime::verification::turn::Turn}::stop]:
-    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 166:4-169:5 -/
+    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 167:4-170:5 -/
 def verification.turn.Turn.stop
   (self : verification.turn.Turn) (reason : verification.turn.Terminal) :
   Result (verification.turn.Effect × verification.turn.Turn)
@@ -203,7 +207,7 @@ def verification.turn.Turn.stop
     { self with stage := (verification.turn.Stage.Stopped reason) })
 
 /-- [meden_runtime::verification::turn::{meden_runtime::verification::turn::Turn}::repair]:
-    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 157:4-164:5 -/
+    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 158:4-165:5 -/
 def verification.turn.Turn.repair
   (self : verification.turn.Turn) :
   Result (verification.turn.Effect × verification.turn.Turn)
@@ -215,7 +219,7 @@ def verification.turn.Turn.repair
       { self with stage := verification.turn.Stage.Ready })
 
 /-- [meden_runtime::verification::turn::{meden_runtime::verification::turn::Turn}::advance]:
-    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 89:4-155:5
+    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 89:4-156:5
     Visibility: public -/
 def verification.turn.Turn.advance
   (self : verification.turn.Turn) (signal : verification.turn.Signal)
@@ -352,30 +356,45 @@ def verification.turn.Turn.advance
           | verification.turn.Signal.Conversation _ _ _ =>
             verification.turn.Turn.stop self
               verification.turn.Terminal.Exhausted
-          | verification.turn.Signal.Current verified =>
-            if verified
-            then
-              verification.turn.Turn.stop self
-                verification.turn.Terminal.Finish
-            else
-              if fresh
+          | verification.turn.Signal.Current result =>
+            match result with
+            | core.result.Result.Ok b1 =>
+              if b1
               then
-                ok (verification.turn.Effect.Check,
-                  { self with stage := verification.turn.Stage.Checking })
+                verification.turn.Turn.stop self
+                  verification.turn.Terminal.Finish
               else
-                let b1 ←
-                  match failure with
-                  | none => ok false
-                  | some fk =>
-                    match fk with
-                    | verification.failure.FailureKind.Unverified => ok true
-                    | verification.failure.FailureKind.Unavailable => ok false
-                    | verification.failure.FailureKind.Inconclusive => ok false
-                if b1
-                then verification.turn.Turn.repair self
-                else
+                if fresh
+                then
                   ok (verification.turn.Effect.Check,
                     { self with stage := verification.turn.Stage.Checking })
+                else
+                  let b2 ←
+                    match failure with
+                    | none => ok false
+                    | some fk =>
+                      match fk with
+                      | verification.failure.FailureKind.Unverified => ok true
+                      | verification.failure.FailureKind.Unavailable =>
+                        ok false
+                      | verification.failure.FailureKind.Inconclusive =>
+                        ok false
+                  if b2
+                  then verification.turn.Turn.repair self
+                  else
+                    ok (verification.turn.Effect.Check,
+                      { self with stage := verification.turn.Stage.Checking })
+            | core.result.Result.Err fk =>
+              match fk with
+              | verification.failure.FailureKind.Unverified =>
+                ok (verification.turn.Effect.Check,
+                  { self with stage := verification.turn.Stage.Checking })
+              | verification.failure.FailureKind.Unavailable =>
+                verification.turn.Turn.stop self
+                  verification.turn.Terminal.Failed
+              | verification.failure.FailureKind.Inconclusive =>
+                verification.turn.Turn.stop self
+                  verification.turn.Terminal.Failed
           | verification.turn.Signal.Checked _ =>
             verification.turn.Turn.stop self
               verification.turn.Terminal.Exhausted
@@ -400,23 +419,24 @@ def verification.turn.Turn.advance
           | verification.turn.Signal.Current _ =>
             verification.turn.Turn.stop self
               verification.turn.Terminal.Exhausted
-          | verification.turn.Signal.Checked verified =>
-            if verified
-            then
-              verification.turn.Turn.stop self
-                verification.turn.Terminal.Finish
-            else
-              let b1 ←
-                match failure with
-                | none => ok false
-                | some fk =>
-                  match fk with
-                  | verification.failure.FailureKind.Unverified => ok true
-                  | verification.failure.FailureKind.Unavailable => ok false
-                  | verification.failure.FailureKind.Inconclusive => ok false
+          | verification.turn.Signal.Checked result =>
+            match result with
+            | core.result.Result.Ok b1 =>
               if b1
-              then verification.turn.Turn.repair self
+              then
+                verification.turn.Turn.stop self
+                  verification.turn.Terminal.Finish
               else
+                verification.turn.Turn.stop self
+                  verification.turn.Terminal.Failed
+            | core.result.Result.Err fk =>
+              match fk with
+              | verification.failure.FailureKind.Unverified =>
+                verification.turn.Turn.repair self
+              | verification.failure.FailureKind.Unavailable =>
+                verification.turn.Turn.stop self
+                  verification.turn.Terminal.Failed
+              | verification.failure.FailureKind.Inconclusive =>
                 verification.turn.Turn.stop self
                   verification.turn.Terminal.Failed
   | verification.turn.Stage.Stopped reason =>
