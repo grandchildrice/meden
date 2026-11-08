@@ -1,4 +1,4 @@
-# Meden: natural-language development with checked evidence
+# Meden: proof-driven development, with ease
 
 Status: target architecture, revised 2026-11-08. This describes the product
 we are building, not functionality already shipped. Current checks and
