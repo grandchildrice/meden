@@ -14,8 +14,8 @@ use meden_agent::{
 };
 use meden_core::{
     evidence::{
-        CheckJobs, CheckTicket, EvidenceKind, EvidenceOrigin as Origin, Gate, Obligation, Receipt,
-        Subject,
+        CheckJobs, CheckResult, CheckTicket, EvidenceKind, EvidenceOrigin as Origin, Gate,
+        Obligation, Subject,
     },
     Capability, Grant, Policy, Requirement,
 };
@@ -390,19 +390,14 @@ impl Project {
                 let gate = gate
                     .as_mut()
                     .ok_or_else(|| io::Error::other("no contract"))?;
-                let active = jobs.finish(Origin::Checker, gate, ticket, &current);
-                if !active || !gate.refresh(Origin::Controller, subject.clone()) {
-                    return Err(io::Error::other("project changed; evidence is not current"));
-                }
-                let receipt = Receipt {
+                let result = CheckResult {
                     subject: subject.clone(),
                     position: 0,
                     obligation: Self::obligation(),
                     passed: true,
-                    active,
                 };
                 if checked.report().checker_sha256 != verification::ledger_checker_id()
-                    || !gate.record(Origin::Checker, &subject, &receipt)
+                    || !jobs.complete(gate, Origin::Checker, ticket, &current, result)
                     || !gate.eligible(&subject)
                 {
                     return Err(io::Error::other("evidence correspondence refused"));
@@ -550,15 +545,20 @@ mod tests {
         let mut gate = Gate::propose(subject.clone(), vec![obligation.clone()]);
         assert!(gate.review(Origin::Host));
         assert!(gate.accept(Origin::Host));
-        assert!(gate.record(
+        let mut jobs = CheckJobs::new(subject.session.clone());
+        let ticket = jobs
+            .start(Origin::Controller, &gate, &subject)
+            .context("no job")?;
+        assert!(jobs.complete(
+            &mut gate,
             Origin::Checker,
+            &ticket,
             &subject,
-            &Receipt {
+            CheckResult {
                 subject: subject.clone(),
                 position: 0,
                 obligation,
                 passed: true,
-                active: true,
             }
         ));
         assert!(gate.eligible(&subject));

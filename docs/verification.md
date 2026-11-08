@@ -19,7 +19,7 @@ established by the current CI badge.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate transfer/review/dispatch, evidence, issued jobs, TUI approval, scheduling and failure kernels, `lake build`, proof scan/audit, forty-three Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate transfer/review/dispatch, evidence, issued jobs, TUI approval, scheduling and failure kernels, `lake build`, proof scan/audit, forty-seven Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A result or resulting transfer state differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -385,8 +385,8 @@ The ledger adapter now freezes the candidate and source/worker/checker/resource
 hashes in a `PreparedLedger` before issuing its ticket. Checking consumes
 that preparation. Final admission rechecks resource bindings and compares a
 fresh workspace snapshot against the issued inputs. `Receipt.active` is
-computed by `CheckJobs.finish`, rather than supplied as an unconditional
-flag. The separate evidence gate then binds the proof to its actual output
+computed inside `CheckJobs.complete` by consuming the job, rather than
+supplied by an adapter. The evidence gate binds the proof to its actual output
 artifact. Edits and TUI/CLI cancellation invalidate jobs; resetting the
 process cancellation flag for another turn cannot restore an old ticket.
 
@@ -395,6 +395,48 @@ loop. Input construction, hashing/serialization, checker attribution,
 physical process termination, mutexes, persistence and crash recovery remain
 adapter obligations. The current executor runs one session turn at a time;
 these proofs do not establish a concurrent backend scheduler.
+
+## One production transition from jobs to evidence
+
+`CheckJobs.complete` now joins job consumption, output-subject refresh and
+exact evidence recording in one extracted Rust operation. `Gate.record` and
+`Receipt` are private to the core module. External callers provide a
+`CheckResult` without an activity flag; they cannot construct an active
+receipt or record one through a separate public operation.
+
+The transition first consumes the exact active ticket for the current
+prepared inputs. It then checks the output's session/contract and records
+only a passed result at the expected position, statement, kind and checker.
+The prepared subject and output subject are distinct: the output also binds
+the library/artifact that did not exist when the job was issued. The validated
+checker adapter remains responsible for connecting that output to its inputs.
+Failed output admission does not restore the consumed ticket.
+
+[`Completion.lean`](../lean/MedenSpec/Completion.lean) specifies this
+composition; [`CompletionRefinement.lean`](../lean/MedenSpec/CompletionRefinement.lean)
+proves the actual extracted implementation, including both mutated states.
+
+| Audited theorem | Checked claim |
+| --- | --- |
+| `CompletionRefinement.complete_refines` | Native success/refusal, job state and evidence state agree with the composition of the independent specifications |
+| `CompletionRefinement.success_requires_current_job` | Success requires checker origin, the exact active ticket and current inputs, a passed result, a consumed job and the exact output subject |
+| `CompletionRefinement.model_cannot_complete` | Model-origin completion returns false and preserves both native states |
+| `CheckJobsTrace.extracted_completion_was_issued` | Accepted native completion after any finite trace names an actually issued ticket, including traces containing prior completion operations |
+
+The existing job trace driver now also executes the actual composed
+completion operation. Its issued-log correspondence and rejection of older
+generations therefore cover these operations too. Evidence-state effects
+are proved by `complete_refines`; a combined session I/O trace remains open.
+
+Both the ledger adapter and Meden's release checklist use this operation.
+The release checker issues local validation tickets for the exact staged
+subject; these are not claims that Meden launched GitHub's remote CI jobs.
+Four additional Rust faults forge activity, turn failure into success,
+substitute the output artifact or report a refused output as accepted.
+Each must fail a native regression and the unchanged refinement proof after
+fresh model compilation. Actual adapter routing, locks, persistence and
+backend soundness still require their own correspondence; this does not
+extract or prove the complete session I/O loop.
 
 ## Evidence completion: exact current subject and extracted traces
 
@@ -466,7 +508,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with transfer/review/dispatch and TUI approval checks, CI rejects
-forty-three faults, including scheduling, failure-classification and issued-job faults. Timeouts, exhausted proof
+forty-seven faults, including scheduling, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -478,8 +520,9 @@ admission first finishes before cancellation returns. The host constructs the
 receipt's `active` observation by consuming the matching issued job only in
 that critical section. Logical cancellation also invalidates the job before
 stopping managed processes. The synchronous
-release administration command has no managed-job cancellation and supplies an
-active observation directly. The kernel proves rejection of inactive receipts
+release administration command has no managed-process cancellation; it now
+issues and consumes local validation tickets through the same completion
+transition. The kernel proves rejection of inactive receipts
 and active-receipt coverage across extracted traces; the job kernel separately
 prevents old generations from completing after reset. Mutex semantics and
 correct attribution by adapters remain trust
@@ -514,7 +557,7 @@ Definitions and additional lemmas are in
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the seventy-four
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the seventy-eight
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -624,7 +667,7 @@ On Nix, a private `uv` Python shadowing a public Python is skipped rather
 than binding the private cache into the sandbox. The attack test exposed
 this actual execution failure before the selection was corrected.
 
-These controller, parser, router and OS behaviors have tests; the seventy-four
+These controller, parser, router and OS behaviors have tests; the seventy-eight
 Lean theorem entry points still cover their stated kernels. The shared
 session has no whole-controller refinement theorem yet.
 
@@ -751,7 +794,7 @@ failed. The conversation's `done` event is therefore not project-verification
 evidence. Setup, limits,
 failure behavior and OS/asset trust assumptions are documented in
 [local inference](local-inference.md). The launcher, protocol and OS boundary
-are not Lean-refined; they add no theorem roots to the seventy-four audited here.
+are not Lean-refined; they add no theorem roots to the seventy-eight audited here.
 
 ## Tests of actual HTTP delivery
 

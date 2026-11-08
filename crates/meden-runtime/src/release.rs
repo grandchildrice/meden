@@ -9,7 +9,8 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use meden_core::evidence::{
-    EvidenceKind as Kind, EvidenceOrigin as Origin, Gate, Obligation, Receipt, Subject,
+    CheckJobs, CheckResult, EvidenceKind as Kind, EvidenceOrigin as Origin, Gate, Obligation,
+    Subject,
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -283,20 +284,22 @@ impl Prepared {
         if !gate.review(Origin::Host) || !gate.accept(Origin::Host) {
             return Err(io::Error::other("release policy acceptance refused"));
         }
+        let mut checks = CheckJobs::new(subject.session.clone());
         for (position, obligation) in obligations.iter().enumerate() {
+            let ticket = checks
+                .start(Origin::Controller, &gate, &subject)
+                .ok_or_else(|| io::Error::other("release check issue refused"))?;
             let name = std::str::from_utf8(&obligation.statement).map_err(io::Error::other)?;
             if jobs.jobs.iter().filter(|job| job.name == name).count() != 1 {
                 return Err(io::Error::other("missing or duplicate required CI check"));
             }
-            let receipt = Receipt {
+            let result = CheckResult {
                 subject: subject.clone(),
                 position,
                 obligation: obligation.clone(),
                 passed: true,
-                // This synchronous administration command has no live job cancellation.
-                active: true,
             };
-            if !gate.record(Origin::Checker, &subject, &receipt) {
+            if !checks.complete(&mut gate, Origin::Checker, &ticket, &subject, result) {
                 return Err(io::Error::other("evidence correspondence refused"));
             }
         }

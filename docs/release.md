@@ -54,9 +54,12 @@ The production adapter:
    appear exactly once, with exact run/source identities and successful
    completed steps. Missing, duplicated, failed, cancelled, skipped or
    incomplete evidence fails. A second run lookup rejects an attempt change.
-5. Uses the refined kernel to accept the compiled host checklist and record
-   validated receipts, then rereads staged files. A changed subject resets
-   progress; only exact fresh completion emits `release-evidence.json`.
+5. Uses the refined kernel to accept the compiled host checklist. Each local
+   result validation receives a single-use ticket bound to the staged subject;
+   the extracted completion operation consumes it and records exact evidence.
+   The adapter cannot supply an active receipt directly. It then rereads staged
+   files. A changed subject resets progress; only exact fresh completion emits
+   `release-evidence.json`.
 
 The GitHub client has a fixed HTTPS origin, normal TLS checks, no environment
 proxy, no redirect, response bounds and a timeout. API errors refuse release.

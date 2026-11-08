@@ -10,7 +10,7 @@ def ticket (t : CheckTicket) : MedenSpec.CheckJobs.Ticket := ⟨t.id.val, subjec
 def jobs (j : CheckJobs) : MedenSpec.CheckJobs.State :=
   ⟨bytes j.session.val, j.sequence.val, j.active.map ticket⟩
 
-private theorem subject_clone (s : Subject) :
+theorem subject_clone (s : Subject) :
     MedenImpl.evidence.Subject.Insts.CoreCloneClone.clone s = ok s := by
   simp [MedenImpl.evidence.Subject.Insts.CoreCloneClone.clone, vec_clone]
 

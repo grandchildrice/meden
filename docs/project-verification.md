@@ -128,10 +128,11 @@ application or financial certification.
    exits, proof holes, incomplete audits and output/resource exhaustion.
 7. Compile the native Rust library from that same source and fixed build
    configuration. Recheck input/tool content bindings, resnapshot the coding
-   copy, and consume the exact active issued ticket against those current
-   inputs. Cancelled, edited, superseded or already consumed tickets cannot
-   produce an active checker-origin receipt. Admit that receipt through the
-   refined evidence kernel only if the source is still current. Final admission
+   copy, and call the extracted `CheckJobs.complete` transition. It consumes
+   the exact active issued ticket against those current inputs and records
+   the exact output evidence. Cancelled, edited, superseded or already consumed
+   tickets cannot produce an active receipt. Adapters cannot record receipts
+   independently or supply activity flags. Final admission
    and local retention share a critical section with cancellation: cancellation
    first refuses admission; admission first finishes before cancellation
    returns. An inactive receipt cannot advance the extracted kernel.
@@ -228,11 +229,12 @@ job explicitly supplies the manifest and runs them.
 Its `meden-ledger-evidence` artifact retains all seven successful cases' actual
 source, native libraries, proof inputs and eight-root audit reports.
 
-The separate Meden control audit contains 74 roots, including the extracted
+The separate Meden control audit contains 78 roots, including the extracted
 acceptance getter used by both interfaces, the actual TUI key predicate and
 the check-scheduling decision over real conversation outcomes, typed
 verification-failure classification and stopping decisions, and the issued-job
-operations and finite-trace properties. The eight
+operations and finite-trace properties, plus their composed evidence-completion
+transition. The eight
 ledger roots are checked afresh per candidate. Neither count proves the
 entire TUI, CLI,
 protocol parser, origin attribution, job adapter or filesystem behavior.

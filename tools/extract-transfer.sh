@@ -38,7 +38,7 @@ for unit in "${units[@]}"; do
       for method in propose review accept is_accepted refresh record eligible; do
         rust_roots+=("meden_core::evidence::Gate::$method")
       done
-      for method in new start invalidate abort finish is_active; do
+      for method in new start invalidate abort finish is_active complete; do
         rust_roots+=("meden_core::evidence::CheckJobs::$method")
       done
       model=Evidence ;;

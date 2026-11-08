@@ -62,9 +62,23 @@ pub enum EvidencePhase {
     Accepted,
 }
 
-/// A checker result. This type has no model-facing deserialization/registration.
+/// Validated checker output, before the controller establishes job activity.
+/// This type has no model-facing deserialization/registration.
 #[derive(Clone, Debug)]
-pub struct Receipt {
+pub struct CheckResult {
+    /// Exact checked output subject, including its artifact binding.
+    pub subject: Subject,
+    /// Ordered obligation checked by the host-selected adapter.
+    pub position: usize,
+    /// Statement, kind and checker reported by that trusted adapter.
+    pub obligation: Obligation,
+    /// Only validated success can discharge the obligation.
+    pub passed: bool,
+}
+
+/// Internal evidence; only issued-job admission can record it in production.
+#[derive(Clone, Debug)]
+struct Receipt {
     /// Immutable inputs for the issued job and checked result.
     pub subject: Subject,
     /// Which ordered obligation this job was issued for.
@@ -144,7 +158,7 @@ impl Gate {
     /// Admit exactly the next issued obligation for the current exact subject.
     /// A duplicate result cannot discharge a second obligation, even if its
     /// statement happens to be identical. An operational failure is not success.
-    pub fn record(&mut self, origin: EvidenceOrigin, current: &Subject, receipt: &Receipt) -> bool {
+    fn record(&mut self, origin: EvidenceOrigin, current: &Subject, receipt: &Receipt) -> bool {
         if !receipt.active
             || origin != EvidenceOrigin::Checker
             || self.phase != EvidencePhase::Accepted
@@ -278,6 +292,34 @@ impl CheckJobs {
         self.active.is_some()
     }
 
+    /// Consume the issued check and record its exact output in one transition.
+    /// Callers cannot manufacture an active receipt or record one separately.
+    /// A rejected result never restores a consumed job.
+    pub fn complete(
+        &mut self,
+        gate: &mut Gate,
+        origin: EvidenceOrigin,
+        ticket: &CheckTicket,
+        current: &Subject,
+        result: CheckResult,
+    ) -> bool {
+        let active = self.finish(origin, gate, ticket, current);
+        if !active {
+            return false;
+        }
+        if !gate.refresh(EvidenceOrigin::Controller, result.subject.clone()) {
+            return false;
+        }
+        let receipt = Receipt {
+            subject: result.subject,
+            position: result.position,
+            obligation: result.obligation,
+            passed: result.passed,
+            active,
+        };
+        gate.record(origin, &receipt.subject, &receipt)
+    }
+
     fn matches(&self, ticket: &CheckTicket) -> bool {
         match &self.active {
             Some(active) => active == ticket,
@@ -289,6 +331,109 @@ impl CheckJobs {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn admission_requires_an_issued_job_and_the_exact_accepted_result() -> Result<(), &'static str>
+    {
+        let current = Subject {
+            session: b"session".to_vec(),
+            contract: b"accepted contract".to_vec(),
+            inputs: b"prepared source and checker".to_vec(),
+        };
+        let obligation = Obligation {
+            statement: b"refinement".to_vec(),
+            kind: EvidenceKind::Refinement,
+            checker: b"pinned checker".to_vec(),
+        };
+        let mut gate = Gate::propose(current.clone(), vec![obligation.clone(); 2]);
+        let mut checks = CheckJobs::new(current.session.clone());
+        assert!(gate.review(EvidenceOrigin::Host) && gate.accept(EvidenceOrigin::Host));
+        let result = CheckResult {
+            subject: Subject {
+                inputs: b"bound output artifact".to_vec(),
+                ..current.clone()
+            },
+            position: 0,
+            obligation,
+            passed: true,
+        };
+        let first = checks
+            .start(EvidenceOrigin::Controller, &gate, &current)
+            .ok_or("no job")?;
+        for origin in [
+            EvidenceOrigin::Model,
+            EvidenceOrigin::Host,
+            EvidenceOrigin::Controller,
+        ] {
+            assert!(!checks.complete(&mut gate, origin, &first, &current, result.clone()));
+            assert_eq!(gate.completed, 0);
+        }
+        let mut changed = current.clone();
+        changed.inputs.push(1);
+        assert!(!checks.complete(
+            &mut gate,
+            EvidenceOrigin::Checker,
+            &first,
+            &changed,
+            result.clone()
+        ));
+        assert_eq!(gate.completed, 0);
+        checks.invalidate(EvidenceOrigin::Controller);
+        assert!(!checks.complete(
+            &mut gate,
+            EvidenceOrigin::Checker,
+            &first,
+            &current,
+            result.clone()
+        ));
+        for fault in 0..7 {
+            let mut wrong = result.clone();
+            match fault {
+                0 => wrong.passed = false,
+                1 => wrong.position = 1,
+                2 => wrong.obligation.kind = EvidenceKind::Empirical,
+                3 => wrong.obligation.statement.push(1),
+                4 => wrong.obligation.checker.push(1),
+                5 => wrong.subject.session.push(1),
+                _ => wrong.subject.contract.push(1),
+            }
+            let ticket = checks
+                .start(EvidenceOrigin::Controller, &gate, &current)
+                .ok_or("no job")?;
+            assert!(!checks.complete(&mut gate, EvidenceOrigin::Checker, &ticket, &current, wrong));
+            assert_eq!(gate.completed, 0);
+            assert!(!checks.is_active());
+            assert!(!gate.eligible(&result.subject));
+        }
+        let ticket = checks
+            .start(EvidenceOrigin::Controller, &gate, &current)
+            .ok_or("no job")?;
+        assert!(checks.complete(
+            &mut gate,
+            EvidenceOrigin::Checker,
+            &ticket,
+            &current,
+            result.clone()
+        ));
+        assert!(!checks.is_active());
+        assert_eq!(gate.completed, 1);
+        assert!(!gate.eligible(&result.subject));
+        let mut second = result.clone();
+        second.position = 1;
+        assert!(!checks.complete(
+            &mut gate,
+            EvidenceOrigin::Checker,
+            &ticket,
+            &current,
+            second.clone()
+        ));
+        let next = checks
+            .start(EvidenceOrigin::Controller, &gate, &current)
+            .ok_or("no job")?;
+        assert!(checks.complete(&mut gate, EvidenceOrigin::Checker, &next, &current, second));
+        assert!(gate.eligible(&result.subject));
+        Ok(())
+    }
 
     #[test]
     fn issued_jobs_are_session_bound_single_use_and_never_resurrected() -> Result<(), &'static str>

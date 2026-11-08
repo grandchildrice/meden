@@ -27,6 +27,10 @@
   adapter prepares inputs before issue and derives receipt activity from this
   kernel. Input construction, locking, physical cancellation and the full
   session/executor correspondence remain separate obligations.
+  Both ledger and release validation now use extracted/refined job-to-evidence
+  completion. `Receipt` and direct recording are private; adapters provide
+  validated output without an activity flag. Failed output admission never
+  restores a consumed job. This is still not the complete session I/O proof.
   The evidence kernel gates
   Meden's own releases and the fixed Rust ledger project verifier. General
   contracts/backends, full interface/tool coverage and outbound

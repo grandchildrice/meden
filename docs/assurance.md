@@ -5,7 +5,7 @@ kernels, issued-job operations, actual TUI approval and check-scheduling
 predicates have Rust-to-Lean refinement, including finite compositions of
 the extracted review, evidence and issued-job operations. The broader
 obligations below remain proposed. This defines completion criteria for
-[the product architecture](design.md). The current seventy-four Lean theorem
+[the product architecture](design.md). The current seventy-eight Lean theorem
 entry points, six Kani harnesses and conformance checks are listed in
 [verification.md](verification.md).
 
@@ -133,9 +133,12 @@ the adapter and interface loop are tested, not extracted/refined. Final local
 receipt/artifact admission is serialized against process cancellation. The
 extracted job kernel issues session/contract/input-bound, single-use tickets;
 its finite-trace proofs reject older generations after invalidation or
-consumption, even when later jobs use identical inputs. The adapter derives
-receipt activity by consuming that exact ticket. Input construction, origin
-attribution, physical process termination and mutex semantics remain executor
+consumption, even when later jobs use identical inputs. Both production
+consumers use an extracted/refined completion operation that consumes the
+ticket, refreshes the exact output subject and records evidence. Receipts and
+direct recording are private; adapters cannot supply activity flags.
+Input construction, origin attribution, physical process termination and
+mutex semantics remain executor
 obligations, not a whole-controller cancellation proof.
 Transfer proofs cover exact reservation
 in CTL-07. Export review-control proofs cover typed-origin gating and at most
@@ -244,7 +247,7 @@ correctness.
 [Current CI](verification.md) covers scoped kernels, not the complete
 proposed product. Extend these checks as each path becomes real. The first
 two now run for transfer, export review, evidence, issued jobs, TUI approval,
-check-scheduling and failure kernels, including forty-three real Rust
+check-scheduling and failure kernels, including forty-seven real Rust
 mutations that must fail unchanged refinement proofs:
 
 1. Re-extract production Rust under pinned toolchains. Fail on unsupported

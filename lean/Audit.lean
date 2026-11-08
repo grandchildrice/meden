@@ -83,3 +83,7 @@ open MedenSpec
 #print axioms MedenSpec.CheckJobsTrace.trace_refines
 #print axioms MedenSpec.CheckJobsTrace.extracted_no_late_result
 #print axioms MedenSpec.CheckJobsTrace.extracted_result_was_issued
+#print axioms MedenSpec.CompletionRefinement.complete_refines
+#print axioms MedenSpec.CompletionRefinement.success_requires_current_job
+#print axioms MedenSpec.CompletionRefinement.model_cannot_complete
+#print axioms MedenSpec.CheckJobsTrace.extracted_completion_was_issued

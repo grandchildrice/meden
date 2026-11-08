@@ -142,6 +142,37 @@ GROUPS = [
         ],
     },
     {
+        "kernel": "evidence",
+        "model": "Evidence",
+        "proof": "CompletionRefinement",
+        "prerequisites": ["EvidenceRefinement", "CheckJobsRefinement"],
+        "test": "evidence::tests::admission_requires_an_issued_job_and_the_exact_accepted_result",
+        "mutations": [
+            (
+                "inactive_completion",
+                "let active = self.finish(origin, gate, ticket, current);",
+                "let active = { let _ = self.finish(origin, gate, ticket, current); true };",
+            ),
+            (
+                "failed_completion",
+                "passed: result.passed,",
+                "passed: true,",
+            ),
+            (
+                "substituted_completion_artifact",
+                "subject: result.subject,",
+                "subject: current.clone(),",
+            ),
+            (
+                "refused_completion_reported_success",
+                "if !gate.refresh(EvidenceOrigin::Controller, result.subject.clone()) {\n"
+                "            return false;",
+                "if !gate.refresh(EvidenceOrigin::Controller, result.subject.clone()) {\n"
+                "            return true;",
+            ),
+        ],
+    },
+    {
         "source": "crates/meden-runtime/src/verification/failure.rs",
         "package": "meden-cli",
         "model": "Failure",

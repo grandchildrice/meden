@@ -190,9 +190,17 @@ impl_def evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase :
     evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase
 }
 
-/-- [meden_core::evidence::Receipt]
-    Source: 'crates/meden-core/src/evidence.rs', lines 67:0-78:1
+/-- [meden_core::evidence::CheckResult]
+    Source: 'crates/meden-core/src/evidence.rs', lines 68:0-77:1
     Visibility: public -/
+structure evidence.CheckResult where
+  subject : evidence.Subject
+  position : Std.Usize
+  obligation : evidence.Obligation
+  passed : Bool
+
+/-- [meden_core::evidence::Receipt]
+    Source: 'crates/meden-core/src/evidence.rs', lines 81:0-92:1 -/
 structure evidence.Receipt where
   subject : evidence.Subject
   position : Std.Usize
@@ -201,7 +209,7 @@ structure evidence.Receipt where
   active : Bool
 
 /-- [meden_core::evidence::Gate]
-    Source: 'crates/meden-core/src/evidence.rs', lines 82:0-87:1
+    Source: 'crates/meden-core/src/evidence.rs', lines 96:0-101:1
     Visibility: public -/
 structure evidence.Gate where
   subject : evidence.Subject
@@ -210,7 +218,7 @@ structure evidence.Gate where
   completed : Std.Usize
 
 /-- [meden_core::evidence::{meden_core::evidence::Gate}::propose]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 91:4-98:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 105:4-112:5
     Visibility: public -/
 def evidence.Gate.propose
   (subject : evidence.Subject)
@@ -226,7 +234,7 @@ def evidence.Gate.propose
     }
 
 /-- [meden_core::evidence::{meden_core::evidence::Gate}::review]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 101:4-109:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 115:4-123:5
     Visibility: public -/
 def evidence.Gate.review
   (self : evidence.Gate) (origin : evidence.EvidenceOrigin) :
@@ -247,7 +255,7 @@ def evidence.Gate.review
     else ok (true, self)
 
 /-- [meden_core::evidence::{meden_core::evidence::Gate}::accept]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 112:4-121:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 126:4-135:5
     Visibility: public -/
 def evidence.Gate.accept
   (self : evidence.Gate) (origin : evidence.EvidenceOrigin) :
@@ -273,14 +281,14 @@ def evidence.Gate.accept
       else ok (true, { self with phase := evidence.EvidencePhase.Accepted })
 
 /-- [meden_core::evidence::{meden_core::evidence::Gate}::is_accepted]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 124:4-126:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 138:4-140:5
     Visibility: public -/
 def evidence.Gate.is_accepted (self : evidence.Gate) : Result Bool := do
   evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase.eq self.phase
     evidence.EvidencePhase.Accepted
 
 /-- [meden_core::evidence::{meden_core::evidence::Gate}::refresh]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 130:4-142:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 144:4-156:5
     Visibility: public -/
 def evidence.Gate.refresh
   (self : evidence.Gate) (origin : evidence.EvidenceOrigin)
@@ -314,8 +322,7 @@ def evidence.Gate.refresh
         else ok (true, self)
 
 /-- [meden_core::evidence::{meden_core::evidence::Gate}::record]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 147:4-169:5
-    Visibility: public -/
+    Source: 'crates/meden-core/src/evidence.rs', lines 161:4-183:5 -/
 def evidence.Gate.record
   (self : evidence.Gate) (origin : evidence.EvidenceOrigin)
   (current : evidence.Subject) (receipt : evidence.Receipt) :
@@ -377,7 +384,7 @@ def evidence.Gate.record
   else ok (false, self)
 
 /-- [meden_core::evidence::{meden_core::evidence::Gate}::eligible]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 172:4-177:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 186:4-191:5
     Visibility: public -/
 def evidence.Gate.eligible
   (self : evidence.Gate) (current : evidence.Subject) : Result Bool := do
@@ -398,14 +405,14 @@ def evidence.Gate.eligible
   else ok false
 
 /-- [meden_core::evidence::CheckTicket]
-    Source: 'crates/meden-core/src/evidence.rs', lines 183:0-186:1
+    Source: 'crates/meden-core/src/evidence.rs', lines 197:0-200:1
     Visibility: public -/
 structure evidence.CheckTicket where
   id : Std.U64
   subject : evidence.Subject
 
 /-- [meden_core::evidence::{impl core::clone::Clone for meden_core::evidence::CheckTicket}::clone]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 182:9-182:14
+    Source: 'crates/meden-core/src/evidence.rs', lines 196:9-196:14
     Visibility: public -/
 def evidence.CheckTicket.Insts.CoreCloneClone.clone
   (self : evidence.CheckTicket) : Result evidence.CheckTicket := do
@@ -414,7 +421,7 @@ def evidence.CheckTicket.Insts.CoreCloneClone.clone
   ok { id := i, subject := s }
 
 /-- [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::CheckTicket> for meden_core::evidence::CheckTicket}::eq]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 182:23-182:32
+    Source: 'crates/meden-core/src/evidence.rs', lines 196:23-196:32
     Visibility: public -/
 def evidence.CheckTicket.Insts.CoreCmpPartialEqCheckTicket.eq
   (self : evidence.CheckTicket) (other : evidence.CheckTicket) :
@@ -427,7 +434,7 @@ def evidence.CheckTicket.Insts.CoreCmpPartialEqCheckTicket.eq
   else ok false
 
 /-- Trait implementation: [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::CheckTicket> for meden_core::evidence::CheckTicket}]
-    Source: 'crates/meden-core/src/evidence.rs', lines 182:23-182:32 -/
+    Source: 'crates/meden-core/src/evidence.rs', lines 196:23-196:32 -/
 @[reducible]
 impl_def evidence.CheckTicket.Insts.CoreCmpPartialEqCheckTicket :
   core.cmp.PartialEq evidence.CheckTicket evidence.CheckTicket := {
@@ -437,7 +444,7 @@ impl_def evidence.CheckTicket.Insts.CoreCmpPartialEqCheckTicket :
 }
 
 /-- [meden_core::evidence::CheckJobs]
-    Source: 'crates/meden-core/src/evidence.rs', lines 191:0-195:1
+    Source: 'crates/meden-core/src/evidence.rs', lines 205:0-209:1
     Visibility: public -/
 structure evidence.CheckJobs where
   session : alloc.vec.Vec Std.U8
@@ -445,14 +452,14 @@ structure evidence.CheckJobs where
   active : Option evidence.CheckTicket
 
 /-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::new]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 199:4-205:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 213:4-219:5
     Visibility: public -/
 def evidence.CheckJobs.new
   (session : alloc.vec.Vec Std.U8) : Result evidence.CheckJobs := do
   ok { session, sequence := 0#u64, active := none }
 
 /-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::start]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 210:4-234:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 224:4-248:5
     Visibility: public -/
 def evidence.CheckJobs.start
   (self : evidence.CheckJobs) (origin : evidence.EvidenceOrigin)
@@ -500,7 +507,7 @@ def evidence.CheckJobs.start
     else ok (none, self)
 
 /-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::invalidate]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 237:4-243:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 251:4-257:5
     Visibility: public -/
 def evidence.CheckJobs.invalidate
   (self : evidence.CheckJobs) (origin : evidence.EvidenceOrigin) :
@@ -515,7 +522,7 @@ def evidence.CheckJobs.invalidate
   else ok (true, { self with active := none })
 
 /-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::matches]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 281:4-286:5 -/
+    Source: 'crates/meden-core/src/evidence.rs', lines 323:4-328:5 -/
 def evidence.CheckJobs.matches
   (self : evidence.CheckJobs) (ticket : evidence.CheckTicket) :
   Result Bool
@@ -526,7 +533,7 @@ def evidence.CheckJobs.matches
     evidence.CheckTicket.Insts.CoreCmpPartialEqCheckTicket.eq active ticket
 
 /-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::abort]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 246:4-251:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 260:4-265:5
     Visibility: public -/
 def evidence.CheckJobs.abort
   (self : evidence.CheckJobs) (origin : evidence.EvidenceOrigin)
@@ -539,7 +546,7 @@ def evidence.CheckJobs.abort
   else ok (false, self)
 
 /-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::finish]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 255:4-274:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 269:4-288:5
     Visibility: public -/
 def evidence.CheckJobs.finish
   (self : evidence.CheckJobs) (origin : evidence.EvidenceOrigin)
@@ -589,10 +596,41 @@ def evidence.CheckJobs.finish
     else ok (false, self)
 
 /-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::is_active]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 277:4-279:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 291:4-293:5
     Visibility: public -/
 def evidence.CheckJobs.is_active
   (self : evidence.CheckJobs) : Result Bool := do
   ok (core.option.Option.is_some self.active)
+
+/-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::complete]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 298:4-321:5
+    Visibility: public -/
+def evidence.CheckJobs.complete
+  (self : evidence.CheckJobs) (gate : evidence.Gate)
+  (origin : evidence.EvidenceOrigin) (ticket : evidence.CheckTicket)
+  (current : evidence.Subject) (result : evidence.CheckResult) :
+  Result (Bool × evidence.CheckJobs × evidence.Gate)
+  := do
+  let (active, self1) ←
+    evidence.CheckJobs.finish self origin gate ticket current
+  if active
+  then
+    let s ← evidence.Subject.Insts.CoreCloneClone.clone result.subject
+    let (b, gate1) ←
+      evidence.Gate.refresh gate evidence.EvidenceOrigin.Controller s
+    if b
+    then
+      let (b1, gate2) ←
+        evidence.Gate.record gate1 origin result.subject
+          {
+            subject := result.subject,
+            position := result.position,
+            obligation := result.obligation,
+            passed := result.passed,
+            active
+          }
+      ok (b1, self1, gate2)
+    else ok (false, self1, gate1)
+  else ok (false, self1, gate)
 
 end MedenImpl

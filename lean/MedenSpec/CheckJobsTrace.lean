@@ -1,23 +1,25 @@
-import MedenSpec.CheckJobsRefinement
+import MedenSpec.CompletionRefinement
 
 /-! Finite compositions of the actual issued-job operations. The I/O loop,
 prepared-input construction, OS cancellation and checker attribution remain
 adapter obligations, rather than premises supplied by model text. -/
 namespace MedenSpec.CheckJobsTrace
-open Aeneas Aeneas.Std Result CheckJobsRefinement EvidenceRefinement
-open MedenImpl.evidence (CheckJobs CheckTicket EvidenceOrigin Gate Subject)
+open Aeneas Aeneas.Std Result CheckJobsRefinement EvidenceRefinement CompletionRefinement
+open MedenImpl.evidence (CheckJobs CheckTicket CheckResult EvidenceOrigin Gate Subject)
 
 inductive Action where
   | start (o : EvidenceOrigin) (g : Gate) (s : Subject)
   | invalidate (o : EvidenceOrigin)
   | abort (o : EvidenceOrigin) (t : CheckTicket)
   | finish (o : EvidenceOrigin) (g : Gate) (t : CheckTicket) (s : Subject)
+  | complete (o : EvidenceOrigin) (g : Gate) (t : CheckTicket) (s : Subject) (r : CheckResult)
 
 def event : Action → MedenSpec.CheckJobs.Action
   | .start o g s => .start (origin o) (gate g) (subject s)
   | .invalidate o => .invalidate (origin o)
   | .abort o t => .abort (origin o) (ticket t)
   | .finish o g t s => .finish (origin o) (gate g) (ticket t) (subject s)
+  | .complete o g t s _ => .finish (origin o) (gate g) (ticket t) (subject s)
 
 def one (j : CheckJobs) (history : List MedenSpec.CheckJobs.Ticket) :
     Action → Result (CheckJobs × List MedenSpec.CheckJobs.Ticket)
@@ -33,6 +35,9 @@ def one (j : CheckJobs) (history : List MedenSpec.CheckJobs.Ticket) :
   | .finish o g t s => do
     let out ← MedenImpl.evidence.CheckJobs.finish j o g t s
     ok (out.2, history)
+  | .complete o g t s r => do
+    let out ← MedenImpl.evidence.CheckJobs.complete j g o t s r
+    ok (out.2.1, history)
 
 private theorem one_refines (j : CheckJobs) (history : List MedenSpec.CheckJobs.Ticket) (a : Action) :
     (do let out ← one j history a; ok (jobs out.1, out.2)) =
@@ -74,6 +79,15 @@ private theorem one_refines (j : CheckJobs) (history : List MedenSpec.CheckJobs.
     | ret out =>
       simp only [hc, bind_ok, Result.ok.injEq] at hm
       have hg := congrArg Prod.snd hm
+      simp_all [one, event, MedenSpec.CheckJobs.step, MedenSpec.CheckJobs.log]
+    | vis effect continuation => simp [hc] at hm
+    | div => simp [hc] at hm
+
+  | complete o g t s r =>
+    have hm := complete_jobs_refines j g o t s r
+    cases hc : MedenImpl.evidence.CheckJobs.complete j g o t s r with
+    | ret out =>
+      simp only [hc, bind_ok, Result.ok.injEq] at hm
       simp_all [one, event, MedenSpec.CheckJobs.step, MedenSpec.CheckJobs.log]
     | vis effect continuation => simp [hc] at hm
     | div => simp [hc] at hm
@@ -150,5 +164,28 @@ theorem extracted_result_was_issued (scope : alloc.vec.Vec U8) (initial final fi
   · rename_i hm
     exact issued (ticket t) hm.2.2.1
   · simp at accepted
+
+theorem extracted_completion_was_issued (scope : alloc.vec.Vec U8)
+    (initial final after : CheckJobs) (g afterGate : Gate)
+    (history : List MedenSpec.CheckJobs.Ticket) (actions : List Action)
+    (t : CheckTicket) (o : EvidenceOrigin) (s : Subject) (r : CheckResult)
+    (hi : MedenImpl.evidence.CheckJobs.new scope = ok initial)
+    (hr : runExtracted initial [] actions = ok (final, history))
+    (hc : MedenImpl.evidence.CheckJobs.complete final g o t s r = ok (true, after, afterGate)) :
+    ticket t ∈ history := by
+  have hm := complete_refines final g o t s r
+  simp only [hc, bind_ok, Result.ok.injEq] at hm
+  have hs := Completion.success_requires_job (jobs final) (gate g) (origin o)
+    (ticket t) (subject s) (output r) (congrArg Prod.fst hm).symm
+  have hf := finish_refines final o g t s
+  cases hn : MedenImpl.evidence.CheckJobs.finish final o g t s with
+  | ret out =>
+    rcases out with ⟨accepted, finished⟩
+    simp only [hn, bind_ok, Result.ok.injEq] at hf
+    have hb : accepted = true := (congrArg Prod.fst hf).trans hs
+    exact extracted_result_was_issued scope initial final finished history actions t o g s hi hr
+      (by simpa [hb] using hn)
+  | vis effect continuation => simp [hn] at hf
+  | div => simp [hn] at hf
 
 end MedenSpec.CheckJobsTrace

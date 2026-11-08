@@ -328,8 +328,9 @@ added orchestration must produce observable value.
 The current repository contains a Rust conversation/TUI, HTTP connections,
 workspace tools, a capability kernel, a Bubblewrap runner integrated with
 TUI/exec file and Bash tools, and an immutable one-use HTTP export component.
-Forty-two Lean theorem entry points and 5,000 Rust/Lean conformance cases
-are checked today. The production transfer decision and state update are
+Scoped Lean theorem entry points and 5,000 Rust/Lean conformance cases
+are checked today; [verification.md](verification.md) lists the current audit.
+The production transfer decision and state update are
 extracted with pinned Charon/Aeneas and refine the Lean specification.
 The export-review lifecycle is now a second extracted kernel, with exact
 transition refinement and an unbounded finite-composition dispatch bound.
