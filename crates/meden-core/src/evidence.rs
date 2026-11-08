@@ -73,6 +73,8 @@ pub struct Receipt {
     pub obligation: Obligation,
     /// Only a validated success discharges the obligation; other outcomes fail.
     pub passed: bool,
+    /// Host admission observed the job active while serialized against cancel.
+    pub active: bool,
 }
 
 /// Private progress over one immutable contract and one current subject.
@@ -143,7 +145,8 @@ impl Gate {
     /// A duplicate result cannot discharge a second obligation, even if its
     /// statement happens to be identical. An operational failure is not success.
     pub fn record(&mut self, origin: EvidenceOrigin, current: &Subject, receipt: &Receipt) -> bool {
-        if origin != EvidenceOrigin::Checker
+        if !receipt.active
+            || origin != EvidenceOrigin::Checker
             || self.phase != EvidencePhase::Accepted
             || self.subject != *current
             || receipt.subject != *current
@@ -195,6 +198,7 @@ mod tests {
             position: 0,
             obligation: obligation.clone(),
             passed: true,
+            active: true,
         };
         let mut gate = Gate::propose(subject.clone(), vec![obligation.clone(), obligation]);
         assert!(!gate.accept(EvidenceOrigin::Host));
@@ -227,6 +231,9 @@ mod tests {
         let mut failed = receipt.clone();
         failed.passed = false;
         assert!(!gate.record(EvidenceOrigin::Checker, &subject, &failed));
+        let mut cancelled = receipt.clone();
+        cancelled.active = false;
+        assert!(!gate.record(EvidenceOrigin::Checker, &subject, &cancelled));
         assert!(gate.record(EvidenceOrigin::Checker, &subject, &receipt));
         assert!(!gate.record(EvidenceOrigin::Checker, &subject, &receipt));
         assert!(!gate.eligible(&subject));

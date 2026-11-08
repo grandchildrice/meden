@@ -34,6 +34,7 @@ open MedenSpec
 #print axioms ExportControlRefinement.extracted_at_most_one
 #print axioms MedenSpec.Evidence.record_iff
 #print axioms MedenSpec.Evidence.model_cannot_record
+#print axioms MedenSpec.Evidence.inactive_cannot_record
 #print axioms MedenSpec.Evidence.stale_cannot_record
 #print axioms MedenSpec.Evidence.no_replay
 #print axioms MedenSpec.Evidence.no_kind_substitution

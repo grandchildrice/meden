@@ -19,7 +19,7 @@ established by the current CI badge.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate three Rust kernels, `lake build`, proof scan/audit, fifteen Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate three Rust kernels, `lake build`, proof scan/audit, sixteen Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A result or resulting transfer state differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -199,7 +199,7 @@ Propose, review, accept, refresh, record and eligibility, together with an
 acceptance observation used by the interfaces, are extracted without manual model edits to
 [`Generated/Evidence.lean`](../lean/MedenSpec/Generated/Evidence.lean).
 Review/accept require host origin and a nonempty reviewed contract. A
-receipt advances only the next position and must be a passed checker-origin
+receipt advances only the next position and must be a passed, active checker-origin
 result matching the gate's current subject and exact obligation. Evidence
 kinds are compared, not ranked or promoted. A controller refresh may change
 input bindings within the same session/contract; it resets progress. A
@@ -209,6 +209,7 @@ different contract needs a new proposal and acceptance.
 | --- | --- |
 | `Evidence.record_iff` | Exact conditions for recording the next receipt |
 | `Evidence.model_cannot_record` | Model-origin text cannot discharge an obligation |
+| `Evidence.inactive_cannot_record` | A result marked inactive at host admission cannot advance progress |
 | `Evidence.stale_cannot_record` | A mismatching receipt subject cannot advance progress |
 | `Evidence.no_replay` | A used position cannot discharge the next obligation |
 | `Evidence.no_kind_substitution` | A changed evidence kind cannot discharge the obligation |
@@ -250,14 +251,25 @@ workflow connects this decision to actual publication; its manual mode is
 artifact-only. GitHub/build/OS/compiler/hash trust and unproved adapters
 remain explicit in the manifest and release documentation.
 
-Seven additional actual Rust mutations disable producer checks, receipt
+Eight additional actual Rust mutations disable producer checks, receipt
 freshness, evidence-kind matching, position matching, reset on changed input,
-current-subject delivery matching or review-before-accept. Each must fail
+current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
-refinement proof. Combined with transfer/review checks, CI rejects fifteen
+refinement proof. Combined with transfer/review checks, CI rejects sixteen
 faults. Timeouts, exhausted proof resources, unknown identifiers and missing
 modules do not count as semantic rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
+
+The project adapter now serializes final evidence admission and local artifact
+retention against `Control::cancel` with the same mutex used to register managed
+processes. Cancellation first prevents the admission closure from executing;
+admission first finishes before cancellation returns. The host constructs the
+receipt's `active` observation only in that critical section. The synchronous
+release administration command has no managed-job cancellation and supplies an
+active observation directly. The kernel proves rejection of inactive receipts
+and active-receipt coverage across extracted traces; mutex semantics, reset
+between completed turns and correct attribution by adapters remain trust
+assumptions. Native tests exercise both orderings and real process cancellation.
 
 ## Lean: capability and scope rules
 
@@ -282,7 +294,7 @@ Definitions and additional lemmas are in
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the forty-one
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the forty-two
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -392,7 +404,7 @@ On Nix, a private `uv` Python shadowing a public Python is skipped rather
 than binding the private cache into the sandbox. The attack test exposed
 this actual execution failure before the selection was corrected.
 
-These controller, parser, router and OS behaviors have tests; the forty-one
+These controller, parser, router and OS behaviors have tests; the forty-two
 Lean theorem entry points still cover their stated kernels. The shared
 session has no whole-controller refinement theorem yet.
 
@@ -519,7 +531,7 @@ failed. The conversation's `done` event is therefore not project-verification
 evidence. Setup, limits,
 failure behavior and OS/asset trust assumptions are documented in
 [local inference](local-inference.md). The launcher, protocol and OS boundary
-are not Lean-refined; they add no theorem roots to the forty-one audited here.
+are not Lean-refined; they add no theorem roots to the forty-two audited here.
 
 ## Tests of actual HTTP delivery
 

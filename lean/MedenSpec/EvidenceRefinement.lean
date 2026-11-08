@@ -20,7 +20,7 @@ def phase : Phase → Evidence.Phase
   | .Draft => .draft | .Reviewed => .reviewed | .Accepted => .accepted
 def subject (s : Subject) : Evidence.Subject := ⟨bytes s.session.val, bytes s.contract.val, bytes s.inputs.val⟩
 def obligation (r : Obligation) : Evidence.Obligation := ⟨bytes r.statement.val, kind r.kind, bytes r.checker.val⟩
-def receipt (r : Receipt) : Evidence.Receipt := ⟨subject r.subject, r.position.val, obligation r.obligation, r.passed⟩
+def receipt (r : Receipt) : Evidence.Receipt := ⟨subject r.subject, r.position.val, obligation r.obligation, r.passed, r.active⟩
 def gate (g : Gate) : Evidence.Gate := ⟨subject g.subject, g.obligations.val.map obligation, phase g.phase, g.completed.val⟩
 
 private theorem kind_eq (x y : Kind) :
@@ -112,24 +112,28 @@ private theorem next_fits (g : Gate) (expected : Obligation)
 theorem record_refines (g : Gate) (o : Origin) (s : Subject) (r : Receipt) :
     (do let out ← MedenImpl.evidence.Gate.record g o s r; ok (out.1, gate out.2)) =
       ok (Evidence.record (gate g) (origin o) (subject s) (receipt r)) := by
-  cases hg : g.obligations.val[g.completed.val]? with
-  | none =>
-    unfold MedenImpl.evidence.Gate.record
-    simp only [core.cmp.PartialEq.ne.trait_default, core.cmp.PartialEq.ne.default, origin_eq, phase_eq, subject_eq, get_obligation]
-    cases o <;> cases hp : g.phase <;>
-      by_cases hs : subject g.subject = subject s <;>
-      by_cases hr : subject r.subject = subject s <;>
-      by_cases hi : r.position.val = g.completed.val <;> cases hb : r.passed <;>
-      simp [origin, phase, gate, receipt, hp, hs, hr, hi, hb, hg, Evidence.record, Evidence.corresponds, List.getElem?_map, ← UScalar.eq_equiv]
-  | some expected =>
-    obtain ⟨n, ha, hn⟩ := next_fits g expected hg
-    unfold MedenImpl.evidence.Gate.record
-    simp only [core.cmp.PartialEq.ne.trait_default, core.cmp.PartialEq.ne.default, origin_eq, phase_eq, subject_eq, get_obligation, obligation_eq]
-    cases o <;> cases hp : g.phase <;>
-      by_cases hs : subject g.subject = subject s <;>
-      by_cases hr : subject r.subject = subject s <;>
-      by_cases hi : r.position.val = g.completed.val <;> cases hb : r.passed <;>
-      by_cases he : obligation expected = obligation r.obligation <;>
-      simp [origin, phase, gate, receipt, hp, hs, hr, hi, hb, hg, he, ha, hn, Evidence.record, Evidence.corresponds, List.getElem?_map, ← UScalar.eq_equiv, lift]
+  cases hactive : r.active with
+  | false => simp [MedenImpl.evidence.Gate.record, hactive, Evidence.record, Evidence.corresponds, receipt]
+  | true =>
+      cases hg : g.obligations.val[g.completed.val]? with
+      | none =>
+        unfold MedenImpl.evidence.Gate.record
+        simp only [core.cmp.PartialEq.ne.trait_default, core.cmp.PartialEq.ne.default, origin_eq, phase_eq, subject_eq, get_obligation]
+        cases o <;> cases hp : g.phase <;>
+          by_cases hs : subject g.subject = subject s <;>
+          by_cases hr : subject r.subject = subject s <;>
+          by_cases hi : r.position.val = g.completed.val <;> cases hb : r.passed <;>
+          simp [origin, phase, gate, receipt, hp, hs, hr, hi, hb, hg, hactive, Evidence.record, Evidence.corresponds, List.getElem?_map, ← UScalar.eq_equiv]
+      | some expected =>
+        obtain ⟨n, ha, hn⟩ := next_fits g expected hg
+        unfold MedenImpl.evidence.Gate.record
+        simp only [core.cmp.PartialEq.ne.trait_default, core.cmp.PartialEq.ne.default, origin_eq, phase_eq, subject_eq, get_obligation, obligation_eq]
+        cases o <;> cases hp : g.phase <;>
+          by_cases hs : subject g.subject = subject s <;>
+          by_cases hr : subject r.subject = subject s <;>
+          by_cases hi : r.position.val = g.completed.val <;> cases hb : r.passed <;>
+          by_cases he : obligation expected = obligation r.obligation <;>
+          simp [origin, phase, gate, receipt, hp, hs, hr, hi, hb, hg, he, ha, hn, hactive, Evidence.record, Evidence.corresponds, List.getElem?_map, ← UScalar.eq_equiv, lift]
+
 
 end MedenSpec.EvidenceRefinement

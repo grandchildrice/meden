@@ -2,8 +2,9 @@
 //! Models propose and check; they cannot accept contracts or supply receipts.
 
 use std::fmt::Write as _;
+use std::io;
 use std::path::{Path, PathBuf};
-use std::sync::{atomic::Ordering, Arc, Mutex};
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use anyhow::{Context, Result};
@@ -280,30 +281,33 @@ impl Project {
             .state
             .lock()
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
-        let gate = state.gate.as_mut().context("no contract")?;
-        anyhow::ensure!(
-            gate.refresh(Origin::Controller, subject.clone()),
-            "input refresh refused"
-        );
-        anyhow::ensure!(
-            source == fresh && !control.flag().load(Ordering::SeqCst),
-            "project changed or checking was cancelled; evidence is not current"
-        );
-        let receipt = Receipt {
-            subject: subject.clone(),
-            position: 0,
-            obligation: Self::obligation(),
-            passed: true,
-        };
-        anyhow::ensure!(
-            checked.report().checker_sha256 == verification::ledger_checker_id()
-                && gate.record(Origin::Checker, &subject, &receipt)
-                && gate.eligible(&subject),
-            "evidence correspondence refused"
-        );
-        state.artifact = Some(checked.persist(&self.storage)?);
-        state.dirty = false;
-        Ok(self.summary(&state, true))
+        control
+            .with_active(|| {
+                let gate = state
+                    .gate
+                    .as_mut()
+                    .ok_or_else(|| io::Error::other("no contract"))?;
+                if source != fresh || !gate.refresh(Origin::Controller, subject.clone()) {
+                    return Err(io::Error::other("project changed; evidence is not current"));
+                }
+                let receipt = Receipt {
+                    subject: subject.clone(),
+                    position: 0,
+                    obligation: Self::obligation(),
+                    passed: true,
+                    active: true,
+                };
+                if checked.report().checker_sha256 != verification::ledger_checker_id()
+                    || !gate.record(Origin::Checker, &subject, &receipt)
+                    || !gate.eligible(&subject)
+                {
+                    return Err(io::Error::other("evidence correspondence refused"));
+                }
+                state.artifact = Some(checked.persist(&self.storage)?);
+                state.dirty = false;
+                Ok(self.summary(&state, true))
+            })
+            .map_err(Into::into)
     }
 }
 

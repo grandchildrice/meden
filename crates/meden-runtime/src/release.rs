@@ -293,6 +293,8 @@ impl Prepared {
                 position,
                 obligation: obligation.clone(),
                 passed: true,
+                // This synchronous administration command has no live job cancellation.
+                active: true,
             };
             if !gate.record(Origin::Checker, &subject, &receipt) {
                 return Err(io::Error::other("evidence correspondence refused"));

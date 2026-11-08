@@ -32,6 +32,7 @@ GROUPS = [
                 "origin != EvidenceOrigin::Checker",
                 "origin != EvidenceOrigin::Checker && false",
             ),
+            ("cancelled_evidence", "!receipt.active", "false"),
             ("stale_evidence", "receipt.subject != *current", "false"),
             (
                 "kind_substitution",

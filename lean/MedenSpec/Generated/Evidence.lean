@@ -181,16 +181,17 @@ impl_def evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase :
 }
 
 /-- [meden_core::evidence::Receipt]
-    Source: 'crates/meden-core/src/evidence.rs', lines 67:0-76:1
+    Source: 'crates/meden-core/src/evidence.rs', lines 67:0-78:1
     Visibility: public -/
 structure evidence.Receipt where
   subject : evidence.Subject
   position : Std.Usize
   obligation : evidence.Obligation
   passed : Bool
+  active : Bool
 
 /-- [meden_core::evidence::Gate]
-    Source: 'crates/meden-core/src/evidence.rs', lines 80:0-85:1
+    Source: 'crates/meden-core/src/evidence.rs', lines 82:0-87:1
     Visibility: public -/
 structure evidence.Gate where
   subject : evidence.Subject
@@ -199,7 +200,7 @@ structure evidence.Gate where
   completed : Std.Usize
 
 /-- [meden_core::evidence::{meden_core::evidence::Gate}::propose]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 89:4-96:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 91:4-98:5
     Visibility: public -/
 def evidence.Gate.propose
   (subject : evidence.Subject)
@@ -215,7 +216,7 @@ def evidence.Gate.propose
     }
 
 /-- [meden_core::evidence::{meden_core::evidence::Gate}::review]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 99:4-107:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 101:4-109:5
     Visibility: public -/
 def evidence.Gate.review
   (self : evidence.Gate) (origin : evidence.EvidenceOrigin) :
@@ -236,7 +237,7 @@ def evidence.Gate.review
     else ok (true, self)
 
 /-- [meden_core::evidence::{meden_core::evidence::Gate}::accept]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 110:4-119:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 112:4-121:5
     Visibility: public -/
 def evidence.Gate.accept
   (self : evidence.Gate) (origin : evidence.EvidenceOrigin) :
@@ -262,14 +263,14 @@ def evidence.Gate.accept
       else ok (true, { self with phase := evidence.EvidencePhase.Accepted })
 
 /-- [meden_core::evidence::{meden_core::evidence::Gate}::is_accepted]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 122:4-124:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 124:4-126:5
     Visibility: public -/
 def evidence.Gate.is_accepted (self : evidence.Gate) : Result Bool := do
   evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase.eq self.phase
     evidence.EvidencePhase.Accepted
 
 /-- [meden_core::evidence::{meden_core::evidence::Gate}::refresh]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 128:4-140:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 130:4-142:5
     Visibility: public -/
 def evidence.Gate.refresh
   (self : evidence.Gate) (origin : evidence.EvidenceOrigin)
@@ -303,67 +304,70 @@ def evidence.Gate.refresh
         else ok (true, self)
 
 /-- [meden_core::evidence::{meden_core::evidence::Gate}::record]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 145:4-166:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 147:4-169:5
     Visibility: public -/
 def evidence.Gate.record
   (self : evidence.Gate) (origin : evidence.EvidenceOrigin)
   (current : evidence.Subject) (receipt : evidence.Receipt) :
   Result (Bool × evidence.Gate)
   := do
-  let b ←
-    core.cmp.PartialEq.ne.trait_default
-      evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin origin
-      evidence.EvidenceOrigin.Checker
-  if b
-  then ok (false, self)
-  else
-    let b1 ←
+  if receipt.active
+  then
+    let b ←
       core.cmp.PartialEq.ne.trait_default
-        evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase self.phase
-        evidence.EvidencePhase.Accepted
-    if b1
+        evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin origin
+        evidence.EvidenceOrigin.Checker
+    if b
     then ok (false, self)
     else
-      let b2 ←
+      let b1 ←
         core.cmp.PartialEq.ne.trait_default
-          evidence.Subject.Insts.CoreCmpPartialEqSubject self.subject current
-      if b2
+          evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase 
+          self.phase evidence.EvidencePhase.Accepted
+      if b1
       then ok (false, self)
       else
-        let b3 ←
+        let b2 ←
           core.cmp.PartialEq.ne.trait_default
-            evidence.Subject.Insts.CoreCmpPartialEqSubject receipt.subject
-            current
-        if b3
+            evidence.Subject.Insts.CoreCmpPartialEqSubject self.subject current
+        if b2
         then ok (false, self)
         else
-          if receipt.position != self.completed
+          let b3 ←
+            core.cmp.PartialEq.ne.trait_default
+              evidence.Subject.Insts.CoreCmpPartialEqSubject receipt.subject
+              current
+          if b3
           then ok (false, self)
           else
-            if receipt.passed
-            then
-              let s := alloc.vec.Vec.deref self.obligations
-              let o ←
-                core.slice.Slice.get (core.slice.index.SliceIndexUsizeSlice
-                  evidence.Obligation) s self.completed
-              match o with
-              | none => ok (false, self)
-              | some expected =>
-                let b4 ←
-                  core.cmp.PartialEq.ne.trait_default
-                    evidence.Obligation.Insts.CoreCmpPartialEqObligation
-                    expected receipt.obligation
-                if b4
-                then ok (false, self)
-                else
-                  let o1 ← lift (Usize.checked_add self.completed 1#usize)
-                  match o1 with
-                  | none => ok (false, self)
-                  | some next => ok (true, { self with completed := next })
-            else ok (false, self)
+            if receipt.position != self.completed
+            then ok (false, self)
+            else
+              if receipt.passed
+              then
+                let s := alloc.vec.Vec.deref self.obligations
+                let o ←
+                  core.slice.Slice.get (core.slice.index.SliceIndexUsizeSlice
+                    evidence.Obligation) s self.completed
+                match o with
+                | none => ok (false, self)
+                | some expected =>
+                  let b4 ←
+                    core.cmp.PartialEq.ne.trait_default
+                      evidence.Obligation.Insts.CoreCmpPartialEqObligation
+                      expected receipt.obligation
+                  if b4
+                  then ok (false, self)
+                  else
+                    let o1 ← lift (Usize.checked_add self.completed 1#usize)
+                    match o1 with
+                    | none => ok (false, self)
+                    | some next => ok (true, { self with completed := next })
+              else ok (false, self)
+  else ok (false, self)
 
 /-- [meden_core::evidence::{meden_core::evidence::Gate}::eligible]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 169:4-174:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 172:4-177:5
     Visibility: public -/
 def evidence.Gate.eligible
   (self : evidence.Gate) (current : evidence.Subject) : Result Bool := do

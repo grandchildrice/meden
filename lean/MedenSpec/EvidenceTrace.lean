@@ -80,7 +80,7 @@ theorem extracted_requires_all_evidence (s : Subject) (requirements : alloc.vec.
     (hr : runExtracted initial [] actions = ok (final, history))
     (he : MedenImpl.evidence.Gate.eligible final current = ok true) :
     ∀ i, i < final.obligations.val.length → ∃ r ∈ history,
-      r.subject = subject current ∧ r.position = i ∧ r.passed = true ∧
+      r.subject = subject current ∧ r.position = i ∧ r.passed = true ∧ r.active = true ∧
         (final.obligations.val.map obligation)[i]? = some r.obligation := by
   have hp := propose_refines s requirements
   have ht := trace_refines initial [] actions

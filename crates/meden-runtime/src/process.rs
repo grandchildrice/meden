@@ -73,12 +73,32 @@ impl Control {
     /// Stop owned processes synchronously. The spawn/register critical
     /// section prevents a process from appearing after cancellation returns.
     pub fn cancel(&self) {
-        self.cancelled.store(true, Ordering::SeqCst);
         if let Ok(active) = self.active.lock() {
+            self.cancelled.store(true, Ordering::SeqCst);
             for pid in active.iter().copied() {
                 kill_group(pid);
             }
+        } else {
+            self.cancelled.store(true, Ordering::SeqCst);
         }
+    }
+
+    /// Serialize a final local result admission against cancellation. A result
+    /// admitted first completes before `cancel` returns; cancellation first
+    /// prevents the closure from running. The closure must not spawn processes
+    /// or reenter this control object. External operations have their own gates.
+    pub fn with_active<T>(&self, effect: impl FnOnce() -> io::Result<T>) -> io::Result<T> {
+        let _active = self
+            .active
+            .lock()
+            .map_err(|_| io::Error::other("process registry poisoned"))?;
+        if self.cancelled.load(Ordering::SeqCst) {
+            return Err(io::Error::new(
+                io::ErrorKind::Interrupted,
+                "result admission cancelled",
+            ));
+        }
+        effect()
     }
 }
 
@@ -363,6 +383,59 @@ mod tests {
     }
     fn control() -> Control {
         Control::new(Arc::new(AtomicBool::new(false)))
+    }
+
+    #[test]
+    fn cancelled_results_cannot_run_a_local_admission() {
+        let control = control();
+        control.cancel();
+        let admitted = AtomicBool::new(false);
+        let result = control.with_active(|| {
+            admitted.store(true, Ordering::SeqCst);
+            Ok(())
+        });
+        assert_eq!(
+            result.expect_err("cancelled").kind(),
+            io::ErrorKind::Interrupted
+        );
+        assert!(!admitted.load(Ordering::SeqCst));
+    }
+
+    #[test]
+    fn local_admission_and_cancellation_share_one_critical_section() {
+        let control = Arc::new(control());
+        let committed = Arc::new(AtomicBool::new(false));
+        let (ready_tx, ready_rx) = std::sync::mpsc::channel();
+        let (release_tx, release_rx) = std::sync::mpsc::channel();
+        let worker_control = Arc::clone(&control);
+        let worker_commit = Arc::clone(&committed);
+        let worker = std::thread::spawn(move || {
+            worker_control.with_active(|| {
+                assert!(matches!(
+                    worker_control.active.try_lock(),
+                    Err(std::sync::TryLockError::WouldBlock)
+                ));
+                ready_tx.send(()).expect("ready");
+                release_rx
+                    .recv_timeout(Duration::from_secs(5))
+                    .expect("release");
+                worker_commit.store(true, Ordering::SeqCst);
+                Ok(())
+            })
+        });
+        ready_rx
+            .recv_timeout(Duration::from_secs(5))
+            .expect("admission started");
+        let cancel_control = Arc::clone(&control);
+        let cancel_commit = Arc::clone(&committed);
+        let cancel = std::thread::spawn(move || {
+            cancel_control.cancel();
+            assert!(cancel_commit.load(Ordering::SeqCst));
+        });
+        release_tx.send(()).expect("finish admission");
+        worker.join().expect("worker joined").expect("admitted");
+        cancel.join().expect("cancel joined");
+        assert!(control.flag().load(Ordering::SeqCst));
     }
 
     #[test]

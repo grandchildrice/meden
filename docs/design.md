@@ -248,7 +248,7 @@ All session-derived content remains confidential by default. Approved exact
 documentation is prefetched independently of model choices and then read
 locally. Inference, remote proving, package downloads, Git pushes, telemetry
 and caches are all effects with explicit destinations and data boundaries.
-The detailed broker/runner rules and fifteen acceptance scenarios are in
+The detailed broker/runner rules and sixteen acceptance scenarios are in
 [confidentiality.md](confidentiality.md). There is no retired strict-mode
 choice; these are common product boundaries.
 
@@ -328,7 +328,7 @@ added orchestration must produce observable value.
 The current repository contains a Rust conversation/TUI, HTTP connections,
 workspace tools, a capability kernel, a Bubblewrap runner integrated with
 TUI/exec file and Bash tools, and an immutable one-use HTTP export component.
-Forty-one Lean theorem entry points and 5,000 Rust/Lean conformance cases
+Forty-two Lean theorem entry points and 5,000 Rust/Lean conformance cases
 are checked today. The production transfer decision and state update are
 extracted with pinned Charon/Aeneas and refine the Lean specification.
 The export-review lifecycle is now a second extracted kernel, with exact

@@ -105,7 +105,10 @@ application or financial certification.
 7. Compile the native Rust library from that same source and fixed build
    configuration. Recheck input/tool content bindings, resnapshot the coding
    copy, and admit an exact checker-origin receipt through the refined
-   evidence kernel only if the source is still current.
+   evidence kernel only if the source is still current. Final admission and
+   local retention share a critical section with cancellation: cancellation
+   first refuses admission; admission first finishes before cancellation
+   returns. An inactive receipt cannot advance the extracted kernel.
 8. Retain the already checked bytes outside the writable coding copy. Do
    not rebuild after granting eligibility. The artifact includes the Rust
    library, source, extraction, specification, proof harness, recipe and
@@ -182,7 +185,7 @@ job explicitly supplies the manifest and runs them.
 Its `meden-ledger-evidence` artifact retains both successful cases' actual
 source, native libraries, proof inputs and eight-root audit reports.
 
-The separate Meden control audit contains 41 roots, including the extracted
+The separate Meden control audit contains 42 roots, including the extracted
 acceptance getter now used by both interfaces. The eight ledger roots are
 checked afresh per candidate. Neither count proves the entire TUI, CLI,
 protocol parser, origin attribution, job adapter or filesystem behavior.
