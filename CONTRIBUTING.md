@@ -2,6 +2,10 @@
 
 ## The merge rule
 
+Maintainer/agent work happens on `main` and is pushed directly, as authorized
+by the repository owner. Do not create a branch or PR for ordinary work.
+Existing external PRs are reviewed and merged when their checks pass.
+
 **A pull request merges when CI is green. No human approval is required.**
 
 That is only safe because CI checks what a reviewer would otherwise have to
@@ -17,9 +21,7 @@ check by hand. Seventeen checks run in CI:
 | `python adapter` | The AgentDojo adapter lints and its tests pass against the built binary. |
 | `npm` | Package launcher checks and package contents pass validation. |
 
-Pushes to `main` are restricted to maintainers; everyone else contributes
-through a pull request. Force pushes and branch deletion are blocked, and a
-branch must be up to date with `main` before it merges.
+Contributors without direct push access use a pull request.
 
 **If you change a formally modelled kernel rule, update its Lean model in
 the same pull request.**
