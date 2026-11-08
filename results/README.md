@@ -2,7 +2,9 @@
 
 The isolated planner and its benchmark flags were removed after commit
 `e9a3e92`. Historical records/commands below describe those older binaries.
-Current `--agent meden` runs the single Rust conversation engine.
+The old AgentDojo host-tool bridge and benchmark adapter have also been
+removed. Current `meden run` uses the same private offline coding session
+as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Recorded native benign utility
 
@@ -40,17 +42,18 @@ records, exact conversations and execution settings are in:
 The current TUI/`exec` tools use private offline copies, and the current
 model client disables automatic retry, redirects and environment proxies.
 These historical scores were not rerun after those changes. The headless
-AgentDojo host-tool path still checks capabilities without confinement.
+AgentDojo host-tool path no longer exists in the current binary.
 
-For a reproducible comparison, build once and keep the binary fixed while
-running both agents. Repeat for `slack`, `travel` and `workspace`:
+To reproduce historical comparisons, use the source/harness revision named
+by a record (for example, banking native v2 records `repo_head: 7025d44`),
+not today's CLI. Keep the measured binary fixed for both agents. The
+following commands were used by the later historical harness:
 
 ```bash
 cargo build --release -p meden-cli
 cd python
 MEDEN_BIN=../target/release/meden uv run python -m meden_agentdojo.benchmark \
   --agent meden --suite banking --provider hermes:ollama-cloud \
-  --approve-processor https://ollama.com/v1/chat/completions \
   --model minimax-m3 --benign-only --workers 4 --repeat 3 --out native.json
 MEDEN_BIN=../target/release/meden uv run python -m meden_agentdojo.benchmark \
   --agent tool-calling --suite banking --provider hermes:ollama-cloud \

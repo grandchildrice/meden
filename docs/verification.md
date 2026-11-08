@@ -22,7 +22,7 @@ established by the current CI badge.
 | Lean | Regenerate Rust model, `lake build`, proof scan/audit, four Rust mutation checks | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A result or resulting transfer state differs |
-| Python | Ruff and AgentDojo/PTY integration tests against the built binary | A request/effect/terminal behavior differs from expectations |
+| Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
 | npm | Launcher checks and package dry-run | Invalid launcher behavior or package layout |
 
 Lean is pinned in [`lean/lean-toolchain`](../lean/lean-toolchain). CI builds
@@ -220,8 +220,45 @@ The live-model smoke harness's independent checker also uses `exec`;
 it does not execute model-generated code on the host.
 
 These tests cover production worker paths, not a Lean proof of OS effects.
-Local inference confinement, headless host tools, page cache, trusted export
+Local inference confinement, page cache, trusted export
 review and the complete malicious-page acceptance suite remain work.
+
+## Shared CLI and TUI execution
+
+The [coding session](../crates/meden-cli/src/session.rs) owns the fixed tool
+registry, policy, conversation and workspace-bound model gateway for both
+interfaces. The [CLI protocol](cli.md) accepts only instruction objects;
+the old arbitrary host tool/host result bridge and its AgentDojo adapters
+are deleted. Historical result JSON is retained, not reported as current
+runtime evidence. Python now needs only its local check dependencies.
+
+The real PTY test compares the complete HTTP request sequence and file
+effects for the same instructions through TUI and CLI, including follow-up
+history. CLI tests reject legacy tools/policy/system messages, forged
+approvals/results, oversized input and terminal-control injection before
+model access. Observer cancellation is rechecked immediately before a model
+request/tool call, so a failed protocol write cannot start that next effect.
+The conversation unit test observes zero model/tool executions at both
+cancellation points. Process lifetime remains checked separately.
+
+The [adversarial CLI test](../python/tests/test_run_integration.py) imports
+an HTML page fixture and confidential canary into the actual private copy.
+A deliberately malicious native model reads both, fabricates send/fetch/
+approval calls, creates encoded data and runs Python TCP/UDP/DNS attempts.
+Real host TCP/UDP receivers observe no unauthorized traffic. Actual code
+editing and tests still succeed, followed by an independent check in another
+offline copy. This validates current production paths under full model
+control, not general coding-model utility or the complete R1 suite. It
+does not implement the approved page prefetcher or export review.
+
+Toolchain selection uses only resources visible in the public mount layout.
+On Nix, a private `uv` Python shadowing a public Python is skipped rather
+than binding the private cache into the sandbox. The attack test exposed
+this actual execution failure before the selection was corrected.
+
+These controller, parser, router and OS behaviors have tests; the seventeen
+Lean theorem entry points still cover their stated kernels. The shared
+session has no whole-controller refinement theorem yet.
 
 ## Processor approval in production
 
@@ -235,7 +272,7 @@ Each inference decision calls the already extracted/proved Rust
 
 | Kernel field | Processor binding |
 | --- | --- |
-| Session | Retained private workspace identity, or a fresh headless session identity |
+| Session | Retained private workspace identity for both TUI and CLI |
 | Recipient | Complete prepared `/chat/completions` URL |
 | Request | Exact JSON bytes of provider ID, endpoint, model and credential |
 | Expiry | Exclusive monotonic deadline, eight hours after host approval |

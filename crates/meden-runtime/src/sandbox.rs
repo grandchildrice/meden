@@ -12,6 +12,7 @@ const TOOLS: &[&str] = &[
     "mkdir", "cp", "mv", "rm", "touch", "find", "sed", "awk", "grep", "head", "tail", "wc", "true",
     "false", "env", "sleep", "cc", "c++", "make", "uname", "tar", "gzip", "base64",
 ];
+const SYSTEM_ROOTS: &[&str] = &["/usr", "/bin", "/lib", "/lib64"];
 
 /// A fixed host-selected toolchain and one writable workspace. Child commands
 /// cannot choose additional mounts, inherit host configuration or share the
@@ -32,6 +33,29 @@ fn find(program: &str) -> Option<PathBuf> {
         .find(|path| path.is_file())
 }
 
+fn public_tools(nix_tools: bool) -> Vec<(String, PathBuf)> {
+    let search = std::env::var_os("PATH").unwrap_or_default();
+    TOOLS
+        .iter()
+        .filter_map(|name| {
+            // A Python virtualenv/uv executable can shadow the public
+            // Nix toolchain without being present in its mounted closure.
+            // Pick a visible public object; never expose a host cache.
+            std::env::split_paths(&search)
+                .filter_map(|path| path.join(name).canonicalize().ok())
+                .find(|path| {
+                    path.is_file()
+                        && if nix_tools {
+                            path.starts_with("/nix/store")
+                        } else {
+                            SYSTEM_ROOTS.iter().any(|root| path.starts_with(root))
+                        }
+                })
+                .map(|path| ((*name).to_owned(), path))
+        })
+        .collect()
+}
+
 impl Sandbox {
     /// Prepare an offline execution configuration. Missing isolation support
     /// is an error; there is no unrestricted host fallback.
@@ -49,14 +73,10 @@ impl Sandbox {
             .or_else(|| find("bwrap"))
             .ok_or_else(|| io::Error::other("bubblewrap is required for isolated execution"))?
             .canonicalize()?;
-        let tools: Vec<_> = TOOLS
-            .iter()
-            .filter_map(|name| {
-                find(name)
-                    .and_then(|path| path.canonicalize().ok())
-                    .map(|path| ((*name).to_owned(), path))
-            })
-            .collect();
+        let nix_tools = find("bash")
+            .and_then(|path| path.canonicalize().ok())
+            .is_some_and(|path| path.starts_with("/nix/store"));
+        let tools = public_tools(nix_tools);
         if !tools.iter().any(|(name, _)| name == "bash") {
             return Err(io::Error::other("Bash is required for isolated execution"));
         }
@@ -206,7 +226,7 @@ impl Sandbox {
             "/workspace",
         ]);
         if self.store_paths.is_empty() {
-            for path in ["/usr", "/bin", "/lib", "/lib64"] {
+            for path in SYSTEM_ROOTS {
                 if Path::new(path).exists() {
                     command.args(["--ro-bind", path, path]);
                 }

@@ -7,10 +7,11 @@ import subprocess
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 import pytest
 
-from meden_agentdojo import find_meden
+from meden_checks import find_meden
 
 
 @pytest.mark.skipif(os.name != "posix", reason="PTY and termios test")
@@ -207,6 +208,41 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
         assert restored[3] & (termios.ICANON | termios.ECHO) == (
             initial[3] & (termios.ICANON | termios.ECHO)
         )
+        # The headless path must use the same real tools, requests and
+        # conversation history as the terminal for these two user turns.
+        tui_requests = list(requests[:5])
+        requests.clear()
+        destinations.clear()
+        completed = subprocess.run(
+            [
+                binary,
+                "run",
+                "--workspace",
+                str(project),
+                "--provider",
+                "configured",
+                "--approve-processor",
+                f"http://127.0.0.1:{server.server_port}/v1/chat/completions",
+            ],
+            input="\n".join(
+                json.dumps({"instruction": text})
+                for text in ["Update the status to ready.", follow_up]
+            )
+            + "\n",
+            text=True,
+            capture_output=True,
+            env=env,
+            timeout=20,
+        )
+        assert completed.returncode == 0, completed.stderr
+        assert requests == tui_requests
+        records = [json.loads(line) for line in completed.stdout.splitlines()]
+        assert [r["outcome"] for r in records if r["type"] == "done"] == ["done", "done"]
+        assert all(r["type"] != "call" for r in records)
+        headless_copy = Path(records[0]["workspace"])
+        assert headless_copy != workspace
+        assert (headless_copy / "note.txt").read_text() == "status: ready\n"
+        assert source_note.read_text() == "status: draft\n"
     finally:
         if process.poll() is None:
             process.kill()

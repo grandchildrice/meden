@@ -325,8 +325,9 @@ extracted with pinned Charon/Aeneas and refine the Lean specification.
 There is no accepted contract store, evidence controller or release gate
 yet. Inference checks a host-approved, immutable session processor binding
 with the refined kernel; providers can still be remote, and local inference
-server confinement is unfinished. Headless external host tools are
-not yet confined. TUI/exec edits stay in retained private copies.
+server confinement is unfinished. TUI and `run` use one coding session;
+the external host-tool bridge has been removed. All built-in file/Bash tools
+and `exec` use retained private copies.
 
 Reuse the conversation as an untrusted proposal/repair loop, move authority
 to the small controller, connect every file/process tool to the private

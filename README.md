@@ -99,6 +99,11 @@ printf 'python3 -m unittest -v' | ./target/release/meden exec --workspace /path/
 Applying/exporting reviewed changes back to another location is still a
 separate, unfinished workflow.
 
+For model-driven automation, `meden run --workspace ...` accepts
+`{"instruction":"..."}` objects, one per line, and emits JSON events. It
+retains conversation and files across instructions using the same coding
+session as the TUI. [CLI protocol →](docs/cli.md)
+
 ### Controls
 
 | Key | Action |
@@ -161,10 +166,11 @@ Recorded AgentDojo benign utility with `minimax-m3`, four workers:
 | travel | 14/20 | 12/20 | 1 |
 | workspace | 33/40 | 31/40 | 1 |
 
-These measure the recorded conversational runtime, not the future complete
-confidentiality boundary. The HTTP replay test checks request/effect parity
-with AgentDojo. Live-model TUI checks independently test code changes across
-two turns. [Raw records and settings →](results/README.md)
+These measure frozen prototypes. Their external host-tool bridge has been
+removed; the scores do not measure the current private workspace runtime
+or establish confidentiality. Current tests compare real TUI/CLI requests
+and effects and independently check changed code.
+[Raw records and historical settings →](results/README.md)
 
 ## Development
 
@@ -174,9 +180,9 @@ two turns. [Raw records and settings →](results/README.md)
 | `meden-core` | Capability policy and exact-transfer decision kernels |
 | `meden-llm` | HTTP model clients and connection discovery |
 | `meden-runtime` | Host execution, process lifecycle and offline Linux isolation |
-| `meden-cli` | TUI and JSON Lines host interface |
+| `meden-cli` | Shared coding session, TUI and isolated JSON Lines automation |
 | `lean/` | Formal specifications, axiom audit and executable oracle |
-| `python/` | AgentDojo adapters and PTY/live-model checks |
+| `python/` | CLI, adversarial-model, PTY and live-model checks |
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for local checks. Maintainer work
 happens directly on `main`; small, loosely coupled implementations take

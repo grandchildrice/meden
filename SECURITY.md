@@ -17,12 +17,11 @@ results, while an isolated runner and host-owned outbound controls enforce
 the boundary. See [the product design](docs/design.md) and
 [confidential execution rules](docs/confidentiality.md).
 
-**R1 is not yet established end to end.** TUI file/Bash tools and `exec`
+**R1 is not yet established end to end.** TUI, `run` file/Bash tools and `exec`
 now execute in private offline Linux workspaces. Inference uses a separate
 host-approved processor gateway; local inference server confinement remains
 unfinished.
-Page-cache/review integration and complete mediation of the headless host
-tool interface remain unfinished. Benign scores and kernel proofs do not
+Page-cache/review integration remains unfinished. Benign scores and kernel proofs do not
 establish the whole requirement.
 
 Model inference and provider discovery disable environment proxies and
@@ -47,13 +46,13 @@ approved processing is not proof that inference remains local.
 
 ## Existing implementation boundaries
 
-The TUI and `exec` import the original tree into a new persistent private
+The TUI, `run` and `exec` import the original tree into a new persistent private
 working copy. A trusted importer copies regular files, breaks hard links,
 preserves literal symlinks and rejects sockets/devices/FIFOs. The original
 source is never mounted for untrusted shell/file execution. Edits remain in
 the displayed copy after exit; they are not automatically applied back.
 
-All TUI file operations and Bash execute through the same Bubblewrap
+All built-in file operations and Bash execute through the same Bubblewrap
 layout: private network/PID/user namespaces, a clean environment, private
 `/proc` and only the working copy plus read-only public toolchains. A fresh
 single-threaded Rust launcher closes descriptors above 2 before executing
@@ -66,9 +65,13 @@ and isolation configuration are trusted. Toolchain mounts must be public
 resources, not confidential storage. OS enforcement and these worker/adapter
 implementations have integration tests, not a Lean refinement proof.
 
-The `run` JSON Lines interface still delegates tool execution to its host.
-It does not yet route those arbitrary host tools through this boundary.
-It must not be treated as an R1 implementation.
+The `run` JSON Lines interface accepts instructions only and executes the
+same coding session as the TUI. Arbitrary host tool registration, supplied
+policy/system messages, host result callbacks and compatibility entry points
+are removed. Instruction input is bounded, unknown fields fail, and progress
+events never request execution by the host. A broken output stream cancels
+before the immediately following model/tool effect. This closes an unchecked
+execution path; it does not establish all of R1.
 
 The CLI uses HTTP model connections only. The isolated planner, quarantined
 reader, skill attestation subsystem and command-line model wrappers have

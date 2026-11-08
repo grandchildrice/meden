@@ -28,7 +28,7 @@ cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace --all-features
 cargo doc --workspace --no-deps
 cargo build -p meden-cli
-(cd python && uv sync --group dev --extra agentdojo)
+(cd python && uv sync --group dev)
 (cd python && MEDEN_BIN=../target/debug/meden uv run pytest -q)
 (cd python && uv run ruff check . ../tools)
 node npm/test.js
@@ -57,7 +57,7 @@ Do not disable an active property to get a passing run.
 Keep planned, implemented and verified behavior distinct. Historical
 AgentDojo records are immutable evidence of the binary/settings they name;
 they are not tests of a newer binary or the future outbound broker. The
-HTTP replay fixture compares actual model requests with AgentDojo. Real
+current HTTP replay fixture compares actual TUI and CLI requests/effects. Real
 PTY tests exercise TUI editing, tool effects, conversation reset and terminal
 restoration. The separate live-model smoke adds independent tests of the
 agent's resulting code.

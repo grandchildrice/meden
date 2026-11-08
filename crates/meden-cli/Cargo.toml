@@ -1,6 +1,6 @@
 [package]
 name = "meden-cli"
-description = "Interactive coding agent and JSON Lines host protocol"
+description = "Interactive coding agent and isolated JSON Lines automation"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

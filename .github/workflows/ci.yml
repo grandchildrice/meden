@@ -124,9 +124,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y bubblewrap
       - run: cargo build -p meden-cli
       - uses: astral-sh/setup-uv@v7
-      # The declaration tests check every suite's tools against AgentDojo
-      # itself, so AgentDojo has to be here.
-      - run: uv sync --group dev --extra agentdojo
+      - run: uv sync --group dev
         working-directory: python
       - run: uv run ruff check . ../tools
         working-directory: python

@@ -250,7 +250,8 @@ Use synthetic confidential canaries and real observation at receiver(s),
 DNS/proxy boundaries and all host adapters, not just mocked tool-denial
 messages. Exercise a deliberately malicious model as well as injected page
 content. A legitimate local edit/build/test after reading a page must still
-work. All tests below are planned; none is claimed as passing today.
+work. These are criteria for the complete boundary. Production-path and
+component tests cover portions; the full suite is not yet established.
 
 | ID | Scenario | Required observation |
 | --- | --- | --- |
@@ -285,8 +286,10 @@ private persistent copy, and inherited descriptors are closed before launch.
 Inference now uses a host-approved processor gateway checked before each
 exchange. TUI approval and CLI exact-endpoint matching bind the session,
 endpoint, provider/model and credential for up to eight hours. Local
-inference confinement and headless host tools still need work. The complete
-R1 acceptance suite has not passed.
+inference confinement, page caching and reviewed exports still need work.
+TUI and headless `run` now share the fixed offline coding session; the old
+external host-tool protocol has been removed. The complete R1 acceptance
+suite has not passed.
 
 The product migration order is maintained in [design.md](design.md), and
 current proof, conformance and real-process test scopes are documented in

@@ -1,4 +1,4 @@
-"""Locate the Rust conversation engine for the AgentDojo adapter."""
+"""Locate the Rust coding agent for integration and live-model checks."""
 
 import os
 import shutil

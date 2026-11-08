@@ -174,6 +174,9 @@ impl Conversation {
                 return Status::Cancelled;
             }
             observer(Event::Asking(iteration.saturating_add(1)));
+            if cancelled.load(Ordering::Relaxed) {
+                return Status::Cancelled;
+            }
             let reply = match model.reply(&self.messages, runtime.tools) {
                 Ok(reply) => reply,
                 Err(error) => return Status::Failed(error.to_string()),
@@ -181,6 +184,9 @@ impl Conversation {
             observer(Event::Assistant(&reply));
             self.messages.push(reply.message());
             if reply.tool_calls.is_empty() {
+                if cancelled.load(Ordering::Relaxed) {
+                    return Status::Cancelled;
+                }
                 return Status::Done(reply.content.unwrap_or_default());
             }
             // Even cancelled/incomplete assistant groups need paired tool
@@ -190,7 +196,7 @@ impl Conversation {
                 let result = if stopped || cancelled.load(Ordering::Relaxed) {
                     Err(("cancelled", "Tool not executed: turn stopped".to_owned()))
                 } else {
-                    execute(call, runtime.registry, runtime.policy, observer)
+                    execute(call, runtime.registry, runtime.policy, observer, cancelled)
                 };
                 let (text, error) = match result {
                     Ok(text) => (text, false),
@@ -223,6 +229,7 @@ fn execute(
     registry: &Registry,
     policy: &Policy,
     observer: &dyn Fn(Event<'_>),
+    cancelled: &AtomicBool,
 ) -> Result<String, (&'static str, String)> {
     let checked = (|| {
         let tool = registry.get(&call.function.name).ok_or_else(|| {
@@ -277,6 +284,9 @@ fn execute(
                 call,
                 refusal: None,
             });
+            if cancelled.load(Ordering::Relaxed) {
+                return Err(("cancelled", "Tool not executed: turn stopped".into()));
+            }
             let result = tool
                 .call(&args)
                 .map_err(|e| ("tool_error", e.to_string()))?;
@@ -435,6 +445,43 @@ mod tests {
                 .count(),
             2
         );
+    }
+    #[test]
+    fn observer_cancellation_stops_the_immediately_following_model_or_tool_effect() {
+        for at_request in [true, false] {
+            let count = Rc::new(Cell::new(0));
+            let registry = registry(&count);
+            let policy = Policy::from_labels("write", &["fs.write"], &[]).expect("policy");
+            let cancelled = AtomicBool::new(false);
+            let model = Model(RefCell::new(VecDeque::from([Reply {
+                content: None,
+                tool_calls: vec![call("pending", r#"{"text":"hello"}"#)],
+            }])));
+            let mut session = Conversation::new("test");
+            let observer = |event: Event<'_>| {
+                if matches!(event, Event::Asking(_)) && at_request
+                    || matches!(event, Event::Decision { .. }) && !at_request
+                {
+                    cancelled.store(true, Ordering::Relaxed);
+                }
+            };
+            assert_eq!(
+                session.run(
+                    "write",
+                    &model,
+                    &Runtime {
+                        registry: &registry,
+                        policy: &policy,
+                        tools: &[]
+                    },
+                    &observer,
+                    &cancelled
+                ),
+                Status::Cancelled,
+            );
+            assert_eq!(count.get(), 0);
+            assert_eq!(model.0.borrow().len(), usize::from(at_request));
+        }
     }
     #[test]
     fn execution_limit_is_not_success_and_runs_no_extra_tools() {
