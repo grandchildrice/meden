@@ -131,6 +131,9 @@ observed Rust test failure, extract/compile successfully, and fail the
 unchanged correctness proof. Exact original files are restored and the
 normal proof is rebuilt afterwards. This checks proof sensitivity and
 source linkage; it does not replace the general refinement theorems.
+The fault driver sets `RUSTFLAGS=-D warnings` for local and CI subprocesses.
+A compiler warning/error is an operational failure, not evidence that a
+native assertion or refinement rejected the fault.
 
 These theorems establish a permission-decision refinement. They do not
 establish a complete control trace or that every real network operation is

@@ -4,6 +4,7 @@ The transition models must compile before a proof failure counts. All owned
 source/model bytes are restored, including on interruption or failed checks.
 """
 
+import os
 import subprocess
 from pathlib import Path
 
@@ -102,7 +103,7 @@ GROUPS = [
             (
                 "substituted_effect_payload",
                 "&self.body",
-                "&[]",
+                "{ let _ = &self.body; &[] }",
             ),
             (
                 "uncommitted_effect_attempt",
@@ -158,7 +159,7 @@ GROUPS = [
             (
                 "wrong_review_target",
                 "Screen::ReviewingExport => Some(Choice::Export)",
-                "Screen::ReviewingExport => Some(Choice::Processor)",
+                "Screen::ReviewingExport => { let _ = Choice::Export; Some(Choice::Processor) }",
             ),
             (
                 "untrusted_review_input",
@@ -490,7 +491,15 @@ def source_path(group):
 
 
 def run(args, cwd=ROOT):
-    return subprocess.run(args, cwd=cwd, capture_output=True, text=True, check=False)
+    # Faults must reach assertions/proofs under the same warning policy as CI.
+    return subprocess.run(
+        args,
+        cwd=cwd,
+        env={**os.environ, "RUSTFLAGS": "-D warnings"},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
 
 
 def require_success(args, cwd=ROOT):
