@@ -5,7 +5,7 @@
 **A pull request merges when CI is green. No human approval is required.**
 
 That is only safe because CI checks what a reviewer would otherwise have to
-check by hand. Sixteen checks are required on `main`:
+check by hand. Seventeen checks run in CI:
 
 | Check | What it guarantees |
 | --- | --- |
@@ -15,14 +15,23 @@ check by hand. Sixteen checks are required on `main`:
 | `conformance` | The Rust implementation and the Lean model agree on 1,500 random policy, glob, tier and information-flow cases from a fixed-seed generator. |
 | `kani (…)` | Eleven jobs, one per harness: each property holds for *every* input within its bounds, panics and overflow included. |
 | `python adapter` | The AgentDojo adapter lints and its tests pass against the built binary. |
+| `npm` | Package launcher checks and package contents pass validation. |
 
 Pushes to `main` are restricted to maintainers; everyone else contributes
 through a pull request. Force pushes and branch deletion are blocked, and a
 branch must be up to date with `main` before it merges.
 
-**If you change behaviour, change the Lean model in the same pull request.**
+**If you change a formally modelled kernel rule, update its Lean model in
+the same pull request.**
 A Rust change the model disagrees with fails `conformance`; a model change
 that weakens a theorem fails `lean`. Satisfying both is the review.
+
+The [coding agent design](docs/design.md) replaces the isolated planner as
+the product direction. Its confidentiality requirement needs new runtime
+boundaries and acceptance evidence. Existing Lean/Kani properties do not
+prove it. Keep planned behavior, implemented behavior and verified
+properties explicit in documentation; do not preserve the retired planner
+as a required product mode merely because its code or proofs exist.
 
 ## Layout
 
