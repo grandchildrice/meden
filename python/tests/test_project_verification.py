@@ -162,7 +162,7 @@ def test_cli_host_acceptance_independent_repair_artifact_binding_and_staleness(t
         assert not receive("project")["summary"]["accepted"]
         send({"accept_contract": reference})
         assert receive("project")["summary"]["accepted"]
-        assert receive("done")["outcome"] == "done"
+        assert receive("done")["outcome"] == "done", seen[-12:]
         summary = [r["summary"] for r in seen if r["type"] == "project"][-1]
         assert summary["verified"]
         report = assert_artifact(Path(summary["artifact"]))
@@ -214,6 +214,8 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
             if predicate():
                 return
             assert process.poll() is None, output[-8000:].decode(errors="replace")
+            if "Failed:" in rendered() and "alt-enter" in rendered():
+                pytest.fail(rendered())
             if select.select([master], [], [], 0.1)[0]:
                 chunk = os.read(master, 65536)
                 output.extend(chunk)
@@ -276,7 +278,20 @@ def test_lean_rejects_bug_that_passes_fixed_examples(tmp_path):
         timeout=360,
     )
     assert result.returncode != 0
-    assert "test result: ok" in result.stderr
-    assert "meden-check: proof" in result.stderr
-    assert "unsolved goals" in result.stderr or "error:" in result.stderr
+    assert "test result: ok" in result.stderr, result.stderr
+    assert "meden-check: refinement" in result.stderr, result.stderr
+    assert "error: scalar_tac failed to prove the goal" in result.stderr, result.stderr
+    assert "'LedgerProof.actual_refines' depends on axioms: [propext, sorryAx" in result.stderr
+    assert not any(
+        message in result.stderr.casefold()
+        for message in [
+            "unknown identifier",
+            "unknown module",
+            "unknown constant",
+            "stack overflow",
+            "maximum number of heartbeats",
+            "maximum recursion depth",
+            "failed to create thread",
+        ]
+    ), result.stderr
     assert not output.exists()

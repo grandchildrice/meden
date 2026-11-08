@@ -319,6 +319,15 @@ impl Sandbox {
             }
             command.args(["--symlink", "/bin/bash", "/bin/sh"]);
         }
+        // Debian compiler alternatives can point into /etc, which stays hidden.
+        // Expose the already selected public objects through private aliases.
+        command.args(["--dir", "/tools"]);
+        for (name, path) in &self.tools {
+            command
+                .arg("--symlink")
+                .arg(path)
+                .arg(format!("/tools/{name}"));
+        }
         command
             .arg("--ro-bind")
             .arg(&self.worker)
@@ -344,7 +353,7 @@ impl Sandbox {
                 "/workspace",
                 "--setenv",
                 "PATH",
-                "/bin:/usr/bin",
+                "/tools:/bin:/usr/bin",
                 "--setenv",
                 "HOME",
                 "/tmp",

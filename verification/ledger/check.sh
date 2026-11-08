@@ -3,7 +3,7 @@
 set -euo pipefail
 ulimit -c 0
 ulimit -v 16777216
-export PATH=/verification/rust/bin:/bin:/usr/bin
+export PATH=/verification/rust/bin:/tools:/bin:/usr/bin
 export CARGO_HOME=/tmp/cargo
 export CARGO_TARGET_DIR=/workspace/build
 export CARGO_BUILD_JOBS=2
@@ -42,6 +42,7 @@ fi
 printf 'meden-check: proof\n'
 /verification/lean/bin/lean -j2 -M4096 -o Spec.olean Spec.lean
 /verification/lean/bin/lean -j2 -M4096 -o Candidate.olean Candidate.lean
+printf 'meden-check: refinement\n'
 /verification/lean/bin/lean -j2 -M4096 -o Check.olean Check.lean
 printf 'meden-check: build\n'
 (ulimit -v 8388608; cargo build --offline --locked --release --lib)
