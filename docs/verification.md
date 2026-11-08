@@ -25,11 +25,14 @@ established by the current CI badge.
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
 | npm | Launcher checks and package dry-run | Invalid launcher behavior or package layout |
 
-CI pins cargo-deny 0.20.2 and Kani 0.68.0. Kani and Aeneas public bundles
+CI pins cargo-deny 0.20.2 and Kani 0.68.0. Kani, Aeneas and Lean public bundles
 have fixed SHA-256 checks and bounded download retries. An unavailable or
 incorrect bundle fails preparation; it never skips a harness or proof.
 The downloader uses fixed GitHub release-asset IDs and fresh API requests
 to avoid cached gateway errors and expired redirects.
+The Lean job installs Lean 4.35.0 directly rather than downloading a floating
+Elan installer; it still builds the pinned Lake dependencies and all default
+specification/proof targets.
 This retry policy applies to public CI tool preparation, not confidential
 model exchanges or file exports.
 
