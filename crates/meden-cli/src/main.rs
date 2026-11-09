@@ -94,7 +94,7 @@ struct ModelArgs {
     /// Prepared llama-server executable. Defaults to MEDEN_LOCAL_ENGINE.
     #[arg(long, conflicts_with_all = ["provider", "model", "approve_processor"])]
     local_engine: Option<PathBuf>,
-    /// Prepared GGUF weights. Defaults to MEDEN_LOCAL_MODEL.
+    /// Prepared GGUF weights or first split. Defaults to MEDEN_LOCAL_MODEL.
     #[arg(long, conflicts_with_all = ["provider", "model", "approve_processor"])]
     local_model: Option<PathBuf>,
 }

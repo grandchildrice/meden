@@ -55,6 +55,17 @@ still requires the existing trusted TUI approval or exact CLI
 session. A pre-existing loopback server is an HTTP processor, not a confined
 local engine.
 
+For split GGUF weights, prepare every numbered sibling and point
+`--local-model` at `NAME-00001-of-000NN.gguf`. Meden prepares the exact
+numbered set before starting inference, preserving llama.cpp's split naming
+inside the sandbox. Only those files are mounted read-only; the containing
+host directory and unrelated files remain hidden. Cache symlinks to prepared
+blob files are supported. A missing/non-file shard, a later starting shard,
+or an invalid split count fails before the CLI emits `ready`. There is no
+model download or automatic fallback. The engine still validates GGUF
+metadata, tensor coverage and whether shards belong to the same model.
+See the upstream [split-model loader](https://github.com/ggml-org/llama.cpp/blob/master/src/llama-model-loader.cpp).
+
 ## Execution and data
 
 Meden starts one inference process lazily and keeps it warm across tool
@@ -117,10 +128,16 @@ They also perform real local edits/tests, retain the warm process, check the
 result independently in another offline copy, and cancel pending inference.
 Rust transport tests replace the socket name after pinning and verify the
 original receiver still gets the connection; an unresponsive peer times out.
+[Split-weight tests](../python/tests/test_split_weights.py) exercise real
+namespace mounts, cache symlinks, read-only shards, hidden adjacent files,
+early preparation failures and a persistent scripted engine. These test the
+adapter, not model loading or measured 100–600B operation. Split discovery and
+mount preparation are host adapters, outside the processor refinement.
 
 This boundary relies on Linux, Bubblewrap, filesystem/Unix socket semantics,
 the trusted launcher, prepared public software and host configuration. Keep
-engine/weight files unchanged by other trusted host processes while in use;
+engine/weight files (including every shard) unchanged by other trusted host
+processes while in use;
 a read-only bind mount is not a cryptographic artifact identity or a snapshot
 against host-side changes. Resource exhaustion, GPU isolation, platform
 equivalents and whole-controller/interface refinement remain separate work.

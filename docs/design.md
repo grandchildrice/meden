@@ -411,8 +411,11 @@ HTTP effects remain adapters. Whole-application delivery and Git/email
 adapters remain work.
 Host-selected documentation can now be prefetched with bounded public HTTPS
 GETs and attached as an immutable TUI/CLI cache. Model selection and cache misses
-perform no network operation. The fetch/cache adapter has tests, not refinement;
-the prefetch command remains trusted host code rather than an OS-confined worker.
+perform no network operation. The fetch/cache adapter has tests, not refinement.
+Its dedicated worker has no project/home/credential mounts and accepts only
+the host's fixed URL batch. It retains the launching network namespace, so
+public-address HTTPS enforcement still depends on the trusted client rather
+than an OS egress firewall.
 
 Reuse the conversation as an untrusted proposal/repair loop, move authority
 to the small controller, connect every file/process tool to the private

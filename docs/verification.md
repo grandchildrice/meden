@@ -1615,6 +1615,11 @@ prompt. Dispatch produces only a `LocalCall`; its consuming equality check
 requires the adapter's actual configuration to match exactly. A missing or
 failed local resource cannot produce an HTTP call. Path preparation, binary
 identity and the engine/weight contents remain outside this value-level proof.
+For split GGUF weights, that configuration names the first shard. The host
+adapter resolves the complete numbered set before starting the engine and
+mounts only those files read-only, preserving the split names. Discovery,
+cache-symlink resolution, file contents and actual mounts remain outside
+processor refinement; the engine checks GGUF metadata and tensor consistency.
 
 The [Unix transport](../crates/meden-llm/src/unix.rs) has no DNS/TCP connector.
 It opens a nonsymlink socket with `O_PATH`, checks its inode type and connects
@@ -1633,6 +1638,13 @@ real PTY test also cancels pending inference and checks terminal restoration.
 Separate cases reject a socket symlink, HTTP redirect, disconnect and an
 oversized reply without contacting a configured HTTP fallback. No GPU or
 real model weights are required for these deterministic CI tests.
+The [split-weight tests](../python/tests/test_split_weights.py) exercise
+ordinary files and cache symlinks, warm exchanges, read-only shards and
+hidden adjacent host files. Missing/non-file shards, a later starting shard
+and invalid counts fail before `ready`. The old single-file preparation
+fails the positive split case; the revised adapter passes it. Scripted
+engine checks establish these namespace observations, not real model loading
+or 100–600B task performance. They introduce no new theorem roots.
 
 A separate local smoke check used llama.cpp 0.9.0, build 12110 (`cd959ba`),
 and Qwen3-0.6B Q4_K_M to return a greeting through actual `meden run`. This

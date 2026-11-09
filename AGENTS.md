@@ -38,6 +38,13 @@
   mount layout. Invoke a worker's prepared loader explicitly without replacing
   the selected system interpreter. Mixed-layout tests need real Nix resources;
   report missing platform prerequisites as skips, not successful coverage.
+- Local split-GGUF preparation starts with the host-selected first numbered
+  shard and mounts only the exact prepared sibling files, read-only. Preserve
+  the input's split filename before resolving cache symlinks; never mount its
+  containing directory. Missing/non-file shards and invalid starting indices
+  or counts fail during preparation. The engine checks GGUF semantics; file
+  discovery, immutable-host assumptions and OS mounts remain adapters outside
+  processor refinement. Do not claim large-model validation from scripted tests.
 - Preserve accepted intent, evidence/source/artifact linkage and local data
   control. The isolated planner is retired. The processor, export review and
   evidence kernels have Rust-to-Lean refinement. The combined export state

@@ -13,7 +13,8 @@ use serde_json::Value;
 pub struct LocalConfig {
     /// Installed llama-server executable, supporting Unix socket listeners.
     pub engine: PathBuf,
-    /// One prepared GGUF file. No downloads or cloud fallback occur.
+    /// Prepared GGUF file, or first named split with all siblings installed.
+    /// No downloads or cloud fallback occur.
     pub model: PathBuf,
 }
 

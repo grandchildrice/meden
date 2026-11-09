@@ -73,6 +73,9 @@ approved processing is not proof that inference remains local.
 Local CLI/TUI instead require prepared engine/weights and never discover or
 fall back to those HTTP providers. The local process uses private namespaces,
 read-only assets, a clean environment and closed inherited descriptors.
+For split GGUF weights, only the exact prepared numbered shards are bound;
+their host directory and unrelated neighbors stay hidden. Split discovery
+and GGUF validation are adapters, outside the processor's path-value proof.
 Host IPC pins the socket inode without following symlinks; replacing its
 name cannot select another host service. Limits, cancellation, tested
 versions and trust assumptions are in [local inference](docs/local-inference.md).

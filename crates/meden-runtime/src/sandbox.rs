@@ -238,6 +238,61 @@ fn resolve_libraries<'a>(
     Ok((worker_libraries, worker_loader))
 }
 
+// llama.cpp discovers siblings from the first split's filename. Keep that
+// naming scheme in the private namespace without exposing the host directory.
+// Parse before canonicalization: prepared cache entries may be symlinks to
+// blobs whose names carry no split information.
+fn model_bindings(model: &Path) -> io::Result<Vec<(PathBuf, String)>> {
+    let split = model
+        .file_name()
+        .and_then(OsStr::to_str)
+        .and_then(|name| name.strip_suffix(".gguf"))
+        .and_then(|name| name.rsplit_once("-of-"))
+        .and_then(|(name, count)| {
+            name.rsplit_once('-')
+                .map(|(prefix, index)| (prefix, index, count))
+        })
+        .filter(|(_, index, count)| {
+            index.len() == 5
+                && count.len() == 5
+                && index.bytes().all(|c| c.is_ascii_digit())
+                && count.bytes().all(|c| c.is_ascii_digit())
+        });
+    let paths = if let Some((prefix, index, count)) = split {
+        // GGUF's split.count is a uint16. Refuse a later shard or impossible
+        // count before starting any model process.
+        let count = count
+            .parse::<u16>()
+            .ok()
+            .filter(|count| *count > 0 && index == "00001")
+            .ok_or_else(|| {
+                io::Error::other("split weights require the first shard and a valid count")
+            })?;
+        (1..=count)
+            .map(|index| {
+                (
+                    model.with_file_name(format!("{prefix}-{index:05}-of-{count:05}.gguf")),
+                    format!("/model-{index:05}-of-{count:05}.gguf"),
+                )
+            })
+            .collect::<Vec<_>>()
+    } else {
+        vec![(model.to_owned(), "/model.gguf".to_owned())]
+    };
+    paths
+        .into_iter()
+        .map(|(path, destination)| {
+            let path = path.canonicalize().map_err(|error| {
+                io::Error::other(format!("cannot prepare local weights: {error}"))
+            })?;
+            if !path.is_file() {
+                return Err(io::Error::other("local weights must be regular files"));
+            }
+            Ok((path, destination))
+        })
+        .collect()
+}
+
 impl Sandbox {
     /// Prepare an offline execution configuration. Missing isolation support
     /// is an error; there is no unrestricted host fallback.
@@ -254,18 +309,26 @@ impl Sandbox {
         model: &Path,
     ) -> io::Result<Command> {
         let engine = engine.canonicalize()?;
-        let model = model.canonicalize()?;
-        if !engine.is_file() || !model.is_file() {
-            return Err(io::Error::other(
-                "local engine and weights must be regular files",
-            ));
+        if !engine.is_file() {
+            return Err(io::Error::other("local engine must be a regular file"));
         }
+        let models = model_bindings(model)?;
+        let model = models
+            .first()
+            .ok_or_else(|| io::Error::other("local weights missing"))?;
+        let bindings: Vec<_> = std::iter::once((engine.as_path(), "/local-engine"))
+            .chain(
+                models
+                    .iter()
+                    .map(|(path, name)| (path.as_path(), name.as_str())),
+            )
+            .collect();
         let sandbox = Self::configure(root, worker.canonicalize()?, &[&engine])?;
         Ok(sandbox.build(
             "/local-engine",
             &[
                 "--model",
-                "/model.gguf",
+                &model.1,
                 "--host",
                 "/workspace/llama.sock",
                 "--offline",
@@ -282,7 +345,7 @@ impl Sandbox {
                 "0",
             ],
             None,
-            &[(&engine, "/local-engine"), (&model, "/model.gguf")],
+            &bindings,
             Network::Offline,
         ))
     }
