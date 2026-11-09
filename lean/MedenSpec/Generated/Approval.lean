@@ -501,7 +501,7 @@ inductive tui.Screen where
 | Running : tui.Screen
 
 /-- [meden::tui::approval::approves]:
-    Source: 'crates/meden-cli/src/tui/approval.rs', lines 29:0-37:1 -/
+    Source: 'crates/meden-cli/src/tui/approval.rs', lines 33:0-41:1 -/
 def tui.approval.approves (event : crossterm.event.Event) : Result Bool := do
   match event with
   | crossterm.event.Event.FocusGained => ok false
@@ -524,21 +524,30 @@ def tui.approval.approves (event : crossterm.event.Event) : Result Bool := do
   | crossterm.event.Event.Resize _ _ => ok false
 
 /-- [meden::tui::approval::route]:
-    Source: 'crates/meden-cli/src/tui/approval.rs', lines 17:0-27:1 -/
+    Source: 'crates/meden-cli/src/tui/approval.rs', lines 17:0-31:1 -/
 def tui.approval.route
-  (screen : tui.Screen) (event : crossterm.event.Event) :
+  (screen : tui.Screen) (event : crossterm.event.Event) (width : Std.U16)
+  (height : Std.U16) :
   Result (Option tui.approval.Choice)
   := do
-  let b ← tui.approval.approves event
-  if b
-  then
-    match screen with
-    | tui.Screen.Picking => ok none
-    | tui.Screen.ReviewingProcessor => ok (some tui.approval.Choice.Processor)
-    | tui.Screen.ReviewingExport => ok (some tui.approval.Choice.Export)
-    | tui.Screen.ReviewingContract => ok (some tui.approval.Choice.Contract)
-    | tui.Screen.Instructing => ok none
-    | tui.Screen.Running => ok none
-  else ok none
+  if width <= 2#u16
+  then ok none
+  else
+    if height <= 2#u16
+    then ok none
+    else
+      let b ← tui.approval.approves event
+      if b
+      then
+        match screen with
+        | tui.Screen.Picking => ok none
+        | tui.Screen.ReviewingProcessor =>
+          ok (some tui.approval.Choice.Processor)
+        | tui.Screen.ReviewingExport => ok (some tui.approval.Choice.Export)
+        | tui.Screen.ReviewingContract =>
+          ok (some tui.approval.Choice.Contract)
+        | tui.Screen.Instructing => ok none
+        | tui.Screen.Running => ok none
+      else ok none
 
 end MedenUIImpl

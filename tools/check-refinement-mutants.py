@@ -767,6 +767,20 @@ GROUPS = [
         ],
     },
     {
+        "source": "crates/meden-cli/src/tui/approval.rs",
+        "package": "meden-cli",
+        "model": "Approval",
+        "proof": "ApprovalRefinement",
+        "test": "tui::approval::tests::review_area_must_have_content_cells",
+        "mutations": [
+            (
+                "hidden_review_approval",
+                "if width <= 2 || height <= 2 {",
+                "if (width <= 2 || height <= 2) && false {",
+            ),
+        ],
+    },
+    {
         "source": "crates/meden-runtime/src/verification/turn.rs",
         "package": "meden-runtime",
         "model": "Repair",

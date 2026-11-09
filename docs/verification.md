@@ -26,7 +26,7 @@ attempt; an older completed run does not cover a newer commit.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, file-request, capability policy, scope matching, failure and display-scalar kernels, `lake build`, proof scan/audit, 146 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, file-request, capability policy, scope matching, failure and display-scalar kernels, `lake build`, proof scan/audit, 147 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A decision differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -309,9 +309,10 @@ collision with Crossterm's `Event` when importing both models.
 | `modified_key_cannot_approve` | Any key with nonzero modifier bits returns false |
 | `nonpress_cannot_approve` | Repeat and release events return false |
 | `route_refines` | The actual review-target selector terminates and matches the complete event/screen specification |
-| `route_iff` | A target is returned exactly for an eligible key and that target's own review-screen state |
+| `route_iff` | A target is returned exactly for an eligible key, that target's own review-screen state and content cells inside the review border |
 | `paste_cannot_route` | No paste string grants any target in any screen |
 | `nonreview_cannot_route` | Picking, instructing and running screens grant no approval for any event |
+| `hidden_review_cannot_route` | Every event in every screen returns no target when the panel width or height is at most two cells |
 
 Four Rust mutations admit repeats, ignore modifiers, accept Enter or accept
 non-key events. Each must fail the native input assertions, compile as a
@@ -324,6 +325,19 @@ routing matrix and unchanged refinement must reject all three after
 successful extraction/model compilation. A real gateway regression also
 calls the processor handler while each other screen is active and checks
 that no processor grant is issued.
+
+The TUI records the actual review panel from its most recent draw, clearing
+it when a processor, export or contract review is opened. All three handlers
+pass its dimensions to the same extracted selector. A terminal-size change
+between drawing and input postpones review-key handling until another draw.
+An actual two-column rendering previously allowed a processor grant despite
+having no content cells. The regression now rejects it, resizes, checks that
+the endpoint was painted and then successfully authorizes. Processor changes
+also discard the previous frame's readiness. A new Rust fault removes the
+dimension guard; native assertions and unchanged refinement must reject it.
+These are necessary viewport conditions, not a proof that every review byte
+was visible or read. Frame attribution, layout, rendering, physical input and
+the complete screen-transition interpreter remain adapter obligations.
 
 This proves the predicate and target selection over decoded events and a
 given host screen state. Terminal decoding, physical input provenance,
@@ -716,7 +730,7 @@ uses [`worker_file/pinned.rs`](../crates/meden-cli/src/worker_file/pinned.rs):
 The [Linux `openat2` contract](https://man7.org/linux/man-pages/man2/openat2.2.html)
 and [rustix's safe wrapper](https://docs.rs/rustix/1.1.6/rustix/fs/fn.openat2.html)
 are trusted OS/library behavior. First-party code adds no unsafe Rust or assumed
-Lean filesystem primitive. The 297 audited roots concern their documented pure
+Lean filesystem primitive. The 298 audited roots concern their documented pure
 control kernels, including the resolved-resource check, rather than Linux internals.
 
 Native adversarial tests deterministically substitute both parents and final
@@ -778,7 +792,7 @@ Six semantic Rust faults skip either policy check, accept either name, check
 the wrong canonical operation, substitute the alias for the canonical name or
 return another operation. Each must fail its native assertion, extract into a
 compiling model and fail the unchanged refinement. They are part of the
-146-fault CI corpus. JSON/policy serialization, callback interpretation,
+147-fault CI corpus. JSON/policy serialization, callback interpretation,
 UTF-8/OS decoding and canonical path/handle attribution remain tested adapters;
 these kernel proofs do not establish whole-session physical-effect refinement.
 
@@ -1107,8 +1121,8 @@ Eight additional actual Rust mutations disable producer checks, receipt
 freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
-refinement proof. Combined with processor/review/dispatch and TUI approval checks, CI rejects
-146 faults, including file-request, contract revision, outer/inner conversation, scope matching, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
+refinement proof. Combined with processor/review/dispatch and TUI approval checks, CI requires rejection of
+147 faults, including file-request, contract revision, outer/inner conversation, scope matching, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -1194,7 +1208,7 @@ Six additional semantic Rust faults exercise reused revisions, stale review,
 stale acceptance, pending eligibility, discarded accepted state and revived
 evidence after editing. Each must fail its native regression and the unchanged
 refinement after successful extraction/model compilation. They are part of
-the 146-fault CI corpus above.
+the 147-fault CI corpus above.
 
 Formula validation, canonical byte encoding, source/artifact input construction,
 host-origin attribution, JSON decoding, review rendering, locking, physical
@@ -1204,7 +1218,7 @@ session I/O loop or natural-language/formula equivalence.
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 297
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 298
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -1441,7 +1455,7 @@ counter through compilation, extraction, Lean refinement and artifact
 inspection. A counter that silently ignores amount 4 passes the fixed native
 examples but must fail refinement, without producing an artifact. These are
 project-kernel proofs through additional deployment paths, not a new proof of
-mounts, loaders or the complete controller. The 297 first-party audited roots
+mounts, loaders or the complete controller. The 298 first-party audited roots
 are unchanged.
 
 The lab requires installed public Nix tools, a dynamic x86_64 glibc worker and
@@ -1535,7 +1549,7 @@ address-list interpretation, connector use, TLS and OS behavior remain adapters;
 they are not whole-network or whole-R1 refinement. Four new Rust mutations
 admit loopback/shared space, ignore the IPv6 global mask or accept 6to4. Each
 must fail a native assertion, extract a compiling model and fail the unchanged
-refinement, as part of the 146-fault CI corpus.
+refinement, as part of the 147-fault CI corpus.
 
 The Linux [DNS/TLS lab](../crates/meden-runtime/src/pages/network_tests.rs)
 adds an observed connection check around those predicates. A fresh user/network
@@ -1569,7 +1583,7 @@ Local fault injections also confirmed that the lab fails if mixed DNS answers
 are allowed, one redirect is followed or TLS identity checks are disabled.
 The mixed-answer fault made an actual private receiver connect even though
 TLS subsequently failed; the observer assertion caught it. These are native
-adapter fault checks, separate from the 146 Rust-to-Lean refinement faults.
+adapter fault checks, separate from the 147 Rust-to-Lean refinement faults.
 
 Rust tests check address boundaries, mixed DNS answers, exact resolved
 addresses, malformed/oversized caches and Unicode pagination. The production

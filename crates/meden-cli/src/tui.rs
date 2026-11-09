@@ -75,6 +75,9 @@ struct App {
     worker_gateway: Option<Arc<Gateway>>,
     processes: Arc<Control>,
     scroll_back: u16,
+    // Populated by drawing; changing a review target discards this readiness.
+    review_area: Rect,
+    review_frame: Rect,
 }
 
 impl App {
@@ -107,6 +110,8 @@ impl App {
             worker_gateway: None,
             processes: Arc::new(Control::new(Arc::new(AtomicBool::new(false)))),
             scroll_back: 0,
+            review_area: Rect::default(),
+            review_frame: Rect::default(),
         }
     }
     fn selected(&self) -> Option<&Provider> {
@@ -135,6 +140,7 @@ impl App {
         self.root.as_os_str().as_encoded_bytes()
     }
     fn select_processor(&mut self) {
+        self.review_area = Rect::default();
         let Some(provider) = self.selected().cloned() else {
             return;
         };
@@ -171,7 +177,12 @@ impl App {
     fn review_key(&mut self, key: crossterm::event::KeyEvent) {
         match key.code {
             _ if matches!(
-                approval::route(&self.screen, &event::Event::Key(key)),
+                approval::route(
+                    &self.screen,
+                    &event::Event::Key(key),
+                    self.review_area.width,
+                    self.review_area.height
+                ),
                 Some(approval::Choice::Processor)
             ) =>
             {
@@ -182,6 +193,7 @@ impl App {
         }
     }
     fn open_export(&mut self, id: Option<usize>) {
+        self.review_area = Rect::default();
         let result = self.exports.list().and_then(|entries| {
             entries
                 .into_iter()
@@ -236,7 +248,12 @@ impl App {
         };
         let result = match key.code {
             _ if matches!(
-                approval::route(&self.screen, &event::Event::Key(key)),
+                approval::route(
+                    &self.screen,
+                    &event::Event::Key(key),
+                    self.review_area.width,
+                    self.review_area.height
+                ),
                 Some(approval::Choice::Export)
             ) =>
             {
@@ -297,6 +314,7 @@ impl App {
         }
     }
     fn open_contract(&mut self) {
+        self.review_area = Rect::default();
         let result = self
             .project
             .current_reference()
@@ -320,7 +338,12 @@ impl App {
         };
         match key.code {
             _ if matches!(
-                approval::route(&self.screen, &event::Event::Key(key)),
+                approval::route(
+                    &self.screen,
+                    &event::Event::Key(key),
+                    self.review_area.width,
+                    self.review_area.height
+                ),
                 Some(approval::Choice::Contract)
             ) =>
             {
@@ -731,6 +754,16 @@ where
             }
             return Ok(());
         }
+        if matches!(
+            app.screen,
+            Screen::ReviewingProcessor | Screen::ReviewingExport | Screen::ReviewingContract
+        ) {
+            let size = terminal.size()?;
+            if size.width != app.review_frame.width || size.height != app.review_frame.height {
+                app.review_area = Rect::default();
+                continue;
+            }
+        }
         match key.code {
             KeyCode::PageUp => {
                 app.scroll_back = if matches!(
@@ -785,7 +818,9 @@ where
     }
 }
 
-fn draw(frame: &mut Frame<'_>, app: &App) {
+fn draw(frame: &mut Frame<'_>, app: &mut App) {
+    app.review_area = Rect::default();
+    app.review_frame = frame.area();
     frame.render_widget(Block::default().bg(Color::Rgb(12, 18, 30)), frame.area());
     let areas = Layout::vertical([
         Constraint::Length(5),
@@ -804,16 +839,14 @@ fn draw(frame: &mut Frame<'_>, app: &App) {
     } else {
         middle
     };
+    if matches!(
+        app.screen,
+        Screen::ReviewingProcessor | Screen::ReviewingExport | Screen::ReviewingContract
+    ) {
+        app.review_area = middle;
+    }
     if app.screen == Screen::ReviewingContract {
-        let text = app.contract_review.as_ref().map_or_else(String::new, |s|
-            visible(&format!("Contract revision: {}\nContract SHA-256: {}\n\n{}\n\nAccepting continues development under this exact contract.",s.reference.revision,s.reference.contract,s.review)));
-        frame.render_widget(
-            Paragraph::new(text)
-                .wrap(Wrap { trim: false })
-                .scroll((app.scroll_back, 0))
-                .block(Block::bordered().title(" Rust transition contract · host control ")),
-            middle,
-        );
+        draw_contract_review(frame, app, middle);
     } else if app.screen == Screen::ReviewingExport {
         draw_export_review(frame, app, middle);
     } else if app.screen == Screen::ReviewingProcessor {
@@ -914,6 +947,18 @@ fn draw_header(frame: &mut Frame<'_>, app: &App, top: Rect) {
         .style(Style::new().fg(Color::Rgb(104, 218, 219)))
         .block(Block::bordered().border_style(Style::new().fg(Color::Rgb(53, 75, 96)))),
         top,
+    );
+}
+
+fn draw_contract_review(frame: &mut Frame<'_>, app: &App, middle: Rect) {
+    let text = app.contract_review.as_ref().map_or_else(String::new, |s|
+            visible(&format!("Contract revision: {}\nContract SHA-256: {}\n\n{}\n\nAccepting continues development under this exact contract.",s.reference.revision,s.reference.contract,s.review)));
+    frame.render_widget(
+        Paragraph::new(text)
+            .wrap(Wrap { trim: false })
+            .scroll((app.scroll_back, 0))
+            .block(Block::bordered().title(" Rust transition contract · host control ")),
+        middle,
     );
 }
 
@@ -1037,7 +1082,7 @@ fn selftest(providers: Vec<Provider>) -> Result<String> {
     ] {
         app.screen = screen;
         app.say("a line of transcript", Style::new());
-        terminal.draw(|frame| draw(frame, &app))?;
+        terminal.draw(|frame| draw(frame, &mut app))?;
         let _ = writeln!(rendered, "{:?}", terminal.backend().buffer().area);
     }
     Ok(rendered)
@@ -1072,6 +1117,36 @@ mod tests {
     #[test]
     fn every_screen_draws() {
         assert!(selftest(providers()).is_ok());
+    }
+    #[test]
+    fn processor_cannot_be_approved_without_a_visible_review_area() -> Result<()> {
+        use anyhow::Context as _;
+        let mut app = App::new(providers(), PathBuf::from("/workspace/hidden-review"));
+        app.select_processor();
+        let gateway = Arc::clone(app.gateway.as_ref().context("pending gateway")?);
+        let mut terminal = Terminal::new(ratatui::backend::TestBackend::new(2, 20))?;
+        for (width, height) in [(2, 20), (100, 2), (0, 0)] {
+            terminal.backend_mut().resize(width, height);
+            terminal.draw(|frame| draw(frame, &mut app))?;
+            app.review_key(crossterm::event::KeyEvent::from(KeyCode::Char('y')));
+            assert!(
+                !gateway.is_authorized(app.session_id()),
+                "an invisible processor was authorized"
+            );
+        }
+        terminal.backend_mut().resize(100, 24);
+        terminal.draw(|frame| draw(frame, &mut app))?;
+        let painted: String = terminal
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(ratatui::buffer::Cell::symbol)
+            .collect();
+        assert!(painted.contains(gateway.endpoint()));
+        app.review_key(crossterm::event::KeyEvent::from(KeyCode::Char('y')));
+        assert!(gateway.is_authorized(app.session_id()));
+        Ok(())
     }
     #[test]
     fn picker_stays_in_range() {
@@ -1113,11 +1188,14 @@ mod tests {
             assert!(!first.is_authorized(app.session_id()));
         }
         app.screen = Screen::ReviewingProcessor;
+        let mut terminal = Terminal::new(ratatui::backend::TestBackend::new(100, 24))?;
+        terminal.draw(|frame| draw(frame, &mut app))?;
         app.review_key(crossterm::event::KeyEvent::from(KeyCode::Char('y')));
         assert!(first.is_authorized(app.session_id()));
         app.move_selection(1);
         app.select_processor();
         assert!(app.screen == Screen::ReviewingProcessor);
+        app.review_key(crossterm::event::KeyEvent::from(KeyCode::Char('y')));
         assert!(!first.is_authorized(app.session_id()));
         assert!(!app
             .gateway
@@ -1134,11 +1212,11 @@ mod tests {
         app.instruction.insert(&"日本語🙂abc ".repeat(40));
         let mut terminal =
             Terminal::new(ratatui::backend::TestBackend::new(40, 16)).expect("terminal");
-        terminal.draw(|frame| draw(frame, &app)).expect("draw");
+        terminal.draw(|frame| draw(frame, &mut app)).expect("draw");
         let cursor = terminal.get_cursor_position().expect("cursor");
         assert!(cursor.x > 0 && cursor.x < 39 && cursor.y >= 12 && cursor.y < 15);
         app.instruction.home();
-        terminal.draw(|frame| draw(frame, &app)).expect("draw");
+        terminal.draw(|frame| draw(frame, &mut app)).expect("draw");
         assert_eq!(
             terminal.get_cursor_position().expect("cursor"),
             Position::new(3, 12)

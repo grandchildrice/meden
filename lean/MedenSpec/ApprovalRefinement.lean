@@ -55,8 +55,10 @@ def review_screen : Choice → Screen
   | .Export => .ReviewingExport
   | .Contract => .ReviewingContract
 
-def expected_route (screen : Screen) (e : Event) : Option Choice :=
-  if expected e then
+abbrev has_content (width height : U16) : Prop := 2 < width.val ∧ 2 < height.val
+
+def expected_route (screen : Screen) (e : Event) (width height : U16) : Option Choice :=
+  if has_content width height ∧ expected e = true then
     match screen with
     | .ReviewingProcessor => some .Processor
     | .ReviewingExport => some .Export
@@ -64,30 +66,41 @@ def expected_route (screen : Screen) (e : Event) : Option Choice :=
     | _ => none
   else none
 
-theorem route_refines (screen : Screen) (e : Event) :
-    MedenUIImpl.tui.approval.route screen e = ok (expected_route screen e) := by
-  cases h : expected e <;> cases screen <;>
-    simp [MedenUIImpl.tui.approval.route, approves_refines, expected_route, h]
+theorem route_refines (screen : Screen) (e : Event) (width height : U16) :
+    MedenUIImpl.tui.approval.route screen e width height =
+      ok (expected_route screen e width height) := by
+  by_cases hw : width.val ≤ 2 <;> by_cases hh : height.val ≤ 2 <;>
+    cases h : expected e <;> cases screen <;>
+    simp [MedenUIImpl.tui.approval.route, approves_refines, expected_route,
+      has_content, UScalar.le_equiv, UScalar.ofNatCore_val_eq, hw, hh, h]
 
-/-- Every approval target is paired with its own review-screen state
-and an actual unmodified lowercase-y key press. -/
-theorem route_iff (screen : Screen) (e : Event) (target : Choice) :
-    MedenUIImpl.tui.approval.route screen e = ok (some target) ↔
-      expected e = true ∧ screen = review_screen target := by
+/-- Every target requires content cells inside the review border, its own
+review screen and an actual unmodified lowercase-y key press. -/
+theorem route_iff (screen : Screen) (e : Event) (width height : U16) (target : Choice) :
+    MedenUIImpl.tui.approval.route screen e width height = ok (some target) ↔
+      has_content width height ∧ expected e = true ∧ screen = review_screen target := by
   rw [route_refines]
-  cases target <;> cases screen <;> cases h : expected e <;>
-    simp [expected_route, review_screen, h]
+  by_cases hv : has_content width height <;>
+    cases target <;> cases screen <;> cases h : expected e <;>
+    simp_all [expected_route, review_screen, has_content]
 
-theorem paste_cannot_route (screen : Screen) (text : String) :
-    MedenUIImpl.tui.approval.route screen (.Paste text) = ok none := by
+theorem paste_cannot_route (screen : Screen) (text : String) (width height : U16) :
+    MedenUIImpl.tui.approval.route screen (.Paste text) width height = ok none := by
   rw [route_refines]
-  rfl
+  simp [expected_route, expected]
 
-theorem nonreview_cannot_route (screen : Screen) (e : Event)
+theorem nonreview_cannot_route (screen : Screen) (e : Event) (width height : U16)
     (hp : screen ≠ .ReviewingProcessor) (he : screen ≠ .ReviewingExport)
     (hc : screen ≠ .ReviewingContract) :
-    MedenUIImpl.tui.approval.route screen e = ok none := by
+    MedenUIImpl.tui.approval.route screen e width height = ok none := by
   rw [route_refines]
-  cases screen <;> cases h : expected e <;> simp_all [expected_route]
+  cases screen <;> simp_all [expected_route]
+
+theorem hidden_review_cannot_route (screen : Screen) (e : Event) (width height : U16)
+    (h : width.val ≤ 2 ∨ height.val ≤ 2) :
+    MedenUIImpl.tui.approval.route screen e width height = ok none := by
+  rw [route_refines]
+  have hn : ¬has_content width height := by unfold has_content; omega
+  simp [expected_route, hn]
 
 end MedenSpec.ApprovalRefinement

@@ -60,6 +60,11 @@
   extracted and refined too. All approval handlers match the selected target
   against the host's current screen. Decoding, screen transitions, rendering,
   effect interpretation and physical input provenance remain separate gaps.
+  Approval routing also requires content cells inside the review border.
+  TUI handlers use the last drawn panel, discard readiness on a new review
+  target and redraw after a terminal-size mismatch before handling review keys.
+  The numeric guard refines Lean for every u16 width/height; geometry attribution
+  and complete review visibility remain adapters, not a whole-renderer proof.
   The numeric display transformation is extracted/refined too, including
   finite compositions, safe output, preserved ordinary values/newlines and valid scalars.
   Unicode String iteration/conversion/collection and terminal rendering remain
