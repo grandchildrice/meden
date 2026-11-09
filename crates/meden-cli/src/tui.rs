@@ -32,7 +32,7 @@ mod input;
 use input::Input;
 
 enum Update {
-    Project(crate::project::Summary),
+    Project(Box<crate::project::Summary>),
     ProjectDirty,
     Asking(usize),
     Text(String),
@@ -62,6 +62,7 @@ struct App {
     exports: Arc<Exports>,
     project: Arc<crate::project::Project>,
     project_status: Option<crate::project::Summary>,
+    contract_review: Option<crate::project::Summary>,
     pages: Arc<meden_runtime::pages::Pages>,
     reviewing_export: Option<Reference>,
     export_offset: usize,
@@ -93,6 +94,7 @@ impl App {
             exports,
             project,
             project_status: None,
+            contract_review: None,
             pages: Arc::default(),
             reviewing_export: None,
             export_offset: 0,
@@ -291,8 +293,13 @@ impl App {
         }
     }
     fn open_contract(&mut self) {
-        match self.project.review(&self.project.current_reference()) {
+        let result = self
+            .project
+            .current_reference()
+            .and_then(|r| self.project.review(&r));
+        match result {
             Ok(summary) => {
+                self.contract_review = Some(summary.clone());
                 self.project_status = Some(summary);
                 self.scroll_back = 0;
                 self.screen = Screen::ReviewingContract;
@@ -301,27 +308,47 @@ impl App {
         }
     }
     fn contract_key(&mut self, key: crossterm::event::KeyEvent) {
+        if self.screen != Screen::ReviewingContract {
+            return;
+        }
+        let Some(review) = self.contract_review.clone() else {
+            return;
+        };
         match key.code {
             _ if matches!(
                 approval::route(&self.screen, &event::Event::Key(key)),
                 Some(approval::Choice::Contract)
             ) =>
             {
-                if self.project.accepted() {
+                if review.accepted {
                     self.screen = Screen::Instructing;
                     return;
                 }
-                match self.project.accept(&self.project.current_reference()) {
+                match self.project.accept(&review.reference) {
                     Ok(summary) => {
                         self.project_status = Some(summary);
                         self.screen = Screen::Instructing;
-                        self.instruction.insert("Proceed under the host-accepted Rust ledger-v1 contract. Implement ledger.rs and independently verify it using verify_ledger. Repair failures; report unknown if verification cannot finish.");
-                        self.start();
+                        match self.project.continuation() {
+                            Ok(instruction) => {
+                                self.instruction.insert(&instruction);
+                                self.start();
+                            }
+                            Err(error) => self.say(error.to_string(), Style::new().fg(Color::Red)),
+                        }
                     }
                     Err(error) => self.say(error.to_string(), Style::new().fg(Color::Red)),
                 }
             }
-            KeyCode::Char('n') | KeyCode::Esc => self.screen = Screen::Instructing,
+            KeyCode::Char('n') | KeyCode::Esc => {
+                if !review.accepted {
+                    match self.project.reject(&review.reference) {
+                        Ok(summary) => self.project_status = Some(summary),
+                        Err(error) => self.say(error.to_string(), Style::new().fg(Color::Red)),
+                    }
+                }
+                self.contract_review = None;
+                self.screen = Screen::Instructing;
+            }
             _ => {}
         }
     }
@@ -465,14 +492,14 @@ impl App {
                         if let Some(path) = &summary.artifact {
                             self.say(
                                 format!(
-                                    "Host: verified ledger kernel. Artifact: {}",
+                                    "Host: verified project kernel. Artifact: {}",
                                     path.display()
                                 ),
                                 Style::new().fg(Color::Green),
                             );
                         }
                     }
-                    self.project_status = Some(summary);
+                    self.project_status = Some(*summary);
                 }
                 Update::ProjectDirty => {
                     if let Some(status) = &mut self.project_status {
@@ -594,7 +621,7 @@ fn worker(mut session: crate::session::Session, tasks: &Receiver<String>, tx: &S
             Status::NeedsReview => "Review the proposed contract to continue.".to_owned(),
         };
         if let Ok(status) = session.project_status() {
-            let _ = tx.send(Update::Project(status));
+            let _ = tx.send(Update::Project(Box::new(status)));
         }
         if tx.send(Update::Done(summary, needs_review)).is_err() {
             return;
@@ -774,13 +801,13 @@ fn draw(frame: &mut Frame<'_>, app: &App) {
         middle
     };
     if app.screen == Screen::ReviewingContract {
-        let text = format!("{}\n\nSource: ledger.rs\n\n{}\n\nOnly the standalone library kernel is covered. The controller checks its real Rust extraction and Lean proof using fixed inputs outside the writable coding copy. Model prose, edited tests and local proof/result files cannot grant verification.\n\nAccepting continues the requested development under this exact contract.",meden_runtime::verification::LEDGER_CONTRACT,
-            app.project_status.as_ref().map_or("",|s|s.api));
+        let text = app.contract_review.as_ref().map_or_else(String::new, |s|
+            visible(&format!("Contract SHA-256: {}\n\n{}\n\nAccepting continues development under this exact contract.",s.reference.contract,s.review)));
         frame.render_widget(
             Paragraph::new(text)
                 .wrap(Wrap { trim: false })
                 .scroll((app.scroll_back, 0))
-                .block(Block::bordered().title(" Rust ledger contract · host control ")),
+                .block(Block::bordered().title(" Rust transition contract · host control ")),
             middle,
         );
     } else if app.screen == Screen::ReviewingExport {
@@ -841,7 +868,7 @@ fn draw(frame: &mut Frame<'_>, app: &App) {
         ),
         Screen::ReviewingContract => (
             " contract review · host control ",
-            "y: accept and continue · n / esc: back · PgUp/PgDn: scroll".to_owned(),
+            "y: accept and continue · n / esc: reject proposal · PgUp/PgDn: scroll".to_owned(),
         ),
         Screen::Instructing => return,
         Screen::Running => (
@@ -867,7 +894,7 @@ fn draw_header(frame: &mut Frame<'_>, app: &App, top: Rect) {
             Line::from(visible(&format!("files: {}", app.root.display()))),
             Line::from(match &app.project_status {
                 Some(s) if s.verified => format!(
-                    "VERIFIED ledger kernel · source {}",
+                    "VERIFIED project kernel · source {}",
                     s.source_sha256
                         .as_deref()
                         .unwrap_or_default()
@@ -875,8 +902,8 @@ fn draw_header(frame: &mut Frame<'_>, app: &App, top: Rect) {
                         .take(12)
                         .collect::<String>()
                 ),
-                Some(s) if s.accepted => "Ledger kernel: current source is not verified".into(),
-                Some(s) if s.proposed => "Ledger contract awaits host acceptance".into(),
+                Some(s) if s.accepted => "Project kernel: current source is not verified".into(),
+                Some(s) if s.proposed => "Project contract awaits host acceptance".into(),
                 _ => "Verification: no accepted project contract".into(),
             }),
         ])

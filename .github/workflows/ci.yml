@@ -127,7 +127,7 @@ jobs:
           lake build
       - name: Forbid unfinished proofs and project axioms
         run: |
-          if grep -rn --include='*.lean' -E '\b(sorry|admit|axiom)\b' lean/MedenSpec lean/MedenSpec.lean lean/MedenProof.lean lean/Main.lean verification/ledger; then
+          if grep -rn --include='*.lean' -E '\b(sorry|admit|axiom)\b' lean/MedenSpec lean/MedenSpec.lean lean/MedenProof.lean lean/Main.lean verification/kernel; then
             echo "unfinished proof or project axiom found"; exit 1; fi
       - name: audit axioms
         working-directory: lean
@@ -147,14 +147,14 @@ jobs:
             --charon "$CHARON" --driver "$RUNNER_TEMP/aeneas/charon-driver" \
             --aeneas "$AENEAS" --output "$RUNNER_TEMP/project-verifier.json"
           uv run --project python pytest -q python/tests/test_project_verification.py \
-            --basetemp "$RUNNER_TEMP/ledger-project-tests"
+            --basetemp "$RUNNER_TEMP/project-tests"
         env:
           MEDEN_BIN: ${{ github.workspace }}/target/release/meden
           MEDEN_VERIFIER_BUNDLE: ${{ runner.temp }}/project-verifier.json
       - uses: actions/upload-artifact@v7
         with:
-          name: meden-ledger-evidence
-          path: ${{ runner.temp }}/ledger-project-tests/**/artifacts/**
+          name: meden-project-evidence
+          path: ${{ runner.temp }}/project-tests/**/artifacts/**
           if-no-files-found: error
       - uses: actions/upload-artifact@v7
         with:

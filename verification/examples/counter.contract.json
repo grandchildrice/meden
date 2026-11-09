@@ -1,0 +1,91 @@
+{
+  "name": "Bounded counter",
+  "description": "Increment an unsigned counter without wrapping; a rejected increment leaves it unchanged.",
+  "source": "counter.rs",
+  "state": "Counter",
+  "fields": [
+    "value"
+  ],
+  "parameters": [
+    "amount"
+  ],
+  "function": "increment",
+  "specification": "if s.value + amount ≤ 18446744073709551615 then { value := s.value + amount } else s",
+  "properties": [
+    {
+      "name": "monotone",
+      "description": "The counter never decreases.",
+      "statement": "s.value ≤ out.value"
+    },
+    {
+      "name": "bounded",
+      "description": "The result fits in u64.",
+      "statement": "out.value ≤ 18446744073709551615"
+    },
+    {
+      "name": "zero_identity",
+      "description": "A zero increment leaves state unchanged.",
+      "statement": "amount = 0 → out = s"
+    }
+  ],
+  "examples": [
+    {
+      "before": [
+        0
+      ],
+      "arguments": [
+        1
+      ],
+      "after": [
+        1
+      ]
+    },
+    {
+      "before": [
+        10
+      ],
+      "arguments": [
+        2
+      ],
+      "after": [
+        12
+      ]
+    },
+    {
+      "before": [
+        18446744073709551615
+      ],
+      "arguments": [
+        1
+      ],
+      "after": [
+        18446744073709551615
+      ]
+    },
+    {
+      "before": [
+        18446744073709551614
+      ],
+      "arguments": [
+        2
+      ],
+      "after": [
+        18446744073709551614
+      ]
+    },
+    {
+      "before": [
+        5
+      ],
+      "arguments": [
+        0
+      ],
+      "after": [
+        5
+      ]
+    }
+  ],
+  "assumptions": [
+    "The caller uses this transition for counter updates."
+  ]
+}

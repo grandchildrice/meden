@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "meden-ledger"
+name = "meden-kernel"
 version = "0.1.0"

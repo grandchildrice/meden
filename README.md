@@ -44,8 +44,9 @@ HTTP connections and optional Hermes configuration.
 
 > Development prototype. General local orchestration and project proof workflows,
 > controller-wide refinement and general project delivery are design targets.
-> An experimental [Rust ledger workflow](docs/project-verification.md) now
-> connects host acceptance to actual Rust extraction, Lean proof and a retained library.
+> An experimental [pure Rust transition workflow](docs/project-verification.md)
+> connects reviewed mathematical contracts to actual Rust extraction, Lean proof
+> and a retained library. Counter and ledger contracts use the same backend.
 > TUI file/Bash tools and `exec` now run in private offline workspaces.
 > Local inference runs in a separate offline namespace; HTTP connections
 > require host approval and may still be remote. See [verification scope](docs/verification.md)

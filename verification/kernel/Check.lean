@@ -1,17 +1,30 @@
 import Candidate
 import Spec
-
 open Aeneas Aeneas.Std Result
-namespace LedgerProof
+namespace KernelProof
 set_option maxHeartbeats 2000000
--- The shared strategy intentionally contains steps/rewrites that some source
--- forms do not need. Keep candidate diagnostics focused on failed proof goals.
 set_option linter.unusedSimpArgs false
 set_option linter.unusedTactic false
 set_option linter.unreachableTactic false
 
-def abstractState (s : LedgerImpl.ledger.LedgerState) : LedgerContract.State :=
-  ⟨s.debit.val, s.credit.val, s.sequence.val⟩
+@@ABSTRACT_STATE@@
+
+-- Lean's core conditional elaborator also emits reflected Boolean cases.
+-- Relate that encoding to the usual dependent conditional without changing
+-- the supplied specification or adding assumptions about a candidate.
+private theorem reflected_rec_false {α : Sort u} (p : Prop)
+    (b : Bool) (h : b.Reflects p) (yes : p → α) (no : ¬p → α) (hp : ¬p) :
+    Bool.rec (motive := fun b => b.Reflects p → α) no yes b h = no hp := by
+  cases b with
+  | false => rfl
+  | true => exact (hp h).elim
+
+private theorem reflected_rec_true {α : Sort u} (p : Prop)
+    (b : Bool) (h : b.Reflects p) (yes : p → α) (no : ¬p → α) (hp : p) :
+    Bool.rec (motive := fun b => b.Reflects p → α) no yes b h = yes hp := by
+  cases b with
+  | false => exact (h hp).elim
+  | true => rfl
 
 private theorem saturating_sub_val (a b : U64) :
     (core.num.U64.saturating_sub a b).val = a.val - b.val := by
@@ -63,34 +76,42 @@ private theorem checked_sub_default (a b d : U64) :
   cases he : a.checked_sub b <;> simp_all [core.option.Option.unwrap_or]
   all_goals (try split_ifs) <;> omega
 
-theorem actual_spec (s : LedgerImpl.ledger.LedgerState) (actor id amount : U64) :
-    LedgerImpl.ledger.transfer s actor id amount ⦃ out =>
-      abstractState out = LedgerContract.transfer (abstractState s) actor.val id.val amount.val ⦄ := by
-  unfold LedgerImpl.ledger.transfer
+theorem actual_spec (_state : @@STATE_TYPE@@)@@ARGUMENTS@@ :
+    @@NATIVE_CALL@@ ⦃ out => abstractState out = @@SPEC_CALL@@ ⦄ := by
+  unfold @@ENTRY@@
   try simp only [Aeneas.Std.lift, Aeneas.Std.bind_ok]
   step*
-  all_goals simp_all [abstractState, LedgerContract.transfer, LedgerContract.permitted,
-    LedgerContract.maximum, U64.rMax, UScalar.eq_equiv, saturating_sub_val, saturating_add_val,
+  all_goals simp_all [abstractState, KernelContract.transition,
+    reflected_rec_false, reflected_rec_true,
+    U64.rMax, UScalar.eq_equiv, saturating_sub_val, saturating_add_val,
     checked_add_some, checked_add_none, checked_sub_some, checked_sub_none,
     Option.isSome_iff_ne_none, checked_add_default, checked_sub_default]
-  all_goals (try split_ifs) <;> (try congr 1) <;> scalar_tac
+  all_goals try simp (disch := omega) only [reflected_rec_false, reflected_rec_true]
+  all_goals try split_ifs
+  all_goals scalar_tac_preprocess
+  all_goals try simp (disch := omega) only [reflected_rec_false, reflected_rec_true]
+  all_goals repeat first | (split <;> try simp_all)
+  all_goals try simp_all
+  all_goals try simp (disch := omega) only [reflected_rec_false, reflected_rec_true]
+  all_goals try congr 1
+  all_goals scalar_tac_preprocess
+  all_goals try simp (disch := omega) only [reflected_rec_false, reflected_rec_true]
+  all_goals omega
 
-theorem actual_refines (s : LedgerImpl.ledger.LedgerState) (actor id amount : U64) :
-    (do let out ← LedgerImpl.ledger.transfer s actor id amount; ok (abstractState out)) =
-      ok (LedgerContract.transfer (abstractState s) actor.val id.val amount.val) := by
-  have h := actual_spec s actor id amount
-  cases he : LedgerImpl.ledger.transfer s actor id amount with
+theorem actual_refines (_state : @@STATE_TYPE@@)@@ARGUMENTS@@ :
+    (do let out ← @@NATIVE_CALL@@; ok (abstractState out)) =
+      ok (@@SPEC_CALL@@) := by
+  have h := actual_spec _state @@ARG_NAMES@@
+  cases he : @@NATIVE_CALL@@ with
   | ret out => simpa [he] using congrArg ok (by simpa [he] using h)
   | vis effect continuation => simp [he] at h
   | div => simp [he] at h
+private theorem success (_state : @@STATE_TYPE@@)@@ARGUMENTS@@ :
+    ∃ out, @@NATIVE_CALL@@ = ok out ∧ abstractState out = @@SPEC_CALL@@ := by
+  have h := actual_refines _state @@ARG_NAMES@@
+  cases he : @@NATIVE_CALL@@ with
+  | ret out => exact ⟨out, by simp_all, by simpa [he] using h⟩
+  | vis effect continuation => simp [he] at h
+  | div => simp [he] at h
+end KernelProof
 
-end LedgerProof
-
-#print axioms LedgerProof.actual_refines
-#print axioms LedgerContract.conservation
-#print axioms LedgerContract.rejection
-#print axioms LedgerContract.valid_transfer
-#print axioms LedgerContract.unauthorized
-#print axioms LedgerContract.old_request
-#print axioms LedgerContract.repeated_request
-#print axioms LedgerContract.bounded_result

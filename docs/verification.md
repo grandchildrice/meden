@@ -549,8 +549,8 @@ tickets, substitute inputs or let an old abort cancel a new job. Each must
 fail a native regression and the unchanged refinement proof after a fresh
 generated model compiles.
 
-The ledger adapter now freezes the candidate and source/worker/checker/resource
-hashes in a `PreparedLedger` before issuing its ticket. Checking consumes
+The project adapter freezes the candidate, accepted mathematical contract and
+source/worker/checker/resource hashes in a `PreparedKernel` before issuing its ticket. Checking consumes
 that preparation. Final admission rechecks resource bindings and compares a
 fresh workspace snapshot against the issued inputs. `Receipt.active` is
 computed inside `CheckJobs.complete` by consuming the job, rather than
@@ -658,10 +658,12 @@ soundness, serialization, persistence and actual effects remain assumptions
 or separate implementation obligations.
 
 The first consumer is [Meden's own release gate](release.md). A second
-consumer now connects the fixed Rust ledger contract to actual project
+consumer connects host-reviewed pure-u64 Rust transition contracts to project
 source, an independent Lean check and a retained library artifact; see
-[project verification](project-verification.md). General contracts/backends
-remain targets. The runtime reads actual staged archive
+[project verification](project-verification.md). The bounded mathematical-term
+adapter and generic draft/replacement management are tested adapters, not
+additional extracted/refined controller operations. Broader contracts/backends
+remain targets. The release runtime reads actual staged archive
 bytes, validates source/build sidecars and obtains current exact-source CI
 results directly from the fixed GitHub API. The compiled twelve-check policy
 is trusted host configuration. Files are reread before eligibility. Tests

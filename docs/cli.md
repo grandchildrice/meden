@@ -112,24 +112,29 @@ proof-of-correctness release gate.
 
 ## Project contract and verification
 
-With a host-prepared `MEDEN_VERIFIER_BUNDLE`, the model can propose the fixed
-Rust ledger contract using `propose_ledger`. The host reviews and accepts the
+With a host-prepared `MEDEN_VERIFIER_BUNDLE`, the model can use
+`propose_contract` to propose a bounded pure-u64 Rust transition contract.
+The host reviews and accepts the
 exact reference returned in `project.summary.reference`:
 
 ```json
-{"review_contract":{"session":"SESSION_FROM_PROPOSAL","contract":"rust-ledger-v1"}}
-{"accept_contract":{"session":"SESSION_FROM_PROPOSAL","contract":"rust-ledger-v1"}}
+{"review_contract":{"session":"SESSION_FROM_PROPOSAL","contract":"SHA256_FROM_PROPOSAL"}}
+{"accept_contract":{"session":"SESSION_FROM_PROPOSAL","contract":"SHA256_FROM_PROPOSAL"}}
 {"project_status":null}
 ```
 
 Review must precede acceptance. Acceptance continues development automatically.
 Only this host channel and the TUI review can accept; model tools cannot.
-`verify_ledger` and `project_status` model tools take empty arguments. The
+`verify_project` and `project_status` model tools take empty arguments. The
 former invokes the independent fixed backend and requires host acceptance.
-`project.summary.verified` describes the current ledger kernel, independently
+`project.summary.verified` describes the current project kernel, independently
 of the model answer or `done.outcome`. Source changes invalidate evidence.
 The summary names the retained artifact directory and its hashes. There is
-no arbitrary receipt callback or model-selected checker/contract path.
+no arbitrary receipt callback or model-selected checker/verification path.
+The summary includes the actual proposal and retained accepted contract.
+To reject a replacement, send `reject_contract` with its exact reference;
+this retains the previous accepted meaning and artifact, subject to a fresh
+source/status check. A stale reference cannot accept another draft.
 See [contract, preparation and proof scope](project-verification.md).
 
 ## Meden release evidence
@@ -180,7 +185,7 @@ effect. End stdin to finish the session.
 The CLI runs tools itself. Events are observations, not requests for a host
 to execute code. The fixed tools are `read_file`, `list_files`, `write_file`,
 `edit_file`, `bash`, `propose_export`, `list_cached_pages`, `read_cached_page`,
-`propose_ledger`, `verify_ledger` and `project_status`.
+`propose_contract`, `verify_project` and `project_status`.
 File/process operations use the offline copy at
 `/workspace`; unsupported send/network tools are refused. There is no host
 callback, plugin registration or unrestricted fallback.

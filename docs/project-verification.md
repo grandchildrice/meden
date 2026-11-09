@@ -1,261 +1,213 @@
-# First user-project verification path
+# Project verification
 
-Meden supports one experimental contract profile: a pure Rust ledger
-transition. TUI and JSON-lines CLI share the same session, host contract
-state, independent checker and evidence gate. Other project domains and
-arbitrary user-written contracts remain unsupported.
+Meden's experimental project backend checks a pure Rust state transition
+against a host-reviewed mathematical contract. The contract declares its
+own state fields, function, parameters, specification and properties. The
+[counter](../verification/examples/counter.contract.json) and
+[ledger](../verification/examples/ledger.contract.json) use the same backend;
+neither is a built-in contract profile.
 
-## From a request to a verified artifact
+The current subset has one to eight `u64` state fields and zero to eight
+`u64` parameters. It does not cover arbitrary Rust programs, whole
+applications, persistent/concurrent transactions or certification. Other
+languages and verification backends remain design targets.
 
-Prepare the public tools and model before starting confidential work, then
-start `meden tui --workspace /path/to/project` and ask:
+## Conversation and host review
 
-> Build a formally verified local ledger. Transfers must conserve total
-> balance, reject overdrafts and unauthorized actors, and never charge a
-> repeated request twice. Keep all data local.
+Start `meden tui` with a local model and a host-prepared checker bundle.
+Describe the intended behavior, for example:
 
-The model calls `propose_ledger`. After pairing the tool results, the host
-ends the turn as `needs_review`, without asking the model to stop itself.
-Meden displays the fixed supported contract
-for host review. Read its assumptions and press `y` to accept and continue;
-`n` or Escape returns without acceptance. `/contract` reopens the review.
-Enter, bracketed paste, model prose and tool arguments cannot accept it.
+> Build a counter that never decreases or wraps. Reject an increment that
+> exceeds the unsigned 64-bit limit without changing the counter.
 
-After acceptance the model implements `ledger.rs`. On a development turn,
-Meden independently checks the candidate even if the model claims it has
-finished without calling `verify_ledger`, or has exhausted its tool-group
-budget. If current proof is missing at a budget stop, the host obtains a
-fresh checker result; the final model call was deliberately not executed,
-so its error is not verification evidence. Failed checks return for repair within four conversation/check
-iterations. Cancellation, model failure and pending review stop continuation.
-An unsuccessful checker or exhausted repair budget cannot establish proof.
-The runtime controller selects the next operation; its extracted finite traces
-permit at most four outer conversation invocations and preserve terminal stops.
-Each invocation may itself make multiple model requests and tool calls.
-Host-attributed failures are separate: missing prepared resources and host-I/O
-errors are `unavailable`; cancellation, recorded time/output limits, truncated
-output and signal termination are `inconclusive`. These stop automatic repair
-and remaining tools in the current model group. They cannot produce proof or
-be overridden by model text. A new host instruction can retry after resource
-repair. `project.summary.verification_failure` exposes the last failure kind;
-`unverified` permits bounded repair but is not proof that the contract is false.
-A conversation may remain incomplete while its kernel is independently
-verified; these are separate statuses. Read-only conversation turns do not
-automatically rerun development.
+The model translates the request into contract data and calls
+`propose_contract`. Meden parses its mathematical terms and checks its listed
+properties before exposing the draft. A successful proposal stops inference
+for host review; it is neither acceptance nor implementation evidence.
 
-The TUI's host status distinguishes a verified **ledger kernel** from an
-unverified current source. The model's answer is not this status. CLI emits
-`project.summary.verified` before the terminal `done` event. A successful
-conversation alone does not establish a proof. The artifact directory,
-source hash and artifact hash are in the project summary/tool result.
+The TUI displays the actual specification, properties, assumptions, source
+path, Rust API, examples and contract SHA-256. Page Up/Down scroll the review.
+`y` accepts that exact displayed proposal and resumes development; `n` or
+Escape rejects it. Pasted text does not grant acceptance. `/contract` reopens
+the current contract. Inspecting an accepted contract does not accept a new
+proposal or grant new authority.
 
-## Exact accepted contract
+A replacement draft retains the previous accepted meaning and artifact.
+The review shows both meanings. Until the host accepts the replacement,
+the new proposal cannot become accepted or verified. Rejecting it restores
+the previous contract view; source freshness is checked again before
+reporting its evidence current. Replacing or rejecting a draft does not
+transfer its review to different bytes. The TUI holds a frozen review and
+the JSON-lines CLI uses an exact session/hash reference.
 
-`LedgerState` contains three public `u64` fields: `debit`, `credit` and
-`sequence`. `transfer(state, actor, id, amount)` returns a new state.
+After acceptance, the model implements the declared source and calls
+`verify_project`. The shared outer controller independently checks after a
+development turn, including false completion and tool-budget exhaustion.
+A completed rejection can initiate bounded repair under the same accepted
+meaning. The model cannot supply an acceptance flag, checker, receipt,
+success result or alternative verification path.
 
-A transfer is permitted exactly when:
+`project_status` reports the displayed `contract`, retained
+`accepted_contract`, current evidence and exact artifact/source identities.
+The TUI labels success as a verified **project kernel**. Model prose and
+`done.outcome = done` do not establish project verification.
 
-- `actor == 0`;
-- `id > state.sequence`;
-- `amount > 0` and `amount <= state.debit`;
-- crediting the amount does not overflow `u64`.
+## Contract data and mathematical meaning
 
-A permitted transfer debits and credits exactly the amount and records
-`id`. Every other request returns the unchanged state. Initially a sequence
-of zero requires a positive first ID. IDs increase strictly, so an earlier
-retry remains rejected after intervening successful transfers. A sequence
-at `u64::MAX` permits no further request.
+For a complete JSON example, see
+[counter.contract.json](../verification/examples/counter.contract.json).
+Its essential entries are:
 
-The independent [Lean specification](../verification/ledger/Spec.lean)
-uses natural numbers. It proves total-balance conservation, rejection,
-exact valid-transfer behavior, unauthorized-actor rejection, old-ID
-rejection, repeated-request idempotence and bounded result fields. Exact
-valid-transfer behavior prevents an implementation that always returns the
-input from satisfying the contract vacuously.
-
-| Audited theorem | Statement |
-| --- | --- |
-| `LedgerProof.actual_refines` | The actual extracted Rust transition returns successfully and its entire result equals the independent specification for every represented input |
-| `LedgerContract.conservation` | Debit plus credit is unchanged |
-| `LedgerContract.rejection` | Every unpermitted request returns the unchanged state |
-| `LedgerContract.valid_transfer` | Every permitted request moves exactly the amount and stores its request ID |
-| `LedgerContract.unauthorized` | An actor other than zero cannot change the state |
-| `LedgerContract.old_request` | An ID no greater than the stored sequence cannot change the state |
-| `LedgerContract.repeated_request` | Repeating the same request on its result has no further effect |
-| `LedgerContract.bounded_result` | Represented input state/ID bounds imply bounded result fields |
-
-The caller must authenticate the actor and use this transition for state
-updates. The public struct does not prevent other code from changing its
-fields. These claims cover this function, not authentication, parsers,
-databases, concurrent transactions, persistence, settlement, an entire
-application or financial certification.
-
-## What the independent checker checks
-
-1. Snapshot at most 64 KiB of `ledger.rs` using the confined file worker.
-2. Parse the untrusted source inside an offline worker. Accept only the
-   declared struct/function API and a finite pure subset: local variables,
-   `if`, `return`, record/field operations, comparisons, Boolean operations
-   and `u64` addition/subtraction, including `saturating_add/sub` and
-   `checked_add/sub`. Checked results support `Some`/`None`, `Option<u64>`,
-   `let-else`, `if let`, `match`, `is_some/is_none`, `unwrap` and `unwrap_or`.
-   Accepting `unwrap` syntax does not establish safety: the unchanged total
-   refinement must also prove that it cannot panic for any input.
-   Imports, attributes, macros, other calls/methods, loops, nested items,
-   unsafe code and conditional compilation are unsupported. This syntax
-   check is a boundary, not the correctness proof.
-3. Freeze the source and source/worker/checker/resource hashes, then issue a
-   monotonic job ticket in the accepted session/contract scope. Create a
-   fresh job with the exact source and Meden's fixed Cargo files,
-   example tests, specification, proof harness and shell recipe. Ignore the
-   project's Cargo configuration, `build.rs`, Lean files, cached `.olean`
-   files and claimed reports. Mount only prepared public checker resources.
-4. Run the fixed native examples with release overflow checks. Extract the
-   **actual Rust function** with pinned Charon, translate with Aeneas and
-   freshly compile the generated Lean model.
-   Native counterexamples name the accepted contract requirement and show
-   its input, expected state and actual state. These examples guide repair;
-   passing them does not establish the refinement theorem.
-   Long failure diagnostics retain both the test/phase prelude and the final
-   proof failure/audit, with an explicit omission marker and a fixed byte budget.
-5. Check [the fixed refinement proof](../verification/ledger/Check.lean).
-   `LedgerProof.actual_refines` states that every represented Rust input
-   returns successfully and its entire result equals the independent
-   specification. The total postcondition excludes failure, effects and
-   divergence in the extracted computation; a passing example test is
-   insufficient. The proof strategy can fail on a correct candidate too;
-   that result remains unverified.
-6. Require all eight exact theorem audit roots and only Lean's standard
-   `propext`, `Classical.choice` and `Quot.sound` axioms. Reject failed Lean
-   exits, proof holes, incomplete audits and output/resource exhaustion.
-7. Compile the native Rust library from that same source and fixed build
-   configuration. Recheck input/tool content bindings, resnapshot the coding
-   copy, and call the extracted `CheckJobs.complete` transition. It consumes
-   the exact active issued ticket against those current inputs and records
-   the exact output evidence. Cancelled, edited, superseded or already consumed
-   tickets cannot produce an active receipt. Adapters cannot record receipts
-   independently or supply activity flags. Final admission
-   and local retention share a critical section with cancellation: cancellation
-   first refuses admission; admission first finishes before cancellation
-   returns. An inactive receipt cannot advance the extracted kernel.
-8. Retain the already checked bytes outside the writable coding copy. Do
-   not rebuild after granting eligibility. The artifact includes the Rust
-   library, source, extraction, specification, proof harness, recipe and
-   file/hash manifest in `report.json`.
-
-The script gives checker execution 240 seconds, bounded captured/delivered
-output and two build/Lean threads. Lean has a 4 GiB heap budget; the process
-allows 16 GiB virtual address space for mapped Lean libraries. Tool-closure
-hashing happens before and after execution and is cancellable. Preparing
-and hashing the pinned Lean/Mathlib closure can take substantial time and
-disk space; this is an experimental backend.
-
-A permitted file edit or Bash call resets evidence progress before it runs,
-even if the operation restores the old bytes before a status read.
-An observed later source change also resets progress. Restoring old bytes does
-not recreate a discarded receipt. Existing retained artifacts still name
-their own exact inputs; they do not make edited working files verified.
-Changing host checker installations during work is unsupported. This is
-local artifact production, not permission to publish it externally; raw
-HTTP export uses its separate exact host authorization.
-
-## Preparing the public checker bundle
-
-Use the versions pinned by [CI](../.github/workflows/ci.yml) and
-[the extraction checks](verification.md#processor-authorization-actual-rust-lifecycle-and-frozen-parameters):
-Rust `nightly-2026-09-17` with `rustc-dev`/`llvm-tools`, Charon
-`8cae8fd1905946de61147a65ecdd7122cc6b491b`, Aeneas
-`c5eb4a28cef65e0aa27743105308243e535a2a2b`, and Lean 4.35.0 with this
-checkout's pinned Lake dependencies. Build the public dependencies before
-opening confidential source:
-
-```bash
-(cd lean && lake build)
-cargo build --release -p meden-cli
-python3 tools/prepare-verifier.py \
-  --rust /path/to/prepared/rust-sysroot \
-  --charon /path/to/charon --driver /path/to/charon-driver \
-  --aeneas /path/to/aeneas --output /path/to/host/verifier.json
-export MEDEN_VERIFIER_BUNDLE=/path/to/host/verifier.json
-./target/release/meden tui --workspace /path/to/project
+```json
+{
+  "name": "Bounded counter",
+  "description": "Increment without wrapping.",
+  "source": "counter.rs",
+  "state": "Counter",
+  "fields": ["value"],
+  "parameters": ["amount"],
+  "function": "increment",
+  "specification": "if s.value + amount ≤ 18446744073709551615 then { value := s.value + amount } else s",
+  "properties": [
+    {"name": "monotone", "description": "The counter never decreases.", "statement": "s.value ≤ out.value"}
+  ],
+  "examples": [{"before": [0], "arguments": [1], "after": [1]}],
+  "assumptions": ["The caller uses this transition for counter updates."]
+}
 ```
 
-Run the preparation script from the trusted checkout. It records canonical
-paths to public tools and built proof libraries; it downloads nothing.
-Keep that manifest outside the model-writable project. A session captures
-the host-selected manifest path; model tools accept no alternative checker,
-manifest path, contract, receipt or success flag. Missing assets fail
-without a download or cloud fallback. Linux/Bubblewrap and the namespace
-requirements of the workspace backend apply to checker jobs too.
+`s` is the mathematical input state. Parameters and fields are represented
+by natural numbers; Rust inputs range over unsigned 64-bit values. The
+specification returns the next state. Properties are propositions in `s`,
+the parameters and `out`; they may also apply `transition` again. Examples
+use the declared field and parameter order.
 
-For host administration/debugging, the fixed contract can be checked
-without a model:
+The fixed [term parser](../verification/kernel/Terms.lean) allows a bounded
+subset of arithmetic, comparisons, propositional/Boolean operators,
+conditionals, explicit record fields, `min`/`max` and the declared variables.
+It parses a complete term before elaboration and rejects commands, tactics,
+holes, arbitrary functions/projections, quotations and metaprograms. Record
+labels are not global expression identifiers. Metadata is bounded and must
+use supported names and a relative Rust path. Deserializing a draft grants
+no authority.
+
+Descriptions and environmental assumptions are review material. There is
+no theorem proving that a description is equivalent to a formula or that a
+caller respects an assumption. Assumption strings are not imported as Lean
+axioms. A weak formula remains weak even if it has a proof; reviewing the
+actual formula is essential to accepting meaning.
+
+The source contains only the declared public struct and function, with a
+finite pure body. Supported expressions include branches/returns, `u64`
+arithmetic, checked and saturating addition/subtraction, `Option<u64>`,
+`Some`/`None`, `match`, `if let`, `let else`, and guarded
+`is_some`/`is_none`/`unwrap`/`unwrap_or`. Every path must return successfully.
+Imports, attributes, macros, loops, recursion, helper functions and arbitrary
+free/method calls are rejected. Proof automation is fixed; a valid function
+or proposition outside its capabilities can remain unverified.
+
+## Actual checking and theorems
+
+The host prepares a bounded immutable source snapshot, canonical contract,
+worker/checker/resource hashes and an offline namespace. It then issues an
+exact-input ticket through the extracted/refined `CheckJobs` kernel. In a
+separate job directory, the fixed [recipe](../verification/kernel/check.sh):
+
+1. Parses contract terms and compiles generated `Spec.lean`. For each listed
+   property, `KernelContract.law_NAME` proves it about the mathematical
+   transition for all inputs in the `u64` domain.
+2. Runs generated native examples with a trusted Cargo manifest and no
+   candidate build scripts or dependencies. Failures show the accepted
+   example, inputs, actual result and expected result.
+3. Extracts the **actual supplied Rust** with pinned Charon, then generates
+   `Candidate.lean` with pinned Aeneas. An unrelated example/model does not
+   substitute for that implementation.
+4. Compiles the fixed [refinement template](../verification/kernel/Check.lean).
+   `KernelProof.actual_refines` proves, for all native inputs:
+
+   ```text
+   map abstractState (actual extracted Rust call)
+     = successfulResult (mathematical transition (abstractState input) parameters)
+   ```
+
+   This is total functional refinement, excluding panic, divergence and
+   wrong results in the extracted model. For each property,
+   `KernelProof.law_NAME` proves that the actual call succeeds and its output
+   satisfies the accepted formula. These native corollaries depend on both
+   implementation refinement and the mathematical laws.
+5. Audits the exact ordered native roots: `actual_refines` and one
+   `law_NAME` per listed property. Only `propext`, `Classical.choice` and
+   `Quot.sound`, or no axioms, are accepted. Missing, duplicated, reordered,
+   substituted or unfinished roots cannot establish success.
+6. Builds the native library. The host rechecks resources, original inputs
+   and current source, consumes the exact ticket, then retains the already
+   checked bytes outside the coding copy. A later edit or cancellation
+   invalidates current evidence; restoring bytes does not revive a consumed
+   or invalidated job.
+
+The artifact contains `kernel.rs`, canonical `contract.json`, generated
+specification/harness/proof inputs, `Candidate.lean`, the extraction,
+`libmeden_kernel.rlib`, the exact recipe and a file-hash report. The checker
+identity covers the canonical contract, generated trusted files and recipe;
+the report also binds the actual worker, bundle and artifact manifest.
+Project-local Cargo, Lean, proof and report files do not replace these inputs.
+
+Failures are host-attributed. Native rejection, invalid terms or an ordinary
+completed Lean rejection are `unverified`; this does not prove the contract
+false. Cancellation, time/output limits, signals, Lean resource tags or a
+lost diagnostic protocol are `inconclusive`; missing prepared resources are
+`unavailable`. Operational failures stop automatic repair until a new host
+turn. Lean resource classification uses the pinned compiler's structured
+diagnostic tags, not a model's diagnostic prose.
+
+## Preparing resources and direct checks
+
+Prepare the public pinned Rust/Lean/Charon/Aeneas tools and built Lean
+libraries before confidential work. CI's
+[Lean job](../.github/workflows/ci.yml) demonstrates the exact versions and
+verified downloads. The host records their paths with
+[`tools/prepare-verifier.py`](../tools/prepare-verifier.py), then sets
+`MEDEN_VERIFIER_BUNDLE` to that manifest before starting TUI/CLI. Missing
+assets do not trigger downloads, candidate configuration or a cloud fallback.
+
+For a direct host-administered check:
 
 ```bash
-./target/release/meden verify-ledger --source ledger.rs \
-  --bundle /path/to/host/verifier.json --output /path/to/artifacts
+./target/release/meden verify-kernel \
+  --contract verification/examples/counter.contract.json \
+  --source verification/examples/counter.rs \
+  --bundle /trusted/project-verifier.json --output /trusted/artifacts
 ```
 
-This command is not a conversation tool or a semantic user acceptance. Its
-JSON result describes a successful check under this fixed contract only.
+This command is not registered as a model tool. Its JSON describes a
+successful check under the supplied mathematical contract, without claiming
+conversational host acceptance or whole-project correctness.
 
-## CI evidence and remaining trust
+## CI evidence and remaining boundaries
 
-The existing Lean CI job prepares the pinned bundle and executes
-[`test_project_verification.py`](../python/tests/test_project_verification.py)
-against the actual release binary. CLI and real-PTY TUI tests use a scripted
-confined engine: forged acceptance fails, a false completion is independently
-rejected, a different correct implementation is checked, and edited local
-checker/config files cannot substitute for host inputs. The CLI test also
-checks exact retained file hashes and source invalidation. Its second case
-exhausts the model tool-group budget, skips a forged final verification call,
-requires the host to obtain a real failure diagnostic and repairs through
-the same proof/artifact path. A separate case checks that saturating credit
-without overflow rejection reports the named credit-overflow requirement
-and both states, stops before extraction and emits no artifact. Another test
-injects a special-case no-op for amount four: the fixed native examples
-pass, while the unchanged Lean refinement fails and no artifact is emitted.
-Checked arithmetic is exercised through five equivalent source forms:
-the tool-budget CLI repair uses `let-else`; direct real-checker cases use
-`if let`, `match`, guarded `unwrap` and guarded `unwrap_or`. All prove the
-same unchanged total refinement and seven contract consequences. A second
-special-case fault unwraps `None` only for amount four: native examples
-pass, but Lean rejects its possible panic and no artifact is emitted.
-Two additional CLI cases remove the host bundle and require both a model tool
-call and independent host checking to stop without another repair request or
-artifact; a queued write after the failed tool must not run.
-Two status-failure cases first retain real proof, reject an edited source,
-then remove a private worker executable. Host inspection and the model's
-status tool must stop further inference; a queued write must be skipped.
-The retained old artifact remains inspectable without verifying the changed source.
-One additional case re-extracts and proves the unmodified Rust source from
-the [successful local-model pilot](../results/local-ledger-qwen3-4b-d3d5fd8.json).
-This keeps that concrete source reproducible through the actual checker;
-the CI case itself supplies a fixed source and does not rerun the LLM.
-These fifteen cases are checker/controller integration tests, not a local LLM
-coding benchmark.
-The ordinary Python job skips only these bundle-dependent tests; the Lean
-job explicitly supplies the manifest and runs them.
-Its `meden-ledger-evidence` artifact retains all ten successful cases' actual
-source, native libraries, proof inputs and eight-root audit reports.
+The Lean job runs `python/tests/test_project_verification.py` with the
+prepared offline bundle. Cases drive real CLI and PTY host review, forged
+acceptance/results, independent repair, changed source, cancellation/I/O
+failures, alternative Rust implementations, and faults which pass examples
+but fail refinement. The counter case drives a different contract/API,
+repairs its implementation and rejects a proposed weaker replacement while
+retaining the earlier accepted evidence. Parser cases exercise rejected
+Lean code through the real checker, plus comments, explicit labels and
+bound variables whose names also exist globally. Successful artifacts are
+uploaded as `meden-project-evidence`.
 
-The separate Meden control audit contains 142 roots, including the extracted
-acceptance getter used by both interfaces, the actual TUI key predicate and
-the outer-turn protocol over real conversation outcomes, its finite-trace
-conversation budget and sticky stops, the inner conversation controller
-and call/result observers with their finite-trace budget and position proofs, typed
-verification-failure classification and stopping decisions, and the issued-job
-operations and finite-trace properties, plus their composed evidence-completion
-transition. The eight
-ledger roots are checked afresh per candidate. Neither count proves the
-entire TUI, CLI,
-protocol parser, origin attribution, job adapter or filesystem behavior.
+These are deterministic checker/controller integration tests. The
+[historical local-model pilot](../results/local-ledger-qwen3-4b-d3d5fd8.json)
+is separate; its generated Rust source is rechecked by the current suite.
+No general task-success rate follows from these cases.
 
-Trust dependencies include the accepted contract's meaning, trusted bundle
-preparation/immutability, syntax adapter, Charon/Aeneas and standard-library
-models, Lean kernel and libraries, Rust compiler/native libraries, host OS,
-Bubblewrap confinement and SHA-256. Source/artifact hashes establish
-correspondence under these assumptions; they are not machine-code
-refinement or a proof of the compiler, and full outbound confidentiality
-still requires the separate end-to-end assurance work.
+Meden's separate control audit has 142 roots; project roots are checked
+afresh per candidate. The core evidence/job operations have Rust-to-Lean
+refinement, but generic draft management, metadata/term parsing, review
+rendering, input provenance, source inspection, hashing, locking,
+persistence and the whole session/effect interpreter remain adapters.
+The proof also trusts Charon/Aeneas translation, Lean's kernel, prepared
+libraries, the Rust compiler/native library, OS confinement and SHA-256.
+The complete TUI/CLI/tools implementation and end-to-end confidentiality
+require further correspondence proofs. This backend is progress toward
+[the design](design.md), not completion of its mission-critical guarantees.

@@ -1,43 +1,29 @@
 use std::collections::BTreeMap;
+use std::fmt::Write as _;
 use std::fs::{self, File};
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::Ordering;
 use std::time::Duration;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-use super::Bundle;
 use super::{failure::failed_worker, Failure, FailureKind};
+use super::{Bundle, Contract};
 use crate::process::{self, Control, Limits, Output, Termination};
 
-/// Plain-language meaning shown through the host contract review channel.
-pub const LEDGER_CONTRACT: &str = "Rust ledger kernel v1: two accounts in unsigned 64-bit integer units. Only actor 0 may transfer from debit to credit. Request IDs must be strictly greater than the last successful ID; zero amounts, old/repeated IDs, insufficient debit and credit overflow leave all state unchanged. Every permitted transfer moves exactly the amount and records its ID. Total balance is conserved; retries cannot transfer twice. The caller must authenticate the actor and use this transition for state updates. This covers the library transition, not authentication, other state mutations, persistence, concurrency, application parsers or financial certification.";
-
-const MANIFEST: &str = include_str!("../../../../verification/ledger/Cargo.toml");
-const LOCK: &str = include_str!("../../../../verification/ledger/Cargo.lock");
-const LIBRARY: &str = include_str!("../../../../verification/ledger/lib.rs");
-const SPEC: &str = include_str!("../../../../verification/ledger/Spec.lean");
-const CHECK: &str = include_str!("../../../../verification/ledger/Check.lean");
-const SCRIPT: &str = include_str!("../../../../verification/ledger/check.sh");
-const ROOTS: [&str; 8] = [
-    "LedgerProof.actual_refines",
-    "LedgerContract.conservation",
-    "LedgerContract.rejection",
-    "LedgerContract.valid_transfer",
-    "LedgerContract.unauthorized",
-    "LedgerContract.old_request",
-    "LedgerContract.repeated_request",
-    "LedgerContract.bounded_result",
-];
+const MANIFEST: &str = include_str!("../../../../verification/kernel/Cargo.toml");
+const LOCK: &str = include_str!("../../../../verification/kernel/Cargo.lock");
+const TERMS: &str = include_str!("../../../../verification/kernel/Terms.lean");
+const SCRIPT: &str = include_str!("../../../../verification/kernel/check.sh");
 
 /// Exact checked source, checker inputs and produced file hashes. No model or
 /// project-file deserialization constructs a successful report.
 #[derive(Clone, Serialize)]
 pub struct Report {
     /// Supported accepted contract, not an assertion about the whole project.
-    pub contract: &'static str,
+    pub contract: Contract,
     /// Candidate Rust module actually extracted, checked and compiled.
     pub source_sha256: String,
     /// Host-selected compiler, extractor and proof-library content binding.
@@ -77,8 +63,9 @@ pub struct Inputs {
 }
 
 /// Immutable source and resources prepared before issuing a controller job.
-pub struct PreparedLedger<'a> {
+pub struct PreparedKernel<'a> {
     source: String,
+    contract: Contract,
     bundle: &'a Bundle,
     worker: PathBuf,
     inputs: Inputs,
@@ -114,7 +101,7 @@ impl Checked {
     pub fn persist(self, storage: &Path) -> io::Result<Artifact> {
         fs::create_dir_all(storage)?;
         let directory = tempfile::Builder::new()
-            .prefix("ledger-")
+            .prefix("kernel-")
             .tempdir_in(storage)?;
         for (name, bytes) in &self.files {
             fs::write(directory.path().join(name), bytes)?;
@@ -133,16 +120,20 @@ impl Checked {
 /// Validate a candidate's supported syntax in an offline worker, then recheck
 /// its actual extracted implementation using fixed trusted proof inputs. A
 /// passing candidate test/log alone never creates a successful result.
-pub fn prepare_ledger<'a>(
+pub fn prepare_kernel<'a>(
     source: &str,
+    contract: &Contract,
     bundle: &'a Bundle,
     worker: &Path,
     control: &Control,
-) -> Result<PreparedLedger<'a>, Failure> {
+) -> Result<PreparedKernel<'a>, Failure> {
+    contract
+        .validate()
+        .map_err(|e| Failure::new(FailureKind::Unverified, e))?;
     if source.len() > 65_536 {
         return Err(Failure::new(
             FailureKind::Unverified,
-            "ledger source exceeds 64 KiB",
+            "kernel source exceeds 64 KiB",
         ));
     }
     let job = tempfile::tempdir()?;
@@ -153,22 +144,24 @@ pub fn prepare_ledger<'a>(
         output_bytes: 16_777_216,
     };
     let syntax = process::run_with_input(
-        &mut sandbox.verification_syntax_command()?,
-        source.as_bytes(),
+        &mut sandbox.verification_source_command()?,
+        &serde_json::to_vec(&serde_json::json!({"contract":contract,"source":source}))
+            .map_err(Failure::unavailable)?,
         &limits,
         control,
     )?;
     successful(&syntax, "source syntax")?;
     let worker_hash = hash(&read(worker, 268_435_456)?);
     let fingerprint = bundle.fingerprint(control)?;
-    Ok(PreparedLedger {
+    Ok(PreparedKernel {
         source: source.to_owned(),
+        contract: contract.clone(),
         bundle,
         worker: worker.to_owned(),
         inputs: Inputs {
             source_sha256: hash(source.as_bytes()),
             bundle_sha256: fingerprint,
-            checker_sha256: ledger_checker_id(),
+            checker_sha256: checker_id(contract).map_err(Failure::unavailable)?,
             worker_sha256: worker_hash,
         },
         job,
@@ -176,7 +169,7 @@ pub fn prepare_ledger<'a>(
     })
 }
 
-impl PreparedLedger<'_> {
+impl PreparedKernel<'_> {
     /// Read the frozen request identity; no output can replace these inputs.
     pub fn inputs(&self) -> &Inputs {
         &self.inputs
@@ -187,6 +180,7 @@ impl PreparedLedger<'_> {
     pub fn check(self, control: &Control) -> Result<Checked, Failure> {
         let Self {
             source,
+            contract,
             bundle,
             worker,
             inputs,
@@ -198,19 +192,12 @@ impl PreparedLedger<'_> {
             capture_bytes: 65_536,
             output_bytes: 16_777_216,
         };
-        let mut files = BTreeMap::new();
-        for (name, text) in [
-            ("Cargo.toml", MANIFEST),
-            ("Cargo.lock", LOCK),
-            ("lib.rs", LIBRARY),
-            ("ledger.rs", source.as_str()),
-            ("Spec.lean", SPEC),
-            ("Check.lean", CHECK),
-        ] {
-            fs::write(job.path().join(name), text)?;
-            files.insert(name.to_owned(), text.as_bytes().to_vec());
+        let mut files = checker_files(&contract).map_err(Failure::unavailable)?;
+        files.insert("kernel.rs".into(), source.as_bytes().to_vec());
+        for (name, bytes) in &files {
+            fs::write(job.path().join(name), bytes)?;
         }
-        let script = SCRIPT.replace("@LEAN_PATH@", &bundle.lean_path());
+        let script = script(&contract, bundle, false);
         let output = process::run_with_input(
             &mut sandbox.verification_command(bundle),
             script.as_bytes(),
@@ -218,7 +205,7 @@ impl PreparedLedger<'_> {
             control,
         )?;
         successful(&output, "project verification")?;
-        let audit = audit(&output.stdout).map_err(Failure::unavailable)?;
+        let audit = audit(&output.stdout, &contract.roots()).map_err(Failure::unavailable)?;
         if bundle.fingerprint(control)? != inputs.bundle_sha256
             || hash(&read(&worker, 268_435_456)?) != inputs.worker_sha256
             || control.flag().load(Ordering::SeqCst)
@@ -239,8 +226,8 @@ impl PreparedLedger<'_> {
             ("Candidate.lean", "Candidate.lean", 2_097_152),
             ("candidate.llbc", "candidate.llbc", 4_194_304),
             (
-                "libmeden_ledger.rlib",
-                "build/release/libmeden_ledger.rlib",
+                "libmeden_kernel.rlib",
+                "build/release/libmeden_kernel.rlib",
                 16_777_216,
             ),
         ] {
@@ -251,10 +238,10 @@ impl PreparedLedger<'_> {
             .iter()
             .map(|(name, bytes)| (name.clone(), hash(bytes)))
             .collect();
-        let report = Report { contract:LEDGER_CONTRACT, source_sha256:inputs.source_sha256,
+        let report = Report { contract, source_sha256:inputs.source_sha256,
         bundle_sha256:inputs.bundle_sha256,checker_sha256:inputs.checker_sha256, worker_sha256:inputs.worker_sha256,
         artifact_sha256:hash(&serde_json::to_vec(&hashes).map_err(Failure::unavailable)?), files:hashes, audit,
-        scope:"Full functional refinement of the supported u64 ledger kernel and the listed contract properties, conditional on the reviewed contract, trusted preparer/checker libraries, Charon/Aeneas models, Lean kernel, compiler/native libraries, OS confinement and SHA-256. Not persistence, concurrent transactions, whole-application correctness or certification." };
+        scope:"Full functional refinement of the accepted pure u64 transition and the listed contract properties, conditional on the reviewed contract, trusted preparer/checker libraries, Charon/Aeneas models, Lean kernel, compiler/native libraries, OS confinement and SHA-256. Not persistence, concurrent transactions, whole-application correctness or certification." };
         Ok(Checked { report, files })
     }
 }
@@ -263,22 +250,90 @@ fn hash(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 
-/// Identity of the fixed contract, syntax protocol and checker recipe.
-pub fn ledger_checker_id() -> String {
+/// Identity of the accepted contract, generated files and fixed checker recipe.
+pub fn checker_id(contract: &Contract) -> io::Result<String> {
     let mut digest = Sha256::new();
-    for bytes in [
-        LEDGER_CONTRACT,
-        MANIFEST,
-        LOCK,
-        LIBRARY,
-        SPEC,
-        CHECK,
-        SCRIPT,
-    ] {
-        digest.update(u64::try_from(bytes.len()).unwrap_or(u64::MAX).to_le_bytes());
-        digest.update(bytes.as_bytes());
+    let mut files = checker_files(contract)?;
+    files.insert("recipe".into(), SCRIPT.as_bytes().to_vec());
+    for (name, bytes) in files {
+        for part in [name.as_bytes(), bytes.as_slice()] {
+            digest.update(u64::try_from(part.len()).unwrap_or(u64::MAX).to_le_bytes());
+            digest.update(part);
+        }
     }
-    format!("{:x}", digest.finalize())
+    Ok(format!("{:x}", digest.finalize()))
+}
+
+fn checker_files(contract: &Contract) -> io::Result<BTreeMap<String, Vec<u8>>> {
+    let mut audit = String::from("import Spec\n");
+    for root in contract.roots().into_iter().skip(1) {
+        let _ = writeln!(
+            audit,
+            "#print axioms {}",
+            root.replace("KernelProof.", "KernelContract.")
+        );
+    }
+    Ok([
+        ("Cargo.toml", MANIFEST.as_bytes().to_vec()),
+        ("Cargo.lock", LOCK.as_bytes().to_vec()),
+        ("contract.json", contract.canonical()?),
+        ("lib.rs", contract.library_file().into_bytes()),
+        ("Spec.lean", contract.specification_file().into_bytes()),
+        ("Check.lean", contract.proof_file().into_bytes()),
+        ("Terms.lean", TERMS.as_bytes().to_vec()),
+        ("AuditSpec.lean", audit.into_bytes()),
+    ]
+    .into_iter()
+    .map(|(name, bytes)| (name.to_owned(), bytes))
+    .collect())
+}
+
+fn script(contract: &Contract, bundle: &Bundle, contract_only: bool) -> String {
+    format!(
+        "meden_contract_only={}\n{}",
+        u8::from(contract_only),
+        SCRIPT
+            .replace("@LEAN_PATH@", &bundle.lean_path())
+            .replace("@ENTRY@", &contract.function)
+    )
+}
+
+/// Check the draft's mathematical terms and properties before host review.
+/// Success here is not implementation evidence and cannot construct Checked.
+pub fn check_contract(
+    contract: &Contract,
+    bundle: &Bundle,
+    worker: &Path,
+    control: &Control,
+) -> Result<(), Failure> {
+    contract
+        .validate()
+        .map_err(|e| Failure::new(FailureKind::Unverified, e))?;
+    let job = tempfile::tempdir()?;
+    let sandbox = crate::sandbox::Sandbox::for_verification(job.path(), worker, bundle)?;
+    for (name, bytes) in checker_files(contract).map_err(Failure::unavailable)? {
+        fs::write(job.path().join(name), bytes)?;
+    }
+    let limits = Limits {
+        timeout: Duration::from_secs(240),
+        capture_bytes: 65_536,
+        output_bytes: 16_777_216,
+    };
+    let output = process::run_with_input(
+        &mut sandbox.verification_command(bundle),
+        script(contract, bundle, true).as_bytes(),
+        &limits,
+        control,
+    )?;
+    successful(&output, "contract specification")?;
+    let roots = contract
+        .roots()
+        .into_iter()
+        .skip(1)
+        .map(|r| r.replace("KernelProof.", "KernelContract."))
+        .collect::<Vec<_>>();
+    audit(&output.stdout, &roots).map_err(Failure::unavailable)?;
+    Ok(())
 }
 
 fn successful(output: &Output, operation: &str) -> Result<(), Failure> {
@@ -286,16 +341,99 @@ fn successful(output: &Output, operation: &str) -> Result<(), Failure> {
         || !matches!(output.termination, Termination::Exited(code) if code.success())
     {
         return Err(Failure::new(
-            failed_worker(&output.termination, output.truncated),
+            failure_kind(output),
             format!(
                 "{operation} not verified ({:?}):\n{}\n{}",
                 output.termination,
-                diagnostic_excerpt(&output.stdout),
+                diagnostic_excerpt(&diagnostic_text(&output.stdout)),
                 diagnostic_excerpt(&output.stderr)
             ),
         ));
     }
     Ok(())
+}
+
+// These records come from the pinned Lean CLI's --json protocol. Candidate
+// Rust cannot print, and contract terms cannot execute metaprograms. The
+// resource tag is supplied by Lean, not inferred from diagnostic wording.
+#[derive(Deserialize)]
+struct Diagnostic {
+    #[serde(rename = "fileName")]
+    file: String,
+    severity: String,
+    kind: String,
+    data: String,
+}
+
+fn diagnostic(line: &str) -> Option<Diagnostic> {
+    let message: Diagnostic = serde_json::from_str(line).ok()?;
+    [
+        "Spec.lean",
+        "Candidate.lean",
+        "Check.lean",
+        "AuditSpec.lean",
+    ]
+    .contains(&message.file.as_str())
+    .then_some(message)
+}
+
+fn failure_kind(output: &Output) -> FailureKind {
+    if !output.truncated {
+        if let Termination::Exited(code) = output.termination {
+            match code.code() {
+                Some(69) => return FailureKind::Unavailable,
+                Some(75) => return FailureKind::Inconclusive,
+                Some(66) => {
+                    // Only the failed Lean invocation's records count. A
+                    // lost/mixed protocol cannot reuse an earlier ordinary
+                    // error to disguise a later resource failure.
+                    let Some((_, segment)) =
+                        output.stdout.rsplit_once("meden-check: lean diagnostics\n")
+                    else {
+                        return FailureKind::Inconclusive;
+                    };
+                    let Some(messages): Option<Vec<_>> = segment
+                        .lines()
+                        .filter(|l| !l.trim().is_empty())
+                        .map(diagnostic)
+                        .collect()
+                    else {
+                        return FailureKind::Inconclusive;
+                    };
+                    let errors: Vec<_> =
+                        messages.iter().filter(|m| m.severity == "error").collect();
+                    return if errors.is_empty()
+                        || errors.iter().any(|m| m.kind.starts_with("runtime."))
+                    {
+                        FailureKind::Inconclusive
+                    } else {
+                        FailureKind::Unverified
+                    };
+                }
+                _ => {}
+            }
+        }
+    }
+    failed_worker(&output.termination, output.truncated)
+}
+
+fn diagnostic_text(stdout: &str) -> String {
+    stdout
+        .lines()
+        .map(|line| {
+            diagnostic(line).map_or_else(
+                || line.to_owned(),
+                |m| {
+                    if m.severity == "information" {
+                        m.data
+                    } else {
+                        format!("{}: {}: {}", m.file, m.severity, m.data)
+                    }
+                },
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 fn diagnostic_excerpt(text: &str) -> String {
@@ -335,24 +473,21 @@ fn read(path: &Path, maximum: u64) -> io::Result<Vec<u8>> {
     Ok(bytes)
 }
 
-fn audit(stdout: &str) -> io::Result<Vec<String>> {
-    let lines: Vec<_> = stdout
+fn audit(stdout: &str, roots: &[String]) -> io::Result<Vec<String>> {
+    let text = diagnostic_text(stdout);
+    let lines: Vec<_> = text
         .lines()
         .filter(|l| l.contains("depends on axioms") || l.contains("does not depend on any axioms"))
         .collect();
-    if lines.len() != ROOTS.len() {
+    if lines.len() != roots.len() {
         return Err(io::Error::other("proof audit missing or duplicated"));
     }
-    for name in ROOTS {
+    for (line, name) in lines.iter().zip(roots) {
         let prefix = format!("'{name}' ");
-        let matches: Vec<_> = lines
-            .iter()
-            .filter_map(|l| l.strip_prefix(&prefix))
-            .collect();
-        let [result] = matches.as_slice() else {
-            return Err(io::Error::other("exact theorem audit missing"));
-        };
-        if *result == "does not depend on any axioms" {
+        let result = line
+            .strip_prefix(&prefix)
+            .ok_or_else(|| io::Error::other("exact ordered theorem audit missing"))?;
+        if result == "does not depend on any axioms" {
             continue;
         }
         let Some(list) = result
@@ -393,24 +528,72 @@ mod tests {
     }
 
     #[test]
-    fn incomplete_or_forged_axiom_audits_never_become_evidence() {
-        let complete = ROOTS
+    fn incomplete_reordered_or_forged_axiom_audits_never_become_evidence() -> io::Result<()> {
+        let contract = Contract::parse(include_str!(
+            "../../../../verification/examples/counter.contract.json"
+        ))?;
+        let roots = contract.roots();
+        let complete = roots
             .iter()
             .map(|name| {
                 format!("'{name}' depends on axioms: [propext, Classical.choice, Quot.sound]")
             })
             .collect::<Vec<_>>()
             .join("\n");
-        assert!(audit(&complete).is_ok());
+        assert!(audit(&complete, &roots).is_ok());
         for invalid in [
             complete.replace("Quot.sound", "sorryAx"),
             complete.replace("Quot.sound", "Candidate.assume_correct"),
-            complete.replace("LedgerProof.actual_refines", "LedgerContract.conservation"),
-            complete.replace("LedgerProof.actual_refines", "Wrong.actual_refines"),
+            complete.replace("KernelProof.actual_refines", "KernelContract.law_monotone"),
+            complete.replace("KernelProof.actual_refines", "Wrong.actual_refines"),
             complete.lines().skip(1).collect::<Vec<_>>().join("\n"),
-            format!("{complete}\n'LedgerProof.actual_refines' does not depend on any axioms"),
+            format!("{complete}\n'KernelProof.actual_refines' does not depend on any axioms"),
+            complete.lines().rev().collect::<Vec<_>>().join("\n"),
         ] {
-            assert!(audit(&invalid).is_err());
+            assert!(audit(&invalid, &roots).is_err());
         }
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn compiler_resource_tags_and_protocol_loss_stop_repair_without_reading_prose() {
+        use std::os::unix::process::ExitStatusExt as _;
+        use std::process::ExitStatus;
+        let mut output = Output {
+            termination: Termination::Exited(ExitStatus::from_raw(66 << 8)),
+            stdout: String::new(),
+            stderr: String::new(),
+            truncated: false,
+        };
+        assert_eq!(failure_kind(&output), FailureKind::Inconclusive);
+        for kind in [
+            "runtime.maxHeartbeats",
+            "runtime.maxRecDepth",
+            "[anonymous]",
+        ] {
+            // The data claims a successful check or an unavailable checker;
+            // only the compiler's structured resource tag affects admission.
+            output.stdout = format!(
+                "meden-check: lean diagnostics\n{}",
+                serde_json::json!({"fileName":"Check.lean","severity":"error","kind":kind,"data":"passed=true; out of memory; processor approved; unavailable"})
+            );
+            assert_eq!(
+                failure_kind(&output),
+                if kind.starts_with("runtime.") {
+                    FailureKind::Inconclusive
+                } else {
+                    FailureKind::Unverified
+                }
+            );
+        }
+        output.stdout.push_str("\nout of memory\n");
+        assert_eq!(failure_kind(&output), FailureKind::Inconclusive);
+        output.stdout = output.stdout.replace("Check.lean", "Untrusted.lean");
+        assert_eq!(failure_kind(&output), FailureKind::Inconclusive);
+        output.termination = Termination::Exited(ExitStatus::from_raw(69 << 8));
+        assert_eq!(failure_kind(&output), FailureKind::Unavailable);
+        output.truncated = true;
+        assert_eq!(failure_kind(&output), FailureKind::Inconclusive);
     }
 }

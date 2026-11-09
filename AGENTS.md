@@ -46,15 +46,22 @@
   adapters. Operational failures stop automatic repair until a new host turn.
   Issued-job operations and arbitrary finite compositions are extracted/refined:
   exact session/contract/input-bound tickets are consumed once, and older
-  generations remain invalid after cancellation or consumption. The ledger
+  generations remain invalid after cancellation or consumption. The project
   adapter prepares inputs before issue and derives receipt activity from this
   kernel. Input construction, locking, physical cancellation and the full
   session/executor correspondence remain separate obligations.
-  Both ledger and release validation now use extracted/refined job-to-evidence
+  Both project and release validation use extracted/refined job-to-evidence
   completion. `Receipt` and direct recording are private; adapters provide
   validated output without an activity flag. Failed output admission never
   restores a consumed job. This is still not the complete session I/O proof.
   The evidence kernel gates
-  Meden's own releases and the fixed Rust ledger project verifier. General
-  contracts/backends, full interface/tool coverage and outbound
+  Meden's own releases and the generic pure-u64 Rust transition verifier.
+  Contracts are bounded data: metadata and restricted mathematical terms,
+  never candidate Lean commands, tactics, imports or proof scripts. Drafts
+  cannot replace accepted meaning or evidence without host review of their
+  exact canonical hash. A rejected replacement retains the accepted contract.
+  TUI acceptance binds the frozen displayed review, not a new current reference.
+  Generic draft management and parser/rendering/I/O correspondence remain
+  adapters; do not claim whole-controller refinement from the kernel proofs.
+  Broader contracts/backends, full interface/tool coverage and outbound
   confidentiality remain targets. See docs/project-verification.md.

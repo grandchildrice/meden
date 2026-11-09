@@ -138,9 +138,12 @@ invalidate progress. Lean proves all seven production operations and coverage
 over finite compositions. Typed origin attribution and complete/correct
 subject construction remain host responsibilities. Its first consumer is
 [Meden's own release gate](docs/release.md), which uses GitHub CI evidence
-and trusted build provenance. The experimental fixed ledger profile also
-uses it to admit actual Rust-to-Lean project proofs and retain the exact
-checked library. This does not prove arbitrary user projects or the
+and trusted build provenance. The experimental pure-u64 transition backend
+also uses it to admit actual Rust-to-Lean proofs under reviewed mathematical
+contracts and retain the exact checked library. Contract terms are parsed
+as restricted data; they cannot execute Lean commands or proof scripts.
+Generic draft management, parsing and review rendering remain unproved
+adapters. This does not prove arbitrary user projects or the
 GitHub/OS/compiler/hash assumptions. See [the supported project scope](docs/project-verification.md).
 
 The outer-turn and inner conversation controllers now have separate

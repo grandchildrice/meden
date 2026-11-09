@@ -54,8 +54,10 @@ enum Command {
         #[arg(long)]
         directory: PathBuf,
     },
-    /// Check a Rust ledger module against the fixed ledger-v1 contract locally.
-    VerifyLedger {
+    /// Check a pure Rust transition against an explicit mathematical contract.
+    VerifyKernel {
+        #[arg(long)]
+        contract: PathBuf,
         #[arg(long)]
         source: PathBuf,
         #[arg(long)]
@@ -64,7 +66,7 @@ enum Command {
         output: PathBuf,
     },
     #[command(hide = true)]
-    WorkerLedgerSyntax,
+    WorkerKernelSyntax,
     #[command(hide = true)]
     WorkerFile,
     #[command(hide = true)]
@@ -145,15 +147,13 @@ fn main() -> ExitCode {
 fn run() -> Result<()> {
     match Cli::parse().command {
         Command::WorkerLaunch { arguments } => meden_runtime::process::exec_clean(&arguments)?,
-        Command::WorkerLedgerSyntax => {
-            let source = read_ledger(io::stdin().lock())?;
-            meden_runtime::verification::validate_ledger_source(&source)?;
-        }
-        Command::VerifyLedger {
+        Command::WorkerKernelSyntax => worker_kernel_syntax()?,
+        Command::VerifyKernel {
+            contract,
             source,
             bundle,
             output,
-        } => verify_ledger(&source, &bundle, &output)?,
+        } => verify_kernel(&contract, &source, &bundle, &output)?,
         Command::VerifyRelease {
             repository,
             commit,
@@ -262,32 +262,53 @@ fn verify_release(repository: &str, commit: &str, directory: &std::path::Path) -
     Ok(())
 }
 
-fn read_ledger(mut input: impl io::Read) -> Result<String> {
+fn worker_kernel_syntax() -> Result<()> {
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct Input {
+        contract: meden_runtime::verification::Contract,
+        source: String,
+    }
     let mut bytes = Vec::new();
-    input.by_ref().take(65_537).read_to_end(&mut bytes)?;
-    anyhow::ensure!(bytes.len() <= 65_536, "ledger source exceeds 64 KiB");
-    Ok(String::from_utf8(bytes)?)
+    io::Read::take(io::stdin().lock(), 524_289).read_to_end(&mut bytes)?;
+    anyhow::ensure!(
+        bytes.len() <= 524_288,
+        "source syntax input exceeds 512 KiB"
+    );
+    let input: Input = serde_json::from_slice(&bytes)?;
+    meden_runtime::verification::validate_source(&input.source, &input.contract)?;
+    Ok(())
 }
 
-fn verify_ledger(
+fn verify_kernel(
+    contract: &std::path::Path,
     source: &std::path::Path,
     bundle: &std::path::Path,
     output: &std::path::Path,
 ) -> Result<()> {
-    let source = read_ledger(std::fs::File::open(source)?)?;
+    let contract =
+        meden_runtime::verification::Contract::parse(&read_input(std::fs::File::open(contract)?)?)?;
+    let source = read_input(std::fs::File::open(source)?)?;
     let bundle = meden_runtime::verification::Bundle::load(bundle)?;
     let control = Control::new(Arc::new(AtomicBool::new(false)));
-    let prepared = meden_runtime::verification::prepare_ledger(
+    let prepared = meden_runtime::verification::kernel::prepare_kernel(
         &source,
+        &contract,
         &bundle,
         &std::env::current_exe()?,
         &control,
     )?;
-    let checked = prepared.check(&control)?;
-    let artifact = checked.persist(output)?;
+    let artifact = prepared.check(&control)?.persist(output)?;
     serde_json::to_writer(io::stdout().lock(), &artifact)?;
     println!();
     Ok(())
+}
+
+fn read_input(mut input: impl io::Read) -> Result<String> {
+    let mut bytes = Vec::new();
+    input.by_ref().take(65_537).read_to_end(&mut bytes)?;
+    anyhow::ensure!(bytes.len() <= 65_536, "input exceeds 64 KiB");
+    Ok(String::from_utf8(bytes)?)
 }
 
 fn load_pages(path: Option<&std::path::Path>) -> Result<Arc<meden_runtime::pages::Pages>> {

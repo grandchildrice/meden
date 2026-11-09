@@ -129,7 +129,8 @@ exact current-subject completion and input invalidation for its typed state
 and receipts, contributing to CTL-02 through CTL-06. Its first consumer is
 Meden's own release checklist. Checker attribution, complete input construction,
 general project contract management and effect routing remain separate gaps.
-The fixed ledger profile now consumes this gate for actual project checks;
+The pure-u64 Rust transition backend consumes this gate for project checks
+under bounded, host-reviewed mathematical contracts;
 the adapter and interface loop are tested, not extracted/refined. Final local
 receipt/artifact admission is serialized against process cancellation. The
 extracted job kernel issues session/contract/input-bound, single-use tickets;

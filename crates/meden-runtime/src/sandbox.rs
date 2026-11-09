@@ -242,8 +242,8 @@ impl Sandbox {
         )
     }
 
-    pub(crate) fn verification_syntax_command(&self) -> io::Result<Command> {
-        self.worker_invocation("worker-ledger-syntax", None)
+    pub(crate) fn verification_source_command(&self) -> io::Result<Command> {
+        self.worker_invocation("worker-kernel-syntax", None)
     }
 
     /// Invoke the trusted file worker inside the same containment as shell tools.

@@ -1,0 +1,230 @@
+{
+  "name": "Local ledger",
+  "description": "Transfers conserve balance, reject unauthorized/invalid requests and cannot charge a repeated ID twice.",
+  "source": "ledger.rs",
+  "state": "LedgerState",
+  "fields": [
+    "debit",
+    "credit",
+    "sequence"
+  ],
+  "parameters": [
+    "actor",
+    "id",
+    "amount"
+  ],
+  "function": "transfer",
+  "specification": "if actor = 0 ∧ s.sequence < id ∧ 0 < amount ∧ amount ≤ s.debit ∧ s.credit + amount ≤ 18446744073709551615 then { debit := s.debit - amount, credit := s.credit + amount, sequence := id } else s",
+  "properties": [
+    {
+      "name": "conservation",
+      "description": "Total balance is conserved.",
+      "statement": "out.debit + out.credit = s.debit + s.credit"
+    },
+    {
+      "name": "rejection",
+      "description": "An unpermitted request leaves state unchanged.",
+      "statement": "¬(actor = 0 ∧ s.sequence < id ∧ 0 < amount ∧ amount ≤ s.debit ∧ s.credit + amount ≤ 18446744073709551615) → out = s"
+    },
+    {
+      "name": "valid_transfer",
+      "description": "A permitted request moves exactly the amount and records its ID.",
+      "statement": "(actor = 0 ∧ s.sequence < id ∧ 0 < amount ∧ amount ≤ s.debit ∧ s.credit + amount ≤ 18446744073709551615) → out = { debit := s.debit - amount, credit := s.credit + amount, sequence := id }"
+    },
+    {
+      "name": "unauthorized",
+      "description": "Only actor zero can transfer.",
+      "statement": "actor ≠ 0 → out = s"
+    },
+    {
+      "name": "old_request",
+      "description": "An old request ID cannot transfer.",
+      "statement": "id ≤ s.sequence → out = s"
+    },
+    {
+      "name": "repeated_request",
+      "description": "Repeating a successful request has no further effect.",
+      "statement": "transition out actor id amount = out"
+    },
+    {
+      "name": "bounded_result",
+      "description": "All output fields fit in u64.",
+      "statement": "out.debit ≤ 18446744073709551615 ∧ out.credit ≤ 18446744073709551615 ∧ out.sequence ≤ 18446744073709551615"
+    }
+  ],
+  "examples": [
+    {
+      "before": [
+        10,
+        20,
+        0
+      ],
+      "arguments": [
+        0,
+        1,
+        3
+      ],
+      "after": [
+        7,
+        23,
+        1
+      ]
+    },
+    {
+      "before": [
+        10,
+        20,
+        0
+      ],
+      "arguments": [
+        0,
+        7,
+        3
+      ],
+      "after": [
+        7,
+        23,
+        7
+      ]
+    },
+    {
+      "before": [
+        10,
+        20,
+        0
+      ],
+      "arguments": [
+        1,
+        1,
+        3
+      ],
+      "after": [
+        10,
+        20,
+        0
+      ]
+    },
+    {
+      "before": [
+        10,
+        20,
+        0
+      ],
+      "arguments": [
+        0,
+        1,
+        11
+      ],
+      "after": [
+        10,
+        20,
+        0
+      ]
+    },
+    {
+      "before": [
+        10,
+        18446744073709551614,
+        0
+      ],
+      "arguments": [
+        0,
+        1,
+        2
+      ],
+      "after": [
+        10,
+        18446744073709551614,
+        0
+      ]
+    },
+    {
+      "before": [
+        10,
+        20,
+        0
+      ],
+      "arguments": [
+        0,
+        0,
+        3
+      ],
+      "after": [
+        10,
+        20,
+        0
+      ]
+    },
+    {
+      "before": [
+        10,
+        20,
+        10
+      ],
+      "arguments": [
+        0,
+        9,
+        3
+      ],
+      "after": [
+        10,
+        20,
+        10
+      ]
+    },
+    {
+      "before": [
+        10,
+        20,
+        0
+      ],
+      "arguments": [
+        0,
+        1,
+        0
+      ],
+      "after": [
+        10,
+        20,
+        0
+      ]
+    },
+    {
+      "before": [
+        18446744073709551615,
+        0,
+        0
+      ],
+      "arguments": [
+        0,
+        1,
+        18446744073709551615
+      ],
+      "after": [
+        0,
+        18446744073709551615,
+        1
+      ]
+    },
+    {
+      "before": [
+        10,
+        20,
+        18446744073709551614
+      ],
+      "arguments": [
+        0,
+        18446744073709551615,
+        3
+      ],
+      "after": [
+        7,
+        23,
+        18446744073709551615
+      ]
+    }
+  ],
+  "assumptions": [
+    "The caller authenticates the actor and uses this transition for all ledger changes."
+  ]
+}

@@ -28,6 +28,7 @@ pub enum Command {
     RejectExport(Reference),
     ReviewContract(crate::project::Reference),
     AcceptContract(crate::project::Reference),
+    RejectContract(crate::project::Reference),
     ProjectStatus(()),
 }
 
@@ -35,7 +36,7 @@ pub enum Command {
 #[serde(tag = "type", rename_all = "snake_case")]
 enum Out<'a> {
     Project {
-        summary: crate::project::Summary,
+        summary: &'a crate::project::Summary,
     },
     Exports {
         exports: Vec<Summary>,
@@ -122,23 +123,29 @@ pub fn run(
                 Command::ReviewContract(ref r) => send(
                     output,
                     &Out::Project {
-                        summary: project.review(r)?,
+                        summary: &project.review(r)?,
                     },
                 )?,
                 Command::AcceptContract(ref r) => {
                     send(
                         output,
                         &Out::Project {
-                            summary: project.accept(r)?,
+                            summary: &project.accept(r)?,
                         },
                     )?;
-                    next = Some(Command::Instruction("Proceed under the host-accepted Rust ledger-v1 contract. Implement ledger.rs and independently verify it. Repair failures; report unknown if verification cannot finish.".into()));
+                    next = Some(Command::Instruction(project.continuation()?));
                     continue;
                 }
+                Command::RejectContract(ref r) => send(
+                    output,
+                    &Out::Project {
+                        summary: &project.reject(r)?,
+                    },
+                )?,
                 Command::ProjectStatus(()) => send(
                     output,
                     &Out::Project {
-                        summary: project.status(workspace, processes)?,
+                        summary: &project.status(workspace, processes)?,
                     },
                 )?,
                 _ => export_command(command, &exports, output)?,
@@ -228,7 +235,7 @@ fn run_instruction(
         },
     };
     let summary = session.project_status()?;
-    send(output, &Out::Project { summary })?;
+    send(output, &Out::Project { summary: &summary })?;
     send(output, &done)?;
     Ok(status)
 }
@@ -288,6 +295,7 @@ fn export_command(command: Command, exports: &Exports, output: &mut impl Write) 
             }
             Command::ReviewContract(_)
             | Command::AcceptContract(_)
+            | Command::RejectContract(_)
             | Command::ProjectStatus(()) => {
                 anyhow::bail!("project command cannot be dispatched as an export")
             }

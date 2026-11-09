@@ -1,9 +1,11 @@
-//! The first backend accepts a pure, finite Rust ledger module. Validate this
+//! The backend accepts a declared pure, finite Rust transition module. Validate this
 //! untrusted syntax in a worker, before extraction/build: attributes, macros,
 //! conditional compilation and compile-time environment access could otherwise
 //! make the extracted and delivered programs differ.
 
 use std::io;
+
+use super::Contract;
 
 use syn::visit::{self, Visit};
 use syn::{
@@ -15,25 +17,26 @@ fn named(ty: &Type, name: &str) -> bool {
     matches!(ty, Type::Path(p) if p.qself.is_none() && p.path.is_ident(name))
 }
 
-/// Check the declared first-backend API and its supported pure source subset.
+/// Check the contract's declared API and its supported pure source subset.
 /// Call only inside the offline worker when the source is untrusted. This is
 /// a syntax boundary, not a correctness proof; Lean must still check behavior.
-pub fn validate_ledger_source(source: &str) -> io::Result<()> {
+pub fn validate_source(source: &str, contract: &Contract) -> io::Result<()> {
+    contract.validate()?;
     if source.len() > 65_536 {
-        return Err(unsupported("ledger source exceeds 64 KiB"));
+        return Err(unsupported("kernel source exceeds 64 KiB"));
     }
     let file = syn::parse_file(source).map_err(|e| unsupported(&e.to_string()))?;
     if !file.attrs.is_empty() || file.items.len() != 2 {
         return Err(unsupported(
-            "expected only the LedgerState struct and transfer function; remove use/import statements, other items and attributes",
+            "expected only the declared state struct and transition function; remove imports, other items and attributes",
         ));
     }
     let mut structure = None;
     let mut function = None;
     for item in &file.items {
         match item {
-            Item::Struct(s) if s.ident == "LedgerState" => structure = Some(s),
-            Item::Fn(f) if f.sig.ident == "transfer" => function = Some(f),
+            Item::Struct(s) if s.ident == contract.state => structure = Some(s),
+            Item::Fn(f) if f.sig.ident == contract.function => function = Some(f),
             _ => {
                 return Err(unsupported(
                     "additional items are outside this backend's scope",
@@ -41,16 +44,16 @@ pub fn validate_ledger_source(source: &str) -> io::Result<()> {
             }
         }
     }
-    let s = structure.ok_or_else(|| unsupported("missing LedgerState"))?;
+    let s = structure.ok_or_else(|| unsupported("missing declared state"))?;
     let Fields::Named(fields) = &s.fields else {
-        return Err(unsupported("LedgerState needs named fields"));
+        return Err(unsupported("state needs named fields"));
     };
     if !s.attrs.is_empty()
         || !matches!(s.vis, Visibility::Public(_))
         || !s.generics.params.is_empty()
         || s.generics.where_clause.is_some()
-        || fields.named.len() != 3
-        || ["debit", "credit", "sequence"].iter().any(|name| {
+        || fields.named.len() != contract.fields.len()
+        || contract.fields.iter().any(|name| {
             fields
                 .named
                 .iter()
@@ -65,10 +68,10 @@ pub fn validate_ledger_source(source: &str) -> io::Result<()> {
         })
     {
         return Err(unsupported(
-            "expected three public u64 fields: debit, credit, sequence",
+            "state fields differ from the declared public u64 fields",
         ));
     }
-    let f = function.ok_or_else(|| unsupported("missing transfer"))?;
+    let f = function.ok_or_else(|| unsupported("missing declared transition"))?;
     let signature = &f.sig;
     if !f.attrs.is_empty()
         || !matches!(f.vis, Visibility::Public(_))
@@ -79,24 +82,28 @@ pub fn validate_ledger_source(source: &str) -> io::Result<()> {
         || signature.variadic.is_some()
         || !signature.generics.params.is_empty()
         || signature.generics.where_clause.is_some()
-        || signature.inputs.len() != 4
+        || signature.inputs.len() != contract.parameters.len().saturating_add(1)
         || signature
             .inputs
             .iter()
-            .zip(["LedgerState", "u64", "u64", "u64"])
+            .zip(
+                std::iter::once(contract.state.as_str())
+                    .chain(contract.parameters.iter().map(|_| "u64")),
+            )
             .any(|(arg, ty)| {
                 !matches!(arg, FnArg::Typed(a) if a.attrs.is_empty()
                 && named(&a.ty, ty)
                 && matches!(a.pat.as_ref(), Pat::Ident(p) if p.attrs.is_empty()
                     && p.by_ref.is_none() && p.subpat.is_none()))
             })
-        || !matches!(&signature.output, ReturnType::Type(_, ty) if named(ty, "LedgerState"))
+        || !matches!(&signature.output, ReturnType::Type(_, ty) if named(ty, &contract.state))
     {
         return Err(unsupported(
-            "expected pub fn transfer(LedgerState, u64, u64, u64) -> LedgerState",
+            "transition signature differs from the accepted state/parameter API",
         ));
     }
     let mut checker = Pure {
+        contract,
         valid: true,
         nodes: 0,
         reason: "use finite if/match/return expressions, local variables, fields, comparisons, u64 addition/subtraction and supported Option operations; attributes, other calls, macros, loops and nested items are unsupported",
@@ -110,16 +117,17 @@ pub fn validate_ledger_source(source: &str) -> io::Result<()> {
 }
 
 fn unsupported(message: &str) -> io::Error {
-    io::Error::other(format!("unsupported Rust ledger source: {message}"))
+    io::Error::other(format!("unsupported Rust transition source: {message}"))
 }
 
-struct Pure {
+struct Pure<'a> {
+    contract: &'a Contract,
     valid: bool,
     nodes: usize,
     reason: &'static str,
 }
 
-impl<'ast> Visit<'ast> for Pure {
+impl<'ast> Visit<'ast> for Pure<'_> {
     fn visit_expr(&mut self, expression: &'ast Expr) {
         self.nodes = self.nodes.saturating_add(1);
         self.valid &= self.nodes <= 4096
@@ -147,7 +155,7 @@ impl<'ast> Visit<'ast> for Pure {
                         | BinOp::Or(_)
                 ),
                 Expr::Field(e) => {
-                    matches!(&e.member, syn::Member::Named(n) if n == "debit" || n == "credit" || n == "sequence")
+                    matches!(&e.member, syn::Member::Named(n) if self.contract.fields.iter().any(|field| n == field))
                 }
                 Expr::Lit(e) => {
                     matches!(&e.lit, syn::Lit::Bool(_))
@@ -163,7 +171,7 @@ impl<'ast> Visit<'ast> for Pure {
                                 .collect::<Vec<_>>()
                                 == ["u64", "MAX"])
                 }
-                Expr::Struct(e) => e.path.is_ident("LedgerState"),
+                Expr::Struct(e) => e.path.is_ident(&self.contract.state),
                 Expr::Unary(e) => matches!(e.op, syn::UnOp::Not(_)),
                 Expr::MethodCall(e) => {
                     let arity = match e.method.to_string().as_str() {
@@ -202,7 +210,7 @@ impl<'ast> Visit<'ast> for Pure {
         self.valid = false;
     }
     fn visit_type(&mut self, ty: &'ast Type) {
-        self.valid &= ["LedgerState", "u64", "bool"]
+        self.valid &= [self.contract.state.as_str(), "u64", "bool"]
             .iter()
             .any(|name| named(ty, name))
             || matches!(ty, Type::Path(p) if p.qself.is_none() && p.path.segments.len() == 1
@@ -212,12 +220,8 @@ impl<'ast> Visit<'ast> for Pure {
     }
     fn visit_pat(&mut self, pattern: &'ast Pat) {
         self.valid &= match pattern {
-            Pat::Ident(_)
-            | Pat::Type(_)
-            | Pat::Wild(_)
-            | Pat::Lit(_)
-            | Pat::Paren(_)
-            | Pat::Or(_) => true,
+            Pat::Ident(p) => p.ident != "Some",
+            Pat::Type(_) | Pat::Wild(_) | Pat::Lit(_) | Pat::Paren(_) | Pat::Or(_) => true,
             Pat::TupleStruct(p) => {
                 p.qself.is_none() && p.path.is_ident("Some") && p.elems.len() == 1
             }
@@ -239,7 +243,47 @@ impl<'ast> Visit<'ast> for Pure {
 #[cfg(test)]
 mod tests {
     use super::*;
-    const SOURCE: &str = include_str!("../../../../verification/ledger/ledger.rs");
+    const SOURCE: &str = include_str!("../../../../verification/examples/ledger.rs");
+
+    fn validate_ledger_source(source: &str) -> io::Result<()> {
+        let contract = Contract::parse(include_str!(
+            "../../../../verification/examples/ledger.contract.json"
+        ))?;
+        validate_source(source, &contract)
+    }
+
+    #[test]
+    fn declared_api_is_generic_and_constructor_shadowing_cannot_add_recursion() -> io::Result<()> {
+        let mut contract = Contract::parse(include_str!(
+            "../../../../verification/examples/counter.contract.json"
+        ))?;
+        let source = include_str!("../../../../verification/examples/counter.rs");
+        assert!(validate_source(source, &contract).is_ok());
+        assert!(validate_source(
+            &source.replace("pub value: u64", "pub other: u64"),
+            &contract
+        )
+        .is_err());
+        assert!(validate_source(&source.replace("fn increment", "fn other"), &contract).is_err());
+
+        contract.parameters.clear();
+        contract.properties.clear();
+        contract.examples.clear();
+        contract.specification = "s".into();
+        let identity =
+            "pub struct Counter { pub value: u64 }\npub fn increment(s: Counter) -> Counter { s }";
+        assert!(validate_source(identity, &contract).is_ok());
+        // Some(value) is the only permitted free call. A local binding must
+        // not turn that spelling into a recursive call of the one-argument API.
+        assert!(validate_source(
+            &identity.replace("{ s }", "{ let Some = increment; Some(s) }"),
+            &contract
+        )
+        .is_err());
+        contract.function = "Some".into();
+        assert!(contract.validate().is_err());
+        Ok(())
+    }
 
     #[test]
     fn candidate_cannot_change_its_meaning_between_extraction_and_delivery() {
