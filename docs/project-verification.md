@@ -21,8 +21,9 @@ Describe the intended behavior, for example:
 > exceeds the unsigned 64-bit limit without changing the counter.
 
 The model translates the request into contract data and calls
-`propose_contract`. Meden parses its mathematical terms and checks its listed
-properties before exposing the draft. A successful proposal stops inference
+`propose_contract`. Before exposing the draft, Meden parses its mathematical
+terms, proves output bounds and listed properties, and checks every example
+against the mathematical transition. A successful proposal stops inference
 for host review; it is neither acceptance nor implementation evidence.
 
 The TUI displays the actual specification, properties, assumptions, source
