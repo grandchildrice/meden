@@ -293,3 +293,17 @@ open MedenSpec
 #print axioms MedenSpec.InspectionRefinement.extracted_generation
 #print axioms MedenSpec.InspectionRefinement.extracted_stays_stale
 #print axioms MedenSpec.InspectionRefinement.extracted_empty
+
+#print axioms MedenSpec.ToolOutcome.report_success_iff
+#print axioms MedenSpec.ToolOutcome.complete_success_iff
+#print axioms MedenSpec.ToolOutcome.cancellation_wins
+#print axioms MedenSpec.ToolOutcome.worker_stop_refused
+#print axioms MedenSpec.ToolOutcome.repair_iff
+#print axioms MedenSpec.ToolOutcomeRefinement.agent_build_refines
+#print axioms MedenSpec.ToolOutcomeRefinement.worker_build_refines
+#print axioms MedenSpec.ToolOutcomeRefinement.accessors_refine
+#print axioms MedenSpec.ToolOutcomeRefinement.agent_refines
+#print axioms MedenSpec.ToolOutcomeRefinement.complete_refines
+#print axioms MedenSpec.ToolOutcomeRefinement.verification_refines
+#print axioms MedenSpec.ToolOutcomeRefinement.success_iff
+#print axioms MedenSpec.ToolOutcomeRefinement.repair_iff

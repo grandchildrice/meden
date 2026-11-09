@@ -9,7 +9,7 @@ use meden_agent::tool::{Args, Prepared as ToolPrepared, Tool, ToolError, ToolSig
 use meden_agent::Registry;
 use meden_core::file::{Operation as FileOperation, Request as FileRequest};
 use meden_core::{Capability, Policy, Requirement};
-use meden_runtime::process::{self, Control, Limits, Termination};
+use meden_runtime::process::{Control, Limits};
 use meden_runtime::transfer::Export;
 use meden_runtime::workspace::Workspace;
 use serde::{Deserialize, Serialize};
@@ -238,11 +238,11 @@ impl Tool for Propose {
         let target = args
             .get("target")
             .and_then(Value::as_str)
-            .ok_or_else(|| ToolError::Failed("missing target".into()))?
+            .ok_or_else(|| ToolError::failed("missing target".into()))?
             .to_owned();
         if self.artifact {
             if args.len() != 1 {
-                return Err(ToolError::Failed(
+                return Err(ToolError::failed(
                     "artifact export accepts only target".into(),
                 ));
             }
@@ -250,7 +250,7 @@ impl Tool for Propose {
                 .queue
                 .project
                 .prepare_access()
-                .map_err(|error| ToolError::Failed(error.to_string()))?;
+                .map_err(|error| ToolError::failed(error.to_string()))?;
             let mut requirements = access.requirements();
             requirements.push(Requirement::new(Capability::ProcessSpawn, None));
             return Ok(ToolPrepared::new(
@@ -272,7 +272,7 @@ impl Tool for Propose {
                         });
                     result
                         .and_then(|summary| Ok(serde_json::to_value(summary)?))
-                        .map_err(|error| ToolError::Failed(error.to_string()))
+                        .map_err(|error| ToolError::failed(error.to_string()))
                 },
             ));
         }
@@ -280,7 +280,7 @@ impl Tool for Propose {
             .get("path")
             .and_then(Value::as_str)
             .and_then(crate::workspace::logical_path)
-            .ok_or_else(|| ToolError::Failed("path leaves /workspace".into()))?;
+            .ok_or_else(|| ToolError::failed("path leaves /workspace".into()))?;
         let source = path.to_string_lossy().into_owned();
         let (request, requirements) =
             FileRequest::new(FileOperation::Snapshot, source.as_str().into(), Args::new())
@@ -300,31 +300,26 @@ impl Propose {
         target: &str,
         rules: &Policy,
     ) -> Result<Value, ToolError> {
+        let value = meden_runtime::file::run(
+            &self.workspace,
+            &self.control,
+            request,
+            rules,
+            &Limits {
+                timeout: Duration::from_secs(30),
+                capture_bytes: 4_194_368,
+                output_bytes: 4_194_368,
+            },
+        )?;
+        let bytes: Vec<u8> = serde_json::from_value(value)
+            .map_err(|error| ToolError::unavailable(error.to_string()))?;
         let result = (|| -> Result<Summary> {
-            let input = serde_json::to_vec(&(request, rules))?;
-            let output = process::run_with_input(
-                &mut self.workspace.file_command()?,
-                &input,
-                &Limits {
-                    timeout: Duration::from_secs(30),
-                    capture_bytes: 4_194_306,
-                    output_bytes: 4_194_306,
-                },
-                &self.control,
-            )?;
-            anyhow::ensure!(
-                matches!(output.termination, Termination::Exited(code) if code.success())
-                    && !output.truncated,
-                "snapshot worker failed: {}",
-                output.stderr
-            );
-            let bytes: Vec<u8> = serde_json::from_str(&output.stdout)?;
             anyhow::ensure!(bytes.len() <= 1_048_576, "export exceeds 1 MiB");
             let export = self.queue.project.prepare_file_export(target, &bytes)?;
             self.queue.propose(source, export)
         })();
         result
             .and_then(|summary| Ok(serde_json::to_value(summary)?))
-            .map_err(|error| ToolError::Failed(error.to_string()))
+            .map_err(|error| ToolError::failed(error.to_string()))
     }
 }

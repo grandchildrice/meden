@@ -94,8 +94,12 @@ for unit in "${units[@]}"; do
         meden_runtime::verification::turn::Turn::advance
         meden_runtime::verification::failure::failed_worker
         meden_runtime::verification::failure::verification_stops
-        meden_runtime::verification::failure::FailureKind::repairable)
-      extraction_args=(--include std::process --include std::sys --include std::os::unix)
+        meden_runtime::verification::failure::FailureKind::repairable
+        meden_runtime::file::complete meden_runtime::file::verification_kind)
+      extraction_args=(--extract-opaque-bodies --include meden_agent::tool::ToolError
+        --opaque core --opaque alloc --opaque std
+        --include core::option::Option --include core::result::Result
+        --include std::process --include std::sys --include std::os::unix)
       model=Repair ;;
     conversation)
       namespace=MedenConversationImpl
@@ -108,7 +112,11 @@ for unit in "${units[@]}"; do
         meden_agent::flow::Flow::result
         meden_agent::flow::Flow::into_outcome
         meden_agent::conversation::execution_error
+        meden_agent::conversation::tool_error
         meden_agent::conversation::Status::inspection)
+      for method in failed refused unavailable inconclusive cancelled parts into_parts; do
+        rust_roots+=("meden_agent::tool::ToolError::$method")
+      done
       extraction_args=(--extract-opaque-bodies --include meden_core::invocation::Error
         --opaque core --opaque alloc --opaque std --include core::cmp::impls
         --include core::option::Option --include core::result::Result)
@@ -194,7 +202,17 @@ for unit in "${units[@]}"; do
     definitions=(flow.Flow.begin flow.interrupt flow.Flow.advance
       flow.Flow.pending_call flow.Flow.impl.reply flow.Flow.impl.result
       flow.Flow.into_outcome conversation.Status.inspection)
-    definitions+=(conversation.execution_error)
+    definitions+=(conversation.execution_error conversation.tool_error)
+    definitions+=(tool.ToolError.failed tool.ToolError.refused tool.ToolError.unavailable
+      tool.ToolError.inconclusive tool.ToolError.cancelled tool.ToolError.parts tool.ToolError.into_parts)
+  elif [[ $unit == repair ]]; then
+    definitions=(verification.turn.Turn.begin verification.turn.Turn.advance
+      verification.failure.failed_worker verification.failure.verification_stops
+      verification.failure.FailureKind.repairable file.complete file.verification_kind)
+    definitions+=(meden_agent.tool.ToolError.failed meden_agent.tool.ToolError.refused
+      meden_agent.tool.ToolError.unavailable meden_agent.tool.ToolError.inconclusive
+      meden_agent.tool.ToolError.cancelled meden_agent.tool.ToolError.parts
+      meden_agent.tool.ToolError.into_parts)
   fi
   for definition in "${definitions[@]}"; do
     if ! awk -v name="$definition" '$1 == "def" && $2 == name { found = 1 }

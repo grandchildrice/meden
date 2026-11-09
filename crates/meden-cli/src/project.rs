@@ -20,10 +20,9 @@ use meden_core::{
     Capability, Grant, Policy, Requirement,
 };
 use meden_runtime::{
-    process::{self, Control, Limits, Termination},
+    process::{Control, Limits},
     transfer::Export,
     verification::{
-        self,
         kernel::{self, Artifact, Report},
         Bundle, Contract, Failure, FailureKind,
     },
@@ -774,27 +773,19 @@ fn snapshot(
         resolved.to_string_lossy().as_ref().into(),
         Args::new(),
     );
-    let input = serde_json::to_vec(&(request, rules))?;
-    let output = process::run_with_input(
-        &mut workspace.file_command().map_err(Failure::unavailable)?,
-        &input,
+    let value = meden_runtime::file::run(
+        workspace,
+        control,
+        &request,
+        rules,
         &Limits {
             timeout: Duration::from_secs(30),
             capture_bytes: 400_000,
             output_bytes: 1_000_000,
         },
-        control,
     )
-    .map_err(Failure::unavailable)?;
-    if output.truncated || !matches!(output.termination,Termination::Exited(code) if code.success())
-    {
-        return Err(Failure::new(
-            verification::failed_worker(&output.termination, output.truncated),
-            format!("cannot snapshot {path}: {}", output.stderr),
-        )
-        .into());
-    }
-    let bytes: Vec<u8> = serde_json::from_str(&output.stdout).map_err(Failure::unavailable)?;
+    .map_err(|error| Failure::new(meden_runtime::file::verification_kind(&error), error))?;
+    let bytes: Vec<u8> = serde_json::from_value(value).map_err(Failure::unavailable)?;
     anyhow::ensure!(
         bytes.len() <= 65_536,
         Failure::new(FailureKind::Unverified, "kernel source exceeds 64 KiB")
@@ -851,7 +842,7 @@ impl Tool for ProjectTool {
             Some(
                 self.project
                     .prepare_access()
-                    .map_err(|error| ToolError::Failed(error.to_string()))?,
+                    .map_err(|error| ToolError::failed(error.to_string()))?,
             )
         };
         let mut requirements = access.as_ref().map_or_else(Vec::new, Access::requirements);
@@ -900,7 +891,7 @@ impl ProjectTool {
         })();
         result
             .and_then(|s| Ok(serde_json::to_value(s)?))
-            .map_err(|e| ToolError::Failed(e.to_string()))
+            .map_err(|e| ToolError::failed(e.to_string()))
     }
 }
 

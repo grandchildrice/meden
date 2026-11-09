@@ -30,7 +30,7 @@ impl Access {
     ) -> Result<Self, ToolError> {
         let relative = canonical
             .strip_prefix(root)
-            .map_err(|_| ToolError::Failed("path leaves the selected workspace".into()))?;
+            .map_err(|_| ToolError::refused("path leaves the selected workspace".into()))?;
         let root = File::from(
             open(
                 root,
@@ -49,10 +49,10 @@ impl Access {
             Operation::Write | Operation::Edit => {
                 let parent = relative
                     .parent()
-                    .ok_or_else(|| ToolError::Failed("path has no parent".into()))?;
+                    .ok_or_else(|| ToolError::failed("path has no parent".into()))?;
                 let name = relative
                     .file_name()
-                    .ok_or_else(|| ToolError::Failed("path has no filename".into()))?;
+                    .ok_or_else(|| ToolError::failed("path has no filename".into()))?;
                 let parent = pin(&root, parent, true).map_err(failed)?;
                 let original = match pin(&parent, Path::new(name), false) {
                     Ok(file) => {
@@ -98,7 +98,7 @@ fn pin(directory: &File, relative: &Path, is_directory: bool) -> rustix::io::Res
 
 fn regular(file: &File) -> Result<(), ToolError> {
     if !file.metadata().map_err(failed)?.is_file() {
-        return Err(ToolError::Failed(
+        return Err(ToolError::failed(
             "file content access requires a regular file".into(),
         ));
     }

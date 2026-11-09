@@ -11,6 +11,121 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 GROUPS = [
     {
+        "proof": "ToolOutcomeRefinement",
+        "prerequisites": [
+            "ConversationRefinement",
+            "CheckFailureRefinement",
+            "ToolOutcome",
+        ],
+        "source": "crates/meden-runtime/src/file.rs",
+        "package": "meden-runtime",
+        "model": "Repair",
+        "test": (
+            "file::tests::process_facts_precede_every_worker_response_"
+            "and_only_complete_frames_succeed"
+        ),
+        "mutations": [
+            (
+                "file_result_ignores_truncation",
+                "if truncated\n        ||",
+                "if (truncated && false)\n        ||",
+            ),
+            (
+                "file_result_accepts_nonzero_exit",
+                "if word != 0 {\n"
+                "                    return "
+                "Err(ToolError::unavailable(diagnostic));",
+                "if word != 0 && false {\n"
+                "                    return "
+                "Err(ToolError::unavailable(diagnostic));",
+            ),
+            (
+                "file_result_accepts_worker_cancellation",
+                "Err(Some(Err(_)) | None) => Err(ToolError::unavailable(diagnostic)),",
+                "Err(Some(Err(_)) | None) => { let _ = diagnostic; "
+                "Err(ToolError::cancelled()) },",
+            ),
+        ],
+    },
+    {
+        "proof": "ToolOutcomeRefinement",
+        "prerequisites": [
+            "ConversationRefinement",
+            "CheckFailureRefinement",
+            "ToolOutcome",
+        ],
+        "source": "crates/meden-runtime/src/file.rs",
+        "package": "meden-runtime",
+        "model": "Repair",
+        "test": "file::tests::verification_repair_depends_on_error_kind_and_never_diagnostic_words",
+        "mutations": [
+            (
+                "file_refusal_repaired_as_source",
+                "Ok(Err(_)) | Err(Some(Ok(_))) => FailureKind::Unavailable,",
+                "Ok(Err(_)) => FailureKind::Unverified,\n"
+                "        Err(Some(Ok(_))) => FailureKind::Unavailable,",
+            )
+        ],
+    },
+    {
+        "proof": "ToolOutcomeRefinement",
+        "prerequisites": [
+            "ConversationRefinement",
+            "CheckFailureRefinement",
+            "ToolOutcome",
+        ],
+        "source": "crates/meden-agent/src/conversation.rs",
+        "package": "meden-agent",
+        "model": "Conversation",
+        "test": (
+            "conversation::tests::typed_tool_errors_preserve_refusal_"
+            "cancellation_and_operational_stops"
+        ),
+        "mutations": [
+            (
+                "tool_refusal_changed_to_error",
+                "Ok(Err(message)) => ExecutionError::Refused(message),",
+                "Ok(Err(message)) => ExecutionError::Tool(message),",
+            ),
+            (
+                "tool_cancellation_changed_to_incomplete",
+                "Err(None) => ExecutionError::Stopped(Status::Cancelled),",
+                "Err(None) => ExecutionError::Stopped(Status::Incomplete),",
+            ),
+        ],
+    },
+    {
+        "proof": "ToolOutcomeRefinement",
+        "prerequisites": [
+            "ConversationRefinement",
+            "CheckFailureRefinement",
+            "ToolOutcome",
+        ],
+        "source": "crates/meden-agent/src/tool.rs",
+        "package": "meden-agent",
+        "model": "Conversation",
+        "test": (
+            "tool::tests::failure_tags_and_diagnostics_survive_the_wire_"
+            "without_reclassification"
+        ),
+        "mutations": [
+            (
+                "tool_refusal_constructor_changes_class",
+                "pub fn refused(message: String) -> Self {\n"
+                "        Self(Ok(Err(message)))",
+                "pub fn refused(message: String) -> Self {\n"
+                "        Self(Ok(Ok(message)))",
+            ),
+            (
+                "tool_unavailable_constructor_changes_class",
+                "pub fn unavailable(message: String) -> Self {\n"
+                "        Self(Err(Some(Ok(message))))",
+                "pub fn unavailable(message: String) -> Self {\n"
+                "        Self(Ok(Ok(message)))",
+            ),
+        ],
+    },
+    {
         "source": "crates/meden-core/src/invocation.rs",
         "package": "meden-core",
         "model": "Policy",

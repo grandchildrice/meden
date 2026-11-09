@@ -78,7 +78,7 @@ impl Cached {
 }
 
 fn failed(error: impl std::fmt::Display) -> ToolError {
-    ToolError::Failed(error.to_string())
+    ToolError::failed(error.to_string())
 }
 
 #[cfg(test)]

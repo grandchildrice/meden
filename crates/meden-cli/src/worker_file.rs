@@ -29,7 +29,7 @@ pub fn run() -> Result<()> {
         root: PathBuf::from("/workspace"),
         operation,
     }
-    .execute(Path::new(&path), &payload, &rules)?;
+    .execute(Path::new(&path), &payload, &rules);
     serde_json::to_writer(std::io::stdout().lock(), &result)?;
     Ok(())
 }
@@ -48,14 +48,14 @@ impl FileOperation {
         } else {
             let parent = candidate
                 .parent()
-                .ok_or_else(|| ToolError::Failed("path has no parent".into()))?;
+                .ok_or_else(|| ToolError::failed("path has no parent".into()))?;
             let name = candidate
                 .file_name()
-                .ok_or_else(|| ToolError::Failed("path has no filename".into()))?;
+                .ok_or_else(|| ToolError::failed("path has no filename".into()))?;
             parent
                 .canonicalize()
                 .map_err(|error| {
-                    ToolError::Failed(format!(
+                    ToolError::failed(format!(
                         "cannot resolve parent directory {parent:?}: {error}. \
                          File tools do not create directories; use bash for directory operations."
                     ))
@@ -63,21 +63,21 @@ impl FileOperation {
                 .join(name)
         };
         if !path.starts_with(&self.root) {
-            return Err(ToolError::Failed(
+            return Err(ToolError::refused(
                 "path leaves the selected workspace".into(),
             ));
         }
         if matches!(self.operation, Operation::Write) {
             if path == self.root {
-                return Err(ToolError::Failed(
+                return Err(ToolError::failed(
                     "cannot replace the workspace directory with a file".into(),
                 ));
             }
             let parent = path
                 .parent()
-                .ok_or_else(|| ToolError::Failed("path has no parent".into()))?;
+                .ok_or_else(|| ToolError::failed("path has no parent".into()))?;
             if !fs::metadata(parent).map_err(failed)?.is_dir() {
-                return Err(ToolError::Failed(format!(
+                return Err(ToolError::failed(format!(
                     "parent path {parent:?} is not a directory. \
                      Writing empty content creates a regular file, not a directory. \
                      Inspect the existing entry; use bash for directory operations."
@@ -98,26 +98,26 @@ impl FileOperation {
             self.operation,
             requested
                 .to_str()
-                .ok_or_else(|| ToolError::Failed("requested path is not UTF-8".into()))?
+                .ok_or_else(|| ToolError::failed("requested path is not UTF-8".into()))?
                 .into(),
             args,
         )
         .prepare();
         if !meden_core::allowed(&requirements, rules) {
-            return Err(ToolError::Failed(
+            return Err(ToolError::refused(
                 "requested file effects are not permitted".into(),
             ));
         }
         let path = self.resolve(requested)?;
         let canonical = path
             .to_str()
-            .ok_or_else(|| ToolError::Failed("resolved path is not UTF-8".into()))?
+            .ok_or_else(|| ToolError::failed("resolved path is not UTF-8".into()))?
             .into();
         let access = Access::open(&self.root, &path, self.operation)?;
         let (request, _, access) = request
             .bind(canonical, access)
             .consume(rules)
-            .ok_or_else(|| ToolError::Failed("resolved file effects are not permitted".into()))?;
+            .ok_or_else(|| ToolError::refused("resolved file effects are not permitted".into()))?;
         let (operation, _, args) = request.into_parts();
         Self {
             root: self.root.clone(),
@@ -133,7 +133,7 @@ impl FileOperation {
         _args: &Args,
         _rules: &meden_core::Policy,
     ) -> Result<Value, ToolError> {
-        Err(ToolError::Failed(
+        Err(ToolError::unavailable(
             "isolated file access requires Linux".into(),
         ))
     }
@@ -148,7 +148,7 @@ impl FileOperation {
                     .read_to_end(&mut bytes)
                     .map_err(failed)?;
                 if bytes.len() > 1_048_576 {
-                    return Err(ToolError::Failed("export exceeds 1 MiB".into()));
+                    return Err(ToolError::failed("export exceeds 1 MiB".into()));
                 }
                 serde_json::to_value(bytes).map_err(failed)
             }
@@ -156,7 +156,7 @@ impl FileOperation {
                 let offset = integer(args, "offset", 1)?;
                 let limit = integer(args, "limit", 200)?.min(2000);
                 if offset == 0 || limit == 0 {
-                    return Err(ToolError::Failed(
+                    return Err(ToolError::failed(
                         "offset and limit must be positive".into(),
                     ));
                 }
@@ -225,7 +225,7 @@ impl FileOperation {
                 pinned::atomic_write(&parent, &name, Some(&file), &content)?;
                 Ok(Value::String("File edited.".into()))
             }
-            _ => Err(ToolError::Failed(
+            _ => Err(ToolError::failed(
                 "file operation does not match pinned access".into(),
             )),
         }
@@ -240,13 +240,13 @@ fn edited(file: &fs::File, args: &Args) -> Result<String, ToolError> {
         .map_err(failed)?;
     let old = text(args, "old_text")?;
     if old.is_empty() || original.matches(old).count() != 1 {
-        return Err(ToolError::Failed(
+        return Err(ToolError::failed(
             "old_text must match exactly once; file was not changed".into(),
         ));
     }
     let new = text(args, "new_text")?;
     if old == new {
-        return Err(ToolError::Failed(
+        return Err(ToolError::failed(
             "new_text is identical to old_text; file was not changed".into(),
         ));
     }
@@ -254,13 +254,13 @@ fn edited(file: &fs::File, args: &Args) -> Result<String, ToolError> {
 }
 
 fn failed(error: impl std::fmt::Display) -> ToolError {
-    ToolError::Failed(error.to_string())
+    ToolError::failed(error.to_string())
 }
 
 fn text<'a>(args: &'a Args, name: &str) -> Result<&'a str, ToolError> {
     args.get(name)
         .and_then(Value::as_str)
-        .ok_or_else(|| ToolError::Failed(format!("{name} must be text")))
+        .ok_or_else(|| ToolError::failed(format!("{name} must be text")))
 }
 
 fn integer(args: &Args, name: &str, default: usize) -> Result<usize, ToolError> {
@@ -269,7 +269,7 @@ fn integer(args: &Args, name: &str, default: usize) -> Result<usize, ToolError> 
         Some(value) if value.as_u64().is_some() => {
             usize::try_from(value.as_u64().unwrap_or(0)).map_err(failed)
         }
-        Some(_) => Err(ToolError::Failed(format!("{name} must be an integer"))),
+        Some(_) => Err(ToolError::failed(format!("{name} must be an integer"))),
     }
 }
 

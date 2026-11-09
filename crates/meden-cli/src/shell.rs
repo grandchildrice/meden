@@ -59,14 +59,14 @@ impl Shell {
             .get("command")
             .and_then(Value::as_str)
             .filter(|s| !s.trim().is_empty())
-            .ok_or_else(|| ToolError::Failed("command must be nonempty text".into()))?;
+            .ok_or_else(|| ToolError::failed("command must be nonempty text".into()))?;
         let seconds = match args.get("timeout_seconds") {
             None => 60,
             Some(value) if value.as_u64().is_some_and(|n| (1..=300).contains(&n)) => {
                 value.as_u64().unwrap_or(60)
             }
             Some(_) => {
-                return Err(ToolError::Failed(
+                return Err(ToolError::failed(
                     "timeout_seconds must be an integer from 1 to 300".into(),
                 ))
             }
@@ -74,7 +74,7 @@ impl Shell {
         let mut child = self
             .workspace
             .shell_command()
-            .map_err(|e| ToolError::Failed(e.to_string()))?;
+            .map_err(|e| ToolError::failed(e.to_string()))?;
         let output = process::run_with_input(
             &mut child,
             command.as_bytes(),
@@ -85,7 +85,7 @@ impl Shell {
             },
             &self.control,
         )
-        .map_err(|e| ToolError::Failed(e.to_string()))?;
+        .map_err(|e| ToolError::failed(e.to_string()))?;
         let (success, code, reason) = match output.termination {
             Termination::Exited(status) => (status.success(), status.code(), "exited"),
             Termination::TimedOut => (false, None, "timed_out"),
@@ -95,7 +95,7 @@ impl Shell {
         let result = json!({"success":success,"exit_code":code,"status":reason,
             "stdout":output.stdout,"stderr":output.stderr,"output_truncated":output.truncated});
         if !success {
-            return Err(ToolError::Failed(result.to_string()));
+            return Err(ToolError::failed(result.to_string()));
         }
         Ok(result)
     }

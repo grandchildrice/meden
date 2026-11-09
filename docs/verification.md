@@ -26,7 +26,7 @@ attempt; an older completed run does not cover a newer commit.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, file-request, capability policy, scope matching, failure and display-scalar kernels, `lake build`, proof scan/audit, 134 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, file-request, capability policy, scope matching, failure and display-scalar kernels, `lake build`, proof scan/audit, 142 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A decision differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -705,7 +705,7 @@ uses [`worker_file/pinned.rs`](../crates/meden-cli/src/worker_file/pinned.rs):
 The [Linux `openat2` contract](https://man7.org/linux/man-pages/man2/openat2.2.html)
 and [rustix's safe wrapper](https://docs.rs/rustix/1.1.6/rustix/fs/fn.openat2.html)
 are trusted OS/library behavior. First-party code adds no unsafe Rust or assumed
-Lean filesystem primitive. The 278 audited roots concern their documented pure
+Lean filesystem primitive. The 291 audited roots concern their documented pure
 control kernels, including the resolved-resource check, rather than Linux internals.
 
 Native adversarial tests deterministically substitute both parents and final
@@ -758,7 +758,7 @@ constructor and consuming implementation from `Generated/Policy.lean`:
 Native tests cover all five operations with original-only, canonical-only,
 read-only, write-only, combined and explicit-deny policies. Real worker tests
 check those grants through a directory alias, exact bytes/file changes and
-empty stdout on refusal; a forged policy/path/operation in payload data cannot
+typed refusal without file content; a forged policy/path/operation in payload data cannot
 replace the host fields. Another regression checks the prepared executor
 receives the exact admission-policy reference. Compile-fail cases reject a
 resource accessor and reuse after consumption.
@@ -767,9 +767,64 @@ Six semantic Rust faults skip either policy check, accept either name, check
 the wrong canonical operation, substitute the alias for the canonical name or
 return another operation. Each must fail its native assertion, extract into a
 compiling model and fail the unchanged refinement. They are part of the
-134-fault CI corpus. JSON/policy serialization, callback interpretation,
+142-fault CI corpus. JSON/policy serialization, callback interpretation,
 UTF-8/OS decoding and canonical path/handle attribution remain tested adapters;
 these kernel proofs do not establish whole-session physical-effect refinement.
+
+## Typed file-worker outcomes
+
+File tools, raw export snapshots and project source snapshots now share
+[`runtime::file`](../crates/meden-runtime/src/file.rs). A completed worker
+writes one `Result<Value, ToolError>` envelope. Ordinary operation failures
+and permission refusals are typed `Err` values even when the worker process
+exits zero; malformed input or a failed worker cannot masquerade as a source
+rejection. There is no bare-value compatibility protocol. JSON-shaped strings
+inside a successful response remain file data.
+
+The host admits the response in this order: observed cancellation; truncation
+or a host time/output limit; actual Unix termination; the parsed response.
+Only raw exit status zero with complete output can return the original success
+payload. A signal is inconclusive, another nonzero termination or malformed
+frame is unavailable. Worker-supplied cancellation/limit tags are unavailable:
+worker output cannot assert host process observations. Diagnostics are never
+searched for classification words.
+
+| Typed error | Conversation result | Project source inspection |
+| --- | --- | --- |
+| `failed(message)` | Tool error | Unverified, eligible for source repair |
+| `refused(message)` | Refusal | Unavailable, stop repair |
+| `unavailable(message)` | Failed stop | Unavailable, stop repair |
+| `inconclusive(message)` | Failed stop | Inconclusive, stop repair |
+| `cancelled()` | Cancelled stop | Inconclusive, stop repair |
+
+[`ToolOutcome.lean`](../lean/MedenSpec/ToolOutcome.lean) specifies these
+rules; [`ToolOutcomeRefinement.lean`](../lean/MedenSpec/ToolOutcomeRefinement.lean)
+checks the actual Rust functions in the conversation and repair models.
+The private error carrier uses standard sum types so both extracted models
+can compose; the public wire tags remain explicit.
+
+| Audited theorem | Checked claim |
+| --- | --- |
+| `ToolOutcome.report_success_iff`, `complete_success_iff` | Success requires a complete zero-exit host observation and the exact original successful response |
+| `cancellation_wins`, `worker_stop_refused` | Host cancellation takes precedence; worker tags cannot claim a host stop |
+| `repair_iff` | Only a completed operation failure is eligible for source repair |
+| `ToolOutcomeRefinement.agent_build_refines`, `worker_build_refines`, `accessors_refine` | Both actual error constructors and borrowed/consuming accessors preserve the class and complete diagnostic |
+| `agent_refines`, `complete_refines`, `verification_refines` | The actual agent mapper, host result admission and source-failure mapper implement those rules |
+| `success_iff`, `repair_iff` | The extracted admission preserves the original success payload, and extracted source classification cannot repair a refusal |
+
+Native checks cover strict framing, all error classes, misleading diagnostics,
+forged stop tags, exit words, truncation and cancellation precedence. Namespace
+integration tests exercise actual permission refusals, JSON-shaped file data
+and the largest permitted 1 MiB byte snapshot, including its envelope overhead.
+Eight added Rust mutations change constructors, refuse/stop mapping, truncation,
+nonzero-exit handling or worker cancellation admission. Each must fail a native
+assertion, extract a compiling model and fail the unchanged refinement.
+
+Process-observation provenance, JSON/serde interpretation and workspace/held-file
+attribution remain tested adapters. The worker still reports many filesystem
+errors as ordinary operation failures; this is not a proof of OS error taxonomy,
+physical I/O, every tool backend or complete R1. The pure classification does
+not grant execution or outbound authority.
 
 ## Prepared project reads and contract context
 
@@ -1042,7 +1097,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with processor/review/dispatch and TUI approval checks, CI rejects
-134 faults, including file-request, contract revision, outer/inner conversation, scope matching, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
+142 faults, including file-request, contract revision, outer/inner conversation, scope matching, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -1128,7 +1183,7 @@ Six additional semantic Rust faults exercise reused revisions, stale review,
 stale acceptance, pending eligibility, discarded accepted state and revived
 evidence after editing. Each must fail its native regression and the unchanged
 refinement after successful extraction/model compilation. They are part of
-the 134-fault CI corpus above.
+the 142-fault CI corpus above.
 
 Formula validation, canonical byte encoding, source/artifact input construction,
 host-origin attribution, JSON decoding, review rendering, locking, physical
@@ -1138,7 +1193,7 @@ session I/O loop or natural-language/formula equivalence.
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 278
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 291
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan

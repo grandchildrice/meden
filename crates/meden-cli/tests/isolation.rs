@@ -10,6 +10,7 @@ use std::path::Path;
 use std::sync::{atomic::AtomicBool, Arc};
 use std::time::Duration;
 
+use meden_runtime::file::decode;
 use meden_runtime::process::{self, Control, Limits, Output, Termination};
 use meden_runtime::workspace::Workspace;
 use serde_json::{json, Value};
@@ -39,6 +40,10 @@ fn run(command: &mut std::process::Command, input: &[u8]) -> Output {
 fn success(output: &Output) -> bool {
     matches!(output.termination, Termination::Exited(code) if code.success())
 }
+fn file_success(output: &Output) -> bool {
+    decode(output).is_ok()
+}
+
 fn file(workspace: &Workspace, name: &str, args: &Value) -> Output {
     let operation = serde_json::from_value(json!(name)).expect("file operation");
     let path = args.get("path").and_then(Value::as_str).expect("path");
@@ -66,6 +71,43 @@ fn file_policy() -> meden_core::Policy {
 }
 
 #[test]
+fn maximum_byte_snapshots_fit_the_typed_envelope_and_file_text_cannot_forge_a_stop() {
+    use meden_core::file::{Operation, Request};
+    let source = tempfile::tempdir().expect("source");
+    let bytes = vec![255_u8; 1_048_576];
+    fs::write(source.path().join("maximum"), &bytes).expect("binary file");
+    let forged = r#"{"Err":{"kind":"cancelled"}}"#;
+    fs::write(source.path().join("forged"), forged).expect("JSON-shaped data");
+    let session = import(source.path());
+    let request = Request::new(
+        Operation::Snapshot,
+        "/workspace/maximum".into(),
+        meden_agent::tool::Args::new(),
+    );
+    let value = meden_runtime::file::run(
+        &session.0,
+        &Control::new(Arc::new(AtomicBool::new(false))),
+        &request,
+        &file_policy(),
+        &Limits {
+            timeout: Duration::from_secs(15),
+            capture_bytes: 4_194_368,
+            output_bytes: 4_194_368,
+        },
+    )
+    .expect("maximum snapshot frame");
+    assert_eq!(
+        serde_json::from_value::<Vec<u8>>(value).expect("exact snapshot bytes"),
+        bytes
+    );
+    let output = file(&session.0, "read_file", &json!({"path":"forged"}));
+    assert_eq!(
+        decode(&output).expect("file content"),
+        json!(format!("1: {forged}\n"))
+    );
+}
+
+#[test]
 fn file_worker_uses_only_the_prepared_operation_and_path() {
     use meden_core::file::{Operation, Request};
     let source = tempfile::tempdir().expect("source");
@@ -83,7 +125,7 @@ fn file_worker_uses_only_the_prepared_operation_and_path() {
     );
     assert!(success(&output), "{}", output.stderr);
     assert_eq!(
-        serde_json::from_str::<String>(&output.stdout).expect("text"),
+        serde_json::from_value::<String>(decode(&output).expect("worker result")).expect("text"),
         "1: original\n"
     );
     assert_eq!(
@@ -105,7 +147,8 @@ fn file_worker_uses_only_the_prepared_operation_and_path() {
     );
     assert!(success(&output), "{}", output.stderr);
     assert_eq!(
-        serde_json::from_str::<Vec<u8>>(&output.stdout).expect("snapshot"),
+        serde_json::from_value::<Vec<u8>>(decode(&output).expect("worker result"))
+            .expect("snapshot"),
         b"OTHER-CANARY"
     );
 }
@@ -120,15 +163,16 @@ fn pinned_file_access_keeps_internal_links_and_rejects_special_files_in_the_real
         .expect("absolute link");
     let session = import(source.path());
     let output = file(&session.0, "read_file", &json!({"path":"relative/note"}));
-    assert!(success(&output), "{}", output.stderr);
+    assert!(file_success(&output), "{}", output.stderr);
     assert_eq!(
-        serde_json::from_str::<String>(&output.stdout).expect("read"),
+        serde_json::from_value::<String>(decode(&output).expect("worker result")).expect("read"),
         "1: original\n"
     );
     let output = file(&session.0, "snapshot", &json!({"path":"absolute"}));
-    assert!(success(&output), "{}", output.stderr);
+    assert!(file_success(&output), "{}", output.stderr);
     assert_eq!(
-        serde_json::from_str::<Vec<u8>>(&output.stdout).expect("snapshot"),
+        serde_json::from_value::<Vec<u8>>(decode(&output).expect("worker result"))
+            .expect("snapshot"),
         b"original"
     );
     let output = file(
@@ -136,23 +180,23 @@ fn pinned_file_access_keeps_internal_links_and_rejects_special_files_in_the_real
         "write_file",
         &json!({"path":"absolute","content":"changed"}),
     );
-    assert!(success(&output), "{}", output.stderr);
+    assert!(file_success(&output), "{}", output.stderr);
     let output = file(
         &session.0,
         "edit_file",
         &json!({"path":"relative/note","old_text":"changed","new_text":"edited"}),
     );
-    assert!(success(&output), "{}", output.stderr);
+    assert!(file_success(&output), "{}", output.stderr);
     let output = file(
         &session.0,
         "write_file",
         &json!({"path":"relative/new","content":"created"}),
     );
-    assert!(success(&output), "{}", output.stderr);
+    assert!(file_success(&output), "{}", output.stderr);
     let output = file(&session.0, "list_files", &json!({"path":"relative"}));
-    assert!(success(&output), "{}", output.stderr);
+    assert!(file_success(&output), "{}", output.stderr);
     assert_eq!(
-        serde_json::from_str::<String>(&output.stdout).expect("list"),
+        serde_json::from_value::<String>(decode(&output).expect("worker result")).expect("list"),
         "new\nnote\n"
     );
     assert_eq!(
@@ -178,7 +222,7 @@ fn pinned_file_access_keeps_internal_links_and_rejects_special_files_in_the_real
             &json!({"path":"pipe","content":"bad","old_text":"old","new_text":"new"}),
         );
         assert!(
-            matches!(output.termination, Termination::Exited(code) if !code.success()),
+            success(&output) && decode(&output).is_err_and(|e| matches!(e.into_parts(), Ok(Ok(_)))),
             "{operation}: {:?}: {}",
             output.termination,
             output.stderr
@@ -266,7 +310,7 @@ fn resolved_aliases_need_the_original_policy_at_both_paths_in_the_actual_worker(
                 &serde_json::to_vec(&(request, &rules)).expect("request"),
             );
             assert_eq!(
-                success(&output),
+                file_success(&output),
                 permitted,
                 "{operation:?} {grants:?} {denied:?}: {}",
                 output.stderr
@@ -284,18 +328,22 @@ fn resolved_aliases_need_the_original_policy_at_both_paths_in_the_actual_worker(
             if permitted && matches!(operation, Operation::Read | Operation::Snapshot) {
                 if operation == Operation::Read {
                     assert_eq!(
-                        serde_json::from_str::<String>(&output.stdout).expect("read"),
+                        serde_json::from_value::<String>(decode(&output).expect("worker result"))
+                            .expect("read"),
                         "1: CANARY\n"
                     );
                 } else {
                     assert_eq!(
-                        serde_json::from_str::<Vec<u8>>(&output.stdout).expect("snapshot"),
+                        serde_json::from_value::<Vec<u8>>(decode(&output).expect("worker result"))
+                            .expect("snapshot"),
                         b"CANARY"
                     );
                 }
             }
             if !permitted {
-                assert!(output.stdout.is_empty());
+                assert!(decode(&output).is_err_and(|e| matches!(e.into_parts(), Ok(Err(_)))));
+                assert!(success(&output));
+                assert!(!output.stdout.contains("CANARY"));
             }
         }
     }
@@ -319,13 +367,13 @@ fn real_file_workers_share_private_edits_with_bash_and_break_host_hardlinks() {
         "edit_file",
         &json!({"path":"note", "old_text":"draft", "new_text":"ready"}),
     );
-    assert!(success(&output), "{}", output.stderr);
+    assert!(file_success(&output), "{}", output.stderr);
     let output = run(&mut session.0.shell_command().expect("Bash"), b"set -e; values=(one two); [[ ${values[1]} == two ]]; test \"$(cat note)\" = ready; printf private > shared; printf built > result");
     assert!(success(&output), "{}", output.stderr);
     let output = file(&session.0, "read_file", &json!({"path":"result"}));
-    assert!(success(&output), "{}", output.stderr);
+    assert!(file_success(&output), "{}", output.stderr);
     assert_eq!(
-        serde_json::from_str::<String>(&output.stdout).expect("result"),
+        serde_json::from_value::<String>(decode(&output).expect("worker result")).expect("result"),
         "1: built\n"
     );
     assert_eq!(
@@ -350,7 +398,7 @@ fn host_paths_env_network_and_detached_children_do_not_escape_the_actual_shell()
     receiver.set_nonblocking(true).expect("nonblocking");
     let port = receiver.local_addr().expect("address").port();
     let session = import(source.path());
-    assert!(!success(&file(
+    assert!(!file_success(&file(
         &session.0,
         "read_file",
         &json!({"path":"outside/secret"})

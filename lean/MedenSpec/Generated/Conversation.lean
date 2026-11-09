@@ -93,6 +93,49 @@ inductive conversation.ExecutionError where
 | Tool : String → conversation.ExecutionError
 | Stopped : conversation.Status → conversation.ExecutionError
 
+/-- [meden_agent::tool::ToolError]
+    Source: 'crates/meden-agent/src/tool.rs', lines 40:0-40:37
+    Visibility: public -/
+@[reducible]
+def tool.ToolError :=
+  core.result.Result (core.result.Result String String) (Option
+  (core.result.Result String String))
+
+/-- [meden_agent::tool::{meden_agent::tool::ToolError}::into_parts]:
+    Source: 'crates/meden-agent/src/tool.rs', lines 68:4-70:5
+    Visibility: public -/
+def tool.ToolError.into_parts
+  (self : tool.ToolError) :
+  Result (core.result.Result (core.result.Result String String) (Option
+    (core.result.Result String String)))
+  := do
+  ok self
+
+/-- [meden_agent::conversation::tool_error]:
+    Source: 'crates/meden-agent/src/conversation.rs', lines 372:0-379:1 -/
+def conversation.tool_error
+  (error : tool.ToolError) : Result conversation.ExecutionError := do
+  let r ← tool.ToolError.into_parts error
+  match r with
+  | core.result.Result.Ok r1 =>
+    match r1 with
+    | core.result.Result.Ok message =>
+      ok (conversation.ExecutionError.Tool message)
+    | core.result.Result.Err message =>
+      ok (conversation.ExecutionError.Refused message)
+  | core.result.Result.Err o =>
+    match o with
+    | none =>
+      ok (conversation.ExecutionError.Stopped conversation.Status.Cancelled)
+    | some r1 =>
+      match r1 with
+      | core.result.Result.Ok message =>
+        ok (conversation.ExecutionError.Stopped (conversation.Status.Failed
+          message))
+      | core.result.Result.Err message =>
+        ok (conversation.ExecutionError.Stopped (conversation.Status.Failed
+          message))
+
 /-- [meden_agent::invocation::Rule]
     Source: 'crates/meden-agent/src/invocation.rs', lines 4:0-9:1 -/
 @[discriminant isize]
@@ -109,7 +152,7 @@ structure invocation.Refusal where
   reason : String
 
 /-- [meden_agent::conversation::execution_error]:
-    Source: 'crates/meden-agent/src/conversation.rs', lines 372:0-379:1 -/
+    Source: 'crates/meden-agent/src/conversation.rs', lines 382:0-389:1 -/
 def conversation.execution_error
   (error : meden_core.invocation.Error invocation.Refusal conversation.Status)
   :
@@ -598,5 +641,46 @@ def flow.Flow.into_outcome (self : flow.Flow) : Result flow.FlowOutcome := do
       let (o1, _) := core.option.Option.take self.reply.content
       ok (flow.FlowOutcome.Finish o1)
   | some status => ok (flow.FlowOutcome.Stopped status)
+
+/-- [meden_agent::tool::{meden_agent::tool::ToolError}::failed]:
+    Source: 'crates/meden-agent/src/tool.rs', lines 44:4-46:5
+    Visibility: public -/
+def tool.ToolError.failed (message : String) : Result tool.ToolError := do
+  ok (core.result.Result.Ok (core.result.Result.Ok message))
+
+/-- [meden_agent::tool::{meden_agent::tool::ToolError}::refused]:
+    Source: 'crates/meden-agent/src/tool.rs', lines 48:4-50:5
+    Visibility: public -/
+def tool.ToolError.refused (message : String) : Result tool.ToolError := do
+  ok (core.result.Result.Ok (core.result.Result.Err message))
+
+/-- [meden_agent::tool::{meden_agent::tool::ToolError}::unavailable]:
+    Source: 'crates/meden-agent/src/tool.rs', lines 52:4-54:5
+    Visibility: public -/
+def tool.ToolError.unavailable (message : String) : Result tool.ToolError := do
+  ok (core.result.Result.Err (some (core.result.Result.Ok message)))
+
+/-- [meden_agent::tool::{meden_agent::tool::ToolError}::inconclusive]:
+    Source: 'crates/meden-agent/src/tool.rs', lines 56:4-58:5
+    Visibility: public -/
+def tool.ToolError.inconclusive
+  (message : String) : Result tool.ToolError := do
+  ok (core.result.Result.Err (some (core.result.Result.Err message)))
+
+/-- [meden_agent::tool::{meden_agent::tool::ToolError}::cancelled]:
+    Source: 'crates/meden-agent/src/tool.rs', lines 60:4-62:5
+    Visibility: public -/
+def tool.ToolError.cancelled : Result tool.ToolError := do
+  ok (core.result.Result.Err none)
+
+/-- [meden_agent::tool::{meden_agent::tool::ToolError}::parts]:
+    Source: 'crates/meden-agent/src/tool.rs', lines 64:4-66:5
+    Visibility: public -/
+def tool.ToolError.parts
+  (self : tool.ToolError) :
+  Result (core.result.Result (core.result.Result String String) (Option
+    (core.result.Result String String)))
+  := do
+  ok self
 
 end MedenConversationImpl

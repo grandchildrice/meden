@@ -1,6 +1,7 @@
 //! Host-owned process execution and effect boundaries.
 #![forbid(unsafe_code)]
 
+pub mod file;
 pub mod pages;
 pub mod process;
 pub mod release;

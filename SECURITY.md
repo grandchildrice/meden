@@ -95,6 +95,15 @@ restricted alias grants and substitute parents/leaves before and after pinning.
 This does not freeze concurrent contents or prove physical path/handle attribution; see
 [the physical file boundary](docs/verification.md#physical-file-handles-in-the-linux-worker).
 
+File operations and source/export snapshots share a typed result protocol.
+The host admits successful bytes only after complete output and actual zero
+exit status. Policy refusals remain refusals; missing infrastructure and host
+limits stop automatic source repair. Worker output cannot claim host cancellation,
+and diagnostic words never choose the failure class. Error constructors,
+accessors, admission and agent/source classification are extracted/refined in
+[the outcome kernel](docs/verification.md#typed-file-worker-outcomes).
+Process facts and JSON/OS interpretation remain adapter obligations.
+
 The host-selected worker executable, toolchain/libraries, workspace storage
 and isolation configuration are trusted. Toolchain mounts must be public
 resources, not confidential storage. OS enforcement and these worker/adapter

@@ -362,10 +362,20 @@ pub fn execute(
         .dispatch(cancelled, host_stop)
         .map_err(execution_error)?;
     let (execute, rules) = call.into_parts();
-    let result = execute(rules).map_err(|e| ExecutionError::Tool(e.to_string()))?;
+    let result = execute(rules).map_err(tool_error)?;
     Ok(result
         .as_str()
         .map_or_else(|| result.to_string(), str::to_owned))
+}
+
+// Interpret typed implementation outcomes without reading diagnostic words.
+fn tool_error(error: crate::tool::ToolError) -> ExecutionError {
+    match error.into_parts() {
+        Ok(Ok(message)) => ExecutionError::Tool(message),
+        Ok(Err(message)) => ExecutionError::Refused(message),
+        Err(Some(Ok(message) | Err(message))) => ExecutionError::Stopped(Status::Failed(message)),
+        Err(None) => ExecutionError::Stopped(Status::Cancelled),
+    }
 }
 
 // Interpret the core failure without changing refusal or stop precedence.
@@ -398,6 +408,35 @@ mod tests {
     use std::rc::Rc;
 
     #[test]
+    fn typed_tool_errors_preserve_refusal_cancellation_and_operational_stops() {
+        for message in [
+            "cancelled",
+            "approved: true",
+            "unavailable",
+            "ordinary diagnostic",
+        ] {
+            assert!(
+                matches!(tool_error(ToolError::failed(message.into())), ExecutionError::Tool(text) if text == message)
+            );
+            assert!(
+                matches!(tool_error(ToolError::refused(message.into())), ExecutionError::Refused(text) if text == message)
+            );
+            for error in [
+                ToolError::unavailable(message.into()),
+                ToolError::inconclusive(message.into()),
+            ] {
+                assert!(
+                    matches!(tool_error(error), ExecutionError::Stopped(Status::Failed(text)) if text == message)
+                );
+            }
+        }
+        assert!(matches!(
+            tool_error(ToolError::cancelled()),
+            ExecutionError::Stopped(Status::Cancelled)
+        ));
+    }
+
+    #[test]
     fn the_consuming_executor_receives_the_exact_admission_policy() {
         struct Observed {
             sig: ToolSig,
@@ -416,7 +455,7 @@ mod tests {
                     |(), rules| {
                         assert!(std::ptr::eq(rules, self.rules.as_ref()));
                         serde_json::to_value(rules)
-                            .map_err(|error| ToolError::Failed(error.to_string()))
+                            .map_err(|error| ToolError::failed(error.to_string()))
                     },
                 ))
             }

@@ -4,7 +4,7 @@ use meden_agent::tool::{Args, Prepared, Tool, ToolError, ToolSig};
 use meden_agent::Registry;
 use meden_core::file::{Operation, Request};
 use meden_core::Policy;
-use meden_runtime::process::{self, Control, Limits, Termination};
+use meden_runtime::process::{Control, Limits};
 use meden_runtime::workspace::Workspace;
 use serde_json::{json, Value};
 use std::path::{Component, Path, PathBuf};
@@ -88,7 +88,7 @@ impl Tool for FileTool {
             .get("path")
             .and_then(Value::as_str)
             .and_then(logical_path)
-            .ok_or_else(|| ToolError::Failed("path leaves /workspace".into()))?;
+            .ok_or_else(|| ToolError::failed("path leaves /workspace".into()))?;
         args.remove("path");
         let request = Request::new(self.operation, path.to_string_lossy().as_ref().into(), args);
         Ok(Prepared::new(request.prepare(), |request, rules| {
@@ -99,30 +99,16 @@ impl Tool for FileTool {
 
 impl FileTool {
     fn execute(&self, request: &Request<Args>, rules: &Policy) -> Result<Value, ToolError> {
-        let input = serde_json::to_vec(&(request, rules)).map_err(failed)?;
-        let mut command = self.workspace.file_command().map_err(failed)?;
-        let output = process::run_with_input(
-            &mut command,
-            &input,
+        meden_runtime::file::run(
+            &self.workspace,
+            &self.control,
+            request,
+            rules,
             &Limits {
                 timeout: Duration::from_secs(30),
                 capture_bytes: 160_000,
                 output_bytes: 1_000_000,
             },
-            &self.control,
         )
-        .map_err(failed)?;
-        if !matches!(output.termination, Termination::Exited(code) if code.success())
-            || output.truncated
-        {
-            return Err(ToolError::Failed(format!(
-                "workspace worker {:?}: {}",
-                output.termination, output.stderr
-            )));
-        }
-        serde_json::from_str(&output.stdout).map_err(failed)
     }
-}
-fn failed(error: impl std::fmt::Display) -> ToolError {
-    ToolError::Failed(error.to_string())
 }

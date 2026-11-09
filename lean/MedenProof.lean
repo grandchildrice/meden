@@ -16,5 +16,6 @@ import MedenSpec.GlobRefinement
 import MedenSpec.PolicyRefinement
 import MedenSpec.FileRefinement
 import MedenSpec.InspectionRefinement
+import MedenSpec.ToolOutcomeRefinement
 
 /-! Proof-only entry point: keep extraction dependencies out of the oracle. -/

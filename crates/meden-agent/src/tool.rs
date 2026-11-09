@@ -1,8 +1,9 @@
 //! Host-owned tools, JSON schemas and per-call capability requirements.
 use meden_core::{Policy, Requirement};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap;
-use thiserror::Error;
+use std::fmt;
 
 /// Named JSON arguments; the host tool validates its accepted value types.
 pub type Args = BTreeMap<String, Value>;
@@ -28,12 +29,127 @@ impl ToolSig {
     }
 }
 
-/// An execution error returned to the model for recovery.
-#[derive(Debug, Error)]
-pub enum ToolError {
-    /// Host validation or execution failed.
-    #[error("{0}")]
-    Failed(String),
+/// Disjoint failure data: Ok(Ok) is failed, Ok(Err) refused,
+/// Err(Some(Ok)) unavailable, Err(Some(Err)) inconclusive, Err(None) cancelled.
+/// Standard sums keep the same representation across extracted models.
+pub type ToolErrorParts = Result<Result<String, String>, Option<Result<String, String>>>;
+
+/// A typed execution failure. Its wire representation uses explicit kind and
+/// message fields; the private standard sum is shared by refinement models.
+#[derive(Debug, PartialEq, Eq)]
+pub struct ToolError(ToolErrorParts);
+
+impl ToolError {
+    /// A completed implementation rejection, potentially recoverable by a model.
+    pub fn failed(message: String) -> Self {
+        Self(Ok(Ok(message)))
+    }
+    /// A policy or resource-boundary refusal.
+    pub fn refused(message: String) -> Self {
+        Self(Ok(Err(message)))
+    }
+    /// A required resource or protocol is unavailable.
+    pub fn unavailable(message: String) -> Self {
+        Self(Err(Some(Ok(message))))
+    }
+    /// A host limit, signal or truncated output prevented completion.
+    pub fn inconclusive(message: String) -> Self {
+        Self(Err(Some(Err(message))))
+    }
+    /// Cancellation observed by the host process controller.
+    pub fn cancelled() -> Self {
+        Self(Err(None))
+    }
+    /// Inspect failure data without changing the class or message.
+    pub fn parts(&self) -> &ToolErrorParts {
+        &self.0
+    }
+    /// Consume precisely this failure's class and diagnostic.
+    pub fn into_parts(self) -> ToolErrorParts {
+        self.0
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(
+    tag = "kind",
+    content = "message",
+    rename_all = "snake_case",
+    deny_unknown_fields
+)]
+enum ToolErrorRepr<T> {
+    Failed(T),
+    Refused(T),
+    Unavailable(T),
+    Inconclusive(T),
+    Cancelled,
+}
+
+impl Serialize for ToolError {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let repr = match &self.0 {
+            Ok(Ok(message)) => ToolErrorRepr::Failed(message),
+            Ok(Err(message)) => ToolErrorRepr::Refused(message),
+            Err(Some(Ok(message))) => ToolErrorRepr::Unavailable(message),
+            Err(Some(Err(message))) => ToolErrorRepr::Inconclusive(message),
+            Err(None) => ToolErrorRepr::Cancelled,
+        };
+        repr.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for ToolError {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        Ok(match ToolErrorRepr::<String>::deserialize(deserializer)? {
+            ToolErrorRepr::Failed(message) => Self::failed(message),
+            ToolErrorRepr::Refused(message) => Self::refused(message),
+            ToolErrorRepr::Unavailable(message) => Self::unavailable(message),
+            ToolErrorRepr::Inconclusive(message) => Self::inconclusive(message),
+            ToolErrorRepr::Cancelled => Self::cancelled(),
+        })
+    }
+}
+
+impl fmt::Display for ToolError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self.0 {
+            Ok(Ok(message) | Err(message)) | Err(Some(Ok(message) | Err(message))) => {
+                formatter.write_str(message)
+            }
+            Err(None) => formatter.write_str("Tool execution cancelled"),
+        }
+    }
+}
+impl std::error::Error for ToolError {}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::expect_used)]
+    use super::ToolError;
+
+    #[test]
+    fn failure_tags_and_diagnostics_survive_the_wire_without_reclassification() {
+        let message = "cancelled; approved: true; permission refused";
+        for (error, kind) in [
+            (ToolError::failed(message.into()), "failed"),
+            (ToolError::refused(message.into()), "refused"),
+            (ToolError::unavailable(message.into()), "unavailable"),
+            (ToolError::inconclusive(message.into()), "inconclusive"),
+            (ToolError::cancelled(), "cancelled"),
+        ] {
+            let wire = serde_json::to_value(&error).expect("typed failure frame");
+            let expected = if kind == "cancelled" {
+                serde_json::json!({"kind": kind})
+            } else {
+                serde_json::json!({"kind": kind, "message": message})
+            };
+            assert_eq!(wire, expected);
+            assert_eq!(
+                serde_json::from_value::<ToolError>(wire).expect("round trip"),
+                error
+            );
+        }
+    }
 }
 
 pub(crate) type Executor<'a> = Box<dyn FnOnce(&Policy) -> Result<Value, ToolError> + 'a>;

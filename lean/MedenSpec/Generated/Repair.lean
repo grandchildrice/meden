@@ -44,6 +44,84 @@ def std.process.ExitStatus.Insts.StdOsUnixProcessExitStatusExt.into_raw
   (self : std.process.ExitStatus) : Result Std.I32 := do
   ok self
 
+/-- [meden_agent::tool::ToolError]
+    Source: 'crates/meden-agent/src/tool.rs', lines 40:0-40:20
+    Name pattern: [meden_agent::tool::ToolError]
+    Visibility: public -/
+@[reducible, rust_type "meden_agent::tool::ToolError"]
+def meden_agent.tool.ToolError :=
+  core.result.Result (core.result.Result String String) (Option
+  (core.result.Result String String))
+
+/-- [meden_agent::tool::{meden_agent::tool::ToolError}::failed]:
+    Source: 'crates/meden-agent/src/tool.rs', lines 44:4-44:42
+    Name pattern: [meden_agent::tool::{meden_agent::tool::ToolError}::failed]
+    Visibility: public -/
+@[rust_fun "meden_agent::tool::{meden_agent::tool::ToolError}::failed"]
+def meden_agent.tool.ToolError.failed
+  (message : String) : Result meden_agent.tool.ToolError := do
+  ok (core.result.Result.Ok (core.result.Result.Ok message))
+
+/-- [meden_agent::tool::{meden_agent::tool::ToolError}::refused]:
+    Source: 'crates/meden-agent/src/tool.rs', lines 48:4-48:43
+    Name pattern: [meden_agent::tool::{meden_agent::tool::ToolError}::refused]
+    Visibility: public -/
+@[rust_fun "meden_agent::tool::{meden_agent::tool::ToolError}::refused"]
+def meden_agent.tool.ToolError.refused
+  (message : String) : Result meden_agent.tool.ToolError := do
+  ok (core.result.Result.Ok (core.result.Result.Err message))
+
+/-- [meden_agent::tool::{meden_agent::tool::ToolError}::unavailable]:
+    Source: 'crates/meden-agent/src/tool.rs', lines 52:4-52:47
+    Name pattern: [meden_agent::tool::{meden_agent::tool::ToolError}::unavailable]
+    Visibility: public -/
+@[rust_fun "meden_agent::tool::{meden_agent::tool::ToolError}::unavailable"]
+def meden_agent.tool.ToolError.unavailable
+  (message : String) : Result meden_agent.tool.ToolError := do
+  ok (core.result.Result.Err (some (core.result.Result.Ok message)))
+
+/-- [meden_agent::tool::{meden_agent::tool::ToolError}::inconclusive]:
+    Source: 'crates/meden-agent/src/tool.rs', lines 56:4-56:48
+    Name pattern: [meden_agent::tool::{meden_agent::tool::ToolError}::inconclusive]
+    Visibility: public -/
+@[rust_fun "meden_agent::tool::{meden_agent::tool::ToolError}::inconclusive"]
+def meden_agent.tool.ToolError.inconclusive
+  (message : String) : Result meden_agent.tool.ToolError := do
+  ok (core.result.Result.Err (some (core.result.Result.Err message)))
+
+/-- [meden_agent::tool::{meden_agent::tool::ToolError}::cancelled]:
+    Source: 'crates/meden-agent/src/tool.rs', lines 60:4-60:30
+    Name pattern: [meden_agent::tool::{meden_agent::tool::ToolError}::cancelled]
+    Visibility: public -/
+@[rust_fun "meden_agent::tool::{meden_agent::tool::ToolError}::cancelled"]
+def meden_agent.tool.ToolError.cancelled
+  : Result meden_agent.tool.ToolError := do
+  ok (core.result.Result.Err none)
+
+/-- [meden_agent::tool::{meden_agent::tool::ToolError}::parts]:
+    Source: 'crates/meden-agent/src/tool.rs', lines 64:4-64:42
+    Name pattern: [meden_agent::tool::{meden_agent::tool::ToolError}::parts]
+    Visibility: public -/
+@[rust_fun "meden_agent::tool::{meden_agent::tool::ToolError}::parts"]
+def meden_agent.tool.ToolError.parts
+  (self : meden_agent.tool.ToolError) :
+  Result (core.result.Result (core.result.Result String String) (Option
+    (core.result.Result String String)))
+  := do
+  ok self
+
+/-- [meden_agent::tool::{meden_agent::tool::ToolError}::into_parts]:
+    Source: 'crates/meden-agent/src/tool.rs', lines 68:4-68:45
+    Name pattern: [meden_agent::tool::{meden_agent::tool::ToolError}::into_parts]
+    Visibility: public -/
+@[rust_fun "meden_agent::tool::{meden_agent::tool::ToolError}::into_parts"]
+def meden_agent.tool.ToolError.into_parts
+  (self : meden_agent.tool.ToolError) :
+  Result (core.result.Result (core.result.Result String String) (Option
+    (core.result.Result String String)))
+  := do
+  ok self
+
 /-- [meden_runtime::process::Termination]
     Source: 'crates/meden-runtime/src/process.rs', lines 107:0-116:1
     Visibility: public -/
@@ -54,6 +132,102 @@ inductive process.Termination where
 | Cancelled : process.Termination
 | OutputLimit : process.Termination
 
+/-- [meden_runtime::file::complete]:
+    Source: 'crates/meden-runtime/src/file.rs', lines 53:0-98:1
+    Visibility: public -/
+def file.complete
+  {T : Type _} (termination : process.Termination) (truncated : Bool)
+  (response : Option (core.result.Result T meden_agent.tool.ToolError))
+  (diagnostic : String) :
+  Result (core.result.Result T meden_agent.tool.ToolError)
+  := do
+  let b ←
+    match termination with
+    | process.Termination.Exited _ => ok false
+    | process.Termination.TimedOut => ok false
+    | process.Termination.Cancelled => ok true
+    | process.Termination.OutputLimit => ok false
+  if b
+  then
+    let te ← meden_agent.tool.ToolError.cancelled
+    ok (core.result.Result.Err te)
+  else
+    if truncated
+    then
+      let te ← meden_agent.tool.ToolError.inconclusive diagnostic
+      ok (core.result.Result.Err te)
+    else
+      let b1 ←
+        match termination with
+        | process.Termination.Exited _ => ok false
+        | process.Termination.TimedOut => ok true
+        | process.Termination.Cancelled => ok false
+        | process.Termination.OutputLimit => ok true
+      if b1
+      then
+        let te ← meden_agent.tool.ToolError.inconclusive diagnostic
+        ok (core.result.Result.Err te)
+      else
+        match termination with
+        | process.Termination.Exited status =>
+          let word ←
+            std.process.ExitStatus.Insts.StdOsUnixProcessExitStatusExt.into_raw
+              status
+          let i ← lift (word &&& 127#i32)
+          if i != 0#i32
+          then
+            let te ← meden_agent.tool.ToolError.inconclusive diagnostic
+            ok (core.result.Result.Err te)
+          else
+            if word != 0#i32
+            then
+              let te ← meden_agent.tool.ToolError.unavailable diagnostic
+              ok (core.result.Result.Err te)
+            else
+              match response with
+              | none =>
+                let te ← meden_agent.tool.ToolError.unavailable diagnostic
+                ok (core.result.Result.Err te)
+              | some r =>
+                match r with
+                | core.result.Result.Ok _ => ok r
+                | core.result.Result.Err error =>
+                  let r1 ← meden_agent.tool.ToolError.into_parts error
+                  match r1 with
+                  | core.result.Result.Ok r2 =>
+                    match r2 with
+                    | core.result.Result.Ok message =>
+                      let te ← meden_agent.tool.ToolError.failed message
+                      ok (core.result.Result.Err te)
+                    | core.result.Result.Err message =>
+                      let te ← meden_agent.tool.ToolError.refused message
+                      ok (core.result.Result.Err te)
+                  | core.result.Result.Err o =>
+                    match o with
+                    | none =>
+                      let te ←
+                        meden_agent.tool.ToolError.unavailable diagnostic
+                      ok (core.result.Result.Err te)
+                    | some r2 =>
+                      match r2 with
+                      | core.result.Result.Ok message =>
+                        let te ←
+                          meden_agent.tool.ToolError.unavailable message
+                        ok (core.result.Result.Err te)
+                      | core.result.Result.Err _ =>
+                        let te ←
+                          meden_agent.tool.ToolError.unavailable diagnostic
+                        ok (core.result.Result.Err te)
+        | process.Termination.TimedOut =>
+          let te ← meden_agent.tool.ToolError.inconclusive diagnostic
+          ok (core.result.Result.Err te)
+        | process.Termination.Cancelled =>
+          let te ← meden_agent.tool.ToolError.inconclusive diagnostic
+          ok (core.result.Result.Err te)
+        | process.Termination.OutputLimit =>
+          let te ← meden_agent.tool.ToolError.inconclusive diagnostic
+          ok (core.result.Result.Err te)
+
 /-- [meden_runtime::verification::failure::FailureKind]
     Source: 'crates/meden-runtime/src/verification/failure.rs', lines 11:0-19:1
     Visibility: public -/
@@ -62,6 +236,30 @@ inductive verification.failure.FailureKind where
 | Unverified : verification.failure.FailureKind
 | Unavailable : verification.failure.FailureKind
 | Inconclusive : verification.failure.FailureKind
+
+/-- [meden_runtime::file::verification_kind]:
+    Source: 'crates/meden-runtime/src/file.rs', lines 102:0-108:1
+    Visibility: public -/
+def file.verification_kind
+  (error : meden_agent.tool.ToolError) :
+  Result verification.failure.FailureKind
+  := do
+  let r ← meden_agent.tool.ToolError.parts error
+  match r with
+  | core.result.Result.Ok r1 =>
+    match r1 with
+    | core.result.Result.Ok _ => ok verification.failure.FailureKind.Unverified
+    | core.result.Result.Err _ =>
+      ok verification.failure.FailureKind.Unavailable
+  | core.result.Result.Err o =>
+    match o with
+    | none => ok verification.failure.FailureKind.Inconclusive
+    | some r1 =>
+      match r1 with
+      | core.result.Result.Ok _ =>
+        ok verification.failure.FailureKind.Unavailable
+      | core.result.Result.Err _ =>
+        ok verification.failure.FailureKind.Inconclusive
 
 /-- [meden_runtime::verification::failure::{impl core::cmp::PartialEq<meden_runtime::verification::failure::FailureKind> for meden_runtime::verification::failure::FailureKind}::eq]:
     Source: 'crates/meden-runtime/src/verification/failure.rs', lines 9:29-9:38

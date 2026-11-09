@@ -119,6 +119,15 @@
   JSON, diagnostic rendering, input mapping and resource attribution remain gaps.
   Unknown grant labels and policy/grant object keys are configuration errors;
   do not restore permissive fallbacks for malformed authority configuration.
+  File tools and project/export snapshots share the runtime's typed worker
+  result protocol. Host cancellation, limits/truncation and actual exit status
+  precede parsed output. Only complete raw-zero exit plus an original Ok
+  response admits success. Worker cancellation/limit tags become unavailable;
+  diagnostics never classify outcomes. The private standard-sum ToolError's
+  constructors/accessors, host admission and agent/source failure mappings are
+  extracted/refined. Refusal/infrastructure/interruption stops source repair;
+  ordinary completed operation failures remain repairable. JSON/OS observation
+  provenance and physical effects remain tested adapters.
   Typed verification-failure classification and repair-stop decisions are
   extracted/refined; I/O mapping, host-stop attribution and history remain tested
   adapters. Operational failures stop automatic repair until a new host turn.
