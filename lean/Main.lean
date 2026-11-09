@@ -1,7 +1,7 @@
 import Lean.Data.Json
 import MedenSpec
 
-/-! Executable policy and glob oracle for Rust conformance tests. -/
+/-! Executable policy, glob and processor lifecycle conformance oracle. -/
 
 open Lean MedenSpec
 
@@ -38,20 +38,59 @@ structure GlobCase where
   text : String
   deriving FromJson
 
-deriving instance FromJson, ToJson for Transfer.Request
-deriving instance FromJson, ToJson for Transfer.Permit
+structure ProcessorBinding where
+  is_local : Bool
+  engine : List Nat
+  weights : List Nat
+  provider : List Nat
+  endpoint : List Nat
+  model : List Nat
+  credential : Option (List Nat)
+  deriving FromJson, ToJson
 
-structure TransferCase where
+def ProcessorBinding.toBinding (b : ProcessorBinding) : Processor.Binding :=
+  if b.is_local then .local ⟨b.engine, b.weights⟩
+  else .http ⟨b.provider, b.endpoint, b.model, b.credential⟩
+
+def ProcessorBinding.ofBinding : Processor.Binding → ProcessorBinding
+  | .local p => ⟨true, p.engine, p.weights, [], [], [], none⟩
+  | .http p => ⟨false, [], [], p.provider, p.endpoint, p.model, p.credential⟩
+
+structure ProcessorAction where
+  kind : String
+  host : Bool
   now : Nat
   session : List Nat
-  permit : Transfer.Permit
-  request : Transfer.Request
   deriving FromJson
+
+def ProcessorAction.toAction (a : ProcessorAction) : Processor.Action :=
+  let o := if a.host then Processor.Origin.host else .model
+  if a.kind == "approve" then .approve o a.now
+  else if a.kind == "revoke" then .revoke o
+  else .dispatch a.session a.now
+
+structure ProcessorCase where
+  session : List Nat
+  binding : ProcessorBinding
+  actions : List ProcessorAction
+  deriving FromJson
+
+structure ProcessorObservation where
+  accepted : Bool
+  effect : Option ProcessorBinding
+  deriving ToJson
+
+structure ProcessorResult where
+  steps : List ProcessorObservation
+  binding : ProcessorBinding
+  phase : String
+  expires : Nat
+  deriving ToJson
 
 structure Input where
   policy_cases : List PolicyCase := []
   glob_cases : List GlobCase := []
-  transfer_cases : List TransferCase := []
+  processor_cases : List ProcessorCase := []
   deriving FromJson
 
 def JPolicy.toPolicy (p : JPolicy) : Policy :=
@@ -65,8 +104,14 @@ def runPolicy (c : PolicyCase) : Bool :=
 def runGlob (c : GlobCase) : Bool :=
   globMatch c.pattern.toList c.text.toList
 
-def runTransfer (c : TransferCase) : Bool :=
-  Transfer.allowed c.now c.session c.permit c.request
+def runProcessor (c : ProcessorCase) : ProcessorResult :=
+  let r := Processor.run (Processor.initial c.session c.binding.toBinding)
+    (c.actions.map ProcessorAction.toAction)
+  ⟨r.1.map (fun o => ⟨o.accepted, o.effect.map ProcessorBinding.ofBinding⟩),
+    ProcessorBinding.ofBinding r.2.binding,
+    match r.2.phase with
+      | .pending => "pending" | .granted => "granted" | .revoked => "revoked",
+    r.2.expires⟩
 
 partial def readAll (s : IO.FS.Stream) (acc : String) : IO String := do
   let line ← s.getLine
@@ -83,6 +128,6 @@ def main : IO UInt32 := do
     let out : Json := Json.mkObj
       [ ("policy", toJson (input.policy_cases.map runPolicy))
       , ("glob", toJson (input.glob_cases.map runGlob))
-      , ("transfer", toJson (input.transfer_cases.map runTransfer)) ]
+      , ("processor", toJson (input.processor_cases.map runProcessor)) ]
     IO.println out.compress
     return 0

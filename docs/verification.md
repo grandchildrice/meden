@@ -26,7 +26,7 @@ attempt; an older completed run does not cover a newer commit.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate transfer/review/dispatch, evidence, issued jobs, TUI approval, outer/inner conversation, failure and display-scalar kernels, `lake build`, proof scan/audit, 69 Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate processor/review/dispatch, evidence, issued jobs, TUI approval, outer/inner conversation, failure and display-scalar kernels, `lake build`, proof scan/audit, 77 Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A decision differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -48,98 +48,84 @@ the `meden-spec` executable, uploads it as an artifact and passes that exact
 artifact to the conformance job. That job sets `MEDEN_SPEC_BIN`; it does not
 silently substitute an older local build.
 
-## Lean: exact processor permission
+## Processor authorization: actual Rust lifecycle and frozen parameters
 
-[`MedenSpec/Transfer.lean`](../lean/MedenSpec/Transfer.lean) models the exact
-permission predicate used by the processor gateway. Its `Request` contains a
-host session, recipient identity and canonical approved binding. The gateway
-binds provider, endpoint, model and exact credential; conversation bodies
-are the scope of this reusable grant, rather than part of its equality key.
-The predicate compares the complete binding value, not a checksum or a
-model-generated assertion that two bindings are equivalent.
+[`Processor.lean`](../lean/MedenSpec/Processor.lean) specifies one immutable
+local or HTTP connection, a host session and a three-state lifecycle:
+`pending`, `granted`, `revoked`. A first host approval fixes an exclusive
+eight-hour deadline; an overflowing `u64` deadline is rejected. Model-origin
+approval/revocation has no effect. Host revocation closes even a pending
+connection. A dispatch that observes expiry latches the revoked state, so a
+later backwards clock value cannot reopen it. Approval cannot renew or reset
+an issued or revoked connection.
 
-For a request `r`, permit `p`, current session `s` and monotonic time `t`:
+A dispatch is returned exactly when the state is granted, the current session
+matches and the time is strictly before the fixed deadline. It contains the
+original transport and all original parameters: engine/weights path bytes for
+local inference; provider, full URL, model and optional credential bytes for
+HTTP. Conversation bodies are the grant's disclosed scope. This reusable
+processor grant is separate from single-use exact artifact export.
 
-```text
-accepted = (r.session = s)
-        ∧ (p.request = r)
-        ∧ (t < p.expires)
-        ∧ (p.spent = false)
-```
+The actual implementation is [`processor.rs`](../crates/meden-core/src/processor.rs).
+Its fields and token constructors are private. Local and HTTP calls have
+different types, neither cloneable nor deserializable. The HTTP executor
+consumes an `HttpCall` and uses its endpoint, model and credential getters.
+The local adapter consumes a `LocalCall` and checks its exact engine/weights
+configuration before exchanging data. The compile-fail test rejects passing
+a local call as HTTP authority. No Boolean authorization result can substitute
+for these tokens. The obsolete standalone transfer predicate has been removed.
 
-All of the following theorems are checked for arbitrary mathematical inputs, not
-only for a finite test set:
+[`ProcessorRefinement.lean`](../lean/MedenSpec/ProcessorRefinement.lean) proves
+successful termination and exact specification agreement for construction,
+approval, revocation, authorization and dispatch, for all represented inputs,
+including every `u64` time and overflow case. It also proves the actual clone,
+consuming-token and getter paths preserve every parameter byte, including
+`None` versus an empty credential. [`ProcessorTrace.lean`](../lean/MedenSpec/ProcessorTrace.lean)
+composes the actual extracted operations for arbitrary finite traces, observing
+HTTP effects through the actual adapter getters and local effects through
+their token snapshots. The actual local adapter's consuming configuration
+comparison is proved separately. Every effect retains the initial
+binding and transport; in particular local bindings never emit HTTP calls.
+Revoked executions remain closed and emit nothing, even with later host
+approvals and arbitrary subsequent clock values.
 
-| Theorem in `MedenSpec.Transfer` | Proven property |
+| Theorem group | Proven property |
 | --- | --- |
-| `accepted_iff` | Permission holds exactly when all four authorization conditions hold |
-| `exact_request` | Every allowed request equals the approved request, including recipient and complete contents |
-| `no_foreign_session` | Another session cannot use the permission |
-| `no_expired` | The exclusive deadline rejects equality and later times |
-| `no_revoked` | A spent/revoked permission never allows a request |
-| `no_changed_recipient` | Changing the recipient makes permission fail |
-| `no_changed_content` | Changing the canonical contents makes permission fail |
+| `Processor.approve_iff`, `model_cannot_approve`, `model_cannot_revoke` | Only a first host approval with a representable deadline can grant authority |
+| `authorized_iff`, `no_foreign_session`, `no_expired`, `no_revoked` | Exact session, exclusive expiry and phase checks |
+| `dispatch_effect_iff`, `expired_dispatch_closes` | Exact dispatch conditions and terminal observed expiry |
+| `ProcessorRefinement.*_refines`, `*_getters_refine`, `local_consume_refines` | Actual Rust operations, snapshots and adapter observations agree with the specification |
+| `ProcessorTrace.trace_refines`, `extracted_frozen`, `extracted_revoked` | Arbitrary finite extracted executions preserve complete bindings and terminal revocation |
 
-The Rust counterpart is
-[`meden-core/src/transfer.rs`](../crates/meden-core/src/transfer.rs).
-This predicate does not consume a permission. Processor grants and one-use
-file exports have separate scopes: exports use the stateful review/dispatch
-kernel described below.
-Permit creation, revocation, canonical request construction, the monotonic
-clock and actual transport use remain host implementation obligations.
-
-## Rust-to-Lean refinement of the transfer kernel
-
-The production function `meden_core::transfer::allowed`,
-including its derived full-request equality, is extracted by Charon and translated by Aeneas. The checked-in
-[generated model](../lean/MedenSpec/Generated/Control.lean) is not edited
-by hand. [extract-transfer.sh](../tools/extract-transfer.sh) regenerates it
-from the real crate and requires an exact diff. Unknown extracted functions
-or proof holes make the script fail.
-Transfer and review/dispatch share this generated module; their distinct
-request types reflect reusable processor grants versus one-use file exports.
-
-The pinned chain is Rust `nightly-2026-09-17`, Charon
+[extract-transfer.sh](../tools/extract-transfer.sh) regenerates seven raw
+production models and rejects any drift or unknown function/proof hole.
+Processor authorization has its own [generated module](../lean/MedenSpec/Generated/Processor.lean);
+export review/dispatch uses `Control.lean`. Generated files are never edited
+by hand. The pinned chain is Rust `nightly-2026-09-17`, Charon
 `8cae8fd1905946de61147a65ecdd7122cc6b491b`, Aeneas
 `c5eb4a28cef65e0aa27743105308243e535a2a2b` and Lean 4.35.0.
-CI downloads the corresponding extractor release with a fixed SHA-256;
-Lake pins the Aeneas library and all dependencies in the manifest.
+CI downloads the extractor release with a fixed SHA-256; Lake pins its
+library and dependencies. Byte vectors map injectively to natural-number
+lists without hashing or a favorable string-comparison assumption.
 
-[TransferRefinement.lean](../lean/MedenSpec/TransferRefinement.lean) proves:
+The [fault driver](../tools/check-refinement-mutants.py) includes twelve
+processor faults: forged model approval, renewal, deadline wrap, pending
+permission, a foreign session, inclusive expiry, ignored pending revocation,
+revival after expiry, endpoint/credential substitution, local path substitution
+and acceptance of a mismatched local resource. Each must fail an actual native
+assertion, extract and compile successfully, then fail the unchanged correctness
+proof. Original files are restored and the normal proof rebuilt. The driver
+sets `RUSTFLAGS=-D warnings`; compiler errors, timeouts and exhausted proof
+resources are operational failures and do not count as a rejected semantic fault.
 
-| Theorem | Proven property |
-| --- | --- |
-| `allowed_refines` | The extracted Rust decision returns successfully and equals the abstract specification for every represented request, permit, session and `u64` time |
-
-The proof handles variable-length full byte vectors, not hashes or bounded
-text samples. Rust bytes map injectively to natural-number lists in the
-abstract model; only values 0–255 arise from Rust. Arbitrary binary content,
-embedded NULs and Unicode encodings need no favorable string-comparison
-assumption. Native integer times map to their exact natural values.
-
-Aeneas's Rust standard-library models, extraction, compilation and platform
-semantics remain trust dependencies. There are no project axioms standing
-in for unknown functions in this extraction. CI regenerates the normal
-x86-64 Linux build; this does not prove all release targets/configurations
-or native machine-code correctness. The shipping Rust compiler is still
-part of the trusted base, distinct from the pinned extraction compiler.
-
-The [mutation check](../tools/check-refinement-mutants.py) changes actual
-Rust source in four ways: invert request equality, accept an expired permit,
-ignore the spent flag, and ignore the current session. Each must produce an
-observed Rust test failure, extract/compile successfully, and fail the
-unchanged correctness proof. Exact original files are restored and the
-normal proof is rebuilt afterwards. This checks proof sensitivity and
-source linkage; it does not replace the general refinement theorems.
-The fault driver sets `RUSTFLAGS=-D warnings` for local and CI subprocesses.
-A compiler warning/error is an operational failure, not evidence that a
-native assertion or refinement rejected the fault.
-
-These theorems establish a permission-decision refinement. They do not
-establish a complete control trace or that every real network operation is
-mediated. Full broker refinement and interface obligations in
-[assurance.md](assurance.md) remain open; the HTTP component tests below
-exercise real reservation and delivery, including concurrency.
+Extraction, Aeneas's standard-library models, the Rust compiler and platform
+remain trust dependencies. UTF-8/URI/JSON handling, host input attribution,
+clock provenance, locks, process/network I/O and host review rendering are not
+proved by these theorems. The runtime uses checked UTF-8 decoding and rejects
+invalid parameters before HTTP; physical transport correspondence is exercised
+by real TCP tests. A token already issued before revocation may finish. These
+results do not establish the complete controller or outbound confidentiality
+requirement. See [assurance.md](assurance.md).
 
 ## Export review control: actual Rust and finite traces
 
@@ -689,8 +675,8 @@ Eight additional actual Rust mutations disable producer checks, receipt
 freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
-refinement proof. Combined with transfer/review/dispatch and TUI approval checks, CI rejects
-69 faults, including outer/inner conversation, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
+refinement proof. Combined with processor/review/dispatch and TUI approval checks, CI rejects
+77 faults, including outer/inner conversation, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -739,7 +725,7 @@ Definitions and additional lemmas are in
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 114
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 142
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -763,7 +749,7 @@ bounded model-checking harnesses:
 
 The capability is symbolic over the current enum. Scope strings come from
 the small fixed menus in the source. Kani exhaustively checks these bounds;
-the unbounded Lean theorems are a different form of evidence. The transfer
+the unbounded Lean theorems are a different form of evidence. The processor
 kernel is not currently covered by these six Kani harnesses.
 
 [`conformance.rs`](../crates/meden-cli/tests/conformance.rs) sends one JSON
@@ -771,12 +757,14 @@ batch to the executable Lean oracle and compares with Rust:
 
 - 400 generated policy cases.
 - 600 generated glob cases.
-- 4,000 generated transfer cases, comparing the permission decision.
-  Cases include recipient/content/session changes, already-spent
-  permits, exact expiry, near-expiry and `u64::MAX` times, and Unicode text.
+- 4,000 generated processor lifecycle traces with up to seventeen operations.
+  Compare every operation's acceptance and complete emitted binding, plus final
+  binding, phase and expiry. Cases include both transports, host/model events,
+  foreign sessions, exact/near expiry, deadline overflow, revocation before
+  approval, clock rollback, binary/Unicode paths and absent/empty credentials.
 
 The generator has a fixed seed. These comparisons catch implementation/specification drift. They are
-regression evidence separate from the general transfer refinement proof;
+regression evidence separate from the general processor refinement and finite-trace proofs;
 policy/glob still have no extraction-based refinement theorem.
 With no oracle present, the local test prints a skip notice. CI explicitly
 supplies the freshly built oracle, so that escape does not apply there.
@@ -899,29 +887,25 @@ client. Connection discovery returns metadata, not a `ChatModel`; the raw
 HTTP implementation is private. TUI and `run` bind the gateway to their
 actual host-created session before giving it to the conversation.
 
-Each inference decision calls the already extracted/proved Rust
-`transfer::allowed` function. Its fields have these HTTP processor meanings:
+Each inference decision calls the extracted/refined `processor::State::dispatch`
+under the gateway lock, releases the lock, and passes only the returned typed
+call to its corresponding adapter. The HTTP adapter obtains the exact full
+endpoint, model and credential from the consumed call; it does not reconstruct
+a client from another copy of provider metadata. There is no public unchecked
+HTTP model implementation. Revocation can proceed while an already authorized
+exchange runs; local revocation also stops its process.
 
-| Kernel field | Processor binding |
-| --- | --- |
-| Session | Retained private workspace identity for both TUI and CLI |
-| Recipient | Complete prepared `/chat/completions` URL |
-| Request | Exact JSON bytes of provider ID, endpoint, model and credential |
-| Expiry | Exclusive monotonic deadline, eight hours after host approval |
-| Spent | Revoked; an issued grant cannot be reset on the same gateway |
-
-The existing `allowed_refines` theorem proves the production predicate's
-complete equality/expiry/revocation decision. This reuse introduces no new
-handwritten implementation model or axiom. Processor approval permits
-conversation bodies for inference; it is **not** a one-use exact export and
-does not consume the processor grant or add a separate predicate proof. Binding
-construction, trusted input origins, locking, actual
-HTTP correspondence and UI rendering are integration-tested, not refined.
-Requests already permitted before revocation can finish.
-
-Rust gateway tests reject model-written approvals, another session, changed
-endpoint/model/credential, copied internal grants, expiry and revocation
-while observing zero receiver connections. CLI tests reject missing/mismatched
+Native gateway tests reject unapproved model text, another session, expiry,
+revocation and approval after pending revocation while observing zero receiver
+connections. A real TCP regression corrupts the gateway's presentation-only
+provider/URL/model/key after approval and verifies that only the original
+receiver gets the original path, model and credential. Another regression
+removes the local resource and observes an error with no HTTP fallback.
+A real TCP concurrency test holds an inference response open, verifies that
+host revocation completes before that response is released, and permits the
+already authorized exchange to finish. This tests the gateway lock's scope;
+it is not a proof of mutex or network semantics.
+CLI tests reject missing/mismatched
 approval even when the opening JSON says it is approved. The real PTY test
 requires a local `y` key, rejects Enter/bracketed paste as authority, and
 observes that a second receiver gets no context until fresh approval; normal
@@ -942,12 +926,13 @@ engine/weights and public runtime closure. The coding copy and host secrets
 are absent. This is now the default CLI/TUI path; no provider discovery or
 HTTP fallback runs. Explicit HTTP connections retain their approval path.
 
-The local gateway reuses the refined `transfer::allowed` decision with the
-actual host session, local processor identity, exact configuration-path
-bytes and eight-hour expiry/revocation state. Host configuration permits
-this confined execution without a remote-recipient approval prompt. Binding
-construction and the meaning of those paths remain trusted implementation
-work; this is not a proof of engine/weight artifact identity.
+The local gateway prepares `Binding::Local` with the actual host-selected
+engine/weights path bytes and uses the same extracted/refined lifecycle. Host
+configuration permits confined execution without a remote-recipient approval
+prompt. Dispatch produces only a `LocalCall`; its consuming equality check
+requires the adapter's actual configuration to match exactly. A missing or
+failed local resource cannot produce an HTTP call. Path preparation, binary
+identity and the engine/weight contents remain outside this value-level proof.
 
 The [Unix transport](../crates/meden-llm/src/unix.rs) has no DNS/TCP connector.
 It opens a nonsymlink socket with `O_PATH`, checks its inode type and connects

@@ -306,7 +306,7 @@ distributed scheduler, universal IR or a second planner first.
 | --- | --- |
 | 1. Local proof-driven coding | From one natural-language instruction, implement a small Rust ledger, extract its actual kernel, check its Lean contract/refinement and produce an input-bound evidence report locally; an injected bug is rejected |
 | 2. Meden's own verified controller | Route that workflow through the production Rust control kernel; prove its Lean invariants/refinement and reject stale evidence, forged results, contract weakening and delivery bypass through TUI, CLI and tools |
-| 3. Complete confidential execution | Confine all workers and local inference; implement immutable exports/page cache and pass R1-01 through R1-15 with real observation and no cloud fallback |
+| 3. Complete confidential execution | Confine all workers and local inference; implement immutable exports/page cache and pass R1-01 through R1-16 with real observation and no cloud fallback |
 | 4. Additional project backends | Add one justified integration at a time, with source/artifact linkage, counterexamples, honest evidence kinds and offline behavior |
 | 5. Broader first-party assurance | Extend specifications/refinement across first-party TUI, CLI and adapters; publish remaining dependencies and trust assumptions before claiming whole-product coverage |
 | 6. Domain acceptance | Reproducible finance and hardware examples with independent requirements, injected faults, boundary integration checks and domain review |
@@ -330,12 +330,14 @@ workspace tools, a capability kernel, a Bubblewrap runner integrated with
 TUI/exec file and Bash tools, and an immutable one-use HTTP export component.
 Scoped Lean theorem entry points and 5,000 Rust/Lean conformance cases
 are checked today; [verification.md](verification.md) lists the current audit.
-The production processor-permission predicate and export review/dispatch
+The production processor authorization lifecycle and export review/dispatch
 operations are extracted with pinned Charon/Aeneas and refine Lean specifications.
-The export-review lifecycle is now a second extracted kernel, with exact
-transition refinement and an unbounded finite-composition dispatch bound.
-The evidence-completion kernel is a third extracted kernel: accepted exact
-obligations require matching checker receipts on the current subject, with
+Processor operations preserve their full immutable local/HTTP parameters and
+use distinct consuming call types. Finite traces preserve the original transport
+and binding and cannot reopen revocation or observed expiry. The export-review
+lifecycle has exact transition refinement and an unbounded finite-composition
+dispatch bound. The evidence-completion kernel requires matching checker
+receipts for exact accepted obligations on the current subject, with
 progress invalidated when inputs change. Lean proves correspondence for the
 lifecycle operations and acceptance observation, plus evidence coverage
 across arbitrary finite compositions of lifecycle operations.

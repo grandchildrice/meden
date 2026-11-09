@@ -24,20 +24,63 @@ GROUPS = [
         ],
     },
     {
-        "kernel": "transfer",
-        "model": "Control",
-        "proof": "TransferRefinement",
-        "test": (
-            "transfer::tests::exact_session_request_deadline_and_active_permission_are_required"
-        ),
+        "kernel": "processor",
+        "model": "Processor",
+        "proof": "ProcessorRefinement",
+        "test": "processor::tests::approval_scope_frozen_parameters_and_terminal_revocation",
         "mutations": [
-            ("request_mismatch", "permit.request == *request", "permit.request != *request"),
-            ("expired_permit", "now < permit.expires", "now <= permit.expires"),
-            ("spent_permit", "&& !permit.spent", "&& true"),
             (
-                "foreign_transfer_session",
-                "request_session == session",
-                "request_session == session || true",
+                "model_processor_approval",
+                "origin != ProcessorOrigin::Host ||",
+                "origin == ProcessorOrigin::Host ||",
+            ),
+            (
+                "processor_grant_renewed",
+                "self.phase != ProcessorPhase::Pending",
+                "(self.phase != ProcessorPhase::Pending && false)",
+            ),
+            (
+                "processor_deadline_wraps",
+                "now.checked_add(APPROVAL_LIFETIME_MILLIS)",
+                "Some(now.wrapping_add(APPROVAL_LIFETIME_MILLIS))",
+            ),
+            (
+                "pending_processor_dispatched",
+                "if !self.is_authorized(session, now) {",
+                "if !self.is_authorized(session, now) && self.phase != ProcessorPhase::Pending {",
+            ),
+            ("foreign_processor_session", "expected == session", "(expected == session || true)"),
+            ("processor_deadline_inclusive", "now < self.expires", "now <= self.expires"),
+            (
+                "pending_processor_revocation_ignored",
+                "self.phase = ProcessorPhase::Revoked;\n        true",
+                "if self.phase == ProcessorPhase::Pending { return false; }\n"
+                "        self.phase = ProcessorPhase::Revoked;\n        true",
+            ),
+            (
+                "expired_processor_reopens",
+                "self.phase = ProcessorPhase::Revoked;\n        }\n        if !self.is_authorized",
+                "let _ = self.phase;\n        }\n        if !self.is_authorized",
+            ),
+            (
+                "processor_endpoint_substituted",
+                "endpoint: self.endpoint.clone(),",
+                "endpoint: self.provider.clone(),",
+            ),
+            (
+                "processor_credential_lost",
+                "Some(key) => Some(key.clone()),",
+                "Some(key) => { let _ = key; None },",
+            ),
+            (
+                "local_processor_paths_substituted",
+                "Self { engine, weights }",
+                "Self { engine: weights, weights: engine }",
+            ),
+            (
+                "wrong_local_resource_accepted",
+                "self.parameters == *actual",
+                "self.parameters == *actual || true",
             ),
         ],
     },

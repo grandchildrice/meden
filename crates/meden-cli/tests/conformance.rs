@@ -1,6 +1,6 @@
 //! Conformance of the Rust implementation with the Lean model.
 //!
-//! Generates random policy and glob cases with a fixed-seed PRNG, runs
+//! Generates policy/glob cases and processor traces with a fixed-seed PRNG, runs
 //! the compiled Lean oracle (`lean/.lake/build/bin/meden-spec`, or the path
 //! in `MEDEN_SPEC_BIN`) on them, and compares with `meden-core`.
 //!
@@ -23,7 +23,10 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 use meden_core::glob::glob_match;
-use meden_core::transfer::{self, Permit, Request};
+use meden_core::processor::{
+    Binding, Dispatch, HttpParameters, LocalParameters, ProcessorOrigin as Origin,
+    ProcessorPhase as Phase, State, APPROVAL_LIFETIME_MILLIS,
+};
 use meden_core::{check, Capability, Grant, Policy, Requirement};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -85,21 +88,135 @@ struct GlobCase {
 struct Input {
     policy_cases: Vec<PolicyCase>,
     glob_cases: Vec<GlobCase>,
-    transfer_cases: Vec<TransferCase>,
+    processor_cases: Vec<ProcessorCase>,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+struct ProcessorBinding {
+    is_local: bool,
+    engine: Vec<u8>,
+    weights: Vec<u8>,
+    provider: Vec<u8>,
+    endpoint: Vec<u8>,
+    model: Vec<u8>,
+    credential: Option<Vec<u8>>,
+}
+impl ProcessorBinding {
+    fn native(&self) -> Binding {
+        if self.is_local {
+            Binding::Local(LocalParameters::new(
+                self.engine.clone(),
+                self.weights.clone(),
+            ))
+        } else {
+            Binding::Http(HttpParameters::new(
+                self.provider.clone(),
+                self.endpoint.clone(),
+                self.model.clone(),
+                self.credential.clone(),
+            ))
+        }
+    }
+    fn observe(binding: &Binding) -> Self {
+        let mut out = Self {
+            is_local: false,
+            engine: vec![],
+            weights: vec![],
+            provider: vec![],
+            endpoint: vec![],
+            model: vec![],
+            credential: None,
+        };
+        match binding {
+            Binding::Local(p) => {
+                out.is_local = true;
+                out.engine = p.engine().to_vec();
+                out.weights = p.weights().to_vec();
+            }
+            Binding::Http(p) => {
+                out.provider = p.provider().to_vec();
+                out.endpoint = p.endpoint().to_vec();
+                out.model = p.model().to_vec();
+                out.credential = p.credential().map(<[u8]>::to_vec);
+            }
+        }
+        out
+    }
+}
 #[derive(Serialize)]
-struct TransferCase {
+struct ProcessorAction {
+    kind: &'static str,
+    host: bool,
     now: u64,
     session: Vec<u8>,
-    permit: Permit,
-    request: Request,
+}
+#[derive(Serialize)]
+struct ProcessorCase {
+    session: Vec<u8>,
+    binding: ProcessorBinding,
+    actions: Vec<ProcessorAction>,
+}
+#[derive(Debug, PartialEq, Eq, Deserialize)]
+struct ProcessorObservation {
+    accepted: bool,
+    effect: Option<ProcessorBinding>,
+}
+#[derive(Debug, PartialEq, Eq, Deserialize)]
+struct ProcessorResult {
+    steps: Vec<ProcessorObservation>,
+    binding: ProcessorBinding,
+    phase: String,
+    expires: u64,
+}
+fn run_processor(case: &ProcessorCase) -> ProcessorResult {
+    let mut state = State::new(case.session.clone(), case.binding.native());
+    let steps = case
+        .actions
+        .iter()
+        .map(|a| {
+            let origin = if a.host { Origin::Host } else { Origin::Model };
+            match a.kind {
+                "approve" => ProcessorObservation {
+                    accepted: state.approve(origin, a.now),
+                    effect: None,
+                },
+                "revoke" => ProcessorObservation {
+                    accepted: state.revoke(origin),
+                    effect: None,
+                },
+                _ => {
+                    let effect = state.dispatch(&a.session, a.now).map(|d| {
+                        let binding = match d {
+                            Dispatch::Local(c) => Binding::Local(c.into_parameters()),
+                            Dispatch::Http(c) => Binding::Http(c.into_parameters()),
+                        };
+                        ProcessorBinding::observe(&binding)
+                    });
+                    ProcessorObservation {
+                        accepted: effect.is_some(),
+                        effect,
+                    }
+                }
+            }
+        })
+        .collect();
+    ProcessorResult {
+        steps,
+        binding: ProcessorBinding::observe(state.binding()),
+        phase: match state.phase() {
+            Phase::Pending => "pending",
+            Phase::Granted => "granted",
+            Phase::Revoked => "revoked",
+        }
+        .into(),
+        expires: state.expires(),
+    }
 }
 #[derive(Deserialize)]
 struct Output {
     policy: Vec<bool>,
     glob: Vec<bool>,
-    transfer: Vec<bool>,
+    processor: Vec<ProcessorResult>,
 }
 
 fn oracle_path() -> Option<PathBuf> {
@@ -153,47 +270,75 @@ fn rust_agrees_with_lean_oracle() {
             text: rng.string(&scope_alpha, 7),
         })
         .collect();
-    let transfer_cases = (0..4000)
-        .map(|_| {
-            let request = Request {
-                session: b"session-a".to_vec(),
-                recipient: b"recipient-a".to_vec(),
-                request: format!("日本語🙂\0-{}", rng.next()).into_bytes(),
+    let processor_cases = (0..4000)
+        .map(|i| {
+            let binary = format!("日本語🙂\0-{}", rng.next()).into_bytes();
+            let binding = if i % 2 == 0 {
+                Binding::Local(LocalParameters::new(binary.clone(), vec![0, 255, 1]))
+            } else {
+                Binding::Http(HttpParameters::new(
+                    binary.clone(),
+                    vec![0, 255, 2],
+                    binary,
+                    match i % 3 {
+                        0 => None,
+                        1 => Some(vec![]),
+                        _ => Some(vec![0, 255, 3]),
+                    },
+                ))
             };
-            let mut proposed = request.clone();
-            match rng.below(4) {
-                0 => proposed.session = b"different-session".to_vec(),
-                1 => proposed.recipient = b"different-recipient".to_vec(),
-                2 => proposed.request.push(b'x'),
-                _ => {}
+            let times = [
+                0,
+                1,
+                APPROVAL_LIFETIME_MILLIS - 1,
+                APPROVAL_LIFETIME_MILLIS,
+                APPROVAL_LIFETIME_MILLIS + 1,
+                u64::MAX - APPROVAL_LIFETIME_MILLIS,
+                u64::MAX - APPROVAL_LIFETIME_MILLIS + 1,
+                u64::MAX,
+            ];
+            let mut actions = vec![];
+            // Half the traces begin with trusted approval, ensuring successful
+            // dispatches and later expiry/revocation are exercised as well.
+            if i % 4 < 2 {
+                actions.push(ProcessorAction {
+                    kind: "approve",
+                    host: true,
+                    now: 0,
+                    session: vec![],
+                });
             }
-            let expires = rng.next();
-            let now = match rng.below(4) {
-                0 => expires,
-                1 => expires.saturating_sub(1),
-                2 => u64::MAX,
-                _ => rng.next(),
-            };
-            TransferCase {
-                now,
-                session: if rng.chance(1, 5) {
-                    b"different-session".to_vec()
-                } else {
-                    b"session-a".to_vec()
-                },
-                permit: Permit {
-                    request,
-                    expires,
-                    spent: rng.chance(1, 4),
-                },
-                request: proposed,
+            for _ in 0..16 {
+                actions.push(ProcessorAction {
+                    kind: match rng.below(5) {
+                        0 => "approve",
+                        1 => "revoke",
+                        _ => "dispatch",
+                    },
+                    host: rng.chance(1, 2),
+                    now: if rng.chance(3, 4) {
+                        times[rng.below(times.len())]
+                    } else {
+                        rng.next()
+                    },
+                    session: if rng.chance(3, 4) {
+                        b"session-a".to_vec()
+                    } else {
+                        b"foreign".to_vec()
+                    },
+                });
+            }
+            ProcessorCase {
+                session: b"session-a".to_vec(),
+                binding: ProcessorBinding::observe(&binding),
+                actions,
             }
         })
         .collect();
     let input = Input {
         policy_cases,
         glob_cases,
-        transfer_cases,
+        processor_cases,
     };
     let mut child = Command::new(&bin)
         .stdin(Stdio::piped())
@@ -226,9 +371,18 @@ fn rust_agrees_with_lean_oracle() {
             c.text
         );
     }
-    assert_eq!(output.transfer.len(), input.transfer_cases.len());
-    for (case, expected) in input.transfer_cases.iter().zip(output.transfer) {
-        let accepted = transfer::allowed(case.now, &case.session, &case.permit, &case.request);
-        assert_eq!(accepted, expected);
+    assert_eq!(output.processor.len(), input.processor_cases.len());
+    for (i, (case, expected)) in input
+        .processor_cases
+        .iter()
+        .zip(output.processor)
+        .enumerate()
+    {
+        assert_eq!(
+            run_processor(case),
+            expected,
+            "processor trace {i}: {}",
+            json!(case)
+        );
     }
 }

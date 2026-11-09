@@ -1,68 +1,51 @@
 //! OpenAI-compatible native tool-calling client.
-use meden_agent::conversation::{ChatModel, ModelError};
+use meden_agent::conversation::ModelError;
+use meden_core::processor::HttpCall;
 use std::time::Duration;
-/// HTTP client for native assistant messages.
-pub(crate) struct OpenAiCompatible {
-    base_url: String,
-    model: String,
-    api_key: Option<String>,
-    timeout: Duration,
+
+/// The HTTP boundary consumes a host-authorized snapshot; callers cannot
+/// substitute another endpoint/model/credential after a Boolean decision.
+pub(crate) fn reply(
+    authorization: HttpCall,
+    messages: &[serde_json::Value],
+    tools: &[serde_json::Value],
+) -> Result<meden_agent::conversation::Reply, ModelError> {
+    let parameters = authorization.into_parameters();
+    let endpoint = utf8(parameters.endpoint())?;
+    let model = utf8(parameters.model())?;
+    let credential = parameters.credential().map(utf8).transpose()?;
+    let body = request_body(model, messages, tools);
+    let config = ureq::Agent::config_builder()
+        .proxy(None)
+        .max_redirects(0)
+        .timeout_global(Some(Duration::from_secs(300)))
+        .build();
+    let agent: ureq::Agent = config.into();
+    let mut request = agent.post(endpoint);
+    if let Some(key) = credential {
+        request = request.header("authorization", &format!("Bearer {key}"));
+    }
+    // A failed exchange may already have delivered the confidential body.
+    // Neither a redirect nor an automatic retry grants another send.
+    let mut response = request.send_json(&body).map_err(|_| {
+        ModelError::Unavailable("model request failed or delivery is uncertain".into())
+    })?;
+    if !response.status().is_success() {
+        return Err(ModelError::Unavailable(format!(
+            "model endpoint returned HTTP {}",
+            response.status().as_u16()
+        )));
+    }
+    let response: serde_json::Value = response
+        .body_mut()
+        .read_json()
+        .map_err(|e| ModelError::InvalidResponse(format!("unreadable API reply: {e}")))?;
+    decode_response(&response)
 }
-impl OpenAiCompatible {
-    /// Connect to an OpenAI-compatible base URL.
-    pub fn new(base_url: &str, model: &str) -> Self {
-        Self {
-            base_url: base_url.trim_end_matches('/').into(),
-            model: model.into(),
-            api_key: None,
-            timeout: Duration::from_secs(300),
-        }
-    }
-    /// Attach the host's credential.
-    #[must_use]
-    pub fn with_api_key(mut self, key: &str) -> Self {
-        self.api_key = Some(key.into());
-        self
-    }
-}
-impl ChatModel for OpenAiCompatible {
-    /// Native tool calling. Sampling and length parameters are omitted to
-    /// match AgentDojo's actual OpenAI-compatible request (its zero
-    /// temperature is converted to NOT_GIVEN). The server supplies defaults.
-    fn reply(
-        &self,
-        messages: &[serde_json::Value],
-        tools: &[serde_json::Value],
-    ) -> Result<meden_agent::conversation::Reply, ModelError> {
-        let body = request_body(&self.model, messages, tools);
-        let config = ureq::Agent::config_builder()
-            .proxy(None)
-            .max_redirects(0)
-            .timeout_global(Some(self.timeout))
-            .build();
-        let agent: ureq::Agent = config.into();
-        let url = format!("{}/chat/completions", self.base_url);
-        let mut request = agent.post(&url);
-        if let Some(key) = &self.api_key {
-            request = request.header("authorization", &format!("Bearer {key}"));
-        }
-        // A failed exchange may already have delivered the confidential body.
-        // Neither a redirect nor an automatic retry grants another send.
-        let mut response = request.send_json(&body).map_err(|_| {
-            ModelError::Unavailable("model request failed or delivery is uncertain".into())
-        })?;
-        if !response.status().is_success() {
-            return Err(ModelError::Unavailable(format!(
-                "model endpoint returned HTTP {}",
-                response.status().as_u16()
-            )));
-        }
-        let response: serde_json::Value = response
-            .body_mut()
-            .read_json()
-            .map_err(|e| ModelError::InvalidResponse(format!("unreadable API reply: {e}")))?;
-        decode_response(&response)
-    }
+
+fn utf8(bytes: &[u8]) -> Result<&str, ModelError> {
+    std::str::from_utf8(bytes)
+        .map_err(|_| ModelError::Unavailable("invalid frozen processor parameters".into()))
 }
 
 pub(crate) fn request_body(

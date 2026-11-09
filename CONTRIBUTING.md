@@ -36,11 +36,12 @@ node npm/test.js
 ```
 
 Changes to a formally modelled rule must update its specification and
-proofs in the same commit. The transfer kernel additionally requires exact
+proofs in the same commit. Extracted production kernels require exact
 regeneration with `bash tools/extract-transfer.sh` and passing refinement
-proofs; use `--write` only for a deliberate production update. The conformance test compares 400 policy cases, 600 glob cases and
-4,000 transfer cases against the built oracle. Workspace tests also require
-Linux and Bubblewrap for real isolation checks. See
+proofs; use `--write` only for a deliberate production update. The conformance
+test compares 400 policy cases, 600 glob cases and 4,000 processor lifecycle
+traces against the built oracle. Workspace tests also require Linux and
+Bubblewrap for real isolation checks. See
 [verification.md](docs/verification.md) for theorem statements, bounds and
 local setup.
 
@@ -48,7 +49,7 @@ The Lean CI job additionally prepares the pinned public checker bundle and
 runs the real Rust-ledger proof plus TUI/CLI contract tests. For local runs,
 use a release binary and set `MEDEN_VERIFIER_BUNDLE`; see
 [project-verification.md](docs/project-verification.md). The ordinary Python
-job skips those three bundle-dependent tests; the Lean job requires them.
+job skips the bundle-dependent tests; the Lean job requires all fifteen.
 
 ## Kani harnesses
 

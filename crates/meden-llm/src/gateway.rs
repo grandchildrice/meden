@@ -5,13 +5,13 @@ use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
 use meden_agent::conversation::{ChatModel, ModelError, Reply};
-use meden_core::transfer::{self, Permit, Request};
+use meden_core::processor::{Binding, Dispatch, HttpParameters, ProcessorOrigin as Origin, State};
 
-use crate::openai::OpenAiCompatible;
 use crate::Provider;
 
 /// Upper lifetime displayed by the host review and used by CLI approval.
-pub const APPROVAL_LIFETIME: Duration = Duration::from_secs(8 * 60 * 60);
+pub const APPROVAL_LIFETIME: Duration =
+    Duration::from_millis(meden_core::processor::APPROVAL_LIFETIME_MILLIS);
 
 /// One immutable processor binding. A newly prepared gateway cannot send.
 /// Only trusted UI/configuration may call `approve_from_host`; never expose
@@ -19,9 +19,8 @@ pub const APPROVAL_LIFETIME: Duration = Duration::from_secs(8 * 60 * 60);
 pub struct Gateway {
     provider: Provider,
     endpoint: String,
-    binding: Request,
     created: Instant,
-    permit: Mutex<Option<Permit>>,
+    state: Mutex<State>,
     local: Option<crate::local::Local>,
 }
 
@@ -48,23 +47,17 @@ impl Gateway {
             .trim_end_matches('/')
             .clone_into(&mut provider.base_url);
         let endpoint = format!("{}/chat/completions", provider.base_url);
-        let binding = Request {
-            session: session.to_vec(),
-            recipient: endpoint.as_bytes().to_vec(),
-            // Equality includes the credential, without displaying/logging it
-            // or relying on a hash. Conversation bodies are the grant's scope.
-            request: serde_json::to_vec(&serde_json::json!({
-                "provider":provider.id, "endpoint":endpoint,
-                "model":provider.model, "credential":provider.api_key,
-            }))
-            .map_err(|_| ModelError::Unavailable("cannot bind processor".into()))?,
-        };
+        let binding = Binding::Http(HttpParameters::new(
+            provider.id.as_bytes().to_vec(),
+            endpoint.as_bytes().to_vec(),
+            provider.model.as_bytes().to_vec(),
+            provider.api_key.as_ref().map(|key| key.as_bytes().to_vec()),
+        ));
         Ok(Self {
             provider,
             endpoint,
-            binding,
             created: Instant::now(),
-            permit: Mutex::new(None),
+            state: Mutex::new(State::new(session.to_vec(), binding)),
             local: None,
         })
     }
@@ -87,21 +80,12 @@ impl Gateway {
             api_key: None,
             note: format!("CPU inference · {}", config.model.display()),
         };
-        let binding = Request {
-            session: session.to_vec(),
-            recipient: endpoint.as_bytes().to_vec(),
-            request: serde_json::to_vec(&serde_json::json!({
-                "engine":config.engine.as_os_str().as_encoded_bytes(),
-                "model":config.model.as_os_str().as_encoded_bytes(),
-            }))
-            .map_err(|_| unavailable())?,
-        };
+        let binding = Binding::Local(local.parameters().clone());
         let gateway = Self {
             provider,
             endpoint,
-            binding,
             created: Instant::now(),
-            permit: Mutex::new(None),
+            state: Mutex::new(State::new(session.to_vec(), binding)),
             local: Some(local),
         };
         gateway.approve_from_host()?;
@@ -128,48 +112,37 @@ impl Gateway {
     /// implicitly, including after revocation. This is a processor grant,
     /// distinct from an exact, single-use artifact transfer authorization.
     pub fn approve_from_host(&self) -> Result<(), ModelError> {
-        let mut slot = self.permit.lock().map_err(|_| unavailable())?;
-        if slot.is_some() {
+        if !self
+            .state
+            .lock()
+            .map_err(|_| unavailable())?
+            .approve(Origin::Host, self.now()?)
+        {
             return Err(ModelError::Unavailable(
-                "processor approval already issued; review a new gateway".into(),
+                "processor approval unavailable or already issued; review a new gateway".into(),
             ));
         }
-        let expires = self
-            .now()?
-            .checked_add(u64::try_from(APPROVAL_LIFETIME.as_millis()).map_err(|_| unavailable())?)
-            .ok_or_else(unavailable)?;
-        *slot = Some(Permit {
-            request: self.binding.clone(),
-            expires,
-            spent: false,
-        });
         Ok(())
     }
 
-    /// Prevent subsequent inference decisions. Already permitted requests
-    /// may finish. Revoked/expired grants cannot be reset on this object.
+    /// Prevent subsequent inference decisions, including a later approval of
+    /// a pending gateway. Already permitted requests may finish.
     pub fn revoke_from_host(&self) -> Result<(), ModelError> {
-        if let Some(permit) = self.permit.lock().map_err(|_| unavailable())?.as_mut() {
-            permit.spent = true;
-        }
+        self.state
+            .lock()
+            .map_err(|_| unavailable())?
+            .revoke(Origin::Host);
         if let Some(local) = &self.local {
             local.stop();
         }
         Ok(())
     }
 
-    /// Check the current session's processor permission without any I/O.
+    /// Presentation only. Every exchange obtains fresh typed authorization.
     pub fn is_authorized(&self, current_session: &[u8]) -> bool {
-        self.permit.lock().is_ok_and(|slot| {
-            slot.as_ref().is_some_and(|permit| {
-                transfer::allowed(
-                    self.now().unwrap_or(u64::MAX),
-                    current_session,
-                    permit,
-                    &self.binding,
-                )
-            })
-        })
+        self.state
+            .lock()
+            .is_ok_and(|state| state.is_authorized(current_session, self.now().unwrap_or(u64::MAX)))
     }
 
     /// Bind a conversation to its actual host-owned session. Reusing a
@@ -198,19 +171,26 @@ impl ChatModel for SessionModel<'_> {
         tools: &[serde_json::Value],
     ) -> Result<Reply, ModelError> {
         let gateway = self.gateway;
-        if !gateway.is_authorized(self.session) {
-            return Err(ModelError::Unavailable(
-                "no current host approval for this session's processor".into(),
-            ));
+        let effect = gateway
+            .state
+            .lock()
+            .map_err(|_| unavailable())?
+            .dispatch(self.session, gateway.now()?)
+            .ok_or_else(|| {
+                ModelError::Unavailable(
+                    "no current host approval for this session's processor".into(),
+                )
+            })?;
+        match effect {
+            Dispatch::Local(call) => gateway
+                .local
+                .as_ref()
+                .ok_or_else(|| {
+                    ModelError::Unavailable("local processor unavailable; no fallback".into())
+                })?
+                .reply(call, messages, tools),
+            Dispatch::Http(call) => crate::openai::reply(call, messages, tools),
         }
-        if let Some(local) = &gateway.local {
-            return local.reply(messages, tools);
-        }
-        let mut client = OpenAiCompatible::new(&gateway.provider.base_url, &gateway.provider.model);
-        if let Some(key) = &gateway.provider.api_key {
-            client = client.with_api_key(key);
-        }
-        client.reply(messages, tools)
     }
 }
 
@@ -229,7 +209,8 @@ mod tests {
     #![allow(clippy::expect_used)]
     use super::*;
     use serde_json::json;
-    use std::net::TcpListener;
+    use std::io::{Read, Write};
+    use std::net::{TcpListener, TcpStream};
 
     fn provider(receiver: &TcpListener) -> Provider {
         Provider {
@@ -240,6 +221,149 @@ mod tests {
             api_key: Some("credential-a".into()),
             note: String::new(),
         }
+    }
+
+    fn read_request(stream: &mut TcpStream) -> Vec<u8> {
+        stream
+            .set_read_timeout(Some(Duration::from_secs(5)))
+            .expect("timeout");
+        let mut bytes = Vec::new();
+        let mut buf = [0; 4096];
+        loop {
+            let n = stream.read(&mut buf).expect("request bytes");
+            assert_ne!(n, 0, "incomplete request");
+            bytes.extend(buf.iter().take(n));
+            if let Some(end) = bytes.windows(4).position(|w| w == b"\r\n\r\n") {
+                let header =
+                    std::str::from_utf8(bytes.get(..end).expect("header")).expect("HTTP headers");
+                let length: usize = header
+                    .lines()
+                    .find_map(|line| {
+                        let (name, value) = line.split_once(':')?;
+                        name.eq_ignore_ascii_case("content-length")
+                            .then(|| value.trim().parse().expect("length"))
+                    })
+                    .expect("content length");
+                if bytes.len().saturating_sub(end.saturating_add(4)) >= length {
+                    break;
+                }
+            }
+        }
+        bytes
+    }
+
+    fn respond(stream: &mut TcpStream) {
+        let body = br#"{"choices":[{"message":{"role":"assistant","content":"ok"}}]}"#;
+        write!(stream, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n", body.len())
+        .expect("response headers");
+        stream.write_all(body).expect("response body");
+    }
+
+    #[test]
+    fn revocation_before_approval_is_terminal() {
+        let receiver = TcpListener::bind("127.0.0.1:0").expect("receiver");
+        receiver.set_nonblocking(true).expect("nonblocking");
+        let gateway = Gateway::prepare(b"session-a", provider(&receiver)).expect("gateway");
+        gateway.revoke_from_host().expect("revoke pending");
+        assert!(gateway.approve_from_host().is_err());
+        assert!(gateway.for_session(b"session-a").reply(&[], &[]).is_err());
+        assert!(receiver.accept().is_err());
+    }
+
+    #[test]
+    fn transport_uses_the_authorized_snapshot_and_never_the_presentation_copy() {
+        let approved = TcpListener::bind("127.0.0.1:0").expect("approved receiver");
+        let other = TcpListener::bind("127.0.0.1:0").expect("unapproved receiver");
+        other.set_nonblocking(true).expect("nonblocking");
+        let mut gateway = Gateway::prepare(b"session", provider(&approved)).expect("gateway");
+        gateway.approve_from_host().expect("host approval");
+        // Deliberately corrupt the host's display copy. Even such an internal
+        // mistake must not redirect the authorized request or change its key.
+        gateway.provider = provider(&other);
+        gateway.provider.model = "unapproved-model".into();
+        gateway.provider.api_key = Some("unapproved-key".into());
+        gateway.endpoint = format!("{}/unapproved", gateway.provider.base_url);
+        let receive = std::thread::spawn(move || {
+            let (mut stream, _) = approved.accept().expect("approved request");
+            let bytes = read_request(&mut stream);
+            respond(&mut stream);
+            bytes
+        });
+        assert!(gateway
+            .for_session(b"session")
+            .reply(&[json!({"role":"user","content":"confidential"})], &[])
+            .is_ok());
+        let request = String::from_utf8(receive.join().expect("receiver")).expect("request");
+        assert!(request.starts_with("POST /v1/chat/completions HTTP/1.1\r\n"));
+        assert!(request
+            .to_ascii_lowercase()
+            .contains("authorization: bearer credential-a\r\n"));
+        let (_, body) = request.split_once("\r\n\r\n").expect("request body");
+        let body: serde_json::Value = serde_json::from_str(body).expect("JSON");
+        assert_eq!(body.get("model"), Some(&json!("model-a")));
+        assert_eq!(
+            body.pointer("/messages/0/content"),
+            Some(&json!("confidential"))
+        );
+        assert!(other.accept().is_err(), "unapproved receiver was contacted");
+    }
+
+    #[test]
+    fn http_revocation_does_not_wait_for_in_flight_io() {
+        use std::sync::{mpsc, Arc};
+        let receiver = TcpListener::bind("127.0.0.1:0").expect("receiver");
+        let gateway = Arc::new(Gateway::prepare(b"session", provider(&receiver)).expect("gateway"));
+        gateway.approve_from_host().expect("host approval");
+        let (entered_tx, entered_rx) = mpsc::channel();
+        let (finish_tx, finish_rx) = mpsc::channel();
+        let server = std::thread::spawn(move || {
+            let (mut stream, _) = receiver.accept().expect("request");
+            let _ = read_request(&mut stream);
+            entered_tx.send(()).expect("entered");
+            finish_rx
+                .recv_timeout(Duration::from_secs(10))
+                .expect("finish");
+            respond(&mut stream);
+        });
+        let calling = Arc::clone(&gateway);
+        let call = std::thread::spawn(move || calling.for_session(b"session").reply(&[], &[]));
+        entered_rx
+            .recv_timeout(Duration::from_secs(5))
+            .expect("in flight");
+        let revoking = Arc::clone(&gateway);
+        let (revoked_tx, revoked_rx) = mpsc::channel();
+        let revoke = std::thread::spawn(move || {
+            revoked_tx
+                .send(revoking.revoke_from_host())
+                .expect("revoked");
+        });
+        let revoked_before_response = revoked_rx.recv_timeout(Duration::from_secs(2));
+        // Always unblock the exchange and join every thread, including if an
+        // accidental lock held through I/O prevents prompt revocation.
+        finish_tx.send(()).expect("respond");
+        let reply = call.join().expect("model call");
+        server.join().expect("receiver");
+        revoke.join().expect("revocation");
+        assert!(revoked_before_response.is_ok_and(|result| result.is_ok()));
+        assert!(reply.is_ok(), "an already permitted exchange may finish");
+        assert!(!gateway.is_authorized(b"session"));
+    }
+
+    #[test]
+    fn missing_local_resource_has_no_http_fallback() {
+        let receiver = TcpListener::bind("127.0.0.1:0").expect("receiver");
+        receiver.set_nonblocking(true).expect("nonblocking");
+        let mut gateway = Gateway::prepare(b"session", provider(&receiver)).expect("gateway");
+        gateway.state = Mutex::new(State::new(
+            b"session".to_vec(),
+            Binding::Local(meden_core::processor::LocalParameters::new(
+                b"engine".to_vec(),
+                b"weights".to_vec(),
+            )),
+        ));
+        gateway.approve_from_host().expect("host approval");
+        assert!(gateway.for_session(b"session").reply(&[], &[]).is_err());
+        assert!(receiver.accept().is_err());
     }
 
     #[test]
@@ -269,13 +393,10 @@ mod tests {
 
         let expired = Gateway::prepare(b"session-a", provider(&receiver)).expect("gateway");
         expired.approve_from_host().expect("host approval");
-        expired
-            .permit
-            .lock()
-            .expect("lock")
-            .as_mut()
-            .expect("grant")
-            .expires = 0;
+        let mut expired = expired;
+        expired.created = Instant::now()
+            .checked_sub(APPROVAL_LIFETIME + Duration::from_secs(1))
+            .expect("old clock");
         assert!(expired
             .for_session(b"session-a")
             .reply(&messages, &[])
@@ -284,48 +405,6 @@ mod tests {
             receiver.accept().is_err(),
             "rejected context must not be delivered"
         );
-    }
-
-    #[test]
-    fn an_approval_does_not_transfer_to_a_changed_processor_binding() {
-        let receiver = TcpListener::bind("127.0.0.1:0").expect("receiver");
-        receiver.set_nonblocking(true).expect("nonblocking");
-        let original = provider(&receiver);
-        let gateway = Gateway::prepare(b"session-a", original.clone()).expect("gateway");
-        gateway.approve_from_host().expect("approval");
-        let permit = gateway.permit.lock().expect("lock").clone();
-        for (session, change) in [
-            (b"session-b".as_slice(), original.clone()),
-            (
-                b"session-a".as_slice(),
-                Provider {
-                    model: "model-b".into(),
-                    ..original.clone()
-                },
-            ),
-            (
-                b"session-a".as_slice(),
-                Provider {
-                    api_key: Some("credential-b".into()),
-                    ..original.clone()
-                },
-            ),
-            (
-                b"session-a".as_slice(),
-                Provider {
-                    base_url: format!("{}/other", original.base_url),
-                    ..original.clone()
-                },
-            ),
-        ] {
-            let changed = Gateway::prepare(session, change).expect("gateway");
-            // Even a wrongly copied internal permit cannot authorize another
-            // binding. There is no public permit import API.
-            *changed.permit.lock().expect("lock") = permit.clone();
-            assert!(!changed.is_authorized(session));
-            assert!(changed.for_session(session).reply(&[], &[]).is_err());
-        }
-        assert!(receiver.accept().is_err());
     }
 
     #[test]

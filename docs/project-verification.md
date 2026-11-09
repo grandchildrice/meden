@@ -163,7 +163,7 @@ HTTP export uses its separate exact host authorization.
 ## Preparing the public checker bundle
 
 Use the versions pinned by [CI](../.github/workflows/ci.yml) and
-[the extraction checks](verification.md#rust-to-lean-refinement-of-the-transfer-kernel):
+[the extraction checks](verification.md#processor-authorization-actual-rust-lifecycle-and-frozen-parameters):
 Rust `nightly-2026-09-17` with `rustc-dev`/`llvm-tools`, Charon
 `8cae8fd1905946de61147a65ecdd7122cc6b491b`, Aeneas
 `c5eb4a28cef65e0aa27743105308243e535a2a2b`, and Lean 4.35.0 with this
@@ -240,7 +240,7 @@ job explicitly supplies the manifest and runs them.
 Its `meden-ledger-evidence` artifact retains all ten successful cases' actual
 source, native libraries, proof inputs and eight-root audit reports.
 
-The separate Meden control audit contains 114 roots, including the extracted
+The separate Meden control audit contains 142 roots, including the extracted
 acceptance getter used by both interfaces, the actual TUI key predicate and
 the outer-turn protocol over real conversation outcomes, its finite-trace
 conversation budget and sticky stops, the inner conversation controller

@@ -1,4 +1,4 @@
-import MedenSpec.TransferRefinement
+import MedenSpec.ProcessorTrace
 import MedenSpec.ExportControlRefinement
 import MedenSpec.EvidenceTrace
 import MedenSpec.DispatchRefinement

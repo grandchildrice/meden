@@ -6,7 +6,7 @@ The product target is a local-first verification orchestrator whose control
 and interface/tool behavior are specified and connected to production Rust
 through Lean refinement proofs. That broader assurance is not implemented
 today. The current checks are decision-kernel proofs, bounded checks,
-transfer-kernel refinement, sampled conformance and tests; see
+processor-kernel refinement, sampled conformance and tests; see
 [verification.md](docs/verification.md).
 The proposed assurance chain is in [assurance.md](docs/assurance.md).
 
@@ -40,14 +40,18 @@ automatic redirects. Each inference exchange is attempted once, including
 when delivery is uncertain; non-success HTTP responses are rejected. This
 fixes transport behavior; it does not confine the selected server itself.
 
-Every inference exchange checks a processor grant with the refined Rust
-`transfer::allowed` kernel. The binding contains the host session, exact
-HTTP inference URL, provider/model and exact credential; for the local path
-it binds the host-selected engine/weights paths and local processor identity.
-It expires after eight
-hours and cannot be reset after revocation. Conversation bodies are the
-processor grant's scope. This is separate from a single-use exact export.
-Already permitted requests can finish after revocation.
+Every inference exchange obtains a typed call from the extracted/refined
+`processor::State`. The immutable binding contains the host session and exact
+HTTP URL, provider/model/credential, or local engine/weights path bytes.
+A first host approval fixes an exclusive eight-hour deadline. Revocation,
+including before approval, and expiry observed by dispatch are terminal;
+renewal and permit import/reset APIs do not exist. Each HTTP exchange consumes
+a non-cloneable `HttpCall` and reads its original parameters. A `LocalCall`
+cannot be used by HTTP, and its actual engine/weights configuration must match.
+Conversation bodies are the grant's scope, separate from single-use exact
+export. Already permitted requests can finish after revocation. The Rust-to-Lean
+proofs cover this lifecycle, all parameter snapshots/getters and arbitrary finite
+compositions; clock/input provenance, locking and physical I/O remain adapters.
 
 The TUI displays the prepared destination and data scope in a host-owned
 review screen; only a local `y` key grants permission. Model/tool text,
@@ -99,12 +103,11 @@ been removed. Their historical information-flow claims do not apply to
 this conversational runtime.
 
 The retained `meden-core` capability/policy rules are specified in Lean
-and checked with six bounded Kani harnesses. The processor-permission predicate
-has Lean theorems for exact binding, session, expiry and revocation, plus
-refinement of the extracted production Rust permission predicate.
-Rust and the executable Lean oracle are compared on 5,000 policy, glob and
-transfer cases. These checks cover decision rules; they do not establish
-that every real outbound effect passes through those rules.
+and checked with six bounded Kani harnesses. The processor lifecycle and
+frozen parameter paths have extraction-based Lean refinement and finite-trace
+proofs. Rust and the executable Lean oracle are compared on 5,000 policy/glob
+cases and processor traces. These checks do not establish that every physical
+outbound effect passes through the corresponding rules.
 
 The production export review-control kernel is separately extracted and
 refined. Lean proves that only a host approval of a reviewed proposal grants

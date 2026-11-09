@@ -11,9 +11,16 @@
   `docs/assurance.md` defines proposed proof obligations;
   `docs/verification.md` records checks that actually run today.
 - Preserve accepted intent, evidence/source/artifact linkage and local data
-  control. The isolated planner is retired. The transfer, export review and
+  control. The isolated planner is retired. The processor, export review and
   evidence kernels have Rust-to-Lean refinement. The combined export state
   owns its frozen request; the runtime dispatches only its returned effect.
+  The processor owns its immutable local/HTTP binding and session, issues typed
+  consuming calls and never renews a grant. Pending revocation and observed
+  expiry are terminal. Its constructors, lifecycle, full parameter snapshots,
+  consuming getters and arbitrary finite compositions are extracted/refined.
+  The runtime HTTP adapter accepts only HttpCall; local consumes LocalCall and
+  checks the actual engine/weights configuration. I/O, preparation, host origin,
+  clocks and locks remain adapters.
   The actual Crossterm approval predicate and review-target selector are
   extracted and refined too. All approval handlers match the selected target
   against the host's current screen. Decoding, screen transitions, rendering,

@@ -186,13 +186,14 @@ an isolated coding runner, a fixed model gateway, a local page cache and
 host-approved outbound transfers. It does not use an isolated planner or
 ask a model to decide whether its own action is authorized.
 
-The exact-transfer decision kernel now has seven Lean theorems, including
-full-request matching and no replay after reservation, plus two refinement
-theorems connecting the generated Rust model to that specification, plus a
-no-replay theorem over two calls of the extracted Rust function. A
-Linux runner now confines actual TUI file/Bash tools and `exec`. Tests use
-real host files, inherited descriptors, sockets and receivers. Connecting
-every remaining effect and proving the full controller are still work in progress.
+Lean refinement proofs connect extracted production Rust kernels to their
+specifications, including finite execution traces. Processor calls retain
+the original local/HTTP configuration; revocation and observed expiry cannot
+reopen authorization. Exports preserve the reviewed request and permit at
+most one attempt. Evidence and conversation controllers have their own
+scoped proofs. A Linux runner confines actual TUI file/Bash tools and `exec`;
+tests use real host files, descriptors, sockets and receivers. Connecting
+every remaining effect and proving the full controller remain work in progress.
 
 [Confidentiality design and acceptance criteria →](docs/confidentiality.md) ·
 [CI checks, theorem statements and proof limits →](docs/verification.md)
@@ -219,8 +220,8 @@ and effects and independently check changed code.
 | Package | Responsibility |
 | --- | --- |
 | `meden-agent` | Conversation, native tool calls and tool interfaces |
-| `meden-core` | Capability policy, transfer, export review and evidence kernels |
-| `meden-llm` | HTTP model clients and connection discovery |
+| `meden-core` | Capability policy, processor authorization, export review and evidence kernels |
+| `meden-llm` | Confined local inference, approved HTTP connections and discovery |
 | `meden-runtime` | Host execution, process lifecycle and offline Linux isolation |
 | `meden-cli` | Shared coding session, TUI and isolated JSON Lines automation |
 | `lean/` | Formal specifications, axiom audit and executable oracle |

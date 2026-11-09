@@ -14,11 +14,11 @@ case $("$aeneas_bin" -version) in
   *) echo 'Unsupported Aeneas revision' >&2; exit 1 ;;
 esac
 
-units=(control evidence approval repair conversation text)
+units=(control evidence approval repair conversation text processor)
 case "$#:${1:-}:${2:-}" in
   0::|1:--write:) ;;
-  2:--write:control|2:--write:evidence|2:--write:approval|2:--write:repair|2:--write:conversation|2:--write:text) units=("$2") ;;
-  *) echo 'Usage: tools/extract-transfer.sh [--write [control|evidence|approval|repair|conversation|text]]' >&2; exit 2 ;;
+  2:--write:control|2:--write:evidence|2:--write:approval|2:--write:repair|2:--write:conversation|2:--write:text|2:--write:processor) units=("$2") ;;
+  *) echo 'Usage: tools/extract-transfer.sh [--write [control|evidence|approval|repair|conversation|text|processor]]' >&2; exit 2 ;;
 esac
 extract_tmp=$(mktemp -d)
 trap 'rm -rf "$extract_tmp"' EXIT
@@ -28,7 +28,7 @@ for unit in "${units[@]}"; do
   extraction_args=()
   case "$unit" in
     control)
-      rust_roots=(meden_core::transfer::allowed meden_core::export_control::step
+      rust_roots=(meden_core::export_control::step
         meden_core::export_control::FrozenRequest::target
         meden_core::export_control::FrozenRequest::body
         meden_core::export_control::Dispatch::into_request)
@@ -82,6 +82,22 @@ for unit in "${units[@]}"; do
       cargo_args=(--locked --bin meden -p meden-cli)
       rust_roots=(meden::text::visible_codepoint)
       model=Text ;;
+    processor)
+      namespace=MedenProcessorImpl
+      rust_roots=()
+      for method in new binding phase expires approve revoke is_authorized dispatch; do
+        rust_roots+=("meden_core::processor::State::$method")
+      done
+      for method in new engine weights; do
+        rust_roots+=("meden_core::processor::LocalParameters::$method")
+      done
+      for method in new provider endpoint model credential; do
+        rust_roots+=("meden_core::processor::HttpParameters::$method")
+      done
+      rust_roots+=(meden_core::processor::LocalCall::consume_for
+        meden_core::processor::LocalCall::into_parameters
+        meden_core::processor::HttpCall::into_parameters)
+      model=Processor ;;
   esac
   extract_roots=()
   for rust_root in "${rust_roots[@]}"; do
@@ -99,7 +115,7 @@ for unit in "${units[@]}"; do
   fi
   definitions=()
   if [[ $unit == control ]]; then
-    definitions=(transfer.allowed export_control.step
+    definitions=(export_control.step
       export_control.State.new export_control.State.impl.request
       export_control.State.impl.phase export_control.State.advance
       export_control.FrozenRequest.impl.target export_control.FrozenRequest.impl.body
@@ -108,6 +124,15 @@ for unit in "${units[@]}"; do
     definitions=(tui.approval.approves tui.approval.route)
   elif [[ $unit == text ]]; then
     definitions=(text.visible_codepoint)
+  elif [[ $unit == processor ]]; then
+    definitions=(processor.State.new processor.State.impl.binding
+      processor.State.impl.phase processor.State.impl.expires processor.State.approve
+      processor.State.revoke processor.State.is_authorized processor.State.dispatch
+      processor.LocalParameters.new processor.LocalParameters.impl.engine
+      processor.LocalParameters.impl.weights processor.HttpParameters.new
+      processor.HttpParameters.impl.provider processor.HttpParameters.impl.endpoint
+      processor.HttpParameters.impl.model processor.HttpParameters.impl.credential
+      processor.LocalCall.consume_for processor.LocalCall.into_parameters processor.HttpCall.into_parameters)
   elif [[ $unit == conversation ]]; then
     # External roots can be pruned by the pinned translator. Require the
     # production entry points, rather than accepting helpers alone.

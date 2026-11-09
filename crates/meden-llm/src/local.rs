@@ -3,7 +3,8 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use meden_agent::conversation::{ChatModel, ModelError, Reply};
+use meden_agent::conversation::{ModelError, Reply};
+use meden_core::processor::{LocalCall, LocalParameters};
 use meden_runtime::process::Control;
 use serde_json::Value;
 
@@ -17,6 +18,7 @@ pub struct LocalConfig {
 }
 
 pub(crate) struct Local {
+    parameters: LocalParameters,
     #[cfg(target_os = "linux")]
     state: std::sync::Mutex<State>,
     #[cfg(target_os = "linux")]
@@ -33,6 +35,9 @@ struct State {
 }
 
 impl Local {
+    pub(crate) fn parameters(&self) -> &LocalParameters {
+        &self.parameters
+    }
     pub(crate) fn stop(&self) {
         #[cfg(target_os = "linux")]
         self.control.cancel();
@@ -57,6 +62,10 @@ impl Local {
             )
             .map_err(failed)?;
             Ok(Self {
+                parameters: LocalParameters::new(
+                    config.engine.as_os_str().as_encoded_bytes().to_vec(),
+                    config.model.as_os_str().as_encoded_bytes().to_vec(),
+                ),
                 state: std::sync::Mutex::new(State {
                     command,
                     server: None,
@@ -74,8 +83,20 @@ impl Local {
     }
 }
 
-impl ChatModel for Local {
-    fn reply(&self, messages: &[Value], tools: &[Value]) -> Result<Reply, ModelError> {
+impl Local {
+    pub(crate) fn reply(
+        &self,
+        authorization: LocalCall,
+        messages: &[Value],
+        tools: &[Value],
+    ) -> Result<Reply, ModelError> {
+        if !authorization.consume_for(&self.parameters) {
+            return Err(failed("local processor binding mismatch"));
+        }
+        self.exchange(messages, tools)
+    }
+
+    fn exchange(&self, messages: &[Value], tools: &[Value]) -> Result<Reply, ModelError> {
         #[cfg(target_os = "linux")]
         {
             use std::io::Read as _;
