@@ -1406,6 +1406,39 @@ These tests cover production worker paths, not a Lean proof of OS effects.
 Whole-controller refinement and complete R1 remain work. Local inference
 has its own confinement tests below.
 
+### Mixed system and Nix toolchains
+
+Public tools are selected individually in host search order. Selected system
+objects retain the read-only system roots; Nix objects add their resolved
+closure independently. Having a Nix dependency does not hide the system tools
+or discard a preferred public system executable. When resolving a Nix layout,
+library discovery also includes selected non-Nix tool objects. The worker uses
+its prepared loader explicitly when needed, without replacing the system's
+ELF interpreter. Worker/checker entry points use the selected `/tools` aliases.
+
+[`test_toolchains.py`](../python/tests/test_toolchains.py) constructs two
+mixed layouts in an outer read-only Linux namespace with actual public
+binaries and a glibc loader. It checks system Bash plus Nix tools, and system
+`env` plus Nix Bash/tools. The host's `/usr`, `/bin` and `/lib64` are not changed.
+Control execution must work before invoking Meden. Actual `exec` must then
+preserve private edits, reject host-file/environment access and TCP egress,
+retain the selected tool identities and keep public system resources read-only.
+The preceding implementation failed these tests despite working outer controls.
+
+With the prepared checker bundle, the same layouts check the actual Rust
+counter through compilation, extraction, Lean refinement and artifact
+inspection. A counter that silently ignores amount 4 passes the fixed native
+examples but must fail refinement, without producing an artifact. These are
+project-kernel proofs through additional deployment paths, not a new proof of
+mounts, loaders or the complete controller. The 297 first-party audited roots
+are unchanged.
+
+The lab requires installed public Nix tools, a dynamic x86_64 glibc worker and
+nested Linux namespaces; proof cases also require the release binary and
+checker bundle. Ordinary Ubuntu CI does not install Nix and reports those
+cases as skipped. Local Nix results are evidence of the simulated layouts,
+not validation of every Linux distribution or large-model deployment.
+
 ## Shared CLI and TUI execution
 
 The [coding session](../crates/meden-cli/src/session.rs) owns the fixed tool

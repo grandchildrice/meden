@@ -125,6 +125,9 @@ entries are skipped; metadata helper child lookup uses a public-only PATH
 from `/`, without shell startup environment variables. Explicit backend and
 host Cargo-home configuration remain trusted. See the
 [observed preparation boundary](docs/r1-coverage.md#before-the-first-namespace).
+Selected system tools and Nix resources can coexist without an unrestricted
+fallback. Their mounts, loaders and physical effects remain tested adapters;
+see [the mixed-layout checks](docs/verification.md#mixed-system-and-nix-toolchains).
 
 The `run` JSON Lines interface accepts instructions only and executes the
 same coding session as the TUI. Arbitrary host tool registration, supplied

@@ -28,6 +28,15 @@ file effects as well as successful Cargo/Rust execution, retaining
 `preparation-observation.json`. The Nix metadata-helper paths require a Nix
 host; naming those cases on Ubuntu does not exercise that platform branch.
 
+`test_toolchains.py` constructs mixed system/Nix layouts inside an outer
+read-only Linux namespace using real binaries. It checks private execution,
+read-only resources, selected tool identities and observed network isolation.
+Its proof cases additionally require the release binary and prepared checker:
+the actual counter must refine its contract, and a fault that passes its native
+examples must fail Lean refinement. The lab requires Nix resources, a dynamic
+x86_64 glibc worker and nested namespaces. Ubuntu CI reports missing Nix
+prerequisites as skips, rather than claiming this platform coverage.
+
 The project-verification tests additionally require a release binary
 and a prepared `MEDEN_VERIFIER_BUNDLE`. The Lean CI job supplies that bundle
 and runs them explicitly; other Python runs skip them. See

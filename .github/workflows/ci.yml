@@ -148,6 +148,7 @@ jobs:
             --aeneas "$AENEAS" --output "$RUNNER_TEMP/project-verifier.json"
           uv run --project python pytest -q python/tests/test_project_verification.py \
             python/tests/test_project_delivery.py \
+            python/tests/test_toolchains.py::test_mixed_system_and_nix_tools_check_actual_kernel \
             --basetemp "$RUNNER_TEMP/project-tests"
         env:
           MEDEN_BIN: ${{ github.workspace }}/target/release/meden
@@ -155,7 +156,10 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: meden-project-evidence
-          path: ${{ runner.temp }}/project-tests/**/artifacts/**
+          path: |
+            ${{ runner.temp }}/project-tests/**/artifacts/**
+            ${{ runner.temp }}/project-tests/**/mixed-checker-observation.json
+            ${{ runner.temp }}/project-tests/**/mixed-checker-stderr.txt
           if-no-files-found: error
       - uses: actions/upload-artifact@v7
         with:
@@ -192,6 +196,7 @@ jobs:
             ${{ runner.temp }}/adapter-tests/**/r1-observation.json
             ${{ runner.temp }}/adapter-tests/**/r1-events-debug.json
             ${{ runner.temp }}/adapter-tests/**/preparation-observation.json
+            ${{ runner.temp }}/adapter-tests/**/mixed-observation.json
 
   npm:
     name: npm package (launcher checks, packs cleanly)

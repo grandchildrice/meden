@@ -33,6 +33,11 @@
   Explicit MEDEN_BWRAP and Cargo-home configuration remain trusted host inputs.
   Filesystem selection, helper software, configuration and OS enforcement are
   adapters; do not call this a Lean proof of the launcher.
+- Select public tools independently. System roots and the resolved Nix closure
+  may coexist; the presence of Nix dependencies must not choose the entire
+  mount layout. Invoke a worker's prepared loader explicitly without replacing
+  the selected system interpreter. Mixed-layout tests need real Nix resources;
+  report missing platform prerequisites as skips, not successful coverage.
 - Preserve accepted intent, evidence/source/artifact linkage and local data
   control. The isolated planner is retired. The processor, export review and
   evidence kernels have Rust-to-Lean refinement. The combined export state

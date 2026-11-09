@@ -74,6 +74,13 @@ Explicit `MEDEN_BWRAP`, host Cargo-home/manager configuration, public system
 software and its immutability remain trusted inputs. This is a tested
 preparation boundary, not a Lean proof of filesystem lookup or process launch.
 
+The [mixed-layout lab](verification.md#mixed-system-and-nix-toolchains) also
+checks private execution with system and Nix tools selected together, including
+read-only system resources, host-file/environment denial and observed TCP
+isolation. Its optional checker cases prove a real counter and reject a
+counterexample through those layouts. These remain scoped deployment checks;
+they do not complete R1 or establish large-local inference.
+
 ## Coverage by acceptance criterion
 
 In this table, **combined** means the scenario above. Other tests run the

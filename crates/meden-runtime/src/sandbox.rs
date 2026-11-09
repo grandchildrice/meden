@@ -28,6 +28,7 @@ pub struct Sandbox {
     bwrap: PathBuf,
     root: PathBuf,
     tools: Vec<(String, PathBuf)>,
+    system_tools: bool,
     store_paths: BTreeSet<PathBuf>,
     tool_bindings: BTreeSet<PathBuf>,
     worker: PathBuf,
@@ -75,21 +76,14 @@ fn host_command(program: &Path, name: &str) -> io::Result<Command> {
     Ok(command)
 }
 
-fn public_tools(nix_tools: bool) -> (Vec<(String, PathBuf)>, Option<PathBuf>) {
+fn public_tools() -> (Vec<(String, PathBuf)>, Option<PathBuf>) {
     let mut tools: Vec<_> = TOOLS
         .iter()
         .filter_map(|name| {
             // A Python virtualenv/uv executable can shadow the public
             // Nix toolchain without being present in its mounted closure.
             // Pick a visible public object; never expose a host cache.
-            find(name, |path| {
-                if nix_tools {
-                    store_root(path).is_some()
-                } else {
-                    SYSTEM_ROOTS.iter().any(|root| path.starts_with(root))
-                }
-            })
-            .map(|path| ((*name).to_owned(), path))
+            find_public(name).map(|path| ((*name).to_owned(), path))
         })
         .collect();
     let mut manager = None;
@@ -314,8 +308,10 @@ impl Sandbox {
             .or_else(|| find_public("bwrap"))
             .ok_or_else(|| io::Error::other("bubblewrap is required for isolated execution"))?
             .canonicalize()?;
-        let nix_tools = find_public("bash").is_some_and(|path| path.starts_with("/nix/store"));
-        let (tools, manager) = public_tools(nix_tools);
+        let (tools, manager) = public_tools();
+        let system_tools = tools
+            .iter()
+            .any(|(_, path)| SYSTEM_ROOTS.iter().any(|root| path.starts_with(root)));
         let mut tool_bindings = rust_bindings(&tools);
         if let Some(manager) = manager.filter(|path| store_root(path).is_some()) {
             tool_bindings.insert(manager);
@@ -341,10 +337,10 @@ impl Sandbox {
         let (worker_libraries, worker_loader) = resolve_libraries(
             &worker,
             assets.iter().copied().chain(
-                tool_bindings
+                tools
                     .iter()
-                    .filter(|path| path.is_file())
-                    .map(PathBuf::as_path),
+                    .filter(|(_, path)| store_root(path).is_none())
+                    .map(|(_, path)| path.as_path()),
             ),
             &mut roots,
         )?;
@@ -378,6 +374,7 @@ impl Sandbox {
             bwrap,
             root,
             tools,
+            system_tools,
             store_paths,
             tool_bindings,
             worker,
@@ -408,7 +405,7 @@ impl Sandbox {
     pub(crate) fn verification_command(&self, bundle: &crate::verification::Bundle) -> Command {
         let bindings = bundle.bindings();
         self.build(
-            "/bin/bash",
+            "/tools/bash",
             &["--noprofile", "--norc"],
             None,
             &bindings
@@ -446,6 +443,9 @@ impl Sandbox {
             assignment.push(paths);
             args.push(assignment);
         }
+        if let Some(loader) = &self.worker_loader {
+            args.push(loader.as_os_str().to_owned());
+        }
         args.push("/meden-worker".into());
         args.push(operation.into());
         let resolver = if matches!(network, Network::Pages) {
@@ -458,7 +458,7 @@ impl Sandbox {
             .map(|path| (path, "/etc/resolv.conf"))
             .into_iter()
             .collect();
-        Ok(self.build("/bin/env", &args, source, &bindings, network))
+        Ok(self.build("/tools/env", &args, source, &bindings, network))
     }
 
     fn build(
@@ -503,7 +503,7 @@ impl Sandbox {
             .arg("--ro-bind")
             .arg(&self.worker)
             .arg("/meden-worker");
-        if let Some(loader) = &self.worker_loader {
+        if let Some(loader) = self.worker_loader.as_ref().filter(|_| !self.system_tools) {
             command
                 .args(["--dir", "/lib64", "--symlink"])
                 .arg(loader)
@@ -552,17 +552,21 @@ impl Sandbox {
     }
 
     fn mount_toolchains(&self, command: &mut Command) {
-        if self.store_paths.is_empty() {
+        if self.system_tools {
             for path in SYSTEM_ROOTS {
                 if Path::new(path).exists() {
                     command.args(["--ro-bind", path, path]);
                 }
             }
-        } else {
-            command.args(["--dir", "/nix", "--dir", "/nix/store", "--dir", "/bin"]);
+        }
+        if !self.store_paths.is_empty() {
+            command.args(["--dir", "/nix", "--dir", "/nix/store"]);
             for path in &self.store_paths {
                 command.arg("--ro-bind").arg(path).arg(path);
             }
+        }
+        if !self.system_tools {
+            command.args(["--dir", "/bin"]);
             for (name, path) in &self.tools {
                 command
                     .arg("--symlink")
