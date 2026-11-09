@@ -312,5 +312,10 @@ Track the remaining trusted base explicitly: accepted human meaning and
 environment assumptions, extraction tools and external models, proof/checker
 kernels, compilers/linkers, platform libraries, OS/isolation, hardware and
 approved external processors. Reduce it incrementally and report changes.
+The Linux file adapter now pins canonical targets and replacement parents
+through restricted `openat2` resolution and live descriptors; deterministic
+substitution tests cover its content operations. Its OS, procfs and temporary
+file semantics remain trusted, and the original-path policy is not yet a
+canonical-target authorization proof. See [the exact boundary](verification.md#physical-file-handles-in-the-linux-worker).
 A mission-critical example is accepted only when both its project-specific
 chain and Meden's relevant control/effect chain are accounted for.

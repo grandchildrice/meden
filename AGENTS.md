@@ -79,7 +79,15 @@
   including composition with the invocation controller for finite request traces.
   The actual worker consumes those fields instead of reparsing a path or operation
   from payload/model-facing tool names. JSON/UTF-8, boxed-closure capture, filesystem
-  resolution/symlink races and physical I/O still require adapter correspondence.
+  resolution and physical I/O still require adapter correspondence. The Linux
+  file worker resolves existing internal links, then pins the canonical target
+  beneath an open workspace root with openat2 BENEATH/NO_SYMLINKS. Content reads
+  use the pinned regular-file descriptor; lists and atomic replacements retain
+  the directory descriptor. New symlinks during pinning are refused; later path
+  substitutions cannot redirect those handles. Only ENOENT admits a new write
+  target. There is no unrestricted fallback. This is tested OS adapter behavior,
+  not an extracted filesystem proof: original-path policy versus canonical-target
+  authority, concurrent inode contents/directory entries and host mutation remain gaps.
   Scopes are immutable owned scalar vectors, serialized as ordinary strings.
   Scope.matches uses the extracted/refined Unicode glob kernel. The actual
   owned policy APIs, capability/scope checks, deny precedence, full requirement

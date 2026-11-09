@@ -635,6 +635,53 @@ opened. The following guard checks project-context identity; parsing that contex
 into file effects and physical snapshot attribution remain separate. The current
 tests and proofs do not complete CTL-01, the full interface, or R1.
 
+### Physical file handles in the Linux worker
+
+The worker previously canonicalized a path, checked its workspace prefix and
+then reopened that pathname for content I/O. A parent changed to a symlink
+between those steps could redirect the later open. The production worker now
+uses [`worker_file/pinned.rs`](../crates/meden-cli/src/worker_file/pinned.rs):
+
+1. Resolve existing internal symlinks and reject an observed target outside
+   `/workspace`. Relative and absolute internal symlinks remain supported.
+2. Open the workspace root as a directory handle. Resolve the canonical relative
+   target with `openat2(RESOLVE_BENEATH | RESOLVE_NO_SYMLINKS)`. A newly introduced
+   intermediate symlink fails. A final symlink is either refused by the directory
+   open or opened with `O_PATH | O_NOFOLLOW` and refused by its actual inode type.
+3. For reads and snapshots, inspect the pinned inode's type and reopen only that
+   live regular-file descriptor through the worker's private `/proc/self/fd`.
+   For listing, retain the opened directory. For writing/editing, retain the
+   destination parent, basename and original regular-file descriptor when present.
+4. Create and persist the replacement via the held parent's descriptor path,
+   preserving permissions from the held original. Renaming an existing leaf
+   symlink into place after pinning does not cause a write through that symlink.
+   Only an actual `ENOENT` on the final lookup admits a new write target; other
+   lookup errors never become permission to create. Unsupported `openat2` fails;
+   there is no path-based fallback.
+
+The [Linux `openat2` contract](https://man7.org/linux/man-pages/man2/openat2.2.html)
+and [rustix's safe wrapper](https://docs.rs/rustix/1.1.6/rustix/fs/fn.openat2.html)
+are trusted OS/library behavior. First-party code adds no unsafe Rust, assumed
+Lean filesystem primitive or new theorem. The existing 262 audited roots still
+concern their documented pure control kernels.
+
+Native adversarial tests deterministically substitute both parents and final
+entries between canonicalization and handle acquisition, including an initially
+missing write target. They also substitute both after acquisition and check the
+actual returned bytes, directory names and written files for all five operations.
+They preserve useful internal links, reject FIFOs without blocking, and reject
+an overlong lookup instead of preparing a new file. An integration test invokes
+the actual isolated CLI worker for all five operations with internal links and
+a real FIFO, and observes its exit status and retained workspace files.
+
+These handles pin object identity, not immutable file contents or a snapshot
+of directory entries. The policy still admits the original decoded pathname;
+it does not independently admit the canonical symlink target. Alias-specific
+policy coverage, concurrent modifications of the same inode or destination
+directory, parent relocation by an outside host and the complete physical
+effect correspondence remain obligations. This improvement does not establish
+whole-application confidentiality or complete R1.
+
 ## Prepared project reads and contract context
 
 Verification, model-facing status and artifact preparation used to derive read

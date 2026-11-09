@@ -60,7 +60,7 @@ submitted examples failed refinement. Large local deployment remains to be measu
 
 ## Getting started
 
-The workspace backend currently requires Linux, Bubblewrap, Bash and host
+The workspace backend currently requires Linux 5.6 or newer (`openat2`), Bubblewrap, Bash and host
 permission to create the required namespaces. Ubuntu 24.04 may need its
 packaged Bubblewrap AppArmor profile enabled by an administrator; see
 [the tested runner configuration](docs/release.md#exact-source-to-staged-archives).

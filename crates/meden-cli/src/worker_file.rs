@@ -6,8 +6,13 @@ use meden_core::file::{Operation, Request};
 use serde_json::Value;
 use std::fmt::Write as _;
 use std::fs;
-use std::io::{BufRead, BufReader, Read, Write};
+use std::io::{BufRead, BufReader, Read};
 use std::path::{Path, PathBuf};
+
+#[cfg(target_os = "linux")]
+mod pinned;
+#[cfg(target_os = "linux")]
+use pinned::Access;
 
 const OUTPUT_LIMIT: usize = 24_000;
 struct FileOperation {
@@ -81,19 +86,26 @@ impl FileOperation {
         Ok(path)
     }
 
+    #[cfg(target_os = "linux")]
     fn execute(&self, requested: &Path, args: &Args) -> Result<Value, ToolError> {
         let path = self.resolve(requested)?;
-        match self.operation {
-            Operation::Snapshot => {
-                if !fs::metadata(&path).map_err(failed)?.is_file() {
-                    return Err(ToolError::Failed(
-                        "snapshot source must be a regular file".into(),
-                    ));
-                }
+        let access = Access::open(&self.root, &path, self.operation)?;
+        self.execute_access(access, args)
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    fn execute(&self, _requested: &Path, _args: &Args) -> Result<Value, ToolError> {
+        Err(ToolError::Failed(
+            "isolated file access requires Linux".into(),
+        ))
+    }
+
+    #[cfg(target_os = "linux")]
+    fn execute_access(&self, access: Access, args: &Args) -> Result<Value, ToolError> {
+        match (self.operation, access) {
+            (Operation::Snapshot, Access::File(file)) => {
                 let mut bytes = Vec::new();
-                fs::File::open(path)
-                    .map_err(failed)?
-                    .take(1_048_577)
+                file.take(1_048_577)
                     .read_to_end(&mut bytes)
                     .map_err(failed)?;
                 if bytes.len() > 1_048_576 {
@@ -101,7 +113,7 @@ impl FileOperation {
                 }
                 serde_json::to_value(bytes).map_err(failed)
             }
-            Operation::Read => {
+            (Operation::Read, Access::File(file)) => {
                 let offset = integer(args, "offset", 1)?;
                 let limit = integer(args, "limit", 200)?.min(2000);
                 if offset == 0 || limit == 0 {
@@ -109,7 +121,6 @@ impl FileOperation {
                         "offset and limit must be positive".into(),
                     ));
                 }
-                let file = fs::File::open(path).map_err(failed)?;
                 let mut output = String::new();
                 for (index, line) in BufReader::new(file)
                     .lines()
@@ -126,8 +137,8 @@ impl FileOperation {
                 }
                 Ok(Value::String(output))
             }
-            Operation::List => {
-                let mut entries = fs::read_dir(path)
+            (Operation::List, Access::Directory(directory)) => {
+                let mut entries = fs::read_dir(pinned::descriptor_path(&directory))
                     .map_err(failed)?
                     .take(501)
                     .collect::<Result<Vec<_>, _>>()
@@ -151,12 +162,27 @@ impl FileOperation {
                 }
                 Ok(Value::String(output))
             }
-            Operation::Write => {
-                atomic_write(&path, text(args, "content")?)?;
+            (
+                Operation::Write,
+                Access::Replacement {
+                    parent,
+                    name,
+                    original,
+                },
+            ) => {
+                pinned::atomic_write(&parent, &name, original.as_ref(), text(args, "content")?)?;
                 Ok(Value::String("File written.".into()))
             }
-            Operation::Edit => {
-                let original = fs::read_to_string(&path).map_err(failed)?;
+            (
+                Operation::Edit,
+                Access::Replacement {
+                    parent,
+                    name,
+                    original: Some(mut file),
+                },
+            ) => {
+                let mut original = String::new();
+                file.read_to_string(&mut original).map_err(failed)?;
                 let old = text(args, "old_text")?;
                 if old.is_empty() || original.matches(old).count() != 1 {
                     return Err(ToolError::Failed(
@@ -169,9 +195,12 @@ impl FileOperation {
                         "new_text is identical to old_text; file was not changed".into(),
                     ));
                 }
-                atomic_write(&path, &original.replacen(old, new, 1))?;
+                pinned::atomic_write(&parent, &name, Some(&file), &original.replacen(old, new, 1))?;
                 Ok(Value::String("File edited.".into()))
             }
+            _ => Err(ToolError::Failed(
+                "file operation does not match pinned access".into(),
+            )),
         }
     }
 }
@@ -196,23 +225,7 @@ fn integer(args: &Args, name: &str, default: usize) -> Result<usize, ToolError> 
     }
 }
 
-fn atomic_write(path: &Path, content: &str) -> Result<(), ToolError> {
-    let parent = path
-        .parent()
-        .ok_or_else(|| ToolError::Failed("path has no parent".into()))?;
-    let mut temporary = tempfile::NamedTempFile::new_in(parent).map_err(failed)?;
-    temporary.write_all(content.as_bytes()).map_err(failed)?;
-    if let Ok(metadata) = fs::metadata(path) {
-        temporary
-            .as_file()
-            .set_permissions(metadata.permissions())
-            .map_err(failed)?;
-    }
-    temporary.persist(path).map_err(failed)?;
-    Ok(())
-}
-
-#[cfg(test)]
+#[cfg(all(test, target_os = "linux"))]
 mod tests {
     #![allow(clippy::expect_used)]
     use super::*;
@@ -325,6 +338,266 @@ mod tests {
         assert_eq!(
             fs::read_to_string(root.path().join("src/kernel.rs")).expect("candidate"),
             "candidate"
+        );
+    }
+
+    #[test]
+    fn internal_relative_and_absolute_links_keep_their_file_semantics() {
+        let root = tempfile::tempdir().expect("workspace");
+        fs::create_dir(root.path().join("real")).expect("directory");
+        fs::write(root.path().join("real/note"), "original").expect("file");
+        std::os::unix::fs::symlink("real", root.path().join("relative")).expect("relative link");
+        std::os::unix::fs::symlink(root.path().join("real/note"), root.path().join("absolute"))
+            .expect("absolute link");
+        assert_eq!(
+            execute(
+                root.path(),
+                Operation::Read,
+                json!({"path":"relative/note"})
+            )
+            .expect("read"),
+            "1: original\n"
+        );
+        assert_eq!(
+            execute(root.path(), Operation::Snapshot, json!({"path":"absolute"}))
+                .expect("snapshot"),
+            json!(b"original")
+        );
+        execute(
+            root.path(),
+            Operation::Write,
+            json!({"path":"absolute","content":"changed"}),
+        )
+        .expect("replace linked target");
+        execute(
+            root.path(),
+            Operation::Edit,
+            json!({"path":"relative/note","old_text":"changed","new_text":"edited"}),
+        )
+        .expect("edit linked target");
+        assert!(root.path().join("absolute").is_symlink());
+        assert_eq!(
+            fs::read_to_string(root.path().join("real/note")).expect("target"),
+            "edited"
+        );
+        assert_eq!(
+            execute(root.path(), Operation::List, json!({"path":"relative"})).expect("list"),
+            "note\n"
+        );
+        execute(
+            root.path(),
+            Operation::Write,
+            json!({"path":"relative/new","content":"created"}),
+        )
+        .expect("new file through linked parent");
+        assert_eq!(
+            fs::read_to_string(root.path().join("real/new")).expect("new target"),
+            "created"
+        );
+    }
+
+    #[test]
+    fn resolved_parent_substitution_is_refused_before_any_content_access() {
+        for operation in [
+            Operation::Read,
+            Operation::Snapshot,
+            Operation::List,
+            Operation::Write,
+            Operation::Edit,
+        ] {
+            let root = tempfile::tempdir().expect("workspace");
+            let outside = tempfile::tempdir().expect("outside");
+            fs::create_dir(root.path().join("parent")).expect("parent");
+            for directory in [root.path().join("parent"), outside.path().to_owned()] {
+                if operation == Operation::List {
+                    fs::create_dir(directory.join("entry")).expect("list target");
+                } else {
+                    fs::write(directory.join("entry"), "original").expect("file target");
+                }
+            }
+            let worker = FileOperation {
+                root: root.path().to_owned(),
+                operation,
+            };
+            let resolved = worker
+                .resolve(Path::new("parent/entry"))
+                .expect("original resolution");
+            fs::rename(root.path().join("parent"), root.path().join("held")).expect("move parent");
+            std::os::unix::fs::symlink(outside.path(), root.path().join("parent"))
+                .expect("substitute parent");
+            assert!(
+                Access::open(root.path(), &resolved, operation).is_err(),
+                "{operation:?} must not follow a substituted parent"
+            );
+        }
+    }
+
+    #[test]
+    fn resolved_leaf_substitution_is_refused_including_missing_write_targets() {
+        for operation in [
+            Operation::Read,
+            Operation::Snapshot,
+            Operation::List,
+            Operation::Write,
+            Operation::Edit,
+        ] {
+            for existed in [true, false] {
+                if !existed && operation != Operation::Write {
+                    continue;
+                }
+                let root = tempfile::tempdir().expect("workspace");
+                let outside = tempfile::tempdir().expect("outside");
+                let entry = root.path().join("entry");
+                let secret = outside.path().join("secret");
+                if operation == Operation::List {
+                    fs::create_dir(&entry).expect("directory");
+                    fs::create_dir(&secret).expect("outside directory");
+                } else {
+                    if existed {
+                        fs::write(&entry, "original").expect("file");
+                    }
+                    fs::write(&secret, "private").expect("outside file");
+                }
+                let worker = FileOperation {
+                    root: root.path().to_owned(),
+                    operation,
+                };
+                let resolved = worker
+                    .resolve(Path::new("entry"))
+                    .expect("original resolution");
+                if operation == Operation::List {
+                    fs::remove_dir(&entry).expect("remove directory");
+                } else if existed {
+                    fs::remove_file(&entry).expect("remove file");
+                }
+                std::os::unix::fs::symlink(&secret, &entry).expect("substitute leaf");
+                assert!(
+                    Access::open(root.path(), &resolved, operation).is_err(),
+                    "{operation:?} must not follow or treat a substituted symlink as missing"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn pinned_reads_lists_and_replacements_ignore_later_path_substitution() {
+        for operation in [
+            Operation::Read,
+            Operation::Snapshot,
+            Operation::List,
+            Operation::Write,
+            Operation::Edit,
+        ] {
+            let root = tempfile::tempdir().expect("workspace");
+            let outside = tempfile::tempdir().expect("outside");
+            fs::create_dir(root.path().join("parent")).expect("directory");
+            fs::write(root.path().join("parent/note"), "original").expect("original");
+            fs::write(outside.path().join("note"), "private").expect("secret");
+            fs::write(outside.path().join("secret-name"), "private").expect("secret name");
+            let worker = FileOperation {
+                root: root.path().to_owned(),
+                operation,
+            };
+            let requested = if operation == Operation::List {
+                "parent"
+            } else {
+                "parent/note"
+            };
+            let resolved = worker
+                .resolve(Path::new(requested))
+                .expect("original resolution");
+            let access = Access::open(root.path(), &resolved, operation).expect("pin original");
+            fs::rename(root.path().join("parent"), root.path().join("held")).expect("move parent");
+            std::os::unix::fs::symlink(outside.path(), root.path().join("parent"))
+                .expect("substitute parent");
+            if operation != Operation::List {
+                fs::remove_file(root.path().join("held/note")).expect("unlink original target");
+                std::os::unix::fs::symlink(
+                    outside.path().join("note"),
+                    root.path().join("held/note"),
+                )
+                .expect("substitute leaf after pin");
+            }
+            let args = serde_json::from_value(
+                json!({"content":"replaced","old_text":"original","new_text":"edited"}),
+            )
+            .expect("arguments");
+            let result = worker
+                .execute_access(access, &args)
+                .expect("execute original handles");
+            match operation {
+                Operation::Read => assert_eq!(result, "1: original\n"),
+                Operation::Snapshot => assert_eq!(result, json!(b"original")),
+                Operation::List => assert_eq!(result, "note\n"),
+                Operation::Write | Operation::Edit => {
+                    assert!(!root.path().join("held/note").is_symlink());
+                    assert_eq!(
+                        fs::read_to_string(root.path().join("held/note")).expect("original parent"),
+                        if operation == Operation::Write {
+                            "replaced"
+                        } else {
+                            "edited"
+                        }
+                    );
+                }
+            }
+            assert_eq!(
+                fs::read_to_string(outside.path().join("note")).expect("outside unchanged"),
+                "private"
+            );
+            assert_eq!(
+                fs::read_dir(outside.path())
+                    .expect("outside entries")
+                    .count(),
+                2
+            );
+        }
+    }
+
+    #[test]
+    fn special_entries_are_refused_without_blocking_or_replacing_them() {
+        use nix::sys::stat::Mode;
+        use nix::unistd::mkfifo;
+        let root = tempfile::tempdir().expect("workspace");
+        let fifo = root.path().join("pipe");
+        mkfifo(&fifo, Mode::S_IRUSR | Mode::S_IWUSR).expect("FIFO");
+        for operation in [
+            Operation::Read,
+            Operation::Snapshot,
+            Operation::Write,
+            Operation::Edit,
+            Operation::List,
+        ] {
+            let worker = FileOperation {
+                root: root.path().to_owned(),
+                operation,
+            };
+            let resolved = worker.resolve(Path::new("pipe")).expect("FIFO resolution");
+            assert!(
+                Access::open(root.path(), &resolved, operation).is_err(),
+                "{operation:?} must reject a FIFO"
+            );
+        }
+        assert!(!fs::metadata(fifo).expect("entry preserved").is_file());
+    }
+
+    #[test]
+    fn lookup_errors_cannot_be_treated_as_permission_to_create_a_file() {
+        let root = tempfile::tempdir().expect("workspace");
+        let worker = FileOperation {
+            root: root.path().to_owned(),
+            operation: Operation::Write,
+        };
+        let requested = "x".repeat(300);
+        let resolved = worker
+            .resolve(Path::new(&requested))
+            .expect("parent exists");
+        assert!(Access::open(root.path(), &resolved, Operation::Write).is_err());
+        assert_eq!(
+            fs::read_dir(root.path())
+                .expect("workspace entries")
+                .count(),
+            0
         );
     }
 }

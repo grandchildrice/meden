@@ -96,6 +96,89 @@ fn file_worker_uses_only_the_prepared_operation_and_path() {
 }
 
 #[test]
+fn pinned_file_access_keeps_internal_links_and_rejects_special_files_in_the_real_namespace() {
+    let source = tempfile::tempdir().expect("source");
+    fs::create_dir(source.path().join("real")).expect("directory");
+    fs::write(source.path().join("real/note"), "original").expect("file");
+    std::os::unix::fs::symlink("real", source.path().join("relative")).expect("relative link");
+    std::os::unix::fs::symlink("/workspace/real/note", source.path().join("absolute"))
+        .expect("absolute link");
+    let session = import(source.path());
+    let output = file(&session.0, "read_file", &json!({"path":"relative/note"}));
+    assert!(success(&output), "{}", output.stderr);
+    assert_eq!(
+        serde_json::from_str::<String>(&output.stdout).expect("read"),
+        "1: original\n"
+    );
+    let output = file(&session.0, "snapshot", &json!({"path":"absolute"}));
+    assert!(success(&output), "{}", output.stderr);
+    assert_eq!(
+        serde_json::from_str::<Vec<u8>>(&output.stdout).expect("snapshot"),
+        b"original"
+    );
+    let output = file(
+        &session.0,
+        "write_file",
+        &json!({"path":"absolute","content":"changed"}),
+    );
+    assert!(success(&output), "{}", output.stderr);
+    let output = file(
+        &session.0,
+        "edit_file",
+        &json!({"path":"relative/note","old_text":"changed","new_text":"edited"}),
+    );
+    assert!(success(&output), "{}", output.stderr);
+    let output = file(
+        &session.0,
+        "write_file",
+        &json!({"path":"relative/new","content":"created"}),
+    );
+    assert!(success(&output), "{}", output.stderr);
+    let output = file(&session.0, "list_files", &json!({"path":"relative"}));
+    assert!(success(&output), "{}", output.stderr);
+    assert_eq!(
+        serde_json::from_str::<String>(&output.stdout).expect("list"),
+        "new\nnote\n"
+    );
+    assert_eq!(
+        fs::read_to_string(session.0.path().join("real/note")).expect("target"),
+        "edited"
+    );
+    assert!(session.0.path().join("absolute").is_symlink());
+    let output = run(
+        &mut session.0.shell_command().expect("shell"),
+        b"python3 -c 'import os; os.mkfifo(\"pipe\")'",
+    );
+    assert!(success(&output), "{}", output.stderr);
+    for operation in [
+        "read_file",
+        "snapshot",
+        "write_file",
+        "edit_file",
+        "list_files",
+    ] {
+        let output = file(
+            &session.0,
+            operation,
+            &json!({"path":"pipe","content":"bad","old_text":"old","new_text":"new"}),
+        );
+        assert!(
+            matches!(output.termination, Termination::Exited(code) if !code.success()),
+            "{operation}: {:?}: {}",
+            output.termination,
+            output.stderr
+        );
+    }
+    assert!(!fs::metadata(session.0.path().join("pipe"))
+        .expect("FIFO retained")
+        .is_file());
+    assert_eq!(
+        fs::read_to_string(source.path().join("real/note")).expect("original source"),
+        "original"
+    );
+}
+
+#[test]
 fn real_file_workers_share_private_edits_with_bash_and_break_host_hardlinks() {
     let source = tempfile::tempdir().expect("source");
     let outside = tempfile::tempdir().expect("host files");
