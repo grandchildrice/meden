@@ -510,14 +510,25 @@ An out-of-order host observation faults the controller and drains the original
 group without starting another model request or executable tool.
 
 A native regression reproduces a previous dispatch bug: the decision observer
-raised a host stop, but the tool still ran once. `execute` now calls the same
-extracted interruption guard after that observer, immediately before dispatch;
+raised a host stop, but the tool still ran once. `execute` now passes fresh
+cancellation/host-stop observations to the bound invocation controller after
+that observer, immediately before dispatch;
 the typed stop returned to Flow remains latched even when a later callback
 clears the external flag. Native tests also exercise multiple original call
 slots, budget exhaustion, malformed host order and `usize::MAX` saturation.
 Seven added Rust faults remove these guards, budget/cursor updates or the
 correct call lookup; the existing two status-classification faults now mutate
 the actual extracted classifier.
+
+Another native regression stops before model access, both before the request
+notification and inside its observer. For review and infrastructure failures,
+the scripted model's reply must remain unused and no assistant/tool history
+may be added. The `ignored_host_stop` mutation uses this witness: a test that
+only stops during a tool decision can pass because the separate invocation
+controller still blocks dispatch. CI refuses to count a fault without an
+observed native assertion failure; the regenerated model must then compile
+and fail the unchanged refinement proof. This corrects the witness without
+removing a mutation or weakening a theorem.
 
 This is refinement of the actual inner effect controller and its observations.
 It does not prove JSON parsing/history serialization, model transport,

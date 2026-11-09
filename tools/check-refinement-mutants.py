@@ -850,10 +850,7 @@ GROUPS = [
         "package": "meden-agent",
         "model": "Conversation",
         "proof": "ConversationRefinement",
-        "test": (
-            "conversation::tests::"
-            "host_stop_observed_during_decision_prevents_dispatch_and_stays_latched"
-        ),
+        "test": "host_stop_before_model_request_prevents_context_disclosure",
         "mutations": [
             (
                 "ignored_host_stop",
