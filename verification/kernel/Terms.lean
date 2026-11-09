@@ -58,10 +58,24 @@ private def names (fields parameters : List String) (property : Bool) : List Nam
   base ++ out ++ parameters.map Name.mkSimple ++
     fields.map (Name.str `s) ++ (if property then fields.map (Name.str `out) else [])
 
-private def checkTerm (env : Environment) (allowed fields : List Name) (text : String) : Except String Unit := do
-  if text.utf8ByteSize > 8192 then throw "mathematical term exceeds 8 KiB"
-  let stx ← Parser.runParserCategory env `term text "contract"
-  checkSyntax allowed fields 128 stx
+private def checkTerm (env : Environment) (allowed fields : List Name)
+    (label text : String) : Except String Unit := do
+  if text.utf8ByteSize > 8192 then throw s!"{label}: mathematical term exceeds 8 KiB"
+  let checked := do
+    let stx ← Parser.runParserCategory env `term text label
+    checkSyntax allowed fields 128 stx
+  checked.mapError fun error =>
+    s!"Invalid {label}\n{error}\nRejected term (JSON string): {(Json.str text).compress}\n" ++
+    s!"Allowed expression names: {String.intercalate ", " (allowed.map (·.toString))}\n" ++
+    s!"Declared record labels: {String.intercalate ", " (fields.map (·.toString))}\n" ++
+    "The input variable is always s; use s.FIELD for declared fields and parameter names directly. " ++
+    "out and out.FIELD exist only in property statements. " ++
+    "A specification is one next-state term, not a function definition or type signature. " ++
+    "Records use { FIELD := EXPRESSION } with an explicit value for every declared field; " ++
+    "conditionals use if CONDITION then TERM else TERM. Replace the capitalized placeholders. " ++
+    "Arithmetic is mathematical Nat; the u64 maximum is the decimal numeral 18446744073709551615. " ++
+    "Rust syntax such as :: and u64::MAX, constructors, commands and tactics are unsupported. " ++
+    "Repair syntax without weakening the requested behavior."
 
 private def stringList (json : Json) (field : String) : Except String (List String) := do
   let values ← (← json.getObjVal? field).getArr?
@@ -71,9 +85,10 @@ private def checkContract (env : Environment) (json : Json) : Except String Unit
   let fields ← stringList json "fields"
   let parameters ← stringList json "parameters"
   checkTerm env (names fields parameters false) (fields.map Name.mkSimple)
-    (← json.getObjValAs? String "specification")
+    "specification" (← json.getObjValAs? String "specification")
   for property in (← (← json.getObjVal? "properties").getArr?) do
     checkTerm env (names fields parameters true) (fields.map Name.mkSimple)
+      s!"properties.{← property.getObjValAs? String "name"}.statement"
       (← property.getObjValAs? String "statement")
 
 -- Initializer execution is needed only for the fixed imported parser tables.

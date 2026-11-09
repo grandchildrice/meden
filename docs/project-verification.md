@@ -97,6 +97,13 @@ labels are not global expression identifiers. Metadata is bounded and must
 use supported names and a relative Rust path. Deserializing a draft grants
 no authority.
 
+Syntax failures name the rejected `specification` or property statement,
+quote the submitted term and list that draft's available expression names
+and record labels. The tool schema explains the fixed mathematical names
+`s`, `out` and `transition`, Lean record syntax `:=` and the mathematical
+`Nat` interpretation of u64 inputs. These diagnostics help repair the
+proposal; they do not rewrite its meaning or relax the parser whitelist.
+
 Descriptions and environmental assumptions are review material. There is
 no theorem proving that a description is equivalent to a formula or that a
 caller respects an assumption. Assumption strings are not imported as Lean

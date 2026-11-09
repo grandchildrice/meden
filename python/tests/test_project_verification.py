@@ -739,6 +739,7 @@ def test_generic_counter_acceptance_repair_and_rejected_replacement_preserve_evi
         "axiom",
         "property-tactic",
         "field-as-function",
+        "rust-max",
     ],
 )
 def test_contract_terms_cannot_execute_lean_code(tmp_path, attack):
@@ -756,6 +757,7 @@ def test_contract_terms_cannot_execute_lean_code(tmp_path, attack):
         "axiom": "sorryAx _ false",
         "property-tactic": contract["specification"],
         "field-as-function": "dbgTrace 0 s",
+        "rust-max": "{ value := u64::MAX }",
     }
     contract["specification"] = terms[attack]
     candidate = (ROOT / "verification/examples/counter.rs").read_text()
@@ -767,6 +769,22 @@ def test_contract_terms_cannot_execute_lean_code(tmp_path, attack):
     result, output = verify_source(tmp_path, candidate, contract)
     assert result.returncode != 0
     assert "meden-check: contract syntax" in result.stderr, result.stderr
+    label = (
+        f"properties.{contract['properties'][0]['name']}.statement"
+        if attack == "property-tactic"
+        else "specification"
+    )
+    rejected = (
+        contract["properties"][0]["statement"]
+        if attack == "property-tactic"
+        else contract["specification"]
+    )
+    assert f"Invalid {label}" in result.stderr, result.stderr
+    quoted = "Rejected term (JSON string): " + json.dumps(rejected, ensure_ascii=False)
+    assert quoted in result.stderr
+    assert "Allowed expression names: s, Nat" in result.stderr
+    assert "s." + contract["fields"][0] in result.stderr
+    assert "18446744073709551615" in result.stderr
     assert "meden-check: contract properties" not in result.stderr, result.stderr
     assert "meden-check: tests" not in result.stderr
     assert not output.exists()
