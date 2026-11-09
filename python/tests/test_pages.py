@@ -1,10 +1,49 @@
 """The public prefetch command cannot connect to private/proxy receivers."""
 
+import json
 import os
 import socket
 import subprocess
 
 from meden_checks import find_meden
+
+
+def test_prefetch_worker_bounds_requests_and_never_falls_back_from_missing_isolation(tmp_path):
+    binary = find_meden()
+    assert binary
+    with socket.socket() as receiver:
+        receiver.bind(("127.0.0.1", 0))
+        receiver.listen()
+        receiver.setblocking(False)
+        target = f"https://127.0.0.1:{receiver.getsockname()[1]}/"
+        for request in [
+            {"urls": [target], "headers": {"authorization": "forged"}},
+            [target, target],
+            [target + str(i) for i in range(9)],
+            [target],
+        ]:
+            result = subprocess.run(
+                [binary, "worker-prefetch"], input=json.dumps(request),
+                capture_output=True, text=True, timeout=10,
+            )
+            assert result.returncode != 0 and not result.stdout
+        result = subprocess.run(
+            [binary, "worker-prefetch"], input=" " * 524_289,
+            capture_output=True, text=True, timeout=10,
+        )
+        assert result.returncode != 0 and "input budget" in result.stderr
+        result = subprocess.run(
+            [binary, "prefetch", "--url", target],
+            env={**os.environ, "MEDEN_BWRAP": str(tmp_path / "missing-isolation")},
+            capture_output=True, text=True, timeout=10,
+        )
+        assert result.returncode != 0 and not result.stdout
+        try:
+            receiver.accept()
+        except BlockingIOError:
+            pass
+        else:
+            raise AssertionError("a refused or unconfined prefetch reached the receiver")
 
 
 def test_prefetch_refuses_local_targets_and_environment_proxies(tmp_path):

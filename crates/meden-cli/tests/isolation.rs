@@ -37,6 +37,89 @@ fn run(command: &mut std::process::Command, input: &[u8]) -> Output {
     )
     .expect("isolated process")
 }
+
+#[test]
+fn documentation_profile_has_network_but_no_host_data_or_inherited_capabilities() {
+    use std::io::Read as _;
+    use std::os::fd::AsFd as _;
+    let host = tempfile::tempdir().expect("host files");
+    let secret = host.path().join("credential");
+    fs::write(&secret, "PRIVATE-PREFETCH-CANARY").expect("host credential");
+    let file = fs::File::open(&secret).expect("host descriptor");
+    nix::fcntl::fcntl(
+        file.as_fd(),
+        nix::fcntl::FcntlArg::F_SETFD(nix::fcntl::FdFlag::empty()),
+    )
+    .expect("inheritable descriptor");
+    let metadata = file.metadata().expect("metadata");
+    let scratch = tempfile::tempdir().expect("empty scratch");
+    let original = meden_runtime::sandbox::Sandbox::prefetch_command(
+        scratch.path(),
+        Path::new(env!("CARGO_BIN_EXE_meden")),
+    )
+    .expect("documentation profile");
+    let arguments: Vec<_> = original.get_args().collect();
+    let boundary = arguments
+        .iter()
+        .rposition(|arg| *arg == "--")
+        .expect("bwrap boundary");
+    // Replace only the final program with a probe; every production mount,
+    // namespace, environment and capability-closing launcher stays intact.
+    let receiver = TcpListener::bind("127.0.0.1:0").expect("observed network");
+    receiver.set_nonblocking(true).expect("nonblocking");
+    let port = receiver.local_addr().expect("address").port();
+    let script = format!(
+        r"
+import os, pathlib, socket
+assert not any(k in os.environ for k in ['HOST_CREDENTIAL', 'HTTPS_PROXY', 'MEDEN_LLM_API_KEY'])
+assert not pathlib.Path({secret:?}).exists()
+assert not pathlib.Path('/proc/self/root' + {secret:?}).exists()
+assert not pathlib.Path({repository:?}).exists()
+assert not pathlib.Path('/etc/passwd').exists()
+assert pathlib.Path('/etc/resolv.conf').is_file()
+assert list(pathlib.Path('/workspace').iterdir()) == []
+try:
+    stat = os.fstat({fd})
+except OSError:
+    pass
+else:
+    assert (stat.st_dev, stat.st_ino) != ({device}, {inode}), 'inherited host descriptor'
+with socket.create_connection(('127.0.0.1', {port}), timeout=2) as stream:
+    stream.sendall(b'isolated-pages-probe')
+print('confined documentation')
+",
+        secret = secret.to_string_lossy(),
+        repository = env!("CARGO_MANIFEST_DIR"),
+        fd = file.as_raw_fd(),
+        device = metadata.dev(),
+        inode = metadata.ino()
+    );
+    let mut probe = std::process::Command::new(original.get_program());
+    probe
+        .args(arguments.iter().take(boundary.saturating_add(1)))
+        .args(["/bin/python3", "-c", &script])
+        .env_clear();
+    for (key, value) in original.get_envs() {
+        if let Some(value) = value {
+            probe.env(key, value);
+        }
+    }
+    probe
+        .env("HOST_CREDENTIAL", "PRIVATE-PREFETCH-CANARY")
+        .env("HTTPS_PROXY", "http://127.0.0.1:1")
+        .env("MEDEN_LLM_API_KEY", "PRIVATE-API-CANARY");
+    let output = run(&mut probe, &[]);
+    assert!(success(&output), "{}", output.stderr);
+    assert_eq!(output.stdout.trim(), "confined documentation");
+    let (mut stream, _) = receiver.accept().expect("intended networking is retained");
+    stream
+        .set_read_timeout(Some(Duration::from_secs(2)))
+        .expect("timeout");
+    let mut observed = Vec::new();
+    stream.read_to_end(&mut observed).expect("probe");
+    assert_eq!(observed, b"isolated-pages-probe");
+    assert!(receiver.accept().is_err());
+}
 fn success(output: &Output) -> bool {
     matches!(output.termination, Termination::Exited(code) if code.success())
 }

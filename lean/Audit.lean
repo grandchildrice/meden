@@ -307,3 +307,10 @@ open MedenSpec
 #print axioms MedenSpec.ToolOutcomeRefinement.verification_refines
 #print axioms MedenSpec.ToolOutcomeRefinement.success_iff
 #print axioms MedenSpec.ToolOutcomeRefinement.repair_iff
+
+#print axioms MedenSpec.PageNetwork.v4_refuses
+#print axioms MedenSpec.PageNetwork.v6_refuses
+#print axioms MedenSpec.PageNetworkRefinement.v4_refines
+#print axioms MedenSpec.PageNetworkRefinement.v6_refines
+#print axioms MedenSpec.PageNetworkRefinement.v4_excludes
+#print axioms MedenSpec.PageNetworkRefinement.v6_excludes

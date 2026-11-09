@@ -95,7 +95,8 @@ for unit in "${units[@]}"; do
         meden_runtime::verification::failure::failed_worker
         meden_runtime::verification::failure::verification_stops
         meden_runtime::verification::failure::FailureKind::repairable
-        meden_runtime::file::complete meden_runtime::file::verification_kind)
+        meden_runtime::file::complete meden_runtime::file::verification_kind
+        meden_runtime::pages::public_v4 meden_runtime::pages::public_v6)
       extraction_args=(--extract-opaque-bodies --include meden_agent::tool::ToolError
         --opaque core --opaque alloc --opaque std
         --include core::option::Option --include core::result::Result
@@ -208,7 +209,8 @@ for unit in "${units[@]}"; do
   elif [[ $unit == repair ]]; then
     definitions=(verification.turn.Turn.begin verification.turn.Turn.advance
       verification.failure.failed_worker verification.failure.verification_stops
-      verification.failure.FailureKind.repairable file.complete file.verification_kind)
+      verification.failure.FailureKind.repairable file.complete file.verification_kind
+      pages.public_v4 pages.public_v6)
     definitions+=(meden_agent.tool.ToolError.failed meden_agent.tool.ToolError.refused
       meden_agent.tool.ToolError.unavailable meden_agent.tool.ToolError.inconclusive
       meden_agent.tool.ToolError.cancelled meden_agent.tool.ToolError.parts

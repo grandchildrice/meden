@@ -261,6 +261,75 @@ def file.verification_kind
       | core.result.Result.Err _ =>
         ok verification.failure.FailureKind.Inconclusive
 
+/-- [meden_runtime::pages::public_v4]:
+    Source: 'crates/meden-runtime/src/pages.rs', lines 267:0-287:1 -/
+def pages.public_v4 (a : Std.U8) (b : Std.U8) (c : Std.U8) : Result Bool := do
+  match a with
+  | 0#uscalar => ok false
+  | 10#uscalar => ok false
+  | 127#uscalar => ok false
+  | 100#uscalar =>
+    let b1 ←
+      if 64#u8 <= b
+      then if b <= 127#u8
+           then ok true
+           else ok false
+      else ok false
+    ok (¬ b1)
+  | 169#uscalar => ok (b != 254#u8)
+  | 172#uscalar =>
+    let b1 ←
+      if 16#u8 <= b
+      then if b <= 31#u8
+           then ok true
+           else ok false
+      else ok false
+    ok (¬ b1)
+  | 192#uscalar =>
+    match b with
+    | 0#uscalar =>
+      let b1 ←
+        match c with
+        | 0#uscalar => ok true
+        | 2#uscalar => ok true
+        | _ => ok false
+      ok (¬ b1)
+    | 88#uscalar => ok (c != 99#u8)
+    | 168#uscalar => ok false
+    | _ => ok true
+  | 198#uscalar =>
+    match b with
+    | 18#uscalar => ok false
+    | 19#uscalar => ok false
+    | 51#uscalar => ok (c != 100#u8)
+    | _ => ok true
+  | 203#uscalar =>
+    let b1 ← if b = 0#u8
+               then ok (c = 113#u8)
+               else ok false
+    ok (¬ b1)
+  | _ =>
+    if 224#u8 <= a
+    then if a <= 255#u8
+         then ok false
+         else ok true
+    else ok true
+
+/-- [meden_runtime::pages::public_v6]:
+    Source: 'crates/meden-runtime/src/pages.rs', lines 289:0-299:1 -/
+def pages.public_v6 (a : Std.U16) (b : Std.U16) : Result Bool := do
+  let i ← lift (a &&& 57344#u16)
+  if i != 8192#u16
+  then ok false
+  else
+    match a with
+    | 8193#uscalar => if b >= 512#u16
+                      then ok (b != 3512#u16)
+                      else ok false
+    | 8194#uscalar => ok false
+    | 16383#uscalar => ok (b >= 4096#u16)
+    | _ => ok true
+
 /-- [meden_runtime::verification::failure::{impl core::cmp::PartialEq<meden_runtime::verification::failure::FailureKind> for meden_runtime::verification::failure::FailureKind}::eq]:
     Source: 'crates/meden-runtime/src/verification/failure.rs', lines 9:29-9:38
     Visibility: public -/

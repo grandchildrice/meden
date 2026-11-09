@@ -70,6 +70,8 @@ enum Command {
     #[command(hide = true)]
     WorkerFile,
     #[command(hide = true)]
+    WorkerPrefetch,
+    #[command(hide = true)]
     WorkerImport,
     #[command(hide = true)]
     WorkerLaunch {
@@ -162,12 +164,13 @@ fn run() -> Result<()> {
             verify_release(&repository, &commit, &directory)?;
         }
         Command::Prefetch { url } => {
-            let pages = meden_runtime::pages::Pages::prefetch(&url)?;
+            let pages = meden_runtime::pages::Pages::prefetch(&url, &std::env::current_exe()?)?;
             serde_json::to_writer(io::stdout().lock(), &pages)?;
             println!();
         }
         Command::Exec { workspace } => execute(&workspace)?,
         Command::WorkerFile => worker_file::run()?,
+        Command::WorkerPrefetch => meden_runtime::pages::worker_prefetch()?,
         Command::WorkerImport => meden_runtime::workspace::import_tree(
             std::path::Path::new("/source"),
             std::path::Path::new("/workspace"),

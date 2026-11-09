@@ -26,7 +26,7 @@ attempt; an older completed run does not cover a newer commit.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, file-request, capability policy, scope matching, failure and display-scalar kernels, `lake build`, proof scan/audit, 142 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, file-request, capability policy, scope matching, failure and display-scalar kernels, `lake build`, proof scan/audit, 146 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A decision differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -705,7 +705,7 @@ uses [`worker_file/pinned.rs`](../crates/meden-cli/src/worker_file/pinned.rs):
 The [Linux `openat2` contract](https://man7.org/linux/man-pages/man2/openat2.2.html)
 and [rustix's safe wrapper](https://docs.rs/rustix/1.1.6/rustix/fs/fn.openat2.html)
 are trusted OS/library behavior. First-party code adds no unsafe Rust or assumed
-Lean filesystem primitive. The 291 audited roots concern their documented pure
+Lean filesystem primitive. The 297 audited roots concern their documented pure
 control kernels, including the resolved-resource check, rather than Linux internals.
 
 Native adversarial tests deterministically substitute both parents and final
@@ -767,7 +767,7 @@ Six semantic Rust faults skip either policy check, accept either name, check
 the wrong canonical operation, substitute the alias for the canonical name or
 return another operation. Each must fail its native assertion, extract into a
 compiling model and fail the unchanged refinement. They are part of the
-142-fault CI corpus. JSON/policy serialization, callback interpretation,
+146-fault CI corpus. JSON/policy serialization, callback interpretation,
 UTF-8/OS decoding and canonical path/handle attribution remain tested adapters;
 these kernel proofs do not establish whole-session physical-effect refinement.
 
@@ -1097,7 +1097,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with processor/review/dispatch and TUI approval checks, CI rejects
-142 faults, including file-request, contract revision, outer/inner conversation, scope matching, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
+146 faults, including file-request, contract revision, outer/inner conversation, scope matching, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -1183,7 +1183,7 @@ Six additional semantic Rust faults exercise reused revisions, stale review,
 stale acceptance, pending eligibility, discarded accepted state and revived
 evidence after editing. Each must fail its native regression and the unchanged
 refinement after successful extraction/model compilation. They are part of
-the 142-fault CI corpus above.
+the 146-fault CI corpus above.
 
 Formula validation, canonical byte encoding, source/artifact input construction,
 host-origin attribution, JSON decoding, review rendering, locking, physical
@@ -1193,7 +1193,7 @@ session I/O loop or natural-language/formula equivalence.
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 291
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 297
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -1415,9 +1415,39 @@ The [shared model tools](../crates/meden-cli/src/pages.rs) only list handles
 and read immutable text. A miss or URL argument cannot start network I/O.
 All loaded content/metadata remain untrusted. The cache format does not
 authenticate origin and the host must not turn confidential model decisions
-into a new prefetch invocation. The fetcher remains trusted host code rather
-than an OS-confined network worker. Its DNS/TLS/routing/library assumptions
-are listed in [the CLI contract](cli.md#documentation-cache).
+into a new prefetch invocation.
+
+The parent validates the batch and launches one dedicated Linux worker with
+only the URL array on stdin (at most 512 KiB). It exposes an empty scratch
+directory, public tools/libraries and read-only resolver configuration, with
+private user/PID/filesystem views, cleared environment and closed inherited
+descriptors. The managed workspace and host home are absent. Only this
+host-only profile retains the launching network namespace for DNS and HTTPS;
+coding, inference and checker workers remain offline. The trusted client's
+public-address check still matters: this is not an OS egress firewall. A
+missing isolation backend, worker failure, truncation or mismatching returned
+URL batch yields no cache and no host-fetch fallback. Output is bounded to
+64 MiB with a 180-second batch budget; each request retains its 20-second
+budget. See [the CLI contract](cli.md#documentation-cache).
+
+[`PageNetwork.lean`](../lean/MedenSpec/PageNetwork.lean) specifies the current
+excluded IPv4 intervals in their first 24 bits and the accepted IPv6 regions
+in their first 32 bits. The remaining address bits do not affect this policy.
+The production numeric predicates in `pages.rs` are extracted into the repair
+model and connected by [`PageNetworkRefinement.lean`](../lean/MedenSpec/PageNetworkRefinement.lean):
+
+| Audited theorem | Checked claim |
+| --- | --- |
+| `PageNetwork.v4_refuses`, `v6_refuses` | The specified excluded regions cannot be accepted |
+| `PageNetworkRefinement.v4_refines`, `v6_refines` | The actual Rust branches agree with the packed-prefix interval specification for every `u8`/`u16` input, including mask and range boundaries |
+| `v4_excludes`, `v6_excludes` | The extracted predicates return false for every excluded input |
+
+These are numeric selector proofs. Standard IP conversion, parsing, resolved
+address-list interpretation, connector use, TLS and OS behavior remain adapters;
+they are not whole-network or whole-R1 refinement. Four new Rust mutations
+admit loopback/shared space, ignore the IPv6 global mask or accept 6to4. Each
+must fail a native assertion, extract a compiling model and fail the unchanged
+refinement, as part of the 146-fault CI corpus.
 
 Rust tests check address boundaries, mixed DNS answers, exact resolved
 addresses, malformed/oversized caches and Unicode pagination. The production
@@ -1436,8 +1466,13 @@ cache after startup, then exercises forged URL reads, cache misses, encoded
 data and direct network attempts. Local coding and an independent offline
 check still pass; observed TCP/UDP receivers get no unauthorized traffic.
 The PTY test reads Unicode cached text and compares the entire model request
-sequence with CLI, including follow-up context. These are empirical checks;
-they add no Lean theorem or whole-R1 claim.
+sequence with CLI, including follow-up context. These interface/cache checks
+are empirical and add no whole-R1 claim. A namespace probe uses the actual
+prefetch mount/launcher profile with only its final program replaced: intended
+networking works while host files, environment and deliberately inheritable
+descriptors remain inaccessible. The real worker rejects malformed/oversized
+batches and private destinations, and the CLI fails with no cache when
+isolation is missing.
 
 ## Processor approval in production
 

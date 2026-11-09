@@ -16,6 +16,15 @@
   parity a gate or prioritize repeated small-model pilots. Cloud success is
   not evidence of local inference or confidentiality; keep execution/proofs
   local and retain the local deployment and R1 obligations.
+- Documentation prefetch uses its own Linux worker with only the fixed URL
+  batch, empty scratch, public tools/libraries and read-only resolver config.
+  It retains the launching network namespace; the trusted HTTPS client gates
+  public resolved addresses. This is not an OS egress firewall. All coding,
+  inference and checker profiles stay offline; there is no unconfined fallback.
+  Numeric IPv4/IPv6 decisions are extracted/refined against packed-prefix
+  interval specifications. URL/IP conversion, DNS/connector/TLS attribution,
+  JSON/cache interpretation and OS behavior remain adapters. Never expose the
+  prefetch worker as a model-selected request or a general network executor.
 - Preserve accepted intent, evidence/source/artifact linkage and local data
   control. The isolated planner is retired. The processor, export review and
   evidence kernels have Rust-to-Lean refinement. The combined export state

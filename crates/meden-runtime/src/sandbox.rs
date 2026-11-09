@@ -1,5 +1,5 @@
-//! Offline Linux execution. Bubblewrap and the kernel are trusted components;
-//! this implementation does not claim a Lean proof of their isolation.
+//! Linux worker containment. Only host documentation fetches retain networking.
+//! Bubblewrap and OS semantics are trusted; no Lean isolation proof is claimed.
 
 use std::collections::BTreeSet;
 use std::ffi::OsStr;
@@ -14,9 +14,15 @@ const TOOLS: &[&str] = &[
 ];
 const SYSTEM_ROOTS: &[&str] = &["/usr", "/bin", "/lib", "/lib64"];
 
-/// A fixed host-selected toolchain and one writable workspace. Child commands
-/// cannot choose additional mounts, inherit host configuration or share the
-/// host network namespace. Toolchains are trusted public resources.
+#[derive(Clone, Copy)]
+enum Network {
+    Offline,
+    Pages,
+}
+
+/// Host-selected public toolchains and a private writable root. Coding,
+/// checking and inference stay offline; only the dedicated documentation
+/// command retains networking. Mounts and environment are fixed by the host.
 pub struct Sandbox {
     bwrap: PathBuf,
     root: PathBuf,
@@ -106,7 +112,19 @@ impl Sandbox {
             ],
             None,
             &[(&engine, "/local-engine"), (&model, "/model.gguf")],
+            Network::Offline,
         ))
+    }
+
+    /// The caller supplies a private scratch directory; the dedicated worker
+    /// receives only its URL batch on stdin. Networking is retained for HTTPS,
+    /// with every resolved connection address checked by the worker.
+    pub fn prefetch_command(root: &Path, worker: &Path) -> io::Result<Command> {
+        Self::configure(root, worker.canonicalize()?, &[])?.worker_invocation(
+            "worker-prefetch",
+            None,
+            Network::Pages,
+        )
     }
 
     fn configure(root: &Path, worker: PathBuf, assets: &[&Path]) -> io::Result<Self> {
@@ -213,7 +231,7 @@ impl Sandbox {
     /// Build a command in the private namespace with no inherited secrets,
     /// proxies, host sockets, host process tree or outbound network route.
     pub fn command(&self, executable: &str, args: &[impl AsRef<OsStr>]) -> Command {
-        self.build(executable, args, None, &[])
+        self.build(executable, args, None, &[], Network::Offline)
     }
 
     pub(crate) fn for_verification(
@@ -239,24 +257,30 @@ impl Sandbox {
                 .iter()
                 .map(|(p, n)| (p.as_path(), n.as_str()))
                 .collect::<Vec<_>>(),
+            Network::Offline,
         )
     }
 
     pub(crate) fn verification_source_command(&self) -> io::Result<Command> {
-        self.worker_invocation("worker-kernel-syntax", None)
+        self.worker_invocation("worker-kernel-syntax", None, Network::Offline)
     }
 
     /// Invoke the trusted file worker inside the same containment as shell tools.
     pub fn worker_command(&self) -> io::Result<Command> {
-        self.worker_invocation("worker-file", None)
+        self.worker_invocation("worker-file", None, Network::Offline)
     }
 
     /// Only the trusted importer receives a read-only view of the original.
     pub fn import_command(&self, source: &Path) -> io::Result<Command> {
-        self.worker_invocation("worker-import", Some(source))
+        self.worker_invocation("worker-import", Some(source), Network::Offline)
     }
 
-    fn worker_invocation(&self, operation: &str, source: Option<&Path>) -> io::Result<Command> {
+    fn worker_invocation(
+        &self,
+        operation: &str,
+        source: Option<&Path>,
+        network: Network,
+    ) -> io::Result<Command> {
         let mut args = Vec::new();
         if !self.worker_libraries.is_empty() {
             let paths = std::env::join_paths(&self.worker_libraries).map_err(io::Error::other)?;
@@ -266,7 +290,17 @@ impl Sandbox {
         }
         args.push("/meden-worker".into());
         args.push(operation.into());
-        Ok(self.build("/bin/env", &args, source, &[]))
+        let resolver = if matches!(network, Network::Pages) {
+            Some(Path::new("/etc/resolv.conf").canonicalize()?)
+        } else {
+            None
+        };
+        let bindings: Vec<_> = resolver
+            .as_deref()
+            .map(|path| (path, "/etc/resolv.conf"))
+            .into_iter()
+            .collect();
+        Ok(self.build("/bin/env", &args, source, &bindings, network))
     }
 
     fn build(
@@ -275,6 +309,7 @@ impl Sandbox {
         args: &[impl AsRef<OsStr>],
         source: Option<&Path>,
         bindings: &[(&Path, &str)],
+        network: Network,
     ) -> Command {
         // The dedicated Rust launcher closes all inherited capabilities
         // before execing bwrap. Bubblewrap itself passes inherited fds on.
@@ -302,34 +337,10 @@ impl Sandbox {
             "--dir",
             "/workspace",
         ]);
-        if self.store_paths.is_empty() {
-            for path in SYSTEM_ROOTS {
-                if Path::new(path).exists() {
-                    command.args(["--ro-bind", path, path]);
-                }
-            }
-        } else {
-            command.args(["--dir", "/nix", "--dir", "/nix/store", "--dir", "/bin"]);
-            for path in &self.store_paths {
-                command.arg("--ro-bind").arg(path).arg(path);
-            }
-            for (name, path) in &self.tools {
-                command
-                    .arg("--symlink")
-                    .arg(path)
-                    .arg(format!("/bin/{name}"));
-            }
-            command.args(["--symlink", "/bin/bash", "/bin/sh"]);
+        if matches!(network, Network::Pages) {
+            command.args(["--share-net", "--dir", "/etc"]);
         }
-        // Debian compiler alternatives can point into /etc, which stays hidden.
-        // Expose the already selected public objects through private aliases.
-        command.args(["--dir", "/tools"]);
-        for (name, path) in &self.tools {
-            command
-                .arg("--symlink")
-                .arg(path)
-                .arg(format!("/tools/{name}"));
-        }
+        self.mount_toolchains(&mut command);
         command
             .arg("--ro-bind")
             .arg(&self.worker)
@@ -380,5 +391,36 @@ impl Sandbox {
             }
         }
         command
+    }
+
+    fn mount_toolchains(&self, command: &mut Command) {
+        if self.store_paths.is_empty() {
+            for path in SYSTEM_ROOTS {
+                if Path::new(path).exists() {
+                    command.args(["--ro-bind", path, path]);
+                }
+            }
+        } else {
+            command.args(["--dir", "/nix", "--dir", "/nix/store", "--dir", "/bin"]);
+            for path in &self.store_paths {
+                command.arg("--ro-bind").arg(path).arg(path);
+            }
+            for (name, path) in &self.tools {
+                command
+                    .arg("--symlink")
+                    .arg(path)
+                    .arg(format!("/bin/{name}"));
+            }
+            command.args(["--symlink", "/bin/bash", "/bin/sh"]);
+        }
+        // Debian compiler alternatives can point into /etc, which stays hidden.
+        // Expose the already selected public objects through private aliases.
+        command.args(["--dir", "/tools"]);
+        for (name, path) in &self.tools {
+            command
+                .arg("--symlink")
+                .arg(path)
+                .arg(format!("/tools/{name}"));
+        }
     }
 }

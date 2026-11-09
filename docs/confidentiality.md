@@ -308,10 +308,16 @@ bounded HTTPS documents. It rejects nonpublic resolved socket addresses,
 proxies, credentials and redirects; the returned text never loads subresources.
 TUI and `run` load a `--pages` file before workspace import/inference and expose
 only immutable local handles, including after `/clear` or a processor change.
-A model-selected URL or cache miss cannot perform a fetch. The prefetcher is
-trusted host code, not an OS-confined fetch worker; it receives no workspace
-or model context. Cache files are trusted configuration, not authenticated
-evidence of page origin. Fetch/cache behavior has tests, not refinement.
+A model-selected URL or cache miss cannot perform a fetch. Prefetch now runs
+in a dedicated Linux namespace receiving only a bounded exact URL batch. The
+workspace, host home, credentials and inherited descriptors are absent; public
+tools/libraries and resolver configuration are read-only. The worker retains
+the launching network namespace for DNS and HTTPS, with destination checks in
+the trusted client rather than an OS egress firewall. Other workers remain
+offline, and missing isolation has no host fallback. The numeric IPv4/IPv6
+selectors have extraction-based refinement; decoding, DNS/connector/TLS, JSON,
+cache interpretation and OS confinement remain tested adapters. Cache files
+are trusted configuration, not authenticated evidence of page origin.
 The public-address policy conservatively excludes special/transition ranges
 from the [IANA IPv4](https://www.iana.org/assignments/iana-ipv4-special-registry/)
 and [IPv6 registries](https://www.iana.org/assignments/iana-ipv6-special-registry/),

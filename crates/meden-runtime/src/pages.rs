@@ -3,6 +3,7 @@
 
 use std::io::{self, Read};
 use std::net::IpAddr;
+use std::path::Path;
 use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
@@ -12,6 +13,7 @@ use ureq::unversioned::transport::{DefaultConnector, NextTimeout};
 const MAX_PAGES: usize = 8;
 const MAX_BODY: usize = 1_048_576;
 const MAX_CACHE: u64 = 64 * 1_048_576;
+const MAX_REQUEST: u64 = 524_288;
 
 /// An inert response, with no active links, scripts, cookies or refresh logic.
 #[derive(Deserialize, Serialize)]
@@ -66,18 +68,47 @@ impl Pages {
     /// Fetch the complete host-selected batch, before any model decisions.
     /// GET only, empty body, no credentials/proxy/redirects/subresources. This
     /// API is deliberately not registered as a model tool or session command.
-    pub fn prefetch(urls: &[String]) -> io::Result<Self> {
+    /// The trusted executable runs in a fresh namespace without workspace,
+    /// host credentials, inherited descriptors or proxy environment.
+    #[cfg(target_os = "linux")]
+    pub fn prefetch(urls: &[String], worker: &Path) -> io::Result<Self> {
+        use crate::process::{self, Control, Limits, Termination};
+        use std::sync::{atomic::AtomicBool, Arc};
         validate_batch(urls.iter().map(String::as_str))?;
-        let mut pages = Vec::new();
-        for url in urls {
-            let agent = ureq::Agent::with_parts(
-                page_config(),
-                DefaultConnector::default(),
-                PublicResolver(DefaultResolver::default()),
-            );
-            pages.push(fetch_page(url, &agent)?);
+        let scratch = tempfile::Builder::new().prefix("meden-pages-").tempdir()?;
+        let mut command = crate::sandbox::Sandbox::prefetch_command(scratch.path(), worker)?;
+        let input = serde_json::to_vec(urls)?;
+        let output = process::run_with_input(
+            &mut command,
+            &input,
+            &Limits {
+                timeout: Duration::from_secs(180),
+                capture_bytes: usize::try_from(MAX_CACHE).map_err(io::Error::other)?,
+                output_bytes: MAX_CACHE,
+            },
+            &Control::new(Arc::new(AtomicBool::new(false))),
+        )?;
+        if output.truncated
+            || !matches!(output.termination, Termination::Exited(code) if code.success())
+        {
+            return Err(io::Error::other("isolated page prefetch failed"));
         }
-        Ok(Self { pages })
+        let pages = Self::load(output.stdout.as_bytes())?;
+        if !pages.pages.iter().map(|page| &page.url).eq(urls.iter()) {
+            return Err(io::Error::other(
+                "prefetch response does not match the approved batch",
+            ));
+        }
+        Ok(pages)
+    }
+
+    /// Unsupported hosts cannot silently fetch outside confinement.
+    #[cfg(not(target_os = "linux"))]
+    pub fn prefetch(_urls: &[String], _worker: &Path) -> io::Result<Self> {
+        Err(io::Error::new(
+            io::ErrorKind::Unsupported,
+            "isolated prefetch requires Linux",
+        ))
     }
 
     /// Stable local handles; selection cannot produce an external effect.
@@ -89,6 +120,37 @@ impl Pages {
     pub fn get(&self, id: usize) -> Option<&Page> {
         self.pages.get(id)
     }
+}
+
+/// Trusted documentation worker. Input is only a bounded exact URL batch;
+/// this does not accept a workspace, headers, credentials or model history.
+pub fn worker_prefetch() -> io::Result<()> {
+    let mut input = Vec::new();
+    std::io::stdin()
+        .lock()
+        .take(MAX_REQUEST + 1)
+        .read_to_end(&mut input)?;
+    if u64::try_from(input.len()).map_err(io::Error::other)? > MAX_REQUEST {
+        return Err(io::Error::other("page request exceeds input budget"));
+    }
+    let urls: Vec<String> = serde_json::from_slice(&input)?;
+    let pages = fetch_batch(&urls)?;
+    serde_json::to_writer(std::io::stdout().lock(), &pages)?;
+    Ok(())
+}
+
+fn fetch_batch(urls: &[String]) -> io::Result<Pages> {
+    validate_batch(urls.iter().map(String::as_str))?;
+    let mut pages = Vec::new();
+    for url in urls {
+        let agent = ureq::Agent::with_parts(
+            page_config(),
+            DefaultConnector::default(),
+            PublicResolver(DefaultResolver::default()),
+        );
+        pages.push(fetch_page(url, &agent)?);
+    }
+    Ok(Pages { pages })
 }
 
 fn page_config() -> ureq::config::Config {
@@ -193,21 +255,46 @@ fn public_ip(address: IpAddr) -> bool {
     match address {
         IpAddr::V4(ip) => {
             let [a, b, c, _] = ip.octets();
-            !(matches!(a, 0 | 10 | 127 | 224..=255)
-                || a == 100 && (64..=127).contains(&b)
-                || a == 169 && b == 254
-                || a == 172 && (16..=31).contains(&b)
-                || a == 192 && (b == 168 || b == 0 && matches!(c, 0 | 2) || b == 88 && c == 99)
-                || a == 198 && (matches!(b, 18 | 19) || b == 51 && c == 100)
-                || a == 203 && b == 0 && c == 113)
+            public_v4(a, b, c)
         }
         IpAddr::V6(ip) => {
             let [a, b, _, _, _, _, _, _] = ip.segments();
-            (a & 0xe000) == 0x2000
-                && !(a == 0x2001 && (b < 0x0200 || b == 0x0db8)
-                    || a == 0x2002
-                    || a == 0x3fff && b < 0x1000)
+            public_v6(a, b)
         }
+    }
+}
+
+fn public_v4(a: u8, b: u8, c: u8) -> bool {
+    match a {
+        0 | 10 | 127 | 224..=255 => false,
+        100 => !matches!(b, 64..=127),
+        169 => b != 254,
+        172 => !matches!(b, 16..=31),
+        192 => match b {
+            0 => !matches!(c, 0 | 2),
+            88 => c != 99,
+            168 => false,
+            _ => true,
+        },
+        198 => match b {
+            18 | 19 => false,
+            51 => c != 100,
+            _ => true,
+        },
+        203 => !(b == 0 && c == 113),
+        _ => true,
+    }
+}
+
+fn public_v6(a: u16, b: u16) -> bool {
+    if a & 0xe000 != 0x2000 {
+        return false;
+    }
+    match a {
+        0x2001 => b >= 0x0200 && b != 0x0db8,
+        0x2002 => false,
+        0x3fff => b >= 0x1000,
+        _ => true,
     }
 }
 
@@ -331,7 +418,7 @@ mod tests {
         receiver.set_nonblocking(true).expect("nonblocking");
         let port = receiver.local_addr().expect("address").port();
         for host in ["127.0.0.1", "localhost", "[::1]", "[::ffff:127.0.0.1]"] {
-            assert!(Pages::prefetch(&[format!("https://{host}:{port}/secret")]).is_err());
+            assert!(fetch_batch(&[format!("https://{host}:{port}/secret")]).is_err());
         }
         for url in [
             "http://1.1.1.1/",

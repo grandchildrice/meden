@@ -11,6 +11,36 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 GROUPS = [
     {
+        "source": "crates/meden-runtime/src/pages.rs",
+        "package": "meden-runtime",
+        "model": "Repair",
+        "proof": "PageNetworkRefinement",
+        "prerequisites": ["PageNetwork"],
+        "test": "pages::tests::excludes_special_use_and_transition_addresses",
+        "mutations": [
+            (
+                "page_loopback_admitted",
+                "0 | 10 | 127 | 224..=255 => false,",
+                "0 | 10 | 224..=255 => false,",
+            ),
+            (
+                "page_shared_space_boundary_admitted",
+                "100 => !matches!(b, 64..=127),",
+                "100 => !matches!(b, 65..=127),",
+            ),
+            (
+                "page_ipv6_global_prefix_ignored",
+                "if a & 0xe000 != 0x2000 {",
+                "if a & 0xe000 != 0x2000 && false {",
+            ),
+            (
+                "page_ipv6_transition_admitted",
+                "0x2002 => false,",
+                "0x2002 => true,",
+            ),
+        ],
+    },
+    {
         "proof": "ToolOutcomeRefinement",
         "prerequisites": [
             "ConversationRefinement",
@@ -1184,6 +1214,7 @@ def main():
                 proof_errors = (
                     "unsolved goals",
                     "made no progress",
+                    "omega could not prove the goal:",
                     "error: Tactic ",
                     "error: Type mismatch",
                     "error: Application type mismatch",

@@ -31,9 +31,14 @@ immutable `--pages` snapshot shared by CLI/TUI. The model can only list/read
 cached text; a miss or model-selected URL cannot trigger a fetch. Prefetch
 permits bounded HTTPS GETs, rejects nonpublic resolved connection addresses,
 and disables proxies, credentials, redirects and subresource loading. The
-prefetcher is trusted host Rust code; it is not an OS-confined network worker
-and has no refinement proof. Cache files are host configuration, not
-authenticated evidence of web origin. See [the cache contract](docs/cli.md#documentation-cache).
+prefetcher now runs in a dedicated Linux worker without the managed workspace,
+host home, credential environment or inherited descriptors. It retains the
+launching network namespace and read-only resolver configuration; its trusted
+HTTP client restricts connections to the checked public addresses. This is not
+an OS egress firewall. The numeric IPv4/IPv6 predicates are extracted/refined;
+URL/IP conversion, DNS/TLS/connector behavior, JSON and OS isolation remain
+separate adapters. Missing isolation has no host-fetch fallback. Cache files
+are host configuration, not authenticated evidence of web origin. See [the cache contract](docs/cli.md#documentation-cache).
 
 Model inference and provider discovery disable environment proxies and
 automatic redirects. Each inference exchange is attempted once, including

@@ -80,9 +80,19 @@ Treat cache files as trusted host configuration and all document contents and
 response metadata as untrusted. This JSON format does not authenticate a page's
 origin or prove its contents. Do not run `prefetch` with model-generated URLs
 after reading confidential data: the URL itself can disclose that data. The
-prefetcher is trusted host Rust code, not an OS-confined network worker. DNS,
-routing, TLS and the HTTP library remain trust assumptions; the cache/fetch
-implementation does not yet have Rust-to-Lean refinement.
+prefetcher runs in a dedicated Linux namespace with an empty scratch directory,
+private process/filesystem views, a cleared environment and closed inherited
+file descriptors. It receives only the bounded URL batch on stdin. The managed
+workspace, host home and credentials are absent. Public tools/libraries and the
+host resolver configuration are read-only mounts. Missing isolation fails;
+there is no host-fetch fallback.
+
+This worker retains the launching network namespace for DNS and HTTPS. Its
+trusted HTTP client enforces the public-address policy; this is not a kernel
+egress firewall. Coding, inference and verification workers remain offline.
+The IPv4/IPv6 numeric predicates have Rust-to-Lean refinement; URL/IP decoding,
+DNS resolution/connector attribution, TLS, JSON and OS isolation remain tested
+adapters and trust assumptions. See [verification](verification.md#fixed-documentation-prefetch-and-cache).
 
 ## Exact file exports
 
