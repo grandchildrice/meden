@@ -38,7 +38,10 @@ the new proposal cannot become accepted or verified. Rejecting it restores
 the previous contract view; source freshness is checked again before
 reporting its evidence current. Replacing or rejecting a draft does not
 transfer its review to different bytes. The TUI holds a frozen review and
-the JSON-lines CLI uses an exact session/hash reference.
+the JSON-lines CLI uses an exact session/revision/hash reference. Reproposing
+identical bytes after rejection creates a fresh revision; a previous review
+cannot authorize it. Repeated submission of the currently displayed proposal
+is idempotent.
 
 After acceptance, the model implements the declared source and calls
 `verify_project`. The shared outer controller independently checks after a
@@ -204,9 +207,10 @@ These are deterministic checker/controller integration tests. The
 is separate; its generated Rust source is rechecked by the current suite.
 No general task-success rate follows from these cases.
 
-Meden's separate control audit has 142 roots; project roots are checked
-afresh per candidate. The core evidence/job operations have Rust-to-Lean
-refinement, but generic draft management, metadata/term parsing, review
+Meden's separate control audit has 171 roots; project roots are checked
+afresh per candidate. The shared core evidence/job and contract-management
+operations have Rust-to-Lean refinement, including their finite compositions.
+Metadata/term parsing, canonical encoding, review
 rendering, input provenance, source inspection, hashing, locking,
 persistence and the whole session/effect interpreter remain adapters.
 The proof also trusts Charon/Aeneas translation, Lean's kernel, prepared

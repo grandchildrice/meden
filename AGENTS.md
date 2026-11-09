@@ -61,7 +61,12 @@
   cannot replace accepted meaning or evidence without host review of their
   exact canonical hash. A rejected replacement retains the accepted contract.
   TUI acceptance binds the frozen displayed review, not a new current reference.
-  Generic draft management and parser/rendering/I/O correspondence remain
-  adapters; do not claim whole-controller refinement from the kernel proofs.
+  Contract selection, review, acceptance, rejection, edits and job admission
+  now share one extracted/refined core controller, including arbitrary finite
+  compositions. Proposals use monotonic revisions; an identical proposal after
+  rejection needs a fresh review. Read-only views do not expose mutable gates.
+  Formula parsing, canonical bytes, rendering, origin attribution and session
+  I/O correspondence remain adapters; do not claim whole-controller refinement
+  from these controller-operation proofs.
   Broader contracts/backends, full interface/tool coverage and outbound
   confidentiality remain targets. See docs/project-verification.md.

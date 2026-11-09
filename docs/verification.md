@@ -26,7 +26,7 @@ attempt; an older completed run does not cover a newer commit.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate processor/review/dispatch, evidence, issued jobs, TUI approval, outer/inner conversation, failure and display-scalar kernels, `lake build`, proof scan/audit, 77 Rust mutation checks, offline ledger proof and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, failure and display-scalar kernels, `lake build`, proof scan/audit, 83 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A decision differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -661,8 +661,8 @@ The first consumer is [Meden's own release gate](release.md). A second
 consumer connects host-reviewed pure-u64 Rust transition contracts to project
 source, an independent Lean check and a retained library artifact; see
 [project verification](project-verification.md). The bounded mathematical-term
-adapter and generic draft/replacement management are tested adapters, not
-additional extracted/refined controller operations. Broader contracts/backends
+adapter remains tested separately from the contract controller described below.
+Broader contracts/backends
 remain targets. The release runtime reads actual staged archive
 bytes, validates source/build sidecars and obtains current exact-source CI
 results directly from the fixed GitHub API. The compiled twelve-check policy
@@ -678,7 +678,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with processor/review/dispatch and TUI approval checks, CI rejects
-77 faults, including outer/inner conversation, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
+83 faults, including contract revisions, outer/inner conversation, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -725,9 +725,55 @@ Definitions and additional lemmas are in
 [`Glob.lean`](../lean/MedenSpec/Glob.lean) and
 [`Policy.lean`](../lean/MedenSpec/Policy.lean).
 
+## Contract selection, review and evidence lifecycle
+
+The CLI and TUI project adapter use the shared Rust
+[`Contracts`](../crates/meden-core/src/evidence.rs) controller. It owns accepted
+meaning, a replacement draft, monotonically increasing proposal revisions
+and the issued-job registry. Returned contract views are owned copies; no
+mutable gate or obligation set escapes the controller. These operations are
+extracted from the production source under a separate model namespace, so
+the combined proof build also checks for incompatible extracted definitions.
+
+The independent [specification](../lean/MedenSpec/Contracts.lean), actual
+[Rust refinement](../lean/MedenSpec/ContractsRefinement.lean) and
+[finite-composition proofs](../lean/MedenSpec/ContractsTrace.lean) check:
+
+| Audited theorem | Checked claim |
+| --- | --- |
+| `Contracts.acceptance_requires_review`, `ContractsTrace.reviewed_acceptance` | Successful acceptance requires host origin, the exact session/revision, a reviewed draft and nonempty obligations; the resulting accepted meaning is that exact draft |
+| `Contracts.review_requires_host` | Successful review requires host origin |
+| `Contracts.fresh_proposal_has_new_revision` | A changed draft uses the previous sequence plus one and updates the sequence to that revision |
+| `Contracts.propose_preserves_accepted`, `Contracts.reject_preserves_accepted` | Proposing or rejecting a replacement preserves the retained accepted contract and its evidence state |
+| `Contracts.edit_discards_eligibility` | A development edit discards proof coverage, even if old source/input bytes are restored |
+| `Contracts.pending_blocks_completion` | Pending replacement meaning cannot receive a successful completion |
+| `ContractsRefinement.new_refines`, `propose_refines`, `displayed_refines`, `accepted_refines`, `pending_refines`, `is_accepted_refines` | Construction, idempotent proposal and read-only views agree with the specification |
+| `ContractsRefinement.review_refines`, `accept_refines`, `reject_refines`, `refresh_refines` | Review binds the current generation; only reviewed host acceptance replaces meaning, while refresh changes only input bindings |
+| `ContractsRefinement.start_refines`, `invalidate_refines`, `edit_refines`, `abort_refines`, `is_active_refines`, `complete_refines`, `eligible_refines` | Issuing, cancelling, editing, admitting checker output and current eligibility agree with the specification, including stale revisions and exhausted counters |
+| `ContractsTrace.one_refines`, `trace_refines` | Any finite composition of actual production contract mutations agrees with the mathematical transitions |
+| `Contracts.run_sequence_monotone`, `ContractsTrace.extracted_sequence_monotone` | Proposal sequences never decrease across those compositions |
+
+Identical current proposals are idempotent. Rejection followed by an identical
+proposal creates a fresh revision and requires a fresh review. A pending
+replacement blocks checking/eligibility and invalidates older active jobs;
+rejecting it can retain already completed evidence for the prior accepted
+contract, subject to the separate current-input check.
+
+Six additional semantic Rust faults exercise reused revisions, stale review,
+stale acceptance, pending eligibility, discarded accepted state and revived
+evidence after editing. Each must fail its native regression and the unchanged
+refinement after successful extraction/model compilation. They are part of
+the 83-fault CI corpus above.
+
+Formula validation, canonical byte encoding, source/artifact input construction,
+host-origin attribution, JSON decoding, review rendering, locking, physical
+effects and checker soundness remain separate adapters. The trace proof is
+about the extracted controller operations; it does not prove the complete
+session I/O loop or natural-language/formula equivalence.
+
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 142
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 171
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan

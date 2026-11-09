@@ -9,6 +9,36 @@ mentions `sorryAx` or any axiom outside the standard three
 
 open MedenSpec
 
+#print axioms Contracts.acceptance_requires_review
+#print axioms Contracts.propose_preserves_accepted
+#print axioms Contracts.fresh_proposal_has_new_revision
+#print axioms Contracts.review_requires_host
+#print axioms Contracts.reject_preserves_accepted
+#print axioms Contracts.edit_discards_eligibility
+#print axioms Contracts.pending_blocks_completion
+#print axioms Contracts.run_sequence_monotone
+#print axioms ContractsRefinement.new_refines
+#print axioms ContractsRefinement.propose_refines
+#print axioms ContractsRefinement.displayed_refines
+#print axioms ContractsRefinement.accepted_refines
+#print axioms ContractsRefinement.pending_refines
+#print axioms ContractsRefinement.is_accepted_refines
+#print axioms ContractsRefinement.review_refines
+#print axioms ContractsRefinement.accept_refines
+#print axioms ContractsRefinement.reject_refines
+#print axioms ContractsRefinement.refresh_refines
+#print axioms ContractsRefinement.start_refines
+#print axioms ContractsRefinement.invalidate_refines
+#print axioms ContractsRefinement.edit_refines
+#print axioms ContractsRefinement.abort_refines
+#print axioms ContractsRefinement.is_active_refines
+#print axioms ContractsRefinement.complete_refines
+#print axioms ContractsRefinement.eligible_refines
+#print axioms ContractsTrace.one_refines
+#print axioms ContractsTrace.trace_refines
+#print axioms ContractsTrace.extracted_sequence_monotone
+#print axioms ContractsTrace.reviewed_acceptance
+
 #print axioms Capability.ofString_toString
 #print axioms Capability.toString_injective
 #print axioms globMatch_star

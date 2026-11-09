@@ -6,6 +6,7 @@ import MedenSpec.ApprovalRefinement
 import MedenSpec.RepairTrace
 import MedenSpec.CheckFailureRefinement
 import MedenSpec.CheckJobsTrace
+import MedenSpec.ContractsTrace
 import MedenSpec.ConversationTrace
 import MedenSpec.TextRefinement
 

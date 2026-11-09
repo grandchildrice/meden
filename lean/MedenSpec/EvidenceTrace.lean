@@ -4,7 +4,7 @@ import MedenSpec.EvidenceRefinement
 is a Lean composition, not an extraction of the release I/O loop or GitHub API. -/
 namespace MedenSpec.EvidenceTrace
 open Aeneas Aeneas.Std Result EvidenceRefinement
-open MedenImpl.evidence (EvidenceOrigin Subject Receipt Gate Obligation)
+open MedenEvidenceImpl.evidence (EvidenceOrigin Subject Receipt Gate Obligation)
 
 inductive Action where
   | review (origin : Origin)
@@ -19,10 +19,10 @@ def event : Action → Evidence.Event
   | .record o s r => .record (origin o) (subject s) (receipt r)
 
 def call (g : Gate) : Action → Result (Bool × Gate)
-  | .review o => MedenImpl.evidence.Gate.review g o
-  | .accept o => MedenImpl.evidence.Gate.accept g o
-  | .refresh o s => MedenImpl.evidence.Gate.refresh g o s
-  | .record o s r => MedenImpl.evidence.Gate.record g o s r
+  | .review o => MedenEvidenceImpl.evidence.Gate.review g o
+  | .accept o => MedenEvidenceImpl.evidence.Gate.accept g o
+  | .refresh o s => MedenEvidenceImpl.evidence.Gate.refresh g o s
+  | .record o s r => MedenEvidenceImpl.evidence.Gate.record g o s r
 
 private def specCall (g : Evidence.Gate) : Action → Bool × Evidence.Gate
   | .review o => Evidence.review g (origin o)
@@ -76,9 +76,9 @@ successful evidence for every obligation. The checker/OS attribution remains
 a separate trust boundary; this theorem does not execute backend checkers. -/
 theorem extracted_requires_all_evidence (s : Subject) (requirements : alloc.vec.Vec Obligation)
     (actions : List Action) (initial final : Gate) (history : List Evidence.Receipt) (current : Subject)
-    (hi : MedenImpl.evidence.Gate.propose s requirements = ok initial)
+    (hi : MedenEvidenceImpl.evidence.Gate.propose s requirements = ok initial)
     (hr : runExtracted initial [] actions = ok (final, history))
-    (he : MedenImpl.evidence.Gate.eligible final current = ok true) :
+    (he : MedenEvidenceImpl.evidence.Gate.eligible final current = ok true) :
     ∀ i, i < final.obligations.val.length → ∃ r ∈ history,
       r.subject = subject current ∧ r.position = i ∧ r.passed = true ∧ r.active = true ∧
         (final.obligations.val.map obligation)[i]? = some r.obligation := by

@@ -802,7 +802,7 @@ fn draw(frame: &mut Frame<'_>, app: &App) {
     };
     if app.screen == Screen::ReviewingContract {
         let text = app.contract_review.as_ref().map_or_else(String::new, |s|
-            visible(&format!("Contract SHA-256: {}\n\n{}\n\nAccepting continues development under this exact contract.",s.reference.contract,s.review)));
+            visible(&format!("Contract revision: {}\nContract SHA-256: {}\n\n{}\n\nAccepting continues development under this exact contract.",s.reference.revision,s.reference.contract,s.review)));
         frame.render_widget(
             Paragraph::new(text)
                 .wrap(Wrap { trim: false })

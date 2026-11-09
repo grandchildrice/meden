@@ -3,28 +3,28 @@ import MedenSpec.CheckJobsRefinement
 
 namespace MedenSpec.CompletionRefinement
 open Aeneas Aeneas.Std Result EvidenceRefinement CheckJobsRefinement
-open MedenImpl.evidence (CheckJobs CheckTicket CheckResult Gate Subject EvidenceOrigin)
+open MedenEvidenceImpl.evidence (CheckJobs CheckTicket CheckResult Gate Subject EvidenceOrigin)
 
 def output (r : CheckResult) : Completion.Output :=
   ⟨subject r.subject, r.position.val, obligation r.obligation, r.passed⟩
 
 theorem complete_refines (j : CheckJobs) (g : Gate) (o : EvidenceOrigin)
     (t : CheckTicket) (s : Subject) (r : CheckResult) :
-    (do let out ← MedenImpl.evidence.CheckJobs.complete j g o t s r
+    (do let out ← MedenEvidenceImpl.evidence.CheckJobs.complete j g o t s r
         ok (out.1, jobs out.2.1, gate out.2.2)) =
       ok (Completion.complete (jobs j) (gate g) (origin o) (ticket t) (subject s) (output r)) := by
   have hf := finish_refines j o g t s
-  cases hfinish : MedenImpl.evidence.CheckJobs.finish j o g t s with
+  cases hfinish : MedenEvidenceImpl.evidence.CheckJobs.finish j o g t s with
   | ret finished =>
     rcases finished with ⟨active, next⟩
     simp only [hfinish, bind_ok, Result.ok.injEq] at hf
     cases ha : active with
     | false =>
-      simp [MedenImpl.evidence.CheckJobs.complete, hfinish, ha,
+      simp [MedenEvidenceImpl.evidence.CheckJobs.complete, hfinish, ha,
         Completion.complete, ← hf]
     | true =>
       have hr := refresh_refines g .Controller r.subject
-      cases hrefresh : MedenImpl.evidence.Gate.refresh g .Controller r.subject with
+      cases hrefresh : MedenEvidenceImpl.evidence.Gate.refresh g .Controller r.subject with
       | ret refreshed =>
         rcases refreshed with ⟨refreshed, nextGate⟩
         simp only [hrefresh, bind_ok, Result.ok.injEq] at hr
@@ -32,12 +32,12 @@ theorem complete_refines (j : CheckJobs) (g : Gate) (o : EvidenceOrigin)
           Evidence.refresh (gate g) .controller (subject r.subject) at hr
         cases hb : refreshed with
         | false =>
-          simp [MedenImpl.evidence.CheckJobs.complete, hfinish, ha, subject_clone,
+          simp [MedenEvidenceImpl.evidence.CheckJobs.complete, hfinish, ha, subject_clone,
             hrefresh, hb, Completion.complete, ← hf, ← hr, output]
         | true =>
-          let native := MedenImpl.evidence.Receipt.mk r.subject r.position r.obligation r.passed true
+          let native := MedenEvidenceImpl.evidence.Receipt.mk r.subject r.position r.obligation r.passed true
           have hm := record_refines nextGate o r.subject native
-          cases hrecord : MedenImpl.evidence.Gate.record nextGate o r.subject native with
+          cases hrecord : MedenEvidenceImpl.evidence.Gate.record nextGate o r.subject native with
           | ret recorded =>
             rcases recorded with ⟨recorded, finalGate⟩
             simp only [hrecord, bind_ok, Result.ok.injEq] at hm
@@ -46,7 +46,7 @@ theorem complete_refines (j : CheckJobs) (g : Gate) (o : EvidenceOrigin)
             have hbmap := congrArg Prod.fst hm
             have hgmap := congrArg Prod.snd hm
             simp only [output] at hbmap hgmap
-            simp [MedenImpl.evidence.CheckJobs.complete, hfinish, ha, subject_clone,
+            simp [MedenEvidenceImpl.evidence.CheckJobs.complete, hfinish, ha, subject_clone,
               hrefresh, hb, hrecord, native, Completion.complete, ← hf, ← hr, output,
               ← hbmap, ← hgmap]
           | vis effect continuation => simp [hrecord] at hm
@@ -58,7 +58,7 @@ theorem complete_refines (j : CheckJobs) (g : Gate) (o : EvidenceOrigin)
 
 theorem success_requires_current_job (j final : CheckJobs) (g finalGate : Gate)
     (o : EvidenceOrigin) (t : CheckTicket) (s : Subject) (r : CheckResult)
-    (h : MedenImpl.evidence.CheckJobs.complete j g o t s r = ok (true, final, finalGate)) :
+    (h : MedenEvidenceImpl.evidence.CheckJobs.complete j g o t s r = ok (true, final, finalGate)) :
     origin o = .checker ∧ (jobs j).active = some (ticket t) ∧
     subject t.subject = subject s ∧ r.passed = true ∧
     (jobs final).active = none ∧ subject finalGate.subject = subject r.subject := by
@@ -71,18 +71,18 @@ theorem success_requires_current_job (j final : CheckJobs) (g finalGate : Gate)
 
 theorem model_cannot_complete (j : CheckJobs) (g : Gate)
     (t : CheckTicket) (s : Subject) (r : CheckResult) :
-    MedenImpl.evidence.CheckJobs.complete j g .Model t s r = ok (false, j, g) := by
-  simp [MedenImpl.evidence.CheckJobs.complete, MedenImpl.evidence.CheckJobs.finish,
+    MedenEvidenceImpl.evidence.CheckJobs.complete j g .Model t s r = ok (false, j, g) := by
+  simp [MedenEvidenceImpl.evidence.CheckJobs.complete, MedenEvidenceImpl.evidence.CheckJobs.finish,
     core.cmp.PartialEq.ne.trait_default, core.cmp.PartialEq.ne.default,
     EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin.eq, EvidenceOrigin.read_discriminant]
 
 theorem complete_jobs_refines (j : CheckJobs) (g : Gate) (o : EvidenceOrigin)
     (t : CheckTicket) (s : Subject) (r : CheckResult) :
-    (do let out ← MedenImpl.evidence.CheckJobs.complete j g o t s r
+    (do let out ← MedenEvidenceImpl.evidence.CheckJobs.complete j g o t s r
         ok (jobs out.2.1)) =
       ok (MedenSpec.CheckJobs.finish (jobs j) (origin o) (gate g) (ticket t) (subject s)).2 := by
   have hm := complete_refines j g o t s r
-  cases hc : MedenImpl.evidence.CheckJobs.complete j g o t s r with
+  cases hc : MedenEvidenceImpl.evidence.CheckJobs.complete j g o t s r with
   | ret out =>
     simp only [hc, bind_ok, Result.ok.injEq] at hm
     simp only [bind_ok]

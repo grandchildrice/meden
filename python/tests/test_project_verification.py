@@ -680,6 +680,7 @@ def test_generic_counter_acceptance_repair_and_rejected_replacement_preserve_evi
         pending = receive("project")["summary"]
         assert receive("done")["outcome"] == "needs_review"
         assert pending["contract"] == contract and not pending["accepted"]
+        assert pending["reference"]["revision"] > 0
         assert (
             pending["reference"]["contract"]
             == hashlib.sha256(
@@ -704,6 +705,7 @@ def test_generic_counter_acceptance_repair_and_rejected_replacement_preserve_evi
         assert not proposed["accepted"] and not proposed["verified"] and not proposed["artifact"]
         assert "Previously accepted contract" in proposed["review"]
         assert proposed["reference"] != pending["reference"]
+        assert proposed["reference"]["revision"] > pending["reference"]["revision"]
         send({"review_contract": proposed["reference"]})
         receive("project")
         send({"reject_contract": proposed["reference"]})

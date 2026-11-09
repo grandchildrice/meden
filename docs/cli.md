@@ -118,12 +118,14 @@ The host reviews and accepts the
 exact reference returned in `project.summary.reference`:
 
 ```json
-{"review_contract":{"session":"SESSION_FROM_PROPOSAL","contract":"SHA256_FROM_PROPOSAL"}}
-{"accept_contract":{"session":"SESSION_FROM_PROPOSAL","contract":"SHA256_FROM_PROPOSAL"}}
+{"review_contract":{"session":"SESSION_FROM_PROPOSAL","revision":1,"contract":"SHA256_FROM_PROPOSAL"}}
+{"accept_contract":{"session":"SESSION_FROM_PROPOSAL","revision":1,"contract":"SHA256_FROM_PROPOSAL"}}
 {"project_status":null}
 ```
 
-Review must precede acceptance. Acceptance continues development automatically.
+Copy all three reference fields from the proposal, including its `revision`;
+the example number is not a default. Review must precede acceptance.
+Acceptance continues development automatically.
 Only this host channel and the TUI review can accept; model tools cannot.
 `verify_project` and `project_status` model tools take empty arguments. The
 former invokes the independent fixed backend and requires host acceptance.
@@ -134,7 +136,9 @@ no arbitrary receipt callback or model-selected checker/verification path.
 The summary includes the actual proposal and retained accepted contract.
 To reject a replacement, send `reject_contract` with its exact reference;
 this retains the previous accepted meaning and artifact, subject to a fresh
-source/status check. A stale reference cannot accept another draft.
+source/status check. A stale reference cannot accept another draft, including
+identical contract bytes proposed again after rejection: each fresh proposal
+has a new revision and needs its own review.
 See [contract, preparation and proof scope](project-verification.md).
 
 ## Meden release evidence

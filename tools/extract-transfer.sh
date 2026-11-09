@@ -37,12 +37,16 @@ for unit in "${units[@]}"; do
       done
       model=Control ;;
     evidence)
+      namespace=MedenEvidenceImpl
       rust_roots=()
       for method in propose review accept is_accepted refresh record eligible; do
         rust_roots+=("meden_core::evidence::Gate::$method")
       done
       for method in new start invalidate abort finish is_active complete; do
         rust_roots+=("meden_core::evidence::CheckJobs::$method")
+      done
+      for method in new propose displayed accepted pending is_accepted review accept reject refresh start invalidate edit abort is_active complete eligible; do
+        rust_roots+=("meden_core::evidence::Contracts::$method")
       done
       model=Evidence ;;
     approval)
@@ -120,6 +124,14 @@ for unit in "${units[@]}"; do
       export_control.State.impl.phase export_control.State.advance
       export_control.FrozenRequest.impl.target export_control.FrozenRequest.impl.body
       export_control.Dispatch.into_request)
+  elif [[ $unit == evidence ]]; then
+    definitions=(evidence.Contracts.new evidence.Contracts.propose
+      evidence.Contracts.displayed evidence.Contracts.impl.accepted
+      evidence.Contracts.pending evidence.Contracts.is_accepted
+      evidence.Contracts.review evidence.Contracts.accept evidence.Contracts.reject
+      evidence.Contracts.refresh evidence.Contracts.start evidence.Contracts.invalidate
+      evidence.Contracts.edit evidence.Contracts.abort evidence.Contracts.is_active
+      evidence.Contracts.complete evidence.Contracts.eligible)
   elif [[ $unit == approval ]]; then
     definitions=(tui.approval.approves tui.approval.route)
   elif [[ $unit == text ]]; then

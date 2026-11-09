@@ -11,6 +11,69 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 GROUPS = [
     {
+        "kernel": "evidence",
+        "model": "Evidence",
+        "proof": "ContractsRefinement",
+        "prerequisites": ["EvidenceRefinement", "CheckJobsRefinement", "CompletionRefinement"],
+        "test": (
+            "evidence::tests::identical_reproposal_after_rejection_requires_a_fresh_host_review"
+        ),
+        "mutations": [
+            (
+                "reused_contract_revision",
+                "self.sequence = next;\n        self.jobs.invalidate",
+                "let _ = next;\n        self.jobs.invalidate",
+            ),
+            (
+                "stale_contract_review",
+                "Some(draft) => draft.revision == revision && draft.gate.review(origin),",
+                "Some(draft) => { let _ = revision; draft.gate.review(origin) },",
+            ),
+            (
+                "stale_contract_acceptance",
+                "if draft.revision != revision || !draft.gate.accept(origin) {",
+                "if (draft.revision != revision && false) || !draft.gate.accept(origin) {",
+            ),
+        ],
+    },
+    {
+        "kernel": "evidence",
+        "model": "Evidence",
+        "proof": "ContractsRefinement",
+        "prerequisites": ["EvidenceRefinement", "CheckJobsRefinement", "CompletionRefinement"],
+        "test": (
+            "evidence::tests::"
+            "rejecting_a_replacement_preserves_accepted_evidence_but_never_its_old_job"
+        ),
+        "mutations": [
+            (
+                "pending_contract_eligible",
+                "if self.draft.is_some() || self.jobs.is_active() {",
+                "if self.jobs.is_active() {",
+            ),
+            (
+                "rejected_contract_discards_accepted",
+                "self.draft = None;\n        true\n    }\n\n    /// Observe changed inputs",
+                "self.draft = None;\n        self.accepted = None;\n"
+                "        true\n    }\n\n    /// Observe changed inputs",
+            ),
+        ],
+    },
+    {
+        "kernel": "evidence",
+        "model": "Evidence",
+        "proof": "ContractsRefinement",
+        "prerequisites": ["EvidenceRefinement", "CheckJobsRefinement", "CompletionRefinement"],
+        "test": "evidence::tests::editing_then_restoring_inputs_does_not_restore_proof_coverage",
+        "mutations": [
+            (
+                "edited_contract_evidence_revived",
+                "accepted.gate.completed = 0;",
+                "let _ = accepted.gate.completed;",
+            ),
+        ],
+    },
+    {
         "source": "crates/meden-cli/src/text.rs",
         "package": "meden-cli",
         "model": "Text",
@@ -485,13 +548,17 @@ GROUPS = [
             ),
             (
                 "reused_check_job_id",
-                "self.sequence.checked_add(1)",
-                "self.sequence.checked_add(0)",
+                "let Some(next) = self.sequence.checked_add(1) else {\n"
+                "            return None;",
+                "let Some(next) = self.sequence.checked_add(0) else {\n"
+                "            return None;",
             ),
             (
                 "wrapped_check_job_id",
-                "self.sequence.checked_add(1)",
-                "Some(self.sequence.wrapping_add(1))",
+                "let Some(next) = self.sequence.checked_add(1) else {\n"
+                "            return None;",
+                "let Some(next) = Some(self.sequence.wrapping_add(1)) else {\n"
+                "            return None;",
             ),
             (
                 "cancelled_check_job_retained",

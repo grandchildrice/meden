@@ -328,9 +328,593 @@ impl CheckJobs {
     }
 }
 
+/// Read-only-by-copy view of one exact proposal. Changing a returned value
+/// cannot change the controller's accepted meaning or obligations.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ContractView {
+    /// Fresh proposal generation within the immutable session.
+    pub revision: u64,
+    /// Exact session, contract and current input binding.
+    pub subject: Subject,
+    /// Required statement/kind/checker identities.
+    pub obligations: Vec<Obligation>,
+}
+
+#[derive(Debug)]
+struct VersionedGate {
+    revision: u64,
+    gate: Gate,
+}
+
+impl VersionedGate {
+    fn view(&self) -> ContractView {
+        ContractView {
+            revision: self.revision,
+            subject: self.gate.subject.clone(),
+            obligations: self.gate.obligations.clone(),
+        }
+    }
+}
+
+/// Contract selection, host review and issued evidence jobs share one state.
+/// A model cannot replace accepted meaning, expose a mutable gate or reuse
+/// a review from a previous generation, even after identical bytes return.
+#[derive(Debug)]
+pub struct Contracts {
+    session: Vec<u8>,
+    sequence: u64,
+    accepted: Option<VersionedGate>,
+    draft: Option<VersionedGate>,
+    jobs: CheckJobs,
+}
+
+impl Contracts {
+    /// Assign the session once. This controller and its jobs are not cloneable.
+    pub fn new(session: Vec<u8>) -> Self {
+        Self {
+            jobs: CheckJobs::new(session.clone()),
+            session,
+            sequence: 0,
+            accepted: None,
+            draft: None,
+        }
+    }
+
+    /// Stage already validated contract data without granting acceptance.
+    /// Identical current proposals are idempotent; rejection followed by
+    /// reproposal requires a fresh generation and a new review.
+    #[allow(clippy::question_mark)] // Explicit extracted overflow branch.
+    pub fn propose(
+        &mut self,
+        origin: EvidenceOrigin,
+        contract: Vec<u8>,
+        obligations: Vec<Obligation>,
+    ) -> bool {
+        if origin != EvidenceOrigin::Controller || contract.is_empty() || obligations.is_empty() {
+            return false;
+        }
+        match &self.draft {
+            Some(draft) => {
+                if draft.gate.subject.contract == contract && draft.gate.obligations == obligations
+                {
+                    return true;
+                }
+            }
+            None => {
+                if let Some(accepted) = &self.accepted {
+                    if accepted.gate.subject.contract == contract
+                        && accepted.gate.obligations == obligations
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        let Some(next) = self.sequence.checked_add(1) else {
+            return false;
+        };
+        let subject = Subject {
+            session: self.session.clone(),
+            contract,
+            inputs: Vec::new(),
+        };
+        self.draft = Some(VersionedGate {
+            revision: next,
+            gate: Gate::propose(subject, obligations),
+        });
+        self.sequence = next;
+        self.jobs.invalidate(EvidenceOrigin::Controller);
+        true
+    }
+
+    /// Observe the displayed proposal, or the accepted contract when no draft exists.
+    pub fn displayed(&self) -> Option<ContractView> {
+        match &self.draft {
+            Some(draft) => Some(draft.view()),
+            None => self.accepted(),
+        }
+    }
+
+    /// Observe retained accepted meaning, independently of a replacement draft.
+    #[allow(clippy::manual_map)] // Keep the extracted ownership branches explicit.
+    pub fn accepted(&self) -> Option<ContractView> {
+        match &self.accepted {
+            Some(accepted) => Some(accepted.view()),
+            None => None,
+        }
+    }
+
+    /// A pending replacement is never reported accepted or eligible.
+    pub fn pending(&self) -> bool {
+        self.draft.is_some()
+    }
+
+    /// Acceptance applies only when the current displayed meaning is accepted.
+    pub fn is_accepted(&self) -> bool {
+        if self.draft.is_some() {
+            return false;
+        }
+        match &self.accepted {
+            Some(accepted) => accepted.gate.is_accepted(),
+            None => false,
+        }
+    }
+
+    /// Host inspection names the exact displayed session and generation.
+    pub fn review(&mut self, origin: EvidenceOrigin, session: &[u8], revision: u64) -> bool {
+        let expected: &[u8] = &self.session;
+        if expected != session {
+            return false;
+        }
+        match &mut self.draft {
+            Some(draft) => draft.revision == revision && draft.gate.review(origin),
+            None => match &mut self.accepted {
+                Some(accepted) => accepted.revision == revision && accepted.gate.review(origin),
+                None => false,
+            },
+        }
+    }
+
+    /// Only a host-reviewed exact draft can replace accepted meaning.
+    pub fn accept(&mut self, origin: EvidenceOrigin, session: &[u8], revision: u64) -> bool {
+        let expected: &[u8] = &self.session;
+        if expected != session {
+            return false;
+        }
+        let accepted = match &mut self.draft {
+            Some(draft) => {
+                if draft.revision != revision || !draft.gate.accept(origin) {
+                    return false;
+                }
+                VersionedGate {
+                    revision: draft.revision,
+                    gate: draft.gate.clone(),
+                }
+            }
+            None => return false,
+        };
+        self.accepted = Some(accepted);
+        self.draft = None;
+        self.jobs.invalidate(EvidenceOrigin::Controller);
+        true
+    }
+
+    /// Reject only that exact draft; retained accepted meaning/evidence survives.
+    pub fn reject(&mut self, origin: EvidenceOrigin, session: &[u8], revision: u64) -> bool {
+        let expected: &[u8] = &self.session;
+        if origin != EvidenceOrigin::Host || expected != session {
+            return false;
+        }
+        match &self.draft {
+            Some(draft) => {
+                if draft.revision != revision {
+                    return false;
+                }
+            }
+            None => return false,
+        }
+        self.draft = None;
+        true
+    }
+
+    /// Observe changed inputs without changing accepted meaning or obligations.
+    pub fn refresh(&mut self, origin: EvidenceOrigin, revision: u64, inputs: Vec<u8>) -> bool {
+        match &mut self.accepted {
+            Some(accepted) => {
+                if accepted.revision != revision {
+                    return false;
+                }
+                let subject = Subject {
+                    inputs,
+                    ..accepted.gate.subject.clone()
+                };
+                accepted.gate.refresh(origin, subject)
+            }
+            None => false,
+        }
+    }
+
+    /// Issue a prepared job only for the current accepted generation.
+    pub fn start(
+        &mut self,
+        origin: EvidenceOrigin,
+        revision: u64,
+        inputs: Vec<u8>,
+    ) -> Option<CheckTicket> {
+        if origin != EvidenceOrigin::Controller || self.draft.is_some() {
+            return None;
+        }
+        match &mut self.accepted {
+            Some(accepted) => {
+                if accepted.revision != revision {
+                    return None;
+                }
+                self.jobs.invalidate(EvidenceOrigin::Controller);
+                let subject = Subject {
+                    inputs,
+                    ..accepted.gate.subject.clone()
+                };
+                if !accepted.gate.refresh(origin, subject.clone()) {
+                    return None;
+                }
+                self.jobs.start(origin, &accepted.gate, &subject)
+            }
+            None => None,
+        }
+    }
+
+    /// Invalidate jobs without resetting either monotonic sequence.
+    pub fn invalidate(&mut self, origin: EvidenceOrigin) -> bool {
+        self.jobs.invalidate(origin)
+    }
+
+    /// A permitted development mutation discards proof coverage before its
+    /// physical effect. Restoring old bytes cannot revive discarded evidence.
+    pub fn edit(&mut self, origin: EvidenceOrigin) -> bool {
+        if origin != EvidenceOrigin::Controller {
+            return false;
+        }
+        self.jobs.invalidate(origin);
+        if let Some(accepted) = &mut self.accepted {
+            accepted.gate.completed = 0;
+        }
+        true
+    }
+
+    /// Abort only the matching job; an old error cannot cancel a new job.
+    pub fn abort(&mut self, origin: EvidenceOrigin, ticket: &CheckTicket) -> bool {
+        self.jobs.abort(origin, ticket)
+    }
+
+    /// Observe managed job activity without granting evidence authority.
+    pub fn is_active(&self) -> bool {
+        self.jobs.is_active()
+    }
+
+    /// Admit an exact issued result only for the still-current accepted generation.
+    pub fn complete(
+        &mut self,
+        origin: EvidenceOrigin,
+        revision: u64,
+        ticket: &CheckTicket,
+        current_inputs: Vec<u8>,
+        result: CheckResult,
+    ) -> bool {
+        if self.draft.is_some() {
+            return false;
+        }
+        match &mut self.accepted {
+            Some(accepted) => {
+                if accepted.revision != revision {
+                    return false;
+                }
+                let current = Subject {
+                    inputs: current_inputs,
+                    ..accepted.gate.subject.clone()
+                };
+                self.jobs
+                    .complete(&mut accepted.gate, origin, ticket, &current, result)
+            }
+            None => false,
+        }
+    }
+
+    /// Fresh eligibility excludes drafts, active jobs and stale generations.
+    pub fn eligible(&self, revision: u64, inputs: Vec<u8>) -> bool {
+        if self.draft.is_some() || self.jobs.is_active() {
+            return false;
+        }
+        match &self.accepted {
+            Some(accepted) => {
+                let current = Subject {
+                    inputs,
+                    ..accepted.gate.subject.clone()
+                };
+                accepted.revision == revision && accepted.gate.eligible(&current)
+            }
+            None => false,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn requirements() -> Vec<Obligation> {
+        vec![Obligation {
+            statement: b"exact transition".to_vec(),
+            kind: EvidenceKind::Refinement,
+            checker: b"fixed checker".to_vec(),
+        }]
+    }
+
+    fn accept_contract(
+        contracts: &mut Contracts,
+        meaning: &[u8],
+    ) -> Result<ContractView, &'static str> {
+        assert!(contracts.propose(EvidenceOrigin::Controller, meaning.to_vec(), requirements()));
+        let view = contracts.displayed().ok_or("no draft")?;
+        assert!(contracts.review(EvidenceOrigin::Host, b"session", view.revision));
+        assert!(contracts.accept(EvidenceOrigin::Host, b"session", view.revision));
+        Ok(view)
+    }
+
+    fn passed(view: &ContractView, inputs: &[u8]) -> Result<CheckResult, &'static str> {
+        Ok(CheckResult {
+            subject: Subject {
+                inputs: inputs.to_vec(),
+                ..view.subject.clone()
+            },
+            position: 0,
+            obligation: view.obligations.first().ok_or("no obligation")?.clone(),
+            passed: true,
+        })
+    }
+
+    #[test]
+    fn identical_reproposal_after_rejection_requires_a_fresh_host_review(
+    ) -> Result<(), &'static str> {
+        let mut contracts = Contracts::new(b"session".to_vec());
+        let accepted = accept_contract(&mut contracts, b"original")?;
+        assert!(contracts.propose(
+            EvidenceOrigin::Controller,
+            b"replacement".to_vec(),
+            requirements()
+        ));
+        let old = contracts.displayed().ok_or("no draft")?;
+        assert!(contracts.review(EvidenceOrigin::Host, b"session", old.revision));
+        assert!(contracts.propose(
+            EvidenceOrigin::Controller,
+            b"replacement".to_vec(),
+            requirements()
+        ));
+        assert_eq!(contracts.displayed(), Some(old.clone()));
+        assert!(contracts.reject(EvidenceOrigin::Host, b"session", old.revision));
+        assert_eq!(contracts.accepted(), Some(accepted));
+        assert!(contracts.propose(
+            EvidenceOrigin::Controller,
+            b"replacement".to_vec(),
+            requirements()
+        ));
+        let new = contracts.displayed().ok_or("no draft")?;
+        assert_eq!(new.subject, old.subject);
+        assert!(new.revision > old.revision);
+        assert!(!contracts.review(EvidenceOrigin::Host, b"session", old.revision));
+        assert!(!contracts.accept(EvidenceOrigin::Host, b"session", old.revision));
+        assert!(!contracts.accept(EvidenceOrigin::Host, b"session", new.revision));
+        assert!(contracts.review(EvidenceOrigin::Host, b"session", new.revision));
+        assert!(!contracts.accept(EvidenceOrigin::Host, b"session", old.revision));
+        assert!(contracts.accept(EvidenceOrigin::Host, b"session", new.revision));
+        Ok(())
+    }
+
+    #[test]
+    fn rejecting_a_replacement_preserves_accepted_evidence_but_never_its_old_job(
+    ) -> Result<(), &'static str> {
+        let mut contracts = Contracts::new(b"session".to_vec());
+        let view = accept_contract(&mut contracts, b"original")?;
+        let inputs = b"source and artifact".to_vec();
+        let ticket = contracts
+            .start(EvidenceOrigin::Controller, view.revision, inputs.clone())
+            .ok_or("no job")?;
+        let result = passed(&view, &inputs)?;
+        assert!(contracts.complete(
+            EvidenceOrigin::Checker,
+            view.revision,
+            &ticket,
+            inputs.clone(),
+            result.clone()
+        ));
+        assert!(contracts.eligible(view.revision, inputs.clone()));
+        let old_job = contracts
+            .start(EvidenceOrigin::Controller, view.revision, inputs.clone())
+            .ok_or("no job")?;
+        assert!(contracts.propose(
+            EvidenceOrigin::Controller,
+            b"replacement".to_vec(),
+            requirements()
+        ));
+        let draft = contracts.displayed().ok_or("no draft")?;
+        assert!(!contracts.is_accepted() && !contracts.eligible(view.revision, inputs.clone()));
+        assert!(contracts
+            .start(EvidenceOrigin::Controller, view.revision, inputs.clone())
+            .is_none());
+        assert!(!contracts.complete(
+            EvidenceOrigin::Checker,
+            view.revision,
+            &old_job,
+            inputs.clone(),
+            result.clone()
+        ));
+        assert!(contracts.reject(EvidenceOrigin::Host, b"session", draft.revision));
+        assert!(contracts.eligible(view.revision, inputs.clone()));
+        assert!(!contracts.complete(
+            EvidenceOrigin::Checker,
+            view.revision,
+            &old_job,
+            inputs.clone(),
+            result
+        ));
+        assert!(contracts.eligible(view.revision, inputs));
+        Ok(())
+    }
+
+    #[test]
+    fn editing_then_restoring_inputs_does_not_restore_proof_coverage() -> Result<(), &'static str> {
+        let mut contracts = Contracts::new(b"session".to_vec());
+        let view = accept_contract(&mut contracts, b"original")?;
+        let inputs = b"original source and artifact".to_vec();
+        let ticket = contracts
+            .start(EvidenceOrigin::Controller, view.revision, inputs.clone())
+            .ok_or("no job")?;
+        let result = passed(&view, &inputs)?;
+        assert!(contracts.complete(
+            EvidenceOrigin::Checker,
+            view.revision,
+            &ticket,
+            inputs.clone(),
+            result.clone()
+        ));
+        assert!(contracts.eligible(view.revision, inputs.clone()));
+        let pending = contracts
+            .start(EvidenceOrigin::Controller, view.revision, inputs.clone())
+            .ok_or("no job")?;
+        assert!(contracts.edit(EvidenceOrigin::Controller));
+        assert!(contracts.refresh(EvidenceOrigin::Controller, view.revision, inputs.clone()));
+        assert!(!contracts.eligible(view.revision, inputs.clone()));
+        assert!(!contracts.complete(
+            EvidenceOrigin::Checker,
+            view.revision,
+            &pending,
+            inputs.clone(),
+            result.clone()
+        ));
+        let next = contracts
+            .start(EvidenceOrigin::Controller, view.revision, inputs.clone())
+            .ok_or("no job")?;
+        assert!(contracts.complete(
+            EvidenceOrigin::Checker,
+            view.revision,
+            &next,
+            inputs.clone(),
+            result
+        ));
+        assert!(contracts.eligible(view.revision, inputs));
+        Ok(())
+    }
+
+    #[test]
+    fn untrusted_origins_and_modified_snapshots_cannot_change_owned_meaning(
+    ) -> Result<(), &'static str> {
+        let mut contracts = Contracts::new(b"session".to_vec());
+        let view = accept_contract(&mut contracts, b"original")?;
+        let inputs = b"checked source".to_vec();
+        let ticket = contracts
+            .start(EvidenceOrigin::Controller, view.revision, inputs.clone())
+            .ok_or("no job")?;
+        assert!(contracts
+            .start(
+                EvidenceOrigin::Controller,
+                view.revision + 1,
+                inputs.clone()
+            )
+            .is_none());
+        assert!(!contracts.complete(
+            EvidenceOrigin::Checker,
+            view.revision + 1,
+            &ticket,
+            inputs.clone(),
+            passed(&view, &inputs)?
+        ));
+        assert!(contracts.is_active());
+        for origin in [
+            EvidenceOrigin::Model,
+            EvidenceOrigin::Host,
+            EvidenceOrigin::Checker,
+        ] {
+            assert!(!contracts.propose(origin, b"changed".to_vec(), requirements()));
+            assert!(contracts
+                .start(origin, view.revision, inputs.clone())
+                .is_none());
+            assert!(!contracts.refresh(origin, view.revision, b"changed".to_vec()));
+            assert!(!contracts.edit(origin));
+            assert!(!contracts.invalidate(origin));
+            assert!(!contracts.abort(origin, &ticket));
+            assert!(contracts.is_active());
+        }
+        let mut copy = contracts.accepted().ok_or("no accepted contract")?;
+        copy.subject.contract = b"forged".to_vec();
+        copy.obligations.clear();
+        copy.revision += 1;
+        assert_eq!(
+            contracts
+                .accepted()
+                .ok_or("no accepted contract")?
+                .subject
+                .contract,
+            b"original"
+        );
+        assert!(contracts.complete(
+            EvidenceOrigin::Checker,
+            view.revision,
+            &ticket,
+            inputs.clone(),
+            passed(&view, &inputs)?
+        ));
+        assert!(contracts.eligible(view.revision, inputs));
+        assert!(contracts.propose(
+            EvidenceOrigin::Controller,
+            b"changed".to_vec(),
+            requirements()
+        ));
+        let draft = contracts.displayed().ok_or("no draft")?;
+        for origin in [
+            EvidenceOrigin::Model,
+            EvidenceOrigin::Controller,
+            EvidenceOrigin::Checker,
+        ] {
+            assert!(!contracts.review(origin, b"session", draft.revision));
+            assert!(!contracts.accept(origin, b"session", draft.revision));
+            assert!(!contracts.reject(origin, b"session", draft.revision));
+        }
+        assert!(!contracts.review(EvidenceOrigin::Host, b"foreign", draft.revision));
+        assert!(!contracts.reject(EvidenceOrigin::Host, b"foreign", draft.revision));
+        Ok(())
+    }
+
+    #[test]
+    fn exhausted_generations_never_wrap_or_preserve_an_old_job_on_reissue(
+    ) -> Result<(), &'static str> {
+        let mut contracts = Contracts::new(b"session".to_vec());
+        let view = accept_contract(&mut contracts, b"original")?;
+        let inputs = b"checked source".to_vec();
+        let ticket = contracts
+            .start(EvidenceOrigin::Controller, view.revision, inputs.clone())
+            .ok_or("no job")?;
+        contracts.sequence = u64::MAX;
+        assert!(!contracts.propose(
+            EvidenceOrigin::Controller,
+            b"changed".to_vec(),
+            requirements()
+        ));
+        assert!(contracts.is_active());
+        assert!(!contracts.pending());
+        contracts.jobs.sequence = u64::MAX;
+        assert!(contracts
+            .start(EvidenceOrigin::Controller, view.revision, inputs.clone())
+            .is_none());
+        assert!(!contracts.is_active());
+        assert!(!contracts.complete(
+            EvidenceOrigin::Checker,
+            view.revision,
+            &ticket,
+            inputs.clone(),
+            passed(&view, &inputs)?
+        ));
+        assert!(!contracts.eligible(view.revision, inputs));
+        Ok(())
+    }
 
     #[test]
     fn admission_requires_an_issued_job_and_the_exact_accepted_result() -> Result<(), &'static str>

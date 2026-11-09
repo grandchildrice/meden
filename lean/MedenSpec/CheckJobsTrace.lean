@@ -5,7 +5,7 @@ prepared-input construction, OS cancellation and checker attribution remain
 adapter obligations, rather than premises supplied by model text. -/
 namespace MedenSpec.CheckJobsTrace
 open Aeneas Aeneas.Std Result CheckJobsRefinement EvidenceRefinement CompletionRefinement
-open MedenImpl.evidence (CheckJobs CheckTicket CheckResult EvidenceOrigin Gate Subject)
+open MedenEvidenceImpl.evidence (CheckJobs CheckTicket CheckResult EvidenceOrigin Gate Subject)
 
 inductive Action where
   | start (o : EvidenceOrigin) (g : Gate) (s : Subject)
@@ -24,19 +24,19 @@ def event : Action → MedenSpec.CheckJobs.Action
 def one (j : CheckJobs) (history : List MedenSpec.CheckJobs.Ticket) :
     Action → Result (CheckJobs × List MedenSpec.CheckJobs.Ticket)
   | .start o g s => do
-    let out ← MedenImpl.evidence.CheckJobs.start j o g s
+    let out ← MedenEvidenceImpl.evidence.CheckJobs.start j o g s
     ok (out.2, match out.1 with | none => history | some t => ticket t :: history)
   | .invalidate o => do
-    let out ← MedenImpl.evidence.CheckJobs.invalidate j o
+    let out ← MedenEvidenceImpl.evidence.CheckJobs.invalidate j o
     ok (out.2, history)
   | .abort o t => do
-    let out ← MedenImpl.evidence.CheckJobs.abort j o t
+    let out ← MedenEvidenceImpl.evidence.CheckJobs.abort j o t
     ok (out.2, history)
   | .finish o g t s => do
-    let out ← MedenImpl.evidence.CheckJobs.finish j o g t s
+    let out ← MedenEvidenceImpl.evidence.CheckJobs.finish j o g t s
     ok (out.2, history)
   | .complete o g t s r => do
-    let out ← MedenImpl.evidence.CheckJobs.complete j g o t s r
+    let out ← MedenEvidenceImpl.evidence.CheckJobs.complete j g o t s r
     ok (out.2.1, history)
 
 private theorem one_refines (j : CheckJobs) (history : List MedenSpec.CheckJobs.Ticket) (a : Action) :
@@ -45,7 +45,7 @@ private theorem one_refines (j : CheckJobs) (history : List MedenSpec.CheckJobs.
   cases a with
   | start o g s =>
     have hm := start_refines j o g s
-    cases hc : MedenImpl.evidence.CheckJobs.start j o g s with
+    cases hc : MedenEvidenceImpl.evidence.CheckJobs.start j o g s with
     | ret out =>
       simp only [hc, bind_ok, Result.ok.injEq] at hm
       have hg := congrArg Prod.snd hm
@@ -57,7 +57,7 @@ private theorem one_refines (j : CheckJobs) (history : List MedenSpec.CheckJobs.
     | div => simp [hc] at hm
   | invalidate o =>
     have hm := invalidate_refines j o
-    cases hc : MedenImpl.evidence.CheckJobs.invalidate j o with
+    cases hc : MedenEvidenceImpl.evidence.CheckJobs.invalidate j o with
     | ret out =>
       simp only [hc, bind_ok, Result.ok.injEq] at hm
       have hg := congrArg Prod.snd hm
@@ -66,7 +66,7 @@ private theorem one_refines (j : CheckJobs) (history : List MedenSpec.CheckJobs.
     | div => simp [hc] at hm
   | abort o t =>
     have hm := abort_refines j o t
-    cases hc : MedenImpl.evidence.CheckJobs.abort j o t with
+    cases hc : MedenEvidenceImpl.evidence.CheckJobs.abort j o t with
     | ret out =>
       simp only [hc, bind_ok, Result.ok.injEq] at hm
       have hg := congrArg Prod.snd hm
@@ -75,7 +75,7 @@ private theorem one_refines (j : CheckJobs) (history : List MedenSpec.CheckJobs.
     | div => simp [hc] at hm
   | finish o g t s =>
     have hm := finish_refines j o g t s
-    cases hc : MedenImpl.evidence.CheckJobs.finish j o g t s with
+    cases hc : MedenEvidenceImpl.evidence.CheckJobs.finish j o g t s with
     | ret out =>
       simp only [hc, bind_ok, Result.ok.injEq] at hm
       have hg := congrArg Prod.snd hm
@@ -85,7 +85,7 @@ private theorem one_refines (j : CheckJobs) (history : List MedenSpec.CheckJobs.
 
   | complete o g t s r =>
     have hm := complete_jobs_refines j g o t s r
-    cases hc : MedenImpl.evidence.CheckJobs.complete j g o t s r with
+    cases hc : MedenEvidenceImpl.evidence.CheckJobs.complete j g o t s r with
     | ret out =>
       simp only [hc, bind_ok, Result.ok.injEq] at hm
       simp_all [one, event, MedenSpec.CheckJobs.step, MedenSpec.CheckJobs.log]
@@ -129,7 +129,7 @@ theorem extracted_no_late_result (initial final finished : CheckJobs)
     (t : CheckTicket) (o : EvidenceOrigin) (g : Gate) (s : Subject) (accepted : Bool)
     (hi : initial.active = none) (ht : t.id.val ≤ initial.sequence.val)
     (hr : runExtracted initial [] actions = ok (final, history))
-    (hf : MedenImpl.evidence.CheckJobs.finish final o g t s = ok (accepted, finished)) :
+    (hf : MedenEvidenceImpl.evidence.CheckJobs.finish final o g t s = ok (accepted, finished)) :
     accepted = false := by
   have htrace := trace_refines initial [] actions
   simp only [hr, bind_ok, Result.ok.injEq] at htrace
@@ -144,9 +144,9 @@ theorem extracted_no_late_result (initial final finished : CheckJobs)
 theorem extracted_result_was_issued (scope : alloc.vec.Vec U8) (initial final finished : CheckJobs)
     (history : List MedenSpec.CheckJobs.Ticket) (actions : List Action)
     (t : CheckTicket) (o : EvidenceOrigin) (g : Gate) (s : Subject)
-    (hi : MedenImpl.evidence.CheckJobs.new scope = ok initial)
+    (hi : MedenEvidenceImpl.evidence.CheckJobs.new scope = ok initial)
     (hr : runExtracted initial [] actions = ok (final, history))
-    (hf : MedenImpl.evidence.CheckJobs.finish final o g t s = ok (true, finished)) :
+    (hf : MedenEvidenceImpl.evidence.CheckJobs.finish final o g t s = ok (true, finished)) :
     ticket t ∈ history := by
   have hnew := new_refines scope
   simp only [hi, bind_ok, Result.ok.injEq] at hnew
@@ -169,16 +169,16 @@ theorem extracted_completion_was_issued (scope : alloc.vec.Vec U8)
     (initial final after : CheckJobs) (g afterGate : Gate)
     (history : List MedenSpec.CheckJobs.Ticket) (actions : List Action)
     (t : CheckTicket) (o : EvidenceOrigin) (s : Subject) (r : CheckResult)
-    (hi : MedenImpl.evidence.CheckJobs.new scope = ok initial)
+    (hi : MedenEvidenceImpl.evidence.CheckJobs.new scope = ok initial)
     (hr : runExtracted initial [] actions = ok (final, history))
-    (hc : MedenImpl.evidence.CheckJobs.complete final g o t s r = ok (true, after, afterGate)) :
+    (hc : MedenEvidenceImpl.evidence.CheckJobs.complete final g o t s r = ok (true, after, afterGate)) :
     ticket t ∈ history := by
   have hm := complete_refines final g o t s r
   simp only [hc, bind_ok, Result.ok.injEq] at hm
   have hs := Completion.success_requires_job (jobs final) (gate g) (origin o)
     (ticket t) (subject s) (output r) (congrArg Prod.fst hm).symm
   have hf := finish_refines final o g t s
-  cases hn : MedenImpl.evidence.CheckJobs.finish final o g t s with
+  cases hn : MedenEvidenceImpl.evidence.CheckJobs.finish final o g t s with
   | ret out =>
     rcases out with ⟨accepted, finished⟩
     simp only [hn, bind_ok, Result.ok.injEq] at hf

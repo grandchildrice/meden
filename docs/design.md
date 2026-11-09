@@ -354,10 +354,17 @@ for request budgets, retained stops and valid call/result positions. The
 actual status classifier connects the two through a proved inspection
 bridge. These control proofs do not establish eventual coding success or
 cover the surrounding JSON, model transport and tool I/O interpreters.
-The first user-project path supports one fixed, host-reviewed Rust ledger
-contract through shared TUI/CLI sessions, actual extraction/Lean checking
-and exact retained library artifacts. [Its scope and setup](project-verification.md)
-exclude general contracts/backends, application persistence and authentication.
+The first user-project path supports host-reviewed contracts for bounded
+pure-u64 Rust transitions through shared TUI/CLI sessions, actual
+extraction/Lean checking and exact retained library artifacts. Counter and
+ledger projects use the same contract-data backend. The shared contract
+controller owns accepted meaning, replacement drafts, monotonic review
+revisions and issued jobs; its production operations and arbitrary finite
+compositions have Rust-to-Lean refinement. Returning to identical draft bytes
+after rejection requires a fresh review, and editing discards proof coverage.
+[The current scope and setup](project-verification.md) exclude broader types
+and backends, application persistence and authentication. Formula parsing,
+rendering, host provenance and the session I/O interpreter remain adapters.
 Meden's own release checklist remains fixed trusted host policy.
 Inference checks a host-approved, immutable session processor binding
 with the refined kernel. Local CLI/TUI inference now uses a separate offline

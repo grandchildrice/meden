@@ -14,7 +14,7 @@ use meden_agent::{
 };
 use meden_core::{
     evidence::{
-        CheckJobs, CheckResult, CheckTicket, EvidenceKind, EvidenceOrigin as Origin, Gate,
+        CheckResult, CheckTicket, ContractView, Contracts, EvidenceKind, EvidenceOrigin as Origin,
         Obligation, Subject,
     },
     Capability, Grant, Policy, Requirement,
@@ -35,6 +35,7 @@ use sha2::{Digest, Sha256};
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Reference {
+    pub revision: u64,
     pub session: String,
     pub contract: String,
 }
@@ -59,52 +60,47 @@ pub struct Summary {
 
 struct Agreement {
     contract: Contract,
-    scope: Subject,
-    obligation: Obligation,
-    gate: Gate,
+    view: ContractView,
 }
 
 impl Agreement {
-    fn new(session: &str, contract: Contract) -> Result<Self> {
-        let bytes = contract.canonical()?;
-        let obligation = Obligation {
-            statement: bytes.clone(),
-            kind: EvidenceKind::Refinement,
-            checker: kernel::checker_id(&contract)?.into_bytes(),
-        };
-        let scope = Subject {
-            session: session.as_bytes().to_vec(),
-            contract: bytes,
-            inputs: b"pending".to_vec(),
-        };
-        let gate = Gate::propose(scope.clone(), vec![obligation.clone()]);
-        Ok(Self {
-            contract,
-            scope,
-            obligation,
-            gate,
-        })
+    fn parse(view: ContractView) -> Result<Self> {
+        let contract = Contract::parse(std::str::from_utf8(&view.subject.contract)?)?;
+        anyhow::ensure!(
+            contract.canonical()? == view.subject.contract,
+            "stored meaning is not canonical"
+        );
+        anyhow::ensure!(
+            view.obligations.len() == 1,
+            "unsupported project obligation set"
+        );
+        Ok(Self { contract, view })
     }
-
     fn subject(&self, inputs: Vec<u8>) -> Subject {
         Subject {
             inputs,
-            ..self.scope.clone()
+            ..self.view.subject.clone()
         }
     }
-
     fn reference(&self, session: &str) -> Reference {
         Reference {
+            revision: self.view.revision,
             session: session.to_owned(),
-            contract: hash(&self.scope.contract),
+            contract: hash(&self.view.subject.contract),
         }
     }
 }
 
+fn obligation(contract: &Contract) -> Result<Obligation> {
+    Ok(Obligation {
+        statement: contract.canonical()?,
+        kind: EvidenceKind::Refinement,
+        checker: kernel::checker_id(contract)?.into_bytes(),
+    })
+}
+
 struct State {
-    accepted: Option<Agreement>,
-    draft: Option<Agreement>,
-    jobs: CheckJobs,
+    contracts: Contracts,
     dirty: bool,
     autorun: bool,
     artifact: Option<Artifact>,
@@ -128,7 +124,7 @@ impl Project {
                     let _ = write!(out, "{b:02x}");
                     out
                 });
-        let jobs = CheckJobs::new(session.as_bytes().to_vec());
+        let contracts = Contracts::new(session.as_bytes().to_vec());
         Self {
             session,
             bundle: std::env::var_os("MEDEN_VERIFIER_BUNDLE").map(PathBuf::from),
@@ -138,9 +134,7 @@ impl Project {
                 .unwrap_or(root)
                 .join("artifacts"),
             state: Mutex::new(State {
-                accepted: None,
-                draft: None,
-                jobs,
+                contracts,
                 dirty: false,
                 autorun: false,
                 artifact: None,
@@ -148,11 +142,9 @@ impl Project {
             }),
         }
     }
-
     pub fn matches(&self, root: &Path) -> bool {
         self.session == Self::new(root).session
     }
-
     fn bundle(&self) -> std::result::Result<Bundle, Failure> {
         let path = self.bundle.as_deref().ok_or_else(|| {
             Failure::unavailable(
@@ -161,7 +153,6 @@ impl Project {
         })?;
         Bundle::load(path).map_err(Failure::unavailable)
     }
-
     fn binding(agreement: &Agreement, report: &Report, source: &str) -> Result<Subject> {
         anyhow::ensure!(
             agreement.contract == report.contract,
@@ -170,27 +161,23 @@ impl Project {
         Ok(agreement.subject(serde_json::to_vec(&json!({"source":hash(source.as_bytes()),"artifact":report.artifact_sha256,
             "bundle":report.bundle_sha256,"checker":report.checker_sha256,"worker":report.worker_sha256}))?))
     }
-
-    pub fn propose(&self, contract: Contract, control: &Control) -> Result<Summary> {
+    pub fn propose(&self, contract: &Contract, control: &Control) -> Result<Summary> {
+        let bytes = contract.canonical()?;
+        let required = obligation(contract)?;
         {
             let state = self
                 .state
                 .lock()
                 .map_err(|_| anyhow::anyhow!("project unavailable"))?;
-            if state
-                .draft
-                .as_ref()
-                .or(state.accepted.as_ref())
-                .is_some_and(|a| a.contract == contract)
-            {
-                return Ok(self.summary(&state, false));
+            if state.contracts.displayed().is_some_and(|v| {
+                v.subject.contract == bytes && v.obligations == vec![required.clone()]
+            }) {
+                return self.summary(&state, false);
             }
         }
-        // A valid mathematical draft is not implementation evidence. Model
-        // terms are parsed as restricted data before any elaboration.
         let result = self.bundle().and_then(|bundle| {
             kernel::check_contract(
-                &contract,
+                contract,
                 &bundle,
                 &std::env::current_exe().map_err(Failure::unavailable)?,
                 control,
@@ -200,88 +187,110 @@ impl Project {
             self.record_failure(failure.clone());
             return Err(failure.into());
         }
-        let draft = Agreement::new(&self.session, contract)?;
         let mut state = self
             .state
             .lock()
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
         control
             .with_active(|| {
-                state.jobs.invalidate(Origin::Controller);
-                state.draft = Some(draft);
+                if !state
+                    .contracts
+                    .propose(Origin::Controller, bytes, vec![required])
+                {
+                    return Err(io::Error::other(
+                        "contract proposal refused or generations exhausted",
+                    ));
+                }
                 state.autorun = false;
                 state.failure = None;
-                Ok(self.summary(&state, false))
+                self.summary(&state, false).map_err(io::Error::other)
             })
             .map_err(Into::into)
     }
-
     fn reference(&self, agreement: &Agreement, reference: &Reference) -> Result<()> {
         anyhow::ensure!(
             reference.session == self.session
-                && reference.contract == hash(&agreement.scope.contract),
+                && reference.revision == agreement.view.revision
+                && reference.contract == hash(&agreement.view.subject.contract),
             "contract belongs to another session or is no longer the displayed proposal"
         );
         Ok(())
     }
-
     pub fn review(&self, reference: &Reference) -> Result<Summary> {
         let mut state = self
             .state
             .lock()
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
-        let agreement = if let Some(draft) = &mut state.draft {
-            draft
-        } else {
-            state.accepted.as_mut().context("no contract proposal")?
-        };
-        self.reference(agreement, reference)?;
-        anyhow::ensure!(agreement.gate.review(Origin::Host), "review refused");
-        Ok(self.summary(&state, false))
+        let agreement = Agreement::parse(
+            state
+                .contracts
+                .displayed()
+                .context("no contract proposal")?,
+        )?;
+        self.reference(&agreement, reference)?;
+        anyhow::ensure!(
+            state.contracts.review(
+                Origin::Host,
+                reference.session.as_bytes(),
+                reference.revision
+            ),
+            "review refused"
+        );
+        self.summary(&state, false)
     }
-
     pub fn accept(&self, reference: &Reference) -> Result<Summary> {
         let mut state = self
             .state
             .lock()
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
-        let draft = state.draft.as_mut().context("no pending contract")?;
-        self.reference(draft, reference)?;
+        let agreement = Agreement::parse(
+            state
+                .contracts
+                .displayed()
+                .context("no contract proposal")?,
+        )?;
+        self.reference(&agreement, reference)?;
         anyhow::ensure!(
-            draft.gate.accept(Origin::Host),
-            "contract must be reviewed before host acceptance"
+            state.contracts.accept(
+                Origin::Host,
+                reference.session.as_bytes(),
+                reference.revision
+            ),
+            "exact pending contract must be reviewed before host acceptance"
         );
-        state.jobs.invalidate(Origin::Controller);
-        state.accepted = state.draft.take();
         state.artifact = None;
         state.failure = None;
         state.dirty = true;
         state.autorun = true;
-        Ok(self.summary(&state, false))
+        self.summary(&state, false)
     }
-
     pub fn reject(&self, reference: &Reference) -> Result<Summary> {
         let mut state = self
             .state
             .lock()
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
-        self.reference(
-            state.draft.as_ref().context("no pending contract")?,
-            reference,
+        let agreement = Agreement::parse(
+            state
+                .contracts
+                .displayed()
+                .context("no contract proposal")?,
         )?;
-        state.draft = None;
-        // The accepted meaning and its evidence are retained. Source changes
-        // still require fresh checking, including after a rejected proposal.
-        Ok(self.summary(&state, false))
+        self.reference(&agreement, reference)?;
+        anyhow::ensure!(
+            state.contracts.reject(
+                Origin::Host,
+                reference.session.as_bytes(),
+                reference.revision
+            ),
+            "exact pending contract required"
+        );
+        self.summary(&state, false)
     }
-
     pub fn pending(&self) -> bool {
-        self.state.lock().is_ok_and(|s| s.draft.is_some())
+        self.state.lock().is_ok_and(|s| s.contracts.pending())
     }
     pub fn accepted(&self) -> bool {
-        self.state.lock().is_ok_and(|s| {
-            s.draft.is_none() && s.accepted.as_ref().is_some_and(|a| a.gate.is_accepted())
-        })
+        self.state.lock().is_ok_and(|s| s.contracts.is_accepted())
     }
     pub fn current_reference(&self) -> Result<Reference> {
         Ok(self.stored_status()?.reference)
@@ -291,35 +300,28 @@ impl Project {
             .lock()
             .is_ok_and(|mut s| std::mem::take(&mut s.autorun))
     }
-
     pub fn continuation(&self) -> Result<String> {
         let state = self
             .state
             .lock()
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
         anyhow::ensure!(
-            state.draft.is_none(),
-            "pending contract requires host review"
+            state.contracts.is_accepted(),
+            "host acceptance of the current contract is required"
         );
-        let agreement = state.accepted.as_ref().context("no accepted contract")?;
-        Ok(format!("Proceed under the host-accepted contract. Implement {} and use verify_project. Repair failures; report unknown if verification cannot finish. Do not change the contract or checker. Accepted meaning (host-owned):\n{}", agreement.contract.source(), agreement.contract.review_text()))
+        let agreement =
+            Agreement::parse(state.contracts.accepted().context("no accepted contract")?)?;
+        Ok(format!("Proceed under the host-accepted contract. Implement {} and use verify_project. Repair failures; report unknown if verification cannot finish. Do not change the contract or checker. Accepted meaning (host-owned):\n{}",agreement.contract.source(),agreement.contract.review_text()))
     }
-
     pub fn mark_dirty(&self) {
         if let Ok(mut state) = self.state.lock() {
-            if let Some(agreement) = &mut state.accepted {
-                agreement
-                    .gate
-                    .refresh(Origin::Controller, agreement.subject(b"editing".to_vec()));
-            }
+            state.contracts.edit(Origin::Controller);
             state.dirty = true;
-            state.jobs.invalidate(Origin::Controller);
             if state.failure.as_ref().is_some_and(|f| f.kind.repairable()) {
                 state.failure = None;
             }
         }
     }
-
     pub fn begin_turn(&self) {
         if let Ok(mut state) = self.state.lock() {
             state.failure = None;
@@ -327,7 +329,7 @@ impl Project {
     }
     pub fn cancel(&self, control: &Control) {
         if let Ok(mut state) = self.state.lock() {
-            state.jobs.invalidate(Origin::Controller);
+            state.contracts.invalidate(Origin::Controller);
             control.cancel();
         } else {
             control.cancel();
@@ -341,7 +343,6 @@ impl Project {
             state.failure = Some(failure);
         }
     }
-
     pub fn status(
         &self,
         workspace: &Workspace,
@@ -356,78 +357,95 @@ impl Project {
             failure
         })
     }
-
     fn current_status(&self, workspace: &Workspace, control: &Control) -> Result<Summary> {
         let mut state = self
             .state
             .lock()
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
-        if state.jobs.is_active() || state.draft.is_some() {
-            return Ok(self.summary(&state, false));
+        if state.contracts.pending() || state.contracts.is_active() {
+            return self.summary(&state, false);
         }
-        let Some(agreement) = state.accepted.as_ref() else {
-            return Ok(self.summary(&state, false));
+        let Some(view) = state.contracts.accepted() else {
+            return self.summary(&state, false);
         };
         let Some(artifact) = state.artifact.as_ref() else {
-            return Ok(self.summary(&state, false));
+            return self.summary(&state, false);
         };
+        let agreement = Agreement::parse(view)?;
         let current = Self::binding(
-            agreement,
+            &agreement,
             &artifact.report,
             &snapshot(workspace, agreement.contract.source(), control)?,
         )?;
-        let verified = state.accepted.as_mut().is_some_and(|a| {
-            a.gate.refresh(Origin::Controller, current.clone()) && a.gate.eligible(&current)
-        });
+        let verified = state.contracts.refresh(
+            Origin::Controller,
+            agreement.view.revision,
+            current.inputs.clone(),
+        ) && state
+            .contracts
+            .eligible(agreement.view.revision, current.inputs);
         state.dirty = false;
-        Ok(self.summary(&state, verified))
+        self.summary(&state, verified)
     }
-
     pub fn stored_status(&self) -> Result<Summary> {
         let state = self
             .state
             .lock()
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
-        Ok(self.summary(&state, false))
+        self.summary(&state, false)
     }
-
-    fn summary(&self, state: &State, verified: bool) -> Summary {
-        let displayed = state.draft.as_ref().or(state.accepted.as_ref());
-        let reference = displayed.map_or_else(
+    fn summary(&self, state: &State, verified: bool) -> Result<Summary> {
+        let displayed = state
+            .contracts
+            .displayed()
+            .map(Agreement::parse)
+            .transpose()?;
+        let accepted = state
+            .contracts
+            .accepted()
+            .map(Agreement::parse)
+            .transpose()?;
+        let reference = displayed.as_ref().map_or_else(
             || Reference {
+                revision: 0,
                 session: self.session.clone(),
                 contract: String::new(),
             },
             |a| a.reference(&self.session),
         );
-        let mut review = displayed.map_or_else(String::new, |a| a.contract.review_text());
-        if state.draft.is_some() {
-            if let Some(accepted) = &state.accepted {
+        let mut review = displayed
+            .as_ref()
+            .map_or_else(String::new, |a| a.contract.review_text());
+        if state.contracts.pending() {
+            if let Some(accepted) = &accepted {
                 review = format!("Previously accepted contract (retained until host accepts a replacement):\n{}\n\nProposed replacement:\n{review}",accepted.contract.review_text());
             }
         }
-        let artifact = if state.draft.is_none() {
-            state.artifact.as_ref()
-        } else {
+        let artifact = if state.contracts.pending() {
             None
+        } else {
+            state.artifact.as_ref()
         };
-        Summary {
+        Ok(Summary {
             reference,
             proposed: displayed.is_some(),
-            accepted: state.draft.is_none() && state.accepted.is_some(),
-            verified: verified && !state.dirty && state.draft.is_none(),
+            accepted: state.contracts.is_accepted(),
+            verified: verified && !state.dirty && !state.contracts.pending(),
             verification_failure: state.failure.as_ref().map(|f| f.kind),
-            contract: displayed.map(|a| a.contract.clone()),
-            accepted_contract: state.accepted.as_ref().map(|a| a.contract.clone()),
+            contract: displayed.as_ref().map(|a| a.contract.clone()),
+            accepted_contract: accepted.map(|a| a.contract),
             review,
-            source_path: displayed.map_or_else(String::new, |a| a.contract.source().to_owned()),
-            api: displayed.map_or_else(String::new, |a| a.contract.api()),
+            source_path: displayed
+                .as_ref()
+                .map_or_else(String::new, |a| a.contract.source().to_owned()),
+            api: displayed
+                .as_ref()
+                .map_or_else(String::new, |a| a.contract.api()),
             artifact: artifact.map(|a| a.directory.clone()),
             source_sha256: artifact.map(|a| a.report.source_sha256.clone()),
             artifact_sha256: artifact.map(|a| a.report.artifact_sha256.clone()),
-        }
+        })
     }
-
     pub fn verify(&self, workspace: &Workspace, control: &Control) -> Result<Summary> {
         let result = self.verify_current(workspace, control);
         if let Err(error) = &result {
@@ -438,39 +456,28 @@ impl Project {
         }
         result
     }
-
     fn verify_current(&self, workspace: &Workspace, control: &Control) -> Result<Summary> {
-        let contract = {
+        let agreement = {
             let mut state = self
                 .state
                 .lock()
                 .map_err(|_| anyhow::anyhow!("project unavailable"))?;
             anyhow::ensure!(
-                state.draft.is_none(),
-                "pending contract requires host review"
+                state.contracts.is_accepted(),
+                "host contract acceptance is required before verification"
             );
-            let agreement = state
-                .accepted
-                .as_mut()
-                .context("host contract acceptance is required before verification")?;
-            anyhow::ensure!(
-                agreement.gate.is_accepted()
-                    && agreement
-                        .gate
-                        .refresh(Origin::Controller, agreement.subject(b"checking".to_vec())),
-                "job binding refused"
-            );
-            let contract = agreement.contract.clone();
+            let agreement =
+                Agreement::parse(state.contracts.accepted().context("no accepted contract")?)?;
+            state.contracts.edit(Origin::Controller);
             state.dirty = true;
-            state.jobs.invalidate(Origin::Controller);
             state.failure = None;
-            contract
+            agreement
         };
-        let source = snapshot(workspace, contract.source(), control)?;
+        let source = snapshot(workspace, agreement.contract.source(), control)?;
         let bundle = self.bundle()?;
         let prepared = kernel::prepare_kernel(
             &source,
-            &contract,
+            &agreement.contract,
             &bundle,
             &std::env::current_exe().map_err(Failure::unavailable)?,
             control,
@@ -481,33 +488,30 @@ impl Project {
                 .lock()
                 .map_err(|_| anyhow::anyhow!("project unavailable"))?;
             control.with_active(|| {
-                if state.draft.is_some() {
-                    return Err(io::Error::other("contract changed during preparation"));
-                }
-                let State { accepted, jobs, .. } = &mut *state;
-                let agreement = accepted
-                    .as_ref()
-                    .ok_or_else(|| io::Error::other("no accepted contract"))?;
-                if agreement.contract != contract {
-                    return Err(io::Error::other("contract changed during preparation"));
-                }
-                let request = agreement.subject(serde_json::to_vec(prepared.inputs())?);
-                jobs.start(Origin::Controller, &agreement.gate, &request)
-                    .ok_or_else(|| io::Error::other("job issue refused"))
+                state
+                    .contracts
+                    .start(
+                        Origin::Controller,
+                        agreement.view.revision,
+                        serde_json::to_vec(prepared.inputs())?,
+                    )
+                    .ok_or_else(|| {
+                        io::Error::other("job issue refused or contract changed during preparation")
+                    })
             })?
         };
-        let result = self.run_job(prepared, &ticket, workspace, control);
+        let result = self.run_job(prepared, &agreement, &ticket, workspace, control);
         if result.is_err() {
             if let Ok(mut state) = self.state.lock() {
-                state.jobs.abort(Origin::Controller, &ticket);
+                state.contracts.abort(Origin::Controller, &ticket);
             }
         }
         result
     }
-
     fn run_job(
         &self,
         prepared: kernel::PreparedKernel<'_>,
+        agreement: &Agreement,
         ticket: &CheckTicket,
         workspace: &Workspace,
         control: &Control,
@@ -516,43 +520,41 @@ impl Project {
         let fresh = snapshot(workspace, checked.report().contract.source(), control)?;
         let mut inputs = checked.inputs();
         inputs.source_sha256 = hash(fresh.as_bytes());
+        let subject = Self::binding(agreement, checked.report(), &fresh)?;
+        let required = agreement
+            .view
+            .obligations
+            .first()
+            .context("no obligation")?;
         let mut state = self
             .state
             .lock()
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
         control
             .with_active(|| {
-                if state.draft.is_some() {
-                    return Err(io::Error::other("contract changed during checking"));
-                }
-                let State { accepted, jobs, .. } = &mut *state;
-                let agreement = accepted
-                    .as_mut()
-                    .ok_or_else(|| io::Error::other("no accepted contract"))?;
-                let current = agreement.subject(serde_json::to_vec(&inputs)?);
-                let subject =
-                    Self::binding(agreement, checked.report(), &fresh).map_err(io::Error::other)?;
                 let result = CheckResult {
                     subject: subject.clone(),
                     position: 0,
-                    obligation: agreement.obligation.clone(),
+                    obligation: required.clone(),
                     passed: true,
                 };
-                if checked.report().checker_sha256.as_bytes() != agreement.obligation.checker
-                    || !jobs.complete(
-                        &mut agreement.gate,
+                if checked.report().checker_sha256.as_bytes() != required.checker
+                    || !state.contracts.complete(
                         Origin::Checker,
+                        agreement.view.revision,
                         ticket,
-                        &current,
+                        serde_json::to_vec(&inputs)?,
                         result,
                     )
-                    || !agreement.gate.eligible(&subject)
+                    || !state
+                        .contracts
+                        .eligible(agreement.view.revision, subject.inputs)
                 {
                     return Err(io::Error::other("evidence correspondence refused"));
                 }
                 state.artifact = Some(checked.persist(&self.storage)?);
                 state.dirty = false;
-                Ok(self.summary(&state, true))
+                self.summary(&state, true).map_err(io::Error::other)
             })
             .map_err(Into::into)
     }
@@ -638,8 +640,9 @@ impl Tool for ProjectTool {
             return vec![Requirement::new(Capability::ProcessSpawn, None)];
         }
         let source = self.project.state.lock().ok().and_then(|s| {
-            s.accepted
-                .as_ref()
+            s.contracts
+                .accepted()
+                .and_then(|v| Agreement::parse(v).ok())
                 .map(|a| format!("/workspace/{}", a.contract.source()))
         });
         let mut requirements: Vec<_> = source
@@ -660,7 +663,7 @@ impl Tool for ProjectTool {
                     let contract = Contract::parse(&serde_json::to_string(
                         args.get("contract").context("contract is required")?,
                     )?)?;
-                    self.project.propose(contract, &self.control)
+                    self.project.propose(&contract, &self.control)
                 }
                 Operation::Verify | Operation::Status => {
                     anyhow::ensure!(args.is_empty(),"checking/status accept no model-supplied contract, checker, receipt, path or result");
@@ -692,18 +695,21 @@ mod tests {
     }
     // Review tests isolate the host state transition; integration tests run
     // the mandatory mathematical preflight before a real proposal is exposed.
-    fn draft(project: &Project, contract: Contract) -> Result<Reference> {
-        let agreement = Agreement::new(&project.session, contract)?;
-        let reference = agreement.reference(&project.session);
-        project
+    fn draft(project: &Project, contract: &Contract) -> Result<Reference> {
+        let mut state = project
             .state
             .lock()
-            .map_err(|_| anyhow::anyhow!("project unavailable"))?
-            .draft = Some(agreement);
-        Ok(reference)
+            .map_err(|_| anyhow::anyhow!("project unavailable"))?;
+        anyhow::ensure!(state.contracts.propose(
+            Origin::Controller,
+            contract.canonical()?,
+            vec![obligation(contract)?]
+        ));
+        let agreement = Agreement::parse(state.contracts.displayed().context("no draft")?)?;
+        Ok(agreement.reference(&project.session))
     }
     fn accepted(project: &Project) -> Result<Reference> {
-        let reference = draft(project, contract()?)?;
+        let reference = draft(project, &contract()?)?;
         project.review(&reference)?;
         project.accept(&reference)?;
         Ok(reference)
@@ -731,7 +737,7 @@ mod tests {
     fn host_review_and_acceptance_bind_the_displayed_bytes_and_session() -> Result<()> {
         let project = Project::new(Path::new("/sessions/one"));
         let original = contract()?;
-        let reference = draft(&project, original.clone())?;
+        let reference = draft(&project, &original)?;
         assert!(project.accept(&reference).is_err());
         let mut foreign = reference.clone();
         foreign.session.push_str("-other");
@@ -748,7 +754,7 @@ mod tests {
             .context("no specification")? = json!("s");
         *replacement.get_mut("examples").context("no examples")? = json!([]);
         let replacement = Contract::parse(&replacement.to_string())?;
-        let pending = draft(&project, replacement.clone())?;
+        let pending = draft(&project, &replacement)?;
         let summary = project.stored_status()?;
         assert!(!summary.accepted && !summary.verified);
         assert_eq!(summary.accepted_contract, Some(original.clone()));
@@ -759,7 +765,7 @@ mod tests {
         let mut changed = serde_json::to_value(replacement)?;
         *changed.get_mut("description").context("no description")? =
             json!("A new meaning requires a new review.");
-        let changed = draft(&project, Contract::parse(&changed.to_string())?)?;
+        let changed = draft(&project, &Contract::parse(&changed.to_string())?)?;
         assert!(project.accept(&pending).is_err());
         assert!(project.accept(&changed).is_err());
         assert_eq!(
@@ -774,70 +780,132 @@ mod tests {
     }
 
     #[test]
+    fn reproposing_identical_bytes_cannot_reuse_a_rejected_reference() -> Result<()> {
+        let project = Project::new(Path::new("/sessions/reproposal"));
+        let original = contract()?;
+        let old = draft(&project, &original)?;
+        project.review(&old)?;
+        project.reject(&old)?;
+        let new = draft(&project, &original)?;
+        assert_eq!(new.contract, old.contract);
+        assert_eq!(new.session, old.session);
+        assert!(new.revision > old.revision);
+        assert!(project.review(&old).is_err());
+        assert!(project.accept(&old).is_err());
+        assert!(project.reject(&old).is_err());
+        assert!(project.accept(&new).is_err());
+        project.review(&new)?;
+        project.accept(&new)?;
+        assert!(project.accepted());
+        Ok(())
+    }
+
+    #[test]
     fn editing_discards_evidence_before_another_status_read() -> Result<()> {
         let project = Project::new(Path::new("/sessions/editing"));
-        accepted(&project)?;
-        let (subject, ticket) = {
+        let reference = accepted(&project)?;
+        let (subject, ticket, result) = {
             let mut state = project
                 .state
                 .lock()
                 .map_err(|_| anyhow::anyhow!("project unavailable"))?;
-            let State { accepted, jobs, .. } = &mut *state;
-            let agreement = accepted.as_mut().context("no contract")?;
+            let agreement = Agreement::parse(state.contracts.accepted().context("no contract")?)?;
             let subject = agreement.subject(b"checked inputs".to_vec());
-            assert!(agreement.gate.refresh(Origin::Controller, subject.clone()));
-            let ticket = jobs
-                .start(Origin::Controller, &agreement.gate, &subject)
+            let ticket = state
+                .contracts
+                .start(
+                    Origin::Controller,
+                    reference.revision,
+                    subject.inputs.clone(),
+                )
                 .context("no job")?;
-            assert!(jobs.complete(
-                &mut agreement.gate,
+            let result = CheckResult {
+                subject: subject.clone(),
+                position: 0,
+                obligation: agreement
+                    .view
+                    .obligations
+                    .first()
+                    .context("no obligation")?
+                    .clone(),
+                passed: true,
+            };
+            assert!(state.contracts.complete(
                 Origin::Checker,
+                reference.revision,
                 &ticket,
-                &subject,
-                CheckResult {
-                    subject: subject.clone(),
-                    position: 0,
-                    obligation: agreement.obligation.clone(),
-                    passed: true,
-                }
+                subject.inputs.clone(),
+                result.clone()
             ));
-            assert!(agreement.gate.eligible(&subject));
-            let ticket = jobs
-                .start(Origin::Controller, &agreement.gate, &subject)
+            assert!(state
+                .contracts
+                .eligible(reference.revision, subject.inputs.clone()));
+            let ticket = state
+                .contracts
+                .start(
+                    Origin::Controller,
+                    reference.revision,
+                    subject.inputs.clone(),
+                )
                 .context("no job")?;
-            (subject, ticket)
+            (subject, ticket, result)
         };
         project.mark_dirty();
         let mut state = project
             .state
             .lock()
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
-        assert!(state.dirty && !state.jobs.is_active());
-        let State { accepted, jobs, .. } = &mut *state;
-        let agreement = accepted.as_mut().context("no contract")?;
-        assert!(agreement.gate.is_accepted());
-        assert!(agreement.gate.refresh(Origin::Controller, subject.clone()));
-        assert!(!agreement.gate.eligible(&subject));
-        assert!(!jobs.finish(Origin::Checker, &agreement.gate, &ticket, &subject));
+        assert!(state.dirty && !state.contracts.is_active());
+        assert!(state.contracts.is_accepted());
+        assert!(state.contracts.refresh(
+            Origin::Controller,
+            reference.revision,
+            subject.inputs.clone()
+        ));
+        assert!(!state
+            .contracts
+            .eligible(reference.revision, subject.inputs.clone()));
+        assert!(!state.contracts.complete(
+            Origin::Checker,
+            reference.revision,
+            &ticket,
+            subject.inputs,
+            result
+        ));
         Ok(())
     }
 
     #[test]
     fn cancelled_jobs_stay_cancelled_after_the_process_flag_is_reset() -> Result<()> {
         let project = Project::new(Path::new("/sessions/cancelled"));
-        accepted(&project)?;
-        let (subject, ticket) = {
+        let reference = accepted(&project)?;
+        let (subject, ticket, result) = {
             let mut state = project
                 .state
                 .lock()
                 .map_err(|_| anyhow::anyhow!("project unavailable"))?;
-            let State { accepted, jobs, .. } = &mut *state;
-            let agreement = accepted.as_ref().context("no contract")?;
+            let agreement = Agreement::parse(state.contracts.accepted().context("no contract")?)?;
             let subject = agreement.subject(b"same restored inputs".to_vec());
-            let ticket = jobs
-                .start(Origin::Controller, &agreement.gate, &subject)
+            let ticket = state
+                .contracts
+                .start(
+                    Origin::Controller,
+                    reference.revision,
+                    subject.inputs.clone(),
+                )
                 .context("no job")?;
-            (subject, ticket)
+            let result = CheckResult {
+                subject: subject.clone(),
+                position: 0,
+                obligation: agreement
+                    .view
+                    .obligations
+                    .first()
+                    .context("no obligation")?
+                    .clone(),
+                passed: true,
+            };
+            (subject, ticket, result)
         };
         let control = Control::new(Arc::new(AtomicBool::new(false)));
         project.cancel(&control);
@@ -847,13 +915,28 @@ mod tests {
             .state
             .lock()
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
-        let State { accepted, jobs, .. } = &mut *state;
-        let agreement = accepted.as_ref().context("no contract")?;
-        let next = jobs
-            .start(Origin::Controller, &agreement.gate, &subject)
+        let next = state
+            .contracts
+            .start(
+                Origin::Controller,
+                reference.revision,
+                subject.inputs.clone(),
+            )
             .context("no next job")?;
-        assert!(!jobs.finish(Origin::Checker, &agreement.gate, &ticket, &subject));
-        assert!(jobs.finish(Origin::Checker, &agreement.gate, &next, &subject));
+        assert!(!state.contracts.complete(
+            Origin::Checker,
+            reference.revision,
+            &ticket,
+            subject.inputs.clone(),
+            result.clone()
+        ));
+        assert!(state.contracts.complete(
+            Origin::Checker,
+            reference.revision,
+            &next,
+            subject.inputs,
+            result
+        ));
         Ok(())
     }
 }
