@@ -319,6 +319,22 @@ independent verifier rebuilt every received artifact file byte for byte.
 A debit-boundary fault passed the examples but failed Lean refinement.
 This tests the scoped package path, not general delivery or complete R1.
 
+A [recorded integer-fee cloud trial](../results/integer-fee-ollama-cloud-minimax-m3-1ca6d1f.json)
+uses the same generic backend for multiplication, integer division and
+remainder. From an empty workspace and one natural-language request, the
+model corrected invalid examples and an unsupported source shape without
+host formula or implementation repair. After explicit developer-harness
+review, its [contract](../results/sources/fee-quote-minimax-m3-1ca6d1f.contract.json)
+and [Rust source](../results/sources/fee-quote-minimax-m3-1ca6d1f.rs) produced
+eighteen audited roots and a native library. An independent check reproduced
+all fourteen artifact files byte for byte. Four injected faults passed all
+six accepted examples but failed Lean refinement: an unseen wrong result,
+division by zero, remainder by zero and an overflowing product. The record
+includes the original inputs, hashes and exact fault injections. This is
+one approved cloud trial of a pure calculation; it does not establish a
+success rate, nonexpert usability, finance transaction integration or
+100–600B local operation.
+
 The Lean job runs `python/tests/test_project_verification.py` and
 `python/tests/test_project_delivery.py` with the prepared offline bundle.
 Cases drive real CLI and PTY host review, forged

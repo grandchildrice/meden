@@ -342,6 +342,11 @@ A [checked-delivery trial](../results/checked-delivery-ollama-cloud-minimax-m3-8
 also exercises exact package review, one-use delivery and an independently
 reproduced native library. This scoped CLI path does not complete the
 session/interface correspondence required by increment 2.
+A [fee-quote cloud trial](../results/integer-fee-ollama-cloud-minimax-m3-1ca6d1f.json)
+extends that workflow to fixed-rate integer multiplication, division and
+remainder. Its independently rebuilt artifact and four rejected source
+faults establish the recorded pure-calculation path, with finance
+persistence/settlement and the large local deployment still open.
 Increment 3 completes the entire confidentiality boundary. Earlier
 increments must not claim R1 or operate as a mission-critical release.
 

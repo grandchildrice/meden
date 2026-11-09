@@ -1,0 +1,181 @@
+{
+  "kind": "single-ollama-cloud-integer-fee-trial",
+  "date": "2026-11-10",
+  "timezone": "Asia/Tokyo",
+  "source_commit": "1ca6d1f20ab2fc08606fd3277bdbac07648982b7",
+  "worker_sha256": "8b240b7e21b4620756a610fc023fa7e39ff66ea9e757d34d88d1ce93746eee3b",
+  "model": {
+    "provider": "Ollama Cloud",
+    "id": "minimax-m3",
+    "endpoint": "https://ollama.com/v1/chat/completions",
+    "weight_revision": "not exposed by service",
+    "parameter_count": "not established by this trial",
+    "sampling": "service defaults; seed not recorded"
+  },
+  "execution": {
+    "inference": "explicitly authorized external processor",
+    "code_and_proof_execution": "configured local offline workers",
+    "input_workspace": "empty synthetic project; no repository files imported",
+    "exchange_budget_seconds": 300,
+    "trial_wall_budget_seconds": 1800,
+    "cloud_fallback": false
+  },
+  "instruction": "Build a pure Rust integer fee quote transition. Use unsigned 64-bit integer amounts and a state that retains both the last rounded fee units and the exact remainder. The fixed fee rate is 25 basis points: scale the amount by 25, divide by ten thousand rounding down for the units, and retain the exact remainder from that division. Zero amounts are valid quotes. If the intermediate scaled amount would overflow unsigned 64-bit, preserve every field of the prior quote unchanged. Require the result fields to fit unsigned 64-bit for every input; for successful quotes the units and remainder must reconstruct the scaled amount exactly and the remainder must be less than ten thousand. This is only a pure calculation; account authorization, persistence and settlement are outside this project's scope. Propose a precise mathematical contract for my review, then implement it and independently verify the accepted contract. Execute tools and proof checking locally. The configured Ollama Cloud model is authorized for this synthetic project.",
+  "method": "One natural-language instruction through the generic pure-u64 contract-data backend. A developer harness reviewed the exact pending contract before acceptance. No formula, source or proof repair was supplied to the model. Independent rebuild and fault injection occurred after the model process exited, outside its workspace.",
+  "duration_seconds": 186.3197543369606,
+  "model_requests": 19,
+  "host_commands": 3,
+  "host_review_decisions": 1,
+  "process_exit": 0,
+  "cleanup": null,
+  "received_signal": null,
+  "conversation_outcomes": [
+    "needs_review",
+    "done"
+  ],
+  "accepted": true,
+  "verified": true,
+  "published_inputs": {
+    "source": "sources/fee-quote-minimax-m3-1ca6d1f.rs",
+    "contract": "sources/fee-quote-minimax-m3-1ca6d1f.contract.json",
+    "contract_sha256": "145eda5e6ea2c53cc2bed60499dfee259bf9f9d3d531378a3e647a181f27a526"
+  },
+  "successful_tools": {
+    "bash": 6,
+    "project_status": 2,
+    "list_cached_pages": 1,
+    "propose_contract": 1,
+    "write_file": 3,
+    "verify_project": 1
+  },
+  "failed_tools": {
+    "bash": 2,
+    "propose_contract": 2,
+    "write_file": 1,
+    "verify_project": 1
+  },
+  "observations": [
+    "The first contract proposal exceeded the property-name limit. The next proposal had two wrong example outputs; Lean rejected both equalities before host review. The model corrected the examples without host formula repair.",
+    "The accepted transition precisely specifies fixed 25-basis-point rounding and remainder, valid zero amounts and preservation of every prior field on intermediate overflow. Five properties and six examples were retained. The prior-quote well-formedness assumption does not restrict the unconditional all-u64 transition/refinement.",
+    "The model recovered from missing directories and a source-subset rejection of extra items/attributes. It reduced the source to the declared struct and transition without changing the accepted mathematical contract.",
+    "Actual model-written Rust was extracted with Charon/Aeneas and totally refined against the accepted mathematical transition. Eighteen ordered audit roots use only standard axioms.",
+    "Independent inspection matched the canonical accepted contract, original model write, current workspace, native archive, checker recipe, bundle, worker and every retained file hash. A fresh fixed-verifier invocation reproduced all fourteen artifact files byte for byte.",
+    "All four independent source faults passed all six original native examples, then failed the unchanged Lean implementation refinement with semantic proof diagnostics. No faulty candidate produced an artifact."
+  ],
+  "evidence": {
+    "source_sha256": "67162d0b0a4b537f4e8624258410072752e346f9cd33e53c5db2fe5bd3b5b59d",
+    "bundle_sha256": "f4f1961020b89b3f08ffbbab46f43687f3720d545e7a5f8766f2eb65edebeb65",
+    "checker_sha256": "bda2bf2dae77e524d9bc1d89d3ad9df1e95e600a6d2dba7984e543b2499505d7",
+    "worker_sha256": "8b240b7e21b4620756a610fc023fa7e39ff66ea9e757d34d88d1ce93746eee3b",
+    "artifact_sha256": "d2236f295c9bc3c4d1f07445ada3e741e0d74b5ec430b4111d5bd0e175686642",
+    "files": {
+      "AuditSpec.lean": "0f63944444fb0759e70c713980862d43ea0374f1395fb3b375d2b5514ce826a2",
+      "Candidate.lean": "f3c1dc129995f7a46330f494dc9b931e4458b3b5b51ebbc30ff1cdca4772d3a6",
+      "Cargo.lock": "4ee0ed85a83a4e3e50dc52b4457b0590ad73fd8f1a383ec9d34a33306a5e07e4",
+      "Cargo.toml": "c96e14fdef55b0ce16f2520f582958b953b3e7c972e4c3da792d33b7112b7708",
+      "Check.lean": "c778cda7762d64c4702fd28dacec9b7b1739734e722f8190b0a5ea2839f2b391",
+      "Spec.lean": "d89ecf94b40c2a29b758c39665062a5027dff63729f9ca28b5080178adec129d",
+      "Terms.lean": "1d8d504a192188b5a78a00dc62eab10673375278f27c78095b2909e83173e439",
+      "candidate.llbc": "3422c7bb8620fa04b31dd6fa78df6ac4a0f7d1d4f785c387be2faa3664d945af",
+      "check.sh": "382902f5a5d6ae7a793fa43df43601548edda7955e4e91d1182136d5f04ff427",
+      "contract.json": "145eda5e6ea2c53cc2bed60499dfee259bf9f9d3d531378a3e647a181f27a526",
+      "kernel.rs": "67162d0b0a4b537f4e8624258410072752e346f9cd33e53c5db2fe5bd3b5b59d",
+      "lib.rs": "1518ef50055a70b74094c868491950a971656ee8f6f07caed67d58ef74822f91",
+      "libmeden_kernel.rlib": "a9a4d5faa25582f7f7140de461ac2f3e3733407a0ae33e4b2d99980b79b6d525"
+    },
+    "audit": [
+      "'KernelContract.output_bounds' depends on axioms: [propext, Quot.sound]",
+      "'KernelContract.law_overflow_preserves_quote' depends on axioms: [propext, Quot.sound]",
+      "'KernelContract.law_reconstructs_scaled_amount' depends on axioms: [propext, Quot.sound]",
+      "'KernelContract.law_remainder_below_divisor' depends on axioms: [propext, Quot.sound]",
+      "'KernelContract.law_prior_quote_wellformed' depends on axioms: [propext, Quot.sound]",
+      "'KernelContract.law_zero_amount_valid_quote' depends on axioms: [propext]",
+      "'KernelContract.example_0' does not depend on any axioms",
+      "'KernelContract.example_1' does not depend on any axioms",
+      "'KernelContract.example_2' does not depend on any axioms",
+      "'KernelContract.example_3' does not depend on any axioms",
+      "'KernelContract.example_4' does not depend on any axioms",
+      "'KernelContract.example_5' does not depend on any axioms",
+      "'KernelProof.actual_refines' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelProof.law_overflow_preserves_quote' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelProof.law_reconstructs_scaled_amount' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelProof.law_remainder_below_divisor' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelProof.law_prior_quote_wellformed' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelProof.law_zero_amount_valid_quote' depends on axioms: [propext, Classical.choice, Quot.sound]"
+    ],
+    "scope": "Total functional refinement for all supported u64 inputs against the reviewed contract, conditional on the fixed preparer/checker, pinned Charon/Aeneas models, Lean kernel, compiler/native libraries, OS and SHA-256 assumptions."
+  },
+  "independent_rebuild": {
+    "exit": 0,
+    "duration_seconds": 24.329941265285015,
+    "all_artifact_files_byte_identical": true,
+    "file_count": 14
+  },
+  "independent_fault_checks": [
+    {
+      "case": "hidden-noop",
+      "exit": 1,
+      "duration_seconds": 15.386305842082947,
+      "contract_sha256": "145eda5e6ea2c53cc2bed60499dfee259bf9f9d3d531378a3e647a181f27a526",
+      "source_sha256": "3ff7406d47d83490e6a71e1b667f0d8c1ab3151956fbdcb94005f1eba65ae74a",
+      "artifact_produced": false,
+      "native_examples_passed": true,
+      "diagnostic_sha256": "53817c685422fab66a438d9eca8207ee1f8330b5314a8fd616ef2a8b5b4213c2",
+      "rejected_at": "Lean implementation refinement after native examples passed",
+      "injection": "    if amount == 4 { return s; }\n"
+    },
+    {
+      "case": "zero-divisor",
+      "exit": 1,
+      "duration_seconds": 15.519082990009338,
+      "contract_sha256": "145eda5e6ea2c53cc2bed60499dfee259bf9f9d3d531378a3e647a181f27a526",
+      "source_sha256": "945edf03f99f8f02b97efaba735a1439304aaa4e40db49d776a4a2a678bb6993",
+      "artifact_produced": false,
+      "native_examples_passed": true,
+      "diagnostic_sha256": "bc50f8c86dad4dab7f17f49d0b75753e4052b663887ce3e029205a3f9224873a",
+      "rejected_at": "Lean implementation refinement after native examples passed",
+      "injection": "    if amount == 2 && s.units == 0 {\n        let latent = amount / s.units;\n        if latent != 0 { return s; }\n    }\n"
+    },
+    {
+      "case": "zero-remainder",
+      "exit": 1,
+      "duration_seconds": 15.6839190130122,
+      "contract_sha256": "145eda5e6ea2c53cc2bed60499dfee259bf9f9d3d531378a3e647a181f27a526",
+      "source_sha256": "44c461f79c9942a2c6eaaaa9a1001a76d868ce31770740f056e7d913e47c45e1",
+      "artifact_produced": false,
+      "native_examples_passed": true,
+      "diagnostic_sha256": "a6a0e49c821b375ce15aca7a7a300196def3171b107040b2f55107065ff9472f",
+      "rejected_at": "Lean implementation refinement after native examples passed",
+      "injection": "    if amount == 5 && s.units == 0 {\n        let latent = amount % s.units;\n        if latent != amount { return s; }\n    }\n"
+    },
+    {
+      "case": "overflow",
+      "exit": 1,
+      "duration_seconds": 15.723182848189026,
+      "contract_sha256": "145eda5e6ea2c53cc2bed60499dfee259bf9f9d3d531378a3e647a181f27a526",
+      "source_sha256": "afdec3bbd53df5d65318a645b7975f04ac26207995fac317df96cf6d665954fe",
+      "artifact_produced": false,
+      "native_examples_passed": true,
+      "diagnostic_sha256": "b0c70e49c1e5b516cc74b34c142b481213c0e6f2470dadc0bb008ad658c920f1",
+      "rejected_at": "Lean implementation refinement after native examples passed",
+      "injection": "    if amount == 3 {\n        let latent = u64::MAX * amount;\n        if latent == 0 { return s; }\n    }\n"
+    }
+  ],
+  "limitations": [
+    "One successful cloud trial is not a task-success rate or a controlled model comparison. Host review was by a developer harness; this does not establish nonexpert usability or a proved natural-language/formula bridge.",
+    "Inference used the explicitly approved external processor. No 100–600B local deployment, model-weight identity or local inference confidentiality was measured.",
+    "The proof covers the accepted pure u64 transition and listed properties. Account authorization, posting, persistence, concurrency and settlement remain outside this calculation.",
+    "JSON/decimal conversion, source/term parsing, host origin, filesystem observations, packaging, HTTP, compiler behavior and OS enforcement remain adapters or assumptions. This trial does not establish whole-product refinement, all R1 scenarios or finance/hardware certification."
+  ],
+  "retained_trace_sha256": {
+    "started.json": "db235e9471a7f6d5d334559e73163c6bacc3b51969f1da455419c17e944b23a7",
+    "events.jsonl": "e7937304e5b39251c0fe49c59f134e7fa9d7960d558a502fd52e3bfeea3a5fb9",
+    "report.json": "cdc4f07eb3174388bd17bbfb392d39de64c0218604fcf55bebd95850d6ebfdce",
+    "host-actions.jsonl": "495fb4293e132898e1330cfadf04b6a0ba91da4284c3b5df97ad75218fb997b2",
+    "host-decision.json": "b819feeae4ecbbabec58c087596c2a15e8c36c3d973cced3618a320b8aa1faf9",
+    "review-decisions.jsonl": "dae8c7a2edf7bbf0bbfc502e1a32a2ebd06a52b80da5566827ef80b3edaec9a9",
+    "timing.jsonl": "6451a559dc3aa95713211fc6ab110b959c4e0143d7181d1bc229edd4a768c540",
+    "independent-trace-inspection.json": "d09d55594aea1d20d5ecbf4ffec15a86f50533c6248370173955b7ea1b217bcd",
+    "independent-recheck.json": "3ea35070c3396cda734dee3bdf9ab136e0441cfea13a066986151f3e637680d5"
+  }
+}
