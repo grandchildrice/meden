@@ -1,7 +1,8 @@
 //! Trusted filesystem worker, executed inside the private namespace.
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use meden_agent::tool::{Args, ToolError};
+use meden_core::file::{Operation, Request};
 use serde_json::Value;
 use std::fmt::Write as _;
 use std::fs;
@@ -9,70 +10,28 @@ use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
 
 const OUTPUT_LIMIT: usize = 24_000;
-#[derive(Clone, Copy)]
-enum Operation {
-    Read,
-    List,
-    Write,
-    Edit,
-}
 struct FileOperation {
     root: PathBuf,
     operation: Operation,
 }
 
 pub fn run() -> Result<()> {
-    let request: Value = serde_json::from_reader(std::io::stdin().lock())?;
-    if request.get("operation").and_then(Value::as_str) == Some("snapshot") {
-        let args: Args = serde_json::from_value(
-            request
-                .get("arguments")
-                .cloned()
-                .context("missing arguments")?,
-        )?;
-        let path = FileOperation {
-            root: PathBuf::from("/workspace"),
-            operation: Operation::Read,
-        }
-        .resolve(&args)?;
-        let mut bytes = Vec::new();
-        anyhow::ensure!(
-            fs::metadata(&path)?.is_file(),
-            "snapshot source must be a regular file"
-        );
-        fs::File::open(path)?
-            .take(1_048_577)
-            .read_to_end(&mut bytes)?;
-        anyhow::ensure!(bytes.len() <= 1_048_576, "export exceeds 1 MiB");
-        serde_json::to_writer(std::io::stdout().lock(), &bytes)?;
-        return Ok(());
-    }
-    let operation = match request.get("operation").and_then(Value::as_str) {
-        Some("read_file") => Operation::Read,
-        Some("list_files") => Operation::List,
-        Some("write_file") => Operation::Write,
-        Some("edit_file") => Operation::Edit,
-        _ => anyhow::bail!("unknown file operation"),
-    };
-    let args: Args = serde_json::from_value(
-        request
-            .get("arguments")
-            .cloned()
-            .context("missing arguments")?,
-    )?;
+    let request: Request<Args> = serde_json::from_reader(std::io::stdin().lock())?;
+    let (operation, path, payload) = request.into_parts();
+    let path = String::from(path);
     let result = FileOperation {
         root: PathBuf::from("/workspace"),
         operation,
     }
-    .execute(&args)?;
-    serde_json::to_writer(std::io::stdout().lock(), &Value::String(result))?;
+    .execute(Path::new(&path), &payload)?;
+    serde_json::to_writer(std::io::stdout().lock(), &result)?;
     Ok(())
 }
 
 impl FileOperation {
     #[allow(clippy::unnecessary_debug_formatting)] // Keep untrusted paths quoted and escaped.
-    fn resolve(&self, args: &Args) -> Result<PathBuf, ToolError> {
-        let requested = PathBuf::from(text(args, "path")?);
+    fn resolve(&self, requested: &Path) -> Result<PathBuf, ToolError> {
+        let requested = requested.to_path_buf();
         let candidate = if requested.is_absolute() {
             requested
         } else {
@@ -122,9 +81,26 @@ impl FileOperation {
         Ok(path)
     }
 
-    fn execute(&self, args: &Args) -> Result<String, ToolError> {
-        let path = self.resolve(args)?;
+    fn execute(&self, requested: &Path, args: &Args) -> Result<Value, ToolError> {
+        let path = self.resolve(requested)?;
         match self.operation {
+            Operation::Snapshot => {
+                if !fs::metadata(&path).map_err(failed)?.is_file() {
+                    return Err(ToolError::Failed(
+                        "snapshot source must be a regular file".into(),
+                    ));
+                }
+                let mut bytes = Vec::new();
+                fs::File::open(path)
+                    .map_err(failed)?
+                    .take(1_048_577)
+                    .read_to_end(&mut bytes)
+                    .map_err(failed)?;
+                if bytes.len() > 1_048_576 {
+                    return Err(ToolError::Failed("export exceeds 1 MiB".into()));
+                }
+                serde_json::to_value(bytes).map_err(failed)
+            }
             Operation::Read => {
                 let offset = integer(args, "offset", 1)?;
                 let limit = integer(args, "limit", 200)?.min(2000);
@@ -148,7 +124,7 @@ impl FileOperation {
                     }
                     let _ = writeln!(output, "{}: {line}", index.saturating_add(1));
                 }
-                Ok(output)
+                Ok(Value::String(output))
             }
             Operation::List => {
                 let mut entries = fs::read_dir(path)
@@ -173,11 +149,11 @@ impl FileOperation {
                 if entries.len() > 500 {
                     output.push_str("[more entries omitted]\n");
                 }
-                Ok(output)
+                Ok(Value::String(output))
             }
             Operation::Write => {
                 atomic_write(&path, text(args, "content")?)?;
-                Ok("File written.".into())
+                Ok(Value::String("File written.".into()))
             }
             Operation::Edit => {
                 let original = fs::read_to_string(&path).map_err(failed)?;
@@ -194,7 +170,7 @@ impl FileOperation {
                     ));
                 }
                 atomic_write(&path, &original.replacen(old, new, 1))?;
-                Ok("File edited.".into())
+                Ok(Value::String("File edited.".into()))
             }
         }
     }
@@ -242,13 +218,19 @@ mod tests {
     use super::*;
     use serde_json::json;
 
-    fn execute(root: &Path, operation: Operation, args: Value) -> Result<String, ToolError> {
-        let args = serde_json::from_value(args).expect("arguments");
+    fn execute(root: &Path, operation: Operation, args: Value) -> Result<Value, ToolError> {
+        let path = args
+            .get("path")
+            .and_then(Value::as_str)
+            .expect("path")
+            .to_owned();
+        let mut payload: Args = serde_json::from_value(args).expect("arguments");
+        payload.remove("path");
         FileOperation {
             root: root.to_owned(),
             operation,
         }
-        .execute(&args)
+        .execute(Path::new(&path), &payload)
     }
 
     #[test]

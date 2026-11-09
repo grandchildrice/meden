@@ -269,12 +269,16 @@ pub fn check(requirements: &[Requirement], policy: &Policy) -> Decision {
         if refusal == Refusal::Denied {
             reasons.push(format!(
                 "{} is denied by policy {:?} ({})",
-                req, policy.name, req.evidence
+                req,
+                policy.name,
+                req.evidence.as_deref().unwrap_or("")
             ));
         } else {
             reasons.push(format!(
                 "{} is not granted by policy {:?} ({})",
-                req, policy.name, req.evidence
+                req,
+                policy.name,
+                req.evidence.as_deref().unwrap_or("")
             ));
         }
     }

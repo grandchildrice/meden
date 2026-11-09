@@ -5,8 +5,9 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use anyhow::{Context, Result};
-use meden_agent::tool::{Args, Tool, ToolError, ToolSig};
+use meden_agent::tool::{Args, Prepared as ToolPrepared, Tool, ToolError, ToolSig};
 use meden_agent::Registry;
+use meden_core::file::{Operation as FileOperation, Request as FileRequest};
 use meden_core::{Capability, Requirement};
 use meden_runtime::process::{self, Control, Limits, Termination};
 use meden_runtime::transfer::Export;
@@ -233,47 +234,60 @@ impl Tool for Propose {
     fn signature(&self) -> &ToolSig {
         &self.sig
     }
-    fn requirements(&self, args: &Args) -> Vec<Requirement> {
+    fn prepare(&self, args: Args) -> Result<ToolPrepared<'_>, ToolError> {
+        let target = args
+            .get("target")
+            .and_then(Value::as_str)
+            .ok_or_else(|| ToolError::Failed("missing target".into()))?
+            .to_owned();
         if self.artifact {
+            if args.len() != 1 {
+                return Err(ToolError::Failed(
+                    "artifact export accepts only target".into(),
+                ));
+            }
             let mut requirements: Vec<_> =
                 self.queue.project.read_requirement().into_iter().collect();
             requirements.push(Requirement::new(Capability::ProcessSpawn, None));
-            return requirements;
-        }
-        let path = crate::workspace::logical_path(args).map(|p| p.to_string_lossy().into_owned());
-        vec![Requirement::with_evidence(
-            Capability::FsRead,
-            path.as_deref(),
-            "propose_export.path",
-        )]
-    }
-    fn call(&self, args: &Args) -> Result<Value, ToolError> {
-        let result = (|| -> Result<Summary> {
-            let target = args
-                .get("target")
-                .and_then(Value::as_str)
-                .context("missing target")?;
-            if self.artifact {
-                anyhow::ensure!(args.len() == 1, "artifact export accepts only target");
-                let export = self.queue.project.prepare_artifact_export(
-                    &self.workspace,
-                    &self.control,
-                    target,
-                )?;
-                return self
+            return Ok(ToolPrepared::new((target, requirements), |target| {
+                let result = self
                     .queue
-                    .propose("verified project kernel package", export);
-            }
-            anyhow::ensure!(
-                crate::workspace::logical_path(args).is_some(),
-                "path leaves /workspace"
-            );
-            let path = args
-                .get("path")
-                .and_then(Value::as_str)
-                .context("missing path")?;
-            let input =
-                serde_json::to_vec(&json!({"operation":"snapshot", "arguments":{"path":path}}))?;
+                    .project
+                    .prepare_artifact_export(&self.workspace, &self.control, &target)
+                    .and_then(|export| {
+                        self.queue
+                            .propose("verified project kernel package", export)
+                    });
+                result
+                    .and_then(|summary| Ok(serde_json::to_value(summary)?))
+                    .map_err(|error| ToolError::Failed(error.to_string()))
+            }));
+        }
+        let path = args
+            .get("path")
+            .and_then(Value::as_str)
+            .and_then(crate::workspace::logical_path)
+            .ok_or_else(|| ToolError::Failed("path leaves /workspace".into()))?;
+        let source = path.to_string_lossy().into_owned();
+        let (request, requirements) =
+            FileRequest::new(FileOperation::Snapshot, source.as_str().into(), Args::new())
+                .prepare();
+        Ok(ToolPrepared::new(
+            ((request, source, target), requirements),
+            |(request, source, target)| self.snapshot(&request, &source, &target),
+        ))
+    }
+}
+
+impl Propose {
+    fn snapshot(
+        &self,
+        request: &FileRequest<Args>,
+        source: &str,
+        target: &str,
+    ) -> Result<Value, ToolError> {
+        let result = (|| -> Result<Summary> {
+            let input = serde_json::to_vec(request)?;
             let output = process::run_with_input(
                 &mut self.workspace.file_command()?,
                 &input,
@@ -293,7 +307,7 @@ impl Tool for Propose {
             let bytes: Vec<u8> = serde_json::from_str(&output.stdout)?;
             anyhow::ensure!(bytes.len() <= 1_048_576, "export exceeds 1 MiB");
             let export = self.queue.project.prepare_file_export(target, &bytes)?;
-            self.queue.propose(path, export)
+            self.queue.propose(source, export)
         })();
         result
             .and_then(|summary| Ok(serde_json::to_value(summary)?))

@@ -20,6 +20,22 @@ set_option maxRecDepth 2048
 
 namespace MedenPolicyImpl
 
+/-- [core::clone::impls::{impl core::clone::Clone for char}::clone]:
+    Source: '/rustc/library/core/src/clone.rs', lines 715:20-715:43; this code is generated from a macro invocation at: '/rustc/library/core/src/clone.rs', lines 728:4-733:5
+    Name pattern: [core::clone::impls::{core::clone::Clone<char>}::clone]
+    Visibility: public -/
+@[rust_fun "core::clone::impls::{core::clone::Clone<char>}::clone"]
+def Char.Insts.CoreCloneClone.clone (self : Char) : Result Char := do
+  ok self
+
+/-- Trait implementation: [core::clone::impls::{impl core::clone::Clone for char}]
+    Source: '/rustc/library/core/src/clone.rs', lines 713:16-713:39; this code is generated from a macro invocation at: '/rustc/library/core/src/clone.rs', lines 728:4-733:5
+    Name pattern: [core::clone::Clone<char>] -/
+@[reducible, rust_trait_impl "core::clone::Clone<char>"]
+def Char.Insts.CoreCloneClone : core.clone.Clone Char := {
+  clone := Char.Insts.CoreCloneClone.clone
+}
+
 /-- [meden_core::capability::Capability]
     Source: 'crates/meden-core/src/capability.rs', lines 16:0-50:1
     Visibility: public -/
@@ -70,7 +86,99 @@ def scope.Scope := alloc.vec.Vec Char
 structure capability.Requirement where
   capability : capability.Capability
   scope : Option scope.Scope
-  evidence : String
+  evidence : Option String
+
+/-- [meden_core::file::Operation]
+    Source: 'crates/meden-core/src/file.rs', lines 9:0-25:1
+    Visibility: public -/
+@[discriminant isize]
+inductive file.Operation where
+| Read : file.Operation
+| List : file.Operation
+| Write : file.Operation
+| Edit : file.Operation
+| Snapshot : file.Operation
+
+/-- [meden_core::file::Request]
+    Source: 'crates/meden-core/src/file.rs', lines 32:0-36:1
+    Visibility: public -/
+structure file.Request (T : Type _) where
+  operation : file.Operation
+  path : scope.Scope
+  payload : T
+
+/-- [meden_core::file::{meden_core::file::Request<T>}::new]:
+    Source: 'crates/meden-core/src/file.rs', lines 40:4-46:5
+    Visibility: public -/
+def file.Request.new
+  {T : Type _} (operation : file.Operation) (path : scope.Scope) (payload : T)
+  :
+  Result (file.Request T)
+  := do
+  ok { operation, path, payload }
+
+/-- [meden_core::scope::{impl core::clone::Clone for meden_core::scope::Scope}::clone]:
+    Source: 'crates/meden-core/src/scope.rs', lines 8:9-8:14
+    Visibility: public -/
+def scope.Scope.Insts.CoreCloneClone.clone
+  (self : scope.Scope) : Result scope.Scope := do
+  let v ← alloc.vec.CloneVec.clone Char.Insts.CoreCloneClone self
+  ok v
+
+/-- [meden_core::file::{meden_core::file::Request<T>}::prepare]:
+    Source: 'crates/meden-core/src/file.rs', lines 49:4-71:5
+    Visibility: public -/
+def file.Request.prepare
+  {T : Type _} (self : file.Request T) :
+  Result ((file.Request T) × (alloc.vec.Vec capability.Requirement))
+  := do
+  let (o, read) ←
+    match self.operation with
+    | file.Operation.Read => ok (file.Operation.Read, true)
+    | file.Operation.List => ok (file.Operation.List, true)
+    | file.Operation.Write => ok (file.Operation.Write, false)
+    | file.Operation.Edit => ok (file.Operation.Edit, true)
+    | file.Operation.Snapshot => ok (file.Operation.Snapshot, true)
+  let write ←
+    match o with
+    | file.Operation.Read => ok false
+    | file.Operation.List => ok false
+    | file.Operation.Write => ok true
+    | file.Operation.Edit => ok true
+    | file.Operation.Snapshot => ok false
+  let requirements ←
+    if read
+    then
+      do
+      let s ← scope.Scope.Insts.CoreCloneClone.clone self.path
+      alloc.vec.Vec.push (alloc.vec.Vec.new capability.Requirement)
+        ({
+           capability := capability.Capability.FsRead,
+           scope := (some s),
+           evidence := none
+         } : capability.Requirement)
+    else ok (alloc.vec.Vec.new capability.Requirement)
+  if write
+  then
+    let s ← scope.Scope.Insts.CoreCloneClone.clone self.path
+    let requirements1 ←
+      alloc.vec.Vec.push requirements
+        ({
+           capability := capability.Capability.FsWrite,
+           scope := (some s),
+           evidence := none
+         } : capability.Requirement)
+    ok ({ self with operation := o }, requirements1)
+  else ok ({ self with operation := o }, requirements)
+
+/-- [meden_core::file::{meden_core::file::Request<T>}::into_parts]:
+    Source: 'crates/meden-core/src/file.rs', lines 74:4-76:5
+    Visibility: public -/
+def file.Request.into_parts
+  {T : Type _} (self : file.Request T) :
+  Result (file.Operation × scope.Scope × T)
+  := do
+  ok (self.operation, self.path, self.payload)
 
 /-- [meden_core::glob::advance_row]: loop body 0:
     Source: 'crates/meden-core/src/glob.rs', lines 25:4-36:5 -/

@@ -119,8 +119,8 @@ pub struct Requirement {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scope: Option<Scope>,
     /// Where this requirement was found (`file:line`, a metadata field, ...).
-    #[serde(default)]
-    pub evidence: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub evidence: Option<String>,
 }
 
 impl Requirement {
@@ -129,7 +129,7 @@ impl Requirement {
         Self {
             capability,
             scope: scope.map(Scope::from),
-            evidence: String::new(),
+            evidence: None,
         }
     }
 
@@ -138,7 +138,7 @@ impl Requirement {
         Self {
             capability,
             scope: scope.map(Scope::from),
-            evidence: evidence.to_owned(),
+            evidence: Some(evidence.to_owned()),
         }
     }
 

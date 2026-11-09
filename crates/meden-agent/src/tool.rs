@@ -36,14 +36,46 @@ pub enum ToolError {
     Failed(String),
 }
 
+pub(crate) type Executor<'a> = Box<dyn FnOnce() -> Result<Value, ToolError> + 'a>;
+
+/// A frozen host call. Preparation exposes no public execution method;
+/// the conversation must obtain its consuming executor through policy admission.
+///
+/// ```compile_fail
+/// use meden_agent::tool::Prepared;
+/// let call = Prepared::new(((), vec![]), |()| Ok(serde_json::Value::Null));
+/// let (execute, _) = call.into_parts();
+/// execute();
+/// ```
+pub struct Prepared<'a> {
+    execute: Executor<'a>,
+    requirements: Vec<Requirement>,
+}
+
+impl<'a> Prepared<'a> {
+    /// Bind owned request data and its requirements to a one-use implementation.
+    pub fn new<T: 'a>(
+        (request, requirements): (T, Vec<Requirement>),
+        execute: impl FnOnce(T) -> Result<Value, ToolError> + 'a,
+    ) -> Self {
+        Self {
+            execute: Box::new(move || execute(request)),
+            requirements,
+        }
+    }
+
+    pub(crate) fn into_parts(self) -> (Executor<'a>, Vec<Requirement>) {
+        (self.execute, self.requirements)
+    }
+}
+
 /// An implementation owned by the host, never supplied by model output.
 pub trait Tool {
     /// Definition exposed to the model.
     fn signature(&self) -> &ToolSig;
-    /// Capabilities needed by this call.
-    fn requirements(&self, args: &Args) -> Vec<Requirement>;
-    /// Execute after the runtime admits the call.
-    fn call(&self, args: &Args) -> Result<Value, ToolError>;
+    /// Decode and freeze a request with its declared effects. Preparation must
+    /// perform no tool effect; execution is deferred until policy admission.
+    fn prepare(&self, args: Args) -> Result<Prepared<'_>, ToolError>;
 }
 
 /// Implementations available to a conversation.

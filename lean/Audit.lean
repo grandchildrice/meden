@@ -249,3 +249,15 @@ open MedenSpec
 #print axioms MedenSpec.PolicyRefinement.extracted_grants_monotone
 #print axioms MedenSpec.PolicyRefinement.owned_metadata_irrelevant
 #print axioms MedenSpec.PolicyRefinement.covers_evidence_irrelevant
+
+#print axioms MedenSpec.File.all_scoped
+#print axioms MedenSpec.File.permission_iff
+#print axioms MedenSpec.File.edit_requires_both
+#print axioms MedenSpec.FileRefinement.scope_clone
+#print axioms MedenSpec.FileRefinement.new_refines
+#print axioms MedenSpec.FileRefinement.prepare_refines
+#print axioms MedenSpec.FileRefinement.consume_refines
+#print axioms MedenSpec.FileRefinement.prepare_preserves_request
+#print axioms MedenSpec.FileRefinement.prepared_allowed_iff
+#print axioms MedenSpec.FileRefinement.admitted_trace_safe
+#print axioms MedenSpec.FileRefinement.denied_trace_empty

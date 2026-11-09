@@ -41,8 +41,12 @@ for unit in "${units[@]}"; do
       for method in refused cancelled stopped invalid; do
         rust_roots+=("meden_core::invocation::Error::$method")
       done
+      for method in new prepare into_parts; do
+        rust_roots+=("meden_core::file::Request::$method")
+      done
       extraction_args=(--extract-opaque-bodies --opaque core --opaque alloc --opaque std
-        --include core::cmp::impls --include core::option::Option --include core::result::Result)
+        --include core::cmp::impls --include core::option::Option --include core::result::Result
+        --include core::clone::impls)
       model=Policy ;;
     evidence)
       namespace=MedenEvidenceImpl
@@ -161,7 +165,8 @@ for unit in "${units[@]}"; do
       policy.violates_ref policy.evaluate_ref policy.allowed_ref policy.evaluate
       policy.allowed policy.violates policy.Policy.impl.denies policy.Policy.impl.grants
       invocation.Attempt.new invocation.Attempt.announce invocation.Attempt.dispatch
-      invocation.Error.refused invocation.Error.cancelled invocation.Error.stopped invocation.Error.invalid)
+      invocation.Error.refused invocation.Error.cancelled invocation.Error.stopped invocation.Error.invalid
+      file.Request.new file.Request.prepare file.Request.into_parts)
   elif [[ $unit == approval ]]; then
     definitions=(tui.approval.approves tui.approval.route)
   elif [[ $unit == text ]]; then

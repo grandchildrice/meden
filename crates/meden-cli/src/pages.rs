@@ -2,9 +2,8 @@
 
 use std::sync::Arc;
 
-use meden_agent::tool::{Args, Tool, ToolError, ToolSig};
+use meden_agent::tool::{Args, Prepared, Tool, ToolError, ToolSig};
 use meden_agent::Registry;
-use meden_core::Requirement;
 use meden_runtime::pages::Pages;
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -40,12 +39,16 @@ impl Tool for Cached {
         &self.sig
     }
 
-    fn requirements(&self, _args: &Args) -> Vec<Requirement> {
+    fn prepare(&self, args: Args) -> Result<Prepared<'_>, ToolError> {
         // Immutable in-memory data: no filesystem or network authority needed.
-        Vec::new()
+        Ok(Prepared::new((args, Vec::new()), |args| {
+            self.execute(&args)
+        }))
     }
+}
 
-    fn call(&self, args: &Args) -> Result<Value, ToolError> {
+impl Cached {
+    fn execute(&self, args: &Args) -> Result<Value, ToolError> {
         if self.sig.name == "list_cached_pages" {
             if !args.is_empty() {
                 return Err(failed("list_cached_pages takes no arguments"));
@@ -91,14 +94,29 @@ mod tests {
         ).expect("cache"));
         let mut registry = Registry::new();
         register(&mut registry, &pages);
-        let tool = registry.get("read_cached_page").expect("reader");
-        let args = |value| serde_json::from_value(value).expect("arguments");
-        let result = tool
-            .call(&args(json!({"id":0,"offset":1,"limit":2})))
-            .expect("read");
+        let read = |arguments: Value| {
+            let call = meden_agent::conversation::ToolCall {
+                id: "page".into(),
+                function: meden_agent::conversation::FunctionCall {
+                    name: "read_cached_page".into(),
+                    arguments: arguments.to_string(),
+                },
+            };
+            let result = meden_agent::conversation::execute(
+                &call,
+                &registry,
+                &meden_core::Policy::default(),
+                &|_| {},
+                &std::sync::atomic::AtomicBool::new(false),
+                &|| None,
+            )
+            .map_err(|_| "cached read refused")?;
+            serde_json::from_str::<Value>(&result).map_err(|_| "invalid cached output")
+        };
+        let result = read(json!({"id":0,"offset":1,"limit":2})).expect("read");
         assert_eq!(result.get("text"), Some(&json!("日🙂")));
         assert_eq!(result.get("next_offset"), Some(&json!(3)));
-        let end = tool.call(&args(json!({"id":0,"offset":3}))).expect("last");
+        let end = read(json!({"id":0,"offset":3})).expect("last");
         assert_eq!(end.get("text"), Some(&json!("z")));
         assert_eq!(end.get("next_offset"), Some(&Value::Null));
         for invalid in [
@@ -108,7 +126,7 @@ mod tests {
             json!({"id":0,"url":"https://example.test/secret"}),
             json!({"id":0,"approved":true}),
         ] {
-            assert!(tool.call(&args(invalid)).is_err());
+            assert!(read(invalid).is_err());
         }
     }
 }

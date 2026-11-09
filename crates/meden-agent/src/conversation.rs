@@ -323,8 +323,10 @@ pub fn execute(
                 }
             }
         }
-        let requirements = tool.requirements(&args);
-        Ok(((tool, args), requirements))
+        let prepared = tool
+            .prepare(args)
+            .map_err(|error| (Rule::InvalidArguments, error.to_string()))?;
+        Ok(prepared.into_parts())
     })();
     let mut attempt = Attempt::new(
         checked.map_err(|(rule, reason)| Refusal { rule, reason }),
@@ -356,12 +358,10 @@ pub fn execute(
     } else {
         (false, None)
     };
-    let (tool, args) = attempt
+    let execute = attempt
         .dispatch(cancelled, host_stop)
         .map_err(execution_error)?;
-    let result = tool
-        .call(&args)
-        .map_err(|e| ExecutionError::Tool(e.to_string()))?;
+    let result = execute().map_err(|e| ExecutionError::Tool(e.to_string()))?;
     Ok(result
         .as_str()
         .map_or_else(|| result.to_string(), str::to_owned))
@@ -442,16 +442,19 @@ mod tests {
         fn signature(&self) -> &ToolSig {
             &self.sig
         }
-        fn requirements(&self, _: &Args) -> Vec<Requirement> {
-            vec![Requirement::with_evidence(
+        fn prepare(&self, args: Args) -> Result<crate::tool::Prepared<'_>, ToolError> {
+            let requirements = vec![Requirement::with_evidence(
                 Capability::FsWrite,
                 Some("/workspace/out"),
                 "write",
-            )]
-        }
-        fn call(&self, _: &Args) -> Result<Json, ToolError> {
-            self.calls.set(self.calls.get().saturating_add(1));
-            Ok(json!("written"))
+            )];
+            Ok(crate::tool::Prepared::new(
+                (args, requirements),
+                move |_| {
+                    self.calls.set(self.calls.get().saturating_add(1));
+                    Ok(json!("written"))
+                },
+            ))
         }
     }
     fn call(id: &str, arguments: &str) -> ToolCall {

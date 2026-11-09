@@ -11,6 +11,47 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 GROUPS = [
     {
+        "source": "crates/meden-core/src/file.rs",
+        "package": "meden-core",
+        "model": "Policy",
+        "proof": "FileRefinement",
+        "prerequisites": ["PolicyRefinement", "InvocationRefinement"],
+        "test": "file::tests::exact_operation_path_and_payload_determine_all_file_effects",
+        "mutations": [
+            (
+                "edit_omits_read_authority",
+                "Operation::Read | Operation::List | Operation::Edit | Operation::Snapshot",
+                "Operation::Read | Operation::List | Operation::Snapshot",
+            ),
+            (
+                "edit_omits_write_authority",
+                "matches!(self.operation, Operation::Write | Operation::Edit)",
+                "matches!(self.operation, Operation::Write)",
+            ),
+            (
+                "file_read_declared_as_write",
+                "capability: Capability::FsRead,",
+                "capability: Capability::FsWrite,",
+            ),
+            (
+                "file_read_scope_discarded",
+                "capability: Capability::FsRead,\n                scope: Some(self.path.clone()),",
+                "capability: Capability::FsRead,\n                scope: None,",
+            ),
+            (
+                "prepared_file_path_substituted",
+                "(self, requirements)",
+                "{ let mut changed = self; changed.path = Scope::from(Vec::new()); "
+                "(changed, requirements) }",
+            ),
+            (
+                "worker_file_operation_substituted",
+                "(self.operation, self.path, self.payload)",
+                "(Operation::Read, self.path, self.payload)",
+            ),
+        ],
+    },
+    {
         "kernel": "policy",
         "model": "Policy",
         "proof": "PolicyRefinement",

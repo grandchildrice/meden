@@ -47,7 +47,7 @@ fn any_req() -> Requirement {
     Requirement {
         capability: any_cap(),
         scope: scoped.then(|| Scope::from(scope.to_vec())),
-        evidence: String::new(),
+        evidence: None,
     }
 }
 
@@ -151,7 +151,7 @@ fn scope_rules() {
     let unscoped_req = Requirement {
         capability: cap,
         scope: None,
-        evidence: String::new(),
+        evidence: None,
     };
     if g.capability == cap && g.scope.is_some() {
         assert!(!covers_ref(&g, &unscoped_req));

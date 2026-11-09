@@ -319,7 +319,7 @@ theorem owned_metadata_irrelevant (p : policy.Policy)
   simp only [owned_allowed_refines, owned, h]
 
 theorem covers_evidence_irrelevant (g : policy.Grant) (r : capability.Requirement)
-    (evidence : String) :
+    (evidence : Option String) :
     policy.covers_ref g { r with evidence := evidence } = policy.covers_ref g r := by
   simp [covers_refines, requirement]
 

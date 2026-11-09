@@ -26,7 +26,7 @@ attempt; an older completed run does not cover a newer commit.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, capability policy, scope matching, failure and display-scalar kernels, `lake build`, proof scan/audit, 110 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, file-request, capability policy, scope matching, failure and display-scalar kernels, `lake build`, proof scan/audit, 116 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A decision differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -529,8 +529,11 @@ requires the separate operating-system and outbound-adapter argument.
 ## Prepared tool invocation
 
 Model-selected tools, the outer controller's `verify_project` call and
-one-shot `meden exec` use the same `execute` function. It prepares the selected host implementation
-reference, owned argument map and declared requirements once. The only constructor
+one-shot `meden exec` use the same `execute` function. A host tool's `prepare`
+method consumes the argument map and binds owned request data and declared
+requirements to a one-use executor. Its public interface exposes no direct
+execution method; the old independent `requirements`/`call` methods are removed.
+The only constructor
 of [`Attempt<T, F>`](../crates/meden-core/src/invocation.rs) evaluates the actual
 owned capability policy against those requirements before retaining the pair.
 It accepts no external permission bit. Failed preparation retains its original
@@ -538,8 +541,10 @@ refusal; denied requirements retain the supplied policy refusal. The decision ob
 receives that admission result before dispatch. This is an existing
 policy-decision notification, not another user-approval interaction.
 Cancellation and the host stop are read again after an allowed notification.
-The implementation is called only with the pair returned by `Attempt.dispatch`;
-there is no second tool lookup or argument decode after permission.
+The executor is called only after it is returned by `Attempt.dispatch`.
+The conversation neither looks up the tool nor decodes the model's argument
+JSON a second time after permission. Tool-specific validation and worker
+transport remain adapters.
 
 [`Invocation.lean`](../lean/MedenSpec/Invocation.lean) specifies notification,
 resolution and the consumed preparation. The actual generic Rust constructors
@@ -550,8 +555,9 @@ models; its actual consuming projection and mapping preserve all four outcomes.
 [`InvocationRefinement.lean`](../lean/MedenSpec/InvocationRefinement.lean)
 connects all represented states and arbitrary finite method compositions to
 that specification, for every payload type. Thus its exact-payload claim
-applies to the complete implementation-reference/argument-map pair, rather
-than a replacement call ID or a boolean grant alone.
+applies to the prepared executor value returned by admission. Its binding to
+the captured request still needs the Rust boxing/closure adapter's semantic
+correspondence.
 
 | Audited theorem | Checked claim |
 | --- | --- |
@@ -583,6 +589,50 @@ physical stop attribution, trait implementations and I/O are separate
 obligations. A proof that the controller returns the selected pair does not
 prove the tool's effects or concurrent external state. It does not establish
 whole-session/interface correspondence or full confidentiality.
+
+## File requests: declared effects and worker fields
+
+[`file::Request<T>`](../crates/meden-core/src/file.rs) owns one operation,
+Unicode scalar path and opaque operation data. File-tool preparation normalizes
+the requested path once, removes it from the remaining argument map, and derives
+requirements from that request. The worker receives this same typed transport
+shape and consumes its operation/path/data fields. It chooses neither operation
+nor path from the remaining payload or a model-facing tool description.
+File reads, directory listing and byte snapshots require `fs.read`; writes
+require `fs.write`; editing requires both because it reads the old contents.
+Raw-file export and project snapshots use this same worker protocol.
+
+[`File.lean`](../lean/MedenSpec/File.lean) specifies these content effects and
+their exact requested scopes. [`FileRefinement.lean`](../lean/MedenSpec/FileRefinement.lean)
+checks the actual methods in `Generated/Policy.lean`. Scope cloning includes
+the extracted Rust `char` clone, not an opaque assumed scalar copier. Native
+vector growth is checked for the at-most-two requirements in Aeneas's model.
+Optional requirement provenance is diagnostic metadata; missing provenance
+uses `None` and never changes permission.
+
+| Audited theorem | Checked claim |
+| --- | --- |
+| `File.all_scoped`, `permission_iff` | Every declared content effect has the original requested path; permission requires a covering grant and no deny for every effect |
+| `File.edit_requires_both` | Editing requires read and write permission for that same path |
+| `FileRefinement.scope_clone` | The actual scalar-vector clone terminates with every scalar unchanged |
+| `FileRefinement.new_refines`, `prepare_refines` | Actual construction and preparation preserve the exact native operation/path/data request and derive the specified requirements |
+| `FileRefinement.consume_refines` | The actual consuming worker accessor returns those original operation/path/data fields |
+| `FileRefinement.prepare_preserves_request`, `prepared_allowed_iff` | Successful preparation preserves the native request and its actual policy evaluation agrees with the specified effects |
+| `FileRefinement.admitted_trace_safe`, `denied_trace_empty` | Composition of actual preparation and invocation control returns at most one original permitted file request after notification; denied effects return no request across any finite method composition |
+
+Six faults omit either edit authority, misclassify a read, remove its scope,
+replace the prepared path or substitute the worker operation. Each must fail
+the native regression, extract/compile and fail the unchanged refinement.
+Native isolation tests send conflicting operation/path values in payload data
+and inspect the real files and returned bytes. The core integration test
+rejects editing under read-only or write-only grants and admits it under both.
+
+These results concern decoded requested paths. JSON/UTF-8 transport, the boxed
+executor's capture, OS path resolution, symlinks, concurrent filesystem changes
+and physical effects remain separate correspondence obligations. In particular,
+a scope for a requested pathname is not yet a proof about the inode eventually
+opened. Project-state snapshot attribution also remains separate. The current
+tests and proofs do not complete CTL-01, the full interface, or R1.
 
 ## Typed verification failures and stopping repair
 
@@ -798,7 +848,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with processor/review/dispatch and TUI approval checks, CI rejects
-110 faults, including contract revisions, outer/inner conversation, scope matching, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
+116 faults, including file-request, contract revision, outer/inner conversation, scope matching, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -884,7 +934,7 @@ Six additional semantic Rust faults exercise reused revisions, stale review,
 stale acceptance, pending eligibility, discarded accepted state and revived
 evidence after editing. Each must fail its native regression and the unchanged
 refinement after successful extraction/model compilation. They are part of
-the 110-fault CI corpus above.
+the 116-fault CI corpus above.
 
 Formula validation, canonical byte encoding, source/artifact input construction,
 host-origin attribution, JSON decoding, review rendering, locking, physical
@@ -894,7 +944,7 @@ session I/O loop or natural-language/formula equivalence.
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 236
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 247
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan

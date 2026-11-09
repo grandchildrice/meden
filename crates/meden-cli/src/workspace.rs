@@ -1,8 +1,9 @@
 //! Logical workspace tool router. File access occurs only in the worker.
 use anyhow::Result;
-use meden_agent::tool::{Args, Tool, ToolError, ToolSig};
+use meden_agent::tool::{Args, Prepared, Tool, ToolError, ToolSig};
 use meden_agent::Registry;
-use meden_core::{Capability, Policy, Requirement};
+use meden_core::file::{Operation, Request};
+use meden_core::Policy;
 use meden_runtime::process::{self, Control, Limits, Termination};
 use meden_runtime::workspace::Workspace;
 use serde_json::{json, Value};
@@ -10,13 +11,6 @@ use std::path::{Component, Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
 
-#[derive(Clone, Copy)]
-enum Operation {
-    Read,
-    List,
-    Write,
-    Edit,
-}
 struct FileTool {
     workspace: Arc<Workspace>,
     control: Arc<Control>,
@@ -61,8 +55,8 @@ pub fn environment(
     Ok((registry, policy))
 }
 
-pub fn logical_path(args: &Args) -> Option<PathBuf> {
-    let path = Path::new(args.get("path")?.as_str()?);
+pub fn logical_path(path: &str) -> Option<PathBuf> {
+    let path = Path::new(path);
     let relative = if path.is_absolute() {
         path.strip_prefix("/workspace").ok()?
     } else {
@@ -83,24 +77,23 @@ impl Tool for FileTool {
     fn signature(&self) -> &ToolSig {
         &self.sig
     }
-    fn requirements(&self, args: &Args) -> Vec<Requirement> {
-        let capability = match self.operation {
-            Operation::Read | Operation::List => Capability::FsRead,
-            Operation::Write | Operation::Edit => Capability::FsWrite,
-        };
-        let scope = logical_path(args).map(|p| p.to_string_lossy().into_owned());
-        vec![Requirement::with_evidence(
-            capability,
-            scope.as_deref(),
-            &self.sig.name,
-        )]
+    fn prepare(&self, mut args: Args) -> Result<Prepared<'_>, ToolError> {
+        let path = args
+            .get("path")
+            .and_then(Value::as_str)
+            .and_then(logical_path)
+            .ok_or_else(|| ToolError::Failed("path leaves /workspace".into()))?;
+        args.remove("path");
+        let request = Request::new(self.operation, path.to_string_lossy().as_ref().into(), args);
+        Ok(Prepared::new(request.prepare(), |request| {
+            self.execute(&request)
+        }))
     }
-    fn call(&self, args: &Args) -> Result<Value, ToolError> {
-        if logical_path(args).is_none() {
-            return Err(ToolError::Failed("path leaves /workspace".into()));
-        }
-        let input = serde_json::to_vec(&json!({"operation":self.sig.name, "arguments":args}))
-            .map_err(failed)?;
+}
+
+impl FileTool {
+    fn execute(&self, request: &Request<Args>) -> Result<Value, ToolError> {
+        let input = serde_json::to_vec(request).map_err(failed)?;
         let mut command = self.workspace.file_command().map_err(failed)?;
         let output = process::run_with_input(
             &mut command,

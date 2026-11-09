@@ -40,8 +40,59 @@ fn success(output: &Output) -> bool {
     matches!(output.termination, Termination::Exited(code) if code.success())
 }
 fn file(workspace: &Workspace, name: &str, args: &Value) -> Output {
-    let input = serde_json::to_vec(&json!({"operation": name, "arguments":args})).expect("request");
+    let operation = serde_json::from_value(json!(name)).expect("file operation");
+    let path = args.get("path").and_then(Value::as_str).expect("path");
+    let mut payload: meden_agent::tool::Args =
+        serde_json::from_value(args.clone()).expect("payload");
+    payload.remove("path");
+    let request = meden_core::file::Request::new(operation, path.into(), payload);
+    let input = serde_json::to_vec(&request).expect("request");
     run(&mut workspace.file_command().expect("file command"), &input)
+}
+
+#[test]
+fn file_worker_uses_only_the_prepared_operation_and_path() {
+    use meden_core::file::{Operation, Request};
+    let source = tempfile::tempdir().expect("source");
+    fs::write(source.path().join("permitted"), "original\n").expect("permitted file");
+    fs::write(source.path().join("other"), "OTHER-CANARY").expect("other file");
+    let session = import(source.path());
+    let payload: meden_agent::tool::Args = serde_json::from_value(json!({
+        "path":"other", "operation":"write_file", "content":"tampered"
+    }))
+    .expect("payload");
+    let request = Request::new(Operation::Read, "/workspace/permitted".into(), payload);
+    let output = run(
+        &mut session.0.file_command().expect("file command"),
+        &serde_json::to_vec(&request).expect("request"),
+    );
+    assert!(success(&output), "{}", output.stderr);
+    assert_eq!(
+        serde_json::from_str::<String>(&output.stdout).expect("text"),
+        "1: original\n"
+    );
+    assert_eq!(
+        fs::read_to_string(session.0.path().join("permitted")).expect("unchanged"),
+        "original\n"
+    );
+    assert_eq!(
+        fs::read_to_string(session.0.path().join("other")).expect("unchanged"),
+        "OTHER-CANARY"
+    );
+    let request = Request::new(
+        Operation::Snapshot,
+        "/workspace/other".into(),
+        meden_agent::tool::Args::new(),
+    );
+    let output = run(
+        &mut session.0.file_command().expect("file command"),
+        &serde_json::to_vec(&request).expect("request"),
+    );
+    assert!(success(&output), "{}", output.stderr);
+    assert_eq!(
+        serde_json::from_str::<Vec<u8>>(&output.stdout).expect("snapshot"),
+        b"OTHER-CANARY"
+    );
 }
 
 #[test]

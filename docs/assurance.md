@@ -13,8 +13,13 @@ returned across its finite compositions retains the original permitted requireme
 and exact request. Refused preparation emits nothing. Its agent failure adapter
 also refines the specified refusal/stop result. Requirement attribution and physical
 tool effects remain separate obligations.
+File preparation now derives required read/write effects and exact decoded scopes
+from the same operation/path/payload request consumed by the worker. Editing
+requires both authorities. Production preparation and consumption refine the file
+specification and compose with invocation control for finite request traces.
+Serialization, boxed-call capture and filesystem resolution/I/O remain adapters.
 The broader obligations below remain proposed. This defines completion criteria for
-[the product architecture](design.md). The current 236 Lean theorem
+[the product architecture](design.md). The current 247 Lean theorem
 entry points, six Kani harnesses and conformance checks are listed in
 [verification.md](verification.md).
 
@@ -271,7 +276,7 @@ proposed product. Extend these checks as each path becomes real. The first
 two now run for processor, export review, evidence, contract management, issued jobs, TUI approval,
 outer/inner conversation, policy-admitted tool invocation, capability policy,
 Unicode scope matching, failure and numeric display kernels,
-including 110 real Rust
+including 116 real Rust
 mutations that must fail unchanged refinement proofs:
 
 1. Re-extract production Rust under pinned toolchains. Fail on unsupported

@@ -52,8 +52,9 @@
   separately from JSON history, model transport and physical dispatch.
   Tool execution and controller-owned checker calls share the extracted
   core invocation controller. Its only constructor evaluates the actual owned
-  policy against the declared requirements, then freezes the selected implementation
-  reference and argument map. It requires a permitting notification, consumes preparation
+  policy against the declared requirements, then freezes a prepared one-use
+  executor. Tool.prepare owns the request; Tool.call and independent requirements
+  methods have been removed. It requires a permitting notification, consumes preparation
   on every dispatch attempt and checks cancellation/host stop after notification.
   Generic payload/notification observations and arbitrary finite compositions
   are refined, including exact single-use admitted payloads and notification precedence.
@@ -61,12 +62,21 @@
   The actual agent failure adapter preserves refusal, cancellation and host stops.
   Registry/JSON preparation, requirement/resource attribution, observer interpretation, physical stop
   attribution, trait implementations and I/O remain adapter obligations.
+  File tools and snapshots share one typed core operation/path/payload request.
+  Its preparation derives all requirements from the original operation and exact
+  decoded path, preserving the whole request; edit requires read and write.
+  Preparation, Scope/char cloning and consuming worker fields are extracted/refined,
+  including composition with the invocation controller for finite request traces.
+  The actual worker consumes those fields instead of reparsing a path or operation
+  from payload/model-facing tool names. JSON/UTF-8, boxed-closure capture, filesystem
+  resolution/symlink races and physical I/O still require adapter correspondence.
   Scopes are immutable owned scalar vectors, serialized as ordinary strings.
   Scope.matches uses the extracted/refined Unicode glob kernel. The actual
   owned policy APIs, capability/scope checks, deny precedence, full requirement
   aggregation and per-input refusal vectors are extracted/refined too, with
   total completion in Aeneas's model. Diagnostics are produced after evaluation;
-  sorting/deduplication never determines the authority bit. String decoding,
+  sorting/deduplication never determines the authority bit. Requirement provenance
+  is optional diagnostic text, absent when unknown. String decoding,
   JSON, diagnostic rendering, input mapping and resource attribution remain gaps.
   Unknown grant labels and policy/grant object keys are configuration errors;
   do not restore permissive fallbacks for malformed authority configuration.

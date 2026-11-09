@@ -9,7 +9,7 @@ use std::time::Duration;
 
 use anyhow::{Context, Result};
 use meden_agent::{
-    tool::{Args, Tool, ToolError, ToolSig},
+    tool::{Args, Prepared, Tool, ToolError, ToolSig},
     Registry,
 };
 use meden_core::{
@@ -682,7 +682,14 @@ fn hash(bytes: &[u8]) -> String {
 }
 
 fn snapshot(workspace: &Workspace, path: &str, control: &Control) -> Result<String> {
-    let input = serde_json::to_vec(&json!({"operation":"snapshot","arguments":{"path":path}}))?;
+    let resolved =
+        crate::workspace::logical_path(path).context("kernel source leaves /workspace")?;
+    let request = meden_core::file::Request::new(
+        meden_core::file::Operation::Snapshot,
+        resolved.to_string_lossy().as_ref().into(),
+        Args::new(),
+    );
+    let input = serde_json::to_vec(&request)?;
     let output = process::run_with_input(
         &mut workspace.file_command().map_err(Failure::unavailable)?,
         &input,
@@ -752,17 +759,24 @@ impl Tool for ProjectTool {
     fn signature(&self) -> &ToolSig {
         &self.sig
     }
-    fn requirements(&self, _: &Args) -> Vec<Requirement> {
-        if matches!(self.operation, Operation::Propose) {
-            return vec![Requirement::new(Capability::ProcessSpawn, None)];
-        }
-        let mut requirements: Vec<_> = self.project.read_requirement().into_iter().collect();
-        if matches!(self.operation, Operation::Verify) {
-            requirements.push(Requirement::new(Capability::ProcessSpawn, None));
-        }
-        requirements
+    fn prepare(&self, args: Args) -> std::result::Result<Prepared<'_>, ToolError> {
+        let requirements = if matches!(self.operation, Operation::Propose) {
+            vec![Requirement::new(Capability::ProcessSpawn, None)]
+        } else {
+            let mut requirements: Vec<_> = self.project.read_requirement().into_iter().collect();
+            if matches!(self.operation, Operation::Verify) {
+                requirements.push(Requirement::new(Capability::ProcessSpawn, None));
+            }
+            requirements
+        };
+        Ok(Prepared::new((args, requirements), |args| {
+            self.execute(&args)
+        }))
     }
-    fn call(&self, args: &Args) -> std::result::Result<Value, ToolError> {
+}
+
+impl ProjectTool {
+    fn execute(&self, args: &Args) -> std::result::Result<Value, ToolError> {
         let result = (|| -> Result<Summary> {
             match self.operation {
                 Operation::Propose => {

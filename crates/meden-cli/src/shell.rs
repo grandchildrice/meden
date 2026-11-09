@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Result;
-use meden_agent::tool::{Args, Tool, ToolError, ToolSig};
+use meden_agent::tool::{Args, Prepared, Tool, ToolError, ToolSig};
 use meden_agent::Registry;
 use meden_core::{Capability, Grant, Policy, Requirement};
 use meden_runtime::process::{self, Control, Limits, Termination};
@@ -41,14 +41,20 @@ impl Tool for Shell {
     fn signature(&self) -> &ToolSig {
         &self.sig
     }
-    fn requirements(&self, _: &Args) -> Vec<Requirement> {
-        vec![Requirement::with_evidence(
+    fn prepare(&self, args: Args) -> Result<Prepared<'_>, ToolError> {
+        let requirements = vec![Requirement::with_evidence(
             Capability::ShellExec,
             None::<&str>,
             "bash.command",
-        )]
+        )];
+        Ok(Prepared::new((args, requirements), |args| {
+            self.execute(&args)
+        }))
     }
-    fn call(&self, args: &Args) -> Result<Value, ToolError> {
+}
+
+impl Shell {
+    fn execute(&self, args: &Args) -> Result<Value, ToolError> {
         let command = args
             .get("command")
             .and_then(Value::as_str)
