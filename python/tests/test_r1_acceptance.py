@@ -436,6 +436,9 @@ def test_prepared_rust_tools_hide_manager_config_and_unselected_siblings(tmp_pat
     source = tmp_path / "source"
     source.mkdir()
     (source / "rust-toolchain.toml").write_text('[toolchain]\nchannel="unprepared"\n')
+    (source / "bin").mkdir()
+    (source / "bin/python3").write_text("#!/bin/sh\nexit 97\n")
+    (source / "bin/python3").chmod(0o700)
     home = tmp_path / "host-cargo"
     (home / "bin").mkdir(parents=True)
     (home / "credentials.toml").write_text("PRIVATE-CARGO-CREDENTIAL")
@@ -458,6 +461,7 @@ def test_prepared_rust_tools_hide_manager_config_and_unselected_siblings(tmp_pat
         "#!/usr/bin/env python3\nimport json, os, pathlib, sys\n"
         + f"trace=pathlib.Path({str(trace)!r})\nprepared=pathlib.Path({str(prepared)!r})\n"
         + "assert os.environ['RUSTUP_AUTO_INSTALL']=='0'\nassert os.getcwd()=='/'\n"
+        + "assert 'BASH_ENV' not in os.environ and 'ENV' not in os.environ\n"
         + "with trace.open('a') as out: out.write(json.dumps(sys.argv[1:])+'\\n')\n"
         + "if sys.argv[1:]==['default']: print('frozen-host (default)')\n"
         + "else:\n    assert sys.argv[1:3]==['which','--toolchain']\n"
@@ -483,7 +487,8 @@ PY
 """
     env = {
         **os.environ, "CARGO_HOME": str(home), "RUSTUP_HOME": str(manager_home),
-        "PATH": str(home / "bin") + os.pathsep + os.environ["PATH"],
+        "PATH": os.pathsep.join([str(source / "bin"), str(home / "bin"), os.environ["PATH"]]),
+        "BASH_ENV": str(source / "untrusted-startup"), "ENV": str(source / "untrusted-startup"),
         "XDG_DATA_HOME": str(tmp_path / "data"),
     }
     env.pop("RUSTUP_TOOLCHAIN", None)

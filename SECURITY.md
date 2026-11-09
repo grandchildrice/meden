@@ -119,6 +119,13 @@ and isolation configuration are trusted. Toolchain mounts must be public
 resources, not confidential storage. OS enforcement and these worker/adapter
 implementations have integration tests, not a Lean refinement proof.
 
+Before isolation exists, automatically selected Bubblewrap/Bash and metadata
+helpers must resolve to canonical public system/Nix objects. Repository PATH
+entries are skipped; metadata helper child lookup uses a public-only PATH
+from `/`, without shell startup environment variables. Explicit backend and
+host Cargo-home configuration remain trusted. See the
+[observed preparation boundary](docs/r1-coverage.md#before-the-first-namespace).
+
 The `run` JSON Lines interface accepts instructions only and executes the
 same coding session as the TUI. Arbitrary host tool registration, supplied
 policy/system messages, host result callbacks and compatibility entry points

@@ -191,6 +191,7 @@ jobs:
           path: |
             ${{ runner.temp }}/adapter-tests/**/r1-observation.json
             ${{ runner.temp }}/adapter-tests/**/r1-events-debug.json
+            ${{ runner.temp }}/adapter-tests/**/preparation-observation.json
 
   npm:
     name: npm package (launcher checks, packs cleanly)

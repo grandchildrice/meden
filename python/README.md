@@ -22,6 +22,11 @@ observations in `r1-observation.json` under the pytest temporary directory.
 See the [R1 coverage matrix](../docs/r1-coverage.md) for scope and remaining work.
 Private virtualenvs/caches are
 not added to the mount layout just because they precede a tool in `PATH`.
+`test_preparation.py` also places hostile helper commands on absolute and
+relative repository PATH entries before startup. It checks observed TCP/host
+file effects as well as successful Cargo/Rust execution, retaining
+`preparation-observation.json`. The Nix metadata-helper paths require a Nix
+host; naming those cases on Ubuntu does not exercise that platform branch.
 
 The project-verification tests additionally require a release binary
 and a prepared `MEDEN_VERIFIER_BUNDLE`. The Lean CI job supplies that bundle

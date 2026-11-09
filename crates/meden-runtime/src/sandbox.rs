@@ -35,10 +35,10 @@ pub struct Sandbox {
     worker_loader: Option<PathBuf>,
 }
 
-fn find(program: &str) -> Option<PathBuf> {
+fn find(program: &str, approved: impl Fn(&Path) -> bool) -> Option<PathBuf> {
     std::env::split_paths(&std::env::var_os("PATH")?)
-        .map(|path| path.join(program))
-        .find(|path| path.is_file())
+        .filter_map(|path| path.join(program).canonicalize().ok())
+        .find(|path| path.is_file() && approved(path))
 }
 
 fn store_root(path: &Path) -> Option<&Path> {
@@ -46,25 +46,50 @@ fn store_root(path: &Path) -> Option<&Path> {
         .find(|p| p.parent() == Some(Path::new("/nix/store")))
 }
 
+fn public_path(path: &Path) -> bool {
+    store_root(path).is_some() || SYSTEM_ROOTS.iter().any(|root| path.starts_with(root))
+}
+
+fn find_public(program: &str) -> Option<PathBuf> {
+    find(program, public_path)
+}
+
+// Preparation runs before the namespace exists. Never execute a repository
+// PATH entry, including through a helper's interpreter or child lookup.
+fn host_command(program: &Path, name: &str) -> io::Result<Command> {
+    use std::os::unix::process::CommandExt as _;
+    let paths: Vec<_> = std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default())
+        .filter_map(|path| path.canonicalize().ok())
+        .filter(|path| path.is_dir() && public_path(path))
+        .collect();
+    let mut command = Command::new(program);
+    command
+        .arg0(name)
+        .current_dir("/")
+        .env(
+            "PATH",
+            std::env::join_paths(paths).map_err(io::Error::other)?,
+        )
+        .env_remove("BASH_ENV")
+        .env_remove("ENV");
+    Ok(command)
+}
+
 fn public_tools(nix_tools: bool) -> (Vec<(String, PathBuf)>, Option<PathBuf>) {
-    let search = std::env::var_os("PATH").unwrap_or_default();
     let mut tools: Vec<_> = TOOLS
         .iter()
         .filter_map(|name| {
             // A Python virtualenv/uv executable can shadow the public
             // Nix toolchain without being present in its mounted closure.
             // Pick a visible public object; never expose a host cache.
-            std::env::split_paths(&search)
-                .filter_map(|path| path.join(name).canonicalize().ok())
-                .find(|path| {
-                    path.is_file()
-                        && if nix_tools {
-                            path.starts_with("/nix/store")
-                        } else {
-                            SYSTEM_ROOTS.iter().any(|root| path.starts_with(root))
-                        }
-                })
-                .map(|path| ((*name).to_owned(), path))
+            find(name, |path| {
+                if nix_tools {
+                    store_root(path).is_some()
+                } else {
+                    SYSTEM_ROOTS.iter().any(|root| path.starts_with(root))
+                }
+            })
+            .map(|path| ((*name).to_owned(), path))
         })
         .collect();
     let mut manager = None;
@@ -82,18 +107,21 @@ fn public_tools(nix_tools: bool) -> (Vec<(String, PathBuf)>, Option<PathBuf>) {
 // must be the same installed object as an approved public/host Cargo binary.
 fn rustup_proxy() -> Option<PathBuf> {
     use std::os::unix::fs::MetadataExt as _;
-    let rustup = find("rustup")?.canonicalize().ok()?;
     let cargo_home = std::env::var_os("CARGO_HOME")
         .map(PathBuf::from)
         .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".cargo")));
-    let installed = cargo_home.and_then(|home| home.join("bin/rustup").canonicalize().ok());
-    if store_root(&rustup).is_none()
-        && !SYSTEM_ROOTS.iter().any(|root| rustup.starts_with(root))
-        && installed.as_ref() != Some(&rustup)
-    {
-        return None;
-    }
-    let proxy = find("cargo")?.metadata().ok()?;
+    let installed = cargo_home
+        .as_ref()
+        .and_then(|home| home.join("bin/rustup").canonicalize().ok());
+    let rustup = find("rustup", |path| {
+        public_path(path) || installed.as_deref() == Some(path)
+    })?;
+    let installed_cargo = cargo_home.and_then(|home| home.join("bin/cargo").canonicalize().ok());
+    let proxy = find("cargo", |path| {
+        public_path(path) || installed_cargo.as_deref() == Some(path)
+    })?
+    .metadata()
+    .ok()?;
     let manager = rustup.metadata().ok()?;
     (proxy.dev() == manager.dev() && proxy.ino() == manager.ino()).then_some(rustup)
 }
@@ -102,9 +130,9 @@ fn rustup_proxy() -> Option<PathBuf> {
 // toolchain override or rustup settings/cache is exposed to the child.
 fn prepared_rust(rustup: &Path) -> Option<Vec<(String, PathBuf)>> {
     let toolchain = std::env::var_os("RUSTUP_TOOLCHAIN").or_else(|| {
-        let output = Command::new(rustup)
+        let output = host_command(rustup, "rustup")
+            .ok()?
             .arg("default")
-            .current_dir("/")
             .env("RUSTUP_AUTO_INSTALL", "0")
             .output()
             .ok()?;
@@ -125,11 +153,11 @@ fn prepared_rust(rustup: &Path) -> Option<Vec<(String, PathBuf)>> {
             let path = if Path::new(&toolchain).is_absolute() {
                 Path::new(&toolchain).join("bin").join(name)
             } else {
-                let output = Command::new(rustup)
+                let output = host_command(rustup, "rustup")
+                    .ok()?
                     .args(["which", "--toolchain"])
                     .arg(&toolchain)
                     .arg(name)
-                    .current_dir("/")
                     .env("RUSTUP_AUTO_INSTALL", "0")
                     .output()
                     .ok()?;
@@ -179,9 +207,11 @@ fn resolve_libraries<'a>(
         // Resolve its public library objects, never expose nix-ld's
         // whole system profile or the whole Nix store.
         for binary in std::iter::once(worker).chain(assets) {
-            let output = Command::new(
-                find("ldd").ok_or_else(|| io::Error::other("ldd required for Nix worker"))?,
-            )
+            let output = host_command(
+                &find_public("ldd")
+                    .ok_or_else(|| io::Error::other("public ldd required for Nix worker"))?,
+                "ldd",
+            )?
             .arg(binary)
             .output()?;
             if !output.status.success() {
@@ -281,12 +311,10 @@ impl Sandbox {
         }
         let bwrap = std::env::var_os("MEDEN_BWRAP")
             .map(PathBuf::from)
-            .or_else(|| find("bwrap"))
+            .or_else(|| find_public("bwrap"))
             .ok_or_else(|| io::Error::other("bubblewrap is required for isolated execution"))?
             .canonicalize()?;
-        let nix_tools = find("bash")
-            .and_then(|path| path.canonicalize().ok())
-            .is_some_and(|path| path.starts_with("/nix/store"));
+        let nix_tools = find_public("bash").is_some_and(|path| path.starts_with("/nix/store"));
         let (tools, manager) = public_tools(nix_tools);
         let mut tool_bindings = rust_bindings(&tools);
         if let Some(manager) = manager.filter(|path| store_root(path).is_some()) {
@@ -324,10 +352,11 @@ impl Sandbox {
         if !roots.is_empty() {
             // Bind only the toolchain closure, never the whole Nix store or
             // the system profile (which can include host configuration).
-            let output = Command::new(
-                find("nix-store")
+            let output = host_command(
+                &find_public("nix-store")
                     .ok_or_else(|| io::Error::other("nix-store required for Nix toolchains"))?,
-            )
+                "nix-store",
+            )?
             .args(["--query", "--requisites"])
             .args(&roots)
             .output()?;

@@ -1377,6 +1377,21 @@ selection, dependency resolution, mounts and compiler execution remain trusted
 adapters. [Rustup's environment reference](https://rust-lang.github.io/rustup/environment-variables.html)
 defines the toolchain-selection and auto-install controls.
 
+Preparation also skips repository entries when automatically selecting
+Bubblewrap, Bash and the host `ldd`/`nix-store` metadata helpers. Canonical
+objects must belong to public system/Nix roots; an explicit `MEDEN_BWRAP`
+remains trusted host configuration. Metadata commands run from `/` with only
+public search directories in `PATH`, without `BASH_ENV`/`ENV`. Their command
+name is retained for multicall programs after canonicalization. Public
+software, manager configuration and host immutability remain assumptions.
+The [preparation tests](../python/tests/test_preparation.py) check real host
+canary/TCP observations for absolute and relative repository prefixes while
+requiring normal Rust execution. They caught actual host execution and
+disclosure through automatic helpers before the isolation namespace existed.
+Nix helper branches need a Nix-backed host; ordinary Ubuntu CI does not cover
+those branches by running the same test names. Interpreter lookup is also
+checked with a hostile repository `python3` and the prepared-manager fixture.
+
 [`test_r1_acceptance.py`](../python/tests/test_r1_acceptance.py) checks default,
 named and absolute host toolchain selections, hard-linked proxies, hidden
 credentials/settings/sibling files and read-only libraries. Another case

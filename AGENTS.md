@@ -25,6 +25,14 @@
   interval specifications. URL/IP conversion, DNS/connector/TLS attribution,
   JSON/cache interpretation and OS behavior remain adapters. Never expose the
   prefetch worker as a model-selected request or a general network executor.
+- Sandbox preparation automatically selects only canonical public system/Nix
+  Bash, Bubblewrap, ldd and nix-store objects. Skip repository PATH entries,
+  including shadow Rustup/Cargo proxies; retain the installed host toolchain.
+  Metadata helpers run from `/` with a public-only PATH and without shell
+  startup environment variables, preserving the selected multicall name.
+  Explicit MEDEN_BWRAP and Cargo-home configuration remain trusted host inputs.
+  Filesystem selection, helper software, configuration and OS enforcement are
+  adapters; do not call this a Lean proof of the launcher.
 - Preserve accepted intent, evidence/source/artifact linkage and local data
   control. The isolated planner is retired. The processor, export review and
   evidence kernels have Rust-to-Lean refinement. The combined export state

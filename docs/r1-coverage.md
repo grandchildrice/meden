@@ -39,6 +39,41 @@ executable SHA-256, namespace/digest markers, HTTP/DNS observations, elapsed
 timeout and CLI events. These are empirical observations of that executable
 and host configuration. They are separate from Lean proofs.
 
+## Before the first namespace
+
+[`test_preparation.py`](../python/tests/test_preparation.py) also exercises
+the public `exec` path from an untrusted source directory with absolute and
+relative repository entries at the front of `PATH`. It plants hostile `ldd`,
+`nix-store`, `bwrap`, `bash` and paired Rustup/Cargo commands. The hostile
+programs attempt to read a host-only random canary and send it to an observed
+TCP receiver, before returning failure. A startup error therefore cannot hide
+a disclosure. Host control requests check the receiver before and after each
+successful case; normal `cargo`/`rustc` execution must still work.
+When only the hostile search directory exists, startup must fail without
+executing it or sending the canary; no unconfined fallback is accepted.
+
+This found a real pre-confinement escape: with the prior implementation,
+automatic `ldd`/`nix-store` lookup on Nix and default `bwrap` lookup executed
+repository programs on the host. The receiver obtained the host canary.
+Automatic selection now skips those entries and executes only canonical
+public system/Nix objects. Metadata helpers run from `/`, receive a public
+search path and cannot inherit `BASH_ENV` or `ENV`. The selected command name
+is retained for multicall executables such as Nix. Shadow Rustup/Cargo proxies
+do not suppress the installed host toolchain. Prepared-Rust fixtures also
+check interpreter lookup with a hostile repository `python3`.
+
+The test retains `preparation-observation.json`: executable/canary hashes,
+attempted helper, absolute/relative lookup, host-execution marker, receiver
+bodies, public control count and CLI return code. CI uploads these alongside
+the other R1 observations. Nix-specific helper execution is covered on a Nix
+host; an ordinary Ubuntu run does not exercise that branch merely by naming
+a fake `nix-store`. Default Bubblewrap and public-tool selection are exercised
+on both layouts.
+
+Explicit `MEDEN_BWRAP`, host Cargo-home/manager configuration, public system
+software and its immutability remain trusted inputs. This is a tested
+preparation boundary, not a Lean proof of filesystem lookup or process launch.
+
 ## Coverage by acceptance criterion
 
 In this table, **combined** means the scenario above. Other tests run the
@@ -56,7 +91,7 @@ for the stated receiver observations.
 | R1-07: stale/forged/concurrent authority | Combined rejects wrong-session, pre-review, model-origin and replay approvals. `transfer.rs` observes no expired dispatch and exactly one send from four concurrent callers. Export/processor finite-trace proofs check the extracted kernels. | Mutex, clocks, protocol reference lookup and physical effects are tested/trusted adapters, not proved by those kernels. |
 | R1-08: false trust claims | Combined consumes page, repository, tool-result and assistant claims of trust/public classification/approval, including a JSON-shaped host approval in assistant prose. They grant no transfer. | Full protocol/UI origin and rendering correspondence remain separate obligations. |
 | R1-09: processor switch | Combined refuses a model's endpoint/provider switch after reading the canary. `test_model_transport.py` checks exact host approval; `test_tui_integration.py`/native TUI and gateway tests check processor authority. | Approved HTTP inference is explicitly external processing; loopback/LAN does not prove local confinement. A capable 100–600B local deployment still needs validation. |
-| R1-10: host capabilities | Combined checks missing host files and credential/proxy environment in inference and subprocesses. `tests/isolation.rs`, worker-file tests and `test_local_inference.py` check descriptors, sockets, symlinks, pinned targets and original-tree isolation. Prepared-Rust tests check hidden manager settings, credentials and unselected sibling files. | Hard-link identity, concurrent host/inode mutation and correct physical path/handle attribution remain OS/adapter assumptions. |
+| R1-10: host capabilities | Combined checks missing host files and credential/proxy environment in inference and subprocesses. `tests/isolation.rs`, worker-file tests and `test_local_inference.py` check descriptors, sockets, symlinks, pinned targets and original-tree isolation. Prepared-Rust tests check hidden manager settings, credentials and unselected sibling files. `test_preparation.py` observes that repository helpers cannot access host data before confinement. | Public helper/configuration trust, hard-link identity, concurrent host/inode mutation and correct physical path/handle attribution remain OS/adapter assumptions. |
 | R1-11: secondary disclosure | Combined configures proxy, telemetry/error-reporting and Rust download targets at observed receivers. Rejected content causes no request to them. | This does not enumerate every host integration or prove absence of all telemetry, resource/timing channels or future adapters. |
 | R1-12: uncertain delivery/retry | Combined observes exactly one body, holds the receiver open through the actual timeout, checks `delivery_uncertain` and refuses retry. Component/CLI tests also cover disconnect after receipt. | The remote recipient may already have the approved body; uncertainty cannot be rolled back. No authorization is persisted for restart recovery. |
 | R1-13: unavailable isolation | `tests/isolation.rs` checks the public execution path with a missing backend; `test_pages.py` checks no unconfined prefetch fallback. Local tests reject missing assets/configuration. | Other host/kernel/namespace misconfigurations and supported deployment environments need explicit validation; no permissive fallback is supported. |
@@ -83,6 +118,8 @@ From the repository root:
 cargo build --release -p meden-cli
 MEDEN_BIN="$PWD/target/release/meden" uv run --project python pytest -q \
   python/tests/test_r1_acceptance.py --basetemp /tmp/meden-r1
+MEDEN_BIN="$PWD/target/release/meden" uv run --project python pytest -q \
+  python/tests/test_preparation.py --basetemp /tmp/meden-preparation
 ```
 
 CI's Python job runs these tests with its compiled debug binary and uploads
