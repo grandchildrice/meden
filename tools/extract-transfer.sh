@@ -14,11 +14,11 @@ case $("$aeneas_bin" -version) in
   *) echo 'Unsupported Aeneas revision' >&2; exit 1 ;;
 esac
 
-units=(evidence approval repair conversation text processor)
+units=(evidence approval repair conversation text processor policy)
 case "$#:${1:-}:${2:-}" in
   0::|1:--write:) ;;
-  2:--write:evidence|2:--write:approval|2:--write:repair|2:--write:conversation|2:--write:text|2:--write:processor) units=("$2") ;;
-  *) echo 'Usage: tools/extract-transfer.sh [--write [evidence|approval|repair|conversation|text|processor]]' >&2; exit 2 ;;
+  2:--write:evidence|2:--write:approval|2:--write:repair|2:--write:conversation|2:--write:text|2:--write:processor|2:--write:policy) units=("$2") ;;
+  *) echo 'Usage: tools/extract-transfer.sh [--write [evidence|approval|repair|conversation|text|processor|policy]]' >&2; exit 2 ;;
 esac
 extract_tmp=$(mktemp -d)
 trap 'rm -rf "$extract_tmp"' EXIT
@@ -27,6 +27,12 @@ for unit in "${units[@]}"; do
   cargo_args=(--locked --lib -p meden-core)
   extraction_args=()
   case "$unit" in
+    policy)
+      namespace=MedenPolicyImpl
+      rust_roots=(meden_core::glob::glob_match_chars)
+      extraction_args=(--extract-opaque-bodies --opaque core --opaque alloc --opaque std
+        --include core::cmp::impls)
+      model=Policy ;;
     evidence)
       namespace=MedenEvidenceImpl
       # Shared core types are generated once for evidence/export composition.
@@ -137,6 +143,8 @@ for unit in "${units[@]}"; do
       export_control.State.impl.phase export_control.State.advance
       export_control.FrozenRequest.impl.target export_control.FrozenRequest.impl.body
       export_control.Dispatch.into_request)
+  elif [[ $unit == policy ]]; then
+    definitions=(glob.glob_match_chars glob.advance_row)
   elif [[ $unit == approval ]]; then
     definitions=(tui.approval.approves tui.approval.route)
   elif [[ $unit == text ]]; then

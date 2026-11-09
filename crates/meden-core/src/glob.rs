@@ -8,95 +8,77 @@
 //! structural recursion and the two can be compared exhaustively on small
 //! alphabets.
 //!
-//! Both implementations are the classic iterative two-pointer algorithm with
-//! a single backtrack point, so they use constant extra space, allocate
-//! nothing, and cannot overflow the stack on adversarial patterns.
+//! Both public entry points use one dynamic-programming matcher. A row stores
+//! the remaining pattern's result for each text suffix. Rows are updated from
+//! right to left, using O(text length) space and no recursive Rust calls.
 
-use std::str::Chars;
-
-/// Does `pattern` match `text`?
-///
-/// Allocation-free: the backtrack point is a pair of cloned [`Chars`]
-/// iterators, which are two pointers each.
+/// Does `pattern` match `text`? Decode scalars before invoking the shared kernel.
 pub fn glob_match(pattern: &str, text: &str) -> bool {
-    let mut p = pattern.chars();
-    let mut t = text.chars();
-    // (pattern just after the last '*', text at the position that '*' has
-    // absorbed up to).
-    let mut star: Option<(Chars<'_>, Chars<'_>)> = None;
-
-    loop {
-        let mut p_next = p.clone();
-        let pc = p_next.next();
-        let mut t_next = t.clone();
-        let tc = t_next.next();
-        match (pc, tc) {
-            (None, None) => return true,
-            (Some('*'), _) => {
-                p = p_next;
-                star = Some((p.clone(), t.clone()));
-            }
-            (Some(a), Some(b)) if a == '?' || a == b => {
-                p = p_next;
-                t = t_next;
-            }
-            // Mismatch, or one side exhausted: let the last '*' absorb one
-            // more character, if there is one and if there was a '*'.
-            _ => match &star {
-                Some((star_p, star_t)) => {
-                    let mut absorbed = star_t.clone();
-                    if absorbed.next().is_none() {
-                        return false;
-                    }
-                    p = star_p.clone();
-                    t = absorbed.clone();
-                    star = Some((star_p.clone(), absorbed));
-                }
-                None => return false,
-            },
-        }
-    }
+    with_scalars(pattern, |pattern| {
+        with_scalars(text, |text| glob_match_chars(pattern, text))
+    })
 }
 
-/// [`glob_match`] on already decoded characters.
-///
-/// Same relation as [`glob_match`]; kept because the model-checking
-/// harnesses can hand it stack arrays. A property test pins the two
-/// together.
-pub fn glob_match_chars(p: &[char], t: &[char]) -> bool {
-    let mut pi = 0usize; // index into pattern
-    let mut ti = 0usize; // index into text
-    let mut star: Option<(usize, usize)> = None; // (pattern idx after '*', text idx)
-
-    while ti < t.len() {
-        match (p.get(pi), t.get(ti)) {
-            (Some('*'), _) => {
-                // Record the backtrack point and try to match the rest of
-                // the pattern against the rest of the text.
-                pi = pi.saturating_add(1);
-                star = Some((pi, ti));
-            }
-            (Some(pc), Some(tc)) if *pc == '?' || pc == tc => {
-                pi = pi.saturating_add(1);
-                ti = ti.saturating_add(1);
-            }
-            _ => match star {
-                // Let the last '*' absorb one more character.
-                Some((spi, sti)) => {
-                    let next = sti.saturating_add(1);
-                    pi = spi;
-                    ti = next;
-                    star = Some((spi, next));
-                }
-                None => return false,
-            },
+// Keep short scope decoding on the stack; arbitrary lengths use the same kernel.
+#[allow(clippy::indexing_slicing)]
+fn with_scalars<T>(input: &str, use_scalars: impl FnOnce(&[char]) -> T) -> T {
+    let mut buffer = ['\0'; 32];
+    let mut length = 0;
+    for ch in input.chars() {
+        if let Some(slot) = buffer.get_mut(length) {
+            *slot = ch;
+            length = length.saturating_add(1);
+        } else {
+            let decoded: Vec<char> = input.chars().collect();
+            return use_scalars(&decoded);
         }
     }
-    // Only trailing stars may remain.
-    while p.get(pi) == Some(&'*') {
-        pi = pi.saturating_add(1);
+    // Only successful writes advance length, so it never exceeds the buffer.
+    use_scalars(&buffer[..length])
+}
+
+// Prepend one pattern character to the already evaluated suffix pattern.
+// The caller supplies exactly one cell per text character.
+// GlobRefinement.advance_row_refines proves the subtraction/access bounds
+// under that invariant, which glob_match_chars establishes and preserves.
+#[allow(clippy::arithmetic_side_effects, clippy::indexing_slicing)]
+fn advance_row(pc: char, text: &[char], mut row: Vec<bool>, empty: bool) -> (Vec<bool>, bool) {
+    let new_empty = pc == '*' && empty;
+    let mut old_right = empty;
+    let mut new_right = new_empty;
+    let mut index = text.len();
+    while index > 0 {
+        index -= 1;
+        let old = row[index];
+        let value = if pc == '*' {
+            old || new_right
+        } else {
+            (pc == '?' || pc == text[index]) && old_right
+        };
+        row[index] = value;
+        old_right = old;
+        new_right = value;
     }
-    pi == p.len()
+    (row, new_empty)
+}
+
+/// Match decoded Unicode scalars using the same kernel as [`glob_match`].
+/// Supports arbitrary `*`/`?` patterns, including empty inputs and `/`.
+/// `GlobRefinement.glob_match_chars_refines` proves all subtraction/access bounds.
+#[allow(clippy::arithmetic_side_effects, clippy::indexing_slicing)]
+pub fn glob_match_chars(pattern: &[char], text: &[char]) -> bool {
+    let mut row = vec![false; text.len()];
+    let mut empty = true;
+    let mut index = pattern.len();
+    while index > 0 {
+        index -= 1;
+        (row, empty) = advance_row(pattern[index], text, row, empty);
+    }
+    if text.is_empty() {
+        empty
+    } else {
+        row[0]
+    }
 }
 
 #[cfg(test)]
@@ -136,19 +118,74 @@ mod tests {
         assert!(glob_match("日本*", "日本語"));
     }
 
+    #[test]
+    fn stack_and_heap_decoding_preserve_unicode_boundaries() {
+        for length in [0, 31, 32, 33, 65] {
+            let prefix = "é".repeat(length);
+            let patterns = [
+                String::from("*"),
+                prefix.clone(),
+                format!("{prefix}?"),
+                format!("*{prefix}"),
+            ];
+            let texts = [prefix.clone(), format!("{prefix}🦀"), format!("x{prefix}")];
+            for pattern in &patterns {
+                for text in &texts {
+                    let p: Vec<char> = pattern.chars().collect();
+                    let t: Vec<char> = text.chars().collect();
+                    assert_eq!(glob_match(pattern, text), reference(&p, &t));
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn all_small_unicode_scopes_match_the_recursive_language() {
+        fn words(alphabet: &[char]) -> Vec<Vec<char>> {
+            let mut result = vec![Vec::new()];
+            let mut level = vec![Vec::new()];
+            for _ in 0..3 {
+                let mut next = Vec::new();
+                for prefix in &level {
+                    for ch in alphabet {
+                        let mut word = prefix.clone();
+                        word.push(*ch);
+                        next.push(word);
+                    }
+                }
+                result.extend(next.iter().cloned());
+                level = next;
+            }
+            result
+        }
+        let patterns = words(&['a', '*', '?', 'é']);
+        let texts = words(&['a', 'é', '🦀', '*', '?', '\0']);
+        for pattern in &patterns {
+            for text in &texts {
+                let expected = reference(pattern, text);
+                assert_eq!(
+                    glob_match_chars(pattern, text),
+                    expected,
+                    "{pattern:?} / {text:?}"
+                );
+                assert_eq!(
+                    glob_match(
+                        &pattern.iter().collect::<String>(),
+                        &text.iter().collect::<String>()
+                    ),
+                    expected,
+                    "{pattern:?} / {text:?}"
+                );
+            }
+        }
+    }
+
     proptest! {
         #[test]
         fn agrees_with_reference(p in "[ab*?]{0,6}", t in "[ab]{0,6}") {
             let pc: Vec<char> = p.chars().collect();
             let tc: Vec<char> = t.chars().collect();
             prop_assert_eq!(glob_match_chars(&pc, &tc), reference(&pc, &tc));
-        }
-
-        #[test]
-        fn str_and_slice_versions_agree(p in "[ab/.*?]{0,7}", t in "[ab/.]{0,7}") {
-            let pc: Vec<char> = p.chars().collect();
-            let tc: Vec<char> = t.chars().collect();
-            prop_assert_eq!(glob_match(&p, &t), glob_match_chars(&pc, &tc));
         }
 
         #[test]

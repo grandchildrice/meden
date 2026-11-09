@@ -11,12 +11,32 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 GROUPS = [
     {
+        "source": "crates/meden-core/src/glob.rs",
+        "package": "meden-core",
+        "model": "Policy",
+        "proof": "GlobRefinement",
+        "test": "glob::tests::all_small_unicode_scopes_match_the_recursive_language",
+        "mutations": [
+            ("star_requires_both_suffixes", "old || new_right", "old && new_right"),
+            ("question_mark_loses_wildcard", "pc == '?'", "pc == '!'"),
+            ("literal_reads_new_row", "old_right = old;", "old_right = value;"),
+            (
+                "empty_pattern_accepts_nonempty",
+                "let mut row = vec![false; text.len()];",
+                "let mut row = vec![true; text.len()];",
+            ),
+        ],
+    },
+    {
         "source": "crates/meden-agent/src/invocation.rs",
         "package": "meden-agent",
         "model": "Conversation",
         "proof": "InvocationRefinement",
         "prerequisites": ["ConversationRefinement"],
-        "test": "invocation::tests::notification_stop_exact_payload_and_consumption_share_one_controller",
+        "test": (
+            "invocation::tests::"
+            "notification_stop_exact_payload_and_consumption_share_one_controller"
+        ),
         "mutations": [
             (
                 "invocation_without_notification",

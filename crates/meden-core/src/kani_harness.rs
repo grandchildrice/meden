@@ -7,12 +7,12 @@
 //!
 //! Three rules keep these cheap enough for a hosted runner:
 //!
-//! * **No heap.** The harnesses run the rule on stack data only ([`GrantRef`],
-//!   [`ReqRef`], char arrays). Scopes come from a fixed menu of concrete
-//!   strings chosen by a symbolic index, so no string is symbolic.
-//! * **No panicking operation.** Every array access goes through `get`, so
-//!   slice bounds checks do not enter the model, and assertions are
-//!   `assert!` rather than `assert_eq!`, which keeps `Debug` formatting out.
+//! * **Small allocations.** Inputs use stack data ([`GrantRef`], [`ReqRef`],
+//!   char arrays). The shared matcher allocates one bounded row; scope strings
+//!   come from a fixed concrete menu, so no string is symbolic.
+//! * **Small checks.** Harness array access uses `get`; the shared matcher
+//!   retains its checked indexing. Assertions use `assert!` rather than
+//!   `assert_eq!`, keeping `Debug` formatting out of the model.
 //! * **No symbolic-length loops.** Arrays have a fixed length and symbolic
 //!   contents; a symbolic length is applied afterwards with `get(..n)`.
 //!

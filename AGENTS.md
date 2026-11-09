@@ -58,6 +58,12 @@
   are refined, including exact single-use payloads and notification precedence.
   Registry/JSON/policy preparation, observer interpretation, physical stop
   attribution, trait implementations and I/O remain adapter obligations.
+  Both scope-matcher entries use one scalar kernel; its actual row helper and
+  two loops are extracted/refined against the recursive Unicode glob language,
+  including total completion for all native slice inputs. String decoding,
+  policy aggregation/diagnostics, JSON and resource attribution remain gaps.
+  Unknown grant labels and policy/grant object keys are configuration errors;
+  do not restore permissive fallbacks for malformed authority configuration.
   Typed verification-failure classification and repair-stop decisions are
   extracted/refined; I/O mapping, host-stop attribution and history remain tested
   adapters. Operational failures stop automatic repair until a new host turn.

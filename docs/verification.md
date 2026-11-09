@@ -26,7 +26,7 @@ attempt; an older completed run does not cover a newer commit.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, failure and display-scalar kernels, `lake build`, proof scan/audit, 95 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, scope matching, failure and display-scalar kernels, `lake build`, proof scan/audit, 99 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A decision differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -97,7 +97,7 @@ approvals and arbitrary subsequent clock values.
 | `ProcessorRefinement.*_refines`, `*_getters_refine`, `local_consume_refines` | Actual Rust operations, snapshots and adapter observations agree with the specification |
 | `ProcessorTrace.trace_refines`, `extracted_frozen`, `extracted_revoked` | Arbitrary finite extracted executions preserve complete bindings and terminal revocation |
 
-[extract-transfer.sh](../tools/extract-transfer.sh) regenerates six raw
+[extract-transfer.sh](../tools/extract-transfer.sh) regenerates seven raw
 production models and rejects any drift or unknown function/proof hole.
 Processor authorization has its own [generated module](../lean/MedenSpec/Generated/Processor.lean);
 export review/dispatch, evidence and their delivery composition share
@@ -788,7 +788,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with processor/review/dispatch and TUI approval checks, CI rejects
-95 faults, including contract revisions, outer/inner conversation, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
+99 faults, including contract revisions, outer/inner conversation, scope matching, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -875,7 +875,7 @@ Six additional semantic Rust faults exercise reused revisions, stale review,
 stale acceptance, pending eligibility, discarded accepted state and revived
 evidence after editing. Each must fail its native regression and the unchanged
 refinement after successful extraction/model compilation. They are part of
-the 95-fault CI corpus above.
+the 99-fault CI corpus above.
 
 Formula validation, canonical byte encoding, source/artifact input construction,
 host-origin attribution, JSON decoding, review rendering, locking, physical
@@ -885,7 +885,7 @@ session I/O loop or natural-language/formula equivalence.
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 201
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 209
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -894,6 +894,51 @@ oracle sources.
 
 This does not prove the absence of bugs in Lean's kernel, its compiler or
 the operating system. Those components remain part of the trusted base.
+
+## Scope matching: actual Rust and recursive language
+
+Both public scope-matching functions use the same
+[`glob_match_chars`](../crates/meden-core/src/glob.rs) kernel. The string
+entry point decodes Unicode scalars before invoking it. The kernel evaluates
+one dynamic-programming row from right to left for each pattern scalar,
+using O(text length) memory and O(pattern length × text length) time.
+It has no recursive Rust calls or restricted pattern vocabulary.
+The string adapter decodes up to 32 scalars into a stack buffer and uses a
+heap vector for longer input. Both paths call that same scalar kernel;
+boundary regressions include lengths 31, 32, 33 and 65 with multibyte scalars.
+The buffer avoids repeatedly allocating decoding vectors for short policy
+scopes, keeping the existing Kani bounds practical without stubs or fewer checks.
+
+[`Policy.lean`](../lean/MedenSpec/Generated/Policy.lean) is the raw extraction
+of that production kernel and its row-update helper.
+[`GlobRefinement.lean`](../lean/MedenSpec/GlobRefinement.lean) proves equality
+with the existing recursive [`Glob.lean`](../lean/MedenSpec/Glob.lean)
+language for every pair of native character slices. Empty inputs, repeated
+`*`, `?`, `/`, NUL and arbitrary Unicode scalars are included. Both extracted
+loops have decreasing natural-number measures; successful completion and
+in-bounds accesses are established in Aeneas's model, without a length bound.
+
+| Theorem | Checked correspondence |
+| --- | --- |
+| `cell_refines`, `rowLoop_correct` | The row recurrence computes the recursive language on each suffix |
+| `advance_loop_refines`, `advance_row_refines` | The actual inner loop and row helper implement that recurrence |
+| `match_loop_refines`, `glob_match_chars_refines` | The actual outer loop and public scalar entry point return the specification's result |
+| `extracted_star`, `extracted_literal` | The production implementation inherits the lone-star and wildcard-free laws |
+
+Four native faults replace star disjunction with conjunction, remove the
+question wildcard, read an updated neighbor, or allow an empty pattern to
+match nonempty text.
+Each must fail the independent recursive-language regression, extract into
+a compiling model, and fail the unchanged refinement proof. The regression
+also compares both public entries over 22,015 small Unicode pattern/text pairs.
+
+UTF-8 string decoding, allocation/runtime behavior outside Aeneas's model,
+policy aggregation and diagnostics, JSON parsing and actual filesystem/network
+scope attribution remain separate obligations. In particular this proof
+does not establish the complete policy evaluator or R1. Configuration parsing
+now rejects unknown grant labels and unknown policy/grant object fields;
+regressions cover misspelled scope and deny keys that previously broadened
+file authority. Those parsing fixes are tested, not formally verified.
 
 ## Rust model checking and conformance
 

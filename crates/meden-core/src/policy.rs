@@ -18,7 +18,7 @@ use crate::glob::glob_match;
 
 /// A granted capability, optionally restricted to scopes matching a glob.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(from = "GrantRepr", into = "GrantRepr")]
+#[serde(try_from = "GrantRepr", into = "GrantRepr")]
 pub struct Grant {
     /// The capability granted.
     pub capability: Capability,
@@ -57,7 +57,7 @@ impl Grant {
 
 /// Serialized form: either the label string or an object.
 #[derive(Serialize, Deserialize)]
-#[serde(untagged)]
+#[serde(untagged, deny_unknown_fields)]
 enum GrantRepr {
     Label(String),
     Object {
@@ -67,20 +67,13 @@ enum GrantRepr {
     },
 }
 
-impl From<GrantRepr> for Grant {
-    fn from(r: GrantRepr) -> Self {
+impl TryFrom<GrantRepr> for Grant {
+    type Error = UnknownCapability;
+
+    fn try_from(r: GrantRepr) -> Result<Self, Self::Error> {
         match r {
-            GrantRepr::Object { capability, scope } => Grant { capability, scope },
-            GrantRepr::Label(s) => match Grant::parse(&s) {
-                Ok(g) => g,
-                // An unknown label cannot grant anything: map it to a grant
-                // that covers nothing rather than failing deserialization,
-                // so that a policy file with a typo fails closed.
-                Err(_) => Grant {
-                    capability: Capability::UiControl,
-                    scope: Some(String::from("\u{0}never\u{0}")),
-                },
-            },
+            GrantRepr::Object { capability, scope } => Ok(Grant { capability, scope }),
+            GrantRepr::Label(s) => Grant::parse(&s),
         }
     }
 }
@@ -159,6 +152,7 @@ pub fn allowed_ref(denies: &[Capability], grants: &[GrantRef<'_>], reqs: &[ReqRe
 
 /// A named set of grants and denies.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Policy {
     /// Human-readable name, echoed in reasons.
     pub name: String,
@@ -284,6 +278,36 @@ mod tests {
             &["shell.exec"],
         )
         .unwrap_or_default()
+    }
+
+    #[test]
+    fn unknown_grant_is_a_configuration_error_not_a_hidden_ui_grant() {
+        let result =
+            serde_json::from_str::<Policy>(r#"{"name":"typo","grants":["fs.raed"],"denies":[]}"#);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn misspelled_policy_fields_cannot_broaden_file_authority() {
+        for raw in [
+            r#"{"name":"typo","grants":[{"capability":"fs.read","scpoe":"/workspace/public/*"}]}"#,
+            r#"{"name":"typo","grants":["fs.read"],"denie":["fs.read"]}"#,
+        ] {
+            let result = serde_json::from_str::<Policy>(raw);
+            if let Ok(policy) = &result {
+                assert!(
+                    !allowed(
+                        &[Requirement::new(
+                            Capability::FsRead,
+                            Some("/workspace/private/key")
+                        )],
+                        policy
+                    ),
+                    "malformed policy granted private-file access: {raw}"
+                );
+            }
+            assert!(result.is_err(), "malformed policy accepted: {raw}");
+        }
     }
 
     #[test]

@@ -212,3 +212,12 @@ open MedenSpec
 #print axioms MedenSpec.InvocationRefinement.trace_refines
 #print axioms MedenSpec.InvocationRefinement.extracted_safe
 #print axioms MedenSpec.InvocationRefinement.extracted_dispatch_condition
+
+#print axioms MedenSpec.GlobRefinement.cell_refines
+#print axioms MedenSpec.GlobRefinement.rowLoop_correct
+#print axioms MedenSpec.GlobRefinement.advance_loop_refines
+#print axioms MedenSpec.GlobRefinement.advance_row_refines
+#print axioms MedenSpec.GlobRefinement.match_loop_refines
+#print axioms MedenSpec.GlobRefinement.glob_match_chars_refines
+#print axioms MedenSpec.GlobRefinement.extracted_star
+#print axioms MedenSpec.GlobRefinement.extracted_literal
