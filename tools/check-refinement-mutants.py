@@ -11,6 +11,54 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 GROUPS = [
     {
+        "kernel": "policy",
+        "model": "Policy",
+        "proof": "PolicyRefinement",
+        "prerequisites": ["GlobRefinement"],
+        "test": (
+            "policy::tests::every_requirement_keeps_its_refusal_"
+            "and_a_later_allowance_cannot_reset_denial"
+        ),
+        "mutations": [
+            (
+                "mismatched_capability_granted",
+                "if g.capability != r.capability {",
+                "if g.capability != r.capability && false {",
+            ),
+            (
+                "scoped_grant_authorizes_unscoped",
+                "(Some(_), None) => false,",
+                "(Some(_), None) => true,",
+            ),
+            (
+                "explicit_policy_deny_ignored",
+                "if denies.contains(&req.capability) {",
+                "if denies.contains(&req.capability) && false {",
+            ),
+            (
+                "later_allowance_resets_denial",
+                "if refusal.is_some() {\n            allowed = false;\n        }",
+                "allowed = refusal.is_none();",
+            ),
+            (
+                "first_requirement_omitted",
+                "let mut refusals = Vec::new();\n    let mut index = 0;",
+                "let mut refusals = Vec::new();\n    let mut index = 1;",
+            ),
+            (
+                "policy_refusals_swapped",
+                "if denies.contains(&req.capability) {\n"
+                "        Some(Refusal::Denied)\n"
+                "    } else if !grants_ref(grants, req) {\n"
+                "        Some(Refusal::NotGranted)\n    }",
+                "if denies.contains(&req.capability) {\n"
+                "        Some(Refusal::NotGranted)\n"
+                "    } else if !grants_ref(grants, req) {\n"
+                "        Some(Refusal::Denied)\n    }",
+            ),
+        ],
+    },
+    {
         "source": "crates/meden-core/src/glob.rs",
         "package": "meden-core",
         "model": "Policy",

@@ -26,7 +26,7 @@ attempt; an older completed run does not cover a newer commit.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, scope matching, failure and display-scalar kernels, `lake build`, proof scan/audit, 99 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, capability policy, scope matching, failure and display-scalar kernels, `lake build`, proof scan/audit, 105 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A decision differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -788,7 +788,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with processor/review/dispatch and TUI approval checks, CI rejects
-99 faults, including contract revisions, outer/inner conversation, scope matching, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
+105 faults, including contract revisions, outer/inner conversation, scope matching, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -875,7 +875,7 @@ Six additional semantic Rust faults exercise reused revisions, stale review,
 stale acceptance, pending eligibility, discarded accepted state and revived
 evidence after editing. Each must fail its native regression and the unchanged
 refinement after successful extraction/model compilation. They are part of
-the 99-fault CI corpus above.
+the 105-fault CI corpus above.
 
 Formula validation, canonical byte encoding, source/artifact input construction,
 host-origin attribution, JSON decoding, review rendering, locking, physical
@@ -885,7 +885,7 @@ session I/O loop or natural-language/formula equivalence.
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 209
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 232
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -897,17 +897,14 @@ the operating system. Those components remain part of the trusted base.
 
 ## Scope matching: actual Rust and recursive language
 
-Both public scope-matching functions use the same
-[`glob_match_chars`](../crates/meden-core/src/glob.rs) kernel. The string
-entry point decodes Unicode scalars before invoking it. The kernel evaluates
-one dynamic-programming row from right to left for each pattern scalar,
-using O(text length) memory and O(pattern length × text length) time.
-It has no recursive Rust calls or restricted pattern vocabulary.
-The string adapter decodes up to 32 scalars into a stack buffer and uses a
-heap vector for longer input. Both paths call that same scalar kernel;
-boundary regressions include lengths 31, 32, 33 and 65 with multibyte scalars.
-The buffer avoids repeatedly allocating decoding vectors for short policy
-scopes, keeping the existing Kani bounds practical without stubs or fewer checks.
+[`Scope`](../crates/meden-core/src/scope.rs) stores immutable decoded Unicode
+scalars and serializes as an ordinary JSON string. `Scope.matches` invokes the
+same [`glob_match_chars`](../crates/meden-core/src/glob.rs) kernel used by
+capability policy decisions. The old string matcher and temporary decoding
+buffer have been removed. The kernel evaluates one dynamic-programming row
+from right to left for each pattern scalar, using O(text length) memory and
+O(pattern length × text length) time. It has no recursive Rust calls or
+restricted pattern vocabulary.
 
 [`Policy.lean`](../lean/MedenSpec/Generated/Policy.lean) is the raw extraction
 of that production kernel and its row-update helper.
@@ -930,15 +927,64 @@ question wildcard, read an updated neighbor, or allow an empty pattern to
 match nonempty text.
 Each must fail the independent recursive-language regression, extract into
 a compiling model, and fail the unchanged refinement proof. The regression
-also compares both public entries over 22,015 small Unicode pattern/text pairs.
+also compares the scalar kernel and the decoded scope API over 22,015 small
+Unicode pattern/text pairs. Scope/JSON round trips include empty inputs, NUL,
+multibyte scalars and literal wildcards.
 
-UTF-8 string decoding, allocation/runtime behavior outside Aeneas's model,
-policy aggregation and diagnostics, JSON parsing and actual filesystem/network
-scope attribution remain separate obligations. In particular this proof
-does not establish the complete policy evaluator or R1. Configuration parsing
-now rejects unknown grant labels and unknown policy/grant object fields;
-regressions cover misspelled scope and deny keys that previously broadened
-file authority. Those parsing fixes are tested, not formally verified.
+UTF-8 string construction/JSON parsing and allocation/runtime behavior outside
+Aeneas's model remain separate obligations. The policy evaluator's additional
+proofs are described below; neither set of results establishes complete R1.
+Configuration parsing rejects unknown grant labels and unknown policy/grant
+object fields. Regressions cover misspelled scope and deny keys that previously
+broadened file authority. Those parsing fixes are tested, not formally verified.
+
+## Capability policy: owned inputs and exact refusal results
+
+[`policy.rs`](../crates/meden-core/src/policy.rs) now uses the same owned
+`Grant`, `Requirement` and decoded `Scope` types throughout production and
+model checking. The separate borrowed grant/requirement structures and
+duplicated decision rules have been removed. An explicit deny is classified
+as `Denied`; an uncovered requirement is `NotGranted`; a covered, non-denied
+requirement has no refusal.
+
+The evaluator returns both a sticky allowance bit and one optional refusal
+per input requirement, in the original order. `check` reads that bit directly
+and formats the recorded refusals afterwards. Display sorting, deduplication
+and reason text do not decide permission. The user-facing policy/requirement
+JSON still contains ordinary scope strings.
+
+[`PolicyRefinement.lean`](../lean/MedenSpec/PolicyRefinement.lean) checks the
+actual extracted capability comparison, `Scope.matches`, grant lookup,
+classification, evaluation loop, owned policy APIs and helper methods against
+[`Policy.lean`](../lean/MedenSpec/Policy.lean). There is no opaque scope
+predicate or assumed policy-result flag: matching uses the proved production
+kernel. Both policy loops have decreasing measures; vector growth and native
+index/increment bounds are established in Aeneas's model. The initial evaluator
+covers every representable input slice without a test-sized length restriction.
+
+| Theorem group | Checked result |
+| --- | --- |
+| `scope_matches_refines`, `covers_refines`, `grant_covers_refines` | Exact Unicode scopes and capability checks agree with the original policy specification |
+| `grants_loop_refines`, `grants_refines` | The actual grant search returns exactly the existential grant condition |
+| `refusal_refines`, `refusal_matches_violation`, `violates_refines` | Exact deny/missing-grant classification and violation bit |
+| `evaluate_loop_refines`, `evaluate_refines`, `allowed_refines` | Arbitrary-length aggregation, sticky denial and the complete ordered refusal vector |
+| `owned_evaluate_refines`, `owned_allowed_refines`, `owned_violates_refines`, `*_method_refines` | Actual owned APIs and field bindings use the same specified policy |
+| `extracted_refusal_count`, `extracted_deny_wins`, `extracted_allowed_iff`, `extracted_grants_monotone` | Every input is classified; explicit denial wins; exact allowance and grant-monotonicity laws hold for extracted code |
+| `owned_metadata_irrelevant`, `covers_evidence_irrelevant` | Policy names and evidence text cannot change permission when capabilities/scopes are unchanged |
+
+Six policy faults admit a mismatched capability, let a scoped grant cover an
+unscoped request, ignore an explicit deny, reset denial after a later allowance,
+skip the first requirement, or report the wrong refusal kind. Each must fail
+the native mixed-requirement regression, extract into a compiling model and
+fail the unchanged refinement proof. The normal source/model pair is restored
+and the complete proof entry point rebuilt afterwards.
+
+Scope construction from strings, JSON, diagnostic formatting/sorting, the
+caller's requirement construction, resource attribution and session/I/O
+correspondence remain separate adapters. These per-call policy proofs do not
+establish that every physical effect carries the correct declared requirement,
+that a policy update has host approval, or the full outbound confidentiality
+requirement.
 
 ## Rust model checking and conformance
 

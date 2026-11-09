@@ -12,31 +12,6 @@
 //! the remaining pattern's result for each text suffix. Rows are updated from
 //! right to left, using O(text length) space and no recursive Rust calls.
 
-/// Does `pattern` match `text`? Decode scalars before invoking the shared kernel.
-pub fn glob_match(pattern: &str, text: &str) -> bool {
-    with_scalars(pattern, |pattern| {
-        with_scalars(text, |text| glob_match_chars(pattern, text))
-    })
-}
-
-// Keep short scope decoding on the stack; arbitrary lengths use the same kernel.
-#[allow(clippy::indexing_slicing)]
-fn with_scalars<T>(input: &str, use_scalars: impl FnOnce(&[char]) -> T) -> T {
-    let mut buffer = ['\0'; 32];
-    let mut length = 0;
-    for ch in input.chars() {
-        if let Some(slot) = buffer.get_mut(length) {
-            *slot = ch;
-            length = length.saturating_add(1);
-        } else {
-            let decoded: Vec<char> = input.chars().collect();
-            return use_scalars(&decoded);
-        }
-    }
-    // Only successful writes advance length, so it never exceeds the buffer.
-    use_scalars(&buffer[..length])
-}
-
 // Prepend one pattern character to the already evaluated suffix pattern.
 // The caller supplies exactly one cell per text character.
 // GlobRefinement.advance_row_refines proves the subtraction/access bounds
@@ -62,7 +37,7 @@ fn advance_row(pc: char, text: &[char], mut row: Vec<bool>, empty: bool) -> (Vec
     (row, new_empty)
 }
 
-/// Match decoded Unicode scalars using the same kernel as [`glob_match`].
+/// Match decoded Unicode scalars for [`crate::scope::Scope::matches`].
 /// Supports arbitrary `*`/`?` patterns, including empty inputs and `/`.
 /// `GlobRefinement.glob_match_chars_refines` proves all subtraction/access bounds.
 #[allow(clippy::arithmetic_side_effects, clippy::indexing_slicing)]
@@ -85,6 +60,13 @@ pub fn glob_match_chars(pattern: &[char], text: &[char]) -> bool {
 mod tests {
     use super::*;
     use proptest::prelude::*;
+
+    // Exercise the production scope-decoding boundary before the scalar kernel.
+    fn glob_match(pattern: &str, text: &str) -> bool {
+        let pattern = crate::scope::Scope::from(pattern);
+        let text = crate::scope::Scope::from(text);
+        pattern.matches(&text)
+    }
 
     /// The reference definition by structural recursion, mirroring the Lean
     /// model. Used only in tests.
@@ -116,27 +98,6 @@ mod tests {
         assert!(!glob_match("a*b*c", "aXXbYY"));
         assert!(glob_match("**", "x"));
         assert!(glob_match("日本*", "日本語"));
-    }
-
-    #[test]
-    fn stack_and_heap_decoding_preserve_unicode_boundaries() {
-        for length in [0, 31, 32, 33, 65] {
-            let prefix = "é".repeat(length);
-            let patterns = [
-                String::from("*"),
-                prefix.clone(),
-                format!("{prefix}?"),
-                format!("*{prefix}"),
-            ];
-            let texts = [prefix.clone(), format!("{prefix}🦀"), format!("x{prefix}")];
-            for pattern in &patterns {
-                for text in &texts {
-                    let p: Vec<char> = pattern.chars().collect();
-                    let t: Vec<char> = text.chars().collect();
-                    assert_eq!(glob_match(pattern, text), reference(&p, &t));
-                }
-            }
-        }
     }
 
     #[test]

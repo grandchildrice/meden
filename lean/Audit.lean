@@ -221,3 +221,27 @@ open MedenSpec
 #print axioms MedenSpec.GlobRefinement.glob_match_chars_refines
 #print axioms MedenSpec.GlobRefinement.extracted_star
 #print axioms MedenSpec.GlobRefinement.extracted_literal
+
+#print axioms MedenSpec.PolicyRefinement.scope_matches_refines
+#print axioms MedenSpec.PolicyRefinement.covers_refines
+#print axioms MedenSpec.PolicyRefinement.grant_covers_refines
+#print axioms MedenSpec.PolicyRefinement.grants_loop_refines
+#print axioms MedenSpec.PolicyRefinement.grants_refines
+#print axioms MedenSpec.PolicyRefinement.refusal_refines
+#print axioms MedenSpec.PolicyRefinement.refusal_matches_violation
+#print axioms MedenSpec.PolicyRefinement.violates_refines
+#print axioms MedenSpec.PolicyRefinement.evaluate_loop_refines
+#print axioms MedenSpec.PolicyRefinement.permits_spec
+#print axioms MedenSpec.PolicyRefinement.evaluate_refines
+#print axioms MedenSpec.PolicyRefinement.allowed_refines
+#print axioms MedenSpec.PolicyRefinement.owned_evaluate_refines
+#print axioms MedenSpec.PolicyRefinement.owned_allowed_refines
+#print axioms MedenSpec.PolicyRefinement.owned_violates_refines
+#print axioms MedenSpec.PolicyRefinement.denies_method_refines
+#print axioms MedenSpec.PolicyRefinement.grants_method_refines
+#print axioms MedenSpec.PolicyRefinement.extracted_refusal_count
+#print axioms MedenSpec.PolicyRefinement.extracted_deny_wins
+#print axioms MedenSpec.PolicyRefinement.extracted_allowed_iff
+#print axioms MedenSpec.PolicyRefinement.extracted_grants_monotone
+#print axioms MedenSpec.PolicyRefinement.owned_metadata_irrelevant
+#print axioms MedenSpec.PolicyRefinement.covers_evidence_irrelevant

@@ -5,10 +5,11 @@ kernels, contract selection/review, issued-job operations, actual TUI approval,
 outer/inner conversation and tool-invocation control, and numeric display mapping
 have Rust-to-Lean refinement, including
 finite compositions of review, evidence, issued-job, conversation and numeric
-display operations. The production Unicode scope-matching kernel also refines
-its recursive language, including both loops' total completion in Aeneas's model.
+display operations. The production Unicode scope-matching kernel and owned
+policy evaluator refine their recursive language and capability policy,
+including total completion in Aeneas's model and exact per-input refusal results.
 The broader obligations below remain proposed. This defines completion criteria for
-[the product architecture](design.md). The current 209 Lean theorem
+[the product architecture](design.md). The current 232 Lean theorem
 entry points, six Kani harnesses and conformance checks are listed in
 [verification.md](verification.md).
 

@@ -6,6 +6,8 @@ use std::str::FromStr;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+use crate::scope::Scope;
+
 /// One kind of effect an action can have on the world.
 ///
 /// The vocabulary is deliberately small and coarse. Finer distinctions are
@@ -115,7 +117,7 @@ pub struct Requirement {
     pub capability: Capability,
     /// Optional scope the capability is required on.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub scope: Option<String>,
+    pub scope: Option<Scope>,
     /// Where this requirement was found (`file:line`, a metadata field, ...).
     #[serde(default)]
     pub evidence: String,
@@ -126,7 +128,7 @@ impl Requirement {
     pub fn new(capability: Capability, scope: Option<&str>) -> Self {
         Self {
             capability,
-            scope: scope.map(str::to_owned),
+            scope: scope.map(Scope::from),
             evidence: String::new(),
         }
     }
@@ -135,7 +137,7 @@ impl Requirement {
     pub fn with_evidence(capability: Capability, scope: Option<&str>, evidence: &str) -> Self {
         Self {
             capability,
-            scope: scope.map(str::to_owned),
+            scope: scope.map(Scope::from),
             evidence: evidence.to_owned(),
         }
     }
@@ -158,10 +160,10 @@ impl fmt::Display for Requirement {
 /// Parse `cap` or `cap[scope]` into a capability and optional scope.
 pub fn parse_label(
     label: &str,
-) -> std::result::Result<(Capability, Option<String>), UnknownCapability> {
+) -> std::result::Result<(Capability, Option<Scope>), UnknownCapability> {
     if let Some(rest) = label.strip_suffix(']') {
         if let Some((cap, scope)) = rest.split_once('[') {
-            return Ok((cap.parse()?, Some(scope.to_owned())));
+            return Ok((cap.parse()?, Some(Scope::from(scope))));
         }
     }
     Ok((label.parse()?, None))

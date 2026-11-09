@@ -58,10 +58,13 @@
   are refined, including exact single-use payloads and notification precedence.
   Registry/JSON/policy preparation, observer interpretation, physical stop
   attribution, trait implementations and I/O remain adapter obligations.
-  Both scope-matcher entries use one scalar kernel; its actual row helper and
-  two loops are extracted/refined against the recursive Unicode glob language,
-  including total completion for all native slice inputs. String decoding,
-  policy aggregation/diagnostics, JSON and resource attribution remain gaps.
+  Scopes are immutable owned scalar vectors, serialized as ordinary strings.
+  Scope.matches uses the extracted/refined Unicode glob kernel. The actual
+  owned policy APIs, capability/scope checks, deny precedence, full requirement
+  aggregation and per-input refusal vectors are extracted/refined too, with
+  total completion in Aeneas's model. Diagnostics are produced after evaluation;
+  sorting/deduplication never determines the authority bit. String decoding,
+  JSON, diagnostic rendering, input mapping and resource attribution remain gaps.
   Unknown grant labels and policy/grant object keys are configuration errors;
   do not restore permissive fallbacks for malformed authority configuration.
   Typed verification-failure classification and repair-stop decisions are

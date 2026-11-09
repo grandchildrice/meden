@@ -7,9 +7,9 @@
 //!
 //! Three rules keep these cheap enough for a hosted runner:
 //!
-//! * **Small allocations.** Inputs use stack data ([`GrantRef`], [`ReqRef`],
-//!   char arrays). The shared matcher allocates one bounded row; scope strings
-//!   come from a fixed concrete menu, so no string is symbolic.
+//! * **Small allocations.** Scope vectors, the matcher row and refusal vectors
+//!   are bounded. Inputs use fixed arrays of [`Grant`] and [`Requirement`];
+//!   decoded scopes come from a fixed menu, so no string is symbolic.
 //! * **Small checks.** Harness array access uses `get`; the shared matcher
 //!   retains its checked indexing. Assertions use `assert!` rather than
 //!   `assert_eq!`, keeping `Debug` formatting out of the model.
@@ -17,17 +17,17 @@
 //!   contents; a symbolic length is applied afterwards with `get(..n)`.
 //!
 //! The Lean model carries the unbounded argument; these harnesses pin the
-//! Rust code to it, and the property tests in `policy.rs` pin the owned APIs
-//! to the borrowed ones used here.
+//! Rust code to it. The harnesses use the same owned policy types as production.
 
-use crate::capability::Capability;
+use crate::capability::{Capability, Requirement};
 use crate::glob::glob_match_chars;
-use crate::policy::{allowed_ref, covers_ref, violates_ref, GrantRef, ReqRef};
+use crate::policy::{allowed_ref, covers_ref, violates_ref, Grant};
+use crate::scope::Scope;
 
 /// Scopes a requirement may carry (concrete).
-const REQ_SCOPES: [&str; 2] = ["a", "b"];
+const REQ_SCOPES: [&[char]; 2] = [&['a'], &['b']];
 /// Scopes a grant may carry (concrete, with wildcards).
-const GRANT_SCOPES: [&str; 3] = ["a", "*", "?"];
+const GRANT_SCOPES: [&[char]; 3] = [&['a'], &['*'], &['?']];
 /// Characters a symbolic pattern or text is built from.
 const ALPHABET: [char; 2] = ['a', 'b'];
 
@@ -39,25 +39,26 @@ fn any_cap() -> Capability {
     *Capability::ALL.get(i).unwrap_or(&Capability::UiControl)
 }
 
-fn any_req() -> ReqRef<'static> {
+fn any_req() -> Requirement {
     let scoped: bool = kani::any();
     let i: usize = kani::any();
     kani::assume(i < REQ_SCOPES.len());
-    let scope = REQ_SCOPES.get(i).copied().unwrap_or("a");
-    ReqRef {
+    let scope = REQ_SCOPES.get(i).copied().unwrap_or(&['a']);
+    Requirement {
         capability: any_cap(),
-        scope: scoped.then_some(scope),
+        scope: scoped.then(|| Scope::from(scope.to_vec())),
+        evidence: String::new(),
     }
 }
 
-fn any_grant() -> GrantRef<'static> {
+fn any_grant() -> Grant {
     let scoped: bool = kani::any();
     let i: usize = kani::any();
     kani::assume(i < GRANT_SCOPES.len());
-    let scope = GRANT_SCOPES.get(i).copied().unwrap_or("a");
-    GrantRef {
+    let scope = GRANT_SCOPES.get(i).copied().unwrap_or(&['a']);
+    Grant {
         capability: any_cap(),
-        scope: scoped.then_some(scope),
+        scope: scoped.then(|| Scope::from(scope.to_vec())),
     }
 }
 
@@ -111,7 +112,7 @@ fn deny_wins() {
     let grants = [any_grant(), any_grant()];
     let denies = [any_cap()];
     if denies.contains(&req.capability) {
-        assert!(violates_ref(&denies, &grants, req));
+        assert!(violates_ref(&denies, &grants, &req));
     }
 }
 
@@ -124,7 +125,7 @@ fn allowed_iff_granted_and_not_denied() {
     let denies = [any_cap()];
     let expected = reqs
         .iter()
-        .all(|r| !denies.contains(&r.capability) && grants.iter().any(|g| covers_ref(*g, *r)));
+        .all(|r| !denies.contains(&r.capability) && grants.iter().any(|g| covers_ref(g, r)));
     assert!(allowed_ref(&denies, &grants, &reqs) == expected);
 }
 
@@ -135,7 +136,7 @@ fn grants_are_monotone() {
     let reqs = [any_req()];
     let g1 = any_grant();
     let g2 = any_grant();
-    let before = allowed_ref(&[], &[g1], &reqs);
+    let before = allowed_ref(&[], &[g1.clone()], &reqs);
     let after = allowed_ref(&[], &[g1, g2], &reqs);
     assert!(!before || after);
 }
@@ -147,19 +148,20 @@ fn grants_are_monotone() {
 fn scope_rules() {
     let cap = any_cap();
     let g = any_grant();
-    let unscoped_req = ReqRef {
+    let unscoped_req = Requirement {
         capability: cap,
         scope: None,
+        evidence: String::new(),
     };
     if g.capability == cap && g.scope.is_some() {
-        assert!(!covers_ref(g, unscoped_req));
+        assert!(!covers_ref(&g, &unscoped_req));
     }
     let req = any_req();
     if req.capability == cap {
-        let unscoped_grant = GrantRef {
+        let unscoped_grant = Grant {
             capability: cap,
             scope: None,
         };
-        assert!(covers_ref(unscoped_grant, req));
+        assert!(covers_ref(&unscoped_grant, &req));
     }
 }

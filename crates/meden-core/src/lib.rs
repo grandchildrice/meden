@@ -9,8 +9,8 @@
 //! `src/kani_harness.rs`).
 //!
 //! The crate forbids `unsafe` code and performs no I/O. The processor,
-//! export-review and evidence kernels have extraction-based refinement proofs; policy
-//! and glob conformance/model checks have their own narrower scope. Lints
+//! export-review, evidence and decoded-policy kernels have extraction-based
+//! refinement proofs. Decoding and diagnostic adapters have separate checks. Lints
 //! are development checks, not a mathematical proof of whole-crate behavior.
 
 #![forbid(unsafe_code)]
@@ -21,12 +21,13 @@ pub mod export_control;
 pub mod glob;
 pub mod policy;
 pub mod processor;
+pub mod scope;
 
 #[cfg(kani)]
 mod kani_harness;
 
 pub use capability::{Capability, Requirement};
 pub use policy::{
-    allowed, allowed_ref, check, covers_ref, violates, violates_ref, Decision, Grant, GrantRef,
-    Policy, ReqRef,
+    allowed, allowed_ref, check, covers_ref, violates, violates_ref, Decision, Grant, Policy,
 };
+pub use scope::Scope;

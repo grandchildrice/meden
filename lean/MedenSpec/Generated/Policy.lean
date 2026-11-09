@@ -20,8 +20,60 @@ set_option maxRecDepth 2048
 
 namespace MedenPolicyImpl
 
+/-- [meden_core::capability::Capability]
+    Source: 'crates/meden-core/src/capability.rs', lines 16:0-50:1
+    Visibility: public -/
+@[discriminant isize]
+inductive capability.Capability where
+| FsRead : capability.Capability
+| FsWrite : capability.Capability
+| NetEgress : capability.Capability
+| NetListen : capability.Capability
+| ShellExec : capability.Capability
+| EnvRead : capability.Capability
+| SecretRead : capability.Capability
+| ProcessSpawn : capability.Capability
+| PackageInstall : capability.Capability
+| Clipboard : capability.Capability
+| UiControl : capability.Capability
+
+/-- [meden_core::capability::{impl core::cmp::PartialEq<meden_core::capability::Capability> for meden_core::capability::Capability}::eq]:
+    Source: 'crates/meden-core/src/capability.rs', lines 15:29-15:38
+    Visibility: public -/
+def capability.Capability.Insts.CoreCmpPartialEqCapability.eq
+  (self : capability.Capability) (other : capability.Capability) :
+  Result Bool
+  := do
+  let self1 := read_discriminant self
+  let other1 := read_discriminant other
+  ok (self1 = other1)
+
+/-- Trait implementation: [meden_core::capability::{impl core::cmp::PartialEq<meden_core::capability::Capability> for meden_core::capability::Capability}]
+    Source: 'crates/meden-core/src/capability.rs', lines 15:29-15:38 -/
+@[reducible]
+impl_def capability.Capability.Insts.CoreCmpPartialEqCapability :
+  core.cmp.PartialEq capability.Capability capability.Capability := {
+  eq := capability.Capability.Insts.CoreCmpPartialEqCapability.eq
+  ne := core.cmp.PartialEq.ne.trait_default
+    capability.Capability.Insts.CoreCmpPartialEqCapability
+}
+
+/-- [meden_core::scope::Scope]
+    Source: 'crates/meden-core/src/scope.rs', lines 10:0-10:28
+    Visibility: public -/
+@[reducible]
+def scope.Scope := alloc.vec.Vec Char
+
+/-- [meden_core::capability::Requirement]
+    Source: 'crates/meden-core/src/capability.rs', lines 115:0-124:1
+    Visibility: public -/
+structure capability.Requirement where
+  capability : capability.Capability
+  scope : Option scope.Scope
+  evidence : String
+
 /-- [meden_core::glob::advance_row]: loop body 0:
-    Source: 'crates/meden-core/src/glob.rs', lines 50:4-61:5 -/
+    Source: 'crates/meden-core/src/glob.rs', lines 25:4-36:5 -/
 @[rust_loop_body]
 def glob.advance_row_loop.body
   (pc : Char) (text : Slice Char) (row : alloc.vec.Vec Bool) (old_right : Bool)
@@ -57,7 +109,7 @@ def glob.advance_row_loop.body
   else ok (done row)
 
 /-- [meden_core::glob::advance_row]: loop 0:
-    Source: 'crates/meden-core/src/glob.rs', lines 50:4-61:5 -/
+    Source: 'crates/meden-core/src/glob.rs', lines 25:4-36:5 -/
 @[rust_loop]
 def glob.advance_row_loop
   (pc : Char) (text : Slice Char) (row : alloc.vec.Vec Bool) (old_right : Bool)
@@ -70,7 +122,7 @@ def glob.advance_row_loop
     (row, old_right, new_right, index)
 
 /-- [meden_core::glob::advance_row]:
-    Source: 'crates/meden-core/src/glob.rs', lines 45:0-63:1 -/
+    Source: 'crates/meden-core/src/glob.rs', lines 20:0-38:1 -/
 def glob.advance_row
   (pc : Char) (text : Slice Char) (row : alloc.vec.Vec Bool) (empty : Bool) :
   Result ((alloc.vec.Vec Bool) × Bool)
@@ -83,7 +135,7 @@ def glob.advance_row
   ok (row1, new_empty)
 
 /-- [meden_core::glob::glob_match_chars]: loop body 0:
-    Source: 'crates/meden-core/src/glob.rs', lines 73:4-76:5
+    Source: 'crates/meden-core/src/glob.rs', lines 48:4-51:5
     Visibility: public -/
 @[rust_loop_body]
 def glob.glob_match_chars_loop.body
@@ -101,7 +153,7 @@ def glob.glob_match_chars_loop.body
   else ok (done (row, empty))
 
 /-- [meden_core::glob::glob_match_chars]: loop 0:
-    Source: 'crates/meden-core/src/glob.rs', lines 73:4-76:5
+    Source: 'crates/meden-core/src/glob.rs', lines 48:4-51:5
     Visibility: public -/
 @[rust_loop]
 def glob.glob_match_chars_loop
@@ -115,7 +167,7 @@ def glob.glob_match_chars_loop
     (row, empty, index)
 
 /-- [meden_core::glob::glob_match_chars]:
-    Source: 'crates/meden-core/src/glob.rs', lines 69:0-82:1
+    Source: 'crates/meden-core/src/glob.rs', lines 44:0-57:1
     Visibility: public -/
 def glob.glob_match_chars
   (pattern : Slice Char) (text : Slice Char) : Result Bool := do
@@ -129,5 +181,245 @@ def glob.glob_match_chars
   else
     alloc.vec.Vec.index (core.slice.index.SliceIndexUsizeSlice Bool) row1
       0#usize
+
+/-- [meden_core::policy::Grant]
+    Source: 'crates/meden-core/src/policy.rs', lines 22:0-27:1
+    Visibility: public -/
+structure policy.Grant where
+  capability : capability.Capability
+  scope : Option scope.Scope
+
+/-- [meden_core::scope::{meden_core::scope::Scope}::matches]:
+    Source: 'crates/meden-core/src/scope.rs', lines 14:4-16:5
+    Visibility: public -/
+def scope.Scope.matches
+  (self : scope.Scope) (text : scope.Scope) : Result Bool := do
+  let s := alloc.vec.Vec.deref self
+  let s1 := alloc.vec.Vec.deref text
+  glob.glob_match_chars s s1
+
+/-- [meden_core::policy::covers_ref]:
+    Source: 'crates/meden-core/src/policy.rs', lines 92:0-101:1
+    Visibility: public -/
+def policy.covers_ref
+  (g : policy.Grant) (r : capability.Requirement) : Result Bool := do
+  let b ←
+    core.cmp.PartialEq.ne.trait_default
+      capability.Capability.Insts.CoreCmpPartialEqCapability g.capability
+      r.capability
+  if b
+  then ok false
+  else
+    match g.scope with
+    | none => ok true
+    | some pat =>
+      match r.scope with
+      | none => ok false
+      | some s => scope.Scope.matches pat s
+
+/-- [meden_core::policy::{meden_core::policy::Grant}::covers]:
+    Source: 'crates/meden-core/src/policy.rs', lines 45:4-47:5
+    Visibility: public -/
+def policy.Grant.covers
+  (self : policy.Grant) (req : capability.Requirement) : Result Bool := do
+  policy.covers_ref self req
+
+/-- [meden_core::policy::grants_ref]: loop body 0:
+    Source: 'crates/meden-core/src/policy.rs', lines 134:4-141:1 -/
+@[rust_loop_body]
+def policy.grants_ref_loop.body
+  (grants : Slice policy.Grant) (req : capability.Requirement)
+  (index : Std.Usize) :
+  Result (ControlFlow Std.Usize Bool)
+  := do
+  let i := Slice.len grants
+  if index < i
+  then
+    let g ← Slice.index_usize grants index
+    let b ← policy.covers_ref g req
+    if b
+    then ok (done true)
+    else let index1 ← index + 1#usize
+         ok (cont index1)
+  else ok (done false)
+
+/-- [meden_core::policy::grants_ref]: loop 0:
+    Source: 'crates/meden-core/src/policy.rs', lines 134:4-141:1 -/
+@[rust_loop]
+def policy.grants_ref_loop
+  (grants : Slice policy.Grant) (req : capability.Requirement)
+  (index : Std.Usize) :
+  Result Bool
+  := do
+  loop
+    (fun index1 => policy.grants_ref_loop.body grants req index1)
+    index
+
+/-- [meden_core::policy::grants_ref]:
+    Source: 'crates/meden-core/src/policy.rs', lines 132:0-141:1 -/
+@[reducible]
+def policy.grants_ref
+  (grants : Slice policy.Grant) (req : capability.Requirement) :
+  Result Bool
+  := do
+  policy.grants_ref_loop grants req 0#usize
+
+/-- [meden_core::policy::Refusal]
+    Source: 'crates/meden-core/src/policy.rs', lines 115:0-118:1 -/
+@[discriminant isize]
+inductive policy.Refusal where
+| Denied : policy.Refusal
+| NotGranted : policy.Refusal
+
+/-- [meden_core::policy::refusal_ref]:
+    Source: 'crates/meden-core/src/policy.rs', lines 120:0-128:1 -/
+def policy.refusal_ref
+  (denies : Slice capability.Capability) (grants : Slice policy.Grant)
+  (req : capability.Requirement) :
+  Result (Option policy.Refusal)
+  := do
+  let b ←
+    core.slice.Slice.contains
+      capability.Capability.Insts.CoreCmpPartialEqCapability denies
+      req.capability
+  if b
+  then ok (some policy.Refusal.Denied)
+  else
+    let b1 ← policy.grants_ref grants req
+    if b1
+    then ok none
+    else ok (some policy.Refusal.NotGranted)
+
+/-- [meden_core::policy::violates_ref]:
+    Source: 'crates/meden-core/src/policy.rs', lines 105:0-107:1
+    Visibility: public -/
+def policy.violates_ref
+  (denies : Slice capability.Capability) (grants : Slice policy.Grant)
+  (r : capability.Requirement) :
+  Result Bool
+  := do
+  let o ← policy.refusal_ref denies grants r
+  ok (core.option.Option.is_some o)
+
+/-- [meden_core::policy::Evaluation]
+    Source: 'crates/meden-core/src/policy.rs', lines 143:0-146:1 -/
+structure policy.Evaluation where
+  allowed : Bool
+  refusals : alloc.vec.Vec (Option policy.Refusal)
+
+/-- [meden_core::policy::evaluate_ref]: loop body 0:
+    Source: 'crates/meden-core/src/policy.rs', lines 155:4-162:5 -/
+@[rust_loop_body]
+def policy.evaluate_ref_loop.body
+  (denies : Slice capability.Capability) (grants : Slice policy.Grant)
+  (reqs : Slice capability.Requirement) (allowed : Bool)
+  (refusals : alloc.vec.Vec (Option policy.Refusal)) (index : Std.Usize) :
+  Result (ControlFlow (Bool × (alloc.vec.Vec (Option policy.Refusal)) ×
+    Std.Usize) (Bool × (alloc.vec.Vec (Option policy.Refusal))))
+  := do
+  let i := Slice.len reqs
+  if index < i
+  then
+    let r ← Slice.index_usize reqs index
+    let refusal ← policy.refusal_ref denies grants r
+    let b := core.option.Option.is_some refusal
+    let allowed1 ← if b
+                     then ok false
+                     else ok allowed
+    let refusals1 ← alloc.vec.Vec.push refusals refusal
+    let index1 ← index + 1#usize
+    ok (cont (allowed1, refusals1, index1))
+  else ok (done (allowed, refusals))
+
+/-- [meden_core::policy::evaluate_ref]: loop 0:
+    Source: 'crates/meden-core/src/policy.rs', lines 155:4-162:5 -/
+@[rust_loop]
+def policy.evaluate_ref_loop
+  (denies : Slice capability.Capability) (grants : Slice policy.Grant)
+  (reqs : Slice capability.Requirement) (allowed : Bool)
+  (refusals : alloc.vec.Vec (Option policy.Refusal)) (index : Std.Usize) :
+  Result (Bool × (alloc.vec.Vec (Option policy.Refusal)))
+  := do
+  loop
+    (fun (allowed1, refusals1, index1) => policy.evaluate_ref_loop.body denies
+      grants reqs allowed1 refusals1 index1)
+    (allowed, refusals, index)
+
+/-- [meden_core::policy::evaluate_ref]:
+    Source: 'crates/meden-core/src/policy.rs', lines 151:0-164:1 -/
+def policy.evaluate_ref
+  (denies : Slice capability.Capability) (grants : Slice policy.Grant)
+  (reqs : Slice capability.Requirement) :
+  Result policy.Evaluation
+  := do
+  let (allowed, refusals) ←
+    policy.evaluate_ref_loop denies grants reqs true (alloc.vec.Vec.new (Option
+      policy.Refusal)) 0#usize
+  ok { allowed, refusals }
+
+/-- [meden_core::policy::allowed_ref]:
+    Source: 'crates/meden-core/src/policy.rs', lines 110:0-112:1
+    Visibility: public -/
+def policy.allowed_ref
+  (denies : Slice capability.Capability) (grants : Slice policy.Grant)
+  (reqs : Slice capability.Requirement) :
+  Result Bool
+  := do
+  let e ← policy.evaluate_ref denies grants reqs
+  ok e.allowed
+
+/-- [meden_core::policy::Policy]
+    Source: 'crates/meden-core/src/policy.rs', lines 169:0-179:1
+    Visibility: public -/
+structure policy.Policy where
+  «name» : String
+  grants : alloc.vec.Vec policy.Grant
+  denies : alloc.vec.Vec capability.Capability
+
+/-- [meden_core::policy::{meden_core::policy::Policy}::denies]:
+    Source: 'crates/meden-core/src/policy.rs', lines 199:4-201:5
+    Visibility: public -/
+def policy.Policy.impl.denies
+  (self : policy.Policy) (cap : capability.Capability) : Result Bool := do
+  let s := alloc.vec.Vec.deref self.denies
+  core.slice.Slice.contains
+    capability.Capability.Insts.CoreCmpPartialEqCapability s cap
+
+/-- [meden_core::policy::{meden_core::policy::Policy}::grants]:
+    Source: 'crates/meden-core/src/policy.rs', lines 204:4-206:5
+    Visibility: public -/
+def policy.Policy.impl.grants
+  (self : policy.Policy) (req : capability.Requirement) : Result Bool := do
+  let s := alloc.vec.Vec.deref self.grants
+  policy.grants_ref s req
+
+/-- [meden_core::policy::violates]:
+    Source: 'crates/meden-core/src/policy.rs', lines 236:0-238:1
+    Visibility: public -/
+def policy.violates
+  (rules : policy.Policy) (req : capability.Requirement) : Result Bool := do
+  let s := alloc.vec.Vec.deref rules.denies
+  let s1 := alloc.vec.Vec.deref rules.grants
+  policy.violates_ref s s1 req
+
+/-- [meden_core::policy::evaluate]:
+    Source: 'crates/meden-core/src/policy.rs', lines 245:0-247:1 -/
+def policy.evaluate
+  (requirements : Slice capability.Requirement) (rules : policy.Policy) :
+  Result policy.Evaluation
+  := do
+  let s := alloc.vec.Vec.deref rules.denies
+  let s1 := alloc.vec.Vec.deref rules.grants
+  policy.evaluate_ref s s1 requirements
+
+/-- [meden_core::policy::allowed]:
+    Source: 'crates/meden-core/src/policy.rs', lines 241:0-243:1
+    Visibility: public -/
+def policy.allowed
+  (requirements : Slice capability.Requirement) (rules : policy.Policy) :
+  Result Bool
+  := do
+  let e ← policy.evaluate requirements rules
+  ok e.allowed
 
 end MedenPolicyImpl

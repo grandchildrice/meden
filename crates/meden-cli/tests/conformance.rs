@@ -22,11 +22,11 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
-use meden_core::glob::glob_match;
 use meden_core::processor::{
     Binding, Dispatch, HttpParameters, LocalParameters, ProcessorOrigin as Origin,
     ProcessorPhase as Phase, State, APPROVAL_LIFETIME_MILLIS,
 };
+use meden_core::Scope;
 use meden_core::{check, Capability, Grant, Policy, Requirement};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -364,7 +364,7 @@ fn rust_agrees_with_lean_oracle() {
     assert_eq!(output.glob.len(), input.glob_cases.len());
     for (i, c) in input.glob_cases.iter().enumerate() {
         assert_eq!(
-            glob_match(&c.pattern, &c.text),
+            Scope::from(c.pattern.as_str()).matches(&Scope::from(c.text.as_str())),
             output.glob[i],
             "glob case {i}: {:?} vs {:?}",
             c.pattern,

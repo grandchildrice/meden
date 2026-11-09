@@ -29,9 +29,13 @@ for unit in "${units[@]}"; do
   case "$unit" in
     policy)
       namespace=MedenPolicyImpl
-      rust_roots=(meden_core::glob::glob_match_chars)
+      rust_roots=(meden_core::glob::glob_match_chars
+        meden_core::policy::covers_ref meden_core::policy::violates_ref
+        meden_core::policy::allowed_ref meden_core::policy::allowed
+        meden_core::policy::violates meden_core::policy::Grant::covers
+        meden_core::policy::Policy::denies meden_core::policy::Policy::grants)
       extraction_args=(--extract-opaque-bodies --opaque core --opaque alloc --opaque std
-        --include core::cmp::impls)
+        --include core::cmp::impls --include core::option::Option)
       model=Policy ;;
     evidence)
       namespace=MedenEvidenceImpl
@@ -144,7 +148,10 @@ for unit in "${units[@]}"; do
       export_control.FrozenRequest.impl.target export_control.FrozenRequest.impl.body
       export_control.Dispatch.into_request)
   elif [[ $unit == policy ]]; then
-    definitions=(glob.glob_match_chars glob.advance_row)
+    definitions=(glob.glob_match_chars glob.advance_row scope.Scope.matches
+      policy.covers_ref policy.Grant.covers policy.grants_ref policy.refusal_ref
+      policy.violates_ref policy.evaluate_ref policy.allowed_ref policy.evaluate
+      policy.allowed policy.violates policy.Policy.impl.denies policy.Policy.impl.grants)
   elif [[ $unit == approval ]]; then
     definitions=(tui.approval.approves tui.approval.route)
   elif [[ $unit == text ]]; then
