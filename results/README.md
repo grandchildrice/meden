@@ -64,6 +64,14 @@ and fresh verification after restoration. This concerns host-side storage
 mutation; it demonstrates neither a coding-worker escape nor a false Lean
 transition theorem.
 
+The [8B trial at `aebb7af`](local-generic-counter-qwen3-8b-aebb7af.json)
+retained 13 model-request events and 12 completed proposal rejections for the
+same mathematical example. It reached its trial wall limit without host review
+or a verified artifact. No final conversation/full proposal transcript was
+received; a complete last contract cannot be inferred. The repeated example
+error prompted reducing its computed mathematical state before reporting the
+failed equality. That diagnostic change was not in this frozen trial.
+
 ## Local ledger pilots
 
 The [Qwen3-4B-Instruct trial at `d3d5fd8`](local-ledger-qwen3-4b-d3d5fd8.json)

@@ -911,20 +911,35 @@ def test_generic_counter_acceptance_repair_and_rejected_replacement_preserve_evi
             process.wait(timeout=5)
 
 
-@pytest.mark.parametrize("fault", ["out-of-range", "inconsistent-example"])
+@pytest.mark.parametrize(
+    "fault", ["out-of-range", "inconsistent-example", "incorrect-overflow-example"]
+)
 def test_contracts_must_fit_native_outputs_and_their_own_examples(tmp_path, fault):
     contract = json.loads((ROOT / "verification/examples/counter.contract.json").read_text())
     contract["properties"] = []
+    mismatch = None
     if fault == "out-of-range":
         contract["specification"] = "{ value := s.value + amount }"
         contract["examples"] = []
-    else:
+    elif fault == "inconsistent-example":
         contract["examples"] = [{"before": [100], "arguments": [1000], "after": [100]}]
+        mismatch = "{ value := 1100 } = { value := 100 }"
+    else:
+        contract["examples"] = [
+            {"before": [1844674407370955], "arguments": [2], "after": [1844674407370955]}
+        ]
+        mismatch = "{ value := 1844674407370957 } = { value := 1844674407370955 }"
     candidate = (ROOT / "verification/examples/counter.rs").read_text()
     result, output = verify_source(tmp_path, candidate, contract)
     assert result.returncode != 0
     assert "meden-check: required output bounds and example consistency" in result.stderr
     assert "Spec.lean" in result.stderr
+    if mismatch:
+        assert (
+            "computed mathematical state (left) = declared expected state (right)"
+            in result.stderr
+        )
+        assert mismatch in result.stderr
     assert not any(
         text in result.stderr.casefold()
         for text in [
@@ -957,6 +972,8 @@ def test_contracts_must_fit_native_outputs_and_their_own_examples(tmp_path, faul
     )
     assert proposal["error"]
     assert "meden-check: required output bounds and example consistency" in proposal["text"]
+    if mismatch:
+        assert mismatch in proposal["text"]
     assert all(
         not any(e["summary"][flag] for flag in ["proposed", "accepted", "verified"])
         and e["summary"]["artifact"] is None

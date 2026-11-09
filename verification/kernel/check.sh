@@ -61,6 +61,7 @@ case "$meden_status" in
 esac
 printf 'meden-check: contract properties\n'
 printf 'meden-check: required output bounds and example consistency\n'
+printf 'meden-check: example mismatches show computed mathematical state (left) = declared expected state (right)\n'
 lean_check -o Spec.olean Spec.lean
 lean_check AuditSpec.lean
 if [[ ${meden_contract_only:-0} == 1 ]]; then

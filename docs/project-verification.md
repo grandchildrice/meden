@@ -123,6 +123,14 @@ properties or examples are listed. An unbounded Nat sum is not a u64 overflow
 policy: it can exceed the representable state domain. Passing these consistency
 checks still does not prove that a formula captures the user's intent.
 
+For a mismatched example, the fixed proof normalizes the mathematical result
+on the equality's left side before checking it against the declared expected
+state on the right. A failure therefore shows concrete field values, including
+large integer arithmetic. This uses Lean's definitional reduction and the
+existing kernel-checked equality; the theorem statement, mandatory check and
+axiom audit are retained. These values describe the mathematical contract;
+implementation extraction has not yet run at this phase.
+
 Descriptions and environmental assumptions are review material. There is
 no theorem proving that a description is equivalent to a formula or that a
 caller respects an assumption. Assumption strings are not imported as Lean

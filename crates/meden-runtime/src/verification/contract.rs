@@ -66,7 +66,7 @@ impl Contract {
             "properties":{"type":"array","maxItems":16,"items":{"type":"object","additionalProperties":false,
                 "required":["name","description","statement"],"properties":{"name":identifier,"description":text,
                     "statement":{"type":"string","description":"One Lean proposition using s.FIELD, the declared Nat parameter names and out.FIELD. The fixed variable out denotes the returned state, not an arbitrary name or a Rust return type. Inputs are implicitly quantified over the u64 range. Use comparisons and logical connectives/implications; do not write forall, a declaration or a tactic proof. The fixed mathematical function transition can be applied to a state and the declared parameters; the Rust function name is not a mathematical binding."}}}},
-            "examples":{"type":"array","maxItems":64,"description":"Concrete unsigned-64-bit input/output vectors in the exact field and parameter order. Each expected output must equal the mathematical specification; Lean checks this before host review. Every output field must also fit u64 for all bounded inputs, independently of the listed properties.","items":{"type":"object","additionalProperties":false,
+            "examples":{"type":"array","maxItems":64,"description":"Concrete unsigned-64-bit input/output vectors in the exact field and parameter order. Each expected output must equal the mathematical specification; Lean checks this before host review. On an example mismatch, the equality shows the computed mathematical state on the left and the declared expected state on the right. Repair the draft while preserving the requested behavior. Every output field must also fit u64 for all bounded inputs, independently of the listed properties.","items":{"type":"object","additionalProperties":false,
                 "required":["before","arguments","after"],"properties":{"before":words,"arguments":words,"after":words}}},
             "assumptions":{"type":"array","maxItems":16,"items":text,"description":"Environmental assumptions for host review; these strings are not Lean axioms or checked premises."}
         }})
@@ -316,7 +316,7 @@ impl Contract {
 
     pub(super) fn specification_file(&self) -> String {
         let mut out = String::from(
-            "import Lean.Elab.Tactic.Omega\nset_option linter.unusedVariables false\nnamespace KernelContract\nstructure State where\n",
+            "import Lean.Elab.Tactic.Omega\nimport Lean.Elab.Tactic.Conv\nset_option linter.unusedVariables false\nnamespace KernelContract\nstructure State where\n",
         );
         for field in &self.fields {
             let _ = writeln!(out, "  «{field}» : Nat");
@@ -371,7 +371,7 @@ impl Contract {
                 .map(u64::to_string)
                 .collect::<Vec<_>>()
                 .join(" ");
-            let _ = writeln!(out, "theorem example_{index} : transition {{ {before} }} {values} = {{ {after} }} := by decide\n");
+            let _ = writeln!(out, "theorem example_{index} : transition {{ {before} }} {values} = {{ {after} }} := by\n  conv => lhs; reduce\n  all_goals decide\n");
         }
         out.push_str("end KernelContract\n");
         out
