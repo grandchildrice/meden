@@ -1,0 +1,25 @@
+{
+  "kind": "retained-artifact integrity regression",
+  "date": "2026-11-09",
+  "source_commit": "aebb7afcad5bdb5a7f327caea09c86714fa71cf1",
+  "worker_sha256": "06c36ba99d1a2599ac33dd485739a0065f2343a873aaf514fcd8d7f0f5a524fb",
+  "method": "Deterministic model fixture with a real offline Rust extraction, Lean check and native library; this is not a live-model task-success trial.",
+  "mutation": "Prepend ASCII tampered: to the retained libmeden_kernel.rlib; workspace source and stored report are unchanged.",
+  "source_sha256": "c609a568ae8a759e68c9b2d08f0042ee84a840b8136511d2a2245fa02bbbf7df",
+  "reported_artifact_sha256": "07e89a8a1cadb7e598743b18a0f4739c1d722537a94f5f92fa5ec68e56630809",
+  "expected_library_sha256": "4eac67209a9ea379b131d8369c01917cd274279de3a78b611d684bdb79c6b5fe",
+  "observed_library_sha256": "1ee6bfc7a8c22e539f1306dbf69b6d99efd53625c916480f7b3f34d701b94fc9",
+  "before_verified": true,
+  "after_corruption_verified": true,
+  "finding": "Current status reused the cached checker report without revalidating the retained files.",
+  "regression_test": "python/tests/test_project_verification.py::test_retained_artifact_changes_discard_evidence_until_a_fresh_check",
+  "scope_limits": [
+    "Mutation was injected by the test harness into host-owned storage; no coding-worker isolation bypass is demonstrated.",
+    "The mathematical transition proof is not refuted; the missing check concerns its linkage to the retained bytes.",
+    "Concurrent trusted-host mutation, atomic storage and physical delivery remain separate obligations."
+  ],
+  "retained_trace_sha256": {
+    "events.jsonl": "f8e0aec286b723fdd821a707c589ff42ccc63df8aa59eee740c75bcae1513e12",
+    "result.json": "2b82cf1c42005ff5f0b5634e8e51a2e645e54621de81527449a0267d73961648"
+  }
+}

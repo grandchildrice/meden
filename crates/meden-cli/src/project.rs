@@ -371,6 +371,11 @@ impl Project {
         let Some(artifact) = state.artifact.as_ref() else {
             return self.summary(&state, false);
         };
+        if let Err(error) = artifact.validate() {
+            state.contracts.edit(Origin::Controller);
+            state.dirty = true;
+            return Err(Failure::unavailable(error).into());
+        }
         let agreement = Agreement::parse(view)?;
         let current = Self::binding(
             &agreement,

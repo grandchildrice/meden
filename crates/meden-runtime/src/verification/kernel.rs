@@ -1,4 +1,5 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
+use std::ffi::OsString;
 use std::fmt::Write as _;
 use std::fs::{self, File};
 use std::io::{self, Read};
@@ -83,6 +84,43 @@ pub struct Artifact {
     pub report: Report,
 }
 
+impl Artifact {
+    /// Recheck retained bytes against the checker result held by the host.
+    /// A replacement report on disk cannot authorize different contents.
+    pub fn validate(&self) -> io::Result<()> {
+        if !fs::symlink_metadata(&self.directory)?.is_dir() {
+            return Err(io::Error::other("retained artifact directory changed"));
+        }
+        let expected: BTreeSet<_> = self
+            .report
+            .files
+            .keys()
+            .map(OsString::from)
+            .chain(std::iter::once(OsString::from("report.json")))
+            .collect();
+        let actual: BTreeSet<_> = fs::read_dir(&self.directory)?
+            .take(expected.len().saturating_add(1))
+            .map(|entry| entry.map(|e| e.file_name()))
+            .collect::<io::Result<_>>()?;
+        if actual != expected {
+            return Err(io::Error::other("retained artifact inventory changed"));
+        }
+        for (name, expected) in &self.report.files {
+            if hash(&read(&self.directory.join(name), 16_777_216)?) != *expected {
+                return Err(io::Error::other(format!(
+                    "retained artifact file changed: {name}"
+                )));
+            }
+        }
+        if read(&self.directory.join("report.json"), 131_072)?
+            != serde_json::to_vec_pretty(&self.report)?
+        {
+            return Err(io::Error::other("retained artifact report changed"));
+        }
+        Ok(())
+    }
+}
+
 impl Checked {
     /// Bind a completed check back to the exact prepared request.
     pub fn inputs(&self) -> Inputs {
@@ -111,10 +149,13 @@ impl Checked {
             directory.path().join("report.json"),
             serde_json::to_vec_pretty(&self.report)?,
         )?;
-        Ok(Artifact {
-            directory: directory.keep(),
+        let artifact = Artifact {
+            directory: directory.path().to_owned(),
             report: self.report,
-        })
+        };
+        artifact.validate()?;
+        let _ = directory.keep();
+        Ok(artifact)
     }
 }
 
@@ -456,9 +497,19 @@ fn read(path: &Path, maximum: u64) -> io::Result<Vec<u8>> {
     if !fs::symlink_metadata(path)?.is_file() {
         return Err(io::Error::other("checker output is not a regular file"));
     }
+    let mut options = File::options();
+    options.read(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt as _;
+        options.custom_flags(nix::libc::O_NOFOLLOW | nix::libc::O_NONBLOCK);
+    }
+    let file = options.open(path)?;
+    if !file.metadata()?.is_file() {
+        return Err(io::Error::other("checker output changed type"));
+    }
     let mut bytes = Vec::new();
-    File::open(path)?
-        .take(maximum.saturating_add(1))
+    file.take(maximum.saturating_add(1))
         .read_to_end(&mut bytes)?;
     if u64::try_from(bytes.len()).unwrap_or(u64::MAX) > maximum {
         return Err(io::Error::other("checker output exceeds budget"));

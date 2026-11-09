@@ -112,6 +112,13 @@ class Handler(BaseHTTPRequestHandler):
             reply={'tool_calls':[call('accept_contract',{'accepted':True}),
                 call('verify_project',{'passed':True,'artifact':'fake.rlib','failure_kind':'unavailable'}),
                 call('propose_contract',{'contract':CONTRACT})]}
+        elif ARTIFACT_CHECKS and 3 <= index < 3 + ARTIFACT_CHECKS:
+            reply={'tool_calls':[call('project_status',{}),
+                call('write_file',{'path':'after-fatal.txt','content':'must not run'})]}
+        elif ARTIFACT_CHECKS and index == 3 + ARTIFACT_CHECKS:
+            reply={'tool_calls':[call('verify_project',{})]}
+        elif ARTIFACT_CHECKS and index == 4 + ARTIFACT_CHECKS:
+            reply={'content':'Fresh independent verification completed.'}
         elif PROBE and index == 1:
             reply={'tool_calls':[call('write_file',{'path':'ledger.rs','content':ALTERNATIVE})]}
         elif PROBE and index == 3:
@@ -178,6 +185,7 @@ def setup(
     replacement=None,
     rejected=False,
     premature=False,
+    artifact_checks=0,
 ):
     binary = find_meden()
     assert binary
@@ -190,6 +198,7 @@ def setup(
         + f"UNAVAILABLE={unavailable!r}\nPROBE={probe!r}\n"
         + f"CONTRACT={contract!r}\nREPLACEMENT={replacement!r}\nREJECTED={rejected!r}\n"
         + f"PREMATURE={premature!r}\n"
+        + f"ARTIFACT_CHECKS={artifact_checks!r}\n"
         + ENGINE.replace("'ledger.rs'", repr(contract["source_path"]))
     )
     engine.chmod(0o700)
@@ -491,6 +500,113 @@ def test_verification_before_acceptance_recovers_to_review_without_issuing_evide
     assert summary["proposed"] and summary["contract"] == contract
     assert not summary["accepted"] and not summary["verified"]
     assert summary["artifact"] is None and summary["verification_failure"] is None
+
+
+def test_retained_artifact_changes_discard_evidence_until_a_fresh_check(tmp_path):
+    contract = json.loads((ROOT / "verification/examples/counter.contract.json").read_text())
+    candidate = (ROOT / "verification/examples/counter.rs").read_text()
+    faults = ["library", "report", "forged-report", "extra-file", "symlink", "fifo"]
+    args, env, _ = setup(
+        tmp_path,
+        contract=contract,
+        candidate=candidate,
+        noop=candidate,
+        artifact_checks=len(faults),
+    )
+    process = subprocess.Popen(
+        args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE, text=True, env=env,
+    )
+    records = queue.Queue()
+    seen = []
+
+    def read():
+        for line in process.stdout:
+            records.put(json.loads(line))
+        records.put({"type": "eof", "error": process.stderr.read()})
+
+    def send(command):
+        process.stdin.write(json.dumps(command) + "\n")
+        process.stdin.flush()
+
+    def receive(kind):
+        while True:
+            event = records.get(timeout=360)
+            seen.append(event)
+            assert event["type"] != "eof", event
+            if event["type"] == kind:
+                return event
+
+    threading.Thread(target=read, daemon=True).start()
+    try:
+        send({"instruction": "Build a verified counter."})
+        workspace = Path(receive("ready")["workspace"])
+        assert receive("done")["outcome"] == "needs_review"
+        pending = next(e["summary"] for e in reversed(seen) if e["type"] == "project")
+        send({"review_contract": pending["reference"]})
+        receive("project")
+        send({"accept_contract": pending["reference"]})
+        receive("project")
+        assert receive("done")["outcome"] == "done"
+        before = next(e["summary"] for e in reversed(seen) if e["type"] == "project")
+        assert before["verified"]
+        artifact = Path(before["artifact"])
+        report = assert_artifact(artifact, candidate, contract)
+        original = {p.name: p.read_bytes() for p in artifact.iterdir()}
+        library = artifact / "libmeden_kernel.rlib"
+        saved_library = tmp_path / "saved-library"
+        saved_library.write_bytes(original[library.name])
+
+        for fault in faults:
+            if fault == "library":
+                library.write_bytes(b"corrupted")
+            elif fault == "report":
+                (artifact / "report.json").write_text("{}")
+            elif fault == "forged-report":
+                library.write_bytes(b"corrupted")
+                forged = copy.deepcopy(report)
+                forged["files"][library.name] = hashlib.sha256(b"corrupted").hexdigest()
+                forged["artifact_sha256"] = hashlib.sha256(
+                    json.dumps(forged["files"], sort_keys=True, separators=(",", ":")).encode()
+                ).hexdigest()
+                (artifact / "report.json").write_text(json.dumps(forged))
+            elif fault == "extra-file":
+                (artifact / "unbound.rs").write_text("not checked")
+            else:
+                library.unlink()
+                if fault == "symlink":
+                    library.symlink_to(saved_library)
+                else:
+                    os.mkfifo(library)
+
+            send({"instruction": "Inspect current project verification."})
+            done = receive("done")
+            assert done["outcome"] == "failed", (fault, seen[-12:])
+            summary = next(e["summary"] for e in reversed(seen) if e["type"] == "project")
+            assert summary["accepted"] and not summary["verified"]
+            assert summary["verification_failure"] == "unavailable"
+            assert not (workspace / "after-fatal.txt").exists()
+            for path in artifact.iterdir():
+                path.unlink()
+            for name, data in original.items():
+                (artifact / name).write_bytes(data)
+            assert_artifact(artifact, candidate, contract)
+            send({"project_status": None})
+            # Restoring bytes cannot restore the discarded receipt coverage.
+            assert not receive("project")["summary"]["verified"]
+
+        send({"instruction": "Recheck the unchanged accepted counter."})
+        assert receive("done")["outcome"] == "done", seen[-12:]
+        after = next(e["summary"] for e in reversed(seen) if e["type"] == "project")
+        assert after["verified"] and after["reference"] == before["reference"]
+        assert Path(after["artifact"]) != artifact
+        assert_artifact(Path(after["artifact"]), candidate, contract)
+        process.stdin.close()
+        assert process.wait(timeout=10) == 0
+    finally:
+        if process.poll() is None:
+            process.kill()
+            process.wait(timeout=5)
 
 
 def test_missing_bundle_before_proposal_stops_without_exposing_a_review(tmp_path):

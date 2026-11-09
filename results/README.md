@@ -55,6 +55,15 @@ usage error that directs the model to proposal/review without starting a
 checker. That fix was not present in the frozen trial; its Rust was never
 extracted or checked.
 
+The [retained-file regression at `aebb7af`](retained-artifact-integrity-aebb7af.json)
+used a real checked counter with a deterministic model fixture. Changing the
+host-owned native library left current status verified, even though its bytes
+no longer matched the report. The regression test now checks retained file
+inventory/content/report integrity, invalidation after six storage faults,
+and fresh verification after restoration. This concerns host-side storage
+mutation; it demonstrates neither a coding-worker escape nor a false Lean
+transition theorem.
+
 ## Local ledger pilots
 
 The [Qwen3-4B-Instruct trial at `d3d5fd8`](local-ledger-qwen3-4b-d3d5fd8.json)

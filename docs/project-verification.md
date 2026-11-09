@@ -188,6 +188,17 @@ identity covers the canonical contract, generated trusted files and recipe;
 the report also binds the actual worker, bundle and artifact manifest.
 Project-local Cargo, Lean, proof and report files do not replace these inputs.
 
+Before publishing a retained result and whenever current status is inspected,
+Meden checks the exact retained file inventory, each file hash and the report
+bytes against the checker result held by the host. It does not accept a
+replacement report from disk as authority. Files must be regular files;
+symlinks and FIFOs are rejected. A mismatch is unavailable verification and
+discards receipt coverage through the refined contract controller's edit
+operation. Restoring the files alone cannot restore coverage; a fresh
+independent check is required. These checks concern the files observed at
+inspection time. Atomic storage, concurrent trusted-host mutation and physical
+delivery remain separate I/O obligations.
+
 Failures are host-attributed. Native rejection, invalid terms or an ordinary
 completed Lean rejection are `unverified`; this does not prove the contract
 false. Cancellation, time/output limits, signals, Lean resource tags or a
@@ -231,6 +242,12 @@ retaining the earlier accepted evidence. Parser cases exercise rejected
 Lean code through the real checker, plus comments, explicit labels and
 bound variables whose names also exist globally. Successful artifacts are
 uploaded as `meden-project-evidence`.
+
+The retained-artifact case starts with a real checked counter and introduces
+six storage faults: changed library bytes, changed report, a self-consistent
+forged report/library pair, an extra file, a symlink and a FIFO. Every fault
+stops the turn before another tool effect. Restoration stays unverified until
+the accepted source is independently checked again.
 
 These are deterministic checker/controller integration tests. The
 [historical local-model pilot](../results/local-ledger-qwen3-4b-d3d5fd8.json)

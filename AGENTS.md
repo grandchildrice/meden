@@ -74,5 +74,9 @@
   Formula parsing, canonical bytes, rendering, origin attribution and session
   I/O correspondence remain adapters; do not claim whole-controller refinement
   from these controller-operation proofs.
+  Retained project files/report are revalidated against the host-held checker
+  result on persistence and status inspection. A mismatch discards coverage via
+  Contracts.edit; restoring files alone cannot restore evidence. Storage reads,
+  hashing and concurrent host mutation remain I/O obligations.
   Broader contracts/backends, full interface/tool coverage and outbound
   confidentiality remain targets. See docs/project-verification.md.
