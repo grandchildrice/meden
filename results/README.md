@@ -6,6 +6,32 @@ The old AgentDojo host-tool bridge and benchmark adapter have also been
 removed. Current `meden run` uses the same private offline coding session
 as the TUI; commands below describe historical interfaces, not current ones.
 
+## Checked delivery with Ollama Cloud
+
+The [trial at `8dea35f`](checked-delivery-ollama-cloud-minimax-m3-8dea35f.json)
+completed one natural-language ledger request in 250 seconds and ten model
+requests, using the approved Ollama Cloud `minimax-m3` connection. The model
+retained its eight mathematical properties while repairing property names
+and a false boundary example. Decimal-string example values preserved the
+exact u64 limits. The [contract](sources/ledger-delivery-minimax-m3-8dea35f.contract.json)
+and [Rust](sources/ledger-delivery-minimax-m3-8dea35f.rs) were model-written;
+the developer supplied semantic reviews, with no source, formula or proof repair.
+
+The actual implementation refinement, eight laws and eight examples passed
+twenty-six exact audit roots. A controlled local receiver observed nothing
+before host approval, then one 756,625-byte package identical to the reviewed
+bytes. Repeating approval was refused. Independently checking and rebuilding
+the received source/contract reproduced every delivered file, including the
+native archive and report. Changing debit coverage from `>=` to `>` passed
+all eight native examples but failed Lean refinement and produced no artifact.
+
+The preceding [probe at `c9fe857`](cloud-delivery-probe-ollama-cloud-minimax-m3-c9fe857.json)
+stopped without acceptance or delivery after a string/numeric input mismatch
+and a reduced test proposal. Both outcomes are retained. These are individual
+cloud integration trials, not task-success rates or large-local deployment
+measurements. CLI host review was exercised by a developer harness; full
+interface/I/O refinement, R1, persistence and domain acceptance remain open.
+
 ## Ollama Cloud ledger baseline
 
 The [generic ledger trial at `5809a25`](local-generic-ledger-ollama-cloud-minimax-m3-5809a25.json)

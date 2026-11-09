@@ -338,6 +338,10 @@ backend. A [generic ledger cloud baseline](../results/local-generic-ledger-ollam
 now connects a natural-language request to actual Rust extraction/refinement
 and a checked local artifact, and rejects injected faults. Increment 1 still
 requires validation on the intended 100–600B local deployment.
+A [checked-delivery trial](../results/checked-delivery-ollama-cloud-minimax-m3-8dea35f.json)
+also exercises exact package review, one-use delivery and an independently
+reproduced native library. This scoped CLI path does not complete the
+session/interface correspondence required by increment 2.
 Increment 3 completes the entire confidentiality boundary. Earlier
 increments must not claim R1 or operate as a mission-critical release.
 

@@ -292,6 +292,15 @@ rejected proposal; it did not send a Meden rejection command or deliver an
 artifact. This exposed the input-format mismatch addressed by the current
 decimal-string schema. The trace does not establish provider-side rounding.
 
+With that schema, a [checked delivery trial](../results/checked-delivery-ollama-cloud-minimax-m3-8dea35f.json)
+completed one natural-language ledger request with eight retained properties,
+eight examples and twenty-six audited proof roots. The model prepared the
+checked package; CLI host review approved its exact bytes and controlled
+local target. One matching package arrived, and replay was refused. An
+independent verifier rebuilt every received artifact file byte for byte.
+A debit-boundary fault passed the examples but failed Lean refinement.
+This tests the scoped package path, not general delivery or complete R1.
+
 The Lean job runs `python/tests/test_project_verification.py` and
 `python/tests/test_project_delivery.py` with the prepared offline bundle.
 Cases drive real CLI and PTY host review, forged

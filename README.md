@@ -42,10 +42,11 @@ HTTP connections and optional Hermes configuration.
 - **Explicit boundaries:** Lean specifications for capability decisions and
   exact, single-use outbound authorization, checked in CI.
 
-A [recorded Ollama Cloud ledger trial](results/local-generic-ledger-ollama-cloud-minimax-m3-5809a25.json)
-completed one natural-language request with model-written Rust and checked Lean
-refinement. Independent faults were rejected, including one that passed the
-submitted examples. Large local deployment remains to be measured.
+A [recorded Ollama Cloud delivery trial](results/checked-delivery-ollama-cloud-minimax-m3-8dea35f.json)
+completed one natural-language request with model-written Rust, checked Lean
+refinement and a host-reviewed kernel package delivered once to a local receiver.
+An independent rebuild matched every delivered file; a fault passing all
+submitted examples failed refinement. Large local deployment remains to be measured.
 
 > Development prototype. General local orchestration and project proof workflows,
 > controller-wide refinement and general project delivery are design targets.

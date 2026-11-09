@@ -1,0 +1,142 @@
+{
+  "kind": "single-ollama-cloud-checked-ledger-delivery-trial",
+  "date": "2026-11-09",
+  "source_commit": "8dea35f73f9940f9d1fffa353ba7eac7352b2165",
+  "worker_sha256": "7cd907420aefcbc4d452209391d8a8e2eb8fa8561ed354d41d7406055604cc14",
+  "model": {
+    "provider": "Ollama Cloud",
+    "id": "minimax-m3",
+    "endpoint": "https://ollama.com/v1/chat/completions",
+    "weight_revision": "not exposed by service",
+    "parameter_count": "not established by this trial",
+    "sampling": "service defaults; seed not recorded"
+  },
+  "execution": {
+    "inference": "explicitly approved external processor",
+    "code_and_proof_execution": "local offline namespaces",
+    "delivery_target": "http://127.0.0.1:36583/checked-ledger",
+    "input_workspace": "empty synthetic project; no repository files or confidential user data",
+    "concurrent_load": "shared workstation; offline regression suite also running; not a controlled performance measurement",
+    "trial_wall_budget_seconds": 1800
+  },
+  "instruction": "Build a pure Rust ledger transfer transition. Use unsigned 64-bit debit and credit balances and a last successful request identifier. Only actor 0 is authorized. For a strictly newer request ID and a positive amount, transfer exactly that amount from debit to credit when debit covers it and credit still fits. Every rejection, including unauthorized actors, old or repeated IDs, zero amounts and credit overflow, must leave every state field unchanged. Preserve total balance and make retries idempotent. Propose a precise mathematical contract for my review, then implement it and independently verify the accepted contract. After verification, prepare the verified project kernel package for host delivery review to http://127.0.0.1:36583/checked-ledger. Do not send it or change the accepted requirements. Execute tools and proof checking locally. The configured Ollama Cloud model is authorized for this empty synthetic project.",
+  "outcome": {
+    "accepted": true,
+    "verified": true,
+    "duration_seconds": 250.0241670901887,
+    "model_requests": 10,
+    "worker_exit": 0,
+    "cleanup": null,
+    "host_protocol_commands": 7,
+    "developer_harness_semantic_reviews": 2,
+    "host_source_formula_or_proof_repairs": 0,
+    "delivery_count": 1,
+    "approved_replay_refused": true
+  },
+  "observations": [
+    "The model repaired overlong property names and a mathematically false u64-boundary example before review. The exact transition and all eight property statements stayed unchanged across its three proposals; all eight examples were retained, with the inconsistent expected output corrected.",
+    "One developer-harness semantic review accepted the exact canonical contract. The model wrote the Rust implementation once, then called verify_project and propose_artifact_export without host code, formula or proof repair.",
+    "The actual Rust transition was extracted by Charon/Aeneas and totally refined in Lean against the accepted specification. Eight contract laws and eight examples produced twenty-six ordered audit roots with only standard axioms.",
+    "A second developer-harness review checked the exact loopback target and every frozen package byte against the independently inspected retained artifact. Nothing reached the receiver before approval. It received one exact package; repeated approval was refused.",
+    "Received source and contract were independently rechecked through the fixed offline verifier. Every reconstructed artifact file, including the native archive and report, was byte-identical to the delivered package.",
+    "A later independent fault changed debit coverage from >= to > under the unchanged contract. All eight native examples passed, but Lean implementation refinement failed and no artifact was produced."
+  ],
+  "published_inputs": {
+    "source": "sources/ledger-delivery-minimax-m3-8dea35f.rs",
+    "contract": "sources/ledger-delivery-minimax-m3-8dea35f.contract.json",
+    "contract_sha256": "1eec46131b85f012b52690b42dd652970d14b4e741e870b7a5521f05d8c3083e"
+  },
+  "evidence": {
+    "source_sha256": "076dbd307616613398aa32277ab6356e7e3fbc2e99b36e382be523b30097d0cb",
+    "bundle_sha256": "f4f1961020b89b3f08ffbbab46f43687f3720d545e7a5f8766f2eb65edebeb65",
+    "checker_sha256": "5db5b343d30dfe43f489eeb2f95d041f4752b2ae1bfdb0eaea402e3b026eb28e",
+    "worker_sha256": "7cd907420aefcbc4d452209391d8a8e2eb8fa8561ed354d41d7406055604cc14",
+    "artifact_sha256": "d07fc2d35721c68ed436e76ba23fa9f510040866769b6ba5c08ce24a4ae4171b",
+    "files": {
+      "AuditSpec.lean": "c39dbb5559dc00f50f0774506f31ad05d9fb18abed075f6d10f18a26af1a9e39",
+      "Candidate.lean": "dc51d19d0635b572c81f3907de96132bbd06f434114728d0a9517d8d2561d1a3",
+      "Cargo.lock": "4ee0ed85a83a4e3e50dc52b4457b0590ad73fd8f1a383ec9d34a33306a5e07e4",
+      "Cargo.toml": "c96e14fdef55b0ce16f2520f582958b953b3e7c972e4c3da792d33b7112b7708",
+      "Check.lean": "488ff0d4cfef33423a0b49786d9165894d364aa53825e27193cd536e1a3268bc",
+      "Spec.lean": "7882188a5c5326c5ad511e62f34d690deb8fb8dc191ff012bee579a062403bb2",
+      "Terms.lean": "77d5c9dcae49cf6be8167882f3cf8dfbbfe036cfd983a63d9a890df4f1bd1247",
+      "candidate.llbc": "56dd2fd7dd4d11ed13e87d139a86a3c7c76c4296a0cb4da9d29bb93e35c9b46e",
+      "check.sh": "fc7761896b4842a2a034495c06dee672a8f43551c4fe2e613f0b2599bd7b685e",
+      "contract.json": "1eec46131b85f012b52690b42dd652970d14b4e741e870b7a5521f05d8c3083e",
+      "kernel.rs": "076dbd307616613398aa32277ab6356e7e3fbc2e99b36e382be523b30097d0cb",
+      "lib.rs": "12af27ab2ec086fd7e1092b1a2023eb131fadcdf9222c419424d959c7d789205",
+      "libmeden_kernel.rlib": "124a82ce8c79a4802daaf6e811429ec6292093b165ec97b8fd48ff0a74d1c08a"
+    },
+    "audit": [
+      "'KernelContract.output_bounds' depends on axioms: [propext, Quot.sound]",
+      "'KernelContract.law_total_balance_preserved' depends on axioms: [propext, Quot.sound]",
+      "'KernelContract.law_rejection_preserves_state' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelContract.law_accepted_transfer_is_exact' depends on axioms: [propext]",
+      "'KernelContract.law_unauthorized_actor_rejected' depends on axioms: [propext]",
+      "'KernelContract.law_zero_amount_rejected' depends on axioms: [propext]",
+      "'KernelContract.law_insufficient_debit_rejected' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelContract.law_credit_overflow_rejected' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelContract.law_old_or_repeated_id_rejected' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelContract.example_0' does not depend on any axioms",
+      "'KernelContract.example_1' does not depend on any axioms",
+      "'KernelContract.example_2' does not depend on any axioms",
+      "'KernelContract.example_3' does not depend on any axioms",
+      "'KernelContract.example_4' does not depend on any axioms",
+      "'KernelContract.example_5' does not depend on any axioms",
+      "'KernelContract.example_6' does not depend on any axioms",
+      "'KernelContract.example_7' does not depend on any axioms",
+      "'KernelProof.actual_refines' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelProof.law_total_balance_preserved' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelProof.law_rejection_preserves_state' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelProof.law_accepted_transfer_is_exact' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelProof.law_unauthorized_actor_rejected' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelProof.law_zero_amount_rejected' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelProof.law_insufficient_debit_rejected' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelProof.law_credit_overflow_rejected' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelProof.law_old_or_repeated_id_rejected' depends on axioms: [propext, Classical.choice, Quot.sound]"
+    ],
+    "scope": "Full functional refinement of the accepted pure u64 transition and the listed contract properties, conditional on the reviewed contract, trusted preparer/checker libraries, Charon/Aeneas models, Lean kernel, compiler/native libraries, OS confinement and SHA-256. Not persistence, concurrent transactions, whole-application correctness or certification."
+  },
+  "delivery": {
+    "format": "meden-verified-kernel",
+    "bytes": 756625,
+    "sha256": "56c08a70e2e5258653c6bdc057d0fe9251595d76cdcc4a07f24c1e2bb9875195",
+    "receiver_sha256": "56c08a70e2e5258653c6bdc057d0fe9251595d76cdcc4a07f24c1e2bb9875195",
+    "received_before_approval": 0,
+    "received_after_approval": 1,
+    "reviewed_and_received_bytes_identical": true,
+    "replay_refused": true,
+    "independent_rebuild_all_files_byte_identical": true
+  },
+  "independent_fault_check": {
+    "case": "reject-exact-debit",
+    "artifact_produced": false,
+    "native_examples_passed": true,
+    "rejected_at": "Lean implementation refinement after all eight native examples passed",
+    "replacement": {
+      "from": "s.debit_balance >= amount",
+      "to": "s.debit_balance > amount"
+    },
+    "source_sha256": "47c07871f21b86a8701addbfc60ea058866552f45e026567b9139eab18a15a90",
+    "diagnostic_sha256": "ed3beb4dc529ebc8655c009174543589730d8d85b9dafec4e07539f8a50431f6"
+  },
+  "limitations": [
+    "One successful cloud integration trial is not a task-success rate or a controlled comparison with other models.",
+    "No 100–600B local deployment or model-weight identity was measured. Inference used the approved external processor.",
+    "The proved scope is the pure u64 transition and controller kernels. JSON/decimal conversion, model history, physical input provenance, filesystem observation, packaging, locks, HTTP and compiler correctness are separate adapters or assumptions.",
+    "The sender used CLI host review in a developer harness. This does not establish unassisted nonexpert usability, complete interface refinement, R1, durable finance transactions or hardware acceptance."
+  ],
+  "retained_trace_sha256": {
+    "started.json": "c3687f0d5a93aca300d8512d10ffd89426a0220972a36770444d1262e6c21809",
+    "events.jsonl": "1504fb9392ba68737c8a54a8a254cedcaeb6aae6ca1e66d80ca1060e83368a8b",
+    "report.json": "4dbcf04aa30900c7d8434e2cf70b3787d72f92e71e190e4b2997af106476c3c4",
+    "host-actions.jsonl": "a76a9eef24c90b11a7e150f6019982cdcbba2803bd99147a7b472b59c35a4658",
+    "timing.jsonl": "6ef01b4d885ae2727de25786c9b83f7f9f9ac7ac9abae72316cf58566d7a0bac",
+    "contract-decision-1.json": "efbb09770b6d673b77dfde27a565cebc13e3cb31bd05d488b2d5751ea367e595",
+    "export-decision.json": "cc8eb04dda2080f270e3e0649d98b64b1431f7d0d5fff3768e34b8eb0ce28128",
+    "review-decisions.jsonl": "27f701fe121b1625ba68d8423d26e6be9e4a172c3b351a65ca344017a3515801",
+    "independent-trace-inspection.json": "ea38411eb9905258020b747aa314dea46d3cd5d96d42d50ac34d5fec4689e304",
+    "frozen-review-inspection.json": "122980e0383731da71f4bf826fa845cd4ed3b3ab945983d77c923b1cb5584153",
+    "independent-recheck.json": "b3e8c5c81b95c6b963bb0788eb578366a8d6b639549d01814d1623c4eb6e8b9b"
+  }
+}
