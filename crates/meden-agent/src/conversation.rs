@@ -74,7 +74,7 @@ impl Reply {
                         .map(|call| {
                             json!({"id":call.id, "type":"function", "function":{
                                 "name":call.function.name,
-                                "arguments":crate::chat_json::arguments(&call.function.arguments)
+                                "arguments":&call.function.arguments
                             }})
                         })
                         .collect(),

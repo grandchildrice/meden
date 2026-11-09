@@ -2,7 +2,6 @@
 //! Capability checks constrain declared tool effects; they do not establish
 //! the outbound confidentiality requirement in docs/design.md.
 #![forbid(unsafe_code)]
-mod chat_json;
 pub mod conversation;
 mod flow;
 pub mod tool;

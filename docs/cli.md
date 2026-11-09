@@ -197,6 +197,9 @@ effect. End stdin to finish the session.
 `assistant.tool_calls` preserves each call's `id`, `function.name` and raw
 `function.arguments` string, including malformed JSON. An unfinished turn can
 therefore retain the actual proposals without waiting for `conversation`.
+The model history also retains the original argument strings; it does not
+parse and reformat them when echoing a previous assistant call. Execution
+validates arguments separately.
 Call IDs come from the model and need not be unique; retain event order too.
 These are local observations of untrusted content, not host commands or
 verification evidence. Treat the stream as confidential session data.

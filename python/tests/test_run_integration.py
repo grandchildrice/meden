@@ -132,6 +132,7 @@ PY
     malformed = call("read_file", {})
     malformed["function"]["arguments"] = '{broken "metadata": "日🙂"}\n'
     replies[1]["tool_calls"].insert(3, malformed)
+    replies[0]["tool_calls"][1]["function"]["arguments"] = '{  "path" : "secret.txt"  }'
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *args):
@@ -198,6 +199,13 @@ PY
         proposed = [c for reply in replies for c in reply.get("tool_calls", [])]
         observed = [c for r in records if r["type"] == "assistant" for c in r["tool_calls"]]
         assert observed == [{"id": c["id"], "function": c["function"]} for c in proposed]
+        history = [
+            c
+            for message in requests[-1]["messages"]
+            if message["role"] == "assistant"
+            for c in message.get("tool_calls", [])
+        ]
+        assert history == proposed
         results = [r for r in records if r["type"] == "tool_result"]
         assert [(r["id"], r["tool"]) for r in results] == [
             (c["id"], c["function"]["name"]) for c in proposed
