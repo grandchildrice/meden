@@ -26,6 +26,11 @@ The launcher/transport have empirical checks, not a Lean isolation proof.
 Complete controller refinement remains unfinished. Benign scores and kernel
 proofs do not establish the whole requirement.
 
+The [R1 coverage matrix](docs/r1-coverage.md) identifies production-path
+observations and remaining obligations for all sixteen acceptance criteria.
+It includes real Git/Cargo subprocess attacks and a real send timeout;
+these empirical checks do not establish complete effect mediation.
+
 Documentation now uses a separate host-selected `prefetch` command and an
 immutable `--pages` snapshot shared by CLI/TUI. The model can only list/read
 cached text; a miss or model-selected URL cannot trigger a fetch. Prefetch

@@ -1358,9 +1358,38 @@ terminal restoration. Both Rust and Python CI jobs install Bubblewrap.
 The live-model smoke harness's independent checker also uses `exec`;
 it does not execute model-generated code on the host.
 
+The public Rust tool aliases now point at already-installed `cargo`, `rustc`
+and `rustdoc` executables rather than rustup proxies requiring host settings.
+Preparation selects the host's explicit `RUSTUP_TOOLCHAIN` or reads its default
+from `/`, with `RUSTUP_AUTO_INSTALL=0`. A workspace `rust-toolchain.toml` does
+not select or install a compiler. Proxy recognition requires the same inode
+as an approved public or host Cargo-home rustup; an arbitrary repository
+`cargo`/`rustup` on `PATH` is never executed by this preparation.
+
+Outside public system roots, only the selected executable files and their
+prepared `lib` directory are mounted read-only, with resolved public runtime
+dependencies. Host Cargo/Rustup configuration and sibling executables remain
+hidden. Nix toolchains retain the selected public rustup linker-wrapper
+closure and a private `/usr/bin/env` alias. No whole home, manager cache or
+Nix store is added. Prepared software/libraries must be public trusted assets;
+read-only mounts do not freeze changes by other host processes. Metadata
+selection, dependency resolution, mounts and compiler execution remain trusted
+adapters. [Rustup's environment reference](https://rust-lang.github.io/rustup/environment-variables.html)
+defines the toolchain-selection and auto-install controls.
+
+[`test_r1_acceptance.py`](../python/tests/test_r1_acceptance.py) checks default,
+named and absolute host toolchain selections, hard-linked proxies, hidden
+credentials/settings/sibling files and read-only libraries. Another case
+rejects a repository-supplied proxy without executing it. Its combined
+malicious-engine scenario runs real offline Git hooks and a compiled Cargo
+build script, observes IPv4/IPv6 DNS and HTTP/proxy receivers, and checks exact
+host-reviewed delivery through redirects and an actual timeout. See the
+[R1 coverage matrix](r1-coverage.md) for the sixteen acceptance criteria and
+remaining gaps.
+
 These tests cover production worker paths, not a Lean proof of OS effects.
-Whole-controller refinement and the complete malicious-page acceptance suite
-remain work. Local inference now has its own confinement tests below.
+Whole-controller refinement and complete R1 remain work. Local inference
+has its own confinement tests below.
 
 ## Shared CLI and TUI execution
 

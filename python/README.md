@@ -13,7 +13,14 @@ uv run ruff check . ../tools
 ```
 
 Linux, Bubblewrap, Bash and Python are required for real workspace tests.
-The public toolchain is mounted read-only. Private virtualenvs/caches are
+The public toolchain is mounted read-only. The combined R1 scenario also
+requires Git, a C linker, installed Rust/Cargo and IPv6 loopback for the DNS
+receiver. It executes a real Git hook and compiled Cargo build script, checks
+DNS/proxy observations and waits through the actual five-second export timeout.
+`test_r1_acceptance.py` retains its executable hash and receiver/session
+observations in `r1-observation.json` under the pytest temporary directory.
+See the [R1 coverage matrix](../docs/r1-coverage.md) for scope and remaining work.
+Private virtualenvs/caches are
 not added to the mount layout just because they precede a tool in `PATH`.
 
 The project-verification tests additionally require a release binary

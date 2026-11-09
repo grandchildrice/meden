@@ -180,10 +180,17 @@ jobs:
         working-directory: python
       - run: uv run ruff check . ../tools
         working-directory: python
-      - run: uv run pytest -q
+      - run: uv run pytest -q --basetemp "$RUNNER_TEMP/adapter-tests"
         working-directory: python
         env:
           MEDEN_BIN: ${{ github.workspace }}/target/debug/meden
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: meden-r1-observations
+          path: |
+            ${{ runner.temp }}/adapter-tests/**/r1-observation.json
+            ${{ runner.temp }}/adapter-tests/**/r1-events-debug.json
 
   npm:
     name: npm package (launcher checks, packs cleanly)

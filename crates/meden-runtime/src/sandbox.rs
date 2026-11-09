@@ -13,6 +13,7 @@ const TOOLS: &[&str] = &[
     "false", "env", "sleep", "cc", "c++", "make", "uname", "tar", "gzip", "base64",
 ];
 const SYSTEM_ROOTS: &[&str] = &["/usr", "/bin", "/lib", "/lib64"];
+const RUST_TOOLS: &[&str] = &["cargo", "rustc", "rustdoc"];
 
 #[derive(Clone, Copy)]
 enum Network {
@@ -28,6 +29,7 @@ pub struct Sandbox {
     root: PathBuf,
     tools: Vec<(String, PathBuf)>,
     store_paths: BTreeSet<PathBuf>,
+    tool_bindings: BTreeSet<PathBuf>,
     worker: PathBuf,
     worker_libraries: Vec<PathBuf>,
     worker_loader: Option<PathBuf>,
@@ -44,9 +46,9 @@ fn store_root(path: &Path) -> Option<&Path> {
         .find(|p| p.parent() == Some(Path::new("/nix/store")))
 }
 
-fn public_tools(nix_tools: bool) -> Vec<(String, PathBuf)> {
+fn public_tools(nix_tools: bool) -> (Vec<(String, PathBuf)>, Option<PathBuf>) {
     let search = std::env::var_os("PATH").unwrap_or_default();
-    TOOLS
+    let mut tools: Vec<_> = TOOLS
         .iter()
         .filter_map(|name| {
             // A Python virtualenv/uv executable can shadow the public
@@ -64,7 +66,152 @@ fn public_tools(nix_tools: bool) -> Vec<(String, PathBuf)> {
                 })
                 .map(|path| ((*name).to_owned(), path))
         })
+        .collect();
+    let mut manager = None;
+    if let Some(rustup) = rustup_proxy() {
+        tools.retain(|(name, _)| !RUST_TOOLS.contains(&name.as_str()));
+        if let Some(prepared) = prepared_rust(&rustup) {
+            tools.extend(prepared);
+            manager = Some(rustup);
+        }
+    }
+    (tools, manager)
+}
+
+// Do not execute a repository-supplied `cargo`/`rustup` from PATH. A proxy
+// must be the same installed object as an approved public/host Cargo binary.
+fn rustup_proxy() -> Option<PathBuf> {
+    use std::os::unix::fs::MetadataExt as _;
+    let rustup = find("rustup")?.canonicalize().ok()?;
+    let cargo_home = std::env::var_os("CARGO_HOME")
+        .map(PathBuf::from)
+        .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".cargo")));
+    let installed = cargo_home.and_then(|home| home.join("bin/rustup").canonicalize().ok());
+    if store_root(&rustup).is_none()
+        && !SYSTEM_ROOTS.iter().any(|root| rustup.starts_with(root))
+        && installed.as_ref() != Some(&rustup)
+    {
+        return None;
+    }
+    let proxy = find("cargo")?.metadata().ok()?;
+    let manager = rustup.metadata().ok()?;
+    (proxy.dev() == manager.dev() && proxy.ino() == manager.ino()).then_some(rustup)
+}
+
+// Snapshot already-installed executables before confinement. No workspace
+// toolchain override or rustup settings/cache is exposed to the child.
+fn prepared_rust(rustup: &Path) -> Option<Vec<(String, PathBuf)>> {
+    let toolchain = std::env::var_os("RUSTUP_TOOLCHAIN").or_else(|| {
+        let output = Command::new(rustup)
+            .arg("default")
+            .current_dir("/")
+            .env("RUSTUP_AUTO_INSTALL", "0")
+            .output()
+            .ok()?;
+        if !output.status.success() {
+            return None;
+        }
+        Some(
+            String::from_utf8(output.stdout)
+                .ok()?
+                .split_whitespace()
+                .next()?
+                .into(),
+        )
+    })?;
+    RUST_TOOLS
+        .iter()
+        .map(|name| {
+            let path = if Path::new(&toolchain).is_absolute() {
+                Path::new(&toolchain).join("bin").join(name)
+            } else {
+                let output = Command::new(rustup)
+                    .args(["which", "--toolchain"])
+                    .arg(&toolchain)
+                    .arg(name)
+                    .current_dir("/")
+                    .env("RUSTUP_AUTO_INSTALL", "0")
+                    .output()
+                    .ok()?;
+                if !output.status.success() {
+                    return None;
+                }
+                PathBuf::from(String::from_utf8(output.stdout).ok()?.trim_end())
+            }
+            .canonicalize()
+            .ok()?;
+            path.is_file().then(|| ((*name).to_owned(), path))
+        })
         .collect()
+}
+
+fn rust_bindings(tools: &[(String, PathBuf)]) -> BTreeSet<PathBuf> {
+    let mut bindings = BTreeSet::new();
+    for (name, path) in tools {
+        if !RUST_TOOLS.contains(&name.as_str())
+            || SYSTEM_ROOTS.iter().any(|root| path.starts_with(root))
+        {
+            continue;
+        }
+        bindings.insert(path.clone());
+        if let Some(lib) = path
+            .parent()
+            .and_then(Path::parent)
+            .map(|root| root.join("lib"))
+            .filter(|path| path.is_dir())
+            .and_then(|path| path.canonicalize().ok())
+        {
+            bindings.insert(lib);
+        }
+    }
+    bindings
+}
+
+fn resolve_libraries<'a>(
+    worker: &'a Path,
+    assets: impl Iterator<Item = &'a Path>,
+    roots: &mut BTreeSet<PathBuf>,
+) -> io::Result<(Vec<PathBuf>, Option<PathBuf>)> {
+    let mut worker_libraries = Vec::new();
+    let mut worker_loader = None;
+    if !roots.is_empty() {
+        // The trusted worker may use another libc than the toolchain.
+        // Resolve its public library objects, never expose nix-ld's
+        // whole system profile or the whole Nix store.
+        for binary in std::iter::once(worker).chain(assets) {
+            let output = Command::new(
+                find("ldd").ok_or_else(|| io::Error::other("ldd required for Nix worker"))?,
+            )
+            .arg(binary)
+            .output()?;
+            if !output.status.success() {
+                let message = String::from_utf8_lossy(&output.stderr);
+                if !message.contains("not a dynamic executable")
+                    && !message.contains("statically linked")
+                {
+                    return Err(io::Error::other("cannot resolve worker libraries"));
+                }
+            }
+            for word in String::from_utf8_lossy(&output.stdout).split_whitespace() {
+                if !word.starts_with('/') {
+                    continue;
+                }
+                let path = Path::new(word).canonicalize()?;
+                if let Some(root) = store_root(&path) {
+                    roots.insert(root.to_owned());
+                    if let Some(parent) = path.parent().filter(|_| binary == worker) {
+                        worker_libraries.push(parent.to_owned());
+                    }
+                    if binary == worker && word.ends_with("/ld-linux-x86-64.so.2") {
+                        worker_loader = Some(path);
+                    }
+                }
+            }
+        }
+        worker_libraries.sort();
+        worker_libraries.dedup();
+    }
+    Ok((worker_libraries, worker_loader))
 }
 
 impl Sandbox {
@@ -140,7 +287,11 @@ impl Sandbox {
         let nix_tools = find("bash")
             .and_then(|path| path.canonicalize().ok())
             .is_some_and(|path| path.starts_with("/nix/store"));
-        let tools = public_tools(nix_tools);
+        let (tools, manager) = public_tools(nix_tools);
+        let mut tool_bindings = rust_bindings(&tools);
+        if let Some(manager) = manager.filter(|path| store_root(path).is_some()) {
+            tool_bindings.insert(manager);
+        }
         if !tools.iter().any(|(name, _)| name == "bash") {
             return Err(io::Error::other("Bash is required for isolated execution"));
         }
@@ -153,45 +304,22 @@ impl Sandbox {
                 roots.insert(root.to_owned());
             }
         }
-        let mut worker_libraries = Vec::new();
-        let mut worker_loader = None;
-        if !roots.is_empty() {
-            // The trusted worker may use another libc than the toolchain.
-            // Resolve its public library objects, never expose nix-ld's
-            // whole system profile or the whole Nix store.
-            for binary in std::iter::once(worker.as_path()).chain(assets.iter().copied()) {
-                let output = Command::new(
-                    find("ldd").ok_or_else(|| io::Error::other("ldd required for Nix worker"))?,
-                )
-                .arg(binary)
-                .output()?;
-                if !output.status.success() {
-                    let message = String::from_utf8_lossy(&output.stderr);
-                    if !message.contains("not a dynamic executable")
-                        && !message.contains("statically linked")
-                    {
-                        return Err(io::Error::other("cannot resolve worker libraries"));
-                    }
-                }
-                for word in String::from_utf8_lossy(&output.stdout).split_whitespace() {
-                    if !word.starts_with('/') {
-                        continue;
-                    }
-                    let path = Path::new(word).canonicalize()?;
-                    if let Some(root) = store_root(&path) {
-                        roots.insert(root.to_owned());
-                        if let Some(parent) = path.parent().filter(|_| binary == worker) {
-                            worker_libraries.push(parent.to_owned());
-                        }
-                        if binary == worker && word.ends_with("/ld-linux-x86-64.so.2") {
-                            worker_loader = Some(path);
-                        }
-                    }
-                }
+        for path in &tool_bindings {
+            if let Some(root) = store_root(path) {
+                roots.insert(root.to_owned());
             }
-            worker_libraries.sort();
-            worker_libraries.dedup();
         }
+        tool_bindings.retain(|path| store_root(path).is_none());
+        let (worker_libraries, worker_loader) = resolve_libraries(
+            &worker,
+            assets.iter().copied().chain(
+                tool_bindings
+                    .iter()
+                    .filter(|path| path.is_file())
+                    .map(PathBuf::as_path),
+            ),
+            &mut roots,
+        )?;
         let mut store_paths = BTreeSet::new();
         if !roots.is_empty() {
             // Bind only the toolchain closure, never the whole Nix store or
@@ -222,6 +350,7 @@ impl Sandbox {
             root,
             tools,
             store_paths,
+            tool_bindings,
             worker,
             worker_libraries,
             worker_loader,
@@ -411,7 +540,21 @@ impl Sandbox {
                     .arg(path)
                     .arg(format!("/bin/{name}"));
             }
-            command.args(["--symlink", "/bin/bash", "/bin/sh"]);
+            command.args([
+                "--symlink",
+                "/bin/bash",
+                "/bin/sh",
+                "--dir",
+                "/usr",
+                "--dir",
+                "/usr/bin",
+                "--symlink",
+                "/tools/env",
+                "/usr/bin/env",
+            ]);
+        }
+        for path in &self.tool_bindings {
+            command.arg("--ro-bind").arg(path).arg(path);
         }
         // Debian compiler alternatives can point into /etc, which stays hidden.
         // Expose the already selected public objects through private aliases.
