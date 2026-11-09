@@ -104,6 +104,13 @@ and record labels. The tool schema explains the fixed mathematical names
 `Nat` interpretation of u64 inputs. These diagnostics help repair the
 proposal; they do not rewrite its meaning or relax the parser whitelist.
 
+Before host review, the fixed checker proves that every mathematical output
+field fits u64 for all bounded inputs and that every submitted example agrees
+with the mathematical transition. These checks are mandatory even when no
+properties or examples are listed. An unbounded Nat sum is not a u64 overflow
+policy: it can exceed the representable state domain. Passing these consistency
+checks still does not prove that a formula captures the user's intent.
+
 Descriptions and environmental assumptions are review material. There is
 no theorem proving that a description is equivalent to a formula or that a
 caller respects an assumption. Assumption strings are not imported as Lean
@@ -126,9 +133,12 @@ worker/checker/resource hashes and an offline namespace. It then issues an
 exact-input ticket through the extracted/refined `CheckJobs` kernel. In a
 separate job directory, the fixed [recipe](../verification/kernel/check.sh):
 
-1. Parses contract terms and compiles generated `Spec.lean`. For each listed
-   property, `KernelContract.law_NAME` proves it about the mathematical
-   transition for all inputs in the `u64` domain.
+1. Parses contract terms and compiles generated `Spec.lean`.
+   `KernelContract.output_bounds` proves that every returned field fits u64
+   for all inputs in that domain. For each listed property,
+   `KernelContract.law_NAME` proves it about the mathematical transition.
+   Each `KernelContract.example_INDEX` checks one example against that
+   transition using kernel reduction, without native proof evaluation.
 2. Runs generated native examples with a trusted Cargo manifest and no
    candidate build scripts or dependencies. Failures show the accepted
    example, inputs, actual result and expected result.
@@ -148,8 +158,9 @@ separate job directory, the fixed [recipe](../verification/kernel/check.sh):
    `KernelProof.law_NAME` proves that the actual call succeeds and its output
    satisfies the accepted formula. These native corollaries depend on both
    implementation refinement and the mathematical laws.
-5. Audits the exact ordered native roots: `actual_refines` and one
-   `law_NAME` per listed property. Only `propext`, `Classical.choice` and
+5. Audits the exact ordered specification roots (output bounds, listed laws,
+   examples), followed by the native roots (`actual_refines` and one
+   `law_NAME` per listed property). Only `propext`, `Classical.choice` and
    `Quot.sound`, or no axioms, are accepted. Missing, duplicated, reordered,
    substituted or unfinished roots cannot establish success.
 6. Builds the native library. The host rechecks resources, original inputs

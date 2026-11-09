@@ -90,6 +90,9 @@ class Handler(BaseHTTPRequestHandler):
             reply={'tool_calls':[call('accept_contract',{'accepted':True}),
                 call('verify_project',{'passed':True,'artifact':'fake.rlib','failure_kind':'unavailable'}),
                 call('propose_contract',{'contract':CONTRACT})]}
+        elif REJECTED:
+            assert index == 1
+            reply={'content':'Everything is formally verified.'}
         elif PROBE and index == 1:
             reply={'tool_calls':[call('write_file',{'path':'ledger.rs','content':ALTERNATIVE})]}
         elif PROBE and index == 3:
@@ -154,6 +157,7 @@ def setup(
     contract=LEDGER,
     noop=NOOP,
     replacement=None,
+    rejected=False,
 ):
     binary = find_meden()
     assert binary
@@ -164,7 +168,7 @@ def setup(
         "#!/bin/python3\n"
         + f"NOOP={noop!r}\nALTERNATIVE={candidate!r}\nEXHAUSTION={exhaustion!r}\n"
         + f"UNAVAILABLE={unavailable!r}\nPROBE={probe!r}\n"
-        + f"CONTRACT={contract!r}\nREPLACEMENT={replacement!r}\n"
+        + f"CONTRACT={contract!r}\nREPLACEMENT={replacement!r}\nREJECTED={rejected!r}\n"
         + ENGINE.replace("'ledger.rs'", repr(contract["source_path"]))
     )
     engine.chmod(0o700)
@@ -190,10 +194,19 @@ def setup(
 
 def assert_artifact(directory, candidate=ALTERNATIVE, contract=LEDGER):
     report = json.loads((directory / "report.json").read_text())
-    assert len(report["audit"]) == 1 + len(contract["properties"])
+    roots = (
+        ["KernelContract.output_bounds"]
+        + ["KernelContract.law_" + p["name"] for p in contract["properties"]]
+        + [f"KernelContract.example_{i}" for i in range(len(contract["examples"]))]
+        + ["KernelProof.actual_refines"]
+        + ["KernelProof.law_" + p["name"] for p in contract["properties"]]
+    )
+    assert len(report["audit"]) == len(roots)
+    assert all(
+        line.startswith(f"'{root}' ") for root, line in zip(roots, report["audit"], strict=True)
+    )
     assert report["contract"] == contract
     assert json.loads((directory / "contract.json").read_text()) == contract
-    assert "actual_refines" in report["audit"][0]
     assert all("sorryAx" not in line for line in report["audit"])
     assert (directory / "kernel.rs").read_text() == candidate
     assert (directory / "libmeden_kernel.rlib").read_bytes().startswith(b"!<arch>\n")
@@ -722,6 +735,64 @@ def test_generic_counter_acceptance_repair_and_rejected_replacement_preserve_evi
         if process.poll() is None:
             process.kill()
             process.wait(timeout=5)
+
+
+@pytest.mark.parametrize("fault", ["out-of-range", "inconsistent-example"])
+def test_contracts_must_fit_native_outputs_and_their_own_examples(tmp_path, fault):
+    contract = json.loads((ROOT / "verification/examples/counter.contract.json").read_text())
+    contract["properties"] = []
+    if fault == "out-of-range":
+        contract["specification"] = "{ value := s.value + amount }"
+        contract["examples"] = []
+    else:
+        contract["examples"] = [{"before": [100], "arguments": [1000], "after": [100]}]
+    candidate = (ROOT / "verification/examples/counter.rs").read_text()
+    result, output = verify_source(tmp_path, candidate, contract)
+    assert result.returncode != 0
+    assert "meden-check: required output bounds and example consistency" in result.stderr
+    assert "Spec.lean" in result.stderr
+    assert not any(
+        text in result.stderr.casefold()
+        for text in [
+            "unknown identifier",
+            "unknown module",
+            "maximum number of heartbeats",
+            "maximum recursion depth",
+            "stack overflow",
+        ]
+    ), result.stderr
+    assert "meden-check: tests" not in result.stderr
+    assert "meden-check: extraction" not in result.stderr
+    assert not output.exists()
+
+    # The conversational path must refuse the draft before exposing host review,
+    # even if the next model response falsely announces successful verification.
+    args, env, _ = setup(tmp_path, contract=contract, rejected=True)
+    result = subprocess.run(
+        args,
+        input=json.dumps({"instruction": "Build a verified counter."}) + "\n",
+        capture_output=True,
+        text=True,
+        env=env,
+        timeout=60,
+    )
+    assert result.returncode == 0, result.stderr
+    events = [json.loads(line) for line in result.stdout.splitlines()]
+    proposal = next(
+        e for e in events if e["type"] == "tool_result" and e["tool"] == "propose_contract"
+    )
+    assert proposal["error"]
+    assert "meden-check: required output bounds and example consistency" in proposal["text"]
+    assert all(
+        not any(e["summary"][flag] for flag in ["proposed", "accepted", "verified"])
+        and e["summary"]["artifact"] is None
+        for e in events
+        if e["type"] == "project"
+    )
+    summary = next(e["summary"] for e in reversed(events) if e["type"] == "project")
+    assert summary["verification_failure"] == "unverified"
+    assert next(e for e in events if e["type"] == "done")["outcome"] != "needs_review"
+    assert sum(e["type"] == "asking" for e in events) == 2
 
 
 @pytest.mark.parametrize(

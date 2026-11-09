@@ -26,6 +26,14 @@ made host status verified. Neither trial received solution Rust, formulas
 or human implementation repair. These observations motivate better interfaces;
 they do not estimate task-success rates or establish mission-critical readiness.
 
+The [follow-up at `3421b97`](local-generic-counter-qwen3-4b-3421b97.json)
+repaired its syntax but proposed an unbounded Nat sum as an overflow policy,
+with a contradictory example. The developer harness rejected its meaning
+before implementation. A proof of non-decreasing Nat output did not establish
+the requested u64 transition. This prompted mandatory proofs of output-domain
+closure and agreement between each example and the mathematical specification
+before review. The new filesystem interface was not exercised in that trial.
+
 ## Local ledger pilots
 
 The [Qwen3-4B-Instruct trial at `d3d5fd8`](local-ledger-qwen3-4b-d3d5fd8.json)

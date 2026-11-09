@@ -36,7 +36,8 @@ pub struct Report {
     pub artifact_sha256: String,
     /// Actual deliverable file hashes, including the native Rust library.
     pub files: BTreeMap<String, String>,
-    /// Axiom audit of the implementation refinement and contract consequences.
+    /// Ordered audit of output bounds, specification laws/examples and actual
+    /// implementation refinement/consequences.
     pub audit: Vec<String>,
     /// Boundaries excluded from the claim.
     pub scope: &'static str,
@@ -205,7 +206,8 @@ impl PreparedKernel<'_> {
             control,
         )?;
         successful(&output, "project verification")?;
-        let audit = audit(&output.stdout, &contract.roots()).map_err(Failure::unavailable)?;
+        let audit =
+            audit(&output.stdout, &contract.audited_roots()).map_err(Failure::unavailable)?;
         if bundle.fingerprint(control)? != inputs.bundle_sha256
             || hash(&read(&worker, 268_435_456)?) != inputs.worker_sha256
             || control.flag().load(Ordering::SeqCst)
@@ -266,12 +268,8 @@ pub fn checker_id(contract: &Contract) -> io::Result<String> {
 
 fn checker_files(contract: &Contract) -> io::Result<BTreeMap<String, Vec<u8>>> {
     let mut audit = String::from("import Spec\n");
-    for root in contract.roots().into_iter().skip(1) {
-        let _ = writeln!(
-            audit,
-            "#print axioms {}",
-            root.replace("KernelProof.", "KernelContract.")
-        );
+    for root in contract.specification_roots() {
+        let _ = writeln!(audit, "#print axioms {root}");
     }
     Ok([
         ("Cargo.toml", MANIFEST.as_bytes().to_vec()),
@@ -326,12 +324,7 @@ pub fn check_contract(
         control,
     )?;
     successful(&output, "contract specification")?;
-    let roots = contract
-        .roots()
-        .into_iter()
-        .skip(1)
-        .map(|r| r.replace("KernelProof.", "KernelContract."))
-        .collect::<Vec<_>>();
+    let roots = contract.specification_roots();
     audit(&output.stdout, &roots).map_err(Failure::unavailable)?;
     Ok(())
 }
@@ -532,7 +525,7 @@ mod tests {
         let contract = Contract::parse(include_str!(
             "../../../../verification/examples/counter.contract.json"
         ))?;
-        let roots = contract.roots();
+        let roots = contract.audited_roots();
         let complete = roots
             .iter()
             .map(|name| {

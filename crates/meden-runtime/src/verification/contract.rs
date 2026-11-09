@@ -62,11 +62,11 @@ impl Contract {
             "fields":{"type":"array","minItems":1,"maxItems":8,"items":identifier,"description":"Ordered public u64 state FIELD NAMES only; do not include types or declarations."},
             "parameters":{"type":"array","maxItems":8,"items":identifier,"description":"Ordered u64 PARAMETER NAMES after the state argument; exclude the state argument and all type annotations."},
             "function":identifier,
-            "specification":{"type":"string","description":"One Lean next-state TERM, without a function definition or signature. The mathematical input variable is ALWAYS s, regardless of the Rust struct/function names. Use s.FIELD for each declared input field and the declared parameter names directly; their values are mathematical Nat in the u64 input range. Record syntax is { FIELD := EXPRESSION }, with every declared field explicit; replace placeholders with actual fields/expressions. Conditional syntax is if CONDITION then TERM else TERM. The u64 maximum is the decimal numeral 18446744073709551615; Rust :: and u64::MAX syntax are invalid here. Arithmetic does not implicitly wrap: express the requested overflow behavior. No declarations, constructors, tactics, let, forall or arbitrary functions. Preserve the requested behavior when repairing syntax."},
+            "specification":{"type":"string","description":"One Lean next-state TERM, without a function definition or signature. The mathematical input variable is ALWAYS s, regardless of the Rust struct/function names. Use s.FIELD for each declared input field and the declared parameter names directly; their values are mathematical Nat in the u64 input range. Record syntax is { FIELD := EXPRESSION }, with every declared field explicit; replace placeholders with actual fields/expressions. Conditional syntax is if CONDITION then TERM else TERM. The u64 maximum is the decimal numeral 18446744073709551615; Rust :: and u64::MAX syntax are invalid here. Arithmetic does not implicitly wrap: express the requested overflow behavior. Every output field must fit u64 for all bounded inputs; the fixed checker requires this proof even without listed properties. No declarations, constructors, tactics, let, forall or arbitrary functions. Preserve the requested behavior when repairing syntax."},
             "properties":{"type":"array","maxItems":16,"items":{"type":"object","additionalProperties":false,
                 "required":["name","description","statement"],"properties":{"name":identifier,"description":text,
                     "statement":{"type":"string","description":"One Lean proposition using s.FIELD, the declared Nat parameter names and out.FIELD. The fixed variable out denotes the returned state, not an arbitrary name or a Rust return type. Inputs are implicitly quantified over the u64 range. Use comparisons and logical connectives/implications; do not write forall, a declaration or a tactic proof. The fixed mathematical function transition can be applied to a state and the declared parameters; the Rust function name is not a mathematical binding."}}}},
-            "examples":{"type":"array","maxItems":64,"description":"Concrete unsigned-64-bit input/output vectors in the exact field and parameter order.","items":{"type":"object","additionalProperties":false,
+            "examples":{"type":"array","maxItems":64,"description":"Concrete unsigned-64-bit input/output vectors in the exact field and parameter order. Each expected output must equal the mathematical specification; Lean checks this before host review. Every output field must also fit u64 for all bounded inputs, independently of the listed properties.","items":{"type":"object","additionalProperties":false,
                 "required":["before","arguments","after"],"properties":{"before":words,"arguments":words,"after":words}}},
             "assumptions":{"type":"array","maxItems":16,"items":text,"description":"Environmental assumptions for host review; these strings are not Lean axioms or checked premises."}
         }})
@@ -279,6 +279,41 @@ impl Contract {
             .collect()
     }
 
+    pub(super) fn specification_roots(&self) -> Vec<String> {
+        std::iter::once("KernelContract.output_bounds".to_owned())
+            .chain(
+                self.properties
+                    .iter()
+                    .map(|p| format!("KernelContract.law_{}", p.name)),
+            )
+            .chain((0..self.examples.len()).map(|i| format!("KernelContract.example_{i}")))
+            .collect()
+    }
+
+    pub(super) fn audited_roots(&self) -> Vec<String> {
+        self.specification_roots()
+            .into_iter()
+            .chain(self.roots())
+            .collect()
+    }
+
+    fn bounds(&self) -> String {
+        let mut out = String::new();
+        for (index, field) in self.fields.iter().enumerate() {
+            let _ = write!(
+                out,
+                " (_state_bound_{index} : s.«{field}» ≤ 18446744073709551615)"
+            );
+        }
+        for (index, parameter) in self.parameters.iter().enumerate() {
+            let _ = write!(
+                out,
+                " (_parameter_bound_{index} : «{parameter}» ≤ 18446744073709551615)"
+            );
+        }
+        out
+    }
+
     pub(super) fn specification_file(&self) -> String {
         let mut out = String::from(
             "import Lean.Elab.Tactic.Omega\nset_option linter.unusedVariables false\nnamespace KernelContract\nstructure State where\n",
@@ -293,26 +328,50 @@ impl Contract {
         });
         out.push_str(&arguments);
         let _ = writeln!(out, " : State :=\n{}\n", self.specification);
+        let bounds = self.bounds();
+        let automation = "  all_goals try simp_all\n  all_goals repeat first\n    | apply And.intro\n    | (split <;> try simp_all)\n    | omega\n  all_goals omega\n";
+        let range = self
+            .fields
+            .iter()
+            .map(|f| {
+                format!(
+                    "(transition s {}).«{f}» ≤ 18446744073709551615",
+                    self.lean_arguments()
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(" ∧ ");
+        let _ = writeln!(out, "theorem output_bounds (s : State){arguments}{bounds} :\n    {range} := by\n  simp only [transition]\n{automation}");
         for property in &self.properties {
             let _ = writeln!(
                 out,
                 "def property_{} (s : State){arguments} (out : State) : Prop :=\n{}\n",
                 property.name, property.statement
             );
-            let _ = write!(out, "theorem law_{} (s : State){arguments}", property.name);
-            for (index, field) in self.fields.iter().enumerate() {
-                let _ = write!(
-                    out,
-                    " (_state_bound_{index} : s.«{field}» ≤ 18446744073709551615)"
-                );
-            }
-            for (index, parameter) in self.parameters.iter().enumerate() {
-                let _ = write!(
-                    out,
-                    " (_parameter_bound_{index} : «{parameter}» ≤ 18446744073709551615)"
-                );
-            }
-            let _ = writeln!(out, " :\n    property_{} s {} (transition s {}) := by\n  simp only [property_{}, transition]\n  all_goals try simp_all\n  all_goals repeat first\n    | (split <;> try simp_all)\n    | omega\n  all_goals omega\n", property.name, self.lean_arguments(), self.lean_arguments(), property.name);
+            let _ = writeln!(out, "theorem law_{} (s : State){arguments}{bounds} :\n    property_{} s {} (transition s {}) := by\n  simp only [property_{}, transition]\n{automation}", property.name, property.name, self.lean_arguments(), self.lean_arguments(), property.name);
+        }
+        for (index, example) in self.examples.iter().enumerate() {
+            let before = self
+                .fields
+                .iter()
+                .zip(&example.before)
+                .map(|(f, v)| format!("«{f}» := {v}"))
+                .collect::<Vec<_>>()
+                .join(", ");
+            let after = self
+                .fields
+                .iter()
+                .zip(&example.after)
+                .map(|(f, v)| format!("«{f}» := {v}"))
+                .collect::<Vec<_>>()
+                .join(", ");
+            let values = example
+                .arguments
+                .iter()
+                .map(u64::to_string)
+                .collect::<Vec<_>>()
+                .join(" ");
+            let _ = writeln!(out, "theorem example_{index} : transition {{ {before} }} {values} = {{ {after} }} := by decide\n");
         }
         out.push_str("end KernelContract\n");
         out

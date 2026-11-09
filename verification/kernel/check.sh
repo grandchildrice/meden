@@ -60,9 +60,10 @@ case "$meden_status" in
   *) if (( meden_status >= 128 )); then exit 75; fi; exit 69 ;;
 esac
 printf 'meden-check: contract properties\n'
+printf 'meden-check: required output bounds and example consistency\n'
 lean_check -o Spec.olean Spec.lean
+lean_check AuditSpec.lean
 if [[ ${meden_contract_only:-0} == 1 ]]; then
-  lean_check AuditSpec.lean
   exit 0
 fi
 
