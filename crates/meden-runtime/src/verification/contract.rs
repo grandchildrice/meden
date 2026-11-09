@@ -42,9 +42,41 @@ pub(super) struct Property {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct Example {
+    #[serde(with = "decimal_words")]
     before: Vec<u64>,
+    #[serde(with = "decimal_words")]
     arguments: Vec<u64>,
+    #[serde(with = "decimal_words")]
     after: Vec<u64>,
+}
+
+// JSON numbers can lose precision in model gateways before Meden sees them.
+// Keep one exact wire representation; the checker still receives native u64s.
+mod decimal_words {
+    use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
+
+    pub fn serialize<S: Serializer>(words: &[u64], serializer: S) -> Result<S::Ok, S::Error> {
+        words
+            .iter()
+            .map(u64::to_string)
+            .collect::<Vec<_>>()
+            .serialize(serializer)
+    }
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<u64>, D::Error> {
+        Vec::<String>::deserialize(deserializer)?
+            .into_iter()
+            .map(|word| {
+                let value = word.parse::<u64>().map_err(|_| {
+                    D::Error::custom("example values must be decimal strings in 0..=18446744073709551615")
+                })?;
+                if word != value.to_string() {
+                    return Err(D::Error::custom("example values must be canonical decimal strings without signs, spaces or leading zeroes"));
+                }
+                Ok(value)
+            })
+            .collect()
+    }
 }
 
 impl Contract {
@@ -52,7 +84,7 @@ impl Contract {
     pub fn schema() -> serde_json::Value {
         let text = serde_json::json!({"type":"string"});
         let identifier = serde_json::json!({"type":"string","description":"A single Rust identifier: ASCII letter first, then letters, digits or underscores; at most 32 bytes. Not code, a signature or a type expression."});
-        let words = serde_json::json!({"type":"array","items":{"type":"integer","minimum":0}});
+        let words = serde_json::json!({"type":"array","items":{"type":"string","pattern":"^(0|[1-9][0-9]{0,19})$","maxLength":20,"description":"Exact unsigned-64-bit decimal STRING in 0..=18446744073709551615, for example \"0\" or \"18446744073709551615\". Never a JSON number: model gateways may round large numbers. No signs, spaces, leading zeroes, exponent notation or expressions."}});
         serde_json::json!({"type":"object","additionalProperties":false,
         "required":["name","description","source_path","state","fields","parameters","function","specification"],
         "properties":{
@@ -66,7 +98,7 @@ impl Contract {
             "properties":{"type":"array","maxItems":16,"items":{"type":"object","additionalProperties":false,
                 "required":["name","description","statement"],"properties":{"name":identifier,"description":text,
                     "statement":{"type":"string","description":"One Lean proposition using s.FIELD, the declared Nat parameter names and out.FIELD. The fixed variable out denotes the returned state, not an arbitrary name or a Rust return type. Inputs are implicitly quantified over the u64 range. Use comparisons and logical connectives/implications; do not write forall, a declaration or a tactic proof. The fixed mathematical function transition can be applied to a state and the declared parameters; the Rust function name is not a mathematical binding."}}}},
-            "examples":{"type":"array","maxItems":64,"description":"Concrete unsigned-64-bit input/output vectors in the exact field and parameter order. Each expected output must equal the mathematical specification; Lean checks this before host review. On an example mismatch, the equality shows the computed mathematical state on the left and the declared expected state on the right. Repair the draft while preserving the requested behavior. Every output field must also fit u64 for all bounded inputs, independently of the listed properties.","items":{"type":"object","additionalProperties":false,
+            "examples":{"type":"array","maxItems":64,"description":"Concrete unsigned-64-bit input/output vectors as decimal STRINGS in the exact field and parameter order. Each expected output must equal the mathematical specification; Lean checks this before host review. On an example mismatch, the equality shows the computed mathematical state on the left and the declared expected state on the right. Repair the draft while preserving the requested behavior and required properties. Every output field must also fit u64 for all bounded inputs, independently of the listed properties.","items":{"type":"object","additionalProperties":false,
                 "required":["before","arguments","after"],"properties":{"before":words,"arguments":words,"after":words}}},
             "assumptions":{"type":"array","maxItems":16,"items":text,"description":"Environmental assumptions for host review; these strings are not Lean axioms or checked premises."}
         }})
@@ -506,6 +538,94 @@ fn identifier(name: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn example_encoding_preserves_all_u64_boundaries_without_float_conversion() -> io::Result<()> {
+        let fixture = include_str!("../../../../verification/examples/counter.contract.json");
+        for value in [
+            0,
+            1,
+            (1 << 53) - 1,
+            1 << 53,
+            (1 << 53) + 1,
+            u64::MAX - 1,
+            u64::MAX,
+        ] {
+            let mut contract = Contract::parse(fixture)?;
+            contract.examples = vec![Example {
+                before: vec![value],
+                arguments: vec![0],
+                after: vec![value],
+            }];
+            let canonical = contract.canonical()?;
+            let encoded: serde_json::Value = serde_json::from_slice(&canonical)?;
+            assert_eq!(
+                encoded.pointer("/examples/0/before/0"),
+                Some(&serde_json::json!(value.to_string()))
+            );
+            assert_eq!(
+                Contract::parse(std::str::from_utf8(&canonical).map_err(io::Error::other)?)?,
+                contract
+            );
+            assert!(contract
+                .specification_file()
+                .contains(&format!("«value» := {value}")));
+            assert!(contract
+                .library_file()
+                .contains(&format!("value: {value}u64")));
+            assert!(contract
+                .review_text()
+                .contains(&format!("before=[{value}]")));
+        }
+        assert_eq!(
+            Contract::schema().pointer("/properties/examples/items/properties/before/items/type"),
+            Some(&serde_json::json!("string"))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn example_encoding_rejects_ambiguous_and_out_of_range_values() -> io::Result<()> {
+        let fixture: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../../verification/examples/counter.contract.json"
+        ))?;
+        for invalid in [
+            serde_json::json!(9_007_199_254_740_993_u64),
+            serde_json::json!(1.5),
+            serde_json::json!(true),
+            serde_json::Value::Null,
+        ]
+        .into_iter()
+        .chain(
+            [
+                "",
+                "+1",
+                "-1",
+                "01",
+                "00",
+                " 1",
+                "1 ",
+                "1.0",
+                "1e3",
+                "0x10",
+                "１",
+                "18446744073709551616",
+                "99999999999999999999999999999999999999",
+            ]
+            .into_iter()
+            .map(|word| serde_json::json!(word)),
+        ) {
+            let mut draft = fixture.clone();
+            *draft
+                .pointer_mut("/examples/0/before/0")
+                .ok_or_else(|| io::Error::other("missing example"))? = invalid;
+            assert!(
+                Contract::parse(&draft.to_string()).is_err(),
+                "accepted {draft}"
+            );
+        }
+        Ok(())
+    }
 
     #[test]
     fn draft_data_cannot_supply_authority_or_escape_the_source_scope() -> io::Result<()> {

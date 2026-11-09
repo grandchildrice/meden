@@ -1,0 +1,72 @@
+{
+  "kind": "single-cloud-checked-delivery-trial-stopped-at-review",
+  "date": "2026-11-09",
+  "source_commit": "c9fe857cd88fa6ed57a5f7d04ff1a47ebd06cd91",
+  "worker_sha256": "05281aa697b5ed1b136bbd1dd8a1cbda742a7adb8998143263446d66965c2f40",
+  "model": {
+    "provider": "Ollama Cloud",
+    "id": "minimax-m3",
+    "weight_revision": "not exposed by service",
+    "parameter_count": "not established"
+  },
+  "input_workspace": "empty synthetic project; no repository files or confidential user data",
+  "instruction": "Build a pure Rust ledger transfer transition. Use unsigned 64-bit debit and credit balances and a last successful request identifier. Only actor 0 is authorized. For a strictly newer request ID and a positive amount, transfer exactly that amount from debit to credit when debit covers it and credit still fits. Every rejection, including unauthorized actors, old or repeated IDs, zero amounts and credit overflow, must leave every state field unchanged. Preserve total balance and make retries idempotent. Propose a precise mathematical contract for my review, then implement it and independently verify the accepted contract. After verification, prepare the verified project kernel package for host delivery review to http://127.0.0.1:40353/checked-ledger. Do not send it or change the accepted requirements. Execute tools and proof checking locally. The configured Ollama Cloud model is authorized for this empty synthetic project.",
+  "outcome": {
+    "application": "needs_review",
+    "accepted": false,
+    "verified": false,
+    "deliveries": 0,
+    "model_requests": 5,
+    "duration_seconds": 165.20883087720722,
+    "worker_exit": -9,
+    "cleanup": "host cleanup after driver exception: SIGKILL",
+    "host_commands": 1,
+    "harness": "The developer rejected the pending probe via a decision file. The v1 harness only supports acceptance: its assertion failed and cleanup killed the worker. No reject command was sent to Meden; this is neither a checker rejection nor a normal application exit."
+  },
+  "observations": [
+    "The model first proposed the complete ledger behavior with nine named properties, nine examples and eight assumptions. The draft was rejected before review because example values supplied as strings did not match the numeric u64 input format.",
+    "The model then submitted a minimal test probe with the same transition but no named properties, examples or assumptions. Meden stopped for host review; no automatic acceptance, code verification or delivery occurred.",
+    "The developer did not accept the reduced probe to obtain a passing result. No Rust implementation or Lean proof was supplied by the developer.",
+    "The trace establishes a string-versus-number type error. It does not establish that a provider rounded any numeric value.",
+    "This failure motivates one exact decimal-string representation for example values and instructions to retain requested properties during proposal repair."
+  ],
+  "pending_contract": {
+    "name": "t",
+    "description": "test",
+    "source_path": "ledger.rs",
+    "state": "Ledger",
+    "fields": [
+      "debit",
+      "credit",
+      "last_request_id"
+    ],
+    "parameters": [
+      "actor",
+      "request_id",
+      "amount"
+    ],
+    "function": "transfer",
+    "specification": "if actor = 0 ∧ request_id > s.last_request_id ∧ amount > 0 ∧ s.debit >= amount ∧ s.credit + amount <= 18446744073709551615 then { debit := s.debit - amount, credit := s.credit + amount, last_request_id := request_id } else { debit := s.debit, credit := s.credit, last_request_id := s.last_request_id }",
+    "properties": [],
+    "examples": [],
+    "assumptions": []
+  },
+  "pending_reference": {
+    "revision": 1,
+    "session": "2f686f6d652f676f68616e2f776f726b73706163652f742d6167656e742f7461726765742f766572696669636174696f6e2f636865636b65642d6f7074696f6e732f6c6976652d636c6f75642d64656c69766572792d633966653835372f646174612f6d6564656e2f776f726b7370616365732f73657373696f6e2d504853715939",
+    "contract": "7e7857f4cf684ef7d517e357a3a94784b2385968577d76e1b05d4c81f26f24ed"
+  },
+  "trace_sha256": {
+    "started.json": "0a94fc9cfee1d2d57ad8251b7fbf53a0155f16647b221473fd43c6fb78c45457",
+    "events.jsonl": "fab7a00b255415e2c11419014b9fae0f0baabbd9a82bc8f0a3307b2bc948091d",
+    "host-actions.jsonl": "7f5a1e949633e0855e74cff29f9bf5ffe51a42aecd963f7a35ad90e07edef7f9",
+    "report.json": "78872766182303d9e6fb2488a465c3a5865413240e80f6f91472ecefa39d1158",
+    "pending.json": "07a59b94712ee3ad9a75177a0ef2c26bd30e26d7f33001e414e219ec95bac30b",
+    "contract-decision.json": "5bfbc1ad9994cb2da3be6a608c0ceacbe0d4a6fd71839cf309f659f5fbd418a2",
+    "review-decisions.jsonl": "48a1e0d600b848b4c0974239941a70b880db189be09ed4fb4149ee96fd73884f",
+    "timing.jsonl": "1f8e7b1de8edabc9301d3404b10272f1edd9a92113682ef0e0006d9a12e5344c"
+  },
+  "limitations": [
+    "One trial, not a success-rate estimate. No 100–600B local deployment was measured. The proposed transition was not accepted or independently refined in this trial."
+  ]
+}

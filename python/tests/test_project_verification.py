@@ -476,7 +476,7 @@ def test_verification_before_acceptance_recovers_to_review_without_issuing_evide
 ):
     contract = json.loads((ROOT / "verification/examples/counter.contract.json").read_text())
     invalid = copy.deepcopy(contract)
-    invalid["examples"] = [{"before": [10], "arguments": [5], "after": [10]}]
+    invalid["examples"] = [{"before": ["10"], "arguments": ["5"], "after": ["10"]}]
     args, env, _ = setup(
         tmp_path,
         contract=invalid if prior_rejection else contract,
@@ -927,11 +927,11 @@ def test_contracts_must_fit_native_outputs_and_their_own_examples(tmp_path, faul
         contract["specification"] = "{ value := s.value + amount }"
         contract["examples"] = []
     elif fault == "inconsistent-example":
-        contract["examples"] = [{"before": [100], "arguments": [1000], "after": [100]}]
+        contract["examples"] = [{"before": ["100"], "arguments": ["1000"], "after": ["100"]}]
         mismatch = "{ value := 1100 } = { value := 100 }"
     else:
         contract["examples"] = [
-            {"before": [1844674407370955], "arguments": [2], "after": [1844674407370955]}
+            {"before": ["1844674407370955"], "arguments": ["2"], "after": ["1844674407370955"]}
         ]
         mismatch = "{ value := 1844674407370957 } = { value := 1844674407370955 }"
     candidate = (ROOT / "verification/examples/counter.rs").read_text()
@@ -1141,7 +1141,7 @@ def test_generic_api_boundaries_preserve_field_and_parameter_correspondence(tmp_
                     "statement": "transition out = s",
                 }
             ],
-            "examples": [{"before": [1, 2], "arguments": [], "after": [2, 1]}],
+            "examples": [{"before": ["1", "2"], "arguments": [], "after": ["2", "1"]}],
             "assumptions": [],
         }
         candidate = (
@@ -1172,7 +1172,11 @@ def test_generic_api_boundaries_preserve_field_and_parameter_correspondence(tmp_
                 }
             ],
             "examples": [
-                {"before": [0] * 8, "arguments": list(range(1, 9)), "after": list(range(1, 9))}
+                {
+                    "before": ["0"] * 8,
+                    "arguments": list(map(str, range(1, 9))),
+                    "after": list(map(str, range(1, 9))),
+                }
             ],
             "assumptions": [],
         }
@@ -1188,3 +1192,22 @@ def test_generic_api_boundaries_preserve_field_and_parameter_correspondence(tmp_
     result, _ = verify_source(tmp_path, candidate, contract)
     assert result.returncode == 0, result.stderr
     assert_artifact(Path(json.loads(result.stdout)["directory"]), candidate, contract)
+
+
+def test_decimal_example_boundaries_reach_native_tests_and_lean_exactly(tmp_path):
+    contract = json.loads((ROOT / "verification/examples/counter.contract.json").read_text())
+    # Adjacent integers above the binary64 exact-integer boundary must remain
+    # distinct, including a transfer to the exact u64 maximum and overflow.
+    contract["examples"] = [
+        {"before": ["9007199254740992"], "arguments": ["1"], "after": ["9007199254740993"]},
+        {"before": ["18446744073709551614"], "arguments": ["1"], "after": ["18446744073709551615"]},
+        {"before": ["18446744073709551615"], "arguments": ["1"], "after": ["18446744073709551615"]},
+    ]
+    candidate = (ROOT / "verification/examples/counter.rs").read_text()
+    result, _ = verify_source(tmp_path, candidate, contract)
+    assert result.returncode == 0, result.stderr
+    directory = Path(json.loads(result.stdout)["directory"])
+    assert_artifact(directory, candidate, contract)
+    assert json.loads((directory / "contract.json").read_text())["examples"] == contract["examples"]
+    assert "9007199254740993" in (directory / "Spec.lean").read_text()
+    assert "18446744073709551615u64" in (directory / "lib.rs").read_text()

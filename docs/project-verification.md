@@ -86,7 +86,7 @@ Its essential entries are:
   "properties": [
     {"name": "monotone", "description": "The counter never decreases.", "statement": "s.value ≤ out.value"}
   ],
-  "examples": [{"before": [0], "arguments": [1], "after": [1]}],
+  "examples": [{"before": ["0"], "arguments": ["1"], "after": ["1"]}],
   "assumptions": ["The caller uses this transition for counter updates."]
 }
 ```
@@ -95,7 +95,13 @@ Its essential entries are:
 by natural numbers; Rust inputs range over unsigned 64-bit values. The
 specification returns the next state. Properties are propositions in `s`,
 the parameters and `out`; they may also apply `transition` again. Examples
-use the declared field and parameter order.
+use the declared field and parameter order. Each example value is a canonical
+decimal JSON string from `"0"` through `"18446744073709551615"`. JSON numbers,
+signs, spaces, leading zeroes and exponent notation are rejected. This avoids
+precision loss in model/API gateways; the checker parses exact `u64` values
+and emits the corresponding mathematical numerals and native constants.
+This encoding boundary is tested, not currently refined in Lean. Historical
+trial records retain their original numeric encoding and worker identity.
 
 `source_path` names a file relative to the private workspace; it is not Rust
 source text. The model writes that file separately after host acceptance.
@@ -269,14 +275,26 @@ starts from an empty workspace and one natural-language request, then reaches
 host-reviewed meaning, model-written Rust, actual extraction/refinement and a
 retained verified library. It uses the generic backend, not a fixed ledger
 profile. The published [contract](../results/sources/ledger-minimax-m3-5809a25.contract.json)
-and [source](../results/sources/ledger-minimax-m3-5809a25.rs) can be supplied to
-the direct command above. Independent faults under that same contract include
+and [source](../results/sources/ledger-minimax-m3-5809a25.rs) retain the trial's
+original bytes. To rerun that historical contract with the current direct
+command, encode its example values as decimal strings first; this changes
+its canonical identity, not its mathematical specification. Independent
+faults under the original contract include
 one that passes all submitted examples and fails Lean implementation refinement.
 Inference was explicitly external; this does not measure 100–600B local
 operation or establish the complete local/confidential workflow.
 
-The Lean job runs `python/tests/test_project_verification.py` with the
-prepared offline bundle. Cases drive real CLI and PTY host review, forged
+A subsequent [delivery trial stopped at review](../results/cloud-delivery-probe-ollama-cloud-minimax-m3-c9fe857.json):
+the model supplied string example values to the older numeric interface,
+then submitted a reduced test probe after the type error. That probe was
+not accepted or verified. The harness stopped instead of continuing the
+rejected proposal; it did not send a Meden rejection command or deliver an
+artifact. This exposed the input-format mismatch addressed by the current
+decimal-string schema. The trace does not establish provider-side rounding.
+
+The Lean job runs `python/tests/test_project_verification.py` and
+`python/tests/test_project_delivery.py` with the prepared offline bundle.
+Cases drive real CLI and PTY host review, forged
 acceptance/results, independent repair, changed source, cancellation/I/O
 failures, alternative Rust implementations, and faults which pass examples
 but fail refinement. The counter case drives a different contract/API,
