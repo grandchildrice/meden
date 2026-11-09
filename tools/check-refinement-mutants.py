@@ -781,6 +781,20 @@ GROUPS = [
         ],
     },
     {
+        "source": "crates/meden-cli/src/tui/approval.rs",
+        "package": "meden-cli",
+        "model": "Approval",
+        "proof": "ApprovalRefinement",
+        "test": "tui::approval::tests::complete_review_heading_must_fit",
+        "mutations": [
+            (
+                "clipped_review_approval",
+                "if width == 3 || rows == 0 || rows > height.saturating_sub(2) {",
+                "if (width == 3 || rows == 0 || rows > height.saturating_sub(2)) && false {",
+            ),
+        ],
+    },
+    {
         "source": "crates/meden-runtime/src/verification/turn.rs",
         "package": "meden-runtime",
         "model": "Repair",
@@ -1211,12 +1225,16 @@ def main():
                 output = result.stdout + result.stderr
                 (logs / f"{name}.txt").write_text(output)
                 operational_errors = (
+                    "no if-then-else conditions to split",
                     "maximum number of heartbeats",
                     "maximum recursion depth",
                     "stack overflow",
                     "Unknown constant",
                     "Unknown identifier",
                     "unknown module prefix",
+                    "out of memory",
+                    "memory allocation",
+                    "failed to create thread",
                 )
                 if any(error.casefold() in output.casefold() for error in operational_errors):
                     raise RuntimeError(

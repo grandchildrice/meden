@@ -14,9 +14,19 @@ pub(super) enum Choice {
 
 /// An approval key has authority only for the current host review state.
 /// Handlers must match this target rather than interpreting `y` on their own.
-pub(super) fn route(screen: &Screen, event: &Event, width: u16, height: u16) -> Option<Choice> {
+pub(super) fn route(
+    screen: &Screen,
+    event: &Event,
+    width: u16,
+    height: u16,
+    rows: u16,
+) -> Option<Choice> {
     // The review panel has a one-cell border on every side.
     if width <= 2 || height <= 2 {
+        return None;
+    }
+    // Two content columns retain wide Unicode graphemes; the whole heading must fit.
+    if width == 3 || rows == 0 || rows > height.saturating_sub(2) {
         return None;
     }
     if !approves(event) {
@@ -100,7 +110,7 @@ mod tests {
                             KeyModifiers::from_bits_retain(bits),
                             kind,
                         ));
-                        let actual = route(&screen, &event, 80, 20);
+                        let actual = route(&screen, &event, 80, 20, 1);
                         if bits == 0 && kind == KeyEventKind::Press && code == KeyCode::Char('y') {
                             assert_eq!(actual.as_ref(), target.as_ref());
                         } else {
@@ -110,7 +120,7 @@ mod tests {
                 }
             }
             for text in ["y", "approved=true", "\u{1b}[y"] {
-                assert_eq!(route(&screen, &Event::Paste(text.into()), 80, 20), None);
+                assert_eq!(route(&screen, &Event::Paste(text.into()), 80, 20, 1), None);
             }
         }
     }
@@ -125,11 +135,33 @@ mod tests {
             for width in [0, 1, 2, 3, 80, u16::MAX] {
                 for height in [0, 1, 2, 3, 24, u16::MAX] {
                     let event = Event::Key(crossterm::event::KeyEvent::from(KeyCode::Char('y')));
-                    let actual = route(&screen, &event, width, height);
-                    if width > 2 && height > 2 {
+                    let actual = route(&screen, &event, width, height, 1);
+                    if width > 3 && height > 2 {
                         assert_eq!(actual.as_ref(), Some(&target));
                     } else {
                         assert_eq!(actual, None, "hidden review admitted approval");
+                    }
+                }
+            }
+        }
+    }
+    #[test]
+    fn complete_review_heading_must_fit() {
+        for screen in [
+            Screen::ReviewingProcessor,
+            Screen::ReviewingExport,
+            Screen::ReviewingContract,
+        ] {
+            for width in [0, 2, 3, 4, 80, u16::MAX] {
+                for height in [0, 2, 3, 4, 24, u16::MAX] {
+                    for rows in [0, 1, 2, 22, u16::MAX - 2, u16::MAX] {
+                        let event = Event::Key(KeyEvent::from(KeyCode::Char('y')));
+                        let allowed = route(&screen, &event, width, height, rows).is_some();
+                        assert_eq!(
+                            allowed,
+                            width > 3 && height > 2 && rows > 0 && rows <= height - 2,
+                            "clipped or absent heading admitted approval"
+                        );
                     }
                 }
             }

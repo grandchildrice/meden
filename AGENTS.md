@@ -60,10 +60,15 @@
   extracted and refined too. All approval handlers match the selected target
   against the host's current screen. Decoding, screen transitions, rendering,
   effect interpretation and physical input provenance remain separate gaps.
-  Approval routing also requires content cells inside the review border.
+  Approval routing also requires content cells and sufficient rows for the
+  complete fixed authority heading inside the review border. Processor/export
+  destinations and contract identities stay fixed while details scroll.
+  Count wrapped heading rows before adding its border; details use their own
+  viewport page size. A heading with zero rows or insufficient space cannot
+  grant authority.
   TUI handlers use the last drawn panel, discard readiness on a new review
   target and redraw after a terminal-size mismatch before handling review keys.
-  The numeric guard refines Lean for every u16 width/height; geometry attribution
+  The numeric guard refines Lean for every u16 width/height/heading-row count; geometry attribution
   and complete review visibility remain adapters, not a whole-renderer proof.
   The numeric display transformation is extracted/refined too, including
   finite compositions, safe output, preserved ordinary values/newlines and valid scalars.

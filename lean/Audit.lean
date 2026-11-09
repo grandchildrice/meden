@@ -145,6 +145,7 @@ open MedenSpec
 #print axioms MedenSpec.ApprovalRefinement.paste_cannot_route
 #print axioms MedenSpec.ApprovalRefinement.nonreview_cannot_route
 #print axioms MedenSpec.ApprovalRefinement.hidden_review_cannot_route
+#print axioms MedenSpec.ApprovalRefinement.clipped_heading_cannot_route
 #print axioms MedenSpec.RepairRefinement.begin_refines
 #print axioms MedenSpec.RepairRefinement.advance_refines
 #print axioms MedenSpec.RepairRefinement.inspection_requires_acceptance

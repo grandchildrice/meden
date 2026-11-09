@@ -78,6 +78,8 @@ struct App {
     // Populated by drawing; changing a review target discards this readiness.
     review_area: Rect,
     review_frame: Rect,
+    review_rows: u16,
+    review_page: u16,
 }
 
 impl App {
@@ -112,6 +114,8 @@ impl App {
             scroll_back: 0,
             review_area: Rect::default(),
             review_frame: Rect::default(),
+            review_rows: 0,
+            review_page: 0,
         }
     }
     fn selected(&self) -> Option<&Provider> {
@@ -181,7 +185,8 @@ impl App {
                     &self.screen,
                     &event::Event::Key(key),
                     self.review_area.width,
-                    self.review_area.height
+                    self.review_area.height,
+                    self.review_rows
                 ),
                 Some(approval::Choice::Processor)
             ) =>
@@ -252,7 +257,8 @@ impl App {
                     &self.screen,
                     &event::Event::Key(key),
                     self.review_area.width,
-                    self.review_area.height
+                    self.review_area.height,
+                    self.review_rows
                 ),
                 Some(approval::Choice::Export)
             ) =>
@@ -342,7 +348,8 @@ impl App {
                     &self.screen,
                     &event::Event::Key(key),
                     self.review_area.width,
-                    self.review_area.height
+                    self.review_area.height,
+                    self.review_rows
                 ),
                 Some(approval::Choice::Contract)
             ) =>
@@ -772,7 +779,7 @@ where
                         | Screen::ReviewingExport
                         | Screen::ReviewingContract
                 ) {
-                    app.scroll_back.saturating_sub(10)
+                    app.scroll_back.saturating_sub(app.review_page.max(1))
                 } else {
                     app.scroll_back.saturating_add(10)
                 };
@@ -785,7 +792,7 @@ where
                         | Screen::ReviewingExport
                         | Screen::ReviewingContract
                 ) {
-                    app.scroll_back.saturating_add(10)
+                    app.scroll_back.saturating_add(app.review_page.max(1))
                 } else {
                     app.scroll_back.saturating_sub(10)
                 };
@@ -839,12 +846,6 @@ fn draw(frame: &mut Frame<'_>, app: &mut App) {
     } else {
         middle
     };
-    if matches!(
-        app.screen,
-        Screen::ReviewingProcessor | Screen::ReviewingExport | Screen::ReviewingContract
-    ) {
-        app.review_area = middle;
-    }
     if app.screen == Screen::ReviewingContract {
         draw_contract_review(frame, app, middle);
     } else if app.screen == Screen::ReviewingExport {
@@ -890,6 +891,10 @@ fn draw(frame: &mut Frame<'_>, app: &mut App) {
         draw_input(frame, &app.instruction, bottom);
         return;
     }
+    draw_controls(frame, app, bottom);
+}
+
+fn draw_controls(frame: &mut Frame<'_>, app: &App, bottom: Rect) {
     let (title, text) = match app.screen {
         Screen::Picking => (
             " controls ",
@@ -897,7 +902,7 @@ fn draw(frame: &mut Frame<'_>, app: &mut App) {
         ),
         Screen::ReviewingProcessor => (
             " processor approval ",
-            "y: authorize this processor · n / esc: back · ctrl-c: quit".to_owned(),
+            "y: authorize this processor · n / esc: back · PgUp/PgDn: details".to_owned(),
         ),
         Screen::ReviewingExport => (
             " exact export · host control ",
@@ -912,6 +917,18 @@ fn draw(frame: &mut Frame<'_>, app: &mut App) {
             " working ",
             "esc / ctrl-c: cancel after current request".to_owned(),
         ),
+    };
+    let text = if matches!(
+        app.screen,
+        Screen::ReviewingProcessor | Screen::ReviewingExport | Screen::ReviewingContract
+    ) && (app.review_area.width <= 3
+        || app.review_rows == 0
+        || app.review_rows > app.review_area.height.saturating_sub(2))
+    {
+        "Approval unavailable: enlarge the terminal to show the complete heading. · n / esc: back"
+            .to_owned()
+    } else {
+        text
     };
     frame.render_widget(
         Paragraph::new(text)
@@ -950,40 +967,92 @@ fn draw_header(frame: &mut Frame<'_>, app: &App, top: Rect) {
     );
 }
 
-fn draw_contract_review(frame: &mut Frame<'_>, app: &App, middle: Rect) {
-    let text = app.contract_review.as_ref().map_or_else(String::new, |s|
-            visible(&format!("Contract revision: {}\nContract SHA-256: {}\n\n{}\n\nAccepting continues development under this exact contract.",s.reference.revision,s.reference.contract,s.review)));
+/// Keep the authority heading fixed while scrolling the explanatory text.
+/// The same Paragraph supplies its row count and the actual painted heading.
+fn draw_review(
+    frame: &mut Frame<'_>,
+    app: &mut App,
+    middle: Rect,
+    title: &str,
+    heading: &str,
+    details: &str,
+) {
+    let heading = Paragraph::new(visible(heading)).wrap(Wrap { trim: false });
+    app.review_rows =
+        u16::try_from(heading.line_count(middle.width.saturating_sub(2))).unwrap_or(u16::MAX);
+    let areas = Layout::vertical([
+        Constraint::Length(app.review_rows.saturating_add(2)),
+        Constraint::Min(3),
+    ])
+    .split(middle);
+    let header = areas.first().copied().unwrap_or_default();
+    let body = areas.get(1).copied().unwrap_or_default();
+    app.review_area = header;
+    app.review_page = body.height.saturating_sub(2);
     frame.render_widget(
-        Paragraph::new(text)
+        heading.block(Block::bordered().title(title.to_owned())),
+        header,
+    );
+    frame.render_widget(
+        Paragraph::new(visible(details))
             .wrap(Wrap { trim: false })
             .scroll((app.scroll_back, 0))
-            .block(Block::bordered().title(" Rust transition contract · host control ")),
-        middle,
+            .block(Block::bordered().title(" details · PgUp/PgDn ")),
+        body,
     );
 }
 
-fn draw_processor_review(frame: &mut Frame<'_>, app: &App, middle: Rect) {
-    if let Some(gateway) = &app.gateway {
-        let provider = gateway.provider();
-        let text = format!(
-            "Destination: {}\nConnection: {}\nModel: {}\nCredential: {}\nConfiguration: {}\n\nAllow this processor to receive this workspace's conversation, file contents and tool results for this session, up to eight hours.\n\nLoopback alone does not guarantee local inference; the server may forward data.\n\nOnly y grants approval. Enter and pasted text do not. PgUp/PgDn: review.",
-            gateway.endpoint(),
-            visible(&provider.id).replace('\n', "⏎"),
-            visible(&provider.model).replace('\n', "⏎"),
-            if provider.api_key.is_some() { "host-configured account" } else { "none" },
-            visible(&provider.note).replace('\n', "⏎"),
-        );
-        frame.render_widget(
-            Paragraph::new(text)
-                .wrap(Wrap { trim: false })
-                .scroll((app.scroll_back, 0))
-                .block(Block::bordered().title(" processor approval · host control ")),
-            middle,
-        );
-    }
+fn draw_contract_review(frame: &mut Frame<'_>, app: &mut App, middle: Rect) {
+    let Some(review) = &app.contract_review else {
+        return;
+    };
+    let heading = format!(
+        "Contract revision: {}\nContract SHA-256: {}",
+        review.reference.revision, review.reference.contract
+    );
+    let details = format!(
+        "{}\n\nAccepting continues development under this exact contract.",
+        review.review
+    );
+    draw_review(
+        frame,
+        app,
+        middle,
+        " Rust transition contract · host control ",
+        &heading,
+        &details,
+    );
 }
 
-fn draw_export_review(frame: &mut Frame<'_>, app: &App, middle: Rect) {
+fn draw_processor_review(frame: &mut Frame<'_>, app: &mut App, middle: Rect) {
+    let Some(gateway) = &app.gateway else {
+        return;
+    };
+    let provider = gateway.provider();
+    let heading = format!(
+        "Destination: {}\nConnection: {}\nModel: {}\nCredential: {}\nScope: workspace conversation, files and tool results; one session, up to eight hours.",
+        gateway.endpoint(),
+        visible(&provider.id).replace('\n', "⏎"),
+        visible(&provider.model).replace('\n', "⏎"),
+        if provider.api_key.is_some() {
+            "host-configured account"
+        } else {
+            "none"
+        }
+    );
+    let details = format!("Configuration: {}\n\nAllow this processor to receive this workspace's conversation, file contents and tool results for this session, up to eight hours.\n\nLoopback alone does not guarantee local inference; the server may forward data.\n\nOnly y grants approval. Enter and pasted text do not.",
+        visible(&provider.note).replace('\n', "⏎"));
+    draw_review(
+        frame,
+        app,
+        middle,
+        " processor approval · host control ",
+        &heading,
+        &details,
+    );
+}
+
+fn draw_export_review(frame: &mut Frame<'_>, app: &mut App, middle: Rect) {
     let Some(entry) = app
         .reviewing_export
         .as_ref()
@@ -997,18 +1066,18 @@ fn draw_export_review(frame: &mut Frame<'_>, app: &App, middle: Rect) {
     let Ok(preview) = entry.preview(app.export_offset) else {
         return;
     };
-    let text = format!(
-        "Export #{} · state: {}\nDestination: {}\nMethod: POST\nContent-Type: application/octet-stream\nSource name (untrusted): {}\nAccepted contract: {}\nFrozen body: {} bytes · byte offset {}\n\n{}\nThese exact payload bytes are retained outside the worker. Current project source and evidence are checked again before dispatch. No redirects or automatic retries. Approval is for one attempt, including uncertain delivery.",
-        summary.reference.id, summary.state, visible(&summary.target),
-        visible(&summary.source).replace('\n', "⏎"), summary.contract.as_deref().unwrap_or("ordinary file; no project contract"), summary.bytes, app.export_offset,
-        preview,
-    );
-    frame.render_widget(
-        Paragraph::new(text)
-            .wrap(Wrap { trim: false })
-            .scroll((app.scroll_back, 0))
-            .block(Block::bordered().title(" immutable export review · host control ")),
+    let heading = format!("Export #{}\nDestination: {}\nMethod: POST · Content-Type: application/octet-stream\nFrozen body: {} bytes\nAccepted contract: {}\nAttempt: one POST; no redirects or automatic retries",
+        summary.reference.id, summary.target, summary.bytes,
+        summary.contract.as_deref().unwrap_or("ordinary file; no project contract"));
+    let details = format!("State: {}\nSource name (untrusted): {}\nByte offset: {}\n\n{}\nThese exact payload bytes are retained outside the worker. Current project source and evidence are checked again before dispatch. No redirects or automatic retries. Approval is for one attempt, including uncertain delivery.",
+        summary.state, visible(&summary.source).replace('\n', "⏎"), app.export_offset, preview);
+    draw_review(
+        frame,
+        app,
         middle,
+        " immutable export review · host control ",
+        &heading,
+        &details,
     );
 }
 
@@ -1144,6 +1213,57 @@ mod tests {
             .map(ratatui::buffer::Cell::symbol)
             .collect();
         assert!(painted.contains(gateway.endpoint()));
+        app.review_key(crossterm::event::KeyEvent::from(KeyCode::Char('y')));
+        assert!(gateway.is_authorized(app.session_id()));
+        Ok(())
+    }
+    #[test]
+    fn processor_cannot_be_approved_with_a_clipped_destination() -> Result<()> {
+        use anyhow::Context as _;
+        let mut connections = providers();
+        connections.first_mut().context("provider")?.base_url =
+            format!("https://example.com/{}/destination-end", "a".repeat(240));
+        let mut app = App::new(connections, PathBuf::from("/workspace/clipped-review"));
+        app.select_processor();
+        let gateway = Arc::clone(app.gateway.as_ref().context("pending gateway")?);
+        let mut terminal = Terminal::new(ratatui::backend::TestBackend::new(20, 24))?;
+        terminal.draw(|frame| draw(frame, &mut app))?;
+        let painted: String = terminal
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(ratatui::buffer::Cell::symbol)
+            .collect();
+        assert!(!painted.contains("destination-end"));
+        app.review_key(crossterm::event::KeyEvent::from(KeyCode::Char('y')));
+        assert!(
+            !gateway.is_authorized(app.session_id()),
+            "a clipped destination was authorized"
+        );
+        terminal.backend_mut().resize(100, 24);
+        terminal.draw(|frame| draw(frame, &mut app))?;
+        let painted: String = terminal
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(ratatui::buffer::Cell::symbol)
+            .collect();
+        assert!(painted.contains("destination-end"));
+        app.scroll_back = 50;
+        terminal.draw(|frame| draw(frame, &mut app))?;
+        let painted: String = terminal
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(ratatui::buffer::Cell::symbol)
+            .collect();
+        assert!(
+            painted.contains("destination-end"),
+            "scrolling hid the fixed destination"
+        );
         app.review_key(crossterm::event::KeyEvent::from(KeyCode::Char('y')));
         assert!(gateway.is_authorized(app.session_id()));
         Ok(())

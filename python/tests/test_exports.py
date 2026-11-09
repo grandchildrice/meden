@@ -233,6 +233,7 @@ def test_tui_export_review_uses_host_keys_and_exact_frozen_bytes(tmp_path):
     import codecs
     import fcntl
     import pty
+    import signal
     import struct
     import termios
 
@@ -292,11 +293,21 @@ def test_tui_export_review_uses_host_keys_and_exact_frozen_bytes(tmp_path):
             # The byte-page update acknowledges that Enter and a pasted 'y'
             # were processed without dispatching. No timing-only assertion.
             os.write(master, b"\r\x1b[200~y\x1b[201~\x1b[C")
-            wait_for(lambda: "byte offset 128" in view())
+            wait_for(lambda: "Byte offset: 128" in view())
+            assert target in view()
             assert deliveries == other == []
-            os.write(master, b"n")
-            wait_for(lambda: "Export #0 rejected." in view())
+            # A painted but clipped authority heading cannot authorize a send.
+            fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 16, 20, 0, 0))
+            screen.resize(16, 20)
+            os.kill(process.pid, signal.SIGWINCH)
+            wait_for(lambda: "Approval" in view() and "unavailable:" in view())
+            os.write(master, b"yn")
+            wait_for(lambda: "rejected." in view())
             assert deliveries == other == []
+            fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 36, 112, 0, 0))
+            screen.resize(36, 112)
+            os.kill(process.pid, signal.SIGWINCH)
+            wait_for(lambda: "Export #0 rejected." in view() and "alt-enter" in view())
             os.write(master, b"/exports 1\r")
             wait_for(lambda: "immutable export review" in view() and "Export #1" in view())
             os.write(master, b"y")
