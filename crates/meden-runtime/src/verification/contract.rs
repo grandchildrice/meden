@@ -16,6 +16,7 @@ use sha2::{Digest, Sha256};
 pub struct Contract {
     pub(super) name: String,
     pub(super) description: String,
+    #[serde(rename = "source_path")]
     pub(super) source: String,
     pub(super) state: String,
     pub(super) fields: Vec<String>,
@@ -50,18 +51,24 @@ impl Contract {
     /// Model-facing draft schema; runtime validation remains authoritative.
     pub fn schema() -> serde_json::Value {
         let text = serde_json::json!({"type":"string"});
-        let names = serde_json::json!({"type":"array","items":text});
+        let identifier = serde_json::json!({"type":"string","description":"A single Rust identifier: ASCII letter first, then letters, digits or underscores; at most 32 bytes. Not code, a signature or a type expression."});
         let words = serde_json::json!({"type":"array","items":{"type":"integer","minimum":0}});
         serde_json::json!({"type":"object","additionalProperties":false,
-        "required":["name","description","source","state","fields","parameters","function","specification"],
+        "required":["name","description","source_path","state","fields","parameters","function","specification"],
         "properties":{
-            "name":text,"description":text,"source":text,"state":text,
-            "fields":names,"parameters":names,"function":text,"specification":text,
-            "properties":{"type":"array","items":{"type":"object","additionalProperties":false,
-                "required":["name","description","statement"],"properties":{"name":text,"description":text,"statement":text}}},
-            "examples":{"type":"array","items":{"type":"object","additionalProperties":false,
+            "name":text,"description":text,
+            "source_path":{"type":"string","description":"Relative Rust FILE PATH, for example kernel.rs or src/kernel.rs. Not Rust source code. Do not use /workspace/, ./ or ../ prefixes. The implementation is written separately after host acceptance."},
+            "state":identifier,
+            "fields":{"type":"array","minItems":1,"maxItems":8,"items":identifier,"description":"Ordered public u64 state FIELD NAMES only; do not include types or declarations."},
+            "parameters":{"type":"array","maxItems":8,"items":identifier,"description":"Ordered u64 PARAMETER NAMES after the state argument; exclude the state argument and all type annotations."},
+            "function":identifier,
+            "specification":{"type":"string","description":"One Lean term of type State for the next state. s is the input State; its declared fields and parameters are Nat values in the u64 range. Use arithmetic, comparisons, if/then/else and explicit records. No declarations, tactics, let, forall or arbitrary functions. This is mathematical meaning, not Rust source code."},
+            "properties":{"type":"array","maxItems":16,"items":{"type":"object","additionalProperties":false,
+                "required":["name","description","statement"],"properties":{"name":identifier,"description":text,
+                    "statement":{"type":"string","description":"One Lean proposition in input s, the declared Nat parameters and output out. Inputs are implicitly quantified over the u64 range. Use comparisons and logical connectives/implications; do not write forall, a declaration or a tactic proof. transition can be applied to a state and the declared parameters."}}}},
+            "examples":{"type":"array","maxItems":64,"description":"Concrete unsigned-64-bit input/output vectors in the exact field and parameter order.","items":{"type":"object","additionalProperties":false,
                 "required":["before","arguments","after"],"properties":{"before":words,"arguments":words,"after":words}}},
-            "assumptions":names
+            "assumptions":{"type":"array","maxItems":16,"items":text,"description":"Environmental assumptions for host review; these strings are not Lean axioms or checked premises."}
         }})
     }
 
@@ -96,7 +103,7 @@ impl Contract {
                     .split('/')
                     .all(|p| !p.is_empty() && p != "." && p != "..")
                 && !self.source.contains('\0'),
-            "source must be a relative Rust file path without dot components",
+            "source must be a relative .rs FILE PATH such as kernel.rs, not Rust code or an absolute /workspace path; no . or .. directories, empty components, backslashes or NUL",
         )?;
         require(
             identifier(&self.state)
@@ -435,4 +442,43 @@ fn identifier(name: &str) -> bool {
             "virtual", "yield",
         ]
         .contains(&name)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn draft_data_cannot_supply_authority_or_escape_the_source_scope() -> io::Result<()> {
+        let fixture: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../../verification/examples/counter.contract.json"
+        ))?;
+        assert_eq!(
+            Contract::parse(&fixture.to_string())?.source(),
+            "counter.rs"
+        );
+        for key in ["accepted", "verified", "checker", "receipt", "source"] {
+            let mut changed = fixture.clone();
+            changed
+                .as_object_mut()
+                .ok_or_else(|| io::Error::other("not an object"))?
+                .insert(key.into(), serde_json::json!(true));
+            assert!(Contract::parse(&changed.to_string()).is_err());
+        }
+        for path in [
+            "/workspace/kernel.rs",
+            "../kernel.rs",
+            "./kernel.rs",
+            "dir//kernel.rs",
+            "pub struct State {}",
+        ] {
+            let mut changed = fixture.clone();
+            changed
+                .as_object_mut()
+                .ok_or_else(|| io::Error::other("not an object"))?
+                .insert("source_path".into(), serde_json::json!(path));
+            assert!(Contract::parse(&changed.to_string()).is_err());
+        }
+        Ok(())
+    }
 }

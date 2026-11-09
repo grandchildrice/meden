@@ -1,7 +1,7 @@
 {
   "name": "Local ledger",
   "description": "Transfers conserve balance, reject unauthorized/invalid requests and cannot charge a repeated ID twice.",
-  "source": "ledger.rs",
+  "source_path": "ledger.rs",
   "state": "LedgerState",
   "fields": [
     "debit",

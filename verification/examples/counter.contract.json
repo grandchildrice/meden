@@ -1,7 +1,7 @@
 {
   "name": "Bounded counter",
   "description": "Increment an unsigned counter without wrapping; a rejected increment leaves it unchanged.",
-  "source": "counter.rs",
+  "source_path": "counter.rs",
   "state": "Counter",
   "fields": [
     "value"

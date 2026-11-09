@@ -165,7 +165,7 @@ def setup(
         + f"NOOP={noop!r}\nALTERNATIVE={candidate!r}\nEXHAUSTION={exhaustion!r}\n"
         + f"UNAVAILABLE={unavailable!r}\nPROBE={probe!r}\n"
         + f"CONTRACT={contract!r}\nREPLACEMENT={replacement!r}\n"
-        + ENGINE.replace("'ledger.rs'", repr(contract["source"]))
+        + ENGINE.replace("'ledger.rs'", repr(contract["source_path"]))
     )
     engine.chmod(0o700)
     model = tmp_path / "fixture.gguf"
@@ -806,7 +806,7 @@ def test_generic_api_boundaries_preserve_field_and_parameter_correspondence(tmp_
         contract = {
             "name": "Swap",
             "description": "Exchange both values.",
-            "source": "swap.rs",
+            "source_path": "swap.rs",
             "state": "Pair",
             "fields": ["left", "right"],
             "parameters": [],
@@ -832,7 +832,7 @@ def test_generic_api_boundaries_preserve_field_and_parameter_correspondence(tmp_
         contract = {
             "name": "Register bank",
             "description": "Load eight registers in order.",
-            "source": "registers.rs",
+            "source_path": "registers.rs",
             "state": "Registers",
             "fields": fields,
             "parameters": parameters,

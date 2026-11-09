@@ -62,7 +62,7 @@ Its essential entries are:
 {
   "name": "Bounded counter",
   "description": "Increment without wrapping.",
-  "source": "counter.rs",
+  "source_path": "counter.rs",
   "state": "Counter",
   "fields": ["value"],
   "parameters": ["amount"],
@@ -81,6 +81,9 @@ by natural numbers; Rust inputs range over unsigned 64-bit values. The
 specification returns the next state. Properties are propositions in `s`,
 the parameters and `out`; they may also apply `transition` again. Examples
 use the declared field and parameter order.
+
+`source_path` names a file relative to the private workspace; it is not Rust
+source text. The model writes that file separately after host acceptance.
 
 The fixed [term parser](../verification/kernel/Terms.lean) allows a bounded
 subset of arithmetic, comparisons, propositional/Boolean operators,
