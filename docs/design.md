@@ -1,6 +1,6 @@
 # Meden: proof-driven development, with ease
 
-Status: target architecture, revised 2026-11-08. This describes the product
+Status: target architecture, revised 2026-11-09. This describes the product
 we are building, not functionality already shipped. Current checks and
 implementation limits are in [verification.md](verification.md) and
 [SECURITY.md](../SECURITY.md).
@@ -43,6 +43,28 @@ separate example implementation establishes neither assurance for the
 running product. The long-term scope includes Meden's own TUI, CLI and tool
 behavior, with refinement proofs connecting supported Rust implementations
 to Lean specifications.
+
+## Model deployment and implementation priority
+
+Establish the end-to-end workflow using an explicitly authorized Ollama Cloud
+model first, with code execution and verification kept local. The local
+deployment target is capable models in the 100–600B parameter class. Achieving
+comparable behavior on roughly 10B models is later optimization, not a gate
+for the initial product. Small-model failures must not drive repeated pilots
+or task-specific scaffolding at the expense of the orchestrator.
+
+Cloud and self-hosted OpenAI-compatible inference use the same conversation,
+tools, contract controller and independent checker. Model capability never
+grants acceptance, changes proof requirements or creates delivery authority.
+The current confined llama.cpp CPU profile is an existing backend, not the
+hardware or context limit for the intended large-model deployment.
+
+A successful cloud run establishes that workflow under external inference;
+it does not establish local data control or measured 100–600B local operation.
+Validate the local deployment separately with its actual server, model,
+resources, context/tool-call support and confinement. An arbitrary localhost
+or LAN HTTP server remains an explicitly authorized processor until that
+boundary is established. R1 and the complete local deployment remain required.
 
 ## User experience
 
@@ -304,15 +326,18 @@ distributed scheduler, universal IR or a second planner first.
 
 | Increment | Required result before proceeding |
 | --- | --- |
-| 1. Local proof-driven coding | From one natural-language instruction, implement a small Rust ledger, extract its actual kernel, check its Lean contract/refinement and produce an input-bound evidence report locally; an injected bug is rejected |
+| 1. Local proof-driven coding | From one natural-language instruction, implement a small Rust ledger, extract its actual kernel, check its Lean contract/refinement and produce an input-bound evidence report locally; an injected bug is rejected. Establish the workflow with authorized Ollama Cloud inference first, then validate it on a 100–600B local deployment |
 | 2. Meden's own verified controller | Route that workflow through the production Rust control kernel; prove its Lean invariants/refinement and reject stale evidence, forged results, contract weakening and delivery bypass through TUI, CLI and tools |
 | 3. Complete confidential execution | Confine all workers and local inference; implement immutable exports/page cache and pass R1-01 through R1-16 with real observation and no cloud fallback |
 | 4. Additional project backends | Add one justified integration at a time, with source/artifact linkage, counterexamples, honest evidence kinds and offline behavior |
 | 5. Broader first-party assurance | Extend specifications/refinement across first-party TUI, CLI and adapters; publish remaining dependencies and trust assumptions before claiming whole-product coverage |
 | 6. Domain acceptance | Reproducible finance and hardware examples with independent requirements, injected faults, boundary integration checks and domain review |
 
-The prototype already supplies the offline workspace and local inference
-needed for increment 1; its project proof workflow remains unfinished.
+The prototype supplies an offline workspace and a managed CPU inference
+backend. A [generic ledger cloud baseline](../results/local-generic-ledger-ollama-cloud-minimax-m3-5809a25.json)
+now connects a natural-language request to actual Rust extraction/refinement
+and a checked local artifact, and rejects injected faults. Increment 1 still
+requires validation on the intended 100–600B local deployment.
 Increment 3 completes the entire confidentiality boundary. Earlier
 increments must not claim R1 or operate as a mission-critical release.
 

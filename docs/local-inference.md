@@ -1,5 +1,37 @@
 # Isolated local inference
 
+Development currently prioritizes an explicitly approved Ollama Cloud model
+for the complete coding/proof workflow. The local deployment target is capable
+100–600B models; comparable roughly 10B performance is deferred. The CPU backend
+below remains available, but its small-model pilots are not a product gate.
+
+## Cloud baseline and large local deployments
+
+Use a configured Ollama Cloud connection, such as the existing Hermes provider:
+
+```bash
+meden tui --workspace /path/to/project --provider hermes:ollama-cloud --model minimax-m3
+```
+
+Alternatively set `MEDEN_LLM_BASE_URL=https://ollama.com/v1`,
+`MEDEN_LLM_MODEL` to the chosen cloud model ID and `MEDEN_LLM_API_KEY` to the
+API key, then select `--provider configured`. The TUI reviews the exact
+processor before sending context; automation uses `--approve-processor
+https://ollama.com/v1/chat/completions`. Code execution and proof checks stay
+offline. This explicitly authorized cloud inference sends context externally.
+See [Ollama's API](https://docs.ollama.com/api/openai-compatibility) for the
+cloud/local endpoints and supported API subset.
+
+A separately prepared large local server can use the same configured
+OpenAI-compatible connection and exact-endpoint approval. Verify the actual
+model, context capacity, native tool calls and deployment isolation; parameter
+count alone is not evidence of these. HTTP connectivity is implemented, but
+100–600B local operation has not been measured here. Loopback or a private LAN
+does not itself establish confinement or prevent forwarding to a cloud.
+GPU/multi-host confinement and the large-model deployment remain work.
+
+## Managed CPU backend
+
 CLI and TUI use prepared local inference by default. Install Bubblewrap,
 Bash and a llama.cpp `llama-server` with Unix socket support, and prepare a
 GGUF model before confidential work. No component downloads models or

@@ -1,0 +1,304 @@
+{
+  "kind": "single-ollama-cloud-generic-ledger-trial",
+  "date": "2026-11-09",
+  "source_commit": "5809a250edc08a9fd2411ec33759826916ac4894",
+  "worker_sha256": "659f72c7a652a0852410b01528ce755cb567c31f577c479d32422edfb5f18168",
+  "model": {
+    "provider": "Ollama Cloud",
+    "id": "minimax-m3",
+    "endpoint": "https://ollama.com/v1/chat/completions",
+    "weight_revision": "not exposed by service",
+    "parameter_count": "not established by this trial",
+    "sampling": "service defaults; seed not recorded"
+  },
+  "execution": {
+    "inference": "explicitly authorized external processor",
+    "code_and_proof_execution": "local offline namespaces",
+    "context_limit": "service configuration; not recorded",
+    "cloud_fallback": false,
+    "exchange_budget_seconds": 300,
+    "trial_wall_budget_seconds": 1800,
+    "input_workspace": "empty synthetic project; no repository files imported"
+  },
+  "instruction": "Build a pure Rust ledger transfer transition. Use unsigned 64-bit debit and credit balances and a last successful request identifier. Only actor 0 is authorized. For a strictly newer request ID and a positive amount, transfer exactly that amount from debit to credit when debit covers it and credit still fits. Every rejection, including unauthorized actors, old or repeated IDs, zero amounts and credit overflow, must leave every state field unchanged. Preserve total balance and make retries idempotent. Propose a precise mathematical contract for my review, then implement it and independently verify the accepted contract. Execute tools and proof checking locally. The configured Ollama Cloud model is authorized for this synthetic project.",
+  "method": "One natural-language instruction using the generic contract-data backend. Explicit developer-harness review of the exact mathematical contract; no implementation, formula or proof repair supplied. The model alone wrote the source. Code execution and independent checking stayed local.",
+  "duration_seconds": 280.3743416448124,
+  "model_requests": 12,
+  "host_commands": 3,
+  "host_review_decisions": 1,
+  "process_exit": 0,
+  "cleanup": null,
+  "received_signal": null,
+  "conversation_outcomes": [
+    "needs_review",
+    "done"
+  ],
+  "accepted": true,
+  "verified": true,
+  "contract_sha256": "7a86a40614f3baa1a7d3784b5dec68ddc27b618f155d82506e8bc582dbcfa060",
+  "candidate_source_file": "results/sources/ledger-minimax-m3-5809a25.rs",
+  "accepted_contract_file": "results/sources/ledger-minimax-m3-5809a25.contract.json",
+  "successful_tools": {
+    "list_files": 2,
+    "project_status": 3,
+    "list_cached_pages": 1,
+    "propose_contract": 1,
+    "bash": 1,
+    "write_file": 1,
+    "read_file": 1,
+    "verify_project": 1
+  },
+  "failed_tools": {
+    "propose_contract": 1
+  },
+  "observations": [
+    "The first proposal contained out-of-range numeric examples and was rejected before review. The model removed those examples and retained its mathematical transition and laws; no host formula repair occurred.",
+    "The accepted specification precisely guards actor, request ordering, positive amount, debit coverage and credit overflow; every rejected input preserves all fields.",
+    "The actual Rust source was extracted with Charon/Aeneas and proved totally equivalent to the accepted transition for all supported inputs; sixteen exact axiom audit entries passed.",
+    "Independent inspection matched retained files, source/current workspace, canonical contract, checker recipe, worker/bundle and all exact audit roots. Replaying the single successful model write reconstructs the final source byte for byte.",
+    "Independent faults were applied only after the trial, outside its workspace, under the unchanged accepted contract. Missing credit failed native examples. Rejecting an exact-balance debit passed all submitted examples but failed actual Rust-to-Lean refinement. Neither produced an artifact."
+  ],
+  "independent_fault_checks": [
+    {
+      "fault": "missing-credit",
+      "exit": 1,
+      "duration_seconds": 12.712515476625413,
+      "native_examples_passed": false,
+      "artifact_produced": false,
+      "contract_sha256": "7a86a40614f3baa1a7d3784b5dec68ddc27b618f155d82506e8bc582dbcfa060",
+      "source_sha256": "56f164d853e98244b0bb792ce88347cbc632394fcdf832036ef533650c053e50",
+      "diagnostic_sha256": "d20e7cab6b0711e3800d9f905ea76400c3b93fdaaf500d1fbcde45c0080713ad",
+      "replacement": {
+        "from": "credit_balance: s.credit_balance + amount,",
+        "to": "credit_balance: s.credit_balance,"
+      },
+      "rejected_at": "native examples"
+    },
+    {
+      "fault": "reject-exact-debit",
+      "exit": 1,
+      "duration_seconds": 16.455896502826363,
+      "native_examples_passed": true,
+      "artifact_produced": false,
+      "contract_sha256": "7a86a40614f3baa1a7d3784b5dec68ddc27b618f155d82506e8bc582dbcfa060",
+      "source_sha256": "bb36eb0167afe313a3220977fdaee8dbaf3060dbaf46215585df9b7bf1548807",
+      "diagnostic_sha256": "d7a57a47834c72897705674b42ed52d50643fa18fcaf74a3c29a0d6b8ae64e58",
+      "replacement": {
+        "from": "s.debit_balance >= amount",
+        "to": "s.debit_balance > amount"
+      },
+      "rejected_at": "Lean implementation refinement after native examples passed"
+    }
+  ],
+  "evidence": {
+    "contract": {
+      "name": "ledger_transfer",
+      "description": "Pure single-ledger u64 transfer transition. The state contains the debit balance, credit balance, and the last successfully processed request identifier. A transfer succeeds exactly when the actor is 0, the request identifier is strictly greater than the last successful identifier, the amount is positive, the debit balance covers the amount, and adding the amount to the credit balance does not exceed the u64 maximum. A successful transfer subtracts the amount from debit, adds it to credit, and records the request identifier. Every other case is an atomic rejection that returns every state field unchanged.",
+      "source_path": "src/lib.rs",
+      "state": "LedgerState",
+      "fields": [
+        "debit_balance",
+        "credit_balance",
+        "last_request_id"
+      ],
+      "parameters": [
+        "actor",
+        "request_id",
+        "amount"
+      ],
+      "function": "transfer",
+      "specification": "if actor = 0 ∧ request_id > s.last_request_id ∧ amount > 0 ∧ s.debit_balance ≥ amount ∧ s.credit_balance + amount ≤ 18446744073709551615 then { debit_balance := s.debit_balance - amount, credit_balance := s.credit_balance + amount, last_request_id := request_id } else { debit_balance := s.debit_balance, credit_balance := s.credit_balance, last_request_id := s.last_request_id }",
+      "properties": [
+        {
+          "name": "total_balance_preserved",
+          "description": "The debit and credit balances always have the same total before and after the transition.",
+          "statement": "out.debit_balance + out.credit_balance = s.debit_balance + s.credit_balance"
+        },
+        {
+          "name": "rejection_is_noop",
+          "description": "Any unauthorized, stale, zero-amount, insufficient-debit, or credit-overflow request leaves all three state fields unchanged.",
+          "statement": "(actor ≠ 0 ∨ request_id ≤ s.last_request_id ∨ amount = 0 ∨ s.debit_balance < amount ∨ s.credit_balance + amount > 18446744073709551615) → (out.debit_balance = s.debit_balance ∧ out.credit_balance = s.credit_balance ∧ out.last_request_id = s.last_request_id)"
+        },
+        {
+          "name": "successful_transfer",
+          "description": "Every accepted request moves exactly the requested amount, records its identifier, and changes no other balance.",
+          "statement": "(actor = 0 ∧ request_id > s.last_request_id ∧ amount > 0 ∧ s.debit_balance ≥ amount ∧ s.credit_balance + amount ≤ 18446744073709551615) → (out.debit_balance = s.debit_balance - amount ∧ out.credit_balance = s.credit_balance + amount ∧ out.last_request_id = request_id)"
+        },
+        {
+          "name": "retry_is_idempotent",
+          "description": "Applying the transition again with the same request identifier and arguments to the returned state makes no further change.",
+          "statement": "transition out actor request_id amount = out"
+        }
+      ],
+      "examples": [
+        {
+          "before": [
+            100,
+            20,
+            7
+          ],
+          "arguments": [
+            0,
+            8,
+            25
+          ],
+          "after": [
+            75,
+            45,
+            8
+          ]
+        },
+        {
+          "before": [
+            100,
+            20,
+            7
+          ],
+          "arguments": [
+            1,
+            8,
+            25
+          ],
+          "after": [
+            100,
+            20,
+            7
+          ]
+        },
+        {
+          "before": [
+            75,
+            45,
+            8
+          ],
+          "arguments": [
+            0,
+            8,
+            25
+          ],
+          "after": [
+            75,
+            45,
+            8
+          ]
+        },
+        {
+          "before": [
+            100,
+            20,
+            7
+          ],
+          "arguments": [
+            0,
+            7,
+            25
+          ],
+          "after": [
+            100,
+            20,
+            7
+          ]
+        },
+        {
+          "before": [
+            100,
+            20,
+            7
+          ],
+          "arguments": [
+            0,
+            8,
+            0
+          ],
+          "after": [
+            100,
+            20,
+            7
+          ]
+        },
+        {
+          "before": [
+            20,
+            20,
+            7
+          ],
+          "arguments": [
+            0,
+            8,
+            25
+          ],
+          "after": [
+            20,
+            20,
+            7
+          ]
+        }
+      ],
+      "assumptions": [
+        "Scope is one ledger/account represented by one state value; persistence, concurrency, and multi-ledger coordination are outside the transition.",
+        "A fresh ledger uses last_request_id = 0, so its first accepted request identifier must be positive.",
+        "All input fields and parameters are mathematical Nat values constrained to the u64 range (0 through 18446744073709551615).",
+        "Actor identifier 0 is the sole authorized actor; every other u64 actor identifier is unauthorized.",
+        "The request identifier must be strictly greater than the last successful request identifier; failed attempts do not advance it.",
+        "Credit fits exactly when credit_balance + amount is at most 18446744073709551615.",
+        "The caller is responsible for durably persisting the returned state and for serializing concurrent calls; the transition itself is pure and atomic."
+      ]
+    },
+    "source_sha256": "f3e8001e27b938b2e147963b28644357f506190c58a64101687c7e894d8eb1f5",
+    "bundle_sha256": "f4f1961020b89b3f08ffbbab46f43687f3720d545e7a5f8766f2eb65edebeb65",
+    "checker_sha256": "2a58480a0d229aeccbef212485ff821855c4580db9b581ee499661167a57b7c7",
+    "worker_sha256": "659f72c7a652a0852410b01528ce755cb567c31f577c479d32422edfb5f18168",
+    "artifact_sha256": "d0140404995784b71b1ad170c7653fbb06d56c0694116a3b9e6ee932088b48cd",
+    "files": {
+      "AuditSpec.lean": "286d547c9200f408c078794198bcf9d410b68677309a009c19386de4bf577158",
+      "Candidate.lean": "47b9ef355d4b89aea9effa620bf96328b59252298c6a8a5c36f6adb9cbaf4b10",
+      "Cargo.lock": "4ee0ed85a83a4e3e50dc52b4457b0590ad73fd8f1a383ec9d34a33306a5e07e4",
+      "Cargo.toml": "c96e14fdef55b0ce16f2520f582958b953b3e7c972e4c3da792d33b7112b7708",
+      "Check.lean": "49ff2af692a9bb00b1f40f38f405ef901f1033c128bc391b8746c552e9c5e7d7",
+      "Spec.lean": "9c4110b5f7c943341699cecbac93b33087c51fdc293f1f5754e1126f797d2ea2",
+      "Terms.lean": "77d5c9dcae49cf6be8167882f3cf8dfbbfe036cfd983a63d9a890df4f1bd1247",
+      "candidate.llbc": "4fecbd0e24e4919f76f06a8ecab0b3178e39f8e7b323f6a41b9cb91123167b6b",
+      "check.sh": "fc7761896b4842a2a034495c06dee672a8f43551c4fe2e613f0b2599bd7b685e",
+      "contract.json": "7a86a40614f3baa1a7d3784b5dec68ddc27b618f155d82506e8bc582dbcfa060",
+      "kernel.rs": "f3e8001e27b938b2e147963b28644357f506190c58a64101687c7e894d8eb1f5",
+      "lib.rs": "3958d27009cb27622fce2a83e34f329d6452fee16ae54370d32b02db2ca37fe4",
+      "libmeden_kernel.rlib": "0c004875680280e41e79e9c5cb8177cd7214d87f32f773c990c332d6571029ce"
+    },
+    "audit": [
+      "'KernelContract.output_bounds' depends on axioms: [propext, Quot.sound]",
+      "'KernelContract.law_total_balance_preserved' depends on axioms: [propext, Quot.sound]",
+      "'KernelContract.law_rejection_is_noop' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelContract.law_successful_transfer' depends on axioms: [propext]",
+      "'KernelContract.law_retry_is_idempotent' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelContract.example_0' does not depend on any axioms",
+      "'KernelContract.example_1' does not depend on any axioms",
+      "'KernelContract.example_2' does not depend on any axioms",
+      "'KernelContract.example_3' does not depend on any axioms",
+      "'KernelContract.example_4' does not depend on any axioms",
+      "'KernelContract.example_5' does not depend on any axioms",
+      "'KernelProof.actual_refines' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelProof.law_total_balance_preserved' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelProof.law_rejection_is_noop' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelProof.law_successful_transfer' depends on axioms: [propext, Classical.choice, Quot.sound]",
+      "'KernelProof.law_retry_is_idempotent' depends on axioms: [propext, Classical.choice, Quot.sound]"
+    ],
+    "scope": "Full functional refinement of the accepted pure u64 transition and the listed contract properties, conditional on the reviewed contract, trusted preparer/checker libraries, Charon/Aeneas models, Lean kernel, compiler/native libraries, OS confinement and SHA-256. Not persistence, concurrent transactions, whole-application correctness or certification."
+  },
+  "limitations": [
+    "One successful cloud trial is not a task-success rate or a controlled comparison with small local models.",
+    "No 100–600B local deployment or model-weight identity was measured. Inference used an explicitly approved external processor.",
+    "The proved scope is the pure u64 transition, not caller authentication, durable storage, concurrent transactions, payment settlement or certification.",
+    "Full Meden interface/effect correspondence, R1 and broader backend/domain acceptance remain unfinished."
+  ],
+  "retained_trace_sha256": {
+    "events.jsonl": "1d1734e0ee0ac50c4faed57103ffd111bd5524242475baa733203e3325ed6361",
+    "report.json": "7d94960a9f39d1a46cfbe8493e9cd53ef11fc16059e5adbcd1c585a72df99424",
+    "started.json": "a8c3c7f5d765b5422748e6eb426b3bbb9b2430d2fca99f771fbfa639a0f21388",
+    "host-actions.jsonl": "3b615d537337a4762ed2c8e937c0092f6e4982e199e7e0c48e1c3b025b03c2d1",
+    "timing.jsonl": "dd7fb10fc9a05cfacfbffce90c7f873a0eb9b28f01967b5cb3813ffa15b8e60d",
+    "host-decision.json": "0339dc3064f0dd8f8169a609199a77976ac96c00d1b7dad38e0770ee6f099361",
+    "review-decisions.jsonl": "2d12ee75a5f75a51906661b4a7c291ae419b5702a092a0d1ba7b4d47c14edcdb",
+    "independent-trace-inspection.json": "82d8b48876382028e4d48618316c7e8b03277521cde83585a862fdb3108fcaa6",
+    "independent-mutants/result.json": "8b1cf91e90c8bf14418f0d869076e296c748e6df9e9f75fefd3d5ddeca55a17a"
+  }
+}

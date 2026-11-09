@@ -1,0 +1,51 @@
+{
+  "date": "2026-11-09",
+  "task": "generic pure-u64 Rust counter from one natural-language instruction",
+  "instruction": "Build a pure local Rust counter transition. Increasing it by a requested unsigned 64-bit amount must add exactly that amount when the sum fits; otherwise keep all state unchanged. It must never decrease or wrap. Propose a precise mathematical contract for my review, then implement it and independently verify the accepted contract. Keep all data local.",
+  "source_commit": "173f3da913cd2663fa135832f2ef21f3c55b7bd8",
+  "worker_sha256": "9c9ae57db704f9b1e539a653b2ba12e80cbf4b380fb248417d9aa56938e5da7f",
+  "model": "Qwen3-8B Q4_K_M",
+  "model_sha256": "54fffa050078e984116639c83dfb64b5aa6d4cd474e018b076777c632bbccccd",
+  "engine_executable_sha256": "f9a0035fb2c521e3dc6e16cba89197d5e87414024287ae36e53283b758fa9478",
+  "execution": {
+    "local": true,
+    "cloud_fallback": false,
+    "context_tokens": 16384,
+    "reasoning_budget": 0,
+    "exchange_budget_seconds": 300,
+    "trial_wall_budget_seconds": 1800,
+    "environment": "shared CPU workstation; other verification work ran concurrently"
+  },
+  "elapsed_seconds": 904.3940329710022,
+  "status": "stopped after user changed the model target",
+  "process_exit": -15,
+  "received_signal": "SIGTERM",
+  "model_requests_observed": 7,
+  "completed_proposals_observed": 6,
+  "host_commands": 1,
+  "accepted": false,
+  "verified": false,
+  "artifact": null,
+  "done_outcomes": [],
+  "human_implementation_or_formula_repair": false,
+  "observations": [
+    "Six completed proposals were rejected for the same two example equalities. Computed mathematical values were displayed in each rejection.",
+    "No valid draft, host review, implementation proof or artifact was observed.",
+    "The user deferred roughly 10B model parity and prioritized Ollama Cloud and capable 100–600B local deployments. The harness stopped this trial accordingly; this was not a timeout or final semantic rejection.",
+    "Only retained events are counted; the unfinished host turn emitted no final conversation/full proposal transcript."
+  ],
+  "scope_limits": [
+    "A stopped single pilot is not a task-success rate.",
+    "This frozen binary predates streaming original tool calls; complete proposals cannot be inferred.",
+    "Displaying concrete mismatches did not establish repair success before the user-requested change of target."
+  ],
+  "retained_trace_sha256": {
+    "events.jsonl": "d68b7b7b6e1eb6eb70d7a3d97010516a51b1d77996842deb963e2e9da051839b",
+    "report.json": "78b25d82c0573a8bf53c0993c7d4eff8bed2c6aa5140de5709c73d7947201a80",
+    "started.json": "99aba4c3ab9e92aab93658173452ecd39c540f5b4d7924d3cb4033260296f136",
+    "host-actions.jsonl": "0075fd899d3075cebed3daee5780ed95de7991daf57b4411178487ef6a191015",
+    "timing.jsonl": "7ab246d46cca78daea2ac50fb0de4c49d6b769be47f37dfd841b2a4d4a94285b",
+    "user-steering.json": "4bc89aea9cd33725d91c181e53e858ade1a351ab31d703438f6eed25253f91db",
+    "interruptions.jsonl": "1ed86aacebb348bf06bd9418e40f810bf2a52de2d06cf9c5b05f33bb69f81d83"
+  }
+}

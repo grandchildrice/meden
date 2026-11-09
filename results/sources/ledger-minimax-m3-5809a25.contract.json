@@ -1,0 +1,153 @@
+{
+  "name": "ledger_transfer",
+  "description": "Pure single-ledger u64 transfer transition. The state contains the debit balance, credit balance, and the last successfully processed request identifier. A transfer succeeds exactly when the actor is 0, the request identifier is strictly greater than the last successful identifier, the amount is positive, the debit balance covers the amount, and adding the amount to the credit balance does not exceed the u64 maximum. A successful transfer subtracts the amount from debit, adds it to credit, and records the request identifier. Every other case is an atomic rejection that returns every state field unchanged.",
+  "source_path": "src/lib.rs",
+  "state": "LedgerState",
+  "fields": [
+    "debit_balance",
+    "credit_balance",
+    "last_request_id"
+  ],
+  "parameters": [
+    "actor",
+    "request_id",
+    "amount"
+  ],
+  "function": "transfer",
+  "specification": "if actor = 0 ∧ request_id > s.last_request_id ∧ amount > 0 ∧ s.debit_balance ≥ amount ∧ s.credit_balance + amount ≤ 18446744073709551615 then { debit_balance := s.debit_balance - amount, credit_balance := s.credit_balance + amount, last_request_id := request_id } else { debit_balance := s.debit_balance, credit_balance := s.credit_balance, last_request_id := s.last_request_id }",
+  "properties": [
+    {
+      "name": "total_balance_preserved",
+      "description": "The debit and credit balances always have the same total before and after the transition.",
+      "statement": "out.debit_balance + out.credit_balance = s.debit_balance + s.credit_balance"
+    },
+    {
+      "name": "rejection_is_noop",
+      "description": "Any unauthorized, stale, zero-amount, insufficient-debit, or credit-overflow request leaves all three state fields unchanged.",
+      "statement": "(actor ≠ 0 ∨ request_id ≤ s.last_request_id ∨ amount = 0 ∨ s.debit_balance < amount ∨ s.credit_balance + amount > 18446744073709551615) → (out.debit_balance = s.debit_balance ∧ out.credit_balance = s.credit_balance ∧ out.last_request_id = s.last_request_id)"
+    },
+    {
+      "name": "successful_transfer",
+      "description": "Every accepted request moves exactly the requested amount, records its identifier, and changes no other balance.",
+      "statement": "(actor = 0 ∧ request_id > s.last_request_id ∧ amount > 0 ∧ s.debit_balance ≥ amount ∧ s.credit_balance + amount ≤ 18446744073709551615) → (out.debit_balance = s.debit_balance - amount ∧ out.credit_balance = s.credit_balance + amount ∧ out.last_request_id = request_id)"
+    },
+    {
+      "name": "retry_is_idempotent",
+      "description": "Applying the transition again with the same request identifier and arguments to the returned state makes no further change.",
+      "statement": "transition out actor request_id amount = out"
+    }
+  ],
+  "examples": [
+    {
+      "before": [
+        100,
+        20,
+        7
+      ],
+      "arguments": [
+        0,
+        8,
+        25
+      ],
+      "after": [
+        75,
+        45,
+        8
+      ]
+    },
+    {
+      "before": [
+        100,
+        20,
+        7
+      ],
+      "arguments": [
+        1,
+        8,
+        25
+      ],
+      "after": [
+        100,
+        20,
+        7
+      ]
+    },
+    {
+      "before": [
+        75,
+        45,
+        8
+      ],
+      "arguments": [
+        0,
+        8,
+        25
+      ],
+      "after": [
+        75,
+        45,
+        8
+      ]
+    },
+    {
+      "before": [
+        100,
+        20,
+        7
+      ],
+      "arguments": [
+        0,
+        7,
+        25
+      ],
+      "after": [
+        100,
+        20,
+        7
+      ]
+    },
+    {
+      "before": [
+        100,
+        20,
+        7
+      ],
+      "arguments": [
+        0,
+        8,
+        0
+      ],
+      "after": [
+        100,
+        20,
+        7
+      ]
+    },
+    {
+      "before": [
+        20,
+        20,
+        7
+      ],
+      "arguments": [
+        0,
+        8,
+        25
+      ],
+      "after": [
+        20,
+        20,
+        7
+      ]
+    }
+  ],
+  "assumptions": [
+    "Scope is one ledger/account represented by one state value; persistence, concurrency, and multi-ledger coordination are outside the transition.",
+    "A fresh ledger uses last_request_id = 0, so its first accepted request identifier must be positive.",
+    "All input fields and parameters are mathematical Nat values constrained to the u64 range (0 through 18446744073709551615).",
+    "Actor identifier 0 is the sole authorized actor; every other u64 actor identifier is unauthorized.",
+    "The request identifier must be strictly greater than the last successful request identifier; failed attempts do not advance it.",
+    "Credit fits exactly when credit_balance + amount is at most 18446744073709551615.",
+    "The caller is responsible for durably persisting the returned state and for serializing concurrent calls; the transition itself is pure and atomic."
+  ]
+}

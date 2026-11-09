@@ -10,6 +10,12 @@
   orchestrator with a shared Rust controller specified/refined in Lean.
   `docs/assurance.md` defines proposed proof obligations;
   `docs/verification.md` records checks that actually run today.
+- Establish the development workflow with explicitly approved Ollama Cloud
+  inference first. Target capable 100–600B local deployments; comparable
+  performance on roughly 10B models is deferred. Do not make small-model
+  parity a gate or prioritize repeated small-model pilots. Cloud success is
+  not evidence of local inference or confidentiality; keep execution/proofs
+  local and retain the local deployment and R1 obligations.
 - Preserve accepted intent, evidence/source/artifact linkage and local data
   control. The isolated planner is retired. The processor, export review and
   evidence kernels have Rust-to-Lean refinement. The combined export state

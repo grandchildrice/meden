@@ -6,6 +6,30 @@ The old AgentDojo host-tool bridge and benchmark adapter have also been
 removed. Current `meden run` uses the same private offline coding session
 as the TUI; commands below describe historical interfaces, not current ones.
 
+## Ollama Cloud ledger baseline
+
+The [generic ledger trial at `5809a25`](local-generic-ledger-ollama-cloud-minimax-m3-5809a25.json)
+completed one natural-language request in 280 seconds and twelve model requests
+using the explicitly authorized Ollama Cloud `minimax-m3` connection. Code and
+proof execution stayed local. The model proposed its own contract, corrected
+out-of-range examples after rejection, waited for an exact semantic review and
+wrote the [Rust implementation](sources/ledger-minimax-m3-5809a25.rs).
+No solution source, formula or proof repair was supplied by the host.
+
+Actual Rust extraction and Lean total refinement passed for the
+[accepted contract](sources/ledger-minimax-m3-5809a25.contract.json), with
+sixteen exact audit roots. The properties cover conservation, unchanged
+rejected state, exact permitted transfers and idempotent retries. Independent
+inspection matched the source, retained library/checker inputs and model-write
+trace. Two later faults under the unchanged contract were rejected: missing
+credit failed native examples; rejecting an exact-balance debit passed those
+examples but failed implementation refinement. Neither produced an artifact.
+
+This establishes one cloud-backed workflow, not a task-success rate, local
+inference, a measured 100–600B deployment or whole-product assurance. Persistence,
+concurrent transactions, caller authentication and complete R1/interface
+coverage remain outside this pure-transition result.
+
 ## Generic-contract trials
 
 The [Qwen3-4B trial at `1c0d4d0`](local-generic-counter-qwen3-4b-1c0d4d0.json)
@@ -71,6 +95,14 @@ or a verified artifact. No final conversation/full proposal transcript was
 received; a complete last contract cannot be inferred. The repeated example
 error prompted reducing its computed mathematical state before reporting the
 failed equality. That diagnostic change was not in this frozen trial.
+
+The [8B follow-up at `173f3da`](local-generic-counter-qwen3-8b-173f3da.json)
+displayed the computed values but still observed six proposal rejections for
+the same two example equalities. The user then prioritized Ollama Cloud and
+capable 100–600B local deployments, deferring roughly 10B parity; the harness
+stopped this run. It was not a trial timeout or final semantic rejection,
+and it produced no accepted contract or verified artifact. Small-model parity
+is no longer a gate for the development baseline.
 
 ## Local ledger pilots
 

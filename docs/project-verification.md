@@ -240,6 +240,17 @@ conversational host acceptance or whole-project correctness.
 
 ## CI evidence and remaining boundaries
 
+The [recorded Ollama Cloud ledger trial](../results/local-generic-ledger-ollama-cloud-minimax-m3-5809a25.json)
+starts from an empty workspace and one natural-language request, then reaches
+host-reviewed meaning, model-written Rust, actual extraction/refinement and a
+retained verified library. It uses the generic backend, not a fixed ledger
+profile. The published [contract](../results/sources/ledger-minimax-m3-5809a25.contract.json)
+and [source](../results/sources/ledger-minimax-m3-5809a25.rs) can be supplied to
+the direct command above. Independent faults under that same contract include
+one that passes all submitted examples and fails Lean implementation refinement.
+Inference was explicitly external; this does not measure 100–600B local
+operation or establish the complete local/confidential workflow.
+
 The Lean job runs `python/tests/test_project_verification.py` with the
 prepared offline bundle. Cases drive real CLI and PTY host review, forged
 acceptance/results, independent repair, changed source, cancellation/I/O

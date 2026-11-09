@@ -42,6 +42,11 @@ HTTP connections and optional Hermes configuration.
 - **Explicit boundaries:** Lean specifications for capability decisions and
   exact, single-use outbound authorization, checked in CI.
 
+A [recorded Ollama Cloud ledger trial](results/local-generic-ledger-ollama-cloud-minimax-m3-5809a25.json)
+completed one natural-language request with model-written Rust and checked Lean
+refinement. Independent faults were rejected, including one that passed the
+submitted examples. Large local deployment remains to be measured.
+
 > Development prototype. General local orchestration and project proof workflows,
 > controller-wide refinement and general project delivery are design targets.
 > An experimental [pure Rust transition workflow](docs/project-verification.md)
@@ -58,19 +63,32 @@ The workspace backend currently requires Linux, Bubblewrap, Bash and host
 permission to create the required namespaces. Ubuntu 24.04 may need its
 packaged Bubblewrap AppArmor profile enabled by an administrator; see
 [the tested runner configuration](docs/release.md#exact-source-to-staged-archives).
-Build from source with Rust:
+Build from source with Rust and set `OLLAMA_API_KEY` for the cloud connection:
 
 ```bash
 cargo build --release -p meden-cli
+export MEDEN_LLM_BASE_URL=https://ollama.com/v1
+export MEDEN_LLM_MODEL=your-ollama-cloud-model
+export MEDEN_LLM_API_KEY="$OLLAMA_API_KEY"
+./target/release/meden tui --workspace /path/to/project --provider configured
+```
+
+Development targets Ollama Cloud first, then capable 100–600B local deployments.
+Comparable roughly 10B performance is deferred. Cloud inference requires
+explicit processor approval; code execution and verification stay local.
+
+For the existing confined CPU backend, prepare a compatible llama.cpp executable
+and GGUF weights:
+
+```bash
 export MEDEN_LOCAL_ENGINE=/path/to/llama-server
 export MEDEN_LOCAL_MODEL=/path/to/model.gguf
 ./target/release/meden tui --workspace /path/to/project
 ```
 
-Prepare a compatible llama.cpp executable and GGUF weights first. Inference
-currently uses Linux/CPU with a 16384-token context. The process stays warm
-across turns; it has no external route, workspace access or cloud fallback.
-[Local inference setup and limits →](docs/local-inference.md)
+This backend currently uses Linux/CPU with a 16384-token context. The process
+stays warm across turns; it has no external route, workspace access or cloud
+fallback. [Model connections and local inference →](docs/local-inference.md)
 
 Select an HTTP connection explicitly:
 
