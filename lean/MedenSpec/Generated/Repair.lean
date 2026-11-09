@@ -262,7 +262,7 @@ def file.verification_kind
         ok verification.failure.FailureKind.Inconclusive
 
 /-- [meden_runtime::pages::public_v4]:
-    Source: 'crates/meden-runtime/src/pages.rs', lines 267:0-287:1 -/
+    Source: 'crates/meden-runtime/src/pages.rs', lines 279:0-299:1 -/
 def pages.public_v4 (a : Std.U8) (b : Std.U8) (c : Std.U8) : Result Bool := do
   match a with
   | 0#uscalar => ok false
@@ -316,7 +316,7 @@ def pages.public_v4 (a : Std.U8) (b : Std.U8) (c : Std.U8) : Result Bool := do
     else ok true
 
 /-- [meden_runtime::pages::public_v6]:
-    Source: 'crates/meden-runtime/src/pages.rs', lines 289:0-299:1 -/
+    Source: 'crates/meden-runtime/src/pages.rs', lines 301:0-311:1 -/
 def pages.public_v6 (a : Std.U16) (b : Std.U16) : Result Bool := do
   let i ← lift (a &&& 57344#u16)
   if i != 8192#u16

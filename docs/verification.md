@@ -1537,6 +1537,40 @@ admit loopback/shared space, ignore the IPv6 global mask or accept 6to4. Each
 must fail a native assertion, extract a compiling model and fail the unchanged
 refinement, as part of the 146-fault CI corpus.
 
+The Linux [DNS/TLS lab](../crates/meden-runtime/src/pages/network_tests.rs)
+adds an observed connection check around those predicates. A fresh user/network
+namespace assigns synthetic public IPv4/IPv6 addresses to loopback and runs
+its own UDP DNS, HTTPS and private/metadata receivers. No physical network
+route or administrator changes are needed. The actual `DefaultResolver`,
+`PublicResolver`, `DefaultConnector` and shared response reader execute;
+there is no replacement resolver or TCP connector. The fixture CA is supplied
+only by unit-test code, with certificate verification enabled. The production
+configuration still rejects that CA, including with `SSL_CERT_FILE` set.
+
+The test checks successful IPv4/IPv6 HTTPS, inert subresources, zero DNS requests
+to redirect destinations, rejected private/mixed/mapped DNS answers and a DNS
+answer changing from public to private on the next request. The first public
+answer connects once; the next private answer cannot reuse the connection.
+Wrong certificate names and the unknown CA produce no HTTP request. Wire
+requests contain no cookies or authorization. Independent positive controls
+reach all three private, metadata and IPv6 receivers, which otherwise observe
+no connections, including from environment proxies.
+
+Run `cargo test -p meden-runtime pages::network_tests -- --nocapture` on Linux
+with Bubblewrap, Bash, Python and `ip` from iproute2. The Rust CI job runs this
+test and retains `page-network-observation.json`. Test-only capabilities create
+addresses and bind DNS port 53 inside its namespace; production workers receive
+no new capabilities, trust-root option or TLS bypass. This is adapter evidence,
+not a proof of DNS/TCP/TLS or the complete prefetch CLI/worker/R1 path, and
+does not add Lean theorem roots. The [fixture credentials](../crates/meden-runtime/src/pages/testdata/README.md)
+are public, disposable test material.
+
+Local fault injections also confirmed that the lab fails if mixed DNS answers
+are allowed, one redirect is followed or TLS identity checks are disabled.
+The mixed-answer fault made an actual private receiver connect even though
+TLS subsequently failed; the observer assertion caught it. These are native
+adapter fault checks, separate from the 146 Rust-to-Lean refinement faults.
+
 Rust tests check address boundaries, mixed DNS answers, exact resolved
 addresses, malformed/oversized caches and Unicode pagination. The production
 resolver is also tested against a real private receiver, which observes no
@@ -1737,11 +1771,11 @@ On NixOS, `nix shell github:aeneasverif/aeneas/c5eb4a28cef65e0aa27743105308243e5
 provides the pinned extractors without a permanent system installation.
 The standard Rust/Lean conformance and proof checks remain separate.
 
-The runtime test needs Linux, Bubblewrap, Bash and Python. On NixOS, an
+The runtime tests need Linux, Bubblewrap, Bash, Python and iproute2. On NixOS, an
 ephemeral environment works:
 
 ```bash
-nix-shell -p bubblewrap --run 'cargo test --workspace --all-features'
+nix-shell -p bubblewrap iproute2 python3 --run 'cargo test --workspace --all-features'
 ```
 
 `MEDEN_BWRAP` can select a trusted Bubblewrap binary. It is host

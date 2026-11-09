@@ -328,6 +328,12 @@ from the [IANA IPv4](https://www.iana.org/assignments/iana-ipv4-special-registry
 and [IPv6 registries](https://www.iana.org/assignments/iana-ipv6-special-registry/),
 and allows IPv6 only within ordinary global unicast space. Local routing,
 DNS and TLS remain trust assumptions; address checks do not prove the network.
+A [local DNS/TLS namespace lab](verification.md#fixed-documentation-prefetch-and-cache)
+now checks the actual resolver/connector around the numeric policy, with
+synthetic public IPv4/IPv6 addresses, DNS rebinding, unapproved redirects,
+private/metadata receivers and TLS identity failures. It observes successful
+public requests and zero unapproved connections with working receiver controls.
+This test does not establish a whole-prefetch or whole-application R1 proof.
 The production review lifecycle now uses a separately extracted Rust
 kernel. Its Lean transition/refinement and arbitrary finite-composition
 proofs establish typed-origin approval gating and at most one dispatch;

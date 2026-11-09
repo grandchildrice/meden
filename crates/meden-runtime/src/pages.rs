@@ -143,24 +143,36 @@ fn fetch_batch(urls: &[String]) -> io::Result<Pages> {
     validate_batch(urls.iter().map(String::as_str))?;
     let mut pages = Vec::new();
     for url in urls {
-        let agent = ureq::Agent::with_parts(
-            page_config(),
-            DefaultConnector::default(),
-            PublicResolver(DefaultResolver::default()),
-        );
+        let agent = page_agent(page_config());
         pages.push(fetch_page(url, &agent)?);
     }
     Ok(Pages { pages })
 }
 
+fn page_agent(config: ureq::config::Config) -> ureq::Agent {
+    ureq::Agent::with_parts(
+        config,
+        DefaultConnector::default(),
+        PublicResolver(DefaultResolver::default()),
+    )
+}
+
 fn page_config() -> ureq::config::Config {
+    page_config_with_tls(ureq::tls::TlsConfig::default())
+}
+
+fn page_config_with_tls(tls: ureq::tls::TlsConfig) -> ureq::config::Config {
     ureq::Agent::config_builder()
+        .tls_config(tls)
         .proxy(None)
         .max_redirects(0)
         .max_idle_connections(0)
         .timeout_global(Some(Duration::from_secs(20)))
         .build()
 }
+
+#[cfg(all(test, target_os = "linux"))]
+mod network_tests;
 
 // The production caller supplies only the fixed public-only client above.
 fn fetch_page(url: &str, agent: &ureq::Agent) -> io::Result<Page> {
