@@ -135,6 +135,8 @@ Acceptance continues development automatically.
 Only this host channel and the TUI review can accept; model tools cannot.
 `verify_project` and `project_status` model tools take empty arguments. The
 former invokes the independent fixed backend and requires host acceptance.
+Before acceptance it returns a recoverable tool usage error directing the
+model to `propose_contract` and host review; it starts no verification job.
 `project.summary.verified` describes the current project kernel, independently
 of the model answer or `done.outcome`. Source changes invalidate evidence.
 The summary names the retained artifact directory and its hashes. There is

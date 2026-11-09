@@ -45,6 +45,16 @@ still needed repair. This prompted retaining proposal failure separately and
 requesting bounded proposal repair. That recovery change was not in this
 frozen trial.
 
+The [8B trial at `67d4a56`](local-generic-counter-qwen3-8b-67d4a56.json)
+proposed a contract with an explicit u64 ceiling, but one example contradicted
+the specification and Lean rejected it before review. The model wrote Rust
+and called verification without an accepted contract. The adapter classified
+that precondition error as `Inconclusive`, stopping the turn before proposal
+repair. This prompted treating premature verification as a recoverable tool
+usage error that directs the model to proposal/review without starting a
+checker. That fix was not present in the frozen trial; its Rust was never
+extracted or checked.
+
 ## Local ledger pilots
 
 The [Qwen3-4B-Instruct trial at `d3d5fd8`](local-ledger-qwen3-4b-d3d5fd8.json)

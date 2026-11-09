@@ -89,16 +89,25 @@ class Handler(BaseHTTPRequestHandler):
         if REJECTED and index % 2 == 0:
             if index:
                 diagnostic=json.dumps(body['messages'][-1]['content'])
-                assert 'Host contract proposal check' in diagnostic
-                assert 'No contract is accepted' in diagnostic
-                assert 'Spec.lean' in diagnostic
+                if PREMATURE:
+                    assert 'verification requires a host-accepted contract' in diagnostic
+                    assert 'propose_contract' in diagnostic
+                else:
+                    assert 'Host contract proposal check' in diagnostic
+                    assert 'No contract is accepted' in diagnostic
+                    assert 'Spec.lean' in diagnostic
             draft=REPLACEMENT if index and REPLACEMENT else CONTRACT
             calls=[call('propose_contract',{'contract':draft})]
             if not (index and REPLACEMENT):
                 calls += [call('write_file',{'path':CONTRACT['source_path'],'content':NOOP})]
             reply={'tool_calls':calls}
+        elif PREMATURE and REJECTED:
+            reply={'tool_calls':[call('verify_project',{})]}
         elif REJECTED:
             reply={'content':'Everything is formally verified.'}
+        elif PREMATURE and index == 0:
+            reply={'tool_calls':[call('verify_project',{}),
+                call('propose_contract',{'contract':CONTRACT})]}
         elif index == 0:
             reply={'tool_calls':[call('accept_contract',{'accepted':True}),
                 call('verify_project',{'passed':True,'artifact':'fake.rlib','failure_kind':'unavailable'}),
@@ -168,6 +177,7 @@ def setup(
     noop=NOOP,
     replacement=None,
     rejected=False,
+    premature=False,
 ):
     binary = find_meden()
     assert binary
@@ -179,6 +189,7 @@ def setup(
         + f"NOOP={noop!r}\nALTERNATIVE={candidate!r}\nEXHAUSTION={exhaustion!r}\n"
         + f"UNAVAILABLE={unavailable!r}\nPROBE={probe!r}\n"
         + f"CONTRACT={contract!r}\nREPLACEMENT={replacement!r}\nREJECTED={rejected!r}\n"
+        + f"PREMATURE={premature!r}\n"
         + ENGINE.replace("'ledger.rs'", repr(contract["source_path"]))
     )
     engine.chmod(0o700)
@@ -443,6 +454,43 @@ def test_missing_host_bundle_stops_tools_and_repair_without_claiming_proof(tmp_p
         if process.poll() is None:
             process.kill()
             process.wait(timeout=5)
+
+
+@pytest.mark.parametrize("prior_rejection", [False, True])
+def test_verification_before_acceptance_recovers_to_review_without_issuing_evidence(
+    tmp_path, prior_rejection
+):
+    contract = json.loads((ROOT / "verification/examples/counter.contract.json").read_text())
+    invalid = copy.deepcopy(contract)
+    invalid["examples"] = [{"before": [10], "arguments": [5], "after": [10]}]
+    args, env, _ = setup(
+        tmp_path,
+        contract=invalid if prior_rejection else contract,
+        replacement=contract if prior_rejection else None,
+        rejected=prior_rejection,
+        premature=True,
+    )
+    result = subprocess.run(
+        args,
+        input=json.dumps({"instruction": "Build a verified counter."}) + "\n",
+        capture_output=True,
+        text=True,
+        env=env,
+        timeout=60,
+    )
+    assert result.returncode == 0, result.stderr
+    events = [json.loads(line) for line in result.stdout.splitlines()]
+    checked = next(
+        e for e in events if e["type"] == "tool_result" and e["tool"] == "verify_project"
+    )
+    assert checked["error"] and "propose_contract" in checked["text"]
+    assert "did not start a checker or create evidence" in checked["text"]
+    assert sum(e["type"] == "asking" for e in events) == (3 if prior_rejection else 1)
+    assert next(e for e in events if e["type"] == "done")["outcome"] == "needs_review"
+    summary = next(e["summary"] for e in reversed(events) if e["type"] == "project")
+    assert summary["proposed"] and summary["contract"] == contract
+    assert not summary["accepted"] and not summary["verified"]
+    assert summary["artifact"] is None and summary["verification_failure"] is None
 
 
 def test_missing_bundle_before_proposal_stops_without_exposing_a_review(tmp_path):

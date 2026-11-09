@@ -668,6 +668,10 @@ impl Tool for ProjectTool {
                 Operation::Verify | Operation::Status => {
                     anyhow::ensure!(args.is_empty(),"checking/status accept no model-supplied contract, checker, receipt, path or result");
                     if matches!(self.operation, Operation::Verify) {
+                        anyhow::ensure!(
+                            self.project.accepted(),
+                            "verification requires a host-accepted contract; call propose_contract with the mathematical contract first, then pause for host review. This call did not start a checker or create evidence"
+                        );
                         self.project.verify(&self.workspace, &self.control)
                     } else {
                         self.project

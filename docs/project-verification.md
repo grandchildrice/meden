@@ -32,6 +32,11 @@ stand in for a valid proposal. Repair never accepts the contract; a valid
 draft still stops for host review. Unavailable or interrupted checking stops
 automatic repair.
 
+Calling `verify_project` before host acceptance returns a recoverable tool
+usage error with the proposal/review steps. It does not start a checker,
+create evidence or classify missing acceptance as a resource failure.
+Actual unavailable or inconclusive verification still stops the turn.
+
 The TUI displays the actual specification, properties, assumptions, source
 path, Rust API, examples and contract SHA-256. Page Up/Down scroll the review.
 `y` accepts that exact displayed proposal and resumes development; `n` or
