@@ -60,6 +60,13 @@ private theorem obligations_eq (x y : alloc.vec.Vec Obligation) :
       exact h this
     simp [h, hn]
 
+theorem view_eq (a b : ContractView) :
+    MedenEvidenceImpl.evidence.ContractView.Insts.CoreCmpPartialEqContractView.eq a b =
+      ok (decide (view a = view b)) := by
+  simp [MedenEvidenceImpl.evidence.ContractView.Insts.CoreCmpPartialEqContractView.eq,
+    subject_eq, obligations_eq, view, ← UScalar.eq_equiv]
+  split_ifs <;> simp_all
+
 private theorem gate_clone (g : Gate) :
     MedenEvidenceImpl.evidence.Gate.Insts.CoreCloneClone.clone g = ok g := by
   simp [MedenEvidenceImpl.evidence.Gate.Insts.CoreCloneClone.clone, subject_clone, obligations_clone,

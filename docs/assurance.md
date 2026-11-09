@@ -6,7 +6,7 @@ control and numeric display mapping have Rust-to-Lean refinement, including
 finite compositions of review, evidence, issued-job, conversation and numeric
 display operations.
 The broader obligations below remain proposed. This defines completion criteria for
-[the product architecture](design.md). The current 176 Lean theorem
+[the product architecture](design.md). The current 189 Lean theorem
 entry points, six Kani harnesses and conformance checks are listed in
 [verification.md](verification.md).
 
@@ -154,6 +154,14 @@ effect, contributing to CTL-01 and CTL-07. The runtime consumes only this
 returned borrowed dispatch. Its consuming accessor and exact destination/body
 getters are extracted/refined; JSON encoding/decoding in this path was removed.
 URI normalization and HTTP I/O remain unproved adapters.
+Project delivery now freezes the complete accepted view and requires its
+current evidence again at reservation. Plain files queued before a contract
+cannot bypass it. Constructor, context comparison, getters, transition and
+finite compositions have refinement in the shared export/evidence model.
+The artifact adapter builds only retained checked-file packages and validates
+source/storage before dispatch through that guard. This contributes to
+CTL-01 and CTL-03 through CTL-07 for the pure-transition package path;
+packaging, freshness observation, host origin, mutexes and HTTP remain adapters.
 They do not prove origin attribution by the UI/parser, the I/O dispatcher,
 locking or the complete controller. CTL-08 also requires a real
 confinement argument: a transition theorem cannot disable a process's
@@ -253,7 +261,7 @@ correctness.
 [Current CI](verification.md) covers scoped kernels, not the complete
 proposed product. Extend these checks as each path becomes real. The first
 two now run for processor, export review, evidence, contract management, issued jobs, TUI approval,
-outer/inner conversation, failure and numeric display kernels, including 86 real Rust
+outer/inner conversation, failure and numeric display kernels, including 90 real Rust
 mutations that must fail unchanged refinement proofs:
 
 1. Re-extract production Rust under pinned toolchains. Fail on unsupported

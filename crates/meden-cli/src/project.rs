@@ -21,6 +21,7 @@ use meden_core::{
 };
 use meden_runtime::{
     process::{self, Control, Limits, Termination},
+    transfer::Export,
     verification::{
         self,
         kernel::{self, Artifact, Report},
@@ -362,35 +363,146 @@ impl Project {
             .state
             .lock()
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
-        if state.contracts.pending() || state.contracts.is_active() {
-            return self.summary(&state, false);
+        self.current_status_locked(&mut state, workspace, control)
+    }
+    fn current_status_locked(
+        &self,
+        state: &mut State,
+        workspace: &Workspace,
+        control: &Control,
+    ) -> Result<Summary> {
+        let result = (|| {
+            if state.contracts.pending() || state.contracts.is_active() {
+                return self.summary(state, false);
+            }
+            let Some(view) = state.contracts.accepted() else {
+                return self.summary(state, false);
+            };
+            let Some(artifact) = state.artifact.as_ref() else {
+                return self.summary(state, false);
+            };
+            if let Err(error) = artifact.validate() {
+                state.contracts.edit(Origin::Controller);
+                state.dirty = true;
+                return Err(Failure::unavailable(error).into());
+            }
+            let agreement = Agreement::parse(view)?;
+            let current = Self::binding(
+                &agreement,
+                &artifact.report,
+                &snapshot(workspace, agreement.contract.source(), control)?,
+            )?;
+            let verified = state.contracts.refresh(
+                Origin::Controller,
+                agreement.view.revision,
+                current.inputs.clone(),
+            ) && state
+                .contracts
+                .eligible(agreement.view.revision, current.inputs);
+            state.dirty = false;
+            self.summary(state, verified)
+        })();
+        if let Err(error) = &result {
+            state.failure = Some(
+                error
+                    .downcast_ref::<Failure>()
+                    .cloned()
+                    .unwrap_or_else(|| Failure::unavailable(error)),
+            );
         }
-        let Some(view) = state.contracts.accepted() else {
-            return self.summary(&state, false);
+        result
+    }
+    pub fn read_requirement(&self) -> Option<Requirement> {
+        let state = self.state.lock().ok()?;
+        let agreement = Agreement::parse(state.contracts.accepted()?).ok()?;
+        Some(Requirement::new(
+            Capability::FsRead,
+            Some(&format!("/workspace/{}", agreement.contract.source())),
+        ))
+    }
+    pub fn prepare_file_export(&self, target: &str, bytes: &[u8]) -> Result<Export> {
+        let state = self
+            .state
+            .lock()
+            .map_err(|_| anyhow::anyhow!("project unavailable"))?;
+        anyhow::ensure!(
+            state.contracts.displayed().is_none(),
+            "a project contract requires a checked artifact package; use propose_artifact_export"
+        );
+        Ok(Export::prepare(&state.contracts, target, bytes)?)
+    }
+    pub fn prepare_artifact_export(
+        &self,
+        workspace: &Workspace,
+        control: &Control,
+        target: &str,
+    ) -> Result<Export> {
+        anyhow::ensure!(
+            self.matches(workspace.path()),
+            "project belongs to another workspace"
+        );
+        let mut state = self
+            .state
+            .lock()
+            .map_err(|_| anyhow::anyhow!("project unavailable"))?;
+        anyhow::ensure!(
+            self.current_status_locked(&mut state, workspace, control)?
+                .verified,
+            "artifact export requires current complete project verification"
+        );
+        let bytes = match state
+            .artifact
+            .as_ref()
+            .context("no checked artifact")?
+            .package()
+        {
+            Ok(bytes) => bytes,
+            Err(error) => {
+                state.contracts.edit(Origin::Controller);
+                state.dirty = true;
+                let failure = Failure::unavailable(error);
+                state.failure = Some(failure.clone());
+                return Err(failure.into());
+            }
         };
-        let Some(artifact) = state.artifact.as_ref() else {
-            return self.summary(&state, false);
-        };
-        if let Err(error) = artifact.validate() {
-            state.contracts.edit(Origin::Controller);
-            state.dirty = true;
-            return Err(Failure::unavailable(error).into());
-        }
-        let agreement = Agreement::parse(view)?;
-        let current = Self::binding(
-            &agreement,
-            &artifact.report,
-            &snapshot(workspace, agreement.contract.source(), control)?,
-        )?;
-        let verified = state.contracts.refresh(
-            Origin::Controller,
-            agreement.view.revision,
-            current.inputs.clone(),
-        ) && state
-            .contracts
-            .eligible(agreement.view.revision, current.inputs);
-        state.dirty = false;
-        self.summary(&state, verified)
+        Ok(control.with_active(|| Export::prepare(&state.contracts, target, &bytes))?)
+    }
+    pub fn review_export(&self, export: &Export) -> Result<()> {
+        let state = self
+            .state
+            .lock()
+            .map_err(|_| anyhow::anyhow!("project unavailable"))?;
+        Ok(export.review_from_host(&state.contracts)?)
+    }
+    pub fn reject_export(&self, export: &Export) -> Result<()> {
+        let state = self
+            .state
+            .lock()
+            .map_err(|_| anyhow::anyhow!("project unavailable"))?;
+        Ok(export.reject_from_host(&state.contracts)?)
+    }
+    pub fn send_export(
+        &self,
+        export: &Export,
+        workspace: &Workspace,
+        control: &Control,
+    ) -> Result<Option<u16>> {
+        anyhow::ensure!(
+            self.matches(workspace.path()),
+            "project belongs to another workspace"
+        );
+        let mut state = self
+            .state
+            .lock()
+            .map_err(|_| anyhow::anyhow!("project unavailable"))?;
+        self.current_status_locked(&mut state, workspace, control)?;
+        Ok(control.with_active(|| {
+            export.send(
+                &state.contracts,
+                self.session.as_bytes(),
+                Duration::from_secs(60),
+            )
+        })?)
     }
     pub fn stored_status(&self) -> Result<Summary> {
         let state = self
@@ -644,17 +756,7 @@ impl Tool for ProjectTool {
         if matches!(self.operation, Operation::Propose) {
             return vec![Requirement::new(Capability::ProcessSpawn, None)];
         }
-        let source = self.project.state.lock().ok().and_then(|s| {
-            s.contracts
-                .accepted()
-                .and_then(|v| Agreement::parse(v).ok())
-                .map(|a| format!("/workspace/{}", a.contract.source()))
-        });
-        let mut requirements: Vec<_> = source
-            .as_deref()
-            .map(|path| Requirement::new(Capability::FsRead, Some(path)))
-            .into_iter()
-            .collect();
+        let mut requirements: Vec<_> = self.project.read_requirement().into_iter().collect();
         if matches!(self.operation, Operation::Verify) {
             requirements.push(Requirement::new(Capability::ProcessSpawn, None));
         }

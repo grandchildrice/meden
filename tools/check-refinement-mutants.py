@@ -13,6 +13,41 @@ GROUPS = [
     {
         "kernel": "evidence",
         "model": "Evidence",
+        "proof": "DeliveryRefinement",
+        "prerequisites": [
+            "EvidenceRefinement",
+            "CheckJobsRefinement",
+            "CompletionRefinement",
+            "ContractsRefinement",
+        ],
+        "test": "evidence::tests::delivery_cannot_bypass_contract_or_current_evidence",
+        "mutations": [
+            (
+                "delivery_skips_current_evidence",
+                "event == crate::export_control::ExportEvent::Approve && !self.permitted(current)",
+                "event == crate::export_control::ExportEvent::Approve "
+                "&& !self.permitted(current) && false",
+            ),
+            (
+                "delivery_ignores_frozen_context",
+                "Some(view) => view == *frozen,",
+                "Some(view) => view == *frozen || true,",
+            ),
+            (
+                "raw_export_bypasses_project_contract",
+                "None => current.displayed().is_none(),",
+                "None => current.displayed().is_none() || true,",
+            ),
+            (
+                "delivery_accepts_incomplete_evidence",
+                "current.eligible(frozen.revision, frozen.subject.inputs.clone())",
+                "(current.eligible(frozen.revision, frozen.subject.inputs.clone()) || true)",
+            ),
+        ],
+    },
+    {
+        "kernel": "evidence",
+        "model": "Evidence",
         "proof": "ContractsRefinement",
         "prerequisites": ["EvidenceRefinement", "CheckJobsRefinement", "CompletionRefinement"],
         "test": (
@@ -181,7 +216,7 @@ GROUPS = [
     },
     {
         "kernel": "export_control",
-        "model": "Control",
+        "model": "Evidence",
         "proof": "ExportControlRefinement",
         "test": "export_control::tests::dispatch_requires_review_host_origin_and_a_fresh_attempt",
         "mutations": [
@@ -209,7 +244,7 @@ GROUPS = [
     },
     {
         "kernel": "export_control",
-        "model": "Control",
+        "model": "Evidence",
         "proof": "DispatchRefinement",
         "prerequisites": ["ExportControlRefinement"],
         "test": "export_control::tests::effects_are_frozen_reviewed_session_bound_and_single_use",

@@ -215,6 +215,30 @@ lost diagnostic protocol are `inconclusive`; missing prepared resources are
 turn. Lean resource classification uses the pinned compiler's structured
 diagnostic tags, not a model's diagnostic prose.
 
+## Delivering a checked kernel
+
+`propose_artifact_export(target)` prepares the current retained artifact for
+host review. The package includes the exact native library, source,
+extraction, proof inputs and report; candidate workspace files cannot stand
+in for these. It requires accepted meaning and complete current verification.
+The TUI's `/exports` review and CLI `review_export` expose the destination,
+contract hash and exact frozen body before a single host-approved POST.
+
+The core freezes the full contract view, including its revision, inputs and
+obligations, alongside the request. At dispatch the adapter inspects current
+source/storage and the core checks that frozen view and current evidence.
+Changed source, pending/replaced meaning, active jobs or damaged retained
+files block the request. Restoring discarded bytes alone cannot restore
+coverage. The receiver gets exactly the reviewed payload; there is no retry
+or replacement body after approval.
+
+Ordinary `propose_export(path, target)` requires a session without a project
+contract. A raw proposal prepared before a contract cannot bypass it later.
+Project packages use the bounded format described in [the CLI protocol](cli.md#exact-file-exports).
+The guard and its arbitrary finite compositions have Rust-to-Lean refinement;
+packaging, fresh physical observations, locking and HTTP remain adapters.
+This covers the checked pure kernel, not whole-application delivery or R1.
+
 ## Preparing resources and direct checks
 
 Prepare the public pinned Rust/Lean/Charon/Aeneas tools and built Lean
@@ -268,12 +292,17 @@ forged report/library pair, an extra file, a symlink and a FIFO. Every fault
 stops the turn before another tool effect. Restoration stays unverified until
 the accepted source is independently checked again.
 
+The delivery case drives a real HTTP receiver and checked counter, including
+old raw proposals, invalid artifact flags, changed/restored source, pending
+and accepted replacements, replay and storage corruption. A successful body
+is compared to the complete reviewed package and all reported file hashes.
+
 These are deterministic checker/controller integration tests. The
 [historical local-model pilot](../results/local-ledger-qwen3-4b-d3d5fd8.json)
 is separate; its generated Rust source is rechecked by the current suite.
 No general task-success rate follows from these cases.
 
-Meden's separate control audit has 176 roots; project roots are checked
+Meden's separate control audit has 189 roots; project roots are checked
 afresh per candidate. The shared core evidence/job and contract-management
 operations have Rust-to-Lean refinement, including their finite compositions.
 Metadata/term parsing, canonical encoding, review

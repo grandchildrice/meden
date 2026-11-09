@@ -14,11 +14,11 @@ case $("$aeneas_bin" -version) in
   *) echo 'Unsupported Aeneas revision' >&2; exit 1 ;;
 esac
 
-units=(control evidence approval repair conversation text processor)
+units=(evidence approval repair conversation text processor)
 case "$#:${1:-}:${2:-}" in
   0::|1:--write:) ;;
-  2:--write:control|2:--write:evidence|2:--write:approval|2:--write:repair|2:--write:conversation|2:--write:text|2:--write:processor) units=("$2") ;;
-  *) echo 'Usage: tools/extract-transfer.sh [--write [control|evidence|approval|repair|conversation|text|processor]]' >&2; exit 2 ;;
+  2:--write:evidence|2:--write:approval|2:--write:repair|2:--write:conversation|2:--write:text|2:--write:processor) units=("$2") ;;
+  *) echo 'Usage: tools/extract-transfer.sh [--write [evidence|approval|repair|conversation|text|processor]]' >&2; exit 2 ;;
 esac
 extract_tmp=$(mktemp -d)
 trap 'rm -rf "$extract_tmp"' EXIT
@@ -27,7 +27,9 @@ for unit in "${units[@]}"; do
   cargo_args=(--locked --lib -p meden-core)
   extraction_args=()
   case "$unit" in
-    control)
+    evidence)
+      namespace=MedenEvidenceImpl
+      # Shared core types are generated once for evidence/export composition.
       rust_roots=(meden_core::export_control::step
         meden_core::export_control::FrozenRequest::target
         meden_core::export_control::FrozenRequest::body
@@ -35,10 +37,6 @@ for unit in "${units[@]}"; do
       for method in new request phase advance; do
         rust_roots+=("meden_core::export_control::State::$method")
       done
-      model=Control ;;
-    evidence)
-      namespace=MedenEvidenceImpl
-      rust_roots=()
       for method in propose review accept is_accepted refresh record eligible; do
         rust_roots+=("meden_core::evidence::Gate::$method")
       done
@@ -47,6 +45,10 @@ for unit in "${units[@]}"; do
       done
       for method in new propose displayed accepted pending is_accepted review accept reject refresh start invalidate edit abort is_active complete eligible; do
         rust_roots+=("meden_core::evidence::Contracts::$method")
+      done
+      rust_roots+=(meden_core::evidence::Contracts::prepare_delivery)
+      for method in contract request phase advance; do
+        rust_roots+=("meden_core::evidence::Delivery::$method")
       done
       model=Evidence ;;
     approval)
@@ -118,20 +120,20 @@ for unit in "${units[@]}"; do
     exit 1
   fi
   definitions=()
-  if [[ $unit == control ]]; then
-    definitions=(export_control.step
-      export_control.State.new export_control.State.impl.request
-      export_control.State.impl.phase export_control.State.advance
-      export_control.FrozenRequest.impl.target export_control.FrozenRequest.impl.body
-      export_control.Dispatch.into_request)
-  elif [[ $unit == evidence ]]; then
+  if [[ $unit == evidence ]]; then
     definitions=(evidence.Contracts.new evidence.Contracts.propose
       evidence.Contracts.displayed evidence.Contracts.impl.accepted
       evidence.Contracts.pending evidence.Contracts.is_accepted
       evidence.Contracts.review evidence.Contracts.accept evidence.Contracts.reject
       evidence.Contracts.refresh evidence.Contracts.start evidence.Contracts.invalidate
       evidence.Contracts.edit evidence.Contracts.abort evidence.Contracts.is_active
-      evidence.Contracts.complete evidence.Contracts.eligible)
+      evidence.Contracts.complete evidence.Contracts.eligible
+      evidence.Contracts.prepare_delivery evidence.Delivery.impl.contract
+      evidence.Delivery.request evidence.Delivery.phase evidence.Delivery.permitted evidence.Delivery.advance
+      export_control.step export_control.State.new export_control.State.impl.request
+      export_control.State.impl.phase export_control.State.advance
+      export_control.FrozenRequest.impl.target export_control.FrozenRequest.impl.body
+      export_control.Dispatch.into_request)
   elif [[ $unit == approval ]]; then
     definitions=(tui.approval.approves tui.approval.route)
   elif [[ $unit == text ]]; then

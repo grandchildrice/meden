@@ -109,8 +109,8 @@ pub fn run(
             processor: gateway.endpoint(),
         },
     )?;
-    let exports = Arc::new(Exports::new(workspace.path()));
     let project = Arc::new(crate::project::Project::new(workspace.path()));
+    let exports = Arc::new(Exports::new(workspace.path(), Arc::clone(&project)));
     let mut session = Session::new(
         Arc::clone(workspace),
         gateway,
@@ -151,7 +151,7 @@ pub fn run(
                         summary: &project.status(workspace, processes)?,
                     },
                 )?,
-                _ => export_command(command, &exports, output)?,
+                _ => export_command(command, &exports, workspace, processes, output)?,
             }
             next = read_command(input)?;
             continue;
@@ -268,7 +268,13 @@ pub fn read_command(input: &mut impl BufRead) -> Result<Option<Command>> {
     }
 }
 
-fn export_command(command: Command, exports: &Exports, output: &mut impl Write) -> Result<()> {
+fn export_command(
+    command: Command,
+    exports: &Exports,
+    workspace: &Workspace,
+    control: &Control,
+    output: &mut impl Write,
+) -> Result<()> {
     let result = (|| -> Result<Out<'_>> {
         Ok(match command {
             Command::ListExports(()) => Out::Exports {
@@ -284,7 +290,7 @@ fn export_command(command: Command, exports: &Exports, output: &mut impl Write) 
                 }
             }
             Command::ApproveExport(reference) => {
-                let (summary, http_status) = exports.send(&reference)?;
+                let (summary, http_status) = exports.send(&reference, workspace, control)?;
                 Out::ExportResult {
                     summary: Some(summary),
                     http_status,

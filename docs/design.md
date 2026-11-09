@@ -398,8 +398,13 @@ not an OS/refinement proof. HTTP providers remain explicit, approved options.
 TUI and `run` use one coding session;
 the external host-tool bridge has been removed. All built-in file/Bash tools
 and `exec` use retained private copies. TUI/CLI host review now connects the
-refined review/dispatch kernel to raw immutable HTTP file exports. This is not
-yet a checked-artifact delivery workflow or a Git/email adapter.
+refined review/dispatch kernel to immutable HTTP exports. Project contracts
+require checked kernel packages, with current evidence checked again at
+dispatch; a previously queued raw file cannot bypass a new contract. The
+evidence and export composition share one extracted model and finite-trace
+refinement. Package construction, fresh physical observations and actual
+HTTP effects remain adapters. Whole-application delivery and Git/email
+adapters remain work.
 Host-selected documentation can now be prefetched with bounded public HTTPS
 GETs and attached as an immutable TUI/CLI cache. Model selection and cache misses
 perform no network operation. The fetch/cache adapter has tests, not refinement;

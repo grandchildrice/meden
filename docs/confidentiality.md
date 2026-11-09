@@ -292,10 +292,14 @@ endpoint, provider/model and credential for up to eight hours. Local
 inference now has a separately confined CPU backend and inode-pinned Unix
 socket IPC. It is the CLI/TUI default and never falls back to HTTP; its
 launcher/transport have tests rather than refinement proofs. See
-[local inference](local-inference.md). Raw immutable HTTP
-file exports now have TUI/CLI host review and one-attempt dispatch; model
-proposals never grant approval. Git/email audience adapters and a general
-user-project evidence-gated delivery workflow are still absent. The separate
+[local inference](local-inference.md). Immutable HTTP exports have TUI/CLI
+host review and one-attempt dispatch; model proposals never grant approval.
+When a project contract exists, only a checked kernel package may be prepared,
+and dispatch requires its exact frozen context and current evidence. Ordinary
+files prepared earlier cannot bypass that requirement. This composition has
+Rust-to-Lean refinement; packaging, freshness observation and HTTP remain
+adapters. Git/email audience adapters and whole-application delivery are
+still absent. The separate
 [Meden release gate](release.md) uses the refined evidence kernel to require
 scoped CI for exact source and staged archives under trusted build/GitHub
 assumptions; it does not establish this confidentiality requirement.

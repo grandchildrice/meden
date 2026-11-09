@@ -13,6 +13,7 @@ use meden_runtime::transfer::Export;
 use meden_runtime::workspace::Workspace;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+use sha2::{Digest, Sha256};
 
 /// A host input must identify both the session and the immutable entry.
 #[derive(Clone, Serialize, Deserialize)]
@@ -27,6 +28,7 @@ pub struct Summary {
     #[serde(flatten)]
     pub reference: Reference,
     pub source: String,
+    pub contract: Option<String>,
     pub target: String,
     pub bytes: usize,
     pub state: &'static str,
@@ -44,6 +46,9 @@ impl Prepared {
         Ok(Summary {
             reference: self.reference.clone(),
             source: self.source.clone(),
+            contract: snapshot
+                .contract
+                .map(|v| format!("{:x}", Sha256::digest(&v.subject.contract))),
             target: snapshot.target,
             bytes: snapshot.payload.len(),
             state: snapshot.phase.label(),
@@ -99,19 +104,27 @@ impl Prepared {
 
 pub struct Exports {
     session: String,
+    project: Arc<crate::project::Project>,
     entries: Mutex<Vec<Arc<Prepared>>>,
 }
 
 impl Exports {
-    pub fn new(workspace: &std::path::Path) -> Self {
+    pub fn new(workspace: &std::path::Path, project: Arc<crate::project::Project>) -> Self {
         Self {
             session: session_name(workspace),
+            project,
             entries: Mutex::new(Vec::new()),
         }
     }
 
-    pub fn matches(&self, workspace: &std::path::Path) -> bool {
+    pub fn matches(
+        &self,
+        workspace: &std::path::Path,
+        project: &Arc<crate::project::Project>,
+    ) -> bool {
         self.session == session_name(workspace)
+            && self.project.matches(workspace)
+            && Arc::ptr_eq(&self.project, project)
     }
 
     pub fn list(&self) -> Result<Vec<Summary>> {
@@ -137,28 +150,32 @@ impl Exports {
 
     pub fn reject(&self, reference: &Reference) -> Result<Summary> {
         let entry = self.get(reference)?;
-        entry.export.reject_from_host()?;
+        self.project.reject_export(&entry.export)?;
         entry.summary()
     }
 
     /// Expose the actual frozen request to a trusted interface before approval.
     pub fn review(&self, reference: &Reference) -> Result<Arc<Prepared>> {
         let entry = self.get(reference)?;
-        entry.export.review_from_host()?;
+        self.project.review_export(&entry.export)?;
         Ok(entry)
     }
 
     /// Only call from the host UI/protocol; never register as a model tool.
-    pub fn send(&self, reference: &Reference) -> Result<(Summary, Option<u16>)> {
+    pub fn send(
+        &self,
+        reference: &Reference,
+        workspace: &Workspace,
+        control: &Control,
+    ) -> Result<(Summary, Option<u16>)> {
         let entry = self.get(reference)?;
-        let sent = entry
-            .export
-            .send(self.session.as_bytes(), Duration::from_secs(60))?;
+        let sent = self
+            .project
+            .send_export(&entry.export, workspace, control)?;
         Ok((entry.summary()?, sent))
     }
 
-    fn propose(&self, source: &str, target: &str, bytes: &[u8]) -> Result<Summary> {
-        let export = Export::prepare(self.session.as_bytes(), target, bytes)?;
+    fn propose(&self, source: &str, export: Export) -> Result<Summary> {
         let mut entries = self
             .entries
             .lock()
@@ -191,6 +208,7 @@ struct Propose {
     workspace: Arc<Workspace>,
     control: Arc<Control>,
     sig: ToolSig,
+    artifact: bool,
 }
 
 pub fn register(
@@ -201,7 +219,13 @@ pub fn register(
 ) {
     registry.register(Box::new(Propose {
         workspace: Arc::clone(workspace), control: Arc::clone(control), queue: Arc::clone(queue),
-        sig: ToolSig::new("propose_export", "Prepare an immutable workspace file (up to 1 MiB) for host review as an HTTP POST. This never sends or approves. The user must review the exact destination and bytes and authorize once through the host interface.", json!({"type":"object","properties":{"path":{"type":"string"},"target":{"type":"string"}},"required":["path","target"],"additionalProperties":false})),
+        sig: ToolSig::new("propose_export", "Prepare an immutable workspace file (up to 1 MiB) for host review as an HTTP POST in a session without a project contract. Project contracts require propose_artifact_export instead. This never sends or approves. The user must review the exact destination and bytes and authorize once through the host interface.", json!({"type":"object","properties":{"path":{"type":"string"},"target":{"type":"string"}},"required":["path","target"],"additionalProperties":false})),
+        artifact: false,
+    }));
+    registry.register(Box::new(Propose {
+        workspace: Arc::clone(workspace), control: Arc::clone(control), queue: Arc::clone(queue),
+        sig: ToolSig::new("propose_artifact_export", "Prepare the current verified project kernel package for exact host review as an HTTP POST. Includes the checked native library, source, proof inputs and report. Requires accepted meaning and current complete evidence; arbitrary workspace files cannot replace the artifact. Edits, pending replacements and damaged evidence prevent delivery. This never approves or sends.", json!({"type":"object","properties":{"target":{"type":"string"}},"required":["target"],"additionalProperties":false})),
+        artifact: true,
     }));
 }
 
@@ -210,6 +234,12 @@ impl Tool for Propose {
         &self.sig
     }
     fn requirements(&self, args: &Args) -> Vec<Requirement> {
+        if self.artifact {
+            let mut requirements: Vec<_> =
+                self.queue.project.read_requirement().into_iter().collect();
+            requirements.push(Requirement::new(Capability::ProcessSpawn, None));
+            return requirements;
+        }
         let path = crate::workspace::logical_path(args).map(|p| p.to_string_lossy().into_owned());
         vec![Requirement::with_evidence(
             Capability::FsRead,
@@ -219,6 +249,21 @@ impl Tool for Propose {
     }
     fn call(&self, args: &Args) -> Result<Value, ToolError> {
         let result = (|| -> Result<Summary> {
+            let target = args
+                .get("target")
+                .and_then(Value::as_str)
+                .context("missing target")?;
+            if self.artifact {
+                anyhow::ensure!(args.len() == 1, "artifact export accepts only target");
+                let export = self.queue.project.prepare_artifact_export(
+                    &self.workspace,
+                    &self.control,
+                    target,
+                )?;
+                return self
+                    .queue
+                    .propose("verified project kernel package", export);
+            }
             anyhow::ensure!(
                 crate::workspace::logical_path(args).is_some(),
                 "path leaves /workspace"
@@ -227,10 +272,6 @@ impl Tool for Propose {
                 .get("path")
                 .and_then(Value::as_str)
                 .context("missing path")?;
-            let target = args
-                .get("target")
-                .and_then(Value::as_str)
-                .context("missing target")?;
             let input =
                 serde_json::to_vec(&json!({"operation":"snapshot", "arguments":{"path":path}}))?;
             let output = process::run_with_input(
@@ -251,7 +292,8 @@ impl Tool for Propose {
             );
             let bytes: Vec<u8> = serde_json::from_str(&output.stdout)?;
             anyhow::ensure!(bytes.len() <= 1_048_576, "export exceeds 1 MiB");
-            self.queue.propose(path, target, &bytes)
+            let export = self.queue.project.prepare_file_export(target, &bytes)?;
+            self.queue.propose(path, export)
         })();
         result
             .and_then(|summary| Ok(serde_json::to_value(summary)?))

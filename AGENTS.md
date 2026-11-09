@@ -84,5 +84,12 @@
   result on persistence and status inspection. A mismatch discards coverage via
   Contracts.edit; restoring files alone cannot restore evidence. Storage reads,
   hashing and concurrent host mutation remain I/O obligations.
+  Project delivery uses the same contract controller. Its frozen context and
+  export reservation share one extracted core model; current evidence is
+  required again before dispatch. A raw export queued before a project
+  contract cannot bypass it. Checked packages come only from retained
+  checker files; payload construction, fresh source/storage observation,
+  host origin, locks and HTTP remain adapters. Do not describe this scoped
+  package path as whole-application delivery assurance or complete R1.
   Broader contracts/backends, full interface/tool coverage and outbound
   confidentiality remain targets. See docs/project-verification.md.

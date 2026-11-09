@@ -1,12 +1,12 @@
 import MedenSpec.ExportControl
-import MedenSpec.Generated.Control
+import MedenSpec.Generated.Evidence
 
 /-! Exact transition and finite-trace refinement of the extracted production
 Rust review kernel. The trace driver composes extracted steps; it is not an
 extraction/proof of the application's I/O dispatcher, mutex or UI/parser. -/
 namespace MedenSpec.ExportControlRefinement
 open Aeneas Aeneas.Std Result
-open MedenImpl.export_control (Phase Origin ExportEvent Decision)
+open MedenEvidenceImpl.export_control (Phase Origin ExportEvent Decision)
 
 def phase : Phase → ExportControl.Phase
   | .Pending => .pending | .Reviewed => .reviewed | .Rejected => .rejected
@@ -23,12 +23,12 @@ def event : ExportEvent → ExportControl.Event
 def decision (d : Decision) : ExportControl.Decision := ⟨phase d.phase, d.accepted, d.dispatch⟩
 
 private theorem step_success (p : Phase) (o : Origin) (e : ExportEvent) :
-    ∃ d, MedenImpl.export_control.step p o e = ok d ∧ decision d = ExportControl.step (phase p) (origin o) (event e) := by
+    ∃ d, MedenEvidenceImpl.export_control.step p o e = ok d ∧ decision d = ExportControl.step (phase p) (origin o) (event e) := by
   cases p <;> cases o <;> cases e <;> exact ⟨_, rfl, rfl⟩
 
 /-- All state, acceptance and dispatch observations of production Rust match. -/
 theorem step_refines (p : Phase) (o : Origin) (e : ExportEvent) :
-    (do let d ← MedenImpl.export_control.step p o e; ok (decision d)) =
+    (do let d ← MedenEvidenceImpl.export_control.step p o e; ok (decision d)) =
       ok (ExportControl.step (phase p) (origin o) (event e)) := by
   obtain ⟨d, hs, hd⟩ := step_success p o e
   simp [hs, hd]
@@ -38,7 +38,7 @@ state. Authority decisions are never supplied by a handwritten Rust model. -/
 def runExtracted (p : Phase) : List (Origin × ExportEvent) → Result (ExportControl.Phase × Nat)
   | [] => ok (phase p, 0)
   | (o, e) :: rest => do
-    let d ← MedenImpl.export_control.step p o e
+    let d ← MedenEvidenceImpl.export_control.step p o e
     let tail ← runExtracted d.phase rest
     ok (tail.1, (if d.dispatch then 1 else 0) + tail.2)
 

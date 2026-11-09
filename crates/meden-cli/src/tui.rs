@@ -83,8 +83,8 @@ impl App {
         if !providers.is_empty() {
             picker.select(Some(0));
         }
-        let exports = Arc::new(Exports::new(&root));
         let project = Arc::new(crate::project::Project::new(&root));
+        let exports = Arc::new(Exports::new(&root, Arc::clone(&project)));
         Self {
             providers,
             picker,
@@ -240,12 +240,16 @@ impl App {
                 Some(approval::Choice::Export)
             ) =>
             {
-                self.exports.send(&reference).map(|(summary, code)| {
-                    format!(
-                        "Export #{}: {} · HTTP {:?} · {}",
-                        summary.reference.id, summary.state, code, summary.target
-                    )
-                })
+                self.workspace
+                    .as_deref()
+                    .ok_or_else(|| anyhow::anyhow!("workspace unavailable"))
+                    .and_then(|workspace| self.exports.send(&reference, workspace, &self.processes))
+                    .map(|(summary, code)| {
+                        format!(
+                            "Export #{}: {} · HTTP {:?} · {}",
+                            summary.reference.id, summary.state, code, summary.target
+                        )
+                    })
             }
             KeyCode::Char('n') if key.modifiers.is_empty() => self
                 .exports
@@ -949,9 +953,9 @@ fn draw_export_review(frame: &mut Frame<'_>, app: &App, middle: Rect) {
         return;
     };
     let text = format!(
-        "Export #{} · state: {}\nDestination: {}\nMethod: POST\nContent-Type: application/octet-stream\nSource name (untrusted): {}\nFrozen body: {} bytes · byte offset {}\n\n{}\nThese exact bytes are retained outside the worker. Sending does not reopen the source file. No redirects or automatic retries. Approval is for one attempt, including uncertain delivery.",
+        "Export #{} · state: {}\nDestination: {}\nMethod: POST\nContent-Type: application/octet-stream\nSource name (untrusted): {}\nAccepted contract: {}\nFrozen body: {} bytes · byte offset {}\n\n{}\nThese exact payload bytes are retained outside the worker. Current project source and evidence are checked again before dispatch. No redirects or automatic retries. Approval is for one attempt, including uncertain delivery.",
         summary.reference.id, summary.state, visible(&summary.target),
-        visible(&summary.source).replace('\n', "⏎"), summary.bytes, app.export_offset,
+        visible(&summary.source).replace('\n', "⏎"), summary.contract.as_deref().unwrap_or("ordinary file; no project contract"), summary.bytes, app.export_offset,
         preview,
     );
     frame.render_widget(

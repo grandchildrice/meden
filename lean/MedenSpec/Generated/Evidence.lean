@@ -698,6 +698,26 @@ structure evidence.ContractView where
   subject : evidence.Subject
   obligations : alloc.vec.Vec evidence.Obligation
 
+/-- [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::ContractView> for meden_core::evidence::ContractView}::eq]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 333:23-333:32
+    Visibility: public -/
+def evidence.ContractView.Insts.CoreCmpPartialEqContractView.eq
+  (self : evidence.ContractView) (other : evidence.ContractView) :
+  Result Bool
+  := do
+  if self.revision = other.revision
+  then
+    let b ←
+      evidence.Subject.Insts.CoreCmpPartialEqSubject.eq self.subject
+        other.subject
+    if b
+    then
+      alloc.vec.partial_eq.PartialEqVec.eq
+        evidence.Obligation.Insts.CoreCmpPartialEqObligation self.obligations
+        other.obligations
+    else ok false
+  else ok false
+
 /-- [meden_core::evidence::VersionedGate]
     Source: 'crates/meden-core/src/evidence.rs', lines 344:0-347:1 -/
 structure evidence.VersionedGate where
@@ -724,8 +744,481 @@ structure evidence.Contracts where
   draft : Option evidence.VersionedGate
   jobs : evidence.CheckJobs
 
+/-- [meden_core::export_control::FrozenRequest]
+    Source: 'crates/meden-core/src/export_control.rs', lines 120:0-123:1
+    Visibility: public -/
+structure export_control.FrozenRequest where
+  target : String
+  body : alloc.vec.Vec Std.U8
+
+/-- [meden_core::export_control::Phase]
+    Source: 'crates/meden-core/src/export_control.rs', lines 5:0-18:1
+    Visibility: public -/
+@[discriminant isize]
+inductive export_control.Phase where
+| Pending : export_control.Phase
+| Reviewed : export_control.Phase
+| Rejected : export_control.Phase
+| Attempted : export_control.Phase
+| ResponseReceived : export_control.Phase
+| DeliveryUncertain : export_control.Phase
+
+/-- [meden_core::export_control::State]
+    Source: 'crates/meden-core/src/export_control.rs', lines 112:0-116:1
+    Visibility: public -/
+structure export_control.State where
+  phase : export_control.Phase
+  session : alloc.vec.Vec Std.U8
+  request : export_control.FrozenRequest
+
+/-- [meden_core::evidence::Delivery]
+    Source: 'crates/meden-core/src/evidence.rs', lines 375:0-378:1
+    Visibility: public -/
+structure evidence.Delivery where
+  contract : Option evidence.ContractView
+  «export» : export_control.State
+
+/-- [meden_core::evidence::{meden_core::evidence::Delivery}::contract]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 382:4-387:5
+    Visibility: public -/
+def evidence.Delivery.impl.contract
+  (self : evidence.Delivery) : Result (Option evidence.ContractView) := do
+  match self.contract with
+  | none => ok none
+  | some _ => ok self.contract
+
+/-- [meden_core::export_control::{meden_core::export_control::State}::request]:
+    Source: 'crates/meden-core/src/export_control.rs', lines 181:4-183:5
+    Visibility: public -/
+def export_control.State.impl.request
+  (self : export_control.State) : Result export_control.FrozenRequest := do
+  ok self.request
+
+/-- [meden_core::evidence::{meden_core::evidence::Delivery}::request]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 390:4-392:5
+    Visibility: public -/
+def evidence.Delivery.request
+  (self : evidence.Delivery) : Result export_control.FrozenRequest := do
+  export_control.State.impl.request self.export
+
+/-- [meden_core::export_control::{meden_core::export_control::State}::phase]:
+    Source: 'crates/meden-core/src/export_control.rs', lines 186:4-188:5
+    Visibility: public -/
+def export_control.State.impl.phase
+  (self : export_control.State) : Result export_control.Phase := do
+  ok self.phase
+
+/-- [meden_core::evidence::{meden_core::evidence::Delivery}::phase]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 395:4-397:5
+    Visibility: public -/
+def evidence.Delivery.phase
+  (self : evidence.Delivery) : Result export_control.Phase := do
+  export_control.State.impl.phase self.export
+
+/-- [meden_core::evidence::{meden_core::evidence::Contracts}::eligible]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 698:4-712:5
+    Visibility: public -/
+def evidence.Contracts.eligible
+  (self : evidence.Contracts) (revision : Std.U64)
+  (inputs : alloc.vec.Vec Std.U8) :
+  Result Bool
+  := do
+  let b := core.option.Option.is_some self.draft
+  if b
+  then ok false
+  else
+    let b1 ← evidence.CheckJobs.is_active self.jobs
+    if b1
+    then ok false
+    else
+      match self.accepted with
+      | none => ok false
+      | some accepted =>
+        let s ←
+          evidence.Subject.Insts.CoreCloneClone.clone accepted.gate.subject
+        if accepted.revision = revision
+        then evidence.Gate.eligible accepted.gate { s with inputs }
+        else ok false
+
+/-- [meden_core::evidence::{meden_core::evidence::Contracts}::accepted]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 515:4-520:5
+    Visibility: public -/
+def evidence.Contracts.impl.accepted
+  (self : evidence.Contracts) : Result (Option evidence.ContractView) := do
+  match self.accepted with
+  | none => ok none
+  | some accepted =>
+    let cv ← evidence.VersionedGate.view accepted
+    ok (some cv)
+
+/-- [meden_core::evidence::{meden_core::evidence::Contracts}::displayed]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 506:4-511:5
+    Visibility: public -/
+def evidence.Contracts.displayed
+  (self : evidence.Contracts) : Result (Option evidence.ContractView) := do
+  match self.draft with
+  | none => evidence.Contracts.impl.accepted self
+  | some draft => let cv ← evidence.VersionedGate.view draft
+                  ok (some cv)
+
+/-- [meden_core::evidence::{meden_core::evidence::Delivery}::permitted]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 399:4-409:5 -/
+def evidence.Delivery.permitted
+  (self : evidence.Delivery) (current : evidence.Contracts) : Result Bool := do
+  match self.contract with
+  | none =>
+    let o ← evidence.Contracts.displayed current
+    ok (core.option.Option.is_none o)
+  | some frozen =>
+    let o ← evidence.Contracts.impl.accepted current
+    let b ←
+      match o with
+      | none => ok false
+      | some view =>
+        evidence.ContractView.Insts.CoreCmpPartialEqContractView.eq view frozen
+    if b
+    then
+      let v ←
+        alloc.vec.CloneVec.clone core.clone.CloneU8 frozen.subject.inputs
+      evidence.Contracts.eligible current frozen.revision v
+    else ok false
+
+/-- [meden_core::export_control::Dispatch]
+    Source: 'crates/meden-core/src/export_control.rs', lines 150:0-152:1
+    Visibility: public -/
+structure export_control.Dispatch where
+  request : export_control.FrozenRequest
+
+/-- [meden_core::export_control::Outcome]
+    Source: 'crates/meden-core/src/export_control.rs', lines 163:0-168:1
+    Visibility: public -/
+structure export_control.Outcome where
+  accepted : Bool
+  effect : Option export_control.Dispatch
+
+/-- [meden_core::export_control::Decision]
+    Source: 'crates/meden-core/src/export_control.rs', lines 64:0-71:1
+    Visibility: public -/
+structure export_control.Decision where
+  phase : export_control.Phase
+  accepted : Bool
+  dispatch : Bool
+
+/-- [meden_core::export_control::ExportEvent]
+    Source: 'crates/meden-core/src/export_control.rs', lines 47:0-60:1
+    Visibility: public -/
+@[discriminant isize]
+inductive export_control.ExportEvent where
+| Propose : export_control.ExportEvent
+| Review : export_control.ExportEvent
+| Reject : export_control.ExportEvent
+| Approve : export_control.ExportEvent
+| ResponseReceived : export_control.ExportEvent
+| DeliveryUncertain : export_control.ExportEvent
+
+/-- [meden_core::export_control::Origin]
+    Source: 'crates/meden-core/src/export_control.rs', lines 36:0-43:1
+    Visibility: public -/
+@[discriminant isize]
+inductive export_control.Origin where
+| Model : export_control.Origin
+| Host : export_control.Origin
+| Transport : export_control.Origin
+
+/-- [meden_core::export_control::step]:
+    Source: 'crates/meden-core/src/export_control.rs', lines 75:0-107:1
+    Visibility: public -/
+def export_control.step
+  (phase : export_control.Phase) (origin : export_control.Origin)
+  (event : export_control.ExportEvent) :
+  Result export_control.Decision
+  := do
+  match phase with
+  | export_control.Phase.Pending =>
+    match origin with
+    | export_control.Origin.Model =>
+      match event with
+      | export_control.ExportEvent.Propose =>
+        ok
+          {
+            phase := export_control.Phase.Pending,
+            accepted := true,
+            dispatch := false
+          }
+      | export_control.ExportEvent.Review =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.Reject =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.Approve =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.ResponseReceived =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.DeliveryUncertain =>
+        ok { phase, accepted := false, dispatch := false }
+    | export_control.Origin.Host =>
+      match event with
+      | export_control.ExportEvent.Propose =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.Review =>
+        ok
+          {
+            phase := export_control.Phase.Reviewed,
+            accepted := true,
+            dispatch := false
+          }
+      | export_control.ExportEvent.Reject =>
+        ok
+          {
+            phase := export_control.Phase.Rejected,
+            accepted := true,
+            dispatch := false
+          }
+      | export_control.ExportEvent.Approve =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.ResponseReceived =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.DeliveryUncertain =>
+        ok { phase, accepted := false, dispatch := false }
+    | export_control.Origin.Transport =>
+      ok { phase, accepted := false, dispatch := false }
+  | export_control.Phase.Reviewed =>
+    match origin with
+    | export_control.Origin.Model =>
+      ok { phase, accepted := false, dispatch := false }
+    | export_control.Origin.Host =>
+      match event with
+      | export_control.ExportEvent.Propose =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.Review =>
+        ok { phase, accepted := true, dispatch := false }
+      | export_control.ExportEvent.Reject =>
+        ok
+          {
+            phase := export_control.Phase.Rejected,
+            accepted := true,
+            dispatch := false
+          }
+      | export_control.ExportEvent.Approve =>
+        ok
+          {
+            phase := export_control.Phase.Attempted,
+            accepted := true,
+            dispatch := true
+          }
+      | export_control.ExportEvent.ResponseReceived =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.DeliveryUncertain =>
+        ok { phase, accepted := false, dispatch := false }
+    | export_control.Origin.Transport =>
+      ok { phase, accepted := false, dispatch := false }
+  | export_control.Phase.Rejected =>
+    match origin with
+    | export_control.Origin.Model =>
+      ok { phase, accepted := false, dispatch := false }
+    | export_control.Origin.Host =>
+      match event with
+      | export_control.ExportEvent.Propose =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.Review =>
+        ok { phase, accepted := true, dispatch := false }
+      | export_control.ExportEvent.Reject =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.Approve =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.ResponseReceived =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.DeliveryUncertain =>
+        ok { phase, accepted := false, dispatch := false }
+    | export_control.Origin.Transport =>
+      ok { phase, accepted := false, dispatch := false }
+  | export_control.Phase.Attempted =>
+    match origin with
+    | export_control.Origin.Model =>
+      ok { phase, accepted := false, dispatch := false }
+    | export_control.Origin.Host =>
+      match event with
+      | export_control.ExportEvent.Propose =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.Review =>
+        ok { phase, accepted := true, dispatch := false }
+      | export_control.ExportEvent.Reject =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.Approve =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.ResponseReceived =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.DeliveryUncertain =>
+        ok { phase, accepted := false, dispatch := false }
+    | export_control.Origin.Transport =>
+      match event with
+      | export_control.ExportEvent.Propose =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.Review =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.Reject =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.Approve =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.ResponseReceived =>
+        ok
+          {
+            phase := export_control.Phase.ResponseReceived,
+            accepted := true,
+            dispatch := false
+          }
+      | export_control.ExportEvent.DeliveryUncertain =>
+        ok
+          {
+            phase := export_control.Phase.DeliveryUncertain,
+            accepted := true,
+            dispatch := false
+          }
+  | export_control.Phase.ResponseReceived =>
+    match origin with
+    | export_control.Origin.Model =>
+      ok { phase, accepted := false, dispatch := false }
+    | export_control.Origin.Host =>
+      match event with
+      | export_control.ExportEvent.Propose =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.Review =>
+        ok { phase, accepted := true, dispatch := false }
+      | export_control.ExportEvent.Reject =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.Approve =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.ResponseReceived =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.DeliveryUncertain =>
+        ok { phase, accepted := false, dispatch := false }
+    | export_control.Origin.Transport =>
+      ok { phase, accepted := false, dispatch := false }
+  | export_control.Phase.DeliveryUncertain =>
+    match origin with
+    | export_control.Origin.Model =>
+      ok { phase, accepted := false, dispatch := false }
+    | export_control.Origin.Host =>
+      match event with
+      | export_control.ExportEvent.Propose =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.Review =>
+        ok { phase, accepted := true, dispatch := false }
+      | export_control.ExportEvent.Reject =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.Approve =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.ResponseReceived =>
+        ok { phase, accepted := false, dispatch := false }
+      | export_control.ExportEvent.DeliveryUncertain =>
+        ok { phase, accepted := false, dispatch := false }
+    | export_control.Origin.Transport =>
+      ok { phase, accepted := false, dispatch := false }
+
+/-- [meden_core::export_control::{meden_core::export_control::State}::advance]:
+    Source: 'crates/meden-core/src/export_control.rs', lines 193:4-215:5
+    Visibility: public -/
+def export_control.State.advance
+  (self : export_control.State) (origin : export_control.Origin)
+  (event : export_control.ExportEvent) (now : Std.U64) (expires : Std.U64)
+  (session : Slice Std.U8) :
+  Result (export_control.Outcome × export_control.State)
+  := do
+  let decision ← export_control.step self.phase origin event
+  let request_session := alloc.vec.Vec.deref self.session
+  if decision.dispatch
+  then
+    let b ←
+      core.slice.cmp.PartialEqSlice.eq core.cmp.PartialEqU8 request_session
+        session
+    if b
+    then
+      if now < expires
+      then
+        ok
+          ({
+             accepted := decision.accepted,
+             effect := (some { request := self.request })
+           }, { self with phase := decision.phase })
+      else
+        ok ({ accepted := decision.accepted, effect := none },
+          { self with phase := decision.phase })
+    else
+      ok ({ accepted := decision.accepted, effect := none },
+        { self with phase := decision.phase })
+  else
+    ok ({ accepted := decision.accepted, effect := none },
+      { self with phase := decision.phase })
+
+/-- [meden_core::export_control::{impl core::cmp::PartialEq<meden_core::export_control::ExportEvent> for meden_core::export_control::ExportEvent}::eq]:
+    Source: 'crates/meden-core/src/export_control.rs', lines 46:29-46:38
+    Visibility: public -/
+def export_control.ExportEvent.Insts.CoreCmpPartialEqExportEvent.eq
+  (self : export_control.ExportEvent) (other : export_control.ExportEvent) :
+  Result Bool
+  := do
+  let self1 := read_discriminant self
+  let other1 := read_discriminant other
+  ok (self1 = other1)
+
+/-- [meden_core::evidence::{meden_core::evidence::Delivery}::advance]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 413:4-429:5
+    Visibility: public -/
+def evidence.Delivery.advance
+  (self : evidence.Delivery) (current : evidence.Contracts)
+  (origin : export_control.Origin) (event : export_control.ExportEvent)
+  (now : Std.U64) (expires : Std.U64) (session : Slice Std.U8) :
+  Result (export_control.Outcome × evidence.Delivery)
+  := do
+  let b ←
+    export_control.ExportEvent.Insts.CoreCmpPartialEqExportEvent.eq event
+      export_control.ExportEvent.Approve
+  if b
+  then
+    let b1 ← evidence.Delivery.permitted self current
+    if b1
+    then
+      let (o, s) ←
+        export_control.State.advance self.export origin event now expires
+          session
+      ok (o, { self with «export» := s })
+    else ok ({ accepted := false, effect := none }, self)
+  else
+    let (o, s) ←
+      export_control.State.advance self.export origin event now expires session
+    ok (o, { self with «export» := s })
+
+/-- [meden_core::export_control::{meden_core::export_control::State}::new]:
+    Source: 'crates/meden-core/src/export_control.rs', lines 172:4-178:5
+    Visibility: public -/
+def export_control.State.new
+  (session : alloc.vec.Vec Std.U8) (target : String)
+  (body : alloc.vec.Vec Std.U8) :
+  Result export_control.State
+  := do
+  ok
+    {
+      phase := export_control.Phase.Pending,
+      session,
+      request := { target, body }
+    }
+
+/-- [meden_core::evidence::{meden_core::evidence::Contracts}::prepare_delivery]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 435:4-445:5
+    Visibility: public -/
+def evidence.Contracts.prepare_delivery
+  (self : evidence.Contracts) (target : String) (body : alloc.vec.Vec Std.U8) :
+  Result (Option evidence.Delivery)
+  := do
+  let o ← evidence.Contracts.impl.accepted self
+  let v ← alloc.vec.CloneVec.clone core.clone.CloneU8 self.session
+  let s ← export_control.State.new v target body
+  let b ← evidence.Delivery.permitted { contract := o, «export» := s } self
+  if b
+  then ok (some { contract := o, «export» := s })
+  else ok none
+
 /-- [meden_core::evidence::{meden_core::evidence::Contracts}::new]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 373:4-381:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 448:4-456:5
     Visibility: public -/
 def evidence.Contracts.new
   (session : alloc.vec.Vec Std.U8) : Result evidence.Contracts := do
@@ -735,7 +1228,7 @@ def evidence.Contracts.new
     { session, sequence := 0#u64, accepted := none, draft := none, jobs := cj }
 
 /-- [meden_core::evidence::{meden_core::evidence::Contracts}::propose]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 387:4-428:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 462:4-503:5
     Visibility: public -/
 def evidence.Contracts.propose
   (self : evidence.Contracts) (origin : evidence.EvidenceOrigin)
@@ -911,35 +1404,14 @@ def evidence.Contracts.propose
                     jobs := cj
                 })
 
-/-- [meden_core::evidence::{meden_core::evidence::Contracts}::accepted]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 440:4-445:5
-    Visibility: public -/
-def evidence.Contracts.impl.accepted
-  (self : evidence.Contracts) : Result (Option evidence.ContractView) := do
-  match self.accepted with
-  | none => ok none
-  | some accepted =>
-    let cv ← evidence.VersionedGate.view accepted
-    ok (some cv)
-
-/-- [meden_core::evidence::{meden_core::evidence::Contracts}::displayed]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 431:4-436:5
-    Visibility: public -/
-def evidence.Contracts.displayed
-  (self : evidence.Contracts) : Result (Option evidence.ContractView) := do
-  match self.draft with
-  | none => evidence.Contracts.impl.accepted self
-  | some draft => let cv ← evidence.VersionedGate.view draft
-                  ok (some cv)
-
 /-- [meden_core::evidence::{meden_core::evidence::Contracts}::pending]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 448:4-450:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 523:4-525:5
     Visibility: public -/
 def evidence.Contracts.pending (self : evidence.Contracts) : Result Bool := do
   ok (core.option.Option.is_some self.draft)
 
 /-- [meden_core::evidence::{meden_core::evidence::Contracts}::is_accepted]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 453:4-461:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 528:4-536:5
     Visibility: public -/
 def evidence.Contracts.is_accepted
   (self : evidence.Contracts) : Result Bool := do
@@ -952,7 +1424,7 @@ def evidence.Contracts.is_accepted
     | some accepted => evidence.Gate.is_accepted accepted.gate
 
 /-- [meden_core::evidence::{meden_core::evidence::Contracts}::review]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 464:4-476:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 539:4-551:5
     Visibility: public -/
 def evidence.Contracts.review
   (self : evidence.Contracts) (origin : evidence.EvidenceOrigin)
@@ -984,7 +1456,7 @@ def evidence.Contracts.review
       else ok (false, self)
 
 /-- [meden_core::evidence::{meden_core::evidence::Contracts}::accept]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 479:4-500:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 554:4-575:5
     Visibility: public -/
 def evidence.Contracts.accept
   (self : evidence.Contracts) (origin : evidence.EvidenceOrigin)
@@ -1022,7 +1494,7 @@ def evidence.Contracts.accept
         else ok (false, { self with draft := (some { draft with gate := g }) })
 
 /-- [meden_core::evidence::{meden_core::evidence::Contracts}::reject]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 503:4-518:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 578:4-593:5
     Visibility: public -/
 def evidence.Contracts.reject
   (self : evidence.Contracts) (origin : evidence.EvidenceOrigin)
@@ -1051,7 +1523,7 @@ def evidence.Contracts.reject
         else ok (true, { self with draft := none })
 
 /-- [meden_core::evidence::{meden_core::evidence::Contracts}::refresh]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 521:4-535:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 596:4-610:5
     Visibility: public -/
 def evidence.Contracts.refresh
   (self : evidence.Contracts) (origin : evidence.EvidenceOrigin)
@@ -1071,7 +1543,7 @@ def evidence.Contracts.refresh
       ok (b, { self with accepted := (some { accepted with gate := g }) })
 
 /-- [meden_core::evidence::{meden_core::evidence::Contracts}::start]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 538:4-564:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 613:4-639:5
     Visibility: public -/
 def evidence.Contracts.start
   (self : evidence.Contracts) (origin : evidence.EvidenceOrigin)
@@ -1122,7 +1594,7 @@ def evidence.Contracts.start
               })
 
 /-- [meden_core::evidence::{meden_core::evidence::Contracts}::invalidate]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 567:4-569:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 642:4-644:5
     Visibility: public -/
 def evidence.Contracts.invalidate
   (self : evidence.Contracts) (origin : evidence.EvidenceOrigin) :
@@ -1132,7 +1604,7 @@ def evidence.Contracts.invalidate
   ok (b, { self with jobs := cj })
 
 /-- [meden_core::evidence::{meden_core::evidence::Contracts}::edit]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 573:4-582:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 648:4-657:5
     Visibility: public -/
 def evidence.Contracts.edit
   (self : evidence.Contracts) (origin : evidence.EvidenceOrigin) :
@@ -1164,7 +1636,7 @@ def evidence.Contracts.edit
         })
 
 /-- [meden_core::evidence::{meden_core::evidence::Contracts}::abort]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 585:4-587:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 660:4-662:5
     Visibility: public -/
 def evidence.Contracts.abort
   (self : evidence.Contracts) (origin : evidence.EvidenceOrigin)
@@ -1175,14 +1647,14 @@ def evidence.Contracts.abort
   ok (b, { self with jobs := cj })
 
 /-- [meden_core::evidence::{meden_core::evidence::Contracts}::is_active]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 590:4-592:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 665:4-667:5
     Visibility: public -/
 def evidence.Contracts.is_active
   (self : evidence.Contracts) : Result Bool := do
   evidence.CheckJobs.is_active self.jobs
 
 /-- [meden_core::evidence::{meden_core::evidence::Contracts}::complete]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 595:4-620:5
+    Source: 'crates/meden-core/src/evidence.rs', lines 670:4-695:5
     Visibility: public -/
 def evidence.Contracts.complete
   (self : evidence.Contracts) (origin : evidence.EvidenceOrigin)
@@ -1212,29 +1684,25 @@ def evidence.Contracts.complete
               accepted := (some { accepted with gate := g }), jobs := cj
           })
 
-/-- [meden_core::evidence::{meden_core::evidence::Contracts}::eligible]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 623:4-637:5
+/-- [meden_core::export_control::{meden_core::export_control::FrozenRequest}::target]:
+    Source: 'crates/meden-core/src/export_control.rs', lines 127:4-129:5
     Visibility: public -/
-def evidence.Contracts.eligible
-  (self : evidence.Contracts) (revision : Std.U64)
-  (inputs : alloc.vec.Vec Std.U8) :
-  Result Bool
-  := do
-  let b := core.option.Option.is_some self.draft
-  if b
-  then ok false
-  else
-    let b1 ← evidence.CheckJobs.is_active self.jobs
-    if b1
-    then ok false
-    else
-      match self.accepted with
-      | none => ok false
-      | some accepted =>
-        let s ←
-          evidence.Subject.Insts.CoreCloneClone.clone accepted.gate.subject
-        if accepted.revision = revision
-        then evidence.Gate.eligible accepted.gate { s with inputs }
-        else ok false
+def export_control.FrozenRequest.impl.target
+  (self : export_control.FrozenRequest) : Result String := do
+  ok self.target
+
+/-- [meden_core::export_control::{meden_core::export_control::FrozenRequest}::body]:
+    Source: 'crates/meden-core/src/export_control.rs', lines 132:4-134:5
+    Visibility: public -/
+def export_control.FrozenRequest.impl.body
+  (self : export_control.FrozenRequest) : Result (Slice Std.U8) := do
+  ok (alloc.vec.Vec.deref self.body)
+
+/-- [meden_core::export_control::{meden_core::export_control::Dispatch<'a>}::into_request]:
+    Source: 'crates/meden-core/src/export_control.rs', lines 156:4-158:5
+    Visibility: public -/
+def export_control.Dispatch.into_request
+  (self : export_control.Dispatch) : Result export_control.FrozenRequest := do
+  ok self.request
 
 end MedenEvidenceImpl

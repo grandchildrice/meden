@@ -147,6 +147,7 @@ jobs:
             --charon "$CHARON" --driver "$RUNNER_TEMP/aeneas/charon-driver" \
             --aeneas "$AENEAS" --output "$RUNNER_TEMP/project-verifier.json"
           uv run --project python pytest -q python/tests/test_project_verification.py \
+            python/tests/test_project_delivery.py \
             --basetemp "$RUNNER_TEMP/project-tests"
         env:
           MEDEN_BIN: ${{ github.workspace }}/target/release/meden

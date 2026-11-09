@@ -186,6 +186,7 @@ def setup(
     rejected=False,
     premature=False,
     artifact_checks=0,
+    engine_script=None,
 ):
     binary = find_meden()
     assert binary
@@ -199,7 +200,11 @@ def setup(
         + f"CONTRACT={contract!r}\nREPLACEMENT={replacement!r}\nREJECTED={rejected!r}\n"
         + f"PREMATURE={premature!r}\n"
         + f"ARTIFACT_CHECKS={artifact_checks!r}\n"
-        + ENGINE.replace("'ledger.rs'", repr(contract["source_path"]))
+        + (
+            engine_script
+            if engine_script is not None
+            else ENGINE.replace("'ledger.rs'", repr(contract["source_path"]))
+        )
     )
     engine.chmod(0o700)
     model = tmp_path / "fixture.gguf"

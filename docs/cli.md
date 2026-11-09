@@ -88,6 +88,10 @@ implementation does not yet have Rust-to-Lean refinement.
 
 The model may call `propose_export(path, target)`. This snapshots at most
 1 MiB inside the offline worker; it does not approve, resolve DNS or send.
+This ordinary-file path requires a session without a project contract.
+After a contract is proposed or accepted, use `propose_artifact_export(target)`
+for the current verified kernel. A raw file queued before that contract cannot
+be sent while the project requirement exists.
 Eight proposals are allowed per session, including resolved proposals;
 references are never reused. The returned reference contains `session`
 and `id`, binding it to that workspace session and immutable request.
@@ -105,16 +109,28 @@ frozen body as `body_hex`. Review must precede approval. To decline, send
 `reject_export` with the same reference; rejection needs no prior review.
 Model tool calls named `approve_export` or `review_export` are unsupported.
 
-Approval permits one POST with those exact bytes. It never reopens the
-source file or follows a redirect, uses no credentials or environment proxy,
+Project proposals contain a `contract` SHA-256 in their host summary; ordinary
+files have `contract: null`. A project payload is JSON with
+`format: "meden-verified-kernel"` and a `files` map from names to byte arrays.
+It preserves the exact retained `report.json`, native library, source,
+extraction and proof inputs. Raw retained content is limited to 4 MiB and the
+encoded package to 16 MiB. The model supplies only the destination; it cannot
+choose another file, report, checker or proof context for this operation.
+
+Approval permits one POST with those exact frozen payload bytes. Project
+source and retained files are inspected again before dispatch to require
+current matching evidence. Edits, pending replacements, active jobs, changed
+contracts or damaged retained files block dispatch. Restoring discarded
+coverage requires a fresh independent check. The HTTP adapter follows no
+redirect, uses no credentials or environment proxy,
 and does not retry automatically. Cross-session references, rejected or
 already attempted proposals cannot send. `delivery_uncertain` means the
 recipient may already have received the bytes; approval stays spent.
 Targets require HTTPS, except literal loopback HTTP, without userinfo or
 fragments; the URL limit is 8192 bytes.
 An HTTP response is not proof that an upload was accepted by the service.
-Raw HTTP export does not provide Git/email audience adapters or a
-proof-of-correctness release gate.
+This is a scoped kernel-package path, not whole-application assurance or
+Git/email audience adapters. Raw file exports carry no correctness claim.
 
 ## Project contract and verification
 
@@ -206,7 +222,7 @@ verification evidence. Treat the stream as confidential session data.
 
 The CLI runs tools itself. Events are observations, not requests for a host
 to execute code. The fixed tools are `read_file`, `list_files`, `write_file`,
-`edit_file`, `bash`, `propose_export`, `list_cached_pages`, `read_cached_page`,
+`edit_file`, `bash`, `propose_export`, `propose_artifact_export`, `list_cached_pages`, `read_cached_page`,
 `propose_contract`, `verify_project` and `project_status`.
 File/process operations use the offline copy at
 `/workspace`; unsupported send/network tools are refused. There is no host

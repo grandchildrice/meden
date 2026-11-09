@@ -5,17 +5,20 @@ use std::io;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-use meden_core::export_control::{Dispatch, ExportEvent, Origin, Phase, State};
+use meden_core::evidence::{ContractView, Contracts, Delivery};
+use meden_core::export_control::{Dispatch, ExportEvent, Origin, Phase};
 
 /// One prepared POST. Target and payload cannot change after preparation.
 /// No constructor, inspection or approval operation performs network I/O.
 pub struct Export {
-    state: Mutex<State>,
+    state: Mutex<Delivery>,
     created: Instant,
 }
 
 /// Host review derived from the same immutable request used by the kernel.
 pub struct Snapshot {
+    /// Frozen accepted meaning and evidence subject, or an ordinary file.
+    pub contract: Option<ContractView>,
     /// Current review/reservation lifecycle.
     pub phase: Phase,
     /// Exact normalized destination.
@@ -27,7 +30,7 @@ pub struct Snapshot {
 impl Export {
     /// Freeze a complete request. HTTPS is required except for literal local
     /// loopback receivers; an HTTP redirect is never followed automatically.
-    pub fn prepare(session: &[u8], target: &str, payload: &[u8]) -> io::Result<Self> {
+    pub fn prepare(current: &Contracts, target: &str, payload: &[u8]) -> io::Result<Self> {
         if target.contains('#') || target.len() > 8192 {
             return Err(io::Error::other(
                 "transfer URI must be at most 8192 bytes without a fragment",
@@ -48,7 +51,13 @@ impl Export {
         }
         let target = uri.to_string();
         Ok(Self {
-            state: Mutex::new(State::new(session.to_vec(), target, payload.to_vec())),
+            state: Mutex::new(
+                current
+                    .prepare_delivery(target, payload.to_vec())
+                    .ok_or_else(|| {
+                        io::Error::other("current project evidence is required for export")
+                    })?,
+            ),
             created: Instant::now(),
         })
     }
@@ -61,6 +70,7 @@ impl Export {
             .map_err(|_| io::Error::other("export state unavailable"))?;
         let post = state.request();
         Ok(Snapshot {
+            contract: state.contract().cloned(),
             phase: state.phase(),
             target: post.target().clone(),
             payload: post.body().to_vec(),
@@ -68,21 +78,24 @@ impl Export {
     }
 
     /// Mark inspection through the host channel, never a model tool.
-    pub fn review_from_host(&self) -> io::Result<()> {
-        self.host_transition(ExportEvent::Review)
+    pub fn review_from_host(&self, current: &Contracts) -> io::Result<()> {
+        self.host_transition(current, ExportEvent::Review)
     }
 
     /// Decline through the host channel, without producing an effect.
-    pub fn reject_from_host(&self) -> io::Result<()> {
-        self.host_transition(ExportEvent::Reject)
+    pub fn reject_from_host(&self, current: &Contracts) -> io::Result<()> {
+        self.host_transition(current, ExportEvent::Reject)
     }
 
-    fn host_transition(&self, event: ExportEvent) -> io::Result<()> {
+    fn host_transition(&self, current: &Contracts, event: ExportEvent) -> io::Result<()> {
         let mut state = self
             .state
             .lock()
             .map_err(|_| io::Error::other("export state unavailable"))?;
-        if !state.advance(Origin::Host, event, 0, 0, &[]).accepted {
+        if !state
+            .advance(current, Origin::Host, event, 0, 0, &[])
+            .accepted
+        {
             return Err(io::Error::other("export transition refused"));
         }
         Ok(())
@@ -92,17 +105,27 @@ impl Export {
     /// The executor consumes a dispatch borrowing that same request. None means
     /// delivery failed or is uncertain, with the attempt still consumed. Never expose
     /// this method as a model tool.
-    pub fn send(&self, current_session: &[u8], valid_for: Duration) -> io::Result<Option<u16>> {
+    pub fn send(
+        &self,
+        current: &Contracts,
+        current_session: &[u8],
+        valid_for: Duration,
+    ) -> io::Result<Option<u16>> {
         let duration = u64::try_from(valid_for.as_millis()).map_err(io::Error::other)?;
         let expires = self
             .now()?
             .checked_add(duration)
             .filter(|_| duration > 0)
             .ok_or_else(|| io::Error::other("invalid approval lifetime"))?;
-        self.send_before(current_session, expires)
+        self.send_before(current, current_session, expires)
     }
 
-    fn send_before(&self, current_session: &[u8], expires: u64) -> io::Result<Option<u16>> {
+    fn send_before(
+        &self,
+        current: &Contracts,
+        current_session: &[u8],
+        expires: u64,
+    ) -> io::Result<Option<u16>> {
         // Keep the request borrowed and immutable for the bounded HTTP call.
         // Each export has its own lock; the token cannot outlive its owner.
         let mut state = self
@@ -111,6 +134,7 @@ impl Export {
             .map_err(|_| io::Error::other("export state unavailable"))?;
         let effect = state
             .advance(
+                current,
                 Origin::Host,
                 ExportEvent::Approve,
                 self.now()?,
@@ -121,7 +145,7 @@ impl Export {
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::PermissionDenied,
-                    "export needs prior review and a valid approval for this session; no replay",
+                    "export needs current matching evidence, prior review and valid session approval; no replay",
                 )
             })?;
         let sent = Self::dispatch(effect);
@@ -130,7 +154,10 @@ impl Export {
         } else {
             ExportEvent::DeliveryUncertain
         };
-        if !state.advance(Origin::Transport, event, 0, 0, &[]).accepted {
+        if !state
+            .advance(current, Origin::Transport, event, 0, 0, &[])
+            .accepted
+        {
             return Err(io::Error::other("export result refused"));
         }
         Ok(sent.ok())
@@ -245,7 +272,12 @@ mod tests {
     fn no_send_before_approval_and_only_frozen_bytes_reach_the_approved_receiver() {
         let receiver = listener();
         let mut source = b"CONFIDENTIAL-CANARY\0\xff".to_vec();
-        let export = Export::prepare(b"session", &target(&receiver), &source).expect("prepare");
+        let export = Export::prepare(
+            &Contracts::new(b"session".to_vec()),
+            &target(&receiver),
+            &source,
+        )
+        .expect("prepare");
         assert_eq!(
             export.snapshot().expect("snapshot").target,
             target(&receiver)
@@ -253,25 +285,52 @@ mod tests {
         assert_eq!(export.snapshot().expect("snapshot").payload, source);
         assert_eq!(
             export
-                .send(b"session", Duration::from_secs(60))
+                .send(
+                    &Contracts::new(b"session".to_vec()),
+                    b"session",
+                    Duration::from_secs(60)
+                )
                 .expect_err("unreviewed")
                 .kind(),
             io::ErrorKind::PermissionDenied
         );
         assert!(receiver.accept().is_err());
-        let foreign = Export::prepare(b"session", &target(&receiver), &source).expect("prepare");
-        foreign.review_from_host().expect("host review");
+        let foreign = Export::prepare(
+            &Contracts::new(b"session".to_vec()),
+            &target(&receiver),
+            &source,
+        )
+        .expect("prepare");
+        foreign
+            .review_from_host(&Contracts::new(b"s".to_vec()))
+            .expect("host review");
         assert!(foreign
-            .send(b"other-session", Duration::from_secs(60))
+            .send(
+                &Contracts::new(b"other-session".to_vec()),
+                b"other-session",
+                Duration::from_secs(60)
+            )
             .is_err());
-        assert!(foreign.send(b"session", Duration::from_secs(60)).is_err());
+        assert!(foreign
+            .send(
+                &Contracts::new(b"session".to_vec()),
+                b"session",
+                Duration::from_secs(60)
+            )
+            .is_err());
         assert!(receiver.accept().is_err());
-        export.review_from_host().expect("host review");
+        export
+            .review_from_host(&Contracts::new(b"s".to_vec()))
+            .expect("host review");
         source.fill(b'x');
         let observed = receive(&receiver, ok());
         assert_eq!(
             export
-                .send(b"session", Duration::from_secs(60))
+                .send(
+                    &Contracts::new(b"session".to_vec()),
+                    b"session",
+                    Duration::from_secs(60)
+                )
                 .expect("delivery"),
             Some(200)
         );
@@ -279,8 +338,16 @@ mod tests {
             observed.join().expect("receiver"),
             b"CONFIDENTIAL-CANARY\0\xff"
         );
-        export.review_from_host().expect("inspection cannot reopen");
-        assert!(export.send(b"session", Duration::from_secs(60)).is_err());
+        export
+            .review_from_host(&Contracts::new(b"s".to_vec()))
+            .expect("inspection cannot reopen");
+        assert!(export
+            .send(
+                &Contracts::new(b"session".to_vec()),
+                b"session",
+                Duration::from_secs(60)
+            )
+            .is_err());
         assert!(receiver.accept().is_err());
     }
 
@@ -292,25 +359,51 @@ mod tests {
             "http://remote.example/path",
             "https://user@remote.example/path",
         ] {
-            assert!(Export::prepare(b"s", invalid, b"secret").is_err());
+            assert!(Export::prepare(&Contracts::new(b"s".to_vec()), invalid, b"secret").is_err());
         }
-        let export = Export::prepare(b"s", &target(&receiver), b"secret").expect("prepare");
-        export.review_from_host().expect("review");
-        assert!(export.send(b"s", Duration::ZERO).is_err());
+        let export = Export::prepare(
+            &Contracts::new(b"s".to_vec()),
+            &target(&receiver),
+            b"secret",
+        )
+        .expect("prepare");
+        export
+            .review_from_host(&Contracts::new(b"s".to_vec()))
+            .expect("review");
+        assert!(export
+            .send(&Contracts::new(b"s".to_vec()), b"s", Duration::ZERO)
+            .is_err());
         assert_eq!(
-            export.send_before(b"s", 0).expect_err("expired").kind(),
+            export
+                .send_before(&Contracts::new(b"s".to_vec()), b"s", 0)
+                .expect_err("expired")
+                .kind(),
             io::ErrorKind::PermissionDenied
         );
         assert!(receiver.accept().is_err());
-        assert!(export.send(b"s", Duration::from_secs(60)).is_err());
+        assert!(export
+            .send(
+                &Contracts::new(b"s".to_vec()),
+                b"s",
+                Duration::from_secs(60)
+            )
+            .is_err());
     }
 
     #[test]
     fn concurrent_sends_consume_one_approval_once() {
         let receiver = listener();
-        let export =
-            Arc::new(Export::prepare(b"s", &target(&receiver), b"one copy").expect("prepare"));
-        export.review_from_host().expect("review");
+        let export = Arc::new(
+            Export::prepare(
+                &Contracts::new(b"s".to_vec()),
+                &target(&receiver),
+                b"one copy",
+            )
+            .expect("prepare"),
+        );
+        export
+            .review_from_host(&Contracts::new(b"s".to_vec()))
+            .expect("review");
         let observed = receive(&receiver, ok());
         let barrier = Arc::new(Barrier::new(4));
         let threads: Vec<_> = (0..4)
@@ -320,7 +413,11 @@ mod tests {
                 thread::spawn(move || {
                     barrier.wait();
                     export
-                        .send(b"s", Duration::from_secs(60))
+                        .send(
+                            &Contracts::new(b"s".to_vec()),
+                            b"s",
+                            Duration::from_secs(60),
+                        )
                         .is_ok_and(|status| status.is_some())
                 })
             })
@@ -342,31 +439,65 @@ mod tests {
         let approved = listener();
         let other = listener();
         let observed = receive(&approved, format!("HTTP/1.1 307 Temporary Redirect\r\nLocation: {}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n", target(&other)));
-        let export = Export::prepare(b"s", &target(&approved), b"secret").expect("prepare");
-        export.review_from_host().expect("review");
+        let export = Export::prepare(
+            &Contracts::new(b"s".to_vec()),
+            &target(&approved),
+            b"secret",
+        )
+        .expect("prepare");
+        export
+            .review_from_host(&Contracts::new(b"s".to_vec()))
+            .expect("review");
         assert_eq!(
             export
-                .send(b"s", Duration::from_secs(60))
+                .send(
+                    &Contracts::new(b"s".to_vec()),
+                    b"s",
+                    Duration::from_secs(60)
+                )
                 .expect("redirect status"),
             Some(307)
         );
         assert_eq!(observed.join().expect("receiver"), b"secret");
         assert!(other.accept().is_err());
-        assert!(export.send(b"s", Duration::from_secs(60)).is_err());
+        assert!(export
+            .send(
+                &Contracts::new(b"s".to_vec()),
+                b"s",
+                Duration::from_secs(60)
+            )
+            .is_err());
     }
 
     #[test]
     fn uncertain_delivery_does_not_restore_approval() {
         let receiver = listener();
         let observed = receive(&receiver, String::new());
-        let export = Export::prepare(b"s", &target(&receiver), b"secret").expect("prepare");
-        export.review_from_host().expect("review");
+        let export = Export::prepare(
+            &Contracts::new(b"s".to_vec()),
+            &target(&receiver),
+            b"secret",
+        )
+        .expect("prepare");
+        export
+            .review_from_host(&Contracts::new(b"s".to_vec()))
+            .expect("review");
         assert!(export
-            .send(b"s", Duration::from_secs(60))
+            .send(
+                &Contracts::new(b"s".to_vec()),
+                b"s",
+                Duration::from_secs(60)
+            )
             .expect("uncertain result")
             .is_none());
         assert_eq!(observed.join().expect("receiver"), b"secret");
-        assert!(export.send(b"s", Duration::from_secs(60)).is_err());
+        assert!(export
+            .send(
+                &Contracts::new(b"s".to_vec()),
+                b"s",
+                Duration::from_secs(60)
+            )
+            .is_err());
         assert!(receiver.accept().is_err());
     }
 }

@@ -150,8 +150,10 @@ redirects and oversized responses. `run` accepts the same `--pages` option.
 The agent can propose a file export for review. `/exports` in the TUI shows
 the actual HTTP destination and frozen bytes; only a local `y` key sends
 once. File changes after preparation cannot replace those bytes. The CLI
-provides equivalent host review commands. This is raw HTTP export, with
-Git/email adapters and evidence-gated user-project delivery still unfinished.
+provides equivalent host review commands. Once a project contract exists,
+exports require a checked kernel package and current matching evidence at
+dispatch. Ordinary files cannot substitute for it. Git/email adapters and
+whole-application delivery remain unfinished.
 
 For model-driven automation, `meden run --workspace ...` accepts
 `{"instruction":"..."}` objects, one per line, and emits JSON events. It

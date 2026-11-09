@@ -26,7 +26,7 @@ attempt; an older completed run does not cover a newer commit.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, failure and display-scalar kernels, `lake build`, proof scan/audit, 86 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, failure and display-scalar kernels, `lake build`, proof scan/audit, 90 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A decision differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -97,10 +97,11 @@ approvals and arbitrary subsequent clock values.
 | `ProcessorRefinement.*_refines`, `*_getters_refine`, `local_consume_refines` | Actual Rust operations, snapshots and adapter observations agree with the specification |
 | `ProcessorTrace.trace_refines`, `extracted_frozen`, `extracted_revoked` | Arbitrary finite extracted executions preserve complete bindings and terminal revocation |
 
-[extract-transfer.sh](../tools/extract-transfer.sh) regenerates seven raw
+[extract-transfer.sh](../tools/extract-transfer.sh) regenerates six raw
 production models and rejects any drift or unknown function/proof hole.
 Processor authorization has its own [generated module](../lean/MedenSpec/Generated/Processor.lean);
-export review/dispatch uses `Control.lean`. Generated files are never edited
+export review/dispatch, evidence and their delivery composition share
+`Evidence.lean`, so their actual Rust types are generated once. Generated files are never edited
 by hand. The pinned chain is Rust `nightly-2026-09-17`, Charon
 `8cae8fd1905946de61147a65ecdd7122cc6b491b`, Aeneas
 `c5eb4a28cef65e0aa27743105308243e535a2a2b` and Lean 4.35.0.
@@ -152,7 +153,7 @@ Host review can inspect terminal states without reopening them. Other
 invalid operations preserve state and grant no dispatch. The exact accepted,
 state and dispatch semantics are specified independently in
 [`ExportControl.lean`](../lean/MedenSpec/ExportControl.lean). Production Rust
-is extracted to the untouched [generated model](../lean/MedenSpec/Generated/Control.lean).
+is extracted to the untouched [generated model](../lean/MedenSpec/Generated/Evidence.lean).
 
 | Audited theorem | Checked claim |
 | --- | --- |
@@ -231,6 +232,54 @@ URI normalization, presentation, mutex semantics, clocks,
 HTTP/TLS, compiler and OS remain explicit trust dependencies or unproved
 adapters. This narrows the executor boundary but does not establish complete
 outbound routing or R1 end to end.
+
+## Project evidence and outbound reservation
+
+[`Delivery`](../lean/MedenSpec/Delivery.lean) composes current contract/evidence
+eligibility with the reviewed, single-use export state. The production
+[`Delivery`](../crates/meden-core/src/evidence.rs) freezes the complete
+contract view: revision, session, meaning, inputs and required obligations.
+At approval it compares that view with the current controller and checks
+complete current evidence. Raw file proposals have no contract binding and
+can dispatch only while the controller still has no project contract.
+
+| Audited theorem | Checked claim |
+| --- | --- |
+| `ContractsRefinement.view_eq` | Actual comparison matches the complete abstract view, including its ordered obligations |
+| `Delivery.effect_iff` | Dispatch requires current permission and all host review/session/time conditions for exactly the frozen request |
+| `Delivery.raw_cannot_bypass_contract` | A plain-file proposal cannot bypass a proposed or accepted project contract |
+| `Delivery.frozen_preserved`, `trace_filters_denied`, `trace_safe` | Changing controller snapshots cannot replace the binding/request or produce more than one dispatch |
+| `DeliveryRefinement.permitted_refines`, `prepare_refines`, `advance_refines` | The actual Rust context check, constructor and complete transition match the specification |
+| `DeliveryRefinement.getters_refine` | The actual context, request and phase getters report the same state used by dispatch |
+| `DeliveryRefinement.trace_refines`, `extracted_trace_safe` | Arbitrary finite extracted compositions retain the original request and emit at most one |
+| `DeliveryRefinement.dispatch_requires_current` | Every actual returned dispatch has current matching permission and the full reviewed request authorization |
+
+Export and evidence operations share one raw extracted model, avoiding an
+independent copy of either controller in this composition. The TUI and CLI
+share one project instance with the proposal queue. `propose_artifact_export`
+builds its payload only from the retained checked files and host-held report;
+the model supplies a destination, never replacement proof files or a result.
+Before approval, the adapter inspects current source and retained storage
+again while holding the project state lock. Both interfaces then use the
+same guarded runtime dispatch. Ordinary file export is refused when a
+contract exists, including for a raw proposal prepared earlier.
+
+The [real delivery test](../python/tests/test_project_delivery.py) uses a
+checked counter and an observed HTTP receiver. It rejects raw-file bypass,
+fake artifact flags, changed/restored source, pending/new accepted meanings,
+corrupted/restored library storage and replay. One authorized POST is checked
+byte for byte against the reviewed package and every retained file hash.
+Four additional real Rust faults bypass current evidence, frozen-context
+comparison, the plain-file boundary or completed evidence; each must fail
+the unchanged native regression and refinement proof after successful
+extraction/model compilation.
+
+The payload is a bounded JSON envelope of exact file bytes; it is not a
+compiler correctness proof or general project certification. Packaging,
+fresh physical observations, canonical bytes, instance attribution, host
+origin, clocks, locks and HTTP remain tested/trusted adapters. These
+composition proofs do not establish the complete session I/O loop, atomic
+storage against concurrent host mutation, all outbound adapters or R1.
 
 ## Actual TUI approval input
 
@@ -691,7 +740,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with processor/review/dispatch and TUI approval checks, CI rejects
-86 faults, including contract revisions, outer/inner conversation, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
+90 faults, including contract revisions, outer/inner conversation, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -778,7 +827,7 @@ Six additional semantic Rust faults exercise reused revisions, stale review,
 stale acceptance, pending eligibility, discarded accepted state and revived
 evidence after editing. Each must fail its native regression and the unchanged
 refinement after successful extraction/model compilation. They are part of
-the 86-fault CI corpus above.
+the 90-fault CI corpus above.
 
 Formula validation, canonical byte encoding, source/artifact input construction,
 host-origin attribution, JSON decoding, review rendering, locking, physical
@@ -788,7 +837,7 @@ session I/O loop or natural-language/formula equivalence.
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 176
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 189
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan

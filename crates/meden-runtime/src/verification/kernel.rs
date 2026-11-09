@@ -85,6 +85,42 @@ pub struct Artifact {
 }
 
 impl Artifact {
+    /// Freeze the exact retained files, including report.json, for reviewed
+    /// delivery. The report held by the host remains the hash authority.
+    pub fn package(&self) -> io::Result<Vec<u8>> {
+        #[derive(Serialize)]
+        struct Package {
+            format: &'static str,
+            files: BTreeMap<String, Vec<u8>>,
+        }
+        self.validate()?;
+        let mut files = BTreeMap::new();
+        let mut remaining = 4_194_304;
+        for (name, expected) in &self.report.files {
+            let bytes = read(&self.directory.join(name), remaining)?;
+            if hash(&bytes) != *expected {
+                return Err(io::Error::other("artifact changed during packaging"));
+            }
+            remaining = remaining
+                .checked_sub(u64::try_from(bytes.len()).map_err(io::Error::other)?)
+                .ok_or_else(|| io::Error::other("artifact package exceeds 4 MiB"))?;
+            files.insert(name.clone(), bytes);
+        }
+        let report = read(&self.directory.join("report.json"), remaining.min(131_072))?;
+        if report != serde_json::to_vec_pretty(&self.report)? {
+            return Err(io::Error::other("artifact report changed during packaging"));
+        }
+        files.insert("report.json".to_owned(), report);
+        let bytes = serde_json::to_vec(&Package {
+            format: "meden-verified-kernel",
+            files,
+        })?;
+        if bytes.len() > 16_777_216 {
+            return Err(io::Error::other("artifact package exceeds 16 MiB"));
+        }
+        Ok(bytes)
+    }
+
     /// Recheck retained bytes against the checker result held by the host.
     /// A replacement report on disk cannot authorize different contents.
     pub fn validate(&self) -> io::Result<()> {

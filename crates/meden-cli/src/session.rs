@@ -42,7 +42,7 @@ impl Session {
         project: &Arc<crate::project::Project>,
     ) -> Result<Self> {
         anyhow::ensure!(
-            exports.matches(workspace.path()),
+            exports.matches(workspace.path(), project),
             "export queue belongs to another workspace"
         );
         let (mut registry, mut policy) = crate::workspace::environment(&workspace, &processes)?;

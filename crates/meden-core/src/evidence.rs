@@ -368,7 +368,82 @@ pub struct Contracts {
     jobs: CheckJobs,
 }
 
+/// A frozen export and the exact contract/evidence context in which it was
+/// prepared. Plain file exports are valid only while no project contract exists.
+/// Payload construction and fresh physical input inspection remain adapters.
+#[derive(Debug)]
+pub struct Delivery {
+    contract: Option<ContractView>,
+    export: crate::export_control::State,
+}
+
+impl Delivery {
+    /// Immutable proof context for host presentation; never a mutable gate.
+    pub fn contract(&self) -> Option<&ContractView> {
+        match &self.contract {
+            Some(view) => Some(view),
+            None => None,
+        }
+    }
+
+    /// Exact frozen destination and bytes used for the eventual dispatch.
+    pub fn request(&self) -> &crate::export_control::FrozenRequest {
+        self.export.request()
+    }
+
+    /// Current one-use review lifecycle.
+    pub fn phase(&self) -> crate::export_control::Phase {
+        self.export.phase()
+    }
+
+    fn permitted(&self, current: &Contracts) -> bool {
+        match &self.contract {
+            Some(frozen) => {
+                (match current.accepted() {
+                    Some(view) => view == *frozen,
+                    None => false,
+                }) && current.eligible(frozen.revision, frozen.subject.inputs.clone())
+            }
+            None => current.displayed().is_none(),
+        }
+    }
+
+    /// Eligibility is rechecked against the current controller before approval.
+    /// Even a previously reviewed plain file cannot bypass a new project contract.
+    pub fn advance(
+        &mut self,
+        current: &Contracts,
+        origin: crate::export_control::Origin,
+        event: crate::export_control::ExportEvent,
+        now: u64,
+        expires: u64,
+        session: &[u8],
+    ) -> crate::export_control::Outcome<'_> {
+        if event == crate::export_control::ExportEvent::Approve && !self.permitted(current) {
+            return crate::export_control::Outcome {
+                accepted: false,
+                effect: None,
+            };
+        }
+        self.export.advance(origin, event, now, expires, session)
+    }
+}
+
 impl Contracts {
+    /// Prepare only in an empty controller or under current complete evidence.
+    /// The host must construct project payloads from the checked artifact.
+    pub fn prepare_delivery(&self, target: String, body: Vec<u8>) -> Option<Delivery> {
+        let delivery = Delivery {
+            contract: self.accepted(),
+            export: crate::export_control::State::new(self.session.clone(), target, body),
+        };
+        if delivery.permitted(self) {
+            Some(delivery)
+        } else {
+            None
+        }
+    }
+
     /// Assign the session once. This controller and its jobs are not cloneable.
     pub fn new(session: Vec<u8>) -> Self {
         Self {
@@ -670,6 +745,142 @@ mod tests {
             obligation: view.obligations.first().ok_or("no obligation")?.clone(),
             passed: true,
         })
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)] // One history exercises the shared delivery authority.
+    fn delivery_cannot_bypass_contract_or_current_evidence() -> Result<(), &'static str> {
+        use crate::export_control::{ExportEvent, Origin};
+        let mut current = Contracts::new(b"session".to_vec());
+        let target = "https://approved.example/project".to_owned();
+        let body = b"exact checked package".to_vec();
+        let mut raw = current
+            .prepare_delivery(target.clone(), body.clone())
+            .ok_or("raw")?;
+        assert!(
+            raw.advance(&current, Origin::Host, ExportEvent::Review, 0, 0, &[])
+                .accepted
+        );
+        let view = accept_contract(&mut current, b"original")?;
+        assert!(raw
+            .advance(
+                &current,
+                Origin::Host,
+                ExportEvent::Approve,
+                0,
+                10,
+                b"session"
+            )
+            .effect
+            .is_none());
+        assert!(current
+            .prepare_delivery(target.clone(), body.clone())
+            .is_none());
+        let inputs = b"source and artifact".to_vec();
+        let ticket = current
+            .start(EvidenceOrigin::Controller, view.revision, inputs.clone())
+            .ok_or("job")?;
+        assert!(current.complete(
+            EvidenceOrigin::Checker,
+            view.revision,
+            &ticket,
+            inputs.clone(),
+            passed(&view, &inputs)?
+        ));
+        let mut delivery = current
+            .prepare_delivery(target.clone(), body.clone())
+            .ok_or("checked")?;
+        assert!(
+            delivery
+                .advance(&current, Origin::Host, ExportEvent::Review, 0, 0, &[])
+                .accepted
+        );
+        current.edit(EvidenceOrigin::Controller);
+        assert!(delivery
+            .advance(
+                &current,
+                Origin::Host,
+                ExportEvent::Approve,
+                0,
+                10,
+                b"session"
+            )
+            .effect
+            .is_none());
+        let ticket = current
+            .start(EvidenceOrigin::Controller, view.revision, inputs.clone())
+            .ok_or("fresh job")?;
+        assert!(current.complete(
+            EvidenceOrigin::Checker,
+            view.revision,
+            &ticket,
+            inputs.clone(),
+            passed(&view, &inputs)?
+        ));
+        let mut other = Contracts::new(b"session".to_vec());
+        let other_view = accept_contract(&mut other, b"other meaning")?;
+        let ticket = other
+            .start(
+                EvidenceOrigin::Controller,
+                other_view.revision,
+                inputs.clone(),
+            )
+            .ok_or("other job")?;
+        assert!(other.complete(
+            EvidenceOrigin::Checker,
+            other_view.revision,
+            &ticket,
+            inputs.clone(),
+            passed(&other_view, &inputs)?
+        ));
+        assert!(delivery
+            .advance(
+                &other,
+                Origin::Host,
+                ExportEvent::Approve,
+                0,
+                10,
+                b"session"
+            )
+            .effect
+            .is_none());
+        assert!(delivery
+            .advance(
+                &current,
+                Origin::Model,
+                ExportEvent::Approve,
+                0,
+                10,
+                b"session"
+            )
+            .effect
+            .is_none());
+        let effect = delivery
+            .advance(
+                &current,
+                Origin::Host,
+                ExportEvent::Approve,
+                0,
+                10,
+                b"session",
+            )
+            .effect
+            .ok_or("dispatch")?;
+        let request = effect.into_request();
+        assert_eq!(request.target(), &target);
+        assert_eq!(request.body(), body);
+        assert!(delivery
+            .advance(
+                &current,
+                Origin::Host,
+                ExportEvent::Approve,
+                0,
+                10,
+                b"session"
+            )
+            .effect
+            .is_none());
+        Ok(())
     }
 
     #[test]
