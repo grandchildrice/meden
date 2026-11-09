@@ -261,3 +261,19 @@ open MedenSpec
 #print axioms MedenSpec.FileRefinement.prepared_allowed_iff
 #print axioms MedenSpec.FileRefinement.admitted_trace_safe
 #print axioms MedenSpec.FileRefinement.denied_trace_empty
+
+#print axioms MedenSpec.Inspection.consume_iff
+#print axioms MedenSpec.Inspection.original_only
+#print axioms MedenSpec.Inspection.changed_refused
+#print axioms MedenSpec.Inspection.generation_refused
+#print axioms MedenSpec.Inspection.stays_stale
+#print axioms MedenSpec.Inspection.no_new_accepted
+#print axioms MedenSpec.InspectionRefinement.capture_refines
+#print axioms MedenSpec.InspectionRefinement.accepted_refines
+#print axioms MedenSpec.InspectionRefinement.matches_refines
+#print axioms MedenSpec.InspectionRefinement.consume_refines
+#print axioms MedenSpec.InspectionRefinement.extracted_original
+#print axioms MedenSpec.InspectionRefinement.extracted_stale
+#print axioms MedenSpec.InspectionRefinement.extracted_generation
+#print axioms MedenSpec.InspectionRefinement.extracted_stays_stale
+#print axioms MedenSpec.InspectionRefinement.extracted_empty

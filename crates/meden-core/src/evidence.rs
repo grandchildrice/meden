@@ -712,6 +712,82 @@ impl Contracts {
     }
 }
 
+/// A frozen contract observation for a prepared read. This is data, not a
+/// permission: the caller must also admit the read's actual requirements.
+/// No imported, mutable or cloneable inspection can bypass a newer context.
+///
+/// ```compile_fail
+/// use meden_core::evidence::{Contracts, Inspection};
+/// let original = Contracts::new(vec![]).inspect();
+/// let duplicate = original.clone();
+/// ```
+///
+/// ```compile_fail
+/// use meden_core::evidence::Contracts;
+/// fn change(inspection: &meden_core::evidence::Inspection) {
+///     inspection.accepted().unwrap().revision = 7;
+/// }
+/// ```
+#[derive(Debug)]
+pub struct Inspection {
+    session: Vec<u8>,
+    sequence: u64,
+    accepted: Option<ContractView>,
+    displayed: Option<ContractView>,
+    ready: bool,
+}
+
+// Keep whole-option comparisons explicit: the pinned extractor leaves as_ref opaque.
+#[allow(clippy::ref_option)]
+fn same_view(left: &Option<ContractView>, right: &Option<ContractView>) -> bool {
+    match (left, right) {
+        (Some(left), Some(right)) => left == right,
+        (None, None) => true,
+        _ => false,
+    }
+}
+
+impl Contracts {
+    /// Capture one exact session/generation and both visible contract views.
+    pub fn inspect(&self) -> Inspection {
+        Inspection {
+            session: self.session.clone(),
+            sequence: self.sequence,
+            accepted: self.accepted(),
+            displayed: self.displayed(),
+            ready: self.is_accepted(),
+        }
+    }
+}
+
+impl Inspection {
+    /// Immutable original accepted view used to derive the read requirements.
+    pub fn accepted(&self) -> Option<&ContractView> {
+        match &self.accepted {
+            Some(view) => Some(view),
+            None => None,
+        }
+    }
+
+    fn matches(&self, current: &Contracts) -> bool {
+        self.session == current.session
+            && self.sequence == current.sequence
+            && self.ready == current.is_accepted()
+            && same_view(&self.accepted, &current.accepted())
+            && same_view(&self.displayed, &current.displayed())
+    }
+
+    /// Consume only in the original context; return the original accepted view.
+    /// Some(None) is an unchanged empty context, not a newly accepted contract.
+    pub fn consume(self, current: &Contracts) -> Option<Option<ContractView>> {
+        if self.matches(current) {
+            Some(self.accepted)
+        } else {
+            None
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -733,6 +809,72 @@ mod tests {
         assert!(contracts.review(EvidenceOrigin::Host, b"session", view.revision));
         assert!(contracts.accept(EvidenceOrigin::Host, b"session", view.revision));
         Ok(view)
+    }
+
+    #[test]
+    fn inspections_bind_all_context_fields_and_return_only_the_frozen_view(
+    ) -> Result<(), &'static str> {
+        let mut current = Contracts::new(b"session".to_vec());
+        assert_eq!(current.inspect().consume(&current), Some(None));
+        assert!(current
+            .inspect()
+            .consume(&Contracts::new(b"foreign".to_vec()))
+            .is_none());
+        let accepted = accept_contract(&mut current, b"original")?;
+        let inspection = current.inspect();
+        assert_eq!(inspection.accepted(), Some(&accepted));
+        let mut copy = inspection.accepted().ok_or("no accepted view")?.clone();
+        copy.subject.contract = b"forged".to_vec();
+        assert_ne!(copy, accepted);
+        assert_eq!(inspection.accepted(), Some(&accepted));
+        assert_eq!(inspection.consume(&current), Some(Some(accepted.clone())));
+
+        let old = current.inspect();
+        assert!(current.propose(
+            EvidenceOrigin::Controller,
+            b"replacement".to_vec(),
+            requirements()
+        ));
+        let pending = current.displayed().ok_or("no pending view")?;
+        assert!(current.reject(EvidenceOrigin::Host, b"session", pending.revision));
+        assert_eq!(current.accepted(), Some(accepted.clone()));
+        assert!(old.consume(&current).is_none());
+
+        assert!(current.propose(
+            EvidenceOrigin::Controller,
+            b"replacement".to_vec(),
+            requirements()
+        ));
+        assert_eq!(
+            current.inspect().consume(&current),
+            Some(Some(accepted.clone()))
+        );
+        let before_inputs = current.inspect();
+        assert!(current.refresh(
+            EvidenceOrigin::Controller,
+            accepted.revision,
+            b"new inputs".to_vec()
+        ));
+        assert!(before_inputs.consume(&current).is_none());
+
+        // Check independent displayed/readiness fields for all represented states,
+        // including values outside the constructor's reachable-state invariants.
+        let before_display = current.inspect();
+        current
+            .draft
+            .as_mut()
+            .ok_or("no draft")?
+            .gate
+            .subject
+            .inputs = b"changed draft".to_vec();
+        assert!(before_display.consume(&current).is_none());
+        let pending = current.displayed().ok_or("no draft")?;
+        assert!(current.review(EvidenceOrigin::Host, b"session", pending.revision));
+        assert!(current.accept(EvidenceOrigin::Host, b"session", pending.revision));
+        let before_ready = current.inspect();
+        current.accepted.as_mut().ok_or("no accepted")?.gate.phase = EvidencePhase::Reviewed;
+        assert!(before_ready.consume(&current).is_none());
+        Ok(())
     }
 
     fn passed(view: &ContractView, inputs: &[u8]) -> Result<CheckResult, &'static str> {

@@ -246,22 +246,29 @@ impl Tool for Propose {
                     "artifact export accepts only target".into(),
                 ));
             }
-            let mut requirements: Vec<_> =
-                self.queue.project.read_requirement().into_iter().collect();
+            let access = self
+                .queue
+                .project
+                .prepare_access()
+                .map_err(|error| ToolError::Failed(error.to_string()))?;
+            let mut requirements = access.requirements();
             requirements.push(Requirement::new(Capability::ProcessSpawn, None));
-            return Ok(ToolPrepared::new((target, requirements), |target| {
-                let result = self
-                    .queue
-                    .project
-                    .prepare_artifact_export(&self.workspace, &self.control, &target)
-                    .and_then(|export| {
-                        self.queue
-                            .propose("verified project kernel package", export)
-                    });
-                result
-                    .and_then(|summary| Ok(serde_json::to_value(summary)?))
-                    .map_err(|error| ToolError::Failed(error.to_string()))
-            }));
+            return Ok(ToolPrepared::new(
+                ((target, access), requirements),
+                |(target, access)| {
+                    let result = self
+                        .queue
+                        .project
+                        .prepare_artifact_export(access, &self.workspace, &self.control, &target)
+                        .and_then(|export| {
+                            self.queue
+                                .propose("verified project kernel package", export)
+                        });
+                    result
+                        .and_then(|summary| Ok(serde_json::to_value(summary)?))
+                        .map_err(|error| ToolError::Failed(error.to_string()))
+                },
+            ));
         }
         let path = args
             .get("path")

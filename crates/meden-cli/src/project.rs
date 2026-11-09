@@ -15,7 +15,7 @@ use meden_agent::{
 use meden_core::{
     evidence::{
         CheckResult, CheckTicket, ContractView, Contracts, EvidenceKind, EvidenceOrigin as Origin,
-        Obligation, Subject,
+        Inspection, Obligation, Subject,
     },
     Capability, Grant, Policy, Requirement,
 };
@@ -62,6 +62,26 @@ pub struct Summary {
 struct Agreement {
     contract: Contract,
     view: ContractView,
+}
+
+pub struct Access {
+    inspection: Inspection,
+    agreement: Option<Agreement>,
+}
+
+impl Access {
+    pub fn requirements(&self) -> Vec<Requirement> {
+        self.agreement
+            .as_ref()
+            .map(|agreement| {
+                Requirement::new(
+                    Capability::FsRead,
+                    Some(&format!("/workspace/{}", agreement.contract.source())),
+                )
+            })
+            .into_iter()
+            .collect()
+    }
 }
 
 impl Agreement {
@@ -349,14 +369,16 @@ impl Project {
         workspace: &Workspace,
         control: &Control,
     ) -> std::result::Result<Summary, Failure> {
-        self.current_status(workspace, control).map_err(|error| {
-            let failure = error
-                .downcast_ref::<Failure>()
-                .cloned()
-                .unwrap_or_else(|| Failure::unavailable(error));
-            self.record_failure(failure.clone());
-            failure
-        })
+        self.current_status(workspace, control)
+            .map_err(|error| self.status_failure(error))
+    }
+    fn status_failure(&self, error: anyhow::Error) -> Failure {
+        let failure = error
+            .downcast_ref::<Failure>()
+            .cloned()
+            .unwrap_or_else(|| Failure::unavailable(error));
+        self.record_failure(failure.clone());
+        failure
     }
     fn current_status(&self, workspace: &Workspace, control: &Control) -> Result<Summary> {
         let mut state = self
@@ -412,13 +434,51 @@ impl Project {
         }
         result
     }
-    pub fn read_requirement(&self) -> Option<Requirement> {
-        let state = self.state.lock().ok()?;
-        let agreement = Agreement::parse(state.contracts.accepted()?).ok()?;
-        Some(Requirement::new(
-            Capability::FsRead,
-            Some(&format!("/workspace/{}", agreement.contract.source())),
-        ))
+    pub fn prepare_access(&self) -> Result<Access> {
+        let state = self
+            .state
+            .lock()
+            .map_err(|_| anyhow::anyhow!("project unavailable"))?;
+        let inspection = state.contracts.inspect();
+        let agreement = inspection
+            .accepted()
+            .cloned()
+            .map(Agreement::parse)
+            .transpose()?;
+        Ok(Access {
+            inspection,
+            agreement,
+        })
+    }
+    fn with_access<T>(
+        &self,
+        access: Access,
+        execute: impl FnOnce(&mut State, Option<Agreement>) -> Result<T>,
+    ) -> Result<T> {
+        let mut state = self
+            .state
+            .lock()
+            .map_err(|_| anyhow::anyhow!("project unavailable"))?;
+        let expected = access
+            .inspection
+            .consume(&state.contracts)
+            .context("project context changed after permission preparation")?;
+        anyhow::ensure!(
+            expected.as_ref() == access.agreement.as_ref().map(|a| &a.view),
+            "prepared contract differs from its frozen inspection"
+        );
+        execute(&mut state, access.agreement)
+    }
+    fn status_access(
+        &self,
+        access: Access,
+        workspace: &Workspace,
+        control: &Control,
+    ) -> Result<Summary> {
+        self.with_access(access, |state, _| {
+            self.current_status_locked(state, workspace, control)
+        })
+        .map_err(|error| self.status_failure(error).into())
     }
     pub fn prepare_file_export(&self, target: &str, bytes: &[u8]) -> Result<Export> {
         let state = self
@@ -433,6 +493,7 @@ impl Project {
     }
     pub fn prepare_artifact_export(
         &self,
+        access: Access,
         workspace: &Workspace,
         control: &Control,
         target: &str,
@@ -441,31 +502,29 @@ impl Project {
             self.matches(workspace.path()),
             "project belongs to another workspace"
         );
-        let mut state = self
-            .state
-            .lock()
-            .map_err(|_| anyhow::anyhow!("project unavailable"))?;
-        anyhow::ensure!(
-            self.current_status_locked(&mut state, workspace, control)?
-                .verified,
-            "artifact export requires current complete project verification"
-        );
-        let bytes = match state
-            .artifact
-            .as_ref()
-            .context("no checked artifact")?
-            .package()
-        {
-            Ok(bytes) => bytes,
-            Err(error) => {
-                state.contracts.edit(Origin::Controller);
-                state.dirty = true;
-                let failure = Failure::unavailable(error);
-                state.failure = Some(failure.clone());
-                return Err(failure.into());
-            }
-        };
-        Ok(control.with_active(|| Export::prepare(&state.contracts, target, &bytes))?)
+        self.with_access(access, |state, _| {
+            anyhow::ensure!(
+                self.current_status_locked(state, workspace, control)?
+                    .verified,
+                "artifact export requires current complete project verification"
+            );
+            let bytes = match state
+                .artifact
+                .as_ref()
+                .context("no checked artifact")?
+                .package()
+            {
+                Ok(bytes) => bytes,
+                Err(error) => {
+                    state.contracts.edit(Origin::Controller);
+                    state.dirty = true;
+                    let failure = Failure::unavailable(error);
+                    state.failure = Some(failure.clone());
+                    return Err(failure.into());
+                }
+            };
+            Ok(control.with_active(|| Export::prepare(&state.contracts, target, &bytes))?)
+        })
     }
     pub fn review_export(&self, export: &Export) -> Result<()> {
         let state = self
@@ -563,8 +622,13 @@ impl Project {
             artifact_sha256: artifact.map(|a| a.report.artifact_sha256.clone()),
         })
     }
-    pub fn verify(&self, workspace: &Workspace, control: &Control) -> Result<Summary> {
-        let result = self.verify_current(workspace, control);
+    pub fn verify(
+        &self,
+        access: Access,
+        workspace: &Workspace,
+        control: &Control,
+    ) -> Result<Summary> {
+        let result = self.verify_current(access, workspace, control);
         if let Err(error) = &result {
             let kind = error
                 .downcast_ref::<Failure>()
@@ -573,23 +637,23 @@ impl Project {
         }
         result
     }
-    fn verify_current(&self, workspace: &Workspace, control: &Control) -> Result<Summary> {
-        let agreement = {
-            let mut state = self
-                .state
-                .lock()
-                .map_err(|_| anyhow::anyhow!("project unavailable"))?;
+    fn verify_current(
+        &self,
+        access: Access,
+        workspace: &Workspace,
+        control: &Control,
+    ) -> Result<Summary> {
+        let agreement = self.with_access(access, |state, agreement| {
             anyhow::ensure!(
                 state.contracts.is_accepted(),
                 "host contract acceptance is required before verification"
             );
-            let agreement =
-                Agreement::parse(state.contracts.accepted().context("no accepted contract")?)?;
+            let agreement = agreement.context("no prepared accepted contract")?;
             state.contracts.edit(Origin::Controller);
             state.dirty = true;
             state.failure = None;
-            agreement
-        };
+            Ok(agreement)
+        })?;
         let source = snapshot(workspace, agreement.contract.source(), control)?;
         let bundle = self.bundle()?;
         let prepared = kernel::prepare_kernel(
@@ -634,7 +698,7 @@ impl Project {
         control: &Control,
     ) -> Result<Summary> {
         let checked = prepared.check(control)?;
-        let fresh = snapshot(workspace, checked.report().contract.source(), control)?;
+        let fresh = snapshot(workspace, agreement.contract.source(), control)?;
         let mut inputs = checked.inputs();
         inputs.source_sha256 = hash(fresh.as_bytes());
         let subject = Self::binding(agreement, checked.report(), &fresh)?;
@@ -760,23 +824,32 @@ impl Tool for ProjectTool {
         &self.sig
     }
     fn prepare(&self, args: Args) -> std::result::Result<Prepared<'_>, ToolError> {
-        let requirements = if matches!(self.operation, Operation::Propose) {
-            vec![Requirement::new(Capability::ProcessSpawn, None)]
+        let access = if matches!(self.operation, Operation::Propose) {
+            None
         } else {
-            let mut requirements: Vec<_> = self.project.read_requirement().into_iter().collect();
-            if matches!(self.operation, Operation::Verify) {
-                requirements.push(Requirement::new(Capability::ProcessSpawn, None));
-            }
-            requirements
+            Some(
+                self.project
+                    .prepare_access()
+                    .map_err(|error| ToolError::Failed(error.to_string()))?,
+            )
         };
-        Ok(Prepared::new((args, requirements), |args| {
-            self.execute(&args)
-        }))
+        let mut requirements = access.as_ref().map_or_else(Vec::new, Access::requirements);
+        if matches!(self.operation, Operation::Propose | Operation::Verify) {
+            requirements.push(Requirement::new(Capability::ProcessSpawn, None));
+        }
+        Ok(Prepared::new(
+            ((args, access), requirements),
+            |(args, access)| self.execute(&args, access),
+        ))
     }
 }
 
 impl ProjectTool {
-    fn execute(&self, args: &Args) -> std::result::Result<Value, ToolError> {
+    fn execute(
+        &self,
+        args: &Args,
+        access: Option<Access>,
+    ) -> std::result::Result<Value, ToolError> {
         let result = (|| -> Result<Summary> {
             match self.operation {
                 Operation::Propose => {
@@ -788,16 +861,16 @@ impl ProjectTool {
                 }
                 Operation::Verify | Operation::Status => {
                     anyhow::ensure!(args.is_empty(),"checking/status accept no model-supplied contract, checker, receipt, path or result");
+                    let access = access.context("missing prepared project inspection")?;
                     if matches!(self.operation, Operation::Verify) {
                         anyhow::ensure!(
                             self.project.accepted(),
                             "verification requires a host-accepted contract; call propose_contract with the mathematical contract first, then pause for host review. This call did not start a checker or create evidence"
                         );
-                        self.project.verify(&self.workspace, &self.control)
+                        self.project.verify(access, &self.workspace, &self.control)
                     } else {
                         self.project
-                            .status(&self.workspace, &self.control)
-                            .map_err(Into::into)
+                            .status_access(access, &self.workspace, &self.control)
                     }
                 }
             }
@@ -812,6 +885,84 @@ impl ProjectTool {
 mod tests {
     use super::*;
     use std::sync::atomic::{AtomicBool, Ordering};
+
+    #[test]
+    fn stale_or_mismatched_prepared_access_never_enters_the_io_callback() -> Result<()> {
+        let root = tempfile::tempdir()?;
+        let project = Project::new(root.path());
+        let empty = project.prepare_access()?;
+        accepted(&project)?;
+        let ran = std::cell::Cell::new(false);
+        assert!(project
+            .with_access(empty, |_, _| {
+                ran.set(true);
+                Ok(())
+            })
+            .is_err());
+        assert!(!ran.get());
+
+        let old = project.prepare_access()?;
+        assert_eq!(
+            old.requirements(),
+            vec![Requirement::new(
+                Capability::FsRead,
+                Some("/workspace/counter.rs")
+            )]
+        );
+        let mut replacement: Value = serde_json::from_str(include_str!(
+            "../../../verification/examples/counter.contract.json"
+        ))?;
+        *replacement
+            .get_mut("source_path")
+            .context("missing source path")? = json!("private.rs");
+        let replacement = Contract::parse(&serde_json::to_string(&replacement)?)?;
+        let reference = draft(&project, &replacement)?;
+        project.review(&reference)?;
+        project.accept(&reference)?;
+        assert!(project
+            .with_access(old, |_, _| {
+                ran.set(true);
+                Ok(())
+            })
+            .is_err());
+        assert!(!ran.get());
+
+        let mut mismatched = project.prepare_access()?;
+        mismatched
+            .agreement
+            .as_mut()
+            .context("no agreement")?
+            .view
+            .subject
+            .contract = b"forged".to_vec();
+        assert!(project
+            .with_access(mismatched, |_, _| {
+                ran.set(true);
+                Ok(())
+            })
+            .is_err());
+        assert!(!ran.get());
+
+        let fresh = project.prepare_access()?;
+        assert_eq!(
+            fresh.requirements(),
+            vec![Requirement::new(
+                Capability::FsRead,
+                Some("/workspace/private.rs")
+            )]
+        );
+        let source = project.with_access(fresh, |_, agreement| {
+            ran.set(true);
+            Ok(agreement
+                .context("no prepared contract")?
+                .contract
+                .source()
+                .to_owned())
+        })?;
+        assert!(ran.get());
+        assert_eq!(source, "private.rs");
+        Ok(())
+    }
 
     fn contract() -> Result<Contract> {
         Ok(Contract::parse(include_str!(

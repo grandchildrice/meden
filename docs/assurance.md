@@ -18,8 +18,14 @@ from the same operation/path/payload request consumed by the worker. Editing
 requires both authorities. Production preparation and consumption refine the file
 specification and compose with invocation control for finite request traces.
 Serialization, boxed-call capture and filesystem resolution/I/O remain adapters.
+Prepared project reads also freeze their session, proposal generation, accepted
+and displayed views and acceptance readiness. Consumption requires the same
+current context and returns only the original accepted view; later generations
+remain stale across finite controller compositions. Model verification, status
+and artifact preparation use this guard before their I/O callbacks. Parsing,
+locking, callback interpretation and physical I/O remain separate obligations.
 The broader obligations below remain proposed. This defines completion criteria for
-[the product architecture](design.md). The current 247 Lean theorem
+[the product architecture](design.md). The current 262 Lean theorem
 entry points, six Kani harnesses and conformance checks are listed in
 [verification.md](verification.md).
 
@@ -276,7 +282,7 @@ proposed product. Extend these checks as each path becomes real. The first
 two now run for processor, export review, evidence, contract management, issued jobs, TUI approval,
 outer/inner conversation, policy-admitted tool invocation, capability policy,
 Unicode scope matching, failure and numeric display kernels,
-including 116 real Rust
+including 124 real Rust
 mutations that must fail unchanged refinement proofs:
 
 1. Re-extract production Rust under pinned toolchains. Fail on unsupported

@@ -68,6 +68,9 @@ for unit in "${units[@]}"; do
         rust_roots+=("meden_core::evidence::Contracts::$method")
       done
       rust_roots+=(meden_core::evidence::Contracts::prepare_delivery)
+      rust_roots+=(meden_core::evidence::Contracts::inspect
+        meden_core::evidence::Inspection::accepted meden_core::evidence::Inspection::consume
+        meden_core::evidence::Inspection::matches meden_core::evidence::same_view)
       for method in contract request phase advance; do
         rust_roots+=("meden_core::evidence::Delivery::$method")
       done
@@ -154,6 +157,8 @@ for unit in "${units[@]}"; do
       evidence.Contracts.edit evidence.Contracts.abort evidence.Contracts.is_active
       evidence.Contracts.complete evidence.Contracts.eligible
       evidence.Contracts.prepare_delivery evidence.Delivery.impl.contract
+      evidence.Contracts.inspect evidence.Inspection.impl.accepted evidence.Inspection.consume
+      evidence.Inspection.matches evidence.same_view
       evidence.Delivery.request evidence.Delivery.phase evidence.Delivery.permitted evidence.Delivery.advance
       export_control.step export_control.State.new export_control.State.impl.request
       export_control.State.impl.phase export_control.State.advance

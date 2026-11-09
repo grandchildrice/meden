@@ -60,6 +60,16 @@
   are refined, including exact single-use admitted payloads and notification precedence.
   Denied or failed preparation emits no payload across any finite composition.
   The actual agent failure adapter preserves refusal, cancellation and host stops.
+  Project verification, model status and artifact preparation freeze one core
+  Inspection before capability admission. Session, proposal sequence, accepted
+  and displayed views, and acceptance readiness must still match on consuming it.
+  These native constructors/getters/comparisons/consumption are extracted/refined;
+  a later proposal generation remains invalid across every finite controller trace.
+  CLI Access derives read scopes from the frozen parsed agreement and checks its
+  view against the consumed original before entering the I/O callback under the
+  same state mutex. Verification and freshness reads use that original contract.
+  Host status can inspect current state directly. JSON interpretation, mutex and
+  callback semantics, workspace attribution and physical effects remain adapters.
   Registry/JSON preparation, requirement/resource attribution, observer interpretation, physical stop
   attribution, trait implementations and I/O remain adapter obligations.
   File tools and snapshots share one typed core operation/path/payload request.

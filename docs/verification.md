@@ -26,7 +26,7 @@ attempt; an older completed run does not cover a newer commit.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, file-request, capability policy, scope matching, failure and display-scalar kernels, `lake build`, proof scan/audit, 116 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, file-request, capability policy, scope matching, failure and display-scalar kernels, `lake build`, proof scan/audit, 124 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A decision differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -631,8 +631,66 @@ These results concern decoded requested paths. JSON/UTF-8 transport, the boxed
 executor's capture, OS path resolution, symlinks, concurrent filesystem changes
 and physical effects remain separate correspondence obligations. In particular,
 a scope for a requested pathname is not yet a proof about the inode eventually
-opened. Project-state snapshot attribution also remains separate. The current
+opened. The following guard checks project-context identity; parsing that context
+into file effects and physical snapshot attribution remain separate. The current
 tests and proofs do not complete CTL-01, the full interface, or R1.
+
+## Prepared project reads and contract context
+
+Verification, model-facing status and artifact preparation used to derive read
+requirements and select the executing contract in separate state observations.
+They now prepare an `Access` containing one frozen parsed agreement and a core
+[`Inspection`](../crates/meden-core/src/evidence.rs). Requirements come from
+that agreement. After capability admission, `Project.with_access` consumes the
+inspection while holding the state mutex and checks the agreement's view against
+the returned original view before invoking the I/O callback. Verification uses
+this frozen agreement for initial and fresh source reads. A newly selected
+contract cannot replace its source path after permission preparation.
+
+An inspection contains the exact session, proposal sequence, retained accepted
+view, displayed view and acceptance readiness. Views include revision, complete
+subject bytes and obligations; equality compares the actual byte vectors and
+typed obligation fields. An unchanged empty context returns `Some(None)`.
+A changed context returns `None`, including a new contract after an empty
+preparation. Proposal sequences never decrease, so rejecting a newer proposal
+and restoring old visible meaning cannot revive an older inspection.
+Only the controller creates inspections; their fields are private and they
+expose no mutable view, clone or deserializer.
+It is an observation guard; capability admission remains independently required.
+Host-requested status reads still inspect current state directly.
+
+[`Inspection.lean`](../lean/MedenSpec/Inspection.lean) specifies capture and
+consumption. [`InspectionRefinement.lean`](../lean/MedenSpec/InspectionRefinement.lean)
+checks the actual constructor, getter, whole-option view comparison and consuming
+guard in `Generated/Evidence.lean`, using the existing complete view equality.
+The explicit option comparison avoids the pinned extractor's opaque `as_ref`
+definition; the model is regenerated from the actual Rust match branches.
+
+| Audited theorem | Checked claim |
+| --- | --- |
+| `Inspection.consume_iff`, `original_only`, `changed_refused` | Success requires the original complete observation and returns only its original accepted view; a changed observation is refused |
+| `Inspection.generation_refused`, `stays_stale` | A higher proposal generation prevents consumption, including every finite continuation of controller operations |
+| `Inspection.no_new_accepted` | An empty prepared context cannot return a newly accepted contract |
+| `InspectionRefinement.capture_refines`, `accepted_refines` | Actual capture and immutable getter preserve the specified complete context and original accepted view |
+| `InspectionRefinement.matches_refines`, `consume_refines` | The actual field comparisons and result agree with the specification for every represented state |
+| `InspectionRefinement.extracted_original`, `extracted_stale`, `extracted_empty` | Actual successful consumption has the same complete context and original view; stale and newly populated contexts cannot substitute values |
+| `InspectionRefinement.extracted_generation`, `extracted_stays_stale` | Actual generation advancement remains refused across arbitrary finite extracted controller compositions |
+
+Eight semantic faults bypass session, generation, readiness or either view
+comparison, capture the wrong display, hide the accepted view or skip the
+consuming guard. Each must fail native assertions, extract/compile and fail the
+unchanged refinement. The native project-adapter test changes accepted source
+paths between preparation and execution and checks that the actual shared
+callback helper never invokes its callback; it also rejects a mismatched parsed
+agreement and admits an unchanged fresh one. Compile-fail tests reject cloning
+and mutation through the inspection getter.
+
+The proof covers decoded observations and core consumption, including existing
+controller trace semantics. Agreement JSON parsing/canonicalization, deriving
+filesystem names, boxing, call routing, mutex ordering, cancellation observation,
+workspace identity and the actual filesystem/process interpreter remain adapter
+obligations. The callback test and ordinary real project tests exercise those
+paths; they do not establish whole-session or physical-I/O refinement.
 
 ## Typed verification failures and stopping repair
 
@@ -848,7 +906,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with processor/review/dispatch and TUI approval checks, CI rejects
-116 faults, including file-request, contract revision, outer/inner conversation, scope matching, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
+124 faults, including file-request, contract revision, outer/inner conversation, scope matching, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -934,7 +992,7 @@ Six additional semantic Rust faults exercise reused revisions, stale review,
 stale acceptance, pending eligibility, discarded accepted state and revived
 evidence after editing. Each must fail its native regression and the unchanged
 refinement after successful extraction/model compilation. They are part of
-the 116-fault CI corpus above.
+the 124-fault CI corpus above.
 
 Formula validation, canonical byte encoding, source/artifact input construction,
 host-origin attribution, JSON decoding, review rendering, locking, physical
@@ -944,7 +1002,7 @@ session I/O loop or natural-language/formula equivalence.
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 247
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 262
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan

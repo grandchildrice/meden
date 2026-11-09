@@ -11,6 +11,40 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 GROUPS = [
     {
+        "kernel": "evidence",
+        "model": "Evidence",
+        "proof": "InspectionRefinement",
+        "prerequisites": ["ContractsTrace"],
+        "test": (
+            "evidence::tests::inspections_bind_all_context_fields_and_return_only_the_frozen_view"
+        ),
+        "mutations": [
+            ("inspection_ignores_session", "self.session == current.session",
+             "(self.session == current.session || true)"),
+            ("inspection_ignores_generation", "self.sequence == current.sequence",
+             "(self.sequence == current.sequence || true)"),
+            ("inspection_ignores_acceptance", "self.ready == current.is_accepted()",
+             "(self.ready == current.is_accepted() || true)"),
+            ("inspection_ignores_accepted_view", "same_view(&self.accepted, &current.accepted())",
+             "(same_view(&self.accepted, &current.accepted()) || true)"),
+            ("inspection_ignores_displayed_view",
+             "same_view(&self.displayed, &current.displayed())",
+             "(same_view(&self.displayed, &current.displayed()) || true)"),
+            ("inspection_captures_wrong_display", "displayed: self.displayed(),",
+             "displayed: self.accepted(),"),
+            (
+                "inspection_hides_accepted_view",
+                "pub fn accepted(&self) -> Option<&ContractView> {\n"
+                "        match &self.accepted {\n            Some(view) => Some(view),",
+                "pub fn accepted(&self) -> Option<&ContractView> {\n"
+                "        match &self.accepted {\n"
+                "            Some(view) => { let _ = view; None },",
+            ),
+            ("inspection_consume_bypasses_context", "if self.matches(current) {",
+             "if self.matches(current) || true {"),
+        ],
+    },
+    {
         "source": "crates/meden-core/src/file.rs",
         "package": "meden-core",
         "model": "Policy",

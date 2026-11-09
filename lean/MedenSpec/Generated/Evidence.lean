@@ -718,6 +718,16 @@ def evidence.ContractView.Insts.CoreCmpPartialEqContractView.eq
     else ok false
   else ok false
 
+/-- Trait implementation: [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::ContractView> for meden_core::evidence::ContractView}]
+    Source: 'crates/meden-core/src/evidence.rs', lines 333:23-333:32 -/
+@[reducible]
+impl_def evidence.ContractView.Insts.CoreCmpPartialEqContractView :
+  core.cmp.PartialEq evidence.ContractView evidence.ContractView := {
+  eq := evidence.ContractView.Insts.CoreCmpPartialEqContractView.eq
+  ne := core.cmp.PartialEq.ne.trait_default
+    evidence.ContractView.Insts.CoreCmpPartialEqContractView
+}
+
 /-- [meden_core::evidence::VersionedGate]
     Source: 'crates/meden-core/src/evidence.rs', lines 344:0-347:1 -/
 structure evidence.VersionedGate where
@@ -1683,6 +1693,99 @@ def evidence.Contracts.complete
               with
               accepted := (some { accepted with gate := g }), jobs := cj
           })
+
+/-- [meden_core::evidence::Inspection]
+    Source: 'crates/meden-core/src/evidence.rs', lines 732:0-738:1
+    Visibility: public -/
+structure evidence.Inspection where
+  session : alloc.vec.Vec Std.U8
+  sequence : Std.U64
+  accepted : Option evidence.ContractView
+  displayed : Option evidence.ContractView
+  ready : Bool
+
+/-- [meden_core::evidence::same_view]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 742:0-748:1 -/
+def evidence.same_view
+  (left : Option evidence.ContractView) (right : Option evidence.ContractView)
+  :
+  Result Bool
+  := do
+  match left with
+  | none => match right with
+            | none => ok true
+            | some _ => ok false
+  | some left1 =>
+    match right with
+    | none => ok false
+    | some right1 =>
+      evidence.ContractView.Insts.CoreCmpPartialEqContractView.eq left1 right1
+
+/-- [meden_core::evidence::{meden_core::evidence::Contracts}::inspect]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 752:4-760:5
+    Visibility: public -/
+def evidence.Contracts.inspect
+  (self : evidence.Contracts) : Result evidence.Inspection := do
+  let v ← alloc.vec.CloneVec.clone core.clone.CloneU8 self.session
+  let o ← evidence.Contracts.impl.accepted self
+  let o1 ← evidence.Contracts.displayed self
+  let b ← evidence.Contracts.is_accepted self
+  ok
+    {
+      session := v,
+      sequence := self.sequence,
+      accepted := o,
+      displayed := o1,
+      ready := b
+    }
+
+/-- [meden_core::evidence::{meden_core::evidence::Inspection}::accepted]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 765:4-770:5
+    Visibility: public -/
+def evidence.Inspection.impl.accepted
+  (self : evidence.Inspection) : Result (Option evidence.ContractView) := do
+  match self.accepted with
+  | none => ok none
+  | some _ => ok self.accepted
+
+/-- [meden_core::evidence::{meden_core::evidence::Inspection}::matches]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 772:4-778:5 -/
+def evidence.Inspection.matches
+  (self : evidence.Inspection) (current : evidence.Contracts) :
+  Result Bool
+  := do
+  let b ←
+    alloc.vec.partial_eq.PartialEqVec.eq core.cmp.PartialEqU8 self.session
+      current.session
+  if b
+  then
+    if self.sequence = current.sequence
+    then
+      let b1 ← evidence.Contracts.is_accepted current
+      if self.ready = b1
+      then
+        let o ← evidence.Contracts.impl.accepted current
+        let b2 ← evidence.same_view self.accepted o
+        if b2
+        then
+          let o1 ← evidence.Contracts.displayed current
+          evidence.same_view self.displayed o1
+        else ok false
+      else ok false
+    else ok false
+  else ok false
+
+/-- [meden_core::evidence::{meden_core::evidence::Inspection}::consume]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 782:4-788:5
+    Visibility: public -/
+def evidence.Inspection.consume
+  (self : evidence.Inspection) (current : evidence.Contracts) :
+  Result (Option (Option evidence.ContractView))
+  := do
+  let b ← evidence.Inspection.matches self current
+  if b
+  then ok (some self.accepted)
+  else ok none
 
 /-- [meden_core::export_control::{meden_core::export_control::FrozenRequest}::target]:
     Source: 'crates/meden-core/src/export_control.rs', lines 127:4-129:5
