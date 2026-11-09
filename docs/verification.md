@@ -735,7 +735,8 @@ mutable gate or obligation set escapes the controller. These operations are
 extracted from the production source under a separate model namespace, so
 the combined proof build also checks for incompatible extracted definitions.
 
-The independent [specification](../lean/MedenSpec/Contracts.lean), actual
+The independent [specification](../lean/MedenSpec/Contracts.lean),
+[meaning invariant](../lean/MedenSpec/ContractsInvariant.lean), actual
 [Rust refinement](../lean/MedenSpec/ContractsRefinement.lean) and
 [finite-composition proofs](../lean/MedenSpec/ContractsTrace.lean) check:
 
@@ -752,6 +753,7 @@ The independent [specification](../lean/MedenSpec/Contracts.lean), actual
 | `ContractsRefinement.start_refines`, `invalidate_refines`, `edit_refines`, `abort_refines`, `is_active_refines`, `complete_refines`, `eligible_refines` | Issuing, cancelling, editing, admitting checker output and current eligibility agree with the specification, including stale revisions and exhausted counters |
 | `ContractsTrace.one_refines`, `trace_refines` | Any finite composition of actual production contract mutations agrees with the mathematical transitions |
 | `Contracts.run_sequence_monotone`, `ContractsTrace.extracted_sequence_monotone` | Proposal sequences never decrease across those compositions |
+| `Contracts.step_preserves_meaning`, `run_preserves_meaning`, `ContractsTrace.extracted_meaning_preserved` | Without a host acceptance operation, any finite composition preserves the accepted revision, session, contract bytes and obligations; input bindings, coverage and jobs can change separately |
 
 Identical current proposals are idempotent. Rejection followed by an identical
 proposal creates a fresh revision and requires a fresh review. A pending
@@ -773,7 +775,7 @@ session I/O loop or natural-language/formula equivalence.
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 171
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 174
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan

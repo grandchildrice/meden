@@ -65,6 +65,9 @@
   now share one extracted/refined core controller, including arbitrary finite
   compositions. Proposals use monotonic revisions; an identical proposal after
   rejection needs a fresh review. Read-only views do not expose mutable gates.
+  The accepted revision/session/contract/obligations stay frozen across any
+  finite composition without a host acceptance operation; input bindings,
+  proof coverage and job activity can change independently.
   Formula parsing, canonical bytes, rendering, origin attribution and session
   I/O correspondence remain adapters; do not claim whole-controller refinement
   from these controller-operation proofs.

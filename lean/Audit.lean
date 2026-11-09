@@ -17,6 +17,8 @@ open MedenSpec
 #print axioms Contracts.edit_discards_eligibility
 #print axioms Contracts.pending_blocks_completion
 #print axioms Contracts.run_sequence_monotone
+#print axioms Contracts.step_preserves_meaning
+#print axioms Contracts.run_preserves_meaning
 #print axioms ContractsRefinement.new_refines
 #print axioms ContractsRefinement.propose_refines
 #print axioms ContractsRefinement.displayed_refines
@@ -38,6 +40,7 @@ open MedenSpec
 #print axioms ContractsTrace.trace_refines
 #print axioms ContractsTrace.extracted_sequence_monotone
 #print axioms ContractsTrace.reviewed_acceptance
+#print axioms ContractsTrace.extracted_meaning_preserved
 
 #print axioms Capability.ofString_toString
 #print axioms Capability.toString_injective

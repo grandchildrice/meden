@@ -1,4 +1,5 @@
 import MedenSpec.ContractsRefinement
+import MedenSpec.ContractsInvariant
 
 /-! Arbitrary finite compositions of the production contract controller.
 Typed origins are inputs here; physical host provenance, JSON decoding,
@@ -118,5 +119,18 @@ theorem reviewed_acceptance (s final : Contracts) (o : EvidenceOrigin)
     (bytes session.val) revision.val (congrArg Prod.fst hm).symm
   rw [← hm] at accepted
   exact accepted
+
+theorem extracted_meaning_preserved (initial final : Contracts) (actions : List Action)
+    (h : ∀ a ∈ actions, MedenSpec.Contracts.hostAcceptance (event a) = false)
+    (hr : runExtracted initial actions = ok final) :
+    MedenSpec.Contracts.meaning (state final) = MedenSpec.Contracts.meaning (state initial) := by
+  have hm := trace_refines initial actions
+  simp only [hr, bind_ok, Result.ok.injEq] at hm
+  rw [hm]
+  apply MedenSpec.Contracts.run_preserves_meaning
+  intro a ha
+  obtain ⟨original, ho, he⟩ := List.mem_map.mp ha
+  subst a
+  exact h original ho
 
 end MedenSpec.ContractsTrace

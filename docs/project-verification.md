@@ -214,7 +214,7 @@ These are deterministic checker/controller integration tests. The
 is separate; its generated Rust source is rechecked by the current suite.
 No general task-success rate follows from these cases.
 
-Meden's separate control audit has 171 roots; project roots are checked
+Meden's separate control audit has 174 roots; project roots are checked
 afresh per candidate. The shared core evidence/job and contract-management
 operations have Rust-to-Lean refinement, including their finite compositions.
 Metadata/term parsing, canonical encoding, review
