@@ -109,7 +109,7 @@ structure invocation.Refusal where
   reason : String
 
 /-- [meden_agent::conversation::execution_error]:
-    Source: 'crates/meden-agent/src/conversation.rs', lines 371:0-378:1 -/
+    Source: 'crates/meden-agent/src/conversation.rs', lines 372:0-379:1 -/
 def conversation.execution_error
   (error : meden_core.invocation.Error invocation.Refusal conversation.Status)
   :

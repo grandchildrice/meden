@@ -560,16 +560,29 @@ def invocation.Error.invalid
   (F : Type _) (S : Type _) : Result (invocation.Error F S) := do
   ok (core.result.Result.Err none)
 
+/-- [meden_core::invocation::Call]
+    Source: 'crates/meden-core/src/invocation.rs', lines 62:0-65:1
+    Visibility: public -/
+structure invocation.Call (T : Type _) where
+  request : T
+  rules : policy.Policy
+
+/-- [meden_core::invocation::{meden_core::invocation::Call<'p, T>}::into_parts]:
+    Source: 'crates/meden-core/src/invocation.rs', lines 69:4-71:5
+    Visibility: public -/
+def invocation.Call.into_parts
+  {T : Type _} (self : invocation.Call T) : Result (T × policy.Policy) := do
+  ok (self.request, self.rules)
+
 /-- [meden_core::invocation::Attempt]
-    Source: 'crates/meden-core/src/invocation.rs', lines 57:0-60:1
+    Source: 'crates/meden-core/src/invocation.rs', lines 88:0-91:1
     Visibility: public -/
 structure invocation.Attempt (T : Type _) (F : Type _) where
   checked : Option (core.result.Result T F)
   announced : Bool
 
 /-- [meden_core::invocation::{meden_core::invocation::Attempt<T, F>}::new]:
-    Source: 'crates/meden-core/src/invocation.rs', lines 65:4-84:5
-    Visibility: public -/
+    Source: 'crates/meden-core/src/invocation.rs', lines 113:4-132:5 -/
 def invocation.Attempt.new
   {T : Type _} {F : Type _}
   (preparation : core.result.Result (T × (alloc.vec.Vec
@@ -597,8 +610,26 @@ def invocation.Attempt.new
       { checked := (some (core.result.Result.Err refusal)), announced := false
       }
 
+/-- [meden_core::invocation::{meden_core::invocation::Attempt<T, F>}::with_policy]:
+    Source: 'crates/meden-core/src/invocation.rs', lines 96:4-109:5
+    Visibility: public -/
+def invocation.Attempt.with_policy
+  {T : Type _} {F : Type _}
+  (preparation : core.result.Result (T × (alloc.vec.Vec
+  capability.Requirement)) F) (rules : policy.Policy) (policy_refusal : F) :
+  Result (invocation.Attempt (invocation.Call T) F)
+  := do
+  match preparation with
+  | core.result.Result.Ok p =>
+    let (request, requirements) := p
+    invocation.Attempt.new (core.result.Result.Ok (({ request, rules } :
+      invocation.Call T), requirements)) rules policy_refusal
+  | core.result.Result.Err refusal =>
+    invocation.Attempt.new (core.result.Result.Err refusal) rules
+      policy_refusal
+
 /-- [meden_core::invocation::{meden_core::invocation::Attempt<T, F>}::announce]:
-    Source: 'crates/meden-core/src/invocation.rs', lines 87:4-98:5
+    Source: 'crates/meden-core/src/invocation.rs', lines 135:4-146:5
     Visibility: public -/
 def invocation.Attempt.announce
   {T : Type _} {F : Type _} (self : invocation.Attempt T F) :
@@ -620,7 +651,7 @@ def invocation.Attempt.announce
           { checked := self.checked, announced := true })
 
 /-- [meden_core::invocation::{meden_core::invocation::Attempt<T, F>}::dispatch]:
-    Source: 'crates/meden-core/src/invocation.rs', lines 101:4-119:5
+    Source: 'crates/meden-core/src/invocation.rs', lines 149:4-167:5
     Visibility: public -/
 def invocation.Attempt.dispatch
   {T : Type _} {F : Type _} {S : Type _} (self : invocation.Attempt T F)

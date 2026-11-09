@@ -53,7 +53,16 @@
   Tool execution and controller-owned checker calls share the extracted
   core invocation controller. Its only constructor evaluates the actual owned
   policy against the declared requirements, then freezes a prepared one-use
-  executor. Tool.prepare owns the request; Tool.call and independent requirements
+  executor with that policy's immutable reference. Attempt::with_policy is the
+  public constructor; the unbound constructor is private. Dispatch returns an
+  opaque Call, whose consuming projection returns the original request/policy
+  pair without a replacement-policy argument. Construction, projection and
+  arbitrary finite traces are extracted/refined, including complete original
+  policy values, refusal, stops and at most one call after notification.
+  File preparation composes with this bound controller too. Rust forbids policy
+  mutation while retained and unchecked Call construction. The agent uses only
+  the returned pair; closure interpretation and physical I/O remain adapters.
+  Tool.prepare owns the request; Tool.call and independent requirements
   methods have been removed. It requires a permitting notification, consumes preparation
   on every dispatch attempt and checks cancellation/host stop after notification.
   Generic payload/notification observations and arbitrary finite compositions
@@ -87,7 +96,8 @@
   substitutions cannot redirect those handles. Only ENOENT admits a new write
   target. There is no unrestricted fallback. This is tested OS adapter behavior,
   not an extracted filesystem proof. The actual admitted immutable Policy is
-  passed to prepared executors and serialized separately from model payloads.
+  consumed from the controller's Call, passed to prepared executors and
+  serialized separately from model payloads.
   Workers check the original request before lookup, then bind its canonical
   UTF-8 path and O_PATH handles into the core Resolved value. Its consuming
   check derives every operation effect at both paths and evaluates both against

@@ -11,11 +11,50 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 GROUPS = [
     {
+        "source": "crates/meden-core/src/invocation.rs",
+        "package": "meden-core",
+        "model": "Policy",
+        "proof": "InvocationContextRefinement",
+        "prerequisites": ["PolicyRefinement", "InvocationRefinement"],
+        "test": (
+            "invocation::tests::the_admitted_call_retains_its_original_immutable_policy_context"
+        ),
+        "mutations": [
+            (
+                "bound_call_discards_requirements",
+                "Ok((Call { request, rules }, requirements))",
+                "{ let _ = requirements; Ok((Call { request, rules }, Vec::new())) }",
+            ),
+            (
+                "bound_call_starts_already_announced",
+                "Attempt::new(\n                Ok((Call { request, rules }, requirements)),\n"
+                "                rules,\n                policy_refusal,\n            )",
+                "{ let mut issued = Attempt::new(Ok((Call { request, rules }, requirements)), "
+                "rules, policy_refusal); issued.announced = true; issued }",
+            ),
+            (
+                "bound_call_changes_preparation_refusal",
+                "Err(refusal) => Attempt::new(Err(refusal), rules, policy_refusal),",
+                "Err(refusal) => { let _ = refusal; "
+                "Attempt { checked: Some(Err(policy_refusal)), announced: false } },",
+            ),
+            (
+                "bound_call_refuses_permitted_requests",
+                "Attempt::new(\n                Ok((Call { request, rules }, requirements)),\n"
+                "                rules,\n                policy_refusal,\n            )",
+                "{ let _ = (request, requirements); "
+                "Attempt { checked: Some(Err(policy_refusal)), announced: false } }",
+            ),
+        ],
+    },
+    {
         "source": "crates/meden-core/src/file.rs",
         "package": "meden-core",
         "model": "Policy",
         "proof": "FileRefinement",
-        "prerequisites": ["PolicyRefinement", "InvocationRefinement"],
+        "prerequisites": [
+            "PolicyRefinement", "InvocationRefinement", "InvocationContextRefinement"
+        ],
         "test": "file::tests::resolved_resources_need_both_original_and_canonical_authority",
         "mutations": [
             (
@@ -91,7 +130,9 @@ GROUPS = [
         "package": "meden-core",
         "model": "Policy",
         "proof": "FileRefinement",
-        "prerequisites": ["PolicyRefinement", "InvocationRefinement"],
+        "prerequisites": [
+            "PolicyRefinement", "InvocationRefinement", "InvocationContextRefinement"
+        ],
         "test": "file::tests::exact_operation_path_and_payload_determine_all_file_effects",
         "mutations": [
             (

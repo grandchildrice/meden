@@ -269,6 +269,14 @@ open MedenSpec
 #print axioms MedenSpec.FileRefinement.extracted_resolved_iff
 #print axioms MedenSpec.FileRefinement.extracted_resolved_effects
 #print axioms MedenSpec.FileRefinement.extracted_resolved_refused
+#print axioms MedenSpec.InvocationContextRefinement.constructor_refines
+#print axioms MedenSpec.InvocationContextRefinement.consume_refines
+#print axioms MedenSpec.InvocationContextRefinement.admission_iff
+#print axioms MedenSpec.InvocationContextRefinement.trace_safe
+#print axioms MedenSpec.InvocationContextRefinement.trace_context
+#print axioms MedenSpec.InvocationContextRefinement.policy_refusal_empty
+#print axioms MedenSpec.InvocationContextRefinement.prepare_refused
+#print axioms MedenSpec.FileRefinement.bound_admitted_trace_safe
 
 #print axioms MedenSpec.Inspection.consume_iff
 #print axioms MedenSpec.Inspection.original_only

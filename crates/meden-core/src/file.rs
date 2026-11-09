@@ -147,11 +147,13 @@ mod tests {
                 ("old", "new"),
             )
             .prepare();
-            let mut invocation = Attempt::new(Ok(prepared), &policy, "file effect denied");
+            let mut invocation = Attempt::with_policy(Ok(prepared), &policy, "file effect denied");
             assert_eq!(matches!(invocation.announce(), Notice::Allowed), permitted);
             let result = invocation.dispatch(false, None::<()>);
             assert_eq!(result.is_ok(), permitted);
-            if let Ok(request) = result {
+            if let Ok(call) = result {
+                let (request, rules) = call.into_parts();
+                assert!(std::ptr::eq(rules, std::ptr::from_ref(&policy)));
                 assert_eq!(
                     request.into_parts(),
                     (

@@ -11,6 +11,7 @@ import MedenSpec.ConversationTrace
 import MedenSpec.TextRefinement
 import MedenSpec.DeliveryRefinement
 import MedenSpec.InvocationRefinement
+import MedenSpec.InvocationContextRefinement
 import MedenSpec.GlobRefinement
 import MedenSpec.PolicyRefinement
 import MedenSpec.FileRefinement

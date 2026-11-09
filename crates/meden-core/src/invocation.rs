@@ -41,6 +41,36 @@ impl<F, S> Error<F, S> {
     }
 }
 
+/// An admitted request retains the exact immutable policy used to check it.
+/// Only the invocation constructor can bind these fields. This is neither
+/// cloneable nor deserializable; consumption returns that original pair.
+///
+/// ```compile_fail
+/// use meden_core::{Policy, invocation::Call};
+/// let rules = Policy::default();
+/// let forged = Call { request: "unchecked", rules: &rules };
+/// ```
+///
+/// ```compile_fail
+/// use meden_core::{Policy, invocation::Attempt};
+/// let mut rules = Policy::default();
+/// let mut call = Attempt::with_policy(Ok(("request", vec![])), &rules, "denied");
+/// rules.grants.clear();
+/// call.announce();
+/// ```
+#[derive(Debug, PartialEq, Eq)]
+pub struct Call<'p, T> {
+    request: T,
+    rules: &'p Policy,
+}
+
+impl<'p, T> Call<'p, T> {
+    /// Consume the admitted request together with its original policy context.
+    pub fn into_parts(self) -> (T, &'p Policy) {
+        (self.request, self.rules)
+    }
+}
+
 /// A request can only enter this state through actual policy evaluation.
 /// There is no cloning, mutable request access, or serialized constructor.
 ///
@@ -51,7 +81,8 @@ impl<F, S> Error<F, S> {
 ///
 /// ```compile_fail
 /// use meden_core::{invocation::Attempt, Policy};
-/// let issued = Attempt::new(Ok(("request", vec![])), &Policy::default(), "denied");
+/// let rules = Policy::default();
+/// let issued = Attempt::with_policy(Ok(("request", vec![])), &rules, "denied");
 /// let duplicate = issued.clone();
 /// ```
 pub struct Attempt<T, F> {
@@ -60,9 +91,26 @@ pub struct Attempt<T, F> {
 }
 
 impl<T, F> Attempt<T, F> {
+    /// Check a preparation while freezing its exact policy reference in the
+    /// returned call. Dispatch retains this same immutable context.
+    pub fn with_policy(
+        preparation: Result<(T, Vec<Requirement>), F>,
+        rules: &Policy,
+        policy_refusal: F,
+    ) -> Attempt<Call<'_, T>, F> {
+        match preparation {
+            Ok((request, requirements)) => Attempt::new(
+                Ok((Call { request, rules }, requirements)),
+                rules,
+                policy_refusal,
+            ),
+            Err(refusal) => Attempt::new(Err(refusal), rules, policy_refusal),
+        }
+    }
+
     /// Bind the exact request to its declared requirements and policy result.
     /// Failed preparation never becomes executable, regardless of the policy.
-    pub fn new(
+    fn new(
         preparation: Result<(T, Vec<Requirement>), F>,
         rules: &Policy,
         policy_refusal: F,
@@ -121,8 +169,90 @@ impl<T, F> Attempt<T, F> {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use super::*;
     use crate::{Capability, Grant};
+
+    #[test]
+    fn the_admitted_call_retains_its_original_immutable_policy_context() {
+        use crate::file::{Operation, Request};
+        let rules = Policy {
+            name: "original context".into(),
+            grants: vec![Grant::new(Capability::FsRead, Some("/public/*"))],
+            denies: vec![Capability::FsWrite],
+        };
+        let mut broader = rules.clone();
+        broader.name = "other context".into();
+        broader
+            .grants
+            .push(Grant::new(Capability::FsRead, Some("/private/*")));
+        broader.denies.clear();
+        let request = || {
+            Request::new(
+                Operation::Read,
+                "/public/link".into(),
+                ("original payload", 17),
+            )
+        };
+        let mut attempt = Attempt::with_policy(Ok(request().prepare()), &rules, "denied");
+        assert!(matches!(attempt.announce(), Notice::Allowed));
+        let call = attempt.dispatch(false, None::<()>).expect("admitted call");
+        let (original, context) = call.into_parts();
+        assert!(std::ptr::eq(context, std::ptr::from_ref(&rules)));
+        assert_eq!(context, &rules);
+        assert_ne!(context, &broader);
+        assert!(original
+            .bind("/private/secret".into(), "original resource")
+            .consume(context)
+            .is_none());
+        assert!(request()
+            .bind("/private/secret".into(), "original resource")
+            .consume(&broader)
+            .is_some());
+        assert!(
+            matches!(attempt.dispatch(false, None::<()>), Err(error) if error == Error::invalid())
+        );
+
+        let mut second =
+            Attempt::with_policy(Ok((("second payload", 29), vec![])), &broader, "denied");
+        assert!(matches!(second.announce(), Notice::Allowed));
+        let ((payload, value), context) = second
+            .dispatch(false, None::<()>)
+            .expect("second call")
+            .into_parts();
+        assert_eq!((payload, value), ("second payload", 29));
+        assert!(std::ptr::eq(context, std::ptr::from_ref(&broader)));
+
+        let mut refused = Attempt::with_policy(
+            Ok((
+                "not admitted",
+                vec![crate::Requirement::new(
+                    Capability::FsWrite,
+                    Some("/public/note"),
+                )],
+            )),
+            &rules,
+            "policy refusal",
+        );
+        assert!(matches!(
+            refused.announce(),
+            Notice::Refused(&"policy refusal")
+        ));
+        assert_eq!(
+            refused.dispatch(false, None::<()>),
+            Err(Error::refused("policy refusal"))
+        );
+        let mut failed: Attempt<Call<'_, &str>, &str> =
+            Attempt::with_policy(Err("preparation refusal"), &rules, "policy refusal");
+        assert!(matches!(
+            failed.announce(),
+            Notice::Refused(&"preparation refusal")
+        ));
+        assert_eq!(
+            failed.dispatch(false, None::<()>),
+            Err(Error::refused("preparation refusal"))
+        );
+    }
 
     #[test]
     fn policy_notification_exact_payload_stop_and_consumption_share_one_controller() {

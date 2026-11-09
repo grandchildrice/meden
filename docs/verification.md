@@ -26,7 +26,7 @@ attempt; an older completed run does not cover a newer commit.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, file-request, capability policy, scope matching, failure and display-scalar kernels, `lake build`, proof scan/audit, 130 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, file-request, capability policy, scope matching, failure and display-scalar kernels, `lake build`, proof scan/audit, 134 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A decision differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -533,15 +533,17 @@ one-shot `meden exec` use the same `execute` function. A host tool's `prepare`
 method consumes the argument map and binds owned request data and declared
 requirements to a one-use executor. Its public interface exposes no direct
 execution method; the old independent `requirements`/`call` methods are removed.
-The only constructor
-of [`Attempt<T, F>`](../crates/meden-core/src/invocation.rs) evaluates the actual
-owned capability policy against those requirements before retaining the pair.
+The public `Attempt::with_policy` constructor in
+[`invocation.rs`](../crates/meden-core/src/invocation.rs) binds the exact immutable
+policy reference into an opaque `Call`, then uses its private checked constructor
+to evaluate that policy against those requirements before retaining the call.
 It accepts no external permission bit. Failed preparation retains its original
 refusal; denied requirements retain the supplied policy refusal. The decision observer
 receives that admission result before dispatch. This is an existing
 policy-decision notification, not another user-approval interaction.
 Cancellation and the host stop are read again after an allowed notification.
-The executor is called only after it is returned by `Attempt.dispatch`.
+The executor is called only after `Attempt.dispatch` returns that `Call` and
+`Call::into_parts` consumes it into the original executor/policy pair.
 The conversation neither looks up the tool nor decodes the model's argument
 JSON a second time after permission. Tool-specific validation and worker
 transport remain adapters.
@@ -589,6 +591,45 @@ physical stop attribution, trait implementations and I/O are separate
 obligations. A proof that the controller returns the selected pair does not
 prove the tool's effects or concurrent external state. It does not establish
 whole-session/interface correspondence or full confidentiality.
+
+### Retaining the admission policy through dispatch
+
+The agent previously supplied `policy` again when calling the returned executor.
+It now obtains both executor and context from the controller's consuming `Call`.
+There is no replacement-policy parameter on that accessor, cloning,
+deserialization, unchecked public constructor or mutable field access. The held
+Rust reference prevents changing the policy while the call may use it. Policy
+serialization and the callback body remain separate adapters.
+
+[`InvocationContextRefinement.lean`](../lean/MedenSpec/InvocationContextRefinement.lean)
+checks the actual borrowed constructor and accessor in `Generated/Policy.lean`.
+It composes the new constructor with the existing notification/dispatch model;
+the entire original native policy is part of the preserved payload, including
+name, grants/scopes and denies. This is a value correspondence in Aeneas's borrow
+model; pointer identity and borrowing restrictions are additionally tested by
+native and compile-fail tests.
+
+| Audited theorem | Checked claim |
+| --- | --- |
+| `InvocationContextRefinement.constructor_refines`, `admission_iff` | Actual public construction freezes the supplied request/policy pair, checks the original requirements and starts unannounced; failed preparation preserves its original refusal |
+| `consume_refines` | Actual consuming access returns exactly the stored request and complete policy |
+| `trace_safe`, `trace_context` | Every finite method composition returns at most one original call after notification; consuming any returned call obtains its original request and policy, whose original requirements were allowed |
+| `policy_refusal_empty`, `prepare_refused` | Denial or failed preparation returns no call across any finite composition |
+| `FileRefinement.bound_admitted_trace_safe` | Actual file preparation followed by bound invocation returns at most one original file request with that exact policy; permission covers every original declared content effect |
+
+Native tests retain a restrictive policy while another broader policy exists,
+check the exact returned policy reference and show the returned context still
+rejects a forbidden canonical file target. Separate calls retain their own
+contexts, and the actual agent callback receives that same reference. Compile-fail
+cases reject constructing a Call or mutating its retained policy.
+
+Four Rust faults discard requirements, mark a new call as already notified, replace
+the original preparation refusal or refuse an otherwise permitted request. Each
+must fail its native assertion, extract into a compiling model and fail the
+unchanged context refinement. File refinement mutation checks explicitly rebuild
+this new prerequisite before checking the file proofs. These facts do not prove
+registry/workspace attribution, JSON, boxing/closure semantics, physical stops
+or the complete session interpreter.
 
 ## File requests: declared effects and worker fields
 
@@ -664,7 +705,7 @@ uses [`worker_file/pinned.rs`](../crates/meden-cli/src/worker_file/pinned.rs):
 The [Linux `openat2` contract](https://man7.org/linux/man-pages/man2/openat2.2.html)
 and [rustix's safe wrapper](https://docs.rs/rustix/1.1.6/rustix/fs/fn.openat2.html)
 are trusted OS/library behavior. First-party code adds no unsafe Rust or assumed
-Lean filesystem primitive. The 270 audited roots concern their documented pure
+Lean filesystem primitive. The 278 audited roots concern their documented pure
 control kernels, including the resolved-resource check, rather than Linux internals.
 
 Native adversarial tests deterministically substitute both parents and final
@@ -685,7 +726,7 @@ establish whole-application confidentiality or complete R1.
 
 ### Original and resolved file authority
 
-The invocation adapter passes the same immutable `Policy` used for admission to
+The invocation controller returns its retained immutable `Policy` together with
 the consuming prepared executor. File tools, raw export snapshots and model
 project verification/status/artifact callbacks propagate it to the worker as a
 separate tuple field, outside model arguments. The worker checks the original
@@ -726,7 +767,7 @@ Six semantic Rust faults skip either policy check, accept either name, check
 the wrong canonical operation, substitute the alias for the canonical name or
 return another operation. Each must fail its native assertion, extract into a
 compiling model and fail the unchanged refinement. They are part of the
-130-fault CI corpus. JSON/policy serialization, callback interpretation,
+134-fault CI corpus. JSON/policy serialization, callback interpretation,
 UTF-8/OS decoding and canonical path/handle attribution remain tested adapters;
 these kernel proofs do not establish whole-session physical-effect refinement.
 
@@ -1001,7 +1042,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with processor/review/dispatch and TUI approval checks, CI rejects
-130 faults, including file-request, contract revision, outer/inner conversation, scope matching, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
+134 faults, including file-request, contract revision, outer/inner conversation, scope matching, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -1087,7 +1128,7 @@ Six additional semantic Rust faults exercise reused revisions, stale review,
 stale acceptance, pending eligibility, discarded accepted state and revived
 evidence after editing. Each must fail its native regression and the unchanged
 refinement after successful extraction/model compilation. They are part of
-the 130-fault CI corpus above.
+the 134-fault CI corpus above.
 
 Formula validation, canonical byte encoding, source/artifact input construction,
 host-origin attribution, JSON decoding, review rendering, locking, physical
@@ -1097,7 +1138,7 @@ session I/O loop or natural-language/formula equivalence.
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 270
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 278
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan

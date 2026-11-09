@@ -328,7 +328,7 @@ pub fn execute(
             .map_err(|error| (Rule::InvalidArguments, error.to_string()))?;
         Ok(prepared.into_parts())
     })();
-    let mut attempt = Attempt::new(
+    let mut attempt = Attempt::with_policy(
         checked.map_err(|(rule, reason)| Refusal { rule, reason }),
         policy,
         Refusal {
@@ -358,10 +358,11 @@ pub fn execute(
     } else {
         (false, None)
     };
-    let execute = attempt
+    let call = attempt
         .dispatch(cancelled, host_stop)
         .map_err(execution_error)?;
-    let result = execute(policy).map_err(|e| ExecutionError::Tool(e.to_string()))?;
+    let (execute, rules) = call.into_parts();
+    let result = execute(rules).map_err(|e| ExecutionError::Tool(e.to_string()))?;
     Ok(result
         .as_str()
         .map_or_else(|| result.to_string(), str::to_owned))

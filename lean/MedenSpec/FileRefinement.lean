@@ -1,5 +1,5 @@
 import MedenSpec.File
-import MedenSpec.InvocationRefinement
+import MedenSpec.InvocationContextRefinement
 
 namespace MedenSpec.FileRefinement
 open Aeneas Aeneas.Std Result MedenPolicyImpl
@@ -179,5 +179,31 @@ theorem extracted_resolved_refused (r : file.Resolved α ρ) (p : policy.Policy)
     rcases h with h | h <;> simp [h]
   rw [refused]
   rfl
+
+theorem bound_admitted_trace_safe (r prepared : file.Request α)
+    (requirements : alloc.vec.Vec capability.Requirement) (p : policy.Policy)
+    (reason : MedenConversationImpl.invocation.Refusal)
+    (initial final : InvocationRefinement.State (invocation.Call (file.Request α)))
+    (actions : List InvocationRefinement.Action)
+    (calls : List (invocation.Call (file.Request α))) (count : Nat)
+    (hp : file.Request.prepare r = ok (prepared, requirements))
+    (hi : invocation.Attempt.with_policy (.Ok (prepared, requirements)) p reason = ok initial)
+    (hr : InvocationRefinement.runExtracted initial actions = ok (final, calls, count)) :
+    calls.length ≤ 1 ∧ calls.length ≤ count ∧
+      ∀ call ∈ calls, invocation.Call.into_parts call = ok (r, p) ∧
+        (PolicyRefinement.owned p).allowed (File.requirements (request r)) = true := by
+  have prepared_exact := prepare_refines r
+  simp [hp] at prepared_exact
+  have safe := InvocationContextRefinement.trace_safe _ p reason initial final actions calls count hi hr
+  refine ⟨safe.1, safe.2.1, ?_⟩
+  intro call member
+  obtain ⟨declared, original, context, permitted⟩ := safe.2.2 call member
+  have same : prepared = call.request ∧ requirements = declared := by
+    simpa only [core.result.Result.Ok.injEq, Prod.mk.injEq] using original
+  have exact_request : call.request = r := same.1.symm.trans prepared_exact.1
+  refine ⟨?_, ?_⟩
+  · simpa only [exact_request, context] using InvocationContextRefinement.consume_refines call
+  · rw [← same.2, prepared_exact.2] at permitted
+    exact permitted
 
 end MedenSpec.FileRefinement

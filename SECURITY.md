@@ -87,7 +87,8 @@ The Linux file worker pins canonical targets beneath an opened workspace root
 using restricted `openat2` resolution. The core's extracted/refined consuming
 check requires every content effect at both the requested and canonical path
 under the same supplied policy before returning its owned resource. Prepared
-model callbacks propagate their actual admission policy separately from model
+model callbacks consume the controller's original request/policy pair and
+propagate that admission policy separately from model
 arguments; payload text cannot supply it. Reads then use held regular-file
 descriptors; listing and replacement retain directory handles. Tests check
 restricted alias grants and substitute parents/leaves before and after pinning.

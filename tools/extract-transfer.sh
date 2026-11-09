@@ -34,7 +34,8 @@ for unit in "${units[@]}"; do
         meden_core::policy::allowed_ref meden_core::policy::allowed
         meden_core::policy::violates meden_core::policy::Grant::covers
         meden_core::policy::Policy::denies meden_core::policy::Policy::grants
-        meden_core::invocation::Attempt::new meden_core::invocation::Attempt::announce
+        meden_core::invocation::Attempt::new meden_core::invocation::Attempt::with_policy
+        meden_core::invocation::Call::into_parts meden_core::invocation::Attempt::announce
         meden_core::invocation::Attempt::dispatch)
       # Keep public failure constructors present even when a faulty caller
       # stops using one, so missing definitions cannot masquerade as rejection.
@@ -170,7 +171,8 @@ for unit in "${units[@]}"; do
       policy.covers_ref policy.Grant.covers policy.grants_ref policy.refusal_ref
       policy.violates_ref policy.evaluate_ref policy.allowed_ref policy.evaluate
       policy.allowed policy.violates policy.Policy.impl.denies policy.Policy.impl.grants
-      invocation.Attempt.new invocation.Attempt.announce invocation.Attempt.dispatch
+      invocation.Attempt.new invocation.Attempt.with_policy invocation.Call.into_parts
+      invocation.Attempt.announce invocation.Attempt.dispatch
       invocation.Error.refused invocation.Error.cancelled invocation.Error.stopped invocation.Error.invalid
       file.Request.new file.Request.prepare file.Request.into_parts file.Request.bind file.Resolved.consume)
   elif [[ $unit == approval ]]; then
