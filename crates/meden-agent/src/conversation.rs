@@ -5,12 +5,13 @@
 
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use meden_core::{check, Policy};
+use meden_core::invocation::{Attempt, Error as DispatchError, Notice};
+use meden_core::Policy;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value as Json};
 
 use crate::flow::{Flow, FlowEffect, FlowInput, FlowOutcome};
-use crate::invocation::{Attempt, Notice, Refusal, Rule};
+use crate::invocation::{Refusal, Rule};
 use crate::{tool::Args, Registry};
 
 /// An API function call. Arguments remain text until execution, so malformed
@@ -322,16 +323,17 @@ pub fn execute(
                 }
             }
         }
-        let decision = check(&tool.requirements(&args), policy);
-        if !decision.allowed {
-            return Err((
-                Rule::Policy,
-                "The capability policy refused this call".to_owned(),
-            ));
-        }
-        Ok((tool, args))
+        let requirements = tool.requirements(&args);
+        Ok(((tool, args), requirements))
     })();
-    let mut attempt = Attempt::new(checked.map_err(|(rule, reason)| Refusal { rule, reason }));
+    let mut attempt = Attempt::new(
+        checked.map_err(|(rule, reason)| Refusal { rule, reason }),
+        policy,
+        Refusal {
+            rule: Rule::Policy,
+            reason: "The capability policy refused this call".to_owned(),
+        },
+    );
     let observe_stop = match attempt.announce() {
         Notice::Refused(refusal) => {
             observer(Event::Decision {
@@ -354,13 +356,25 @@ pub fn execute(
     } else {
         (false, None)
     };
-    let (tool, args) = attempt.dispatch(cancelled, host_stop)?;
+    let (tool, args) = attempt
+        .dispatch(cancelled, host_stop)
+        .map_err(execution_error)?;
     let result = tool
         .call(&args)
         .map_err(|e| ExecutionError::Tool(e.to_string()))?;
     Ok(result
         .as_str()
         .map_or_else(|| result.to_string(), str::to_owned))
+}
+
+// Interpret the core failure without changing refusal or stop precedence.
+fn execution_error(error: DispatchError<Refusal, Status>) -> ExecutionError {
+    match error.into_parts() {
+        Err(Some(refusal)) => ExecutionError::Refused(refusal.reason),
+        Ok(None) => ExecutionError::Stopped(Status::Cancelled),
+        Ok(Some(status)) => ExecutionError::Stopped(status),
+        Err(None) => ExecutionError::Stopped(Status::Incomplete),
+    }
 }
 
 /// Native API definitions in a host-selected order.
@@ -381,6 +395,35 @@ mod tests {
     use std::cell::{Cell, RefCell};
     use std::collections::VecDeque;
     use std::rc::Rc;
+
+    #[test]
+    fn dispatch_error_mapping_preserves_refusal_stop_and_cancellation() {
+        let refusal = Refusal {
+            rule: Rule::Policy,
+            reason: "frozen policy refusal".into(),
+        };
+        assert!(matches!(
+            execution_error(DispatchError::refused(refusal)),
+            ExecutionError::Refused(reason) if reason == "frozen policy refusal"
+        ));
+        assert!(matches!(
+            execution_error(DispatchError::cancelled()),
+            ExecutionError::Stopped(Status::Cancelled)
+        ));
+        assert!(matches!(
+            execution_error(DispatchError::invalid()),
+            ExecutionError::Stopped(Status::Incomplete)
+        ));
+        for expected in [
+            Status::NeedsReview,
+            Status::Failed("checker unavailable".into()),
+        ] {
+            assert!(matches!(
+                execution_error(DispatchError::stopped(expected.clone())),
+                ExecutionError::Stopped(actual) if actual == expected
+            ));
+        }
+    }
 
     struct Model(RefCell<VecDeque<Reply>>);
     impl ChatModel for Model {

@@ -242,7 +242,7 @@ and effects and independently check changed code.
 | Package | Responsibility |
 | --- | --- |
 | `meden-agent` | Conversation, native tool calls and tool interfaces |
-| `meden-core` | Capability policy, processor authorization, export review and evidence kernels |
+| `meden-core` | Capability policy, admitted tool invocation, processor authorization, export review and evidence kernels |
 | `meden-llm` | Confined local inference, approved HTTP connections and discovery |
 | `meden-runtime` | Host execution, process lifecycle and offline Linux isolation |
 | `meden-cli` | Shared coding session, TUI and isolated JSON Lines automation |

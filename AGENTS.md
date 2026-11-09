@@ -51,12 +51,15 @@
   request budget, latched stops and call/result observations are checked
   separately from JSON history, model transport and physical dispatch.
   Tool execution and controller-owned checker calls share the extracted
-  invocation controller. It freezes the selected implementation reference
-  and argument map, requires a permitting notification, consumes preparation
+  core invocation controller. Its only constructor evaluates the actual owned
+  policy against the declared requirements, then freezes the selected implementation
+  reference and argument map. It requires a permitting notification, consumes preparation
   on every dispatch attempt and checks cancellation/host stop after notification.
   Generic payload/notification observations and arbitrary finite compositions
-  are refined, including exact single-use payloads and notification precedence.
-  Registry/JSON/policy preparation, observer interpretation, physical stop
+  are refined, including exact single-use admitted payloads and notification precedence.
+  Denied or failed preparation emits no payload across any finite composition.
+  The actual agent failure adapter preserves refusal, cancellation and host stops.
+  Registry/JSON preparation, requirement/resource attribution, observer interpretation, physical stop
   attribution, trait implementations and I/O remain adapter obligations.
   Scopes are immutable owned scalar vectors, serialized as ordinary strings.
   Scope.matches uses the extracted/refined Unicode glob kernel. The actual

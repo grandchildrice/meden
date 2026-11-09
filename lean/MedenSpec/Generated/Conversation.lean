@@ -20,29 +20,49 @@ set_option maxRecDepth 2048
 
 namespace MedenConversationImpl
 
+/-- [meden_core::invocation::Error]
+    Source: 'crates/meden-core/src/invocation.rs', lines 18:0-18:22
+    Name pattern: [meden_core::invocation::Error]
+    Visibility: public -/
+@[reducible, rust_type "meden_core::invocation::Error"]
+def meden_core.invocation.Error (F : Type _) (S : Type _) :=
+  core.result.Result (Option S) (Option F)
+
+/-- [meden_core::invocation::{meden_core::invocation::Error<F, S>}::into_parts]:
+    Source: 'crates/meden-core/src/invocation.rs', lines 39:4-39:59
+    Name pattern: [meden_core::invocation::{meden_core::invocation::Error<@F, @S>}::into_parts]
+    Visibility: public -/
+@[rust_fun
+  "meden_core::invocation::{meden_core::invocation::Error<@F, @S>}::into_parts"]
+def meden_core.invocation.Error.into_parts
+  {F : Type _} {S : Type _} (self : meden_core.invocation.Error F S) :
+  Result (core.result.Result (Option S) (Option F))
+  := do
+  ok self
+
 /-- [meden_agent::conversation::FunctionCall]
-    Source: 'crates/meden-agent/src/conversation.rs', lines 28:0-33:1
+    Source: 'crates/meden-agent/src/conversation.rs', lines 29:0-34:1
     Visibility: public -/
 structure conversation.FunctionCall where
   «name» : String
   arguments : String
 
 /-- [meden_agent::conversation::ToolCall]
-    Source: 'crates/meden-agent/src/conversation.rs', lines 19:0-24:1
+    Source: 'crates/meden-agent/src/conversation.rs', lines 20:0-25:1
     Visibility: public -/
 structure conversation.ToolCall where
   id : String
   function : conversation.FunctionCall
 
 /-- [meden_agent::conversation::Reply]
-    Source: 'crates/meden-agent/src/conversation.rs', lines 37:0-43:1
+    Source: 'crates/meden-agent/src/conversation.rs', lines 38:0-44:1
     Visibility: public -/
 structure conversation.Reply where
   content : Option String
   tool_calls : alloc.vec.Vec conversation.ToolCall
 
 /-- [meden_agent::conversation::Status]
-    Source: 'crates/meden-agent/src/conversation.rs', lines 113:0-124:1
+    Source: 'crates/meden-agent/src/conversation.rs', lines 114:0-125:1
     Visibility: public -/
 @[discriminant isize]
 inductive conversation.Status where
@@ -53,7 +73,7 @@ inductive conversation.Status where
 | NeedsReview : conversation.Status
 
 /-- [meden_agent::conversation::{meden_agent::conversation::Status}::inspection]:
-    Source: 'crates/meden-agent/src/conversation.rs', lines 129:4-135:5
+    Source: 'crates/meden-agent/src/conversation.rs', lines 130:4-136:5
     Visibility: public -/
 def conversation.Status.inspection
   (self : conversation.Status) : Result (Option Bool) := do
@@ -65,13 +85,48 @@ def conversation.Status.inspection
   | conversation.Status.NeedsReview => ok none
 
 /-- [meden_agent::conversation::ExecutionError]
-    Source: 'crates/meden-agent/src/conversation.rs', lines 140:0-147:1
+    Source: 'crates/meden-agent/src/conversation.rs', lines 141:0-148:1
     Visibility: public -/
 @[discriminant isize]
 inductive conversation.ExecutionError where
 | Refused : String → conversation.ExecutionError
 | Tool : String → conversation.ExecutionError
 | Stopped : conversation.Status → conversation.ExecutionError
+
+/-- [meden_agent::invocation::Rule]
+    Source: 'crates/meden-agent/src/invocation.rs', lines 4:0-9:1 -/
+@[discriminant isize]
+inductive invocation.Rule where
+| UnknownTool : invocation.Rule
+| InvalidArguments : invocation.Rule
+| MissingArgument : invocation.Rule
+| Policy : invocation.Rule
+
+/-- [meden_agent::invocation::Refusal]
+    Source: 'crates/meden-agent/src/invocation.rs', lines 22:0-25:1 -/
+structure invocation.Refusal where
+  rule : invocation.Rule
+  reason : String
+
+/-- [meden_agent::conversation::execution_error]:
+    Source: 'crates/meden-agent/src/conversation.rs', lines 371:0-378:1 -/
+def conversation.execution_error
+  (error : meden_core.invocation.Error invocation.Refusal conversation.Status)
+  :
+  Result conversation.ExecutionError
+  := do
+  let r ← meden_core.invocation.Error.into_parts error
+  match r with
+  | core.result.Result.Ok o =>
+    match o with
+    | none =>
+      ok (conversation.ExecutionError.Stopped conversation.Status.Cancelled)
+    | some status => ok (conversation.ExecutionError.Stopped status)
+  | core.result.Result.Err o =>
+    match o with
+    | none =>
+      ok (conversation.ExecutionError.Stopped conversation.Status.Incomplete)
+    | some refusal => ok (conversation.ExecutionError.Refused refusal.reason)
 
 /-- [meden_agent::flow::interrupt]:
     Source: 'crates/meden-agent/src/flow.rs', lines 7:0-13:1 -/
@@ -543,95 +598,5 @@ def flow.Flow.into_outcome (self : flow.Flow) : Result flow.FlowOutcome := do
       let (o1, _) := core.option.Option.take self.reply.content
       ok (flow.FlowOutcome.Finish o1)
   | some status => ok (flow.FlowOutcome.Stopped status)
-
-/-- [meden_agent::invocation::Rule]
-    Source: 'crates/meden-agent/src/invocation.rs', lines 9:0-14:1 -/
-@[discriminant isize]
-inductive invocation.Rule where
-| UnknownTool : invocation.Rule
-| InvalidArguments : invocation.Rule
-| MissingArgument : invocation.Rule
-| Policy : invocation.Rule
-
-/-- [meden_agent::invocation::Refusal]
-    Source: 'crates/meden-agent/src/invocation.rs', lines 27:0-30:1 -/
-structure invocation.Refusal where
-  rule : invocation.Rule
-  reason : String
-
-/-- [meden_agent::invocation::Notice]
-    Source: 'crates/meden-agent/src/invocation.rs', lines 32:0-36:1 -/
-@[discriminant isize]
-inductive invocation.Notice where
-| Allowed : invocation.Notice
-| Refused : invocation.Refusal → invocation.Notice
-| Invalid : invocation.Notice
-
-/-- [meden_agent::invocation::Attempt]
-    Source: 'crates/meden-agent/src/invocation.rs', lines 39:0-42:1 -/
-structure invocation.Attempt (T : Type _) where
-  checked : Option (core.result.Result T invocation.Refusal)
-  announced : Bool
-
-/-- [meden_agent::invocation::{meden_agent::invocation::Attempt<T>}::new]:
-    Source: 'crates/meden-agent/src/invocation.rs', lines 45:4-50:5 -/
-def invocation.Attempt.new
-  {T : Type _} (checked : core.result.Result T invocation.Refusal) :
-  Result (invocation.Attempt T)
-  := do
-  ok { checked := (some checked), announced := false }
-
-/-- [meden_agent::invocation::{meden_agent::invocation::Attempt<T>}::announce]:
-    Source: 'crates/meden-agent/src/invocation.rs', lines 52:4-63:5 -/
-def invocation.Attempt.announce
-  {T : Type _} (self : invocation.Attempt T) :
-  Result (invocation.Notice × (invocation.Attempt T))
-  := do
-  if self.announced
-  then ok (invocation.Notice.Invalid, { self with checked := none })
-  else
-    match self.checked with
-    | none =>
-      ok (invocation.Notice.Invalid, { checked := none, announced := true })
-    | some r =>
-      match r with
-      | core.result.Result.Ok _ =>
-        ok (invocation.Notice.Allowed,
-          { checked := self.checked, announced := true })
-      | core.result.Result.Err refusal =>
-        ok (invocation.Notice.Refused refusal,
-          { checked := self.checked, announced := true })
-
-/-- [meden_agent::invocation::{meden_agent::invocation::Attempt<T>}::dispatch]:
-    Source: 'crates/meden-agent/src/invocation.rs', lines 65:4-82:5 -/
-def invocation.Attempt.dispatch
-  {T : Type _} (self : invocation.Attempt T) (cancelled : Bool)
-  (host_stop : Option conversation.Status) :
-  Result ((core.result.Result T conversation.ExecutionError) ×
-    (invocation.Attempt T))
-  := do
-  let (checked, o) := core.option.Option.take self.checked
-  if self.announced
-  then
-    match checked with
-    | none =>
-      ok (core.result.Result.Err (conversation.ExecutionError.Stopped
-        conversation.Status.Incomplete), { self with checked := o })
-    | some r =>
-      match r with
-      | core.result.Result.Ok request =>
-        let o1 ← flow.interrupt cancelled host_stop
-        match o1 with
-        | none =>
-          ok (core.result.Result.Ok request, { self with checked := o })
-        | some status =>
-          ok (core.result.Result.Err (conversation.ExecutionError.Stopped
-            status), { self with checked := o })
-      | core.result.Result.Err refusal =>
-        ok (core.result.Result.Err (conversation.ExecutionError.Refused
-          refusal.reason), { self with checked := o })
-  else
-    ok (core.result.Result.Err (conversation.ExecutionError.Stopped
-      conversation.Status.Incomplete), { self with checked := o })
 
 end MedenConversationImpl

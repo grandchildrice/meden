@@ -33,9 +33,16 @@ for unit in "${units[@]}"; do
         meden_core::policy::covers_ref meden_core::policy::violates_ref
         meden_core::policy::allowed_ref meden_core::policy::allowed
         meden_core::policy::violates meden_core::policy::Grant::covers
-        meden_core::policy::Policy::denies meden_core::policy::Policy::grants)
+        meden_core::policy::Policy::denies meden_core::policy::Policy::grants
+        meden_core::invocation::Attempt::new meden_core::invocation::Attempt::announce
+        meden_core::invocation::Attempt::dispatch)
+      # Keep public failure constructors present even when a faulty caller
+      # stops using one, so missing definitions cannot masquerade as rejection.
+      for method in refused cancelled stopped invalid; do
+        rust_roots+=("meden_core::invocation::Error::$method")
+      done
       extraction_args=(--extract-opaque-bodies --opaque core --opaque alloc --opaque std
-        --include core::cmp::impls --include core::option::Option)
+        --include core::cmp::impls --include core::option::Option --include core::result::Result)
       model=Policy ;;
     evidence)
       namespace=MedenEvidenceImpl
@@ -91,10 +98,11 @@ for unit in "${units[@]}"; do
         meden_agent::flow::Flow::reply
         meden_agent::flow::Flow::result
         meden_agent::flow::Flow::into_outcome
-        meden_agent::invocation::Attempt::new
-        meden_agent::invocation::Attempt::announce
-        meden_agent::invocation::Attempt::dispatch
+        meden_agent::conversation::execution_error
         meden_agent::conversation::Status::inspection)
+      extraction_args=(--extract-opaque-bodies --include meden_core::invocation::Error
+        --opaque core --opaque alloc --opaque std --include core::cmp::impls
+        --include core::option::Option --include core::result::Result)
       model=Conversation ;;
     text)
       namespace=MedenTextImpl
@@ -151,7 +159,9 @@ for unit in "${units[@]}"; do
     definitions=(glob.glob_match_chars glob.advance_row scope.Scope.matches
       policy.covers_ref policy.Grant.covers policy.grants_ref policy.refusal_ref
       policy.violates_ref policy.evaluate_ref policy.allowed_ref policy.evaluate
-      policy.allowed policy.violates policy.Policy.impl.denies policy.Policy.impl.grants)
+      policy.allowed policy.violates policy.Policy.impl.denies policy.Policy.impl.grants
+      invocation.Attempt.new invocation.Attempt.announce invocation.Attempt.dispatch
+      invocation.Error.refused invocation.Error.cancelled invocation.Error.stopped invocation.Error.invalid)
   elif [[ $unit == approval ]]; then
     definitions=(tui.approval.approves tui.approval.route)
   elif [[ $unit == text ]]; then
@@ -171,7 +181,7 @@ for unit in "${units[@]}"; do
     definitions=(flow.Flow.begin flow.interrupt flow.Flow.advance
       flow.Flow.pending_call flow.Flow.impl.reply flow.Flow.impl.result
       flow.Flow.into_outcome conversation.Status.inspection)
-    definitions+=(invocation.Attempt.new invocation.Attempt.announce invocation.Attempt.dispatch)
+    definitions+=(conversation.execution_error)
   fi
   for definition in "${definitions[@]}"; do
     if ! awk -v name="$definition" '$1 == "def" && $2 == name { found = 1 }

@@ -8,8 +8,13 @@ finite compositions of review, evidence, issued-job, conversation and numeric
 display operations. The production Unicode scope-matching kernel and owned
 policy evaluator refine their recursive language and capability policy,
 including total completion in Aeneas's model and exact per-input refusal results.
+The shared invocation constructor evaluates that policy itself; every payload
+returned across its finite compositions retains the original permitted requirements
+and exact request. Refused preparation emits nothing. Its agent failure adapter
+also refines the specified refusal/stop result. Requirement attribution and physical
+tool effects remain separate obligations.
 The broader obligations below remain proposed. This defines completion criteria for
-[the product architecture](design.md). The current 232 Lean theorem
+[the product architecture](design.md). The current 236 Lean theorem
 entry points, six Kani harnesses and conformance checks are listed in
 [verification.md](verification.md).
 
@@ -264,8 +269,9 @@ correctness.
 [Current CI](verification.md) covers scoped kernels, not the complete
 proposed product. Extend these checks as each path becomes real. The first
 two now run for processor, export review, evidence, contract management, issued jobs, TUI approval,
-outer/inner conversation, prepared tool invocation, failure and numeric display kernels,
-including 95 real Rust
+outer/inner conversation, policy-admitted tool invocation, capability policy,
+Unicode scope matching, failure and numeric display kernels,
+including 110 real Rust
 mutations that must fail unchanged refinement proofs:
 
 1. Re-extract production Rust under pinned toolchains. Fail on unsupported

@@ -182,12 +182,84 @@ def glob.glob_match_chars
     alloc.vec.Vec.index (core.slice.index.SliceIndexUsizeSlice Bool) row1
       0#usize
 
+/-- [meden_core::invocation::Notice]
+    Source: 'crates/meden-core/src/invocation.rs', lines 6:0-13:1
+    Visibility: public -/
+@[discriminant isize]
+inductive invocation.Notice (F : Type _) where
+| Allowed : invocation.Notice F
+| Refused : F → invocation.Notice F
+| Invalid : invocation.Notice F
+
+/-- [meden_core::invocation::Error]
+    Source: 'crates/meden-core/src/invocation.rs', lines 18:0-18:53
+    Visibility: public -/
+@[reducible]
+def invocation.Error (F : Type _) (S : Type _) :=
+  core.result.Result (Option S) (Option F)
+
+/-- [meden_core::invocation::{meden_core::invocation::Error<F, S>}::refused]:
+    Source: 'crates/meden-core/src/invocation.rs', lines 22:4-24:5
+    Visibility: public -/
+def invocation.Error.refused
+  {F : Type _} (S : Type _) (refusal : F) : Result (invocation.Error F S) := do
+  ok (core.result.Result.Err (some refusal))
+
+/-- [meden_core::invocation::{meden_core::invocation::Error<F, S>}::cancelled]:
+    Source: 'crates/meden-core/src/invocation.rs', lines 26:4-28:5
+    Visibility: public -/
+def invocation.Error.cancelled
+  (F : Type _) (S : Type _) : Result (invocation.Error F S) := do
+  ok (core.result.Result.Ok none)
+
+/-- [meden_core::invocation::{meden_core::invocation::Error<F, S>}::stopped]:
+    Source: 'crates/meden-core/src/invocation.rs', lines 30:4-32:5
+    Visibility: public -/
+def invocation.Error.stopped
+  (F : Type _) {S : Type _} (status : S) : Result (invocation.Error F S) := do
+  ok (core.result.Result.Ok (some status))
+
+/-- [meden_core::invocation::{meden_core::invocation::Error<F, S>}::invalid]:
+    Source: 'crates/meden-core/src/invocation.rs', lines 34:4-36:5
+    Visibility: public -/
+def invocation.Error.invalid
+  (F : Type _) (S : Type _) : Result (invocation.Error F S) := do
+  ok (core.result.Result.Err none)
+
+/-- [meden_core::invocation::Attempt]
+    Source: 'crates/meden-core/src/invocation.rs', lines 57:0-60:1
+    Visibility: public -/
+structure invocation.Attempt (T : Type _) (F : Type _) where
+  checked : Option (core.result.Result T F)
+  announced : Bool
+
 /-- [meden_core::policy::Grant]
     Source: 'crates/meden-core/src/policy.rs', lines 22:0-27:1
     Visibility: public -/
 structure policy.Grant where
   capability : capability.Capability
   scope : Option scope.Scope
+
+/-- [meden_core::policy::Policy]
+    Source: 'crates/meden-core/src/policy.rs', lines 169:0-179:1
+    Visibility: public -/
+structure policy.Policy where
+  «name» : String
+  grants : alloc.vec.Vec policy.Grant
+  denies : alloc.vec.Vec capability.Capability
+
+/-- [meden_core::policy::Refusal]
+    Source: 'crates/meden-core/src/policy.rs', lines 115:0-118:1 -/
+@[discriminant isize]
+inductive policy.Refusal where
+| Denied : policy.Refusal
+| NotGranted : policy.Refusal
+
+/-- [meden_core::policy::Evaluation]
+    Source: 'crates/meden-core/src/policy.rs', lines 143:0-146:1 -/
+structure policy.Evaluation where
+  allowed : Bool
+  refusals : alloc.vec.Vec (Option policy.Refusal)
 
 /-- [meden_core::scope::{meden_core::scope::Scope}::matches]:
     Source: 'crates/meden-core/src/scope.rs', lines 14:4-16:5
@@ -216,13 +288,6 @@ def policy.covers_ref
       match r.scope with
       | none => ok false
       | some s => scope.Scope.matches pat s
-
-/-- [meden_core::policy::{meden_core::policy::Grant}::covers]:
-    Source: 'crates/meden-core/src/policy.rs', lines 45:4-47:5
-    Visibility: public -/
-def policy.Grant.covers
-  (self : policy.Grant) (req : capability.Requirement) : Result Bool := do
-  policy.covers_ref self req
 
 /-- [meden_core::policy::grants_ref]: loop body 0:
     Source: 'crates/meden-core/src/policy.rs', lines 134:4-141:1 -/
@@ -264,13 +329,6 @@ def policy.grants_ref
   := do
   policy.grants_ref_loop grants req 0#usize
 
-/-- [meden_core::policy::Refusal]
-    Source: 'crates/meden-core/src/policy.rs', lines 115:0-118:1 -/
-@[discriminant isize]
-inductive policy.Refusal where
-| Denied : policy.Refusal
-| NotGranted : policy.Refusal
-
 /-- [meden_core::policy::refusal_ref]:
     Source: 'crates/meden-core/src/policy.rs', lines 120:0-128:1 -/
 def policy.refusal_ref
@@ -289,23 +347,6 @@ def policy.refusal_ref
     if b1
     then ok none
     else ok (some policy.Refusal.NotGranted)
-
-/-- [meden_core::policy::violates_ref]:
-    Source: 'crates/meden-core/src/policy.rs', lines 105:0-107:1
-    Visibility: public -/
-def policy.violates_ref
-  (denies : Slice capability.Capability) (grants : Slice policy.Grant)
-  (r : capability.Requirement) :
-  Result Bool
-  := do
-  let o ← policy.refusal_ref denies grants r
-  ok (core.option.Option.is_some o)
-
-/-- [meden_core::policy::Evaluation]
-    Source: 'crates/meden-core/src/policy.rs', lines 143:0-146:1 -/
-structure policy.Evaluation where
-  allowed : Bool
-  refusals : alloc.vec.Vec (Option policy.Refusal)
 
 /-- [meden_core::policy::evaluate_ref]: loop body 0:
     Source: 'crates/meden-core/src/policy.rs', lines 155:4-162:5 -/
@@ -357,6 +398,133 @@ def policy.evaluate_ref
       policy.Refusal)) 0#usize
   ok { allowed, refusals }
 
+/-- [meden_core::policy::evaluate]:
+    Source: 'crates/meden-core/src/policy.rs', lines 245:0-247:1 -/
+def policy.evaluate
+  (requirements : Slice capability.Requirement) (rules : policy.Policy) :
+  Result policy.Evaluation
+  := do
+  let s := alloc.vec.Vec.deref rules.denies
+  let s1 := alloc.vec.Vec.deref rules.grants
+  policy.evaluate_ref s s1 requirements
+
+/-- [meden_core::policy::allowed]:
+    Source: 'crates/meden-core/src/policy.rs', lines 241:0-243:1
+    Visibility: public -/
+def policy.allowed
+  (requirements : Slice capability.Requirement) (rules : policy.Policy) :
+  Result Bool
+  := do
+  let e ← policy.evaluate requirements rules
+  ok e.allowed
+
+/-- [meden_core::invocation::{meden_core::invocation::Attempt<T, F>}::new]:
+    Source: 'crates/meden-core/src/invocation.rs', lines 65:4-84:5
+    Visibility: public -/
+def invocation.Attempt.new
+  {T : Type _} {F : Type _}
+  (preparation : core.result.Result (T × (alloc.vec.Vec
+  capability.Requirement)) F) (rules : policy.Policy) (policy_refusal : F) :
+  Result (invocation.Attempt T F)
+  := do
+  match preparation with
+  | core.result.Result.Ok p =>
+    let (request, requirements) := p
+    let s := alloc.vec.Vec.deref requirements
+    let b ← policy.allowed s rules
+    if b
+    then
+      ok
+        { checked := (some (core.result.Result.Ok request)), announced := false
+        }
+    else
+      ok
+        {
+          checked := (some (core.result.Result.Err policy_refusal)),
+          announced := false
+        }
+  | core.result.Result.Err refusal =>
+    ok
+      { checked := (some (core.result.Result.Err refusal)), announced := false
+      }
+
+/-- [meden_core::invocation::{meden_core::invocation::Attempt<T, F>}::announce]:
+    Source: 'crates/meden-core/src/invocation.rs', lines 87:4-98:5
+    Visibility: public -/
+def invocation.Attempt.announce
+  {T : Type _} {F : Type _} (self : invocation.Attempt T F) :
+  Result ((invocation.Notice F) × (invocation.Attempt T F))
+  := do
+  if self.announced
+  then ok (invocation.Notice.Invalid, { self with checked := none })
+  else
+    match self.checked with
+    | none =>
+      ok (invocation.Notice.Invalid, { checked := none, announced := true })
+    | some r =>
+      match r with
+      | core.result.Result.Ok _ =>
+        ok (invocation.Notice.Allowed,
+          { checked := self.checked, announced := true })
+      | core.result.Result.Err refusal =>
+        ok (invocation.Notice.Refused refusal,
+          { checked := self.checked, announced := true })
+
+/-- [meden_core::invocation::{meden_core::invocation::Attempt<T, F>}::dispatch]:
+    Source: 'crates/meden-core/src/invocation.rs', lines 101:4-119:5
+    Visibility: public -/
+def invocation.Attempt.dispatch
+  {T : Type _} {F : Type _} {S : Type _} (self : invocation.Attempt T F)
+  (cancelled : Bool) (host_stop : Option S) :
+  Result ((core.result.Result T (invocation.Error F S)) × (invocation.Attempt
+    T F))
+  := do
+  let (checked, o) := core.option.Option.take self.checked
+  if self.announced
+  then
+    match checked with
+    | none =>
+      let e ← invocation.Error.invalid F S
+      ok (core.result.Result.Err e, { self with checked := o })
+    | some r =>
+      match r with
+      | core.result.Result.Ok request =>
+        if cancelled
+        then
+          let e ← invocation.Error.cancelled F S
+          ok (core.result.Result.Err e, { self with checked := o })
+        else
+          match host_stop with
+          | none =>
+            ok (core.result.Result.Ok request, { self with checked := o })
+          | some status =>
+            let e ← invocation.Error.stopped F status
+            ok (core.result.Result.Err e, { self with checked := o })
+      | core.result.Result.Err refusal =>
+        let e ← invocation.Error.refused S refusal
+        ok (core.result.Result.Err e, { self with checked := o })
+  else
+    let e ← invocation.Error.invalid F S
+    ok (core.result.Result.Err e, { self with checked := o })
+
+/-- [meden_core::policy::{meden_core::policy::Grant}::covers]:
+    Source: 'crates/meden-core/src/policy.rs', lines 45:4-47:5
+    Visibility: public -/
+def policy.Grant.covers
+  (self : policy.Grant) (req : capability.Requirement) : Result Bool := do
+  policy.covers_ref self req
+
+/-- [meden_core::policy::violates_ref]:
+    Source: 'crates/meden-core/src/policy.rs', lines 105:0-107:1
+    Visibility: public -/
+def policy.violates_ref
+  (denies : Slice capability.Capability) (grants : Slice policy.Grant)
+  (r : capability.Requirement) :
+  Result Bool
+  := do
+  let o ← policy.refusal_ref denies grants r
+  ok (core.option.Option.is_some o)
+
 /-- [meden_core::policy::allowed_ref]:
     Source: 'crates/meden-core/src/policy.rs', lines 110:0-112:1
     Visibility: public -/
@@ -367,14 +535,6 @@ def policy.allowed_ref
   := do
   let e ← policy.evaluate_ref denies grants reqs
   ok e.allowed
-
-/-- [meden_core::policy::Policy]
-    Source: 'crates/meden-core/src/policy.rs', lines 169:0-179:1
-    Visibility: public -/
-structure policy.Policy where
-  «name» : String
-  grants : alloc.vec.Vec policy.Grant
-  denies : alloc.vec.Vec capability.Capability
 
 /-- [meden_core::policy::{meden_core::policy::Policy}::denies]:
     Source: 'crates/meden-core/src/policy.rs', lines 199:4-201:5
@@ -401,25 +561,5 @@ def policy.violates
   let s := alloc.vec.Vec.deref rules.denies
   let s1 := alloc.vec.Vec.deref rules.grants
   policy.violates_ref s s1 req
-
-/-- [meden_core::policy::evaluate]:
-    Source: 'crates/meden-core/src/policy.rs', lines 245:0-247:1 -/
-def policy.evaluate
-  (requirements : Slice capability.Requirement) (rules : policy.Policy) :
-  Result policy.Evaluation
-  := do
-  let s := alloc.vec.Vec.deref rules.denies
-  let s1 := alloc.vec.Vec.deref rules.grants
-  policy.evaluate_ref s s1 requirements
-
-/-- [meden_core::policy::allowed]:
-    Source: 'crates/meden-core/src/policy.rs', lines 241:0-243:1
-    Visibility: public -/
-def policy.allowed
-  (requirements : Slice capability.Requirement) (rules : policy.Policy) :
-  Result Bool
-  := do
-  let e ← policy.evaluate requirements rules
-  ok e.allowed
 
 end MedenPolicyImpl

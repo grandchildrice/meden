@@ -19,6 +19,7 @@ pub mod capability;
 pub mod evidence;
 pub mod export_control;
 pub mod glob;
+pub mod invocation;
 pub mod policy;
 pub mod processor;
 pub mod scope;

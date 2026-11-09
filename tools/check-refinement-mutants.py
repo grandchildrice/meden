@@ -76,16 +76,26 @@ GROUPS = [
         ],
     },
     {
-        "source": "crates/meden-agent/src/invocation.rs",
-        "package": "meden-agent",
-        "model": "Conversation",
+        "source": "crates/meden-core/src/invocation.rs",
+        "package": "meden-core",
+        "model": "Policy",
         "proof": "InvocationRefinement",
-        "prerequisites": ["ConversationRefinement"],
+        "prerequisites": ["PolicyRefinement", "ConversationRefinement"],
         "test": (
             "invocation::tests::"
-            "notification_stop_exact_payload_and_consumption_share_one_controller"
+            "policy_notification_exact_payload_stop_and_consumption_share_one_controller"
         ),
         "mutations": [
+            (
+                "policy_admission_bypassed",
+                "if allowed(&requirements, rules) {",
+                "if allowed(&requirements, rules) || true {",
+            ),
+            (
+                "preparation_refusal_replaced",
+                "Err(refusal) => Err(refusal),",
+                "Err(refusal) => { let _ = refusal; Err(policy_refusal) },",
+            ),
             (
                 "invocation_without_notification",
                 "if !self.announced {",
@@ -98,18 +108,46 @@ GROUPS = [
             ),
             (
                 "invocation_ignores_cancellation",
-                "interrupt(cancelled, host_stop)",
-                "interrupt(cancelled && false, host_stop)",
+                "if cancelled {",
+                "if cancelled && false {",
             ),
             (
                 "invocation_ignores_host_stop",
-                "interrupt(cancelled, host_stop)",
-                "interrupt(cancelled, { let _ = host_stop; None })",
+                "} else if let Some(status) = host_stop {",
+                "} else if let Some(status) = { let _ = host_stop; None } {",
             ),
             (
                 "invocation_reclassifies_refusal",
-                "Err(ExecutionError::Refused(refusal.reason))",
-                "{ let _ = refusal.reason; Err(ExecutionError::Stopped(Status::Incomplete)) }",
+                "Err(Error::refused(refusal))",
+                "{ let _ = refusal; Err(Error::invalid()) }",
+            ),
+        ],
+    },
+    {
+        "source": "crates/meden-agent/src/conversation.rs",
+        "package": "meden-agent",
+        "model": "Conversation",
+        "proof": "InvocationRefinement",
+        "prerequisites": ["PolicyRefinement", "ConversationRefinement"],
+        "test": (
+            "conversation::tests::dispatch_error_mapping_preserves_refusal_stop_and_cancellation"
+        ),
+        "mutations": [
+            (
+                "dispatch_refusal_becomes_tool_error",
+                "Err(Some(refusal)) => ExecutionError::Refused(refusal.reason)",
+                "Err(Some(refusal)) => ExecutionError::Tool(refusal.reason)",
+            ),
+            (
+                "dispatch_cancellation_becomes_incomplete",
+                "Ok(None) => ExecutionError::Stopped(Status::Cancelled)",
+                "Ok(None) => ExecutionError::Stopped(Status::Incomplete)",
+            ),
+            (
+                "dispatch_host_status_lost",
+                "Ok(Some(status)) => ExecutionError::Stopped(status)",
+                "Ok(Some(status)) => "
+                "{ let _ = status; ExecutionError::Stopped(Status::Incomplete) }",
             ),
         ],
     },

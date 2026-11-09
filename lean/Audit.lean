@@ -212,6 +212,10 @@ open MedenSpec
 #print axioms MedenSpec.InvocationRefinement.trace_refines
 #print axioms MedenSpec.InvocationRefinement.extracted_safe
 #print axioms MedenSpec.InvocationRefinement.extracted_dispatch_condition
+#print axioms MedenSpec.InvocationRefinement.admission_iff
+#print axioms MedenSpec.InvocationRefinement.execution_error_refines
+#print axioms MedenSpec.InvocationRefinement.extracted_policy_refusal
+#print axioms MedenSpec.InvocationRefinement.extracted_prepare_refusal
 
 #print axioms MedenSpec.GlobRefinement.cell_refines
 #print axioms MedenSpec.GlobRefinement.rowLoop_correct
