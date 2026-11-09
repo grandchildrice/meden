@@ -38,6 +38,12 @@ Later inputs are processed in order after the previous turn finishes.
 Stdin is a trusted user/controller channel. Do not forward model or tool
 text into it as control commands.
 
+Workspace `write_file` creates regular files. Parent directories must exist;
+the model can create them with offline Bash. Writing empty content creates
+an empty file, not a directory. Missing parents and parents of the wrong
+type are reported explicitly, and the workspace directory itself cannot
+be replaced with a file.
+
 ## Documentation cache
 
 Fetch the exact host-selected documentation batch before starting confidential

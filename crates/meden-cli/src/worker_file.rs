@@ -70,6 +70,7 @@ pub fn run() -> Result<()> {
 }
 
 impl FileOperation {
+    #[allow(clippy::unnecessary_debug_formatting)] // Keep untrusted paths quoted and escaped.
     fn resolve(&self, args: &Args) -> Result<PathBuf, ToolError> {
         let requested = PathBuf::from(text(args, "path")?);
         let candidate = if requested.is_absolute() {
@@ -86,12 +87,37 @@ impl FileOperation {
             let name = candidate
                 .file_name()
                 .ok_or_else(|| ToolError::Failed("path has no filename".into()))?;
-            parent.canonicalize().map_err(failed)?.join(name)
+            parent
+                .canonicalize()
+                .map_err(|error| {
+                    ToolError::Failed(format!(
+                        "cannot resolve parent directory {parent:?}: {error}. \
+                         File tools do not create directories; use bash for directory operations."
+                    ))
+                })?
+                .join(name)
         };
         if !path.starts_with(&self.root) {
             return Err(ToolError::Failed(
                 "path leaves the selected workspace".into(),
             ));
+        }
+        if matches!(self.operation, Operation::Write) {
+            if path == self.root {
+                return Err(ToolError::Failed(
+                    "cannot replace the workspace directory with a file".into(),
+                ));
+            }
+            let parent = path
+                .parent()
+                .ok_or_else(|| ToolError::Failed("path has no parent".into()))?;
+            if !fs::metadata(parent).map_err(failed)?.is_dir() {
+                return Err(ToolError::Failed(format!(
+                    "parent path {parent:?} is not a directory. \
+                     Writing empty content creates a regular file, not a directory. \
+                     Inspect the existing entry; use bash for directory operations."
+                )));
+            }
         }
         Ok(path)
     }
@@ -284,5 +310,39 @@ mod tests {
             .is_err());
         }
         assert!(!outside.path().join("secret").exists());
+    }
+
+    #[test]
+    fn invalid_parents_are_reported_without_creating_or_replacing_entries() {
+        let root = tempfile::tempdir().expect("workspace");
+        assert!(execute(
+            root.path(),
+            Operation::Write,
+            json!({"path":".", "content":"not a directory"})
+        )
+        .is_err_and(|e| e.to_string().contains("workspace directory")));
+        assert!(root.path().is_dir());
+        let write = || {
+            execute(
+                root.path(),
+                Operation::Write,
+                json!({"path":"src/kernel.rs", "content":"candidate"}),
+            )
+        };
+        assert!(write().is_err_and(|e| e.to_string().contains("parent directory")));
+        assert!(!root.path().join("src").exists());
+        fs::write(root.path().join("src"), "existing data").expect("existing file");
+        assert!(write().is_err_and(|e| e.to_string().contains("not a directory")));
+        assert_eq!(
+            fs::read_to_string(root.path().join("src")).expect("unchanged"),
+            "existing data"
+        );
+        fs::remove_file(root.path().join("src")).expect("test setup");
+        fs::create_dir(root.path().join("src")).expect("parent directory");
+        write().expect("write under existing directory");
+        assert_eq!(
+            fs::read_to_string(root.path().join("src/kernel.rs")).expect("candidate"),
+            "candidate"
+        );
     }
 }

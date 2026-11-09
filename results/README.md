@@ -6,6 +6,26 @@ The old AgentDojo host-tool bridge and benchmark adapter have also been
 removed. Current `meden run` uses the same private offline coding session
 as the TUI; commands below describe historical interfaces, not current ones.
 
+## Generic-contract trials
+
+The [Qwen3-4B trial at `1c0d4d0`](local-generic-counter-qwen3-4b-1c0d4d0.json)
+used one natural-language counter request with the generic contract backend.
+It made thirteen inference requests without producing a valid reviewable
+contract. The driver reached its wall budget; this was not a mathematical
+refutation of the task.
+
+With clearer term syntax and diagnostic bindings, the
+[trial at `da9af7e`](local-generic-counter-qwen3-4b-da9af7e.json) repaired two
+rejected drafts and produced the requested overflow-safe mathematical contract.
+An isolated developer harness reviewed and accepted its exact meaning. The
+model then confused files with directories, creating an empty regular file
+named `src`; all four implementation checks failed to snapshot `src/counter.rs`.
+It ended `incomplete` after twenty-two inference requests, with no checked
+Rust implementation or artifact. Claims of correctness in model prose never
+made host status verified. Neither trial received solution Rust, formulas
+or human implementation repair. These observations motivate better interfaces;
+they do not estimate task-success rates or establish mission-critical readiness.
+
 ## Local ledger pilots
 
 The [Qwen3-4B-Instruct trial at `d3d5fd8`](local-ledger-qwen3-4b-d3d5fd8.json)

@@ -34,7 +34,7 @@ pub fn environment(
          json!({"path":{"type":"string"},"offset":{"type":"integer","minimum":1},"limit":{"type":"integer","minimum":1,"maximum":2000}}), vec!["path"]),
         ("list_files", Operation::List, "List a workspace directory, with file types. Use path '.' for the root.",
          json!({"path":{"type":"string"}}), vec!["path"]),
-        ("write_file", Operation::Write, "Create or replace a UTF-8 file in the workspace. Supply its complete content. Parent directories must already exist.",
+        ("write_file", Operation::Write, "Create or replace a regular UTF-8 FILE in the workspace. Supply its complete content. Even empty content creates a file, never a directory. Parent directories must already exist; create directories with bash using mkdir -p before writing nested files.",
          json!({"path":{"type":"string"},"content":{"type":"string"}}), vec!["path","content"]),
         ("edit_file", Operation::Edit, "Replace exactly one occurrence of old_text with different new_text in a UTF-8 workspace file. Read the file first; identical replacements, ambiguous or missing matches fail without writing.",
          json!({"path":{"type":"string"},"old_text":{"type":"string"},"new_text":{"type":"string"}}), vec!["path","old_text","new_text"]),

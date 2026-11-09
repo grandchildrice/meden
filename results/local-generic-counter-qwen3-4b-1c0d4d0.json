@@ -1,0 +1,53 @@
+{
+  "date": "2026-11-09",
+  "task": "generic pure-u64 Rust counter from one natural-language instruction",
+  "instruction": "Build a pure local Rust counter transition. Increasing it by a requested unsigned 64-bit amount must add exactly that amount when the sum fits; otherwise keep all state unchanged. It must never decrease or wrap. Propose a precise mathematical contract for my review, then implement it and independently verify the accepted contract. Keep all data local.",
+  "source_commit": "1c0d4d0d9a7c77d00e9d80e536a8950551186f34",
+  "worker_sha256": "35a922d8c0530a99fd48dc3207f109f21fe8546966375ef208f3df6916208418",
+  "model": "Qwen3-4B-Instruct-2507 Q4_K_M",
+  "model_sha256": "2fde00ce69dd4899c70d020845e2638353015bba0fdf161b3eb965f2bca4464e",
+  "engine_executable_sha256": "f9a0035fb2c521e3dc6e16cba89197d5e87414024287ae36e53283b758fa9478",
+  "execution": {
+    "local": true,
+    "cloud_fallback": false,
+    "context_tokens": 16384,
+    "exchange_budget_seconds": 300,
+    "trial_wall_budget_seconds": 1800,
+    "environment": "shared CPU workstation; elapsed time includes developer-harness review and uncontrolled concurrent load"
+  },
+  "elapsed_seconds": 1839.7179996049963,
+  "model_requests": 13,
+  "process_exit": -15,
+  "cleanup": "trial wall limit; not a semantic rejection",
+  "host_commands": 1,
+  "host_review": "no reviewable valid proposal observed",
+  "accepted_contract": null,
+  "accepted": false,
+  "verified": false,
+  "artifact": null,
+  "done_outcomes": [],
+  "human_implementation_or_formula_repair": false,
+  "observations": [
+    "No valid proposal was exposed for review.",
+    "The driver wall budget ended the observation; this is not a mathematical refutation."
+  ],
+  "scope_limits": [
+    "Single trial, not a task-success rate.",
+    "No supplied implementation, formula or proof repair.",
+    "Does not establish whole-product confidentiality or mission-critical readiness."
+  ],
+  "retained_trace_sha256": {
+    "events.jsonl": "e6fb144c1663a7561c742d771eb877ea5fd2e57092c9ef6ecd396bfdb1da2f73",
+    "report.json": "94550996a630c3ecb9fc2e547424cbb5cee9576fc60c23c2c6e11cf9aa3684f9",
+    "started.json": "5cd934b68c4ebb40f7a464420188667986e03a80553df4d03cd34f78bb5137d3",
+    "host-actions.jsonl": "0075fd899d3075cebed3daee5780ed95de7991daf57b4411178487ef6a191015",
+    "timing.jsonl": "aa6c1673020e7c956b6d42d5406ca568e7892cd7fd0f792145881c7d9f2d4159"
+  },
+  "tool_results": {
+    "propose_contract": 12
+  },
+  "tool_error_results": {
+    "propose_contract": 12
+  },
+  "tool_result_scope": "Observed events include model tools and host independent checks."
+}
