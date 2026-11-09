@@ -26,7 +26,7 @@ attempt; an older completed run does not cover a newer commit.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, failure and display-scalar kernels, `lake build`, proof scan/audit, 83 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, failure and display-scalar kernels, `lake build`, proof scan/audit, 86 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A decision differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -350,6 +350,15 @@ review stops the turn. Unclassified check failure also stops automatic
 repair. A stopped controller remains stopped even when flags are later cleared;
 a new host instruction creates a new controller.
 
+Before acceptance, the session retains a failed proposal observation and its
+bounded diagnostic independently of file edits. After a normal or
+budget-exhausted conversation, that observation permits another proposal
+repair within the same four-invocation budget. No successful draft, host
+acceptance, source inspection or proof is inferred from a repair request.
+A failed/cancelled model outcome cannot start proposal repair. Capturing the
+tool observation and constructing its diagnostic remain tested session
+adapters; the extracted controller consumes the typed Boolean observation.
+
 Inspection and check signals carry `Result<bool, FailureKind>`. Failed source
 inspection preserves its failure kind instead of becoming `false`. Unavailable
 or inconclusive inspection stops even with a cached completed rejection.
@@ -374,6 +383,8 @@ share that actual extracted failure type.
 | `RepairRefinement.advance_refines` | Every native effect and complete resulting state match the independent protocol specification |
 | `RepairRefinement.inspection_requires_acceptance` | Inspection requires an accepted, changed-work conversation signal with a normal or budget outcome; model text cannot replace these flags |
 | `RepairRefinement.budget_gets_fresh_check` | A budget outcome followed by missing current proof requests an independent check even when an older rejection exists and no further conversation budget remains |
+| `RepairRefinement.proposal_repair` | An unaccepted conversation with an observed failed proposal and a normal or budget outcome requests repair while budget remains |
+| `RepairRefinement.draft_repair_requires_failure` | An unaccepted conversation can request repair only with an observed failed proposal and a normal or budget outcome |
 | `RepairRefinement.inspection_error` | Every typed inspection failure with a cached rejection either obtains a fresh check (`Unverified`) or stops (`Unavailable`/`Inconclusive`), after normal or budget-exhausted conversation and for every remaining budget |
 | `RepairTrace.trace_refines` | Arbitrary finite compositions of actual extracted transitions agree on state and the number of conversation invocations |
 | `RepairTrace.extracted_conversation_budget` | Every such trace from actual initialization emits at most four conversation invocations |
@@ -384,12 +395,14 @@ The bound is four outer conversation/check cycles, not four total LLM
 requests. Neither the model's final answer nor a controller finish effect
 establishes project proof; that still requires exact current evidence.
 
-Eleven Rust mutations skip budget verification, admit failed outcomes, omit
+Fourteen Rust mutations skip budget verification, admit failed outcomes, omit
 acceptance or change checks, reuse an older budget rejection, ignore
 cancellation, reopen a stopped turn, remove budget consumption or repair an
 unattributed failure, repair an unavailable inspection or reuse an older
-diagnostic after a rejected inspection. Each must fail native assertions and the unchanged
-refinement after a freshly generated model compiles. Real CLI tests exercise
+diagnostic after a rejected inspection. Proposal faults also
+invent a failure, redirect accepted work or restart a failed conversation.
+Each must fail native assertions and the unchanged refinement after a freshly
+generated model compiles. Real CLI tests exercise
 budget recovery and operational stops through the independent checker and
 retained artifact path.
 
@@ -678,7 +691,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with processor/review/dispatch and TUI approval checks, CI rejects
-83 faults, including contract revisions, outer/inner conversation, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
+86 faults, including contract revisions, outer/inner conversation, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -765,7 +778,7 @@ Six additional semantic Rust faults exercise reused revisions, stale review,
 stale acceptance, pending eligibility, discarded accepted state and revived
 evidence after editing. Each must fail its native regression and the unchanged
 refinement after successful extraction/model compilation. They are part of
-the 83-fault CI corpus above.
+the 86-fault CI corpus above.
 
 Formula validation, canonical byte encoding, source/artifact input construction,
 host-origin attribution, JSON decoding, review rendering, locking, physical
@@ -775,7 +788,7 @@ session I/O loop or natural-language/formula equivalence.
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 174
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 176
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan

@@ -34,6 +34,17 @@ the requested u64 transition. This prompted mandatory proofs of output-domain
 closure and agreement between each example and the mathematical specification
 before review. The new filesystem interface was not exercised in that trial.
 
+At [`bf82fc9`](local-generic-counter-qwen3-4b-bf82fc9.json), those mandatory
+checks rejected three parse-valid proposals before review: their Nat outputs
+could exceed u64 and their examples contradicted the specification. Two
+earlier proposals failed term parsing. The model created its missing source
+directory and wrote Rust, but exhausted the conversation budget without a
+valid contract; no implementation extraction or artifact followed. Its file
+edit attempts cleared the current repairable failure even though the proposal
+still needed repair. This prompted retaining proposal failure separately and
+requesting bounded proposal repair. That recovery change was not in this
+frozen trial.
+
 ## Local ledger pilots
 
 The [Qwen3-4B-Instruct trial at `d3d5fd8`](local-ledger-qwen3-4b-d3d5fd8.json)

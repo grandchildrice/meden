@@ -26,6 +26,12 @@ terms, proves output bounds and listed properties, and checks every example
 against the mathematical transition. A successful proposal stops inference
 for host review; it is neither acceptance nor implementation evidence.
 
+A failed proposal can trigger bounded repair after the conversation finishes
+or exhausts its tool budget. Later file edits cannot erase that need or
+stand in for a valid proposal. Repair never accepts the contract; a valid
+draft still stops for host review. Unavailable or interrupted checking stops
+automatic repair.
+
 The TUI displays the actual specification, properties, assumptions, source
 path, Rust API, examples and contract SHA-256. Page Up/Down scroll the review.
 `y` accepts that exact displayed proposal and resumes development; `n` or
@@ -226,7 +232,7 @@ These are deterministic checker/controller integration tests. The
 is separate; its generated Rust source is rechecked by the current suite.
 No general task-success rate follows from these cases.
 
-Meden's separate control audit has 174 roots; project roots are checked
+Meden's separate control audit has 176 roots; project roots are checked
 afresh per candidate. The shared core evidence/job and contract-management
 operations have Rust-to-Lean refinement, including their finite compositions.
 Metadata/term parsing, canonical encoding, review

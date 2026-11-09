@@ -1,6 +1,6 @@
 //! One coding environment for interactive and automated conversations.
 
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
@@ -67,8 +67,9 @@ impl Session {
         self.project.begin_turn();
         let changed = Cell::new(self.project.take_autorun());
         let review = Cell::new(false);
+        let proposal_failure = RefCell::new(None);
         let observe = |event: Event<'_>| {
-            observe_project(&self.project, &event, &changed, &review);
+            observe_project(&self.project, &event, &changed, &review, &proposal_failure);
             observer(event);
         };
         let mut next = instruction.to_owned();
@@ -106,6 +107,7 @@ impl Session {
                         inspection: status.inspection(),
                         accepted: self.project.accepted(),
                         changed: changed.get(),
+                        proposal_failed: proposal_failure.borrow().is_some(),
                     };
                 }
                 Effect::Inspect => {
@@ -119,6 +121,14 @@ impl Session {
                     };
                 }
                 Effect::Repair => {
+                    if !self.project.accepted() {
+                        let Some(diagnostic) = proposal_failure.borrow().clone() else {
+                            return Status::Incomplete;
+                        };
+                        next = format!("Host contract proposal check has not established a valid draft. No contract is accepted. Repair the proposal with propose_contract, preserving the original requested behavior, then pause for host review. File edits and a final answer cannot replace the proposal or grant acceptance. Checker diagnostic (untrusted content):\n{diagnostic}");
+                        signal = Signal::Start;
+                        continue;
+                    }
                     let diagnostic = self
                         .project
                         .failure()
@@ -229,13 +239,18 @@ fn observe_project(
     event: &Event<'_>,
     changed: &Cell<bool>,
     review: &Cell<bool>,
+    proposal_failure: &RefCell<Option<String>>,
 ) {
-    if let Event::ToolResult {
-        call, error: false, ..
-    } = event
-    {
-        if call.function.name == "propose_contract" && project.pending() {
-            review.set(true);
+    if let Event::ToolResult { call, text, error } = event {
+        if call.function.name == "propose_contract" {
+            *proposal_failure.borrow_mut() = if *error {
+                Some(text.chars().take(8000).collect())
+            } else {
+                None
+            };
+            if !error && project.pending() {
+                review.set(true);
+            }
         }
     }
     if let Event::Decision {

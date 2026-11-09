@@ -86,13 +86,23 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         global index
         body=json.loads(self.rfile.read(int(self.headers['Content-Length'])))
-        if index == 0:
+        if REJECTED and index % 2 == 0:
+            if index:
+                diagnostic=json.dumps(body['messages'][-1]['content'])
+                assert 'Host contract proposal check' in diagnostic
+                assert 'No contract is accepted' in diagnostic
+                assert 'Spec.lean' in diagnostic
+            draft=REPLACEMENT if index and REPLACEMENT else CONTRACT
+            calls=[call('propose_contract',{'contract':draft})]
+            if not (index and REPLACEMENT):
+                calls += [call('write_file',{'path':CONTRACT['source_path'],'content':NOOP})]
+            reply={'tool_calls':calls}
+        elif REJECTED:
+            reply={'content':'Everything is formally verified.'}
+        elif index == 0:
             reply={'tool_calls':[call('accept_contract',{'accepted':True}),
                 call('verify_project',{'passed':True,'artifact':'fake.rlib','failure_kind':'unavailable'}),
                 call('propose_contract',{'contract':CONTRACT})]}
-        elif REJECTED:
-            assert index == 1
-            reply={'content':'Everything is formally verified.'}
         elif PROBE and index == 1:
             reply={'tool_calls':[call('write_file',{'path':'ledger.rs','content':ALTERNATIVE})]}
         elif PROBE and index == 3:
@@ -774,7 +784,7 @@ def test_contracts_must_fit_native_outputs_and_their_own_examples(tmp_path, faul
         capture_output=True,
         text=True,
         env=env,
-        timeout=60,
+        timeout=120,
     )
     assert result.returncode == 0, result.stderr
     events = [json.loads(line) for line in result.stdout.splitlines()]
@@ -790,9 +800,44 @@ def test_contracts_must_fit_native_outputs_and_their_own_examples(tmp_path, faul
         if e["type"] == "project"
     )
     summary = next(e["summary"] for e in reversed(events) if e["type"] == "project")
-    assert summary["verification_failure"] == "unverified"
-    assert next(e for e in events if e["type"] == "done")["outcome"] != "needs_review"
-    assert sum(e["type"] == "asking" for e in events) == 2
+    # Writes clear stale implementation failures, but cannot erase the
+    # conversational observation that the proposal itself still needs repair.
+    assert summary["verification_failure"] is None
+    assert next(e for e in events if e["type"] == "done")["outcome"] == "incomplete"
+    assert sum(e["type"] == "asking" for e in events) == 8
+
+
+def test_failed_proposal_and_later_edits_return_to_contract_review_without_accepting(tmp_path):
+    contract = json.loads((ROOT / "verification/examples/counter.contract.json").read_text())
+    invalid = copy.deepcopy(contract)
+    invalid["specification"] = "{ value := s.value + amount }"
+    invalid["properties"] = []
+    invalid["examples"] = []
+    args, env, _ = setup(tmp_path, contract=invalid, replacement=contract, rejected=True)
+    result = subprocess.run(
+        args,
+        input=json.dumps({"instruction": "Build a counter that rejects overflow."}) + "\n",
+        capture_output=True,
+        text=True,
+        env=env,
+        timeout=120,
+    )
+    assert result.returncode == 0, result.stderr
+    events = [json.loads(line) for line in result.stdout.splitlines()]
+    proposals = [
+        e for e in events if e["type"] == "tool_result" and e["tool"] == "propose_contract"
+    ]
+    assert [e["error"] for e in proposals] == [True, False]
+    assert any(
+        e["type"] == "tool_result" and e["tool"] == "write_file" and not e["error"]
+        for e in events
+    )
+    assert sum(e["type"] == "asking" for e in events) == 3
+    assert next(e for e in events if e["type"] == "done")["outcome"] == "needs_review"
+    summary = next(e["summary"] for e in reversed(events) if e["type"] == "project")
+    assert summary["proposed"] and summary["contract"] == contract
+    assert not summary["accepted"] and not summary["verified"]
+    assert summary["artifact"] is None and summary["verification_failure"] is None
 
 
 @pytest.mark.parametrize(

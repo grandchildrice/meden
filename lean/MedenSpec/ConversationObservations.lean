@@ -29,18 +29,19 @@ theorem outcome_refines (s : Flow) :
     simp [Flow.into_outcome, hs, hf, Conversation.outcome, state, status, outcome, reply]
 
 theorem inspection_bridge (t : MedenRepairImpl.verification.turn.Turn)
-    (s : conversation.Status) (accepted changed cancelled review : Bool)
+    (s : conversation.Status) (accepted changed proposalFailed cancelled review : Bool)
     (failure : Option MedenRepairImpl.verification.failure.FailureKind) :
     (do let inspection ← conversation.Status.inspection s
         let out ← MedenRepairImpl.verification.turn.Turn.advance t
-          (.Conversation inspection accepted changed) cancelled failure review
+          (.Conversation inspection accepted changed proposalFailed) cancelled failure review
         ok (RepairRefinement.effect out.1, RepairRefinement.state out.2)) =
       ok (Repair.advance (RepairRefinement.state t)
-        (.conversation (Conversation.inspection (status s)) accepted changed)
+        (.conversation (Conversation.inspection (status s)) accepted changed proposalFailed)
         cancelled (failure.map RepairRefinement.failure) review) := by
   rw [inspection_refines]
   simpa [RepairRefinement.signal] using
     RepairRefinement.advance_refines t
-      (.Conversation (Conversation.inspection (status s)) accepted changed) cancelled failure review
+      (.Conversation (Conversation.inspection (status s)) accepted changed proposalFailed)
+      cancelled failure review
 
 end MedenSpec.ConversationObservations

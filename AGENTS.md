@@ -35,6 +35,9 @@
   check after budget exhaustion. One invocation may make multiple LLM requests.
   Inspection/check signals retain typed failures: unavailable or inconclusive
   source inspection stops instead of reusing an older rejected check.
+  Failed proposals are retained independently of file edits. Before acceptance,
+  normal or budget outcomes may request proposal repair under the same outer
+  budget; failed model outcomes and unobserved failures cannot request it.
   The session dispatches its returned operation; I/O interpretation and signal
   attribution remain separate obligations.
   The inner conversation uses its own extracted/refined effect controller;

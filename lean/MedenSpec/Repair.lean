@@ -26,7 +26,7 @@ inductive Observation where
 
 inductive Signal where
   | start
-  | conversation (inspection : Option Bool) (accepted changed : Bool)
+  | conversation (inspection : Option Bool) (accepted changed proposalFailed : Bool)
   | current (result : Observation)
   | checked (result : Observation)
   deriving DecidableEq
@@ -64,11 +64,12 @@ def advance (s : State) (event : Signal) (cancelled : Bool)
       | .ready, .start =>
         if 0 < s.remaining then (.model, ⟨s.remaining - 1, .conversation⟩)
         else stop s .exhausted
-      | .conversation, .conversation inspection accepted changed =>
+      | .conversation, .conversation inspection accepted changed proposalFailed =>
         if accepted = true ∧ changed = true then
           match inspection with
           | some fresh => (.inspect, {s with stage := .inspect fresh})
           | none => stop s .finish
+        else if accepted = false ∧ proposalFailed = true ∧ inspection.isSome then repair s
         else stop s .finish
       | .inspect fresh, .current result =>
         match result with
@@ -116,8 +117,18 @@ theorem step_budget (s : State) (i : Input) :
 theorem inspecting_requires_acceptance (s : State) (event : Signal) (cancelled : Bool)
     (failure : Option Failure) (review : Bool)
     (h : (advance s event cancelled failure review).1 = .inspect) :
-    ∃ fresh, event = .conversation (some fresh) true true := by
+    ∃ fresh proposalFailed, event = .conversation (some fresh) true true proposalFailed := by
   cases hs : s.stage <;> cases event <;>
+    simp only [advance, hs, stop, repair] at h
+  all_goals repeat' (first | simp_all | split at h)
+
+theorem unaccepted_repair_requires_proposal_failure (s : State)
+    (inspection : Option Bool) (changed proposalFailed cancelled review : Bool)
+    (failure : Option Failure)
+    (h : (advance s (.conversation inspection false changed proposalFailed)
+      cancelled failure review).1 = .repair) :
+    proposalFailed = true ∧ inspection.isSome = true := by
+  cases hs : s.stage <;>
     simp only [advance, hs, stop, repair] at h
   all_goals repeat' (first | simp_all | split at h)
 

@@ -22,7 +22,9 @@ def failure : FailureKind → Repair.Failure
 def observation : core.result.Result Bool FailureKind → Repair.Observation
   | .Ok verified => .ok verified | .Err kind => .error (failure kind)
 def signal : Signal → Repair.Signal
-  | .Start => .start | .Conversation inspection accepted changed => .conversation inspection accepted changed
+  | .Start => .start
+  | .Conversation inspection accepted changed proposalFailed =>
+    .conversation inspection accepted changed proposalFailed
   | .Current result => .current (observation result) | .Checked result => .checked (observation result)
 
 private theorem stops_refines (f : Option FailureKind) :
@@ -69,17 +71,40 @@ theorem advance_refines (t : Turn) (s : Signal) (cancelled : Bool)
 theorem inspection_requires_acceptance (t final : Turn) (s : Signal) (cancelled : Bool)
     (f : Option FailureKind) (review : Bool)
     (h : Turn.advance t s cancelled f review = ok (.Inspect, final)) :
-    ∃ fresh, signal s = .conversation (some fresh) true true := by
+    ∃ fresh proposalFailed, signal s = .conversation (some fresh) true true proposalFailed := by
   have hm := advance_refines t s cancelled f review
   simp only [h, bind_ok, Result.ok.injEq] at hm
   exact Repair.inspecting_requires_acceptance (state t) (signal s) cancelled (f.map failure) review
     (congrArg Prod.fst hm).symm
 
-theorem budget_gets_fresh_check (t : Turn) (hs : t.stage = .Conversation) :
-    (do let out ← Turn.advance t (.Conversation (some true) true true) false (some .Unverified) false
+theorem budget_gets_fresh_check (t : Turn) (proposalFailed : Bool)
+    (hs : t.stage = .Conversation) :
+    (do let out ← Turn.advance t (.Conversation (some true) true true proposalFailed)
+          false (some .Unverified) false
         let next ← Turn.advance out.2 (.Current (.Ok false)) false (some .Unverified) false
         ok next.1) = ok .Check := by
   simp [Turn.advance, hs, stops_refines]
+
+theorem proposal_repair (t : Turn) (fresh changed : Bool)
+    (f : Option FailureKind) (enabled : Repair.operational (f.map failure) = false)
+    (hs : t.stage = .Conversation) (budget : 0 < t.remaining.val) :
+    (do let out ← Turn.advance t (.Conversation (some fresh) false changed true) false f false
+        ok (effect out.1, state out.2)) =
+      ok (.repair, {state t with stage := .ready}) := by
+  rw [advance_refines]
+  simpa [hs, budget] using enabled
+
+theorem draft_repair_requires_failure (t final : Turn)
+    (inspection : Option Bool) (changed proposalFailed cancelled review : Bool)
+    (f : Option FailureKind)
+    (h : Turn.advance t (.Conversation inspection false changed proposalFailed)
+      cancelled f review = ok (.Repair, final)) :
+    proposalFailed = true ∧ inspection.isSome = true := by
+  have hm := advance_refines t (.Conversation inspection false changed proposalFailed)
+    cancelled f review
+  simp only [h, bind_ok, Result.ok.injEq] at hm
+  exact Repair.unaccepted_repair_requires_proposal_failure (state t) inspection changed
+    proposalFailed cancelled review (f.map failure) (congrArg Prod.fst hm).symm
 
 theorem inspection_error (t : Turn) (fresh : Bool)
     (hs : t.stage = .Inspect fresh) (kind : FailureKind) :

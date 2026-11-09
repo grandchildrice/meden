@@ -297,12 +297,54 @@ GROUPS = [
             "checks_require_authority_and_budget_stops_still_obtain_fresh_evidence"
         ),
         "mutations": [
-            ("unaccepted_check", "accepted && changed", "(accepted || true) && changed"),
-            ("unchanged_check", "accepted && changed", "accepted && (changed || true)"),
+            (
+                "unaccepted_check",
+                "if accepted && changed {\n                    if let Some(fresh) = inspection {",
+                "if (accepted || true) && changed {\n"
+                "                    if let Some(fresh) = inspection {",
+            ),
+            (
+                "unchanged_check",
+                "if accepted && changed {\n                    if let Some(fresh) = inspection {",
+                "if accepted && (changed || true) {\n"
+                "                    if let Some(fresh) = inspection {",
+            ),
             (
                 "budget_reuses_old_rejection",
                 "!fresh && matches!(failure, Some(FailureKind::Unverified))",
                 "(!fresh || true) && matches!(failure, Some(FailureKind::Unverified))",
+            ),
+        ],
+    },
+    {
+        "source": "crates/meden-runtime/src/verification/turn.rs",
+        "package": "meden-runtime",
+        "model": "Repair",
+        "proof": "RepairRefinement",
+        "test": (
+            "verification::turn::tests::"
+            "proposal_repair_requires_a_failed_proposal_and_shares_the_turn_budget"
+        ),
+        "mutations": [
+            (
+                "unobserved_proposal_repaired",
+                "!accepted && proposal_failed && inspection.is_some() {\n"
+                "                    self.repair()",
+                "!accepted && (proposal_failed || true) && inspection.is_some() {\n"
+                "                    self.repair()",
+            ),
+            (
+                "accepted_proposal_repaired",
+                "!accepted && proposal_failed && inspection.is_some() {\n"
+                "                    self.repair()",
+                "(!accepted || true) && proposal_failed && inspection.is_some() {\n"
+                "                    self.repair()",
+            ),
+            (
+                "failed_conversation_restarts_proposal",
+                "!accepted && proposal_failed && inspection.is_some() {\n"
+                "                    self.repair()",
+                "!accepted && proposal_failed && true {\n                    self.repair()",
             ),
         ],
     },

@@ -45,6 +45,9 @@ pub enum Signal {
         accepted: bool,
         /// A host-observed development operation or accepted-contract autorun.
         changed: bool,
+        /// A proposal tool failed during this conversation. File edits cannot
+        /// clear this observation or make the failed draft accepted.
+        proposal_failed: bool,
     },
     /// The requested current-source evidence inspection completed.
     Current {
@@ -119,6 +122,7 @@ impl Turn {
                     inspection,
                     accepted,
                     changed,
+                    proposal_failed,
                 },
             ) => {
                 if accepted && changed {
@@ -128,6 +132,8 @@ impl Turn {
                     } else {
                         self.stop(Terminal::Finish)
                     }
+                } else if !accepted && proposal_failed && inspection.is_some() {
+                    self.repair()
                 } else {
                     self.stop(Terminal::Finish)
                 }
@@ -187,7 +193,8 @@ mod tests {
                 Signal::Conversation {
                     inspection: status.inspection(),
                     accepted,
-                    changed
+                    changed,
+                    proposal_failed: false,
                 },
                 false,
                 None,
@@ -224,6 +231,90 @@ mod tests {
         ] {
             policy_case(&status, true, true, None);
         }
+    }
+
+    #[test]
+    fn proposal_repair_requires_a_failed_proposal_and_shares_the_turn_budget() {
+        for (inspection, accepted, changed, proposal_failed, expected) in [
+            // Completed and exhausted proposal attempts can recover even after
+            // file edits cleared an earlier implementation-failure diagnostic.
+            (Some(false), false, false, true, Effect::Repair),
+            (Some(true), false, true, true, Effect::Repair),
+            // No observation, failed transport, and accepted unchanged work
+            // cannot be redirected into proposal repair.
+            (
+                Some(false),
+                false,
+                true,
+                false,
+                Effect::Stop(Terminal::Finish),
+            ),
+            (
+                Some(true),
+                false,
+                true,
+                false,
+                Effect::Stop(Terminal::Finish),
+            ),
+            (None, false, true, true, Effect::Stop(Terminal::Finish)),
+            (
+                Some(false),
+                true,
+                false,
+                true,
+                Effect::Stop(Terminal::Finish),
+            ),
+            // A failed replacement does not displace accepted-source checking.
+            (Some(false), true, true, true, Effect::Inspect),
+        ] {
+            let mut turn = Turn {
+                remaining: 2,
+                stage: Stage::Conversation,
+            };
+            assert_eq!(
+                turn.advance(
+                    Signal::Conversation {
+                        inspection,
+                        accepted,
+                        changed,
+                        proposal_failed,
+                    },
+                    false,
+                    None,
+                    false,
+                ),
+                expected
+            );
+        }
+        let mut turn = Turn::begin();
+        for round in 0..4 {
+            assert_eq!(
+                turn.advance(Signal::Start, false, None, false),
+                Effect::Model
+            );
+            assert_eq!(
+                turn.advance(
+                    Signal::Conversation {
+                        inspection: Some(round % 2 == 0),
+                        accepted: false,
+                        changed: true,
+                        proposal_failed: true,
+                    },
+                    false,
+                    None,
+                    false,
+                ),
+                if round < 3 {
+                    Effect::Repair
+                } else {
+                    Effect::Stop(Terminal::Exhausted)
+                }
+            );
+        }
+        assert_eq!(
+            turn.advance(Signal::Start, false, None, false),
+            Effect::Stop(Terminal::Exhausted)
+        );
     }
 
     #[test]
@@ -265,7 +356,8 @@ mod tests {
                     Signal::Conversation {
                         inspection: Status::Incomplete.inspection(),
                         accepted: true,
-                        changed: true
+                        changed: true,
+                        proposal_failed: false,
                     },
                     false,
                     None,
@@ -322,6 +414,7 @@ mod tests {
                     inspection: Status::Done("proved".into()).inspection(),
                     accepted: true,
                     changed: true,
+                    proposal_failed: false,
                 },
                 false,
                 None,

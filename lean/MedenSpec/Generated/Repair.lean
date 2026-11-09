@@ -145,12 +145,17 @@ inductive verification.turn.Effect where
 | Stop : verification.turn.Terminal → verification.turn.Effect
 
 /-- [meden_runtime::verification::turn::Signal]
-    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 37:0-59:1
+    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 37:0-62:1
     Visibility: public -/
 @[discriminant isize]
 inductive verification.turn.Signal where
 | Start : verification.turn.Signal
-| Conversation : Option Bool → Bool → Bool → verification.turn.Signal
+| Conversation :
+  Option Bool →
+  Bool →
+  Bool →
+  Bool →
+  verification.turn.Signal
 | Current :
   core.result.Result Bool verification.failure.FailureKind →
   verification.turn.Signal
@@ -159,7 +164,7 @@ inductive verification.turn.Signal where
   verification.turn.Signal
 
 /-- [meden_runtime::verification::turn::Stage]
-    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 62:0-68:1 -/
+    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 65:0-71:1 -/
 @[discriminant isize]
 inductive verification.turn.Stage where
 | Ready : verification.turn.Stage
@@ -169,20 +174,20 @@ inductive verification.turn.Stage where
 | Stopped : verification.turn.Terminal → verification.turn.Stage
 
 /-- [meden_runtime::verification::turn::Turn]
-    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 72:0-75:1
+    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 75:0-78:1
     Visibility: public -/
 structure verification.turn.Turn where
   remaining : Std.U8
   stage : verification.turn.Stage
 
 /-- [meden_runtime::verification::turn::{meden_runtime::verification::turn::Turn}::begin]:
-    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 79:4-84:5
+    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 82:4-87:5
     Visibility: public -/
 def verification.turn.Turn.begin : Result verification.turn.Turn := do
   ok { remaining := 4#u8, stage := verification.turn.Stage.Ready }
 
 /-- [meden_runtime::verification::turn::{meden_runtime::verification::turn::Turn}::stop]:
-    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 168:4-171:5 -/
+    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 174:4-177:5 -/
 def verification.turn.Turn.stop
   (self : verification.turn.Turn) (reason : verification.turn.Terminal) :
   Result (verification.turn.Effect × verification.turn.Turn)
@@ -191,7 +196,7 @@ def verification.turn.Turn.stop
     { self with stage := (verification.turn.Stage.Stopped reason) })
 
 /-- [meden_runtime::verification::turn::{meden_runtime::verification::turn::Turn}::repair]:
-    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 159:4-166:5 -/
+    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 165:4-172:5 -/
 def verification.turn.Turn.repair
   (self : verification.turn.Turn) :
   Result (verification.turn.Effect × verification.turn.Turn)
@@ -203,7 +208,7 @@ def verification.turn.Turn.repair
       { self with stage := verification.turn.Stage.Ready })
 
 /-- [meden_runtime::verification::turn::{meden_runtime::verification::turn::Turn}::advance]:
-    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 88:4-157:5
+    Source: 'crates/meden-runtime/src/verification/turn.rs', lines 91:4-163:5
     Visibility: public -/
 def verification.turn.Turn.advance
   (self : verification.turn.Turn) (signal : verification.turn.Signal)
@@ -233,7 +238,7 @@ def verification.turn.Turn.advance
             | some remaining =>
               ok (verification.turn.Effect.Model,
                 { remaining, stage := verification.turn.Stage.Conversation })
-          | verification.turn.Signal.Conversation _ _ _ =>
+          | verification.turn.Signal.Conversation _ _ _ _ =>
             verification.turn.Turn.stop self
               verification.turn.Terminal.Exhausted
           | verification.turn.Signal.Current _ =>
@@ -258,7 +263,7 @@ def verification.turn.Turn.advance
             verification.turn.Turn.stop self
               verification.turn.Terminal.Exhausted
           | verification.turn.Signal.Conversation inspection accepted changed
-            =>
+            proposal_failed =>
             if accepted
             then
               if changed
@@ -275,11 +280,39 @@ def verification.turn.Turn.advance
                         stage := (verification.turn.Stage.Inspect fresh)
                     })
               else
+                if accepted
+                then
+                  verification.turn.Turn.stop self
+                    verification.turn.Terminal.Finish
+                else
+                  if proposal_failed
+                  then
+                    let b1 := core.option.Option.is_some inspection
+                    if b1
+                    then verification.turn.Turn.repair self
+                    else
+                      verification.turn.Turn.stop self
+                        verification.turn.Terminal.Finish
+                  else
+                    verification.turn.Turn.stop self
+                      verification.turn.Terminal.Finish
+            else
+              if accepted
+              then
                 verification.turn.Turn.stop self
                   verification.turn.Terminal.Finish
-            else
-              verification.turn.Turn.stop self
-                verification.turn.Terminal.Finish
+              else
+                if proposal_failed
+                then
+                  let b1 := core.option.Option.is_some inspection
+                  if b1
+                  then verification.turn.Turn.repair self
+                  else
+                    verification.turn.Turn.stop self
+                      verification.turn.Terminal.Finish
+                else
+                  verification.turn.Turn.stop self
+                    verification.turn.Terminal.Finish
           | verification.turn.Signal.Current _ =>
             verification.turn.Turn.stop self
               verification.turn.Terminal.Exhausted
@@ -301,7 +334,7 @@ def verification.turn.Turn.advance
           | verification.turn.Signal.Start =>
             verification.turn.Turn.stop self
               verification.turn.Terminal.Exhausted
-          | verification.turn.Signal.Conversation _ _ _ =>
+          | verification.turn.Signal.Conversation _ _ _ _ =>
             verification.turn.Turn.stop self
               verification.turn.Terminal.Exhausted
           | verification.turn.Signal.Current result =>
@@ -361,7 +394,7 @@ def verification.turn.Turn.advance
           | verification.turn.Signal.Start =>
             verification.turn.Turn.stop self
               verification.turn.Terminal.Exhausted
-          | verification.turn.Signal.Conversation _ _ _ =>
+          | verification.turn.Signal.Conversation _ _ _ _ =>
             verification.turn.Turn.stop self
               verification.turn.Terminal.Exhausted
           | verification.turn.Signal.Current _ =>
