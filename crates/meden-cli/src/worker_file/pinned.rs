@@ -44,9 +44,7 @@ impl Access {
             Operation::Read | Operation::Snapshot => {
                 let file = pin(&root, relative, false).map_err(failed)?;
                 regular(&file)?;
-                Ok(Self::File(
-                    File::open(descriptor_path(&file)).map_err(failed)?,
-                ))
+                Ok(Self::File(file))
             }
             Operation::Write | Operation::Edit => {
                 let parent = relative
@@ -59,11 +57,7 @@ impl Access {
                 let original = match pin(&parent, Path::new(name), false) {
                     Ok(file) => {
                         regular(&file)?;
-                        Some(if operation == Operation::Edit {
-                            File::open(descriptor_path(&file)).map_err(failed)?
-                        } else {
-                            file
-                        })
+                        Some(file)
                     }
                     // Keep errno until this decision; display text is not authority.
                     Err(rustix::io::Errno::NOENT) if operation == Operation::Write => None,
@@ -115,6 +109,11 @@ fn regular(file: &File) -> Result<(), ToolError> {
 /// an untrusted directory path or close the descriptor while using the path.
 pub(super) fn descriptor_path(file: &File) -> PathBuf {
     PathBuf::from(format!("/proc/self/fd/{}", file.as_raw_fd()))
+}
+
+/// Reopen the held regular inode for content only after resource admission.
+pub(super) fn readable(file: &File) -> Result<File, ToolError> {
+    File::open(descriptor_path(file)).map_err(failed)
 }
 
 pub(super) fn atomic_write(

@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{Capability, Requirement, Scope};
+use crate::{allowed, Capability, Policy, Requirement, Scope};
 
 /// The worker's operation, independent of its model-facing description.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -33,6 +33,29 @@ pub struct Request<T> {
     operation: Operation,
     path: Scope,
     payload: T,
+}
+
+/// A resolved observation and its owned resource, not an execution permit.
+/// The resource has no accessor before checking both paths against one policy.
+///
+/// ```compile_fail
+/// use meden_core::file::{Operation, Request};
+/// let observed = Request::new(Operation::Read, "/link".into(), ())
+///     .bind("/target".into(), "file handle");
+/// let unchecked = observed.resource;
+/// ```
+///
+/// ```compile_fail
+/// use meden_core::{Policy, file::{Operation, Request}};
+/// let observed = Request::new(Operation::Read, "/link".into(), ())
+///     .bind("/target".into(), "file handle");
+/// let first = observed.consume(&Policy::default());
+/// let replay = observed.consume(&Policy::default());
+/// ```
+pub struct Resolved<T, R> {
+    request: Request<T>,
+    canonical: Scope,
+    resource: R,
 }
 
 impl<T> Request<T> {
@@ -73,6 +96,31 @@ impl<T> Request<T> {
     /// Consume precisely the prepared request at the worker boundary.
     pub fn into_parts(self) -> (Operation, Scope, T) {
         (self.operation, self.path, self.payload)
+    }
+
+    /// Bind the observed canonical path to its still-owned physical resource.
+    /// The adapter is responsible for attributing that path to that resource.
+    pub fn bind<R>(self, canonical: Scope, resource: R) -> Resolved<T, R> {
+        Resolved {
+            request: self,
+            canonical,
+            resource,
+        }
+    }
+}
+
+impl<T, R> Resolved<T, R> {
+    /// Consume the observation; return the original request and resource only
+    /// if every content effect is allowed at both its original and canonical path.
+    /// No caller-supplied allowance bit participates in this decision.
+    pub fn consume(self, rules: &Policy) -> Option<(Request<T>, Scope, R)> {
+        let (request, declared) = self.request.prepare();
+        let (_, resolved) = Request::new(request.operation, self.canonical.clone(), ()).prepare();
+        if allowed(&declared, rules) && allowed(&resolved, rules) {
+            Some((request, self.canonical, self.resource))
+        } else {
+            None
+        }
     }
 }
 
@@ -148,6 +196,83 @@ mod tests {
                 decoded.into_parts(),
                 (operation, path, (payload.0.into(), payload.1.into()))
             );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn resolved_resources_need_both_original_and_canonical_authority(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let both = [
+            "fs.read[/logical]",
+            "fs.write[/logical]",
+            "fs.read[/canonical]",
+            "fs.write[/canonical]",
+        ];
+        for (labels, denies, expected) in [
+            (vec![], vec![], [false; 5]),
+            (both[..2].to_vec(), vec![], [false; 5]),
+            (both[2..].to_vec(), vec![], [false; 5]),
+            (both.to_vec(), vec![], [true; 5]),
+            (
+                vec![both[0], both[2]],
+                vec![],
+                [true, true, false, false, true],
+            ),
+            (
+                vec![both[1], both[3]],
+                vec![],
+                [false, false, true, false, false],
+            ),
+            (
+                vec![both[0], both[1], both[2]],
+                vec![],
+                [true, true, false, false, true],
+            ),
+            (
+                vec![both[0], both[1], both[3]],
+                vec![],
+                [false, false, true, false, false],
+            ),
+            (
+                both.to_vec(),
+                vec!["fs.read"],
+                [false, false, true, false, false],
+            ),
+            (
+                both.to_vec(),
+                vec!["fs.write"],
+                [true, true, false, false, true],
+            ),
+        ] {
+            let rules = Policy::from_labels("resolved", &labels, &denies)?;
+            for (operation, permitted) in [
+                Operation::Read,
+                Operation::List,
+                Operation::Write,
+                Operation::Edit,
+                Operation::Snapshot,
+            ]
+            .into_iter()
+            .zip(expected)
+            {
+                let result = Request::new(operation, "/logical".into(), ("original", 17))
+                    .bind("/canonical".into(), ("original resource", 29))
+                    .consume(&rules);
+                assert_eq!(
+                    result.is_some(),
+                    permitted,
+                    "{operation:?}: {labels:?} / {denies:?}"
+                );
+                if let Some((request, canonical, resource)) = result {
+                    assert_eq!(
+                        request.into_parts(),
+                        (operation, "/logical".into(), ("original", 17))
+                    );
+                    assert_eq!(canonical, Scope::from("/canonical"));
+                    assert_eq!(resource, ("original resource", 29));
+                }
+            }
         }
         Ok(())
     }

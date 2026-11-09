@@ -41,7 +41,7 @@ impl Tool for Cached {
 
     fn prepare(&self, args: Args) -> Result<Prepared<'_>, ToolError> {
         // Immutable in-memory data: no filesystem or network authority needed.
-        Ok(Prepared::new((args, Vec::new()), |args| {
+        Ok(Prepared::new((args, Vec::new()), |args, _| {
             self.execute(&args)
         }))
     }

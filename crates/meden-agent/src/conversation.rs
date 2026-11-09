@@ -361,7 +361,7 @@ pub fn execute(
     let execute = attempt
         .dispatch(cancelled, host_stop)
         .map_err(execution_error)?;
-    let result = execute().map_err(|e| ExecutionError::Tool(e.to_string()))?;
+    let result = execute(policy).map_err(|e| ExecutionError::Tool(e.to_string()))?;
     Ok(result
         .as_str()
         .map_or_else(|| result.to_string(), str::to_owned))
@@ -395,6 +395,60 @@ mod tests {
     use std::cell::{Cell, RefCell};
     use std::collections::VecDeque;
     use std::rc::Rc;
+
+    #[test]
+    fn the_consuming_executor_receives_the_exact_admission_policy() {
+        struct Observed {
+            sig: ToolSig,
+            rules: Rc<Policy>,
+        }
+        impl Tool for Observed {
+            fn signature(&self) -> &ToolSig {
+                &self.sig
+            }
+            fn prepare(&self, _args: Args) -> Result<crate::tool::Prepared<'_>, ToolError> {
+                Ok(crate::tool::Prepared::new(
+                    (
+                        (),
+                        vec![Requirement::new(Capability::FsRead, Some("/logical"))],
+                    ),
+                    |(), rules| {
+                        assert!(std::ptr::eq(rules, self.rules.as_ref()));
+                        serde_json::to_value(rules)
+                            .map_err(|error| ToolError::Failed(error.to_string()))
+                    },
+                ))
+            }
+        }
+        let rules = Rc::new(
+            Policy::from_labels("original policy", &["fs.read[/logical]"], &["fs.write"])
+                .expect("policy"),
+        );
+        let registry = Registry::new().with(Box::new(Observed {
+            sig: ToolSig::new("observe", "Observe policy", json!({"type":"object"})),
+            rules: Rc::clone(&rules),
+        }));
+        let call = ToolCall {
+            id: "policy".into(),
+            function: FunctionCall {
+                name: "observe".into(),
+                arguments: "{}".into(),
+            },
+        };
+        let result = execute(
+            &call,
+            &registry,
+            &rules,
+            &|_| {},
+            &AtomicBool::new(false),
+            &|| None,
+        )
+        .expect("execute");
+        assert_eq!(
+            serde_json::from_str::<Policy>(&result).expect("policy snapshot"),
+            *rules
+        );
+    }
 
     #[test]
     fn dispatch_error_mapping_preserves_refusal_stop_and_cancellation() {
@@ -450,7 +504,7 @@ mod tests {
             )];
             Ok(crate::tool::Prepared::new(
                 (args, requirements),
-                move |_| {
+                move |_, _| {
                     self.calls.set(self.calls.get().saturating_add(1));
                     Ok(json!("written"))
                 },

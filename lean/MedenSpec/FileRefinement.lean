@@ -101,4 +101,83 @@ theorem denied_trace_empty (r prepared : file.Request α)
     have granted := (safe.2.2 out (List.mem_cons_self ..)).2
     simp [denied] at granted
 
+def resolved (r : file.Resolved α ρ) : File.Resolved α ρ :=
+  ⟨request r.request, PolicyRefinement.decoded r.canonical, r.resource⟩
+
+theorem bind_refines (r : file.Request α) (canonical : scope.Scope) (resource : ρ) :
+    (do let bound ← file.Request.bind r canonical resource; ok (resolved bound)) =
+      ok (File.Resolved.mk (request r) (PolicyRefinement.decoded canonical) resource) := by
+  simp [file.Request.bind, resolved]
+
+theorem resolved_consume_refines (r : file.Resolved α ρ) (p : policy.Policy) :
+    file.Resolved.consume r p =
+      ok (if File.resolvedAllowed (PolicyRefinement.owned p) (resolved r)
+        then some (r.request, r.canonical, r.resource) else none) := by
+  rcases r with ⟨⟨op, path, payload⟩, canonical, resource⟩
+  cases op <;>
+    simp [file.Resolved.consume, file.Request.prepare, file.Request.new,
+      scope_clone, alloc.vec.Vec.push, alloc.vec.Vec.new, alloc.vec.Vec.deref,
+      PolicyRefinement.owned_allowed_refines, PolicyRefinement.requirement, PolicyRefinement.cap,
+      File.resolvedAllowed, File.canonicalRequest, File.requirements, File.effects,
+      request, resolved, operation, U32.max, U32.numBits, ite_and]
+  all_goals split_ifs <;> rfl
+
+theorem extracted_resolved_iff (r : file.Resolved α ρ) (p : policy.Policy)
+    (out : file.Request α × scope.Scope × ρ) :
+    file.Resolved.consume r p = ok (some out) ↔
+      out = (r.request, r.canonical, r.resource) ∧
+      (PolicyRefinement.owned p).allowed (File.requirements (request r.request)) = true ∧
+      (PolicyRefinement.owned p).allowed
+        (File.requirements (File.canonicalRequest (resolved r))) = true := by
+  rw [resolved_consume_refines]
+  simp only [Result.ok.injEq]
+  by_cases h : File.resolvedAllowed (PolicyRefinement.owned p) (resolved r) = true
+  · rw [ite_eq_left h]
+    have both : (PolicyRefinement.owned p).allowed (File.requirements (request r.request)) = true ∧
+        (PolicyRefinement.owned p).allowed (File.requirements (File.canonicalRequest (resolved r))) = true := by
+      have both := h
+      simp only [File.resolvedAllowed, Bool.and_eq_true] at both
+      change (PolicyRefinement.owned p).allowed (File.requirements (request r.request)) = true ∧
+        (PolicyRefinement.owned p).allowed (File.requirements (File.canonicalRequest (resolved r))) = true at both
+      exact both
+    constructor
+    · intro same
+      exact ⟨(Option.some.inj same).symm, both.1, both.2⟩
+    · rintro ⟨same, _, _⟩
+      exact congrArg some same.symm
+  · rw [ite_eq_right h]
+    constructor
+    · intro same; cases same
+    · rintro ⟨_, original, canonical⟩
+      exfalso
+      apply h
+      simp only [File.resolvedAllowed, Bool.and_eq_true]
+      exact ⟨original, canonical⟩
+
+theorem extracted_resolved_effects (r : file.Resolved α ρ) (p : policy.Policy)
+    (out : file.Request α × scope.Scope × ρ)
+    (h : file.Resolved.consume r p = ok (some out)) :
+    ∀ cap ∈ File.effects (operation r.request.operation),
+      ((PolicyRefinement.owned p).deniesCap cap = false ∧
+        (PolicyRefinement.owned p).grantsReq ⟨cap, some (PolicyRefinement.decoded r.request.path)⟩ = true) ∧
+      ((PolicyRefinement.owned p).deniesCap cap = false ∧
+        (PolicyRefinement.owned p).grantsReq ⟨cap, some (PolicyRefinement.decoded r.canonical)⟩ = true) := by
+  obtain ⟨_, original, canonical⟩ := (extracted_resolved_iff r p out).mp h
+  intro cap member
+  exact ⟨(File.permission_iff _ _).mp original cap member,
+    (File.permission_iff _ _).mp canonical cap member⟩
+
+theorem extracted_resolved_refused (r : file.Resolved α ρ) (p : policy.Policy)
+    (h : (PolicyRefinement.owned p).allowed (File.requirements (request r.request)) = false ∨
+      (PolicyRefinement.owned p).allowed
+        (File.requirements (File.canonicalRequest (resolved r))) = false) :
+    file.Resolved.consume r p = ok none := by
+  rw [resolved_consume_refines]
+  have refused : File.resolvedAllowed (PolicyRefinement.owned p) (resolved r) = false := by
+    change ((PolicyRefinement.owned p).allowed (File.requirements (request r.request)) &&
+      (PolicyRefinement.owned p).allowed (File.requirements (File.canonicalRequest (resolved r)))) = false
+    rcases h with h | h <;> simp [h]
+  rw [refused]
+  rfl
+
 end MedenSpec.FileRefinement

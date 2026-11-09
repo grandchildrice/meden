@@ -25,7 +25,7 @@ remain stale across finite controller compositions. Model verification, status
 and artifact preparation use this guard before their I/O callbacks. Parsing,
 locking, callback interpretation and physical I/O remain separate obligations.
 The broader obligations below remain proposed. This defines completion criteria for
-[the product architecture](design.md). The current 262 Lean theorem
+[the product architecture](design.md). The current 270 Lean theorem
 entry points, six Kani harnesses and conformance checks are listed in
 [verification.md](verification.md).
 
@@ -282,7 +282,7 @@ proposed product. Extend these checks as each path becomes real. The first
 two now run for processor, export review, evidence, contract management, issued jobs, TUI approval,
 outer/inner conversation, policy-admitted tool invocation, capability policy,
 Unicode scope matching, failure and numeric display kernels,
-including 124 real Rust
+including 130 real Rust
 mutations that must fail unchanged refinement proofs:
 
 1. Re-extract production Rust under pinned toolchains. Fail on unsupported
@@ -312,10 +312,13 @@ Track the remaining trusted base explicitly: accepted human meaning and
 environment assumptions, extraction tools and external models, proof/checker
 kernels, compilers/linkers, platform libraries, OS/isolation, hardware and
 approved external processors. Reduce it incrementally and report changes.
-The Linux file adapter now pins canonical targets and replacement parents
-through restricted `openat2` resolution and live descriptors; deterministic
-substitution tests cover its content operations. Its OS, procfs and temporary
-file semantics remain trusted, and the original-path policy is not yet a
-canonical-target authorization proof. See [the exact boundary](verification.md#physical-file-handles-in-the-linux-worker).
+The Linux file adapter pins canonical targets and replacement parents through
+restricted `openat2` resolution and live descriptors. The core's resolved
+resource check is extracted/refined: it returns the original request/resource
+only when every content effect is permitted at both supplied paths under one
+policy. Model callbacks propagate their admission policy; native tests check
+alias grants and substitutions. The canonical path/handle attribution, policy
+transport, OS, procfs and temporary file semantics remain trusted adapters. See
+[the exact boundary](verification.md#physical-file-handles-in-the-linux-worker).
 A mission-critical example is accepted only when both its project-specific
 chain and Meden's relevant control/effect chain are accounted for.

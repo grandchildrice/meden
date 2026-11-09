@@ -41,9 +41,10 @@ for unit in "${units[@]}"; do
       for method in refused cancelled stopped invalid; do
         rust_roots+=("meden_core::invocation::Error::$method")
       done
-      for method in new prepare into_parts; do
+      for method in new prepare into_parts bind; do
         rust_roots+=("meden_core::file::Request::$method")
       done
+      rust_roots+=(meden_core::file::Resolved::consume)
       extraction_args=(--extract-opaque-bodies --opaque core --opaque alloc --opaque std
         --include core::cmp::impls --include core::option::Option --include core::result::Result
         --include core::clone::impls)
@@ -171,7 +172,7 @@ for unit in "${units[@]}"; do
       policy.allowed policy.violates policy.Policy.impl.denies policy.Policy.impl.grants
       invocation.Attempt.new invocation.Attempt.announce invocation.Attempt.dispatch
       invocation.Error.refused invocation.Error.cancelled invocation.Error.stopped invocation.Error.invalid
-      file.Request.new file.Request.prepare file.Request.into_parts)
+      file.Request.new file.Request.prepare file.Request.into_parts file.Request.bind file.Resolved.consume)
   elif [[ $unit == approval ]]; then
     definitions=(tui.approval.approves tui.approval.route)
   elif [[ $unit == text ]]; then

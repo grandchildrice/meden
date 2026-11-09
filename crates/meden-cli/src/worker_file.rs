@@ -21,14 +21,15 @@ struct FileOperation {
 }
 
 pub fn run() -> Result<()> {
-    let request: Request<Args> = serde_json::from_reader(std::io::stdin().lock())?;
+    let (request, rules): (Request<Args>, meden_core::Policy) =
+        serde_json::from_reader(std::io::stdin().lock())?;
     let (operation, path, payload) = request.into_parts();
     let path = String::from(path);
     let result = FileOperation {
         root: PathBuf::from("/workspace"),
         operation,
     }
-    .execute(Path::new(&path), &payload)?;
+    .execute(Path::new(&path), &payload, &rules)?;
     serde_json::to_writer(std::io::stdout().lock(), &result)?;
     Ok(())
 }
@@ -87,14 +88,51 @@ impl FileOperation {
     }
 
     #[cfg(target_os = "linux")]
-    fn execute(&self, requested: &Path, args: &Args) -> Result<Value, ToolError> {
+    fn execute(
+        &self,
+        requested: &Path,
+        args: &Args,
+        rules: &meden_core::Policy,
+    ) -> Result<Value, ToolError> {
+        let (request, requirements) = Request::new(
+            self.operation,
+            requested
+                .to_str()
+                .ok_or_else(|| ToolError::Failed("requested path is not UTF-8".into()))?
+                .into(),
+            args,
+        )
+        .prepare();
+        if !meden_core::allowed(&requirements, rules) {
+            return Err(ToolError::Failed(
+                "requested file effects are not permitted".into(),
+            ));
+        }
         let path = self.resolve(requested)?;
+        let canonical = path
+            .to_str()
+            .ok_or_else(|| ToolError::Failed("resolved path is not UTF-8".into()))?
+            .into();
         let access = Access::open(&self.root, &path, self.operation)?;
-        self.execute_access(access, args)
+        let (request, _, access) = request
+            .bind(canonical, access)
+            .consume(rules)
+            .ok_or_else(|| ToolError::Failed("resolved file effects are not permitted".into()))?;
+        let (operation, _, args) = request.into_parts();
+        Self {
+            root: self.root.clone(),
+            operation,
+        }
+        .execute_access(access, args)
     }
 
     #[cfg(not(target_os = "linux"))]
-    fn execute(&self, _requested: &Path, _args: &Args) -> Result<Value, ToolError> {
+    fn execute(
+        &self,
+        _requested: &Path,
+        _args: &Args,
+        _rules: &meden_core::Policy,
+    ) -> Result<Value, ToolError> {
         Err(ToolError::Failed(
             "isolated file access requires Linux".into(),
         ))
@@ -105,7 +143,8 @@ impl FileOperation {
         match (self.operation, access) {
             (Operation::Snapshot, Access::File(file)) => {
                 let mut bytes = Vec::new();
-                file.take(1_048_577)
+                pinned::readable(&file)?
+                    .take(1_048_577)
                     .read_to_end(&mut bytes)
                     .map_err(failed)?;
                 if bytes.len() > 1_048_576 {
@@ -122,6 +161,7 @@ impl FileOperation {
                     ));
                 }
                 let mut output = String::new();
+                let file = pinned::readable(&file)?;
                 for (index, line) in BufReader::new(file)
                     .lines()
                     .enumerate()
@@ -178,24 +218,11 @@ impl FileOperation {
                 Access::Replacement {
                     parent,
                     name,
-                    original: Some(mut file),
+                    original: Some(file),
                 },
             ) => {
-                let mut original = String::new();
-                file.read_to_string(&mut original).map_err(failed)?;
-                let old = text(args, "old_text")?;
-                if old.is_empty() || original.matches(old).count() != 1 {
-                    return Err(ToolError::Failed(
-                        "old_text must match exactly once; file was not changed".into(),
-                    ));
-                }
-                let new = text(args, "new_text")?;
-                if old == new {
-                    return Err(ToolError::Failed(
-                        "new_text is identical to old_text; file was not changed".into(),
-                    ));
-                }
-                pinned::atomic_write(&parent, &name, Some(&file), &original.replacen(old, new, 1))?;
+                let content = edited(&file, args)?;
+                pinned::atomic_write(&parent, &name, Some(&file), &content)?;
                 Ok(Value::String("File edited.".into()))
             }
             _ => Err(ToolError::Failed(
@@ -203,6 +230,27 @@ impl FileOperation {
             )),
         }
     }
+}
+
+#[cfg(target_os = "linux")]
+fn edited(file: &fs::File, args: &Args) -> Result<String, ToolError> {
+    let mut original = String::new();
+    pinned::readable(file)?
+        .read_to_string(&mut original)
+        .map_err(failed)?;
+    let old = text(args, "old_text")?;
+    if old.is_empty() || original.matches(old).count() != 1 {
+        return Err(ToolError::Failed(
+            "old_text must match exactly once; file was not changed".into(),
+        ));
+    }
+    let new = text(args, "new_text")?;
+    if old == new {
+        return Err(ToolError::Failed(
+            "new_text is identical to old_text; file was not changed".into(),
+        ));
+    }
+    Ok(original.replacen(old, new, 1))
 }
 
 fn failed(error: impl std::fmt::Display) -> ToolError {
@@ -243,7 +291,12 @@ mod tests {
             root: root.to_owned(),
             operation,
         }
-        .execute(Path::new(&path), &payload)
+        .execute(
+            Path::new(&path),
+            &payload,
+            &meden_core::Policy::from_labels("native worker", &["fs.read", "fs.write"], &[])
+                .expect("test policy"),
+        )
     }
 
     #[test]
@@ -598,6 +651,32 @@ mod tests {
                 .expect("workspace entries")
                 .count(),
             0
+        );
+    }
+
+    #[test]
+    fn a_symlink_to_non_utf8_names_cannot_use_a_lossy_policy_scope() {
+        use std::os::unix::ffi::OsStringExt;
+        let root = tempfile::tempdir().expect("workspace");
+        let name = std::ffi::OsString::from_vec(vec![b'n', 0xff]);
+        fs::write(root.path().join(&name), "private").expect("non-UTF-8 file");
+        std::os::unix::fs::symlink(&name, root.path().join("alias")).expect("alias");
+        for operation in [
+            Operation::Read,
+            Operation::Snapshot,
+            Operation::Write,
+            Operation::Edit,
+        ] {
+            assert!(execute(
+                root.path(),
+                operation,
+                json!({"path":"alias","content":"bad","old_text":"private","new_text":"bad"})
+            )
+            .is_err_and(|e| e.to_string().contains("not UTF-8")));
+        }
+        assert_eq!(
+            fs::read_to_string(root.path().join(name)).expect("unchanged"),
+            "private"
         );
     }
 }

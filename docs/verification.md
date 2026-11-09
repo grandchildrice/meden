@@ -26,7 +26,7 @@ attempt; an older completed run does not cover a newer commit.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, file-request, capability policy, scope matching, failure and display-scalar kernels, `lake build`, proof scan/audit, 124 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, file-request, capability policy, scope matching, failure and display-scalar kernels, `lake build`, proof scan/audit, 130 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A decision differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -627,11 +627,12 @@ Native isolation tests send conflicting operation/path values in payload data
 and inspect the real files and returned bytes. The core integration test
 rejects editing under read-only or write-only grants and admits it under both.
 
-These results concern decoded requested paths. JSON/UTF-8 transport, the boxed
+The declaration results above concern decoded requested paths. The resolved
+resource check below additionally checks canonical names. JSON/UTF-8 transport, the boxed
 executor's capture, OS path resolution, symlinks, concurrent filesystem changes
 and physical effects remain separate correspondence obligations. In particular,
 a scope for a requested pathname is not yet a proof about the inode eventually
-opened. The following guard checks project-context identity; parsing that context
+opened. The project guard further below checks context identity; parsing that context
 into file effects and physical snapshot attribution remain separate. The current
 tests and proofs do not complete CTL-01, the full interface, or R1.
 
@@ -648,10 +649,11 @@ uses [`worker_file/pinned.rs`](../crates/meden-cli/src/worker_file/pinned.rs):
    target with `openat2(RESOLVE_BENEATH | RESOLVE_NO_SYMLINKS)`. A newly introduced
    intermediate symlink fails. A final symlink is either refused by the directory
    open or opened with `O_PATH | O_NOFOLLOW` and refused by its actual inode type.
-3. For reads and snapshots, inspect the pinned inode's type and reopen only that
-   live regular-file descriptor through the worker's private `/proc/self/fd`.
-   For listing, retain the opened directory. For writing/editing, retain the
-   destination parent, basename and original regular-file descriptor when present.
+3. Retain `O_PATH` handles and inspect their inode types without opening file
+   content. The resolved-resource check below must return those held handles
+   before reads or snapshots reopen a regular inode through `/proc/self/fd`,
+   listing opens the directory entries, or replacement creates a temporary file.
+   Writing/editing retain the parent, basename and original inode when present.
 4. Create and persist the replacement via the held parent's descriptor path,
    preserving permissions from the held original. Renaming an existing leaf
    symlink into place after pinning does not cause a write through that symlink.
@@ -661,9 +663,9 @@ uses [`worker_file/pinned.rs`](../crates/meden-cli/src/worker_file/pinned.rs):
 
 The [Linux `openat2` contract](https://man7.org/linux/man-pages/man2/openat2.2.html)
 and [rustix's safe wrapper](https://docs.rs/rustix/1.1.6/rustix/fs/fn.openat2.html)
-are trusted OS/library behavior. First-party code adds no unsafe Rust, assumed
-Lean filesystem primitive or new theorem. The existing 262 audited roots still
-concern their documented pure control kernels.
+are trusted OS/library behavior. First-party code adds no unsafe Rust or assumed
+Lean filesystem primitive. The 270 audited roots concern their documented pure
+control kernels, including the resolved-resource check, rather than Linux internals.
 
 Native adversarial tests deterministically substitute both parents and final
 entries between canonicalization and handle acquisition, including an initially
@@ -675,12 +677,58 @@ the actual isolated CLI worker for all five operations with internal links and
 a real FIFO, and observes its exit status and retained workspace files.
 
 These handles pin object identity, not immutable file contents or a snapshot
-of directory entries. The policy still admits the original decoded pathname;
-it does not independently admit the canonical symlink target. Alias-specific
-policy coverage, concurrent modifications of the same inode or destination
-directory, parent relocation by an outside host and the complete physical
-effect correspondence remain obligations. This improvement does not establish
-whole-application confidentiality or complete R1.
+of directory entries. The correspondence between a canonical name and its
+held handle, hard-link identities, concurrent modifications of the same inode
+or destination directory, parent relocation by an outside host and the complete
+physical effect correspondence remain obligations. This improvement does not
+establish whole-application confidentiality or complete R1.
+
+### Original and resolved file authority
+
+The invocation adapter passes the same immutable `Policy` used for admission to
+the consuming prepared executor. File tools, raw export snapshots and model
+project verification/status/artifact callbacks propagate it to the worker as a
+separate tuple field, outside model arguments. The worker checks the original
+request before filesystem lookup. It then binds the resolved UTF-8 name and
+held `O_PATH` resources with the original operation/path/data into core
+[`Resolved`](../crates/meden-core/src/file.rs). Non-UTF-8 canonical names fail;
+lossy string replacement must not choose the permission scope.
+
+`Resolved::consume` derives the operation's effects at both names and evaluates
+both complete requirement sets against that one actual policy. Only then can
+the caller obtain the original request and held resource. Fields are private;
+there is no unchecked resource getter, cloning, deserialization or input
+allowance bit. Host status and freshness for a host-approved send deliberately
+use the fixed host workspace file policy; model callbacks use their admitted
+policy and have no broad-policy fallback. This host authority is distinct
+from a model proposal.
+
+[`File.lean`](../lean/MedenSpec/File.lean) specifies the two-path rule, and
+[`FileRefinement.lean`](../lean/MedenSpec/FileRefinement.lean) proves the actual
+constructor and consuming implementation from `Generated/Policy.lean`:
+
+| Audited theorem | Checked claim |
+| --- | --- |
+| `File.consume_iff`, `resolved_effects`, `refused_path_empty` | Success returns the exact original request/name/resource; every content effect needs authority at both names; refusal at either name returns no resource |
+| `FileRefinement.bind_refines` | The native constructor preserves the complete supplied request, canonical scalar vector and generic resource |
+| `resolved_consume_refines`, `extracted_resolved_iff` | The actual policy calls, effect construction and return fields implement that rule for every operation and arbitrary well-formed inputs |
+| `extracted_resolved_effects`, `extracted_resolved_refused` | Each native successful result has both grants and no denied effect; failure at either supplied name releases no resource |
+
+Native tests cover all five operations with original-only, canonical-only,
+read-only, write-only, combined and explicit-deny policies. Real worker tests
+check those grants through a directory alias, exact bytes/file changes and
+empty stdout on refusal; a forged policy/path/operation in payload data cannot
+replace the host fields. Another regression checks the prepared executor
+receives the exact admission-policy reference. Compile-fail cases reject a
+resource accessor and reuse after consumption.
+
+Six semantic Rust faults skip either policy check, accept either name, check
+the wrong canonical operation, substitute the alias for the canonical name or
+return another operation. Each must fail its native assertion, extract into a
+compiling model and fail the unchanged refinement. They are part of the
+130-fault CI corpus. JSON/policy serialization, callback interpretation,
+UTF-8/OS decoding and canonical path/handle attribution remain tested adapters;
+these kernel proofs do not establish whole-session physical-effect refinement.
 
 ## Prepared project reads and contract context
 
@@ -953,7 +1001,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with processor/review/dispatch and TUI approval checks, CI rejects
-124 faults, including file-request, contract revision, outer/inner conversation, scope matching, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
+130 faults, including file-request, contract revision, outer/inner conversation, scope matching, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -1039,7 +1087,7 @@ Six additional semantic Rust faults exercise reused revisions, stale review,
 stale acceptance, pending eligibility, discarded accepted state and revived
 evidence after editing. Each must fail its native regression and the unchanged
 refinement after successful extraction/model compilation. They are part of
-the 124-fault CI corpus above.
+the 130-fault CI corpus above.
 
 Formula validation, canonical byte encoding, source/artifact input construction,
 host-origin attribution, JSON decoding, review rendering, locking, physical
@@ -1049,7 +1097,7 @@ session I/O loop or natural-language/formula equivalence.
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 262
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 270
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan

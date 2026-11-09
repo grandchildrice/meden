@@ -107,8 +107,16 @@ structure file.Request (T : Type _) where
   path : scope.Scope
   payload : T
 
+/-- [meden_core::file::Resolved]
+    Source: 'crates/meden-core/src/file.rs', lines 55:0-59:1
+    Visibility: public -/
+structure file.Resolved (T : Type _) (R : Type _) where
+  request : file.Request T
+  canonical : scope.Scope
+  resource : R
+
 /-- [meden_core::file::{meden_core::file::Request<T>}::new]:
-    Source: 'crates/meden-core/src/file.rs', lines 40:4-46:5
+    Source: 'crates/meden-core/src/file.rs', lines 63:4-69:5
     Visibility: public -/
 def file.Request.new
   {T : Type _} (operation : file.Operation) (path : scope.Scope) (payload : T)
@@ -126,7 +134,7 @@ def scope.Scope.Insts.CoreCloneClone.clone
   ok v
 
 /-- [meden_core::file::{meden_core::file::Request<T>}::prepare]:
-    Source: 'crates/meden-core/src/file.rs', lines 49:4-71:5
+    Source: 'crates/meden-core/src/file.rs', lines 72:4-94:5
     Visibility: public -/
 def file.Request.prepare
   {T : Type _} (self : file.Request T) :
@@ -172,13 +180,51 @@ def file.Request.prepare
   else ok ({ self with operation := o }, requirements)
 
 /-- [meden_core::file::{meden_core::file::Request<T>}::into_parts]:
-    Source: 'crates/meden-core/src/file.rs', lines 74:4-76:5
+    Source: 'crates/meden-core/src/file.rs', lines 97:4-99:5
     Visibility: public -/
 def file.Request.into_parts
   {T : Type _} (self : file.Request T) :
   Result (file.Operation × scope.Scope × T)
   := do
   ok (self.operation, self.path, self.payload)
+
+/-- [meden_core::file::{meden_core::file::Request<T>}::bind]:
+    Source: 'crates/meden-core/src/file.rs', lines 103:4-109:5
+    Visibility: public -/
+def file.Request.bind
+  {T : Type _} {R : Type _} (self : file.Request T) (canonical : scope.Scope)
+  (resource : R) :
+  Result (file.Resolved T R)
+  := do
+  ok { request := self, canonical, resource }
+
+/-- [meden_core::policy::Grant]
+    Source: 'crates/meden-core/src/policy.rs', lines 22:0-27:1
+    Visibility: public -/
+structure policy.Grant where
+  capability : capability.Capability
+  scope : Option scope.Scope
+
+/-- [meden_core::policy::Policy]
+    Source: 'crates/meden-core/src/policy.rs', lines 169:0-179:1
+    Visibility: public -/
+structure policy.Policy where
+  «name» : String
+  grants : alloc.vec.Vec policy.Grant
+  denies : alloc.vec.Vec capability.Capability
+
+/-- [meden_core::policy::Refusal]
+    Source: 'crates/meden-core/src/policy.rs', lines 115:0-118:1 -/
+@[discriminant isize]
+inductive policy.Refusal where
+| Denied : policy.Refusal
+| NotGranted : policy.Refusal
+
+/-- [meden_core::policy::Evaluation]
+    Source: 'crates/meden-core/src/policy.rs', lines 143:0-146:1 -/
+structure policy.Evaluation where
+  allowed : Bool
+  refusals : alloc.vec.Vec (Option policy.Refusal)
 
 /-- [meden_core::glob::advance_row]: loop body 0:
     Source: 'crates/meden-core/src/glob.rs', lines 25:4-36:5 -/
@@ -289,85 +335,6 @@ def glob.glob_match_chars
   else
     alloc.vec.Vec.index (core.slice.index.SliceIndexUsizeSlice Bool) row1
       0#usize
-
-/-- [meden_core::invocation::Notice]
-    Source: 'crates/meden-core/src/invocation.rs', lines 6:0-13:1
-    Visibility: public -/
-@[discriminant isize]
-inductive invocation.Notice (F : Type _) where
-| Allowed : invocation.Notice F
-| Refused : F → invocation.Notice F
-| Invalid : invocation.Notice F
-
-/-- [meden_core::invocation::Error]
-    Source: 'crates/meden-core/src/invocation.rs', lines 18:0-18:53
-    Visibility: public -/
-@[reducible]
-def invocation.Error (F : Type _) (S : Type _) :=
-  core.result.Result (Option S) (Option F)
-
-/-- [meden_core::invocation::{meden_core::invocation::Error<F, S>}::refused]:
-    Source: 'crates/meden-core/src/invocation.rs', lines 22:4-24:5
-    Visibility: public -/
-def invocation.Error.refused
-  {F : Type _} (S : Type _) (refusal : F) : Result (invocation.Error F S) := do
-  ok (core.result.Result.Err (some refusal))
-
-/-- [meden_core::invocation::{meden_core::invocation::Error<F, S>}::cancelled]:
-    Source: 'crates/meden-core/src/invocation.rs', lines 26:4-28:5
-    Visibility: public -/
-def invocation.Error.cancelled
-  (F : Type _) (S : Type _) : Result (invocation.Error F S) := do
-  ok (core.result.Result.Ok none)
-
-/-- [meden_core::invocation::{meden_core::invocation::Error<F, S>}::stopped]:
-    Source: 'crates/meden-core/src/invocation.rs', lines 30:4-32:5
-    Visibility: public -/
-def invocation.Error.stopped
-  (F : Type _) {S : Type _} (status : S) : Result (invocation.Error F S) := do
-  ok (core.result.Result.Ok (some status))
-
-/-- [meden_core::invocation::{meden_core::invocation::Error<F, S>}::invalid]:
-    Source: 'crates/meden-core/src/invocation.rs', lines 34:4-36:5
-    Visibility: public -/
-def invocation.Error.invalid
-  (F : Type _) (S : Type _) : Result (invocation.Error F S) := do
-  ok (core.result.Result.Err none)
-
-/-- [meden_core::invocation::Attempt]
-    Source: 'crates/meden-core/src/invocation.rs', lines 57:0-60:1
-    Visibility: public -/
-structure invocation.Attempt (T : Type _) (F : Type _) where
-  checked : Option (core.result.Result T F)
-  announced : Bool
-
-/-- [meden_core::policy::Grant]
-    Source: 'crates/meden-core/src/policy.rs', lines 22:0-27:1
-    Visibility: public -/
-structure policy.Grant where
-  capability : capability.Capability
-  scope : Option scope.Scope
-
-/-- [meden_core::policy::Policy]
-    Source: 'crates/meden-core/src/policy.rs', lines 169:0-179:1
-    Visibility: public -/
-structure policy.Policy where
-  «name» : String
-  grants : alloc.vec.Vec policy.Grant
-  denies : alloc.vec.Vec capability.Capability
-
-/-- [meden_core::policy::Refusal]
-    Source: 'crates/meden-core/src/policy.rs', lines 115:0-118:1 -/
-@[discriminant isize]
-inductive policy.Refusal where
-| Denied : policy.Refusal
-| NotGranted : policy.Refusal
-
-/-- [meden_core::policy::Evaluation]
-    Source: 'crates/meden-core/src/policy.rs', lines 143:0-146:1 -/
-structure policy.Evaluation where
-  allowed : Bool
-  refusals : alloc.vec.Vec (Option policy.Refusal)
 
 /-- [meden_core::scope::{meden_core::scope::Scope}::matches]:
     Source: 'crates/meden-core/src/scope.rs', lines 14:4-16:5
@@ -525,6 +492,80 @@ def policy.allowed
   := do
   let e ← policy.evaluate requirements rules
   ok e.allowed
+
+/-- [meden_core::file::{meden_core::file::Resolved<T, R>}::consume]:
+    Source: 'crates/meden-core/src/file.rs', lines 116:4-124:5
+    Visibility: public -/
+def file.Resolved.consume
+  {T : Type _} {R : Type _} (self : file.Resolved T R) (rules : policy.Policy)
+  :
+  Result (Option ((file.Request T) × scope.Scope × R))
+  := do
+  let (request, declared) ← file.Request.prepare self.request
+  let s ← scope.Scope.Insts.CoreCloneClone.clone self.canonical
+  let r ← file.Request.new request.operation s ()
+  let (_, resolved) ← file.Request.prepare r
+  let s1 := alloc.vec.Vec.deref declared
+  let b ← policy.allowed s1 rules
+  if b
+  then
+    let s2 := alloc.vec.Vec.deref resolved
+    let b1 ← policy.allowed s2 rules
+    if b1
+    then ok (some (request, self.canonical, self.resource))
+    else ok none
+  else ok none
+
+/-- [meden_core::invocation::Notice]
+    Source: 'crates/meden-core/src/invocation.rs', lines 6:0-13:1
+    Visibility: public -/
+@[discriminant isize]
+inductive invocation.Notice (F : Type _) where
+| Allowed : invocation.Notice F
+| Refused : F → invocation.Notice F
+| Invalid : invocation.Notice F
+
+/-- [meden_core::invocation::Error]
+    Source: 'crates/meden-core/src/invocation.rs', lines 18:0-18:53
+    Visibility: public -/
+@[reducible]
+def invocation.Error (F : Type _) (S : Type _) :=
+  core.result.Result (Option S) (Option F)
+
+/-- [meden_core::invocation::{meden_core::invocation::Error<F, S>}::refused]:
+    Source: 'crates/meden-core/src/invocation.rs', lines 22:4-24:5
+    Visibility: public -/
+def invocation.Error.refused
+  {F : Type _} (S : Type _) (refusal : F) : Result (invocation.Error F S) := do
+  ok (core.result.Result.Err (some refusal))
+
+/-- [meden_core::invocation::{meden_core::invocation::Error<F, S>}::cancelled]:
+    Source: 'crates/meden-core/src/invocation.rs', lines 26:4-28:5
+    Visibility: public -/
+def invocation.Error.cancelled
+  (F : Type _) (S : Type _) : Result (invocation.Error F S) := do
+  ok (core.result.Result.Ok none)
+
+/-- [meden_core::invocation::{meden_core::invocation::Error<F, S>}::stopped]:
+    Source: 'crates/meden-core/src/invocation.rs', lines 30:4-32:5
+    Visibility: public -/
+def invocation.Error.stopped
+  (F : Type _) {S : Type _} (status : S) : Result (invocation.Error F S) := do
+  ok (core.result.Result.Ok (some status))
+
+/-- [meden_core::invocation::{meden_core::invocation::Error<F, S>}::invalid]:
+    Source: 'crates/meden-core/src/invocation.rs', lines 34:4-36:5
+    Visibility: public -/
+def invocation.Error.invalid
+  (F : Type _) (S : Type _) : Result (invocation.Error F S) := do
+  ok (core.result.Result.Err none)
+
+/-- [meden_core::invocation::Attempt]
+    Source: 'crates/meden-core/src/invocation.rs', lines 57:0-60:1
+    Visibility: public -/
+structure invocation.Attempt (T : Type _) (F : Type _) where
+  checked : Option (core.result.Result T F)
+  announced : Bool
 
 /-- [meden_core::invocation::{meden_core::invocation::Attempt<T, F>}::new]:
     Source: 'crates/meden-core/src/invocation.rs', lines 65:4-84:5

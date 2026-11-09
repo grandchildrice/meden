@@ -1,5 +1,5 @@
 //! Host-owned tools, JSON schemas and per-call capability requirements.
-use meden_core::Requirement;
+use meden_core::{Policy, Requirement};
 use serde_json::Value;
 use std::collections::BTreeMap;
 use thiserror::Error;
@@ -36,14 +36,14 @@ pub enum ToolError {
     Failed(String),
 }
 
-pub(crate) type Executor<'a> = Box<dyn FnOnce() -> Result<Value, ToolError> + 'a>;
+pub(crate) type Executor<'a> = Box<dyn FnOnce(&Policy) -> Result<Value, ToolError> + 'a>;
 
 /// A frozen host call. Preparation exposes no public execution method;
 /// the conversation must obtain its consuming executor through policy admission.
 ///
 /// ```compile_fail
 /// use meden_agent::tool::Prepared;
-/// let call = Prepared::new(((), vec![]), |()| Ok(serde_json::Value::Null));
+/// let call = Prepared::new(((), vec![]), |(), _| Ok(serde_json::Value::Null));
 /// let (execute, _) = call.into_parts();
 /// execute();
 /// ```
@@ -54,12 +54,14 @@ pub struct Prepared<'a> {
 
 impl<'a> Prepared<'a> {
     /// Bind owned request data and its requirements to a one-use implementation.
+    /// Execution receives the same immutable policy used for admission, so an
+    /// adapter can check additional resource facts observed inside its worker.
     pub fn new<T: 'a>(
         (request, requirements): (T, Vec<Requirement>),
-        execute: impl FnOnce(T) -> Result<Value, ToolError> + 'a,
+        execute: impl FnOnce(T, &Policy) -> Result<Value, ToolError> + 'a,
     ) -> Self {
         Self {
-            execute: Box::new(move || execute(request)),
+            execute: Box::new(move |rules| execute(request, rules)),
             requirements,
         }
     }

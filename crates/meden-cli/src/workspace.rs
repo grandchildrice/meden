@@ -37,15 +37,7 @@ pub fn environment(
         registry.register(Box::new(FileTool { workspace: Arc::clone(workspace), control: Arc::clone(control), sig, operation }));
     }
 
-    let mut policy = Policy::from_labels(
-        "workspace",
-        &[
-            "fs.read[/workspace]",
-            "fs.read[/workspace/*]",
-            "fs.write[/workspace/*]",
-        ],
-        &[],
-    )?;
+    let mut policy = file_policy()?;
     crate::shell::register(
         &mut registry,
         &mut policy,
@@ -53,6 +45,20 @@ pub fn environment(
         Arc::clone(control),
     )?;
     Ok((registry, policy))
+}
+
+/// Host-selected file authority for the managed workspace. Model callbacks
+/// receive their actual admitted policy instead of constructing this policy.
+pub fn file_policy() -> Result<Policy> {
+    Ok(Policy::from_labels(
+        "workspace",
+        &[
+            "fs.read[/workspace]",
+            "fs.read[/workspace/*]",
+            "fs.write[/workspace/*]",
+        ],
+        &[],
+    )?)
 }
 
 pub fn logical_path(path: &str) -> Option<PathBuf> {
@@ -85,15 +91,15 @@ impl Tool for FileTool {
             .ok_or_else(|| ToolError::Failed("path leaves /workspace".into()))?;
         args.remove("path");
         let request = Request::new(self.operation, path.to_string_lossy().as_ref().into(), args);
-        Ok(Prepared::new(request.prepare(), |request| {
-            self.execute(&request)
+        Ok(Prepared::new(request.prepare(), |request, rules| {
+            self.execute(&request, rules)
         }))
     }
 }
 
 impl FileTool {
-    fn execute(&self, request: &Request<Args>) -> Result<Value, ToolError> {
-        let input = serde_json::to_vec(request).map_err(failed)?;
+    fn execute(&self, request: &Request<Args>, rules: &Policy) -> Result<Value, ToolError> {
+        let input = serde_json::to_vec(&(request, rules)).map_err(failed)?;
         let mut command = self.workspace.file_command().map_err(failed)?;
         let output = process::run_with_input(
             &mut command,

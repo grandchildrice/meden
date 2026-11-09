@@ -86,8 +86,19 @@
   the directory descriptor. New symlinks during pinning are refused; later path
   substitutions cannot redirect those handles. Only ENOENT admits a new write
   target. There is no unrestricted fallback. This is tested OS adapter behavior,
-  not an extracted filesystem proof: original-path policy versus canonical-target
-  authority, concurrent inode contents/directory entries and host mutation remain gaps.
+  not an extracted filesystem proof. The actual admitted immutable Policy is
+  passed to prepared executors and serialized separately from model payloads.
+  Workers check the original request before lookup, then bind its canonical
+  UTF-8 path and O_PATH handles into the core Resolved value. Its consuming
+  check derives every operation effect at both paths and evaluates both against
+  that same policy before returning the original request/resource. Binding and
+  consumption are extracted/refined; there is no allowance flag or unchecked
+  resource getter. All model file/snapshot/project/export callbacks propagate
+  that policy. Host status and host-approved delivery freshness use the fixed
+  host workspace file policy. Content descriptors/entry listing/replacement
+  are opened only after the resolved check. JSON/UTF-8 transport, callback and
+  handle/path attribution, hard-link identities, concurrent inode contents/
+  directory entries and host mutation remain adapter obligations.
   Scopes are immutable owned scalar vectors, serialized as ordinary strings.
   Scope.matches uses the extracted/refined Unicode glob kernel. The actual
   owned policy APIs, capability/scope checks, deny precedence, full requirement

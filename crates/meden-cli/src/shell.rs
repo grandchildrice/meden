@@ -47,7 +47,7 @@ impl Tool for Shell {
             None::<&str>,
             "bash.command",
         )];
-        Ok(Prepared::new((args, requirements), |args| {
+        Ok(Prepared::new((args, requirements), |args, _| {
             self.execute(&args)
         }))
     }

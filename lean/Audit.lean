@@ -261,6 +261,14 @@ open MedenSpec
 #print axioms MedenSpec.FileRefinement.prepared_allowed_iff
 #print axioms MedenSpec.FileRefinement.admitted_trace_safe
 #print axioms MedenSpec.FileRefinement.denied_trace_empty
+#print axioms MedenSpec.File.consume_iff
+#print axioms MedenSpec.File.resolved_effects
+#print axioms MedenSpec.File.refused_path_empty
+#print axioms MedenSpec.FileRefinement.bind_refines
+#print axioms MedenSpec.FileRefinement.resolved_consume_refines
+#print axioms MedenSpec.FileRefinement.extracted_resolved_iff
+#print axioms MedenSpec.FileRefinement.extracted_resolved_effects
+#print axioms MedenSpec.FileRefinement.extracted_resolved_refused
 
 #print axioms MedenSpec.Inspection.consume_iff
 #print axioms MedenSpec.Inspection.original_only

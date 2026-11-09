@@ -84,10 +84,14 @@ Confidential tool inputs travel through a private anonymous file on stdin,
 not argv or environment variables. A missing backend fails closed.
 
 The Linux file worker pins canonical targets beneath an opened workspace root
-using restricted `openat2` resolution. Reads use held regular-file descriptors;
-listing and replacement retain directory handles. Tests substitute parents and
-leaves before and after pinning and check actual effects. This does not freeze
-concurrent file contents or prove canonical-target policy coverage; see
+using restricted `openat2` resolution. The core's extracted/refined consuming
+check requires every content effect at both the requested and canonical path
+under the same supplied policy before returning its owned resource. Prepared
+model callbacks propagate their actual admission policy separately from model
+arguments; payload text cannot supply it. Reads then use held regular-file
+descriptors; listing and replacement retain directory handles. Tests check
+restricted alias grants and substitute parents/leaves before and after pinning.
+This does not freeze concurrent contents or prove physical path/handle attribution; see
 [the physical file boundary](docs/verification.md#physical-file-handles-in-the-linux-worker).
 
 The host-selected worker executable, toolchain/libraries, workspace storage

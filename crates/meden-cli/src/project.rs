@@ -385,13 +385,19 @@ impl Project {
             .state
             .lock()
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
-        self.current_status_locked(&mut state, workspace, control)
+        self.current_status_locked(
+            &mut state,
+            workspace,
+            control,
+            &crate::workspace::file_policy()?,
+        )
     }
     fn current_status_locked(
         &self,
         state: &mut State,
         workspace: &Workspace,
         control: &Control,
+        rules: &Policy,
     ) -> Result<Summary> {
         let result = (|| {
             if state.contracts.pending() || state.contracts.is_active() {
@@ -412,7 +418,7 @@ impl Project {
             let current = Self::binding(
                 &agreement,
                 &artifact.report,
-                &snapshot(workspace, agreement.contract.source(), control)?,
+                &snapshot(workspace, agreement.contract.source(), control, rules)?,
             )?;
             let verified = state.contracts.refresh(
                 Origin::Controller,
@@ -474,9 +480,10 @@ impl Project {
         access: Access,
         workspace: &Workspace,
         control: &Control,
+        rules: &Policy,
     ) -> Result<Summary> {
         self.with_access(access, |state, _| {
-            self.current_status_locked(state, workspace, control)
+            self.current_status_locked(state, workspace, control, rules)
         })
         .map_err(|error| self.status_failure(error).into())
     }
@@ -497,6 +504,7 @@ impl Project {
         workspace: &Workspace,
         control: &Control,
         target: &str,
+        rules: &Policy,
     ) -> Result<Export> {
         anyhow::ensure!(
             self.matches(workspace.path()),
@@ -504,7 +512,7 @@ impl Project {
         );
         self.with_access(access, |state, _| {
             anyhow::ensure!(
-                self.current_status_locked(state, workspace, control)?
+                self.current_status_locked(state, workspace, control, rules)?
                     .verified,
                 "artifact export requires current complete project verification"
             );
@@ -554,7 +562,12 @@ impl Project {
             .state
             .lock()
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
-        self.current_status_locked(&mut state, workspace, control)?;
+        self.current_status_locked(
+            &mut state,
+            workspace,
+            control,
+            &crate::workspace::file_policy()?,
+        )?;
         Ok(control.with_active(|| {
             export.send(
                 &state.contracts,
@@ -627,8 +640,9 @@ impl Project {
         access: Access,
         workspace: &Workspace,
         control: &Control,
+        rules: &Policy,
     ) -> Result<Summary> {
-        let result = self.verify_current(access, workspace, control);
+        let result = self.verify_current(access, workspace, control, rules);
         if let Err(error) = &result {
             let kind = error
                 .downcast_ref::<Failure>()
@@ -642,6 +656,7 @@ impl Project {
         access: Access,
         workspace: &Workspace,
         control: &Control,
+        rules: &Policy,
     ) -> Result<Summary> {
         let agreement = self.with_access(access, |state, agreement| {
             anyhow::ensure!(
@@ -654,7 +669,7 @@ impl Project {
             state.failure = None;
             Ok(agreement)
         })?;
-        let source = snapshot(workspace, agreement.contract.source(), control)?;
+        let source = snapshot(workspace, agreement.contract.source(), control, rules)?;
         let bundle = self.bundle()?;
         let prepared = kernel::prepare_kernel(
             &source,
@@ -681,7 +696,7 @@ impl Project {
                     })
             })?
         };
-        let result = self.run_job(prepared, &agreement, &ticket, workspace, control);
+        let result = self.run_job(prepared, &agreement, &ticket, workspace, control, rules);
         if result.is_err() {
             if let Ok(mut state) = self.state.lock() {
                 state.contracts.abort(Origin::Controller, &ticket);
@@ -696,9 +711,10 @@ impl Project {
         ticket: &CheckTicket,
         workspace: &Workspace,
         control: &Control,
+        rules: &Policy,
     ) -> Result<Summary> {
         let checked = prepared.check(control)?;
-        let fresh = snapshot(workspace, agreement.contract.source(), control)?;
+        let fresh = snapshot(workspace, agreement.contract.source(), control, rules)?;
         let mut inputs = checked.inputs();
         inputs.source_sha256 = hash(fresh.as_bytes());
         let subject = Self::binding(agreement, checked.report(), &fresh)?;
@@ -745,7 +761,12 @@ fn hash(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 
-fn snapshot(workspace: &Workspace, path: &str, control: &Control) -> Result<String> {
+fn snapshot(
+    workspace: &Workspace,
+    path: &str,
+    control: &Control,
+    rules: &Policy,
+) -> Result<String> {
     let resolved =
         crate::workspace::logical_path(path).context("kernel source leaves /workspace")?;
     let request = meden_core::file::Request::new(
@@ -753,7 +774,7 @@ fn snapshot(workspace: &Workspace, path: &str, control: &Control) -> Result<Stri
         resolved.to_string_lossy().as_ref().into(),
         Args::new(),
     );
-    let input = serde_json::to_vec(&request)?;
+    let input = serde_json::to_vec(&(request, rules))?;
     let output = process::run_with_input(
         &mut workspace.file_command().map_err(Failure::unavailable)?,
         &input,
@@ -839,7 +860,7 @@ impl Tool for ProjectTool {
         }
         Ok(Prepared::new(
             ((args, access), requirements),
-            |(args, access)| self.execute(&args, access),
+            |(args, access), rules| self.execute(&args, access, rules),
         ))
     }
 }
@@ -849,6 +870,7 @@ impl ProjectTool {
         &self,
         args: &Args,
         access: Option<Access>,
+        rules: &Policy,
     ) -> std::result::Result<Value, ToolError> {
         let result = (|| -> Result<Summary> {
             match self.operation {
@@ -867,10 +889,11 @@ impl ProjectTool {
                             self.project.accepted(),
                             "verification requires a host-accepted contract; call propose_contract with the mathematical contract first, then pause for host review. This call did not start a checker or create evidence"
                         );
-                        self.project.verify(access, &self.workspace, &self.control)
+                        self.project
+                            .verify(access, &self.workspace, &self.control, rules)
                     } else {
                         self.project
-                            .status_access(access, &self.workspace, &self.control)
+                            .status_access(access, &self.workspace, &self.control, rules)
                     }
                 }
             }

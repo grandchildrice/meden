@@ -8,7 +8,7 @@ use anyhow::{Context, Result};
 use meden_agent::tool::{Args, Prepared as ToolPrepared, Tool, ToolError, ToolSig};
 use meden_agent::Registry;
 use meden_core::file::{Operation as FileOperation, Request as FileRequest};
-use meden_core::{Capability, Requirement};
+use meden_core::{Capability, Policy, Requirement};
 use meden_runtime::process::{self, Control, Limits, Termination};
 use meden_runtime::transfer::Export;
 use meden_runtime::workspace::Workspace;
@@ -255,11 +255,17 @@ impl Tool for Propose {
             requirements.push(Requirement::new(Capability::ProcessSpawn, None));
             return Ok(ToolPrepared::new(
                 ((target, access), requirements),
-                |(target, access)| {
+                |(target, access), rules| {
                     let result = self
                         .queue
                         .project
-                        .prepare_artifact_export(access, &self.workspace, &self.control, &target)
+                        .prepare_artifact_export(
+                            access,
+                            &self.workspace,
+                            &self.control,
+                            &target,
+                            rules,
+                        )
                         .and_then(|export| {
                             self.queue
                                 .propose("verified project kernel package", export)
@@ -281,7 +287,7 @@ impl Tool for Propose {
                 .prepare();
         Ok(ToolPrepared::new(
             ((request, source, target), requirements),
-            |(request, source, target)| self.snapshot(&request, &source, &target),
+            |(request, source, target), rules| self.snapshot(&request, &source, &target, rules),
         ))
     }
 }
@@ -292,9 +298,10 @@ impl Propose {
         request: &FileRequest<Args>,
         source: &str,
         target: &str,
+        rules: &Policy,
     ) -> Result<Value, ToolError> {
         let result = (|| -> Result<Summary> {
-            let input = serde_json::to_vec(request)?;
+            let input = serde_json::to_vec(&(request, rules))?;
             let output = process::run_with_input(
                 &mut self.workspace.file_command()?,
                 &input,

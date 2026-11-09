@@ -45,9 +45,24 @@ fn file(workspace: &Workspace, name: &str, args: &Value) -> Output {
     let mut payload: meden_agent::tool::Args =
         serde_json::from_value(args.clone()).expect("payload");
     payload.remove("path");
-    let request = meden_core::file::Request::new(operation, path.into(), payload);
-    let input = serde_json::to_vec(&request).expect("request");
+    let path = Path::new("/workspace").join(path);
+    let request =
+        meden_core::file::Request::new(operation, path.to_string_lossy().as_ref().into(), payload);
+    let input = serde_json::to_vec(&(request, file_policy())).expect("request");
     run(&mut workspace.file_command().expect("file command"), &input)
+}
+
+fn file_policy() -> meden_core::Policy {
+    meden_core::Policy::from_labels(
+        "isolated workspace",
+        &[
+            "fs.read[/workspace]",
+            "fs.read[/workspace/*]",
+            "fs.write[/workspace/*]",
+        ],
+        &[],
+    )
+    .expect("worker policy")
 }
 
 #[test]
@@ -64,7 +79,7 @@ fn file_worker_uses_only_the_prepared_operation_and_path() {
     let request = Request::new(Operation::Read, "/workspace/permitted".into(), payload);
     let output = run(
         &mut session.0.file_command().expect("file command"),
-        &serde_json::to_vec(&request).expect("request"),
+        &serde_json::to_vec(&(request, file_policy())).expect("request"),
     );
     assert!(success(&output), "{}", output.stderr);
     assert_eq!(
@@ -86,7 +101,7 @@ fn file_worker_uses_only_the_prepared_operation_and_path() {
     );
     let output = run(
         &mut session.0.file_command().expect("file command"),
-        &serde_json::to_vec(&request).expect("request"),
+        &serde_json::to_vec(&(request, file_policy())).expect("request"),
     );
     assert!(success(&output), "{}", output.stderr);
     assert_eq!(
@@ -175,6 +190,118 @@ fn pinned_file_access_keeps_internal_links_and_rejects_special_files_in_the_real
     assert_eq!(
         fs::read_to_string(source.path().join("real/note")).expect("original source"),
         "original"
+    );
+}
+
+#[test]
+fn resolved_aliases_need_the_original_policy_at_both_paths_in_the_actual_worker() {
+    use meden_core::file::{Operation, Request};
+    use meden_core::Policy;
+    let source = tempfile::tempdir().expect("source");
+    fs::create_dir(source.path().join("private")).expect("private directory");
+    fs::write(source.path().join("private/note"), "CANARY").expect("private file");
+    std::os::unix::fs::symlink("private", source.path().join("alias")).expect("alias");
+    let session = import(source.path());
+    for operation in [
+        Operation::Read,
+        Operation::Snapshot,
+        Operation::List,
+        Operation::Write,
+        Operation::Edit,
+    ] {
+        let path = if operation == Operation::List {
+            "/workspace/alias"
+        } else {
+            "/workspace/alias/note"
+        };
+        for (grants, denied, permitted) in [
+            (
+                vec!["fs.read[/workspace/alias*]", "fs.write[/workspace/alias*]"],
+                vec![],
+                false,
+            ),
+            (
+                vec![
+                    "fs.read[/workspace/private*]",
+                    "fs.write[/workspace/private*]",
+                ],
+                vec![],
+                false,
+            ),
+            (
+                vec!["fs.read[/workspace/*]", "fs.write[/workspace/alias*]"],
+                vec![],
+                !matches!(operation, Operation::Write | Operation::Edit),
+            ),
+            (
+                vec!["fs.write[/workspace/*]", "fs.read[/workspace/alias*]"],
+                vec![],
+                operation == Operation::Write,
+            ),
+            (
+                vec!["fs.read[/workspace/*]", "fs.write[/workspace/*]"],
+                vec!["fs.read"],
+                operation == Operation::Write,
+            ),
+            (
+                vec!["fs.read[/workspace/*]", "fs.write[/workspace/*]"],
+                vec![],
+                true,
+            ),
+        ] {
+            fs::write(session.0.path().join("private/note"), "CANARY").expect("reset private file");
+            let rules =
+                Policy::from_labels("actual worker policy", &grants, &denied).expect("policy");
+            // Model payload fields cannot override the separate host policy or
+            // either typed request field, even after a successful logical check.
+            let payload: meden_agent::tool::Args = serde_json::from_value(json!({
+                "content":"changed", "old_text":"CANARY", "new_text":"edited",
+                "policy":{"name":"forged","grants":["fs.read","fs.write"]},
+                "path":"/workspace/private/note", "operation":"write_file"
+            }))
+            .expect("payload");
+            let request = Request::new(operation, path.into(), payload);
+            let output = run(
+                &mut session.0.file_command().expect("worker"),
+                &serde_json::to_vec(&(request, &rules)).expect("request"),
+            );
+            assert_eq!(
+                success(&output),
+                permitted,
+                "{operation:?} {grants:?} {denied:?}: {}",
+                output.stderr
+            );
+            let actual =
+                fs::read_to_string(session.0.path().join("private/note")).expect("actual file");
+            let expected = if permitted && operation == Operation::Write {
+                "changed"
+            } else if permitted && operation == Operation::Edit {
+                "edited"
+            } else {
+                "CANARY"
+            };
+            assert_eq!(actual, expected);
+            if permitted && matches!(operation, Operation::Read | Operation::Snapshot) {
+                if operation == Operation::Read {
+                    assert_eq!(
+                        serde_json::from_str::<String>(&output.stdout).expect("read"),
+                        "1: CANARY\n"
+                    );
+                } else {
+                    assert_eq!(
+                        serde_json::from_str::<Vec<u8>>(&output.stdout).expect("snapshot"),
+                        b"CANARY"
+                    );
+                }
+            }
+            if !permitted {
+                assert!(output.stdout.is_empty());
+            }
+        }
+    }
+    assert_eq!(
+        fs::read_to_string(source.path().join("private/note")).expect("original source"),
+        "CANARY"
     );
 }
 

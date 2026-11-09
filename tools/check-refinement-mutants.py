@@ -11,6 +11,48 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 GROUPS = [
     {
+        "source": "crates/meden-core/src/file.rs",
+        "package": "meden-core",
+        "model": "Policy",
+        "proof": "FileRefinement",
+        "prerequisites": ["PolicyRefinement", "InvocationRefinement"],
+        "test": "file::tests::resolved_resources_need_both_original_and_canonical_authority",
+        "mutations": [
+            (
+                "resolved_ignores_original_authority",
+                "allowed(&declared, rules) && allowed(&resolved, rules)",
+                "(allowed(&declared, rules) || true) && allowed(&resolved, rules)",
+            ),
+            (
+                "resolved_ignores_canonical_authority",
+                "allowed(&declared, rules) && allowed(&resolved, rules)",
+                "allowed(&declared, rules) && (allowed(&resolved, rules) || true)",
+            ),
+            (
+                "resolved_accepts_either_path",
+                "allowed(&declared, rules) && allowed(&resolved, rules)",
+                "allowed(&declared, rules) || allowed(&resolved, rules)",
+            ),
+            (
+                "resolved_checks_wrong_operation",
+                "Request::new(request.operation, self.canonical.clone(), ())",
+                "Request::new(Operation::Read, self.canonical.clone(), ())",
+            ),
+            (
+                "resolved_replaces_canonical_with_alias",
+                "pub fn bind<R>(self, canonical: Scope, resource: R) -> Resolved<T, R> {",
+                "pub fn bind<R>(self, canonical: Scope, resource: R) -> Resolved<T, R> {\n"
+                "        let _ = canonical; let canonical = self.path.clone();",
+            ),
+            (
+                "resolved_returns_another_operation",
+                "Some((request, self.canonical, self.resource))",
+                "{ let mut changed = request; changed.operation = Operation::Read; "
+                "Some((changed, self.canonical, self.resource)) }",
+            ),
+        ],
+    },
+    {
         "kernel": "evidence",
         "model": "Evidence",
         "proof": "InspectionRefinement",
