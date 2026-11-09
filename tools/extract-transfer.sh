@@ -81,6 +81,9 @@ for unit in "${units[@]}"; do
         meden_agent::flow::Flow::reply
         meden_agent::flow::Flow::result
         meden_agent::flow::Flow::into_outcome
+        meden_agent::invocation::Attempt::new
+        meden_agent::invocation::Attempt::announce
+        meden_agent::invocation::Attempt::dispatch
         meden_agent::conversation::Status::inspection)
       model=Conversation ;;
     text)
@@ -153,6 +156,7 @@ for unit in "${units[@]}"; do
     definitions=(flow.Flow.begin flow.interrupt flow.Flow.advance
       flow.Flow.pending_call flow.Flow.impl.reply flow.Flow.impl.result
       flow.Flow.into_outcome conversation.Status.inspection)
+    definitions+=(invocation.Attempt.new invocation.Attempt.announce invocation.Attempt.dispatch)
   fi
   for definition in "${definitions[@]}"; do
     if ! awk -v name="$definition" '$1 == "def" && $2 == name { found = 1 }

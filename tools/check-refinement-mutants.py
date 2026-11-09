@@ -11,6 +11,41 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 GROUPS = [
     {
+        "source": "crates/meden-agent/src/invocation.rs",
+        "package": "meden-agent",
+        "model": "Conversation",
+        "proof": "InvocationRefinement",
+        "prerequisites": ["ConversationRefinement"],
+        "test": "invocation::tests::notification_stop_exact_payload_and_consumption_share_one_controller",
+        "mutations": [
+            (
+                "invocation_without_notification",
+                "if !self.announced {",
+                "if !self.announced && false {",
+            ),
+            (
+                "repeated_notification_retains_invocation",
+                "self.checked = None;",
+                "let _ = &self.checked;",
+            ),
+            (
+                "invocation_ignores_cancellation",
+                "interrupt(cancelled, host_stop)",
+                "interrupt(cancelled && false, host_stop)",
+            ),
+            (
+                "invocation_ignores_host_stop",
+                "interrupt(cancelled, host_stop)",
+                "interrupt(cancelled, { let _ = host_stop; None })",
+            ),
+            (
+                "invocation_reclassifies_refusal",
+                "Err(ExecutionError::Refused(refusal.reason))",
+                "{ let _ = refusal.reason; Err(ExecutionError::Stopped(Status::Incomplete)) }",
+            ),
+        ],
+    },
+    {
         "kernel": "evidence",
         "model": "Evidence",
         "proof": "DeliveryRefinement",

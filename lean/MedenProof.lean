@@ -10,5 +10,6 @@ import MedenSpec.ContractsTrace
 import MedenSpec.ConversationTrace
 import MedenSpec.TextRefinement
 import MedenSpec.DeliveryRefinement
+import MedenSpec.InvocationRefinement
 
 /-! Proof-only entry point: keep extraction dependencies out of the oracle. -/

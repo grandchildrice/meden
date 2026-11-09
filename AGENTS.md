@@ -50,6 +50,14 @@
   it owns the original reply/call vector, cursor and typed result. Its
   request budget, latched stops and call/result observations are checked
   separately from JSON history, model transport and physical dispatch.
+  Tool execution and controller-owned checker calls share the extracted
+  invocation controller. It freezes the selected implementation reference
+  and argument map, requires a permitting notification, consumes preparation
+  on every dispatch attempt and checks cancellation/host stop after notification.
+  Generic payload/notification observations and arbitrary finite compositions
+  are refined, including exact single-use payloads and notification precedence.
+  Registry/JSON/policy preparation, observer interpretation, physical stop
+  attribution, trait implementations and I/O remain adapter obligations.
   Typed verification-failure classification and repair-stop decisions are
   extracted/refined; I/O mapping, host-stop attribution and history remain tested
   adapters. Operational failures stop automatic repair until a new host turn.

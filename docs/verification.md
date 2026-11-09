@@ -26,7 +26,7 @@ attempt; an older completed run does not cover a newer commit.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, failure and display-scalar kernels, `lake build`, proof scan/audit, 90 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, failure and display-scalar kernels, `lake build`, proof scan/audit, 95 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A decision differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -526,6 +526,54 @@ the complete session I/O loop. Call positions retain the IDs supplied by the
 model; this does not assert that those IDs are unique. Confidentiality still
 requires the separate operating-system and outbound-adapter argument.
 
+## Prepared tool invocation
+
+Model-selected tools, the outer controller's `verify_project` call and
+one-shot `meden exec` use the same `execute` function. It prepares the selected host implementation
+reference and owned argument map once, then places that pair in
+[`Attempt<T>`](../crates/meden-agent/src/invocation.rs). The decision observer
+receives the prepared validation result before dispatch. This is an existing
+policy-decision notification, not another user-approval interaction.
+Cancellation and the host stop are read again after an allowed notification.
+The implementation is called only with the pair returned by `Attempt.dispatch`;
+there is no second tool lookup or argument decode after permission.
+
+[`Invocation.lean`](../lean/MedenSpec/Invocation.lean) specifies notification,
+resolution and the consumed preparation. The actual generic Rust constructors
+and methods are extracted into the shared `Generated/Conversation.lean` unit.
+[`InvocationRefinement.lean`](../lean/MedenSpec/InvocationRefinement.lean)
+connects all represented states and arbitrary finite method compositions to
+that specification, for every payload type. Thus its exact-payload claim
+applies to the complete implementation-reference/argument-map pair, rather
+than a replacement call ID or a boolean grant alone.
+
+| Audited theorem | Checked claim |
+| --- | --- |
+| `Invocation.dispatch_iff` | Success requires a notified, successful preparation and no cancellation or host stop |
+| `Invocation.dispatch_consumes` | Every dispatch attempt removes the queued preparation, including denied, stopped and malformed attempts |
+| `Invocation.trace_exact` | Returned payloads and any retained preparation form a sublist of the original payload; the controller cannot substitute or duplicate it |
+| `Invocation.trace_budget` | Dispatches plus remaining notification credit never exceed prior credit and allowed notifications |
+| `Invocation.trace_safe` | From initialization, every finite prefix returns at most one original successful preparation, after an allowed notification |
+| `InvocationRefinement.new_refines` | The actual generic constructor freezes the supplied preparation without announcing it |
+| `InvocationRefinement.announce_refines` | Actual notices, refusal kind/text and complete resulting state agree; repeated notification discards preparation |
+| `InvocationRefinement.dispatch_refines` | Actual permission/refusal/stop result and complete resulting state agree |
+| `InvocationRefinement.one_refines` | Either actual method agrees with the corresponding specified operation |
+| `InvocationRefinement.trace_refines` | Arbitrary finite compositions agree on final state, exact returned payloads and allowed-notification count |
+| `InvocationRefinement.extracted_safe` | The actual initialized controller inherits exact single-use payloads and notification precedence, including malformed method order |
+| `InvocationRefinement.extracted_dispatch_condition` | Every actual successful dispatch requires the same notified preparation and clear stop observations |
+
+Five native/extraction/proof mutations remove notification, repeated-notice
+invalidation, cancellation, host stop or the original refusal classification.
+Native integration tests also raise cancellation/host stops inside the actual
+decision observer and check that the immediately following tool never runs.
+
+Preparation still includes registry lookup, JSON/schema handling and the
+capability decision. Their correctness, notification interpretation/labels,
+physical stop attribution, trait implementations and I/O are separate
+obligations. A proof that the controller returns the selected pair does not
+prove the tool's effects or concurrent external state. It does not establish
+whole-session/interface correspondence or full confidentiality.
+
 ## Typed verification failures and stopping repair
 
 The shared runtime's [failure kernel](../crates/meden-runtime/src/verification/failure.rs)
@@ -740,7 +788,7 @@ freshness, evidence-kind matching, position matching, reset on changed input,
 current-subject delivery matching, active-job admission or review-before-accept. Each must fail
 the Rust regression test, regenerate a compiling model and fail the unchanged
 refinement proof. Combined with processor/review/dispatch and TUI approval checks, CI rejects
-90 faults, including contract revisions, outer/inner conversation, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
+95 faults, including contract revisions, outer/inner conversation, failure-classification, issued-job and completion faults. Timeouts, exhausted proof
 resources, unknown identifiers and missing modules do not count as semantic
 rejection. All source/model pairs are
 restored and normal combined proofs rebuilt afterwards.
@@ -827,7 +875,7 @@ Six additional semantic Rust faults exercise reused revisions, stale review,
 stale acceptance, pending eligibility, discarded accepted state and revived
 evidence after editing. Each must fail its native regression and the unchanged
 refinement after successful extraction/model compilation. They are part of
-the 90-fault CI corpus above.
+the 95-fault CI corpus above.
 
 Formula validation, canonical byte encoding, source/artifact input construction,
 host-origin attribution, JSON decoding, review rendering, locking, physical
@@ -837,7 +885,7 @@ session I/O loop or natural-language/formula equivalence.
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 189
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 201
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan

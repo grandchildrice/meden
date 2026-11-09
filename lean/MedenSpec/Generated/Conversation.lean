@@ -21,28 +21,28 @@ set_option maxRecDepth 2048
 namespace MedenConversationImpl
 
 /-- [meden_agent::conversation::FunctionCall]
-    Source: 'crates/meden-agent/src/conversation.rs', lines 27:0-32:1
+    Source: 'crates/meden-agent/src/conversation.rs', lines 28:0-33:1
     Visibility: public -/
 structure conversation.FunctionCall where
   «name» : String
   arguments : String
 
 /-- [meden_agent::conversation::ToolCall]
-    Source: 'crates/meden-agent/src/conversation.rs', lines 18:0-23:1
+    Source: 'crates/meden-agent/src/conversation.rs', lines 19:0-24:1
     Visibility: public -/
 structure conversation.ToolCall where
   id : String
   function : conversation.FunctionCall
 
 /-- [meden_agent::conversation::Reply]
-    Source: 'crates/meden-agent/src/conversation.rs', lines 36:0-42:1
+    Source: 'crates/meden-agent/src/conversation.rs', lines 37:0-43:1
     Visibility: public -/
 structure conversation.Reply where
   content : Option String
   tool_calls : alloc.vec.Vec conversation.ToolCall
 
 /-- [meden_agent::conversation::Status]
-    Source: 'crates/meden-agent/src/conversation.rs', lines 112:0-123:1
+    Source: 'crates/meden-agent/src/conversation.rs', lines 113:0-124:1
     Visibility: public -/
 @[discriminant isize]
 inductive conversation.Status where
@@ -53,7 +53,7 @@ inductive conversation.Status where
 | NeedsReview : conversation.Status
 
 /-- [meden_agent::conversation::{meden_agent::conversation::Status}::inspection]:
-    Source: 'crates/meden-agent/src/conversation.rs', lines 128:4-134:5
+    Source: 'crates/meden-agent/src/conversation.rs', lines 129:4-135:5
     Visibility: public -/
 def conversation.Status.inspection
   (self : conversation.Status) : Result (Option Bool) := do
@@ -65,7 +65,7 @@ def conversation.Status.inspection
   | conversation.Status.NeedsReview => ok none
 
 /-- [meden_agent::conversation::ExecutionError]
-    Source: 'crates/meden-agent/src/conversation.rs', lines 139:0-146:1
+    Source: 'crates/meden-agent/src/conversation.rs', lines 140:0-147:1
     Visibility: public -/
 @[discriminant isize]
 inductive conversation.ExecutionError where
@@ -543,5 +543,95 @@ def flow.Flow.into_outcome (self : flow.Flow) : Result flow.FlowOutcome := do
       let (o1, _) := core.option.Option.take self.reply.content
       ok (flow.FlowOutcome.Finish o1)
   | some status => ok (flow.FlowOutcome.Stopped status)
+
+/-- [meden_agent::invocation::Rule]
+    Source: 'crates/meden-agent/src/invocation.rs', lines 9:0-14:1 -/
+@[discriminant isize]
+inductive invocation.Rule where
+| UnknownTool : invocation.Rule
+| InvalidArguments : invocation.Rule
+| MissingArgument : invocation.Rule
+| Policy : invocation.Rule
+
+/-- [meden_agent::invocation::Refusal]
+    Source: 'crates/meden-agent/src/invocation.rs', lines 27:0-30:1 -/
+structure invocation.Refusal where
+  rule : invocation.Rule
+  reason : String
+
+/-- [meden_agent::invocation::Notice]
+    Source: 'crates/meden-agent/src/invocation.rs', lines 32:0-36:1 -/
+@[discriminant isize]
+inductive invocation.Notice where
+| Allowed : invocation.Notice
+| Refused : invocation.Refusal → invocation.Notice
+| Invalid : invocation.Notice
+
+/-- [meden_agent::invocation::Attempt]
+    Source: 'crates/meden-agent/src/invocation.rs', lines 39:0-42:1 -/
+structure invocation.Attempt (T : Type _) where
+  checked : Option (core.result.Result T invocation.Refusal)
+  announced : Bool
+
+/-- [meden_agent::invocation::{meden_agent::invocation::Attempt<T>}::new]:
+    Source: 'crates/meden-agent/src/invocation.rs', lines 45:4-50:5 -/
+def invocation.Attempt.new
+  {T : Type _} (checked : core.result.Result T invocation.Refusal) :
+  Result (invocation.Attempt T)
+  := do
+  ok { checked := (some checked), announced := false }
+
+/-- [meden_agent::invocation::{meden_agent::invocation::Attempt<T>}::announce]:
+    Source: 'crates/meden-agent/src/invocation.rs', lines 52:4-63:5 -/
+def invocation.Attempt.announce
+  {T : Type _} (self : invocation.Attempt T) :
+  Result (invocation.Notice × (invocation.Attempt T))
+  := do
+  if self.announced
+  then ok (invocation.Notice.Invalid, { self with checked := none })
+  else
+    match self.checked with
+    | none =>
+      ok (invocation.Notice.Invalid, { checked := none, announced := true })
+    | some r =>
+      match r with
+      | core.result.Result.Ok _ =>
+        ok (invocation.Notice.Allowed,
+          { checked := self.checked, announced := true })
+      | core.result.Result.Err refusal =>
+        ok (invocation.Notice.Refused refusal,
+          { checked := self.checked, announced := true })
+
+/-- [meden_agent::invocation::{meden_agent::invocation::Attempt<T>}::dispatch]:
+    Source: 'crates/meden-agent/src/invocation.rs', lines 65:4-82:5 -/
+def invocation.Attempt.dispatch
+  {T : Type _} (self : invocation.Attempt T) (cancelled : Bool)
+  (host_stop : Option conversation.Status) :
+  Result ((core.result.Result T conversation.ExecutionError) ×
+    (invocation.Attempt T))
+  := do
+  let (checked, o) := core.option.Option.take self.checked
+  if self.announced
+  then
+    match checked with
+    | none =>
+      ok (core.result.Result.Err (conversation.ExecutionError.Stopped
+        conversation.Status.Incomplete), { self with checked := o })
+    | some r =>
+      match r with
+      | core.result.Result.Ok request =>
+        let o1 ← flow.interrupt cancelled host_stop
+        match o1 with
+        | none =>
+          ok (core.result.Result.Ok request, { self with checked := o })
+        | some status =>
+          ok (core.result.Result.Err (conversation.ExecutionError.Stopped
+            status), { self with checked := o })
+      | core.result.Result.Err refusal =>
+        ok (core.result.Result.Err (conversation.ExecutionError.Refused
+          refusal.reason), { self with checked := o })
+  else
+    ok (core.result.Result.Err (conversation.ExecutionError.Stopped
+      conversation.Status.Incomplete), { self with checked := o })
 
 end MedenConversationImpl

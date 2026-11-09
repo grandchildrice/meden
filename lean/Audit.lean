@@ -199,3 +199,16 @@ open MedenSpec
 #print axioms MedenSpec.TextRefinement.extracted_scalar
 #print axioms MedenSpec.TextRefinement.stream_refines
 #print axioms MedenSpec.TextRefinement.stream_safe
+
+#print axioms MedenSpec.Invocation.dispatch_iff
+#print axioms MedenSpec.Invocation.dispatch_consumes
+#print axioms MedenSpec.Invocation.trace_exact
+#print axioms MedenSpec.Invocation.trace_budget
+#print axioms MedenSpec.Invocation.trace_safe
+#print axioms MedenSpec.InvocationRefinement.new_refines
+#print axioms MedenSpec.InvocationRefinement.announce_refines
+#print axioms MedenSpec.InvocationRefinement.dispatch_refines
+#print axioms MedenSpec.InvocationRefinement.one_refines
+#print axioms MedenSpec.InvocationRefinement.trace_refines
+#print axioms MedenSpec.InvocationRefinement.extracted_safe
+#print axioms MedenSpec.InvocationRefinement.extracted_dispatch_condition

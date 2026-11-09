@@ -4,6 +4,7 @@
 #![forbid(unsafe_code)]
 pub mod conversation;
 mod flow;
+mod invocation;
 pub mod tool;
 pub use conversation::{ChatModel, ModelError};
 pub use tool::Registry;

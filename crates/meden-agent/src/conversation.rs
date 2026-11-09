@@ -9,7 +9,8 @@ use meden_core::{check, Policy};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value as Json};
 
-use crate::flow::{interrupt, Flow, FlowEffect, FlowInput, FlowOutcome};
+use crate::flow::{Flow, FlowEffect, FlowInput, FlowOutcome};
+use crate::invocation::{Attempt, Notice, Refusal, Rule};
 use crate::{tool::Args, Registry};
 
 /// An API function call. Arguments remain text until execution, so malformed
@@ -289,15 +290,19 @@ pub fn execute(
     let checked = (|| {
         let tool = registry.get(&call.function.name).ok_or_else(|| {
             (
-                "unknown_tool",
+                Rule::UnknownTool,
                 format!("Unknown tool: {}", call.function.name),
             )
         })?;
-        let json: Json = serde_json::from_str(&call.function.arguments)
-            .map_err(|e| ("invalid_arguments", format!("Invalid JSON arguments: {e}")))?;
+        let json: Json = serde_json::from_str(&call.function.arguments).map_err(|e| {
+            (
+                Rule::InvalidArguments,
+                format!("Invalid JSON arguments: {e}"),
+            )
+        })?;
         let object = json.as_object().ok_or_else(|| {
             (
-                "invalid_arguments",
+                Rule::InvalidArguments,
                 "Arguments must be an object".to_owned(),
             )
         })?;
@@ -313,43 +318,49 @@ pub fn execute(
         {
             for name in required.iter().filter_map(Json::as_str) {
                 if !args.contains_key(name) {
-                    return Err(("missing_argument", format!("Missing argument: {name}")));
+                    return Err((Rule::MissingArgument, format!("Missing argument: {name}")));
                 }
             }
         }
         let decision = check(&tool.requirements(&args), policy);
         if !decision.allowed {
             return Err((
-                "policy",
+                Rule::Policy,
                 "The capability policy refused this call".to_owned(),
             ));
         }
         Ok((tool, args))
     })();
-    match checked {
-        Err((rule, explanation)) => {
+    let mut attempt = Attempt::new(checked.map_err(|(rule, reason)| Refusal { rule, reason }));
+    let observe_stop = match attempt.announce() {
+        Notice::Refused(refusal) => {
             observer(Event::Decision {
                 call,
-                refusal: Some((rule, &explanation)),
+                refusal: Some((refusal.rule.label(), &refusal.reason)),
             });
-            Err(ExecutionError::Refused(explanation))
+            false
         }
-        Ok((tool, args)) => {
+        Notice::Allowed => {
             observer(Event::Decision {
                 call,
                 refusal: None,
             });
-            if let Some(status) = interrupt(cancelled.load(Ordering::Relaxed), stop()) {
-                return Err(ExecutionError::Stopped(status));
-            }
-            let result = tool
-                .call(&args)
-                .map_err(|e| ExecutionError::Tool(e.to_string()))?;
-            Ok(result
-                .as_str()
-                .map_or_else(|| result.to_string(), str::to_owned))
+            true
         }
-    }
+        Notice::Invalid => return Err(ExecutionError::Stopped(Status::Incomplete)),
+    };
+    let (cancelled, host_stop) = if observe_stop {
+        (cancelled.load(Ordering::Relaxed), stop())
+    } else {
+        (false, None)
+    };
+    let (tool, args) = attempt.dispatch(cancelled, host_stop)?;
+    let result = tool
+        .call(&args)
+        .map_err(|e| ExecutionError::Tool(e.to_string()))?;
+    Ok(result
+        .as_str()
+        .map_or_else(|| result.to_string(), str::to_owned))
 }
 
 /// Native API definitions in a host-selected order.

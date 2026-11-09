@@ -329,19 +329,31 @@ fn approve_processor(gateway: &meden_llm::Gateway, approved: &str) -> Result<()>
 }
 
 fn execute(source: &std::path::Path) -> Result<()> {
-    use meden_agent::tool::Args;
+    use meden_agent::conversation::{self, ExecutionError, FunctionCall, ToolCall};
 
     let mut command = String::new();
     io::stdin().take(16_777_217).read_to_string(&mut command)?;
     anyhow::ensure!(command.len() <= 16_777_216, "command exceeds input budget");
     let workspace = Arc::new(Workspace::import(source, &std::env::current_exe()?)?);
     let control = Arc::new(Control::new(Arc::new(AtomicBool::new(false))));
-    let (registry, _policy) = workspace::environment(&workspace, &control)?;
-    let tool = registry.get("bash").context("missing Bash tool")?;
-    let args: Args = [("command".to_owned(), serde_json::json!(command))]
-        .into_iter()
-        .collect();
-    let result = tool.call(&args);
+    let (registry, policy) = workspace::environment(&workspace, &control)?;
+    let call = ToolCall {
+        id: "meden-cli-exec".into(),
+        function: FunctionCall {
+            name: "bash".into(),
+            arguments: serde_json::to_string(&serde_json::json!({"command":command}))?,
+        },
+    };
+    let result =
+        conversation::execute(&call, &registry, &policy, &|_| {}, control.flag(), &|| None)
+            .map_err(|error| match error {
+                ExecutionError::Tool(message) | ExecutionError::Refused(message) => {
+                    anyhow::anyhow!(message)
+                }
+                ExecutionError::Stopped(status) => anyhow::anyhow!("execution stopped: {status:?}"),
+            })
+            // The fixed Bash tool returns an object; preserve exec's structured output.
+            .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).map_err(Into::into));
     let record = match &result {
         Ok(output) => serde_json::json!({"workspace":workspace.path(), "result":output}),
         Err(error) => serde_json::json!({"workspace":workspace.path(), "error":error.to_string()}),
