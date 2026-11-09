@@ -172,9 +172,9 @@ Each output line is a JSON object whose `type` identifies an event:
 | --- | --- |
 | `ready` | Retained `workspace` path and actual `processor` URL |
 | `asking` | Model request attempt within the current turn |
-| `assistant` | Model text |
-| `decision` | Checked tool name, whether allowed, and refusal rule/reason |
-| `tool_result` | Tool name, returned text and error flag |
+| `assistant` | Model text and original `tool_calls`, emitted before tool execution |
+| `decision` | Original call `id`, checked tool name, whether allowed, and refusal rule/reason |
+| `tool_result` | Original call `id`, tool name, returned text and error flag |
 | `conversation` | Exact model history after the turn |
 | `done` | `outcome`, optional `answer`, optional `error` |
 | `project` | Host contract state, current kernel verification and artifact/source hashes |
@@ -193,6 +193,13 @@ Process exit zero means protocol processing completed, not that every task or te
 succeeded. Tool errors can be returned to the model for repair. A broken
 output stream cancels the conversation; it does not authorize another
 effect. End stdin to finish the session.
+
+`assistant.tool_calls` preserves each call's `id`, `function.name` and raw
+`function.arguments` string, including malformed JSON. An unfinished turn can
+therefore retain the actual proposals without waiting for `conversation`.
+Call IDs come from the model and need not be unique; retain event order too.
+These are local observations of untrusted content, not host commands or
+verification evidence. Treat the stream as confidential session data.
 
 The CLI runs tools itself. Events are observations, not requests for a host
 to execute code. The fixed tools are `read_file`, `list_files`, `write_file`,

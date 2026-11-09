@@ -6,7 +6,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
-use meden_agent::conversation::{Event, Status};
+use meden_agent::conversation::{Event, Status, ToolCall};
 use meden_llm::Gateway;
 use meden_runtime::process::Control;
 use meden_runtime::workspace::Workspace;
@@ -61,14 +61,17 @@ enum Out<'a> {
     },
     Assistant {
         text: &'a str,
+        tool_calls: &'a [ToolCall],
     },
     Decision {
+        id: &'a str,
         tool: &'a str,
         allowed: bool,
         rule: Option<&'static str>,
         reason: Option<&'a str>,
     },
     ToolResult {
+        id: &'a str,
         tool: &'a str,
         text: &'a str,
         error: bool,
@@ -179,14 +182,17 @@ fn run_instruction(
             Event::Asking(attempt) => Out::Asking { attempt },
             Event::Assistant(reply) => Out::Assistant {
                 text: reply.content.as_deref().unwrap_or_default(),
+                tool_calls: &reply.tool_calls,
             },
             Event::Decision { call, refusal } => Out::Decision {
+                id: &call.id,
                 tool: &call.function.name,
                 allowed: refusal.is_none(),
                 rule: refusal.map(|(rule, _)| rule),
                 reason: refusal.map(|(_, reason)| reason),
             },
             Event::ToolResult { call, text, error } => Out::ToolResult {
+                id: &call.id,
                 tool: &call.function.name,
                 text,
                 error,

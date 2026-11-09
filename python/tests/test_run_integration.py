@@ -129,6 +129,9 @@ PY
         },
         {"content": "Finished local development."},
     ]
+    malformed = call("read_file", {})
+    malformed["function"]["arguments"] = '{broken "metadata": "日🙂"}\n'
+    replies[1]["tool_calls"].insert(3, malformed)
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *args):
@@ -192,8 +195,20 @@ PY
         records = [json.loads(line) for line in completed.stdout.splitlines()]
         assert records[-1]["outcome"] == "done"
         assert all(record["type"] != "call" for record in records)
+        proposed = [c for reply in replies for c in reply.get("tool_calls", [])]
+        observed = [c for r in records if r["type"] == "assistant" for c in r["tool_calls"]]
+        assert observed == [{"id": c["id"], "function": c["function"]} for c in proposed]
+        results = [r for r in records if r["type"] == "tool_result"]
+        assert [(r["id"], r["tool"]) for r in results] == [
+            (c["id"], c["function"]["name"]) for c in proposed
+        ]
+        decisions = [r for r in records if r["type"] == "decision"]
+        assert [(r["id"], r["tool"]) for r in decisions] == [
+            (r["id"], r["tool"]) for r in results
+        ]
+        assert next(r for r in results if r["id"] == malformed["id"])["error"]
         denied = [r["tool"] for r in records if r["type"] == "decision" and not r["allowed"]]
-        assert denied == ["send_file", "web_read", "approve_processor"]
+        assert denied == ["send_file", "web_read", "approve_processor", "read_file"]
         bash_results = [r for r in records if r["type"] == "tool_result" and r["tool"] == "bash"]
         assert all(not r["error"] for r in bash_results), bash_results
         assert page in json.dumps(requests[1], ensure_ascii=False)
