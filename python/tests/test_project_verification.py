@@ -254,12 +254,28 @@ def assert_artifact(directory, candidate=ALTERNATIVE, contract=LEDGER):
     return report
 
 
+@pytest.mark.parametrize("example", ["ledger", "fee_quote"])
 @pytest.mark.parametrize("exhaustion", [False, True], ids=["false-done", "tool-budget"])
 def test_cli_host_acceptance_independent_repair_artifact_binding_and_staleness(
-    tmp_path, exhaustion
+    tmp_path, exhaustion, example
 ):
-    candidate = checked_source("let_else") if exhaustion else ALTERNATIVE
-    args, env, source = setup(tmp_path, exhaustion, candidate)
+    contract = json.loads((ROOT / f"verification/examples/{example}.contract.json").read_text())
+    if example == "ledger":
+        candidate = checked_source("let_else") if exhaustion else ALTERNATIVE
+        noop = NOOP
+        instruction = "Build a local ledger with conserved balances and safe retries."
+    else:
+        candidate = (ROOT / "verification/examples/fee_quote.rs").read_text()
+        noop = (
+            "pub struct FeeQuote { pub units: u64, pub remainder: u64 }\n"
+            "pub fn quote(s: FeeQuote, amount: u64) -> FeeQuote { s }\n"
+        )
+        instruction = (
+            "Build an integer fee quote at 25 basis points, round down and retain the remainder. "
+            "Preserve the prior quote if the intermediate product would overflow."
+        )
+    args, env, source = setup(tmp_path, exhaustion, candidate, contract=contract, noop=noop)
+    source_path = contract["source_path"]
     process = subprocess.Popen(
         args,
         stdin=subprocess.PIPE,
@@ -291,7 +307,7 @@ def test_cli_host_acceptance_independent_repair_artifact_binding_and_staleness(
         process.stdin.flush()
 
     try:
-        send({"instruction": "Build a local ledger with conserved balances and safe retries."})
+        send({"instruction": instruction})
         ready = receive("ready")
         assert receive("done")["outcome"] == "needs_review"
         pending = [r["summary"] for r in seen if r["type"] == "project"][-1]
@@ -320,17 +336,17 @@ def test_cli_host_acceptance_independent_repair_artifact_binding_and_staleness(
             )
         summary = [r["summary"] for r in seen if r["type"] == "project"][-1]
         assert summary["verified"]
-        report = assert_artifact(Path(summary["artifact"]), candidate)
+        report = assert_artifact(Path(summary["artifact"]), candidate, contract)
         assert summary["source_sha256"] == report["source_sha256"]
         assert summary["artifact_sha256"] == report["artifact_sha256"]
-        assert not (source / "ledger.rs").exists()
+        assert not (source / source_path).exists()
         copy = Path(ready["workspace"])
-        (copy / "ledger.rs").write_text(candidate + "\n")
+        (copy / source_path).write_text(candidate + "\n")
         send({"project_status": None})
         assert not receive("project")["summary"]["verified"]
-        assert_artifact(Path(summary["artifact"]), candidate)
+        assert_artifact(Path(summary["artifact"]), candidate, contract)
         # Restoring an old source does not restore discarded evidence progress.
-        (copy / "ledger.rs").write_text(candidate)
+        (copy / source_path).write_text(candidate)
         send({"project_status": None})
         assert not receive("project")["summary"]["verified"]
         process.stdin.close()
@@ -822,6 +838,54 @@ def test_lean_rejects_bug_that_passes_fixed_examples(tmp_path, fault):
         ]
     ), result.stderr
     assert not output.exists()
+
+
+@pytest.mark.parametrize(
+    "fault", [None, "hidden-noop", "zero-divisor", "zero-remainder", "overflow"]
+)
+def test_guarded_integer_arithmetic_refines_the_accepted_fee_quote(tmp_path, fault):
+    contract = json.loads((ROOT / "verification/examples/fee_quote.contract.json").read_text())
+    source = (ROOT / "verification/examples/fee_quote.rs").read_text()
+    injections = {
+        "hidden-noop": "    if amount == 4 { return s; }\n",
+        "zero-divisor": (
+            "    if amount == 2 && s.units == 0 {\n"
+            "        let latent = amount / s.units;\n"
+            "        if latent != 0 { return s; }\n    }\n"
+        ),
+        "zero-remainder": (
+            "    if amount == 5 && s.units == 0 {\n"
+            "        let latent = amount % s.units;\n"
+            "        if latent != amount { return s; }\n    }\n"
+        ),
+        "overflow": (
+            "    if amount == 3 {\n        let latent = u64::MAX * amount;\n"
+            "        if latent == 0 { return s; }\n    }\n"
+        ),
+    }
+    if fault is not None:
+        source = source.replace("    if amount >", injections[fault] + "    if amount >")
+    result, output = verify_source(tmp_path, source, contract)
+    (tmp_path / "arithmetic-observation.json").write_text(json.dumps({
+        "fault": fault, "source_sha256": hashlib.sha256(source.encode()).hexdigest(),
+        "returncode": result.returncode, "stdout": result.stdout, "stderr": result.stderr,
+    }, indent=2))
+    if fault is None:
+        assert result.returncode == 0, result.stderr
+        assert_artifact(Path(json.loads(result.stdout)["directory"]), source, contract)
+    else:
+        assert result.returncode != 0 and not output.exists(), result.stdout
+        assert "test result: ok" in result.stderr, result.stderr
+        assert "meden-check: refinement" in result.stderr, result.stderr
+        assert any(marker in result.stderr for marker in [
+            "unsolved goals", "omega could not prove the goal", "Tactic `rfl` failed",
+            "made no progress",
+        ]), result.stderr
+        for operational in ["unknown identifier", "unknown module", "unknown constant",
+                            "stack overflow", "maximum number of heartbeats",
+                            "maximum recursion depth", "failed to create thread",
+                            "out of memory", "memory allocation", "maximum memory"]:
+            assert operational not in result.stderr.casefold(), result.stderr
 
 
 def test_generic_counter_acceptance_repair_and_rejected_replacement_preserve_evidence(tmp_path):

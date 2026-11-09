@@ -1106,6 +1106,16 @@ consumer connects host-reviewed pure-u64 Rust transition contracts to project
 source, an independent Lean check and a retained library artifact; see
 [project verification](project-verification.md). The bounded mathematical-term
 adapter remains tested separately from the contract controller described below.
+The same backend accepts binary multiplication, division and remainder.
+The [integer fee quote](../verification/examples/fee_quote.contract.json)
+checks constant-rate rounding, exact quotient/remainder reconstruction and
+overflow preservation with an extracted native implementation. CLI tests use
+the shared host-review, repair, artifact binding and edit-invalidation path for
+both ledger and fee contracts. Additional arithmetic cases require rejection
+of an unseen wrong result, zero divisor and overflowing product even when all
+fixed native examples pass. The syntax boundary and term parser remain tested
+adapters; no new first-party controller theorem roots or proof assumptions are
+introduced by these operators.
 Broader contracts/backends
 remain targets. The release runtime reads actual staged archive
 bytes, validates source/build sidecars and obtains current exact-source CI

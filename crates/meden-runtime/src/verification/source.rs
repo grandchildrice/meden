@@ -106,7 +106,7 @@ pub fn validate_source(source: &str, contract: &Contract) -> io::Result<()> {
         contract,
         valid: true,
         nodes: 0,
-        reason: "use finite if/match/return expressions, local variables, fields, comparisons, u64 addition/subtraction and supported Option operations; attributes, other calls, macros, loops and nested items are unsupported",
+        reason: "use finite if/match/return expressions, local variables, fields, comparisons, u64 arithmetic (+, -, *, /, %) and supported Option operations; attributes, other calls, macros, loops and nested items are unsupported",
     };
     checker.visit_signature(signature);
     checker.visit_block(&f.block);
@@ -143,6 +143,9 @@ impl<'ast> Visit<'ast> for Pure<'_> {
                     e.op,
                     BinOp::Add(_)
                         | BinOp::Sub(_)
+                        | BinOp::Mul(_)
+                        | BinOp::Div(_)
+                        | BinOp::Rem(_)
                         | BinOp::AddAssign(_)
                         | BinOp::SubAssign(_)
                         | BinOp::Eq(_)

@@ -152,6 +152,24 @@ Imports, attributes, macros, loops, recursion, helper functions and arbitrary
 free/method calls are rejected. Proof automation is fixed; a valid function
 or proposition outside its capabilities can remain unverified.
 
+Binary `*`, `/` and `%` are supported in Rust and mathematical contracts.
+Division rounds down. Rust still requires nonzero divisors and representable
+products; the refinement must establish successful execution for every u64
+input. A mathematical expression's value at zero does not justify a Rust
+panic. No wrapping arithmetic is implied. The fixed automation is useful for
+constant scaling/division and explicit bounds; arbitrary nonlinear arithmetic
+can remain unverified.
+
+The [integer fee quote](../verification/examples/fee_quote.rs) and its
+[contract](../verification/examples/fee_quote.contract.json) quote the fixed
+fraction `25/10000`, keeping both rounded units and the exact remainder.
+They preserve the previous quote when `amount * 25` would overflow. The
+checker proves output bounds, exact reconstruction, remainder bounds and
+overflow behavior for all u64 inputs, then binds that source to a native
+library. Examples cover the rounding boundary, last safe product and u64
+maximum. This is a pure calculation, with account authorization, posting,
+persistence and settlement excluded from its claim.
+
 ## Actual checking and theorems
 
 The host prepares a bounded immutable source snapshot, canonical contract,

@@ -13,7 +13,7 @@ private def allowedKinds : List String := [
   "Lean.Parser.Term.structInst", "Lean.Parser.Term.structInstFields",
   "Lean.Parser.Term.structInstField", "Lean.Parser.Term.structInstLVal",
   "Lean.Parser.Term.structInstFieldDef", "Lean.Parser.Term.optEllipsis",
-  "Lean.Parser.Term.arrow", "term_+_", "term_-_", "term_=_", "term_≠_",
+  "Lean.Parser.Term.arrow", "term_+_", "term_-_", "term_*_", "term_/_", "term_%_", "term_=_", "term_≠_",
   "term_<_", "term_≤_", "term_>_", "term_≥_", "term_∧_", "term_∨_",
   "term¬_", "term_&&_", "term_||_", "term_==_", "term_!=_", "term!_"
 ]

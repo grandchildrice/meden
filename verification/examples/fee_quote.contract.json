@@ -1,0 +1,142 @@
+{
+  "name": "Integer fee quote",
+  "description": "Quote 25 basis points using integer units rounded down. Retain the exact division remainder. Preserve the previous quote if amount times 25 would overflow u64.",
+  "source_path": "fee_quote.rs",
+  "state": "FeeQuote",
+  "fields": [
+    "units",
+    "remainder"
+  ],
+  "parameters": [
+    "amount"
+  ],
+  "function": "quote",
+  "specification": "if amount \u2264 737869762948382064 then { units := amount * 25 / 10000, remainder := amount * 25 % 10000 } else s",
+  "properties": [
+    {
+      "name": "exact_split",
+      "description": "The rounded units and remainder exactly account for the scaled amount.",
+      "statement": "amount \u2264 737869762948382064 \u2192 out.units * 10000 + out.remainder = amount * 25"
+    },
+    {
+      "name": "remainder_bound",
+      "description": "Successful quotes retain a remainder strictly below the divisor.",
+      "statement": "amount \u2264 737869762948382064 \u2192 out.remainder < 10000"
+    },
+    {
+      "name": "overflow_preserves_quote",
+      "description": "Unrepresentable intermediate products leave both previous fields unchanged.",
+      "statement": "737869762948382064 < amount \u2192 out.units = s.units \u2227 out.remainder = s.remainder"
+    }
+  ],
+  "examples": [
+    {
+      "before": [
+        "7",
+        "9"
+      ],
+      "arguments": [
+        "0"
+      ],
+      "after": [
+        "0",
+        "0"
+      ]
+    },
+    {
+      "before": [
+        "7",
+        "9"
+      ],
+      "arguments": [
+        "1"
+      ],
+      "after": [
+        "0",
+        "25"
+      ]
+    },
+    {
+      "before": [
+        "7",
+        "9"
+      ],
+      "arguments": [
+        "399"
+      ],
+      "after": [
+        "0",
+        "9975"
+      ]
+    },
+    {
+      "before": [
+        "7",
+        "9"
+      ],
+      "arguments": [
+        "400"
+      ],
+      "after": [
+        "1",
+        "0"
+      ]
+    },
+    {
+      "before": [
+        "7",
+        "9"
+      ],
+      "arguments": [
+        "401"
+      ],
+      "after": [
+        "1",
+        "25"
+      ]
+    },
+    {
+      "before": [
+        "7",
+        "9"
+      ],
+      "arguments": [
+        "737869762948382064"
+      ],
+      "after": [
+        "1844674407370955",
+        "1600"
+      ]
+    },
+    {
+      "before": [
+        "7",
+        "9"
+      ],
+      "arguments": [
+        "737869762948382065"
+      ],
+      "after": [
+        "7",
+        "9"
+      ]
+    },
+    {
+      "before": [
+        "7",
+        "9"
+      ],
+      "arguments": [
+        "18446744073709551615"
+      ],
+      "after": [
+        "7",
+        "9"
+      ]
+    }
+  ],
+  "assumptions": [
+    "Amounts are integer minor units; the quoted rate is exactly 25/10000.",
+    "The caller uses this pure quote function. Account authorization, posting, persistence and settlement are outside this contract."
+  ]
+}
