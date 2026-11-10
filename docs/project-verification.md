@@ -372,6 +372,16 @@ forged report/library pair, an extra file, a symlink and a FIFO. Every fault
 stops the turn before another tool effect. Restoration stays unverified until
 the accepted source is independently checked again.
 
+Verification now retains its accepted agreement and host data in the core's
+owned preparation/running transaction. Its extracted begin, issue, completion
+and getters refine Lean; input construction, checker execution and persistence
+remain adapters. Artifact files are staged and validated before evidence is
+admitted, and retained only when the transaction returns that exact stage.
+A separate CLI regression makes storage unwritable after a successful check:
+the next check fails without restoring old coverage or retaining a new artifact.
+Restoring storage permissions does not restore evidence; independent verification
+must succeed again.
+
 The delivery case drives a real HTTP receiver and checked counter, including
 old raw proposals, invalid artifact flags, changed/restored source, pending
 and accepted replacements, replay and storage corruption. A successful body
@@ -382,7 +392,7 @@ These are deterministic checker/controller integration tests. The
 is separate; its generated Rust source is rechecked by the current suite.
 No general task-success rate follows from these cases.
 
-Meden's separate control audit has 189 roots; project roots are checked
+Meden's separate control audit has 327 roots; project roots are checked
 afresh per candidate. The shared core evidence/job and contract-management
 operations have Rust-to-Lean refinement, including their finite compositions.
 Metadata/term parsing, canonical encoding, review

@@ -301,7 +301,7 @@ fn verify_kernel(
         &std::env::current_exe()?,
         &control,
     )?;
-    let artifact = prepared.check(&control)?.persist(output)?;
+    let artifact = prepared.check(&control)?.stage(output)?.commit();
     serde_json::to_writer(io::stdout().lock(), &artifact)?;
     println!();
     Ok(())

@@ -29,8 +29,12 @@ current context and returns only the original accepted view; later generations
 remain stale across finite controller compositions. Model verification, status
 and artifact preparation use this guard before their I/O callbacks. Parsing,
 locking, callback interpretation and physical I/O remain separate obligations.
+The project-check transaction also retains its accepted agreement and host data
+through preparation, issue and one consuming completion. These operations and
+getters refine Lean. Artifact staging precedes evidence admission, so a storage
+failure cannot restore older coverage; persistence itself remains an adapter.
 The broader obligations below remain proposed. This defines completion criteria for
-[the product architecture](design.md). The current 318 Lean theorem
+[the product architecture](design.md). The current 327 Lean theorem
 entry points, six Kani harnesses and conformance checks are listed in
 [verification.md](verification.md).
 
@@ -287,7 +291,7 @@ proposed product. Extend these checks as each path becomes real. The first
 two now run for processor, export review, evidence, contract management, issued jobs, TUI approval,
 outer/inner conversation, policy-admitted tool invocation, capability policy,
 Unicode scope matching, failure and numeric display kernels,
-including 152 real Rust
+including 157 real Rust
 mutations that must fail unchanged refinement proofs:
 
 1. Re-extract production Rust under pinned toolchains. Fail on unsupported

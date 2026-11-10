@@ -84,6 +84,24 @@ pub struct Artifact {
     pub report: Report,
 }
 
+/// Validated files staged on disk, removed unless the controller admits them.
+pub struct StagedArtifact {
+    artifact: Artifact,
+    directory: tempfile::TempDir,
+}
+
+impl StagedArtifact {
+    /// Retain precisely these staged files after the host controller's admission.
+    pub fn commit(self) -> Artifact {
+        let Self {
+            artifact,
+            directory,
+        } = self;
+        let _ = directory.keep();
+        artifact
+    }
+}
+
 impl Artifact {
     /// Freeze the exact retained files, including report.json, for reviewed
     /// delivery. The report held by the host remains the hash authority.
@@ -172,8 +190,9 @@ impl Checked {
         &self.report
     }
 
-    /// Persist the already checked bytes outside the candidate's writable copy.
-    pub fn persist(self, storage: &Path) -> io::Result<Artifact> {
+    /// Write and validate the checked bytes before evidence admission. Dropping
+    /// the returned stage rolls it back without retaining an unadmitted artifact.
+    pub fn stage(self, storage: &Path) -> io::Result<StagedArtifact> {
         fs::create_dir_all(storage)?;
         let directory = tempfile::Builder::new()
             .prefix("kernel-")
@@ -190,8 +209,10 @@ impl Checked {
             report: self.report,
         };
         artifact.validate()?;
-        let _ = directory.keep();
-        Ok(artifact)
+        Ok(StagedArtifact {
+            artifact,
+            directory,
+        })
     }
 }
 
@@ -589,6 +610,46 @@ fn audit(stdout: &str, roots: &[String]) -> io::Result<Vec<String>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn staged_artifacts_roll_back_on_refusal_and_retain_exact_bytes_only_on_commit(
+    ) -> io::Result<()> {
+        let storage = tempfile::tempdir()?;
+        let checked = || -> io::Result<Checked> {
+            let files = BTreeMap::from([("kernel.rs".to_owned(), b"staged bytes".to_vec())]);
+            Ok(Checked {
+                report: Report {
+                    contract: Contract::parse(include_str!(
+                        "../../../../verification/examples/counter.contract.json"
+                    ))?,
+                    source_sha256: hash(b"staged bytes"),
+                    bundle_sha256: "test bundle".into(),
+                    checker_sha256: "test checker".into(),
+                    worker_sha256: "test worker".into(),
+                    artifact_sha256: "test manifest".into(),
+                    files: files
+                        .iter()
+                        .map(|(name, bytes)| (name.clone(), hash(bytes)))
+                        .collect(),
+                    audit: Vec::new(),
+                    scope: "storage adapter test, not a verification receipt",
+                },
+                files,
+            })
+        };
+        let staged = checked()?.stage(storage.path())?;
+        let rejected = staged.artifact.directory.clone();
+        staged.artifact.validate()?;
+        drop(staged);
+        assert!(!rejected.exists());
+        let artifact = checked()?.stage(storage.path())?.commit();
+        assert_eq!(
+            fs::read(artifact.directory.join("kernel.rs"))?,
+            b"staged bytes"
+        );
+        artifact.validate()?;
+        Ok(())
+    }
 
     #[test]
     fn long_unicode_diagnostics_keep_phase_and_final_failure_within_budget() {

@@ -42,23 +42,13 @@ inductive evidence.EvidenceKind where
 | Theorem : evidence.EvidenceKind
 | Refinement : evidence.EvidenceKind
 
-/-- [meden_core::evidence::{impl core::clone::Clone for meden_core::evidence::EvidenceKind}::clone]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 6:9-6:14
+/-- [meden_core::evidence::Obligation]
+    Source: 'crates/meden-core/src/evidence.rs', lines 32:0-39:1
     Visibility: public -/
-def evidence.EvidenceKind.Insts.CoreCloneClone.clone
-  (self : evidence.EvidenceKind) : Result evidence.EvidenceKind := do
-  ok self
-
-/-- [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::EvidenceKind> for meden_core::evidence::EvidenceKind}::eq]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 6:29-6:38
-    Visibility: public -/
-def evidence.EvidenceKind.Insts.CoreCmpPartialEqEvidenceKind.eq
-  (self : evidence.EvidenceKind) (other : evidence.EvidenceKind) :
-  Result Bool
-  := do
-  let self1 := read_discriminant self
-  let other1 := read_discriminant other
-  ok (self1 = other1)
+structure evidence.Obligation where
+  statement : alloc.vec.Vec Std.U8
+  kind : evidence.EvidenceKind
+  checker : alloc.vec.Vec Std.U8
 
 /-- [meden_core::evidence::Subject]
     Source: 'crates/meden-core/src/evidence.rs', lines 21:0-28:1
@@ -68,53 +58,193 @@ structure evidence.Subject where
   contract : alloc.vec.Vec Std.U8
   inputs : alloc.vec.Vec Std.U8
 
-/-- [meden_core::evidence::{impl core::clone::Clone for meden_core::evidence::Subject}::clone]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 20:9-20:14
+/-- [meden_core::evidence::ContractView]
+    Source: 'crates/meden-core/src/evidence.rs', lines 334:0-341:1
     Visibility: public -/
-def evidence.Subject.Insts.CoreCloneClone.clone
-  (self : evidence.Subject) : Result evidence.Subject := do
-  let v ← alloc.vec.CloneVec.clone core.clone.CloneU8 self.session
-  let v1 ← alloc.vec.CloneVec.clone core.clone.CloneU8 self.contract
-  let v2 ← alloc.vec.CloneVec.clone core.clone.CloneU8 self.inputs
-  ok { session := v, contract := v1, inputs := v2 }
+structure evidence.ContractView where
+  revision : Std.U64
+  subject : evidence.Subject
+  obligations : alloc.vec.Vec evidence.Obligation
 
-/-- [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::Subject> for meden_core::evidence::Subject}::eq]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 20:23-20:32
+/-- [meden_core::check::Preparation]
+    Source: 'crates/meden-core/src/check.rs', lines 10:0-13:1
     Visibility: public -/
-def evidence.Subject.Insts.CoreCmpPartialEqSubject.eq
-  (self : evidence.Subject) (other : evidence.Subject) : Result Bool := do
-  let b ←
-    alloc.vec.partial_eq.PartialEqVec.eq core.cmp.PartialEqU8 self.session
-      other.session
-  if b
-  then
-    let b1 ←
-      alloc.vec.partial_eq.PartialEqVec.eq core.cmp.PartialEqU8 self.contract
-        other.contract
-    if b1
-    then
-      alloc.vec.partial_eq.PartialEqVec.eq core.cmp.PartialEqU8 self.inputs
-        other.inputs
-    else ok false
-  else ok false
+structure check.Preparation (T : Type _) where
+  agreement : evidence.ContractView
+  data : T
 
-/-- Trait implementation: [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::Subject> for meden_core::evidence::Subject}]
-    Source: 'crates/meden-core/src/evidence.rs', lines 20:23-20:32 -/
+/-- [meden_core::evidence::CheckTicket]
+    Source: 'crates/meden-core/src/evidence.rs', lines 197:0-200:1
+    Visibility: public -/
+structure evidence.CheckTicket where
+  id : Std.U64
+  subject : evidence.Subject
+
+/-- [meden_core::check::Running]
+    Source: 'crates/meden-core/src/check.rs', lines 29:0-33:1
+    Visibility: public -/
+structure check.Running (T : Type _) where
+  agreement : evidence.ContractView
+  ticket : evidence.CheckTicket
+  data : T
+
+/-- [meden_core::evidence::EvidenceOrigin]
+    Source: 'crates/meden-core/src/evidence.rs', lines 43:0-52:1
+    Visibility: public -/
+@[discriminant isize]
+inductive evidence.EvidenceOrigin where
+| Model : evidence.EvidenceOrigin
+| Host : evidence.EvidenceOrigin
+| Checker : evidence.EvidenceOrigin
+| Controller : evidence.EvidenceOrigin
+
+/-- [meden_core::evidence::EvidencePhase]
+    Source: 'crates/meden-core/src/evidence.rs', lines 56:0-63:1
+    Visibility: public -/
+@[discriminant isize]
+inductive evidence.EvidencePhase where
+| Draft : evidence.EvidencePhase
+| Reviewed : evidence.EvidencePhase
+| Accepted : evidence.EvidencePhase
+
+/-- [meden_core::evidence::Gate]
+    Source: 'crates/meden-core/src/evidence.rs', lines 96:0-101:1
+    Visibility: public -/
+structure evidence.Gate where
+  subject : evidence.Subject
+  obligations : alloc.vec.Vec evidence.Obligation
+  phase : evidence.EvidencePhase
+  completed : Std.Usize
+
+/-- [meden_core::evidence::VersionedGate]
+    Source: 'crates/meden-core/src/evidence.rs', lines 344:0-347:1 -/
+structure evidence.VersionedGate where
+  revision : Std.U64
+  gate : evidence.Gate
+
+/-- [meden_core::evidence::CheckJobs]
+    Source: 'crates/meden-core/src/evidence.rs', lines 205:0-209:1
+    Visibility: public -/
+structure evidence.CheckJobs where
+  session : alloc.vec.Vec Std.U8
+  sequence : Std.U64
+  active : Option evidence.CheckTicket
+
+/-- [meden_core::evidence::Contracts]
+    Source: 'crates/meden-core/src/evidence.rs', lines 363:0-369:1
+    Visibility: public -/
+structure evidence.Contracts where
+  session : alloc.vec.Vec Std.U8
+  sequence : Std.U64
+  accepted : Option evidence.VersionedGate
+  draft : Option evidence.VersionedGate
+  jobs : evidence.CheckJobs
+
+/-- [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::EvidenceOrigin> for meden_core::evidence::EvidenceOrigin}::eq]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 42:29-42:38
+    Visibility: public -/
+def evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin.eq
+  (self : evidence.EvidenceOrigin) (other : evidence.EvidenceOrigin) :
+  Result Bool
+  := do
+  let self1 := read_discriminant self
+  let other1 := read_discriminant other
+  ok (self1 = other1)
+
+/-- Trait implementation: [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::EvidenceOrigin> for meden_core::evidence::EvidenceOrigin}]
+    Source: 'crates/meden-core/src/evidence.rs', lines 42:29-42:38 -/
 @[reducible]
-impl_def evidence.Subject.Insts.CoreCmpPartialEqSubject : core.cmp.PartialEq
-  evidence.Subject evidence.Subject := {
-  eq := evidence.Subject.Insts.CoreCmpPartialEqSubject.eq
+impl_def evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin :
+  core.cmp.PartialEq evidence.EvidenceOrigin evidence.EvidenceOrigin := {
+  eq := evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin.eq
   ne := core.cmp.PartialEq.ne.trait_default
-    evidence.Subject.Insts.CoreCmpPartialEqSubject
+    evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin
 }
 
-/-- [meden_core::evidence::Obligation]
-    Source: 'crates/meden-core/src/evidence.rs', lines 32:0-39:1
+/-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::invalidate]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 251:4-257:5
     Visibility: public -/
-structure evidence.Obligation where
-  statement : alloc.vec.Vec Std.U8
-  kind : evidence.EvidenceKind
-  checker : alloc.vec.Vec Std.U8
+def evidence.CheckJobs.invalidate
+  (self : evidence.CheckJobs) (origin : evidence.EvidenceOrigin) :
+  Result (Bool × evidence.CheckJobs)
+  := do
+  let b ←
+    core.cmp.PartialEq.ne.trait_default
+      evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin origin
+      evidence.EvidenceOrigin.Controller
+  if b
+  then ok (false, self)
+  else ok (true, { self with active := none })
+
+/-- [meden_core::evidence::{meden_core::evidence::Contracts}::edit]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 648:4-657:5
+    Visibility: public -/
+def evidence.Contracts.edit
+  (self : evidence.Contracts) (origin : evidence.EvidenceOrigin) :
+  Result (Bool × evidence.Contracts)
+  := do
+  let b ←
+    core.cmp.PartialEq.ne.trait_default
+      evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin origin
+      evidence.EvidenceOrigin.Controller
+  if b
+  then ok (false, self)
+  else
+    let (_, cj) ← evidence.CheckJobs.invalidate self.jobs origin
+    match self.accepted with
+    | none => ok (true, { self with jobs := cj })
+    | some accepted =>
+      ok (true,
+        {
+          self
+            with
+            accepted :=
+              (some
+                {
+                  accepted
+                    with
+                    gate := { accepted.gate with completed := 0#usize }
+                }),
+            jobs := cj
+        })
+
+/-- [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::EvidencePhase> for meden_core::evidence::EvidencePhase}::eq]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 55:29-55:38
+    Visibility: public -/
+def evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase.eq
+  (self : evidence.EvidencePhase) (other : evidence.EvidencePhase) :
+  Result Bool
+  := do
+  let self1 := read_discriminant self
+  let other1 := read_discriminant other
+  ok (self1 = other1)
+
+/-- [meden_core::evidence::{meden_core::evidence::Gate}::is_accepted]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 138:4-140:5
+    Visibility: public -/
+def evidence.Gate.is_accepted (self : evidence.Gate) : Result Bool := do
+  evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase.eq self.phase
+    evidence.EvidencePhase.Accepted
+
+/-- [meden_core::evidence::{meden_core::evidence::Contracts}::is_accepted]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 528:4-536:5
+    Visibility: public -/
+def evidence.Contracts.is_accepted
+  (self : evidence.Contracts) : Result Bool := do
+  let b := core.option.Option.is_some self.draft
+  if b
+  then ok false
+  else
+    match self.accepted with
+    | none => ok false
+    | some accepted => evidence.Gate.is_accepted accepted.gate
+
+/-- [meden_core::evidence::{impl core::clone::Clone for meden_core::evidence::EvidenceKind}::clone]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 6:9-6:14
+    Visibility: public -/
+def evidence.EvidenceKind.Insts.CoreCloneClone.clone
+  (self : evidence.EvidenceKind) : Result evidence.EvidenceKind := do
+  ok self
 
 /-- [meden_core::evidence::{impl core::clone::Clone for meden_core::evidence::Obligation}::clone]:
     Source: 'crates/meden-core/src/evidence.rs', lines 31:9-31:14
@@ -133,6 +263,48 @@ def evidence.Obligation.Insts.CoreCloneClone : core.clone.Clone
   evidence.Obligation := {
   clone := evidence.Obligation.Insts.CoreCloneClone.clone
 }
+
+/-- [meden_core::evidence::{impl core::clone::Clone for meden_core::evidence::Subject}::clone]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 20:9-20:14
+    Visibility: public -/
+def evidence.Subject.Insts.CoreCloneClone.clone
+  (self : evidence.Subject) : Result evidence.Subject := do
+  let v ← alloc.vec.CloneVec.clone core.clone.CloneU8 self.session
+  let v1 ← alloc.vec.CloneVec.clone core.clone.CloneU8 self.contract
+  let v2 ← alloc.vec.CloneVec.clone core.clone.CloneU8 self.inputs
+  ok { session := v, contract := v1, inputs := v2 }
+
+/-- [meden_core::evidence::{meden_core::evidence::VersionedGate}::view]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 350:4-356:5 -/
+def evidence.VersionedGate.view
+  (self : evidence.VersionedGate) : Result evidence.ContractView := do
+  let s ← evidence.Subject.Insts.CoreCloneClone.clone self.gate.subject
+  let v ←
+    alloc.vec.CloneVec.clone evidence.Obligation.Insts.CoreCloneClone
+      self.gate.obligations
+  ok { revision := self.revision, subject := s, obligations := v }
+
+/-- [meden_core::evidence::{meden_core::evidence::Contracts}::accepted]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 515:4-520:5
+    Visibility: public -/
+def evidence.Contracts.impl.accepted
+  (self : evidence.Contracts) : Result (Option evidence.ContractView) := do
+  match self.accepted with
+  | none => ok none
+  | some accepted =>
+    let cv ← evidence.VersionedGate.view accepted
+    ok (some cv)
+
+/-- [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::EvidenceKind> for meden_core::evidence::EvidenceKind}::eq]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 6:29-6:38
+    Visibility: public -/
+def evidence.EvidenceKind.Insts.CoreCmpPartialEqEvidenceKind.eq
+  (self : evidence.EvidenceKind) (other : evidence.EvidenceKind) :
+  Result Bool
+  := do
+  let self1 := read_discriminant self
+  let other1 := read_discriminant other
+  ok (self1 = other1)
 
 /-- [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::Obligation> for meden_core::evidence::Obligation}::eq]:
     Source: 'crates/meden-core/src/evidence.rs', lines 31:23-31:32
@@ -166,63 +338,439 @@ impl_def evidence.Obligation.Insts.CoreCmpPartialEqObligation :
     evidence.Obligation.Insts.CoreCmpPartialEqObligation
 }
 
-/-- [meden_core::evidence::EvidenceOrigin]
-    Source: 'crates/meden-core/src/evidence.rs', lines 43:0-52:1
+/-- [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::Subject> for meden_core::evidence::Subject}::eq]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 20:23-20:32
     Visibility: public -/
-@[discriminant isize]
-inductive evidence.EvidenceOrigin where
-| Model : evidence.EvidenceOrigin
-| Host : evidence.EvidenceOrigin
-| Checker : evidence.EvidenceOrigin
-| Controller : evidence.EvidenceOrigin
+def evidence.Subject.Insts.CoreCmpPartialEqSubject.eq
+  (self : evidence.Subject) (other : evidence.Subject) : Result Bool := do
+  let b ←
+    alloc.vec.partial_eq.PartialEqVec.eq core.cmp.PartialEqU8 self.session
+      other.session
+  if b
+  then
+    let b1 ←
+      alloc.vec.partial_eq.PartialEqVec.eq core.cmp.PartialEqU8 self.contract
+        other.contract
+    if b1
+    then
+      alloc.vec.partial_eq.PartialEqVec.eq core.cmp.PartialEqU8 self.inputs
+        other.inputs
+    else ok false
+  else ok false
 
-/-- [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::EvidenceOrigin> for meden_core::evidence::EvidenceOrigin}::eq]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 42:29-42:38
+/-- [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::ContractView> for meden_core::evidence::ContractView}::eq]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 333:23-333:32
     Visibility: public -/
-def evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin.eq
-  (self : evidence.EvidenceOrigin) (other : evidence.EvidenceOrigin) :
+def evidence.ContractView.Insts.CoreCmpPartialEqContractView.eq
+  (self : evidence.ContractView) (other : evidence.ContractView) :
   Result Bool
   := do
-  let self1 := read_discriminant self
-  let other1 := read_discriminant other
-  ok (self1 = other1)
+  if self.revision = other.revision
+  then
+    let b ←
+      evidence.Subject.Insts.CoreCmpPartialEqSubject.eq self.subject
+        other.subject
+    if b
+    then
+      alloc.vec.partial_eq.PartialEqVec.eq
+        evidence.Obligation.Insts.CoreCmpPartialEqObligation self.obligations
+        other.obligations
+    else ok false
+  else ok false
 
-/-- Trait implementation: [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::EvidenceOrigin> for meden_core::evidence::EvidenceOrigin}]
-    Source: 'crates/meden-core/src/evidence.rs', lines 42:29-42:38 -/
+/-- [meden_core::check::{meden_core::check::Preparation<T>}::begin]:
+    Source: 'crates/meden-core/src/check.rs', lines 37:4-47:5
+    Visibility: public -/
+def check.Preparation.begin
+  {T : Type _} (current : evidence.Contracts)
+  (agreement : evidence.ContractView) (data : T) :
+  Result ((Option (check.Preparation T)) × evidence.Contracts)
+  := do
+  let b ← evidence.Contracts.is_accepted current
+  if b
+  then
+    let i := alloc.vec.Vec.len agreement.obligations
+    if i != 1#usize
+    then ok (none, current)
+    else
+      let o ← evidence.Contracts.impl.accepted current
+      match o with
+      | none => ok (none, current)
+      | some view =>
+        let b1 ←
+          evidence.ContractView.Insts.CoreCmpPartialEqContractView.eq view
+            agreement
+        if b1
+        then
+          let (_, current1) ←
+            evidence.Contracts.edit current evidence.EvidenceOrigin.Controller
+          ok (some { agreement, data }, current1)
+        else ok (none, current)
+  else ok (none, current)
+
+/-- [meden_core::check::{meden_core::check::Preparation<T>}::data]:
+    Source: 'crates/meden-core/src/check.rs', lines 50:4-52:5
+    Visibility: public -/
+def check.Preparation.impl.data
+  {T : Type _} (self : check.Preparation T) : Result T := do
+  ok self.data
+
+/-- [meden_core::evidence::{impl core::clone::Clone for meden_core::evidence::CheckTicket}::clone]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 196:9-196:14
+    Visibility: public -/
+def evidence.CheckTicket.Insts.CoreCloneClone.clone
+  (self : evidence.CheckTicket) : Result evidence.CheckTicket := do
+  let i ← lift (core.clone.impls.CloneU64.clone self.id)
+  let s ← evidence.Subject.Insts.CoreCloneClone.clone self.subject
+  ok { id := i, subject := s }
+
+/-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::start]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 224:4-248:5
+    Visibility: public -/
+def evidence.CheckJobs.start
+  (self : evidence.CheckJobs) (origin : evidence.EvidenceOrigin)
+  (gate : evidence.Gate) (subject : evidence.Subject) :
+  Result ((Option evidence.CheckTicket) × evidence.CheckJobs)
+  := do
+  let b ←
+    core.cmp.PartialEq.ne.trait_default
+      evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin origin
+      evidence.EvidenceOrigin.Controller
+  if b
+  then ok (none, self)
+  else
+    let b1 ← evidence.Gate.is_accepted gate
+    if b1
+    then
+      let b2 ←
+        alloc.vec.partial_eq.PartialEqVec.ne core.cmp.PartialEqU8 self.session
+          subject.session
+      if b2
+      then ok (none, self)
+      else
+        let b3 ←
+          alloc.vec.partial_eq.PartialEqVec.ne core.cmp.PartialEqU8
+            gate.subject.session subject.session
+        if b3
+        then ok (none, self)
+        else
+          let b4 ←
+            alloc.vec.partial_eq.PartialEqVec.ne core.cmp.PartialEqU8
+              gate.subject.contract subject.contract
+          if b4
+          then ok (none, self)
+          else
+            let o ← lift (U64.checked_add self.sequence 1#u64)
+            match o with
+            | none => ok (none, self)
+            | some next =>
+              let s ← evidence.Subject.Insts.CoreCloneClone.clone subject
+              let ct ←
+                evidence.CheckTicket.Insts.CoreCloneClone.clone
+                  { id := next, subject := s }
+              ok (some { id := next, subject := s },
+                { self with sequence := next, active := (some ct) })
+    else ok (none, self)
+
+/-- Trait implementation: [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::Subject> for meden_core::evidence::Subject}]
+    Source: 'crates/meden-core/src/evidence.rs', lines 20:23-20:32 -/
 @[reducible]
-impl_def evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin :
-  core.cmp.PartialEq evidence.EvidenceOrigin evidence.EvidenceOrigin := {
-  eq := evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin.eq
+impl_def evidence.Subject.Insts.CoreCmpPartialEqSubject : core.cmp.PartialEq
+  evidence.Subject evidence.Subject := {
+  eq := evidence.Subject.Insts.CoreCmpPartialEqSubject.eq
   ne := core.cmp.PartialEq.ne.trait_default
-    evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin
+    evidence.Subject.Insts.CoreCmpPartialEqSubject
 }
 
-/-- [meden_core::evidence::EvidencePhase]
-    Source: 'crates/meden-core/src/evidence.rs', lines 56:0-63:1
+/-- [meden_core::evidence::{meden_core::evidence::Gate}::refresh]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 144:4-156:5
     Visibility: public -/
-@[discriminant isize]
-inductive evidence.EvidencePhase where
-| Draft : evidence.EvidencePhase
-| Reviewed : evidence.EvidencePhase
-| Accepted : evidence.EvidencePhase
+def evidence.Gate.refresh
+  (self : evidence.Gate) (origin : evidence.EvidenceOrigin)
+  (subject : evidence.Subject) :
+  Result (Bool × evidence.Gate)
+  := do
+  let b ←
+    core.cmp.PartialEq.ne.trait_default
+      evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin origin
+      evidence.EvidenceOrigin.Controller
+  if b
+  then ok (false, self)
+  else
+    let b1 ←
+      alloc.vec.partial_eq.PartialEqVec.ne core.cmp.PartialEqU8
+        self.subject.session subject.session
+    if b1
+    then ok (false, self)
+    else
+      let b2 ←
+        alloc.vec.partial_eq.PartialEqVec.ne core.cmp.PartialEqU8
+          self.subject.contract subject.contract
+      if b2
+      then ok (false, self)
+      else
+        let b3 ←
+          core.cmp.PartialEq.ne.trait_default
+            evidence.Subject.Insts.CoreCmpPartialEqSubject self.subject subject
+        if b3
+        then ok (true, { self with subject, completed := 0#usize })
+        else ok (true, self)
 
-/-- [meden_core::evidence::{impl core::clone::Clone for meden_core::evidence::EvidencePhase}::clone]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 55:9-55:14
+/-- [meden_core::evidence::{meden_core::evidence::Contracts}::start]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 613:4-639:5
     Visibility: public -/
-def evidence.EvidencePhase.Insts.CoreCloneClone.clone
-  (self : evidence.EvidencePhase) : Result evidence.EvidencePhase := do
-  ok self
+def evidence.Contracts.start
+  (self : evidence.Contracts) (origin : evidence.EvidenceOrigin)
+  (revision : Std.U64) (inputs : alloc.vec.Vec Std.U8) :
+  Result ((Option evidence.CheckTicket) × evidence.Contracts)
+  := do
+  let b ←
+    core.cmp.PartialEq.ne.trait_default
+      evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin origin
+      evidence.EvidenceOrigin.Controller
+  if b
+  then ok (none, self)
+  else
+    let b1 := core.option.Option.is_some self.draft
+    if b1
+    then ok (none, self)
+    else
+      match self.accepted with
+      | none => ok (none, self)
+      | some accepted =>
+        if accepted.revision != revision
+        then ok (none, self)
+        else
+          let (_, cj) ←
+            evidence.CheckJobs.invalidate self.jobs
+              evidence.EvidenceOrigin.Controller
+          let s ←
+            evidence.Subject.Insts.CoreCloneClone.clone accepted.gate.subject
+          let s1 ←
+            evidence.Subject.Insts.CoreCloneClone.clone { s with inputs }
+          let (b2, g) ← evidence.Gate.refresh accepted.gate origin s1
+          if b2
+          then
+            let (o, cj1) ←
+              evidence.CheckJobs.start cj origin g { s with inputs }
+            ok (o,
+              {
+                self
+                  with
+                  accepted := (some { accepted with gate := g }), jobs := cj1
+              })
+          else
+            ok (none,
+              {
+                self
+                  with
+                  accepted := (some { accepted with gate := g }), jobs := cj
+              })
 
-/-- [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::EvidencePhase> for meden_core::evidence::EvidencePhase}::eq]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 55:29-55:38
+/-- Trait implementation: [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::ContractView> for meden_core::evidence::ContractView}]
+    Source: 'crates/meden-core/src/evidence.rs', lines 333:23-333:32 -/
+@[reducible]
+impl_def evidence.ContractView.Insts.CoreCmpPartialEqContractView :
+  core.cmp.PartialEq evidence.ContractView evidence.ContractView := {
+  eq := evidence.ContractView.Insts.CoreCmpPartialEqContractView.eq
+  ne := core.cmp.PartialEq.ne.trait_default
+    evidence.ContractView.Insts.CoreCmpPartialEqContractView
+}
+
+/-- [meden_core::check::{meden_core::check::Preparation<T>}::issue]:
+    Source: 'crates/meden-core/src/check.rs', lines 59:4-77:5
     Visibility: public -/
-def evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase.eq
-  (self : evidence.EvidencePhase) (other : evidence.EvidencePhase) :
+def check.Preparation.issue
+  {T : Type _} (self : check.Preparation T) (current : evidence.Contracts)
+  (inputs : alloc.vec.Vec Std.U8) :
+  Result ((Option (check.Running T)) × evidence.Contracts)
+  := do
+  let o ← evidence.Contracts.impl.accepted current
+  match o with
+  | none => ok (none, current)
+  | some view =>
+    let v ←
+      alloc.vec.CloneVec.clone core.clone.CloneU8 self.agreement.subject.inputs
+    let b ←
+      core.cmp.PartialEq.ne.trait_default
+        evidence.ContractView.Insts.CoreCmpPartialEqContractView
+        { view with subject := { view.subject with inputs := v } }
+        self.agreement
+    if b
+    then ok (none, current)
+    else
+      let b1 ← evidence.Contracts.is_accepted current
+      if b1
+      then
+        let (o1, current1) ←
+          evidence.Contracts.start current evidence.EvidenceOrigin.Controller
+            self.agreement.revision inputs
+        match o1 with
+        | none => ok (none, current1)
+        | some ticket =>
+          ok (some { agreement := self.agreement, ticket, data := self.data },
+            current1)
+      else ok (none, current)
+
+/-- [meden_core::check::{meden_core::check::Running<T>}::data]:
+    Source: 'crates/meden-core/src/check.rs', lines 82:4-84:5
+    Visibility: public -/
+def check.Running.impl.data
+  {T : Type _} (self : check.Running T) : Result T := do
+  ok self.data
+
+/-- [meden_core::check::{meden_core::check::Running<T>}::ticket]:
+    Source: 'crates/meden-core/src/check.rs', lines 87:4-89:5
+    Visibility: public -/
+def check.Running.impl.ticket
+  {T : Type _} (self : check.Running T) : Result evidence.CheckTicket := do
+  ok self.ticket
+
+/-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::is_active]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 291:4-293:5
+    Visibility: public -/
+def evidence.CheckJobs.is_active
+  (self : evidence.CheckJobs) : Result Bool := do
+  ok (core.option.Option.is_some self.active)
+
+/-- [meden_core::evidence::{meden_core::evidence::Gate}::eligible]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 186:4-191:5
+    Visibility: public -/
+def evidence.Gate.eligible
+  (self : evidence.Gate) (current : evidence.Subject) : Result Bool := do
+  let b ←
+    evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase.eq self.phase
+      evidence.EvidencePhase.Accepted
+  if b
+  then
+    let b1 ← alloc.vec.Vec.is_empty self.obligations
+    if b1
+    then ok false
+    else
+      let i := alloc.vec.Vec.len self.obligations
+      if self.completed = i
+      then
+        evidence.Subject.Insts.CoreCmpPartialEqSubject.eq self.subject current
+      else ok false
+  else ok false
+
+/-- [meden_core::evidence::{meden_core::evidence::Contracts}::eligible]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 698:4-712:5
+    Visibility: public -/
+def evidence.Contracts.eligible
+  (self : evidence.Contracts) (revision : Std.U64)
+  (inputs : alloc.vec.Vec Std.U8) :
   Result Bool
   := do
-  let self1 := read_discriminant self
-  let other1 := read_discriminant other
-  ok (self1 = other1)
+  let b := core.option.Option.is_some self.draft
+  if b
+  then ok false
+  else
+    let b1 ← evidence.CheckJobs.is_active self.jobs
+    if b1
+    then ok false
+    else
+      match self.accepted with
+      | none => ok false
+      | some accepted =>
+        let s ←
+          evidence.Subject.Insts.CoreCloneClone.clone accepted.gate.subject
+        if accepted.revision = revision
+        then evidence.Gate.eligible accepted.gate { s with inputs }
+        else ok false
+
+/-- [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::CheckTicket> for meden_core::evidence::CheckTicket}::eq]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 196:23-196:32
+    Visibility: public -/
+def evidence.CheckTicket.Insts.CoreCmpPartialEqCheckTicket.eq
+  (self : evidence.CheckTicket) (other : evidence.CheckTicket) :
+  Result Bool
+  := do
+  if self.id = other.id
+  then
+    evidence.Subject.Insts.CoreCmpPartialEqSubject.eq self.subject
+      other.subject
+  else ok false
+
+/-- Trait implementation: [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::CheckTicket> for meden_core::evidence::CheckTicket}]
+    Source: 'crates/meden-core/src/evidence.rs', lines 196:23-196:32 -/
+@[reducible]
+impl_def evidence.CheckTicket.Insts.CoreCmpPartialEqCheckTicket :
+  core.cmp.PartialEq evidence.CheckTicket evidence.CheckTicket := {
+  eq := evidence.CheckTicket.Insts.CoreCmpPartialEqCheckTicket.eq
+  ne := core.cmp.PartialEq.ne.trait_default
+    evidence.CheckTicket.Insts.CoreCmpPartialEqCheckTicket
+}
+
+/-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::matches]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 323:4-328:5 -/
+def evidence.CheckJobs.matches
+  (self : evidence.CheckJobs) (ticket : evidence.CheckTicket) :
+  Result Bool
+  := do
+  match self.active with
+  | none => ok false
+  | some active =>
+    evidence.CheckTicket.Insts.CoreCmpPartialEqCheckTicket.eq active ticket
+
+/-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::finish]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 269:4-288:5
+    Visibility: public -/
+def evidence.CheckJobs.finish
+  (self : evidence.CheckJobs) (origin : evidence.EvidenceOrigin)
+  (gate : evidence.Gate) (ticket : evidence.CheckTicket)
+  (current : evidence.Subject) :
+  Result (Bool × evidence.CheckJobs)
+  := do
+  let b ←
+    core.cmp.PartialEq.ne.trait_default
+      evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin origin
+      evidence.EvidenceOrigin.Checker
+  if b
+  then ok (false, self)
+  else
+    let b1 ← evidence.Gate.is_accepted gate
+    if b1
+    then
+      let b2 ← evidence.CheckJobs.matches self ticket
+      if b2
+      then
+        let b3 ←
+          core.cmp.PartialEq.ne.trait_default
+            evidence.Subject.Insts.CoreCmpPartialEqSubject ticket.subject
+            current
+        if b3
+        then ok (false, self)
+        else
+          let b4 ←
+            alloc.vec.partial_eq.PartialEqVec.ne core.cmp.PartialEqU8
+              self.session current.session
+          if b4
+          then ok (false, self)
+          else
+            let b5 ←
+              alloc.vec.partial_eq.PartialEqVec.ne core.cmp.PartialEqU8
+                gate.subject.session current.session
+            if b5
+            then ok (false, self)
+            else
+              let b6 ←
+                alloc.vec.partial_eq.PartialEqVec.ne core.cmp.PartialEqU8
+                  gate.subject.contract current.contract
+              if b6
+              then ok (false, self)
+              else ok (true, { self with active := none })
+      else ok (false, self)
+    else ok (false, self)
+
+/-- [meden_core::evidence::Receipt]
+    Source: 'crates/meden-core/src/evidence.rs', lines 81:0-92:1 -/
+structure evidence.Receipt where
+  subject : evidence.Subject
+  position : Std.Usize
+  obligation : evidence.Obligation
+  passed : Bool
+  active : Bool
 
 /-- Trait implementation: [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::EvidencePhase> for meden_core::evidence::EvidencePhase}]
     Source: 'crates/meden-core/src/evidence.rs', lines 55:29-55:38 -/
@@ -234,6 +782,68 @@ impl_def evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase :
     evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase
 }
 
+/-- [meden_core::evidence::{meden_core::evidence::Gate}::record]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 161:4-183:5 -/
+def evidence.Gate.record
+  (self : evidence.Gate) (origin : evidence.EvidenceOrigin)
+  (current : evidence.Subject) (receipt : evidence.Receipt) :
+  Result (Bool × evidence.Gate)
+  := do
+  if receipt.active
+  then
+    let b ←
+      core.cmp.PartialEq.ne.trait_default
+        evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin origin
+        evidence.EvidenceOrigin.Checker
+    if b
+    then ok (false, self)
+    else
+      let b1 ←
+        core.cmp.PartialEq.ne.trait_default
+          evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase 
+          self.phase evidence.EvidencePhase.Accepted
+      if b1
+      then ok (false, self)
+      else
+        let b2 ←
+          core.cmp.PartialEq.ne.trait_default
+            evidence.Subject.Insts.CoreCmpPartialEqSubject self.subject current
+        if b2
+        then ok (false, self)
+        else
+          let b3 ←
+            core.cmp.PartialEq.ne.trait_default
+              evidence.Subject.Insts.CoreCmpPartialEqSubject receipt.subject
+              current
+          if b3
+          then ok (false, self)
+          else
+            if receipt.position != self.completed
+            then ok (false, self)
+            else
+              if receipt.passed
+              then
+                let s := alloc.vec.Vec.deref self.obligations
+                let o ←
+                  core.slice.Slice.get (core.slice.index.SliceIndexUsizeSlice
+                    evidence.Obligation) s self.completed
+                match o with
+                | none => ok (false, self)
+                | some expected =>
+                  let b4 ←
+                    core.cmp.PartialEq.ne.trait_default
+                      evidence.Obligation.Insts.CoreCmpPartialEqObligation
+                      expected receipt.obligation
+                  if b4
+                  then ok (false, self)
+                  else
+                    let o1 ← lift (Usize.checked_add self.completed 1#usize)
+                    match o1 with
+                    | none => ok (false, self)
+                    | some next => ok (true, { self with completed := next })
+              else ok (false, self)
+  else ok (false, self)
+
 /-- [meden_core::evidence::CheckResult]
     Source: 'crates/meden-core/src/evidence.rs', lines 68:0-77:1
     Visibility: public -/
@@ -243,23 +853,158 @@ structure evidence.CheckResult where
   obligation : evidence.Obligation
   passed : Bool
 
-/-- [meden_core::evidence::Receipt]
-    Source: 'crates/meden-core/src/evidence.rs', lines 81:0-92:1 -/
-structure evidence.Receipt where
-  subject : evidence.Subject
-  position : Std.Usize
-  obligation : evidence.Obligation
-  passed : Bool
-  active : Bool
-
-/-- [meden_core::evidence::Gate]
-    Source: 'crates/meden-core/src/evidence.rs', lines 96:0-101:1
+/-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::complete]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 298:4-321:5
     Visibility: public -/
-structure evidence.Gate where
-  subject : evidence.Subject
-  obligations : alloc.vec.Vec evidence.Obligation
-  phase : evidence.EvidencePhase
-  completed : Std.Usize
+def evidence.CheckJobs.complete
+  (self : evidence.CheckJobs) (gate : evidence.Gate)
+  (origin : evidence.EvidenceOrigin) (ticket : evidence.CheckTicket)
+  (current : evidence.Subject) (result : evidence.CheckResult) :
+  Result (Bool × evidence.CheckJobs × evidence.Gate)
+  := do
+  let (active, self1) ←
+    evidence.CheckJobs.finish self origin gate ticket current
+  if active
+  then
+    let s ← evidence.Subject.Insts.CoreCloneClone.clone result.subject
+    let (b, gate1) ←
+      evidence.Gate.refresh gate evidence.EvidenceOrigin.Controller s
+    if b
+    then
+      let (b1, gate2) ←
+        evidence.Gate.record gate1 origin result.subject
+          {
+            subject := result.subject,
+            position := result.position,
+            obligation := result.obligation,
+            passed := result.passed,
+            active
+          }
+      ok (b1, self1, gate2)
+    else ok (false, self1, gate1)
+  else ok (false, self1, gate)
+
+/-- [meden_core::evidence::{meden_core::evidence::Contracts}::complete]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 670:4-695:5
+    Visibility: public -/
+def evidence.Contracts.complete
+  (self : evidence.Contracts) (origin : evidence.EvidenceOrigin)
+  (revision : Std.U64) (ticket : evidence.CheckTicket)
+  (current_inputs : alloc.vec.Vec Std.U8) (result : evidence.CheckResult) :
+  Result (Bool × evidence.Contracts)
+  := do
+  let b := core.option.Option.is_some self.draft
+  if b
+  then ok (false, self)
+  else
+    match self.accepted with
+    | none => ok (false, self)
+    | some accepted =>
+      if accepted.revision != revision
+      then ok (false, self)
+      else
+        let s ←
+          evidence.Subject.Insts.CoreCloneClone.clone accepted.gate.subject
+        let (b1, cj, g) ←
+          evidence.CheckJobs.complete self.jobs accepted.gate origin ticket
+            { s with inputs := current_inputs } result
+        ok (b1,
+          {
+            self
+              with
+              accepted := (some { accepted with gate := g }), jobs := cj
+          })
+
+/-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::abort]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 260:4-265:5
+    Visibility: public -/
+def evidence.CheckJobs.abort
+  (self : evidence.CheckJobs) (origin : evidence.EvidenceOrigin)
+  (ticket : evidence.CheckTicket) :
+  Result (Bool × evidence.CheckJobs)
+  := do
+  let b ← evidence.CheckJobs.matches self ticket
+  if b
+  then evidence.CheckJobs.invalidate self origin
+  else ok (false, self)
+
+/-- [meden_core::evidence::{meden_core::evidence::Contracts}::abort]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 660:4-662:5
+    Visibility: public -/
+def evidence.Contracts.abort
+  (self : evidence.Contracts) (origin : evidence.EvidenceOrigin)
+  (ticket : evidence.CheckTicket) :
+  Result (Bool × evidence.Contracts)
+  := do
+  let (b, cj) ← evidence.CheckJobs.abort self.jobs origin ticket
+  ok (b, { self with jobs := cj })
+
+/-- [meden_core::check::{meden_core::check::Running<T>}::complete]:
+    Source: 'crates/meden-core/src/check.rs', lines 96:4-134:5
+    Visibility: public -/
+def check.Running.complete
+  {T : Type _} {U : Type _} (self : check.Running T)
+  (current : evidence.Contracts) (inputs : alloc.vec.Vec Std.U8)
+  (output_inputs : alloc.vec.Vec Std.U8) (checker : alloc.vec.Vec Std.U8)
+  (output : U) :
+  Result ((Option U) × evidence.Contracts)
+  := do
+  let s := alloc.vec.Vec.deref self.agreement.obligations
+  let o ←
+    core.slice.Slice.get (core.slice.index.SliceIndexUsizeSlice
+      evidence.Obligation) s 0#usize
+  match o with
+  | none =>
+    let (_, current1) ←
+      evidence.Contracts.abort current evidence.EvidenceOrigin.Controller
+        self.ticket
+    ok (none, current1)
+  | some required =>
+    let b ←
+      alloc.vec.partial_eq.PartialEqVec.ne core.cmp.PartialEqU8 checker
+        required.checker
+    if b
+    then
+      let (_, current1) ←
+        evidence.Contracts.abort current evidence.EvidenceOrigin.Controller
+          self.ticket
+      ok (none, current1)
+    else
+      let v ← alloc.vec.CloneVec.clone core.clone.CloneU8 output_inputs
+      let o1 ← evidence.Obligation.Insts.CoreCloneClone.clone required
+      let (b1, current1) ←
+        evidence.Contracts.complete current evidence.EvidenceOrigin.Checker
+          self.agreement.revision self.ticket inputs
+          {
+            subject := { self.agreement.subject with inputs := v },
+            position := 0#usize,
+            obligation := o1,
+            passed := true
+          }
+      if b1
+      then
+        let b2 ←
+          evidence.Contracts.eligible current1 self.agreement.revision
+            output_inputs
+        if b2
+        then ok (some output, current1)
+        else
+          let (_, current2) ←
+            evidence.Contracts.abort current1
+              evidence.EvidenceOrigin.Controller self.ticket
+          ok (none, current2)
+      else
+        let (_, current2) ←
+          evidence.Contracts.abort current1 evidence.EvidenceOrigin.Controller
+            self.ticket
+        ok (none, current2)
+
+/-- [meden_core::evidence::{impl core::clone::Clone for meden_core::evidence::EvidencePhase}::clone]:
+    Source: 'crates/meden-core/src/evidence.rs', lines 55:9-55:14
+    Visibility: public -/
+def evidence.EvidencePhase.Insts.CoreCloneClone.clone
+  (self : evidence.EvidencePhase) : Result evidence.EvidencePhase := do
+  ok self
 
 /-- [meden_core::evidence::{impl core::clone::Clone for meden_core::evidence::Gate}::clone]:
     Source: 'crates/meden-core/src/evidence.rs', lines 95:9-95:14
@@ -337,422 +1082,12 @@ def evidence.Gate.accept
       then ok (false, self)
       else ok (true, { self with phase := evidence.EvidencePhase.Accepted })
 
-/-- [meden_core::evidence::{meden_core::evidence::Gate}::is_accepted]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 138:4-140:5
-    Visibility: public -/
-def evidence.Gate.is_accepted (self : evidence.Gate) : Result Bool := do
-  evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase.eq self.phase
-    evidence.EvidencePhase.Accepted
-
-/-- [meden_core::evidence::{meden_core::evidence::Gate}::refresh]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 144:4-156:5
-    Visibility: public -/
-def evidence.Gate.refresh
-  (self : evidence.Gate) (origin : evidence.EvidenceOrigin)
-  (subject : evidence.Subject) :
-  Result (Bool × evidence.Gate)
-  := do
-  let b ←
-    core.cmp.PartialEq.ne.trait_default
-      evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin origin
-      evidence.EvidenceOrigin.Controller
-  if b
-  then ok (false, self)
-  else
-    let b1 ←
-      alloc.vec.partial_eq.PartialEqVec.ne core.cmp.PartialEqU8
-        self.subject.session subject.session
-    if b1
-    then ok (false, self)
-    else
-      let b2 ←
-        alloc.vec.partial_eq.PartialEqVec.ne core.cmp.PartialEqU8
-          self.subject.contract subject.contract
-      if b2
-      then ok (false, self)
-      else
-        let b3 ←
-          core.cmp.PartialEq.ne.trait_default
-            evidence.Subject.Insts.CoreCmpPartialEqSubject self.subject subject
-        if b3
-        then ok (true, { self with subject, completed := 0#usize })
-        else ok (true, self)
-
-/-- [meden_core::evidence::{meden_core::evidence::Gate}::record]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 161:4-183:5 -/
-def evidence.Gate.record
-  (self : evidence.Gate) (origin : evidence.EvidenceOrigin)
-  (current : evidence.Subject) (receipt : evidence.Receipt) :
-  Result (Bool × evidence.Gate)
-  := do
-  if receipt.active
-  then
-    let b ←
-      core.cmp.PartialEq.ne.trait_default
-        evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin origin
-        evidence.EvidenceOrigin.Checker
-    if b
-    then ok (false, self)
-    else
-      let b1 ←
-        core.cmp.PartialEq.ne.trait_default
-          evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase 
-          self.phase evidence.EvidencePhase.Accepted
-      if b1
-      then ok (false, self)
-      else
-        let b2 ←
-          core.cmp.PartialEq.ne.trait_default
-            evidence.Subject.Insts.CoreCmpPartialEqSubject self.subject current
-        if b2
-        then ok (false, self)
-        else
-          let b3 ←
-            core.cmp.PartialEq.ne.trait_default
-              evidence.Subject.Insts.CoreCmpPartialEqSubject receipt.subject
-              current
-          if b3
-          then ok (false, self)
-          else
-            if receipt.position != self.completed
-            then ok (false, self)
-            else
-              if receipt.passed
-              then
-                let s := alloc.vec.Vec.deref self.obligations
-                let o ←
-                  core.slice.Slice.get (core.slice.index.SliceIndexUsizeSlice
-                    evidence.Obligation) s self.completed
-                match o with
-                | none => ok (false, self)
-                | some expected =>
-                  let b4 ←
-                    core.cmp.PartialEq.ne.trait_default
-                      evidence.Obligation.Insts.CoreCmpPartialEqObligation
-                      expected receipt.obligation
-                  if b4
-                  then ok (false, self)
-                  else
-                    let o1 ← lift (Usize.checked_add self.completed 1#usize)
-                    match o1 with
-                    | none => ok (false, self)
-                    | some next => ok (true, { self with completed := next })
-              else ok (false, self)
-  else ok (false, self)
-
-/-- [meden_core::evidence::{meden_core::evidence::Gate}::eligible]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 186:4-191:5
-    Visibility: public -/
-def evidence.Gate.eligible
-  (self : evidence.Gate) (current : evidence.Subject) : Result Bool := do
-  let b ←
-    evidence.EvidencePhase.Insts.CoreCmpPartialEqEvidencePhase.eq self.phase
-      evidence.EvidencePhase.Accepted
-  if b
-  then
-    let b1 ← alloc.vec.Vec.is_empty self.obligations
-    if b1
-    then ok false
-    else
-      let i := alloc.vec.Vec.len self.obligations
-      if self.completed = i
-      then
-        evidence.Subject.Insts.CoreCmpPartialEqSubject.eq self.subject current
-      else ok false
-  else ok false
-
-/-- [meden_core::evidence::CheckTicket]
-    Source: 'crates/meden-core/src/evidence.rs', lines 197:0-200:1
-    Visibility: public -/
-structure evidence.CheckTicket where
-  id : Std.U64
-  subject : evidence.Subject
-
-/-- [meden_core::evidence::{impl core::clone::Clone for meden_core::evidence::CheckTicket}::clone]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 196:9-196:14
-    Visibility: public -/
-def evidence.CheckTicket.Insts.CoreCloneClone.clone
-  (self : evidence.CheckTicket) : Result evidence.CheckTicket := do
-  let i ← lift (core.clone.impls.CloneU64.clone self.id)
-  let s ← evidence.Subject.Insts.CoreCloneClone.clone self.subject
-  ok { id := i, subject := s }
-
-/-- [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::CheckTicket> for meden_core::evidence::CheckTicket}::eq]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 196:23-196:32
-    Visibility: public -/
-def evidence.CheckTicket.Insts.CoreCmpPartialEqCheckTicket.eq
-  (self : evidence.CheckTicket) (other : evidence.CheckTicket) :
-  Result Bool
-  := do
-  if self.id = other.id
-  then
-    evidence.Subject.Insts.CoreCmpPartialEqSubject.eq self.subject
-      other.subject
-  else ok false
-
-/-- Trait implementation: [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::CheckTicket> for meden_core::evidence::CheckTicket}]
-    Source: 'crates/meden-core/src/evidence.rs', lines 196:23-196:32 -/
-@[reducible]
-impl_def evidence.CheckTicket.Insts.CoreCmpPartialEqCheckTicket :
-  core.cmp.PartialEq evidence.CheckTicket evidence.CheckTicket := {
-  eq := evidence.CheckTicket.Insts.CoreCmpPartialEqCheckTicket.eq
-  ne := core.cmp.PartialEq.ne.trait_default
-    evidence.CheckTicket.Insts.CoreCmpPartialEqCheckTicket
-}
-
-/-- [meden_core::evidence::CheckJobs]
-    Source: 'crates/meden-core/src/evidence.rs', lines 205:0-209:1
-    Visibility: public -/
-structure evidence.CheckJobs where
-  session : alloc.vec.Vec Std.U8
-  sequence : Std.U64
-  active : Option evidence.CheckTicket
-
 /-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::new]:
     Source: 'crates/meden-core/src/evidence.rs', lines 213:4-219:5
     Visibility: public -/
 def evidence.CheckJobs.new
   (session : alloc.vec.Vec Std.U8) : Result evidence.CheckJobs := do
   ok { session, sequence := 0#u64, active := none }
-
-/-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::start]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 224:4-248:5
-    Visibility: public -/
-def evidence.CheckJobs.start
-  (self : evidence.CheckJobs) (origin : evidence.EvidenceOrigin)
-  (gate : evidence.Gate) (subject : evidence.Subject) :
-  Result ((Option evidence.CheckTicket) × evidence.CheckJobs)
-  := do
-  let b ←
-    core.cmp.PartialEq.ne.trait_default
-      evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin origin
-      evidence.EvidenceOrigin.Controller
-  if b
-  then ok (none, self)
-  else
-    let b1 ← evidence.Gate.is_accepted gate
-    if b1
-    then
-      let b2 ←
-        alloc.vec.partial_eq.PartialEqVec.ne core.cmp.PartialEqU8 self.session
-          subject.session
-      if b2
-      then ok (none, self)
-      else
-        let b3 ←
-          alloc.vec.partial_eq.PartialEqVec.ne core.cmp.PartialEqU8
-            gate.subject.session subject.session
-        if b3
-        then ok (none, self)
-        else
-          let b4 ←
-            alloc.vec.partial_eq.PartialEqVec.ne core.cmp.PartialEqU8
-              gate.subject.contract subject.contract
-          if b4
-          then ok (none, self)
-          else
-            let o ← lift (U64.checked_add self.sequence 1#u64)
-            match o with
-            | none => ok (none, self)
-            | some next =>
-              let s ← evidence.Subject.Insts.CoreCloneClone.clone subject
-              let ct ←
-                evidence.CheckTicket.Insts.CoreCloneClone.clone
-                  { id := next, subject := s }
-              ok (some { id := next, subject := s },
-                { self with sequence := next, active := (some ct) })
-    else ok (none, self)
-
-/-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::invalidate]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 251:4-257:5
-    Visibility: public -/
-def evidence.CheckJobs.invalidate
-  (self : evidence.CheckJobs) (origin : evidence.EvidenceOrigin) :
-  Result (Bool × evidence.CheckJobs)
-  := do
-  let b ←
-    core.cmp.PartialEq.ne.trait_default
-      evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin origin
-      evidence.EvidenceOrigin.Controller
-  if b
-  then ok (false, self)
-  else ok (true, { self with active := none })
-
-/-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::matches]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 323:4-328:5 -/
-def evidence.CheckJobs.matches
-  (self : evidence.CheckJobs) (ticket : evidence.CheckTicket) :
-  Result Bool
-  := do
-  match self.active with
-  | none => ok false
-  | some active =>
-    evidence.CheckTicket.Insts.CoreCmpPartialEqCheckTicket.eq active ticket
-
-/-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::abort]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 260:4-265:5
-    Visibility: public -/
-def evidence.CheckJobs.abort
-  (self : evidence.CheckJobs) (origin : evidence.EvidenceOrigin)
-  (ticket : evidence.CheckTicket) :
-  Result (Bool × evidence.CheckJobs)
-  := do
-  let b ← evidence.CheckJobs.matches self ticket
-  if b
-  then evidence.CheckJobs.invalidate self origin
-  else ok (false, self)
-
-/-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::finish]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 269:4-288:5
-    Visibility: public -/
-def evidence.CheckJobs.finish
-  (self : evidence.CheckJobs) (origin : evidence.EvidenceOrigin)
-  (gate : evidence.Gate) (ticket : evidence.CheckTicket)
-  (current : evidence.Subject) :
-  Result (Bool × evidence.CheckJobs)
-  := do
-  let b ←
-    core.cmp.PartialEq.ne.trait_default
-      evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin origin
-      evidence.EvidenceOrigin.Checker
-  if b
-  then ok (false, self)
-  else
-    let b1 ← evidence.Gate.is_accepted gate
-    if b1
-    then
-      let b2 ← evidence.CheckJobs.matches self ticket
-      if b2
-      then
-        let b3 ←
-          core.cmp.PartialEq.ne.trait_default
-            evidence.Subject.Insts.CoreCmpPartialEqSubject ticket.subject
-            current
-        if b3
-        then ok (false, self)
-        else
-          let b4 ←
-            alloc.vec.partial_eq.PartialEqVec.ne core.cmp.PartialEqU8
-              self.session current.session
-          if b4
-          then ok (false, self)
-          else
-            let b5 ←
-              alloc.vec.partial_eq.PartialEqVec.ne core.cmp.PartialEqU8
-                gate.subject.session current.session
-            if b5
-            then ok (false, self)
-            else
-              let b6 ←
-                alloc.vec.partial_eq.PartialEqVec.ne core.cmp.PartialEqU8
-                  gate.subject.contract current.contract
-              if b6
-              then ok (false, self)
-              else ok (true, { self with active := none })
-      else ok (false, self)
-    else ok (false, self)
-
-/-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::is_active]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 291:4-293:5
-    Visibility: public -/
-def evidence.CheckJobs.is_active
-  (self : evidence.CheckJobs) : Result Bool := do
-  ok (core.option.Option.is_some self.active)
-
-/-- [meden_core::evidence::{meden_core::evidence::CheckJobs}::complete]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 298:4-321:5
-    Visibility: public -/
-def evidence.CheckJobs.complete
-  (self : evidence.CheckJobs) (gate : evidence.Gate)
-  (origin : evidence.EvidenceOrigin) (ticket : evidence.CheckTicket)
-  (current : evidence.Subject) (result : evidence.CheckResult) :
-  Result (Bool × evidence.CheckJobs × evidence.Gate)
-  := do
-  let (active, self1) ←
-    evidence.CheckJobs.finish self origin gate ticket current
-  if active
-  then
-    let s ← evidence.Subject.Insts.CoreCloneClone.clone result.subject
-    let (b, gate1) ←
-      evidence.Gate.refresh gate evidence.EvidenceOrigin.Controller s
-    if b
-    then
-      let (b1, gate2) ←
-        evidence.Gate.record gate1 origin result.subject
-          {
-            subject := result.subject,
-            position := result.position,
-            obligation := result.obligation,
-            passed := result.passed,
-            active
-          }
-      ok (b1, self1, gate2)
-    else ok (false, self1, gate1)
-  else ok (false, self1, gate)
-
-/-- [meden_core::evidence::ContractView]
-    Source: 'crates/meden-core/src/evidence.rs', lines 334:0-341:1
-    Visibility: public -/
-structure evidence.ContractView where
-  revision : Std.U64
-  subject : evidence.Subject
-  obligations : alloc.vec.Vec evidence.Obligation
-
-/-- [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::ContractView> for meden_core::evidence::ContractView}::eq]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 333:23-333:32
-    Visibility: public -/
-def evidence.ContractView.Insts.CoreCmpPartialEqContractView.eq
-  (self : evidence.ContractView) (other : evidence.ContractView) :
-  Result Bool
-  := do
-  if self.revision = other.revision
-  then
-    let b ←
-      evidence.Subject.Insts.CoreCmpPartialEqSubject.eq self.subject
-        other.subject
-    if b
-    then
-      alloc.vec.partial_eq.PartialEqVec.eq
-        evidence.Obligation.Insts.CoreCmpPartialEqObligation self.obligations
-        other.obligations
-    else ok false
-  else ok false
-
-/-- Trait implementation: [meden_core::evidence::{impl core::cmp::PartialEq<meden_core::evidence::ContractView> for meden_core::evidence::ContractView}]
-    Source: 'crates/meden-core/src/evidence.rs', lines 333:23-333:32 -/
-@[reducible]
-impl_def evidence.ContractView.Insts.CoreCmpPartialEqContractView :
-  core.cmp.PartialEq evidence.ContractView evidence.ContractView := {
-  eq := evidence.ContractView.Insts.CoreCmpPartialEqContractView.eq
-  ne := core.cmp.PartialEq.ne.trait_default
-    evidence.ContractView.Insts.CoreCmpPartialEqContractView
-}
-
-/-- [meden_core::evidence::VersionedGate]
-    Source: 'crates/meden-core/src/evidence.rs', lines 344:0-347:1 -/
-structure evidence.VersionedGate where
-  revision : Std.U64
-  gate : evidence.Gate
-
-/-- [meden_core::evidence::{meden_core::evidence::VersionedGate}::view]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 350:4-356:5 -/
-def evidence.VersionedGate.view
-  (self : evidence.VersionedGate) : Result evidence.ContractView := do
-  let s ← evidence.Subject.Insts.CoreCloneClone.clone self.gate.subject
-  let v ←
-    alloc.vec.CloneVec.clone evidence.Obligation.Insts.CoreCloneClone
-      self.gate.obligations
-  ok { revision := self.revision, subject := s, obligations := v }
-
-/-- [meden_core::evidence::Contracts]
-    Source: 'crates/meden-core/src/evidence.rs', lines 363:0-369:1
-    Visibility: public -/
-structure evidence.Contracts where
-  session : alloc.vec.Vec Std.U8
-  sequence : Std.U64
-  accepted : Option evidence.VersionedGate
-  draft : Option evidence.VersionedGate
-  jobs : evidence.CheckJobs
 
 /-- [meden_core::export_control::FrozenRequest]
     Source: 'crates/meden-core/src/export_control.rs', lines 120:0-123:1
@@ -824,42 +1159,6 @@ def export_control.State.impl.phase
 def evidence.Delivery.phase
   (self : evidence.Delivery) : Result export_control.Phase := do
   export_control.State.impl.phase self.export
-
-/-- [meden_core::evidence::{meden_core::evidence::Contracts}::eligible]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 698:4-712:5
-    Visibility: public -/
-def evidence.Contracts.eligible
-  (self : evidence.Contracts) (revision : Std.U64)
-  (inputs : alloc.vec.Vec Std.U8) :
-  Result Bool
-  := do
-  let b := core.option.Option.is_some self.draft
-  if b
-  then ok false
-  else
-    let b1 ← evidence.CheckJobs.is_active self.jobs
-    if b1
-    then ok false
-    else
-      match self.accepted with
-      | none => ok false
-      | some accepted =>
-        let s ←
-          evidence.Subject.Insts.CoreCloneClone.clone accepted.gate.subject
-        if accepted.revision = revision
-        then evidence.Gate.eligible accepted.gate { s with inputs }
-        else ok false
-
-/-- [meden_core::evidence::{meden_core::evidence::Contracts}::accepted]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 515:4-520:5
-    Visibility: public -/
-def evidence.Contracts.impl.accepted
-  (self : evidence.Contracts) : Result (Option evidence.ContractView) := do
-  match self.accepted with
-  | none => ok none
-  | some accepted =>
-    let cv ← evidence.VersionedGate.view accepted
-    ok (some cv)
 
 /-- [meden_core::evidence::{meden_core::evidence::Contracts}::displayed]:
     Source: 'crates/meden-core/src/evidence.rs', lines 506:4-511:5
@@ -1420,19 +1719,6 @@ def evidence.Contracts.propose
 def evidence.Contracts.pending (self : evidence.Contracts) : Result Bool := do
   ok (core.option.Option.is_some self.draft)
 
-/-- [meden_core::evidence::{meden_core::evidence::Contracts}::is_accepted]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 528:4-536:5
-    Visibility: public -/
-def evidence.Contracts.is_accepted
-  (self : evidence.Contracts) : Result Bool := do
-  let b := core.option.Option.is_some self.draft
-  if b
-  then ok false
-  else
-    match self.accepted with
-    | none => ok false
-    | some accepted => evidence.Gate.is_accepted accepted.gate
-
 /-- [meden_core::evidence::{meden_core::evidence::Contracts}::review]:
     Source: 'crates/meden-core/src/evidence.rs', lines 539:4-551:5
     Visibility: public -/
@@ -1552,57 +1838,6 @@ def evidence.Contracts.refresh
         evidence.Gate.refresh accepted.gate origin { s with inputs }
       ok (b, { self with accepted := (some { accepted with gate := g }) })
 
-/-- [meden_core::evidence::{meden_core::evidence::Contracts}::start]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 613:4-639:5
-    Visibility: public -/
-def evidence.Contracts.start
-  (self : evidence.Contracts) (origin : evidence.EvidenceOrigin)
-  (revision : Std.U64) (inputs : alloc.vec.Vec Std.U8) :
-  Result ((Option evidence.CheckTicket) × evidence.Contracts)
-  := do
-  let b ←
-    core.cmp.PartialEq.ne.trait_default
-      evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin origin
-      evidence.EvidenceOrigin.Controller
-  if b
-  then ok (none, self)
-  else
-    let b1 := core.option.Option.is_some self.draft
-    if b1
-    then ok (none, self)
-    else
-      match self.accepted with
-      | none => ok (none, self)
-      | some accepted =>
-        if accepted.revision != revision
-        then ok (none, self)
-        else
-          let (_, cj) ←
-            evidence.CheckJobs.invalidate self.jobs
-              evidence.EvidenceOrigin.Controller
-          let s ←
-            evidence.Subject.Insts.CoreCloneClone.clone accepted.gate.subject
-          let s1 ←
-            evidence.Subject.Insts.CoreCloneClone.clone { s with inputs }
-          let (b2, g) ← evidence.Gate.refresh accepted.gate origin s1
-          if b2
-          then
-            let (o, cj1) ←
-              evidence.CheckJobs.start cj origin g { s with inputs }
-            ok (o,
-              {
-                self
-                  with
-                  accepted := (some { accepted with gate := g }), jobs := cj1
-              })
-          else
-            ok (none,
-              {
-                self
-                  with
-                  accepted := (some { accepted with gate := g }), jobs := cj
-              })
-
 /-- [meden_core::evidence::{meden_core::evidence::Contracts}::invalidate]:
     Source: 'crates/meden-core/src/evidence.rs', lines 642:4-644:5
     Visibility: public -/
@@ -1613,86 +1848,12 @@ def evidence.Contracts.invalidate
   let (b, cj) ← evidence.CheckJobs.invalidate self.jobs origin
   ok (b, { self with jobs := cj })
 
-/-- [meden_core::evidence::{meden_core::evidence::Contracts}::edit]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 648:4-657:5
-    Visibility: public -/
-def evidence.Contracts.edit
-  (self : evidence.Contracts) (origin : evidence.EvidenceOrigin) :
-  Result (Bool × evidence.Contracts)
-  := do
-  let b ←
-    core.cmp.PartialEq.ne.trait_default
-      evidence.EvidenceOrigin.Insts.CoreCmpPartialEqEvidenceOrigin origin
-      evidence.EvidenceOrigin.Controller
-  if b
-  then ok (false, self)
-  else
-    let (_, cj) ← evidence.CheckJobs.invalidate self.jobs origin
-    match self.accepted with
-    | none => ok (true, { self with jobs := cj })
-    | some accepted =>
-      ok (true,
-        {
-          self
-            with
-            accepted :=
-              (some
-                {
-                  accepted
-                    with
-                    gate := { accepted.gate with completed := 0#usize }
-                }),
-            jobs := cj
-        })
-
-/-- [meden_core::evidence::{meden_core::evidence::Contracts}::abort]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 660:4-662:5
-    Visibility: public -/
-def evidence.Contracts.abort
-  (self : evidence.Contracts) (origin : evidence.EvidenceOrigin)
-  (ticket : evidence.CheckTicket) :
-  Result (Bool × evidence.Contracts)
-  := do
-  let (b, cj) ← evidence.CheckJobs.abort self.jobs origin ticket
-  ok (b, { self with jobs := cj })
-
 /-- [meden_core::evidence::{meden_core::evidence::Contracts}::is_active]:
     Source: 'crates/meden-core/src/evidence.rs', lines 665:4-667:5
     Visibility: public -/
 def evidence.Contracts.is_active
   (self : evidence.Contracts) : Result Bool := do
   evidence.CheckJobs.is_active self.jobs
-
-/-- [meden_core::evidence::{meden_core::evidence::Contracts}::complete]:
-    Source: 'crates/meden-core/src/evidence.rs', lines 670:4-695:5
-    Visibility: public -/
-def evidence.Contracts.complete
-  (self : evidence.Contracts) (origin : evidence.EvidenceOrigin)
-  (revision : Std.U64) (ticket : evidence.CheckTicket)
-  (current_inputs : alloc.vec.Vec Std.U8) (result : evidence.CheckResult) :
-  Result (Bool × evidence.Contracts)
-  := do
-  let b := core.option.Option.is_some self.draft
-  if b
-  then ok (false, self)
-  else
-    match self.accepted with
-    | none => ok (false, self)
-    | some accepted =>
-      if accepted.revision != revision
-      then ok (false, self)
-      else
-        let s ←
-          evidence.Subject.Insts.CoreCloneClone.clone accepted.gate.subject
-        let (b1, cj, g) ←
-          evidence.CheckJobs.complete self.jobs accepted.gate origin ticket
-            { s with inputs := current_inputs } result
-        ok (b1,
-          {
-            self
-              with
-              accepted := (some { accepted with gate := g }), jobs := cj
-          })
 
 /-- [meden_core::evidence::Inspection]
     Source: 'crates/meden-core/src/evidence.rs', lines 732:0-738:1

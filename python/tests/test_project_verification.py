@@ -358,6 +358,94 @@ def test_cli_host_acceptance_independent_repair_artifact_binding_and_staleness(
             process.wait(timeout=5)
 
 
+def test_failed_artifact_staging_cannot_restore_old_evidence(tmp_path):
+    contract = json.loads((ROOT / "verification/examples/counter.contract.json").read_text())
+    candidate = (ROOT / "verification/examples/counter.rs").read_text()
+    marker = "        elif ARTIFACT_CHECKS and 3 <= index < 3 + ARTIFACT_CHECKS:"
+    script = ENGINE.replace(
+        marker,
+        "        elif index in (3, 4): reply={'tool_calls':[call('verify_project',{})]}\n"
+        "        elif index == 5: reply={'content':'Fresh check completed.'}\n" + marker,
+    ).replace("'ledger.rs'", repr(contract["source_path"]))
+    args, env, _ = setup(
+        tmp_path, contract=contract, candidate=candidate, noop=candidate, engine_script=script,
+    )
+    process = subprocess.Popen(
+        args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        text=True, env=env,
+    )
+    records = queue.Queue()
+    seen = []
+
+    def read():
+        for line in process.stdout:
+            records.put(json.loads(line))
+        records.put({"type": "eof", "error": process.stderr.read()})
+
+    def send(command):
+        process.stdin.write(json.dumps(command) + "\n")
+        process.stdin.flush()
+
+    def receive(kind):
+        while True:
+            event = records.get(timeout=360)
+            seen.append(event)
+            assert event["type"] != "eof", event
+            if event["type"] == kind:
+                return event
+
+    threading.Thread(target=read, daemon=True).start()
+    storage = None
+    original_mode = None
+    try:
+        send({"instruction": "Build a verified counter."})
+        receive("ready")
+        assert receive("done")["outcome"] == "needs_review"
+        pending = next(e["summary"] for e in reversed(seen) if e["type"] == "project")
+        send({"review_contract": pending["reference"]})
+        receive("project")
+        send({"accept_contract": pending["reference"]})
+        receive("project")
+        assert receive("done")["outcome"] == "done", seen[-10:]
+        before = next(e["summary"] for e in reversed(seen) if e["type"] == "project")
+        assert before["verified"]
+        artifact = Path(before["artifact"])
+        assert_artifact(artifact, candidate, contract)
+        storage = artifact.parent
+        original_mode = storage.stat().st_mode & 0o777
+        storage.chmod(0o500)
+        # Prove storage is unavailable while the old artifact remains readable.
+        with pytest.raises(PermissionError), tempfile.TemporaryDirectory(dir=storage):
+            pass
+        assert_artifact(artifact, candidate, contract)
+        send({"instruction": "Verify the same source again."})
+        assert receive("done")["outcome"] == "failed", seen[-10:]
+        send({"project_status": None})
+        failed = receive("project")["summary"]
+        assert not failed["verified"], failed
+        assert failed["verification_failure"] == "inconclusive"
+        assert list(storage.iterdir()) == [artifact]
+        storage.chmod(original_mode)
+        send({"project_status": None})
+        assert not receive("project")["summary"]["verified"]
+        # Only a new successful check may restore coverage and retain new files.
+        send({"instruction": "Retry independent verification."})
+        assert receive("done")["outcome"] == "done", seen[-10:]
+        after = next(e["summary"] for e in reversed(seen) if e["type"] == "project")
+        assert after["verified"] and after["artifact"] != before["artifact"]
+        assert_artifact(Path(after["artifact"]), candidate, contract)
+        process.stdin.close()
+        process.wait(timeout=10)
+        assert process.returncode == 0, process.stderr.read()
+    finally:
+        (tmp_path / "staging-events.json").write_text(json.dumps(seen, indent=2))
+        if storage is not None:
+            storage.chmod(original_mode)
+        if process.poll() is None:
+            process.kill()
+            process.wait(timeout=5)
+
+
 def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(tmp_path):
     import fcntl
     import pty

@@ -11,6 +11,70 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 GROUPS = [
     {
+        "kernel": "check",
+        "model": "Evidence",
+        "proof": "CheckTransactionRefinement",
+        "prerequisites": ["CheckTransaction", "ContractsTrace"],
+        "test": "check::tests::transaction_refuses_substituted_agreements_and_invalid_completion",
+        "mutations": [
+            (
+                "check_preparation_accepts_foreign_agreement",
+                "Some(view) if view == agreement => {}",
+                "Some(view) if { let _ = view; true } => {}",
+            ),
+            (
+                "check_issue_substitutes_agreement",
+                "if view != self.agreement || !current.is_accepted() {",
+                "if (view != self.agreement && false) || !current.is_accepted() {",
+            ),
+            (
+                "check_completion_ignores_checker",
+                "if checker != required.checker {",
+                "if checker != required.checker && false {",
+            ),
+        ],
+    },
+    {
+        "kernel": "check",
+        "model": "Evidence",
+        "proof": "CheckTransactionRefinement",
+        "prerequisites": ["CheckTransaction", "ContractsTrace"],
+        "test": (
+            "check::tests::transaction_preserves_original_data_"
+            "and_admits_exact_output_after_fresh_observation"
+        ),
+        "mutations": [
+            (
+                "check_completion_reuses_old_inputs",
+                "            inputs,\n            result,",
+                (
+                    "            { let _ = inputs; self.agreement.subject.inputs.clone() },\n"
+                    "            result,"
+                ),
+            ),
+        ],
+    },
+    {
+        "kernel": "check",
+        "model": "Evidence",
+        "proof": "CheckTransactionRefinement",
+        "prerequisites": ["CheckTransaction", "ContractsTrace"],
+        "test": "check::tests::rejected_old_transaction_cannot_abort_the_newer_job",
+        "mutations": [
+            (
+                "check_refusal_aborts_unrelated_job",
+                (
+                    "if checker != required.checker {\n"
+                    "            current.abort(EvidenceOrigin::Controller, &self.ticket);"
+                ),
+                (
+                    "if checker != required.checker {\n"
+                    "            current.invalidate(EvidenceOrigin::Controller);"
+                ),
+            ),
+        ],
+    },
+    {
         "source": "crates/meden-runtime/src/pages.rs",
         "package": "meden-runtime",
         "model": "Repair",

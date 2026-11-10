@@ -13,9 +13,10 @@ use meden_agent::{
     Registry,
 };
 use meden_core::{
+    check::{Preparation, Running},
     evidence::{
-        CheckResult, CheckTicket, ContractView, Contracts, EvidenceKind, EvidenceOrigin as Origin,
-        Inspection, Obligation, Subject,
+        ContractView, Contracts, EvidenceKind, EvidenceOrigin as Origin, Inspection, Obligation,
+        Subject,
     },
     Capability, Grant, Policy, Requirement,
 };
@@ -657,45 +658,44 @@ impl Project {
         control: &Control,
         rules: &Policy,
     ) -> Result<Summary> {
-        let agreement = self.with_access(access, |state, agreement| {
-            anyhow::ensure!(
-                state.contracts.is_accepted(),
-                "host contract acceptance is required before verification"
-            );
+        let preparation = self.with_access(access, |state, agreement| {
             let agreement = agreement.context("no prepared accepted contract")?;
-            state.contracts.edit(Origin::Controller);
+            let preparation =
+                Preparation::begin(&mut state.contracts, agreement.view.clone(), agreement)
+                    .context("host acceptance of the exact prepared contract is required")?;
             state.dirty = true;
             state.failure = None;
-            Ok(agreement)
+            Ok(preparation)
         })?;
-        let source = snapshot(workspace, agreement.contract.source(), control, rules)?;
+        let source = snapshot(
+            workspace,
+            preparation.data().contract.source(),
+            control,
+            rules,
+        )?;
         let bundle = self.bundle()?;
         let prepared = kernel::prepare_kernel(
             &source,
-            &agreement.contract,
+            &preparation.data().contract,
             &bundle,
             &std::env::current_exe().map_err(Failure::unavailable)?,
             control,
         )?;
-        let ticket = {
+        let running = {
             let mut state = self
                 .state
                 .lock()
                 .map_err(|_| anyhow::anyhow!("project unavailable"))?;
             control.with_active(|| {
-                state
-                    .contracts
-                    .start(
-                        Origin::Controller,
-                        agreement.view.revision,
-                        serde_json::to_vec(prepared.inputs())?,
-                    )
+                preparation
+                    .issue(&mut state.contracts, serde_json::to_vec(prepared.inputs())?)
                     .ok_or_else(|| {
                         io::Error::other("job issue refused or contract changed during preparation")
                     })
             })?
         };
-        let result = self.run_job(prepared, &agreement, &ticket, workspace, control, rules);
+        let ticket = running.ticket().clone();
+        let result = self.run_job(prepared, running, workspace, control, rules);
         if result.is_err() {
             if let Ok(mut state) = self.state.lock() {
                 state.contracts.abort(Origin::Controller, &ticket);
@@ -706,49 +706,35 @@ impl Project {
     fn run_job(
         &self,
         prepared: kernel::PreparedKernel<'_>,
-        agreement: &Agreement,
-        ticket: &CheckTicket,
+        running: Running<Agreement>,
         workspace: &Workspace,
         control: &Control,
         rules: &Policy,
     ) -> Result<Summary> {
+        let agreement = running.data();
         let checked = prepared.check(control)?;
         let fresh = snapshot(workspace, agreement.contract.source(), control, rules)?;
         let mut inputs = checked.inputs();
         inputs.source_sha256 = hash(fresh.as_bytes());
         let subject = Self::binding(agreement, checked.report(), &fresh)?;
-        let required = agreement
-            .view
-            .obligations
-            .first()
-            .context("no obligation")?;
         let mut state = self
             .state
             .lock()
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
         control
             .with_active(|| {
-                let result = CheckResult {
-                    subject: subject.clone(),
-                    position: 0,
-                    obligation: required.clone(),
-                    passed: true,
-                };
-                if checked.report().checker_sha256.as_bytes() != required.checker
-                    || !state.contracts.complete(
-                        Origin::Checker,
-                        agreement.view.revision,
-                        ticket,
+                let observed_checker = checked.report().checker_sha256.as_bytes().to_vec();
+                let staged = checked.stage(&self.storage)?;
+                let staged = running
+                    .complete(
+                        &mut state.contracts,
                         serde_json::to_vec(&inputs)?,
-                        result,
+                        subject.inputs,
+                        observed_checker,
+                        staged,
                     )
-                    || !state
-                        .contracts
-                        .eligible(agreement.view.revision, subject.inputs)
-                {
-                    return Err(io::Error::other("evidence correspondence refused"));
-                }
-                state.artifact = Some(checked.persist(&self.storage)?);
+                    .ok_or_else(|| io::Error::other("evidence correspondence refused"))?;
+                state.artifact = Some(staged.commit());
                 state.dirty = false;
                 self.summary(&state, true).map_err(io::Error::other)
             })
@@ -898,6 +884,7 @@ impl ProjectTool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use meden_core::evidence::CheckResult;
     use std::sync::atomic::{AtomicBool, Ordering};
 
     #[test]

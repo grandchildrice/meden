@@ -180,6 +180,13 @@
   completion. `Receipt` and direct recording are private; adapters provide
   validated output without an activity flag. Failed output admission never
   restores a consumed job. This is still not the complete session I/O proof.
+  Project checks retain the exact accepted agreement and host data in owned
+  preparation/running values. Their begin/issue/complete operations and getters
+  are extracted/refined; completion returns only its original eligible output.
+  Artifacts are staged before evidence admission and retained only on success.
+  Failed persistence cannot revive old coverage; restoring storage alone stays
+  unverified. Encoding, checker execution, filesystem persistence, locking and
+  the whole session I/O loop remain adapters.
   The evidence kernel gates
   Meden's own releases and the generic pure-u64 Rust transition verifier.
   Decimal example strings use the extracted/refined byte parser before

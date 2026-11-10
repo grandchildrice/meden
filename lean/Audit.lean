@@ -55,6 +55,16 @@ open MedenSpec
 #print axioms ContractsTrace.reviewed_acceptance
 #print axioms ContractsTrace.extracted_meaning_preserved
 
+#print axioms CheckTransaction.begin_original
+#print axioms CheckTransaction.issue_original
+#print axioms CheckTransaction.output_original
+#print axioms CheckTransactionRefinement.preparation_data
+#print axioms CheckTransactionRefinement.running_data
+#print axioms CheckTransactionRefinement.running_ticket
+#print axioms CheckTransactionRefinement.begin_refines
+#print axioms CheckTransactionRefinement.issue_refines
+#print axioms CheckTransactionRefinement.complete_refines
+
 #print axioms Capability.ofString_toString
 #print axioms Capability.toString_injective
 #print axioms globMatch_star

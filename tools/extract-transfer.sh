@@ -73,6 +73,12 @@ for unit in "${units[@]}"; do
       rust_roots+=(meden_core::evidence::Contracts::inspect
         meden_core::evidence::Inspection::accepted meden_core::evidence::Inspection::consume
         meden_core::evidence::Inspection::matches meden_core::evidence::same_view)
+      for method in begin data issue; do
+        rust_roots+=("meden_core::check::Preparation::$method")
+      done
+      for method in data ticket complete; do
+        rust_roots+=("meden_core::check::Running::$method")
+      done
       for method in contract request phase advance; do
         rust_roots+=("meden_core::evidence::Delivery::$method")
       done
@@ -161,7 +167,9 @@ for unit in "${units[@]}"; do
   fi
   definitions=()
   if [[ $unit == evidence ]]; then
-    definitions=(evidence.Contracts.new evidence.Contracts.propose
+    definitions=(check.Preparation.begin check.Preparation.impl.data check.Preparation.issue
+      check.Running.impl.data check.Running.impl.ticket check.Running.complete
+      evidence.Contracts.new evidence.Contracts.propose
       evidence.Contracts.displayed evidence.Contracts.impl.accepted
       evidence.Contracts.pending evidence.Contracts.is_accepted
       evidence.Contracts.review evidence.Contracts.accept evidence.Contracts.reject
