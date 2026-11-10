@@ -20,6 +20,11 @@ approval must match its exact inference URL. It permits that processor to
 receive this session's conversation, file contents and tool results for up
 to eight hours; a loopback endpoint alone does not prove local inference.
 
+Subscription connections use `--provider codex` with an approved `/responses`
+URL, or `--provider claude` with an approved `/messages` URL. They share the
+same session, tools and processor review; login sources and provider limits
+are described in [subscription connections](local-inference.md#subscription-connections).
+
 ## Input
 
 Each nonblank line is one host command with exactly one field. Instructions

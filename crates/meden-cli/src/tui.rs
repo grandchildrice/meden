@@ -1175,6 +1175,7 @@ mod tests {
     }
     fn providers() -> Vec<Provider> {
         vec![Provider {
+            protocol: meden_llm::Protocol::ChatCompletions,
             id: "test".into(),
             label: "Test".into(),
             model: "m".into(),

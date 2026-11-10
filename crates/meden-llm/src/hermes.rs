@@ -157,6 +157,7 @@ pub fn providers_in(home: &Path) -> Vec<Provider> {
                 label: format!("{} (via Hermes)", c.name),
                 model,
                 base_url: c.base_url.clone(),
+                protocol: crate::provider::Protocol::ChatCompletions,
                 api_key,
                 note: format!("from {}", home.join("config.yaml").display()),
             })

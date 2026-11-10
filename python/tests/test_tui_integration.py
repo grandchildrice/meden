@@ -125,10 +125,14 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
         "MEDEN_LLM_BASE_URL": f"http://127.0.0.1:{server.server_port}/v1",
         "MEDEN_LLM_MODEL": "fixture",
         "HERMES_HOME": str(hermes),
+        "CODEX_HOME": str(tmp_path / "no-codex-login"),
+        "CLAUDE_CONFIG_DIR": str(tmp_path / "no-claude-login"),
     }
     env.pop("MEDEN_LLM_API_KEY", None)
     env.pop("OPENAI_API_KEY", None)
     env.pop("OLLAMA_API_KEY", None)
+    env.pop("CLAUDE_CODE_OAUTH_TOKEN", None)
+    env.pop("ANTHROPIC_TOKEN", None)
     command = [
         binary,
         "tui",

@@ -81,7 +81,7 @@ enum Command {
 }
 #[derive(Args)]
 struct ModelArgs {
-    /// Explicit HTTP connection ID, or "auto" to discover connections.
+    /// HTTP connection ID (including codex or claude subscriptions), or "auto".
     #[arg(long)]
     provider: Option<String>,
     /// Model identifier for that connection.
@@ -182,7 +182,7 @@ fn run() -> Result<()> {
             let providers = if local.is_some() {
                 Vec::new()
             } else if args.model.provider.as_deref() == Some("auto") {
-                meden_llm::detect()
+                detect_providers(args.model.model.as_deref())
             } else {
                 vec![pick_provider(
                     args.model.provider.as_deref(),
@@ -202,7 +202,7 @@ fn run() -> Result<()> {
             let local = args.model.local_config()?;
             let approved = if local.is_none() {
                 Some(args.model.approve_processor.as_deref().context(
-                "run requires --approve-processor with the exact /chat/completions URL; this permits sending conversation and tool results to that processor for this session (up to eight hours)",
+                "run requires --approve-processor with the exact inference URL (/chat/completions, /responses or /messages); this permits sending conversation and tool results to that processor for this session (up to eight hours)",
             )?)
             } else {
                 None
@@ -365,21 +365,30 @@ fn execute(source: &std::path::Path) -> Result<()> {
     result?;
     Ok(())
 }
+/// Apply the host's model override to every connection shown in the picker.
+fn detect_providers(model: Option<&str>) -> Vec<meden_llm::Provider> {
+    meden_llm::detect()
+        .into_iter()
+        .map(|mut provider| {
+            if let Some(model) = model {
+                model.clone_into(&mut provider.model);
+            }
+            provider
+        })
+        .collect()
+}
+
 /// Select a model connection: the one asked for, or the first one detected.
 fn pick_provider(id: Option<&str>, model: Option<&str>) -> Result<meden_llm::Provider> {
-    let found = meden_llm::detect();
-    let mut provider = match id {
+    let found = detect_providers(model);
+    match id {
         Some(wanted) if wanted != "auto" => found
             .into_iter()
             .find(|p| p.id == wanted)
-            .with_context(|| format!("no provider called {wanted:?}; try `meden providers`"))?,
+            .with_context(|| format!("no provider called {wanted:?}; try `meden providers` (subscriptions: codex login / hermes auth, claude auth login / claude setup-token)")),
         _ => found
             .into_iter()
             .next()
-            .context("no model found; try `meden providers`")?,
-    };
-    if let Some(m) = model {
-        m.clone_into(&mut provider.model);
+            .context("no model found; try `meden providers`"),
     }
-    Ok(provider)
 }

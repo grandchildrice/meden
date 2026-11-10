@@ -38,7 +38,8 @@ HTTP connections and optional Hermes configuration.
 - **Workspace tools:** list/read files, write files and make exact edits.
 - **Terminal workflow:** multiline Unicode input, history, scrolling,
   cancellation and `/clear`.
-- **Model choice:** confined local llama.cpp inference or approved HTTP processors.
+- **Model choice:** confined local llama.cpp inference or approved HTTP processors,
+  including existing Codex and Claude subscription logins.
 - **Explicit boundaries:** Lean specifications for capability decisions and
   exact, single-use outbound authorization, checked in CI.
 
@@ -98,6 +99,23 @@ Select an HTTP connection explicitly:
 ./target/release/meden tui --workspace /path/to/project \
   --provider hermes:ollama-cloud --model minimax-m3
 ```
+
+Existing subscription logins can also be selected without an API key:
+
+```bash
+./target/release/meden tui --workspace /path/to/project --provider codex --model gpt-6.1-sol
+./target/release/meden tui --workspace /path/to/project --provider claude --model claude-sonnet-4-6
+```
+
+Codex reads the Hermes Codex login or `$CODEX_HOME/auth.json`
+(`~/.codex/auth.json` by default). Claude reads a host OAuth/setup token or
+`$CLAUDE_CONFIG_DIR/.credentials.json` (`~/.claude/.credentials.json` by default).
+Use `--provider auto` to choose among discovered connections in the TUI.
+These are experimental Hermes-compatible token adapters; the provider must
+authorize the account, model and third-party use. They do not bypass plan
+restrictions or fall back to paid API keys. See
+[subscription connections](docs/local-inference.md#subscription-connections)
+for login sources and limitations.
 
 For another OpenAI-compatible endpoint, set `MEDEN_LLM_BASE_URL`,
 `MEDEN_LLM_MODEL` and, when required, `MEDEN_LLM_API_KEY`. For example:

@@ -46,9 +46,14 @@ impl Gateway {
         uri.to_string()
             .trim_end_matches('/')
             .clone_into(&mut provider.base_url);
-        let endpoint = format!("{}/chat/completions", provider.base_url);
+        let endpoint = format!("{}{}", provider.base_url, provider.protocol.path());
+        let identity = serde_json::to_vec(&crate::provider::Identity {
+            id: provider.id.clone(),
+            protocol: provider.protocol.clone(),
+        })
+        .map_err(|_| unavailable())?;
         let binding = Binding::Http(HttpParameters::new(
-            provider.id.as_bytes().to_vec(),
+            identity,
             endpoint.as_bytes().to_vec(),
             provider.model.as_bytes().to_vec(),
             provider.api_key.as_ref().map(|key| key.as_bytes().to_vec()),
@@ -77,6 +82,7 @@ impl Gateway {
             label: "Isolated local model".into(),
             model: "meden-local".into(),
             base_url: endpoint.clone(),
+            protocol: crate::Protocol::ChatCompletions,
             api_key: None,
             note: format!("CPU inference · {}", config.model.display()),
         };
@@ -217,6 +223,7 @@ mod tests {
             id: "fixture".into(),
             label: "Fixture".into(),
             base_url: format!("http://{}/v1", receiver.local_addr().expect("address")),
+            protocol: crate::Protocol::ChatCompletions,
             model: "model-a".into(),
             api_key: Some("credential-a".into()),
             note: String::new(),
@@ -282,6 +289,7 @@ mod tests {
         gateway.provider = provider(&other);
         gateway.provider.model = "unapproved-model".into();
         gateway.provider.api_key = Some("unapproved-key".into());
+        gateway.provider.protocol = crate::Protocol::Claude;
         gateway.endpoint = format!("{}/unapproved", gateway.provider.base_url);
         let receive = std::thread::spawn(move || {
             let (mut stream, _) = approved.accept().expect("approved request");

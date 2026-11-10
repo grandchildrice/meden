@@ -1,7 +1,41 @@
 //! Discover connection metadata. Discovery is not inference authorization.
 use std::time::Duration;
 
-/// A discovered OpenAI-compatible model connection.
+/// Wire format and authentication metadata frozen with the processor grant.
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(tag = "api", rename_all = "snake_case", deny_unknown_fields)]
+pub enum Protocol {
+    /// OpenAI-compatible Chat Completions (including Ollama).
+    ChatCompletions,
+    /// Subscription Responses streaming, with an optional ChatGPT account.
+    Responses {
+        /// Account selected by the host's Codex login, never by the model.
+        account_id: Option<String>,
+    },
+    /// Anthropic Messages with a host-owned subscription OAuth token.
+    Claude,
+}
+
+impl Protocol {
+    pub(crate) fn path(&self) -> &'static str {
+        match self {
+            Self::ChatCompletions => "/chat/completions",
+            Self::Responses { .. } => "/responses",
+            Self::Claude => "/messages",
+        }
+    }
+}
+
+/// Encoded into the core's opaque provider bytes so transport interpretation
+/// cannot use a later presentation copy to replace the protocol or account.
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Identity {
+    pub id: String,
+    pub protocol: Protocol,
+}
+
+/// A discovered HTTP model connection. Discovery does not authorize inference.
 #[derive(Clone, PartialEq, Eq)]
 pub struct Provider {
     /// Stable connection identifier.
@@ -12,6 +46,8 @@ pub struct Provider {
     pub model: String,
     /// HTTP API base URL.
     pub base_url: String,
+    /// Exact API format and authentication metadata.
+    pub protocol: Protocol,
     /// Host-owned credential, excluded from debug formatting.
     pub api_key: Option<String>,
     /// Discovery source shown in the picker.
@@ -60,7 +96,7 @@ const HTTP_CANDIDATES: [Candidate; 4] = [
     },
 ];
 
-/// Everything this machine could plan with, best-first.
+/// Available host model connections, in discovery order.
 ///
 /// Probing is quick and never fatal: anything that does not answer is simply
 /// not offered.
@@ -77,6 +113,7 @@ pub fn detect() -> Vec<Provider> {
             label: "Configured server".to_owned(),
             model,
             base_url: base.trim_end_matches('/').to_owned(),
+            protocol: Protocol::ChatCompletions,
             api_key: std::env::var(crate::ENV_API_KEY)
                 .ok()
                 .filter(|k| !k.is_empty()),
@@ -95,6 +132,7 @@ pub fn detect() -> Vec<Provider> {
                 label: c.label.to_owned(),
                 model,
                 base_url: c.url.to_owned(),
+                protocol: Protocol::ChatCompletions,
                 api_key: None,
                 note: format!("listening on {}", c.url),
             });
@@ -105,6 +143,7 @@ pub fn detect() -> Vec<Provider> {
     // this before the bare environment variables means a machine that
     // already has Hermes set up needs no setup here at all.
     found.extend(crate::hermes::providers());
+    found.extend(crate::subscription::providers());
 
     // Ollama Cloud named directly in this process's environment.
     if let Ok(key) = std::env::var("OLLAMA_API_KEY") {
@@ -125,6 +164,7 @@ pub fn detect() -> Vec<Provider> {
                     label: "Ollama Cloud".to_owned(),
                     model,
                     base_url: base,
+                    protocol: Protocol::ChatCompletions,
                     api_key: Some(key),
                     note: "from OLLAMA_API_KEY".to_owned(),
                 });
@@ -146,6 +186,7 @@ pub fn detect() -> Vec<Provider> {
                     label: label.to_owned(),
                     model: model.to_owned(),
                     base_url: base.to_owned(),
+                    protocol: Protocol::ChatCompletions,
                     api_key: Some(key),
                     note: format!("from {env}"),
                 });

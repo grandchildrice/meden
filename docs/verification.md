@@ -1857,6 +1857,39 @@ service can still forward data unless the service's own egress is confined.
 The [processor review screenshot](assets/processor-approval.png) is captured
 from the actual TUI; no inference request is made during capture.
 
+### Native subscription transport adapters
+
+Codex Responses and Claude Messages use the same core `HttpCall` admission
+as Chat Completions. The gateway serializes the selected provider ID,
+protocol and optional ChatGPT account into the core's opaque provider bytes;
+the endpoint, model and credential retain their original byte fields. The
+HTTP adapter decodes only the consumed original snapshot. A regression also
+corrupts the presentation copy's protocol after approval and still observes
+the original request. JSON/protocol interpretation remains an adapter; no
+new extraction, theorem root or whole-transport refinement is claimed.
+
+`python/tests/test_subscriptions.py` exercises the actual binary with fake
+host logins and native HTTP fixtures. CLI and real PTY scenarios cover
+exact endpoint review, pasted-approval rejection, Unicode file edits,
+parallel tool-result correlation, original auth/account preservation after
+login-file mutation, model overrides and terminal restoration. Redirects,
+401/403/429/503 responses, duplicate call IDs, malformed/truncated replies,
+and failed or incomplete Responses streams stop without executing partial
+calls, retrying, rotating accounts or falling back to API-key billing.
+Responses deltas never dispatch tools before a successful terminal response.
+The HTTP body is bounded to 16 MiB for all three formats.
+
+These are adapter observations with scripted responses, not subscription
+entitlement or model-capability evidence. A development smoke with an existing
+Codex login and `gpt-6.1-sol` did complete a real `write_file` / `read_file`
+round trip. A real Codex PTY session also reviewed the native endpoint,
+created a file through the conversation and restored the terminal on exit.
+The Claude account returned HTTP 429 `rate_limit_error`, so real
+Claude tool completion has not been established. Neither observation
+establishes a whole application proof, local inference or complete R1.
+Provider authorization and the [connection limitations](local-inference.md#subscription-connections)
+remain separate from Meden's host approval.
+
 ## Isolated local inference in production
 
 The [local backend](../crates/meden-llm/src/local.rs) starts a persistent

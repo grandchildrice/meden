@@ -1,6 +1,8 @@
-//! OpenAI-compatible native tool-calling client.
+//! Host-authorized HTTP inference, with native tool-calling protocol adapters.
+use crate::provider::{Identity, Protocol};
 use meden_agent::conversation::ModelError;
 use meden_core::processor::HttpCall;
+use std::io::Read;
 use std::time::Duration;
 
 /// The HTTP boundary consumes a host-authorized snapshot; callers cannot
@@ -10,11 +12,18 @@ pub(crate) fn reply(
     messages: &[serde_json::Value],
     tools: &[serde_json::Value],
 ) -> Result<meden_agent::conversation::Reply, ModelError> {
+    const LIMIT: u64 = 16 * 1024 * 1024;
     let parameters = authorization.into_parameters();
+    let identity: Identity = serde_json::from_slice(parameters.provider())
+        .map_err(|_| ModelError::Unavailable("invalid frozen processor protocol".into()))?;
     let endpoint = utf8(parameters.endpoint())?;
     let model = utf8(parameters.model())?;
     let credential = parameters.credential().map(utf8).transpose()?;
-    let body = request_body(model, messages, tools);
+    let body = match &identity.protocol {
+        Protocol::ChatCompletions => request_body(model, messages, tools),
+        Protocol::Responses { .. } => crate::responses::request_body(model, messages, tools)?,
+        Protocol::Claude => crate::claude::request_body(model, messages, tools)?,
+    };
     let config = ureq::Agent::config_builder()
         .proxy(None)
         .max_redirects(0)
@@ -25,22 +34,92 @@ pub(crate) fn reply(
     if let Some(key) = credential {
         request = request.header("authorization", &format!("Bearer {key}"));
     }
+    match &identity.protocol {
+        Protocol::Responses { account_id } => {
+            request = request.header("accept", "text/event-stream");
+            if let Some(account) = account_id {
+                request = request.header("chatgpt-account-id", account);
+            }
+        }
+        Protocol::Claude => {
+            request = request
+                .header("anthropic-version", "2023-06-01")
+                .header("anthropic-beta", "oauth-2025-04-20");
+        }
+        Protocol::ChatCompletions => {}
+    }
     // A failed exchange may already have delivered the confidential body.
     // Neither a redirect nor an automatic retry grants another send.
-    let mut response = request.send_json(&body).map_err(|_| {
+    let mut response = request.send_json(&body).map_err(|error| {
+        if let ureq::Error::StatusCode(code) = error {
+            return status_error(code);
+        }
         ModelError::Unavailable("model request failed or delivery is uncertain".into())
     })?;
     if !response.status().is_success() {
-        return Err(ModelError::Unavailable(format!(
-            "model endpoint returned HTTP {}",
-            response.status().as_u16()
-        )));
+        return Err(status_error(response.status().as_u16()));
     }
-    let response: serde_json::Value = response
+    // Bound event streams as well as JSON. No delta is returned before the
+    // complete body, terminal status and every output item have been checked.
+    let mut bytes = Vec::new();
+    response
         .body_mut()
-        .read_json()
-        .map_err(|e| ModelError::InvalidResponse(format!("unreadable API reply: {e}")))?;
-    decode_response(&response)
+        .as_reader()
+        .take(LIMIT.saturating_add(1))
+        .read_to_end(&mut bytes)
+        .map_err(|_| invalid("incomplete API reply"))?;
+    if u64::try_from(bytes.len()).unwrap_or(u64::MAX) > LIMIT {
+        return Err(invalid("API reply exceeded the size limit"));
+    }
+    let json = || serde_json::from_slice(&bytes).map_err(|_| invalid("unreadable API reply"));
+    match identity.protocol {
+        Protocol::Claude => crate::claude::decode_response(&json()?),
+        Protocol::ChatCompletions => decode_response(&json()?),
+        Protocol::Responses { .. } => crate::responses::decode_stream(&bytes),
+    }
+}
+
+fn status_error(code: u16) -> ModelError {
+    let reason = match code {
+        400 => "request or model rejected; check the selected model and provider support",
+        401 => {
+            "login expired or invalid; renew the host login and restart Meden for a fresh review"
+        }
+        403 => "account or model access refused by the provider",
+        429 => "provider usage or rate limit reached; wait for the account limit to reset",
+        _ => "request did not complete successfully",
+    };
+    ModelError::Unavailable(format!(
+        "model endpoint returned HTTP {code}: {reason}; no retry, account rotation or API-key fallback"
+    ))
+}
+
+pub(crate) fn invalid(message: &str) -> ModelError {
+    ModelError::InvalidResponse(message.to_owned())
+}
+
+/// Preserve ordinary text and text blocks; reject unsupported content rather
+/// than silently dropping part of the original conversation.
+pub(crate) fn text_content(value: Option<&serde_json::Value>) -> Result<String, ModelError> {
+    match value {
+        None | Some(serde_json::Value::Null) => Ok(String::new()),
+        Some(serde_json::Value::String(text)) => Ok(text.clone()),
+        Some(serde_json::Value::Array(blocks)) => blocks
+            .iter()
+            .map(|block| {
+                if block.get("type").and_then(serde_json::Value::as_str) != Some("text") {
+                    return Err(invalid("unsupported conversation content block"));
+                }
+                block
+                    .get("text")
+                    .and_then(serde_json::Value::as_str)
+                    .map(str::to_owned)
+                    .ok_or_else(|| invalid("invalid conversation text"))
+            })
+            .collect::<Result<Vec<_>, _>>()
+            .map(|texts| texts.join("\n")),
+        _ => Err(invalid("unsupported conversation content")),
+    }
 }
 
 fn utf8(bytes: &[u8]) -> Result<&str, ModelError> {

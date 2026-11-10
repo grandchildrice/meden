@@ -30,6 +30,72 @@ count alone is not evidence of these. HTTP connectivity is implemented, but
 does not itself establish confinement or prevent forwarding to a cloud.
 GPU/multi-host confinement and the large-model deployment remain work.
 
+## Subscription connections
+
+`meden providers` discovers existing subscription credentials without making
+an inference request. The TUI offers these connections with `--provider auto`,
+or they can be selected directly:
+
+```bash
+meden tui --workspace /path/to/project --provider codex --model gpt-6.1-sol
+meden tui --workspace /path/to/project --provider claude --model claude-sonnet-4-6
+```
+
+The host chooses the model with `--model`, `MEDEN_CODEX_MODEL` or
+`MEDEN_CLAUDE_MODEL`. A matching Hermes `model.provider` / `model.model` also
+supplies the default; otherwise the defaults are `gpt-6.1-sol` and
+`claude-sonnet-4-6`. Model availability is determined by the provider, not by
+the picker. `--provider auto --model NAME` overrides the discovered models.
+
+| Connection | Existing host login sources, in priority order | Inference URL |
+| --- | --- | --- |
+| `codex` | `$HERMES_HOME/auth.json` → `providers.openai-codex.tokens`, then `$CODEX_HOME/auth.json` → `tokens` | `https://chatgpt.com/backend-api/codex/responses` |
+| `claude` | `CLAUDE_CODE_OAUTH_TOKEN`, `ANTHROPIC_TOKEN` (process environment or Hermes `.env`), then `$CLAUDE_CONFIG_DIR/.credentials.json` → `claudeAiOauth.accessToken` | `https://api.anthropic.com/v1/messages` |
+
+Unset home overrides default to `~/.hermes`, `~/.codex` and `~/.claude`.
+The token-variable priority is applied before file discovery; for each
+variable the process environment precedes Hermes `.env`. An API-only Codex
+login or an Anthropic `sk-ant-api*` key is not offered as a subscription.
+Credentials stored only in an OS keychain are not supported by these adapters.
+
+Login remains outside Meden: use `codex login`, `hermes auth`,
+`claude auth login` or `claude setup-token` as appropriate for the selected
+source. Meden reads the access token without copying a refresh token into a
+new store, executing another coding agent, or modifying the original login.
+Tokens are frozen with the exact endpoint, model, protocol and optional
+ChatGPT account before host review. An expired token, exhausted quota or
+refused model stops the turn. Renew the appropriate host login and restart
+Meden for a fresh review; there is no token refresh, account rotation,
+automatic retry or API-key billing fallback within an approved gateway.
+
+CLI automation must approve the exact native endpoint:
+
+```bash
+printf '%s\n' '{"instruction":"Inspect this project"}' | meden run \
+  --workspace /path/to/project --provider codex --model gpt-6.1-sol \
+  --approve-processor https://chatgpt.com/backend-api/codex/responses
+```
+
+For Claude, use `--provider claude` and approve
+`https://api.anthropic.com/v1/messages`. Host-only `MEDEN_CODEX_BASE_URL`
+and `MEDEN_CLAUDE_BASE_URL` can select another server; the complete resulting
+inference URL still requires exact approval. Never point a subscription token
+at an untrusted server. Remote processing does not establish local inference
+or confidentiality; offline file tools and checking retain their existing
+profiles and never receive the broker's credentials.
+
+These adapters follow the existing Hermes token-file/Responses/Messages
+integration, rather than registering a new OAuth application. Existing
+credentials alone do not establish permission for third-party plan use.
+OpenAI's [Sign in with ChatGPT plan-sharing flow](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference)
+uses its own consent/scopes and the public `/v1/responses` endpoint; that new
+registration flow is not implemented here. Anthropic's
+[credential-use rules](https://code.claude.com/docs/en/legal-and-compliance#authentication-and-credential-use)
+restrict subscription credentials in third-party applications. Meden does not
+imitate Claude Code's identity, rewrite its own identity or bypass a provider
+refusal. Treat the token adapters as experimental and use them only where the
+provider permits the selected account and integration.
+
 ## Managed CPU backend
 
 CLI and TUI use prepared local inference by default. Install Bubblewrap,
