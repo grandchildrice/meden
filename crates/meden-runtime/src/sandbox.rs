@@ -374,7 +374,11 @@ impl Sandbox {
         let bwrap = std::env::var_os("MEDEN_BWRAP")
             .map(PathBuf::from)
             .or_else(|| find_public("bwrap"))
-            .ok_or_else(|| io::Error::other("bubblewrap is required for isolated execution"))?
+            .ok_or_else(|| {
+                io::Error::other(
+                    "bubblewrap is required for isolated execution: no public bwrap found in PATH; set MEDEN_BWRAP to the absolute path of a trusted Bubblewrap executable",
+                )
+            })?
             .canonicalize()?;
         let (tools, manager) = public_tools();
         let system_tools = tools

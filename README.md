@@ -65,6 +65,10 @@ The workspace backend currently requires Linux 5.6 or newer (`openat2`), Bubblew
 permission to create the required namespaces. Ubuntu 24.04 may need its
 packaged Bubblewrap AppArmor profile enabled by an administrator; see
 [the tested runner configuration](docs/release.md#exact-source-to-staged-archives).
+If Bubblewrap is installed but absent from your shell's PATH, set
+`MEDEN_BWRAP` to its trusted absolute executable path before starting Meden;
+on NixOS this can be `/nix/store/<store-path>/bin/bwrap`. Set it in the same
+terminal used to launch Meden. Isolation remains required.
 Build from source with Rust and set `OLLAMA_API_KEY` for the cloud connection:
 
 ```bash
