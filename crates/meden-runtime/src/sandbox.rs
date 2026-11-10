@@ -7,6 +7,8 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+mod bubblewrap;
+
 const TOOLS: &[&str] = &[
     "bash", "python3", "git", "cargo", "rustc", "rustdoc", "node", "npm", "npx", "rg", "cat", "ls",
     "mkdir", "cp", "mv", "rm", "touch", "find", "sed", "awk", "grep", "head", "tail", "wc", "true",
@@ -371,15 +373,7 @@ impl Sandbox {
         if !root.is_dir() {
             return Err(io::Error::other("workspace must be a directory"));
         }
-        let bwrap = std::env::var_os("MEDEN_BWRAP")
-            .map(PathBuf::from)
-            .or_else(|| find_public("bwrap"))
-            .ok_or_else(|| {
-                io::Error::other(
-                    "bubblewrap is required for isolated execution: no public bwrap found in PATH; set MEDEN_BWRAP to the absolute path of a trusted Bubblewrap executable",
-                )
-            })?
-            .canonicalize()?;
+        let bwrap = bubblewrap::discover()?;
         let (tools, manager) = public_tools();
         let system_tools = tools
             .iter()

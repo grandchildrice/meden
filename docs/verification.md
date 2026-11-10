@@ -1602,6 +1602,28 @@ Nix helper branches need a Nix-backed host; ordinary Ubuntu CI does not cover
 those branches by running the same test names. Interpreter lookup is also
 checked with a hostile repository `python3` and the prepared-manager fixture.
 
+Bubblewrap discovery also checks fixed system executable locations when it
+is absent from PATH. On Nix hosts it can query the closure of the canonical
+`/run/current-system/sw` or `/nix/var/nix/profiles/default` software profile,
+using only a public `nix-store`. The local
+[`--query --requisites`](https://nix.dev/manual/nix/2.31/command-ref/nix-store/query#queries) operation
+does not realise/build/download anything and has a ten-second timeout and
+bounded output. Every returned root must be a direct Nix store entry; a
+resolved launcher must belong to that same closure. Only the launcher is
+selected: these software profiles and their whole closures are not added to
+worker mounts, and other tool selections remain independent. An explicit
+`MEDEN_BWRAP`, including an invalid one, still takes precedence without an
+automatic replacement. Missing isolation still stops startup.
+
+The preparation regression removes every bwrap-containing directory from
+PATH, inserts hostile repository `bwrap`/`nix-store` and shell startup files,
+and checks actual offline execution without `MEDEN_BWRAP`, no host marker,
+and no exposed system profiles. Conventional Linux exercises fixed-location
+discovery; the Nix closure branch requires actual installed Nix resources
+and reports absent prerequisites as a skip. Software/profile selection,
+metadata interpretation and OS behavior remain tested adapters, not a Lean
+proof of discovery or the launcher.
+
 [`test_r1_acceptance.py`](../python/tests/test_r1_acceptance.py) checks default,
 named and absolute host toolchain selections, hard-linked proxies, hidden
 credentials/settings/sibling files and read-only libraries. Another case
@@ -2035,6 +2057,7 @@ ephemeral environment works:
 nix-shell -p bubblewrap iproute2 python3 --run 'cargo test --workspace --all-features'
 ```
 
-`MEDEN_BWRAP` can select a trusted Bubblewrap binary. It is host
+Installed public system/Nix Bubblewrap is detected without editing PATH.
+`MEDEN_BWRAP` can override this with a trusted Bubblewrap binary. It is host
 configuration, not a tool/model argument. No system package installation is
 performed automatically by the library.

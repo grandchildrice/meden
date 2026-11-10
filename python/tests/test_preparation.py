@@ -14,6 +14,83 @@ import pytest
 from meden_checks import find_meden
 
 
+def test_installed_bubblewrap_needs_no_path_or_environment_setup(tmp_path):
+    binary = find_meden()
+    assert binary
+    fixed = [Path(directory) / "bwrap" for directory in (
+        "/usr/bin", "/bin", "/usr/local/bin", "/run/current-system/sw/bin",
+        "/nix/var/nix/profiles/default/bin",
+    )]
+    mode = "fixed-system-location"
+    if not any(path.is_file() for path in fixed):
+        helper = Path("/run/current-system/sw/bin/nix-store")
+        profile = Path("/run/current-system/sw")
+        if not helper.is_file() or not profile.is_dir():
+            pytest.skip("requires installed system Bubblewrap or a real Nix software closure")
+        resolved = helper.resolve()
+        assert resolved.is_relative_to("/nix/store")
+        query = subprocess.run(
+            ["nix-store", "--query", "--requisites", str(profile)],
+            executable=str(resolved), cwd="/", text=True, capture_output=True,
+            timeout=10, check=True,
+        )
+        roots = [Path(line) for line in query.stdout.splitlines()]
+        assert all(root.parent == Path("/nix/store") for root in roots)
+        if not any((root / "bin/bwrap").is_file() for root in roots):
+            pytest.skip("real Nix system software closure has no Bubblewrap")
+        mode = "real-nix-software-closure"
+
+    source = tmp_path / "source"
+    hostile = source / "bin"
+    hostile.mkdir(parents=True)
+    marker = tmp_path / "untrusted-host-execution"
+    script = (
+        f"#!{sys.executable}\nimport pathlib\n"
+        f"pathlib.Path({str(marker)!r}).write_text('executed before isolation')\n"
+        "raise SystemExit(1)\n"
+    )
+    for name in ("bwrap", "nix-store"):
+        helper = hostile / name
+        helper.write_text(script)
+        helper.chmod(0o700)
+    startup = tmp_path / "bash-startup"
+    startup.write_text(f"printf startup > '{marker}'\n")
+
+    # On conventional Linux, removing /usr/bin from PATH also hides Bash.
+    # Expose only canonical public helpers, without exposing bwrap. The
+    # application still rejects the repository's own helper executables.
+    aliases = tmp_path / "public-tool-links"
+    aliases.mkdir()
+    for name in ("bash", "ldd", "nix-store"):
+        located = shutil.which(name)
+        if located:
+            (aliases / name).symlink_to(Path(located).resolve())
+    retained = [directory for directory in os.get_exec_path()
+                if not (Path(directory) / "bwrap").exists()]
+    env = {
+        **os.environ,
+        "PATH": os.pathsep.join([str(hostile), str(aliases), *retained]),
+        "BASH_ENV": str(startup), "ENV": str(startup),
+        "XDG_DATA_HOME": str(tmp_path / "data"),
+    }
+    env.pop("MEDEN_BWRAP", None)
+    completed = subprocess.run(
+        [binary, "exec", "--workspace", str(source)],
+        input=("test ! -e /run/current-system/sw && "
+               "test ! -e /nix/var/nix/profiles/default && printf automatic-isolation-ok"),
+        cwd=source, env=env, text=True, capture_output=True, timeout=30,
+    )
+    assert not marker.exists(), "untrusted helper or startup file executed on host"
+    assert completed.returncode == 0, completed.stderr
+    result = json.loads(completed.stdout)["result"]
+    assert result["success"] and result["stdout"] == "automatic-isolation-ok", result
+    (tmp_path / "bubblewrap-discovery-observation.json").write_text(json.dumps({
+        "mode": mode, "meden_bwrap_configured": False,
+        "untrusted_host_execution": marker.exists(), "isolated_execution_passed": True,
+        "worker_sha256": hashlib.sha256(Path(binary).read_bytes()).hexdigest(),
+    }))
+
+
 @pytest.mark.parametrize(("name", "prefix"), [
     (name, prefix)
     for name in ["ldd", "nix-store", "bwrap", "bash", "rustup", "cargo"]
