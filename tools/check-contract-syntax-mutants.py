@@ -100,7 +100,8 @@ def main():
                     raise RuntimeError(f"{name}: semantic proof failure missing")
                 if any(marker in proof_log + test_log for marker in (
                     "unknownIdentifier", "Unknown constant", "unknown module", "out of memory",
-                    "Unknown identifier", "Unknown tactic", "unknown tactic", "Unknown module prefix",
+                    "Unknown identifier", "Unknown tactic", "unknown tactic",
+                    "Unknown module prefix",
                     "maximum recursion depth", "maximum number of heartbeats", "tactic execution",
                     "maximum number of steps exceeded",
                     "no goals to be solved", "No goals to be solved", "unexpected token",
