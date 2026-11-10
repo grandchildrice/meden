@@ -25,19 +25,37 @@ use meden_llm::{Gateway, Provider};
 use meden_runtime::process::Control;
 use meden_runtime::workspace::Workspace;
 use ratatui::prelude::*;
-use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Wrap};
+use ratatui::widgets::ListState;
 
 mod approval;
 mod input;
+mod view;
 use input::Input;
+use view::draw;
 
 enum Update {
     Project(Box<crate::project::Summary>),
     ProjectDirty,
     Asking(usize),
     Text(String),
-    Tool(String, bool),
-    Done(String, bool),
+    ToolStarted {
+        id: String,
+        name: String,
+        arguments: String,
+        refused: Option<String>,
+    },
+    ToolFinished {
+        id: String,
+        name: String,
+        arguments: String,
+        text: String,
+        error: bool,
+    },
+    Done {
+        text: String,
+        needs_review: bool,
+        failed: bool,
+    },
 }
 #[derive(PartialEq, Eq)]
 enum Screen {
@@ -48,9 +66,24 @@ enum Screen {
     Instructing,
     Running,
 }
-struct TranscriptLine {
-    text: String,
-    style: Style,
+#[derive(Clone, Copy)]
+enum Speaker {
+    User,
+    Assistant,
+}
+
+enum TranscriptLine {
+    Message { speaker: Speaker, text: String },
+    Tool(ToolLine),
+    Notice { text: String, style: Style },
+}
+
+struct ToolLine {
+    id: String,
+    name: String,
+    arguments: String,
+    result: Option<String>,
+    error: bool,
 }
 
 struct App {
@@ -70,6 +103,8 @@ struct App {
     screen: Screen,
     lines: Vec<TranscriptLine>,
     busy: bool,
+    activity: Option<String>,
+    show_tool_details: bool,
     rx: Option<Receiver<Update>>,
     worker: Option<Sender<String>>,
     worker_gateway: Option<Arc<Gateway>>,
@@ -107,6 +142,8 @@ impl App {
             screen: Screen::Picking,
             lines: Vec::new(),
             busy: false,
+            activity: None,
+            show_tool_details: false,
             rx: None,
             worker: None,
             worker_gateway: None,
@@ -122,10 +159,47 @@ impl App {
         self.providers.get(self.picker.selected().unwrap_or(0))
     }
     fn say(&mut self, text: impl Into<String>, style: Style) {
-        self.lines.push(TranscriptLine {
+        self.lines.push(TranscriptLine::Notice {
             text: visible(&text.into()),
             style,
         });
+    }
+    fn speak(&mut self, speaker: Speaker, text: &str) {
+        self.lines.push(TranscriptLine::Message {
+            speaker,
+            text: visible(text),
+        });
+    }
+    fn tool_started(&mut self, id: String, name: &str, arguments: &str, refused: Option<String>) {
+        self.activity = Some(format!("Running {}", visible(name)));
+        self.lines.push(TranscriptLine::Tool(ToolLine {
+            id,
+            name: visible(name),
+            arguments: visible(arguments),
+            error: refused.is_some(),
+            result: refused.map(|reason| visible(&reason)),
+        }));
+    }
+    fn tool_finished(&mut self, id: &str, name: &str, arguments: &str, text: &str, error: bool) {
+        if let Some(TranscriptLine::Tool(tool)) = self
+            .lines
+            .iter_mut()
+            .rev()
+            .find(|line| matches!(line, TranscriptLine::Tool(tool) if tool.id == id))
+        {
+            tool.result = Some(visible(text));
+            tool.error = error;
+        } else {
+            // A stopped conversation can report skipped calls without a
+            // preparation event. Preserve those original results as well.
+            self.lines.push(TranscriptLine::Tool(ToolLine {
+                id: id.to_owned(),
+                name: visible(name),
+                arguments: visible(arguments),
+                result: Some(visible(text)),
+                error,
+            }));
+        }
     }
     fn move_selection(&mut self, delta: isize) {
         if self.providers.is_empty() {
@@ -365,7 +439,7 @@ impl App {
                         match self.project.continuation() {
                             Ok(instruction) => {
                                 self.instruction.insert(&instruction);
-                                self.start();
+                                self.start_turn(false);
                             }
                             Err(error) => self.say(error.to_string(), Style::new().fg(Color::Red)),
                         }
@@ -387,6 +461,24 @@ impl App {
         }
     }
     fn host_command(&mut self) -> bool {
+        match self.instruction.text().trim() {
+            "/models" => {
+                self.instruction.clear();
+                self.screen = Screen::Picking;
+                return true;
+            }
+            "/workspace" => {
+                self.instruction.clear();
+                self.say(format!("Files: {}\nThis is the retained working copy. The original project is unchanged.", self.root.display()), Style::new());
+                return true;
+            }
+            "/help" => {
+                self.instruction.clear();
+                self.say("/models     Choose a model connection\n/workspace  Show the generated files location\n/contract   Review the project specification\n/exports    Review proposed deliveries\n/clear      Start a fresh conversation\nCtrl+O      Expand or collapse tool details", Style::new());
+                return true;
+            }
+            _ => {}
+        }
         if self.instruction.text().trim() == "/contract" {
             self.instruction.clear();
             self.open_contract();
@@ -419,6 +511,9 @@ impl App {
         true
     }
     fn start(&mut self) {
+        self.start_turn(true);
+    }
+    fn start_turn(&mut self, show_instruction: bool) {
         if self.busy || self.instruction.text().trim().is_empty() {
             return;
         }
@@ -467,14 +562,26 @@ impl App {
                 ) {
                     Ok(session) => worker(session, &tasks, &updates),
                     Err(error) => {
-                        let _ = updates.send(Update::Done(error.to_string(), false));
+                        let _ = updates.send(Update::Done {
+                            text: format!("Failed: {error}"),
+                            needs_review: false,
+                            failed: true,
+                        });
                     }
                 }
             });
         }
         self.processes.flag().store(false, Ordering::SeqCst);
         let instruction = self.instruction.take();
-        self.say(format!("> {instruction}"), Style::new().fg(Color::Cyan));
+        if show_instruction {
+            self.speak(Speaker::User, &instruction);
+        } else {
+            self.say(
+                "Specification accepted. Continuing implementation.",
+                Style::new().fg(Color::Gray),
+            );
+        }
+        self.activity = Some("Thinking".into());
         self.scroll_back = 0;
         if self
             .worker
@@ -540,19 +647,35 @@ impl App {
                         status.verified = false;
                     }
                 }
-                Update::Asking(round) => self.say(
-                    format!("round {round}: thinking…"),
-                    Style::new().fg(Color::DarkGray),
-                ),
-                Update::Text(text) => self.say(text, Style::new()),
-                Update::Tool(text, error) => self.say(
+                Update::Asking(round) => {
+                    self.activity = Some(format!("Thinking · request {round}"));
+                }
+                Update::Text(text) => self.speak(Speaker::Assistant, &text),
+                Update::ToolStarted {
+                    id,
+                    name,
+                    arguments,
+                    refused,
+                } => self.tool_started(id, &name, &arguments, refused),
+                Update::ToolFinished {
+                    id,
+                    name,
+                    arguments,
                     text,
-                    Style::new().fg(if error { Color::Red } else { Color::Green }),
-                ),
-                Update::Done(text, needs_review) => {
+                    error,
+                } => self.tool_finished(&id, &name, &arguments, &text, error),
+                Update::Done {
+                    text,
+                    needs_review,
+                    failed,
+                } => {
                     self.busy = false;
+                    self.activity = None;
                     self.screen = Screen::Instructing;
-                    self.say(text, Style::new().fg(Color::DarkGray));
+                    self.say(
+                        text,
+                        Style::new().fg(if failed { Color::Red } else { Color::Gray }),
+                    );
                     if needs_review {
                         self.open_contract();
                     }
@@ -602,20 +725,20 @@ fn worker(mut session: crate::session::Session, tasks: &Receiver<String>, tx: &S
                 }
                 return;
             }
-            Event::Decision { call, refusal } => Update::Tool(
-                match refusal {
-                    Some((_, reason)) => format!("{} REFUSED: {reason}", call.function.name),
-                    None => format!("{} {}", call.function.name, call.function.arguments),
-                },
-                refusal.is_some(),
-            ),
+            Event::Decision { call, refusal } => Update::ToolStarted {
+                id: call.id.clone(),
+                name: call.function.name.clone(),
+                arguments: call.function.arguments.clone(),
+                refused: refusal.map(|(_, reason)| reason.to_owned()),
+            },
             Event::ToolResult { call, text, error } => {
                 let excerpt: String = text.chars().take(1200).collect();
-                Update::Tool(
-                    format!(
-                        "{}{}: {excerpt}{}",
-                        call.function.name,
-                        if error { " error" } else { " result" },
+                Update::ToolFinished {
+                    id: call.id.clone(),
+                    name: call.function.name.clone(),
+                    arguments: call.function.arguments.clone(),
+                    text: format!(
+                        "{excerpt}{}",
                         if excerpt.len() < text.len() {
                             "…"
                         } else {
@@ -623,7 +746,7 @@ fn worker(mut session: crate::session::Session, tasks: &Receiver<String>, tx: &S
                         }
                     ),
                     error,
-                )
+                }
             }
         };
         if let Event::Decision {
@@ -643,6 +766,7 @@ fn worker(mut session: crate::session::Session, tasks: &Receiver<String>, tx: &S
     while let Ok(instruction) = tasks.recv() {
         let status = session.run(&instruction, &observer);
         let needs_review = status == Status::NeedsReview;
+        let failed = matches!(status, Status::Failed(_) | Status::Incomplete);
         let summary = match status {
             Status::Done(_) => {
                 "Finished. Conversation retained for the next instruction.".to_owned()
@@ -657,7 +781,14 @@ fn worker(mut session: crate::session::Session, tasks: &Receiver<String>, tx: &S
         if let Ok(status) = session.project_status() {
             let _ = tx.send(Update::Project(Box::new(status)));
         }
-        if tx.send(Update::Done(summary, needs_review)).is_err() {
+        if tx
+            .send(Update::Done {
+                text: summary,
+                needs_review,
+                failed,
+            })
+            .is_err()
+        {
             return;
         }
     }
@@ -720,6 +851,9 @@ pub fn run(
         let gateway = Gateway::prepare(app.session_id(), provider)?;
         crate::approve_processor(&gateway, endpoint)?;
         app.gateway = Some(Arc::new(gateway));
+        app.screen = Screen::Instructing;
+    } else if app.providers.len() == 1 {
+        app.select_processor();
     }
     let _guard = TerminalGuard::enter()?;
     let mut terminal = Terminal::new(CrosstermBackend::new(io::stdout()))?;
@@ -760,6 +894,13 @@ where
                 continue;
             }
             return Ok(());
+        }
+        if key.code == KeyCode::Char('o')
+            && key.modifiers.contains(KeyModifiers::CONTROL)
+            && matches!(app.screen, Screen::Instructing | Screen::Running)
+        {
+            app.show_tool_details = !app.show_tool_details;
+            continue;
         }
         if matches!(
             app.screen,
@@ -825,315 +966,6 @@ where
     }
 }
 
-fn draw(frame: &mut Frame<'_>, app: &mut App) {
-    app.review_area = Rect::default();
-    app.review_frame = frame.area();
-    frame.render_widget(Block::default().bg(Color::Rgb(12, 18, 30)), frame.area());
-    let areas = Layout::vertical([
-        Constraint::Length(5),
-        Constraint::Min(3),
-        Constraint::Length(5),
-    ])
-    .split(frame.area());
-    let top = areas.first().copied().unwrap_or_default();
-    let middle = areas.get(1).copied().unwrap_or_default();
-    let bottom = areas.get(2).copied().unwrap_or_default();
-    draw_header(frame, app, top);
-    let welcome =
-        app.screen == Screen::Picking || app.screen == Screen::Instructing && app.lines.is_empty();
-    let middle = if welcome && middle.width >= 72 && middle.height >= 15 {
-        draw_welcome(frame, middle)
-    } else {
-        middle
-    };
-    if app.screen == Screen::ReviewingContract {
-        draw_contract_review(frame, app, middle);
-    } else if app.screen == Screen::ReviewingExport {
-        draw_export_review(frame, app, middle);
-    } else if app.screen == Screen::ReviewingProcessor {
-        draw_processor_review(frame, app, middle);
-    } else if app.screen == Screen::Picking {
-        let items: Vec<_> = app
-            .providers
-            .iter()
-            .map(|p| ListItem::new(visible(&format!("{} · {} · {}", p.label, p.model, p.note))))
-            .collect();
-        let mut state = app.picker;
-        frame.render_stateful_widget(
-            List::new(items)
-                .block(Block::bordered().title(" model "))
-                .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
-                .highlight_symbol("> "),
-            middle,
-            &mut state,
-        );
-    } else {
-        let text: Vec<_> = app
-            .lines
-            .iter()
-            .flat_map(|line| {
-                line.text
-                    .split('\n')
-                    .map(|part| ratatui::text::Line::styled(part.to_owned(), line.style))
-            })
-            .collect();
-        let body = Paragraph::new(text)
-            .wrap(Wrap { trim: false })
-            .block(Block::bordered().title(" conversation · PgUp/PgDn to scroll "));
-        let rows =
-            u16::try_from(body.line_count(middle.width.saturating_sub(2))).unwrap_or(u16::MAX);
-        let scroll = rows
-            .saturating_sub(middle.height.saturating_sub(2))
-            .saturating_sub(app.scroll_back);
-        frame.render_widget(body.scroll((scroll, 0)), middle);
-    }
-    if app.screen == Screen::Instructing {
-        draw_input(frame, &app.instruction, bottom);
-        return;
-    }
-    draw_controls(frame, app, bottom);
-}
-
-fn draw_controls(frame: &mut Frame<'_>, app: &App, bottom: Rect) {
-    let (title, text) = match app.screen {
-        Screen::Picking => (
-            " controls ",
-            "↑↓ choose · enter: continue · q: quit".to_owned(),
-        ),
-        Screen::ReviewingProcessor => (
-            " processor approval ",
-            "y: authorize this processor · n / esc: back · PgUp/PgDn: details".to_owned(),
-        ),
-        Screen::ReviewingExport => (
-            " exact export · host control ",
-            "y: send once · n: reject · esc: back · ←/→: bytes · PgUp/PgDn: scroll".to_owned(),
-        ),
-        Screen::ReviewingContract => (
-            " contract review · host control ",
-            "y: accept and continue · n / esc: reject proposal · PgUp/PgDn: scroll".to_owned(),
-        ),
-        Screen::Instructing => return,
-        Screen::Running => (
-            " working ",
-            "esc / ctrl-c: cancel after current request".to_owned(),
-        ),
-    };
-    let text = if matches!(
-        app.screen,
-        Screen::ReviewingProcessor | Screen::ReviewingExport | Screen::ReviewingContract
-    ) && (app.review_area.width <= 3
-        || app.review_rows == 0
-        || app.review_rows > app.review_area.height.saturating_sub(2))
-    {
-        "Approval unavailable: enlarge the terminal to show the complete heading. · n / esc: back"
-            .to_owned()
-    } else {
-        text
-    };
-    frame.render_widget(
-        Paragraph::new(text)
-            .wrap(Wrap { trim: false })
-            .block(Block::default().borders(Borders::ALL).title(title)),
-        bottom,
-    );
-}
-
-fn draw_header(frame: &mut Frame<'_>, app: &App, top: Rect) {
-    let model = app.selected().map_or("no model", |p| p.model.as_str());
-    frame.render_widget(
-        Paragraph::new(vec![
-            Line::from(visible(&format!(
-                "MEDEN · private workspace · offline tools · {model}"
-            ))),
-            Line::from(visible(&format!("files: {}", app.root.display()))),
-            Line::from(match &app.project_status {
-                Some(s) if s.verified => format!(
-                    "VERIFIED project kernel · source {}",
-                    s.source_sha256
-                        .as_deref()
-                        .unwrap_or_default()
-                        .chars()
-                        .take(12)
-                        .collect::<String>()
-                ),
-                Some(s) if s.accepted => "Project kernel: current source is not verified".into(),
-                Some(s) if s.proposed => "Project contract awaits host acceptance".into(),
-                _ => "Verification: no accepted project contract".into(),
-            }),
-        ])
-        .style(Style::new().fg(Color::Rgb(104, 218, 219)))
-        .block(Block::bordered().border_style(Style::new().fg(Color::Rgb(53, 75, 96)))),
-        top,
-    );
-}
-
-/// Keep the authority heading fixed while scrolling the explanatory text.
-/// The same Paragraph supplies its row count and the actual painted heading.
-fn draw_review(
-    frame: &mut Frame<'_>,
-    app: &mut App,
-    middle: Rect,
-    title: &str,
-    heading: &str,
-    details: &str,
-) {
-    let heading = Paragraph::new(visible(heading)).wrap(Wrap { trim: false });
-    app.review_rows =
-        u16::try_from(heading.line_count(middle.width.saturating_sub(2))).unwrap_or(u16::MAX);
-    let areas = Layout::vertical([
-        Constraint::Length(app.review_rows.saturating_add(2)),
-        Constraint::Min(3),
-    ])
-    .split(middle);
-    let header = areas.first().copied().unwrap_or_default();
-    let body = areas.get(1).copied().unwrap_or_default();
-    app.review_area = header;
-    app.review_page = body.height.saturating_sub(2);
-    frame.render_widget(
-        heading.block(Block::bordered().title(title.to_owned())),
-        header,
-    );
-    frame.render_widget(
-        Paragraph::new(visible(details))
-            .wrap(Wrap { trim: false })
-            .scroll((app.scroll_back, 0))
-            .block(Block::bordered().title(" details · PgUp/PgDn ")),
-        body,
-    );
-}
-
-fn draw_contract_review(frame: &mut Frame<'_>, app: &mut App, middle: Rect) {
-    let Some(review) = &app.contract_review else {
-        return;
-    };
-    let heading = format!(
-        "Contract revision: {}\nContract SHA-256: {}",
-        review.reference.revision, review.reference.contract
-    );
-    let details = format!(
-        "{}\n\nAccepting continues development under this exact contract.",
-        review.review
-    );
-    draw_review(
-        frame,
-        app,
-        middle,
-        " Rust transition contract · host control ",
-        &heading,
-        &details,
-    );
-}
-
-fn draw_processor_review(frame: &mut Frame<'_>, app: &mut App, middle: Rect) {
-    let Some(gateway) = &app.gateway else {
-        return;
-    };
-    let provider = gateway.provider();
-    let heading = format!(
-        "Destination: {}\nConnection: {}\nModel: {}\nCredential: {}\nScope: workspace conversation, files and tool results; one session, up to eight hours.",
-        gateway.endpoint(),
-        visible(&provider.id).replace('\n', "⏎"),
-        visible(&provider.model).replace('\n', "⏎"),
-        if provider.api_key.is_some() {
-            "host-configured account"
-        } else {
-            "none"
-        }
-    );
-    let details = format!("Configuration: {}\n\nAllow this processor to receive this workspace's conversation, file contents and tool results for this session, up to eight hours.\n\nLoopback alone does not guarantee local inference; the server may forward data.\n\nOnly y grants approval. Enter and pasted text do not.",
-        visible(&provider.note).replace('\n', "⏎"));
-    draw_review(
-        frame,
-        app,
-        middle,
-        " processor approval · host control ",
-        &heading,
-        &details,
-    );
-}
-
-fn draw_export_review(frame: &mut Frame<'_>, app: &mut App, middle: Rect) {
-    let Some(entry) = app
-        .reviewing_export
-        .as_ref()
-        .and_then(|reference| app.exports.get(reference).ok())
-    else {
-        return;
-    };
-    let Ok(summary) = entry.summary() else {
-        return;
-    };
-    let Ok(preview) = entry.preview(app.export_offset) else {
-        return;
-    };
-    let heading = format!("Export #{}\nDestination: {}\nMethod: POST · Content-Type: application/octet-stream\nFrozen body: {} bytes\nAccepted contract: {}\nAttempt: one POST; no redirects or automatic retries",
-        summary.reference.id, summary.target, summary.bytes,
-        summary.contract.as_deref().unwrap_or("ordinary file; no project contract"));
-    let details = format!("State: {}\nSource name (untrusted): {}\nByte offset: {}\n\n{}\nThese exact payload bytes are retained outside the worker. Current project source and evidence are checked again before dispatch. No redirects or automatic retries. Approval is for one attempt, including uncertain delivery.",
-        summary.state, visible(&summary.source).replace('\n', "⏎"), app.export_offset, preview);
-    draw_review(
-        frame,
-        app,
-        middle,
-        " immutable export review · host control ",
-        &heading,
-        &details,
-    );
-}
-
-fn draw_welcome(frame: &mut Frame<'_>, middle: Rect) -> Rect {
-    let welcome_areas =
-        Layout::vertical([Constraint::Length(10), Constraint::Min(3)]).split(middle);
-    let logo = vec![
-        Line::from("███╗   ███╗███████╗██████╗ ███████╗███╗   ██╗"),
-        Line::from("████╗ ████║██╔════╝██╔══██╗██╔════╝████╗  ██║"),
-        Line::from("██╔████╔██║█████╗  ██║  ██║█████╗  ██╔██╗ ██║"),
-        Line::from("██║╚██╔╝██║██╔══╝  ██║  ██║██╔══╝  ██║╚██╗██║"),
-        Line::from("██║ ╚═╝ ██║███████╗██████╔╝███████╗██║ ╚████║"),
-        Line::from("╚═╝     ╚═╝╚══════╝╚═════╝ ╚══════╝╚═╝  ╚═══╝"),
-        Line::from(""),
-        Line::from("Read. Edit. Build. Test."),
-        Line::from("Edits stay in this copy; the original project is unchanged."),
-    ];
-    frame.render_widget(
-        Paragraph::new(logo)
-            .centered()
-            .style(Style::new().fg(Color::Rgb(104, 218, 219))),
-        welcome_areas.first().copied().unwrap_or_default(),
-    );
-    welcome_areas.get(1).copied().unwrap_or(middle)
-}
-
-fn draw_input(frame: &mut Frame<'_>, input: &Input, bottom: Rect) {
-    let block = Block::bordered().title(
-        " instruction · enter: send · alt-enter: newline · ↑↓ history · /clear · tab: model ",
-    );
-    let inner = block.inner(bottom);
-    frame.render_widget(block, bottom);
-    if inner.width >= 4 && inner.height > 0 {
-        let view = input.view(usize::from(inner.width));
-        let scroll = view
-            .row
-            .saturating_sub(usize::from(inner.height).saturating_sub(1));
-        let lines: Vec<_> = view
-            .lines
-            .into_iter()
-            .skip(scroll)
-            .take(usize::from(inner.height))
-            .map(Line::raw)
-            .collect();
-        frame.render_widget(Paragraph::new(lines), inner);
-        frame.set_cursor_position((
-            inner
-                .x
-                .saturating_add(u16::try_from(view.column).unwrap_or(0)),
-            inner
-                .y
-                .saturating_add(u16::try_from(view.row.saturating_sub(scroll)).unwrap_or(0)),
-        ));
-    }
-}
-
 /// Exercise every screen using an in-memory terminal.
 #[cfg(test)]
 fn selftest(providers: Vec<Provider>) -> Result<String> {
@@ -1167,11 +999,13 @@ mod tests {
         assert!(app
             .lines
             .iter()
-            .all(|line| !line.text.chars().any(|c| c.is_control() && c != '\n')));
+            .all(|line| matches!(line, TranscriptLine::Notice { text, .. }
+                if !text.chars().any(|c| c.is_control() && c != '\n'))));
         assert!(app
             .lines
             .first()
-            .is_some_and(|line| line.text.starts_with("日本語🙂\n")));
+            .is_some_and(|line| matches!(line, TranscriptLine::Notice { text, .. }
+                if text.starts_with("日本語🙂\n"))));
     }
     fn providers() -> Vec<Provider> {
         vec![Provider {
@@ -1187,6 +1021,69 @@ mod tests {
     #[test]
     fn every_screen_draws() {
         assert!(selftest(providers()).is_ok());
+    }
+    #[test]
+    fn conversation_labels_and_tool_details_are_separate() -> Result<()> {
+        let mut app = App::new(providers(), PathBuf::from("/workspace"));
+        app.screen = Screen::Instructing;
+        app.speak(Speaker::User, "Read note.txt.");
+        app.tool_started("call-a".into(), "read_file", r#"{"path":"note.txt"}"#, None);
+        app.tool_finished(
+            "call-a",
+            "read_file",
+            r#"{"path":"note.txt"}"#,
+            "TOOL-DETAILS-CANARY",
+            false,
+        );
+        app.speak(Speaker::Assistant, "The file has been read.");
+        assert_eq!(app.lines.len(), 3, "tool result duplicated its request row");
+        let mut terminal = Terminal::new(ratatui::backend::TestBackend::new(100, 24))?;
+        terminal.draw(|frame| draw(frame, &mut app))?;
+        let painted: String = terminal
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(ratatui::buffer::Cell::symbol)
+            .collect();
+        assert!(painted.contains("YOU") && painted.contains("MEDEN"));
+        assert!(painted.contains("read_file") && painted.contains("note.txt"));
+        assert!(!painted.contains("TOOL-DETAILS-CANARY"));
+        app.show_tool_details = true;
+        terminal.draw(|frame| draw(frame, &mut app))?;
+        let expanded: String = terminal
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(ratatui::buffer::Cell::symbol)
+            .collect();
+        assert!(expanded.contains("TOOL-DETAILS-CANARY"));
+        Ok(())
+    }
+    #[test]
+    fn skipped_tool_failures_remain_visible_without_expanding_details() -> Result<()> {
+        let mut app = App::new(providers(), PathBuf::from("/workspace"));
+        app.screen = Screen::Instructing;
+        app.tool_finished(
+            "skipped",
+            "write_file",
+            "{}",
+            "Cancelled before preparation\u{1b}[31m",
+            true,
+        );
+        let mut terminal = Terminal::new(ratatui::backend::TestBackend::new(100, 24))?;
+        terminal.draw(|frame| draw(frame, &mut app))?;
+        let painted: String = terminal
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(ratatui::buffer::Cell::symbol)
+            .collect();
+        assert!(painted.contains("Cancelled before preparation"));
+        assert!(!painted.contains('\u{1b}'));
+        Ok(())
     }
     #[test]
     fn processor_cannot_be_approved_without_a_visible_review_area() -> Result<()> {
@@ -1335,12 +1232,17 @@ mod tests {
             Terminal::new(ratatui::backend::TestBackend::new(40, 16)).expect("terminal");
         terminal.draw(|frame| draw(frame, &mut app)).expect("draw");
         let cursor = terminal.get_cursor_position().expect("cursor");
-        assert!(cursor.x > 0 && cursor.x < 39 && cursor.y >= 12 && cursor.y < 15);
+        assert!(cursor.x > 0 && cursor.x < 39 && cursor.y > 3 && cursor.y < 14);
         app.instruction.home();
         terminal.draw(|frame| draw(frame, &mut app)).expect("draw");
+        let cursor = terminal.get_cursor_position().expect("cursor");
         assert_eq!(
-            terminal.get_cursor_position().expect("cursor"),
-            Position::new(3, 12)
+            terminal
+                .backend()
+                .buffer()
+                .cell((cursor.x.saturating_sub(2), cursor.y))
+                .map(ratatui::buffer::Cell::symbol),
+            Some(">")
         );
     }
     #[test]
@@ -1357,6 +1259,6 @@ mod tests {
         assert!(app
             .lines
             .iter()
-            .any(|line| line.text.contains("disconnected")));
+            .any(|line| matches!(line, TranscriptLine::Notice { text, .. } if text.contains("disconnected"))));
     }
 }

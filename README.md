@@ -145,9 +145,18 @@ This is required by `run` and optional in the TUI.
 The project is imported into a private working copy under
 `$XDG_DATA_HOME/meden/workspaces/` (default: `~/.local/share/meden/workspaces/`).
 File tools and Bash share that copy at `/workspace`; the original project
-is unchanged. The TUI displays the result location and retains it on exit.
+is unchanged. Use `/workspace` in the TUI to show the retained result location.
 There is no host-shell fallback. Dependency caches/toolchains must be
 prepared locally; workers cannot download packages.
+
+The TUI separates your messages (`YOU`), model replies (`MEDEN`) and compact
+tool results. `Ctrl+O` expands tool arguments and output; failures remain
+visible when details are collapsed. `Enter` sends, `Alt+Enter` adds a line,
+and `PgUp`/`PgDn` scroll. Use `/help` for commands, `/models` (or `Tab`) to
+choose a connection, `/contract` to review the specification, and `/exports`
+to review proposed deliveries. A single selected HTTP connection opens its
+approval screen directly. Each approval shows its destination or contract
+identity in a fixed card, with the action and its key below the details.
 
 Run a command without a model through the same offline tools:
 

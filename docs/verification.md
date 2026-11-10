@@ -1697,7 +1697,14 @@ runtime evidence. Python now needs only its local check dependencies.
 
 The real PTY test compares the complete HTTP request sequence and file
 effects for the same instructions through TUI and CLI, including follow-up
-history. CLI tests reject legacy tools/policy/system messages, forged
+history. The presentation lives in
+[`tui/view.rs`](../crates/meden-cli/src/tui/view.rs): labeled user/model
+messages, compact tool results, an expandable details view and a focused
+message editor. Native rendering tests and subscription PTY tests check
+role labels, hidden/expanded tool output, visible failures and sanitization.
+The six screen states and extracted approval selector remain the authority
+boundary; the redesigned renderer is still an adapter, not a proved display.
+CLI tests reject legacy tools/policy/system messages, forged
 approvals/results, oversized input and terminal-control injection before
 model access. Observer cancellation is rechecked immediately before a model
 request/tool call, so a failed protocol write cannot start that next effect.

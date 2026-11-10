@@ -1,5 +1,6 @@
 """Exercise a real PTY, HTTP tool calls, edits, and a second user turn."""
 
+import codecs
 import json
 import os
 import select
@@ -9,6 +10,7 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+import pyte
 import pytest
 
 from meden_checks import find_meden
@@ -151,6 +153,15 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
         env=env,
     )
     output = bytearray()
+    screen = pyte.Screen(120, 30)
+    terminal = pyte.Stream(screen)
+    decoder = codecs.getincrementaldecoder("utf-8")("replace")
+
+    def view():
+        # pyte.display can index an empty wide-character continuation during
+        # a CJK redraw. Read the decoded cell contents without that shortcut.
+        return "\n".join("".join(screen.buffer[y][x].data for x in range(screen.columns))
+                         for y in range(screen.lines))
 
     def wait_for(predicate):
         deadline = time.monotonic() + 10
@@ -159,24 +170,26 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
                 return
             assert process.poll() is None, output.decode(errors="replace")
             if select.select([master], [], [], 0.1)[0]:
-                output.extend(os.read(master, 65536))
+                chunk = os.read(master, 65536)
+                output.extend(chunk)
+                terminal.feed(decoder.decode(chunk))
         pytest.fail(f"TUI timed out: {output[-8000:].decode(errors='replace')}")
 
     try:
-        wait_for(lambda: b"fixture" in output)
+        wait_for(lambda: "fixture" in view())
         copies = list((data / "meden/workspaces").glob("session-*"))
         assert len(copies) == 1
         workspace = copies[0]
         note = workspace / "note.txt"
         os.write(master, b"\r")
-        wait_for(lambda: b"host control" in output)
+        wait_for(lambda: "Connection details" in view())
         assert requests == []
         # Enter and a pasted approval cannot grant processor authority.
         os.write(master, b"\r\x1b[200~y\x1b[201~")
         time.sleep(0.1)
         assert requests == []
         os.write(master, b"y")
-        wait_for(lambda: b"alt-enter" in output)
+        wait_for(lambda: "alt-enter" in view())
         # Correct a typo in the middle with cursor keys, then submit from End.
         os.write(
             master,
@@ -185,7 +198,7 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
         wait_for(
             lambda: len(requests) == first_turn_count and note.read_text() == "status: ready\n"
         )
-        wait_for(lambda: b"retained" in output)
+        wait_for(lambda: "Updated note.txt." in view() and "alt-enter" in view())
         assert note.read_text() == "status: ready\n"
         assert requests[0]["messages"][-1]["content"][0]["text"] == ("Update the status to ready.")
         assert "bash" in [tool["function"]["name"] for tool in requests[0]["tools"]]
@@ -196,7 +209,7 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
         wait_for(lambda: len(requests) == first_turn_count + 1)
         # A recorded HTTP request (or text from an earlier turn) does not
         # mean the UI is accepting input yet. Wait for the editor to return.
-        wait_for(lambda: output.count(b"alt-enter") >= 3)
+        wait_for(lambda: "Status is ready." in view() and "alt-enter" in view())
         messages = requests[-1]["messages"]
         assert len(messages) == 12
         assert document in json.dumps(messages, ensure_ascii=False)
@@ -204,11 +217,11 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
         assert messages[-1]["content"][0]["text"] == follow_up
         assert any(message.get("tool_call_id") == "call-2" for message in messages)
         os.write(master, b"/clear\r")
-        wait_for(lambda: b"cleared" in output)
+        wait_for(lambda: "cleared" in view())
         assert len(requests) == first_turn_count + 1
         os.write(master, b"Fresh turn.\r")
         wait_for(lambda: len(requests) == first_turn_count + 2)
-        wait_for(lambda: output.count(b"alt-enter") >= 4)
+        wait_for(lambda: "A fresh conversation." in view() and "alt-enter" in view())
         assert len(requests[-1]["messages"]) == 2
         assert requests[-1]["messages"][-1]["content"][0]["text"] == "Fresh turn."
         assert note.read_text() == "status: ready\n"
@@ -216,18 +229,19 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
         # The final picker entry is our second processor. Other locally
         # discovered servers can appear in between; no cloud keys are loaded.
         os.write(master, b"\t" + b"\x1b[B" * 100 + b"\r")
-        wait_for(lambda: output.count(b"host control") >= 2)
+        wait_for(lambda: "Connection details" in view())
         assert other.server_port not in destinations
         os.write(master, b"n")
+        wait_for(lambda: "Choose a model connection" in view())
         time.sleep(0.1)
         assert other.server_port not in destinations
         os.write(master, b"\r")
-        wait_for(lambda: output.count(b"host control") >= 3)
+        wait_for(lambda: "Connection details" in view())
         os.write(master, b"y")
-        wait_for(lambda: output.count(b"alt-enter") >= 5)
+        wait_for(lambda: "alt-enter" in view())
         os.write(master, b"Read the current status.\r")
         wait_for(lambda: len(requests) == first_turn_count + 4)
-        wait_for(lambda: output.count(b"alt-enter") >= 6)
+        wait_for(lambda: "Read by the second processor." in view() and "alt-enter" in view())
         assert (
             destinations == [server.server_port] * (first_turn_count + 2) + [other.server_port] * 2
         )

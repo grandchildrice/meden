@@ -277,9 +277,7 @@ def test_tui_export_review_uses_host_keys_and_exact_frozen_bytes(tmp_path):
             pytest.fail(view())
 
         try:
-            wait_for(lambda: "choose" in view())
-            os.write(master, b"\r")
-            wait_for(lambda: "processor approval" in view())
+            wait_for(lambda: "Connection details" in view())
             os.write(master, b"y")
             wait_for(lambda: "alt-enter" in view())
             os.write(master, b"Prepare exports for review.\r")
@@ -287,7 +285,7 @@ def test_tui_export_review_uses_host_keys_and_exact_frozen_bytes(tmp_path):
             assert deliveries == other == []
             os.write(master, b"/exports\r")
             wait_for(
-                lambda: "immutable export review" in view()
+                lambda: "Delivery details" in view()
                 and "00 ff 43 4f 4e 46 49 44" in view()
             )
             assert target in view()
@@ -313,13 +311,13 @@ def test_tui_export_review_uses_host_keys_and_exact_frozen_bytes(tmp_path):
             os.kill(process.pid, signal.SIGWINCH)
             wait_for(lambda: "Export #0 rejected." in view() and "alt-enter" in view())
             os.write(master, b"/exports 1\r")
-            wait_for(lambda: "immutable export review" in view() and "Export #1" in view())
+            wait_for(lambda: "Delivery details" in view() and "Export #1" in view())
             os.write(master, b"y")
             wait_for(lambda: "response_received" in view() and "alt-enter" in view())
             assert other == [original]
             assert deliveries == []
             os.write(master, b"/exports 1\r")
-            wait_for(lambda: "immutable export review" in view())
+            wait_for(lambda: "Delivery details" in view())
             os.write(master, b"y")
             wait_for(lambda: "no replay" in view() and "alt-enter" in view())
             assert other == [original]

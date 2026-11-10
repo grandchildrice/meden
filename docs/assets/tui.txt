@@ -1,24 +1,24 @@
-┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│MEDEN · private workspace · offline tools · minimax-m3                                                        │
-│files: /tmp/meden-screenshot-data/meden/workspaces/session-I9mtBn                                             │
-└──────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-                                  ███╗   ███╗███████╗██████╗ ███████╗███╗   ██╗
-                                  ████╗ ████║██╔════╝██╔══██╗██╔════╝████╗  ██║
-                                  ██╔████╔██║█████╗  ██║  ██║█████╗  ██╔██╗ ██║
-                                  ██║╚██╔╝██║██╔══╝  ██║  ██║██╔══╝  ██║╚██╗██║
-                                  ██║ ╚═╝ ██║███████╗██████╔╝███████╗██║ ╚████║
-                                  ╚═╝     ╚═╝╚══════╝╚═════╝ ╚══════╝╚═╝  ╚═══╝
+      MEDEN  /  gpt-6.1-sol
+      Private working copy · offline tools
 
-                                            Read. Edit. Build. Test.
-                           Edits stay in this copy; the original project is unchanged.
 
-┌ conversation · PgUp/PgDn to scroll ──────────────────────────────────────────────────────────────────────────┐
-│                                                                                                              │
-│                                                                                                              │
-│                                                                                                              │
-└──────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-┌ instruction · enter: send · alt-enter: newline · ↑↓ history · /clear · tab: model ───────────────────────────┐
-│> Inspect this project, improve the implementation, and run its tests.                                        │
-│                                                                                                              │
-│                                                                                                              │
-└──────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      What would you like to build?
+
+      Describe your app or ask a question in the message box below.
+      For formal verification, you review the specification before implementation.
+
+      Try: Build a vending machine that rejects purchases when balance is insufficient.
+
+      Files stay in a private working copy. /workspace shows its location.
+
+
+
+
+
+
+
+      ╭ Your message ────────────────────────────────────────────────────────────────────────────────────╮
+      │> Inspect this project, improve the implementation, and run its tests.                            │
+      ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+      enter send · alt-enter newline · tab models · ctrl+o tool details
+      /help commands · /workspace files · PgUp/PgDn conversation

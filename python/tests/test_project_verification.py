@@ -479,12 +479,13 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
                 chunk = os.read(master, 65536)
                 output.extend(chunk)
                 terminal.feed(chunk.decode(errors="replace"))
-        pytest.fail(output[-8000:].decode(errors="replace"))
+                (tmp_path / "tui-screen.txt").write_text(rendered())
+        pytest.fail(rendered())
 
     try:
         wait_for(lambda: "alt-enter" in rendered())
         os.write(master, b"Build a local ledger with conserved balances and safe retries.\r")
-        wait_for(lambda: "y: accept and continue" in rendered())
+        wait_for(lambda: "y: Accept specification" in rendered())
         os.write(master, b"\x1b[200~y\x1b[201~\r")
         # Process queued terminal output before inspecting the host state.
         deadline = time.monotonic() + 0.5
@@ -493,8 +494,11 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
                 chunk = os.read(master, 65536)
                 output.extend(chunk)
                 terminal.feed(chunk.decode(errors="replace"))
-        assert "y: accept and continue" in rendered()
+        assert "y: Accept specification" in rendered()
         os.write(master, b"y")
+        wait_for(lambda: "Specification accepted. Continuing implementation." in rendered())
+        assert "Project kernel needs verification" in rendered()
+        assert "Proceed under the host-accepted contract" not in rendered()
         wait_for(lambda: "VERIFIED project kernel" in rendered() and "alt-enter" in rendered(), 360)
         artifacts = list((Path(env["XDG_DATA_HOME"]) / "meden/artifacts").glob("kernel-*"))
         assert len(artifacts) == 1

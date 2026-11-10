@@ -4,6 +4,7 @@ All credentials and HTTP replies here are fixtures; these tests do not use a
 subscription account or establish live provider entitlement.
 """
 
+import codecs
 import json
 import os
 import select
@@ -14,6 +15,7 @@ from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+import pyte
 import pytest
 
 from meden_checks import find_meden
@@ -313,7 +315,12 @@ def test_subscription_tui_review_precedes_native_model_request(tmp_path, provide
     assert binary is not None
     project = tmp_path / "project"
     project.mkdir()
-    with receiver(provider, [native_reply(provider, "SUBSCRIPTION-TUI-OK")]) as (base, requests):
+    (project / "note.txt").write_text("TOOL-DETAILS-CANARY")
+    replies = [
+        native_reply(provider, calls=[call("read-note", "read_file", {"path": "note.txt"})]),
+        native_reply(provider, "SUBSCRIPTION-TUI-OK"),
+    ]
+    with receiver(provider, replies) as (base, requests):
         env = environment(tmp_path, provider, base)
         env["TERM"] = "xterm-256color"
         master, slave = pty.openpty()
@@ -336,6 +343,12 @@ def test_subscription_tui_review_precedes_native_model_request(tmp_path, provide
             env=env,
         )
         output = bytearray()
+        screen = pyte.Screen(130, 35)
+        terminal = pyte.Stream(screen)
+        decoder = codecs.getincrementaldecoder("utf-8")("replace")
+
+        def view():
+            return "\n".join(screen.display)
 
         def wait_for(predicate):
             deadline = time.monotonic() + 12
@@ -344,23 +357,31 @@ def test_subscription_tui_review_precedes_native_model_request(tmp_path, provide
                     return
                 assert process.poll() is None, output.decode(errors="replace")
                 if select.select([master], [], [], 0.1)[0]:
-                    output.extend(os.read(master, 65536))
+                    chunk = os.read(master, 65536)
+                    output.extend(chunk)
+                    terminal.feed(decoder.decode(chunk))
             pytest.fail(f"TUI timeout: {output[-5000:].decode(errors='replace')}")
 
         try:
-            wait_for(lambda: b"subscription" in output)
-            os.write(master, b"\r")
-            wait_for(lambda: b"processor approval" in output)
-            assert base.encode() in output
+            wait_for(lambda: "Connection details" in view())
+            assert "Choose a model connection" not in view()
+            assert base in view()
             assert requests == []
             os.write(master, b"\x1b[200~y\x1b[201~\r")
             time.sleep(0.1)
             assert requests == []
             os.write(master, b"y")
-            wait_for(lambda: b"alt-enter" in output)
+            wait_for(lambda: "alt-enter" in view())
             os.write(master, b"Hello\r")
-            wait_for(lambda: b"SUBSCRIPTION-TUI-OK" in output)
-            assert len(requests) == 1
+            wait_for(lambda: "SUBSCRIPTION-TUI-OK" in view() and "alt-enter" in view())
+            assert len(requests) == 2
+            assert "YOU" in [line.strip() for line in screen.display]
+            assert "MEDEN" in [line.strip() for line in screen.display]
+            assert "TOOL-DETAILS-CANARY" not in view()
+            os.write(master, b"\x0f")
+            wait_for(lambda: "TOOL-DETAILS-CANARY" in view())
+            os.write(master, b"\x0f")
+            wait_for(lambda: "TOOL-DETAILS-CANARY" not in view())
             assert b"SECRET-fixture" not in output
             os.write(master, b"\x03")
             process.wait(timeout=10)

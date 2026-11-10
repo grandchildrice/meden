@@ -33,14 +33,16 @@ def main():
     parser.add_argument("--binary", type=Path, required=True)
     parser.add_argument("--workspace", type=Path, required=True)
     parser.add_argument("--provider", required=True)
-    parser.add_argument("--model", required=True)
+    parser.add_argument("--model")
     parser.add_argument("--font", type=Path, required=True)
     parser.add_argument("--out", type=Path, default=Path("docs/assets/tui.png"))
     parser.add_argument(
-        "--screen", choices=["instruction", "processor-approval"], default="instruction"
+        "--screen", choices=["picker", "instruction", "processor-approval"], default="instruction"
     )
+    parser.add_argument("--columns", type=int, default=112)
+    parser.add_argument("--rows", type=int, default=24)
     args = parser.parse_args()
-    columns, rows = 112, 24
+    columns, rows = args.columns, args.rows
     master, slave = pty.openpty()
     fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", rows, columns, 0, 0))
     initial = termios.tcgetattr(slave)
@@ -54,8 +56,7 @@ def main():
             str(args.workspace),
             "--provider",
             args.provider,
-            "--model",
-            args.model,
+            *(["--model", args.model] if args.model else []),
         ],
         stdin=slave,
         stdout=slave,
@@ -81,9 +82,14 @@ def main():
         raise TimeoutError("TUI capture timed out")
 
     try:
-        pump(lambda: "choose" in "\n".join(screen.display))
-        os.write(master, b"\r")
-        pump(lambda: "host control" in "\n".join(screen.display))
+        pump(lambda: "choose" in "\n".join(screen.display)
+             or "Connection details" in "\n".join(screen.display))
+        if args.screen == "picker" and "Connection details" in "\n".join(screen.display):
+            os.write(master, b"n")
+            pump(lambda: "choose" in "\n".join(screen.display))
+        if args.screen != "picker" and "Connection details" not in "\n".join(screen.display):
+            os.write(master, b"\r")
+            pump(lambda: "Connection details" in "\n".join(screen.display))
         if args.screen == "instruction":
             os.write(master, b"y")
             pump(lambda: "alt-enter" in "\n".join(screen.display))
@@ -139,11 +145,12 @@ def main():
                         (left, top, left + cell_width - 1, top + cell_height - 1), fill=fg
                     )
                 elif cell.data:
-                    draw.text((left, top), cell.data, font=font, fill=fg)
+                    draw.text((left, top), cell.data, font=font, fill=fg,
+                              stroke_width=1 if cell.bold else 0)
         args.out.parent.mkdir(parents=True, exist_ok=True)
         image.save(args.out)
         args.out.with_suffix(".txt").write_text(
-            "\n".join(line.rstrip() for line in screen.display) + "\n"
+            "\n".join(line.rstrip() for line in screen.display).rstrip() + "\n"
         )
         os.write(master, b"\x03")
         process.wait(timeout=5)
