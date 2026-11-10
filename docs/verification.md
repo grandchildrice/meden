@@ -15,9 +15,11 @@ established by the current CI badge.
 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs on pushes to
 `main`, pull requests and merge groups. There are twelve checks:
 
-Main pushes let an active run finish, so frequent commits do not repeatedly
-cancel the full proof/fault suite. The concurrency group retains the latest
-pending run; other refs cancel their older active run. This uses GitHub's
+Only the Lean job is serialized per ref. Main pushes let its active job finish,
+so frequent commits do not repeatedly cancel the full proof/fault suite.
+Its concurrency group retains the latest pending job; other refs cancel their
+older active Lean job. Rust, Python and the other checks can run immediately
+while that proof suite is busy. This uses GitHub's
 [conditional concurrency behavior](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency).
 Release still requires successful checks for its exact source and current
 attempt; an older completed run does not cover a newer commit.
@@ -1646,6 +1648,16 @@ no new capabilities, trust-root option or TLS bypass. This is adapter evidence,
 not a proof of DNS/TCP/TLS or the complete prefetch CLI/worker/R1 path, and
 does not add Lean theorem roots. The [fixture credentials](../crates/meden-runtime/src/pages/testdata/README.md)
 are public, disposable test material.
+
+Ubuntu's packaged Bubblewrap can apply an AppArmor child profile that denies
+the lab's namespace capabilities. CI installs a root-owned copy at
+`/usr/local/libexec/meden-netlab-bwrap` with its own AppArmor profile permitting
+user namespaces. Only this test selects it through `MEDEN_PAGE_NETWORK_BWRAP`;
+the ordinary launcher, packaged policy and production workers retain their
+existing configuration. The lab still uses private user/network namespaces
+and explicitly requests only `CAP_NET_ADMIN` and `CAP_NET_BIND_SERVICE` there.
+CI must successfully configure its interfaces and observe the actual DNS/TLS
+exchanges; a missing prerequisite is a failure, not a skip.
 
 Local fault injections also confirmed that the lab fails if mixed DNS answers
 are allowed, one redirect is followed or TLS identity checks are disabled.

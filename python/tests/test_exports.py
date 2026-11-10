@@ -272,7 +272,8 @@ def test_tui_export_review_uses_host_keys_and_exact_frozen_bytes(tmp_path):
                     return
                 assert process.poll() is None, view()
                 if select.select([master], [], [], 0.1)[0]:
-                    stream.feed(decoder.decode(os.read(master, 65536)))
+                    # CI can split a draw between its fixed heading and body.
+                    stream.feed(decoder.decode(os.read(master, 17)))
             pytest.fail(view())
 
         try:
@@ -285,7 +286,10 @@ def test_tui_export_review_uses_host_keys_and_exact_frozen_bytes(tmp_path):
             wait_for(lambda: len(requests) == 3 and "alt-enter" in view())
             assert deliveries == other == []
             os.write(master, b"/exports\r")
-            wait_for(lambda: "immutable export review" in view())
+            wait_for(
+                lambda: "immutable export review" in view()
+                and "00 ff 43 4f 4e 46 49 44" in view()
+            )
             assert target in view()
             assert "Method: POST" in view()
             assert "application/octet-stream" in view()

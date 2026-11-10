@@ -75,7 +75,11 @@ fn public_https_uses_checked_dns_and_rejects_unapproved_hops() {
     }
     let scratch = tempfile::tempdir().expect("network fixture directory");
     resolver_files(scratch.path());
-    let bwrap = std::env::var_os("MEDEN_BWRAP").map_or_else(|| program("bwrap"), PathBuf::from);
+    // Ubuntu's default bwrap child profile denies namespace capabilities.
+    // Only this trusted synthetic network lab may select a dedicated launcher.
+    let bwrap = std::env::var_os("MEDEN_PAGE_NETWORK_BWRAP")
+        .or_else(|| std::env::var_os("MEDEN_BWRAP"))
+        .map_or_else(|| program("bwrap"), PathBuf::from);
     let mut command = Command::new(bwrap);
     command
         .args([
