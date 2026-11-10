@@ -28,7 +28,7 @@ attempt; an older completed run does not cover a newer commit.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate production Rust models, `lake build`, proof scan/audit, 152 Rust mutation checks, 8 Lean syntax-checker mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known implementation fault passes |
+| Lean | Regenerate production Rust models, `lake build`, proof scan/audit, 152 Rust mutation checks, 17 Lean contract-admission mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known implementation fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A decision differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -752,8 +752,8 @@ uses [`worker_file/pinned.rs`](../crates/meden-cli/src/worker_file/pinned.rs):
 The [Linux `openat2` contract](https://man7.org/linux/man-pages/man2/openat2.2.html)
 and [rustix's safe wrapper](https://docs.rs/rustix/1.1.6/rustix/fs/fn.openat2.html)
 are trusted OS/library behavior. First-party code adds no unsafe Rust or assumed
-Lean filesystem primitive. The 311 audited roots concern their documented pure
-control kernels, including the resolved-resource check, rather than Linux internals.
+Lean filesystem primitive. The 318 audited roots concern their documented
+first-party functions, including the resolved-resource check, rather than Linux internals.
 
 Native adversarial tests deterministically substitute both parents and final
 entries between canonicalization and handle acquisition, including an initially
@@ -1325,11 +1325,54 @@ identifiers/kinds/labels, field punning, record defaults, unchecked children,
 an expanded whitelist and accepted exhausted fuel must each fail those guards
 and the unchanged structural proof. Baseline and restored sources must pass;
 missing declarations, resource failures and absent proof goals do not count.
-These Lean-source faults are separate from the 152 extracted-Rust faults.
+These eight syntax-tree faults and the nine entry-point faults below are
+separate from the 152 extracted-Rust faults.
+
+## Contract JSON and original term inputs
+
+[`ContractInput.lean`](../lean/MedenSpec/ContractInput.lean) imports the same
+production `Terms.lean` and connects its JSON entry point to syntax admission.
+`names`, `stringList`, `checkTerm`, `checkProperty` and `checkContract` are
+the actual functions used by the recipe. One property's existing validation
+is a small shared function; the contract loop checks every array element.
+
+| Audited theorem | Checked property |
+| --- | --- |
+| `names_exact` | Expression names are exactly the fixed mathematical bindings, declared parameters and state/output projections; additional built-in output/transition bindings are property-only |
+| `stringList_exact` | Metadata arrays contain exactly the decoded strings, preserving every element and its order |
+| `term_exact` | Term success is equivalent to the byte bound and successful parsing/checking with the original environment, label, text and name/field lists |
+| `term_admissible` | That original parse result satisfies the independent syntax-tree grammar |
+| `property_exact` | Each property uses its original JSON name and statement, property scope and exact diagnostic label |
+| `contract_exact` | Successful contract admission is equivalent to metadata decoding, specification admission and admission of every declared property |
+| `contract_admissible` | The original specification and every property have bounded, parsed trees satisfying the structural grammar under those exact declarations |
+
+These theorems cover arbitrary represented Lean JSON values and environments.
+They establish correspondence for these first-party functions, including
+failure paths and the 8192-byte term limit. The parsed field/parameter lists
+are the same lists used to construct expression names and record labels;
+every listed property is checked. Reserved parameter names are enforced by
+Rust metadata validation, not assumed for arbitrary Lean JSON values.
+These proofs do not establish correctness of
+JSON text decoding, parser tables, atom/hygiene attribution, elaboration,
+Rust serialization or the physical recipe/environment invocation. The
+mathematical contract's types, output bounds, laws and relation to user intent
+still need their separate checks/review.
+
+[`ContractInputTest.lean`](../lean/ContractInputTest.lean) runs 24 native
+assertions with the production parser environment. Cases include the exact
+byte boundary, trailing commands, invalid final properties/elements and
+declared-name scope. The mutation driver retains the eight syntax faults
+and adds nine: ignored size, replaced text, skipped syntax admission, output
+names in a specification, omitted property checks, a statement replaced by
+its name, an extra global name, parameters replaced by fields and truncated
+metadata. Each faulty module must compile, fail the native assertions and
+fail the unchanged entry-point proof semantically. The syntax prerequisite
+is recompiled under every fresh faulty module; cached proofs are not reused
+across changed checker definitions. Baseline and restored inputs must pass.
 
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 311
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 318
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -1566,7 +1609,7 @@ counter through compilation, extraction, Lean refinement and artifact
 inspection. A counter that silently ignores amount 4 passes the fixed native
 examples but must fail refinement, without producing an artifact. These are
 project-kernel proofs through additional deployment paths, not a new proof of
-mounts, loaders or the complete controller. The 311 first-party audited roots
+mounts, loaders or the complete controller. The 318 first-party audited roots
 are unchanged.
 
 The lab requires installed public Nix tools, a dynamic x86_64 glibc worker and

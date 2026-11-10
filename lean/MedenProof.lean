@@ -20,5 +20,6 @@ import MedenSpec.ToolOutcomeRefinement
 import MedenSpec.PageNetworkRefinement
 import MedenSpec.DecimalRefinement
 import MedenSpec.ContractSyntax
+import MedenSpec.ContractInput
 
 /-! Proof-only entry point: keep extraction dependencies out of the oracle. -/

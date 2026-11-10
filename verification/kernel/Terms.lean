@@ -54,15 +54,13 @@ def checkSyntax (allowed fields : List Name) : Nat → Syntax → Except String 
         | _ => throw "record labels must be single declared state fields"
       for arg in args do checkSyntax allowed fields fuel arg
 
-end MedenTerms
-
-private def names (fields parameters : List String) (property : Bool) : List Name :=
+def names (fields parameters : List String) (property : Bool) : List Name :=
   let base := [`s, `Nat, `Bool, `True, `False, `true, `false, `Nat.min, `Nat.max, `min, `max]
   let out := if property then [`out, `transition] else []
   base ++ out ++ parameters.map Name.mkSimple ++
     fields.map (Name.str `s) ++ (if property then fields.map (Name.str `out) else [])
 
-private def checkTerm (env : Environment) (allowed fields : List Name)
+def checkTerm (env : Environment) (allowed fields : List Name)
     (label text : String) : Except String Unit := do
   if text.utf8ByteSize > 8192 then throw s!"{label}: mathematical term exceeds 8 KiB"
   let checked := do
@@ -81,19 +79,25 @@ private def checkTerm (env : Environment) (allowed fields : List Name)
     "Rust syntax such as :: and u64::MAX, constructors, commands and tactics are unsupported. " ++
     "Repair syntax without weakening the requested behavior."
 
-private def stringList (json : Json) (field : String) : Except String (List String) := do
+def stringList (json : Json) (field : String) : Except String (List String) := do
   let values ← (← json.getObjVal? field).getArr?
   values.toList.mapM Json.getStr?
 
-private def checkContract (env : Environment) (json : Json) : Except String Unit := do
+def checkProperty (env : Environment) (fields parameters : List String)
+    (property : Json) : Except String Unit := do
+  checkTerm env (names fields parameters true) (fields.map Name.mkSimple)
+    s!"properties.{← property.getObjValAs? String "name"}.statement"
+    (← property.getObjValAs? String "statement")
+
+def checkContract (env : Environment) (json : Json) : Except String Unit := do
   let fields ← stringList json "fields"
   let parameters ← stringList json "parameters"
   checkTerm env (names fields parameters false) (fields.map Name.mkSimple)
     "specification" (← json.getObjValAs? String "specification")
   for property in (← (← json.getObjVal? "properties").getArr?) do
-    checkTerm env (names fields parameters true) (fields.map Name.mkSimple)
-      s!"properties.{← property.getObjValAs? String "name"}.statement"
-      (← property.getObjValAs? String "statement")
+    checkProperty env fields parameters property
+
+end MedenTerms
 
 -- Initializer execution is needed only for the fixed imported parser tables.
 -- The environment imports no candidate module, extension or native library.
@@ -108,7 +112,7 @@ private unsafe def run (args : List String) : IO UInt32 := do
   match String.fromUTF8? bytes with
   | none => IO.eprintln "contract is not UTF-8"; return 65
   | some text =>
-    match Json.parse text >>= checkContract env with
+    match Json.parse text >>= MedenTerms.checkContract env with
     | .error error => IO.eprintln error; return 65
     | .ok () => return 0
 

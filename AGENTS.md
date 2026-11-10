@@ -195,10 +195,16 @@
   represented trees and fuel, including recursive ordinary children, allowed
   expression names, exact declared labels and bounded record-token guards.
   Hygiene metadata and label tails have explicit special cases. Atoms,
-  text parsing, syntax tables, JSON/name construction, elaboration and actual
+  text parsing, syntax tables, elaboration and actual
   invocation remain adapters; do not claim a complete parser or no-code-execution
-  theorem. Eight separate Lean-source faults must fail executable guards and
-  the unchanged structural proof; these are not extracted-Rust faults.
+  theorem. The actual Lean JSON-to-term entry points also have correspondence:
+  ordered string metadata, exact allowed-name construction, byte bounds,
+  original parser inputs, specification scope and every property's original
+  name/statement. JSON text decoding, Rust serialization and physical
+  environment/invocation remain adapters. Seventeen separate Lean-source
+  faults must fail executable guards and the unchanged relevant proof;
+  rebuild syntax prerequisites for every fresh faulty input module. These
+  are not extracted-Rust faults.
   Drafts cannot replace accepted meaning or evidence without host review of their
   exact canonical hash. A rejected replacement retains the accepted contract.
   TUI acceptance binds the frozen displayed review, not a new current reference.

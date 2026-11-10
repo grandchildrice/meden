@@ -127,6 +127,13 @@ Opaque hygiene metadata, atom attribution and the fixed parser/elaborator
 remain dependencies. The proof does not establish text-parser correctness
 or equivalence between a requested behavior and its mathematical formula.
 
+The [entry-point correspondence](verification.md#contract-json-and-original-term-inputs)
+also connects the actual Lean JSON accessors, original specification and
+every property to that admission. Metadata string order and all array
+elements are preserved; the original environment, text and declarations
+reach the parser/checker. JSON text decoding, Rust serialization and physical
+invocation remain outside this proof.
+
 Syntax failures name the rejected `specification` or property statement,
 quote the submitted term and list that draft's available expression names
 and record labels. The tool schema explains the fixed mathematical names

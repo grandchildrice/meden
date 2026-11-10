@@ -30,7 +30,7 @@ remain stale across finite controller compositions. Model verification, status
 and artifact preparation use this guard before their I/O callbacks. Parsing,
 locking, callback interpretation and physical I/O remain separate obligations.
 The broader obligations below remain proposed. This defines completion criteria for
-[the product architecture](design.md). The current 311 Lean theorem
+[the product architecture](design.md). The current 318 Lean theorem
 entry points, six Kani harnesses and conformance checks are listed in
 [verification.md](verification.md).
 

@@ -50,15 +50,61 @@ MUTATIONS = [
         "| 0, _ => .ok ()",
     ),
 ]
+INPUT_MUTATIONS = [
+    (
+        "input_size_ignored",
+        "if text.utf8ByteSize > 8192 then",
+        "if text.utf8ByteSize > 8192 && false then",
+    ),
+    (
+        "input_text_replaced",
+        "Parser.runParserCategory env `term text label",
+        'Parser.runParserCategory env `term "s" label',
+    ),
+    (
+        "input_syntax_unchecked",
+        "MedenTerms.checkSyntax allowed fields 128 stx",
+        "let _ := stx; pure ()",
+    ),
+    (
+        "specification_gets_output_names",
+        "names fields parameters false",
+        "names fields parameters true",
+    ),
+    (
+        "properties_not_checked",
+        'for property in (← (← json.getObjVal? "properties").getArr?) do',
+        "for property in (#[] : Array Json) do",
+    ),
+    (
+        "property_statement_replaced_by_name",
+        'property.getObjValAs? String "statement"',
+        'property.getObjValAs? String "name"',
+    ),
+    (
+        "extra_global_name",
+        "let base := [`s, `Nat,",
+        "let base := [`IO.println, `s, `Nat,",
+    ),
+    (
+        "parameters_replaced_by_fields",
+        'let parameters ← stringList json "parameters"',
+        'let parameters ← stringList json "fields"',
+    ),
+    (
+        "truncated_metadata",
+        "values.toList.mapM Json.getStr?",
+        "(values.toList.take 1).mapM Json.getStr?",
+    ),
+]
 
 
-def main():
-    originals = {path: path.read_bytes() for path in (SOURCE, PROOF, TEST)}
+def check(proof, test, mutations, guard_marker, logs, prerequisites=()):
+    originals = {path: path.read_bytes() for path in (SOURCE, proof, test, *prerequisites)}
     source = originals[SOURCE].decode()
     library_path = subprocess.check_output(
         ["lake", "env", "printenv", "LEAN_PATH"], cwd=LEAN, text=True
     ).strip()
-    logs = ROOT / "target/verification/contract-syntax-mutants"
     logs.mkdir(parents=True, exist_ok=True)
     evidence = []
     with tempfile.TemporaryDirectory(prefix="meden-syntax-") as scratch:
@@ -75,7 +121,7 @@ def main():
                 raise RuntimeError(f"unexpected exit for {name}: see {logs / f'{name}.txt'}")
             return result.stdout
 
-        for name, before, after in [("baseline", None, None), *MUTATIONS, ("restored", None, None)]:
+        for name, before, after in [("baseline", None, None), *mutations, ("restored", None, None)]:
             mutated = source
             if before is not None:
                 if source.count(before) != 1:
@@ -85,10 +131,15 @@ def main():
             run(name + "-module", ["lean", "-R", str(temp), "-o", str(temp / "Terms.olean"),
                                     str(temp / "Terms.lean")], True)
             normal = before is None
-            test_log = run(name + "-guards", ["lean", str(TEST)], normal)
-            proof_log = run(name + "-proof", ["lean", str(PROOF)], normal)
+            for prerequisite in prerequisites:
+                output = temp / prerequisite.relative_to(LEAN).with_suffix(".olean")
+                output.parent.mkdir(parents=True, exist_ok=True)
+                run(name + "-" + prerequisite.stem, ["lean", "-o", str(output),
+                                                     str(prerequisite)], True)
+            test_log = run(name + "-guards", ["lean", str(test)], normal)
+            proof_log = run(name + "-proof", ["lean", str(proof)], normal)
             if not normal:
-                if "did not evaluate to `true`" not in test_log:
+                if guard_marker not in test_log:
                     raise RuntimeError(f"{name}: executable guard failure missing")
                 if not any(marker in proof_log for marker in (
                     "unsolved goals", "Tactic `decide` failed", "Tactic `simp` failed",
@@ -115,10 +166,18 @@ def main():
         raise RuntimeError("repository inputs changed during fault checks")
     (logs / "summary.json").write_text(json.dumps({
         "source_sha256": sha256(originals[SOURCE]).hexdigest(),
-        "proof_sha256": sha256(originals[PROOF]).hexdigest(),
-        "guards_sha256": sha256(originals[TEST]).hexdigest(),
+        "proof_sha256": sha256(originals[proof]).hexdigest(),
+        "guards_sha256": sha256(originals[test]).hexdigest(),
         "faults": evidence, "baseline_and_restored_passed": True,
     }, indent=2) + "\n")
+
+
+def main():
+    check(PROOF, TEST, MUTATIONS, "did not evaluate to `true`",
+          ROOT / "target/verification/contract-syntax-mutants")
+    check(LEAN / "MedenSpec/ContractInput.lean", LEAN / "ContractInputTest.lean",
+          INPUT_MUTATIONS, "contract input assertion failed",
+          ROOT / "target/verification/contract-input-mutants", (PROOF,))
 
 
 if __name__ == "__main__":

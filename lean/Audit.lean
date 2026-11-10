@@ -330,3 +330,11 @@ open MedenSpec
 #print axioms MedenSpec.ContractSyntax.accepted_label
 #print axioms MedenSpec.ContractSyntax.accepted_record_field
 #print axioms MedenSpec.ContractSyntax.accepted_no_defaults
+
+#print axioms MedenSpec.ContractInput.names_exact
+#print axioms MedenSpec.ContractInput.term_exact
+#print axioms MedenSpec.ContractInput.term_admissible
+#print axioms MedenSpec.ContractInput.stringList_exact
+#print axioms MedenSpec.ContractInput.property_exact
+#print axioms MedenSpec.ContractInput.contract_exact
+#print axioms MedenSpec.ContractInput.contract_admissible
