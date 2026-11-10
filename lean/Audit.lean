@@ -321,3 +321,12 @@ open MedenSpec
 #print axioms MedenSpec.DecimalRefinement.accepted_value_exact
 #print axioms MedenSpec.DecimalRefinement.noncanonical_rejected
 #print axioms MedenSpec.DecimalRefinement.overflow_rejected
+
+#print axioms MedenSpec.ContractSyntax.kinds_exact
+#print axioms MedenSpec.ContractSyntax.hasAtom_iff
+#print axioms MedenSpec.ContractSyntax.accepted_admissible
+#print axioms MedenSpec.ContractSyntax.accepted_identifier
+#print axioms MedenSpec.ContractSyntax.accepted_node_kind
+#print axioms MedenSpec.ContractSyntax.accepted_label
+#print axioms MedenSpec.ContractSyntax.accepted_record_field
+#print axioms MedenSpec.ContractSyntax.accepted_no_defaults

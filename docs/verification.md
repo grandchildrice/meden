@@ -28,7 +28,7 @@ attempt; an older completed run does not cover a newer commit.
 | --- | --- | --- |
 | Rust | `cargo fmt`, Clippy with warnings denied, workspace tests, documentation build | Formatting/lint errors, failed tests or documentation warnings |
 | cargo-deny | Dependency license, advisory and source checks | A dependency violates `deny.toml` |
-| Lean | Regenerate processor/review/dispatch, evidence, contract management, issued jobs, TUI approval, outer/inner conversation, tool-invocation, file-request, capability policy, scope matching, failure and display-scalar kernels, `lake build`, proof scan/audit, 152 Rust mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known Rust fault passes |
+| Lean | Regenerate production Rust models, `lake build`, proof scan/audit, 152 Rust mutation checks, 8 Lean syntax-checker mutation checks, offline project proofs and TUI/CLI contract tests | Model drift, proof failure/hole, unapproved axiom, or a known implementation fault passes |
 | Six Kani checks | One bounded Rust harness per job | A counterexample, panic, overflow, insufficient unwind bound or verification failure |
 | Conformance | Execute the compiled Lean oracle on the same cases as Rust | A decision differs |
 | Python | Ruff and CLI/adversarial-model/PTY checks against the built binary | A request/effect/terminal behavior differs from expectations |
@@ -752,7 +752,7 @@ uses [`worker_file/pinned.rs`](../crates/meden-cli/src/worker_file/pinned.rs):
 The [Linux `openat2` contract](https://man7.org/linux/man-pages/man2/openat2.2.html)
 and [rustix's safe wrapper](https://docs.rs/rustix/1.1.6/rustix/fs/fn.openat2.html)
 are trusted OS/library behavior. First-party code adds no unsafe Rust or assumed
-Lean filesystem primitive. The 303 audited roots concern their documented pure
+Lean filesystem primitive. The 311 audited roots concern their documented pure
 control kernels, including the resolved-resource check, rather than Linux internals.
 
 Native adversarial tests deterministically substitute both parents and final
@@ -1127,7 +1127,8 @@ The first consumer is [Meden's own release gate](release.md). A second
 consumer connects host-reviewed pure-u64 Rust transition contracts to project
 source, an independent Lean check and a retained library artifact; see
 [project verification](project-verification.md). The bounded mathematical-term
-adapter remains tested separately from the contract controller described below.
+adapter has syntax-tree admission proofs described below, separately from the
+contract controller. Parsing and elaboration remain tested adapters.
 The same backend accepts binary multiplication, division and remainder.
 The [integer fee quote](../verification/examples/fee_quote.contract.json)
 checks constant-rate rounding, exact quotient/remainder reconstruction and
@@ -1135,7 +1136,7 @@ overflow preservation with an extracted native implementation. CLI tests use
 the shared host-review, repair, artifact binding and edit-invalidation path for
 both ledger and fee contracts. Additional arithmetic cases require rejection
 of an unseen wrong result, zero divisor and overflowing product even when all
-fixed native examples pass. The syntax boundary and term parser remain tested
+fixed native examples pass. The source syntax boundary and text parser remain tested
 adapters; no new first-party controller theorem roots or proof assumptions are
 introduced by these operators.
 Broader contracts/backends
@@ -1286,9 +1287,49 @@ canonicalization. Serde/JSON string decoding, the native UTF-8 byte view,
 vector traversal, decimal formatting and transport remain adapters. They
 are not a complete proof of JSON, the CLI or accepted natural-language meaning.
 
+## Contract syntax: the actual Lean admission checker
+
+[`ContractSyntax.lean`](../lean/MedenSpec/ContractSyntax.lean) imports the actual
+[`Terms.lean`](../verification/kernel/Terms.lean) used by the offline checker,
+through a proof-only Lake library. There is no translated substitute or new
+runtime dependency. Its independent `Admissible` relation specifies permitted
+syntax trees, expression names, exact single-field labels and record guards.
+The normative grammar list is separate from the executable whitelist.
+
+| Audited theorem | Checked property |
+| --- | --- |
+| `kinds_exact` | The executable whitelist equals the independent grammar list |
+| `hasAtom_iff` | Bounded token search agrees with the structural `AtomWithin` relation |
+| `accepted_admissible` | Successful admission implies `Admissible`, for every represented syntax tree, allowed-name/field list and recursion budget |
+| `accepted_identifier` | An admitted expression identifier belongs to the allowed-name list |
+| `accepted_node_kind` | An admitted node is parser hygiene metadata or a normative grammar kind |
+| `accepted_label` | An admitted label is exactly one declared name with an empty projection/index tail |
+| `accepted_record_field` | An admitted record field contains `:=` within the token-search budget |
+| `accepted_no_defaults` | An admitted optional-default node has no `..` within that budget |
+
+The implementation recurses on decreasing fuel and checks every ordinary
+child. Its production budget is 128, as is the token-search budget. The
+proof models the existing exception for opaque parser-generated `hygieneInfo`
+and the separate label grammar explicitly; it does not inspect those nodes
+as expression subtrees. Atoms themselves are opaque token strings. The fixed
+Lean parser, its syntax tables, JSON/name construction, UTF-8, elaboration,
+native compilation and the recipe's actual invocation remain dependencies.
+In particular this is not a theorem about arbitrary text executing no code,
+parser correctness or natural-language intent.
+
+[`ContractSyntaxTest.lean`](../lean/ContractSyntaxTest.lean) checks 17 executable
+admission cases, including malformed trees and the metadata exception.
+[`check-contract-syntax-mutants.py`](../tools/check-contract-syntax-mutants.py)
+independently compiles eight faulty copies of the actual checker. Unknown
+identifiers/kinds/labels, field punning, record defaults, unchecked children,
+an expanded whitelist and accepted exhausted fuel must each fail those guards
+and the unchanged structural proof. Baseline and restored sources must pass;
+missing declarations, resource failures and absent proof goals do not count.
+These Lean-source faults are separate from the 152 extracted-Rust faults.
+
 ## Axiom audit
 
-[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 303
+[`Audit.lean`](../lean/Audit.lean) prints the transitive axioms of the 311
 entry-point theorems listed above. CI permits only `propext`,
 `Classical.choice` and `Quot.sound`, the project's standard Lean assumptions.
 It rejects `sorryAx` and any other reported axiom. A separate source scan
@@ -1525,7 +1566,7 @@ counter through compilation, extraction, Lean refinement and artifact
 inspection. A counter that silently ignores amount 4 passes the fixed native
 examples but must fail refinement, without producing an artifact. These are
 project-kernel proofs through additional deployment paths, not a new proof of
-mounts, loaders or the complete controller. The 303 first-party audited roots
+mounts, loaders or the complete controller. The 311 first-party audited roots
 are unchanged.
 
 The lab requires installed public Nix tools, a dynamic x86_64 glibc worker and

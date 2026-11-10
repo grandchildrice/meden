@@ -2,11 +2,13 @@ import Lean.Elab.Tactic.Omega
 import Lean
 
 /-! Trusted input adapter, run before compiling contract terms. Candidate
-input is parsed as data; it cannot introduce declarations, tactics, imports,
-metaprograms or new syntax. This adapter is not an implementation theorem. -/
+input is parsed as data. The syntax-tree checker below is also compiled by
+Meden's proof build; parsing, elaboration and native execution remain adapters. -/
 open Lean
 
-private def allowedKinds : List String := [
+namespace MedenTerms
+
+def allowedKinds : List String := [
   "null", "num", "termIfThenElse", "Lean.Parser.Term.ifThenElse",
   "Lean.Parser.Term.app", "Lean.Parser.Term.paren",
   "Lean.Parser.Term.typeAscription", "Lean.Parser.Term.hygienicLParen",
@@ -18,12 +20,12 @@ private def allowedKinds : List String := [
   "term¬_", "term_&&_", "term_||_", "term_==_", "term_!=_", "term!_"
 ]
 
-private def hasAtom (token : String) : Nat → Syntax → Bool
+def hasAtom (token : String) : Nat → Syntax → Bool
   | 0, _ => false
   | fuel + 1, stx =>
     (stx.isAtom && stx.getAtomVal == token) || stx.getArgs.any (hasAtom token fuel)
 
-private def checkSyntax (allowed fields : List Name) : Nat → Syntax → Except String Unit
+def checkSyntax (allowed fields : List Name) : Nat → Syntax → Except String Unit
   | 0, _ => .error "mathematical term nesting exceeds the supported budget"
   | fuel + 1, stx => do
     match stx with
@@ -52,6 +54,8 @@ private def checkSyntax (allowed fields : List Name) : Nat → Syntax → Except
         | _ => throw "record labels must be single declared state fields"
       for arg in args do checkSyntax allowed fields fuel arg
 
+end MedenTerms
+
 private def names (fields parameters : List String) (property : Bool) : List Name :=
   let base := [`s, `Nat, `Bool, `True, `False, `true, `false, `Nat.min, `Nat.max, `min, `max]
   let out := if property then [`out, `transition] else []
@@ -63,7 +67,7 @@ private def checkTerm (env : Environment) (allowed fields : List Name)
   if text.utf8ByteSize > 8192 then throw s!"{label}: mathematical term exceeds 8 KiB"
   let checked := do
     let stx ← Parser.runParserCategory env `term text label
-    checkSyntax allowed fields 128 stx
+    MedenTerms.checkSyntax allowed fields 128 stx
   checked.mapError fun error =>
     s!"Invalid {label}\n{error}\nRejected term (JSON string): {(Json.str text).compress}\n" ++
     s!"Allowed expression names: {String.intercalate ", " (allowed.map (·.toString))}\n" ++

@@ -152,6 +152,8 @@ jobs:
           if grep -E 'sorryAx' audit.txt; then echo "sorryAx present"; exit 1; fi
           if grep -E "depends on axioms" audit.txt | grep -vE '^\S+ depends on axioms: \[(propext|Classical\.choice|Quot\.sound)(, (propext|Classical\.choice|Quot\.sound))*\]$' | grep -q .; then
             echo "non-standard axiom present"; exit 1; fi
+      - name: Reject semantic faults in contract syntax admission
+        run: python3 tools/check-contract-syntax-mutants.py
       - name: Reject semantic faults in the actual Rust implementation
         run: python3 tools/check-refinement-mutants.py
       - uses: astral-sh/setup-uv@v7

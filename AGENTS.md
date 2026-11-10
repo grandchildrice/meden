@@ -190,7 +190,16 @@
   remain adapters; do not describe the complete JSON boundary as proved.
   Contracts are bounded data: metadata and restricted mathematical terms,
   never candidate Lean commands, tactics, imports or proof scripts. Drafts
-  cannot replace accepted meaning or evidence without host review of their
+  pass the same Lean syntax-tree checker imported by the proof build.
+  Its admission implies the independent structural grammar for arbitrary
+  represented trees and fuel, including recursive ordinary children, allowed
+  expression names, exact declared labels and bounded record-token guards.
+  Hygiene metadata and label tails have explicit special cases. Atoms,
+  text parsing, syntax tables, JSON/name construction, elaboration and actual
+  invocation remain adapters; do not claim a complete parser or no-code-execution
+  theorem. Eight separate Lean-source faults must fail executable guards and
+  the unchanged structural proof; these are not extracted-Rust faults.
+  Drafts cannot replace accepted meaning or evidence without host review of their
   exact canonical hash. A rejected replacement retains the accepted contract.
   TUI acceptance binds the frozen displayed review, not a new current reference.
   Contract selection, review, acceptance, rejection, edits and job admission

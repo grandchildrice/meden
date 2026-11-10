@@ -119,6 +119,14 @@ labels are not global expression identifiers. Metadata is bounded and must
 use supported names and a relative Rust path. Deserializing a draft grants
 no authority.
 
+The actual syntax-tree admission checker now has [structural Lean
+proofs](verification.md#contract-syntax-the-actual-lean-admission-checker):
+accepted expression identifiers and node kinds are allowed, label nodes have
+the exact declared shape, and ordinary children are checked recursively.
+Opaque hygiene metadata, atom attribution and the fixed parser/elaborator
+remain dependencies. The proof does not establish text-parser correctness
+or equivalence between a requested behavior and its mathematical formula.
+
 Syntax failures name the rejected `specification` or property statement,
 quote the submitted term and list that draft's available expression names
 and record labels. The tool schema explains the fixed mathematical names

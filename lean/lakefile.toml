@@ -12,6 +12,11 @@ name = "MedenSpec"
 [[lean_lib]]
 name = "MedenProof"
 
+# Compile the same syntax checker embedded in the offline project recipe.
+[[lean_lib]]
+name = "Terms"
+srcDir = "../verification/kernel"
+
 [[lean_exe]]
 name = "meden-spec"
 root = "Main"
