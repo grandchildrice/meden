@@ -224,7 +224,8 @@ theorem eligible_refines (s : Contracts) (rev : U64) (inputs : alloc.vec.Vec U8)
       CheckJobsRefinement.is_active_refines, hd, hj, ha, jobs, state, versioned,
       MedenSpec.Contracts.eligible, ← UScalar.eq_equiv, EvidenceRefinement.eligible_refines,
       MedenSpec.Contracts.withInputs, gate, subject]
-  all_goals split_ifs <;> simp_all
+  -- A faulty implementation may remove a branch; keep its remaining equality.
+  all_goals try split_ifs <;> simp_all
 
 theorem accept_refines (s : Contracts) (o : EvidenceOrigin) (session : Slice U8) (rev : U64) :
     (do let out ← MedenEvidenceImpl.evidence.Contracts.accept s o session rev; ok (out.1, state out.2)) =
