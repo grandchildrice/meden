@@ -291,6 +291,11 @@ verified downloads. The host records their paths with
 [`tools/prepare-verifier.py`](../tools/prepare-verifier.py), then sets
 `MEDEN_VERIFIER_BUNDLE` to that manifest before starting TUI/CLI. Missing
 assets do not trigger downloads, candidate configuration or a cloud fallback.
+Prepared Rust wrappers may reference their own sysroot by absolute path. The
+checker exposes only that Rust's selected executables and canonical `lib` there,
+read-only, in addition to its fixed private alias. It does not expose the
+surrounding toolchain manager configuration or change the Rust selected for
+ordinary coding workers.
 
 For a direct host-administered check:
 

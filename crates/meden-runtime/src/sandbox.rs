@@ -297,7 +297,7 @@ impl Sandbox {
     /// Prepare an offline execution configuration. Missing isolation support
     /// is an error; there is no unrestricted host fallback.
     pub fn with_worker(root: &Path, worker: &Path) -> io::Result<Self> {
-        Self::configure(root, worker.canonicalize()?, &[])
+        Self::configure(root, worker.canonicalize()?, &[], BTreeSet::new())
     }
 
     /// A separate offline model process. Only prepared executable/weights and
@@ -323,7 +323,7 @@ impl Sandbox {
                     .map(|(path, name)| (path.as_path(), name.as_str())),
             )
             .collect();
-        let sandbox = Self::configure(root, worker.canonicalize()?, &[&engine])?;
+        let sandbox = Self::configure(root, worker.canonicalize()?, &[&engine], BTreeSet::new())?;
         Ok(sandbox.build(
             "/local-engine",
             &[
@@ -354,14 +354,19 @@ impl Sandbox {
     /// receives only its URL batch on stdin. Networking is retained for HTTPS,
     /// with every resolved connection address checked by the worker.
     pub fn prefetch_command(root: &Path, worker: &Path) -> io::Result<Command> {
-        Self::configure(root, worker.canonicalize()?, &[])?.worker_invocation(
+        Self::configure(root, worker.canonicalize()?, &[], BTreeSet::new())?.worker_invocation(
             "worker-prefetch",
             None,
             Network::Pages,
         )
     }
 
-    fn configure(root: &Path, worker: PathBuf, assets: &[&Path]) -> io::Result<Self> {
+    fn configure(
+        root: &Path,
+        worker: PathBuf,
+        assets: &[&Path],
+        mut tool_bindings: BTreeSet<PathBuf>,
+    ) -> io::Result<Self> {
         let root = root.canonicalize()?;
         if !root.is_dir() {
             return Err(io::Error::other("workspace must be a directory"));
@@ -375,7 +380,7 @@ impl Sandbox {
         let system_tools = tools
             .iter()
             .any(|(_, path)| SYSTEM_ROOTS.iter().any(|root| path.starts_with(root)));
-        let mut tool_bindings = rust_bindings(&tools);
+        tool_bindings.extend(rust_bindings(&tools));
         if let Some(manager) = manager.filter(|path| store_root(path).is_some()) {
             tool_bindings.insert(manager);
         }
@@ -458,10 +463,19 @@ impl Sandbox {
         bundle: &crate::verification::Bundle,
     ) -> io::Result<Self> {
         let executables = bundle.executables();
+        // Prepared Rust wrappers can refer to their own sysroot by its original
+        // absolute path. Retain only the selected binaries/lib there, just as
+        // for the independently selected host toolchain; never its parent.
+        let rust = ["rustc", "cargo"]
+            .map(|name| bundle.rust.join("bin").join(name))
+            .into_iter()
+            .chain([bundle.rust.join("lib").canonicalize()?])
+            .collect();
         Self::configure(
             root,
             worker.canonicalize()?,
             &executables.iter().map(PathBuf::as_path).collect::<Vec<_>>(),
+            rust,
         )
     }
 

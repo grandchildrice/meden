@@ -1626,6 +1626,18 @@ library discovery also includes selected non-Nix tool objects. The worker uses
 its prepared loader explicitly when needed, without replacing the system's
 ELF interpreter. Worker/checker entry points use the selected `/tools` aliases.
 
+The independently prepared checker Rust also retains its exact `rustc`,
+`cargo` and canonical `lib` at their original absolute paths, alongside the
+fixed `/verification/rust` alias. Nix Rustup linker wrappers may refer to that
+sysroot even when ordinary workers use another installed Rust toolchain.
+Its parent, Cargo/Rustup configuration and adjacent host files stay hidden;
+the selected files remain read-only. A production-profile probe in
+`test_toolchains.py` checks those observations and deliberately stops before
+issuing proof evidence. The old launcher fails that probe. A separate actual
+counter check succeeds with the unmodified installed Nix Rustup toolchain;
+no rewritten linker wrapper is needed. These are OS adapter checks and add
+no theorem roots.
+
 [`test_toolchains.py`](../python/tests/test_toolchains.py) constructs two
 mixed layouts in an outer read-only Linux namespace with actual public
 binaries and a glibc loader. It checks system Bash plus Nix tools, and system

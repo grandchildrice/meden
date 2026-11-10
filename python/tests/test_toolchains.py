@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import shlex
 import shutil
 import socket
 import subprocess
@@ -13,6 +14,57 @@ import pytest
 from meden_checks import find_meden
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_prepared_checker_keeps_its_own_absolute_rust_library_paths(tmp_path):
+    """Probe the real offline profile; fixture tools deliberately admit no proof."""
+    binary = find_meden()
+    assert binary
+    public = tmp_path / "prepared"
+    rust, lean = public / "rust", public / "lean"
+    for root in [rust, lean]:
+        (root / "bin").mkdir(parents=True)
+        (root / "lib").mkdir()
+    secret = public / "host-secret"
+    secret.write_text("private adjacent host data")
+    resource = rust / "lib" / "prepared-resource"
+    resource.write_text("original public resource")
+
+    def executable(path, script):
+        path.write_text("#!/tools/bash\nset -eu\n" + script + "\n")
+        path.chmod(0o755)
+
+    executable(rust / "bin/rustc", "printf 'rustc 1.100.0-nightly (923c95cdf probe)\\n'")
+    executable(lean / "bin/lean", "printf 'Lean (version 4.35.0, profile probe)\\n'")
+    executable(public / "charon", "printf '8cae8fd1905946de61147a65ecdd7122cc6b491b\\n'")
+    executable(public / "charon-driver", "exit 69")
+    executable(public / "aeneas", "printf 'c5eb4a2\\n'")
+    # An installed wrapper may refer to its own sysroot through an absolute
+    # host path. Only the prepared executables/lib may appear at that path.
+    executable(rust / "bin/cargo", f"""
+test -x {shlex.quote(str(rust / 'bin/rustc'))}
+test "$(cat {shlex.quote(str(resource))})" = 'original public resource'
+test ! -e {shlex.quote(str(secret))}
+if (printf changed > {shlex.quote(str(resource))}) 2>/dev/null; then exit 91; fi
+printf 'meden-checker-origin-probe-passed\\n'
+exit 69
+""")
+    manifest = public / "bundle.json"
+    manifest.write_text(json.dumps({
+        "version": 1, "rust": str(rust), "lean": str(lean),
+        "charon": str(public / "charon"), "driver": str(public / "charon-driver"),
+        "aeneas": str(public / "aeneas"), "libraries": [],
+    }))
+    output = tmp_path / "artifacts"
+    completed = subprocess.run([
+        binary, "verify-kernel", "--contract", ROOT / "verification/examples/counter.contract.json",
+        "--source", ROOT / "verification/examples/counter.rs", "--bundle", manifest,
+        "--output", output,
+    ], capture_output=True, text=True, timeout=60)
+    assert completed.returncode != 0 and not output.exists()
+    assert "meden-check: tests" in completed.stderr, completed.stderr
+    assert "meden-checker-origin-probe-passed" in completed.stderr, completed.stderr
+    assert resource.read_text() == "original public resource"
 
 
 def nix_tool(name):
