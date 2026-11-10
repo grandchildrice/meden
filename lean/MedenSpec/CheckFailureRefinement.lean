@@ -59,7 +59,8 @@ theorem failed_worker_refines (t : process.Termination) (truncated : Bool) :
     simp [verification.failure.failed_worker, repairable,
       std.process.ExitStatus.Insts.StdOsUnixProcessExitStatusExt.into_raw,
       Aeneas.Std.lift, Aeneas.Std.bind_ok, mask_eq]
-  all_goals split_ifs <;> rfl
+  all_goals try split_ifs
+  all_goals rfl
 
 theorem truncated_is_inconclusive (t : process.Termination) :
     verification.failure.failed_worker t true = ok .Inconclusive := by
