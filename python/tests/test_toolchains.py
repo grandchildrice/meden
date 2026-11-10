@@ -16,7 +16,8 @@ from meden_checks import find_meden
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def test_prepared_checker_keeps_its_own_absolute_rust_library_paths(tmp_path):
+@pytest.mark.parametrize("linked_library", [False, True], ids=["directory", "symlink"])
+def test_prepared_checker_keeps_its_own_absolute_rust_library_paths(tmp_path, linked_library):
     """Probe the real offline profile; fixture tools deliberately admit no proof."""
     binary = find_meden()
     assert binary
@@ -24,7 +25,12 @@ def test_prepared_checker_keeps_its_own_absolute_rust_library_paths(tmp_path):
     rust, lean = public / "rust", public / "lean"
     for root in [rust, lean]:
         (root / "bin").mkdir(parents=True)
-        (root / "lib").mkdir()
+        if root == rust and linked_library:
+            library = public / "shared-rust-lib"
+            library.mkdir()
+            (root / "lib").symlink_to(library, target_is_directory=True)
+        else:
+            (root / "lib").mkdir()
     secret = public / "host-secret"
     secret.write_text("private adjacent host data")
     resource = rust / "lib" / "prepared-resource"

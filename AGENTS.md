@@ -42,6 +42,8 @@
   lib at their original absolute paths as well as the fixed checker alias.
   Keep its parent/configuration hidden and the resources read-only; do not
   change the ordinary host toolchain selection to make wrappers work.
+  Preserve a symlinked lib's original alias separately from its canonical
+  target used for public dependency resolution.
 - Local split-GGUF preparation starts with the host-selected first numbered
   shard and mounts only the exact prepared sibling files, read-only. Preserve
   the input's split filename before resolving cache symlinks; never mount its

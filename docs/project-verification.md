@@ -296,6 +296,8 @@ checker exposes only that Rust's selected executables and canonical `lib` there,
 read-only, in addition to its fixed private alias. It does not expose the
 surrounding toolchain manager configuration or change the Rust selected for
 ordinary coding workers.
+Library symlinks retain their original alias alongside the canonical resource
+used for dependency resolution.
 
 For a direct host-administered check:
 

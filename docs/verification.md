@@ -1630,6 +1630,9 @@ The independently prepared checker Rust also retains its exact `rustc`,
 `cargo` and canonical `lib` at their original absolute paths, alongside the
 fixed `/verification/rust` alias. Nix Rustup linker wrappers may refer to that
 sysroot even when ordinary workers use another installed Rust toolchain.
+If `lib` is a symlink, its original alias is retained separately from the
+canonical resource used for dependency resolution. The profile probe covers
+both ordinary and symlinked library directories.
 Its parent, Cargo/Rustup configuration and adjacent host files stay hidden;
 the selected files remain read-only. A production-profile probe in
 `test_toolchains.py` checks those observations and deliberately stops before

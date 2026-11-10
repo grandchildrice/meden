@@ -466,10 +466,15 @@ impl Sandbox {
         // Prepared Rust wrappers can refer to their own sysroot by its original
         // absolute path. Retain only the selected binaries/lib there, just as
         // for the independently selected host toolchain; never its parent.
+        // Keep a symlinked lib's original alias as well as its canonical target,
+        // which supplies the Nix closure and any absolute dependency references.
         let rust = ["rustc", "cargo"]
             .map(|name| bundle.rust.join("bin").join(name))
             .into_iter()
-            .chain([bundle.rust.join("lib").canonicalize()?])
+            .chain([
+                bundle.rust.join("lib"),
+                bundle.rust.join("lib").canonicalize()?,
+            ])
             .collect();
         Self::configure(
             root,
