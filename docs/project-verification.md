@@ -100,8 +100,12 @@ decimal JSON string from `"0"` through `"18446744073709551615"`. JSON numbers,
 signs, spaces, leading zeroes and exponent notation are rejected. This avoids
 precision loss in model/API gateways; the checker parses exact `u64` values
 and emits the corresponding mathematical numerals and native constants.
-This encoding boundary is tested, not currently refined in Lean. Historical
-trial records retain their original numeric encoding and worker identity.
+The actual byte parser is extracted and refined in
+[Lean](../lean/MedenSpec/DecimalRefinement.lean): it terminates, accepts only
+canonical ASCII decimal within u64 and returns exactly its mathematical
+value. JSON string decoding, the UTF-8 byte view and decimal output formatting
+remain tested adapters. Historical trial records retain their original
+numeric encoding and worker identity.
 
 `source_path` names a file relative to the private workspace; it is not Rust
 source text. The model writes that file separately after host acceptance.

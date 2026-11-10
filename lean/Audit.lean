@@ -316,3 +316,8 @@ open MedenSpec
 #print axioms MedenSpec.PageNetworkRefinement.v6_refines
 #print axioms MedenSpec.PageNetworkRefinement.v4_excludes
 #print axioms MedenSpec.PageNetworkRefinement.v6_excludes
+
+#print axioms MedenSpec.DecimalRefinement.parse_u64_refines
+#print axioms MedenSpec.DecimalRefinement.accepted_value_exact
+#print axioms MedenSpec.DecimalRefinement.noncanonical_rejected
+#print axioms MedenSpec.DecimalRefinement.overflow_rejected

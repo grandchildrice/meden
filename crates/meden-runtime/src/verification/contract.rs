@@ -55,6 +55,37 @@ pub(super) struct Example {
 mod decimal_words {
     use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 
+    // The byte-level parser is extracted into Lean; serde and the UTF-8 string
+    // view remain adapters. Its proof establishes every access/arithmetic bound.
+    #[allow(
+        clippy::arithmetic_side_effects,
+        clippy::indexing_slicing,
+        clippy::manual_range_contains
+    )]
+    pub(super) fn parse_u64(bytes: &[u8]) -> Option<u64> {
+        if bytes.is_empty() {
+            return None;
+        }
+        if bytes[0] == b'0' {
+            return if bytes.len() == 1 { Some(0) } else { None };
+        }
+        let mut value = 0_u64;
+        let mut index = 0;
+        while index < bytes.len() {
+            let byte = bytes[index];
+            if byte < b'0' || byte > b'9' {
+                return None;
+            }
+            let digit = u64::from(byte - b'0');
+            if value > (u64::MAX - digit) / 10 {
+                return None;
+            }
+            value = value * 10 + digit;
+            index += 1;
+        }
+        Some(value)
+    }
+
     pub fn serialize<S: Serializer>(words: &[u64], serializer: S) -> Result<S::Ok, S::Error> {
         words
             .iter()
@@ -67,13 +98,9 @@ mod decimal_words {
         Vec::<String>::deserialize(deserializer)?
             .into_iter()
             .map(|word| {
-                let value = word.parse::<u64>().map_err(|_| {
-                    D::Error::custom("example values must be decimal strings in 0..=18446744073709551615")
-                })?;
-                if word != value.to_string() {
-                    return Err(D::Error::custom("example values must be canonical decimal strings without signs, spaces or leading zeroes"));
-                }
-                Ok(value)
+                parse_u64(word.as_bytes()).ok_or_else(|| D::Error::custom(
+                    "example values must be canonical decimal strings in 0..=18446744073709551615, without signs, spaces or leading zeroes"
+                ))
             })
             .collect()
     }
@@ -584,6 +611,32 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    fn decimal_parser_is_exact_and_canonical() {
+        for value in [0, 1, 9, 10, 9_007_199_254_740_993, u64::MAX - 1, u64::MAX] {
+            assert_eq!(
+                decimal_words::parse_u64(value.to_string().as_bytes()),
+                Some(value)
+            );
+        }
+        for byte in 0..=u8::MAX {
+            let expected = byte
+                .checked_sub(b'0')
+                .filter(|digit| *digit <= 9)
+                .map(u64::from);
+            assert_eq!(decimal_words::parse_u64(&[byte]), expected, "byte {byte}");
+        }
+        for bytes in [
+            b"".as_slice(),
+            b"00",
+            b"01",
+            b"1\0",
+            b"+1",
+            b"18446744073709551616",
+        ] {
+            assert_eq!(decimal_words::parse_u64(bytes), None, "{bytes:?}");
+        }
+    }
     #[test]
     fn example_encoding_rejects_ambiguous_and_out_of_range_values() -> io::Result<()> {
         let fixture: serde_json::Value = serde_json::from_str(include_str!(

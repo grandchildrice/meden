@@ -330,6 +330,66 @@ def pages.public_v6 (a : Std.U16) (b : Std.U16) : Result Bool := do
     | 16383#uscalar => ok (b >= 4096#u16)
     | _ => ok true
 
+/-- [meden_runtime::verification::contract::decimal_words::parse_u64]: loop body 0:
+    Source: 'crates/meden-runtime/src/verification/contract.rs', lines 74:8-87:5 -/
+@[rust_loop_body]
+def verification.contract.decimal_words.parse_u64_loop.body
+  (bytes : Slice Std.U8) (value : Std.U64) (index : Std.Usize) :
+  Result (ControlFlow (Std.U64 × Std.Usize) (Option Std.U64))
+  := do
+  let i := Slice.len bytes
+  if index < i
+  then
+    let byte ← Slice.index_usize bytes index
+    if byte < 48#u8
+    then ok (done none)
+    else
+      if byte > 57#u8
+      then ok (done none)
+      else
+        let i1 ← byte - 48#u8
+        let digit ← lift (core.convert.num.FromU64U8.from i1)
+        let i2 ← core.num.U64.MAX - digit
+        let i3 ← i2 / 10#u64
+        if value > i3
+        then ok (done none)
+        else
+          let i4 ← value * 10#u64
+          let value1 ← i4 + digit
+          let index1 ← index + 1#usize
+          ok (cont (value1, index1))
+  else ok (done (some value))
+
+/-- [meden_runtime::verification::contract::decimal_words::parse_u64]: loop 0:
+    Source: 'crates/meden-runtime/src/verification/contract.rs', lines 74:8-87:5 -/
+@[rust_loop]
+def verification.contract.decimal_words.parse_u64_loop
+  (bytes : Slice Std.U8) (value : Std.U64) (index : Std.Usize) :
+  Result (Option Std.U64)
+  := do
+  loop
+    (fun (value1, index1) =>
+      verification.contract.decimal_words.parse_u64_loop.body bytes value1
+      index1)
+    (value, index)
+
+/-- [meden_runtime::verification::contract::decimal_words::parse_u64]:
+    Source: 'crates/meden-runtime/src/verification/contract.rs', lines 65:4-87:5 -/
+def verification.contract.decimal_words.parse_u64
+  (bytes : Slice Std.U8) : Result (Option Std.U64) := do
+  let b ← core.slice.Slice.is_empty bytes
+  if b
+  then ok none
+  else
+    let i ← Slice.index_usize bytes 0#usize
+    if i = 48#u8
+    then
+      let i1 := Slice.len bytes
+      if i1 = 1#usize
+      then ok (some 0#u64)
+      else ok none
+    else verification.contract.decimal_words.parse_u64_loop bytes 0#u64 0#usize
+
 /-- [meden_runtime::verification::failure::{impl core::cmp::PartialEq<meden_runtime::verification::failure::FailureKind> for meden_runtime::verification::failure::FailureKind}::eq]:
     Source: 'crates/meden-runtime/src/verification/failure.rs', lines 9:29-9:38
     Visibility: public -/

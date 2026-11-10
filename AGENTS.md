@@ -182,6 +182,12 @@
   restores a consumed job. This is still not the complete session I/O proof.
   The evidence kernel gates
   Meden's own releases and the generic pure-u64 Rust transition verifier.
+  Decimal example strings use the extracted/refined byte parser before
+  contract validation and canonicalization. Its proof establishes exact
+  canonical ASCII decimal values, overflow refusal, total termination and
+  access/arithmetic bounds for arbitrary represented input slices. Serde/JSON
+  decoding, string byte views, vector traversal and native decimal formatting
+  remain adapters; do not describe the complete JSON boundary as proved.
   Contracts are bounded data: metadata and restricted mathematical terms,
   never candidate Lean commands, tactics, imports or proof scripts. Drafts
   cannot replace accepted meaning or evidence without host review of their

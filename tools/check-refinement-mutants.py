@@ -795,6 +795,35 @@ GROUPS = [
         ],
     },
     {
+        "source": "crates/meden-runtime/src/verification/contract.rs",
+        "package": "meden-runtime",
+        "model": "Repair",
+        "proof": "DecimalRefinement",
+        "test": "verification::contract::tests::decimal_parser_is_exact_and_canonical",
+        "mutations": [
+            (
+                "decimal_leading_zero",
+                "return if bytes.len() == 1 { Some(0) } else { None };",
+                "return if bytes.len() == 1 || true { Some(0) } else { None };",
+            ),
+            (
+                "decimal_extra_digit",
+                "if byte < b'0' || byte > b'9' {",
+                "if byte < b'0' || byte > b':' {",
+            ),
+            (
+                "decimal_overflow_boundary",
+                "if value > (u64::MAX - digit) / 10 {",
+                "if value >= (u64::MAX - digit) / 10 {",
+            ),
+            (
+                "decimal_place_value",
+                "value = value * 10 + digit;",
+                "value = value * 9 + digit;",
+            ),
+        ],
+    },
+    {
         "source": "crates/meden-runtime/src/verification/turn.rs",
         "package": "meden-runtime",
         "model": "Repair",

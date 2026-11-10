@@ -18,5 +18,6 @@ import MedenSpec.FileRefinement
 import MedenSpec.InspectionRefinement
 import MedenSpec.ToolOutcomeRefinement
 import MedenSpec.PageNetworkRefinement
+import MedenSpec.DecimalRefinement
 
 /-! Proof-only entry point: keep extraction dependencies out of the oracle. -/
