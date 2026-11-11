@@ -7,6 +7,7 @@ mod local;
 mod openai;
 pub mod provider;
 mod responses;
+mod stream;
 mod subscription;
 #[cfg(target_os = "linux")]
 mod unix;

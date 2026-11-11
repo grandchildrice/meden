@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Result;
-use meden_agent::tool::{Args, Prepared, Tool, ToolError, ToolSig};
+use meden_agent::tool::{Args, Prepared, Progress, Tool, ToolError, ToolSig};
 use meden_agent::Registry;
 use meden_core::{Capability, Grant, Policy, Requirement};
 use meden_runtime::process::{self, Control, Limits, Termination};
@@ -42,19 +42,40 @@ impl Tool for Shell {
         &self.sig
     }
     fn prepare(&self, args: Args) -> Result<Prepared<'_>, ToolError> {
+        Ok(self.prepared(args, None))
+    }
+    fn prepare_with_progress<'a>(
+        &'a self,
+        args: Args,
+        notify: &'a dyn Fn(Progress<'_>),
+    ) -> Result<Prepared<'a>, ToolError> {
+        Ok(self.prepared(args, Some(notify)))
+    }
+}
+
+impl Shell {
+    fn prepared<'a>(
+        &'a self,
+        args: Args,
+        notify: Option<&'a dyn Fn(Progress<'_>)>,
+    ) -> Prepared<'a> {
         let requirements = vec![Requirement::with_evidence(
             Capability::ShellExec,
             None::<&str>,
             "bash.command",
         )];
-        Ok(Prepared::new((args, requirements), |args, _| {
-            self.execute(&args)
-        }))
+        Prepared::new((args, requirements), move |args, _| {
+            self.execute(&args, notify)
+        })
     }
 }
 
 impl Shell {
-    fn execute(&self, args: &Args) -> Result<Value, ToolError> {
+    fn execute(
+        &self,
+        args: &Args,
+        notify: Option<&dyn Fn(Progress<'_>)>,
+    ) -> Result<Value, ToolError> {
         let command = args
             .get("command")
             .and_then(Value::as_str)
@@ -75,7 +96,7 @@ impl Shell {
             .workspace
             .shell_command()
             .map_err(|e| ToolError::failed(e.to_string()))?;
-        let output = process::run_with_input(
+        let output = process::run_with_input_observed(
             &mut child,
             command.as_bytes(),
             &Limits {
@@ -84,6 +105,15 @@ impl Shell {
                 output_bytes: 16_777_216,
             },
             &self.control,
+            Some(&|output| {
+                if let Some(notify) = notify {
+                    notify(Progress {
+                        stdout: &output.stdout,
+                        stderr: &output.stderr,
+                        truncated: output.truncated,
+                    });
+                }
+            }),
         )
         .map_err(|e| ToolError::failed(e.to_string()))?;
         let (success, code, reason) = match output.termination {

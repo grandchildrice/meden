@@ -65,8 +65,7 @@ pub(crate) fn request_body(
             converted.push(json!({"role":role,"content":blocks}));
         }
     }
-    let mut body =
-        json!({"model":model,"max_tokens":16384,"system":system.join("\n\n"),"messages":converted});
+    let mut body = json!({"model":model,"max_tokens":16384,"system":system.join("\n\n"),"messages":converted,"stream":true});
     if !tools.is_empty() {
         let functions = tools.iter().map(|tool| {
             let function = tool.get("function").ok_or_else(|| invalid("invalid function schema"))?;

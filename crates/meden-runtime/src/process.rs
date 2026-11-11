@@ -128,6 +128,16 @@ pub struct Output {
     pub truncated: bool,
 }
 
+/// Live capture snapshots, independent of final exit/cancellation admission.
+pub struct OutputProgress {
+    /// Bounded stdout so far.
+    pub stdout: String,
+    /// Bounded stderr so far.
+    pub stderr: String,
+    /// A capture budget has been reached.
+    pub truncated: bool,
+}
+
 /// Execution and capture budgets.
 pub struct Limits {
     /// Wall time, including processes waiting for input or background jobs.
@@ -252,7 +262,7 @@ fn kill_group(_: u32) {}
 /// on completion too, so ordinary background jobs cannot outlive their tool.
 /// Commands which deliberately escape that group require an OS sandbox.
 pub fn run(command: &mut Command, limits: &Limits, control: &Control) -> io::Result<Output> {
-    run_inner(command, Stdio::null(), limits, control)
+    run_inner(command, Stdio::null(), limits, control, None)
 }
 
 /// Supply confidential input through a private anonymous file, never argv
@@ -263,10 +273,22 @@ pub fn run_with_input(
     limits: &Limits,
     control: &Control,
 ) -> io::Result<Output> {
+    run_with_input_observed(command, input, limits, control, None)
+}
+
+/// Supply input with optional bounded live output. Observations cannot change
+/// completion classification, cancellation, capture budgets or process ownership.
+pub fn run_with_input_observed(
+    command: &mut Command,
+    input: &[u8],
+    limits: &Limits,
+    control: &Control,
+    notify: Option<&dyn Fn(&OutputProgress)>,
+) -> io::Result<Output> {
     let mut file = tempfile::tempfile()?;
     file.write_all(input)?;
     file.rewind()?;
-    run_inner(command, file.into(), limits, control)
+    run_inner(command, file.into(), limits, control, notify)
 }
 
 fn run_inner(
@@ -274,6 +296,7 @@ fn run_inner(
     stdin: Stdio,
     limits: &Limits,
     control: &Control,
+    notify: Option<&dyn Fn(&OutputProgress)>,
 ) -> io::Result<Output> {
     let directory = tempfile::tempdir()?;
     let mut stdout = File::options()
@@ -286,6 +309,10 @@ fn run_inner(
         .read(true)
         .write(true)
         .open(directory.path().join("stderr"))?;
+    // Separate opens are essential: seeking a cloned writer would move the
+    // child's shared file offset and could corrupt its output while it runs.
+    let mut out_view = File::open(directory.path().join("stdout"))?;
+    let mut err_view = File::open(directory.path().join("stderr"))?;
     command
         .stdin(stdin)
         .stdout(stdout.try_clone()?)
@@ -322,6 +349,7 @@ fn run_inner(
         armed: true,
     };
     let started = Instant::now();
+    let mut observed = Instant::now();
     let termination = loop {
         if control.cancelled.load(Ordering::SeqCst) {
             break Termination::Cancelled;
@@ -340,11 +368,32 @@ fn run_inner(
         if let Some(status) = running.child.try_wait()? {
             break Termination::Exited(status);
         }
+        if observed.elapsed() >= Duration::from_millis(100) {
+            if let Some(notify) = notify {
+                let (stdout, out_cut) = capture_tail(&mut out_view, limits.capture_bytes)?;
+                let (stderr, err_cut) = capture_tail(&mut err_view, limits.capture_bytes)?;
+                notify(&OutputProgress {
+                    stdout,
+                    stderr,
+                    truncated: out_cut || err_cut,
+                });
+            }
+            observed = Instant::now();
+        }
         std::thread::sleep(Duration::from_millis(10));
     };
     running.stop();
     let (stdout, out_cut) = capture(&mut stdout, limits.capture_bytes)?;
     let (stderr, err_cut) = capture(&mut stderr, limits.capture_bytes)?;
+    if let Some(notify) = notify {
+        let (stdout, tail_out_cut) = capture_tail(&mut out_view, limits.capture_bytes)?;
+        let (stderr, tail_err_cut) = capture_tail(&mut err_view, limits.capture_bytes)?;
+        notify(&OutputProgress {
+            stdout,
+            stderr,
+            truncated: tail_out_cut || tail_err_cut,
+        });
+    }
     Ok(Output {
         termination,
         stdout,
@@ -362,6 +411,15 @@ fn capture(file: &mut File, limit: usize) -> io::Result<(String, bool)> {
         String::from_utf8_lossy(&bytes).into_owned(),
         file.metadata()?.len() > size,
     ))
+}
+
+fn capture_tail(file: &mut File, limit: usize) -> io::Result<(String, bool)> {
+    let size = u64::try_from(limit).unwrap_or(u64::MAX);
+    let length = file.metadata()?.len();
+    file.seek(SeekFrom::Start(length.saturating_sub(size)))?;
+    let mut bytes = Vec::new();
+    file.take(size).read_to_end(&mut bytes)?;
+    Ok((String::from_utf8_lossy(&bytes).into_owned(), length > size))
 }
 
 #[cfg(all(test, unix))]
@@ -383,6 +441,63 @@ mod tests {
     }
     fn control() -> Control {
         Control::new(Arc::new(AtomicBool::new(false)))
+    }
+
+    #[test]
+    fn live_output_arrives_before_exit_without_moving_the_writer_offset() {
+        let directory = tempfile::tempdir().expect("scratch");
+        let release = directory.path().join("release");
+        let mut command = shell("printf first; printf error >&2; while [ ! -f \"$1\" ]; do sleep .01; done; printf second");
+        command.arg("sh").arg(&release);
+        let saw_live = AtomicBool::new(false);
+        let output = run_with_input_observed(
+            &mut command,
+            b"",
+            &limits(),
+            &control(),
+            Some(&|progress| {
+                if progress.stdout == "first" && progress.stderr == "error" {
+                    saw_live.store(true, Ordering::SeqCst);
+                    std::fs::write(&release, b"").expect("release from observer");
+                }
+            }),
+        )
+        .expect("observed process");
+        assert!(saw_live.load(Ordering::SeqCst));
+        assert!(matches!(output.termination, Termination::Exited(status) if status.success()));
+        assert_eq!(output.stdout, "firstsecond");
+        assert_eq!(output.stderr, "error");
+    }
+
+    #[test]
+    fn live_output_keeps_following_the_tail_after_truncation() {
+        let directory = tempfile::tempdir().expect("scratch");
+        let release = directory.path().join("release");
+        let mut command =
+            shell("printf abcdefghijklmnop; while [ ! -f \"$1\" ]; do sleep .01; done; printf q");
+        command.arg("sh").arg(&release);
+        let mut budget = limits();
+        budget.capture_bytes = 8;
+        let seen = std::cell::RefCell::new(Vec::new());
+        let output = run_with_input_observed(
+            &mut command,
+            b"",
+            &budget,
+            &control(),
+            Some(&|progress| {
+                seen.borrow_mut().push(progress.stdout.clone());
+                if progress.stdout == "ijklmnop" && progress.truncated {
+                    std::fs::write(&release, b"").expect("release after live tail");
+                }
+            }),
+        )
+        .expect("observed process");
+        assert_eq!(
+            output.stdout, "abcdefgh",
+            "original tool-result capture is preserved"
+        );
+        assert!(output.truncated);
+        assert_eq!(seen.borrow().last().map(String::as_str), Some("jklmnopq"));
     }
 
     #[test]

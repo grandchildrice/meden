@@ -4,7 +4,7 @@
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-use meden_agent::conversation::{ChatModel, ModelError, Reply};
+use meden_agent::conversation::{ChatModel, Delta, ModelError, Reply};
 use meden_core::processor::{Binding, Dispatch, HttpParameters, ProcessorOrigin as Origin, State};
 
 use crate::Provider;
@@ -176,6 +176,14 @@ impl ChatModel for SessionModel<'_> {
         messages: &[serde_json::Value],
         tools: &[serde_json::Value],
     ) -> Result<Reply, ModelError> {
+        self.reply_with_progress(messages, tools, &|_| {})
+    }
+    fn reply_with_progress(
+        &self,
+        messages: &[serde_json::Value],
+        tools: &[serde_json::Value],
+        notify: &dyn Fn(Delta<'_>),
+    ) -> Result<Reply, ModelError> {
         let gateway = self.gateway;
         let effect = gateway
             .state
@@ -194,8 +202,8 @@ impl ChatModel for SessionModel<'_> {
                 .ok_or_else(|| {
                     ModelError::Unavailable("local processor unavailable; no fallback".into())
                 })?
-                .reply(call, messages, tools),
-            Dispatch::Http(call) => crate::openai::reply(call, messages, tools),
+                .reply(call, messages, tools, notify),
+            Dispatch::Http(call) => crate::openai::reply(call, messages, tools, notify),
         }
     }
 }

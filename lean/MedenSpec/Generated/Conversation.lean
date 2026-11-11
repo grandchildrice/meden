@@ -62,7 +62,7 @@ structure conversation.Reply where
   tool_calls : alloc.vec.Vec conversation.ToolCall
 
 /-- [meden_agent::conversation::Status]
-    Source: 'crates/meden-agent/src/conversation.rs', lines 114:0-125:1
+    Source: 'crates/meden-agent/src/conversation.rs', lines 132:0-143:1
     Visibility: public -/
 @[discriminant isize]
 inductive conversation.Status where
@@ -73,7 +73,7 @@ inductive conversation.Status where
 | NeedsReview : conversation.Status
 
 /-- [meden_agent::conversation::{meden_agent::conversation::Status}::inspection]:
-    Source: 'crates/meden-agent/src/conversation.rs', lines 130:4-136:5
+    Source: 'crates/meden-agent/src/conversation.rs', lines 148:4-154:5
     Visibility: public -/
 def conversation.Status.inspection
   (self : conversation.Status) : Result (Option Bool) := do
@@ -85,7 +85,7 @@ def conversation.Status.inspection
   | conversation.Status.NeedsReview => ok none
 
 /-- [meden_agent::conversation::ExecutionError]
-    Source: 'crates/meden-agent/src/conversation.rs', lines 141:0-148:1
+    Source: 'crates/meden-agent/src/conversation.rs', lines 159:0-166:1
     Visibility: public -/
 @[discriminant isize]
 inductive conversation.ExecutionError where
@@ -112,7 +112,7 @@ def tool.ToolError.into_parts
   ok self
 
 /-- [meden_agent::conversation::tool_error]:
-    Source: 'crates/meden-agent/src/conversation.rs', lines 372:0-379:1 -/
+    Source: 'crates/meden-agent/src/conversation.rs', lines 404:0-411:1 -/
 def conversation.tool_error
   (error : tool.ToolError) : Result conversation.ExecutionError := do
   let r ← tool.ToolError.into_parts error
@@ -152,7 +152,7 @@ structure invocation.Refusal where
   reason : String
 
 /-- [meden_agent::conversation::execution_error]:
-    Source: 'crates/meden-agent/src/conversation.rs', lines 382:0-389:1 -/
+    Source: 'crates/meden-agent/src/conversation.rs', lines 414:0-421:1 -/
 def conversation.execution_error
   (error : meden_core.invocation.Error invocation.Refusal conversation.Status)
   :

@@ -1698,10 +1698,10 @@ runtime evidence. Python now needs only its local check dependencies.
 The real PTY test compares the complete HTTP request sequence and file
 effects for the same instructions through TUI and CLI, including follow-up
 history. The presentation lives in
-[`tui/view.rs`](../crates/meden-cli/src/tui/view.rs): labeled user/model
-messages, compact tool results, an expandable details view and a focused
+[`tui/view.rs`](../crates/meden-cli/src/tui/view.rs): user/model message gutters,
+compact tool results, an expandable details view and a focused
 message editor. Native rendering tests and subscription PTY tests check
-role labels, hidden/expanded tool output, visible failures and sanitization.
+message markers, hidden/expanded tool output, visible failures and sanitization.
 The six screen states and extracted approval selector remain the authority
 boundary; the redesigned renderer is still an adapter, not a proved display.
 CLI tests reject legacy tools/policy/system messages, forged
@@ -1907,6 +1907,30 @@ and failed or incomplete Responses streams stop without executing partial
 calls, retrying, rotating accounts or falling back to API-key billing.
 Responses deltas never dispatch tools before a successful terminal response.
 The HTTP body is bounded to 16 MiB for all three formats.
+
+The bounded SSE adapter forwards text and provider-exposed reasoning summaries
+as display observations while the response is still arriving. Only its final
+validated reply enters the conversation controller; interrupted, malformed,
+oversized or unsuccessful streams cannot admit calls. Completed text replaces
+the provisional TUI text. Claude Messages streams text and tool JSON; signed
+extended-thinking history replay is not enabled. Local Chat Completions uses
+the same streaming decoder with its existing 1 MiB reply budget and fixed
+offline Unix socket. A server returning JSON to a streaming request is decoded
+once, without a second request or transport fallback.
+
+The Bash executor emits bounded rolling stdout/stderr snapshots through the admitted
+tool's host observer. Separate read handles preserve the child's write offsets;
+the final process result still determines exit/cancellation/failure status.
+Live snapshots follow the tail after truncation; the original prefix capture
+returned to the model keeps its existing budgets and truncation flag.
+Progress never becomes tool-result history or verification evidence. The
+[gated PTY tests](../python/tests/test_streaming.py) hold HTTP completion and
+Bash exit until their earlier output has been observed, across all three
+HTTP protocols. They also interrupt streams and cancel live commands, checking
+that partial calls do not execute and no subsequent model request starts after
+cancellation. Native tests check writer-offset preservation, bounded parsing
+and final-response admission. These are adapter checks, not new refinement
+claims for networking, output attribution or rendering.
 
 These are adapter observations with scripted responses, not subscription
 entitlement or model-capability evidence. A development smoke with an existing

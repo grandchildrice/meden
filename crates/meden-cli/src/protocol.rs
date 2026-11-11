@@ -179,6 +179,7 @@ fn run_instruction(
             return;
         }
         let message = match event {
+            Event::Delta(_) | Event::ToolOutput { .. } => return,
             Event::Asking(attempt) => Out::Asking { attempt },
             Event::Assistant(reply) => Out::Assistant {
                 text: reply.content.as_deref().unwrap_or_default(),

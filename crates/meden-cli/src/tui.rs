@@ -20,7 +20,7 @@ use crossterm::terminal::{
     disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
 use crossterm::ExecutableCommand;
-use meden_agent::conversation::{Event, Status};
+use meden_agent::conversation::{Delta, Event, Status};
 use meden_llm::{Gateway, Provider};
 use meden_runtime::process::Control;
 use meden_runtime::workspace::Workspace;
@@ -34,6 +34,16 @@ use input::Input;
 use view::draw;
 
 enum Update {
+    Delta {
+        text: String,
+        reasoning: bool,
+    },
+    ToolOutput {
+        id: String,
+        stdout: String,
+        stderr: String,
+        truncated: bool,
+    },
     Project(Box<crate::project::Summary>),
     ProjectDirty,
     Asking(usize),
@@ -73,12 +83,17 @@ enum Speaker {
 }
 
 enum TranscriptLine {
+    Draft(String),
+    Reasoning(String),
     Message { speaker: Speaker, text: String },
     Tool(ToolLine),
     Notice { text: String, style: Style },
 }
 
 struct ToolLine {
+    stdout: String,
+    stderr: String,
+    truncated: bool,
     id: String,
     name: String,
     arguments: String,
@@ -105,6 +120,8 @@ struct App {
     busy: bool,
     activity: Option<String>,
     show_tool_details: bool,
+    draft: Option<usize>,
+    reasoning: Option<usize>,
     rx: Option<Receiver<Update>>,
     worker: Option<Sender<String>>,
     worker_gateway: Option<Arc<Gateway>>,
@@ -144,6 +161,8 @@ impl App {
             busy: false,
             activity: None,
             show_tool_details: false,
+            draft: None,
+            reasoning: None,
             rx: None,
             worker: None,
             worker_gateway: None,
@@ -165,14 +184,55 @@ impl App {
         });
     }
     fn speak(&mut self, speaker: Speaker, text: &str) {
+        if matches!(speaker, Speaker::Assistant) {
+            if let Some(index) = self.draft.take() {
+                if let Some(line) = self.lines.get_mut(index) {
+                    *line = TranscriptLine::Message {
+                        speaker,
+                        text: visible(text),
+                    };
+                    return;
+                }
+            }
+        }
         self.lines.push(TranscriptLine::Message {
             speaker,
             text: visible(text),
         });
     }
+    fn delta(&mut self, text: &str, reasoning: bool) {
+        let index = if reasoning {
+            &mut self.reasoning
+        } else {
+            &mut self.draft
+        };
+        let index = *index.get_or_insert_with(|| {
+            self.lines.push(if reasoning {
+                TranscriptLine::Reasoning(String::new())
+            } else {
+                TranscriptLine::Draft(String::new())
+            });
+            self.lines.len().saturating_sub(1)
+        });
+        if let Some(TranscriptLine::Draft(value) | TranscriptLine::Reasoning(value)) =
+            self.lines.get_mut(index)
+        {
+            let remaining = 65_536_usize.saturating_sub(value.len());
+            value.extend(visible(text).chars().scan(remaining, |left, c| {
+                if c.len_utf8() > *left {
+                    return None;
+                }
+                *left = left.saturating_sub(c.len_utf8());
+                Some(c)
+            }));
+        }
+    }
     fn tool_started(&mut self, id: String, name: &str, arguments: &str, refused: Option<String>) {
         self.activity = Some(format!("Running {}", visible(name)));
         self.lines.push(TranscriptLine::Tool(ToolLine {
+            stdout: String::new(),
+            stderr: String::new(),
+            truncated: false,
             id,
             name: visible(name),
             arguments: visible(arguments),
@@ -193,6 +253,9 @@ impl App {
             // A stopped conversation can report skipped calls without a
             // preparation event. Preserve those original results as well.
             self.lines.push(TranscriptLine::Tool(ToolLine {
+                stdout: String::new(),
+                stderr: String::new(),
+                truncated: false,
                 id: id.to_owned(),
                 name: visible(name),
                 arguments: visible(arguments),
@@ -490,6 +553,8 @@ impl App {
             self.worker_gateway = None;
             self.instruction.clear();
             self.lines.clear();
+            self.draft = None;
+            self.reasoning = None;
             self.scroll_back = 0;
             self.say(
                 "Conversation cleared. Workspace files retained.",
@@ -556,6 +621,8 @@ impl App {
             self.rx = Some(results);
             self.worker_gateway = Some(Arc::clone(&gateway));
             self.lines.clear();
+            self.draft = None;
+            self.reasoning = None;
             thread::spawn(move || {
                 match crate::session::Session::new(
                     workspace, gateway, processes, &exports, &pages, &project,
@@ -607,6 +674,39 @@ impl App {
             );
         }
     }
+    fn finished(&mut self, text: String, needs_review: bool, failed: bool) {
+        self.busy = false;
+        if let Some(index) = self.draft.take() {
+            if let Some(TranscriptLine::Draft(text)) = self.lines.get_mut(index) {
+                text.push_str("\n[Response interrupted before completion]");
+            }
+        }
+        self.reasoning = None;
+        self.activity = None;
+        self.screen = Screen::Instructing;
+        if !text.is_empty() {
+            self.say(
+                text,
+                Style::new().fg(if failed { Color::Red } else { Color::Gray }),
+            );
+        }
+        if needs_review {
+            self.open_contract();
+        }
+        if let Ok(entries) = self.exports.list() {
+            let pending = entries
+                .iter()
+                .filter(|entry| matches!(entry.state, "pending" | "reviewed"))
+                .count();
+            if pending > 0 {
+                self.say(
+                    format!("Host: {pending} export proposal(s) await review. Use /exports."),
+                    Style::new().fg(Color::Yellow),
+                );
+            }
+        }
+    }
+
     fn poll(&mut self) {
         let mut updates = Vec::new();
         let mut disconnected = false;
@@ -624,6 +724,23 @@ impl App {
         }
         for update in updates {
             match update {
+                Update::Delta { text, reasoning } => self.delta(&text, reasoning),
+                Update::ToolOutput {
+                    id,
+                    stdout,
+                    stderr,
+                    truncated,
+                } => {
+                    if let Some(TranscriptLine::Tool(tool)) =
+                        self.lines.iter_mut().rev().find(
+                            |line| matches!(line, TranscriptLine::Tool(tool) if tool.id == id),
+                        )
+                    {
+                        tool.stdout = visible(&stdout);
+                        tool.stderr = visible(&stderr);
+                        tool.truncated = truncated;
+                    }
+                }
                 Update::Project(summary) => {
                     if summary.verified
                         && !self.project_status.as_ref().is_some_and(|old| {
@@ -648,6 +765,8 @@ impl App {
                     }
                 }
                 Update::Asking(round) => {
+                    self.draft = None;
+                    self.reasoning = None;
                     self.activity = Some(format!("Thinking · request {round}"));
                 }
                 Update::Text(text) => self.speak(Speaker::Assistant, &text),
@@ -669,25 +788,7 @@ impl App {
                     needs_review,
                     failed,
                 } => {
-                    self.busy = false;
-                    self.activity = None;
-                    self.screen = Screen::Instructing;
-                    self.say(
-                        text,
-                        Style::new().fg(if failed { Color::Red } else { Color::Gray }),
-                    );
-                    if needs_review {
-                        self.open_contract();
-                    }
-                    if let Ok(entries) = self.exports.list() {
-                        let pending = entries
-                            .iter()
-                            .filter(|entry| matches!(entry.state, "pending" | "reviewed"))
-                            .count();
-                        if pending > 0 {
-                            self.say(format!("Host: {pending} export proposal(s) await review. Use /exports."), Style::new().fg(Color::Yellow));
-                        }
-                    }
+                    self.finished(text, needs_review, failed);
                 }
             }
         }
@@ -718,6 +819,22 @@ impl Drop for App {
 fn worker(mut session: crate::session::Session, tasks: &Receiver<String>, tx: &Sender<Update>) {
     let observer = |event: Event<'_>| {
         let update = match event {
+            Event::Delta(delta) => match delta {
+                Delta::Text(text) => Update::Delta {
+                    text: text.to_owned(),
+                    reasoning: false,
+                },
+                Delta::Reasoning(text) => Update::Delta {
+                    text: text.to_owned(),
+                    reasoning: true,
+                },
+            },
+            Event::ToolOutput { call, progress } => Update::ToolOutput {
+                id: call.id.clone(),
+                stdout: progress.stdout.to_owned(),
+                stderr: progress.stderr.to_owned(),
+                truncated: progress.truncated,
+            },
             Event::Asking(round) => Update::Asking(round),
             Event::Assistant(reply) => {
                 if let Some(text) = reply.content.as_deref().filter(|s| !s.is_empty()) {
@@ -732,7 +849,12 @@ fn worker(mut session: crate::session::Session, tasks: &Receiver<String>, tx: &S
                 refused: refusal.map(|(_, reason)| reason.to_owned()),
             },
             Event::ToolResult { call, text, error } => {
-                let excerpt: String = text.chars().take(1200).collect();
+                let limit = if call.function.name == "bash" {
+                    300_000
+                } else {
+                    1200
+                };
+                let excerpt: String = text.chars().take(limit).collect();
                 Update::ToolFinished {
                     id: call.id.clone(),
                     name: call.function.name.clone(),
@@ -768,9 +890,7 @@ fn worker(mut session: crate::session::Session, tasks: &Receiver<String>, tx: &S
         let needs_review = status == Status::NeedsReview;
         let failed = matches!(status, Status::Failed(_) | Status::Incomplete);
         let summary = match status {
-            Status::Done(_) => {
-                "Finished. Conversation retained for the next instruction.".to_owned()
-            }
+            Status::Done(_) => String::new(),
             Status::Failed(error) => format!("Failed: {error}"),
             Status::Incomplete => {
                 "Unfinished: verification or tool execution limit reached.".to_owned()
@@ -1023,7 +1143,26 @@ mod tests {
         assert!(selftest(providers()).is_ok());
     }
     #[test]
-    fn conversation_labels_and_tool_details_are_separate() -> Result<()> {
+    fn streamed_text_is_sanitized_and_replaced_by_the_final_reply() {
+        let mut app = App::new(providers(), PathBuf::from("/workspace"));
+        app.delta("Plan\u{1b}[31m", true);
+        app.delta("Provisional ", false);
+        app.delta("reply\u{1b}]52;clipboard\u{7}", false);
+        app.speak(Speaker::Assistant, "Final reply");
+        assert_eq!(app.lines.len(), 2);
+        assert!(app
+            .lines
+            .iter()
+            .all(|line| !matches!(line, TranscriptLine::Draft(_))));
+        assert!(app.lines.iter().any(
+            |line| matches!(line, TranscriptLine::Message { text, .. } if text == "Final reply")
+        ));
+        assert!(app.lines.iter().any(
+            |line| matches!(line, TranscriptLine::Reasoning(text) if !text.contains('\u{1b}'))
+        ));
+    }
+    #[test]
+    fn conversation_gutters_and_tool_details_are_separate() -> Result<()> {
         let mut app = App::new(providers(), PathBuf::from("/workspace"));
         app.screen = Screen::Instructing;
         app.speak(Speaker::User, "Read note.txt.");
@@ -1046,7 +1185,10 @@ mod tests {
             .iter()
             .map(ratatui::buffer::Cell::symbol)
             .collect();
-        assert!(painted.contains("YOU") && painted.contains("MEDEN"));
+        assert!(
+            painted.contains("› Read note.txt.") && painted.contains("● The file has been read.")
+        );
+        assert!(!painted.contains("YOU"));
         assert!(painted.contains("read_file") && painted.contains("note.txt"));
         assert!(!painted.contains("TOOL-DETAILS-CANARY"));
         app.show_tool_details = true;

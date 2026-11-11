@@ -1,0 +1,23 @@
+   MEDEN  /  UI fixture
+   Private working copy · offline tools
+
+   › Inspect this workspace.
+
+   ∴ Checking the working directory before making changes.
+
+   ● I'll inspect the workspace first.
+
+     › $ printf 'Inspecting /workspace...\n'; sleep .2; printf 'No project files yet.\n'; sleep …
+       Inspecting /workspace...
+       No project files yet.
+
+
+
+
+
+
+
+
+
+   ● Running bash
+   esc / ctrl-c cancel · ctrl+o tool details · PgUp/PgDn conversation

@@ -187,6 +187,17 @@ impl<'a> Prepared<'a> {
     }
 }
 
+/// Bounded output from an admitted tool, for presentation only.
+#[derive(Clone, Copy)]
+pub struct Progress<'a> {
+    /// Bounded stdout snapshot, for presentation only.
+    pub stdout: &'a str,
+    /// Bounded stderr snapshot, for presentation only.
+    pub stderr: &'a str,
+    /// Output is incomplete because its display budget was reached.
+    pub truncated: bool,
+}
+
 /// An implementation owned by the host, never supplied by model output.
 pub trait Tool {
     /// Definition exposed to the model.
@@ -194,6 +205,15 @@ pub trait Tool {
     /// Decode and freeze a request with its declared effects. Preparation must
     /// perform no tool effect; execution is deferred until policy admission.
     fn prepare(&self, args: Args) -> Result<Prepared<'_>, ToolError>;
+    /// Attach a host display observer to preparation. Like `prepare`, this
+    /// performs no effect. Notifications originate only from the admitted executor.
+    fn prepare_with_progress<'a>(
+        &'a self,
+        args: Args,
+        _notify: &'a dyn Fn(Progress<'_>),
+    ) -> Result<Prepared<'a>, ToolError> {
+        self.prepare(args)
+    }
 }
 
 /// Implementations available to a conversation.

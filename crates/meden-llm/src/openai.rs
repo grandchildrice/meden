@@ -1,8 +1,7 @@
 //! Host-authorized HTTP inference, with native tool-calling protocol adapters.
 use crate::provider::{Identity, Protocol};
-use meden_agent::conversation::ModelError;
+use meden_agent::conversation::{Delta, ModelError};
 use meden_core::processor::HttpCall;
-use std::io::Read;
 use std::time::Duration;
 
 /// The HTTP boundary consumes a host-authorized snapshot; callers cannot
@@ -11,6 +10,7 @@ pub(crate) fn reply(
     authorization: HttpCall,
     messages: &[serde_json::Value],
     tools: &[serde_json::Value],
+    notify: &dyn Fn(Delta<'_>),
 ) -> Result<meden_agent::conversation::Reply, ModelError> {
     const LIMIT: u64 = 16 * 1024 * 1024;
     let parameters = authorization.into_parameters();
@@ -59,24 +59,7 @@ pub(crate) fn reply(
     if !response.status().is_success() {
         return Err(status_error(response.status().as_u16()));
     }
-    // Bound event streams as well as JSON. No delta is returned before the
-    // complete body, terminal status and every output item have been checked.
-    let mut bytes = Vec::new();
-    response
-        .body_mut()
-        .as_reader()
-        .take(LIMIT.saturating_add(1))
-        .read_to_end(&mut bytes)
-        .map_err(|_| invalid("incomplete API reply"))?;
-    if u64::try_from(bytes.len()).unwrap_or(u64::MAX) > LIMIT {
-        return Err(invalid("API reply exceeded the size limit"));
-    }
-    let json = || serde_json::from_slice(&bytes).map_err(|_| invalid("unreadable API reply"));
-    match identity.protocol {
-        Protocol::Claude => crate::claude::decode_response(&json()?),
-        Protocol::ChatCompletions => decode_response(&json()?),
-        Protocol::Responses { .. } => crate::responses::decode_stream(&bytes),
-    }
+    crate::stream::read_response(&mut response, &identity.protocol, notify, LIMIT)
 }
 
 fn status_error(code: u16) -> ModelError {
@@ -132,7 +115,7 @@ pub(crate) fn request_body(
     messages: &[serde_json::Value],
     tools: &[serde_json::Value],
 ) -> serde_json::Value {
-    let mut body = serde_json::json!({"model":model, "messages":messages});
+    let mut body = serde_json::json!({"model":model, "messages":messages, "stream":true});
     if let Some(object) = body.as_object_mut().filter(|_| !tools.is_empty()) {
         object.insert("tools".to_owned(), serde_json::json!(tools));
         object.insert("tool_choice".to_owned(), serde_json::json!("auto"));

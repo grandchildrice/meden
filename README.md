@@ -149,14 +149,21 @@ is unchanged. Use `/workspace` in the TUI to show the retained result location.
 There is no host-shell fallback. Dependency caches/toolchains must be
 prepared locally; workers cannot download packages.
 
-The TUI separates your messages (`YOU`), model replies (`MEDEN`) and compact
-tool results. `Ctrl+O` expands tool arguments and output; failures remain
-visible when details are collapsed. `Enter` sends, `Alt+Enter` adds a line,
+The TUI marks your messages with `›` on a shaded row and model replies with
+`●`. Responses and provider-exposed reasoning summaries stream as they arrive.
+Bash commands show live stdout/stderr and their final exit status; the normal
+view retains the last six output lines. `Ctrl+O` expands tool arguments and
+captured output; failures remain visible when details are collapsed.
+`Enter` sends, `Alt+Enter` adds a line,
 and `PgUp`/`PgDn` scroll. Use `/help` for commands, `/models` (or `Tab`) to
 choose a connection, `/contract` to review the specification, and `/exports`
 to review proposed deliveries. A single selected HTTP connection opens its
 approval screen directly. Each approval shows its destination or contract
 identity in a fixed card, with the action and its key below the details.
+
+[Conversation preview](docs/assets/conversation.png) ·
+[Live command output](docs/assets/live-output.png)
+(actual PTY captures using a scripted local model fixture).
 
 Run a command without a model through the same offline tools:
 

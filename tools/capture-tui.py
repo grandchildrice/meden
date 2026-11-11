@@ -9,7 +9,8 @@ Usage: uv run tools/capture-tui.py --binary target/debug/meden \
   --model minimax-m3 --font /path/to/JetBrainsMono-Regular.otf
 
 The image contains only cells emitted by the real application. It does not
-invent model replies or tool results and makes no model inference request.
+invent model replies or tool results. Idle screens make no inference request;
+the conversation screen submits --prompt to the selected connection.
 """
 
 import argparse
@@ -37,8 +38,11 @@ def main():
     parser.add_argument("--font", type=Path, required=True)
     parser.add_argument("--out", type=Path, default=Path("docs/assets/tui.png"))
     parser.add_argument(
-        "--screen", choices=["picker", "instruction", "processor-approval"], default="instruction"
+        "--screen", choices=["picker", "instruction", "processor-approval", "conversation"],
+        default="instruction"
     )
+    parser.add_argument("--prompt", default="hello")
+    parser.add_argument("--wait-for", help="Text to wait for when capturing a conversation")
     parser.add_argument("--columns", type=int, default=112)
     parser.add_argument("--rows", type=int, default=24)
     args = parser.parse_args()
@@ -90,12 +94,18 @@ def main():
         if args.screen != "picker" and "Connection details" not in "\n".join(screen.display):
             os.write(master, b"\r")
             pump(lambda: "Connection details" in "\n".join(screen.display))
-        if args.screen == "instruction":
+        if args.screen in {"instruction", "conversation"}:
             os.write(master, b"y")
             pump(lambda: "alt-enter" in "\n".join(screen.display))
-            prompt = "Inspect this project, improve the implementation, and run its tests."
+            prompt = (args.prompt if args.screen == "conversation" else
+                      "Inspect this project, improve the implementation, and run its tests.")
             os.write(master, b"\x1b[200~" + prompt.encode() + b"\x1b[201~")
             pump(lambda: prompt in "\n".join(screen.display))
+            if args.screen == "conversation":
+                os.write(master, b"\r")
+                pump(lambda: (args.wait_for in "\n".join(screen.display)) if args.wait_for else
+                     ("● " in "\n".join(screen.display) and
+                      "alt-enter" in "\n".join(screen.display)))
         # Finish receiving the frame before recording its actual cells.
         until = time.monotonic() + 0.5
         while time.monotonic() < until and select.select([master], [], [], 0.1)[0]:
@@ -152,6 +162,9 @@ def main():
         args.out.with_suffix(".txt").write_text(
             "\n".join(line.rstrip() for line in screen.display).rstrip() + "\n"
         )
+        if args.screen == "conversation" and "alt-enter" not in "\n".join(screen.display):
+            os.write(master, b"\x1b")
+            pump(lambda: "alt-enter" in "\n".join(screen.display))
         os.write(master, b"\x03")
         process.wait(timeout=5)
         if process.returncode != 0 or termios.tcgetattr(slave) != initial:

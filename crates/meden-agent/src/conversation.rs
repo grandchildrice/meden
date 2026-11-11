@@ -107,6 +107,24 @@ pub enum ModelError {
 pub trait ChatModel {
     /// Generate the next assistant message from the full conversation.
     fn reply(&self, messages: &[Json], tools: &[Json]) -> Result<Reply, ModelError>;
+    /// Presentation-only deltas. Only the returned complete reply can admit calls.
+    fn reply_with_progress(
+        &self,
+        messages: &[Json],
+        tools: &[Json],
+        _notify: &dyn Fn(Delta<'_>),
+    ) -> Result<Reply, ModelError> {
+        self.reply(messages, tools)
+    }
+}
+
+/// Provider-exposed text, never an instruction or a completed tool call.
+#[derive(Clone, Copy)]
+pub enum Delta<'a> {
+    /// Partial assistant text.
+    Text(&'a str),
+    /// Reasoning summary or thinking text exposed by the selected provider.
+    Reasoning(&'a str),
 }
 
 /// Session completion, distinct from tool errors the model may recover from.
@@ -149,6 +167,15 @@ pub enum ExecutionError {
 
 /// Progress events for a protocol host or terminal interface.
 pub enum Event<'a> {
+    /// Uncommitted model progress; never stored as an admitted assistant message.
+    Delta(Delta<'a>),
+    /// Uncommitted output from the currently admitted tool; never a success receipt.
+    ToolOutput {
+        /// Original model call whose admitted executor produced this output.
+        call: &'a ToolCall,
+        /// Bounded stdout/stderr snapshot.
+        progress: crate::tool::Progress<'a>,
+    },
     /// A model request is about to start.
     Asking(usize),
     /// An assistant message has arrived, before any of its tools execute.
@@ -213,10 +240,13 @@ impl Conversation {
                     input = FlowInput::Observed;
                 }
                 FlowEffect::Model => {
-                    input = match model.reply(&self.messages, runtime.tools) {
-                        Ok(reply) => FlowInput::Reply(reply),
-                        Err(error) => FlowInput::ModelFailed(Status::Failed(error.to_string())),
-                    };
+                    input =
+                        match model.reply_with_progress(&self.messages, runtime.tools, &|delta| {
+                            observer(Event::Delta(delta));
+                        }) {
+                            Ok(reply) => FlowInput::Reply(reply),
+                            Err(error) => FlowInput::ModelFailed(Status::Failed(error.to_string())),
+                        };
                 }
                 FlowEffect::Assistant => {
                     let reply = flow.reply();
@@ -288,6 +318,8 @@ pub fn execute(
     cancelled: &AtomicBool,
     stop: &dyn Fn() -> Option<Status>,
 ) -> Result<String, ExecutionError> {
+    let notify =
+        |progress: crate::tool::Progress<'_>| observer(Event::ToolOutput { call, progress });
     let checked = (|| {
         let tool = registry.get(&call.function.name).ok_or_else(|| {
             (
@@ -324,7 +356,7 @@ pub fn execute(
             }
         }
         let prepared = tool
-            .prepare(args)
+            .prepare_with_progress(args, &notify)
             .map_err(|error| (Rule::InvalidArguments, error.to_string()))?;
         Ok(prepared.into_parts())
     })();

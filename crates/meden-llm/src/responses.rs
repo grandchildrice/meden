@@ -49,7 +49,7 @@ pub(crate) fn request_body(
         }
     }
     let mut body = json!({"model":model,"instructions":instructions.join("\n\n"),
-        "input":input,"store":false,"stream":true});
+        "input":input,"store":false,"stream":true,"reasoning":{"summary":"auto"}});
     if !tools.is_empty() {
         let functions = tools.iter().map(|tool| {
             let function = tool.get("function").ok_or_else(|| invalid("invalid function schema"))?;

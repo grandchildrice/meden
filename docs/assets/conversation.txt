@@ -1,0 +1,24 @@
+   MEDEN  /  UI fixture
+   Private working copy · offline tools
+
+   › hello
+
+   ● Hi! What can I help you with?
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ╭ Your message ──────────────────────────────────────────────────────────────────────────────╮
+   │> Describe your app or ask a question…                                                      │
+   ╰────────────────────────────────────────────────────────────────────────────────────────────╯
+   enter send · alt-enter newline · tab models · ctrl+o tool details
+   /help commands · /workspace files · PgUp/PgDn conversation

@@ -171,12 +171,28 @@ fn draw_conversation(frame: &mut Frame<'_>, app: &App, area: Rect) {
     for entry in &app.lines {
         match entry {
             TranscriptLine::Message { speaker, text } => {
-                let (label, style) = match speaker {
-                    Speaker::User => ("YOU", accent()),
-                    Speaker::Assistant => ("MEDEN", Style::new().bold()),
-                };
-                lines.push(Line::styled(label, style));
-                lines.extend(message_lines(text));
+                let user = matches!(speaker, Speaker::User);
+                lines.extend(bubble_lines(
+                    text,
+                    if user { "› " } else { "● " },
+                    user,
+                    area.width,
+                    Style::new(),
+                ));
+                lines.push(Line::default());
+            }
+            TranscriptLine::Draft(text) => {
+                lines.extend(bubble_lines(text, "● ", false, area.width, Style::new()));
+                lines.push(Line::default());
+            }
+            TranscriptLine::Reasoning(text) => {
+                lines.extend(bubble_lines(
+                    text,
+                    "∴ ",
+                    false,
+                    area.width,
+                    muted().italic(),
+                ));
                 lines.push(Line::default());
             }
             TranscriptLine::Tool(tool) => draw_tool_lines(
@@ -201,6 +217,78 @@ fn draw_conversation(frame: &mut Frame<'_>, app: &App, area: Rect) {
         .saturating_sub(area.height)
         .saturating_sub(app.scroll_back);
     frame.render_widget(paragraph.scroll((offset, 0)), area);
+}
+
+/// Wrap content before adding the gutter, so continuation lines align with
+/// the message rather than with its marker. Never split a Unicode grapheme.
+fn bubble_lines(
+    text: &str,
+    marker: &str,
+    is_user: bool,
+    width: u16,
+    base: Style,
+) -> Vec<Line<'static>> {
+    let available = usize::from(width.saturating_sub(2)).max(1);
+    let mut rows = Vec::new();
+    let source = if is_user {
+        text.lines().map(|s| Line::raw(s.to_owned())).collect()
+    } else {
+        message_lines(text)
+    };
+    for line in source {
+        let mut row = Vec::new();
+        let mut used: usize = 0;
+        for span in line.spans {
+            for word in span.content.split_word_bounds() {
+                if used > 0
+                    && used.saturating_add(word.width()) > available
+                    && !word.chars().all(char::is_whitespace)
+                {
+                    rows.push(Line::from(std::mem::take(&mut row)).style(line.style));
+                    used = 0;
+                }
+                for grapheme in word.graphemes(true) {
+                    let cells = grapheme.width();
+                    if used.saturating_add(cells) > available {
+                        rows.push(Line::from(std::mem::take(&mut row)).style(line.style));
+                        used = 0;
+                        if grapheme.chars().all(char::is_whitespace) {
+                            continue;
+                        }
+                    }
+                    row.push(Span::styled(grapheme.to_owned(), span.style));
+                    used = used.saturating_add(cells);
+                }
+            }
+        }
+        rows.push(Line::from(row).style(line.style));
+    }
+    let style = if is_user {
+        Style::new().fg(Color::White).bg(Color::Rgb(34, 39, 48))
+    } else {
+        base
+    };
+    rows.into_iter()
+        .enumerate()
+        .map(|(i, mut line)| {
+            let mut spans = vec![Span::styled(
+                if i == 0 {
+                    marker.to_owned()
+                } else {
+                    "  ".into()
+                },
+                if is_user { accent() } else { base },
+            )];
+            spans.append(&mut line.spans);
+            if is_user {
+                let occupied: usize = spans.iter().map(Span::width).sum();
+                spans.push(Span::raw(
+                    " ".repeat(usize::from(width).saturating_sub(occupied)),
+                ));
+            }
+            Line::from(spans).style(style.patch(line.style))
+        })
+        .collect()
 }
 
 fn message_lines(text: &str) -> Vec<Line<'static>> {
@@ -233,6 +321,25 @@ fn message_lines(text: &str) -> Vec<Line<'static>> {
         .collect()
 }
 
+#[cfg(test)]
+mod conversation_tests {
+    use super::*;
+
+    #[test]
+    fn wrapped_messages_keep_the_gutter_and_unicode_graphemes() {
+        let text = "hello 確認👩‍💻 e\u{301} abcdefghijklmnopqrstuvwxyz";
+        for width in [10, 20, 40] {
+            let lines = bubble_lines(text, "› ", true, width, Style::new());
+            assert!(lines.iter().all(|line| line.width() <= usize::from(width)));
+            let rendered: Vec<_> = lines.iter().map(ToString::to_string).collect();
+            assert!(rendered.first().is_some_and(|line| line.starts_with("› ")));
+            assert!(rendered.iter().skip(1).all(|line| line.starts_with("  ")));
+            assert!(rendered.iter().any(|line| line.contains("👩‍💻")));
+            assert!(rendered.iter().any(|line| line.contains("e\u{301}")));
+        }
+    }
+}
+
 fn draw_tool_lines(
     lines: &mut Vec<Line<'static>>,
     tool: &ToolLine,
@@ -256,7 +363,9 @@ fn draw_tool_lines(
         .and_then(serde_json::Value::as_str)
         .map(visible)
         .unwrap_or_default();
-    let summary = if detail.is_empty() {
+    let summary = if tool.name == "bash" {
+        format!("$ {}", detail.lines().next().unwrap_or_default())
+    } else if detail.is_empty() {
         tool.name.clone()
     } else {
         format!(
@@ -272,7 +381,16 @@ fn draw_tool_lines(
             muted(),
         ),
     ]));
-    if expanded || tool.error {
+    if tool.name == "bash" {
+        if expanded {
+            lines.extend(
+                detail
+                    .lines()
+                    .map(|line| Line::styled(format!("    $ {line}"), muted())),
+            );
+        }
+        draw_command_output(lines, tool, expanded);
+    } else if expanded || tool.error {
         if expanded {
             lines.push(Line::styled(
                 format!("    args: {}", tool.arguments),
@@ -289,6 +407,79 @@ fn draw_tool_lines(
         }
         lines.push(Line::default());
     }
+}
+
+fn draw_command_output(lines: &mut Vec<Line<'static>>, tool: &ToolLine, expanded: bool) {
+    let result: Option<serde_json::Value> = tool
+        .result
+        .as_ref()
+        .and_then(|s| serde_json::from_str(s).ok());
+    let stdout = result
+        .as_ref()
+        .and_then(|v| v.get("stdout"))
+        .and_then(serde_json::Value::as_str)
+        .filter(|_| !tool.truncated)
+        .map_or_else(|| tool.stdout.clone(), visible);
+    let stderr = result
+        .as_ref()
+        .and_then(|v| v.get("stderr"))
+        .and_then(serde_json::Value::as_str)
+        .filter(|_| !tool.truncated)
+        .map_or_else(|| tool.stderr.clone(), visible);
+    let mut output: Vec<_> = stdout
+        .lines()
+        .map(|s| (s, muted()))
+        .chain(stderr.lines().map(|s| (s, Style::new().fg(Color::Red))))
+        .collect();
+    let hidden = if expanded {
+        0
+    } else {
+        output.len().saturating_sub(6)
+    };
+    if hidden > 0 {
+        lines.push(Line::styled(
+            format!("    … {hidden} earlier lines · ctrl+o to expand"),
+            muted(),
+        ));
+        output.drain(..hidden);
+    }
+    lines.extend(
+        output
+            .into_iter()
+            .map(|(text, style)| Line::styled(format!("    {text}"), style)),
+    );
+    if let Some(result) = &tool.result {
+        let status = result_status(result);
+        lines.push(Line::styled(
+            format!("    {status}"),
+            Style::new().fg(if tool.error { Color::Red } else { MUTED }),
+        ));
+    }
+    if tool.truncated
+        || result
+            .as_ref()
+            .and_then(|v| v.get("output_truncated"))
+            .and_then(serde_json::Value::as_bool)
+            == Some(true)
+    {
+        lines.push(Line::styled(
+            "    [Output truncated at capture limit]",
+            muted(),
+        ));
+    }
+    lines.push(Line::default());
+}
+
+fn result_status(result: &str) -> String {
+    if let Ok(value) = serde_json::from_str::<serde_json::Value>(result) {
+        if let Some(code) = value.get("exit_code").and_then(serde_json::Value::as_i64) {
+            return format!("exit {code}");
+        }
+        if let Some(status) = value.get("status").and_then(serde_json::Value::as_str) {
+            return visible(status);
+        }
+    }
+    visible(result)
 }
 
 fn ellipsize(text: &str, width: usize) -> String {

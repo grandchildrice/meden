@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use meden_agent::conversation::{ModelError, Reply};
+use meden_agent::conversation::{Delta, ModelError, Reply};
 use meden_core::processor::{LocalCall, LocalParameters};
 use meden_runtime::process::Control;
 use serde_json::Value;
@@ -90,17 +90,22 @@ impl Local {
         authorization: LocalCall,
         messages: &[Value],
         tools: &[Value],
+        notify: &dyn Fn(Delta<'_>),
     ) -> Result<Reply, ModelError> {
         if !authorization.consume_for(&self.parameters) {
             return Err(failed("local processor binding mismatch"));
         }
-        self.exchange(messages, tools)
+        self.exchange(messages, tools, notify)
     }
 
-    fn exchange(&self, messages: &[Value], tools: &[Value]) -> Result<Reply, ModelError> {
+    fn exchange(
+        &self,
+        messages: &[Value],
+        tools: &[Value],
+        notify: &dyn Fn(Delta<'_>),
+    ) -> Result<Reply, ModelError> {
         #[cfg(target_os = "linux")]
         {
-            use std::io::Read as _;
             use std::sync::atomic::Ordering;
             use std::time::{Duration, Instant};
             let mut state = self
@@ -176,17 +181,12 @@ impl Local {
                 if !response.status().is_success() {
                     return Err(failed("local inference returned an error"));
                 }
-                let mut reply = Vec::new();
-                response
-                    .body_mut()
-                    .as_reader()
-                    .take(1_048_577)
-                    .read_to_end(&mut reply)
-                    .map_err(failed)?;
-                if reply.len() > 1_048_576 {
-                    return Err(failed("local inference reply exceeds 1 MiB"));
-                }
-                crate::openai::decode_response(&serde_json::from_slice(&reply).map_err(failed)?)
+                crate::stream::read_response(
+                    &mut response,
+                    &crate::Protocol::ChatCompletions,
+                    notify,
+                    1_048_576,
+                )
             })();
             if result.is_err() {
                 state.server = None;
@@ -195,7 +195,7 @@ impl Local {
         }
         #[cfg(not(target_os = "linux"))]
         {
-            let _ = (messages, tools);
+            let _ = (messages, tools, notify);
             Err(failed("isolated local inference requires Linux"))
         }
     }
