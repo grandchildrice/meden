@@ -189,7 +189,7 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
         time.sleep(0.1)
         assert requests == []
         os.write(master, b"y")
-        wait_for(lambda: "alt-enter" in view())
+        wait_for(lambda: "shift+enter" in view())
         # Correct a typo in the middle with cursor keys, then submit from End.
         os.write(
             master,
@@ -198,7 +198,7 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
         wait_for(
             lambda: len(requests) == first_turn_count and note.read_text() == "status: ready\n"
         )
-        wait_for(lambda: "Updated note.txt." in view() and "alt-enter" in view())
+        wait_for(lambda: "Updated note.txt." in view() and "shift+enter" in view())
         assert note.read_text() == "status: ready\n"
         assert requests[0]["messages"][-1]["content"][0]["text"] == ("Update the status to ready.")
         assert "bash" in [tool["function"]["name"] for tool in requests[0]["tools"]]
@@ -209,7 +209,7 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
         wait_for(lambda: len(requests) == first_turn_count + 1)
         # A recorded HTTP request (or text from an earlier turn) does not
         # mean the UI is accepting input yet. Wait for the editor to return.
-        wait_for(lambda: "Status is ready." in view() and "alt-enter" in view())
+        wait_for(lambda: "Status is ready." in view() and "shift+enter" in view())
         messages = requests[-1]["messages"]
         assert len(messages) == 12
         assert document in json.dumps(messages, ensure_ascii=False)
@@ -221,14 +221,14 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
         assert len(requests) == first_turn_count + 1
         os.write(master, b"Fresh turn.\r")
         wait_for(lambda: len(requests) == first_turn_count + 2)
-        wait_for(lambda: "A fresh conversation." in view() and "alt-enter" in view())
+        wait_for(lambda: "A fresh conversation." in view() and "shift+enter" in view())
         assert len(requests[-1]["messages"]) == 2
         assert requests[-1]["messages"][-1]["content"][0]["text"] == "Fresh turn."
         assert note.read_text() == "status: ready\n"
         assert source_note.read_text() == "status: draft\n"
         # The final picker entry is our second processor. Other locally
         # discovered servers can appear in between; no cloud keys are loaded.
-        os.write(master, b"\t" + b"\x1b[B" * 100 + b"\r")
+        os.write(master, b"/model\r" + b"\x1b[B" * 100 + b"\r")
         wait_for(lambda: "Connection details" in view())
         assert other.server_port not in destinations
         os.write(master, b"n")
@@ -238,10 +238,10 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path):
         os.write(master, b"\r")
         wait_for(lambda: "Connection details" in view())
         os.write(master, b"y")
-        wait_for(lambda: "alt-enter" in view())
+        wait_for(lambda: "shift+enter" in view())
         os.write(master, b"Read the current status.\r")
         wait_for(lambda: len(requests) == first_turn_count + 4)
-        wait_for(lambda: "Read by the second processor." in view() and "alt-enter" in view())
+        wait_for(lambda: "Read by the second processor." in view() and "shift+enter" in view())
         assert (
             destinations == [server.server_port] * (first_turn_count + 2) + [other.server_port] * 2
         )

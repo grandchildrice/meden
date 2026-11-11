@@ -279,9 +279,9 @@ def test_tui_export_review_uses_host_keys_and_exact_frozen_bytes(tmp_path):
         try:
             wait_for(lambda: "Connection details" in view())
             os.write(master, b"y")
-            wait_for(lambda: "alt-enter" in view())
+            wait_for(lambda: "shift+enter" in view())
             os.write(master, b"Prepare exports for review.\r")
-            wait_for(lambda: len(requests) == 3 and "alt-enter" in view())
+            wait_for(lambda: len(requests) == 3 and "shift+enter" in view())
             assert deliveries == other == []
             os.write(master, b"/exports\r")
             wait_for(
@@ -309,17 +309,17 @@ def test_tui_export_review_uses_host_keys_and_exact_frozen_bytes(tmp_path):
             fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 36, 112, 0, 0))
             screen.resize(36, 112)
             os.kill(process.pid, signal.SIGWINCH)
-            wait_for(lambda: "Export #0 rejected." in view() and "alt-enter" in view())
+            wait_for(lambda: "Export #0 rejected." in view() and "shift+enter" in view())
             os.write(master, b"/exports 1\r")
             wait_for(lambda: "Delivery details" in view() and "Export #1" in view())
             os.write(master, b"y")
-            wait_for(lambda: "response_received" in view() and "alt-enter" in view())
+            wait_for(lambda: "response_received" in view() and "shift+enter" in view())
             assert other == [original]
             assert deliveries == []
             os.write(master, b"/exports 1\r")
             wait_for(lambda: "Delivery details" in view())
             os.write(master, b"y")
-            wait_for(lambda: "no replay" in view() and "alt-enter" in view())
+            wait_for(lambda: "no replay" in view() and "shift+enter" in view())
             assert other == [original]
             assert len(requests) == 3
             assert (source / "payload.bin").read_bytes() == original

@@ -155,17 +155,17 @@ def test_tui_shows_model_and_command_output_before_completion(tmp_path, provider
     try:
         wait_for(lambda: "Connection details" in view())
         os.write(master, b"y")
-        wait_for(lambda: "alt-enter" in view())
+        wait_for(lambda: "shift+enter" in view())
         os.write(master, b"hello\r")
         wait_for(lambda: "I will check the workspace." in view())
-        assert "alt-enter" not in view(), "partial response prematurely completed the turn"
+        assert "shift+enter" not in view(), "partial response prematurely completed the turn"
         assert "› hello" in view() and "YOU" not in view()
         if provider != "claude":
             assert "∴ Reviewing files." in view()
         release_model.set()
         workspace = next(Path(env["XDG_DATA_HOME"]).glob("meden/workspaces/session-*"))
         if outcome == "interrupted":
-            wait_for(lambda: "Failed:" in view() and "alt-enter" in view())
+            wait_for(lambda: "Failed:" in view() and "shift+enter" in view())
             assert len(requests) == 1
             assert not (workspace / "started").exists(), "partial stream executed its tool call"
             assert "Response interrupted before completion" in view()
@@ -182,7 +182,7 @@ def test_tui_shows_model_and_command_output_before_completion(tmp_path, provider
         assert not (project / "release").exists()
         if outcome == "cancel":
             os.write(master, b"\x1b")
-            wait_for(lambda: "alt-enter" in view())
+            wait_for(lambda: "shift+enter" in view())
             assert "Cancelled" in view()
             assert len(requests) == 1
             assert not (workspace / "release").exists()
@@ -191,9 +191,9 @@ def test_tui_shows_model_and_command_output_before_completion(tmp_path, provider
             wait_for(lambda: "STREAM-FINAL" in view())
             assert "COMMAND-END" in [line.strip() for line in view().splitlines()]
             assert "exit 0" in view()
-            assert "alt-enter" not in view()
+            assert "shift+enter" not in view()
             release_final.set()
-            wait_for(lambda: "alt-enter" in view())
+            wait_for(lambda: "shift+enter" in view())
             assert view().count("STREAM-FINAL") == 1, "completion duplicated streamed text"
             assert len(requests) == 2
         assert not errors

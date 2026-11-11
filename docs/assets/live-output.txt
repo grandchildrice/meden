@@ -20,4 +20,4 @@
 
 
    ● Running bash
-   esc / ctrl-c cancel · ctrl+o tool details · PgUp/PgDn conversation
+   esc / ctrl-c cancel · ctrl+t transcript · ctrl+o copy · PgUp/PgDn scroll

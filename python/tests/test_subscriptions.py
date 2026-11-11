@@ -371,16 +371,16 @@ def test_subscription_tui_review_precedes_native_model_request(tmp_path, provide
             time.sleep(0.1)
             assert requests == []
             os.write(master, b"y")
-            wait_for(lambda: "alt-enter" in view())
+            wait_for(lambda: "shift+enter" in view())
             os.write(master, b"Hello\r")
-            wait_for(lambda: "SUBSCRIPTION-TUI-OK" in view() and "alt-enter" in view())
+            wait_for(lambda: "SUBSCRIPTION-TUI-OK" in view() and "shift+enter" in view())
             assert len(requests) == 2
             assert any(line.strip().startswith("› ") for line in screen.display)
             assert any(line.strip().startswith("● ") for line in screen.display)
             assert "TOOL-DETAILS-CANARY" not in view()
-            os.write(master, b"\x0f")
+            os.write(master, b"\x14")
             wait_for(lambda: "TOOL-DETAILS-CANARY" in view())
-            os.write(master, b"\x0f")
+            os.write(master, b"\x14")
             wait_for(lambda: "TOOL-DETAILS-CANARY" not in view())
             assert b"SECRET-fixture" not in output
             os.write(master, b"\x03")

@@ -152,10 +152,10 @@ prepared locally; workers cannot download packages.
 The TUI marks your messages with `›` on a shaded row and model replies with
 `●`. Responses and provider-exposed reasoning summaries stream as they arrive.
 Bash commands show live stdout/stderr and their final exit status; the normal
-view retains the last six output lines. `Ctrl+O` expands tool arguments and
+view retains the last six output lines. `Ctrl+T` expands tool arguments and
 captured output; failures remain visible when details are collapsed.
-`Enter` sends, `Alt+Enter` adds a line,
-and `PgUp`/`PgDn` scroll. Use `/help` for commands, `/models` (or `Tab`) to
+`Enter` sends, `Shift+Enter` adds a line,
+and `PgUp`/`PgDn` scroll. Use `/help` for commands, `/model` to
 choose a connection, `/contract` to review the specification, and `/exports`
 to review proposed deliveries. A single selected HTTP connection opens its
 approval screen directly. Each approval shows its destination or contract
@@ -204,15 +204,34 @@ session as the TUI. [CLI protocol →](docs/cli.md)
 
 | Key | Action |
 | --- | --- |
-| Enter / Alt-Enter | Send / insert a newline |
+| Enter / Shift-Enter | Send / insert a newline (Ctrl-J also inserts a newline) |
 | Arrows, Home, End | Edit input; Up/Down recall single-line history or move between lines |
-| Ctrl-U | Clear input |
+| Ctrl-A / Ctrl-E, Ctrl-B / Ctrl-F | Start/end of line, move left/right |
+| Alt-B / Alt-F, Ctrl-Left / Ctrl-Right | Move by word |
+| Ctrl-W / Ctrl-U / Ctrl-K | Delete previous word / before cursor / after cursor |
+| Ctrl-Y | Paste the last deleted text |
+| Ctrl-R | Search prompt history; Enter selects a match without sending |
+| Ctrl-T | Expand/collapse transcript details |
+| Ctrl-O / `/copy` | Copy the latest completed response through the terminal clipboard |
+| Ctrl-L | Clear the view while retaining conversation context |
 | PgUp / PgDn | Scroll the conversation |
-| Tab | Model picker |
+| `/`, Tab, Up/Down | Browse and complete slash commands |
+| `/model` / `/model NAME` | Choose a connection / review a new model binding |
+| `/new` / `/clear` | Start a fresh chat / also clear the visible transcript; retain files |
+| `/status`, `/workspace` | Show session state / working directory |
+| `?`, `/help`, `/keymap` | Show shortcuts and implemented commands |
+| Ctrl-C while editing | Clear the draft; exit when it is empty |
+| Ctrl-D, `/quit`, `/exit` | Exit (Ctrl-D deletes a character when the draft is nonempty) |
 | Esc / Ctrl-C while running | Request cancellation; Ctrl-C again exits |
-| `/clear` | Start a fresh conversation, retaining files |
 | `/exports` / `/exports ID` | Review a pending or specified immutable file export |
 | `/contract` | Review the proposed Rust ledger contract |
+
+Common controls follow the [Codex CLI command reference](https://learn.chatgpt.com/docs/developer-commands?surface=cli).
+Shift-Enter uses modified-key reporting in compatible terminals; Ctrl-J works
+in legacy terminals. Keyboard and paste modes are restored on exit. Clipboard
+copy uses OSC 52, subject to the terminal's clipboard support. `/keymap` displays
+Meden's current bindings. Meden's specification and delivery approvals retain
+their exact local `y` confirmation.
 
 ## Product direction
 

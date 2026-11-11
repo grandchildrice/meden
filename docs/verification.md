@@ -1704,6 +1704,20 @@ message editor. Native rendering tests and subscription PTY tests check
 message markers, hidden/expanded tool output, visible failures and sanitization.
 The six screen states and extracted approval selector remain the authority
 boundary; the redesigned renderer is still an adapter, not a proved display.
+The composer uses Shift+Enter (or Ctrl+J) for newlines, a catalog-backed slash
+popup, Ctrl+R prompt-history search and Codex-style editing keys. Ctrl+T expands
+tool details. Ctrl+L changes only the visible transcript offset; `/new` resets
+the model conversation while retaining the view, and `/clear` resets both.
+These commands preserve the working copy and accepted project agreement.
+The host's Ctrl+O or `/copy` selects only a completed assistant response and
+emits a base64 OSC 52 request to the terminal; draft/reasoning text is not
+selected. Model/file text still passes through the display sanitizer. The
+[PTY key test](../python/tests/test_tui_keys.py) observes the clipboard request,
+not the OS clipboard, and verifies modified-Enter decoding, unsent history
+selection, host-command isolation and restoration of keyboard/paste/TTY modes.
+Clipboard handling, terminal support and physical key provenance remain
+adapters. No approval predicate, fixed review heading or grant lifecycle is
+relaxed by the composer shortcuts.
 CLI tests reject legacy tools/policy/system messages, forged
 approvals/results, oversized input and terminal-control injection before
 model access. Observer cancellation is rechecked immediately before a model

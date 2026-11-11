@@ -222,20 +222,22 @@ def test_hostile_local_engine_is_confined_persistent_and_usable_in_cli_and_tui(t
             pytest.fail(output[-8000:].decode(errors="replace"))
 
         try:
-            wait_for(lambda: b"alt-enter" in output)
+            wait_for(lambda: b"shift+enter" in output)
             os.write(master, b"Read documentation and implement add.\r")
             wait_for(
-                lambda: "Offline development finished." in rendered() and "alt-enter" in rendered()
+                lambda: "Offline development finished." in rendered()
+                and "shift+enter" in rendered()
             )
             os.write(master, b"Test another case in the same session.\r")
-            wait_for(lambda: "Follow-up complete." in rendered() and "alt-enter" in rendered())
+            wait_for(lambda: "Follow-up complete." in rendered() and "shift+enter" in rendered())
             assert b"processor approval" not in output
             os.write(master, b"Hang until cancellation.\r")
             wait_for(lambda: "esc / ctrl-c cancel" in rendered() and "Thinking" in rendered())
             os.write(master, b"\x1b")
             wait_for(
                 lambda: (
-                    "Cancelled. Conversation retained." in rendered() and "alt-enter" in rendered()
+                    "Cancelled. Conversation retained." in rendered()
+                    and "shift+enter" in rendered()
                 )
             )
             os.write(master, b"\x03")

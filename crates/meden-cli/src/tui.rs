@@ -15,6 +15,7 @@ use crate::text::visible;
 use anyhow::Result;
 use crossterm::event::{
     self, DisableBracketedPaste, EnableBracketedPaste, KeyCode, KeyEventKind, KeyModifiers,
+    KeyboardEnhancementFlags, PopKeyboardEnhancementFlags, PushKeyboardEnhancementFlags,
 };
 use crossterm::terminal::{
     disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
@@ -28,8 +29,11 @@ use ratatui::prelude::*;
 use ratatui::widgets::ListState;
 
 mod approval;
+mod commands;
+mod editor;
 mod input;
 mod view;
+use editor::Overlay;
 use input::Input;
 use view::draw;
 
@@ -127,6 +131,12 @@ struct App {
     worker_gateway: Option<Arc<Gateway>>,
     processes: Arc<Control>,
     scroll_back: u16,
+    view_start: usize,
+    response_start: usize,
+    overlay: Overlay,
+    menu_index: usize,
+    copy_request: Option<String>,
+    quit_requested: bool,
     // Populated by drawing; changing a review target discards this readiness.
     review_area: Rect,
     review_frame: Rect,
@@ -168,6 +178,12 @@ impl App {
             worker_gateway: None,
             processes: Arc::new(Control::new(Arc::new(AtomicBool::new(false)))),
             scroll_back: 0,
+            view_start: 0,
+            response_start: 0,
+            overlay: Overlay::None,
+            menu_index: 0,
+            copy_request: None,
+            quit_requested: false,
             review_area: Rect::default(),
             review_frame: Rect::default(),
             review_rows: 0,
@@ -297,6 +313,7 @@ impl App {
         self.worker = None;
         self.worker_gateway = None;
         self.rx = None;
+        self.response_start = self.lines.len();
         match Gateway::prepare(self.session_id(), provider) {
             Ok(gateway) => {
                 self.gateway = Some(Arc::new(gateway));
@@ -424,38 +441,6 @@ impl App {
         self.screen = Screen::Instructing;
         self.reviewing_export = None;
     }
-    fn instruction_key(&mut self, key: crossterm::event::KeyEvent) {
-        match key.code {
-            KeyCode::Esc | KeyCode::Tab => self.screen = Screen::Picking,
-            KeyCode::Enter if key.modifiers.contains(KeyModifiers::ALT) => {
-                self.instruction.insert("\n");
-            }
-            KeyCode::Enter => self.start(),
-            KeyCode::Backspace => {
-                self.instruction.backspace();
-            }
-            KeyCode::Delete => self.instruction.delete(),
-            KeyCode::Left => self.instruction.left(),
-            KeyCode::Right => self.instruction.right(),
-            KeyCode::Home => self.instruction.home(),
-            KeyCode::End => self.instruction.end(),
-            KeyCode::Up => self.instruction.up(),
-            KeyCode::Down => self.instruction.down(),
-            KeyCode::Char('a') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                self.instruction.home();
-            }
-            KeyCode::Char('e') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                self.instruction.end();
-            }
-            KeyCode::Char('u') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                self.instruction.clear();
-            }
-            KeyCode::Char(c) if !key.modifiers.contains(KeyModifiers::CONTROL) => {
-                self.instruction.insert(&c.to_string());
-            }
-            _ => {}
-        }
-    }
     fn open_contract(&mut self) {
         self.review_area = Rect::default();
         let result = self
@@ -523,58 +508,6 @@ impl App {
             _ => {}
         }
     }
-    fn host_command(&mut self) -> bool {
-        match self.instruction.text().trim() {
-            "/models" => {
-                self.instruction.clear();
-                self.screen = Screen::Picking;
-                return true;
-            }
-            "/workspace" => {
-                self.instruction.clear();
-                self.say(format!("Files: {}\nThis is the retained working copy. The original project is unchanged.", self.root.display()), Style::new());
-                return true;
-            }
-            "/help" => {
-                self.instruction.clear();
-                self.say("/models     Choose a model connection\n/workspace  Show the generated files location\n/contract   Review the project specification\n/exports    Review proposed deliveries\n/clear      Start a fresh conversation\nCtrl+O      Expand or collapse tool details", Style::new());
-                return true;
-            }
-            _ => {}
-        }
-        if self.instruction.text().trim() == "/contract" {
-            self.instruction.clear();
-            self.open_contract();
-            return true;
-        }
-        if self.instruction.text().trim() == "/clear" {
-            self.worker = None;
-            self.rx = None;
-            self.worker_gateway = None;
-            self.instruction.clear();
-            self.lines.clear();
-            self.draft = None;
-            self.reasoning = None;
-            self.scroll_back = 0;
-            self.say(
-                "Conversation cleared. Workspace files retained.",
-                Style::new().fg(Color::DarkGray),
-            );
-            return true;
-        }
-        let mut parts = self.instruction.text().split_whitespace();
-        if parts.next() != Some("/exports") {
-            return false;
-        }
-        let id = parts.next().map(str::parse::<usize>).transpose();
-        let extra = parts.next().is_some();
-        self.instruction.clear();
-        match id {
-            Ok(id) if !extra => self.open_export(id),
-            _ => self.say("Use /exports or /exports ID.", Style::new().fg(Color::Red)),
-        }
-        true
-    }
     fn start(&mut self) {
         self.start_turn(true);
     }
@@ -620,7 +553,6 @@ impl App {
             self.worker = Some(commands);
             self.rx = Some(results);
             self.worker_gateway = Some(Arc::clone(&gateway));
-            self.lines.clear();
             self.draft = None;
             self.reasoning = None;
             thread::spawn(move || {
@@ -922,7 +854,10 @@ impl TerminalGuard {
         let guard = Self;
         io::stdout()
             .execute(EnterAlternateScreen)?
-            .execute(EnableBracketedPaste)?;
+            .execute(EnableBracketedPaste)?
+            .execute(PushKeyboardEnhancementFlags(
+                KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES,
+            ))?;
         Ok(guard)
     }
 }
@@ -930,7 +865,8 @@ impl Drop for TerminalGuard {
     fn drop(&mut self) {
         let _ = disable_raw_mode();
         let _ = io::stdout()
-            .execute(DisableBracketedPaste)
+            .execute(PopKeyboardEnhancementFlags)
+            .and_then(|out| out.execute(DisableBracketedPaste))
             .and_then(|out| out.execute(LeaveAlternateScreen))
             .and_then(|out| out.execute(crossterm::cursor::Show));
     }
@@ -986,6 +922,17 @@ where
     B::Error: std::error::Error + Send + Sync + 'static,
 {
     loop {
+        if app.quit_requested {
+            return Ok(());
+        }
+        if let Some(text) = app.copy_request.take() {
+            use base64::Engine as _;
+            use std::io::Write as _;
+            let encoded = base64::engine::general_purpose::STANDARD.encode(text.as_bytes());
+            let mut stdout = io::stdout().lock();
+            write!(stdout, "\u{1b}]52;c;{encoded}\u{7}")?;
+            stdout.flush()?;
+        }
         app.poll();
         terminal.draw(|frame| draw(frame, app))?;
         if !event::poll(Duration::from_millis(100))? {
@@ -994,7 +941,12 @@ where
         let event = event::read()?;
         if let event::Event::Paste(text) = event {
             if app.screen == Screen::Instructing {
-                app.instruction.insert(&text);
+                if app.instruction.search_query().is_some() {
+                    app.instruction.search_insert(&text);
+                } else {
+                    app.instruction.insert(&text);
+                    app.refresh_commands();
+                }
             }
             continue;
         }
@@ -1004,22 +956,7 @@ where
         if key.kind != KeyEventKind::Press {
             continue;
         }
-        if key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL) {
-            if app.busy {
-                if app.processes.flag().load(Ordering::SeqCst) {
-                    app.project.cancel(&app.processes);
-                    return Ok(());
-                }
-                app.cancel();
-                continue;
-            }
-            return Ok(());
-        }
-        if key.code == KeyCode::Char('o')
-            && key.modifiers.contains(KeyModifiers::CONTROL)
-            && matches!(app.screen, Screen::Instructing | Screen::Running)
-        {
-            app.show_tool_details = !app.show_tool_details;
+        if app.global_key(key) {
             continue;
         }
         if matches!(
@@ -1032,42 +969,13 @@ where
                 continue;
             }
         }
-        match key.code {
-            KeyCode::PageUp => {
-                app.scroll_back = if matches!(
-                    app.screen,
-                    Screen::ReviewingProcessor
-                        | Screen::ReviewingExport
-                        | Screen::ReviewingContract
-                ) {
-                    app.scroll_back.saturating_sub(app.review_page.max(1))
-                } else {
-                    app.scroll_back.saturating_add(10)
-                };
-                continue;
-            }
-            KeyCode::PageDown => {
-                app.scroll_back = if matches!(
-                    app.screen,
-                    Screen::ReviewingProcessor
-                        | Screen::ReviewingExport
-                        | Screen::ReviewingContract
-                ) {
-                    app.scroll_back.saturating_add(app.review_page.max(1))
-                } else {
-                    app.scroll_back.saturating_sub(10)
-                };
-                continue;
-            }
-            KeyCode::End if app.screen != Screen::Instructing => {
-                app.scroll_back = 0;
-                continue;
-            }
-            _ => {}
+        if app.scroll_key(key.code) {
+            continue;
         }
         match app.screen {
             Screen::Picking => match key.code {
-                KeyCode::Char('q') | KeyCode::Esc => return Ok(()),
+                KeyCode::Char('q') => return Ok(()),
+                KeyCode::Esc => app.screen = Screen::Instructing,
                 KeyCode::Up | KeyCode::Char('k') => app.move_selection(-1),
                 KeyCode::Down | KeyCode::Char('j') => app.move_selection(1),
                 KeyCode::Enter => app.select_processor(),

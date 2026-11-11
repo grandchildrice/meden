@@ -10,6 +10,15 @@ pub(super) struct Input {
     history: Vec<String>,
     recalled: Option<usize>,
     draft: String,
+    killed: String,
+    search: Option<Search>,
+}
+
+struct Search {
+    query: String,
+    original: String,
+    cursor: usize,
+    matched: Option<usize>,
 }
 
 pub(super) struct View {
@@ -98,6 +107,163 @@ impl Input {
         self.cursor = 0;
         self.recalled = None;
         self.draft.clear();
+        self.search = None;
+    }
+
+    fn kill(&mut self, start: usize, end: usize) {
+        if start == end {
+            return;
+        }
+        self.killed = self.text.get(start..end).unwrap_or_default().to_owned();
+        self.text.replace_range(start..end, "");
+        self.cursor = start;
+        self.snap_cursor();
+    }
+
+    pub fn kill_before(&mut self) {
+        let end = self.cursor;
+        self.home();
+        let start = if self.cursor == end {
+            end.saturating_sub(1)
+        } else {
+            self.cursor
+        };
+        self.kill(start, end);
+    }
+
+    pub fn kill_after(&mut self) {
+        let start = self.cursor;
+        self.end();
+        let end = if self.cursor == start {
+            start.saturating_add(1).min(self.text.len())
+        } else {
+            self.cursor
+        };
+        self.kill(start, end);
+    }
+
+    pub fn word_left(&mut self) {
+        self.cursor = self
+            .text
+            .get(..self.cursor)
+            .unwrap_or_default()
+            .split_word_bound_indices()
+            .filter(|(_, word)| word.chars().any(char::is_alphanumeric))
+            .map(|(index, _)| index)
+            .next_back()
+            .unwrap_or(0);
+    }
+
+    pub fn word_right(&mut self) {
+        let rest = self.text.get(self.cursor..).unwrap_or_default();
+        let offset = rest
+            .split_word_bound_indices()
+            .find(|(_, word)| word.chars().any(char::is_alphanumeric))
+            .map_or(rest.len(), |(index, word)| index.saturating_add(word.len()));
+        self.cursor = self.cursor.saturating_add(offset);
+        self.snap_cursor();
+    }
+
+    pub fn kill_word(&mut self) {
+        let end = self.cursor;
+        let mut start = end;
+        let mut in_word = false;
+        for (index, grapheme) in self
+            .text
+            .get(..end)
+            .unwrap_or_default()
+            .grapheme_indices(true)
+            .rev()
+        {
+            if grapheme.chars().all(char::is_whitespace) {
+                if in_word {
+                    break;
+                }
+            } else {
+                in_word = true;
+            }
+            start = index;
+        }
+        self.kill(start, end);
+    }
+
+    pub fn yank(&mut self) {
+        self.insert(&self.killed.clone());
+    }
+
+    pub fn search_query(&self) -> Option<&str> {
+        self.search.as_ref().map(|s| s.query.as_str())
+    }
+
+    pub fn search_found(&self) -> bool {
+        self.search
+            .as_ref()
+            .is_some_and(|search| search.matched.is_some())
+    }
+
+    pub fn search_history(&mut self) {
+        if self.search.is_none() {
+            self.search = Some(Search {
+                query: String::new(),
+                original: self.text.clone(),
+                cursor: self.cursor,
+                matched: None,
+            });
+            self.find_history(false);
+        } else {
+            self.find_history(true);
+        }
+    }
+
+    pub fn search_insert(&mut self, text: &str) {
+        if let Some(search) = &mut self.search {
+            search.query.push_str(&super::visible(text));
+            self.find_history(false);
+        }
+    }
+
+    pub fn search_backspace(&mut self) {
+        if let Some(search) = &mut self.search {
+            if let Some((index, _)) = search.query.grapheme_indices(true).next_back() {
+                search.query.truncate(index);
+            }
+            self.find_history(false);
+        }
+    }
+
+    fn find_history(&mut self, previous: bool) {
+        let Some(search) = &mut self.search else {
+            return;
+        };
+        let end = if previous {
+            search.matched.unwrap_or(self.history.len())
+        } else {
+            self.history.len()
+        };
+        if let Some((index, text)) = self
+            .history
+            .iter()
+            .enumerate()
+            .take(end)
+            .rev()
+            .find(|(_, text)| text.contains(&search.query))
+        {
+            search.matched = Some(index);
+            self.text.clone_from(text);
+            self.cursor = self.text.len();
+        } else {
+            search.matched = None;
+        }
+    }
+
+    pub fn finish_search(&mut self, cancel: bool) {
+        if let Some(search) = self.search.take() {
+            if cancel || search.matched.is_none() {
+                self.text = search.original;
+                self.cursor = search.cursor;
+            }
+            self.recalled = None;
+        }
     }
 
     pub fn take(&mut self) -> String {
@@ -114,7 +280,13 @@ impl Input {
 
     // Up/down recall single-line instructions; multiline input moves by line.
     pub fn up(&mut self) {
-        if self.text.contains('\n') && self.recalled.is_none() {
+        if self
+            .text
+            .get(..self.cursor)
+            .unwrap_or_default()
+            .contains('\n')
+            && self.recalled.is_none()
+        {
             self.vertical(false);
             return;
         }
@@ -130,7 +302,13 @@ impl Input {
     }
 
     pub fn down(&mut self) {
-        if self.text.contains('\n') && self.recalled.is_none() {
+        if self
+            .text
+            .get(self.cursor..)
+            .unwrap_or_default()
+            .contains('\n')
+            && self.recalled.is_none()
+        {
             self.vertical(true);
             return;
         }
@@ -233,6 +411,52 @@ impl Input {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn kill_and_yank_preserve_unicode_and_the_rest_of_the_line() {
+        let mut input = Input::default();
+        input.insert("hello 日本語 world");
+        input.word_left();
+        input.kill_before();
+        assert_eq!(input.text(), "world");
+        input.yank();
+        assert_eq!(input.text(), "hello 日本語 world");
+        input.kill_after();
+        assert_eq!(input.text(), "hello 日本語 ");
+        input.yank();
+        input.end();
+        input.kill_word();
+        assert_eq!(input.text(), "hello 日本語 ");
+        input.yank();
+        assert_eq!(input.text(), "hello 日本語 world");
+    }
+
+    #[test]
+    fn history_search_selects_without_submitting_and_cancel_restores_the_draft() {
+        let mut input = Input::default();
+        for text in ["first build", "second build", "test"] {
+            input.insert(text);
+            input.take();
+        }
+        input.insert("unsent 日本語");
+        input.search_history();
+        input.search_insert("build");
+        assert_eq!(input.text(), "second build");
+        input.search_history();
+        assert_eq!(input.text(), "first build");
+        input.finish_search(true);
+        assert_eq!(input.text(), "unsent 日本語");
+        input.search_history();
+        input.search_insert("does not exist");
+        assert!(!input.search_found());
+        input.finish_search(false);
+        assert_eq!(input.text(), "unsent 日本語");
+        input.search_history();
+        input.search_insert("second");
+        input.finish_search(false);
+        assert_eq!(input.text(), "second build");
+        assert_eq!(input.history.len(), 3);
+    }
 
     #[test]
     fn edit_graphemes_without_splitting_japanese_emoji_or_combining_marks() {

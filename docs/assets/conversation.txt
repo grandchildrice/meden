@@ -20,5 +20,5 @@
    ╭ Your message ──────────────────────────────────────────────────────────────────────────────╮
    │> Describe your app or ask a question…                                                      │
    ╰────────────────────────────────────────────────────────────────────────────────────────────╯
-   enter send · alt-enter newline · tab models · ctrl+o tool details
-   /help commands · /workspace files · PgUp/PgDn conversation
+   enter send · shift+enter newline · ctrl+t transcript · ctrl+o copy
+   / commands · ? shortcuts · /model connection · PgUp/PgDn scroll

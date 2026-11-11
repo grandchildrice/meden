@@ -2,11 +2,11 @@
 //! heading and the existing extracted approval selector.
 
 use ratatui::prelude::*;
-use ratatui::widgets::{Block, BorderType, List, ListItem, Paragraph, Wrap};
+use ratatui::widgets::{Block, BorderType, Clear, List, ListItem, Paragraph, Wrap};
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
-use super::{visible, App, Input, Screen, Speaker, ToolLine, TranscriptLine};
+use super::{visible, App, Screen, Speaker, ToolLine, TranscriptLine};
 
 const ACCENT: Color = Color::Cyan;
 const MUTED: Color = Color::Rgb(146, 154, 168);
@@ -57,7 +57,10 @@ pub(super) fn draw(frame: &mut Frame<'_>, app: &mut App) {
         Screen::Instructing | Screen::Running => draw_conversation(frame, app, body),
     }
     if app.screen == Screen::Instructing {
-        draw_input(frame, &app.instruction, footer);
+        draw_input(frame, app, footer);
+        if app.menu_open() && !app.help_open() && app.instruction.search_query().is_none() {
+            draw_commands(frame, app, body);
+        }
     } else {
         draw_controls(frame, app, footer);
     }
@@ -153,6 +156,23 @@ fn draw_picker(frame: &mut Frame<'_>, app: &mut App, area: Rect) {
 }
 
 fn draw_conversation(frame: &mut Frame<'_>, app: &App, area: Rect) {
+    if app.help_open() {
+        let commands = super::commands::COMMANDS
+            .iter()
+            .map(|(name, description)| format!("{name:12} {description}"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        frame.render_widget(
+            Paragraph::new(format!(
+                "{}\n\nCommands\n\n{commands}",
+                super::commands::SHORTCUTS
+            ))
+            .wrap(Wrap { trim: false })
+            .scroll((app.scroll_back, 0)),
+            area,
+        );
+        return;
+    }
     if app.lines.is_empty() {
         frame.render_widget(Paragraph::new(vec![
             Line::default(),
@@ -168,7 +188,7 @@ fn draw_conversation(frame: &mut Frame<'_>, app: &App, area: Rect) {
         return;
     }
     let mut lines = Vec::new();
-    for entry in &app.lines {
+    for entry in app.lines.iter().skip(app.view_start) {
         match entry {
             TranscriptLine::Message { speaker, text } => {
                 let user = matches!(speaker, Speaker::User);
@@ -217,6 +237,47 @@ fn draw_conversation(frame: &mut Frame<'_>, app: &App, area: Rect) {
         .saturating_sub(area.height)
         .saturating_sub(app.scroll_back);
     frame.render_widget(paragraph.scroll((offset, 0)), area);
+}
+
+fn draw_commands(frame: &mut Frame<'_>, app: &App, area: Rect) {
+    let commands = app.matching_commands();
+    if commands.is_empty() {
+        return;
+    }
+    let height = u16::try_from(commands.len())
+        .unwrap_or(u16::MAX)
+        .min(7)
+        .saturating_add(2)
+        .min(area.height);
+    let popup = Rect::new(
+        area.x,
+        area.y.saturating_add(area.height.saturating_sub(height)),
+        area.width,
+        height,
+    );
+    frame.render_widget(Clear, popup);
+    let items: Vec<_> = commands
+        .iter()
+        .map(|(name, description)| {
+            ListItem::new(Line::from(vec![
+                Span::styled(format!("{name:12}"), Style::new().bold()),
+                Span::raw((*description).to_owned()),
+            ]))
+        })
+        .collect();
+    let mut state = ratatui::widgets::ListState::default().with_selected(Some(app.menu_index));
+    frame.render_stateful_widget(
+        List::new(items)
+            .block(
+                Block::bordered()
+                    .border_type(BorderType::Rounded)
+                    .title(" Commands · ↑↓ choose · enter run · tab complete "),
+            )
+            .highlight_symbol("› ")
+            .highlight_style(Style::new().fg(Color::Black).bg(ACCENT)),
+        popup,
+        &mut state,
+    );
 }
 
 /// Wrap content before adding the gutter, so continuation lines align with
@@ -438,7 +499,7 @@ fn draw_command_output(lines: &mut Vec<Line<'static>>, tool: &ToolLine, expanded
     };
     if hidden > 0 {
         lines.push(Line::styled(
-            format!("    … {hidden} earlier lines · ctrl+o to expand"),
+            format!("    … {hidden} earlier lines · ctrl+t to expand"),
             muted(),
         ));
         output.drain(..hidden);
@@ -502,7 +563,8 @@ fn ellipsize(text: &str, width: usize) -> String {
     result
 }
 
-fn draw_input(frame: &mut Frame<'_>, input: &Input, area: Rect) {
+fn draw_input(frame: &mut Frame<'_>, app: &App, area: Rect) {
+    let input = &app.instruction;
     let parts = Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).split(area);
     let editor = parts.first().copied().unwrap_or_default();
     let block = Block::bordered()
@@ -545,17 +607,44 @@ fn draw_input(frame: &mut Frame<'_>, input: &Input, area: Rect) {
                 .saturating_add(u16::try_from(view.row.saturating_sub(scroll)).unwrap_or(0)),
         ));
     }
+    let hints = if let Some(query) = input.search_query() {
+        vec![
+            Line::styled(
+                format!(
+                    "history search: {query}{}",
+                    if input.search_found() {
+                        ""
+                    } else {
+                        " [no match]"
+                    }
+                ),
+                accent(),
+            ),
+            Line::styled(
+                if input.search_found() {
+                    "enter use match · esc cancel · ctrl+r older match"
+                } else {
+                    "enter / esc return to draft"
+                },
+                muted(),
+            ),
+        ]
+    } else if app.help_open() {
+        vec![Line::styled("esc close help · PgUp/PgDn scroll", muted())]
+    } else {
+        vec![
+            Line::styled(
+                "enter send · shift+enter newline · ctrl+t transcript · ctrl+o copy",
+                muted(),
+            ),
+            Line::styled(
+                "/ commands · ? shortcuts · /model connection · PgUp/PgDn scroll",
+                muted(),
+            ),
+        ]
+    };
     frame.render_widget(
-        Paragraph::new(vec![
-            Line::styled(
-                "enter send · alt-enter newline · tab models · ctrl+o tool details",
-                muted(),
-            ),
-            Line::styled(
-                "/help commands · /workspace files · PgUp/PgDn conversation",
-                muted(),
-            ),
-        ]),
+        Paragraph::new(hints),
         parts.get(1).copied().unwrap_or_default(),
     );
 }
@@ -588,7 +677,7 @@ fn draw_controls(frame: &mut Frame<'_>, app: &App, area: Rect) {
                 accent(),
             ),
             Line::styled(
-                "esc / ctrl-c cancel · ctrl+o tool details · PgUp/PgDn conversation",
+                "esc / ctrl-c cancel · ctrl+t transcript · ctrl+o copy · PgUp/PgDn scroll",
                 muted(),
             ),
         ],

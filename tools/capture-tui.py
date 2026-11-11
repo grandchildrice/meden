@@ -96,7 +96,7 @@ def main():
             pump(lambda: "Connection details" in "\n".join(screen.display))
         if args.screen in {"instruction", "conversation"}:
             os.write(master, b"y")
-            pump(lambda: "alt-enter" in "\n".join(screen.display))
+            pump(lambda: "shift+enter" in "\n".join(screen.display))
             prompt = (args.prompt if args.screen == "conversation" else
                       "Inspect this project, improve the implementation, and run its tests.")
             os.write(master, b"\x1b[200~" + prompt.encode() + b"\x1b[201~")
@@ -105,7 +105,7 @@ def main():
                 os.write(master, b"\r")
                 pump(lambda: (args.wait_for in "\n".join(screen.display)) if args.wait_for else
                      ("● " in "\n".join(screen.display) and
-                      "alt-enter" in "\n".join(screen.display)))
+                      "shift+enter" in "\n".join(screen.display)))
         # Finish receiving the frame before recording its actual cells.
         until = time.monotonic() + 0.5
         while time.monotonic() < until and select.select([master], [], [], 0.1)[0]:
@@ -162,10 +162,11 @@ def main():
         args.out.with_suffix(".txt").write_text(
             "\n".join(line.rstrip() for line in screen.display).rstrip() + "\n"
         )
-        if args.screen == "conversation" and "alt-enter" not in "\n".join(screen.display):
+        if args.screen == "conversation" and "shift+enter" not in "\n".join(screen.display):
             os.write(master, b"\x1b")
-            pump(lambda: "alt-enter" in "\n".join(screen.display))
-        os.write(master, b"\x03")
+            pump(lambda: "shift+enter" in "\n".join(screen.display))
+        # Ctrl+C clears a nonempty composer before a second press exits.
+        os.write(master, b"\x03\x03" if args.screen == "instruction" else b"\x03")
         process.wait(timeout=5)
         if process.returncode != 0 or termios.tcgetattr(slave) != initial:
             raise RuntimeError("TUI did not exit cleanly or restore the terminal")

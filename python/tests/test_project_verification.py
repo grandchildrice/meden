@@ -473,7 +473,7 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
             if predicate():
                 return
             assert process.poll() is None, output[-8000:].decode(errors="replace")
-            if "Failed:" in rendered() and "alt-enter" in rendered():
+            if "Failed:" in rendered() and "shift+enter" in rendered():
                 pytest.fail(rendered())
             if select.select([master], [], [], 0.1)[0]:
                 chunk = os.read(master, 65536)
@@ -483,7 +483,7 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
         pytest.fail(rendered())
 
     try:
-        wait_for(lambda: "alt-enter" in rendered())
+        wait_for(lambda: "shift+enter" in rendered())
         os.write(master, b"Build a local ledger with conserved balances and safe retries.\r")
         wait_for(lambda: "y: Accept specification" in rendered())
         os.write(master, b"\x1b[200~y\x1b[201~\r")
@@ -499,7 +499,9 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
         wait_for(lambda: "Specification accepted. Continuing implementation." in rendered())
         assert "Project kernel needs verification" in rendered()
         assert "Proceed under the host-accepted contract" not in rendered()
-        wait_for(lambda: "VERIFIED project kernel" in rendered() and "alt-enter" in rendered(), 360)
+        wait_for(
+            lambda: "VERIFIED project kernel" in rendered() and "shift+enter" in rendered(), 360
+        )
         artifacts = list((Path(env["XDG_DATA_HOME"]) / "meden/artifacts").glob("kernel-*"))
         assert len(artifacts) == 1
         assert_artifact(artifacts[0])
