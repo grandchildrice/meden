@@ -5,10 +5,12 @@ import codecs
 import json
 import os
 import select
+import shutil
 import subprocess
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 import pyte
 import pytest
@@ -17,7 +19,7 @@ from test_subscriptions import environment
 from meden_checks import find_meden
 
 
-def test_modified_enter_commands_history_clipboard_and_terminal_restoration(tmp_path):
+def test_modified_enter_commands_history_clipboard_and_terminal_restoration(tmp_path, tui_verifier):
     import fcntl
     import pty
     import struct
@@ -47,6 +49,13 @@ def test_modified_enter_commands_history_clipboard_and_terminal_restoration(tmp_
     base = f"http://127.0.0.1:{server.server_port}/v1"
     env = environment(tmp_path, "codex", base)
     env.update(MEDEN_LLM_BASE_URL=base, MEDEN_LLM_MODEL="fixture", TERM="xterm-256color")
+    # First-launch configuration is unnecessary when the managed installation
+    # exists: exercise discovery with no verifier environment variable.
+    managed = (Path(env["XDG_DATA_HOME"]) / "meden/verifier"
+               / "lean-4.35.0-aeneas-c5eb4a2-rust-2026-09-17/bundle.json")
+    managed.parent.mkdir(parents=True)
+    shutil.copyfile(tui_verifier, managed)
+    env.pop("MEDEN_VERIFIER_BUNDLE", None)
     project = tmp_path / "project"
     project.mkdir()
     master, slave = pty.openpty()
@@ -88,6 +97,15 @@ def test_modified_enter_commands_history_clipboard_and_terminal_restoration(tmp_
         os.write(master, b"y")
         wait_for(lambda: "shift+enter" in view())
         assert not requests, "new edit keys or pasted y granted inference"
+        os.write(master, b"/proofs\r")
+        wait_for(lambda: "No project specification yet" in view())
+        assert not requests, "evidence inspection called the model"
+        os.write(master, b"\x1b")
+        wait_for(lambda: "No project specification yet" not in view())
+        os.write(master, b"\x07")
+        wait_for(lambda: "No project specification yet" in view())
+        os.write(master, b"\x07")
+        wait_for(lambda: "No project specification yet" not in view())
         os.write(master, b"hello\x1b[13;2u" + "日本語".encode() + b"\nthird")
         wait_for(lambda: "third" in view())
         assert not requests, "Shift+Enter or Ctrl+J submitted the draft"

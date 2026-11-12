@@ -68,7 +68,7 @@ packaged Bubblewrap AppArmor profile enabled by an administrator; see
 Installed Bubblewrap is detected from public PATH entries and standard
 system locations. On NixOS, Meden also searches the dependency closure of
 the installed system software, without changing PATH or requiring a
-`MEDEN_BWRAP` export. It does not download or install packages during startup.
+`MEDEN_BWRAP` export. Bubblewrap discovery does not download or install system packages.
 `MEDEN_BWRAP` remains an optional trusted host override. Isolation remains required.
 Build from source with Rust and set `OLLAMA_API_KEY` for the cloud connection:
 
@@ -79,6 +79,14 @@ export MEDEN_LLM_MODEL=your-ollama-cloud-model
 export MEDEN_LLM_API_KEY="$OLLAMA_API_KEY"
 ./target/release/meden tui --workspace /path/to/project --provider configured
 ```
+
+On Linux x86_64, the TUI prepares its pinned local verification tools on first
+launch, before importing your project. Public tool downloads and proof-library
+preparation may take several minutes and need network access, Git, Curl, Tar,
+XZ and Zstd. Existing compatible tools/libraries are reused. Later launches use
+the saved installation; no verifier environment variable is required. `meden setup`
+can prepare it ahead of time for an offline session. A host-administered
+`MEDEN_VERIFIER_BUNDLE` remains an explicit override.
 
 Development targets Ollama Cloud first, then capable 100–600B local deployments.
 Comparable roughly 10B performance is deferred. Cloud inference requires
@@ -161,6 +169,20 @@ to review proposed deliveries. A single selected HTTP connection opens its
 approval screen directly. Each approval shows its destination or contract
 identity in a fixed card, with the action and its key below the details.
 
+During development, a specification/evidence card keeps the accepted revision,
+property previews, current verification state and delivery hold reason visible.
+Edits invalidate the displayed proof before another tool runs. `/proofs` or
+`Ctrl+G` opens the formal statements, assumptions, source/artifact identities
+and retained report location. `Esc` returns from that view without cancelling
+running work. Replacement reviews include a field diff and retain the original
+accepted meaning until you approve the replacement. Proof status applies to the
+supported pure transition; ordinary tool/test successes do not establish it.
+
+[Verified evidence](docs/assets/evidence-verified.png) ·
+[After an input change](docs/assets/evidence-stale.png).
+These are actual TUI cells from a scripted local-model fixture with real offline
+Rust extraction and Lean checks; they are not a live-model capability benchmark.
+
 [Conversation preview](docs/assets/conversation.png) ·
 [Live command output](docs/assets/live-output.png)
 (actual PTY captures using a scripted local model fixture).
@@ -212,6 +234,7 @@ session as the TUI. [CLI protocol →](docs/cli.md)
 | Ctrl-Y | Paste the last deleted text |
 | Ctrl-R | Search prompt history; Enter selects a match without sending |
 | Ctrl-T | Expand/collapse transcript details |
+| Ctrl-G / `/proofs` | Inspect requirements, evidence, assumptions and delivery hold reason |
 | Ctrl-O / `/copy` | Copy the latest completed response through the terminal clipboard |
 | Ctrl-L | Clear the view while retaining conversation context |
 | PgUp / PgDn | Scroll the conversation |

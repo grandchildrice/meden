@@ -110,7 +110,7 @@ impl Contract {
     /// Model-facing draft schema; runtime validation remains authoritative.
     pub fn schema() -> serde_json::Value {
         let text = serde_json::json!({"type":"string"});
-        let identifier = serde_json::json!({"type":"string","description":"A single Rust identifier: ASCII letter first, then letters, digits or underscores; at most 32 bytes. Not code, a signature or a type expression."});
+        let identifier = serde_json::json!({"type":"string","minLength":1,"maxLength":32,"pattern":"^[A-Za-z][A-Za-z0-9_]*$","description":"A unique Rust identifier: ASCII letter first, then letters, digits or underscores; at most 32 bytes, no Rust/Lean reserved words. Use a short label such as balance_bound; put explanatory prose in description. Not code, a signature or a type expression."});
         let words = serde_json::json!({"type":"array","items":{"type":"string","pattern":"^(0|[1-9][0-9]{0,19})$","maxLength":20,"description":"Exact unsigned-64-bit decimal STRING in 0..=18446744073709551615, for example \"0\" or \"18446744073709551615\". Never a JSON number: model gateways may round large numbers. No signs, spaces, leading zeroes, exponent notation or expressions."}});
         serde_json::json!({"type":"object","additionalProperties":false,
         "required":["name","description","source_path","state","fields","parameters","function","specification"],
@@ -252,8 +252,12 @@ impl Contract {
         let mut names = BTreeSet::new();
         for property in &self.properties {
             require(
-                identifier(&property.name) && names.insert(&property.name),
-                "invalid or duplicate property name",
+                identifier(&property.name),
+                &format!("Invalid property name {:?}: use an ASCII letter followed by letters, digits or underscores, at most 32 bytes, and no Rust/Lean reserved words. Use a short label such as balance_bound; keep the full requirement in description and statement.", property.name),
+            )?;
+            require(
+                names.insert(&property.name),
+                &format!("Duplicate property name {:?}: each property needs a unique short label. Preserve all requirements and their statements.", property.name),
             )?;
             require(
                 property.description.len() <= 1024,
@@ -270,6 +274,23 @@ impl Contract {
     /// Immutable coding-copy file to snapshot for this contract.
     pub fn source(&self) -> &str {
         &self.source
+    }
+
+    /// Reviewed human-readable contract name, not evidence of its truth.
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    /// Ordered property labels, descriptions and formal statements for display.
+    /// Their proof status comes from the host's complete verification result.
+    pub fn properties(&self) -> impl ExactSizeIterator<Item = (&str, &str, &str)> {
+        self.properties.iter().map(|p| {
+            (
+                p.name.as_str(),
+                p.description.as_str(),
+                p.statement.as_str(),
+            )
+        })
     }
 
     /// Exact canonical bytes used by the accepted subject and checker.

@@ -149,7 +149,7 @@ Git/email audience adapters. Raw file exports carry no correctness claim.
 
 ## Project contract and verification
 
-With a host-prepared `MEDEN_VERIFIER_BUNDLE`, the model can use
+After `meden setup` (also automatic on the TUI's first launch), the model can use
 `propose_contract` to propose a bounded pure-u64 Rust transition contract.
 The host reviews and accepts the
 exact reference returned in `project.summary.reference`:

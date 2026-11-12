@@ -6,6 +6,7 @@ pub(super) enum Overlay {
     None,
     Commands,
     Help,
+    Evidence,
 }
 
 impl App {
@@ -15,8 +16,30 @@ impl App {
     pub(super) fn help_open(&self) -> bool {
         self.overlay == Overlay::Help
     }
+    pub(super) fn evidence_open(&self) -> bool {
+        self.overlay == Overlay::Evidence
+    }
 
     pub(super) fn global_key(&mut self, key: crossterm::event::KeyEvent) -> bool {
+        if matches!(self.screen, Screen::Instructing | Screen::Running) {
+            if key.code == KeyCode::Char('g') && key.modifiers == KeyModifiers::CONTROL {
+                if !self.busy && !self.evidence_open() {
+                    self.refresh_project_status();
+                }
+                self.overlay = if self.evidence_open() {
+                    Overlay::None
+                } else {
+                    Overlay::Evidence
+                };
+                self.scroll_back = 0;
+                return true;
+            }
+            if self.evidence_open() && key.code == KeyCode::Esc {
+                self.overlay = Overlay::None;
+                self.scroll_back = 0;
+                return true;
+            }
+        }
         if key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL) {
             if self.busy {
                 if self.processes.flag().load(Ordering::SeqCst) {
@@ -71,17 +94,19 @@ impl App {
         match code {
             KeyCode::PageUp => {
                 self.scroll_back = if self.help_open()
+                    || self.evidence_open()
                     || matches!(
                         self.screen,
                         Screen::ReviewingProcessor
                             | Screen::ReviewingExport
                             | Screen::ReviewingContract
                     ) {
-                    self.scroll_back.saturating_sub(if self.help_open() {
-                        10
-                    } else {
-                        self.review_page.max(1)
-                    })
+                    self.scroll_back
+                        .saturating_sub(if self.help_open() || self.evidence_open() {
+                            10
+                        } else {
+                            self.review_page.max(1)
+                        })
                 } else {
                     self.scroll_back.saturating_add(10)
                 };
@@ -89,17 +114,19 @@ impl App {
             }
             KeyCode::PageDown => {
                 self.scroll_back = if self.help_open()
+                    || self.evidence_open()
                     || matches!(
                         self.screen,
                         Screen::ReviewingProcessor
                             | Screen::ReviewingExport
                             | Screen::ReviewingContract
                     ) {
-                    self.scroll_back.saturating_add(if self.help_open() {
-                        10
-                    } else {
-                        self.review_page.max(1)
-                    })
+                    self.scroll_back
+                        .saturating_add(if self.help_open() || self.evidence_open() {
+                            10
+                        } else {
+                            self.review_page.max(1)
+                        })
                 } else {
                     self.scroll_back.saturating_sub(10)
                 };
@@ -115,7 +142,7 @@ impl App {
     }
 
     pub(super) fn clear_editor(&mut self) -> bool {
-        if self.help_open() {
+        if self.help_open() || self.evidence_open() {
             self.overlay = Overlay::None;
             return true;
         }
@@ -155,7 +182,7 @@ impl App {
             self.search_key(key);
             return;
         }
-        if self.help_open() {
+        if self.help_open() || self.evidence_open() {
             if key.code == KeyCode::Esc {
                 self.overlay = Overlay::None;
             }

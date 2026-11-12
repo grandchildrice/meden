@@ -14,7 +14,11 @@ languages and verification backends remain design targets.
 
 ## Conversation and host review
 
-Start `meden tui` with a local model and a host-prepared checker bundle.
+Start `meden tui` with your selected local or explicitly approved HTTP model.
+On Linux x86_64, the TUI automatically prepares and remembers the public checker
+resources before importing the project. No `MEDEN_VERIFIER_BUNDLE` setting is
+needed. Use `meden setup` ahead of time when the development session must start
+offline. A host-prepared bundle remains available as an explicit override.
 Describe the intended behavior, for example:
 
 > Build a counter that never decreases or wraps. Reject an increment that
@@ -284,13 +288,28 @@ This covers the checked pure kernel, not whole-application delivery or R1.
 
 ## Preparing resources and direct checks
 
-Prepare the public pinned Rust/Lean/Charon/Aeneas tools and built Lean
-libraries before confidential work. CI's
+The TUI's first-launch preparer installs pinned public Rust/Lean/Charon/Aeneas
+tools and built Lean libraries before confidential work. The versioned installation
+lives under `$XDG_DATA_HOME/meden/verifier/` (default `~/.local/share/meden/verifier/`).
+Rust, Lean and extractor archives have fixed SHA-256 checks; proof-library sources
+use the embedded Lake dependency lock. The preparer has an empty environment
+apart from fixed public tool paths and explicit host resource locations, an empty
+setup home, no project inputs and no model-selected requests. It may reuse the
+source binary's known built libraries only with the matching dependency lock.
+A full offline check of the bundled public counter runs before the manifest is
+published. Later launches reuse that manifest. This is trusted host preparation,
+not a proved installer, an OS egress firewall or a confidentiality theorem.
+Automatic preparation currently targets Linux x86_64 and needs Git, Curl, Tar,
+XZ and Zstd; it does not install system packages. Setup failure stops startup
+before project import. Coding, inference and checker sandbox profiles stay offline.
+
+For host-administered installations, CI's
 [Lean job](../.github/workflows/ci.yml) demonstrates the exact versions and
 verified downloads. The host records their paths with
 [`tools/prepare-verifier.py`](../tools/prepare-verifier.py), then sets
-`MEDEN_VERIFIER_BUNDLE` to that manifest before starting TUI/CLI. Missing
-assets do not trigger downloads, candidate configuration or a cloud fallback.
+`MEDEN_VERIFIER_BUNDLE` to that manifest before starting TUI/CLI. An explicit
+override is never silently replaced or downloaded. Missing resources in an
+active session do not trigger downloads, candidate configuration or a cloud fallback.
 Prepared Rust wrappers may reference their own sysroot by absolute path. The
 checker exposes only that Rust's selected executables and canonical `lib` there,
 read-only, in addition to its fixed private alias. It does not expose the
@@ -298,6 +317,18 @@ surrounding toolchain manager configuration or change the Rust selected for
 ordinary coding workers.
 Library symlinks retain their original alias alongside the canonical resource
 used for dependency resolution.
+
+The TUI's read-only evidence panel and `/proofs` view use native host summaries,
+including the separately retained accepted revision and typed check failure.
+They do not decode a successful proof from model/tool text. Each listed formal
+property shares the current backend's single complete refinement result; there
+is no invented partial coverage or counterexample classification. Input-changing
+tool admission immediately removes the displayed verified status. After relevant
+tool results, the worker refreshes the native summary, so repair and proof progress
+appear during the conversation. Explicit evidence inspection while idle also
+refreshes source/storage observations. Displayed status is a host observation,
+not continuous filesystem monitoring; delivery still checks freshness again.
+The view, setup, I/O observation and rendering remain adapters.
 
 For a direct host-administered check:
 

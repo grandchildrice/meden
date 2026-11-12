@@ -15,6 +15,7 @@ mod session;
 mod shell;
 mod text;
 mod tui;
+mod verifier;
 mod worker_file;
 mod workspace;
 
@@ -28,6 +29,8 @@ struct Cli {
 enum Command {
     /// List available HTTP model connections.
     Providers,
+    /// Prepare and remember the local verification tools (also automatic in TUI).
+    Setup,
     /// Open a conversational workspace agent.
     Tui(WorkspaceArgs),
     /// Run instructions from JSON Lines with private offline workspace tools.
@@ -176,6 +179,9 @@ fn run() -> Result<()> {
             std::path::Path::new("/workspace"),
         )?,
         Command::Providers => print_providers(),
+        Command::Setup => {
+            verifier::prepare()?;
+        }
         Command::Tui(args) => {
             let pages = load_pages(args.pages.as_deref())?;
             let local = args.model.local_config()?;

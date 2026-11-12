@@ -44,11 +44,13 @@ pub struct Reference {
 #[derive(Clone, Serialize)]
 pub struct Summary {
     pub reference: Reference,
+    pub accepted_reference: Option<Reference>,
     pub proposed: bool,
     /// Acceptance of the displayed contract, never of a pending replacement.
     pub accepted: bool,
     pub verified: bool,
     pub verification_failure: Option<FailureKind>,
+    pub verification_diagnostic: Option<String>,
     pub contract: Option<Contract>,
     pub accepted_contract: Option<Contract>,
     pub review: String,
@@ -148,7 +150,7 @@ impl Project {
         let contracts = Contracts::new(session.as_bytes().to_vec());
         Self {
             session,
-            bundle: std::env::var_os("MEDEN_VERIFIER_BUNDLE").map(PathBuf::from),
+            bundle: crate::verifier::manifest(),
             storage: root
                 .parent()
                 .and_then(Path::parent)
@@ -169,7 +171,7 @@ impl Project {
     fn bundle(&self) -> std::result::Result<Bundle, Failure> {
         let path = self.bundle.as_deref().ok_or_else(|| {
             Failure::unavailable(
-                "verification needs a host-prepared MEDEN_VERIFIER_BUNDLE before confidential work",
+                "Local verification tools are not prepared. Restart the TUI for automatic setup, or run `meden setup` before a CLI session.",
             )
         })?;
         Bundle::load(path).map_err(Failure::unavailable)
@@ -617,10 +619,15 @@ impl Project {
         };
         Ok(Summary {
             reference,
+            accepted_reference: accepted.as_ref().map(|a| a.reference(&self.session)),
             proposed: displayed.is_some(),
             accepted: state.contracts.is_accepted(),
             verified: verified && !state.dirty && !state.contracts.pending(),
             verification_failure: state.failure.as_ref().map(|f| f.kind),
+            verification_diagnostic: state
+                .failure
+                .as_ref()
+                .map(|failure| failure.to_string().chars().take(8000).collect()),
             contract: displayed.as_ref().map(|a| a.contract.clone()),
             accepted_contract: accepted.map(|a| a.contract),
             review,

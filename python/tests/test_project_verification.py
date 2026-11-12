@@ -454,6 +454,12 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
 
     args, env, _ = setup(tmp_path)
     args[1] = "tui"
+    # A real end-to-end proof flow also uses the managed installation without
+    # requiring the user to export a verifier environment variable.
+    managed = (Path(env["XDG_DATA_HOME"]) / "meden/verifier"
+               / "lean-4.35.0-aeneas-c5eb4a2-rust-2026-09-17/bundle.json")
+    managed.parent.mkdir(parents=True)
+    shutil.copyfile(env.pop("MEDEN_VERIFIER_BUNDLE"), managed)
     master, slave = pty.openpty()
     fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 45, 160, 0, 0))
     initial = termios.tcgetattr(slave)
@@ -502,10 +508,48 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
         wait_for(
             lambda: "VERIFIED project kernel" in rendered() and "shift+enter" in rendered(), 360
         )
+        assert "Specification r1 · accepted" in rendered()
+        assert "Checked package available" in rendered()
+        assert "✓ proved" in rendered()
+        (tmp_path / "verified-screen.txt").write_text(rendered())
+        (tmp_path / "verified-screen.ansi").write_bytes(output)
         artifacts = list((Path(env["XDG_DATA_HOME"]) / "meden/artifacts").glob("kernel-*"))
         assert len(artifacts) == 1
         assert_artifact(artifacts[0])
+        os.write(master, b"/proofs\r")
+        wait_for(lambda: "Properties of the implementation" in rendered()
+                 and "shift+enter" not in rendered())
+        assert "Lean refinement of the pure transition" in rendered()
+        assert "Contract SHA-256:" in rendered()
+        os.write(master, b"\x1b")
+        wait_for(lambda: "shift+enter" in rendered()
+                 and "Properties of the implementation" not in rendered())
+        working = next((Path(env["XDG_DATA_HOME"]) / "meden/workspaces").glob("session-*"))
+        (working / "ledger.rs").write_text(NOOP)
+        os.write(master, b"\x07")
+        wait_for(lambda: "Properties of the implementation" in rendered()
+                 and "recheck required" in rendered() and "shift+enter" not in rendered())
+        os.write(master, b"\x1b")
+        wait_for(lambda: "shift+enter" in rendered()
+                 and "Properties of the implementation" not in rendered())
+        assert "Delivery held" in rendered() and "✓ proved" not in rendered()
+        (tmp_path / "stale-screen.txt").write_text(rendered())
+        (tmp_path / "stale-screen.ansi").write_bytes(output)
+        (working / "ledger.rs").write_text(ALTERNATIVE)
+        os.write(master, b"\x07")
+        wait_for(lambda: "Properties of the implementation" in rendered()
+                 and "recheck required" in rendered() and "shift+enter" not in rendered())
+        assert "✓ proved" not in rendered(), "restoring bytes revived stale evidence"
+        os.write(master, b"\x1b")
+        wait_for(lambda: "shift+enter" in rendered()
+                 and "Properties of the implementation" not in rendered())
         os.write(master, b"\x03")
+        # Keep draining terminal output during shutdown. A final redraw/terminal
+        # restoration can fill the PTY if the parent only waits for process exit.
+        deadline = time.monotonic() + 5
+        while process.poll() is None and time.monotonic() < deadline:
+            if select.select([master], [], [], 0.05)[0]:
+                output.extend(os.read(master, 65536))
         process.wait(timeout=5)
         assert process.returncode == 0
         assert termios.tcgetattr(slave) == initial

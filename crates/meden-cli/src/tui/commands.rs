@@ -18,12 +18,16 @@ pub(super) const COMMANDS: &[(&str, &str)] = &[
     ("/keymap", "Show the current keyboard shortcuts"),
     ("/workspace", "Show the retained working directory"),
     ("/contract", "Review the project specification"),
+    (
+        "/proofs",
+        "Inspect requirements, proof scope and retained evidence",
+    ),
     ("/exports", "Review a pending delivery, or /exports <id>"),
     ("/quit", "Exit Meden"),
     ("/exit", "Exit Meden"),
 ];
 
-pub(super) const SHORTCUTS: &str = "Keyboard shortcuts\n\nEnter                 Send message / run selected command\nShift+Enter / Ctrl+J   Insert newline\nTab                   Complete selected slash command\nCtrl+T                Expand / collapse transcript details\nCtrl+O                Copy latest completed response\nCtrl+R                Search prompt history; repeat for older match\nCtrl+L                Clear the view; keep conversation context\nCtrl+C                Cancel work, clear draft, or exit when empty\nCtrl+D                Exit when empty; otherwise delete character\nEsc                   Close popup / cancel history search / stop work\n↑ / ↓, Ctrl+P / Ctrl+N Recall prompt history\nCtrl+A / Ctrl+E       Start / end of line\nCtrl+B / Ctrl+F       Move left / right\nAlt+B / Alt+F         Move one word\nCtrl+W / Ctrl+U / Ctrl+K Delete previous word / before cursor / after cursor\nCtrl+Y                Paste last deleted text\nPgUp / PgDn           Scroll conversation or review details\n\nShift+Enter requires a terminal that reports modified Enter. Ctrl+J works in legacy terminals.\n\nEsc closes this help. Type / to browse commands.";
+pub(super) const SHORTCUTS: &str = "Keyboard shortcuts\n\nEnter                 Send message / run selected command\nShift+Enter / Ctrl+J   Insert newline\nTab                   Complete selected slash command\nCtrl+T                Expand / collapse transcript details\nCtrl+G                Inspect specification and evidence / return\nCtrl+O                Copy latest completed response\nCtrl+R                Search prompt history; repeat for older match\nCtrl+L                Clear the view; keep conversation context\nCtrl+C                Cancel work, clear draft, or exit when empty\nCtrl+D                Exit when empty; otherwise delete character\nEsc                   Close popup / cancel history search / stop work\n↑ / ↓, Ctrl+P / Ctrl+N Recall prompt history\nCtrl+A / Ctrl+E       Start / end of line\nCtrl+B / Ctrl+F       Move left / right\nAlt+B / Alt+F         Move one word\nCtrl+W / Ctrl+U / Ctrl+K Delete previous word / before cursor / after cursor\nCtrl+Y                Paste last deleted text\nPgUp / PgDn           Scroll conversation or review details\n\nShift+Enter requires a terminal that reports modified Enter. Ctrl+J works in legacy terminals.\n\nEsc closes this help. Type / to browse commands.";
 
 impl App {
     pub(super) fn matching_commands(&self) -> Vec<(&'static str, &'static str)> {
@@ -153,6 +157,7 @@ impl App {
             ("/quit" | "/exit", []) => self.quit_requested = true,
             ("/workspace", []) => self.say(format!("Files: {}\nThis is the retained working copy. The original project is unchanged.", self.root.display()), Style::new()),
             ("/contract", []) => self.open_contract(),
+            ("/proofs", []) => { self.refresh_project_status(); self.overlay = Overlay::Evidence; self.scroll_back = 0; }
             ("/exports", []) => self.open_export(None),
             ("/exports", [id]) => match id.parse() {
                 Ok(id) => self.open_export(Some(id)),

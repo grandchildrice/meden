@@ -6,7 +6,7 @@ use ratatui::widgets::{Block, BorderType, Clear, List, ListItem, Paragraph, Wrap
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
-use super::{visible, App, Screen, Speaker, ToolLine, TranscriptLine};
+use super::{assurance, visible, App, Screen, Speaker, ToolLine, TranscriptLine};
 
 const ACCENT: Color = Color::Cyan;
 const MUTED: Color = Color::Rgb(146, 154, 168);
@@ -24,7 +24,7 @@ pub(super) fn draw(frame: &mut Frame<'_>, app: &mut App) {
     // Respect the user's terminal background and keep text to a readable width.
     frame.render_widget(Block::default(), frame.area());
     let area = reading_area(frame.area());
-    let bottom_rows = if app.screen == Screen::Instructing {
+    let bottom_rows = if app.screen == Screen::Instructing && !app.evidence_open() {
         let rows = app
             .instruction
             .view(usize::from(area.width.saturating_sub(2)))
@@ -54,9 +54,12 @@ pub(super) fn draw(frame: &mut Frame<'_>, app: &mut App) {
         Screen::ReviewingProcessor => draw_processor_review(frame, app, body),
         Screen::ReviewingContract => draw_contract_review(frame, app, body),
         Screen::ReviewingExport => draw_export_review(frame, app, body),
-        Screen::Instructing | Screen::Running => draw_conversation(frame, app, body),
+        Screen::Instructing | Screen::Running => {
+            let body = draw_assurance(frame, app, body);
+            draw_conversation(frame, app, body);
+        }
     }
-    if app.screen == Screen::Instructing {
+    if app.screen == Screen::Instructing && !app.evidence_open() {
         draw_input(frame, app, footer);
         if app.menu_open() && !app.help_open() && app.instruction.search_query().is_none() {
             draw_commands(frame, app, body);
@@ -105,6 +108,47 @@ fn draw_header(frame: &mut Frame<'_>, app: &App, area: Rect) {
         ]),
         area,
     );
+}
+
+fn draw_assurance(frame: &mut Frame<'_>, app: &App, area: Rect) -> Rect {
+    if app.help_open() || app.evidence_open() {
+        return area;
+    }
+    let lines = assurance::panel(app);
+    if lines.is_empty() {
+        return area;
+    }
+    // Preserve conversation space on short terminals. Status and the delivery
+    // reason precede optional property previews, so those remain visible first.
+    let height = u16::try_from(lines.len())
+        .unwrap_or(u16::MAX)
+        .saturating_add(2)
+        .min(area.height.saturating_sub(5));
+    if height < 5 {
+        return area;
+    }
+    let parts = Layout::vertical([Constraint::Length(height), Constraint::Min(1)]).split(area);
+    let panel = parts.first().copied().unwrap_or_default();
+    let inner_width = panel.width.saturating_sub(2);
+    let lines: Vec<_> = lines
+        .into_iter()
+        .map(|line| {
+            Line::styled(
+                ellipsize(&line.to_string(), usize::from(inner_width)),
+                line.style,
+            )
+        })
+        .collect();
+    frame.render_widget(
+        Paragraph::new(lines).block(
+            Block::bordered()
+                .border_type(BorderType::Rounded)
+                .border_style(muted())
+                .title(" Specification & evidence · ctrl+g "),
+        ),
+        panel,
+    );
+    parts.get(1).copied().unwrap_or_default()
 }
 
 fn draw_picker(frame: &mut Frame<'_>, app: &mut App, area: Rect) {
@@ -156,6 +200,15 @@ fn draw_picker(frame: &mut Frame<'_>, app: &mut App, area: Rect) {
 }
 
 fn draw_conversation(frame: &mut Frame<'_>, app: &App, area: Rect) {
+    if app.evidence_open() {
+        frame.render_widget(
+            Paragraph::new(assurance::details(app))
+                .wrap(Wrap { trim: false })
+                .scroll((app.scroll_back, 0)),
+            area,
+        );
+        return;
+    }
     if app.help_open() {
         let commands = super::commands::COMMANDS
             .iter()
@@ -629,6 +682,11 @@ fn draw_input(frame: &mut Frame<'_>, app: &App, area: Rect) {
                 muted(),
             ),
         ]
+    } else if app.evidence_open() {
+        vec![Line::styled(
+            "ctrl+g / esc back · PgUp/PgDn evidence · /contract reviews acceptance",
+            muted(),
+        )]
     } else if app.help_open() {
         vec![Line::styled("esc close help · PgUp/PgDn scroll", muted())]
     } else {
@@ -638,7 +696,7 @@ fn draw_input(frame: &mut Frame<'_>, app: &App, area: Rect) {
                 muted(),
             ),
             Line::styled(
-                "/ commands · ? shortcuts · /model connection · PgUp/PgDn scroll",
+                "ctrl+g evidence · / commands · ? shortcuts · PgUp/PgDn scroll",
                 muted(),
             ),
         ]
@@ -689,6 +747,13 @@ fn activity_line(app: &App) -> Line<'static> {
 }
 
 fn draw_controls(frame: &mut Frame<'_>, app: &App, area: Rect) {
+    if app.screen == Screen::Instructing && app.evidence_open() {
+        frame.render_widget(
+            Paragraph::new("ctrl+g / esc back · PgUp/PgDn evidence").style(muted()),
+            area,
+        );
+        return;
+    }
     if is_review(&app.screen) && !approval_visible(app) {
         frame.render_widget(
             Paragraph::new("Approval unavailable:\nEnlarge terminal. n: back")
@@ -707,7 +772,11 @@ fn draw_controls(frame: &mut Frame<'_>, app: &App, area: Rect) {
         Screen::Running => vec![
             activity_line(app),
             Line::styled(
-                "esc / ctrl-c cancel · ctrl+t transcript · ctrl+o copy · PgUp/PgDn scroll",
+                if app.evidence_open() {
+                    "ctrl+g / esc back · PgUp/PgDn evidence · ctrl-c cancel"
+                } else {
+                    "esc / ctrl-c cancel · ctrl+g evidence · ctrl+t transcript · PgUp/PgDn scroll"
+                },
                 muted(),
             ),
         ],
@@ -838,7 +907,8 @@ fn draw_contract_review(frame: &mut Frame<'_>, app: &mut App, area: Rect) {
         review.reference.revision, review.reference.contract
     );
     let details = format!(
-        "\n{}\n\nAccepting continues development under this exact contract.",
+        "\n{}{}\n\nAccepting continues development under this exact contract.",
+        assurance::changes(review),
         review.review
     );
     let title = if review.accepted {

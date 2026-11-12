@@ -29,6 +29,7 @@ use ratatui::prelude::*;
 use ratatui::widgets::ListState;
 
 mod approval;
+mod assurance;
 mod commands;
 mod editor;
 mod input;
@@ -254,6 +255,9 @@ impl App {
         }
     }
     fn tool_started(&mut self, id: String, name: &str, arguments: &str, refused: Option<String>) {
+        if name == "verify_project" && refused.is_none() {
+            self.project_dirty();
+        }
         self.activity = Some(format!("Running {}", visible(name)));
         self.lines.push(TranscriptLine::Tool(ToolLine {
             stdout: String::new(),
@@ -568,9 +572,18 @@ impl App {
             self.reasoning = None;
             thread::spawn(move || {
                 match crate::session::Session::new(
-                    workspace, gateway, processes, &exports, &pages, &project,
+                    Arc::clone(&workspace),
+                    gateway,
+                    Arc::clone(&processes),
+                    &exports,
+                    &pages,
+                    &project,
                 ) {
-                    Ok(session) => worker(session, &tasks, &updates),
+                    Ok(session) => worker(session, &tasks, &updates, || {
+                        project
+                            .status(&workspace, &processes)
+                            .or_else(|_| project.stored_status())
+                    }),
                     Err(error) => {
                         let _ = updates.send(Update::Done {
                             text: format!("Failed: {error}"),
@@ -652,6 +665,33 @@ impl App {
         }
     }
 
+    fn project_dirty(&mut self) {
+        if let Some(status) = &mut self.project_status {
+            status.verified = false;
+            if status
+                .verification_failure
+                .is_some_and(meden_runtime::verification::FailureKind::repairable)
+            {
+                status.verification_failure = None;
+                status.verification_diagnostic = None;
+            }
+        }
+    }
+
+    fn refresh_project_status(&mut self) {
+        if let Some(workspace) = &self.workspace {
+            if let Ok(summary) = self
+                .project
+                .status(workspace, &self.processes)
+                .or_else(|_| self.project.stored_status())
+            {
+                self.project_status = Some(summary);
+            } else {
+                self.project_dirty();
+            }
+        }
+    }
+
     fn poll(&mut self) {
         let mut updates = Vec::new();
         let mut disconnected = false;
@@ -704,11 +744,7 @@ impl App {
                     }
                     self.project_status = Some(*summary);
                 }
-                Update::ProjectDirty => {
-                    if let Some(status) = &mut self.project_status {
-                        status.verified = false;
-                    }
-                }
+                Update::ProjectDirty => self.project_dirty(),
                 Update::Asking(round) => {
                     self.draft = None;
                     self.reasoning = None;
@@ -763,8 +799,15 @@ impl Drop for App {
     }
 }
 
-fn worker(mut session: crate::session::Session, tasks: &Receiver<String>, tx: &Sender<Update>) {
+fn worker(
+    mut session: crate::session::Session,
+    tasks: &Receiver<String>,
+    tx: &Sender<Update>,
+    inspect: impl Fn() -> Result<crate::project::Summary>,
+) {
     let observer = |event: Event<'_>| {
+        let refresh_project = matches!(&event, Event::ToolResult { call, .. }
+            if matches!(call.function.name.as_str(), "verify_project" | "propose_contract" | "project_status" | "write_file" | "edit_file" | "bash"));
         let update = match event {
             Event::Delta(delta) => match delta {
                 Delta::Text(text) => Update::Delta {
@@ -795,28 +838,7 @@ fn worker(mut session: crate::session::Session, tasks: &Receiver<String>, tx: &S
                 arguments: call.function.arguments.clone(),
                 refused: refusal.map(|(_, reason)| reason.to_owned()),
             },
-            Event::ToolResult { call, text, error } => {
-                let limit = if call.function.name == "bash" {
-                    300_000
-                } else {
-                    1200
-                };
-                let excerpt: String = text.chars().take(limit).collect();
-                Update::ToolFinished {
-                    id: call.id.clone(),
-                    name: call.function.name.clone(),
-                    arguments: call.function.arguments.clone(),
-                    text: format!(
-                        "{excerpt}{}",
-                        if excerpt.len() < text.len() {
-                            "…"
-                        } else {
-                            ""
-                        }
-                    ),
-                    error,
-                }
-            }
+            Event::ToolResult { call, text, error } => tool_result_update(call, text, error),
         };
         if let Event::Decision {
             call,
@@ -831,6 +853,11 @@ fn worker(mut session: crate::session::Session, tasks: &Receiver<String>, tx: &S
             }
         }
         let _ = tx.send(update);
+        if refresh_project {
+            if let Ok(summary) = inspect() {
+                let _ = tx.send(Update::Project(Box::new(summary)));
+            }
+        }
     };
     while let Ok(instruction) = tasks.recv() {
         let status = session.run(&instruction, &observer);
@@ -858,6 +885,33 @@ fn worker(mut session: crate::session::Session, tasks: &Receiver<String>, tx: &S
         {
             return;
         }
+    }
+}
+
+fn tool_result_update(
+    call: &meden_agent::conversation::ToolCall,
+    text: &str,
+    error: bool,
+) -> Update {
+    let limit = if call.function.name == "bash" {
+        300_000
+    } else {
+        1200
+    };
+    let excerpt: String = text.chars().take(limit).collect();
+    Update::ToolFinished {
+        id: call.id.clone(),
+        name: call.function.name.clone(),
+        arguments: call.function.arguments.clone(),
+        text: format!(
+            "{excerpt}{}",
+            if excerpt.len() < text.len() {
+                "…"
+            } else {
+                ""
+            }
+        ),
+        error,
     }
 }
 
@@ -899,6 +953,7 @@ pub fn run(
         local.is_some() || !providers.is_empty(),
         "TUI requires an OpenAI-compatible HTTP provider; see `meden providers`"
     );
+    crate::verifier::prepare()?;
     let workspace = Arc::new(Workspace::import(root, &std::env::current_exe()?)?);
     let mut app = App::new(providers, workspace.path().to_owned());
     app.pages = pages;
@@ -955,7 +1010,7 @@ where
         }
         let event = event::read()?;
         if let event::Event::Paste(text) = event {
-            if app.screen == Screen::Instructing {
+            if app.screen == Screen::Instructing && !app.evidence_open() {
                 if app.instruction.search_query().is_some() {
                     app.instruction.search_insert(&text);
                 } else {
