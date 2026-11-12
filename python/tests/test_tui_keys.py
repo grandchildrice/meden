@@ -4,6 +4,7 @@ import base64
 import codecs
 import json
 import os
+import re
 import select
 import shutil
 import subprocess
@@ -35,7 +36,10 @@ def test_modified_enter_commands_history_clipboard_and_terminal_restoration(tmp_
 
         def do_POST(self):
             requests.append(json.loads(self.rfile.read(int(self.headers["Content-Length"]))))
-            payload = json.dumps({"choices": [{"message": {"content": f"ANSWER-{len(requests)}"},
+            content = f"ANSWER-{len(requests)}"
+            if len(requests) == 6:
+                content = "\n".join(f"scroll-row-{i:02}" for i in range(50)) + "\n" + content
+            payload = json.dumps({"choices": [{"message": {"content": content},
                                                "finish_reason": "stop"}]}).encode()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
@@ -93,6 +97,7 @@ def test_modified_enter_commands_history_clipboard_and_terminal_restoration(tmp_
     try:
         wait_for(lambda: "Connection details" in view())
         assert b"\x1b[>1u" in output, "modified-key reporting was not enabled"
+        assert b"\x1b[?1006h" in output, "mouse reporting was not enabled"
         os.write(master, b"\x1b[13;2u\n\x1b[200~y\x1b[201~\r")
         os.write(master, b"y")
         wait_for(lambda: "shift+enter" in view())
@@ -163,14 +168,55 @@ def test_modified_enter_commands_history_clipboard_and_terminal_restoration(tmp_
         os.write(master, b"fresh again\r")
         answer(5)
         assert len(requests[4]["messages"]) == 2
+        os.write(master, b"scroll fixture\r")
+        answer(6)
+        os.write(master, b"draft survives scrolling")
+        wait_for(lambda: "> draft survives scrolling" in view())
+
+        def last_visible_row():
+            return max((int(n) for n in re.findall(r"scroll-row-(\d\d)", view())), default=-1)
+
+        def first_visible_row():
+            return min((int(n) for n in re.findall(r"scroll-row-(\d\d)", view())), default=50)
+
+        bottom_first = first_visible_row()
+
+        # Real SGR wheel reports must scroll the transcript, without recalling
+        # old prompts into the composer or making an inference request.
+        os.write(master, b"\x1b[<64;50;10M")
+        wait_for(lambda: 0 <= last_visible_row() < 49)
+        assert "> draft survives scrolling" in view() and len(requests) == 6
+        os.write(master, b"\x1b[<65;50;10M")
+        wait_for(lambda: first_visible_row() == bottom_first)
+        for up, down in [(b"\x1b[5~", b"\x1b[6~"), (b"\x1b[1;2A", b"\x1b[1;2B")]:
+            os.write(master, up)
+            wait_for(lambda: first_visible_row() < bottom_first)
+            assert "> draft survives scrolling" in view()
+            os.write(master, down)
+            wait_for(lambda: first_visible_row() == bottom_first)
+
+        os.write(master, b"\x1b[1;5H")  # Ctrl+Home: oldest transcript row.
+        wait_for(lambda: "Conversation cleared." in view())
+        os.write(master, b"\x1b[<64;50;10M" * 30)
+        os.write(master, b"\x1b[<65;50;10M")
+        wait_for(lambda: "Conversation cleared." not in view())
+        os.write(master, b"\x1b[1;5F")  # Ctrl+End: latest transcript row.
+        wait_for(lambda: first_visible_row() == bottom_first)
+        os.write(master, b"\x15/help\r")
+        wait_for(lambda: "Keyboard shortcuts" in view())
+        os.write(master, b"\x1b[<65;50;10M")
+        wait_for(lambda: "Keyboard shortcuts" not in view())
+        os.write(master, b"\x1b")
+        wait_for(lambda: last_visible_row() == 49)
         os.write(master, b"/quit\r")
         assert process.wait(timeout=5) == 0
         # Drain the terminal restoration bytes after the child exits.
         while select.select([master], [], [], .05)[0]:
             output.extend(os.read(master, 65536))
         assert b"\x1b[<1u" in output, "keyboard mode was not restored"
+        assert b"\x1b[?1006l" in output, "mouse reporting was not restored"
         assert termios.tcgetattr(slave) == initial
-        assert len(requests) == 5, "host commands were sent to inference"
+        assert len(requests) == 6, "scrolling or host commands were sent to inference"
     finally:
         if process.poll() is None:
             process.kill()

@@ -237,7 +237,10 @@ session as the TUI. [CLI protocol →](docs/cli.md)
 | Ctrl-G / `/proofs` | Inspect requirements, evidence, assumptions and delivery hold reason |
 | Ctrl-O / `/copy` | Copy the latest completed response through the terminal clipboard |
 | Ctrl-L | Clear the view while retaining conversation context |
-| PgUp / PgDn | Scroll the conversation |
+| Mouse wheel / trackpad | Scroll the conversation or review details without changing the draft |
+| PgUp / PgDn | Scroll one viewport page |
+| Shift-Up / Shift-Down | Scroll one line |
+| Ctrl-Home / Ctrl-End | Jump to the beginning / end of the conversation or details |
 | `/`, Tab, Up/Down | Browse and complete slash commands |
 | `/model` / `/model NAME` | Choose a connection / review a new model binding |
 | `/new` / `/clear` | Start a fresh chat / also clear the visible transcript; retain files |
@@ -251,7 +254,7 @@ session as the TUI. [CLI protocol →](docs/cli.md)
 
 Common controls follow the [Codex CLI command reference](https://learn.chatgpt.com/docs/developer-commands?surface=cli).
 Shift-Enter uses modified-key reporting in compatible terminals; Ctrl-J works
-in legacy terminals. Keyboard and paste modes are restored on exit. Clipboard
+in legacy terminals. Keyboard, paste and mouse modes are restored on exit. Clipboard
 copy uses OSC 52, subject to the terminal's clipboard support. `/keymap` displays
 Meden's current bindings. Meden's specification and delivery approvals retain
 their exact local `y` confirmation.

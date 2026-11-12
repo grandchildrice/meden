@@ -90,60 +90,68 @@ impl App {
         false
     }
 
-    pub(super) fn scroll_key(&mut self, code: KeyCode) -> bool {
-        match code {
-            KeyCode::PageUp => {
-                self.scroll_back = if self.help_open()
-                    || self.evidence_open()
-                    || matches!(
-                        self.screen,
-                        Screen::ReviewingProcessor
-                            | Screen::ReviewingExport
-                            | Screen::ReviewingContract
-                    ) {
-                    self.scroll_back
-                        .saturating_sub(if self.help_open() || self.evidence_open() {
-                            10
-                        } else {
-                            self.review_page.max(1)
-                        })
-                } else {
-                    self.scroll_back.saturating_add(10)
-                };
-                return true;
-            }
-            KeyCode::PageDown => {
-                self.scroll_back = if self.help_open()
-                    || self.evidence_open()
-                    || matches!(
-                        self.screen,
-                        Screen::ReviewingProcessor
-                            | Screen::ReviewingExport
-                            | Screen::ReviewingContract
-                    ) {
-                    self.scroll_back
-                        .saturating_add(if self.help_open() || self.evidence_open() {
-                            10
-                        } else {
-                            self.review_page.max(1)
-                        })
-                } else {
-                    self.scroll_back.saturating_sub(10)
-                };
-                return true;
-            }
-            KeyCode::End if self.screen != Screen::Instructing => {
-                self.scroll_back = 0;
-                return true;
-            }
-            _ => {}
+    fn document_scroll(&self) -> bool {
+        self.help_open()
+            || self.evidence_open()
+            || matches!(
+                self.screen,
+                Screen::ReviewingProcessor | Screen::ReviewingExport | Screen::ReviewingContract
+            )
+    }
+
+    fn scroll_lines(&mut self, up: bool, rows: u16) {
+        self.scroll_back = if up == self.document_scroll() {
+            self.scroll_back.saturating_sub(rows)
+        } else {
+            self.scroll_back.saturating_add(rows)
         }
-        false
+        .min(self.scroll_limit);
+    }
+
+    pub(super) fn mouse(&mut self, kind: crossterm::event::MouseEventKind) {
+        use crossterm::event::MouseEventKind;
+        let up = match kind {
+            MouseEventKind::ScrollUp => true,
+            MouseEventKind::ScrollDown => false,
+            _ => return,
+        };
+        if self.screen == Screen::Picking {
+            self.move_selection(if up { -1 } else { 1 });
+        } else {
+            self.scroll_lines(up, 3);
+        }
+    }
+
+    pub(super) fn scroll_key(&mut self, key: crossterm::event::KeyEvent) -> bool {
+        if self.screen == Screen::Picking {
+            return false;
+        }
+        match key.code {
+            KeyCode::PageUp => self.scroll_lines(true, self.scroll_page.max(1)),
+            KeyCode::PageDown => self.scroll_lines(false, self.scroll_page.max(1)),
+            KeyCode::Up if key.modifiers == KeyModifiers::SHIFT => self.scroll_lines(true, 1),
+            KeyCode::Down if key.modifiers == KeyModifiers::SHIFT => self.scroll_lines(false, 1),
+            KeyCode::Home | KeyCode::End
+                if self.screen != Screen::Instructing
+                    || self.document_scroll()
+                    || key.modifiers == KeyModifiers::CONTROL =>
+            {
+                let beginning = key.code == KeyCode::Home;
+                self.scroll_back = if beginning == self.document_scroll() {
+                    0
+                } else {
+                    self.scroll_limit
+                };
+            }
+            _ => return false,
+        }
+        true
     }
 
     pub(super) fn clear_editor(&mut self) -> bool {
         if self.help_open() || self.evidence_open() {
             self.overlay = Overlay::None;
+            self.scroll_back = 0;
             return true;
         }
         if self.instruction.search_query().is_some() {
@@ -185,6 +193,7 @@ impl App {
         if self.help_open() || self.evidence_open() {
             if key.code == KeyCode::Esc {
                 self.overlay = Overlay::None;
+                self.scroll_back = 0;
             }
             return;
         }

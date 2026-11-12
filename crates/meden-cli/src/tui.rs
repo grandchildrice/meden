@@ -133,6 +133,7 @@ struct App {
     worker_gateway: Option<Arc<Gateway>>,
     processes: Arc<Control>,
     scroll_back: u16,
+    scroll_limit: u16,
     view_start: usize,
     response_start: usize,
     overlay: Overlay,
@@ -143,7 +144,7 @@ struct App {
     review_area: Rect,
     review_frame: Rect,
     review_rows: u16,
-    review_page: u16,
+    scroll_page: u16,
 }
 
 impl App {
@@ -181,6 +182,7 @@ impl App {
             worker_gateway: None,
             processes: Arc::new(Control::new(Arc::new(AtomicBool::new(false)))),
             scroll_back: 0,
+            scroll_limit: 0,
             view_start: 0,
             response_start: 0,
             overlay: Overlay::None,
@@ -190,7 +192,7 @@ impl App {
             review_area: Rect::default(),
             review_frame: Rect::default(),
             review_rows: 0,
-            review_page: 0,
+            scroll_page: 0,
         }
     }
     fn selected(&self) -> Option<&Provider> {
@@ -924,6 +926,7 @@ impl TerminalGuard {
         io::stdout()
             .execute(EnterAlternateScreen)?
             .execute(EnableBracketedPaste)?
+            .execute(event::EnableMouseCapture)?
             .execute(PushKeyboardEnhancementFlags(
                 KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES,
             ))?;
@@ -936,6 +939,7 @@ impl Drop for TerminalGuard {
         let _ = io::stdout()
             .execute(PopKeyboardEnhancementFlags)
             .and_then(|out| out.execute(DisableBracketedPaste))
+            .and_then(|out| out.execute(event::DisableMouseCapture))
             .and_then(|out| out.execute(LeaveAlternateScreen))
             .and_then(|out| out.execute(crossterm::cursor::Show));
     }
@@ -1009,6 +1013,10 @@ where
             continue;
         }
         let event = event::read()?;
+        if let event::Event::Mouse(mouse) = event {
+            app.mouse(mouse.kind);
+            continue;
+        }
         if let event::Event::Paste(text) = event {
             if app.screen == Screen::Instructing && !app.evidence_open() {
                 if app.instruction.search_query().is_some() {
@@ -1039,7 +1047,7 @@ where
                 continue;
             }
         }
-        if app.scroll_key(key.code) {
+        if app.scroll_key(key) {
             continue;
         }
         match app.screen {

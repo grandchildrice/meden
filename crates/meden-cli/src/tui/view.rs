@@ -20,6 +20,8 @@ fn accent() -> Style {
 
 pub(super) fn draw(frame: &mut Frame<'_>, app: &mut App) {
     app.review_area = Rect::default();
+    app.scroll_limit = 0;
+    app.scroll_page = 0;
     app.review_frame = frame.area();
     // Respect the user's terminal background and keep text to a readable width.
     frame.render_widget(Block::default(), frame.area());
@@ -199,13 +201,14 @@ fn draw_picker(frame: &mut Frame<'_>, app: &mut App, area: Rect) {
     );
 }
 
-fn draw_conversation(frame: &mut Frame<'_>, app: &App, area: Rect) {
+fn draw_conversation(frame: &mut Frame<'_>, app: &mut App, area: Rect) {
     if app.evidence_open() {
-        frame.render_widget(
-            Paragraph::new(assurance::details(app))
-                .wrap(Wrap { trim: false })
-                .scroll((app.scroll_back, 0)),
+        render_scrolled(
+            frame,
+            app,
+            Paragraph::new(assurance::details(app)).wrap(Wrap { trim: false }),
             area,
+            false,
         );
         return;
     }
@@ -215,14 +218,16 @@ fn draw_conversation(frame: &mut Frame<'_>, app: &App, area: Rect) {
             .map(|(name, description)| format!("{name:12} {description}"))
             .collect::<Vec<_>>()
             .join("\n");
-        frame.render_widget(
+        render_scrolled(
+            frame,
+            app,
             Paragraph::new(format!(
                 "{}\n\nCommands\n\n{commands}",
                 super::commands::SHORTCUTS
             ))
-            .wrap(Wrap { trim: false })
-            .scroll((app.scroll_back, 0)),
+            .wrap(Wrap { trim: false }),
             area,
+            false,
         );
         return;
     }
@@ -285,10 +290,25 @@ fn draw_conversation(frame: &mut Frame<'_>, app: &App, area: Rect) {
         }
     }
     let paragraph = Paragraph::new(lines).wrap(Wrap { trim: false });
+    render_scrolled(frame, app, paragraph, area, true);
+}
+
+fn render_scrolled(
+    frame: &mut Frame<'_>,
+    app: &mut App,
+    paragraph: Paragraph<'_>,
+    area: Rect,
+    from_bottom: bool,
+) {
     let rows = u16::try_from(paragraph.line_count(area.width)).unwrap_or(u16::MAX);
-    let offset = rows
-        .saturating_sub(area.height)
-        .saturating_sub(app.scroll_back);
+    app.scroll_limit = rows.saturating_sub(area.height);
+    app.scroll_page = area.height;
+    app.scroll_back = app.scroll_back.min(app.scroll_limit);
+    let offset = if from_bottom {
+        app.scroll_limit.saturating_sub(app.scroll_back)
+    } else {
+        app.scroll_back
+    };
     frame.render_widget(paragraph.scroll((offset, 0)), area);
 }
 
@@ -684,11 +704,14 @@ fn draw_input(frame: &mut Frame<'_>, app: &App, area: Rect) {
         ]
     } else if app.evidence_open() {
         vec![Line::styled(
-            "ctrl+g / esc back · PgUp/PgDn evidence · /contract reviews acceptance",
+            "ctrl+g / esc back · wheel / PgUp/PgDn evidence · /contract reviews acceptance",
             muted(),
         )]
     } else if app.help_open() {
-        vec![Line::styled("esc close help · PgUp/PgDn scroll", muted())]
+        vec![Line::styled(
+            "esc close help · wheel / PgUp/PgDn scroll",
+            muted(),
+        )]
     } else {
         vec![
             Line::styled(
@@ -696,7 +719,7 @@ fn draw_input(frame: &mut Frame<'_>, app: &App, area: Rect) {
                 muted(),
             ),
             Line::styled(
-                "ctrl+g evidence · / commands · ? shortcuts · PgUp/PgDn scroll",
+                "ctrl+g evidence · / commands · ? shortcuts · wheel / PgUp/PgDn scroll",
                 muted(),
             ),
         ]
@@ -749,7 +772,7 @@ fn activity_line(app: &App) -> Line<'static> {
 fn draw_controls(frame: &mut Frame<'_>, app: &App, area: Rect) {
     if app.screen == Screen::Instructing && app.evidence_open() {
         frame.render_widget(
-            Paragraph::new("ctrl+g / esc back · PgUp/PgDn evidence").style(muted()),
+            Paragraph::new("ctrl+g / esc back · wheel / PgUp/PgDn evidence").style(muted()),
             area,
         );
         return;
@@ -773,9 +796,9 @@ fn draw_controls(frame: &mut Frame<'_>, app: &App, area: Rect) {
             activity_line(app),
             Line::styled(
                 if app.evidence_open() {
-                    "ctrl+g / esc back · PgUp/PgDn evidence · ctrl-c cancel"
+                    "ctrl+g / esc back · wheel / PgUp/PgDn evidence · ctrl-c cancel"
                 } else {
-                    "esc / ctrl-c cancel · ctrl+g evidence · ctrl+t transcript · PgUp/PgDn scroll"
+                    "esc / ctrl-c cancel · ctrl+g evidence · ctrl+t transcript · wheel / PgUp/PgDn scroll"
                 },
                 muted(),
             ),
@@ -808,7 +831,7 @@ fn actions(action: &str, alternative: &str) -> Vec<Line<'static>> {
             Span::raw(format!("  {alternative}")),
         ]),
         Line::styled(
-            "PgUp/PgDn details · Enter and paste do not approve.",
+            "wheel / PgUp/PgDn details · Enter and paste do not approve.",
             muted(),
         ),
     ]
@@ -847,7 +870,6 @@ fn draw_review(frame: &mut Frame<'_>, app: &mut App, area: Rect, review: Review<
     let fixed = parts.get(1).copied().unwrap_or_default();
     let details = parts.get(2).copied().unwrap_or_default();
     app.review_area = fixed;
-    app.review_page = details.height;
     frame.render_widget(
         heading.block(
             Block::bordered()
@@ -857,12 +879,14 @@ fn draw_review(frame: &mut Frame<'_>, app: &mut App, area: Rect, review: Review<
         ),
         fixed,
     );
-    frame.render_widget(
+    render_scrolled(
+        frame,
+        app,
         Paragraph::new(visible(review.details))
             .style(muted())
-            .wrap(Wrap { trim: false })
-            .scroll((app.scroll_back, 0)),
+            .wrap(Wrap { trim: false }),
         details,
+        false,
     );
 }
 
