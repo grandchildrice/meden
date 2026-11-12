@@ -72,9 +72,10 @@ fn status_error(code: u16) -> ModelError {
         429 => "provider usage or rate limit reached; wait for the account limit to reset",
         _ => "request did not complete successfully",
     };
-    ModelError::Unavailable(format!(
-        "model endpoint returned HTTP {code}: {reason}; no retry, account rotation or API-key fallback"
-    ))
+    ModelError::Http {
+        status: code,
+        reason: format!("{reason}; no automatic retry, account rotation or API-key fallback"),
+    }
 }
 
 pub(crate) fn invalid(message: &str) -> ModelError {

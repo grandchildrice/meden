@@ -3,6 +3,10 @@ use super::{editor::Overlay, App, Screen, Speaker, TranscriptLine};
 use ratatui::prelude::*;
 
 pub(super) const COMMANDS: &[(&str, &str)] = &[
+    (
+        "/retry",
+        "Continue the stopped task from current files and conversation",
+    ),
     ("/model", "Choose a connection or set /model <name>"),
     (
         "/new",
@@ -60,22 +64,23 @@ impl App {
     }
 
     pub(super) fn copy_latest(&mut self) {
-        self.copy_request = self
-            .lines
-            .iter()
-            .skip(self.response_start)
-            .rev()
-            .find_map(|line| {
-                if let TranscriptLine::Message {
-                    speaker: Speaker::Assistant,
-                    text,
-                } = line
-                {
-                    Some(text.clone())
-                } else {
-                    None
-                }
-            });
+        self.copy_request = self.last_stop.clone().or_else(|| {
+            self.lines
+                .iter()
+                .skip(self.response_start)
+                .rev()
+                .find_map(|line| {
+                    if let TranscriptLine::Message {
+                        speaker: Speaker::Assistant,
+                        text,
+                    } = line
+                    {
+                        Some(text.clone())
+                    } else {
+                        None
+                    }
+                })
+        });
         let message = if self.copy_request.is_some() {
             "Latest response sent to the terminal clipboard."
         } else {
@@ -100,10 +105,13 @@ impl App {
         self.instruction.clear();
         self.draft = None;
         self.reasoning = None;
+        self.last_stop = None;
+        self.reveals.clear();
         self.overlay = Overlay::None;
         self.scroll_back = 0;
         if clear_view {
             self.lines.clear();
+            self.reveals.clear();
             self.view_start = 0;
         }
         self.response_start = self.lines.len();
@@ -137,6 +145,38 @@ impl App {
         self.say(format!("Connection: {connection}\nWorkspace: {}\nExecution: selected repository; offline tools\n{verification}", self.root.display()), Style::new());
     }
 
+    fn retry_turn(&mut self) {
+        if self.last_stop.is_none() {
+            self.say(
+                "No stopped task to retry. Enter your next instruction.",
+                Style::new().fg(Color::Gray),
+            );
+            return;
+        }
+        if self.project.pending() {
+            self.open_contract();
+            return;
+        }
+        self.instruction.insert("Continue the previous interrupted request from the current repository and conversation. Inspect completed operations and current files first; do not blindly repeat commands or duplicate already applied changes. Diagnose and repair recoverable errors, rerun relevant checks, and preserve all host-accepted requirements. If a host service or resource is still unavailable, explain the remaining blocker and next step.");
+        if let Some(TranscriptLine::Message { text, .. }) = self.lines.iter().rev().find(|line| {
+            matches!(
+                line,
+                TranscriptLine::Message {
+                    speaker: Speaker::User,
+                    ..
+                }
+            )
+        }) {
+            self.instruction
+                .insert(&format!("\nOriginal user request:\n{text}"));
+        }
+        self.say(
+            "Continuing the stopped task. Inspecting existing results before further changes.",
+            Style::new().fg(Color::Gray),
+        );
+        self.start_turn(false);
+    }
+
     pub(super) fn host_command(&mut self) -> bool {
         let text = self.instruction.text().trim().to_owned();
         if !text.starts_with('/') {
@@ -161,6 +201,7 @@ impl App {
             ("/new", []) => self.new_chat(false),
             ("/clear", []) => self.new_chat(true),
             ("/status", []) => self.status(),
+            ("/retry", []) => self.retry_turn(),
             ("/copy", []) => self.copy_latest(),
             ("/help" | "/keymap", []) => { self.overlay = Overlay::Help; self.scroll_back = 0; }
             ("/quit" | "/exit", []) => self.quit_requested = true,

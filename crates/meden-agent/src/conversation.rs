@@ -95,6 +95,14 @@ pub fn content(text: &str) -> Json {
 /// Model transport or response failure.
 #[derive(Debug, thiserror::Error)]
 pub enum ModelError {
+    /// A completed HTTP exchange was rejected by the selected provider.
+    #[error("model endpoint returned HTTP {status}: {reason}")]
+    Http {
+        /// The actual response status, independent of diagnostic wording.
+        status: u16,
+        /// Provider-independent explanation; no response body or credentials.
+        reason: String,
+    },
     /// The model endpoint could not complete the request.
     #[error("model unavailable: {0}")]
     Unavailable(String),
@@ -167,6 +175,10 @@ pub enum ExecutionError {
 
 /// Progress events for a protocol host or terminal interface.
 pub enum Event<'a> {
+    /// Host presentation only; never interpreted as a model reply or authority.
+    Notice(&'a str),
+    /// Typed model failure before its diagnostic becomes the terminal status.
+    ModelFailed(&'a ModelError),
     /// Uncommitted model progress; never stored as an admitted assistant message.
     Delta(Delta<'a>),
     /// Uncommitted output from the currently admitted tool; never a success receipt.
@@ -245,7 +257,10 @@ impl Conversation {
                             observer(Event::Delta(delta));
                         }) {
                             Ok(reply) => FlowInput::Reply(reply),
-                            Err(error) => FlowInput::ModelFailed(Status::Failed(error.to_string())),
+                            Err(error) => {
+                                observer(Event::ModelFailed(&error));
+                                FlowInput::ModelFailed(Status::Failed(error.to_string()))
+                            }
                         };
                 }
                 FlowEffect::Assistant => {

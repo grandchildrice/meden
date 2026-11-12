@@ -252,41 +252,60 @@ fn draw_conversation(frame: &mut Frame<'_>, app: &mut App, area: Rect) {
         ]).wrap(Wrap { trim: false }), area);
         return;
     }
+    let paragraph = Paragraph::new(conversation_lines(app, area.width)).wrap(Wrap { trim: false });
+    render_scrolled(frame, app, paragraph, area, true);
+}
+
+fn conversation_lines(app: &mut App, width: u16) -> Vec<Line<'static>> {
     let mut lines = Vec::new();
-    for entry in app.lines.iter().skip(app.view_start) {
+    let now = std::time::Instant::now();
+    for (index, entry) in app.lines.iter().enumerate().skip(app.view_start) {
+        let text = match entry {
+            TranscriptLine::Message { text, .. }
+            | TranscriptLine::Draft(text)
+            | TranscriptLine::Reasoning(text) => Some(text),
+            _ => None,
+        };
+        let prefix = text.map(|text| {
+            app.reveals
+                .get_mut(&index)
+                .map_or(text.as_str(), |reveal| reveal.prefix(text, now))
+        });
         match entry {
             TranscriptLine::Message { speaker, text } => {
                 let user = matches!(speaker, Speaker::User);
                 lines.extend(bubble_lines(
-                    text,
+                    prefix.unwrap_or(text),
                     if user { "› " } else { "● " },
                     user,
-                    area.width,
+                    width,
                     Style::new(),
                 ));
                 lines.push(Line::default());
             }
             TranscriptLine::Draft(text) => {
-                lines.extend(bubble_lines(text, "● ", false, area.width, Style::new()));
+                lines.extend(bubble_lines(
+                    prefix.unwrap_or(text),
+                    "● ",
+                    false,
+                    width,
+                    Style::new(),
+                ));
                 lines.push(Line::default());
             }
             TranscriptLine::Reasoning(text) => {
                 lines.extend(bubble_lines(
-                    text,
+                    prefix.unwrap_or(text),
                     "∴ ",
                     false,
-                    area.width,
+                    width,
                     muted().italic(),
                 ));
                 lines.push(Line::default());
             }
-            TranscriptLine::Tool(tool) => draw_tool_lines(
-                &mut lines,
-                tool,
-                app.show_tool_details,
-                app.busy,
-                area.width,
-            ),
+            TranscriptLine::Tool(tool) => {
+                draw_tool_lines(&mut lines, tool, app.show_tool_details, app.busy, width);
+            }
             TranscriptLine::Notice { text, style } => {
                 lines.extend(
                     text.lines()
@@ -296,8 +315,16 @@ fn draw_conversation(frame: &mut Frame<'_>, app: &mut App, area: Rect) {
             }
         }
     }
-    let paragraph = Paragraph::new(lines).wrap(Wrap { trim: false });
-    render_scrolled(frame, app, paragraph, area, true);
+    app.reveals
+        .retain(|index, reveal| match app.lines.get(*index) {
+            Some(
+                TranscriptLine::Message { text, .. }
+                | TranscriptLine::Draft(text)
+                | TranscriptLine::Reasoning(text),
+            ) => !reveal.done(text),
+            _ => false,
+        });
+    lines
 }
 
 fn render_scrolled(
@@ -726,7 +753,11 @@ fn draw_input(frame: &mut Frame<'_>, app: &App, area: Rect) {
                 muted(),
             ),
             Line::styled(
-                "ctrl+g evidence · / commands · ? shortcuts · wheel / PgUp/PgDn scroll",
+                if app.last_stop.is_some() {
+                    "Task stopped · /retry continue · /copy explanation · ctrl+g evidence"
+                } else {
+                    "ctrl+g evidence · / commands · ? shortcuts · wheel / PgUp/PgDn scroll"
+                },
                 muted(),
             ),
         ]

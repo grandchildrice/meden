@@ -1,5 +1,6 @@
 //! Interactive native tool-calling agent, backed by real workspace tools.
 
+use std::collections::BTreeMap;
 #[cfg(test)]
 use std::fmt::Write as _;
 use std::io;
@@ -33,6 +34,7 @@ mod assurance;
 mod commands;
 mod editor;
 mod input;
+mod reveal;
 mod view;
 use editor::Overlay;
 use input::Input;
@@ -71,6 +73,7 @@ enum Update {
         needs_review: bool,
         failed: bool,
     },
+    Notice(String),
 }
 #[derive(PartialEq, Eq)]
 enum Screen {
@@ -122,8 +125,10 @@ struct App {
     instruction: Input,
     screen: Screen,
     lines: Vec<TranscriptLine>,
+    reveals: BTreeMap<usize, reveal::Reveal>,
     busy: bool,
     activity: Option<String>,
+    last_stop: Option<String>,
     turn_started: Option<Instant>,
     show_tool_details: bool,
     draft: Option<usize>,
@@ -171,8 +176,10 @@ impl App {
             instruction: Input::default(),
             screen: Screen::Picking,
             lines: Vec::new(),
+            reveals: BTreeMap::new(),
             busy: false,
             activity: None,
+            last_stop: None,
             turn_started: None,
             show_tool_details: false,
             draft: None,
@@ -206,15 +213,29 @@ impl App {
     }
     fn speak(&mut self, speaker: Speaker, text: &str) {
         if matches!(speaker, Speaker::Assistant) {
+            if let Some(reveal) = self
+                .reasoning
+                .and_then(|index| self.reveals.get_mut(&index))
+            {
+                reveal.finish();
+            }
             if let Some(index) = self.draft.take() {
                 if let Some(line) = self.lines.get_mut(index) {
                     *line = TranscriptLine::Message {
                         speaker,
                         text: visible(text),
                     };
+                    if let Some(reveal) = self.reveals.get_mut(&index) {
+                        reveal.finish();
+                    }
                     return;
                 }
             }
+        }
+        if matches!(speaker, Speaker::Assistant) && self.workspace.is_some() {
+            let mut reveal = reveal::Reveal::new(Instant::now());
+            reveal.finish();
+            self.reveals.insert(self.lines.len(), reveal);
         }
         self.lines.push(TranscriptLine::Message {
             speaker,
@@ -236,6 +257,10 @@ impl App {
             &mut self.draft
         };
         let index = *index.get_or_insert_with(|| {
+            if self.workspace.is_some() {
+                self.reveals
+                    .insert(self.lines.len(), reveal::Reveal::new(Instant::now()));
+            }
             self.lines.push(if reasoning {
                 TranscriptLine::Reasoning(String::new())
             } else {
@@ -511,6 +536,10 @@ impl App {
                         self.screen = Screen::Instructing;
                         match self.project.continuation() {
                             Ok(instruction) => {
+                                self.say(
+                                    "Specification accepted. Continuing implementation.",
+                                    Style::new().fg(Color::Gray),
+                                );
                                 self.instruction.insert(&instruction);
                                 self.start_turn(false);
                             }
@@ -541,7 +570,7 @@ impl App {
         if let Err(error) = self.save_history() {
             self.instruction.insert(instruction);
             self.say(
-                format!("Could not save this message: {error}"),
+                crate::session::checkpoint_report(format!("Could not save this message: {error}")),
                 Style::new().fg(Color::Red),
             );
             return false;
@@ -608,7 +637,7 @@ impl App {
                     }),
                     Err(error) => {
                         let _ = updates.send(Update::Done {
-                            text: format!("Failed: {error}"),
+                            text: crate::session::failure_report(error.to_string()),
                             needs_review: false,
                             failed: true,
                         });
@@ -617,16 +646,10 @@ impl App {
             });
         }
         self.processes.flag().store(false, Ordering::SeqCst);
+        self.last_stop = None;
         let instruction = self.instruction.take();
-        if show_instruction {
-            if !self.record_instruction(&instruction) {
-                return;
-            }
-        } else {
-            self.say(
-                "Specification accepted. Continuing implementation.",
-                Style::new().fg(Color::Gray),
-            );
+        if show_instruction && !self.record_instruction(&instruction) {
+            return;
         }
         self.activity = Some("Waiting for model".into());
         self.scroll_back = 0;
@@ -639,9 +662,10 @@ impl App {
             self.turn_started = Some(Instant::now());
             self.screen = Screen::Running;
         } else {
-            self.say(
-                "The worker stopped; enter your instruction again.",
-                Style::new().fg(Color::Red),
+            self.finished(
+                crate::session::failure_report("The worker stopped before accepting the instruction. Use the up arrow to recover your unsent instruction."),
+                false,
+                true,
             );
             self.worker = None;
         }
@@ -656,21 +680,25 @@ impl App {
         }
     }
     fn finished(&mut self, text: String, needs_review: bool, failed: bool) {
+        self.reveals.values_mut().for_each(reveal::Reveal::finish);
+        self.last_stop = (!text.is_empty() && !needs_review).then(|| text.clone());
         self.busy = false;
         self.turn_started = None;
         if let Some(index) = self.draft.take() {
             if let Some(TranscriptLine::Draft(text)) = self.lines.get_mut(index) {
                 text.push_str("\n[Response interrupted before completion]");
             }
+            if let Some(reveal) = self.reveals.get_mut(&index) {
+                reveal.finish();
+            }
         }
         self.reasoning = None;
         self.activity = None;
         self.screen = Screen::Instructing;
         if let Err(error) = self.save_history() {
-            self.say(
-                format!("Conversation checkpoint failed: {error}"),
-                Style::new().fg(Color::Red),
-            );
+            let report = crate::session::checkpoint_report(error.to_string());
+            self.last_stop = Some(report.clone());
+            self.say(report, Style::new().fg(Color::Red));
         }
         if !text.is_empty() {
             self.say(
@@ -714,7 +742,7 @@ impl App {
                 _ => None,
             })
             .collect();
-        history::save_transcript(&self.root, transcript)
+        history::save_transcript(&self.root, transcript, self.last_stop.clone())
     }
 
     fn restore_history(&mut self) -> Result<()> {
@@ -733,6 +761,14 @@ impl App {
         }
         if !self.lines.is_empty() {
             self.say("Conversation restored. Work continues in the selected repository; current verification is required.", Style::new().fg(Color::Gray));
+        }
+        if let Some(stopped) = saved.stopped {
+            self.say(
+                "Previous turn stopped; its explanation is retained below.",
+                Style::new().fg(Color::Yellow),
+            );
+            self.say(&stopped, Style::new().fg(Color::Yellow));
+            self.last_stop = Some(stopped);
         }
         Ok(())
     }
@@ -781,6 +817,10 @@ impl App {
         }
         for update in updates {
             match update {
+                Update::Notice(text) => {
+                    self.activity = Some("Recovering from an error".into());
+                    self.say(text, Style::new().fg(Color::Yellow));
+                }
                 Update::Delta { text, reasoning } => self.delta(&text, reasoning),
                 Update::ToolOutput {
                     id,
@@ -818,6 +858,7 @@ impl App {
                 }
                 Update::ProjectDirty => self.project_dirty(),
                 Update::Asking(round) => {
+                    self.reveals.values_mut().for_each(reveal::Reveal::finish);
                     self.draft = None;
                     self.reasoning = None;
                     self.activity = Some(format!("Waiting for model · request {round}"));
@@ -847,10 +888,7 @@ impl App {
         }
         if disconnected {
             if self.busy {
-                self.say(
-                    "The worker disconnected before finishing.",
-                    Style::new().fg(Color::Red),
-                );
+                self.finished(crate::session::failure_report("The worker disconnected before finishing. Its last operation may be incomplete."), false, true);
             }
             self.busy = false;
             self.turn_started = None;
@@ -881,6 +919,8 @@ fn worker(
         let refresh_project = matches!(&event, Event::ToolResult { call, .. }
             if matches!(call.function.name.as_str(), "verify_project" | "propose_contract" | "project_status" | "write_file" | "edit_file" | "bash"));
         let update = match event {
+            Event::Notice(text) => Update::Notice(text.to_owned()),
+            Event::ModelFailed(_) => return,
             Event::Delta(delta) => match delta {
                 Delta::Text(text) => Update::Delta {
                     text: text.to_owned(),
@@ -935,15 +975,16 @@ fn worker(
         let status = session.run(&instruction, &observer);
         let needs_review = status == Status::NeedsReview;
         let failed = matches!(status, Status::Failed(_) | Status::Incomplete);
-        let summary = match status {
-            Status::Done(_) => String::new(),
-            Status::Failed(error) => format!("Failed: {error}"),
-            Status::Incomplete => {
-                "Unfinished: verification or tool execution limit reached.".to_owned()
-            }
-            Status::Cancelled => "Cancelled. Conversation retained.".to_owned(),
-            Status::NeedsReview => "Review the proposed contract to continue.".to_owned(),
-        };
+        let summary = session.stop_report().map_or_else(
+            || {
+                if needs_review {
+                    "Review the proposed contract to continue.".to_owned()
+                } else {
+                    String::new()
+                }
+            },
+            str::to_owned,
+        );
         if let Ok(status) = session.project_status() {
             let _ = tx.send(Update::Project(Box::new(status)));
         }
@@ -1089,7 +1130,12 @@ where
         }
         app.poll();
         terminal.draw(|frame| draw(frame, app))?;
-        if !event::poll(Duration::from_millis(100))? {
+        let refresh = if app.busy || !app.reveals.is_empty() {
+            reveal::FRAME
+        } else {
+            Duration::from_millis(100)
+        };
+        if !event::poll(refresh)? {
             continue;
         }
         let event = event::read()?;

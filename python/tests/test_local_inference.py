@@ -239,7 +239,7 @@ def test_hostile_local_engine_is_confined_persistent_and_usable_in_cli_and_tui(
             os.write(master, b"\x1b")
             wait_for(
                 lambda: (
-                    "Cancelled. Conversation retained." in rendered()
+                    "Stopped: Cancelled" in rendered()
                     and "shift+enter" in rendered()
                 )
             )

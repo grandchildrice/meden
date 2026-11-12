@@ -1564,6 +1564,21 @@ not a proof of persistence, host origin, filesystem identity or the complete
 application lifecycle. Concurrent host mutation and general hard-link identities
 remain filesystem obligations.
 
+Terminal stop explanations use host-observed conversation outcomes, typed HTTP
+statuses and verification failure kinds; diagnostic wording does not select a
+recovery effect. Ordinary tool failures still feed the existing bounded
+conversation loop, while unavailable/inconclusive verification and model
+transport failures stop without another inference request. `/retry` is an
+explicit new host instruction, with fresh admission under the existing grant;
+it neither renews processor permission nor changes accepted contract meaning.
+PTY tests cover an ordinary failed command followed by correction, a provider
+usage-limit stop, restart with its retained explanation, and explicit continuation
+that inspects the completed edit instead of repeating it. Text pacing is a
+presentation adapter: grapheme prefixes and final replies do not admit tools or
+evidence. Gated streaming tests observe one character before subsequent text and
+tool-call completion across the three HTTP protocols. These are adapter checks,
+not a refinement proof of the renderer, explanations or physical I/O.
+
 [Sandbox construction](../crates/meden-runtime/src/sandbox.rs) is now used
 by the actual TUI file tools, Bash and `meden exec`. A dedicated
 [launcher](../crates/meden-runtime/src/process.rs) closes inherited

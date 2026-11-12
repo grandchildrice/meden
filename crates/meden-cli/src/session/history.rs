@@ -27,6 +27,9 @@ pub(crate) struct History {
     workspace: Vec<u8>,
     pub messages: Vec<Value>,
     pub transcript: Vec<Message>,
+    // Presentation only, never restored as a conversation role or authority.
+    #[serde(default)]
+    pub stopped: Option<String>,
 }
 
 pub(crate) fn load(root: &Path) -> Result<History> {
@@ -36,6 +39,7 @@ pub(crate) fn load(root: &Path) -> Result<History> {
         workspace: root.as_os_str().as_encoded_bytes().to_vec(),
         messages: Vec::new(),
         transcript: Vec::new(),
+        stopped: None,
     });
     anyhow::ensure!(
         saved.version == 1 && saved.workspace == root.as_os_str().as_encoded_bytes(),
@@ -59,15 +63,27 @@ pub(super) fn save_messages(root: &Path, messages: &[Value]) -> Result<()> {
     save(root, &saved)
 }
 
-pub(crate) fn save_transcript(root: &Path, transcript: Vec<Message>) -> Result<()> {
+pub(crate) fn save_transcript(
+    root: &Path,
+    transcript: Vec<Message>,
+    stopped: Option<String>,
+) -> Result<()> {
     let mut saved = load(root)?;
     saved.transcript = transcript;
+    saved.stopped = stopped;
+    save(root, &saved)
+}
+
+pub(super) fn save_stop(root: &Path, stopped: Option<String>) -> Result<()> {
+    let mut saved = load(root)?;
+    saved.stopped = stopped;
     save(root, &saved)
 }
 
 pub(crate) fn clear(root: &Path, clear_view: bool) -> Result<()> {
     let mut saved = load(root)?;
     saved.messages.clear();
+    saved.stopped = None;
     if clear_view {
         saved.transcript.clear();
     }

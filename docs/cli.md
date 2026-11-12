@@ -8,6 +8,13 @@ that same directory restores its saved model conversation and accepted meaning;
 processor grants and proof coverage require fresh checks/approval. `meden exec`
 is the explicit private-snapshot command.
 
+Progress may include `notice` records describing a bounded recovery pass.
+Terminal `done` records retain the typed `outcome` and raw `error`, and add an
+`explanation` for failed, incomplete or cancelled work. This host explanation
+does not require another model request and does not establish verification.
+An explicit new `instruction` continues a stopped task; the TUI exposes this
+as `/retry`, retaining current files and conversation context.
+
 ```bash
 printf '%s\n' '{"instruction":"Inspect the project, fix the bug and run its tests."}' \
   '{"instruction":"Add boundary tests for the corrected behavior."}' | \

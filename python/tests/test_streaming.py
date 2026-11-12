@@ -82,6 +82,7 @@ def test_tui_shows_model_and_command_output_before_completion(
     binary = find_meden()
     assert binary is not None
     release_model = threading.Event()
+    release_text = threading.Event()
     release_final = threading.Event()
     requests = []
     errors = []
@@ -101,7 +102,7 @@ def test_tui_shows_model_and_command_output_before_completion(
                 assert request["stream"] is True
                 first = len(requests) == 1
                 head, tail = response_parts(
-                    provider, "I will check the workspace." if first else "STREAM-FINAL",
+                    provider, "I" if first else "STREAM-FINAL",
                     [call("live-command", "bash", {"command": command})] if first else (),
                 )
                 self.send_response(200)
@@ -109,6 +110,18 @@ def test_tui_shows_model_and_command_output_before_completion(
                 self.end_headers()
                 self.wfile.write(head)
                 self.wfile.flush()
+                if first:
+                    assert release_text.wait(15)
+                    rest = " will check the workspace."
+                    if provider == "codex":
+                        delta = {"type": "response.output_text.delta", "delta": rest}
+                    elif provider == "claude":
+                        delta = {"type": "content_block_delta", "index": 0,
+                                 "delta": {"type": "text_delta", "text": rest}}
+                    else:
+                        delta = {"choices": [{"index": 0, "delta": {"content": rest}}]}
+                    self.wfile.write(frame(delta))
+                    self.wfile.flush()
                 assert (release_model if first else release_final).wait(15)
                 self.wfile.write(tail.rstrip() if outcome == "interrupted" else tail)
                 self.wfile.flush()
@@ -158,18 +171,26 @@ def test_tui_shows_model_and_command_output_before_completion(
         os.write(master, b"y")
         wait_for(lambda: "shift+enter" in view())
         os.write(master, b"hello\r")
+        wait_for(lambda: "● I" in view())
+        assert "I will check the workspace." not in view()
+        assert "shift+enter" not in view() and len(requests) == 1
+        assert not (project / "started").exists()
+        release_text.set()
         wait_for(lambda: "I will check the workspace." in view())
         assert "shift+enter" not in view(), "partial response prematurely completed the turn"
         assert "› hello" in view() and "YOU" not in view()
         if provider != "claude":
-            assert "∴ Reviewing files." in view()
+            wait_for(lambda: "∴ Reviewing files." in view())
         release_model.set()
         workspace = project.resolve()
         if outcome == "interrupted":
-            wait_for(lambda: "Failed:" in view() and "shift+enter" in view())
+            wait_for(lambda: "Stopped: Model response could not be completed" in view()
+                     and "shift+enter" in view())
+            assert "unfinished tool calls were not executed" in view()
+            assert "/retry" in view()
             assert len(requests) == 1
             assert not (workspace / "started").exists(), "partial stream executed its tool call"
-            assert "Response interrupted before completion" in view()
+            wait_for(lambda: "Response interrupted before completion" in view())
             assert not errors
             os.write(master, b"\x03")
             assert process.wait(timeout=5) == 0
@@ -202,6 +223,7 @@ def test_tui_shows_model_and_command_output_before_completion(
         assert process.wait(timeout=5) == 0
         assert termios.tcgetattr(slave) == initial
     finally:
+        release_text.set()
         release_model.set()
         release_final.set()
         if process.poll() is None:

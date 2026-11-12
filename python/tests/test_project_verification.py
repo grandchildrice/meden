@@ -479,7 +479,7 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
             if predicate():
                 return
             assert process.poll() is None, output[-8000:].decode(errors="replace")
-            if "Failed:" in rendered() and "shift+enter" in rendered():
+            if "Stopped:" in rendered() and "shift+enter" in rendered():
                 pytest.fail(rendered())
             if select.select([master], [], [], 0.1)[0]:
                 chunk = os.read(master, 65536)
@@ -624,6 +624,9 @@ def test_missing_host_bundle_stops_tools_and_repair_without_claiming_proof(tmp_p
         done = until_done()
         assert done["outcome"] == "failed", seen
         assert "Verification Unavailable" in done["error"]
+        assert "Verification service unavailable" in done["explanation"]
+        assert "This attempt provides no proof" in done["explanation"]
+        assert "/retry" in done["explanation"]
         assert sum(e["type"] == "asking" for e in seen) == (2 if caller == "model" else 3)
         summary = [e["summary"] for e in seen if e["type"] == "project"][-1]
         assert summary["accepted"] and not summary["verified"]

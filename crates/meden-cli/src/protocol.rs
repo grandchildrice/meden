@@ -79,10 +79,14 @@ enum Out<'a> {
     Conversation {
         messages: &'a [Value],
     },
+    Notice {
+        text: &'a str,
+    },
     Done {
         outcome: &'static str,
         answer: Option<&'a str>,
         error: Option<&'a str>,
+        explanation: Option<&'a str>,
     },
 }
 
@@ -182,7 +186,8 @@ fn run_instruction(
             return;
         }
         let message = match event {
-            Event::Delta(_) | Event::ToolOutput { .. } => return,
+            Event::Delta(_) | Event::ToolOutput { .. } | Event::ModelFailed(_) => return,
+            Event::Notice(text) => Out::Notice { text },
             Event::Asking(attempt) => Out::Asking { attempt },
             Event::Assistant(reply) => Out::Assistant {
                 text: reply.content.as_deref().unwrap_or_default(),
@@ -222,26 +227,31 @@ fn run_instruction(
             outcome: "done",
             answer: Some(answer),
             error: None,
+            explanation: session.stop_report(),
         },
         Status::Failed(error) => Out::Done {
             outcome: "failed",
             answer: None,
             error: Some(error),
+            explanation: session.stop_report(),
         },
         Status::Incomplete => Out::Done {
             outcome: "incomplete",
             answer: None,
             error: None,
+            explanation: session.stop_report(),
         },
         Status::Cancelled => Out::Done {
             outcome: "cancelled",
             answer: None,
             error: None,
+            explanation: session.stop_report(),
         },
         Status::NeedsReview => Out::Done {
             outcome: "needs_review",
             answer: None,
             error: None,
+            explanation: session.stop_report(),
         },
     };
     let summary = session.project_status()?;

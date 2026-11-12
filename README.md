@@ -174,6 +174,18 @@ toolchains must be prepared locally; workers cannot download project packages.
 
 The TUI marks your messages with `›` on a shaded row and model replies with
 `●`. Responses and provider-exposed reasoning summaries stream as they arrive.
+Arriving text is revealed in Unicode graphemes at a 16ms refresh interval;
+batched replies catch up quickly, including providers that return ordinary JSON.
+Initial model computation still takes time before the first text arrives; the
+activity indicator shows the phase and elapsed time during that wait.
+
+Recoverable tool errors return to the model for correction within the existing
+bounded budget, with a visible recovery notice. When work must stop, a host
+explanation states why, what remains incomplete and how to proceed. `/retry`
+starts a new host turn using the current files and conversation, asking the model
+to inspect completed operations before continuing. Stop explanations survive
+reopening the repository and can be copied with `/copy`. Model connection failures,
+usage limits and inconclusive checker runs are not retried automatically.
 Bash commands show live stdout/stderr and their final exit status; the normal
 view retains the last six output lines. `Ctrl+T` expands tool arguments and
 captured output; failures remain visible when details are collapsed.
