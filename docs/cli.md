@@ -2,8 +2,11 @@
 
 `meden run` accepts natural-language instructions as JSON Lines and executes
 the same coding session as the TUI. Both use the same system instruction,
-registered tools, capability policy, private workspace and approved model
-gateway. The original project is unchanged; the result copy is retained.
+registered tools, capability policy, offline repository workers and approved model
+gateway. Changes are written directly to the selected `--workspace`. Reopening
+that same directory restores its saved model conversation and accepted meaning;
+processor grants and proof coverage require fresh checks/approval. `meden exec`
+is the explicit private-snapshot command.
 
 ```bash
 printf '%s\n' '{"instruction":"Inspect the project, fix the bug and run its tests."}' \

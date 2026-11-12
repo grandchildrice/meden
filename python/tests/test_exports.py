@@ -217,7 +217,7 @@ def test_cli_review_reject_cross_session_freeze_replay_redirect_and_uncertain_de
             )
             assert other == []
             assert len(requests) == 3
-            assert (source / "payload.bin").read_bytes() == original
+            assert (source / "payload.bin").read_bytes() == b"CHANGED"
             process.stdin.close()
             process.wait(timeout=5)
             assert process.returncode == 0, process.stderr.read()
@@ -322,7 +322,7 @@ def test_tui_export_review_uses_host_keys_and_exact_frozen_bytes(tmp_path, tui_v
             wait_for(lambda: "no replay" in view() and "shift+enter" in view())
             assert other == [original]
             assert len(requests) == 3
-            assert (source / "payload.bin").read_bytes() == original
+            assert (source / "payload.bin").read_bytes() == b"CHANGED"
             os.write(master, b"\x03")
             process.wait(timeout=5)
             assert process.returncode == 0

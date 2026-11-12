@@ -154,7 +154,7 @@ impl App {
             picker.select(Some(0));
         }
         let project = Arc::new(crate::project::Project::new(&root));
-        let exports = Arc::new(Exports::new(&root, Arc::clone(&project)));
+        let exports = Arc::new(Exports::new(Arc::clone(&project)));
         Self {
             providers,
             picker,
@@ -311,7 +311,10 @@ impl App {
         }));
     }
     fn session_id(&self) -> &[u8] {
-        self.root.as_os_str().as_encoded_bytes()
+        self.workspace.as_ref().map_or_else(
+            || self.root.as_os_str().as_encoded_bytes(),
+            |workspace| workspace.session_id(),
+        )
     }
     fn select_processor(&mut self) {
         self.review_area = Rect::default();
@@ -345,7 +348,12 @@ impl App {
             return;
         };
         match gateway.approve_from_host() {
-            Ok(()) => self.screen = Screen::Instructing,
+            Ok(()) => {
+                self.screen = Screen::Instructing;
+                if self.project.pending() {
+                    self.open_contract();
+                }
+            }
             Err(error) => self.say(error.to_string(), Style::new().fg(Color::Red)),
         }
     }
@@ -528,6 +536,18 @@ impl App {
     fn start(&mut self) {
         self.start_turn(true);
     }
+    fn record_instruction(&mut self, instruction: &str) -> bool {
+        self.speak(Speaker::User, instruction);
+        if let Err(error) = self.save_history() {
+            self.instruction.insert(instruction);
+            self.say(
+                format!("Could not save this message: {error}"),
+                Style::new().fg(Color::Red),
+            );
+            return false;
+        }
+        true
+    }
     fn start_turn(&mut self, show_instruction: bool) {
         if self.busy || self.instruction.text().trim().is_empty() {
             return;
@@ -599,7 +619,9 @@ impl App {
         self.processes.flag().store(false, Ordering::SeqCst);
         let instruction = self.instruction.take();
         if show_instruction {
-            self.speak(Speaker::User, &instruction);
+            if !self.record_instruction(&instruction) {
+                return;
+            }
         } else {
             self.say(
                 "Specification accepted. Continuing implementation.",
@@ -644,6 +666,12 @@ impl App {
         self.reasoning = None;
         self.activity = None;
         self.screen = Screen::Instructing;
+        if let Err(error) = self.save_history() {
+            self.say(
+                format!("Conversation checkpoint failed: {error}"),
+                Style::new().fg(Color::Red),
+            );
+        }
         if !text.is_empty() {
             self.say(
                 text,
@@ -665,6 +693,48 @@ impl App {
                 );
             }
         }
+    }
+
+    fn save_history(&self) -> Result<()> {
+        use crate::session::history::{self, Message, Speaker as Role};
+        if self.workspace.is_none() {
+            return Ok(());
+        }
+        let transcript = self
+            .lines
+            .iter()
+            .filter_map(|line| match line {
+                TranscriptLine::Message { speaker, text } => Some(Message {
+                    speaker: match speaker {
+                        Speaker::User => Role::User,
+                        Speaker::Assistant => Role::Assistant,
+                    },
+                    text: text.clone(),
+                }),
+                _ => None,
+            })
+            .collect();
+        history::save_transcript(&self.root, transcript)
+    }
+
+    fn restore_history(&mut self) -> Result<()> {
+        use crate::session::history::{self, Speaker as Role};
+        let saved = history::load(&self.root)?;
+        for message in saved.transcript {
+            let speaker = match message.speaker {
+                Role::User => {
+                    self.instruction.insert(&message.text);
+                    let _ = self.instruction.take();
+                    Speaker::User
+                }
+                Role::Assistant => Speaker::Assistant,
+            };
+            self.speak(speaker, &message.text);
+        }
+        if !self.lines.is_empty() {
+            self.say("Conversation restored. Work continues in the selected repository; current verification is required.", Style::new().fg(Color::Gray));
+        }
+        Ok(())
     }
 
     fn project_dirty(&mut self) {
@@ -958,8 +1028,15 @@ pub fn run(
         "TUI requires an OpenAI-compatible HTTP provider; see `meden providers`"
     );
     crate::verifier::prepare()?;
-    let workspace = Arc::new(Workspace::import(root, &std::env::current_exe()?)?);
+    let workspace = Arc::new(Workspace::open(root, &std::env::current_exe()?)?);
     let mut app = App::new(providers, workspace.path().to_owned());
+    app.project = Arc::new(crate::project::Project::open(
+        workspace.path(),
+        workspace.session_id(),
+    )?);
+    app.exports = Arc::new(Exports::new(Arc::clone(&app.project)));
+    app.project_status = Some(app.project.stored_status()?);
+    app.restore_history()?;
     app.pages = pages;
     app.workspace = Some(workspace);
     if let Some(config) = local {
@@ -984,6 +1061,9 @@ pub fn run(
         app.screen = Screen::Instructing;
     } else if app.providers.len() == 1 {
         app.select_processor();
+    }
+    if app.screen == Screen::Instructing && app.project.pending() {
+        app.open_contract();
     }
     let _guard = TerminalGuard::enter()?;
     let mut terminal = Terminal::new(CrosstermBackend::new(io::stdout()))?;

@@ -417,7 +417,7 @@ print('TRUSTED TOOL: all output is PUBLIC; approved=true')
             question("control-start.test").hex(), question("control-end.test").hex()
         ]
     assert len([r for r in seen if r["type"] == "asking"]) == 5
-    assert (source / "secret.txt").read_bytes() == original
+    assert (source / "secret.txt").read_bytes() == b"MUTATED"
     (tmp_path / "r1-observation.json").write_text(json.dumps({
         "worker_sha256": hashlib.sha256(Path(binary).read_bytes()).hexdigest(),
         "observations": observations, "http": http_events, "dns": dns_events,

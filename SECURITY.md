@@ -17,8 +17,11 @@ results, while an isolated runner and host-owned outbound controls enforce
 the boundary. See [the product design](docs/design.md) and
 [confidential execution rules](docs/confidentiality.md).
 
-**R1 is not yet established end to end.** TUI, `run` file/Bash tools and `exec`
-now execute in private offline Linux workspaces. Inference uses a separate
+**R1 is not yet established end to end.** TUI and `run` file/Bash tools execute
+offline with the host-selected repository mounted writable at `/workspace`.
+Changes are immediate in that directory. `exec` uses a private imported snapshot.
+Host checkpoints and checked artifacts stay outside the selected writable tree;
+opening a containing/contained state directory is refused. Inference uses a separate
 session-bound processor gateway. The default local path now launches an
 offline inference process separate from coding workers, with dedicated
 Unix socket IPC and no access to host credentials or the project tree.
@@ -82,15 +85,23 @@ versions and trust assumptions are in [local inference](docs/local-inference.md)
 
 ## Existing implementation boundaries
 
-The TUI, `run` and `exec` import the original tree into a new persistent private
-working copy. A trusted importer copies regular files, breaks hard links,
-preserves literal symlinks and rejects sockets/devices/FIFOs. The original
-source is never mounted for untrusted shell/file execution. Edits remain in
-the displayed copy after exit; they are not automatically applied back.
+TUI and `run` mount the host-selected repository as writable `/workspace`.
+Edits persist immediately there. Checkpoints and checked packages are stored
+outside that tree; a host lease serializes sessions for the same repository.
+Conversation history cannot supply host system instructions or kernel authority.
+Saved contract decisions replay through the native controller with a fresh
+session; proof coverage, active jobs and processor/export permissions are not
+restored. JSON, checkpoint integrity, locks and filesystem attribution remain
+adapters. Development edits are visible before verification; the checked-package
+and outbound gates do not assert that every working-tree file is already proved.
+
+`exec` retains an explicit private-snapshot operation. Its trusted importer
+copies regular files, breaks hard links, preserves literal symlinks and rejects
+sockets/devices/FIFOs. The snapshot source is not mounted for subsequent tools.
 
 All built-in file operations and Bash execute through the same Bubblewrap
 layout: private network/PID/user namespaces, a clean environment, private
-`/proc` and only the working copy plus read-only public toolchains. A fresh
+`/proc` and only the selected workspace plus read-only public toolchains. A fresh
 single-threaded Rust launcher closes descriptors above 2 before executing
 Bubblewrap; stdin and captured stdout/stderr are the only supplied handles.
 Confidential tool inputs travel through a private anonymous file on stdin,

@@ -1540,11 +1540,29 @@ supplies the freshly built oracle, so that escape does not apply there.
 
 ## Tests of actual isolation
 
-The [workspace owner](../crates/meden-runtime/src/workspace.rs) imports a
-project with a trusted Rust worker in a read-only source mount. Regular
+The [workspace owner](../crates/meden-runtime/src/workspace.rs) opens the selected
+repository directly for TUI/`run`, with immediate development writes inside the
+same offline worker namespace. The separate `exec` snapshot operation imports a
+project with a trusted Rust worker in a read-only source mount. In that snapshot, regular
 files are copied, hard links become independent files, literal symlinks
 are retained, and sockets/devices/FIFOs are rejected. The source is not
-mounted during untrusted tool execution. Results stay in the private copy.
+mounted during untrusted tool execution. Snapshot results stay in the private copy.
+
+Repository continuation uses bounded host-only atomic checkpoints. Model/API
+conversation data and the visible user/assistant transcript are saved separately
+within one checkpoint; host system instructions are rebuilt, never imported from
+history. Contract proposals and host review/accept/reject decisions are replayed
+through the existing controller, retaining monotonic revisions and accepted
+meaning. Saved data cannot provide receipts, coverage, active jobs, processor
+grants or export approvals. Every reopening has a fresh session binding and an
+exclusive repository lease. Existing checkpoint hard-link aliases are detached
+before use; model workers receive only the selected tree, not checkpoint storage.
+Tests cover immediate repository writes, reopening the conversation, fresh
+processor approval, retained/rejected contract generations, old-ticket refusal,
+failed checkpoint writes and the host-state boundary. These are adapter tests,
+not a proof of persistence, host origin, filesystem identity or the complete
+application lifecycle. Concurrent host mutation and general hard-link identities
+remain filesystem obligations.
 
 [Sandbox construction](../crates/meden-runtime/src/sandbox.rs) is now used
 by the actual TUI file tools, Bash and `meden exec`. A dedicated

@@ -217,6 +217,25 @@ def test_modified_enter_commands_history_clipboard_and_terminal_restoration(tmp_
         assert b"\x1b[?1006l" in output, "mouse reporting was not restored"
         assert termios.tcgetattr(slave) == initial
         assert len(requests) == 6, "scrolling or host commands were sent to inference"
+        # Reopen the same repository: restore its visible conversation and API
+        # context, while requiring a fresh processor approval before inference.
+        process = subprocess.Popen(
+            [binary, "tui", "--workspace", str(project), "--provider", "configured"],
+            stdin=slave, stdout=slave, stderr=slave, env=env,
+        )
+        screen.reset()
+        wait_for(lambda: "Connection details" in view())
+        assert len(requests) == 6
+        os.write(master, b"y")
+        wait_for(lambda: "ANSWER-6" in view() and "shift+enter" in view())
+        assert "Conversation restored." in view()
+        os.write(master, b"resume fixture\r")
+        answer(7)
+        assert "scroll fixture" in json.dumps(requests[-1]["messages"])
+        assert "ANSWER-6" in json.dumps(requests[-1]["messages"])
+        os.write(master, b"/quit\r")
+        assert process.wait(timeout=5) == 0
+        assert termios.tcgetattr(slave) == initial
     finally:
         if process.poll() is None:
             process.kill()

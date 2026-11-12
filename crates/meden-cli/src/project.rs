@@ -33,6 +33,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 
+mod journal;
+
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Reference {
@@ -128,13 +130,16 @@ struct State {
     autorun: bool,
     artifact: Option<Artifact>,
     failure: Option<Failure>,
+    events: Vec<journal::Event>,
 }
 
 pub struct Project {
+    root: PathBuf,
     session: String,
     bundle: Option<PathBuf>,
     storage: PathBuf,
     state: Mutex<State>,
+    journal: Option<PathBuf>,
 }
 
 impl Project {
@@ -149,6 +154,7 @@ impl Project {
                 });
         let contracts = Contracts::new(session.as_bytes().to_vec());
         Self {
+            root: root.to_owned(),
             session,
             bundle: crate::verifier::manifest(),
             storage: root
@@ -162,11 +168,44 @@ impl Project {
                 autorun: false,
                 artifact: None,
                 failure: None,
+                events: Vec::new(),
             }),
+            journal: None,
         }
     }
+    pub fn open(root: &Path, session: &[u8]) -> Result<Self> {
+        let mut project = Self::new(root);
+        project.session = session.iter().fold(String::new(), |mut out, byte| {
+            let _ = write!(out, "{byte:02x}");
+            out
+        });
+        let directory = crate::storage::directory(root)?;
+        let path = directory.join("contracts.json");
+        let (contracts, events) = journal::load(&path, root, &project.session)?;
+        project.storage = directory.join("artifacts");
+        project.journal = Some(path);
+        project.state = Mutex::new(State {
+            contracts,
+            events,
+            dirty: true,
+            autorun: false,
+            artifact: None,
+            failure: None,
+        });
+        Ok(project)
+    }
+    pub fn session_id(&self) -> &str {
+        &self.session
+    }
+
+    fn record(&self, state: &mut State, event: journal::Event) -> Result<()> {
+        if let Some(path) = &self.journal {
+            journal::record(path, &self.root, &self.session, state, event)?;
+        }
+        Ok(())
+    }
     pub fn matches(&self, root: &Path) -> bool {
-        self.session == Self::new(root).session
+        self.root == root
     }
     fn bundle(&self) -> std::result::Result<Bundle, Failure> {
         let path = self.bundle.as_deref().ok_or_else(|| {
@@ -216,6 +255,13 @@ impl Project {
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
         control
             .with_active(|| {
+                self.record(
+                    &mut state,
+                    journal::Event::Propose {
+                        contract: Box::new(contract.clone()),
+                    },
+                )
+                .map_err(io::Error::other)?;
                 if !state
                     .contracts
                     .propose(Origin::Controller, bytes, vec![required])
@@ -251,6 +297,7 @@ impl Project {
                 .context("no contract proposal")?,
         )?;
         self.reference(&agreement, reference)?;
+        self.record(&mut state, journal::Event::review(reference))?;
         anyhow::ensure!(
             state.contracts.review(
                 Origin::Host,
@@ -273,6 +320,7 @@ impl Project {
                 .context("no contract proposal")?,
         )?;
         self.reference(&agreement, reference)?;
+        self.record(&mut state, journal::Event::accept(reference))?;
         anyhow::ensure!(
             state.contracts.accept(
                 Origin::Host,
@@ -299,6 +347,7 @@ impl Project {
                 .context("no contract proposal")?,
         )?;
         self.reference(&agreement, reference)?;
+        self.record(&mut state, journal::Event::reject(reference))?;
         anyhow::ensure!(
             state.contracts.reject(
                 Origin::Host,

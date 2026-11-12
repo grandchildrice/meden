@@ -110,9 +110,9 @@ pub struct Exports {
 }
 
 impl Exports {
-    pub fn new(workspace: &std::path::Path, project: Arc<crate::project::Project>) -> Self {
+    pub fn new(project: Arc<crate::project::Project>) -> Self {
         Self {
-            session: session_name(workspace),
+            session: project.session_id().to_owned(),
             project,
             entries: Mutex::new(Vec::new()),
         }
@@ -123,7 +123,7 @@ impl Exports {
         workspace: &std::path::Path,
         project: &Arc<crate::project::Project>,
     ) -> bool {
-        self.session == session_name(workspace)
+        self.session == project.session_id()
             && self.project.matches(workspace)
             && Arc::ptr_eq(&self.project, project)
     }
@@ -194,14 +194,6 @@ impl Exports {
         entries.push(prepared);
         Ok(summary)
     }
-}
-
-fn session_name(workspace: &std::path::Path) -> String {
-    let mut name = String::new();
-    for byte in workspace.as_os_str().as_encoded_bytes() {
-        let _ = write!(name, "{byte:02x}");
-    }
-    name
 }
 
 struct Propose {

@@ -217,7 +217,7 @@ def test_subscription_parallel_results_and_frozen_auth(tmp_path, provider, sourc
     workspace = Path(next(record["workspace"] for record in records if "workspace" in record))
     assert (workspace / "a.txt").read_text() == "日本語🙂\n"
     assert (workspace / "b.txt").read_text() == "second\n"
-    assert list((tmp_path / "source").iterdir()) == []
+    assert workspace == (tmp_path / "source").resolve()
     assert "SECRET-fixture" not in completed.stdout + completed.stderr
     for path, headers, body in requests:
         assert path == ("/v1/responses" if provider == "codex" else "/v1/messages")
@@ -305,7 +305,7 @@ def test_invalid_subscription_replies_cannot_execute_partial_calls(tmp_path, pro
 
 
 @pytest.mark.parametrize("provider", ["codex", "claude"])
-def test_subscription_tui_review_precedes_native_model_request(tmp_path, provider):
+def test_subscription_tui_review_precedes_native_model_request(tmp_path, provider, tui_verifier):
     import fcntl
     import pty
     import struct

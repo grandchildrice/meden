@@ -13,6 +13,7 @@ mod project;
 mod protocol;
 mod session;
 mod shell;
+mod storage;
 mod text;
 mod tui;
 mod verifier;
@@ -215,12 +216,9 @@ fn run() -> Result<()> {
             };
             let mut input = io::BufReader::new(io::stdin());
             let first = protocol::read_command(&mut input)?.context("no command received")?;
-            let workspace = Arc::new(Workspace::import(
-                &args.workspace,
-                &std::env::current_exe()?,
-            )?);
+            let workspace = Arc::new(Workspace::open(&args.workspace, &std::env::current_exe()?)?);
             let processes = Arc::new(Control::new(Arc::new(AtomicBool::new(false))));
-            let session = workspace.path().as_os_str().as_encoded_bytes();
+            let session = workspace.session_id();
             let gateway = Arc::new(if let Some(config) = local {
                 meden_llm::Gateway::prepare_local(
                     session,

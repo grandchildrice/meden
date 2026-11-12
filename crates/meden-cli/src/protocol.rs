@@ -1,4 +1,4 @@
-//! Instruction-only JSON Lines. Tools execute inside Meden's private copy.
+//! Instruction-only JSON Lines. Tools execute in the selected repository.
 
 use std::cell::RefCell;
 use std::io::{BufRead, Write};
@@ -109,8 +109,11 @@ pub fn run(
             processor: gateway.endpoint(),
         },
     )?;
-    let project = Arc::new(crate::project::Project::new(workspace.path()));
-    let exports = Arc::new(Exports::new(workspace.path(), Arc::clone(&project)));
+    let project = Arc::new(crate::project::Project::open(
+        workspace.path(),
+        workspace.session_id(),
+    )?);
+    let exports = Arc::new(Exports::new(Arc::clone(&project)));
     let mut session = Session::new(
         Arc::clone(workspace),
         gateway,

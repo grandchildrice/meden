@@ -85,6 +85,15 @@ impl App {
     }
 
     fn new_chat(&mut self, clear_view: bool) {
+        if self.workspace.is_some() {
+            if let Err(error) = crate::session::history::clear(&self.root, clear_view) {
+                self.say(
+                    format!("Could not reset the saved conversation: {error}"),
+                    Style::new().fg(Color::Red),
+                );
+                return;
+            }
+        }
         self.worker = None;
         self.rx = None;
         self.worker_gateway = None;
@@ -125,7 +134,7 @@ impl App {
                         "Specification has not been accepted"
                     }
                 });
-        self.say(format!("Connection: {connection}\nWorkspace: {}\nExecution: private working copy; offline tools\n{verification}", self.root.display()), Style::new());
+        self.say(format!("Connection: {connection}\nWorkspace: {}\nExecution: selected repository; offline tools\n{verification}", self.root.display()), Style::new());
     }
 
     pub(super) fn host_command(&mut self) -> bool {
@@ -155,7 +164,7 @@ impl App {
             ("/copy", []) => self.copy_latest(),
             ("/help" | "/keymap", []) => { self.overlay = Overlay::Help; self.scroll_back = 0; }
             ("/quit" | "/exit", []) => self.quit_requested = true,
-            ("/workspace", []) => self.say(format!("Files: {}\nThis is the retained working copy. The original project is unchanged.", self.root.display()), Style::new()),
+            ("/workspace", []) => self.say(format!("Project: {}\nFile and Bash changes are saved directly here. Reopening this directory resumes the conversation.", self.root.display()), Style::new()),
             ("/contract", []) => self.open_contract(),
             ("/proofs", []) => { self.refresh_project_status(); self.overlay = Overlay::Evidence; self.scroll_back = 0; }
             ("/exports", []) => self.open_export(None),

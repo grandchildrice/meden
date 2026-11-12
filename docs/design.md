@@ -86,9 +86,11 @@ Meden then:
    such as amount units, account ownership and retry identity.
 2. Records the user's accepted meaning. Tool and language selection happen
    behind this interface, with an explanation available on request.
-3. Builds the implementation and verification artifacts in a private
-   workspace. Tests and counterexamples guide repair; the accepted contract
-   is retained across iterations.
+3. Builds the implementation in the selected repository through offline workers,
+   so development edits and environment/build files remain at the requested path.
+   Verification uses private immutable inputs and retains checked artifacts outside
+   that writable tree. Tests and counterexamples guide repair; the accepted contract
+   and conversation are retained across iterations and reopening the repository.
 4. Shows each requirement as proved, checked within stated bounds,
    empirically tested, refuted, unknown or unsupported. It shows remaining
    assumptions and whether the required delivery checks are complete.

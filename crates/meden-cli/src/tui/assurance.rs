@@ -246,7 +246,7 @@ pub(super) fn details(app: &App) -> Vec<Line<'static>> {
     } else {
         text.push_str("No project specification yet. Describe what to build and which behavior it must preserve.\nYou review its formal meaning before implementation proceeds.\n");
     }
-    text.push_str("\n\nTools and proof checks run offline in the private working copy.\n");
+    text.push_str("\n\nTools and proof checks run offline. Development changes are saved in the selected repository.\n");
     text.push_str(if app.gateway.as_ref().is_some_and(|g| g.is_local()) {
         "Inference: confined local model.\n"
     } else {

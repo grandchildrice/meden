@@ -54,7 +54,8 @@ submitted examples failed refinement. Large local deployment remains to be measu
 > An experimental [pure Rust transition workflow](docs/project-verification.md)
 > connects reviewed mathematical contracts to actual Rust extraction, Lean proof
 > and a retained library. Counter and ledger contracts use the same backend.
-> TUI file/Bash tools and `exec` now run in private offline workspaces.
+> TUI and `run` edit the selected repository through offline workers;
+> `exec` runs an explicit private snapshot.
 > Local inference runs in a separate offline namespace; HTTP connections
 > require host approval and may still be remote. See [verification scope](docs/verification.md)
 > and [security limits](SECURITY.md).
@@ -81,7 +82,7 @@ export MEDEN_LLM_API_KEY="$OLLAMA_API_KEY"
 ```
 
 On Linux x86_64, the TUI prepares its pinned local verification tools on first
-launch, before importing your project. Public tool downloads and proof-library
+launch, before opening your repository. Public tool downloads and proof-library
 preparation may take several minutes and need network access, Git, Curl, Tar,
 XZ and Zstd. Existing compatible tools/libraries are reused. Later launches use
 the saved installation; no verifier environment variable is required. `meden setup`
@@ -150,12 +151,26 @@ HTTP automation must specify the exact inference URL with
 `--approve-processor http://localhost:11434/v1/chat/completions`.
 This is required by `run` and optional in the TUI.
 
-The project is imported into a private working copy under
-`$XDG_DATA_HOME/meden/workspaces/` (default: `~/.local/share/meden/workspaces/`).
-File tools and Bash share that copy at `/workspace`; the original project
-is unchanged. Use `/workspace` in the TUI to show the retained result location.
-There is no host-shell fallback. Dependency caches/toolchains must be
-prepared locally; workers cannot download packages.
+`tui` and `run` develop directly in `--workspace` (default: the current directory).
+File tools and offline Bash see that selected repository at `/workspace`;
+changes are saved there immediately, including project manifests and build files.
+The header and `/workspace` show the actual host directory. Reopening the same
+directory restores the saved conversation and accepted specification automatically.
+`/new` starts a fresh conversation; `/clear` also clears its visible transcript.
+Both retain project files and accepted meaning.
+
+Conversations, contract decisions and checked artifacts live outside the writable
+repository under `$XDG_DATA_HOME/meden/projects/` (default
+`~/.local/share/meden/projects/`). On restart the native controller replays the
+saved contract decisions with a fresh session identity. Proof coverage, running
+jobs and processor/export approvals are not restored; verification and sending
+need current checks and authorization. One Meden process owns a repository at a
+time to keep its checkpoints consistent.
+
+`meden exec` explicitly imports a private snapshot under
+`$XDG_DATA_HOME/meden/workspaces/`, leaving its source unchanged. All worker
+profiles remain offline and have no host-shell fallback. Dependency caches and
+toolchains must be prepared locally; workers cannot download project packages.
 
 The TUI marks your messages with `›` on a shaded row and model replies with
 `●`. Responses and provider-exposed reasoning summaries stream as they arrive.

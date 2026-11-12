@@ -79,7 +79,9 @@ socketserver.UnixStreamServer(sys.argv[sys.argv.index('--host')+1],Handler).serv
 """
 
 
-def test_hostile_local_engine_is_confined_persistent_and_usable_in_cli_and_tui(tmp_path):
+def test_hostile_local_engine_is_confined_persistent_and_usable_in_cli_and_tui(
+    tmp_path, tui_verifier
+):
     import fcntl
     import pty
     import struct
@@ -232,7 +234,8 @@ def test_hostile_local_engine_is_confined_persistent_and_usable_in_cli_and_tui(t
             wait_for(lambda: "Follow-up complete." in rendered() and "shift+enter" in rendered())
             assert b"processor approval" not in output
             os.write(master, b"Hang until cancellation.\r")
-            wait_for(lambda: "esc / ctrl-c cancel" in rendered() and "Thinking" in rendered())
+            wait_for(lambda: "esc / ctrl-c cancel" in rendered()
+                     and "Waiting for model" in rendered())
             os.write(master, b"\x1b")
             wait_for(
                 lambda: (
@@ -250,7 +253,7 @@ def test_hostile_local_engine_is_confined_persistent_and_usable_in_cli_and_tui(t
                 process.wait(timeout=5)
             os.close(master)
             os.close(slave)
-        assert not (source / "calc.py").exists()
+        assert (source / "calc.py").is_file()
         for receiver in [tcp, udp, unix]:
             with pytest.raises(BlockingIOError):
                 receiver.recvfrom(4096) if receiver is udp else receiver.accept()

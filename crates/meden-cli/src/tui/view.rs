@@ -97,7 +97,7 @@ fn draw_header(frame: &mut Frame<'_>, app: &App, area: Rect) {
         Some(summary) if summary.verified => ("VERIFIED project kernel", Color::Green),
         Some(summary) if summary.accepted => ("Project kernel needs verification", Color::Yellow),
         Some(summary) if summary.proposed => ("Specification awaits your review", Color::Yellow),
-        _ => ("Private working copy · offline tools", MUTED),
+        _ => ("Repository changes saved in place · offline tools", MUTED),
     };
     frame.render_widget(
         Paragraph::new(vec![
@@ -106,6 +106,13 @@ fn draw_header(frame: &mut Frame<'_>, app: &App, area: Rect) {
                 Span::raw("  /  "),
                 Span::styled(visible(model), muted()),
             ]),
+            Line::styled(
+                format!(
+                    "Project: {}",
+                    visible(&app.root.display().to_string()).replace('\n', "⏎")
+                ),
+                muted(),
+            ),
             Line::styled(status.0, Style::new().fg(status.1)),
         ]),
         area,
@@ -236,12 +243,12 @@ fn draw_conversation(frame: &mut Frame<'_>, app: &mut App, area: Rect) {
             Line::default(),
             Line::styled("What would you like to build?", Style::new().bold()),
             Line::default(),
-            Line::raw("Describe your app or ask a question in the message box below."),
+            Line::raw("Describe what to build, ask a question, or continue from this repository's files."),
             Line::raw("For formal verification, you review the specification before implementation."),
             Line::default(),
             Line::styled("Try: Build a vending machine that rejects purchases when balance is insufficient.", muted()),
             Line::default(),
-            Line::styled("Files stay in a private working copy. /workspace shows its location.", muted()),
+            Line::styled("Changes are saved in this repository. Reopen it to resume your conversation.", muted()),
         ]).wrap(Wrap { trim: false }), area);
         return;
     }

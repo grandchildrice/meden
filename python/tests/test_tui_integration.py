@@ -177,9 +177,8 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path, tui_ver
 
     try:
         wait_for(lambda: "fixture" in view())
-        copies = list((data / "meden/workspaces").glob("session-*"))
-        assert len(copies) == 1
-        workspace = copies[0]
+        workspace = project.resolve()
+        assert not (data / "meden/workspaces").exists()
         note = workspace / "note.txt"
         os.write(master, b"\r")
         wait_for(lambda: "Connection details" in view())
@@ -225,7 +224,7 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path, tui_ver
         assert len(requests[-1]["messages"]) == 2
         assert requests[-1]["messages"][-1]["content"][0]["text"] == "Fresh turn."
         assert note.read_text() == "status: ready\n"
-        assert source_note.read_text() == "status: draft\n"
+        assert source_note.read_text() == "status: ready\n"
         # The final picker entry is our second processor. Other locally
         # discovered servers can appear in between; no cloud keys are loaded.
         os.write(master, b"/model\r" + b"\x1b[B" * 100 + b"\r")
@@ -245,7 +244,7 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path, tui_ver
         assert (
             destinations == [server.server_port] * (first_turn_count + 2) + [other.server_port] * 2
         )
-        assert len(requests[-2]["messages"]) == 2
+        assert len(requests[-2]["messages"]) == 4
         assert "status: ready" in requests[-1]["messages"][-1]["content"][0]["text"]
         os.write(master, b"\x03")
         process.wait(timeout=5)
@@ -259,12 +258,15 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path, tui_ver
         tui_requests = list(requests[: first_turn_count + 1])
         requests.clear()
         destinations.clear()
+        headless_project = tmp_path / "headless-project"
+        headless_project.mkdir()
+        (headless_project / "note.txt").write_text("status: draft\n")
         completed = subprocess.run(
             [
                 binary,
                 "run",
                 "--workspace",
-                str(project),
+                str(headless_project),
                 "--pages",
                 str(cache),
                 "--provider",
@@ -288,9 +290,9 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path, tui_ver
         assert [r["outcome"] for r in records if r["type"] == "done"] == ["done", "done"]
         assert all(r["type"] != "call" for r in records)
         headless_copy = Path(records[0]["workspace"])
-        assert headless_copy != workspace
+        assert headless_copy == headless_project.resolve()
         assert (headless_copy / "note.txt").read_text() == "status: ready\n"
-        assert source_note.read_text() == "status: draft\n"
+        assert source_note.read_text() == "status: ready\n"
     finally:
         if process.poll() is None:
             process.kill()

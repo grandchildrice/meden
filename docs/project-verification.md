@@ -16,7 +16,7 @@ languages and verification backends remain design targets.
 
 Start `meden tui` with your selected local or explicitly approved HTTP model.
 On Linux x86_64, the TUI automatically prepares and remembers the public checker
-resources before importing the project. No `MEDEN_VERIFIER_BUNDLE` setting is
+resources before opening the project. No `MEDEN_VERIFIER_BUNDLE` setting is
 needed. Use `meden setup` ahead of time when the development session must start
 offline. A host-prepared bundle remains available as an explicit override.
 Describe the intended behavior, for example:

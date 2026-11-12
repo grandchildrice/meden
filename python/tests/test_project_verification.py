@@ -513,7 +513,9 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
         assert "✓ proved" in rendered()
         (tmp_path / "verified-screen.txt").write_text(rendered())
         (tmp_path / "verified-screen.ansi").write_bytes(output)
-        artifacts = list((Path(env["XDG_DATA_HOME"]) / "meden/artifacts").glob("kernel-*"))
+        artifacts = list(
+            (Path(env["XDG_DATA_HOME"]) / "meden/projects").glob("*/artifacts/kernel-*")
+        )
         assert len(artifacts) == 1
         assert_artifact(artifacts[0])
         os.write(master, b"/proofs\r")
@@ -524,7 +526,7 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
         os.write(master, b"\x1b")
         wait_for(lambda: "shift+enter" in rendered()
                  and "Properties of the implementation" not in rendered())
-        working = next((Path(env["XDG_DATA_HOME"]) / "meden/workspaces").glob("session-*"))
+        working = Path(args[args.index("--workspace") + 1]).resolve()
         (working / "ledger.rs").write_text(NOOP)
         os.write(master, b"\x07")
         wait_for(lambda: "Properties of the implementation" in rendered()
@@ -552,6 +554,23 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
                 output.extend(os.read(master, 65536))
         process.wait(timeout=5)
         assert process.returncode == 0
+        assert termios.tcgetattr(slave) == initial
+        # Reopening preserves the host-approved meaning, while previous proof
+        # reports and job activity never become current evidence on their own.
+        process = subprocess.Popen(
+            args, stdin=slave, stdout=slave, stderr=slave, env={**env, "TERM": "xterm-256color"}
+        )
+        screen.reset()
+        wait_for(lambda: "shift+enter" in rendered()
+                 and "Specification r1 · accepted" in rendered())
+        assert "Implementation proof pending" in rendered()
+        assert "VERIFIED project kernel" not in rendered() and "✓ proved" not in rendered()
+        os.write(master, b"\x03")
+        deadline = time.monotonic() + 5
+        while process.poll() is None and time.monotonic() < deadline:
+            if select.select([master], [], [], 0.05)[0]:
+                output.extend(os.read(master, 65536))
+        assert process.wait(timeout=5) == 0
         assert termios.tcgetattr(slave) == initial
     finally:
         if process.poll() is None:

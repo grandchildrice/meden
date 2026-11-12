@@ -11,7 +11,6 @@ import subprocess
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
 
 import pyte
 import pytest
@@ -72,7 +71,9 @@ def response_parts(provider, text, calls=()):
 
 @pytest.mark.parametrize("provider", ["codex", "claude", "configured"])
 @pytest.mark.parametrize("outcome", ["complete", "cancel", "interrupted"])
-def test_tui_shows_model_and_command_output_before_completion(tmp_path, provider, outcome):
+def test_tui_shows_model_and_command_output_before_completion(
+    tmp_path, provider, outcome, tui_verifier
+):
     import fcntl
     import pty
     import struct
@@ -163,7 +164,7 @@ def test_tui_shows_model_and_command_output_before_completion(tmp_path, provider
         if provider != "claude":
             assert "∴ Reviewing files." in view()
         release_model.set()
-        workspace = next(Path(env["XDG_DATA_HOME"]).glob("meden/workspaces/session-*"))
+        workspace = project.resolve()
         if outcome == "interrupted":
             wait_for(lambda: "Failed:" in view() and "shift+enter" in view())
             assert len(requests) == 1

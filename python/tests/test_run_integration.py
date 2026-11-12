@@ -230,7 +230,8 @@ PY
         assert secret in json.dumps(requests[1], ensure_ascii=False)
         workspace = Path(records[0]["workspace"])
         assert (workspace / "encoded.txt").is_file()
-        assert not (source / "calc.py").exists()
+        assert workspace == source.resolve()
+        assert (source / "calc.py").is_file()
         checked = subprocess.run(
             [binary, "exec", "--workspace", str(workspace)],
             input="python3 -c 'from calc import add; assert add(9,4)==13'",
