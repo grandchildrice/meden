@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{self, Receiver, Sender, TryRecvError};
 use std::sync::Arc;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use crate::exports::{Exports, Reference};
 use crate::text::visible;
@@ -123,6 +123,7 @@ struct App {
     lines: Vec<TranscriptLine>,
     busy: bool,
     activity: Option<String>,
+    turn_started: Option<Instant>,
     show_tool_details: bool,
     draft: Option<usize>,
     reasoning: Option<usize>,
@@ -170,6 +171,7 @@ impl App {
             lines: Vec::new(),
             busy: false,
             activity: None,
+            turn_started: None,
             show_tool_details: false,
             draft: None,
             reasoning: None,
@@ -217,6 +219,14 @@ impl App {
         });
     }
     fn delta(&mut self, text: &str, reasoning: bool) {
+        self.activity = Some(
+            if reasoning {
+                "Thinking"
+            } else {
+                "Writing response"
+            }
+            .into(),
+        );
         let index = if reasoning {
             &mut self.reasoning
         } else {
@@ -257,6 +267,7 @@ impl App {
         }));
     }
     fn tool_finished(&mut self, id: &str, name: &str, arguments: &str, text: &str, error: bool) {
+        self.activity = Some("Processing tool result".into());
         if let Some(TranscriptLine::Tool(tool)) = self
             .lines
             .iter_mut()
@@ -580,7 +591,7 @@ impl App {
                 Style::new().fg(Color::Gray),
             );
         }
-        self.activity = Some("Thinking".into());
+        self.activity = Some("Waiting for model".into());
         self.scroll_back = 0;
         if self
             .worker
@@ -588,6 +599,7 @@ impl App {
             .is_some_and(|worker| worker.send(instruction).is_ok())
         {
             self.busy = true;
+            self.turn_started = Some(Instant::now());
             self.screen = Screen::Running;
         } else {
             self.say(
@@ -608,6 +620,7 @@ impl App {
     }
     fn finished(&mut self, text: String, needs_review: bool, failed: bool) {
         self.busy = false;
+        self.turn_started = None;
         if let Some(index) = self.draft.take() {
             if let Some(TranscriptLine::Draft(text)) = self.lines.get_mut(index) {
                 text.push_str("\n[Response interrupted before completion]");
@@ -699,7 +712,7 @@ impl App {
                 Update::Asking(round) => {
                     self.draft = None;
                     self.reasoning = None;
-                    self.activity = Some(format!("Thinking · request {round}"));
+                    self.activity = Some(format!("Waiting for model · request {round}"));
                 }
                 Update::Text(text) => self.speak(Speaker::Assistant, &text),
                 Update::ToolStarted {
@@ -732,6 +745,8 @@ impl App {
                 );
             }
             self.busy = false;
+            self.turn_started = None;
+            self.activity = None;
             self.screen = Screen::Instructing;
             self.worker = None;
             self.rx = None;

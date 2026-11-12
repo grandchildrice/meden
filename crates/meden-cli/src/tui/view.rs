@@ -655,6 +655,39 @@ fn approval_visible(app: &App) -> bool {
         && app.review_rows <= app.review_area.height.saturating_sub(2)
 }
 
+fn activity_line(app: &App) -> Line<'static> {
+    // Advance from elapsed time, not input events or token arrival. The main
+    // loop redraws every 100ms even while the model or a tool is silent.
+    let elapsed = app
+        .turn_started
+        .map(|start| start.elapsed())
+        .unwrap_or_default();
+    let ticks = elapsed.as_millis().saturating_div(100);
+    let spinner = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+    let index = usize::try_from(ticks.checked_rem(10).unwrap_or(0)).unwrap_or(0);
+    let symbol = spinner.get(index).copied().unwrap_or("⠋");
+    let stopping = app
+        .processes
+        .flag()
+        .load(std::sync::atomic::Ordering::SeqCst);
+    let label = if stopping {
+        "Stopping · waiting for current work"
+    } else {
+        app.activity.as_deref().unwrap_or("Working")
+    };
+    Line::from(vec![
+        Span::styled(
+            format!("{symbol} {label}"),
+            if stopping {
+                Style::new().fg(Color::Yellow)
+            } else {
+                accent()
+            },
+        ),
+        Span::styled(format!("  ·  {}s elapsed", elapsed.as_secs()), muted()),
+    ])
+}
+
 fn draw_controls(frame: &mut Frame<'_>, app: &App, area: Rect) {
     if is_review(&app.screen) && !approval_visible(app) {
         frame.render_widget(
@@ -672,10 +705,7 @@ fn draw_controls(frame: &mut Frame<'_>, app: &App, area: Rect) {
             Span::styled("↑↓ choose · q / esc quit", muted()),
         ])],
         Screen::Running => vec![
-            Line::styled(
-                format!("● {}", app.activity.as_deref().unwrap_or("Working")),
-                accent(),
-            ),
+            activity_line(app),
             Line::styled(
                 "esc / ctrl-c cancel · ctrl+t transcript · ctrl+o copy · PgUp/PgDn scroll",
                 muted(),
