@@ -2059,6 +2059,15 @@ credentials. A legitimate direct response still completes the conversation.
 Transport checks complement the processor approval tests above; they do
 not establish local inference confinement.
 
+The [connection argument tests](../python/tests/test_connection_args.py) observe
+the explicit `--base-url`/`--model` path with an argument key, an explicitly named
+environment key and no key. Only the selected endpoint receives one request;
+unrelated configured credentials, local-engine defaults and discovery do not
+select its connection. Invalid combinations fail without requests or printed
+keys. PTY recovery tests exercise this path through restart and check that its
+credential is absent from conversation checkpoints. Argument parsing, host
+configuration and credential attribution remain adapters outside refinement.
+
 The [HTTP export component](../crates/meden-runtime/src/transfer.rs)
 uses the refined borrowed review/dispatch state under a mutex. Its target and body are
 owned immutable snapshots; host approval is a separate method that is not

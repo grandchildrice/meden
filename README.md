@@ -93,15 +93,21 @@ system locations. On NixOS, Meden also searches the dependency closure of
 the installed system software, without changing PATH or requiring a
 `MEDEN_BWRAP` export. Bubblewrap discovery does not download or install system packages.
 `MEDEN_BWRAP` remains an optional trusted host override. Isolation remains required.
-Build from source with Rust and set `OLLAMA_API_KEY` for the cloud connection:
+Build from source, then pass the connection settings in the launch command:
 
 ```bash
 cargo build --release -p meden-cli
-export MEDEN_LLM_BASE_URL=https://ollama.com/v1
-export MEDEN_LLM_MODEL=your-ollama-cloud-model
-export MEDEN_LLM_API_KEY="$OLLAMA_API_KEY"
-./target/release/meden tui --workspace /path/to/project --provider configured
+./target/release/meden tui --workspace /path/to/project \
+  --base-url https://ollama.com/v1 --model your-ollama-cloud-model \
+  --api-key "your-ollama-api-key"
 ```
+
+No `MEDEN_*` exports or configuration file are required. If `OLLAMA_API_KEY`
+is already available, replace `--api-key "…"` with
+`--api-key-env OLLAMA_API_KEY`. Keys supplied this way are not written to the
+repository or saved conversation. Existing host logins can be selected with
+`--provider codex`, `--provider claude` or `--provider hermes:ollama-cloud`,
+without passing a URL or copying a key.
 
 On Linux x86_64, the TUI prepares its pinned local verification tools on first
 launch, before opening your repository. Public tool downloads and proof-library
@@ -119,9 +125,8 @@ For the existing confined CPU backend, prepare a compatible llama.cpp executable
 and GGUF weights:
 
 ```bash
-export MEDEN_LOCAL_ENGINE=/path/to/llama-server
-export MEDEN_LOCAL_MODEL=/path/to/model.gguf
-./target/release/meden tui --workspace /path/to/project
+./target/release/meden tui --workspace /path/to/project \
+  --local-engine /path/to/llama-server --local-model /path/to/model.gguf
 ```
 
 This backend currently uses Linux/CPU with a 16384-token context. The process
@@ -153,14 +158,20 @@ restrictions or fall back to paid API keys. See
 [subscription connections](docs/local-inference.md#subscription-connections)
 for login sources and limitations.
 
-For another OpenAI-compatible endpoint, set `MEDEN_LLM_BASE_URL`,
-`MEDEN_LLM_MODEL` and, when required, `MEDEN_LLM_API_KEY`. For example:
+For another OpenAI-compatible endpoint, pass its API base URL and model directly.
+For a server that needs no key:
 
 ```bash
-export MEDEN_LLM_BASE_URL=http://localhost:11434/v1
-export MEDEN_LLM_MODEL=your-model
-./target/release/meden tui --workspace . --provider configured
+./target/release/meden tui --workspace . \
+  --base-url http://localhost:11434/v1 --model your-model
 ```
+
+Add `--api-key KEY` or `--api-key-env NAME` when the server requires authentication.
+`--base-url` uses the OpenAI-compatible Chat Completions API and needs no
+`--provider` flag. It uses only the key explicitly selected by these flags;
+it does not borrow a key from another configured connection or login.
+Environment-based connections (`MEDEN_LLM_BASE_URL`, `MEDEN_LLM_MODEL`,
+`MEDEN_LLM_API_KEY` with `--provider configured`) remain optional.
 
 Before HTTP inference, the TUI shows the actual processor URL and asks whether
 it may receive this workspace's conversation, file contents and tool

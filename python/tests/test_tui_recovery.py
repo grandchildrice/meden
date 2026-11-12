@@ -38,6 +38,7 @@ def test_tui_recovers_tools_and_explains_retained_stops(tmp_path, tui_verifier, 
         def do_POST(self):
             try:
                 request = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+                assert self.headers.get("Authorization") == "Bearer CLI-KEY-DO-NOT-SAVE"
                 requests.append(request)
                 index = len(requests)
                 if mode == "provider" and index == 2:
@@ -82,7 +83,9 @@ def test_tui_recovers_tools_and_explains_retained_stops(tmp_path, tui_verifier, 
            "XDG_DATA_HOME": str(tmp_path / "data"),
            "MEDEN_LLM_BASE_URL": f"http://127.0.0.1:{server.server_port}/v1",
            "MEDEN_LLM_MODEL": "fixture"}
-    args = [find_meden(), "tui", "--workspace", str(project), "--provider", "configured"]
+    args = [find_meden(), "tui", "--workspace", str(project),
+            "--base-url", env["MEDEN_LLM_BASE_URL"], "--model", "fixture",
+            "--api-key", "CLI-KEY-DO-NOT-SAVE"]
     master, slave = pty.openpty()
     fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 40, 130, 0, 0))
     initial = termios.tcgetattr(slave)
@@ -154,6 +157,8 @@ def test_tui_recovers_tools_and_explains_retained_stops(tmp_path, tui_verifier, 
             assert (project / "result.txt").read_text() == "already completed"
             assert len(requests) == 4
         assert not errors
+        for checkpoint in (tmp_path / "data/meden/projects").glob("*/*.json"):
+            assert "CLI-KEY-DO-NOT-SAVE" not in checkpoint.read_text()
         quit_and_drain()
     finally:
         allow_repair.set()

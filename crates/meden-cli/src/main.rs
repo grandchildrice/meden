@@ -2,11 +2,13 @@
 #![forbid(unsafe_code)]
 use anyhow::{Context, Result};
 use clap::{Args, Parser, Subcommand};
+use connection::ModelArgs;
 use meden_runtime::{process::Control, workspace::Workspace};
 use std::io::{self, Read, Write};
 use std::path::PathBuf;
 use std::process::ExitCode;
 use std::sync::{atomic::AtomicBool, Arc};
+mod connection;
 mod exports;
 mod pages;
 mod project;
@@ -34,7 +36,7 @@ enum Command {
     Setup,
     /// Open a conversational workspace agent.
     Tui(WorkspaceArgs),
-    /// Run instructions from JSON Lines with private offline workspace tools.
+    /// Run instructions from JSON Lines with offline repository tools.
     Run(WorkspaceArgs),
     /// Run Bash from stdin in a new private offline workspace.
     Exec {
@@ -82,49 +84,6 @@ enum Command {
         #[arg(last = true, required = true)]
         arguments: Vec<std::ffi::OsString>,
     },
-}
-#[derive(Args)]
-struct ModelArgs {
-    /// HTTP connection ID (including codex or claude subscriptions), or "auto".
-    #[arg(long)]
-    provider: Option<String>,
-    /// Model identifier for that connection.
-    #[arg(long)]
-    model: Option<String>,
-    /// Authorize this exact inference URL to receive this session's context
-    /// for up to eight hours. Required for run; optional in the TUI.
-    #[arg(long, value_name = "URL")]
-    approve_processor: Option<String>,
-    /// Prepared llama-server executable. Defaults to MEDEN_LOCAL_ENGINE.
-    #[arg(long, conflicts_with_all = ["provider", "model", "approve_processor"])]
-    local_engine: Option<PathBuf>,
-    /// Prepared GGUF weights or first split. Defaults to MEDEN_LOCAL_MODEL.
-    #[arg(long, conflicts_with_all = ["provider", "model", "approve_processor"])]
-    local_model: Option<PathBuf>,
-}
-
-impl ModelArgs {
-    fn local_config(&self) -> Result<Option<meden_llm::LocalConfig>> {
-        if self.provider.is_some() {
-            return Ok(None);
-        }
-        anyhow::ensure!(
-            self.model.is_none() && self.approve_processor.is_none(),
-            "HTTP model/approval requires an explicit --provider"
-        );
-        let engine = self
-            .local_engine
-            .clone()
-            .or_else(|| std::env::var_os("MEDEN_LOCAL_ENGINE").map(PathBuf::from));
-        let model = self
-            .local_model
-            .clone()
-            .or_else(|| std::env::var_os("MEDEN_LOCAL_MODEL").map(PathBuf::from));
-        Ok(Some(meden_llm::LocalConfig {
-            engine: engine.context("configure --local-engine and --local-model (or MEDEN_LOCAL_ENGINE/MEDEN_LOCAL_MODEL); HTTP inference requires explicit --provider")?,
-            model: model.context("local inference requires prepared GGUF weights via --local-model or MEDEN_LOCAL_MODEL")?,
-        }))
-    }
 }
 #[derive(Args)]
 struct WorkspaceArgs {
@@ -188,13 +147,8 @@ fn run() -> Result<()> {
             let local = args.model.local_config()?;
             let providers = if local.is_some() {
                 Vec::new()
-            } else if args.model.provider.as_deref() == Some("auto") {
-                detect_providers(args.model.model.as_deref())
             } else {
-                vec![pick_provider(
-                    args.model.provider.as_deref(),
-                    args.model.model.as_deref(),
-                )?]
+                args.model.connections()?
             };
             tui::run(
                 providers,
@@ -227,8 +181,7 @@ fn run() -> Result<()> {
                     Arc::clone(&processes),
                 )?
             } else {
-                let provider =
-                    pick_provider(args.model.provider.as_deref(), args.model.model.as_deref())?;
+                let provider = args.model.connection()?;
                 let gateway = meden_llm::Gateway::prepare(session, provider)?;
                 approve_processor(&gateway, approved.context("missing processor approval")?)?;
                 gateway
@@ -368,31 +321,4 @@ fn execute(source: &std::path::Path) -> Result<()> {
     println!("{}", serde_json::to_string(&record)?);
     result?;
     Ok(())
-}
-/// Apply the host's model override to every connection shown in the picker.
-fn detect_providers(model: Option<&str>) -> Vec<meden_llm::Provider> {
-    meden_llm::detect()
-        .into_iter()
-        .map(|mut provider| {
-            if let Some(model) = model {
-                model.clone_into(&mut provider.model);
-            }
-            provider
-        })
-        .collect()
-}
-
-/// Select a model connection: the one asked for, or the first one detected.
-fn pick_provider(id: Option<&str>, model: Option<&str>) -> Result<meden_llm::Provider> {
-    let found = detect_providers(model);
-    match id {
-        Some(wanted) if wanted != "auto" => found
-            .into_iter()
-            .find(|p| p.id == wanted)
-            .with_context(|| format!("no provider called {wanted:?}; try `meden providers` (subscriptions: codex login / hermes auth, claude auth login / claude setup-token)")),
-        _ => found
-            .into_iter()
-            .next()
-            .context("no model found; try `meden providers`"),
-    }
 }

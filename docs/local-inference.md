@@ -13,9 +13,17 @@ Use a configured Ollama Cloud connection, such as the existing Hermes provider:
 meden tui --workspace /path/to/project --provider hermes:ollama-cloud --model minimax-m3
 ```
 
-Alternatively set `MEDEN_LLM_BASE_URL=https://ollama.com/v1`,
-`MEDEN_LLM_MODEL` to the chosen cloud model ID and `MEDEN_LLM_API_KEY` to the
-API key, then select `--provider configured`. The TUI reviews the exact
+Alternatively pass the connection directly, without configuration or exports:
+
+```bash
+meden tui --workspace /path/to/project \
+  --base-url https://ollama.com/v1 --model your-ollama-cloud-model \
+  --api-key "your-ollama-api-key"
+```
+
+If the key is already in `OLLAMA_API_KEY`, use `--api-key-env OLLAMA_API_KEY`
+instead. The explicit endpoint never inherits credentials from another
+environment-based connection or subscription login. The TUI reviews the exact
 processor before sending context; automation uses `--approve-processor
 https://ollama.com/v1/chat/completions`. Code execution and proof checks stay
 offline. This explicitly authorized cloud inference sends context externally.
@@ -104,16 +112,18 @@ GGUF model before confidential work. No component downloads models or
 silently switches to an HTTP processor during a local session.
 
 ```bash
-export MEDEN_LOCAL_ENGINE=/path/to/llama-server
-export MEDEN_LOCAL_MODEL=/path/to/model.gguf
-meden tui --workspace /path/to/project --pages pages.json
+meden tui --workspace /path/to/project --pages pages.json \
+  --local-engine /path/to/llama-server --local-model /path/to/model.gguf
 
 printf '%s\n' '{"instruction":"Inspect the project, fix the bug and run tests."}' | \
-  meden run --workspace /path/to/project
+  meden run --workspace /path/to/project \
+    --local-engine /path/to/llama-server --local-model /path/to/model.gguf
 ```
 
-`--local-engine PATH` and `--local-model PATH` override those environment
-settings. The default path fails if either asset is missing. HTTP discovery
+The same paths can optionally be set with `MEDEN_LOCAL_ENGINE` and
+`MEDEN_LOCAL_MODEL`; command-line flags take precedence. The default path
+fails if either asset is missing. `--base-url URL --model MODEL` selects an
+HTTP connection directly without discovery. HTTP discovery
 is explicit: `meden providers` lists connections, `--provider ID` selects
 one, and `--provider auto` opts into discovery/the TUI picker. HTTP processing
 still requires the existing trusted TUI approval or exact CLI

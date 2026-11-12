@@ -18,16 +18,19 @@ as `/retry`, retaining current files and conversation context.
 ```bash
 printf '%s\n' '{"instruction":"Inspect the project, fix the bug and run its tests."}' \
   '{"instruction":"Add boundary tests for the corrected behavior."}' | \
-  meden run --workspace /path/to/project --provider configured \
+  meden run --workspace /path/to/project \
+    --base-url http://localhost:11434/v1 --model your-model \
     --approve-processor http://localhost:11434/v1/chat/completions
 ```
 
 The default path uses [confined local inference](local-inference.md), configured
 with `--local-engine`/`--local-model` or `MEDEN_LOCAL_ENGINE`/`MEDEN_LOCAL_MODEL`.
 It performs no HTTP discovery and needs no external processor approval.
-For the explicit HTTP path above, configure the provider as described in the [README](../README.md). The
-approval must match its exact inference URL. It permits that processor to
-receive this session's conversation, file contents and tool results for up
+For the explicit HTTP path above, add `--api-key KEY` or `--api-key-env NAME`
+if authentication is needed. `--base-url` and `--model` select the connection
+without environment exports or provider discovery. Keys from other connections
+are not inherited. The approval must match its exact inference URL. It permits
+that processor to receive this session's conversation, file contents and tool results for up
 to eight hours; a loopback endpoint alone does not prove local inference.
 
 Subscription connections use `--provider codex` with an approved `/responses`
