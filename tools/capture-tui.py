@@ -29,6 +29,70 @@ import pyte
 from PIL import Image, ImageDraw, ImageFont
 
 
+def render_screen(screen, font_path, out):
+    """Render actual terminal cells; retain their text alongside the PNG."""
+    columns, rows = screen.columns, screen.lines
+    font = ImageFont.truetype(str(font_path), 20)
+    cell_width, cell_height, padding = round(font.getlength("M")), 27, 24
+    default_bg, default_fg = "#0c121e", "#dce6ef"
+    palette = {
+        "black": "#152337",
+        "red": "#f57989",
+        "green": "#8ed6ac",
+        "brown": "#e9c580",
+        "blue": "#8bb6ee",
+        "magenta": "#bb9ce9",
+        "cyan": "#68dadb",
+        "white": "#dce6ef",
+        "default": default_fg,
+    }
+
+    def color(value, default):
+        if value == "default":
+            return default
+        if value in palette:
+            return palette[value]
+        if len(value) == 6:
+            return f"#{value}"
+        return default
+
+    image = Image.new(
+        "RGB",
+        (columns * cell_width + 2 * padding, rows * cell_height + 2 * padding),
+        default_bg,
+    )
+    draw = ImageDraw.Draw(image)
+    for y in range(rows):
+        for x in range(columns):
+            cell = screen.buffer[y][x]
+            fg, bg = color(cell.fg, default_fg), color(cell.bg, default_bg)
+            if cell.reverse:
+                fg, bg = bg, fg
+            left, top = padding + x * cell_width, padding + y * cell_height
+            draw.rectangle((left, top, left + cell_width - 1, top + cell_height - 1), fill=bg)
+            if cell.data == "█":
+                draw.rectangle(
+                    (left, top, left + cell_width - 1, top + cell_height - 1), fill=fg
+                )
+            elif len(cell.data) == 1 and 0x2800 <= ord(cell.data) <= 0x28FF:
+                # Braille spinners need not exist in the chosen text font.
+                bits = ord(cell.data) - 0x2800
+                dots = [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (0, 3), (1, 3)]
+                for bit, (column, row) in enumerate(dots):
+                    if bits & (1 << bit):
+                        dot_x = left + cell_width * (0.28 + column * 0.44)
+                        dot_y = top + cell_height * (0.2 + row * 0.2)
+                        draw.ellipse((dot_x - 1, dot_y - 1, dot_x + 1, dot_y + 1), fill=fg)
+            elif cell.data:
+                draw.text((left, top), cell.data, font=font, fill=fg,
+                          stroke_width=1 if cell.bold else 0)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    image.save(out)
+    out.with_suffix(".txt").write_text(
+        "\n".join(line.rstrip() for line in screen.display).rstrip() + "\n"
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--binary", type=Path, required=True)
@@ -112,56 +176,7 @@ def main():
             data = os.read(master, 65536)
             raw.extend(data)
             stream.feed(decoder.decode(data))
-        font = ImageFont.truetype(str(args.font), 20)
-        cell_width, cell_height, padding = round(font.getlength("M")), 27, 24
-        default_bg, default_fg = "#0c121e", "#dce6ef"
-        palette = {
-            "black": "#152337",
-            "red": "#f57989",
-            "green": "#8ed6ac",
-            "brown": "#e9c580",
-            "blue": "#8bb6ee",
-            "magenta": "#bb9ce9",
-            "cyan": "#68dadb",
-            "white": "#dce6ef",
-            "default": default_fg,
-        }
-
-        def color(value, default):
-            if value == "default":
-                return default
-            if value in palette:
-                return palette[value]
-            if len(value) == 6:
-                return f"#{value}"
-            return default
-
-        image = Image.new(
-            "RGB",
-            (columns * cell_width + 2 * padding, rows * cell_height + 2 * padding),
-            default_bg,
-        )
-        draw = ImageDraw.Draw(image)
-        for y in range(rows):
-            for x in range(columns):
-                cell = screen.buffer[y][x]
-                fg, bg = color(cell.fg, default_fg), color(cell.bg, default_bg)
-                if cell.reverse:
-                    fg, bg = bg, fg
-                left, top = padding + x * cell_width, padding + y * cell_height
-                draw.rectangle((left, top, left + cell_width - 1, top + cell_height - 1), fill=bg)
-                if cell.data == "█":
-                    draw.rectangle(
-                        (left, top, left + cell_width - 1, top + cell_height - 1), fill=fg
-                    )
-                elif cell.data:
-                    draw.text((left, top), cell.data, font=font, fill=fg,
-                              stroke_width=1 if cell.bold else 0)
-        args.out.parent.mkdir(parents=True, exist_ok=True)
-        image.save(args.out)
-        args.out.with_suffix(".txt").write_text(
-            "\n".join(line.rstrip() for line in screen.display).rstrip() + "\n"
-        )
+        render_screen(screen, args.font, args.out)
         if args.screen == "conversation" and "shift+enter" not in "\n".join(screen.display):
             os.write(master, b"\x1b")
             pump(lambda: "shift+enter" in "\n".join(screen.display))

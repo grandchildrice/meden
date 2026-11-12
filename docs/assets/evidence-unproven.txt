@@ -1,0 +1,29 @@
+    MEDEN  /  meden-local
+    Project: /tmp/meden-readme-9qb5kawv/counter
+    Project kernel needs verification
+    ╭ Specification & evidence · ctrl+g ───────────────────────────────────────────────────────────────╮
+    │Specification r1 · accepted · Bounded counter                                                     │
+    │Implementation proof pending                                                                      │
+    │Delivery held · implementation proof required                                                     │
+    │○ unproved · The counter never decreases.                                                         │
+    │○ unproved · The result fits in u64.                                                              │
+    │+1 properties · ctrl+g for all evidence                                                           │
+    ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+    › Build a counter that never wraps or decreases.
+
+    ● I will specify an overflow-safe counter for your review.
+
+      ✓ propose_contract
+    · Review the proposed contract to continue.
+
+    · Specification accepted. Continuing implementation.
+
+
+
+
+
+
+
+
+    ⠸ Waiting for model · request 1  ·  0s elapsed
+    esc / ctrl-c cancel · ctrl+g evidence · ctrl+t transcript · wheel / PgUp/PgDn scroll

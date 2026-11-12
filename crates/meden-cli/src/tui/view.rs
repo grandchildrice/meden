@@ -239,21 +239,50 @@ fn draw_conversation(frame: &mut Frame<'_>, app: &mut App, area: Rect) {
         return;
     }
     if app.lines.is_empty() {
-        frame.render_widget(Paragraph::new(vec![
-            Line::default(),
-            Line::styled("What would you like to build?", Style::new().bold()),
-            Line::default(),
-            Line::raw("Describe what to build, ask a question, or continue from this repository's files."),
-            Line::raw("For formal verification, you review the specification before implementation."),
-            Line::default(),
-            Line::styled("Try: Build a vending machine that rejects purchases when balance is insufficient.", muted()),
-            Line::default(),
-            Line::styled("Changes are saved in this repository. Reopen it to resume your conversation.", muted()),
-        ]).wrap(Wrap { trim: false }), area);
+        draw_welcome(frame, area);
         return;
     }
     let paragraph = Paragraph::new(conversation_lines(app, area.width)).wrap(Wrap { trim: false });
     render_scrolled(frame, app, paragraph, area, true);
+}
+
+fn draw_welcome(frame: &mut Frame<'_>, area: Rect) {
+    let mut lines = vec![Line::default()];
+    if area.width >= 50 && area.height >= 20 {
+        let logo = [
+            "███   ███  ███████  ██████   ███████  ███   ██",
+            "████ ████  ██       ██   ██  ██       ████  ██",
+            "██ ███ ██  █████    ██   ██  █████    ██ ██ ██",
+            "██  █  ██  ██       ██   ██  ██       ██  ████",
+            "██     ██  ███████  ██████   ███████  ██   ███",
+        ];
+        lines.extend(logo.into_iter().map(|row| Line::styled(row, accent())));
+        lines.push(Line::default());
+        lines.push(Line::styled(
+            "Proof-driven development, with ease.",
+            muted(),
+        ));
+        lines.push(Line::default());
+    }
+    lines.extend([
+        Line::styled("What would you like to build?", Style::new().bold()),
+        Line::default(),
+        Line::raw(
+            "Describe what to build, ask a question, or continue from this repository's files.",
+        ),
+        Line::raw("For formal verification, you review the specification before implementation."),
+        Line::default(),
+        Line::styled(
+            "Try: Build a vending machine that rejects purchases when balance is insufficient.",
+            muted(),
+        ),
+        Line::default(),
+        Line::styled(
+            "Changes are saved in this repository. Reopen it to resume your conversation.",
+            muted(),
+        ),
+    ]);
+    frame.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), area);
 }
 
 fn conversation_lines(app: &mut App, width: u16) -> Vec<Line<'static>> {

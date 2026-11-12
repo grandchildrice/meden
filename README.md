@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/tui.png" alt="MEDEN running in a real terminal" width="1080" />
+  <img src="docs/assets/tui.png" alt="MEDEN's current welcome screen, with the large logo and selected repository" width="1080" />
 </p>
 
 <h1 align="center">MEDEN</h1>
@@ -42,6 +42,28 @@ HTTP connections and optional Hermes configuration.
   including existing Codex and Claude subscription logins.
 - **Explicit boundaries:** Lean specifications for capability decisions and
   exact, single-use outbound authorization, checked in CI.
+
+The TUI keeps the accepted specification and its current evidence above the
+conversation, so you can see what still needs proof and what has been checked.
+
+**Before verification:** the accepted requirements are marked unproved and
+delivery is held while the implementation is being prepared.
+
+<p align="center">
+  <img src="docs/assets/evidence-unproven.png" alt="Accepted counter specification with unproved properties and delivery held" width="1080" />
+</p>
+
+**After verification:** the same requirements are marked proved, and a checked
+package is available. Sending it still requires your approval.
+
+<p align="center">
+  <img src="docs/assets/evidence-verified.png" alt="Counter transition verified with Lean, showing proved properties and a checked package" width="1080" />
+</p>
+
+These are actual terminal captures using a scripted, confined local model fixture
+and real offline Rust extraction and Lean checks. The proof covers the accepted
+pure counter transition, not CLI/I/O or the whole application. They do not
+measure live-model capability. [Capture the screens →](tools/capture-readme.py)
 
 A [recorded Ollama Cloud delivery trial](results/checked-delivery-ollama-cloud-minimax-m3-8dea35f.json)
 completed one natural-language request with model-written Rust, checked Lean
@@ -205,15 +227,6 @@ running work. Replacement reviews include a field diff and retain the original
 accepted meaning until you approve the replacement. Proof status applies to the
 supported pure transition; ordinary tool/test successes do not establish it.
 
-[Verified evidence](docs/assets/evidence-verified.png) ·
-[After an input change](docs/assets/evidence-stale.png).
-These are actual TUI cells from a scripted local-model fixture with real offline
-Rust extraction and Lean checks; they are not a live-model capability benchmark.
-
-[Conversation preview](docs/assets/conversation.png) ·
-[Live command output](docs/assets/live-output.png)
-(actual PTY captures using a scripted local model fixture).
-
 Run a command without a model through the same offline tools:
 
 ```bash
@@ -364,9 +377,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for local checks. Maintainer work
 happens directly on `main`; small, loosely coupled implementations take
 priority over backward compatibility.
 
-The hero image is captured from the running TUI, not a mockup. The
-[PTY capture script](tools/capture-tui.py) records actual terminal cells;
-font and terminal dimensions are explicit for reproducibility.
+The screenshots are captured from the running TUI. The
+[README capture script](tools/capture-readme.py) reproduces all three using a
+scripted local model and the prepared offline checker bundle. The
+[PTY renderer](tools/capture-tui.py) records actual terminal cells; font and
+terminal dimensions are explicit for reproducibility.
 
 ## License
 

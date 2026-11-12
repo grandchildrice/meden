@@ -1,0 +1,30 @@
+    MEDEN  /  meden-local
+    Project: /tmp/meden-readme-9qb5kawv/counter
+    VERIFIED project kernel
+    ╭ Specification & evidence · ctrl+g ───────────────────────────────────────────────────────────────╮
+    │Specification r1 · accepted · Bounded counter                                                     │
+    │VERIFIED · Lean refinement of the pure transition                                                 │
+    │Checked package available · sending still needs your approval                                     │
+    │✓ proved · The counter never decreases.                                                           │
+    │✓ proved · The result fits in u64.                                                                │
+    │+1 properties · ctrl+g for all evidence                                                           │
+    ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+    › What did the proof establish?
+
+    ● Proved for every u64 state and increment:
+      - The counter never decreases.
+      - Overflow preserves the original state; the result stays in u64.
+      - Adding zero leaves the state unchanged.
+
+      Scope: counter.rs / increment. CLI and I/O are outside this proof.
+
+
+
+
+
+
+    ╭ Your message ────────────────────────────────────────────────────────────────────────────────────╮
+    │> Describe your app or ask a question…                                                            │
+    ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+    enter send · shift+enter newline · ctrl+t transcript · ctrl+o copy
+    ctrl+g evidence · / commands · ? shortcuts · wheel / PgUp/PgDn scroll

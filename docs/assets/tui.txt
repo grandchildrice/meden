@@ -1,24 +1,30 @@
-      MEDEN  /  gpt-6.1-sol
-      Private working copy · offline tools
+    MEDEN  /  meden-local
+    Project: /tmp/meden-readme-9qb5kawv/counter
+    Repository changes saved in place · offline tools
+
+    ███   ███  ███████  ██████   ███████  ███   ██
+    ████ ████  ██       ██   ██  ██       ████  ██
+    ██ ███ ██  █████    ██   ██  █████    ██ ██ ██
+    ██  █  ██  ██       ██   ██  ██       ██  ████
+    ██     ██  ███████  ██████   ███████  ██   ███
+
+    Proof-driven development, with ease.
+
+    What would you like to build?
+
+    Describe what to build, ask a question, or continue from this repository's files.
+    For formal verification, you review the specification before implementation.
+
+    Try: Build a vending machine that rejects purchases when balance is insufficient.
+
+    Changes are saved in this repository. Reopen it to resume your conversation.
 
 
-      What would you like to build?
-
-      Describe your app or ask a question in the message box below.
-      For formal verification, you review the specification before implementation.
-
-      Try: Build a vending machine that rejects purchases when balance is insufficient.
-
-      Files stay in a private working copy. /workspace shows its location.
 
 
 
-
-
-
-
-      ╭ Your message ────────────────────────────────────────────────────────────────────────────────────╮
-      │> Inspect this project, improve the implementation, and run its tests.                            │
-      ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
-      enter send · shift+enter newline · ctrl+t transcript · ctrl+o copy
-      / commands · ? shortcuts · /model connection · PgUp/PgDn scroll
+    ╭ Your message ────────────────────────────────────────────────────────────────────────────────────╮
+    │> Describe your app or ask a question…                                                            │
+    ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+    enter send · shift+enter newline · ctrl+t transcript · ctrl+o copy
+    ctrl+g evidence · / commands · ? shortcuts · wheel / PgUp/PgDn scroll
