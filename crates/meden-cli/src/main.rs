@@ -26,7 +26,7 @@ mod workspace;
 #[command(name = "meden", version, about = "Conversational coding agent")]
 struct Cli {
     #[command(subcommand)]
-    command: Command,
+    command: Option<Command>,
 }
 #[derive(Subcommand)]
 enum Command {
@@ -96,6 +96,15 @@ struct WorkspaceArgs {
     #[arg(long, value_name = "FILE")]
     pages: Option<PathBuf>,
 }
+impl Default for WorkspaceArgs {
+    fn default() -> Self {
+        Self {
+            model: ModelArgs::default(),
+            workspace: PathBuf::from("."),
+            pages: None,
+        }
+    }
+}
 fn main() -> ExitCode {
     match run() {
         Ok(()) => ExitCode::SUCCESS,
@@ -110,7 +119,10 @@ fn main() -> ExitCode {
     }
 }
 fn run() -> Result<()> {
-    match Cli::parse().command {
+    match Cli::parse()
+        .command
+        .unwrap_or_else(|| Command::Tui(WorkspaceArgs::default()))
+    {
         Command::WorkerLaunch { arguments } => meden_runtime::process::exec_clean(&arguments)?,
         Command::WorkerKernelSyntax => worker_kernel_syntax()?,
         Command::VerifyKernel {
@@ -144,7 +156,8 @@ fn run() -> Result<()> {
         }
         Command::Tui(args) => {
             let pages = load_pages(args.pages.as_deref())?;
-            let local = args.model.local_config()?;
+            let local = args.model.tui_local_config()?;
+            let interactive = local.is_none() && args.model.interactive();
             let providers = if local.is_some() {
                 Vec::new()
             } else {
@@ -156,6 +169,7 @@ fn run() -> Result<()> {
                 args.model.approve_processor.as_deref(),
                 pages,
                 local,
+                interactive,
             )?;
         }
         Command::Run(args) => {

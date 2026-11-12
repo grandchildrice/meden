@@ -7,7 +7,7 @@ use anyhow::{Context, Result};
 use clap::Args;
 use meden_llm::{Protocol, Provider};
 
-#[derive(Args)]
+#[derive(Args, Default)]
 pub(crate) struct ModelArgs {
     /// Existing HTTP connection ID (including codex/claude logins), or "auto".
     #[arg(long, conflicts_with = "base_url")]
@@ -42,6 +42,30 @@ pub(crate) struct ModelArgs {
 }
 
 impl ModelArgs {
+    pub(crate) fn interactive(&self) -> bool {
+        self.provider.is_none()
+            && self.base_url.is_none()
+            && self.model.is_none()
+            && self.local_engine.is_none()
+            && self.local_model.is_none()
+            && self.approve_processor.is_none()
+    }
+
+    pub(crate) fn tui_local_config(&self) -> Result<Option<meden_llm::LocalConfig>> {
+        if self.provider.is_some() || self.base_url.is_some() {
+            return Ok(None);
+        }
+        if self.local_engine.is_some()
+            || self.local_model.is_some()
+            || std::env::var_os("MEDEN_LOCAL_ENGINE").is_some()
+            || std::env::var_os("MEDEN_LOCAL_MODEL").is_some()
+        {
+            self.local_config()
+        } else {
+            Ok(None)
+        }
+    }
+
     pub(crate) fn local_config(&self) -> Result<Option<meden_llm::LocalConfig>> {
         if self.provider.is_some() || self.base_url.is_some() {
             return Ok(None);

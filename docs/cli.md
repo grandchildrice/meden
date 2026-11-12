@@ -23,7 +23,7 @@ printf '%s\n' '{"instruction":"Inspect the project, fix the bug and run its test
     --approve-processor http://localhost:11434/v1/chat/completions
 ```
 
-The default path uses [confined local inference](local-inference.md), configured
+The default headless `run` path uses [confined local inference](local-inference.md), configured
 with `--local-engine`/`--local-model` or `MEDEN_LOCAL_ENGINE`/`MEDEN_LOCAL_MODEL`.
 It performs no HTTP discovery and needs no external processor approval.
 For the explicit HTTP path above, add `--api-key KEY` or `--api-key-env NAME`

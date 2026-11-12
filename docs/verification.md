@@ -1737,6 +1737,17 @@ message editor. Native rendering tests and subscription PTY tests check
 message markers, hidden/expanded tool output, visible failures and sanitization.
 The six screen states and extracted approval selector remain the authority
 boundary; the redesigned renderer is still an adapter, not a proved display.
+The interactive connection editor runs in the nonreview `Picking` state with
+its own masked buffers, outside conversation history. Submitting fields creates
+a new gateway and enters the existing fixed-target review; form input does not
+approve it. Per-project preferences live in private host storage. URL/model and
+local paths are retained, API keys require an explicit remember checkbox, and
+account logins are referenced without token copying. Saved HTTP settings always
+start with fresh processor review. PTY tests exercise no-argument startup, invalid
+URL correction, secret masking, opt-in persistence and file modes, reopening,
+clearing credentials after an endpoint edit, malformed settings refusal and
+offline local-asset selection. Preference decoding, persistence and physical
+form-input attribution remain adapters outside the extracted approval theorem.
 The composer uses Shift+Enter (or Ctrl+J) for newlines, a catalog-backed slash
 popup, Ctrl+R prompt-history search and Codex-style editing keys. Ctrl+T expands
 tool details. Ctrl+L changes only the visible transcript offset; `/new` resets

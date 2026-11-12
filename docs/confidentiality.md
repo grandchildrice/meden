@@ -52,7 +52,8 @@ tool arguments such as `approved: true`, and another model cannot grant it.
 Automatically discovering a provider in Hermes does not grant permission to
 send it confidential context.
 
-Local inference and local verification are the product default. A local
+Local inference and local verification are the confidentiality target; the TUI
+selects connections interactively and requires approval for HTTP inference. A local
 session does not use remote inference, provers, telemetry or caches.
 Workers remain offline. Localhost alone does not establish locality: the
 inference server must run under host network restrictions with prepared

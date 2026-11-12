@@ -22,7 +22,7 @@ offline with the host-selected repository mounted writable at `/workspace`.
 Changes are immediate in that directory. `exec` uses a private imported snapshot.
 Host checkpoints and checked artifacts stay outside the selected writable tree;
 opening a containing/contained state directory is refused. Inference uses a separate
-session-bound processor gateway. The default local path now launches an
+session-bound processor gateway. The isolated local path launches an
 offline inference process separate from coding workers, with dedicated
 Unix socket IPC and no access to host credentials or the project tree.
 The launcher/transport have empirical checks, not a Lean isolation proof.
@@ -94,6 +94,13 @@ session; proof coverage, active jobs and processor/export permissions are not
 restored. JSON, checkpoint integrity, locks and filesystem attribution remain
 adapters. Development edits are visible before verification; the checked-package
 and outbound gates do not assert that every working-tree file is already proved.
+
+The TUI keeps connection preferences in that private host directory. API keys
+are masked and session-only unless the host enables the remember-key checkbox;
+saved settings use atomic mode-0600 files. Existing account tokens are not copied
+into preferences. Submitting HTTP settings prepares a new unapproved gateway,
+and changing a URL clears the previous key. Preference parsing, persistence,
+filesystem identity and physical settings-input attribution are adapters.
 
 `exec` retains an explicit private-snapshot operation. Its trusted importer
 copies regular files, breaks hard links, preserves literal symlinks and rejects

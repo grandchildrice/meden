@@ -35,6 +35,7 @@ mod commands;
 mod editor;
 mod input;
 mod reveal;
+mod setup;
 mod view;
 use editor::Overlay;
 use input::Input;
@@ -112,6 +113,11 @@ struct ToolLine {
 struct App {
     providers: Vec<Provider>,
     picker: ListState,
+    connection_form: Option<setup::Form>,
+    connection_profile: Option<setup::Profile>,
+    custom_profile: Option<setup::Profile>,
+    connection_error: Option<String>,
+    local_config: Option<meden_llm::LocalConfig>,
     root: PathBuf,
     workspace: Option<Arc<Workspace>>,
     gateway: Option<Arc<Gateway>>,
@@ -155,14 +161,17 @@ struct App {
 impl App {
     fn new(providers: Vec<Provider>, root: PathBuf) -> Self {
         let mut picker = ListState::default();
-        if !providers.is_empty() {
-            picker.select(Some(0));
-        }
+        picker.select(Some(0));
         let project = Arc::new(crate::project::Project::new(&root));
         let exports = Arc::new(Exports::new(Arc::clone(&project)));
         Self {
             providers,
             picker,
+            connection_form: None,
+            connection_profile: None,
+            custom_profile: None,
+            connection_error: None,
+            local_config: None,
             root,
             workspace: None,
             gateway: None,
@@ -323,16 +332,14 @@ impl App {
         }
     }
     fn move_selection(&mut self, delta: isize) {
-        if self.providers.is_empty() {
-            return;
-        }
+        self.connection_error = None;
         let current = self.picker.selected().unwrap_or(0);
         self.picker.select(Some(if delta < 0 {
             current.saturating_sub(1)
         } else {
             current
                 .saturating_add(1)
-                .min(self.providers.len().saturating_sub(1))
+                .min(self.providers.len().saturating_add(1))
         }));
     }
     fn session_id(&self) -> &[u8] {
@@ -343,6 +350,11 @@ impl App {
     }
     fn select_processor(&mut self) {
         self.review_area = Rect::default();
+        let index = self.picker.selected().unwrap_or(0);
+        if index >= self.providers.len() {
+            self.open_setup(index > self.providers.len());
+            return;
+        }
         let Some(provider) = self.selected().cloned() else {
             return;
         };
@@ -352,6 +364,22 @@ impl App {
             self.screen = Screen::Instructing;
             return;
         }
+        if provider.id == "local" {
+            if let Some(config) = self.local_config.clone() {
+                let profile = setup::Profile::Local {
+                    engine: config.engine.clone(),
+                    model: config.model.clone(),
+                };
+                if let Err(error) = self.apply_connection(setup::Candidate::Local(config), profile)
+                {
+                    self.connection_error = Some(format!(
+                        "Could not open the local model: {error}. Press l to update its paths."
+                    ));
+                }
+            }
+            return;
+        }
+        self.choose_profile(&provider);
         if let Some(previous) = self.gateway.take() {
             let _ = previous.revoke_from_host();
         }
@@ -365,7 +393,7 @@ impl App {
                 self.scroll_back = 0;
                 self.screen = Screen::ReviewingProcessor;
             }
-            Err(error) => self.say(error.to_string(), Style::new().fg(Color::Red)),
+            Err(error) => self.connection_error = Some(error.to_string()),
         }
     }
     fn approve_processor(&mut self) {
@@ -375,6 +403,7 @@ impl App {
         match gateway.approve_from_host() {
             Ok(()) => {
                 self.screen = Screen::Instructing;
+                self.remember_connection();
                 if self.project.pending() {
                     self.open_contract();
                 }
@@ -1063,11 +1092,8 @@ pub fn run(
     approved: Option<&str>,
     pages: Arc<meden_runtime::pages::Pages>,
     local: Option<meden_llm::LocalConfig>,
+    interactive: bool,
 ) -> Result<()> {
-    anyhow::ensure!(
-        local.is_some() || !providers.is_empty(),
-        "TUI requires an OpenAI-compatible HTTP provider; see `meden providers`"
-    );
     crate::verifier::prepare()?;
     let workspace = Arc::new(Workspace::open(root, &std::env::current_exe()?)?);
     let mut app = App::new(providers, workspace.path().to_owned());
@@ -1080,17 +1106,15 @@ pub fn run(
     app.restore_history()?;
     app.pages = pages;
     app.workspace = Some(workspace);
-    if let Some(config) = local {
-        let gateway = Gateway::prepare_local(
-            app.session_id(),
-            &config,
-            &std::env::current_exe()?,
-            Arc::clone(&app.processes),
-        )?;
-        app.providers = vec![gateway.provider().clone()];
-        app.picker.select(Some(0));
-        app.gateway = Some(Arc::new(gateway));
-        app.screen = Screen::Instructing;
+    let restored = interactive && app.restore_connection();
+    if restored {
+        // A restored HTTP preference still enters the fresh processor review.
+    } else if let Some(config) = local {
+        let profile = setup::Profile::Local {
+            engine: config.engine.clone(),
+            model: config.model.clone(),
+        };
+        app.apply_connection(setup::Candidate::Local(config), profile)?;
     } else if let Some(endpoint) = approved {
         let provider = app
             .selected()
@@ -1100,7 +1124,7 @@ pub fn run(
         crate::approve_processor(&gateway, endpoint)?;
         app.gateway = Some(Arc::new(gateway));
         app.screen = Screen::Instructing;
-    } else if app.providers.len() == 1 {
+    } else if app.providers.len() == 1 && app.connection_error.is_none() {
         app.select_processor();
     }
     if app.screen == Screen::Instructing && app.project.pending() {
@@ -1140,11 +1164,15 @@ where
         }
         let event = event::read()?;
         if let event::Event::Mouse(mouse) = event {
-            app.mouse(mouse.kind);
+            if app.connection_form.is_none() {
+                app.mouse(mouse.kind);
+            }
             continue;
         }
         if let event::Event::Paste(text) = event {
-            if app.screen == Screen::Instructing && !app.evidence_open() {
+            if let Some(form) = &mut app.connection_form {
+                form.paste(&text);
+            } else if app.screen == Screen::Instructing && !app.evidence_open() {
                 if app.instruction.search_query().is_some() {
                     app.instruction.search_insert(&text);
                 } else {
@@ -1158,6 +1186,10 @@ where
             continue;
         };
         if key.kind != KeyEventKind::Press {
+            continue;
+        }
+        if app.connection_form.is_some() {
+            app.setup_key(key);
             continue;
         }
         if app.global_key(key) {
@@ -1183,6 +1215,8 @@ where
                 KeyCode::Up | KeyCode::Char('k') => app.move_selection(-1),
                 KeyCode::Down | KeyCode::Char('j') => app.move_selection(1),
                 KeyCode::Enter => app.select_processor(),
+                KeyCode::Char('n') => app.open_setup(false),
+                KeyCode::Char('l') => app.open_setup(true),
                 _ => {}
             },
             Screen::ReviewingProcessor => app.review_key(key),
@@ -1424,7 +1458,13 @@ mod tests {
     fn picker_stays_in_range() {
         let mut app = App::new(providers(), PathBuf::new());
         app.move_selection(-1);
-        app.move_selection(1);
+        assert_eq!(app.picker.selected(), Some(0));
+        for _ in 0..10 {
+            app.move_selection(1);
+        }
+        assert_eq!(app.picker.selected(), Some(2));
+        app.move_selection(-1);
+        app.move_selection(-1);
         assert_eq!(app.picker.selected(), Some(0));
     }
     #[test]

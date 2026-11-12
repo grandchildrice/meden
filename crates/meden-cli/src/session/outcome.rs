@@ -61,7 +61,7 @@ pub(super) fn describe(
                 (Some(Cause::Http(401)), _) => (
                     "Model login rejected",
                     "The provider rejected the current credentials. No further request was sent.",
-                    "Refresh the host login and restart Meden to load it, then use /retry. Your repository and saved conversation remain available.",
+                    "Use /connect to update an HTTP API key. For an existing account login, refresh it and restart Meden. Then use /retry with your saved conversation.",
                 ),
                 (Some(Cause::Http(403)), _) => (
                     "Model access refused",
@@ -76,7 +76,7 @@ pub(super) fn describe(
                 (Some(Cause::Http(400)), _) => (
                     "Model request rejected",
                     "The provider rejected the request or selected model. It was not resent automatically.",
-                    "Check the model's tool support with /model, then use /retry. Use /new only if you intend to discard conversation context.",
+                    "Use /connect to check the URL and model, or /model for an existing login, then use /retry. Use /new only to discard conversation context.",
                 ),
                 (Some(Cause::Http(_) | Cause::Model), _) => (
                     "Model connection stopped",

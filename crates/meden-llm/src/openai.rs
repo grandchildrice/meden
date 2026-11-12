@@ -66,7 +66,7 @@ fn status_error(code: u16) -> ModelError {
     let reason = match code {
         400 => "request or model rejected; check the selected model and provider support",
         401 => {
-            "login expired or invalid; renew the host login and restart Meden for a fresh review"
+            "authentication expired or invalid; update the selected API key or host login for a fresh review"
         }
         403 => "account or model access refused by the provider",
         429 => "provider usage or rate limit reached; wait for the account limit to reset",

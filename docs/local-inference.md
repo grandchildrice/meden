@@ -41,7 +41,7 @@ GPU/multi-host confinement and the large-model deployment remain work.
 ## Subscription connections
 
 `meden providers` discovers existing subscription credentials without making
-an inference request. The TUI offers these connections with `--provider auto`,
+an inference request. The default TUI offers existing connections interactively,
 or they can be selected directly:
 
 ```bash
@@ -106,7 +106,9 @@ provider permits the selected account and integration.
 
 ## Managed CPU backend
 
-CLI and TUI use prepared local inference by default. Install Bubblewrap,
+Headless `meden run` uses prepared local inference unless HTTP is explicitly
+selected. The default TUI opens its connection picker and can configure either
+HTTP or local inference on screen. For local inference, install Bubblewrap,
 Bash and a llama.cpp `llama-server` with Unix socket support, and prepare a
 GGUF model before confidential work. No component downloads models or
 silently switches to an HTTP processor during a local session.
@@ -125,7 +127,7 @@ The same paths can optionally be set with `MEDEN_LOCAL_ENGINE` and
 fails if either asset is missing. `--base-url URL --model MODEL` selects an
 HTTP connection directly without discovery. HTTP discovery
 is explicit: `meden providers` lists connections, `--provider ID` selects
-one, and `--provider auto` opts into discovery/the TUI picker. HTTP processing
+one, and the TUI offers discovery when no connection flags are supplied. HTTP processing
 still requires the existing trusted TUI approval or exact CLI
 `--approve-processor` URL. Environment HTTP providers are ignored in a local
 session. A pre-existing loopback server is an HTTP processor, not a confined

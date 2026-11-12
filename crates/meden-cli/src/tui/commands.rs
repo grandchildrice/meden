@@ -4,6 +4,10 @@ use ratatui::prelude::*;
 
 pub(super) const COMMANDS: &[(&str, &str)] = &[
     (
+        "/connect",
+        "Add or edit a connection in the masked settings form",
+    ),
+    (
         "/retry",
         "Continue the stopped task from current files and conversation",
     ),
@@ -191,7 +195,7 @@ impl App {
             ("/model", []) => self.screen = Screen::Picking,
             ("/model", [model]) => {
                 if self.gateway.as_ref().is_some_and(|gateway| gateway.is_local()) {
-                    self.say("Local weights are fixed for this session. Restart with --local-model to change them.", Style::new().fg(Color::Yellow));
+                    self.say("Use /model and choose 'Use local model' to select different weights.", Style::new().fg(Color::Yellow));
                     return true;
                 }
                 if let Some(provider) = self.picker.selected().and_then(|i| self.providers.get_mut(i)) {
@@ -201,6 +205,7 @@ impl App {
             ("/new", []) => self.new_chat(false),
             ("/clear", []) => self.new_chat(true),
             ("/status", []) => self.status(),
+            ("/connect", []) => self.open_setup(false),
             ("/retry", []) => self.retry_turn(),
             ("/copy", []) => self.copy_latest(),
             ("/help" | "/keymap", []) => { self.overlay = Overlay::Help; self.scroll_back = 0; }

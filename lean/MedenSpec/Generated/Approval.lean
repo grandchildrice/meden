@@ -490,7 +490,7 @@ inductive tui.approval.Choice where
 | Contract : tui.approval.Choice
 
 /-- [meden::tui::Screen]
-    Source: 'crates/meden-cli/src/tui.rs', lines 79:0-86:1 -/
+    Source: 'crates/meden-cli/src/tui.rs', lines 80:0-87:1 -/
 @[discriminant isize]
 inductive tui.Screen where
 | Picking : tui.Screen

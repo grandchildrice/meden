@@ -225,9 +225,9 @@ def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path, tui_ver
         assert requests[-1]["messages"][-1]["content"][0]["text"] == "Fresh turn."
         assert note.read_text() == "status: ready\n"
         assert source_note.read_text() == "status: ready\n"
-        # The final picker entry is our second processor. Other locally
-        # discovered servers can appear in between; no cloud keys are loaded.
-        os.write(master, b"/model\r" + b"\x1b[B" * 100 + b"\r")
+        # The final discovered connection precedes the two setup actions.
+        # Other local servers can appear in between; no cloud keys are loaded.
+        os.write(master, b"/model\r" + b"\x1b[B" * 100 + b"\x1b[A" * 2 + b"\r")
         wait_for(lambda: "Connection details" in view())
         assert other.server_port not in destinations
         os.write(master, b"n")

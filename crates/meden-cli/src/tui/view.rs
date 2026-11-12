@@ -51,6 +51,10 @@ pub(super) fn draw(frame: &mut Frame<'_>, app: &mut App) {
     let body = areas.get(1).copied().unwrap_or_default();
     let footer = areas.get(2).copied().unwrap_or_default();
     draw_header(frame, app, header);
+    if let Some(form) = &app.connection_form {
+        super::setup::draw(frame, form, body, footer);
+        return;
+    }
     match app.screen {
         Screen::Picking => draw_picker(frame, app, body),
         Screen::ReviewingProcessor => draw_processor_review(frame, app, body),
@@ -177,7 +181,7 @@ fn draw_picker(frame: &mut Frame<'_>, app: &mut App, area: Rect) {
         ]),
         areas.first().copied().unwrap_or_default(),
     );
-    let items: Vec<_> = app
+    let mut items: Vec<_> = app
         .providers
         .iter()
         .map(|provider| {
@@ -192,6 +196,16 @@ fn draw_picker(frame: &mut Frame<'_>, app: &mut App, area: Rect) {
             ])
         })
         .collect();
+    items.push(ListItem::new(vec![
+        Line::styled("+ Add HTTP connection", Style::new().bold()),
+        Line::raw("  Enter a URL, model and optional API key"),
+        Line::default(),
+    ]));
+    items.push(ListItem::new(vec![
+        Line::styled("+ Use local model", Style::new().bold()),
+        Line::raw("  Select a prepared llama-server and GGUF file"),
+        Line::default(),
+    ]));
     frame.render_stateful_widget(
         List::new(items)
             .highlight_symbol("› ")
@@ -201,7 +215,7 @@ fn draw_picker(frame: &mut Frame<'_>, app: &mut App, area: Rect) {
         &mut app.picker,
     );
     frame.render_widget(
-        Paragraph::new("You will review where context is sent before any conversation starts.")
+        Paragraph::new(app.connection_error.as_deref().unwrap_or("n: Add HTTP connection · l: Local model\nYou will review where context is sent before any conversation starts."))
             .style(muted())
             .wrap(Wrap { trim: false }),
         areas.get(2).copied().unwrap_or_default(),
