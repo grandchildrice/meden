@@ -18,6 +18,8 @@ from test_subscriptions import call, environment, native_reply
 
 from meden_checks import find_meden
 
+pytestmark = pytest.mark.ux
+
 
 def frame(value):
     return f"data: {json.dumps(value, ensure_ascii=False)}\r\n\r\n".encode()
@@ -81,6 +83,7 @@ def test_tui_shows_model_and_command_output_before_completion(
 
     binary = find_meden()
     assert binary is not None
+    release_first = threading.Event()
     release_model = threading.Event()
     release_text = threading.Event()
     release_final = threading.Event()
@@ -101,6 +104,8 @@ def test_tui_shows_model_and_command_output_before_completion(
                 requests.append(request)
                 assert request["stream"] is True
                 first = len(requests) == 1
+                if first:
+                    assert release_first.wait(15)
                 head, tail = response_parts(
                     provider, "I" if first else "STREAM-FINAL",
                     [call("live-command", "bash", {"command": command})] if first else (),
@@ -171,6 +176,11 @@ def test_tui_shows_model_and_command_output_before_completion(
         os.write(master, b"y")
         wait_for(lambda: "shift+enter" in view())
         os.write(master, b"hello\r")
+        wait_for(lambda: "elapsed" in view() and len(requests) == 1)
+        spin = next(character for character in view() if character in "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏")
+        wait_for(lambda: "elapsed" in view() and spin not in view())
+        assert "shift+enter" not in view(), "silent model looked idle"
+        release_first.set()
         wait_for(lambda: "● I" in view())
         assert "I will check the workspace." not in view()
         assert "shift+enter" not in view() and len(requests) == 1
@@ -223,6 +233,7 @@ def test_tui_shows_model_and_command_output_before_completion(
         assert process.wait(timeout=5) == 0
         assert termios.tcgetattr(slave) == initial
     finally:
+        release_first.set()
         release_text.set()
         release_model.set()
         release_final.set()

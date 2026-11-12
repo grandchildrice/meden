@@ -1,6 +1,7 @@
 """Live-model TUI check: fix a small program, run tests, inspect real effects.
 
-This is deliberately not a mocked model test. It drives the released binary
+The caller selects a live provider; CI also exercises this driver with a
+scripted HTTP fixture to detect stale UI assumptions. It drives the released binary
 through a PTY and saves the final source, test results and terminal output.
 Run separately from score measurements to keep their worker count fixed.
 """
@@ -8,15 +9,17 @@ Run separately from score measurements to keep their worker count fixed.
 from __future__ import annotations
 
 import argparse
+import codecs
 import hashlib
 import json
 import os
-import re
 import select
 import subprocess
 import tempfile
 import time
 from pathlib import Path
+
+import pyte
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -59,7 +62,14 @@ class TestSubtract(unittest.TestCase):
         self.assertEqual(subtract(-4, 3), -7)
         self.assertEqual(subtract(3, 3), 0)
 """
-    output = bytearray()
+    screen = pyte.Screen(160, 40)
+    terminal = pyte.Stream(screen)
+    decoder = codecs.getincrementaldecoder("utf-8")("replace")
+    frames = []
+
+    def view():
+        return "\n".join("".join(screen.buffer[y][x].data for x in range(screen.columns))
+                         for y in range(screen.lines))
     started = time.monotonic()
     with tempfile.TemporaryDirectory(prefix="meden-tui-smoke-") as directory:
         source = Path(directory) / "source"
@@ -93,22 +103,17 @@ class TestSubtract(unittest.TestCase):
                     raise RuntimeError(f"TUI exited early: {process.returncode}")
                 if select.select([master], [], [], 0.1)[0]:
                     chunk = os.read(master, 65536)
-                    if len(output) < 2_000_000:
-                        output.extend(chunk)
+                    terminal.feed(decoder.decode(chunk))
             raise TimeoutError("TUI smoke deadline reached")
 
         try:
-            wait_for(lambda: b"choose" in output)
-            copies = list((data / "meden/workspaces").glob("session-*"))
-            if len(copies) != 1:
-                raise RuntimeError("expected one private workspace")
-            workspace = copies[0]
-            test = workspace / "test_calc.py"
-            report["workspace"] = str(workspace)
-            os.write(master, b"\r")
-            wait_for(lambda: b"host control" in output)
+            # An explicit provider opens its native review directly. Inspect
+            # current terminal cells, never old strings in the ANSI history.
+            wait_for(lambda: "Connection details" in view())
+            frames.append({"step": "processor review", "screen": view()})
+            report["workspace"] = str(source)
             os.write(master, b"y")
-            wait_for(lambda: b"alt-enter" in output)
+            wait_for(lambda: "shift+enter" in view())
             prompt = (
                 "Fix the implementation in calc.py so add returns the sum of its arguments. "
                 "Do not modify test_calc.py. Run "
@@ -116,11 +121,26 @@ class TestSubtract(unittest.TestCase):
                 "and verify that the tests pass."
             )
             os.write(master, prompt.encode() + b"\r")
-            wait_for(lambda: output.count(b"alt-enter") >= 2)
+            wait_for(lambda: "shift+enter" not in view())
+            wait_for(lambda: "shift+enter" in view())
+            frames.append({"step": "first turn complete", "screen": view()})
             report["agent_ran_passing_tests"] = (workspace / "passing-test.marker").exists()
             report["first_turn_source"] = (workspace / "calc.py").read_text()
             report["tests_unchanged_after_first_turn"] = test.read_text() == original_test
             (workspace / "passing-test.marker").unlink(missing_ok=True)
+            # Reopen the selected repository rather than continuing only in
+            # process memory. Saved preferences must still need fresh review.
+            os.write(master, b"\x03")
+            process.wait(timeout=5)
+            report["first_exit_code"] = process.returncode
+            report["terminal_restored_before_restart"] = termios.tcgetattr(slave) == initial
+            screen.reset()
+            process = subprocess.Popen(command, stdin=slave, stdout=slave, stderr=slave, env=env)
+            wait_for(lambda: "Connection details" in view())
+            frames.append({"step": "fresh review after restart", "screen": view()})
+            os.write(master, b"y")
+            wait_for(lambda: "shift+enter" in view())
+            report["reopened_with_fresh_review"] = True
             follow_up = (
                 "In the same workspace, add subtract(a, b) to calc.py. Preserve add and "
                 "leave test_calc.py unchanged. Create test_subtract.py with unittest cases "
@@ -130,7 +150,9 @@ class TestSubtract(unittest.TestCase):
             )
             report["prompts"] = [prompt, follow_up]
             os.write(master, follow_up.encode() + b"\r")
-            wait_for(lambda: output.count(b"alt-enter") >= 3)
+            wait_for(lambda: "shift+enter" not in view())
+            wait_for(lambda: "shift+enter" in view())
+            frames.append({"step": "follow-up complete", "screen": view()})
             report["agent_retested_after_follow_up"] = (workspace / "passing-test.marker").exists()
             follow_up_test = workspace / "test_subtract.py"
             report["agent_wrote_follow_up_tests"] = follow_up_test.is_file()
@@ -157,11 +179,11 @@ class TestSubtract(unittest.TestCase):
                 check_result.get("stdout", "") + check_result.get("stderr", "") + check.stderr
             )
             report["independent_workspace"] = check_record["workspace"]
-            report["original_source_unchanged"] = (
-                source / "calc.py"
-            ).read_text() == "def add(a, b):\n    return a - b\n" and (
-                source / "test_calc.py"
-            ).read_text() == original_test
+            report["independent_worker_exit_code"] = check_result.get("exit_code")
+            report["edited_selected_repository"] = (
+                workspace == source and (source / "calc.py").read_text()
+                != "def add(a, b):\n    return a - b\n"
+            )
             os.write(master, b"\x03")
             process.wait(timeout=5)
             report["tui_exit_code"] = process.returncode
@@ -173,12 +195,18 @@ class TestSubtract(unittest.TestCase):
                 and report["agent_wrote_follow_up_tests"]
                 and report["tests_unchanged"]
                 and check.returncode == 0
-                and report["original_source_unchanged"]
+                and report["independent_worker_exit_code"] == 0
+                and report["edited_selected_repository"]
                 and process.returncode == 0
                 and report["terminal_restored"]
+                and report["first_exit_code"] == 0
+                and report["terminal_restored_before_restart"]
+                and report["reopened_with_fresh_review"]
             )
-        except (OSError, RuntimeError, TimeoutError, subprocess.SubprocessError) as error:
+        except (OSError, RuntimeError, TimeoutError, ValueError, KeyError,
+                subprocess.SubprocessError) as error:
             report["error"] = str(error)
+            frames.append({"step": "failure", "screen": view()})
         finally:
             if process.poll() is None:
                 os.write(master, b"\x03\x03")
@@ -192,8 +220,9 @@ class TestSubtract(unittest.TestCase):
     report["seconds"] = time.monotonic() - started
     args.out.parent.mkdir(parents=True, exist_ok=True)
     transcript = args.out.with_suffix(".terminal.txt")
-    plain = re.sub(r"\x1b\[[0-?]*[ -/]*[@-~]", "", output.decode(errors="replace"))
-    transcript.write_text("\n".join(line.rstrip() for line in plain.splitlines()) + "\n")
+    transcript.write_text("\n\n".join(
+        frame["step"] + "\n" + frame["screen"] for frame in frames
+    ) + "\n")
     report["transcript"] = str(transcript)
     args.out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps(report, ensure_ascii=False, indent=2))

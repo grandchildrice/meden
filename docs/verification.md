@@ -1944,6 +1944,26 @@ service can still forward data unless the service's own egress is confined.
 The [processor review screenshot](assets/processor-approval.png) is captured
 from the actual TUI; no inference request is made during capture.
 
+### Developer experience checks
+
+The [experience gate](ux-testing.md) groups required deterministic CLI/PTY
+cases for interactive connection setup, in-place repository edits, restart,
+error recovery, streaming, silent-wait activity and everyday navigation.
+The Python CI job runs them within its normal suite with `--ux-required`:
+missing, skipped or failing required cases cannot produce a passing gate.
+Decoded screen samples, binary identity, JUnit verdicts and a standalone HTML
+viewer are retained as `meden-ux-evidence`, including on failure.
+
+The live-model smoke driver now uses current terminal cells and controls,
+reopens the selected repository with fresh processor review, and checks
+original tests plus an independent follow-up test in a separate offline copy.
+CI exercises the driver with scripted replies, including deliberately broken
+code after a claimed completion. This validates the driver and checks actual
+file/execution outcomes; it is not evidence of live-model capability, cold
+verifier installation, subjective usability or whole-renderer refinement.
+Actual contract/proof/staleness tests still run separately with a real checker
+bundle in the Lean CI job.
+
 ### Native subscription transport adapters
 
 Codex Responses and Claude Messages use the same core `HttpCall` admission

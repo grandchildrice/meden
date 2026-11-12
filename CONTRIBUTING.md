@@ -51,6 +51,21 @@ use a release binary and set `MEDEN_VERIFIER_BUNDLE`; see
 [project-verification.md](docs/project-verification.md). The ordinary Python
 job skips the bundle-dependent tests; the Lean job requires all fifteen.
 
+## Developer experience
+
+TUI/workflow changes also require the user journeys and screen review in
+[ux-testing.md](docs/ux-testing.md). After building, run:
+
+```bash
+MEDEN_BIN="$PWD/target/debug/meden" uv run --project python --group dev \
+  python -m meden_checks.ux --out /tmp/meden-ux-review
+```
+
+Open the generated `index.html`, review the affected normal/failure/restart
+screens, and add regressions for new friction. CI includes these cases in its
+existing Python job and retains `meden-ux-evidence`; required journeys cannot
+silently skip. Real-model and cold-install checks have separate stated scope.
+
 ## Kani harnesses
 
 Run `cargo kani -p meden-core` with Kani installed. Keep harnesses bounded,

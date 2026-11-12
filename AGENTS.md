@@ -3,6 +3,13 @@
 - Work on `main` and commit/push directly. The user explicitly authorized
   this workflow; do not create a branch or PR for ordinary work.
 - Review existing PR changes and their relevant checks before merging.
+- Treat developer experience as a completion condition. Follow
+  `docs/ux-testing.md`: identify the affected user journey, exercise the public
+  TUI entry point and its relevant failure/restart path, run the required UX
+  gate and inspect its decoded screens before reporting completion. Turn new
+  user-reported friction into outcome-based regression coverage. Do not rescue
+  a journey with off-screen configuration edits or count skips, scripted
+  inference, or an inert checker fixture as live-model/cold-install validation.
 - Prefer a small, loosely coupled implementation. Backward compatibility is
   not required at this stage. Delete obsolete code and its dependencies
   rather than adding compatibility layers or keeping unused alternatives.

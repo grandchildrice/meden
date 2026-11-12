@@ -18,6 +18,8 @@ import pytest
 
 from meden_checks import find_meden
 
+pytestmark = pytest.mark.ux
+
 
 @pytest.mark.parametrize("mode", ["repair", "provider"])
 def test_tui_recovers_tools_and_explains_retained_stops(tmp_path, tui_verifier, mode):

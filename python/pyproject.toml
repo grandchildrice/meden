@@ -26,3 +26,4 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["ux: required deterministic user journey through the actual binary"]

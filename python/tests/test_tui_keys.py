@@ -19,6 +19,8 @@ from test_subscriptions import environment
 
 from meden_checks import find_meden
 
+pytestmark = pytest.mark.ux
+
 
 def test_modified_enter_commands_history_clipboard_and_terminal_restoration(tmp_path, tui_verifier):
     import fcntl

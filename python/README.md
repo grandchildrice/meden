@@ -55,8 +55,19 @@ and observe exact receiver bytes after the source changes. Redirects and
 uncertain delivery never cause automatic resend. The terminal decoder is a
 development dependency, not part of the Rust runtime.
 
-A separate live-model check drives two actual TUI turns and independently
-checks the generated program:
+The [experience gate](../docs/ux-testing.md) groups the required real-TUI
+journeys, rejects skips and saves a navigable screen trace plus verdicts:
+
+```bash
+MEDEN_BIN=../target/debug/meden uv run python -m meden_checks.ux --out /tmp/meden-ux-review
+```
+
+Open the generated `index.html`. CI runs these marked cases within the full
+suite, with `--ux-required --ux-artifacts PATH`, and uploads their evidence.
+These are scripted-model checks with explicit checker fixtures.
+
+A separate live-model check drives two actual TUI turns across a restart and
+independently checks the generated program:
 
 ```bash
 uv run python -m meden_checks.tui_smoke --binary ../target/debug/meden \
@@ -64,8 +75,10 @@ uv run python -m meden_checks.tui_smoke --binary ../target/debug/meden \
 ```
 
 It approves the explicitly selected processor through the real review
-screen for its synthetic project. It verifies private file effects, original
-tests, an additional feature and terminal restoration. Its independent
+screen for its synthetic project. It verifies edits in the selected repository,
+original tests, retained conversation across restart, an additional feature and
+terminal restoration. CI exercises this driver with a scripted provider and a
+broken-code negative case; that is not live-model validation. Its independent
 checker uses `meden exec`, so generated code is not run directly on the
 host. Run it separately from performance measurements.
 

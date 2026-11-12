@@ -5,6 +5,8 @@ import os
 
 import pytest
 
+pytest_plugins = ["meden_checks.ux"]
+
 
 @pytest.fixture
 def tui_verifier(tmp_path, monkeypatch):

@@ -4,7 +4,11 @@ import json
 import os
 import subprocess
 
+import pytest
+
 from meden_checks import find_meden
+
+pytestmark = pytest.mark.ux
 
 
 def test_repository_reopens_with_fresh_authority_and_only_one_writer(tmp_path):

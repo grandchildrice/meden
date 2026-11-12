@@ -203,10 +203,19 @@ jobs:
         working-directory: python
       - run: uv run ruff check . ../tools ../crates/meden-runtime/src/pages/network_fixture.py
         working-directory: python
-      - run: uv run pytest -q --basetemp "$RUNNER_TEMP/adapter-tests"
+      - run: >-
+          uv run pytest -q --basetemp "$RUNNER_TEMP/adapter-tests"
+          --ux-required --ux-artifacts "$RUNNER_TEMP/ux-evidence"
+          --junitxml "$RUNNER_TEMP/ux-evidence/junit.xml"
         working-directory: python
         env:
           MEDEN_BIN: ${{ github.workspace }}/target/debug/meden
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: meden-ux-evidence
+          path: ${{ runner.temp }}/ux-evidence
+          if-no-files-found: error
       - uses: actions/upload-artifact@v7
         if: always()
         with:

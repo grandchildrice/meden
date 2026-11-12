@@ -15,6 +15,8 @@ import pytest
 
 from meden_checks import find_meden
 
+pytestmark = pytest.mark.ux
+
 
 @pytest.mark.skipif(os.name != "posix", reason="PTY and termios test")
 def test_tui_edits_files_retains_context_and_restores_terminal(tmp_path, tui_verifier):

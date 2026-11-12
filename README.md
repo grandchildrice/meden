@@ -166,6 +166,7 @@ The workspace contains the Rust CLI, shared controller/runtime, Lean
 specifications and Python integration checks. Work on `main` and follow the
 [contributing guide](CONTRIBUTING.md) for validation and proof regeneration.
 
+[Experience tests →](docs/ux-testing.md) ·
 [Design →](docs/design.md) · [Assurance targets →](docs/assurance.md) ·
 [Recorded benchmarks and trials →](results/README.md) ·
 [Release checks →](docs/release.md)

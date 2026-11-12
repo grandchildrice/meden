@@ -20,6 +20,8 @@ import pytest
 
 from meden_checks import find_meden
 
+pytestmark = pytest.mark.ux
+
 
 class Terminal:
     def __init__(self, args, env, cwd):

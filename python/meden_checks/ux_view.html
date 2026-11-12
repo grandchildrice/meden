@@ -1,0 +1,53 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>MEDEN experience test evidence</title>
+<style>
+body { margin: 2rem; background: #10151d; color: #e4ebf4; font: 16px system-ui; }
+select, button { font: inherit; padding: .4rem; max-width: 100%; }
+input { width: min(70vw, 800px); }
+pre { padding: 1rem; background: #080d14; overflow: auto; line-height: 1.3; }
+p { max-width: 80ch; } a { color: #82d8ee; }
+</style>
+<h1>MEDEN experience test evidence</h1>
+<p id="verdict"></p>
+<p>Scripted inference; real TUI and tool effects. Screens are sampled after terminal reads.
+They do not establish live-model quality, cold setup or complete UI assurance.</p>
+<label>Journey <select id="journey"></select></label>
+<p id="status"></p>
+<button id="previous">Previous</button> <button id="next">Next</button>
+<input id="frame" aria-label="Screen frame" type="range" min="0" value="0">
+<p id="position"></p>
+<pre id="screen"></pre>
+<script id="evidence" type="application/json">__MEDEN_EVIDENCE__</script>
+<script>
+const data = JSON.parse(document.getElementById('evidence').textContent);
+const journey = document.getElementById('journey');
+const frame = document.getElementById('frame');
+const screen = document.getElementById('screen');
+document.getElementById('verdict').textContent = data.success ? 'PASS' : 'FAIL / incomplete';
+for (const test of data.tests) {
+  const option = document.createElement('option');
+  option.textContent = `${test.outcome}: ${test.name}`;
+  journey.append(option);
+}
+function draw() {
+  const test = data.tests[journey.selectedIndex];
+  if (!test) return;
+  const current = test.frames[Number(frame.value)];
+  document.getElementById('status').textContent = test.reason || test.outcome;
+  document.getElementById('position').textContent = current
+    ? `Frame ${Number(frame.value) + 1}/${test.frames.length} · ${current.seconds}s`
+    : 'No decoded terminal screen in this case; see JUnit and test outcome.';
+  screen.textContent = current ? current.screen : '';
+}
+journey.onchange = () => {
+  const test = data.tests[journey.selectedIndex];
+  frame.max = Math.max(0, test.frames.length - 1);
+  frame.value = frame.max;
+  draw();
+};
+frame.oninput = draw;
+document.getElementById('previous').onclick = () => { frame.stepDown(); draw(); };
+document.getElementById('next').onclick = () => { frame.stepUp(); draw(); };
+if (data.tests.length) journey.onchange();
+</script>
