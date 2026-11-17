@@ -1,0 +1,33 @@
+{
+  "name": "meden-workspace",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace @meden/web",
+    "build": "npm run typecheck && npm run build --workspace @meden/web",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:gui": "playwright test --config apps/web/playwright.config.ts",
+    "format:check": "prettier --check apps/web packages tools/gui docs/gui.md docs/architecture/semantic-workspace.md package.json tsconfig.json vitest.config.ts",
+    "format": "prettier --write apps/web packages tools/gui docs/gui.md docs/architecture/semantic-workspace.md package.json tsconfig.json vitest.config.ts",
+    "schema:export": "node --experimental-strip-types tools/gui/export-schema.ts",
+    "schema:check": "npm run schema:export && git diff --exit-code -- schemas/"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "1.65.1",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.0",
+    "vitest": "5.1.0"
+  }
+}

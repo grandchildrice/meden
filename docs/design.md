@@ -66,6 +66,15 @@ resources, context/tool-call support and confinement. An arbitrary localhost
 or LAN HTTP server remains an explicitly authorized processor until that
 boundary is established. R1 and the complete local deployment remain required.
 
+## GUI implementation boundary
+
+The 2026-11-18 GUI work uses a TypeScript/Vite app in `apps/web` with domain/data
+packages separated from rendering. It supports saved drafts and inspection of
+imported/sample results; it is not connected to the runtime yet. The TUI remains
+the execution entry. [Implementation map](architecture/semantic-workspace.md) and
+[GUI usage](gui.md) describe the strategy's future gateway, analysis, storage and
+sync boundaries and distinguish them from implemented frontend behavior.
+
 ## User experience
 
 The primary entry point remains `meden tui`. One conversation can start a

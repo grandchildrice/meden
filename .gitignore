@@ -17,3 +17,9 @@ build/
 
 .env
 .DS_Store
+
+# TypeScript GUI workspace
+node_modules/
+playwright-report/
+test-results/
+*.tsbuildinfo

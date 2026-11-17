@@ -1,0 +1,110 @@
+# Semantic workspace architecture
+
+Status: GUI and shared contracts implemented, runtime/analysis integration pending.
+Decision date: 2026-11-18. This applies the Semantic Assurance strategy's local-first
+boundaries while using TypeScript/Vite, as requested, in place of its Next.js SPA.
+
+## Repository structure
+
+```text
+apps/
+  web/                        React/TypeScript/Vite application
+    src/app/                  shell, Material theme, layout
+    src/features/             chat, graph, analysis, review
+    src/adapters/             browser persistence, validated files
+    src/fixtures/             explicitly selected sample
+    e2e/                      public browser journeys + accessibility
+packages/
+  workspace-schema/           Zod workspace, evidence, revisions and statuses
+  agent-protocol/             versionable events, jobs and client/repository ports
+  atlas-adapter/              Atlas import, dependency scope, radial coordinates
+  expert-review/              target binding and minimal review package
+schemas/                      generated JSON Schema for non-TypeScript adapters
+tools/gui/                    reproducible schema generation
+crates/                       existing Rust controller, workers, TUI and protocol
+verification/                 existing Lean specifications/refinement tooling
+python/                       existing adapter/UX checks
+```
+
+The Cargo workspace and proof-sensitive paths remain in place. The npm workspace
+has no lifecycle publishing/install scripts and does not wrap or replace the
+`npm/` distribution launcher. Data/graph/review packages do not import React,
+Material UI, browser storage or a model SDK. Rendering and browser I/O stay in
+the web app. Another frontend can consume the same JSON contracts without
+porting these components first.
+
+## Implemented contracts
+
+`workspace-schema` owns requirement IDs, declaration identities, source spans,
+proof status, proof bindings, analysis verdict/status, model versions, evidence
+references, conversations and review drafts. It rejects duplicate/dangling
+references and unknown authority-like top-level fields. All input files are
+bounded to 16 MiB before parsing. A proof result requires evidence references and
+its own source/input version. Imports with a mismatched binding are stale.
+
+Proof status preserves `proved / bounded / empirical / refuted / unproved / unknown /
+unsupported / stale`. Meaning preserves `full / partial / mismatch / vacuous /
+missing / unformalizable / unclear`, plus execution/freshness status. A semantic
+match does not turn an unproved theorem into a proof. Editing a requirement
+invalidates old proof and analysis without changing their historical bindings.
+The UI never accepts the native controller's contract or issues an export grant.
+
+`agent-protocol` defines typed jobs/events and the `AgentClient` and
+`WorkspaceRepository` ports. The agent client is an interface, not a running
+HTTP/WebSocket implementation. Existing `crates/meden-cli/src/protocol.rs` is
+JSON Lines over standard I/O; it is not an authenticated browser gateway and
+cannot simply be exposed as one. No browser-managed keys or grants are added.
+
+`atlas-adapter` consumes Lean Atlas' node/edge JSON. It retains unknown edges
+conservatively and prunes a theorem's value-dependency edges only for the
+meaning-related view. Definitions' value dependencies remain. It computes
+cycle-safe graph scope and deterministic breadth-first radial rings. This is a
+viewer implementation informed by Compass; it is not an execution of Lean
+Compass or a new proof of semantic sufficiency. Large graph visualization,
+standard-library trust configuration and analyzer correspondence remain work.
+
+`expert-review` freezes source and input versions, exports selected requirements,
+related declarations and evidence, and rejects stale target drafts. It excludes
+conversations. It explicitly labels the file unencrypted; key distribution,
+sharing and a reviewer service are not implemented.
+
+Generated JSON Schema describes structural fields; the Zod reference/freshness
+checks also run in TypeScript. Future Rust/Python adapters must implement those
+cross-reference checks too. Generated schemas do not establish authorization.
+
+## Technology map and next adapters
+
+| Strategy choice                                | Current boundary                                                                | Next implementation                                                                                       |
+| ---------------------------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Shared Rust runtime                            | Existing `crates/meden-*` remains the controller                                | Loopback gateway hosting the GUI, attaching a reviewed session and translating typed events               |
+| Chat + Atlas GUI                               | `apps/web`, assistant-ui External Store, Material UI, React Flow                | Implement the client port after gateway authorization/events exist                                        |
+| Local SQLite/event log                         | `WorkspaceRepository`, browser IndexedDB adapter; Rust currently uses host JSON | Add host storage/migration and append-only events behind the gateway, then replace browser persistence    |
+| Lean Atlas/Compass                             | Actual Atlas graph import + graph/review schema                                 | Adapter consuming extractor/Compass output with exact revision identity and selected target set           |
+| docs2formalspec round-trip + independent judge | Analysis input/output fields and comparison view                                | Python `services/semantic-engine` using existing tools; connect through versioned JSON/job events         |
+| Static Lean/SMT checks                         | Existing Rust verification workers, proof/evidence bindings                     | Analyzer adapters consume real reports; keep proof and meaning status independent                         |
+| Google Drive BYOS                              | Separate from repository and agent ports                                        | `packages/sync` and host OAuth adapter after encryption/recovery are tested                               |
+| AES-256-GCM + recovery keys                    | No encryption implementation yet                                                | `packages/crypto`, then key storage/device revocation/recovery tests; never call plaintext IndexedDB E2EE |
+| Expert review                                  | Local draft/package creation                                                    | Encrypted recipient-scoped sharing and an independently authorized submission service                     |
+| Billing/entitlements                           | Absent from workspace content and runtime                                       | Separate `services/business-control` holding minimal business metadata                                    |
+| Desktop/Rust UI                                | JSON contracts and graph/domain packages separated from React                   | Add a Tauri/other host or rewrite the view while retaining the Rust controller and wire contracts         |
+
+Only packages with implemented responsibility exist; no inert gateway, crypto,
+sync, billing or analysis service is shipped to suggest those functions work.
+
+## Integration order
+
+1. **Local gateway and persistence:** same controller/session as TUI, loopback
+   binding, origin and single-session attachment checks, typed events, cancellation,
+   exact accepted/displayed meaning binding; host storage behind the repository port.
+2. **Analysis:** pinned source/requirement/target inputs → Atlas scope → static
+   results → blind back-translation → independent judge → candidate findings.
+   Store versions/evidence and test false acceptance before claiming quality.
+3. **Desktop and BYOS:** decide host packaging, implement keys/recovery, then
+   encrypted Drive synchronization and conflict/replay handling. Sync and expert
+   sharing remain separate operations.
+4. **Expert service/business control:** explicit scoped package preview,
+   recipient authorization, submission, reviewer outcomes and entitlements.
+
+GUI/HTTP adaptation, browser rendering, approval visibility and event provenance
+remain adapters outside the current Rust-to-Lean refinement. No existing proof
+is extended to the GUI by this directory arrangement.

@@ -68,6 +68,24 @@ take several minutes. That preparation needs network access, Git, Curl, Tar,
 XZ and Zstd; later launches reuse the installation. Project tools and proof
 checks run offline, so project dependencies must be available locally.
 
+## Web GUI
+
+A TypeScript/Vite GUI is available in this repository:
+
+```sh
+npm ci
+npm run dev
+```
+
+Open `http://127.0.0.1:4320`. Create/import a workspace or open the labeled sample.
+The GUI supports conversation drafts, radial dependency inspection, requirement
+comparison and scoped review-request exports. It currently saves in the browser;
+the Rust agent/Lean gateway is not connected yet. The TUI above remains the entry
+for actual agent execution and verification.
+
+[GUI development and checks](docs/gui.md) ·
+[Shared contracts and strategy implementation map](docs/architecture/semantic-workspace.md)
+
 ## From unproved to verified
 
 The specification/evidence card stays above the conversation. It distinguishes

@@ -1,0 +1,32 @@
+{
+  "name": "@meden/web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 4320 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4320 --strictPort"
+  },
+  "dependencies": {
+    "@meden/workspace-schema": "*",
+    "@meden/agent-protocol": "*",
+    "@meden/atlas-adapter": "*",
+    "@mui/material": "9.5.0",
+    "@mui/icons-material": "9.5.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@xyflow/react": "13.0.2",
+    "@fontsource-variable/roboto": "^5.2.0",
+    "@assistant-ui/react": "0.15.36",
+    "diff": "^8.0.0",
+    "idb": "8.0.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@meden/expert-review": "*"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "6.3.0",
+    "vite": "8.3.8"
+  }
+}

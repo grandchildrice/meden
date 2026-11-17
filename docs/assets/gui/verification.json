@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-18",
+  "scope": "TypeScript/Vite GUI and shared contracts; no Rust implementation changes",
+  "checks": {
+    "typecheck": "passed",
+    "format": "passed",
+    "production_build": "passed",
+    "domain_tests": 14,
+    "browser_journeys_and_accessibility": 9,
+    "public_tui_ux": 19,
+    "tui_inference": "scripted fixtures; not live model validation",
+    "axe_scope": "four desktop workspace views and settings dialog; automated WCAG 2.1 AA checks"
+  },
+  "screenshots": {
+    "analysis.png": "64bc4fb490844d29d695c707f78d9a163a918aea42e60db7d4359d0888248466",
+    "chat.png": "1533a0cf972b555debba25fef837339b0f69e013d615ffb445f8acddf6fd6f6a",
+    "compact-review.png": "24b81eaa213c0bdbbad67a777bba23dfecfbb1e9004362d67df2d1911d84756f",
+    "graph.png": "28084597eb7951b4ad180561a1e846a30ad3149d46310b0834a8e45a7f435323",
+    "review.png": "4a0859a6cca4cb5cf3a40fea76cfadee9e323870750782875544329ab4d5163e"
+  },
+  "not_implemented": [
+    "native gateway/model/prover connection",
+    "SQLite integration",
+    "encryption and Drive sync",
+    "review submission and billing"
+  ],
+  "tui_binary_sha256": "7f0aa64e732d1bc4baacf8fca800e5a6dc8e62907c1f895bc28714556bb618d3"
+}

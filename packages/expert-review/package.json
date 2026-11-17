@@ -1,0 +1,11 @@
+{
+  "name": "@meden/expert-review",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@meden/workspace-schema": "*",
+    "@meden/atlas-adapter": "*"
+  }
+}
