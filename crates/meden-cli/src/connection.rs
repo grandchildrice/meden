@@ -33,6 +33,12 @@ pub(crate) struct ModelArgs {
     /// for up to eight hours. Required for run; optional in the TUI.
     #[arg(long, value_name = "URL")]
     pub(crate) approve_processor: Option<String>,
+    /// Separate meaning-comparison model on the same host-selected HTTP connection.
+    #[arg(long, value_name = "MODEL", conflicts_with_all = ["local_engine", "local_model"])]
+    pub(crate) judge_model: Option<String>,
+    /// Explicit exact judge inference URL, required by run/preapproved TUI with --judge-model.
+    #[arg(long, value_name = "URL", requires = "judge_model")]
+    pub(crate) approve_judge: Option<String>,
     /// Prepared llama-server executable. Defaults to MEDEN_LOCAL_ENGINE.
     #[arg(long, conflicts_with_all = ["provider", "model", "base_url", "approve_processor"])]
     local_engine: Option<PathBuf>,

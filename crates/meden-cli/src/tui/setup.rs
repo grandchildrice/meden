@@ -466,6 +466,7 @@ impl super::App {
         candidate: Candidate,
         profile: Profile,
     ) -> Result<()> {
+        anyhow::ensure!(self.judge_model.is_none() || !matches!(&candidate, Candidate::Local(_)), "Separate judge currently requires a reviewed HTTP connection; restart without --judge-model for local inference");
         let (gateway, local) = match candidate {
             Candidate::Http(provider) => (
                 meden_llm::Gateway::prepare(self.session_id(), provider)?,
@@ -481,6 +482,11 @@ impl super::App {
                 (gateway, Some(config))
             }
         };
+        let judge =
+            crate::judge::prepare(self.session_id(), &gateway, self.judge_model.as_deref())?;
+        if let Some(previous) = self.judge.take() {
+            let _ = previous.revoke_from_host();
+        }
         if let Some(previous) = self.gateway.take() {
             let _ = previous.revoke_from_host();
         }
@@ -511,6 +517,7 @@ impl super::App {
         self.scroll_back = 0;
         let local = gateway.is_local();
         self.gateway = Some(std::sync::Arc::new(gateway));
+        self.judge = judge;
         self.screen = if local {
             super::Screen::Instructing
         } else {

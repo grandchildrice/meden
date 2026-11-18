@@ -46,6 +46,29 @@ export function NativeApp({ token }: { token: string }) {
   }>();
   const [reviewing, setReviewing] = useState(false);
   const [approval, setApproval] = useState(false);
+  const [processorHeading, setProcessorHeading] =
+    useState<HTMLDivElement | null>(null);
+  const [approvalVisible, setApprovalVisible] = useState(false);
+  const processorIdentity = JSON.stringify([
+    state?.endpoint,
+    state?.model,
+    state?.judge,
+  ]);
+  useEffect(() => {
+    setApprovalVisible(false);
+    if (!approval || !processorHeading) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setApprovalVisible(
+          Boolean(entry?.isIntersecting && entry.intersectionRatio === 1),
+        );
+      },
+      { threshold: [0, 1] },
+    );
+    observer.observe(processorHeading);
+    return () => observer.disconnect();
+  }, [approval, processorHeading, processorIdentity]);
+
   const [elapsed, setElapsed] = useState(0);
   const started = useRef(0);
   const inFlight = useRef(false);
@@ -535,14 +558,33 @@ export function NativeApp({ token }: { token: string }) {
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>会話とツール結果の送信先</DialogTitle>
-        <DialogContent>
-          {error && <Alert severity="error">{error}</Alert>}
+        <DialogTitle
+          component="div"
+          ref={setProcessorHeading}
+          sx={{ overflowWrap: "anywhere" }}
+        >
+          <Typography component="h2" variant="h3">
+            会話とツール結果の送信先
+          </Typography>
           <Typography>作業ディレクトリ: {state?.workspace}</Typography>
           <Typography sx={{ overflowWrap: "anywhere", mt: 2 }}>
             送信先: {state?.endpoint}
           </Typography>
           <Typography>モデル: {state?.model}</Typography>
+          {state?.judge && (
+            <Typography sx={{ overflowWrap: "anywhere" }}>
+              別モデルjudge: {state.judge.model} · {state.judge.endpoint}
+              （元要件と逆翻訳を送信）
+            </Typography>
+          )}
+        </DialogTitle>
+        <DialogContent>
+          {error && <Alert severity="error">{error}</Alert>}
+          {!approvalVisible && (
+            <Alert severity="info">
+              送信先とモデルの見出し全体が見えるように画面を広げてください。
+            </Alert>
+          )}
           <p>
             承認すると、このセッションの会話・ソース・ツール結果をこの接続先に送信できます。有効期間は最大8時間です。コマンドと検証はローカルの隔離環境で実行します。
           </p>
@@ -554,13 +596,19 @@ export function NativeApp({ token }: { token: string }) {
         <DialogActions>
           <Button onClick={() => setApproval(false)}>閉じる</Button>
           <Button
-            disabled={!state?.approval_available || state.authorized || busy}
+            disabled={
+              !state?.approval_available ||
+              state.authorized ||
+              busy ||
+              !approvalVisible
+            }
             onClick={async () => {
               if (
                 state &&
                 (await command({
                   type: "approve_processor",
                   endpoint: state.endpoint,
+                  judge: state.judge,
                 }))
               )
                 setApproval(false);

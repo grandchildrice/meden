@@ -107,6 +107,7 @@ def main(argv=None):
         type=Path,
         help="Explicit installed verifier prerequisite; never a cold-install claim",
     )
+    parser.add_argument("--judge-model")
     parser.add_argument("--timeout", type=float, default=600)
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args(argv)
@@ -117,6 +118,7 @@ def main(argv=None):
         "success": False,
         "provider": args.provider,
         "model": args.model,
+        "judge_model": args.judge_model,
         "binary": str(binary),
         "binary_sha256": hashlib.sha256(binary.read_bytes()).hexdigest(),
         "verifier_bundle": str(args.verifier_bundle)
@@ -150,6 +152,9 @@ def main(argv=None):
             args.provider or args.base_url,
         ]
 
+        if args.judge_model:
+            command.extend(["--judge-model", args.judge_model])
+
         def milestone(name):
             report["screens"].append({"step": name, "screen": terminal.view()})
             print(name, flush=True)
@@ -160,7 +165,13 @@ def main(argv=None):
 
         try:
             terminal = Terminal(command, env, args.timeout)
-            terminal.wait(lambda view: "Connection details" in view)
+            terminal.wait(
+                lambda view: (
+                    "Connection details" in view
+                    and (not args.judge_model or f"Judge model: {args.judge_model}" in view)
+                    and "Allow for this session" in view
+                )
+            )
             milestone("processor review")
             terminal.send("y")
             terminal.wait(lambda view: "shift+enter" in view)
@@ -239,7 +250,13 @@ def main(argv=None):
             report["first_terminal_restored"] = terminal.quit()
             terminal.close()
             terminal = Terminal(command, env, args.timeout)
-            terminal.wait(lambda view: "Connection details" in view)
+            terminal.wait(
+                lambda view: (
+                    "Connection details" in view
+                    and (not args.judge_model or f"Judge model: {args.judge_model}" in view)
+                    and "Allow for this session" in view
+                )
+            )
             milestone("fresh review after restart")
             terminal.send("n")
             terminal.wait(lambda view: "Choose a model connection" in view)

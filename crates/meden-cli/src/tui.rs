@@ -13,7 +13,7 @@ use std::time::{Duration, Instant};
 
 use crate::exports::{Exports, Reference};
 use crate::text::visible;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use crossterm::event::{
     self, DisableBracketedPaste, EnableBracketedPaste, KeyCode, KeyEventKind, KeyModifiers,
     KeyboardEnhancementFlags, PopKeyboardEnhancementFlags, PushKeyboardEnhancementFlags,
@@ -151,6 +151,8 @@ struct App {
     root: PathBuf,
     workspace: Option<Arc<Workspace>>,
     gateway: Option<Arc<Gateway>>,
+    judge_model: Option<String>,
+    judge: Option<Arc<Gateway>>,
     exports: Arc<Exports>,
     project: Arc<crate::project::Project>,
     project_status: Option<crate::project::Summary>,
@@ -208,6 +210,8 @@ impl App {
             root,
             workspace: None,
             gateway: None,
+            judge_model: None,
+            judge: None,
             exports,
             project,
             project_status: None,
@@ -395,7 +399,9 @@ impl App {
             return;
         };
         if self.gateway.as_ref().is_some_and(|gateway| {
-            gateway.provider() == &provider && gateway.is_authorized(self.session_id())
+            gateway.provider() == &provider
+                && gateway.is_authorized(self.session_id())
+                && crate::judge::authorized(self.judge.as_deref(), self.session_id())
         }) {
             self.screen = Screen::Instructing;
             return;
@@ -416,6 +422,9 @@ impl App {
             return;
         }
         self.choose_profile(&provider);
+        if let Some(previous) = self.judge.take() {
+            let _ = previous.revoke_from_host();
+        }
         if let Some(previous) = self.gateway.take() {
             let _ = previous.revoke_from_host();
         }
@@ -425,6 +434,17 @@ impl App {
         self.response_start = self.lines.len();
         match Gateway::prepare(self.session_id(), provider) {
             Ok(gateway) => {
+                match crate::judge::prepare(
+                    self.session_id(),
+                    &gateway,
+                    self.judge_model.as_deref(),
+                ) {
+                    Ok(judge) => self.judge = judge,
+                    Err(error) => {
+                        self.connection_error = Some(error.to_string());
+                        return;
+                    }
+                }
                 self.gateway = Some(Arc::new(gateway));
                 self.scroll_back = 0;
                 self.screen = Screen::ReviewingProcessor;
@@ -436,7 +456,14 @@ impl App {
         let Some(gateway) = &self.gateway else {
             return;
         };
-        match gateway.approve_from_host() {
+        let approval = (|| -> anyhow::Result<()> {
+            gateway.approve_from_host()?;
+            if let Some(judge) = &self.judge {
+                judge.approve_from_host()?;
+            }
+            Ok(())
+        })();
+        match approval {
             Ok(()) => {
                 self.screen = Screen::Instructing;
                 self.remember_connection();
@@ -687,6 +714,7 @@ impl App {
                 self.selected()
                     .is_some_and(|provider| gateway.provider() == provider)
                     && gateway.is_authorized(self.session_id())
+                    && crate::judge::authorized(self.judge.as_deref(), self.session_id())
             })
             .map(Arc::clone)
         else {
@@ -708,6 +736,7 @@ impl App {
                 );
                 return false;
             };
+            let judge = self.judge.clone();
             let processes = Arc::clone(&self.processes);
             let exports = Arc::clone(&self.exports);
             let pages = Arc::clone(&self.pages);
@@ -726,7 +755,7 @@ impl App {
                     &pages,
                     &project,
                 ) {
-                    Ok(session) => worker(session, &tasks, &updates, || {
+                    Ok(session) => worker(session.with_judge(judge), &tasks, &updates, || {
                         project
                             .status(&workspace, &processes)
                             .or_else(|_| project.stored_status())
@@ -997,6 +1026,9 @@ impl App {
 impl Drop for App {
     fn drop(&mut self) {
         self.project.cancel(&self.processes);
+        if let Some(judge) = &self.judge {
+            let _ = judge.revoke_from_host();
+        }
         if let Some(gateway) = &self.gateway {
             let _ = gateway.revoke_from_host();
         }
@@ -1168,6 +1200,7 @@ pub fn run(
     pages: Arc<meden_runtime::pages::Pages>,
     local: Option<meden_llm::LocalConfig>,
     interactive: bool,
+    judge_config: (&Option<String>, Option<&str>),
 ) -> Result<()> {
     crate::verifier::prepare()?;
     let workspace = Arc::new(Workspace::open(root, &std::env::current_exe()?)?);
@@ -1188,6 +1221,7 @@ pub fn run(
     }
     app.pages = pages;
     app.workspace = Some(workspace);
+    app.judge_model.clone_from(judge_config.0);
     let restored = interactive && app.restore_connection();
     if restored {
         // A restored HTTP preference still enters the fresh processor review.
@@ -1203,6 +1237,15 @@ pub fn run(
             .cloned()
             .ok_or_else(|| anyhow::anyhow!("no selected processor"))?;
         let gateway = Gateway::prepare(app.session_id(), provider)?;
+        app.judge = crate::judge::prepare(app.session_id(), &gateway, app.judge_model.as_deref())?;
+        if let Some(judge) = &app.judge {
+            crate::approve_processor(
+                judge,
+                judge_config
+                    .1
+                    .context("Preapproved TUI with --judge-model requires --approve-judge URL")?,
+            )?;
+        }
         crate::approve_processor(&gateway, endpoint)?;
         app.gateway = Some(Arc::new(gateway));
         app.screen = Screen::Instructing;

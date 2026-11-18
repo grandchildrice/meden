@@ -45,7 +45,11 @@ test.describe("native GUI with real offline workers", () => {
       },
     ],
   });
-  async function start(port = 0, extraEnv: Record<string, string> = {}) {
+  async function start(
+    port = 0,
+    extraEnv: Record<string, string> = {},
+    extraArgs: string[] = [],
+  ) {
     let stderr = "";
     child = spawn(
       process.env.MEDEN_BIN || resolve("target/debug/meden"),
@@ -63,6 +67,7 @@ test.describe("native GUI with real offline workers", () => {
         "scripted-gui-fixture",
         "--api-key",
         "NATIVE-FIXTURE-NOT-SAVED",
+        ...extraArgs,
       ],
       {
         env: {
@@ -1401,9 +1406,13 @@ test.describe("native GUI with real offline workers", () => {
       explanation:
         "The all-cases decrement condition is not established by non-increase alone.",
     });
-  async function openMeaning(page: Page) {
+  async function openMeaning(
+    page: Page,
+    extraArgs: string[] = [],
+    beforeApproval?: () => Promise<void>,
+  ) {
     await writeFile(resolve(project, "Spec.lean"), formalSource);
-    await page.goto(await start());
+    await page.goto(await start(0, {}, extraArgs));
     await page.getByRole("tab", { name: "グラフ", exact: true }).click();
     await page
       .getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" })
@@ -1426,6 +1435,7 @@ test.describe("native GUI with real offline workers", () => {
     await page
       .getByRole("button", { name: "接続先を確認", exact: true })
       .click();
+    if (beforeApproval) await beforeApproval();
     await page.getByRole("button", { name: "この送信先を承認" }).click();
   }
   const stockSource = "pub fn stock(n: u64) -> u64 { n }\n";
@@ -1701,6 +1711,73 @@ test.describe("native GUI with real offline workers", () => {
     ).toEqual([]);
     await page.screenshot({
       path: "target/gui-checks/native-meaning-history.png",
+      fullPage: true,
+    });
+  });
+  test("separate judge models are visible, retained and revoked together", async ({
+    page,
+  }) => {
+    responses.push(
+      (response) => reply(response, informalization()),
+      (response) => reply(response, judgement()),
+    );
+    await openMeaning(
+      page,
+      ["--judge-model", "separate-judge-fixture"],
+      async () => {
+        const state = await nativeState(page);
+        expect(
+          await hostCommand(page, {
+            type: "approve_processor",
+            endpoint: state.endpoint,
+          }),
+        ).toBe(409);
+        expect(
+          await hostCommand(page, {
+            type: "approve_processor",
+            endpoint: state.endpoint,
+            judge: { ...state.judge, model: "other-model" },
+          }),
+        ).toBe(409);
+        expect((await nativeState(page)).authorized).toBe(false);
+        expect(requests).toHaveLength(0);
+        await page.setViewportSize({ width: 390, height: 250 });
+        await expect(
+          page.getByRole("button", { name: "この送信先を承認" }),
+        ).toBeDisabled();
+        await page.setViewportSize({ width: 1440, height: 960 });
+      },
+    );
+    await page.getByRole("button", { name: "接続先", exact: true }).click();
+    await expect(page.getByRole("dialog")).toContainText(
+      "別モデルjudge: separate-judge-fixture",
+    );
+    await page.getByRole("button", { name: "閉じる", exact: true }).click();
+    await page.getByRole("button", { name: "この宣言の意味を解析" }).click();
+    const result = page.getByLabel("意味解析の結果", { exact: true });
+    await expect(result).toContainText("意味の差異候補");
+    expect((requests[0] as { model: string }).model).toBe(
+      "scripted-gui-fixture",
+    );
+    expect((requests[1] as { model: string }).model).toBe(
+      "separate-judge-fixture",
+    );
+    const record = (await nativeState(page)).analysis;
+    expect(record.judge.model).toBe("separate-judge-fixture");
+    await result.getByText("解析対象と処理の詳細").click();
+    await expect(result).toContainText("比較: separate-judge-fixture");
+    await page
+      .getByRole("button", { name: "送信の許可を取り消す", exact: true })
+      .click();
+    await expect(
+      page.getByRole("button", { name: "この宣言の意味を解析" }),
+    ).toBeDisabled();
+    await expect
+      .poll(async () => (await nativeState(page)).authorized)
+      .toBe(false);
+    expect(requests).toHaveLength(2);
+    await page.screenshot({
+      path: "target/gui-checks/native-separate-judge.png",
       fullPage: true,
     });
   });

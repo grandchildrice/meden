@@ -115,6 +115,7 @@ pub(super) fn begin(
     model: &str,
     input: Input,
     source_artifact: String,
+    judge: Option<crate::judge::Binding>,
 ) -> Result<Record> {
     let store = Store::open(root)?;
     let mut journal = if let Ok(journal) = store.read() {
@@ -150,9 +151,11 @@ pub(super) fn begin(
         engine: semantic::ENGINE.into(),
         model: model.into(),
         processor: processor.into(),
+        judge,
         input,
         state: State::Observing,
         assessment: None,
+        partial_translation: None,
         error: None,
     };
     journal.sequence = sequence;
@@ -172,6 +175,7 @@ pub(super) fn save(root: &Path, record: &Record) -> Result<()> {
         saved.input == record.input
             && saved.model == record.model
             && saved.processor == record.processor
+            && saved.judge == record.judge
             && saved.source_artifact == record.source_artifact
             && saved.requirement_id == record.requirement_id
             && saved.sequence == record.sequence,

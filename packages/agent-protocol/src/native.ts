@@ -50,6 +50,17 @@ export const meaningInputSchema = z
   })
   .strict();
 export type MeaningInput = z.infer<typeof meaningInputSchema>;
+const meaningTranslationSchema = z
+  .object({
+    lemmaName: z.string(),
+    naturalLanguage: z.string(),
+    preconditions: z.string(),
+    postcondition: z.string(),
+    scope: z.string(),
+    strength: z.enum(["trivial", "weak", "moderate", "strong"]),
+    confidence: z.number().min(0).max(1),
+  })
+  .strict();
 export const meaningRecordSchema = z
   .object({
     version: z.literal(2),
@@ -67,6 +78,11 @@ export const meaningRecordSchema = z
     engine: z.literal("meden-claimcheck-roundtrip-v1"),
     model: z.string(),
     processor: z.string(),
+    judge: z
+      .object({ model: z.string(), endpoint: z.string() })
+      .strict()
+      .nullable()
+      .optional(),
     input: meaningInputSchema,
     state: z.enum([
       "observing",
@@ -79,20 +95,11 @@ export const meaningRecordSchema = z
       "historical",
     ]),
     error: z.string().nullable(),
+    partial_translation: meaningTranslationSchema.nullable().optional(),
     assessment: z
       .object({
         verdict: z.enum(["match", "mismatch", "unclear"]),
-        translation: z
-          .object({
-            lemmaName: z.string(),
-            naturalLanguage: z.string(),
-            preconditions: z.string(),
-            postcondition: z.string(),
-            scope: z.string(),
-            strength: z.enum(["trivial", "weak", "moderate", "strong"]),
-            confidence: z.number().min(0).max(1),
-          })
-          .strict(),
+        translation: meaningTranslationSchema,
         comparison: z
           .object({
             lemmaName: z.string(),
@@ -195,6 +202,11 @@ export const nativeStateSchema = z.object({
   workspace: z.string(),
   endpoint: z.string(),
   model: z.string(),
+  judge: z
+    .object({ model: z.string(), endpoint: z.string() })
+    .strict()
+    .nullable()
+    .optional(),
   authorized: z.boolean(),
   approval_available: z.boolean(),
   running: z.boolean(),
@@ -250,7 +262,11 @@ export const nativeStateSchema = z.object({
 });
 export type NativeState = z.infer<typeof nativeStateSchema>;
 export type NativeCommand =
-  | { type: "approve_processor"; endpoint: string }
+  | {
+      type: "approve_processor";
+      endpoint: string;
+      judge?: { model: string; endpoint: string } | null;
+    }
   | { type: "revoke_processor" | "cancel" | "refresh_status" }
   | { type: "instruction"; text: string }
   | { type: "source_snapshot"; paths: string[] }

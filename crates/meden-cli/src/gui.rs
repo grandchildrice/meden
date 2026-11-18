@@ -30,6 +30,7 @@ struct View {
     workspace: String,
     endpoint: String,
     model: String,
+    judge: Option<crate::judge::Binding>,
     authorized: bool,
     approval_available: bool,
     running: bool,
@@ -57,6 +58,7 @@ struct View {
 enum Command {
     ApproveProcessor {
         endpoint: String,
+        judge: Option<crate::judge::Binding>,
     },
     RevokeProcessor,
     Instruction {
@@ -148,7 +150,7 @@ fn lock<T>(value: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
 
 pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
     anyhow::ensure!(
-        args.model.approve_processor.is_none(),
+        args.model.approve_processor.is_none() && args.model.approve_judge.is_none(),
         "GUI processor approval happens in the browser; omit --approve-processor"
     );
     let assets = assets
@@ -167,11 +169,17 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
         workspace.session_id(),
         args.model.connection()?,
     )?);
+    let judge = crate::judge::prepare(
+        workspace.session_id(),
+        &gateway,
+        args.model.judge_model.as_deref(),
+    )?;
     let project = Arc::new(crate::project::Project::open(
         workspace.path(),
         workspace.session_id(),
     )?);
     let view = initial_view(&workspace, &gateway, &project)?;
+    lock(&view).judge = judge.as_deref().map(crate::judge::binding);
     let control = Arc::new(Mutex::new(Arc::new(Control::new(Arc::new(
         AtomicBool::new(false),
     )))));
@@ -189,6 +197,7 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
     let worker_view = Arc::clone(&view);
     let worker_workspace = Arc::clone(&workspace);
     let worker_gateway = Arc::clone(&gateway);
+    let worker_judge = judge.clone();
     let worker_project = Arc::clone(&project);
     let worker_preview = Arc::clone(&preview);
     let worker_thread = std::thread::spawn(move || {
@@ -196,7 +205,7 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
             receiver,
             &worker_view,
             &worker_workspace,
-            &worker_gateway,
+            (&worker_gateway, worker_judge.as_ref()),
             &worker_project,
             &pages,
             &worker_preview,
@@ -222,6 +231,7 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
         control: &control,
         stopping: &stopping,
         gateway: &gateway,
+        judge: judge.as_deref(),
         workspace: &workspace,
         project: &project,
         sender: &sender,
@@ -254,6 +264,7 @@ fn initial_view(
         workspace: workspace.path().display().to_string(),
         endpoint: gateway.endpoint().into(),
         model: gateway.provider().model.clone(),
+        judge: None,
         authorized: false,
         approval_available: true,
         running: false,
@@ -309,6 +320,7 @@ struct Http<'a> {
     control: &'a Mutex<Arc<Control>>,
     stopping: &'a AtomicBool,
     gateway: &'a Gateway,
+    judge: Option<&'a Gateway>,
     workspace: &'a Workspace,
     project: &'a crate::project::Project,
     sender: &'a mpsc::SyncSender<Task>,
@@ -334,6 +346,22 @@ impl Http<'_> {
         });
     }
 
+    fn approve_processors(
+        &self,
+        endpoint: &str,
+        judge: Option<&crate::judge::Binding>,
+    ) -> Result<()> {
+        anyhow::ensure!(
+            endpoint == self.gateway.endpoint()
+                && judge == self.judge.map(crate::judge::binding).as_ref(),
+            "processor review target changed"
+        );
+        self.gateway.approve_from_host()?;
+        if let Some(judge) = self.judge {
+            judge.approve_from_host()?;
+        }
+        Ok(())
+    }
     fn handle(&self, mut request: Request) {
         if header(&request, "Host") != Some(self.authority)
             || header(&request, "Origin").is_some_and(|value| value != self.origin)
@@ -362,7 +390,8 @@ impl Http<'_> {
         if request.method() == &Method::Get && request.url() == "/api/state" {
             let snapshot = {
                 let mut view = lock(self.view);
-                view.authorized = self.gateway.is_authorized(self.workspace.session_id());
+                view.authorized = self.gateway.is_authorized(self.workspace.session_id())
+                    && crate::judge::authorized(self.judge, self.workspace.session_id());
                 view.preview = self.preview.summary();
                 json!(&*view)
             };
@@ -392,16 +421,15 @@ impl Http<'_> {
             anyhow::ensure!(bytes.len() <= 1_048_576, "command exceeds 1 MiB");
             let command: Command = serde_json::from_slice(&bytes)?;
             match command {
-                Command::ApproveProcessor { endpoint } => {
-                    anyhow::ensure!(
-                        endpoint == self.gateway.endpoint(),
-                        "processor review target changed"
-                    );
-                    self.gateway.approve_from_host()?;
+                Command::ApproveProcessor { endpoint, judge } => {
+                    self.approve_processors(&endpoint, judge.as_ref())?;
                     lock(self.view).approval_available = false;
                 }
                 Command::RevokeProcessor => {
                     self.gateway.revoke_from_host()?;
+                    if let Some(judge) = self.judge {
+                        judge.revoke_from_host()?;
+                    }
                     lock(self.view).approval_available = false;
                     self.project.cancel(&lock(self.control));
                 }
@@ -436,25 +464,18 @@ fn worker(
     receiver: mpsc::Receiver<Task>,
     view: &Mutex<View>,
     workspace: &Arc<Workspace>,
-    gateway: &Arc<Gateway>,
+    processors: (&Arc<Gateway>, Option<&Arc<Gateway>>),
     project: &Arc<crate::project::Project>,
     pages: &Arc<meden_runtime::pages::Pages>,
     preview: &preview::Preview,
 ) {
+    let (gateway, judge) = processors;
     let mut delivery = delivery::Delivery::new(project);
     let mut repairs = crate::analysis::repair::Queue::default();
     for Task { command, processes } in receiver {
         delivery.begin(&command);
         let result = (|| -> Result<()> {
-            if !matches!(
-                command,
-                Command::PrepareRepair { .. }
-                    | Command::ApplyRepair { .. }
-                    | Command::RejectRepair { .. }
-            ) {
-                repairs.abandon(workspace)?;
-                lock(view).repair_review = None;
-            }
+            repair::begin(view, workspace, &mut repairs, &command)?;
             let mut session = Session::new(
                 Arc::clone(workspace),
                 Arc::clone(gateway),
@@ -462,7 +483,8 @@ fn worker(
                 &delivery.queue,
                 pages,
                 project,
-            )?;
+            )?
+            .with_judge(judge.cloned());
             let instruction = match command {
                 Command::RefreshStatus => None,
                 Command::PrepareAtlas => {

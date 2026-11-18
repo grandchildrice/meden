@@ -2215,3 +2215,16 @@ tested adapters, not extracted/refined kernel operations. No Lake program runs,
 package download or unconfined executor is added. The installed-Lean public TUI
 journey covers transitive imports, nested comments, unresolved-import failure,
 stale-graph refusal and recovery; the native GUI covers selecting only a root.
+
+### Separate comparison processor
+
+`--judge-model` creates a second Gateway using the host-selected HTTP connection
+and a distinct model ID. It has its own unchanged refined processor state, immutable
+parameters and session grant. The TUI complete fixed heading names both destinations
+and models; the GUI matches the submitted judge binding to its actual frozen gateway.
+JSONL requires the exact explicit `--approve-judge` URL. The shared service checks both
+current grants before dispatch and before admission, and never routes a failed judge
+request to the translator. Comparison sees only the original requirement, target and
+blind translation. Parsing, gateway grouping, model-ID attribution, stage/history
+persistence, UI visibility and physical dispatch remain adapters; no statistical
+independence, weight attestation or full application refinement is claimed.

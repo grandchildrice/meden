@@ -237,3 +237,8 @@ scroll. Press `y` to apply once and reanalyze the original requirement, or `n`/E
 to reject. Changed source or accepted-contract identity invalidates the proposal.
 Pending approval is discarded on restart. Reanalysis is a candidate assessment;
 formal proof evidence requires a fresh check.
+
+Use `--judge-model MODEL` with the same HTTP connection to select a different model
+for meaning comparison. The processor review shows both models before sending.
+For JSONL `run`, also provide `--approve-judge` with the exact inference URL;
+approval is session-scoped and is never restored or renewed automatically.

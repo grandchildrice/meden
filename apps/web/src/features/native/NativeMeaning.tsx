@@ -116,7 +116,7 @@ export function NativeMeaning({
             {graphRevision
               ? "コンパイル後の宣言と意味に関係する依存を自然言語化します。元ソース・コメント・証明専用の依存は最初のリクエストに含めません。"
               : "選択したファイルを自然言語化します。"}
-            別のリクエストで要件と比較します。同じ設定モデルを使い、証明・契約の受理状態は変更しません。
+            別のリクエストで要件と比較します。比較用モデルは起動時に指定でき、解析時の両モデルを履歴に記録します。証明・契約の受理状態は変更しません。
           </Typography>
         </>
       )}
@@ -163,6 +163,12 @@ export function NativeMeaning({
             </Alert>
           )}
           {record.error && <pre>{record.error}</pre>}
+          {!result && record.partial_translation && (
+            <details>
+              <summary>比較が完了しなかった逆翻訳（候補）</summary>
+              <pre>{record.partial_translation.naturalLanguage}</pre>
+            </details>
+          )}
           {result && (
             <>
               <Chip
@@ -219,7 +225,13 @@ export function NativeMeaning({
                 解析時のソース記録: {record.source_artifact}
               </p>
             )}
-            <p className="native-revision">処理先: {record.processor}</p>
+            <p className="native-revision">
+              翻訳: {record.model} · {record.processor}
+            </p>
+            <p className="native-revision">
+              比較: {record.judge?.model ?? record.model} ·{" "}
+              {record.judge?.endpoint ?? record.processor}
+            </p>
             <p className="native-revision">{record.input.source_revision}</p>
             <p>
               claimcheckの二段階方式をRust／Leanへ適用するMedenアダプタです。別リクエストで処理し、元の会話は渡しません。完全な依存抽出や解析精度の保証は含みません。

@@ -39,9 +39,11 @@ pub(crate) struct Record {
     pub engine: String,
     pub model: String,
     pub processor: String,
+    pub judge: Option<crate::judge::Binding>,
     pub input: Input,
     pub state: State,
     pub assessment: Option<Assessment>,
+    pub partial_translation: Option<semantic::Translation>,
     pub error: Option<String>,
 }
 impl Record {
@@ -55,6 +57,18 @@ impl Record {
             self.input.target.line,
             self.input.requirement
         );
+        let _ = write!(
+            text,
+            "\nTranslator: {} · {}\nJudge: {} · {}",
+            self.model,
+            self.processor,
+            self.judge
+                .as_ref()
+                .map_or(self.model.as_str(), |j| j.model.as_str()),
+            self.judge
+                .as_ref()
+                .map_or(self.processor.as_str(), |j| j.endpoint.as_str())
+        );
         if let Some(assessment) = &self.assessment {
             let _ = write!(
                 text,
@@ -64,6 +78,15 @@ impl Record {
                 assessment.comparison.discrepancy,
                 assessment.comparison.explanation
             );
+        }
+        if self.assessment.is_none() {
+            if let Some(translation) = &self.partial_translation {
+                let _ = write!(
+                    text,
+                    "\nBlind translation retained; comparison incomplete: {}",
+                    translation.natural_language
+                );
+            }
         }
         if let Some(error) = &self.error {
             let _ = write!(text, "\nStopped: {error}");
@@ -107,6 +130,7 @@ pub(crate) fn extract(
 pub(crate) fn run(
     workspace: &Workspace,
     gateway: &Gateway,
+    judge: Option<&Gateway>,
     control: &Control,
     snapshot: &sources::Snapshot,
     input: Input,
@@ -124,6 +148,7 @@ pub(crate) fn run(
         &gateway.provider().model,
         input,
         source_artifact,
+        judge.map(crate::judge::binding),
     )?);
     notify(&record.borrow());
     let observe = || -> Result<()> {
@@ -142,21 +167,33 @@ pub(crate) fn run(
         Ok(())
     };
     let result = (|| -> Result<()> {
+        anyhow::ensure!(
+            gateway.is_authorized(workspace.session_id())
+                && crate::judge::authorized(judge, workspace.session_id()),
+            "Review both configured processors before meaning analysis"
+        );
         observe()?;
         let assessment = semantic::analyze(
             &gateway.for_session(workspace.session_id()),
+            &judge.unwrap_or(gateway).for_session(workspace.session_id()),
             &prepared,
             control.flag(),
             &|stage| {
-                record.borrow_mut().state = match stage {
+                let mut current = record.borrow_mut();
+                current.state = match stage {
                     Stage::Translating => State::Translating,
-                    Stage::Comparing => State::Comparing,
+                    Stage::Comparing(translation) => {
+                        current.partial_translation = Some(translation);
+                        State::Comparing
+                    }
                 };
+                drop(current);
                 notify(&record.borrow());
             },
         )?;
         anyhow::ensure!(
-            gateway.is_authorized(workspace.session_id()),
+            gateway.is_authorized(workspace.session_id())
+                && crate::judge::authorized(judge, workspace.session_id()),
             "Processor permission ended; no meaning-analysis result admitted"
         );
         observe()?;

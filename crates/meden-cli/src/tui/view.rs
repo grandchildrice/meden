@@ -3,6 +3,7 @@
 
 use ratatui::prelude::*;
 use ratatui::widgets::{Block, BorderType, Clear, List, ListItem, Paragraph, Wrap};
+use std::fmt::Write as _;
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
@@ -981,10 +982,13 @@ fn draw_processor_review(frame: &mut Frame<'_>, app: &mut App, area: Rect) {
         return;
     };
     let provider = gateway.provider();
-    let heading = format!(
+    let mut heading = format!(
         "Destination: {}\nConnection: {}\nModel: {}\nCredential: {}\nScope: workspace conversation, files and tool results; one session, up to eight hours.",
         gateway.endpoint(), visible(&provider.id).replace('\n', "⏎"), visible(&provider.model).replace('\n', "⏎"),
         if provider.api_key.is_some() { "host-configured account" } else { "none" });
+    if let Some(judge) = &app.judge {
+        let _ = write!(heading, "\nSeparate judge destination: {}\nJudge model: {}\nJudge scope: original requirement and blind back-translation; same session/expiry.", visible(judge.endpoint()).replace('\n', "⏎"), visible(&judge.provider().model).replace('\n', "⏎"));
+    }
     let title = format!(
         "Allow {} to receive workspace context?",
         visible(&provider.label).replace('\n', "⏎")

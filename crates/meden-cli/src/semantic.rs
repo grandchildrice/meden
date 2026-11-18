@@ -168,14 +168,15 @@ pub(crate) struct Assessment {
     pub comparison: Comparison,
     pub verdict: Verdict,
 }
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub(crate) enum Stage {
     Translating,
-    Comparing,
+    Comparing(Translation),
 }
 
 pub(crate) fn analyze(
-    model: &impl ChatModel,
+    translator: &impl ChatModel,
+    judge: &impl ChatModel,
     prepared: &Prepared,
     cancelled: &AtomicBool,
     progress: &dyn Fn(Stage),
@@ -184,15 +185,15 @@ pub(crate) fn analyze(
     progress(Stage::Translating);
     ensure_active(cancelled)?;
     let translation: Translation = decode(
-        model.reply(&prepared.translation_messages(), &[translation_tool()])?,
+        translator.reply(&prepared.translation_messages(), &[translation_tool()])?,
         "record_informalization",
     )?;
     translation.validate(&prepared.input.target.name)?;
     ensure_active(cancelled)?;
-    progress(Stage::Comparing);
+    progress(Stage::Comparing(translation.clone()));
     ensure_active(cancelled)?;
     let comparison: Comparison = decode(
-        model.reply(
+        judge.reply(
             &messages(
                 include_str!("semantic/compare.md"),
                 &json!({
@@ -415,7 +416,13 @@ mod tests {
             requests: RefCell::default(),
             cancel: None,
         };
-        let assessment = analyze(&model, &prepared()?, &AtomicBool::new(false), &|_| {})?;
+        let assessment = analyze(
+            &model,
+            &model,
+            &prepared()?,
+            &AtomicBool::new(false),
+            &|_| {},
+        )?;
         assert_eq!(assessment.verdict, Verdict::Mismatch);
         let requests = model.requests.borrow();
         let first = serde_json::to_string(requests.first().context("first request")?)?;
@@ -428,6 +435,41 @@ mod tests {
         Ok(())
     }
     #[test]
+    fn separate_judge_receives_only_the_requirement_and_blind_translation() -> Result<()> {
+        let translator = Model {
+            replies: RefCell::new(VecDeque::from([translation()])),
+            requests: RefCell::default(),
+            cancel: None,
+        };
+        let judge = Model {
+            replies: RefCell::new(VecDeque::from([comparison(
+                false,
+                "missing-case",
+                "The requested bound is missing.",
+            )])),
+            requests: RefCell::default(),
+            cancel: None,
+        };
+        let result = analyze(
+            &translator,
+            &judge,
+            &prepared()?,
+            &AtomicBool::new(false),
+            &|_| {},
+        )?;
+        assert_eq!(result.verdict, Verdict::Mismatch);
+        assert_eq!(translator.requests.borrow().len(), 1);
+        assert_eq!(judge.requests.borrow().len(), 1);
+        let translation_input = serde_json::to_string(&*translator.requests.borrow())?;
+        let judge_input = serde_json::to_string(&*judge.requests.borrow())?;
+        assert!(translation_input.contains("FORMAL_ONLY_SENTINEL"));
+        assert!(!translation_input.contains("ORIGINAL_REQUIREMENT_SENTINEL"));
+        assert!(judge_input.contains("ORIGINAL_REQUIREMENT_SENTINEL"));
+        assert!(!judge_input.contains("FORMAL_ONLY_SENTINEL"));
+        assert!(judge_input.contains("Stock never increases"));
+        Ok(())
+    }
+    #[test]
     fn cancellation_after_reply_prevents_comparison_and_never_admits_a_result() -> Result<()> {
         let cancel = AtomicBool::new(false);
         let model = Model {
@@ -435,7 +477,7 @@ mod tests {
             requests: RefCell::default(),
             cancel: Some(&cancel),
         };
-        assert!(analyze(&model, &prepared()?, &cancel, &|_| {}).is_err());
+        assert!(analyze(&model, &model, &prepared()?, &cancel, &|_| {}).is_err());
         assert_eq!(model.requests.borrow().len(), 1);
         Ok(())
     }
@@ -447,7 +489,7 @@ mod tests {
             requests: RefCell::default(),
             cancel: None,
         };
-        assert!(analyze(&model, &prepared()?, &cancel, &|_| cancel
+        assert!(analyze(&model, &model, &prepared()?, &cancel, &|_| cancel
             .store(true, Ordering::SeqCst))
         .is_err());
         assert!(model.requests.borrow().is_empty());
@@ -474,7 +516,14 @@ mod tests {
                 requests: RefCell::default(),
                 cancel: None,
             };
-            assert!(analyze(&model, &prepared()?, &AtomicBool::new(false), &|_| {}).is_err());
+            assert!(analyze(
+                &model,
+                &model,
+                &prepared()?,
+                &AtomicBool::new(false),
+                &|_| {}
+            )
+            .is_err());
             assert_eq!(model.requests.borrow().len(), 1);
         }
         Ok(())
@@ -490,7 +539,14 @@ mod tests {
             cancel: None,
         };
         assert_eq!(
-            analyze(&model, &prepared()?, &AtomicBool::new(false), &|_| {})?.verdict,
+            analyze(
+                &model,
+                &model,
+                &prepared()?,
+                &AtomicBool::new(false),
+                &|_| {}
+            )?
+            .verdict,
             Verdict::Unclear
         );
         Ok(())

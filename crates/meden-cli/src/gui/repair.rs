@@ -50,3 +50,21 @@ pub(super) fn perform(
     }
     Ok(())
 }
+
+pub(super) fn begin(
+    view: &std::sync::Mutex<super::View>,
+    workspace: &meden_runtime::workspace::Workspace,
+    repairs: &mut crate::analysis::repair::Queue,
+    command: &super::Command,
+) -> anyhow::Result<()> {
+    if !matches!(
+        command,
+        super::Command::PrepareRepair { .. }
+            | super::Command::ApplyRepair { .. }
+            | super::Command::RejectRepair { .. }
+    ) {
+        repairs.abandon(workspace)?;
+        super::lock(view).repair_review = None;
+    }
+    Ok(())
+}

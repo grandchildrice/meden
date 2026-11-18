@@ -13,6 +13,7 @@ mod atlas;
 mod connection;
 mod exports;
 mod gui;
+mod judge;
 mod pages;
 mod project;
 mod protocol;
@@ -196,47 +197,61 @@ fn run() -> Result<()> {
                 pages,
                 local,
                 interactive,
+                (&args.model.judge_model, args.model.approve_judge.as_deref()),
             )?;
         }
-        Command::Run(args) => {
-            let pages = load_pages(args.pages.as_deref())?;
-            let local = args.model.local_config()?;
-            let approved = if local.is_none() {
-                Some(args.model.approve_processor.as_deref().context(
+        Command::Run(args) => run_protocol(&args)?,
+    }
+    Ok(())
+}
+
+fn run_protocol(args: &WorkspaceArgs) -> Result<()> {
+    let pages = load_pages(args.pages.as_deref())?;
+    let local = args.model.local_config()?;
+    let approved = if local.is_none() {
+        Some(args.model.approve_processor.as_deref().context(
                 "run requires --approve-processor with the exact inference URL (/chat/completions, /responses or /messages); this permits sending conversation and tool results to that processor for this session (up to eight hours)",
             )?)
-            } else {
-                None
-            };
-            let mut input = io::BufReader::new(io::stdin());
-            let first = protocol::read_command(&mut input)?.context("no command received")?;
-            let workspace = Arc::new(Workspace::open(&args.workspace, &std::env::current_exe()?)?);
-            let processes = Arc::new(Control::new(Arc::new(AtomicBool::new(false))));
-            let session = workspace.session_id();
-            let gateway = Arc::new(if let Some(config) = local {
-                meden_llm::Gateway::prepare_local(
-                    session,
-                    &config,
-                    &std::env::current_exe()?,
-                    Arc::clone(&processes),
-                )?
-            } else {
-                let provider = args.model.connection()?;
-                let gateway = meden_llm::Gateway::prepare(session, provider)?;
-                approve_processor(&gateway, approved.context("missing processor approval")?)?;
-                gateway
-            });
-            protocol::run(
-                first,
-                &mut input,
-                &mut io::stdout().lock(),
-                &workspace,
-                gateway,
-                &processes,
-                &pages,
-            )?;
-        }
+    } else {
+        None
+    };
+    let mut input = io::BufReader::new(io::stdin());
+    let first = protocol::read_command(&mut input)?.context("no command received")?;
+    let workspace = Arc::new(Workspace::open(&args.workspace, &std::env::current_exe()?)?);
+    let processes = Arc::new(Control::new(Arc::new(AtomicBool::new(false))));
+    let session = workspace.session_id();
+    let gateway = Arc::new(if let Some(config) = local {
+        meden_llm::Gateway::prepare_local(
+            session,
+            &config,
+            &std::env::current_exe()?,
+            Arc::clone(&processes),
+        )?
+    } else {
+        let provider = args.model.connection()?;
+        let gateway = meden_llm::Gateway::prepare(session, provider)?;
+        approve_processor(&gateway, approved.context("missing processor approval")?)?;
+        gateway
+    });
+    let judge = judge::prepare(session, &gateway, args.model.judge_model.as_deref())?;
+    if let Some(judge) = &judge {
+        approve_processor(
+            judge,
+            args.model
+                .approve_judge
+                .as_deref()
+                .context("run with --judge-model requires --approve-judge URL")?,
+        )?;
     }
+    protocol::run(
+        first,
+        &mut input,
+        &mut io::stdout().lock(),
+        &workspace,
+        (gateway, judge),
+        &processes,
+        &pages,
+    )?;
     Ok(())
 }
 

@@ -120,10 +120,11 @@ pub fn run(
     input: &mut impl BufRead,
     output: &mut impl Write,
     workspace: &Arc<Workspace>,
-    gateway: Arc<Gateway>,
+    processors: (Arc<Gateway>, Option<Arc<Gateway>>),
     processes: &Arc<Control>,
     pages: &Arc<meden_runtime::pages::Pages>,
 ) -> Result<()> {
+    let (gateway, judge) = processors;
     send(
         output,
         &Out::Ready {
@@ -143,7 +144,8 @@ pub fn run(
         &exports,
         pages,
         &project,
-    )?;
+    )?
+    .with_judge(judge);
     let mut snapshot = None;
     let mut next = Some(first);
     while let Some(command) = next {
@@ -178,14 +180,7 @@ pub fn run(
                     },
                 )?,
                 Command::SourceSnapshot { paths, atlas } => {
-                    let captured = session.sources(&paths, atlas)?;
-                    send(
-                        output,
-                        &Out::SourceSnapshot {
-                            snapshot: &captured,
-                        },
-                    )?;
-                    snapshot = Some(captured);
+                    snapshot = Some(capture_sources(&session, &paths, atlas, output)?);
                 }
                 Command::AnalyzeMeaning(input) => {
                     let source = snapshot
@@ -224,6 +219,22 @@ pub fn run(
         next = read_command(input)?;
     }
     Ok(())
+}
+
+fn capture_sources(
+    session: &Session,
+    paths: &[String],
+    atlas: bool,
+    output: &mut impl Write,
+) -> Result<crate::analysis::sources::Snapshot> {
+    let captured = session.sources(paths, atlas)?;
+    send(
+        output,
+        &Out::SourceSnapshot {
+            snapshot: &captured,
+        },
+    )?;
+    Ok(captured)
 }
 
 fn analyze(

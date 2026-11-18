@@ -69,11 +69,10 @@ boundary is established. R1 and the complete local deployment remain required.
 ## GUI implementation boundary
 
 The 2026-11-18 GUI work uses a TypeScript/Vite app in `apps/web` with domain/data
-packages separated from rendering. It supports saved drafts and inspection of
-imported/sample results; it is not connected to the runtime yet. The TUI remains
-the execution entry. [Implementation map](architecture/semantic-workspace.md) and
-[GUI usage](gui.md) describe the strategy's future gateway, analysis, storage and
-sync boundaries and distinguish them from implemented frontend behavior.
+packages separated from rendering. The native `meden gui` gateway now uses the same Rust session, offline tools,
+source/Atlas analysis, reviewed repairs and local journals as the public TUI.
+The standalone demo still uses sample data. [Implementation map](architecture/semantic-workspace.md)
+and [GUI usage](gui.md) distinguish these paths and their remaining adapter gaps.
 
 ## User experience
 

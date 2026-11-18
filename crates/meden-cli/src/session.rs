@@ -27,6 +27,7 @@ const SYSTEM: &str = "You are meden, a coding agent working in /workspace. This 
 pub struct Session {
     workspace: Arc<Workspace>,
     gateway: Arc<Gateway>,
+    judge: Option<Arc<Gateway>>,
     processes: Arc<Control>,
     project: Arc<crate::project::Project>,
     registry: Registry,
@@ -73,6 +74,7 @@ impl Session {
         Ok(Self {
             workspace,
             gateway,
+            judge: None,
             processes,
             project: Arc::clone(project),
             registry,
@@ -81,6 +83,11 @@ impl Session {
             conversation,
             report: None,
         })
+    }
+
+    pub(crate) fn with_judge(mut self, judge: Option<Arc<Gateway>>) -> Self {
+        self.judge = judge;
+        self
     }
 
     pub(crate) fn abandon_repairs(&self, queue: &mut crate::analysis::repair::Queue) -> Result<()> {
@@ -187,6 +194,7 @@ impl Session {
         crate::analysis::run(
             &self.workspace,
             &self.gateway,
+            self.judge.as_deref(),
             &self.processes,
             snapshot,
             input,

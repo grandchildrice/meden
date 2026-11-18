@@ -331,7 +331,14 @@ matching/mismatching meaning candidates and historical restart. It also records 
 preceding failed trials that exposed scratch-file and form-handler friction; those
 failures were not counted as successful validation. That earlier trial used lexical
 Rust graphs; selected-module Atlas extraction is a separate path described above.
-Independent-model judgment remains open integration work.
+A separate comparison model is now selectable with `--judge-model MODEL` on the
+same host-selected HTTP connection. Both models/destinations appear in the fixed
+processor heading and receive separate immutable session grants. Changing providers
+requires a fresh review. Cancellation, revocation, expiry and invalid judge replies
+stop analysis without a fallback. The journal records both bindings and retains a
+completed blind translation when comparison fails. Different model IDs do not
+establish statistical independence or attest provider weights. This option currently
+requires HTTP; the ordinary confined local-model path remains separate.
 
 The [selected-module Atlas cloud trial](../results/native-gui-atlas-ollama-cloud-minimax-m3-70faa07.json)
 completed the application journey, compiled a model-written Lean module with
