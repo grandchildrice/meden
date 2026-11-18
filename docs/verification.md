@@ -2228,3 +2228,60 @@ request to the translator. Comparison sees only the original requirement, target
 blind translation. Parsing, gateway grouping, model-ID attribution, stage/history
 persistence, UI visibility and physical dispatch remain adapters; no statistical
 independence, weight attestation or full application refinement is claimed.
+
+### Synthetic meaning evaluation, 2026-11-19
+
+The public JSONL driver `python -m meden_checks.meaning_eval` ran the
+[repository-authored dataset](../benchmarks/meaning/cases.json): five expected
+matches and fifteen expected mismatches. Every case compiled through the installed
+Lean/Atlas worker before inference, with no `sorry` declarations. Cases cover
+threshold boundaries, missing stock, conjunction/disjunction, assumed conclusions,
+vacuous statements, non-increase versus decrement, extra preconditions, refunds,
+English paraphrase and an excluded source comment. Labels concern the selected
+statement's explicit scope; they are not a theorem of equivalence between all
+provable propositions or entailment from the entire visible environment.
+
+| Translator / judge configuration | Expected verdicts | Output errors | False accepts / 15 | False rejects / 5 |
+| --- | --- | --- | --- | --- |
+| minimax-m3 / minimax-m3, original prompt | 19/20 | 1 | 0 | 0 |
+| minimax-m3 / gpt-oss:120b, original prompt | 5/20 | 15 | 0 | 0 |
+| minimax-m3 / gpt-oss:120b, exact category vocabulary | 20/20 | 0 | 0 | 0 |
+
+Retained observations: [same model](../results/meaning-eval-20261119-same-model-original.json),
+[original separate judge](../results/meaning-eval-20261119-separate-original.json),
+and [exact-vocabulary separate judge](../results/meaning-eval-20261119-separate-exact-vocabulary.json).
+These include every source, expected label/basis, compiled graph, native run/input
+identities, parsed candidate text, typed failures, model bindings and binary/dataset
+hashes. Source-artifact hashes were checked against the retained complete snapshots.
+Errors and abstentions stay in denominators; the first separate-model run's zero
+false accepts does not mean it evaluated the negative cases successfully. All its
+negative cases stopped on invalid category tokens. The updated prompt names the
+exact existing enum literals; decoding remains strict and no category normalization
+or inference fallback was added.
+
+Each condition makes fresh MiniMax translations and uses provider sampling defaults
+without a fixed seed. The original and updated conditions also have different
+comparison prompts. These are small end-to-end observations, not a paired causal
+experiment, independent labels, a population benchmark or evidence of model
+independence. They do not establish reliable explanations, native project proof
+coverage, local inference, cold installation or complete confidentiality. The
+updated run was interrupted after ten saved cases; the remaining ten were run with
+an explicit offset under the same binary/dataset/model binding. Saved cases were
+not resent, and the aggregate retains both execution segments.
+
+To repeat the updated condition using installed Lean and an approved connection:
+
+```bash
+uv run --project python --group dev python -m meden_checks.meaning_eval \
+  --binary target/release/meden --provider hermes:ollama-cloud \
+  --model minimax-m3 --judge-model gpt-oss:120b \
+  --approve-processor https://ollama.com/v1/chat/completions \
+  --lean /absolute/path/to/installed/lean --out /tmp/meden-meaning-evaluation
+```
+
+Use a new output directory. `--offset N --limit M` selects an explicit unevaluated
+range without replaying earlier cases. Each case is saved immediately. A nonzero
+exit indicates a case did not reach an admitted result; the report still retains
+that failure. A zero exit does not assert perfect accuracy. No paid-model call is
+part of CI; the ordinary UX gate exercises synthetic failure/restart paths and
+`test_meaning_eval.py` checks denominator accounting.
