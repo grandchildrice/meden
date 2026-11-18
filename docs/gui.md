@@ -213,6 +213,14 @@ project files outside the GUI. It writes `report.json` and milestone screenshots
 Passing these synthetic cases is not a general accuracy, local-inference or
 cold-verifier-installation claim.
 
+The [recorded native GUI cloud trial](../results/native-gui-development-ollama-cloud-minimax-m3-afa18b7.json)
+binds the tested source commit and binary hash to generated source, three browser
+boundary interactions, independent original Rust tests, one exact reviewed delivery,
+matching/mismatching meaning candidates and historical restart. It also records the
+preceding failed trials that exposed scratch-file and form-handler friction; those
+failures were not counted as successful validation. Elaborated Atlas extraction and
+independent-model judgment remain open integration work.
+
 ## Recorded demo: start
 
 ```sh
