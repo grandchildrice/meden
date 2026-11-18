@@ -61,12 +61,14 @@ const SOURCES: &[(&str, &str)] = &[
         include_str!("vendor/LeanAtlas/GraphData/Json.lean"),
     ),
     ("MedenAtlas", include_str!("MedenAtlas.lean")),
+    ("MedenImports", include_str!("MedenImports.lean")),
 ];
 const SCRIPTS: &[(&str, &str)] = &[
     ("LEAN-ATLAS-LICENSE", include_str!("vendor/LICENSE")),
     ("compile.sh", include_str!("compile.sh")),
     ("prepare.sh", include_str!("prepare.sh")),
     ("extract.sh", include_str!("extract.sh")),
+    ("imports.sh", include_str!("imports.sh")),
 ];
 pub(super) fn modules() -> Vec<String> {
     SOURCES.iter().map(|(name, _)| (*name).into()).collect()

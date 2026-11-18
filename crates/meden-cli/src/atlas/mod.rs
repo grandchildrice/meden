@@ -11,6 +11,7 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 
 mod graph;
+mod imports;
 mod resources;
 pub(crate) use graph::Extraction;
 pub(crate) const UPSTREAM: &str = "06be1eb76fb926b8cf8bd42a4a51208d128c327d";

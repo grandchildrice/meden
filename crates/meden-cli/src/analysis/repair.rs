@@ -64,6 +64,7 @@ struct Frozen {
     accepted_reference: Option<crate::project::Reference>,
     files: BTreeMap<String, String>,
     resources: Option<String>,
+    roots: Option<Vec<String>>,
     request: Request<Args>,
     policy: Policy,
     explanation: String,
@@ -232,6 +233,10 @@ pub(crate) fn prepare(
         accepted_reference: project.accepted_reference.clone(),
         files: snapshot.files.clone(),
         resources,
+        roots: snapshot
+            .collection
+            .as_ref()
+            .map(|collection| collection.roots.clone()),
         request,
         policy: policy.clone(),
         explanation: suggestion.explanation,
@@ -472,7 +477,9 @@ impl Queue {
             )?;
             Ok(Applied {
                 input: frozen.input,
-                paths: frozen.files.into_keys().collect(),
+                paths: frozen
+                    .roots
+                    .unwrap_or_else(|| frozen.files.into_keys().collect()),
                 review: review.clone(),
             })
         })();

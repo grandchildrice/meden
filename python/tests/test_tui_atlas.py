@@ -23,11 +23,13 @@ def test_public_tui_compiles_atlas_and_analyzes_an_exact_declaration(tmp_path, t
         pytest.skip("actual installed Lean is required for TUI Atlas coverage")
     root = tmp_path / "project"
     root.mkdir()
-    (root / "Domain.lean").write_text("def eligible (n : Nat) := n ≥ 150\n")
+    (root / "Base.lean").write_text("def eligible (n : Nat) := n ≥ 150\n")
+    (root / "Domain.lean").write_text("import Base\n")
     (root / "App.lean").write_text(
-        "import Domain\n-- COMMENT_NOT_TRANSLATOR_CONTEXT\n"
+        "/- COMMENT_NOT_TRANSLATOR_CONTEXT: import Hidden /- nested -/ -/\nimport Domain\n"
         "theorem permitted (n : Nat) (h : eligible n) : eligible n := h\n"
     )
+    (root / "Hidden.lean").write_text("INVALID_HIDDEN_MODULE_MUST_NOT_BE_COLLECTED\n")
     requests = []
 
     class Handler(BaseHTTPRequestHandler):
@@ -105,10 +107,13 @@ def test_public_tui_compiles_atlas_and_analyzes_an_exact_declaration(tmp_path, t
     def command(text, result):
         terminal.paste(text)
         terminal.send("\r")
+        if text.startswith("/atlas"):
+            terminal.wait(lambda view: "Reading sources / meaning analysis" in view)
         deadline = time.monotonic() + 180
         while time.monotonic() < deadline:
             terminal.pump()
-            if result in terminal.view() and "shift+enter" in terminal.view():
+            if (result in terminal.view() and "shift+enter" in terminal.view()
+                    and "Reading sources / meaning analysis" not in terminal.view()):
                 screens[text] = terminal.view()
                 return
             assert terminal.process.poll() is None, terminal.view()
@@ -119,8 +124,17 @@ def test_public_tui_compiles_atlas_and_analyzes_an_exact_declaration(tmp_path, t
         terminal.send("y")
         terminal.wait(lambda view: "shift+enter" in view)
         command("/atlas-prepare", "Atlas is ready")
-        command("/atlas App.lean Domain.lean", "permitted · App.lean:3")
+        command("/atlas App.lean", "permitted · App.lean:3")
+        assert "Source graph ready: 3 files" in terminal.view()
+        assert "Selected roots: App.lean" in terminal.view()
         assert not requests
+        # A missing import stops collection; never keep the older graph as current.
+        (root / "Broken.lean").write_text("import Missing\n")
+        command("/atlas Broken.lean", "Project-local import collection failed")
+        assert len(requests) == 0
+        command("/analyze permitted -- must not use old graph", "Read the source graph first")
+        command("/atlas App.lean", "permitted · App.lean:3")
+        assert "Source graph ready: 3 files" in terminal.view()
         command(
             "/analyze permitted -- REQUIREMENT_ONLY: Establish eligibility for every input.",
             "Candidate Mismatch",

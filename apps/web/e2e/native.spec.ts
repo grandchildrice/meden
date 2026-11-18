@@ -205,7 +205,7 @@ test.describe("native GUI with real offline workers", () => {
     const paths = page.getByRole("textbox", {
       name: "グラフの対象ファイル（1行に1つ）",
     });
-    await paths.fill("App.lean\nDomain.lean");
+    await paths.fill("App.lean");
     const readyBox = await page
       .getByText("Lean Atlas: オフライン抽出の準備済み", { exact: false })
       .boundingBox();
@@ -226,6 +226,11 @@ test.describe("native GUI with real offline workers", () => {
       timeout: 60_000,
     });
     const state = await nativeState(page);
+    expect(Object.keys(state.source_snapshot.files).sort()).toEqual([
+      "App.lean",
+      "Domain.lean",
+    ]);
+    expect(state.source_snapshot.collection.roots).toEqual(["App.lean"]);
     const atlas = state.source_snapshot.atlas;
     expect(atlas.graph.edges).toEqual(
       expect.arrayContaining([

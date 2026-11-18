@@ -217,8 +217,8 @@ specifications and Python integration checks. Work on `main` and follow the
 ### Inspect candidate meaning in the TUI
 
 After choosing your connection, use `/atlas-prepare` to prepare the installed
-Lean Atlas library offline, then `/atlas App.lean Domain.lean` to compile the
-selected modules and list their declarations. Run
+Lean Atlas library offline, then `/atlas App.lean` to collect project-local imports and compile the
+module closure and list their declarations. Run
 `/analyze Demo.stock_bound -- Stock always decreases on purchase` to compare a
 requirement with a blind natural-language translation of that declaration.
 For a source-only observation, use `/sources stock.rs`, then

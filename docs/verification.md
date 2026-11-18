@@ -2201,3 +2201,17 @@ Installed public system/Nix Bubblewrap is detected without editing PATH.
 `MEDEN_BWRAP` can override this with a trusted Bubblewrap binary. It is host
 configuration, not a tool/model argument. No system package installation is
 performed automatically by the library.
+
+### Bounded project import collection
+
+The shared Atlas service parses exact frozen Lean import headers in the existing
+offline analysis worker, then reads discovered local module paths through the
+ordinary policy-bound file worker. It collects transitive ordinary module names
+under the workspace module root, up to 32 files/1 MiB/64 KiB per file. Missing
+imports and unsupported package roots stop instead of admitting a partial graph.
+Installed Lean/Atlas modules are recorded as external boundaries. Header parsing,
+module/path correspondence, resource attribution and filesystem observation are
+tested adapters, not extracted/refined kernel operations. No Lake program runs,
+package download or unconfined executor is added. The installed-Lean public TUI
+journey covers transitive imports, nested comments, unresolved-import failure,
+stale-graph refusal and recovery; the native GUI covers selecting only a root.

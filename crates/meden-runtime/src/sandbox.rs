@@ -495,7 +495,10 @@ impl Sandbox {
         let library = library.canonicalize()?;
         if !lean.join("bin/lean").is_file()
             || !library.is_dir()
-            || !matches!(script, "prepare.sh" | "extract.sh" | "compile.sh")
+            || !matches!(
+                script,
+                "prepare.sh" | "extract.sh" | "compile.sh" | "imports.sh"
+            )
         {
             return Err(io::Error::other(
                 "prepared Lean analysis resources are missing",

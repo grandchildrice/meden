@@ -190,7 +190,9 @@ and records references outside those modules separately. Standard library and
 other external definitions are not expanded. **プロジェクト全体** includes disconnected
 declarations; the focused views retain their own dependency cones.
 
-This path supports 1–32 selected modules under the existing 64 KiB/file and 1 MiB
+This path parses import headers with installed Lean and collects project-local
+imports from the selected workspace module root. It supports ordinary ASCII
+module names and at most 32 files in the entire closure, under the existing 64 KiB/file and 1 MiB
 source limits. Module paths use ordinary ASCII identifier components and cannot
 replace the prepared Lean/Std/Atlas modules. Imports require either another
 selected module or the prepared Lean/Atlas libraries; arbitrary Lake packages are not
@@ -558,3 +560,9 @@ Earlier GUI captures
 [Preview](assets/gui/preview.png) · [Compact home](assets/gui/compact-home.png) ·
 [Compact preview](assets/gui/compact-preview.png).
 The [check record](assets/gui/verification.json) records scope and limits.
+
+Import collection never evaluates lakefile.lean, downloads packages, or silently
+omits unresolved imports. Installed Lean/Atlas library modules are explicit external
+boundaries; Lake srcDir and external package source roots are not yet discovered.
+A missing import fails collection and clears the current graph. Selected roots,
+collected files and external module names are retained with the source artifact.

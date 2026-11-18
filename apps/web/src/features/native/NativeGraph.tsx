@@ -99,9 +99,17 @@ export function NativeGraph({
     >
       <Alert severity="info">
         {snapshot.atlas
-          ? `Lean Atlasによるコンパイル後の依存です（Lean ${snapshot.atlas.graph.metadata.leanVersion}）。選択モジュール外の定義は展開していません。Medenの契約・証明の受理状態は変更しません。`
+          ? `Lean Atlasによるコンパイル後の依存です（Lean ${snapshot.atlas.graph.metadata.leanVersion}）。プロジェクト内のimportを自動収集し、外部ライブラリは展開しない境界として表示します。Medenの契約・証明の受理状態は変更しません。`
           : "選択したファイルの字句解析による参照候補です。Leanの精密な依存抽出・証明確認は実行していません。"}
       </Alert>
+      {snapshot.collection && (
+        <Typography variant="body2">
+          自動収集したプロジェクト内の依存です。対象:{" "}
+          {snapshot.collection.roots.join(", ")}。
+          外部モジュール（宣言を展開しない境界）:{" "}
+          {snapshot.collection.external_modules.join(", ") || "なし"}。
+        </Typography>
+      )}
       <Typography variant="caption">
         {Object.keys(snapshot.files).length}ファイル ·{" "}
         {workspace.declarations.length}宣言 · {workspace.edges.length}

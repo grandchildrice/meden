@@ -22,6 +22,8 @@ pub(crate) struct Snapshot {
     pub files: BTreeMap<String, String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub atlas: Option<crate::atlas::Extraction>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub collection: Option<super::collect::Collection>,
 }
 
 pub(crate) fn capture(
@@ -88,5 +90,6 @@ pub(crate) fn capture(
         revision,
         files,
         atlas: None,
+        collection: None,
     })
 }

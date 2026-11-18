@@ -12,7 +12,7 @@ impl App {
         if !matches!(task, Task::ApplyRepair(_) | Task::RejectRepair(_)) && !self.prepare_worker() {
             return;
         }
-        if matches!(task, Task::ApplyRepair(_)) {
+        if matches!(task, Task::ApplyRepair(_) | Task::Sources { .. }) {
             self.source_snapshot = None;
             self.invalidate_analysis();
         }
@@ -106,6 +106,14 @@ impl App {
             snapshot.files.len(),
             snapshot.revision
         );
+        if let Some(collection) = &snapshot.collection {
+            let _ = write!(
+                text,
+                "\nSelected roots: {}\nExternal modules (not expanded): {}",
+                collection.roots.join(", "),
+                collection.external_modules.join(", ")
+            );
+        }
         if let Some(atlas) = &snapshot.atlas {
             for node in atlas.graph.nodes.iter().take(80) {
                 let _ = write!(

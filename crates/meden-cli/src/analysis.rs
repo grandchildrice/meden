@@ -10,6 +10,7 @@ use meden_llm::Gateway;
 use meden_runtime::{process::Control, workspace::Workspace};
 use serde::{Deserialize, Serialize};
 
+pub(crate) mod collect;
 pub(crate) mod journal;
 pub(crate) mod repair;
 pub(crate) mod sources;
@@ -91,10 +92,11 @@ pub(crate) fn extract(
     control: &Control,
     paths: &[String],
 ) -> Result<sources::Snapshot> {
-    let mut snapshot = sources::capture(workspace, control, paths)?;
+    let mut snapshot = collect::capture(workspace, control, paths)?;
+    let observed = snapshot.files.keys().cloned().collect::<Vec<_>>();
     let graph = crate::atlas::Configuration::host().extract(&snapshot.files, control)?;
     anyhow::ensure!(
-        sources::capture(workspace, control, paths)?.revision == snapshot.revision,
+        sources::capture(workspace, control, &observed)?.revision == snapshot.revision,
         "Sources changed during Atlas extraction; no graph admitted"
     );
     snapshot.atlas = Some(graph);

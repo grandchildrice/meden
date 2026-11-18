@@ -13,6 +13,13 @@ export const sourceSnapshotSchema = z
   .object({
     revision: z.string().regex(/^sha256:[a-f0-9]{64}$/),
     files: z.record(z.string(), z.string().max(65_536)),
+    collection: z
+      .object({
+        roots: z.array(z.string()),
+        external_modules: z.array(z.string()),
+      })
+      .strict()
+      .optional(),
     atlas: z
       .object({
         revision: z.string().regex(/^sha256:[a-f0-9]{64}$/),
