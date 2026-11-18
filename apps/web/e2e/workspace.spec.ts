@@ -133,11 +133,19 @@ test("home displays the pitch logos below the suggestions at desktop and phone w
     page.getByText("メッセージから会話を始めます", { exact: true }),
   ).toHaveCount(0);
   await expect(logos.getByRole("img")).toHaveCount(names.length);
+  const suggestionElement = await suggestion.elementHandle();
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 844 });
-    const suggestionBox = (await suggestion.boundingBox())!;
-    const logoBox = (await logos.boundingBox())!;
-    expect(logoBox.y).toBeGreaterThan(suggestionBox.y + suggestionBox.height);
+    await expect
+      .poll(() =>
+        logos.evaluate(
+          (list, button) =>
+            list.getBoundingClientRect().top -
+            button!.getBoundingClientRect().bottom,
+          suggestionElement,
+        ),
+      )
+      .toBeGreaterThan(0);
     for (const name of names) {
       const logo = logos.getByRole("img", { name, exact: true });
       await expect(logo).toBeInViewport({ ratio: 1 });
