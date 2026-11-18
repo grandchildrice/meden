@@ -109,6 +109,55 @@ test("home starts with a large composer and Send; instruction creates its title 
   expect(requests).toEqual([]);
 });
 
+test("home displays the pitch logos below the suggestions at desktop and phone widths", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const logos = page.getByRole("list", { name: "言語・形式検証ツールの例" });
+  const suggestion = page.getByRole("button", {
+    name: "自販機シミュレーターを作る",
+  });
+  const names = [
+    "Rust",
+    "Bend",
+    "Lean",
+    "Rocq",
+    "Dafny",
+    "Isabelle",
+    "TLA+",
+    "cvc5",
+    "Z3",
+    "Certora",
+  ];
+  await expect(
+    page.getByText("メッセージから会話を始めます", { exact: true }),
+  ).toHaveCount(0);
+  await expect(logos.getByRole("img")).toHaveCount(names.length);
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    const suggestionBox = (await suggestion.boundingBox())!;
+    const logoBox = (await logos.boundingBox())!;
+    expect(logoBox.y).toBeGreaterThan(suggestionBox.y + suggestionBox.height);
+    for (const name of names) {
+      const logo = logos.getByRole("img", { name, exact: true });
+      await expect(logo).toBeInViewport({ ratio: 1 });
+      await expect(logo).toHaveJSProperty("complete", true);
+      expect(
+        await logo.evaluate((image: HTMLImageElement) => image.naturalWidth),
+      ).toBeGreaterThan(0);
+    }
+  }
+  await suggestion.click();
+  await page.getByRole("button", { name: "送信", exact: true }).click();
+  await page
+    .getByRole("button", { name: "パネルを閉じる", exact: true })
+    .click();
+  await expect(logos).toHaveCount(0);
+  await expect(
+    page.getByText("Enterで送信・Shift + Enterで改行"),
+  ).toBeVisible();
+});
+
 test("the sidebar keeps one continuous vending history including its original opening request", async ({
   page,
 }) => {

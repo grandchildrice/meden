@@ -16,6 +16,19 @@ import ArrowForwardRounded from "@mui/icons-material/ArrowForwardRounded";
 import { RecordedActivity } from "./RecordedActivity";
 import type { Conversation } from "@meden/workspace-schema";
 
+const technologyLogos = [
+  ["Rust", "rust"],
+  ["Bend", "bend"],
+  ["Lean", "lean"],
+  ["Rocq", "rocq"],
+  ["Dafny", "dafny"],
+  ["Isabelle", "isabelle"],
+  ["TLA+", "tla"],
+  ["cvc5", "cvc5"],
+  ["Z3", "z3"],
+  ["Certora", "certora"],
+] as const;
+
 interface Props {
   projectName: string;
   conversation?: Conversation;
@@ -158,11 +171,33 @@ export function ChatView({
               </Button>
             </div>
           )}
-          <div className="composer-caption">
-            {empty
-              ? "メッセージから会話を始めます"
-              : "Enterで送信・Shift + Enterで改行"}
-          </div>
+          {empty ? (
+            <ul
+              className="technology-logos"
+              role="list"
+              aria-label="言語・形式検証ツールの例"
+            >
+              {technologyLogos.map(([name, file]) => (
+                <li key={file}>
+                  <img
+                    alt={name}
+                    src={
+                      new URL(
+                        `../../assets/technology-logos/${file}.png`,
+                        import.meta.url,
+                      ).href
+                    }
+                    width={56}
+                    height={34}
+                  />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="composer-caption">
+              Enterで送信・Shift + Enterで改行
+            </div>
+          )}
         </ThreadPrimitive.Root>
       </section>
     </AssistantRuntimeProvider>

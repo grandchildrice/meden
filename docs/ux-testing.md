@@ -110,7 +110,8 @@ No live requests or model performance claims are part of the fast gate.
 
 The TypeScript/Vite GUI has its own public browser gate: `npm run test:gui`.
 It covers instruction/send/automatic titles, separate searchable conversations,
-independent conversation and artifact sidebar controls, original meden-demo messages and 25 tool inputs/results, unsent input/restart,
+desktop and mobile home logo layout, independent conversation and artifact
+sidebar controls, original meden-demo messages and 25 tool inputs/results, unsent input/restart,
 preview purchase/refund, three-tab proof-graph/statement/source navigation,
 meaning-progress cancellation, NG/OK examples and the algorithm info popover,
 continuous consolidation of legacy v1/v2 demo conversations and selection/input restore,

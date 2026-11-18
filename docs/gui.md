@@ -42,6 +42,13 @@ screens use drawers.
 | Edit or request review          | From the meaning result, inspect the retained requirement/theorem record, edit a draft or prepare a revision-bound review export. No extra top-level tab is added.                                          |
 | Preserve work                   | Chat, drafts and edits survive reload. Failed storage retains the in-memory conversation and offers retry/export. Invalid imports keep current work.                                                        |
 
+## Home screen logos
+
+The logo strip below the message suggestions uses the language and formal
+verification assets from slide 5 of the Meden strategy pitch
+(`meden-strategy/pitch/assets/evidence/v4/logos/`). The original PNGs are
+bundled with the web app. The strip shows examples from the ecosystem.
+
 ## Recorded meden-demo example
 
 The snapshot contains meden-demo's actual Rust kernel, CLI, tests, README,
