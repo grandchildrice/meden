@@ -32,6 +32,11 @@ browser approval/rendering adapters do not acquire the TUI's refinement proofs.
 Prepare the real verifier using `meden setup` before requesting formal proofs;
 this gateway does not implement an automatic cold-install GUI yet.
 
+Each Bash invocation has fresh temporary storage. Scripts/intermediate files
+needed in later calls must live in the workspace, then can be removed there.
+File tools accept workspace paths only. The tool descriptions explain this
+boundary; ordinary `diff` is included among independently selected public tools.
+
 Conversation and project journals remain host JSON files outside the writable
 repository. Close the GUI command, then open `meden tui --workspace ...` to
 continue; the same repository lock prevents concurrent native writers. Closing
@@ -115,11 +120,13 @@ observed bytes. Concurrent host changes are not an atomic filesystem snapshot.
 A separate loopback listener serves only these frozen bytes. Every capture gets
 a fresh random `.localhost` hostname capability; old capabilities are invalidated.
 Requests perform no project filesystem lookup. The document uses an opaque-origin
-`sandbox="allow-scripts"` iframe and response sandbox policy, without same-origin,
-forms, popups, top navigation or workers. Resource CSP limits scripts/styles/images
+`sandbox="allow-scripts allow-forms"` iframe and response sandbox policy, without same-origin,
+popups, top navigation or workers. Client-side form submit handlers work; CSP
+`form-action 'none'` blocks actual form navigation and network submissions.
+Resource CSP limits scripts/styles/images
 and fetch to the frozen origin (inline scripts/styles and data images are supported).
 The parent permits frames only on this loopback preview listener. Browser tests
-check blocked cross-origin fetch/image/script loads and access to the GUI document,
+check blocked cross-origin fetch/image/script/form loads and access to the GUI document,
 storage and API, plus wrong-host/method/path rejection.
 
 These are browser adapter constraints, not an OS egress firewall or an offline
@@ -189,7 +196,8 @@ project development remains available. This is tested adapter behavior, not a
 new Rust-to-Lean refinement or an atomic concurrent-filesystem proof.
 
 A separate live browser smoke exercises real application edits, an interactive
-generated browser app, independent original Rust tests, the source graph, matching and mismatching requirements,
+generated browser app, independent original Rust tests, a live model's proposal
+and exact one-use delivery to a synthetic loopback receiver, the source graph, matching and mismatching requirements,
 then restart/history with the explicitly selected cloud provider:
 
 ```sh

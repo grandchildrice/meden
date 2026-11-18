@@ -72,7 +72,7 @@ export function NativePreview({
             key={snapshot.url}
             title="ローカルアプリのプレビュー"
             src={snapshot.url}
-            sandbox="allow-scripts"
+            sandbox="allow-scripts allow-forms"
             referrerPolicy="no-referrer"
             className="native-preview"
           />

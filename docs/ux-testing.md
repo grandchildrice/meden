@@ -42,7 +42,7 @@ Other platform-dependent tests may still skip; required `ux` cases must pass.
 | Reopen and continue | Files, connection preferences and conversation persist; HTTP requires a fresh review and no old grant returns | `test_tui_setup.py`, `test_tui_smoke.py`, `test_workspace_resume.py` |
 | Understand silent waiting | Before the first response, activity and elapsed time stay visible and the spinner advances | `test_streaming.py` (server held behind an event) |
 | Read a response as it arrives | Partial text appears before response completion; command output appears while the command is running | `test_streaming.py` |
-| Recover from a tool failure | A completed failing command is explained and repaired under the existing budget; the repaired file really exists | `test_tui_recovery.py` |
+| Recover from a tool failure | A completed failing command is explained and repaired under the existing budget; scripts shared across Bash calls survive in the workspace while `/tmp` remains per-invocation | `test_tui_recovery.py` |
 | Understand a terminal stop | Provider limits or incomplete streams explain the situation and next action; work survives restart; `/retry` is an explicit new turn | `test_tui_recovery.py`, `test_streaming.py` |
 | Navigate without losing work | Wheel/page scrolling moves transcript content, preserves drafts, separates input history and restores the terminal on exit | `test_tui_keys.py` |
 | Trust the completion claim | Independent original tests run in a separate offline `meden exec` copy; intentionally broken generated code makes the smoke fail | `test_tui_smoke.py` |
@@ -139,7 +139,8 @@ exercise module imports and interactive controls on desktop/mobile, retain the
 document across tabs, reread after edits and recover from a missing entry/restart.
 They check old preview revocation, missing-asset diagnostics, size limits, folder
 aliases resolving outside the selected root, browser parent/storage/API separation,
-blocked cross-origin fetch/image/script loads and exact HTTP host/method/path handling.
+working client-side form handlers, blocked cross-origin fetch/image/script/form loads
+and exact HTTP host/method/path handling.
 These browser policies do not establish OS egress isolation or whole R1.
 Native delivery cases review original binary snapshots, preserve the fixed target
 and hash while paging bytes, refuse clipped headings and stale selections, reject

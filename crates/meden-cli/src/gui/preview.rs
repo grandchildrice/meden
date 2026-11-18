@@ -185,7 +185,7 @@ impl Preview {
         let _ = request.respond(response);
     }
     fn headers(&self, mime: &str, origin: &str) -> Vec<Header> {
-        let policy = format!("default-src 'none'; script-src {origin} 'unsafe-inline' 'wasm-unsafe-eval'; style-src {origin} 'unsafe-inline'; img-src {origin} data:; font-src {origin}; connect-src {origin}; media-src {origin}; worker-src 'none'; frame-src 'none'; object-src 'none'; base-uri {origin}; form-action 'none'; frame-ancestors {}; sandbox allow-scripts", self.parent_origin);
+        let policy = format!("default-src 'none'; script-src {origin} 'unsafe-inline' 'wasm-unsafe-eval'; style-src {origin} 'unsafe-inline'; img-src {origin} data:; font-src {origin}; connect-src {origin}; media-src {origin}; worker-src 'none'; frame-src 'none'; object-src 'none'; base-uri {origin}; form-action 'none'; frame-ancestors {}; sandbox allow-scripts allow-forms", self.parent_origin);
         [
             ("Content-Type", mime),
             ("Cache-Control", "no-store"),

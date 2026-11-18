@@ -134,7 +134,7 @@ export function ChatView({
                 <IconButton
                   className="send-message"
                   aria-label="送信"
-                  disabled={disabled}
+                  disabled={disabled || running}
                 >
                   <ArrowUpwardRounded fontSize="small" />
                 </IconButton>

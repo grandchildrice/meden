@@ -12,6 +12,7 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { once } from "node:events";
+import { createServer } from "node:http";
 
 const { values } = parseArgs({
   options: {
@@ -54,6 +55,16 @@ const report: Record<string, unknown> = {
   cases: [],
 };
 let child: ChildProcess | undefined;
+const deliveries: Buffer[] = [];
+const receiver = createServer(async (request, response) => {
+  const chunks: Buffer[] = [];
+  for await (const chunk of request) chunks.push(Buffer.from(chunk));
+  deliveries.push(Buffer.concat(chunks));
+  response.writeHead(201);
+  response.end();
+});
+receiver.listen(0, "127.0.0.1");
+await once(receiver, "listening");
 const browser = await chromium.launch({
   executablePath:
     values.chrome ||
@@ -240,6 +251,83 @@ try {
     fullPage: true,
   });
   console.log("Generated browser app passed its interactive boundary cases");
+  const target = `http://127.0.0.1:${(receiver.address() as { port: number }).port}/application`;
+  const deliveryInstruction = `Prepare public/index.html as an immutable HTTP POST proposal to exactly ${target} using propose_export. Do not change any files. Do not send it; the human will review and approve through the GUI.`;
+  await page
+    .getByRole("textbox", { name: "メッセージ", exact: true })
+    .fill(deliveryInstruction);
+  await page.getByRole("button", { name: "送信", exact: true }).click();
+  await expect
+    .poll(
+      async () =>
+        (await state(page)).messages.some(
+          (message) => message.text === deliveryInstruction,
+        ),
+      { timeout: deadline },
+    )
+    .toBe(true);
+  await waitIdle();
+  const queued = await state(page);
+  if (queued.stopped || deliveries.length !== 0)
+    throw new Error(queued.stopped || "Delivery occurred before host review");
+  const proposal = queued.exports.find(
+    (item) => item.target === target && item.state === "pending",
+  );
+  if (!proposal)
+    throw new Error(
+      "Live model did not prepare the exact application delivery",
+    );
+  await page.getByRole("tab", { name: /^配送/ }).click();
+  await page
+    .getByRole("button", {
+      name: `配送 #${proposal.id} の内容と宛先を確認`,
+      exact: true,
+    })
+    .click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toContainText(target);
+  const payload = Buffer.from((report.browserSource as { html: string }).html);
+  await expect(dialog).toContainText(
+    createHash("sha256").update(payload).digest("hex"),
+  );
+  await page.screenshot({
+    path: resolve(out, "delivery-review.png"),
+    fullPage: true,
+  });
+  await dialog
+    .getByRole("button", { name: "この宛先へ1回送信", exact: true })
+    .click();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "HTTP 201" }),
+  ).toBeVisible();
+  const received = deliveries.slice();
+  if (received.length !== 1 || !received[0]!.equals(payload))
+    throw new Error(
+      "Receiver did not obtain the exact reviewed application bytes once",
+    );
+  report.delivery = {
+    summary: (await state(page)).export_outcome,
+    exactOriginalBytes: true,
+    received: received.length,
+  };
+  if ((await readFile(resolve(project, "tests.rs"), "utf8")) !== originalTests)
+    throw new Error("The delivery turn changed original tests");
+  for (const [path, original] of [
+    ["kernel.rs", report.source],
+    ["public/index.html", (report.browserSource as { html: string }).html],
+    [
+      "public/app.js",
+      (report.browserSource as { javascript: string }).javascript,
+    ],
+  ] as const) {
+    if ((await readFile(resolve(project, path), "utf8")) !== original)
+      throw new Error(
+        `The delivery turn changed ${path} after application checks`,
+      );
+  }
+  console.log(
+    "Live proposal delivered exact reviewed bytes once through the browser",
+  );
   await page.getByRole("tab", { name: "グラフ", exact: true }).click();
   await page
     .getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" })
@@ -315,6 +403,8 @@ try {
     page.getByLabel("意味解析の結果", { exact: true }),
   ).toContainText("保存された解析です");
   report.restartedWithHistoricalAnalysis = true;
+  if ((await state(page)).exports.length !== 0)
+    throw new Error("Old delivery queue returned after restart");
   report.success = true;
 } catch (error) {
   report.error = String(error);
@@ -325,6 +415,8 @@ try {
 } finally {
   await stop();
   await browser.close();
+  receiver.closeAllConnections();
+  await new Promise<void>((resolve) => receiver.close(() => resolve()));
   report.finishedAt = new Date().toISOString();
   await writeFile(
     resolve(out, "report.json"),
