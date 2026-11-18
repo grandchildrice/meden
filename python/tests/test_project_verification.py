@@ -339,14 +339,15 @@ def test_cli_host_acceptance_independent_repair_artifact_binding_and_staleness(
         report = assert_artifact(Path(summary["artifact"]), candidate, contract)
         assert summary["source_sha256"] == report["source_sha256"]
         assert summary["artifact_sha256"] == report["artifact_sha256"]
-        assert not (source / source_path).exists()
-        copy = Path(ready["workspace"])
-        (copy / source_path).write_text(candidate + "\n")
+        workspace = Path(ready["workspace"])
+        assert workspace.samefile(source)
+        assert (source / source_path).read_text() == candidate
+        (source / source_path).write_text(candidate + "\n")
         send({"project_status": None})
         assert not receive("project")["summary"]["verified"]
         assert_artifact(Path(summary["artifact"]), candidate, contract)
         # Restoring an old source does not restore discarded evidence progress.
-        (copy / source_path).write_text(candidate)
+        (source / source_path).write_text(candidate)
         send({"project_status": None})
         assert not receive("project")["summary"]["verified"]
         process.stdin.close()
@@ -1092,7 +1093,7 @@ def test_generic_counter_acceptance_repair_and_rejected_replacement_preserve_evi
 
     try:
         send({"instruction": "Build a counter that cannot decrease or wrap."})
-        receive("ready")
+        ready = receive("ready")
         pending = receive("project")["summary"]
         assert receive("done")["outcome"] == "needs_review"
         assert pending["contract"] == contract and not pending["accepted"]
@@ -1111,7 +1112,8 @@ def test_generic_counter_acceptance_repair_and_rejected_replacement_preserve_evi
         assert receive("done")["outcome"] == "done"
         assert verified["verified"], verified
         report = assert_artifact(Path(verified["artifact"]), candidate, contract)
-        assert not (source / "counter.rs").exists()
+        assert Path(ready["workspace"]).samefile(source)
+        assert (source / "counter.rs").read_text() == candidate
         send({"instruction": "Consider replacing the counter contract."})
         proposed = receive("project")["summary"]
         done = receive("done")

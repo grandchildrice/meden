@@ -29,6 +29,10 @@ Fixtures use temporary projects, synthetic replies and an inert checker manifest
 they never need a paid model or prove a real cold checker installation.
 
 CI runs these same marked cases once within the existing Python adapter job.
+The public runner starts its test process in a fresh session so each journey
+uses its configured PTY size instead of inheriting the launching terminal.
+`test_ux_gate.py` also exercises that runner inside a real 80×24 controlling
+terminal; its inner journeys retain their own sizes and decoded evidence.
 It uploads `meden-ux-evidence`, including the HTML viewer, on success or failure.
 Other platform-dependent tests may still skip; required `ux` cases must pass.
 
