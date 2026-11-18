@@ -10,6 +10,7 @@ use meden_llm::Gateway;
 use meden_runtime::{process::Control, workspace::Workspace};
 use serde::{Deserialize, Serialize};
 
+pub(crate) mod journal;
 pub(crate) mod sources;
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
@@ -28,8 +29,13 @@ pub(crate) enum State {
 #[serde(deny_unknown_fields)]
 pub(crate) struct Record {
     pub version: u8,
+    pub sequence: u64,
+    pub id: String,
+    pub requirement_id: String,
+    pub finding_id: Option<String>,
     pub engine: String,
     pub model: String,
+    pub processor: String,
     pub input: Input,
     pub state: State,
     pub assessment: Option<Assessment>,
@@ -38,8 +44,9 @@ pub(crate) struct Record {
 impl Record {
     pub(crate) fn summary(&self) -> String {
         let mut text = format!(
-            "Meaning analysis · {:?} (candidate, not proof)\nTarget: {} · {}:{}\nRequirement: {}",
+            "Meaning analysis · {:?} (candidate, not proof)\nRun: {}\nRequirement ID: {}\nFinding ID: {}\nTarget: {} · {}:{}\nRequirement: {}",
             self.state,
+            self.id, self.requirement_id, self.finding_id.as_deref().unwrap_or("none"),
             self.input.target.name,
             self.input.target.file,
             self.input.target.line,
@@ -61,31 +68,11 @@ impl Record {
         text
     }
     fn save(&self, root: &Path) -> Result<()> {
-        crate::storage::write(
-            &crate::storage::directory(root)?.join("meaning-analysis.json"),
-            self,
-        )
+        journal::save(root, self)
     }
 }
 pub(crate) fn load(root: &Path) -> Result<Option<Record>> {
-    let mut record: Option<Record> =
-        crate::storage::read(&crate::storage::directory(root)?.join("meaning-analysis.json"))?;
-    if let Some(record) = &mut record {
-        anyhow::ensure!(
-            record.version == 1 && record.engine == semantic::ENGINE,
-            "unsupported meaning-analysis checkpoint"
-        );
-        record.input.validate()?;
-        record.state = match record.state {
-            State::Complete | State::Stale | State::Historical => State::Historical,
-            State::Observing | State::Translating | State::Comparing => {
-                record.error = Some("Previous meaning analysis did not finish. Rerun explicitly; no old result is current.".into());
-                State::Cancelled
-            }
-            state => state,
-        };
-    }
-    Ok(record)
+    Ok(journal::list(root)?.pop())
 }
 
 pub(crate) fn extract(
@@ -117,16 +104,12 @@ pub(crate) fn run(
         snapshot.files.clone(),
         snapshot.atlas.as_ref(),
     )?;
-    let record = RefCell::new(Record {
-        version: 1,
-        engine: semantic::ENGINE.into(),
-        model: gateway.provider().model.clone(),
+    let record = RefCell::new(journal::begin(
+        workspace.path(),
+        gateway.endpoint(),
+        &gateway.provider().model,
         input,
-        state: State::Observing,
-        assessment: None,
-        error: None,
-    });
-    record.borrow().save(workspace.path())?;
+    )?);
     notify(&record.borrow());
     let observe = || -> Result<()> {
         let paths = snapshot.files.keys().cloned().collect::<Vec<_>>();
@@ -167,6 +150,13 @@ pub(crate) fn run(
             let mut completed = record.borrow().clone();
             completed.state = State::Complete;
             completed.assessment = Some(assessment);
+            if completed
+                .assessment
+                .as_ref()
+                .is_some_and(|a| a.verdict != semantic::Verdict::Match)
+            {
+                completed.finding_id = Some(completed.id.replacen("analysis-", "finding-", 1));
+            }
             completed
                 .save(workspace.path())
                 .map_err(std::io::Error::other)?;
@@ -186,6 +176,7 @@ pub(crate) fn run(
         }
         record.error = Some(format!("{error:#}"));
         record.assessment = None;
+        record.finding_id = None;
         if let Err(storage) = record.save(workspace.path()) {
             record.error = Some(format!("{error:#}; checkpoint failed: {storage:#}"));
         }

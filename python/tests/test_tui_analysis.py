@@ -182,6 +182,29 @@ def test_tui_meaning_source_freshness_cancel_and_historical_restart(tmp_path, tu
         command(
             "/analyze stock.rs:2 stock -- Rechecked source", "Requirement: Rechecked source", 10
         )
+        checkpoints = list((tmp_path / "data/meden/projects").glob("*/meaning-analysis.json"))
+        assert len(checkpoints) == 1
+        saved = json.loads(checkpoints[0].read_text())
+        entries = saved["entries"]
+        assert len(entries) == 6, (
+            "completion, cancellation, failure and stale runs must all survive"
+        )
+        assert [entry["state"] for entry in entries] == [
+            "complete",
+            "cancelled",
+            "failed",
+            "complete",
+            "stale",
+            "complete",
+        ]
+        assert len({entry["id"] for entry in entries}) == 6
+        assert all(entry["finding_id"] is None for entry in entries if not entry["assessment"])
+        original_id = entries[0]["id"]
+        finding_id = entries[0]["finding_id"]
+        assert (
+            finding_id
+            and entries[0]["input"]["source_revision"] != entries[-1]["input"]["source_revision"]
+        )
         terminal.send("/quit\r")
         assert terminal.process.wait(timeout=5) == 0
         terminal.close()
@@ -191,6 +214,8 @@ def test_tui_meaning_source_freshness_cancel_and_historical_restart(tmp_path, tu
         terminal.send("y")
         terminal.wait(lambda view: "shift+enter" in view)
         command("/analysis", "Historical")
+        command("/analysis history", original_id)
+        command(f"/analysis {finding_id}", f"Run: {original_id}")
         assert len(requests) == 10
         terminal.send("/quit\r")
         assert terminal.process.wait(timeout=5) == 0

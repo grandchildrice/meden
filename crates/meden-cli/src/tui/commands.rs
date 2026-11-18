@@ -34,7 +34,7 @@ pub(super) const COMMANDS: &[(&str, &str)] = &[
     ("/analyze", "Compare meaning: /analyze NAME -- requirement"),
     (
         "/analysis",
-        "Show the retained candidate analysis (not a proof)",
+        "Show a result: /analysis, /analysis history, /analysis ID",
     ),
     ("/contract", "Review the project specification"),
     (
@@ -231,6 +231,22 @@ impl App {
             ("/analyze", _) => {
                 match self.meaning_task(text.strip_prefix("/analyze").unwrap_or_default()) {
                     Ok(task) => self.analysis_task(task),
+                    Err(error) => self.say(format!("{error:#}"), Style::new().fg(Color::Yellow)),
+                }
+            }
+            ("/analysis", ["history"]) => {
+                match crate::analysis::journal::list(&self.root) {
+                    Ok(records) => {
+                        let text = records.iter().rev().map(|record| format!("{} · {:?} · {}\nRequirement: {}\nFinding: {}", record.id, record.state, record.input.target.name, record.input.requirement,
+                            record.finding_id.as_deref().unwrap_or("none"))).collect::<Vec<_>>().join("\n\n");
+                        self.say(if text.is_empty() { "No meaning history yet.".into() } else { text }, Style::new().fg(Color::Gray));
+                    }
+                    Err(error) => self.say(format!("History unavailable: {error:#}"), Style::new().fg(Color::Red)),
+                }
+            }
+            ("/analysis", [id]) => {
+                match crate::analysis::journal::select(&self.root, id) {
+                    Ok(record) => { self.say(record.summary(), Style::new().fg(Color::Gray)); self.analysis = Some(record); }
                     Err(error) => self.say(format!("{error:#}"), Style::new().fg(Color::Yellow)),
                 }
             }

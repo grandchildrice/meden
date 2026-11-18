@@ -5,6 +5,8 @@ import type { MeaningInput, MeaningRecord } from "@meden/agent-protocol/native";
 type Target = MeaningInput["target"];
 export function NativeMeaning({
   record,
+  history,
+  onSelect,
   target,
   sourceRevision,
   graphRevision,
@@ -13,6 +15,8 @@ export function NativeMeaning({
   onRun,
 }: {
   record: MeaningRecord | null;
+  history: MeaningRecord[];
+  onSelect: (id: string) => Promise<boolean>;
   target?: Target;
   sourceRevision?: string;
   graphRevision?: string;
@@ -27,7 +31,7 @@ export function NativeMeaning({
         ? record.input.requirement
         : "",
     );
-  }, [target?.file, target?.line, target?.name]);
+  }, [target?.file, target?.line, target?.name, record?.id]);
   const sameInput = Boolean(
     record &&
     target &&
@@ -48,6 +52,25 @@ export function NativeMeaning({
         : "判定保留";
   return (
     <section className="native-meaning" aria-label="意味解析">
+      {history.length > 0 && (
+        <TextField
+          select
+          fullWidth
+          size="small"
+          label="保存された解析履歴"
+          value={record?.id || ""}
+          disabled={running}
+          slotProps={{ select: { native: true } }}
+          onChange={(event) => void onSelect(event.target.value)}
+        >
+          {history.map((entry) => (
+            <option key={entry.id} value={entry.id}>
+              {entry.sequence}. {entry.input.target.name} ·{" "}
+              {entry.input.requirement.slice(0, 80)} · {entry.state}
+            </option>
+          ))}
+        </TextField>
+      )}
       <Typography component="h3">要件と宣言の意味を比較</Typography>
       {target && sourceRevision && (
         <>
@@ -163,6 +186,11 @@ export function NativeMeaning({
             </>
           )}
           <details>
+            <p className="native-revision">解析ID: {record.id}</p>
+            <p className="native-revision">要件ID: {record.requirement_id}</p>
+            {record.finding_id && (
+              <p className="native-revision">Finding ID: {record.finding_id}</p>
+            )}
             <summary>解析対象と処理の詳細</summary>
             <p>
               {record.input.target.name} · {record.input.target.file}:
@@ -171,6 +199,7 @@ export function NativeMeaning({
             <p>
               モデル: {record.model} · {record.engine}
             </p>
+            <p className="native-revision">処理先: {record.processor}</p>
             <p className="native-revision">{record.input.source_revision}</p>
             <p>
               claimcheckの二段階方式をRust／Leanへ適用するMedenアダプタです。別リクエストで処理し、元の会話は渡しません。完全な依存抽出や解析精度の保証は含みません。

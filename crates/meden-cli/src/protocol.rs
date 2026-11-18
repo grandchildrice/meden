@@ -37,11 +37,16 @@ pub enum Command {
     },
     AnalyzeMeaning(crate::semantic::Input),
     AnalysisStatus(()),
+    AnalysisHistory(()),
+    SelectAnalysis(String),
 }
 
 #[derive(Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 enum Out<'a> {
+    AnalysisHistory {
+        records: Vec<crate::analysis::Record>,
+    },
     SourceSnapshot {
         snapshot: &'a crate::analysis::sources::Snapshot,
     },
@@ -188,6 +193,18 @@ pub fn run(
                         .context("Read the source graph before meaning analysis")?;
                     analyze(&session, source, input, processes, output)?;
                 }
+                Command::AnalysisHistory(()) => send(
+                    output,
+                    &Out::AnalysisHistory {
+                        records: session.analysis_history()?,
+                    },
+                )?,
+                Command::SelectAnalysis(id) => send(
+                    output,
+                    &Out::Analysis {
+                        record: Some(&crate::analysis::journal::select(workspace.path(), &id)?),
+                    },
+                )?,
                 Command::AnalysisStatus(()) => send(
                     output,
                     &Out::Analysis {
@@ -398,7 +415,9 @@ fn export_command(
             | Command::ProjectStatus(())
             | Command::SourceSnapshot { .. }
             | Command::AnalyzeMeaning(_)
-            | Command::AnalysisStatus(()) => {
+            | Command::AnalysisStatus(())
+            | Command::AnalysisHistory(())
+            | Command::SelectAnalysis(_) => {
                 anyhow::bail!("project command cannot be dispatched as an export")
             }
         })

@@ -224,7 +224,9 @@ requirement with a blind natural-language translation of that declaration.
 For a source-only observation, use `/sources stock.rs`, then
 `/analyze stock.rs:2 stock -- Stock always decreases`.
 
-`/analysis` shows the retained assessment. These are model-generated candidate
+`/analysis` shows the retained assessment; `/analysis history` lists previous
+runs and `/analysis ID` selects an analysis or Finding ID. Exact requirement text
+has a stable ID; reruns keep earlier findings and their source revisions. These are model-generated candidate
 findings, separate from native proof evidence. Cancellation and provider errors
 stop the operation. Changed sources require rereading; reopening retains a
 historical result and requires a fresh processor review before inference.

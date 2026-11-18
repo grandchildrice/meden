@@ -12,6 +12,9 @@ impl App {
         if !self.prepare_worker() {
             return;
         }
+        if matches!(task, Task::Analyze { .. }) {
+            self.invalidate_analysis();
+        }
         self.processes.flag().store(false, Ordering::SeqCst);
         self.last_stop = None;
         self.scroll_back = 0;
@@ -130,7 +133,7 @@ pub(super) fn execute(session: &crate::session::Session, task: Task, tx: &Sender
             }
             Task::Analyze { snapshot, input } => {
                 let record = session.analyze(&snapshot, input, &|record| {
-                    let _ = tx.send(Update::Analysis(record.clone()));
+                    let _ = tx.send(Update::Analysis(Box::new(record.clone())));
                 })?;
                 Ok(record.summary())
             }

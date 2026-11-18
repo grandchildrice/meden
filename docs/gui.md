@@ -250,13 +250,25 @@ file, cancelled turn, provider failure or malformed result leaves no current
 success. No automatic inference retry occurs. Editing the displayed requirement
 or choosing another declaration labels the old result as a different target.
 
-The latest run is saved as host `meaning-analysis.json` next to the existing JSON
-journals, outside the model-writable project. Reload retains it; restarting the
-host labels completed results historical and requires rereading sources, fresh
-processor review and explicit rerun. Interrupted runs are not resumed silently.
-An unreadable optional analysis checkpoint is reported and retained; ordinary
-project development remains available. This is tested adapter behavior, not a
-new Rust-to-Lean refinement or an atomic concurrent-filesystem proof.
+Every run is retained in host `meaning-analysis.json` next to the existing JSON
+journals, outside the model-writable project. The atomic, locked local history
+contains exact requirements, target/source/graph revisions, processor/model,
+outputs and failure/cancellation states. Requirement IDs hash the exact original
+text; changing that text creates another ID. Every invocation has a fresh random
+analysis ID; mismatches and unclear assessments additionally have a Finding ID.
+Reanalysis never overwrites a previous finding. The history selector restores
+past assessments for reading without sending inference or renewing approval.
+The TUI has `/analysis history` and `/analysis ID` (analysis or Finding ID); JSONL
+has `analysis_history` and `select_analysis` commands.
+
+Restart labels completed results historical and requires rereading sources,
+fresh processor review and explicit rerun. Interrupted runs are not resumed.
+The journal stops at 1000 runs or the existing 16 MiB storage limit, preserving
+old entries instead of deleting them. An unreadable or older optional checkpoint
+is reported and retained; explicitly rerunning analysis preserves that file as
+`meaning-analysis-retained-*.json` before creating a new history. Ordinary project
+development remains available. This is tested adapter behavior, not a new
+Rust-to-Lean refinement or an atomic concurrent-filesystem proof.
 
 A separate live browser smoke exercises real application edits, an interactive
 generated browser app, independent original Rust tests, a live model's proposal

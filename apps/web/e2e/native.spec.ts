@@ -1423,6 +1423,76 @@ test.describe("native GUI with real offline workers", () => {
       .click();
     await page.getByRole("button", { name: "この送信先を承認" }).click();
   }
+  test("local meaning history retains requirement and Finding identities across reruns and restart", async ({
+    page,
+  }) => {
+    responses.push(
+      ...Array.from({ length: 3 }, () => [
+        (response: ServerResponse) => reply(response, informalization()),
+        (response: ServerResponse) => reply(response, judgement()),
+      ]).flat(),
+    );
+    await openMeaning(page);
+    const result = page.getByLabel("意味解析の結果", { exact: true });
+    const run = page.getByRole("button", { name: "この宣言の意味を解析" });
+    const requirement = page.getByRole("textbox", {
+      name: "比較する要件",
+      exact: true,
+    });
+    await run.click();
+    await expect(result).toContainText("意味の差異候補（モデル評価）");
+    const first = (await nativeState(page)).analysis;
+    expect(first.finding_id).toMatch(/^finding-/);
+    await requirement.fill("A different requirement retained as its own input");
+    await run.click();
+    await expect
+      .poll(async () => (await nativeState(page)).analysis_history.length)
+      .toBe(2);
+    const second = (await nativeState(page)).analysis;
+    expect(second.id).not.toBe(first.id);
+    expect(second.requirement_id).not.toBe(first.requirement_id);
+    const history = page.getByRole("combobox", { name: "保存された解析履歴" });
+    await history.selectOption(first.id);
+    await expect(result).toContainText("保存された解析です");
+    await expect(requirement).toHaveValue(first.input.requirement);
+    expect(requests).toHaveLength(4);
+    await run.click();
+    await expect
+      .poll(async () => (await nativeState(page)).analysis_history.length)
+      .toBe(3);
+    const state = await nativeState(page);
+    expect(state.analysis.requirement_id).toBe(first.requirement_id);
+    expect(state.analysis.finding_id).not.toBe(first.finding_id);
+    expect(state.analysis_history[0].assessment).toEqual(first.assessment);
+    expect(state.analysis_history[1].input).toEqual(second.input);
+    await expect(result).toContainText("意味の差異候補（モデル評価）");
+    const port = Number(new URL(url).port);
+    await stop();
+    await page.goto(await start(port));
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+    await history.selectOption(second.id);
+    await expect(result).toContainText(second.input.requirement);
+    expect((await nativeState(page)).authorized).toBe(false);
+    expect(requests).toHaveLength(6);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await result.getByText("解析対象と処理の詳細", { exact: true }).click();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+          .analyze()
+      ).violations,
+    ).toEqual([]);
+    await page.screenshot({
+      path: "target/gui-checks/native-meaning-history.png",
+      fullPage: true,
+    });
+  });
   test("meaning analysis runs separated real requests, keeps proof unknown and restores a historical result", async ({
     page,
   }) => {

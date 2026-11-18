@@ -42,6 +42,7 @@ struct View {
     inspection: Option<Value>,
     source_snapshot: Option<sources::Snapshot>,
     analysis: Option<analysis::Record>,
+    analysis_history: Vec<analysis::Record>,
     preview: Option<preview::Summary>,
     exports: Vec<crate::exports::Summary>,
     export_review: Option<delivery::Review>,
@@ -87,6 +88,9 @@ enum Command {
     },
     SourceSnapshot {
         paths: Vec<String>,
+    },
+    SelectAnalysis {
+        id: String,
     },
     AnalyzeMeaning {
         input: crate::semantic::Input,
@@ -228,9 +232,9 @@ fn initial_view(
     project: &crate::project::Project,
 ) -> Result<Arc<Mutex<View>>> {
     let saved = history::load(workspace.path())?;
-    let (analysis, analysis_error) = match analysis::load(workspace.path()) {
-        Ok(record) => (record, None),
-        Err(error) => (None, Some(format!("Meaning-analysis checkpoint unavailable: {error:#}. The file was retained; reread sources and rerun analysis in the GUI."))),
+    let (analysis_history, analysis_error) = match crate::analysis::journal::list(workspace.path()) {
+        Ok(records) => (records, None),
+        Err(error) => (Vec::new(), Some(format!("Meaning-analysis checkpoint unavailable: {error:#}. The file was retained; reread sources and rerun analysis in the GUI."))),
     };
     let view = Arc::new(Mutex::new(View {
         workspace: workspace.path().display().to_string(),
@@ -248,7 +252,8 @@ fn initial_view(
         logs: Vec::new(),
         inspection: None,
         source_snapshot: None,
-        analysis,
+        analysis: analysis_history.last().cloned(),
+        analysis_history,
         preview: None,
         exports: Vec::new(),
         export_review: None,
@@ -456,6 +461,11 @@ fn worker(
                 }
                 Command::CapturePreview { root, entry } => {
                     preview.capture(workspace, &processes, &root, &entry)?;
+                    None
+                }
+                Command::SelectAnalysis { id } => {
+                    lock(view).analysis =
+                        Some(crate::analysis::journal::select(workspace.path(), &id)?);
                     None
                 }
                 Command::AnalyzeMeaning { input } => {

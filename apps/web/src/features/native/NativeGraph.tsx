@@ -28,12 +28,16 @@ const GraphView = lazy(() =>
 export function NativeGraph({
   snapshot,
   analysis,
+  history,
+  onSelectAnalysis,
   authorized,
   running,
   onAnalyze,
 }: {
   snapshot: SourceSnapshot;
   analysis: MeaningRecord | null;
+  history: MeaningRecord[];
+  onSelectAnalysis: (id: string) => Promise<boolean>;
   authorized: boolean;
   running: boolean;
   onAnalyze: (input: MeaningInput) => Promise<boolean>;
@@ -150,6 +154,8 @@ export function NativeGraph({
       )}
       <NativeMeaning
         record={analysis}
+        history={history}
+        onSelect={onSelectAnalysis}
         sourceRevision={snapshot.revision}
         graphRevision={snapshot.atlas?.revision}
         authorized={authorized}

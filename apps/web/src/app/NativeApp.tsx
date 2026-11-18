@@ -481,6 +481,10 @@ export function NativeApp({ token }: { token: string }) {
                         }
                         snapshot={state.source_snapshot}
                         analysis={state.analysis}
+                        history={state.analysis_history}
+                        onSelectAnalysis={(id) =>
+                          command({ type: "select_analysis", id })
+                        }
                         authorized={state.authorized && !connectionError}
                         running={running}
                         onAnalyze={(input) =>
@@ -496,6 +500,10 @@ export function NativeApp({ token }: { token: string }) {
                   {!state.source_snapshot && state.analysis && (
                     <NativeMeaning
                       record={state.analysis}
+                      history={state.analysis_history}
+                      onSelect={(id) =>
+                        command({ type: "select_analysis", id })
+                      }
                       authorized={state.authorized}
                       running={running}
                       onRun={(input) =>

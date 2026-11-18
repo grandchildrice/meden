@@ -1,6 +1,6 @@
 //! GUI presentation for the shared candidate analysis service.
 use super::{lock, View};
-pub(super) use crate::analysis::{load, Record, State};
+pub(super) use crate::analysis::{Record, State};
 use anyhow::{Context, Result};
 
 pub(super) fn invalidate(view: &mut View) {
@@ -19,7 +19,8 @@ pub(super) fn run(
         .source_snapshot
         .clone()
         .context("Read the source graph before meaning analysis")?;
-    session.analyze(&snapshot, input, &|record| {
+    invalidate(&mut lock(view));
+    let result = session.analyze(&snapshot, input, &|record| {
         let mut view = lock(view);
         view.activity = match record.state {
             State::Translating => "意味解析：宣言の自然言語化",
@@ -29,6 +30,8 @@ pub(super) fn run(
         }
         .into();
         view.analysis = Some(record.clone());
-    })?;
+    });
+    lock(view).analysis_history = session.analysis_history()?;
+    result?;
     Ok(())
 }

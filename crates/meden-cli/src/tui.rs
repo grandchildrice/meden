@@ -57,7 +57,7 @@ enum Task {
 
 enum Update {
     Sources(crate::analysis::sources::Snapshot),
-    Analysis(crate::analysis::Record),
+    Analysis(Box<crate::analysis::Record>),
     AnalysisDone {
         text: String,
         failed: bool,
@@ -912,7 +912,7 @@ impl App {
                 Update::Sources(snapshot) => self.observed_sources(snapshot),
                 Update::Analysis(record) => {
                     self.activity = Some(format!("Meaning analysis · {:?}", record.state));
-                    self.analysis = Some(record);
+                    self.analysis = Some(*record);
                 }
                 Update::Notice(text) => {
                     self.activity = Some("Recovering from an error".into());

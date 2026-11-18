@@ -45,9 +45,17 @@ export const meaningInputSchema = z
 export type MeaningInput = z.infer<typeof meaningInputSchema>;
 export const meaningRecordSchema = z
   .object({
-    version: z.literal(1),
+    version: z.literal(2),
+    sequence: z.number().int().positive(),
+    id: z.string().regex(/^analysis-[a-f0-9]{64}$/),
+    requirement_id: z.string().regex(/^requirement-[a-f0-9]{64}$/),
+    finding_id: z
+      .string()
+      .regex(/^finding-[a-f0-9]{64}$/)
+      .nullable(),
     engine: z.literal("meden-claimcheck-roundtrip-v1"),
     model: z.string(),
+    processor: z.string(),
     input: meaningInputSchema,
     state: z.enum([
       "observing",
@@ -192,6 +200,7 @@ export const nativeStateSchema = z.object({
     .nullable(),
   source_snapshot: sourceSnapshotSchema.nullable(),
   analysis: meaningRecordSchema.nullable(),
+  analysis_history: z.array(meaningRecordSchema).max(1000),
   preview: previewSchema.nullable(),
   exports: z.array(exportSummarySchema),
   export_review: exportReviewSchema.nullable(),
@@ -219,6 +228,7 @@ export type NativeCommand =
       reference: ExportReference;
       serial: number;
     }
+  | { type: "select_analysis"; id: string }
   | { type: "analyze_meaning"; input: MeaningInput }
   | {
       type: "review_contract" | "accept_contract" | "reject_contract";

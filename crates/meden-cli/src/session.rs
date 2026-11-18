@@ -83,6 +83,10 @@ impl Session {
         })
     }
 
+    pub(crate) fn analysis_history(&self) -> Result<Vec<crate::analysis::Record>> {
+        crate::analysis::journal::list(self.workspace.path())
+    }
+
     pub(crate) fn prepare_atlas(&self) -> Result<()> {
         crate::atlas::Configuration::host().prepare(&self.processes)
     }
