@@ -76,7 +76,7 @@ export function SemanticRun({
       </header>
       <div className="semantic-run-status">
         <Typography variant="body2" color="text.secondary">
-          {sample ? "在庫条件が異なる比較例" : "保存された要件の比較例"}
+          {sample ? "購入条件の境界を比べる例" : "保存された要件の比較例"}
         </Typography>
         {state !== "complete" && (
           <div className="semantic-state" role="status">
@@ -133,27 +133,27 @@ export function SemanticRun({
               <strong>
                 {changed
                   ? sample
-                    ? "NG · 在庫条件に差分があります"
+                    ? "NG · 残高150円の境界に差分があります"
                     : "文面に差分があります"
                   : "表示用テキストに差分はありません"}
               </strong>
               {sample && (
                 <p className="boundary-example">
-                  残高150円・在庫0個の場合、依頼では購入でき、定理の条件では購入できません。
+                  残高150円・在庫1個の場合、依頼では購入できますが、定理例では購入できません。
                 </p>
               )}
             </div>
           </div>
           <div className="semantic-diff" aria-label="意味の差分">
             <section>
-              <Typography variant="h3">元の依頼</Typography>
+              <Typography variant="h3">
+                {sample ? "依頼の例" : "保存された要件"}
+              </Typography>
               <p>
                 {sample ? (
                   <>
-                    残高が150円以上なら購入できる。
-                    <mark className="expected-diff">
-                      在庫は購入条件に含めない。
-                    </mark>
+                    残高が<mark className="expected-diff">150円以上</mark>
+                    で、在庫が1個以上なら購入できる。
                   </>
                 ) : (
                   parts
@@ -171,13 +171,14 @@ export function SemanticRun({
               </p>
             </section>
             <section>
-              <Typography variant="h3">定理の比較文</Typography>
+              <Typography variant="h3">
+                {sample ? "仮の定理を自然文にした例" : "定理の比較文"}
+              </Typography>
               <p>
                 {sample ? (
                   <>
-                    残高が150円以上で、
-                    <mark className="actual-diff">在庫が1個以上なら</mark>
-                    購入できる。
+                    残高が<mark className="actual-diff">150円を超え</mark>
+                    、在庫が1個以上の場合に限り購入できる。
                   </>
                 ) : (
                   parts

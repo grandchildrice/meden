@@ -65,7 +65,7 @@ test("home, three sidebar tabs, source navigation and semantic differences pass 
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "意味解析", exact: true }).click();
   await expect(page.locator(".semantic-result-heading")).toContainText(
-    "在庫条件に差分",
+    "残高150円の境界に差分",
   );
   await check();
   await page.getByRole("button", { name: "要件・定理の記録を確認" }).click();

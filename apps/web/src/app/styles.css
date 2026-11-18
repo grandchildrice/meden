@@ -2333,10 +2333,6 @@ pre {
   transform: scale(var(--graph-scale, 1));
   transform-origin: center;
 }
-.react-flow__node:has(.radar-node:hover),
-.react-flow__node:has(.radar-node.active) {
-  z-index: 15 !important;
-}
 .radar-node:not(.root-node):hover > button,
 .radar-node.active:not(.root-node) > button {
   background: #203b46;

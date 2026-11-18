@@ -1,5 +1,8 @@
 import {
+  createContext,
+  useContext,
   useEffect,
+  useEffectEvent,
   useMemo,
   useState,
   useRef,
@@ -39,13 +42,17 @@ import type { Workspace, Declaration } from "@meden/workspace-schema";
 type RadarData = Record<string, unknown> & {
   declaration: Declaration;
   root: boolean;
-  active: boolean;
   radii: number[];
-  select: () => void;
-  center: () => void;
-  muted: boolean;
-  hover: (active: boolean) => void;
 };
+
+const GraphInteraction = createContext<{
+  emphasized?: string;
+  nearby: Set<string | undefined>;
+  onHover: (id: string, active: boolean) => void;
+  onSelect: (declaration: Declaration) => void;
+  onCenter: (id: string) => void;
+} | null>(null);
+
 type RadarNode = Node<RadarData, "declaration">;
 const nodeTypes = { declaration: DeclarationNode };
 const edgeTypes = { dependency: DependencyEdge };
@@ -98,38 +105,32 @@ export function GraphView({
         : radialLayout(workspace, root, scope),
     [workspace, root, scope],
   );
-  const radii = [
-    ...new Set(
-      [...positions.values()]
-        .filter((p) => p.depth > 0)
-        .map((p) => Math.round(Math.hypot(p.x, p.y))),
-    ),
-  ].sort((a, b) => a - b);
-  const nodes: RadarNode[] = workspace.declarations
-    .filter((item) => positions.has(item.id))
-    .map((declaration) => {
-      const position = positions.get(declaration.id)!;
-      return {
-        id: declaration.id,
-        type: "declaration",
-        position: {
-          x: position.x - (declaration.id === root ? 82 : 90),
-          y: position.y - (declaration.id === root ? 82 : 25),
-        },
-        focusable: false,
-        data: {
-          declaration,
-          radii,
-          root: declaration.id === root,
-          active: emphasized === declaration.id,
-          muted: Boolean(emphasized) && !nearby.has(declaration.id),
-          hover: (active: boolean) =>
-            setHovered(active ? declaration.id : undefined),
-          select: () => onSelect(declaration),
-          center: () => center(declaration.id),
-        },
-      };
-    });
+  // Keep the measured React Flow nodes stable while hover and selection change.
+  const nodes = useMemo<RadarNode[]>(() => {
+    const radii = [
+      ...new Set(
+        [...positions.values()]
+          .filter((p) => p.depth > 0)
+          .map((p) => Math.round(Math.hypot(p.x, p.y))),
+      ),
+    ].sort((a, b) => a - b);
+    return workspace.declarations
+      .filter((item) => positions.has(item.id))
+      .map((declaration) => {
+        const position = positions.get(declaration.id)!;
+        const isRoot = declaration.id === root;
+        return {
+          id: declaration.id,
+          type: "declaration",
+          position: {
+            x: position.x - (isRoot ? 82 : 90),
+            y: position.y - (isRoot ? 82 : 25),
+          },
+          focusable: false,
+          data: { declaration, radii, root: isRoot },
+        };
+      });
+  }, [workspace.declarations, positions, root]);
   const index = new Map(workspace.declarations.map((item) => [item.id, item]));
   const edges = workspace.edges
     .filter(
@@ -238,35 +239,48 @@ export function GraphView({
           </code>
           <span className="graph-source-note">保存ソース</span>
         </div>
-        <ReactFlowProvider>
-          <ReactFlow
-            key={root + scope}
-            nodes={nodes}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            fitView
-            fitViewOptions={{
-              padding: {
-                top: "72px",
-                bottom: "60px",
-                left: "28px",
-                right: "28px",
-              },
-            }}
-            minZoom={0.08}
-            maxZoom={2.5}
-            nodesDraggable={false}
-            nodesConnectable={false}
-            elementsSelectable={false}
-            zoomOnDoubleClick={false}
-            forceColorMode="dark"
-            aria-label="宣言の依存グラフ"
-          >
-            <FitToPane canvas={canvas} />
-            <Controls showInteractive={false} />
-          </ReactFlow>
-        </ReactFlowProvider>
+        <GraphInteraction.Provider
+          value={{
+            emphasized,
+            nearby,
+            onHover: (id, active) =>
+              setHovered((previous) =>
+                active ? id : previous === id ? undefined : previous,
+              ),
+            onSelect,
+            onCenter: center,
+          }}
+        >
+          <ReactFlowProvider>
+            <ReactFlow
+              key={root + scope}
+              nodes={nodes}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              fitView
+              fitViewOptions={{
+                padding: {
+                  top: "72px",
+                  bottom: "60px",
+                  left: "28px",
+                  right: "28px",
+                },
+              }}
+              minZoom={0.08}
+              maxZoom={2.5}
+              nodesDraggable={false}
+              nodesConnectable={false}
+              elementsSelectable={false}
+              zoomOnDoubleClick={false}
+              forceColorMode="dark"
+              aria-label="宣言の依存グラフ"
+            >
+              <FitToPane canvas={canvas} />
+              <Controls showInteractive={false} />
+            </ReactFlow>
+          </ReactFlowProvider>
+        </GraphInteraction.Provider>
         <div className="graph-legend">
           <span>
             <i className="theorem" />
@@ -285,6 +299,16 @@ export function GraphView({
 
 function FitToPane({ canvas }: { canvas: RefObject<HTMLDivElement | null> }) {
   const { fitView } = useReactFlow();
+  const fitToCanvas = useEffectEvent(() => {
+    void fitView({
+      padding: {
+        top: "68px",
+        bottom: "56px",
+        left: "26px",
+        right: "26px",
+      },
+    });
+  });
   useEffect(() => {
     const element = canvas.current;
     if (!element) return;
@@ -293,40 +317,30 @@ function FitToPane({ canvas }: { canvas: RefObject<HTMLDivElement | null> }) {
       const bounds = entries[0]?.contentRect;
       if (!bounds || bounds.width === 0 || bounds.height === 0) return;
       cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(
-        () =>
-          void fitView({
-            padding: {
-              top: "68px",
-              bottom: "56px",
-              left: "26px",
-              right: "26px",
-            },
-          }),
-      );
+      frame = requestAnimationFrame(() => fitToCanvas());
     });
     observer.observe(element);
     return () => {
       observer.disconnect();
       cancelAnimationFrame(frame);
     };
-  }, [canvas, fitView]);
+  }, [canvas]);
   return null;
 }
 
 function DeclarationNode({ data }: NodeProps<RadarNode>) {
-  const { declaration, root, active } = data;
+  const { declaration, root } = data;
+  const { emphasized, nearby, onHover, onSelect, onCenter } =
+    useContext(GraphInteraction)!;
+  const active = emphasized === declaration.id;
   const { zoom } = useViewport();
   return (
     <div
       data-compact={zoom < 0.24}
-      data-muted={data.muted}
+      data-muted={Boolean(emphasized) && !nearby.has(declaration.id)}
       style={
         {
-          "--graph-scale": Math.max(
-            1,
-            (root ? 0.62 : active ? 0.9 : 0.43) / zoom,
-          ),
+          "--graph-scale": Math.max(1, (root ? 0.62 : 0.43) / zoom),
           ...(root
             ? {
                 "--ring-one": (data.radii[0] ?? 180) * 2 + "px",
@@ -346,17 +360,18 @@ function DeclarationNode({ data }: NodeProps<RadarNode>) {
       <Handle type="source" position={Position.Bottom} />
       <button
         type="button"
-        onMouseEnter={() => data.hover(true)}
-        onMouseLeave={() => data.hover(false)}
-        onFocus={() => data.hover(true)}
-        onBlur={() => data.hover(false)}
+        className="nopan"
+        onMouseEnter={() => onHover(declaration.id, true)}
+        onMouseLeave={() => onHover(declaration.id, false)}
+        onFocus={() => onHover(declaration.id, true)}
+        onBlur={() => onHover(declaration.id, false)}
         onClick={(event) => {
           event.stopPropagation();
-          data.select();
+          onSelect(declaration);
         }}
         onDoubleClick={(event) => {
           event.stopPropagation();
-          data.center();
+          onCenter(declaration.id);
         }}
         title={declaration.name}
       >

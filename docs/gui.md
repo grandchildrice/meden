@@ -29,18 +29,18 @@ contains history, message entry, search and settings. The upper-right
 “成果物を開く” button opens the **Code / Preview / Proof** sidebar. Narrow
 screens use drawers.
 
-| Goal                            | Entry and result                                                                                                                                                                                            |
-| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Start a conversation            | Send an instruction with the arrow or Enter; its title is automatic. Shift+Enter adds a newline.                                                                                                            |
-| Read actual development history | Open the vending-machine conversation in the sidebar. Scroll to the supplied opening request or expand tool activity inline with its message.                                                               |
-| Inspect recorded execution      | Expand each tool call for its actual arguments and output, including the Lean recursion-limit failure, verification retries, source edits and seven passing CLI tests.                                      |
-| Inspect a proof                 | Open Proof: the radial graph shows related declarations, including incoming references. Select a node for its statement, status and direct dependencies.                                                    |
-| Open exact source               | Click the statement or file/line link; Code opens the retained file at the highlighted line. Return to Proof with selection intact.                                                                         |
-| Change graph scope              | Search a declaration, center on it and return, or choose only outgoing dependencies / meaning-related dependencies. Pan and zoom remain available.                                                          |
-| Inspect proof coverage          | Open the proof-count control for the eight property records. Source-only helpers without individual audit entries remain unconfirmed.                                                                       |
-| Run the meaning-analysis GUI    | Choose “意味解析” inside Proof. A cancellable sequence opens the NG inventory-condition example. The result puts the boundary case above the compared text. Switch between “一致例を表示” and “NG例を表示”. |
-| Edit or request review          | From the meaning result, inspect the retained requirement/theorem record, edit a draft or prepare a revision-bound review export. No extra top-level tab is added.                                          |
-| Preserve work                   | Chat, drafts and edits survive reload. Failed storage retains the in-memory conversation and offers retry/export. Invalid imports keep current work.                                                        |
+| Goal                            | Entry and result                                                                                                                                                                                                       |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Start a conversation            | Send an instruction with the arrow or Enter; its title is automatic. Shift+Enter adds a newline.                                                                                                                       |
+| Read actual development history | Open the vending-machine conversation in the sidebar. Scroll to the supplied opening request or expand tool activity inline with its message.                                                                          |
+| Inspect recorded execution      | Expand each tool call for its actual arguments and output, including the Lean recursion-limit failure, verification retries, source edits and seven passing CLI tests.                                                 |
+| Inspect a proof                 | Open Proof: the radial graph shows related declarations, including incoming references. Select a node for its statement, status and direct dependencies.                                                               |
+| Open exact source               | Click the statement or file/line link; Code opens the retained file at the highlighted line. Return to Proof with selection intact.                                                                                    |
+| Change graph scope              | Search a declaration, center on it and return, or choose only outgoing dependencies / meaning-related dependencies. Pan and zoom remain available.                                                                     |
+| Inspect proof coverage          | Open the proof-count control for the eight property records. Source-only helpers without individual audit entries remain unconfirmed.                                                                                  |
+| Run the meaning-analysis GUI    | Choose “意味解析” inside Proof. A cancellable sequence opens the NG example at the ¥150 purchase threshold. The result puts the boundary case above the compared text. Switch between “一致例を表示” and “NG例を表示”. |
+| Edit or request review          | From the meaning result, inspect the retained requirement/theorem record, edit a draft or prepare a revision-bound review export. No extra top-level tab is added.                                                     |
+| Preserve work                   | Chat, drafts and edits survive reload. Failed storage retains the in-memory conversation and offers retry/export. Invalid imports keep current work.                                                                   |
 
 The vending conversation card shows the Rust implementation and Lean prover
 logos and opens the preview from anywhere on the card. Its list shows plain
@@ -107,13 +107,12 @@ Opening a panel does not rerun Lean. The browser vending preview mirrors the
 transition in TypeScript/BigInt, with ordinary unit coverage.
 
 Meaning analysis is a **GUI simulation**. The progress sequence does not run an
-analyzer or change stored proof/analysis evidence. The initial NG sample changes an
-imagined requirement to omit inventory conditions; the OK example uses the
-saved requirement text. It is not a discovered
-meden-demo defect or evidence of semantic-analysis accuracy. Its red/green diff
-and “balance 150, stock 0” boundary illustrate the intended result UI. Runs can
-be cancelled; revision changes invalidate the displayed run. Imported proof
-progress/no-sorry metadata is never upgraded to fresh evidence.
+analyzer or change stored proof/analysis evidence. The initial NG sample compares
+a requirement allowing purchases at ¥150 or more with a hypothetical theorem
+that requires more than ¥150. Both require stock. At exactly ¥150 with one item
+in stock, the outcomes differ. The OK example uses the saved requirement text.
+Runs can be cancelled. Revision changes invalidate the displayed run.
+Imported proof progress/no-sorry metadata is never upgraded to fresh evidence.
 
 The information button describes the planned two-pass approach, based on
 claimcheck. A translation LLM sees the Lean theorem and renders it in natural
@@ -172,7 +171,8 @@ versus blind back-translation view, without claiming integrated analysis quality
 The default view uses actual MIT-licensed layout functions from Lean4SemanticBench:
 dependencies above the center, reverse references below it, parent-based ordering
 and radial spacing. Project Overview still shows the wider connected graph.
-Hover/focus emphasizes a declaration's adjacent references.
+Hover and focus emphasize adjacent references while preserving the node's
+position and hit area.
 
 “グラフを広げる” or “広げて読む” opens a full-height graph with a docked reader.
 Its statement and syntax-highlighted Lean source scroll independently beside the

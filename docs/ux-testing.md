@@ -113,8 +113,8 @@ It covers instruction/send/automatic titles, separate searchable conversations,
 desktop and mobile home logo layout, independent conversation and artifact
 sidebar controls, conversation artifact preview and proof status after restart,
 original meden-demo messages and 25 tool inputs/results, unsent input/restart,
-preview purchase/refund, three-tab proof-graph/statement/source navigation,
-meaning-progress cancellation, NG/OK examples and the algorithm info popover,
+preview purchase/refund, three-tab proof-graph/statement/source navigation, stable node targeting in both graph views,
+meaning-progress cancellation, the ¥150 NG boundary and matching examples and the algorithm info popover,
 continuous consolidation of legacy v1/v2 demo conversations and selection/input restore,
 exact supplied opening text, expanded graph/source independent scrolling,
 requirement-change freshness, local

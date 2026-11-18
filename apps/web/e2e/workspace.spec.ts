@@ -349,6 +349,74 @@ test("proof opens the wider source graph and follows a declaration into its exac
   await expect(page.locator(".source-location")).toContainText("Check.lean:");
 });
 
+test("hover keeps dense graph nodes in place until the pointer selects them", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 844 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await archivedChat(page);
+  await openProof(page);
+
+  for (const expanded of [false, true]) {
+    if (expanded)
+      await page.getByRole("button", { name: "グラフを広げる" }).click();
+    await page.getByRole("combobox", { name: "依存関係の範囲" }).click();
+    await page.getByRole("option", { name: "プロジェクト全体" }).click();
+    const name = expanded
+      ? "KernelContract.State"
+      : "KernelContract.transition";
+    const node = page.getByRole("button", {
+      name: new RegExp(name + ".*を選択"),
+    });
+    const hit = () =>
+      node.evaluate((button) => {
+        const rect = button.getBoundingClientRect();
+        return (
+          document
+            .elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2)
+            ?.closest("button") === button
+        );
+      });
+    await expect.poll(hit).toBe(true);
+    const before = (await node.boundingBox())!;
+    const x = before.x + before.width / 2;
+    const y = before.y + before.height / 2;
+
+    await page.mouse.move(x, y);
+    await expect(node.locator("..")).toHaveClass(/\bactive\b/);
+    const stable = await node.evaluate(
+      async (button, { before, x, y }) => {
+        for (let frame = 0; frame < 8; frame++) {
+          await new Promise(requestAnimationFrame);
+          const {
+            x: left,
+            y: top,
+            width,
+            height,
+          } = button.getBoundingClientRect();
+          if (
+            document.elementFromPoint(x, y)?.closest("button") !== button ||
+            Math.abs(left - before.x) > 0.5 ||
+            Math.abs(top - before.y) > 0.5 ||
+            Math.abs(width - before.width) > 0.5 ||
+            Math.abs(height - before.height) > 0.5
+          )
+            return false;
+        }
+        return true;
+      },
+      { before, x, y },
+    );
+    expect(stable).toBe(true);
+    await page.mouse.down();
+    await page.mouse.move(x + 3, y + 2);
+    await page.mouse.up();
+    const inspector = page.getByRole("complementary", { name: "選択した証明" });
+    await expect(inspector).toContainText(name);
+    await inspector.getByRole("button", { name: "証明の詳細を閉じる" }).click();
+  }
+});
+
 async function inspectMeaning(page: Page) {
   await page.getByRole("button", { name: "意味解析", exact: true }).click();
   await expect(
@@ -370,20 +438,26 @@ test("meaning analysis shows an NG comparison by default, can switch to OK and k
   await expect(page.getByRole("status")).toContainText("中止しました");
   await page.getByRole("button", { name: "もう一度実行", exact: true }).click();
   await expect(page.locator(".semantic-result-heading")).toContainText(
-    "NG · 在庫条件に差分",
+    "NG · 残高150円の境界に差分",
   );
   await expect(page.getByLabel("解析の進行状況")).toHaveCount(0);
   await expect(
     page.getByRole("heading", { name: "意味の比較", exact: true }),
   ).toBeVisible();
+  await expect(page.locator(".semantic-diff .expected-diff")).toHaveText(
+    "150円以上",
+  );
+  await expect(page.locator(".semantic-diff .actual-diff")).toHaveText(
+    "150円を超え",
+  );
   await expect(
-    page.locator(".semantic-diff .expected-diff").first(),
-  ).toBeVisible();
+    page.locator(".semantic-diff section").filter({ hasText: "在庫が1個以上" }),
+  ).toHaveCount(2);
   await expect(
-    page.locator(".semantic-diff .actual-diff").first(),
+    page.getByRole("heading", { name: "仮の定理を自然文にした例" }),
   ).toBeVisible();
   await expect(page.locator(".boundary-example")).toContainText(
-    "残高150円・在庫0個",
+    "残高150円・在庫1個",
   );
   await page.getByRole("button", { name: "一致例を表示", exact: true }).click();
   await expect(page.locator(".semantic-result-heading")).toContainText(
@@ -404,12 +478,12 @@ test("meaning analysis shows an NG comparison by default, can switch to OK and k
   ).toHaveCount(0);
   await page.getByRole("button", { name: "NG例を表示", exact: true }).click();
   await expect(page.locator(".semantic-result-heading")).toContainText(
-    "NG · 在庫条件に差分",
+    "NG · 残高150円の境界に差分",
   );
   await tab(page, "コード");
   await tab(page, "証明");
   await expect(page.locator(".semantic-result-heading")).toContainText(
-    "在庫条件に差分",
+    "残高150円の境界に差分",
   );
   await page.reload();
   await openProof(page);
@@ -645,7 +719,7 @@ test("desktop and compact layouts keep chat and artifact panes usable, with keyb
   ).toBeFocused();
   await page.getByRole("button", { name: "意味解析", exact: true }).click();
   await expect(page.locator(".semantic-result-heading")).toContainText(
-    "在庫条件に差分",
+    "残高150円の境界に差分",
   );
   await page.screenshot({ path: "target/gui-checks/screenshots/analysis.png" });
   await tab(page, "プレビュー");
