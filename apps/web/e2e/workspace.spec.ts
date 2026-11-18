@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { createVendingWorkspace } from "../src/fixtures/meden-demo";
 import { mkdir } from "node:fs/promises";
 
 async function archivedChat(page: Page) {
@@ -201,7 +202,7 @@ async function inspectMeaning(page: Page) {
     .click();
 }
 
-test("meaning analysis has a cancellable CI flow and an explicit sample with visible semantic differences", async ({
+test("meaning analysis shows an NG comparison by default, can switch to OK and keeps cancellation working", async ({
   page,
 }) => {
   await archivedChat(page);
@@ -212,12 +213,11 @@ test("meaning analysis has a cancellable CI flow and an explicit sample with vis
   await expect(page.getByLabel("解析の進行状況")).toContainText("実行中");
   await page.getByRole("button", { name: "中止", exact: true }).click();
   await expect(page.getByRole("status")).toContainText("中止しました");
-  await page
-    .getByRole("button", { name: "差分サンプルを試す", exact: true })
-    .click();
+  await page.getByRole("button", { name: "もう一度実行", exact: true }).click();
   await expect(page.locator(".semantic-result-heading")).toContainText(
-    "在庫条件に差分",
+    "NG · 在庫条件に差分",
   );
+  await expect(page.locator(".step-failed")).toContainText("要件と比較NG");
   await expect(
     page.locator(".semantic-diff .expected-diff").first(),
   ).toBeVisible();
@@ -227,8 +227,26 @@ test("meaning analysis has a cancellable CI flow and an explicit sample with vis
   await expect(page.locator(".boundary-example")).toContainText(
     "残高150円・在庫0個",
   );
-  await expect(page.locator(".semantic-results")).toContainText(
-    "実装の不具合を検出した結果ではありません",
+  await page.getByRole("button", { name: "一致例を表示", exact: true }).click();
+  await expect(page.locator(".semantic-result-heading")).toContainText(
+    "差分はありません",
+  );
+  await expect(page.locator(".step-failed")).toHaveCount(0);
+  await expect(
+    page.getByText(
+      "解析エンジンは未接続です。この表示は意味の一致を保証しません。",
+      { exact: true },
+    ),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText(
+      "処理の進行と結果表示を試すGUIデモです。LLMやLeanによる解析は実行していません。",
+      { exact: true },
+    ),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "NG例を表示", exact: true }).click();
+  await expect(page.locator(".semantic-result-heading")).toContainText(
+    "NG · 在庫条件に差分",
   );
   await tab(page, "コード");
   await tab(page, "証明");
@@ -434,13 +452,20 @@ test("desktop and compact layouts keep chat and artifact panes usable, with keyb
   await expect(page.locator(".selected-source-line")).toBeVisible();
   await page.screenshot({ path: "target/gui-checks/screenshots/code.png" });
   await page.getByRole("button", { name: "証明に戻る", exact: true }).click();
-  await page.getByRole("button", { name: "意味解析", exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: "差分サンプルを試す", exact: true }),
-  ).toBeEnabled();
   await page
-    .getByRole("button", { name: "差分サンプルを試す", exact: true })
+    .getByRole("button", { name: "意味解析の仕組み", exact: true })
     .click();
+  await expect(
+    page.getByRole("dialog", { name: "意味解析のアルゴリズム" }),
+  ).toContainText("元の要件を見せず");
+  await page.screenshot({
+    path: "target/gui-checks/screenshots/semantic-method.png",
+  });
+  await page.keyboard.press("Escape");
+  await expect(
+    page.getByRole("button", { name: "意味解析の仕組み", exact: true }),
+  ).toBeFocused();
+  await page.getByRole("button", { name: "意味解析", exact: true }).click();
   await expect(page.locator(".semantic-result-heading")).toContainText(
     "在庫条件に差分",
   );
@@ -529,4 +554,127 @@ test("failed storage retains a sent conversation and recovers through retry", as
   );
   await page.reload();
   await expect(page.locator(".user-message")).toContainText("保存失敗の確認");
+});
+
+test("existing continuous demo chats merge once, preserve tool history and reopen the selected continuation", async ({
+  page,
+}) => {
+  const original = createVendingWorkspace();
+  for (const [id, time, text] of [
+    ["continuation-a", "01:00:00", "購入条件も確認して"],
+    ["continuation-b", "02:00:00", "境界もお願いします"],
+  ]) {
+    original.conversations.push({
+      id,
+      title: text,
+      messages: [
+        {
+          id: id + "-user",
+          role: "user",
+          text,
+          status: "sent",
+          createdAt: "2026-11-18T" + time + "Z",
+        },
+        {
+          id: id + "-reply",
+          role: "assistant",
+          text: "確認しました：" + text,
+          status: "received",
+          createdAt: "2026-11-18T" + time.replace(":00:", ":01:") + "Z",
+        },
+      ],
+    });
+  }
+  const other = {
+    ...createVendingWorkspace(),
+    id: "another-project",
+    name: "別のプロジェクト",
+    conversations: [
+      {
+        id: "other-chat",
+        title: "別件の会話",
+        messages: [
+          {
+            id: "other-message",
+            role: "user" as const,
+            text: "別件",
+            status: "sent" as const,
+            createdAt: "2026-11-18T03:00:00Z",
+          },
+        ],
+      },
+    ],
+  };
+  await page.route("**/__legacy_fixture__", (route) =>
+    route.fulfill({
+      contentType: "text/html",
+      body: "<title>Legacy storage fixture</title>",
+    }),
+  );
+  await page.goto("/__legacy_fixture__");
+  await page.evaluate(
+    async ({ original, other }) => {
+      await new Promise<void>((resolve, reject) => {
+        const request = indexedDB.open("meden-workspaces", 1);
+        request.onupgradeneeded = () =>
+          request.result
+            .createObjectStore("workspaces", { keyPath: "id" })
+            .createIndex("updatedAt", "updatedAt");
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const db = request.result;
+          const transaction = db.transaction("workspaces", "readwrite");
+          transaction.objectStore("workspaces").put(original);
+          transaction.objectStore("workspaces").put(other);
+          transaction.onerror = () => reject(transaction.error);
+          transaction.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+        };
+      });
+      localStorage.setItem(
+        "meden-chat-selection",
+        JSON.stringify({
+          workspaceId: original.id,
+          conversationId: "continuation-b",
+        }),
+      );
+      localStorage.setItem(
+        "meden-input:" + original.id + ":continuation-b",
+        "送信前の続き",
+      );
+    },
+    { original, other },
+  );
+  await page.goto("/");
+  await expect(page.locator(".history-item")).toHaveCount(2);
+  await expect(page.locator(".conversation-title")).toHaveText(
+    "自販機シミュレーター",
+  );
+  await expect(page.locator(".message")).toHaveCount(17);
+  await expect(page.locator(".recorded-tool")).toHaveCount(25);
+  await expect(
+    page.getByRole("textbox", { name: "メッセージ", exact: true }),
+  ).toHaveValue("送信前の続き");
+  expect(
+    (await page.locator(".user-message").allTextContents()).slice(-2),
+  ).toEqual(["購入条件も確認して", "境界もお願いします"]);
+  await expect(
+    page.getByRole("button", { name: "別件の会話", exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(page.locator(".message")).toHaveCount(17);
+  await page
+    .getByRole("textbox", { name: "メッセージ", exact: true })
+    .fill("さらに続きを確認");
+  await page.getByRole("button", { name: "送信", exact: true }).click();
+  await expect(page.locator(".message")).toHaveCount(19);
+  await expect(page.locator(".reply-activity")).toHaveCount(0);
+  await expect(page.locator(".sidebar-bottom")).toContainText(
+    "このブラウザに保存",
+  );
+  await page.reload();
+  await expect(page.locator(".message")).toHaveCount(19);
+  await expect(page.locator(".history-item")).toHaveCount(2);
 });

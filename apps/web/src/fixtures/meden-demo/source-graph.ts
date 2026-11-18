@@ -1,5 +1,5 @@
 import type { Declaration, Workspace } from "@meden/workspace-schema";
-import snapshot from "./snapshot.json";
+import snapshot from "./snapshot.json" with { type: "json" };
 
 const prefixes = {
   "Spec.lean": "KernelContract",

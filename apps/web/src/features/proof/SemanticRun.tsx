@@ -25,7 +25,7 @@ export function SemanticRun({
   const [state, setState] = useState<"running" | "complete" | "cancelled">(
     "running",
   );
-  const [sample, setSample] = useState(false);
+  const [sample, setSample] = useState(true);
   useEffect(() => {
     setState("cancelled");
     setStep(0);
@@ -84,14 +84,18 @@ export function SemanticRun({
           <li
             key={name}
             className={
-              index < step
-                ? "step-complete"
-                : index === step && state === "running"
-                  ? "step-running"
-                  : "step-queued"
+              state === "complete" && index === 3 && changed
+                ? "step-failed"
+                : index < step
+                  ? "step-complete"
+                  : index === step && state === "running"
+                    ? "step-running"
+                    : "step-queued"
             }
           >
-            {index < step ? (
+            {state === "complete" && index === 3 && changed ? (
+              <ErrorOutlineRounded />
+            ) : index < step ? (
               <CheckCircleRounded />
             ) : index === step && state === "running" ? (
               <CircularProgress size={18} />
@@ -100,11 +104,13 @@ export function SemanticRun({
             )}
             <span>{name}</span>
             <small>
-              {index < step
-                ? "完了"
-                : index === step && state === "running"
-                  ? "実行中"
-                  : "待機"}
+              {state === "complete" && index === 3 && changed
+                ? "NG"
+                : index < step
+                  ? "完了"
+                  : index === step && state === "running"
+                    ? "実行中"
+                    : "待機"}
             </small>
           </li>
         ))}
@@ -137,15 +143,11 @@ export function SemanticRun({
               <strong>
                 {changed
                   ? sample
-                    ? "在庫条件に差分があります"
+                    ? "NG · 在庫条件に差分があります"
                     : "文面に差分があります"
                   : "表示用テキストに差分はありません"}
               </strong>
-              <small>
-                {sample
-                  ? "想定要件を変えたUIサンプルです。実装の不具合を検出した結果ではありません。"
-                  : "解析エンジンは未接続です。この表示は意味の一致を保証しません。"}
-              </small>
+              {sample && <small>想定要件を変えた差分サンプル</small>}
             </div>
           </div>
           <div className="semantic-diff" aria-label="意味の差分">
@@ -208,15 +210,12 @@ export function SemanticRun({
         </div>
       )}
       <div className="semantic-demo-footer">
-        <Typography variant="caption" color="text.secondary">
-          処理の進行と結果表示を試すGUIデモです。LLMやLeanによる解析は実行していません。
-        </Typography>
         <Button
           variant="outlined"
           disabled={state === "running"}
           onClick={() => run(!sample)}
         >
-          {sample ? "保存された要件で試す" : "差分サンプルを試す"}
+          {sample ? "一致例を表示" : "NG例を表示"}
         </Button>
       </div>
     </section>

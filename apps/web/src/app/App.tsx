@@ -118,8 +118,45 @@ export function App() {
             selected &&
             next.some((item) => item.id === selected.workspaceId)
           ) {
+            const selectedWorkspace = next.find(
+              (item) => item.id === selected.workspaceId,
+            )!;
+            const selectedConversation =
+              selected.conversationId &&
+              !selectedWorkspace.conversations.some(
+                (item) => item.id === selected.conversationId,
+              )
+                ? selectedWorkspace.conversations[0]?.id || null
+                : selected.conversationId;
             setActiveId(selected.workspaceId);
-            setConversationId(selected.conversationId);
+            setConversationId(selectedConversation);
+            if (selectedConversation !== selected.conversationId) {
+              const oldDraft = localStorage.getItem(
+                "meden-input:" +
+                  selected.workspaceId +
+                  ":" +
+                  selected.conversationId,
+              );
+              const key =
+                "meden-input:" +
+                selected.workspaceId +
+                ":" +
+                selectedConversation;
+              if (oldDraft) {
+                const current = localStorage.getItem(key);
+                localStorage.setItem(
+                  key,
+                  [current, oldDraft].filter(Boolean).join("\n\n"),
+                );
+              }
+              localStorage.setItem(
+                SELECTION_KEY,
+                JSON.stringify({
+                  workspaceId: selected.workspaceId,
+                  conversationId: selectedConversation,
+                }),
+              );
+            }
           }
         } catch {
           /* An unreadable preference does not discard stored conversations. */

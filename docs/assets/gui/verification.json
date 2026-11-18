@@ -1,13 +1,13 @@
 {
   "date": "2026-11-18",
-  "scope": "Chat-first GUI; compact Code/Preview/Proof sidebar; recorded execution activity; graph-to-statement-to-source navigation and semantic-difference demo. No Rust changes.",
+  "scope": "Compact proof sidebar: consolidate existing continuous demo conversations, remove two requested notices, show NG/OK comparison examples and algorithm info popover. No Rust changes.",
   "checks": {
     "typecheck": "passed",
     "format": "passed",
     "production_build": "passed",
     "schema_generation": "passed",
-    "domain_tests": 20,
-    "browser_journeys_and_accessibility": 12,
+    "domain_tests": 22,
+    "browser_journeys_and_accessibility": 13,
     "public_tui_ux": 19,
     "tui_inference": "scripted fixtures; no live-model validation",
     "tui_screens_reviewed": [
@@ -15,7 +15,7 @@
       "provider limit/resume",
       "local setup/reopen"
     ],
-    "axe_scope": "home, archived chat, three sidebar tabs, proof detail, highlighted source and semantic difference; WCAG 2.1 AA automated checks",
+    "axe_scope": "home, archived chat, three sidebar tabs, source, NG difference and algorithm popover; automated WCAG 2.1 AA",
     "responsive_widths": [
       1440,
       1000,
@@ -28,7 +28,11 @@
       "requirement changes stale evidence across reload",
       "invalid import preserves chat",
       "storage failure/retry",
-      "meaning demo cancellation and sample survives tab changes but is not persisted as analysis evidence"
+      "meaning demo cancellation and sample survives tab changes but is not persisted as analysis evidence",
+      "database v1-to-v2 history consolidation keeps 25 recorded activities and message order",
+      "selection and active unsent input follow the merged history",
+      "continued conversation survives a second reload",
+      "NG/OK result switching and cancellation"
     ]
   },
   "recorded_example": {
@@ -42,19 +46,20 @@
     "local_declarations": 53,
     "lexical_source_references": 150,
     "graph": "Project-only lexical source reference index; not elaborated Lean/Atlas extraction or complete library coverage",
-    "comparison": "CI-style GUI simulation and explicitly hypothetical missing-inventory requirement; no actual semantic defect claim",
+    "comparison": "Initial NG inventory-condition sample and switchable OK text example; GUI simulation, no independent analyzer execution",
     "preview": "TypeScript/BigInt mirror, no new Rust/Lean execution"
   },
   "screenshots": {
-    "home.png": "192a49038e56cec2ecc8dd5ac2a6d0140d94e8483d0af62d50a7cc19cc22b9a2",
+    "home.png": "7c4a59e87acba5f52db2f63af0e73d189a72f7e7f8ddd6094be90a1520cc37b0",
     "history.png": "d532e414ffe9028935ba428d8128f394af684f2aeb8a1a60ad603740c294a7b7",
-    "proof.png": "d7e230799adda7e7ea24e0539ab499c9ef068359bf06c557002a08184431a779",
-    "proof-detail.png": "223241be689a637a55e5f19728cb05fb3ae9ea438de9ae6bb38eac8a96758142",
+    "proof.png": "4204e7eccefd76eff99c59dfe1d4c0abad9ec907910f2f22d762a0cbcf45341b",
+    "proof-detail.png": "8906d8c7ffb9113360a1591484bbc98a70e7ad0ed709b48113ba384e1bdd6930",
     "code.png": "ede2ac2857b97b93596efbe02636c5c888f3b965c3a72e13609f6615969670f2",
-    "analysis.png": "c05d7f80c8a051138e8b0cb88cba72adc5df49548609ac8441b6e30dc842d59e",
+    "analysis.png": "c8a71c4efb2b3f83c16f86d287958eecb41afb62cf9d15f2f459a3f37c9c5f3d",
     "preview.png": "17e718d8013810091ac02cfeeacc8659152bc01584a6a2b45e19955b2c9fd031",
     "compact-home.png": "2569e3f8f032447676b8cb902969b2808726c81403d0e9054a87737982c73d1e",
-    "compact-preview.png": "9d853a92ef1d04dc16562a5aff01e50f3a6505de432d11baf52adfa88ebc3ddc"
+    "compact-preview.png": "9d853a92ef1d04dc16562a5aff01e50f3a6505de432d11baf52adfa88ebc3ddc",
+    "semantic-method.png": "33ebadffe2b56071a8542d6fbfbb099b8944cb78cff40c55eb72d086e9ee5026"
   },
   "not_implemented": [
     "native model/prover gateway",

@@ -2513,3 +2513,75 @@ pre {
 .radar-node[data-compact="true"]:not(.root-node):not(.active):not(:hover) code {
   opacity: 0;
 }
+.meaning-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.meaning-actions > .MuiButton-root {
+  border-radius: 9px;
+  min-height: 36px;
+  font-size: 12px;
+  padding-inline: 12px;
+  white-space: nowrap;
+}
+.meaning-actions > .MuiButton-root .MuiButton-startIcon svg {
+  font-size: 17px;
+}
+.meaning-actions > .semantic-info-button {
+  width: 32px;
+  height: 32px;
+  color: #526b78;
+}
+.semantic-method-info {
+  width: min(420px, calc(100vw - 32px));
+  padding: 20px;
+  border: 1px solid #dce5ea;
+  box-shadow: 0 10px 40px #1c344022 !important;
+}
+.semantic-method-info > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.semantic-method-info > header > .MuiIconButton-root {
+  width: 28px;
+  height: 28px;
+}
+.semantic-method-info ol {
+  margin: 20px 0;
+  padding-left: 20px;
+}
+.semantic-method-info li {
+  margin-bottom: 16px;
+  padding-left: 4px;
+  color: #34505e;
+  font-size: 12px;
+}
+.semantic-method-info li:last-child {
+  margin-bottom: 0;
+}
+.semantic-method-info strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+.semantic-method-info p {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.8;
+  color: #526976;
+}
+.check-pipeline .step-failed {
+  color: #923d32;
+  background: #fff1ee;
+}
+.check-pipeline .step-failed > svg,
+.check-pipeline .step-failed > small {
+  color: #923d32;
+}
+.semantic-result-heading.has-gap {
+  color: #923d32;
+  background: #fff1ee;
+}

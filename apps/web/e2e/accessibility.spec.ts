@@ -43,13 +43,15 @@ test("home, three sidebar tabs, source navigation and semantic differences pass 
   await expect(page.locator(".selected-source-line")).toBeVisible();
   await check();
   await page.getByRole("button", { name: "証明に戻る", exact: true }).click();
-  await page.getByRole("button", { name: "意味解析", exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: "差分サンプルを試す", exact: true }),
-  ).toBeEnabled();
   await page
-    .getByRole("button", { name: "差分サンプルを試す", exact: true })
+    .getByRole("button", { name: "意味解析の仕組み", exact: true })
     .click();
+  await expect(
+    page.getByRole("dialog", { name: "意味解析のアルゴリズム" }),
+  ).toBeVisible();
+  await check();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "意味解析", exact: true }).click();
   await expect(page.locator(".semantic-result-heading")).toContainText(
     "在庫条件に差分",
   );

@@ -112,7 +112,8 @@ The TypeScript/Vite GUI has its own public browser gate: `npm run test:gui`.
 It covers instruction/send/automatic titles, separate searchable conversations,
 original meden-demo messages and 25 tool inputs/results, unsent input/restart,
 preview purchase/refund, three-tab proof-graph/statement/source navigation,
-meaning-progress cancellation and explicit semantic-difference sample,
+meaning-progress cancellation, NG/OK examples and the algorithm info popover,
+transactional consolidation of legacy demo conversations and selection/input restore,
 requirement-change freshness, local
 review export, invalid import recovery and storage failure/retry. Compact layout,
 keyboard entry and automated WCAG AA checks are included. The gate builds and

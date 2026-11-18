@@ -87,7 +87,8 @@ a workspace with `origin: replay`. Messages distinguish `recorded` from new
 the report. The graph indexes 53 local declarations and 150 lexical references from three
 retained files; it does not run Atlas or elaborate full library dependencies. Archived proof records remain version-bound and become stale after
 requirement edits. A nested, cancellable CI-style meaning-analysis demo shows
-text differences and an explicit missing-inventory-condition sample; it never
+text differences and an initial NG sample with missing inventory conditions,
+plus an OK example and an algorithm-info popover; it never
 writes completed analysis evidence. Existing analysis records stay pending/unclear.
 Reasoning is absent from this checkpoint; actual tool inputs/results are displayed
 in their original order, with host-injected prompts/settings excluded. The interactive

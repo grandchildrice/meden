@@ -1,5 +1,5 @@
 import { workspaceSchema, type Workspace } from "@meden/workspace-schema";
-import snapshot from "./snapshot.json";
+import snapshot from "./snapshot.json" with { type: "json" };
 import { recordedSourceGraph } from "./source-graph";
 
 export const DEMO_WORKSPACE_ID = "meden-demo-vending";

@@ -17,6 +17,7 @@ import {
   type Workspace,
 } from "@meden/workspace-schema";
 import { ProofStatusChip } from "../../components/Status";
+import { SemanticMethodInfo } from "./SemanticMethodInfo";
 import { SemanticRun } from "./SemanticRun";
 const GraphView = lazy(() =>
   import("../graph/GraphView").then((module) => ({
@@ -115,13 +116,16 @@ export function ProofWorkspace({
                 })}
               </div>
             </details>
-            <Button
-              variant="outlined"
-              startIcon={<AutoAwesomeOutlined />}
-              onClick={() => setMode("run")}
-            >
-              意味解析
-            </Button>
+            <div className="meaning-actions">
+              <Button
+                variant="outlined"
+                startIcon={<AutoAwesomeOutlined />}
+                onClick={() => setMode("run")}
+              >
+                意味解析
+              </Button>
+              <SemanticMethodInfo />
+            </div>
           </header>
           <GraphView
             workspace={workspace}
