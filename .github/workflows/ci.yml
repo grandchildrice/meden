@@ -39,6 +39,10 @@ jobs:
           sudo apparmor_parser -r /etc/apparmor.d/meden-netlab
           echo 'MEDEN_PAGE_NETWORK_BWRAP=/usr/local/libexec/meden-netlab-bwrap' >> "$GITHUB_ENV"
       - run: cargo fmt --all --check
+      - name: Check the HTTP connection-pool burst regression
+        run: cargo test --manifest-path vendor/tiny_http/Cargo.toml --locked --lib
+        env:
+          CARGO_TARGET_DIR: target/tiny-http-regression
       - run: cargo clippy --workspace --all-targets --all-features -- -D warnings
       - run: cargo test --workspace --all-features
       - uses: actions/upload-artifact@v7

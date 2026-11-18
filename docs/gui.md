@@ -19,6 +19,10 @@ The URL includes a public per-launch query nonce and a separate secret fragment
 token. The nonce makes reopening a restarted host load a new document immediately,
 including its current preview policy; the token is removed from the address bar
 and retained only in the tab's session storage. A launch nonce grants no authority.
+The [local HTTP dependency patch](../vendor/tiny_http/MEDEN.md) counts queued
+connections against idle worker capacity, so concurrent module fetches cannot
+remain queued solely because earlier keep-alive readers stay open. Its scheduler
+regression and the real-browser restart journeys exercise separate layers.
 `--assets DIRECTORY` selects a built GUI from another working directory.
 The browser shows the fixed workspace, exact inference URL and model before
 approval. No inference happens before approval. Revocation/expiry is terminal;
