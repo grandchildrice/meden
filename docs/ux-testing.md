@@ -127,8 +127,12 @@ under `target/gui-checks/`; inspect them when changing layout or copy.
 Native GUI journeys in `native.spec.ts` start the actual `meden gui` binary and
 execute offline file workers against a temporary project. They cover provider
 failure/restart, conversation and unsent-input retention, fresh approval, terminal
-revocation, cancellation before dispatch and gateway boundary checks. Build the
-native binary before `npm run test:gui`; Linux/Bubblewrap are required, and missing
+revocation, cancellation before dispatch and gateway boundary checks. The
+native browser cases also repeat warm-asset host restarts six times and require
+visible controls with fresh, unapproved sessions; browser failures are attached
+to the test evidence. Atlas recovery waits use the compiler deadline rather than
+the short ordinary element expectation.
+Build the native binary before `npm run test:gui`; Linux/Bubblewrap are required, and missing
 prerequisites fail rather than skip these browser tests. Native screenshots include
 `native-restart.png`, `native-cancel.png`, `native-live-graph.png` and
 `native-source-graph.png`. The source-graph journey covers local files, exact-line

@@ -140,6 +140,45 @@ test.describe("native GUI with real offline workers", () => {
     await rm(root, { recursive: true, force: true });
   });
 
+  test("warm browser assets survive repeated host restart with fresh session review", async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(120_000);
+    const failures: string[] = [];
+    page.on("pageerror", (error) => failures.push(error.message));
+    page.on("requestfailed", (request) => {
+      const location = new URL(request.url());
+      failures.push(`${location.pathname}: ${request.failure()?.errorText}`);
+    });
+    try {
+      await page.goto(await start());
+      for (let restart = 0; restart < 6; restart++) {
+        await expect(
+          page.getByRole("tab", { name: "プレビュー", exact: true }),
+        ).toBeVisible();
+        const before = await nativeState(page);
+        expect(before.authorized).toBe(false);
+        await page
+          .getByRole("tab", { name: "プレビュー", exact: true })
+          .click();
+        await expect(page.locator("iframe")).toHaveCount(0);
+        const port = Number(new URL(url).port);
+        await stop();
+        await page.goto(await start(port));
+      }
+      await expect(
+        page.getByRole("tab", { name: "プレビュー", exact: true }),
+      ).toBeVisible();
+      expect((await nativeState(page)).authorized).toBe(false);
+      expect(requests).toHaveLength(0);
+    } finally {
+      await testInfo.attach("restart-browser-failures", {
+        body: JSON.stringify(failures),
+        contentType: "application/json",
+      });
+    }
+  });
+
   test("prepare real Atlas offline, extract elaborated cross-module scope, analyze it and recover from compilation failure", async ({
     page,
   }) => {
@@ -341,7 +380,9 @@ test.describe("native GUI with real offline workers", () => {
       page.getByText("ATLAS-SOURCE-REPAIRED", { exact: true }),
     ).toBeVisible();
     await extract.click();
-    await expect(graph).toContainText("Lean Atlasによるコンパイル後の依存");
+    await expect(graph).toContainText("Lean Atlasによるコンパイル後の依存", {
+      timeout: 60_000,
+    });
     const port = Number(new URL(url).port);
     await stop();
     await page.goto(await start(port));
@@ -352,7 +393,9 @@ test.describe("native GUI with real offline workers", () => {
     await expect(graph).not.toBeVisible();
     await paths.fill("App.lean\nDomain.lean");
     await extract.click();
-    await expect(graph).toContainText("Lean Atlasによるコンパイル後の依存");
+    await expect(graph).toContainText("Lean Atlasによるコンパイル後の依存", {
+      timeout: 60_000,
+    });
     expect(await readFile(resolve(project, "Domain.lean"), "utf8")).toBe(
       domain,
     );
