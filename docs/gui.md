@@ -15,10 +15,6 @@ cargo build -p meden-cli
 Use `meden providers` to list existing host connections, or supply
 `--base-url URL --model MODEL --api-key-env NAME`. Open the exact URL printed by
 the command (default port 4322, `--port 0` selects an available port).
-The URL includes a public per-launch query nonce and a separate secret fragment
-token. The nonce makes reopening a restarted host load a new document immediately,
-including its current preview policy; the token is removed from the address bar
-and retained only in the tab's session storage. A launch nonce grants no authority.
 The [local HTTP dependency patch](../vendor/tiny_http/MEDEN.md) counts queued
 connections against idle worker capacity, so concurrent module fetches cannot
 remain queued solely because earlier keep-alive readers stay open. Its scheduler

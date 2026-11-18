@@ -153,8 +153,6 @@ test.describe("native GUI with real offline workers", () => {
     try {
       await page.goto(await start());
       for (let restart = 0; restart < 6; restart++) {
-        const launch = new URL(url).searchParams.get("launch");
-        expect(launch).toMatch(/^[0-9a-f]{32}$/);
         await expect(
           page.getByRole("tab", { name: "プレビュー", exact: true }),
         ).toBeVisible();
@@ -167,7 +165,6 @@ test.describe("native GUI with real offline workers", () => {
         const port = Number(new URL(url).port);
         await stop();
         await page.goto(await start(port));
-        expect(new URL(url).searchParams.get("launch")).not.toBe(launch);
       }
       await expect(
         page.getByRole("tab", { name: "プレビュー", exact: true }),
