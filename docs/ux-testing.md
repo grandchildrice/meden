@@ -113,6 +113,25 @@ with broken code. That protects the driver from stale controls; it is not live
 inference evidence. A real cloud run is not local-model or confidentiality evidence.
 No live requests or model performance claims are part of the fast gate.
 
+The separate reviewed-repair smoke uses the public TUI, preserves the original
+requirement and runs independent Rust boundary tests in an offline copy:
+
+```bash
+uv run --project python --group dev python -m meden_checks.meaning_smoke \
+  --binary target/release/meden --provider YOUR_PROVIDER --model YOUR_MODEL \
+  --verifier-bundle /absolute/path/to/installed/bundle.json \
+  --out /tmp/meden-live-repair.json
+```
+
+The bundle is an explicit installed prerequisite. This driver creates an empty
+conversation/analysis store; it does not count that as a cold verifier install.
+It records real model assessments separately from independent program behavior.
+`test_meaning_smoke.py` exercises the driver with long synthetic explanations,
+including a model that claims a match after writing the wrong boundary. The
+actual Rust check must still reject that run. TUI host outcomes remain at the
+end of long analysis/repair messages so they cannot scroll out of the completed
+viewport. Scripted replies are not live quality evidence.
+
 ## GUI journeys
 
 The TypeScript/Vite GUI has its own public browser gate: `npm run test:gui`.

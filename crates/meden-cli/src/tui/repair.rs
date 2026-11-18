@@ -80,7 +80,7 @@ pub(super) fn execute(
                     let _ = tx.send(Update::Analysis(Box::new(record.clone())));
                 })?;
                 let text = format!(
-                    "Repair applied and reanalyzed. Proof evidence requires a fresh check.\n{}",
+                    "{}\nRepair applied and reanalyzed. Proof evidence requires a fresh check.",
                     record.summary()
                 );
                 tx.send(Update::RepairApplied(Box::new((snapshot, record))))?;

@@ -67,6 +67,15 @@ impl Record {
         if let Some(error) = &self.error {
             let _ = write!(text, "\nStopped: {error}");
         }
+        // Long model explanations must not scroll the host outcome out of view.
+        let _ = write!(text, "\nResult: {:?} · {}", self.state, self.id);
+        if let Some(assessment) = &self.assessment {
+            let _ = write!(
+                text,
+                "\nCandidate {:?} · candidate assessment, not proof",
+                assessment.verdict
+            );
+        }
         text
     }
     fn save(&self, root: &Path) -> Result<()> {
