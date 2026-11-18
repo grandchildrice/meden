@@ -77,11 +77,13 @@ npm ci
 npm run dev
 ```
 
-Open `http://127.0.0.1:4320`. Create/import a workspace or open the labeled sample.
-The GUI supports conversation drafts, radial dependency inspection, requirement
-comparison and scoped review-request exports. It currently saves in the browser;
-the Rust agent/Lean gateway is not connected yet. The TUI above remains the entry
-for actual agent execution and verification.
+Open `http://127.0.0.1:4320` and send an instruction. Conversation titles are
+automatic, the left sidebar is chat history, and proof/dependencies/preview open
+in a right panel. The default vending-machine example includes meden-demo's
+actual code, 13 visible messages and 8 archived pure-step proof results.
+Conversations save in this browser. New responses are a GUI demo; the native
+agent/Lean gateway is not connected. Use the TUI for actual agent execution
+and verification.
 
 [GUI development and checks](docs/gui.md) ·
 [Shared contracts and strategy implementation map](docs/architecture/semantic-workspace.md)

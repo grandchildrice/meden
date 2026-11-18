@@ -10,9 +10,9 @@ boundaries while using TypeScript/Vite, as requested, in place of its Next.js SP
 apps/
   web/                        React/TypeScript/Vite application
     src/app/                  shell, Material theme, layout
-    src/features/             chat, graph, analysis, review
+    src/features/             chat, artifacts, demo, graph, analysis, review
     src/adapters/             browser persistence, validated files
-    src/fixtures/             explicitly selected sample
+    src/fixtures/             recorded meden-demo snapshot + optional sample
     e2e/                      public browser journeys + accessibility
 packages/
   workspace-schema/           Zod workspace, evidence, revisions and statuses
@@ -20,7 +20,7 @@ packages/
   atlas-adapter/              Atlas import, dependency scope, radial coordinates
   expert-review/              target binding and minimal review package
 schemas/                      generated JSON Schema for non-TypeScript adapters
-tools/gui/                    reproducible schema generation
+tools/gui/                    schema generation + whitelisted demo capture
 crates/                       existing Rust controller, workers, TUI and protocol
 verification/                 existing Lean specifications/refinement tooling
 python/                       existing adapter/UX checks
@@ -71,6 +71,29 @@ sharing and a reviewer service are not implemented.
 Generated JSON Schema describes structural fields; the Zod reference/freshness
 checks also run in TypeScript. Future Rust/Python adapters must implement those
 cross-reference checks too. Generated schemas do not establish authorization.
+
+## Chat and recorded-demo adapter
+
+The shell owns conversation selection and persistence; the left sidebar lists
+conversations across stored workspaces. The central assistant-ui composer sends
+instructions without a title form. New titles derive from the first instruction.
+A right artifact panel owns preview/proof/graph/comparison/code tabs, reachable
+from upper-right icons and opened automatically on send.
+
+`fixtures/meden-demo` projects actual whitelisted source files, accepted contract,
+matching retained verification report and the 13-message visible transcript into
+a workspace with `origin: replay`. Messages distinguish `recorded` from new
+`demo` responses. The capture verifies the current Rust kernel's SHA-256 against
+the report. The graph projects selected Lean declaration references; it does not
+run Atlas. Archived proof records remain version-bound and become stale after
+requirement edits. Demo comparison remains pending/unclear. The interactive
+preview mirrors the pure transition with BigInt and has ordinary unit coverage;
+it is not newly extracted or formally verified code.
+
+No agent-client call is made by the demo response adapter. Native control,
+accepted meaning, evidence admission and effect authorization stay with Rust.
+The browser repository and demo responder can be replaced behind the established
+ports once the gateway is implemented. [GUI provenance and layout references](../gui.md).
 
 ## Technology map and next adapters
 

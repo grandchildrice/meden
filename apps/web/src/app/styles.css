@@ -1,510 +1,3 @@
-:root {
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  color-scheme: light;
-  --line: #dee5e8;
-  --muted: #58656d;
-  --primary: #285d64;
-  --sidebar: 240px;
-}
-* {
-  box-sizing: border-box;
-}
-body {
-  margin: 0;
-}
-button,
-input,
-textarea {
-  font: inherit;
-}
-button {
-  cursor: pointer;
-}
-button:disabled {
-  cursor: default;
-}
-button:focus-visible,
-a:focus-visible {
-  outline: 3px solid #487dcb;
-  outline-offset: 3px;
-}
-pre,
-code {
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-}
-pre {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-button svg {
-  flex-shrink: 0;
-}
-.app-shell {
-  display: flex;
-  height: 100dvh;
-  min-height: 520px;
-  overflow: hidden;
-}
-.skip-link {
-  position: fixed;
-  top: -64px;
-  left: 16px;
-  z-index: 1500;
-  padding: 12px 24px;
-  background: #fff;
-  color: #16434a;
-  border: 2px solid #285d64;
-  border-radius: 8px;
-}
-.skip-link:focus {
-  top: 12px;
-}
-.desktop-sidebar {
-  width: var(--sidebar);
-  flex-shrink: 0;
-  background: #f0f4f5;
-  border-right: 1px solid var(--line);
-}
-.sidebar-content {
-  height: 100%;
-  padding: 24px 16px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.brand {
-  height: 32px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 16px;
-  font-size: 23px;
-  font-weight: 550;
-  letter-spacing: -0.7px;
-  color: #223a41;
-  margin-bottom: 12px;
-}
-.workspace-picker.MuiButton-root {
-  border-color: #c8d2d7;
-  color: #263d45;
-  justify-content: flex-start;
-  padding-inline: 12px;
-  background: #fff;
-  max-width: 100%;
-  min-height: 48px;
-  font-size: 13px;
-  border-radius: 12px;
-}
-.workspace-picker .MuiButton-endIcon {
-  margin-left: auto;
-}
-.workspace-picker .MuiButton-startIcon {
-  margin-right: 8px;
-}
-.new-conversation.MuiButton-root {
-  align-self: flex-start;
-  min-height: 48px;
-  padding-inline: 18px;
-}
-.sidebar-content nav {
-  margin-top: 8px;
-}
-.sidebar-content .MuiListItemIcon-root {
-  min-width: 40px;
-  color: inherit;
-}
-.sidebar-content .MuiListItemText-primary {
-  font-size: 14px;
-  font-weight: 500;
-}
-.sidebar-content nav .MuiListItemButton-root {
-  margin-bottom: 4px;
-}
-.conversation-history {
-  margin-top: 12px;
-  min-height: 0;
-  overflow: auto;
-}
-.conversation-history > .MuiTypography-root {
-  display: block;
-  padding: 0 16px 8px;
-}
-.history-item {
-  display: block;
-  width: 100%;
-  text-align: left;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  padding: 12px 16px;
-  color: #4a5b64;
-  font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.history-item:hover,
-.history-item.active {
-  background: #e4ebee;
-}
-.sidebar-bottom {
-  margin-top: auto;
-  padding-top: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-}
-.sidebar-bottom > .MuiTypography-root {
-  padding-left: 16px;
-  font-size: 11px;
-}
-.main-column {
-  min-width: 0;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: #fff;
-}
-.app-bar.MuiAppBar-root {
-  border-bottom: 1px solid var(--line);
-  background: #fff;
-  color: #1c252b;
-}
-.app-toolbar.MuiToolbar-root {
-  min-height: 64px;
-  padding: 0 24px;
-  gap: 16px;
-}
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  min-width: 0;
-  font-size: 13px;
-  color: #657580;
-}
-.breadcrumb > span:first-child {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  max-width: 260px;
-}
-.breadcrumb .MuiTypography-root {
-  white-space: nowrap;
-  font-size: 13px;
-  color: #293c45;
-}
-.toolbar-actions {
-  margin-left: auto;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-.connection-status.MuiButton-root {
-  font-size: 12px;
-  min-height: 40px;
-  padding-inline: 12px;
-}
-.connection-dot {
-  width: 6px;
-  height: 6px;
-  background: #82939c;
-  border-radius: 50%;
-  margin-right: 8px;
-}
-.mobile-menu.MuiIconButton-root {
-  display: none;
-}
-.main-content {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  outline: none;
-  overflow: hidden;
-}
-.workspace-notice {
-  background: #f5f7f8;
-  border-bottom: 1px solid #e6ecef;
-  padding: 7px 24px;
-  color: #596a74;
-  font-size: 12px;
-  min-height: 32px;
-}
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex: 1;
-}
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  flex: 1;
-  padding: 48px 24px;
-  gap: 12px;
-  min-height: 220px;
-}
-.empty-state > .MuiTypography-root {
-  max-width: 460px;
-}
-.empty-icon {
-  display: grid;
-  place-items: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 20px;
-  background: #eef4f5;
-  color: #536f7a;
-  margin-bottom: 8px;
-}
-.empty-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 16px;
-}
-.page-heading {
-  padding: 24px 32px;
-  min-height: 104px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 24px;
-  border-bottom: 1px solid var(--line);
-}
-.page-heading .MuiTypography-h1 {
-  margin-bottom: 6px;
-}
-.status-chip.positive.MuiChip-root {
-  background: #e9f3ed;
-  color: #2c634a;
-}
-.status-chip.attention.MuiChip-root {
-  background: #fff2d9;
-  color: #875b18;
-}
-.status-chip.negative.MuiChip-root {
-  background: #fcece8;
-  color: #9d3027;
-}
-.status-chip.neutral.MuiChip-root {
-  background: #eef1f4;
-  color: #596a76;
-}
-.status-chip .MuiChip-icon {
-  color: inherit;
-  font-size: 15px;
-  margin-left: 7px;
-}
-.settings-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-.settings-section {
-  margin-top: 28px;
-}
-.settings-section > .MuiTypography-h3 {
-  margin-bottom: 12px;
-}
-.MuiDialogContent-root > .MuiTextField-root {
-  margin-top: 8px;
-}
-.MuiDialogActions-root {
-  padding: 16px 24px !important;
-}
-.muted {
-  color: var(--muted);
-}
-/* Conversation */
-.chat-layout {
-  flex: 1;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-}
-.chat-panel {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  min-width: 0;
-}
-.chat-panel .page-heading {
-  display: block;
-  border-bottom: 0;
-  padding-bottom: 16px;
-}
-.chat-panel .MuiTypography-h1 {
-  font-size: 22px;
-}
-.thread {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  max-width: 920px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 32px 24px;
-}
-.transcript {
-  overflow-y: auto;
-  min-height: 0;
-  flex: 1;
-  padding: 16px 0;
-  scrollbar-width: thin;
-  scrollbar-gutter: stable;
-}
-.chat-empty {
-  height: 100%;
-  min-height: 160px;
-  display: grid;
-  place-items: center;
-}
-.message {
-  max-width: 95%;
-  margin-bottom: 24px;
-  font-size: 15px;
-  line-height: 1.85;
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
-}
-.user-message {
-  padding: 20px 24px;
-  background: #f3f6f7;
-  border: 1px solid #e7edef;
-  border-radius: 16px;
-}
-.message-label {
-  font-size: 12px;
-  font-weight: 500;
-  color: #40535d;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-.message-label > span {
-  font-weight: 400;
-  color: #53656f;
-}
-.assistant-message {
-  padding: 12px 4px;
-}
-.composer {
-  border: 1px solid #cbd8dd;
-  border-radius: 20px;
-  background: #fff;
-  flex: none;
-  box-shadow: 0 2px 5px #183a4607;
-}
-.composer:focus-within {
-  border-color: #285d64;
-  box-shadow: 0 0 0 1px #285d64;
-}
-.composer-input {
-  display: block;
-  border: 0;
-  resize: none;
-  width: 100%;
-  min-height: 72px;
-  max-height: 180px;
-  outline: none;
-  background: transparent;
-  padding: 20px 20px 8px;
-  line-height: 1.7;
-  font-size: 14px;
-  color: #263b45;
-}
-.composer-input::placeholder {
-  color: #5b707c;
-}
-.composer-actions {
-  padding: 8px 12px 12px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.composer-actions .MuiButton-root {
-  min-height: 40px;
-  font-size: 12px;
-}
-.composer-actions .MuiButton-endIcon svg {
-  font-size: 17px;
-}
-.requirements-panel {
-  border-left: 1px solid var(--line);
-  background: #fbfcfd;
-  padding: 24px 20px;
-  overflow: auto;
-}
-.panel-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 24px;
-}
-.panel-empty {
-  padding: 16px 8px;
-}
-.requirement-summary {
-  padding: 0 0 20px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid var(--line);
-}
-.requirement-summary:last-of-type {
-  margin-bottom: 0;
-  border-bottom: 0;
-}
-.requirement-summary > button {
-  display: block;
-  position: relative;
-  border: 0;
-  background: transparent;
-  padding: 0 24px 8px 0;
-  text-align: left;
-  width: 100%;
-  color: #1c252b;
-  min-height: 48px;
-}
-.requirement-summary > button .MuiTypography-body1 {
-  font-size: 14px;
-  font-weight: 500;
-  margin-top: 5px;
-}
-.requirement-summary > button > svg {
-  position: absolute;
-  right: 0;
-  top: 30px;
-  font-size: 17px;
-  color: #687e88;
-}
-.status-pair {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin: 8px 0;
-}
-.requirement-summary > .MuiButton-root {
-  font-size: 12px;
-  min-height: 36px;
-  padding-left: 0;
-}
-.panel-footnote.MuiTypography-root {
-  display: block;
-  padding-top: 16px;
-  font-size: 11px;
-}
 /* Graph: radial coordinates are owned by the atlas adapter, not the renderer. */
 .graph-page {
   flex: 1;
@@ -1152,76 +645,1034 @@ button svg {
   flex-wrap: wrap;
   margin-top: 28px;
 }
-@media (min-width: 1600px) {
-  .comparison-panel {
-    padding: 32px 48px;
+:root {
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  color-scheme: light;
+  --line: #e4e7eb;
+  --muted: #65707a;
+  --primary: #285d64;
+  --sidebar: 246px;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+button,
+input,
+textarea {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: default;
+}
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #487dcb;
+  outline-offset: 3px;
+}
+pre,
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.app-shell {
+  display: flex;
+  height: 100dvh;
+  min-height: 480px;
+  overflow: hidden;
+}
+.desktop-sidebar {
+  width: var(--sidebar);
+  flex: none;
+  border-right: 1px solid #eef0f2;
+  background: #f7f8fa;
+}
+.sidebar-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 12px;
+  gap: 4px;
+}
+.sidebar-brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  margin: 0 8px 20px;
+}
+.brand {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  font-size: 21px;
+  font-weight: 550;
+  letter-spacing: -0.7px;
+  color: #23343b;
+}
+.sidebar-action.MuiButton-root {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 400;
+  color: #35434a;
+}
+.sidebar-action.MuiButton-root:hover {
+  background: #e9edf0;
+}
+.sidebar-action .MuiButton-startIcon {
+  margin-right: 12px;
+}
+.sidebar-action svg {
+  font-size: 20px;
+}
+.sidebar-content > .MuiTextField-root {
+  margin: 12px 0;
+}
+.conversation-history {
+  min-height: 0;
+  overflow: auto;
+  margin-top: 24px;
+  flex: 1;
+}
+.conversation-history > .MuiTypography-root {
+  display: block;
+  padding: 0 12px 10px;
+  font-size: 12px;
+  color: #596974;
+}
+.history-item {
+  display: block;
+  border: 0;
+  background: transparent;
+  min-height: 42px;
+  width: 100%;
+  padding: 10px 12px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-radius: 8px;
+  color: #37424a;
+  font-size: 13px;
+}
+.history-item:hover {
+  background: #e9edf0;
+}
+.history-item.active {
+  background: #e4eaee;
+  color: #253a43;
+}
+.empty-history {
+  padding: 12px;
+}
+.sidebar-bottom {
+  margin-top: auto;
+  border-top: 1px solid #e5e9ed;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.sidebar-bottom .MuiButton-root {
+  color: #54616a;
+  min-height: 44px;
+  padding-left: 12px;
+  font-size: 13px;
+}
+.sidebar-bottom > .MuiTypography-root {
+  padding-left: 12px;
+  font-size: 11px;
+  margin-top: 8px;
+  color: #64727c;
+}
+.main-column {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  background: #fff;
+}
+.chat-topbar {
+  height: 64px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 22px;
+  border-bottom: 1px solid transparent;
+}
+.model-label.MuiTypography-root {
+  font-size: 18px;
+  font-weight: 500;
+  color: #3b464e;
+}
+.conversation-title.MuiTypography-root {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  line-height: 1.7;
+}
+.toolbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+.toolbar-actions > .MuiTooltip-root {
+  margin-right: 6px;
+}
+.toolbar-actions .MuiIconButton-root {
+  width: 40px;
+  height: 40px;
+  color: #6c7881;
+}
+.toolbar-actions .MuiIconButton-root[aria-pressed="true"] {
+  background: #edf3f4;
+  color: #285d64;
+}
+.toolbar-actions .Mui-disabled {
+  opacity: 0.42;
+}
+.toolbar-actions .MuiChip-root {
+  height: 24px;
+  border-color: #e0e4e8;
+  color: #66727a;
+  margin-right: 10px;
+}
+.toolbar-actions .MuiChip-label {
+  font-size: 11px;
+  padding-inline: 8px;
+}
+.mobile-menu.MuiIconButton-root {
+  display: none;
+}
+.conversation-workbench {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  outline: none;
+}
+.conversation-workbench.with-artifact {
+  display: grid;
+  grid-template-columns: minmax(340px, 1fr) clamp(560px, 49vw, 820px);
+}
+.chat-panel {
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+.thread {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 820px;
+  margin-inline: auto;
+  padding: 0 32px 10px;
+  min-height: 0;
+}
+.chat-home .thread {
+  max-width: 824px;
+  justify-content: center;
+  padding-bottom: 12vh;
+}
+.chat-welcome {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.welcome-mark {
+  display: flex;
+  justify-content: center;
+  color: #314d54;
+  margin-bottom: 20px;
+}
+.chat-welcome .MuiTypography-h1 {
+  font-size: 34px;
+  font-weight: 450;
+  letter-spacing: -0.9px;
+  line-height: 1.4;
+}
+.transcript {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+  padding: 24px 0 32px;
+}
+.message {
+  font-size: 15px;
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+  margin-bottom: 28px;
+}
+.user-message {
+  background: #f2f4f6;
+  border-radius: 20px;
+  padding: 14px 20px;
+  max-width: 85%;
+  margin-left: auto;
+  width: fit-content;
+  white-space: pre-wrap;
+}
+.user-message p {
+  margin: 0;
+}
+.assistant-message {
+  display: flex;
+  gap: 14px;
+  padding: 0 4px;
+}
+.assistant-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex: none;
+  background: #e5edef;
+  color: #355e66;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 3px;
+}
+.assistant-content {
+  min-width: 0;
+  flex: 1;
+}
+.assistant-content p {
+  margin: 0 0 12px;
+}
+.assistant-content p:last-child {
+  margin-bottom: 0;
+}
+.assistant-content ul,
+.assistant-content ol {
+  padding-left: 22px;
+  margin: 8px 0 16px;
+}
+.assistant-content li {
+  margin: 5px 0;
+}
+.assistant-content strong {
+  font-weight: 550;
+}
+.assistant-content pre {
+  padding: 16px;
+  border-radius: 12px;
+  background: #f2f5f7;
+  font-size: 12px;
+  line-height: 1.7;
+  overflow: auto;
+}
+.assistant-content code {
+  font-size: 0.88em;
+  background: #f0f3f5;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.composer {
+  border: 1px solid #dce1e5;
+  box-shadow: 0 2px 10px #1b304008;
+  border-radius: 24px;
+  background: #fff;
+  flex: none;
+  overflow: hidden;
+}
+.composer:focus-within {
+  border-color: #9aaeb9;
+  box-shadow: 0 2px 10px #1b30400d;
+}
+.composer-input {
+  display: block;
+  resize: none;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  width: 100%;
+  min-height: 70px;
+  max-height: 190px;
+  padding: 20px 22px 8px;
+  color: #25333c;
+  font-size: 15px;
+  line-height: 1.8;
+}
+.chat-home .composer-input {
+  min-height: 88px;
+}
+.composer-input::placeholder {
+  color: #596974;
+  opacity: 1;
+}
+.composer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px 12px 20px;
+  gap: 12px;
+}
+.composer-project {
+  font-size: 12px;
+  color: #596974;
+}
+.send-message.MuiIconButton-root {
+  width: 36px;
+  height: 36px;
+  background: #26383f;
+  color: white;
+}
+.send-message.MuiIconButton-root:hover {
+  background: #16292f;
+}
+.send-message.MuiIconButton-root.Mui-disabled {
+  color: #8d989f;
+  background: #edf0f3;
+}
+.composer-caption {
+  text-align: center;
+  font-size: 11px;
+  color: #596974;
+  padding: 10px 0 0;
+  min-height: 28px;
+}
+.starter-prompts {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.starter-prompts .MuiButton-root {
+  border-color: #e0e5e9;
+  color: #53646f;
+  font-size: 12px;
+  min-height: 38px;
+  padding: 8px 16px;
+  font-weight: 400;
+}
+.chat-home .composer-caption {
+  padding-top: 18px;
+}
+.artifact-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid #dce4e8;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 8px 0 24px 46px;
+  min-width: 260px;
+  max-width: calc(100% - 46px);
+  background: #fff;
+  color: #344f5c;
+  text-align: left;
+}
+.artifact-card:hover {
+  background: #f7fafb;
+  border-color: #9db7c2;
+}
+.artifact-card-icon {
+  width: 36px;
+  height: 40px;
+  border: 1px solid #d8e2e7;
+  border-radius: 8px;
+  background: #f7fafb;
+  display: grid;
+  place-items: center;
+  color: #6a8998;
+}
+.artifact-card > span:nth-child(2) {
+  flex: 1;
+}
+.artifact-card strong {
+  display: block;
+  font-weight: 500;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.artifact-card small {
+  display: block;
+  color: #596974;
+  font-size: 11px;
+}
+.reply-activity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #667781;
+  font-size: 12px;
+  padding: 8px 4px 24px;
+}
+.activity-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #628b96;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.artifact-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
+  background: #fff;
+  border-left: 1px solid var(--line);
+}
+.artifact-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #edf0f3;
+  min-height: 76px;
+}
+.artifact-panel-heading .MuiTypography-h2 {
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 3px;
+}
+.artifact-panel-heading .MuiTypography-caption {
+  font-size: 11px;
+}
+.artifact-panel-heading > .MuiIconButton-root {
+  width: 36px;
+  height: 36px;
+}
+.artifact-panel > .MuiTabs-root {
+  border-bottom: 1px solid var(--line);
+  min-height: 48px;
+  flex: none;
+}
+.artifact-panel .MuiTab-root {
+  min-height: 48px;
+  min-width: 80px;
+  font-size: 12px;
+  font-weight: 400;
+  padding-inline: 16px;
+  color: #667782;
+}
+.artifact-panel .MuiTab-root.Mui-selected {
+  color: #265e66;
+  font-weight: 500;
+}
+.artifact-content {
+  min-height: 0;
+  overflow: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.artifact-content > .graph-page,
+.artifact-content > .analysis-page,
+.artifact-content > .review-page {
+  flex: 1;
+  min-height: 0;
+}
+.page-heading {
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 90px;
+  border-bottom: 1px solid var(--line);
+}
+.artifact-panel .page-heading .MuiTypography-h2 {
+  font-size: 18px;
+}
+.artifact-panel .page-heading .MuiTypography-body2 {
+  font-size: 12px;
+  margin-top: 6px;
+}
+.artifact-panel .graph-heading {
+  display: block;
+}
+.artifact-panel .graph-toolbar {
+  display: flex;
+  margin-top: 16px;
+  gap: 12px;
+}
+.artifact-panel .declaration-search {
+  width: auto;
+  flex: 1;
+  min-width: 0;
+}
+.artifact-panel .graph-toolbar .MuiSelect-select {
+  font-size: 12px;
+}
+.artifact-panel .graph-workspace {
+  position: relative;
+  display: flex;
+  min-height: 400px;
+  flex: 1;
+}
+.artifact-panel .graph-canvas {
+  flex: 1;
+  min-height: 400px;
+}
+.artifact-panel .graph-workspace.inspector-closed {
+  display: flex;
+}
+.artifact-panel .declaration-inspector {
+  position: absolute;
+  right: 12px;
+  bottom: 44px;
+  z-index: 6;
+  width: 300px;
+  max-height: 65%;
+  background: #fcfdfe;
+  border: 1px solid #d4e0e7;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px #101c2533;
+  padding: 18px;
+}
+.artifact-panel .declaration-inspector .panel-title {
+  margin-bottom: 16px;
+}
+.artifact-panel .declaration-inspector .MuiTypography-h2 {
+  font-size: 16px;
+}
+.graph-canvas .react-flow {
+  background: #101c25;
+}
+.react-flow__node-declaration {
+  pointer-events: auto !important;
+}
+.radar-node > button {
+  pointer-events: auto;
+}
+.artifact-panel .analysis-workspace {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+.artifact-panel .claim-list {
+  display: flex;
+  flex: none;
+  gap: 8px;
+  overflow: auto;
+  padding: 12px;
+  border-right: 0;
+  border-bottom: 1px solid var(--line);
+}
+.artifact-panel .claim-filter {
+  display: none;
+}
+.artifact-panel .claim-item {
+  width: 190px;
+  min-width: 190px;
+  padding: 12px;
+  min-height: 112px;
+  margin: 0;
+  gap: 8px;
+}
+.artifact-panel .claim-item strong {
+  font-size: 12px;
+}
+.artifact-panel .comparison-panel {
+  overflow: visible;
+  padding: 20px;
+}
+.artifact-panel .comparison-grid {
+  gap: 12px;
+}
+.artifact-panel .comparison-card {
+  padding: 12px;
+  min-height: 190px;
+}
+.artifact-panel .compared-text {
+  font-size: 15px;
+  padding-bottom: 16px;
+}
+.artifact-panel .comparison-card-title {
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.artifact-panel .comparison-heading .MuiTypography-h2 {
+  font-size: 17px;
+}
+.artifact-panel .comparison-card-title .MuiTypography-h3 {
+  font-size: 13px;
+}
+.artifact-panel .comparison-panel .MuiButton-root {
+  font-size: 12px;
+}
+.artifact-panel .analysis-metadata {
+  font-size: 12px;
+}
+.artifact-panel .review-workspace {
+  display: block;
+  overflow: auto;
+}
+.artifact-panel .review-list {
+  display: flex;
+  gap: 8px;
+  border-right: 0;
+  border-bottom: 1px solid var(--line);
+  overflow: auto;
+  align-items: center;
+  padding: 12px;
+}
+.artifact-panel .review-list > .MuiTypography-root {
+  margin: 0;
+  min-width: 80px;
+}
+.artifact-panel .review-list-item {
+  min-width: 180px;
+  min-height: 68px;
+  padding: 8px;
+}
+.artifact-panel .review-form {
+  overflow: visible;
+  padding: 24px;
+}
+.artifact-panel .review-form-header {
+  margin-bottom: 20px;
+}
+.proof-overview {
+  padding: 24px;
+}
+.proof-overview-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.proof-overview-title .MuiTypography-h2 {
+  font-size: 20px;
+  margin-bottom: 5px;
+}
+.proof-list {
+  border-top: 1px solid #edf0f3;
+}
+.proof-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #edf0f3;
+  padding: 16px 0;
+}
+.proof-item > div:first-child {
+  min-width: 0;
+  flex: 1;
+}
+.proof-item .MuiTypography-body1 {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.proof-item code {
+  font-size: 10px;
+  color: #596974;
+}
+.proof-item > .MuiIconButton-root {
+  width: 36px;
+  height: 36px;
+  color: #738b98;
+}
+.proof-scope {
+  padding: 20px 0;
+  color: #506570;
+}
+.proof-scope .MuiTypography-h3 {
+  font-size: 13px;
+  margin-bottom: 8px;
+  color: #2b454f;
+}
+.proof-scope .MuiTypography-body2 {
+  font-size: 12px;
+  line-height: 1.8;
+}
+.proof-scope details {
+  font-size: 12px;
+  margin-top: 20px;
+}
+.proof-scope summary {
+  padding: 6px 0;
+  cursor: pointer;
+}
+.proof-scope details code {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 10px;
+  margin-top: 12px;
+}
+.proof-overview > .MuiButton-root {
+  padding-left: 0;
+  font-size: 12px;
+}
+.source-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.source-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.source-toolbar .MuiSelect-select {
+  font-family: monospace;
+  font-size: 12px;
+}
+.source-code {
+  overflow: auto;
+  flex: 1;
+  background: #f8fafc;
+  color: #334e5d;
+  font-size: 12px;
+  line-height: 1.85;
+  padding: 24px;
+  margin: 0;
+  white-space: pre;
+  tab-size: 4;
+}
+.vending-preview {
+  width: 100%;
+  max-width: 480px;
+  align-self: center;
+  padding: 32px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.preview-heading {
+  margin-bottom: 4px;
+}
+.preview-heading .MuiTypography-h2 {
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+.preview-heading .MuiTypography-body2 {
+  font-size: 12px;
+}
+.vending-product {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #dce5ea;
+  border-radius: 18px;
+  padding: 28px;
+  background: #f7fafb;
+}
+.drink-icon {
+  background: #e4eef1;
+  border-radius: 50%;
+  width: 84px;
+  height: 84px;
+  display: grid;
+  place-items: center;
+  color: #486d7c;
+  margin-bottom: 8px;
+}
+.drink-icon svg {
+  font-size: 42px;
+}
+.vending-product > .MuiTypography-root {
+  font-size: 13px;
+  color: #5f7782;
+}
+.vending-product > strong {
+  font-size: 30px;
+  font-weight: 450;
+  color: #264653;
+}
+.vending-product > strong > span {
+  font-size: 13px;
+  margin-left: 6px;
+}
+.stock-count {
+  font-size: 12px;
+  color: #526c77;
+  margin-top: 4px;
+}
+.vending-balance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+.vending-balance > span {
+  font-size: 14px;
+  color: #506976;
+}
+.vending-balance > strong {
+  font-size: 32px;
+  font-weight: 400;
+  color: #2f5565;
+}
+.vending-balance small {
+  font-size: 12px;
+  margin-left: 6px;
+}
+.insert-row {
+  display: flex;
+  gap: 12px;
+}
+.insert-row > .MuiFormControl-root {
+  flex: 1;
+}
+.insert-row > .MuiButton-root {
+  border-radius: 10px;
+  min-width: 88px;
+}
+.vending-actions {
+  display: flex;
+  gap: 12px;
+}
+.vending-actions > .MuiButton-root {
+  flex: 1;
+  border-radius: 10px;
+}
+.vending-preview > .MuiTypography-caption {
+  line-height: 1.8;
+  font-size: 11px;
+}
+.vending-preview > .MuiButton-root {
+  align-self: center;
+  font-size: 12px;
+}
+.status-chip.positive.MuiChip-root {
+  background: #e9f3ed;
+  color: #2c634a;
+}
+.status-chip.attention.MuiChip-root {
+  background: #fff2d9;
+  color: #875b18;
+}
+.status-chip.negative.MuiChip-root {
+  background: #fcece8;
+  color: #9d3027;
+}
+.status-chip.neutral.MuiChip-root {
+  background: #eef1f4;
+  color: #596a76;
+}
+.status-chip .MuiChip-icon {
+  color: inherit;
+  font-size: 15px;
+  margin-left: 7px;
+}
+.panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.muted {
+  color: var(--muted);
+}
+.panel-empty {
+  padding: 24px;
+}
+.loading {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+}
+.empty-state {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px;
+  gap: 12px;
+}
+.skip-link {
+  position: fixed;
+  top: -80px;
+  left: 12px;
+  z-index: 1500;
+  background: white;
+  padding: 12px 20px;
+  border: 2px solid #285d64;
+  border-radius: 8px;
+  color: #285d64;
+}
+.skip-link:focus {
+  top: 12px;
+}
+.MuiDialogActions-root {
+  padding: 16px 24px !important;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.4;
   }
-  .compared-text {
-    font-size: 22px;
-  }
-  .comparison-card {
-    min-height: 260px;
-  }
-  .page-heading {
-    padding-inline: 40px;
+  50% {
+    opacity: 1;
   }
 }
-@media (max-width: 1199px) {
-  :root {
-    --sidebar: 208px;
-  }
-  .sidebar-content {
-    padding-inline: 12px;
-  }
-  .brand {
-    padding-left: 12px;
-  }
-  .chat-layout {
-    grid-template-columns: minmax(0, 1fr) 272px;
-  }
-  .requirements-panel {
-    padding-inline: 16px;
-  }
-  .graph-workspace {
-    grid-template-columns: minmax(0, 1fr) 280px;
-  }
-  .graph-toolbar {
-    gap: 8px;
-  }
-  .declaration-search {
-    width: 200px;
-  }
-  .graph-heading {
-    padding-inline: 24px;
-    gap: 16px;
-  }
-  .graph-toolbar .MuiSelect-select {
-    font-size: 12px;
-  }
-  .declaration-inspector {
-    padding: 20px;
-  }
-  .analysis-workspace,
-  .review-workspace {
-    grid-template-columns: 216px minmax(0, 1fr);
-  }
-  .comparison-panel {
-    padding: 24px;
-  }
-  .comparison-grid {
-    gap: 12px;
-  }
-  .comparison-card {
-    padding: 12px 16px;
-  }
-  .compared-text {
-    font-size: 17px;
-  }
-  .review-form {
-    padding-inline: 28px;
+@media (min-width: 1700px) {
+  .conversation-workbench.with-artifact {
+    grid-template-columns: minmax(480px, 1fr) clamp(660px, 46vw, 960px);
   }
   .thread {
-    padding-inline: 24px;
+    padding-inline: 44px;
+  }
+}
+@media (max-width: 1250px) {
+  .conversation-workbench.with-artifact {
+    grid-template-columns: minmax(310px, 1fr) 560px;
+  }
+  .with-artifact .thread {
+    padding-inline: 22px;
+  }
+  .toolbar-actions .MuiIconButton-root {
+    width: 36px;
+  }
+  .user-message {
+    max-width: 92%;
+  }
+}
+@media (max-width: 1140px) {
+  .conversation-workbench.with-artifact {
+    display: flex;
+  }
+  .artifact-panel {
+    border-left: 0;
+  }
+  .chat-topbar {
+    padding-inline: 20px;
+  }
+  .thread {
+    max-width: 780px;
   }
 }
 @media (max-width: 839px) {
@@ -1231,291 +1682,165 @@ button svg {
   .mobile-menu.MuiIconButton-root {
     display: inline-flex;
   }
-  .app-toolbar.MuiToolbar-root {
-    padding-inline: 12px;
+  .chat-topbar {
+    height: 60px;
+    padding-inline: 10px;
     gap: 8px;
   }
-  .app-toolbar .toolbar-actions {
+  .conversation-title.MuiTypography-root {
+    font-size: 13px;
+  }
+  .toolbar-actions {
     gap: 0;
   }
-  .breadcrumb {
-    gap: 8px;
+  .toolbar-actions .MuiChip-root {
+    margin-right: 4px;
   }
-  .page-heading {
-    padding: 20px 24px;
-  }
-  .graph-toolbar {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-  .declaration-search {
-    width: 190px;
-  }
-  .graph-workspace {
-    grid-template-columns: minmax(0, 1fr) 280px;
-  }
-  .graph-legend .edge-legend {
-    display: none;
-  }
-  .chat-layout {
-    grid-template-columns: minmax(0, 1fr) 264px;
-  }
-  .comparison-panel {
-    padding: 20px;
-  }
-  .analysis-workspace,
-  .review-workspace {
-    grid-template-columns: 192px minmax(0, 1fr);
-  }
-  .comparison-grid {
-    grid-template-columns: 1fr;
-  }
-  .comparison-card {
-    min-height: 160px;
-  }
-  .compared-text {
-    padding-bottom: 20px;
-  }
-  .comparison-heading {
-    gap: 12px;
-    align-items: flex-start;
-  }
-  .comparison-heading .MuiTypography-h2 {
-    font-size: 18px;
-  }
-  .review-form {
+  .thread {
     padding-inline: 24px;
   }
-  .review-actions {
-    flex-direction: column;
+  .chat-home .thread {
+    padding-bottom: 10vh;
   }
-  .review-form > .MuiTypography-body2 {
-    font-size: 12px;
+  .chat-welcome .MuiTypography-h1 {
+    font-size: 32px;
+  }
+  .sidebar-brand-row .MuiIconButton-root {
+    width: 36px;
+    height: 36px;
   }
 }
 @media (max-width: 599px) {
   .app-shell {
-    min-height: 440px;
+    min-height: 420px;
   }
-  .app-toolbar.MuiToolbar-root {
-    min-height: 60px;
+  .chat-topbar {
+    height: 56px;
   }
-  .breadcrumb > span:first-child {
-    display: none;
-  }
-  .breadcrumb > span:nth-child(2) {
-    display: none;
-  }
-  .toolbar-actions .connection-status {
-    min-width: 0;
-    padding-inline: 8px;
+  .toolbar-actions .MuiIconButton-root {
+    width: 32px;
+    height: 36px;
   }
   .toolbar-actions .MuiChip-root {
-    font-size: 10px;
-    height: 24px;
+    display: none;
   }
-  .toolbar-actions .MuiChip-label {
+  .toolbar-actions svg {
+    font-size: 18px;
+  }
+  .conversation-title.MuiTypography-root {
+    max-width: 145px;
+  }
+  .thread {
+    padding: 0 16px 8px;
+  }
+  .chat-home .thread {
+    padding-bottom: 10vh;
+  }
+  .chat-welcome {
+    margin-bottom: 24px;
+  }
+  .chat-welcome .MuiTypography-h1 {
+    font-size: 28px;
+  }
+  .welcome-mark {
+    margin-bottom: 16px;
+  }
+  .composer-input {
+    font-size: 14px;
+    padding: 16px 18px 4px;
+  }
+  .chat-home .composer-input {
+    min-height: 100px;
+  }
+  .composer-actions {
+    padding-left: 18px;
+  }
+  .starter-prompts {
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .starter-prompts .MuiButton-root {
+    font-size: 11px;
+    padding-inline: 12px;
+    min-height: 36px;
+  }
+  .composer-caption {
+    font-size: 10px;
+  }
+  .message {
+    font-size: 14px;
+  }
+  .assistant-message {
+    gap: 10px;
+  }
+  .assistant-avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+  .user-message {
+    max-width: 92%;
+    padding: 12px 16px;
+  }
+  .artifact-card {
+    margin-left: 34px;
+    max-width: calc(100% - 34px);
+    min-width: 230px;
+    padding: 12px;
+  }
+  .artifact-panel-heading {
+    padding: 14px 16px;
+    min-height: 68px;
+  }
+  .artifact-panel .MuiTab-root {
+    min-width: 72px;
+    padding-inline: 12px;
+    font-size: 12px;
+  }
+  .vending-preview {
+    padding: 24px;
+  }
+  .proof-overview {
+    padding: 20px;
+  }
+  .proof-item .MuiTypography-body1 {
+    font-size: 12px;
+  }
+  .proof-item .MuiChip-label {
     font-size: 10px;
     padding-inline: 6px;
   }
-  .toolbar-actions .MuiIconButton-root {
-    width: 40px;
+  .proof-item > .MuiIconButton-root {
+    width: 32px;
   }
-  .workspace-notice {
-    padding-inline: 16px;
-    font-size: 11px;
-    line-height: 1.6;
+  .artifact-panel .comparison-grid {
+    grid-template-columns: 1fr;
   }
-  .page-heading {
-    padding: 20px 16px;
-    gap: 12px;
-    min-height: 96px;
+  .artifact-panel .graph-toolbar {
+    flex-wrap: wrap;
   }
-  .page-heading .MuiTypography-h1 {
-    font-size: 22px;
-  }
-  .page-heading .MuiTypography-body2 {
-    font-size: 12px;
-  }
-  .chat-layout {
-    display: flex;
-    flex-direction: column;
-    overflow: auto;
-  }
-  .chat-panel {
-    flex: 1;
-    min-height: 440px;
-  }
-  .thread {
-    padding: 0 16px 16px;
-  }
-  .message {
-    max-width: 100%;
-    font-size: 14px;
-  }
-  .composer-actions .MuiTypography-root {
-    font-size: 10px;
-  }
-  .composer-actions .MuiButton-root {
-    padding-inline: 12px;
-  }
-  .composer-actions {
-    padding-left: 16px;
-    gap: 4px;
-  }
-  .requirements-panel {
-    border-left: 0;
-    border-top: 1px solid var(--line);
-    overflow: visible;
-    padding: 20px 16px;
-  }
-  .chat-panel .page-heading {
-    padding-top: 20px;
-  }
-  .transcript {
-    min-height: 100px;
-  }
-  .graph-heading {
-    display: block;
-  }
-  .graph-toolbar {
-    justify-content: stretch;
-    margin-top: 20px;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-  .declaration-search {
-    width: auto;
-  }
-  .graph-toolbar .MuiFormControl-root {
-    min-width: 0;
-  }
-  .graph-toolbar .MuiSelect-select {
-    padding-right: 28px;
-  }
-  .graph-workspace {
-    display: flex;
-    flex-direction: column;
-    overflow: auto;
-  }
-  .graph-canvas {
-    min-height: 400px;
-    flex: none;
-    height: 54dvh;
-  }
-  .graph-workspace.inspector-closed .graph-canvas {
-    flex: 1;
-  }
-  .declaration-inspector {
-    border-left: 0;
-    border-top: 1px solid var(--line);
-    overflow: visible;
-  }
-  .canvas-toolbar {
-    left: 8px;
-    right: 8px;
-  }
-  .canvas-toolbar > code {
-    font-size: 10px;
-  }
-  .canvas-toolbar > .MuiButton-root {
-    padding-inline: 8px;
-    min-width: 0;
-  }
-  .graph-legend {
-    font-size: 10px;
-    gap: 12px;
-  }
-  .analysis-workspace,
-  .review-workspace {
-    display: flex;
-    flex-direction: column;
-    overflow: auto;
-  }
-  .claim-list {
-    display: flex;
-    flex: none;
-    overflow-x: auto;
-    padding: 12px;
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-    gap: 8px;
-  }
-  .claim-filter {
-    display: none;
-  }
-  .claim-item {
-    width: 190px;
-    min-width: 190px;
-    min-height: 112px;
-    padding: 12px;
-    margin-bottom: 0;
-    gap: 8px;
-  }
-  .claim-item strong {
-    font-size: 12px;
-  }
-  .claim-item .MuiChip-root {
-    height: 24px;
-  }
-  .comparison-panel {
-    overflow: visible;
-    padding: 24px 16px;
-  }
-  .comparison-card {
-    min-height: 180px;
-  }
-  .comparison-heading {
-    margin-bottom: 20px;
-  }
-  .compared-text {
-    font-size: 18px;
-  }
-  .comparison-footer {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .review-list {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    overflow: auto;
-    flex: none;
-    padding: 12px 16px;
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-  .review-list > .MuiTypography-root {
-    margin: 0;
-    min-width: 60px;
-  }
-  .review-list-item {
+  .artifact-panel .declaration-search {
     min-width: 180px;
-    min-height: 68px;
-    padding: 8px 12px;
   }
-  .review-form {
-    overflow: visible;
-    padding: 24px 16px;
+  .artifact-panel .declaration-inspector {
+    max-width: calc(100% - 24px);
+    width: 300px;
   }
-  .review-form-header {
-    margin-bottom: 24px;
+  .artifact-panel .comparison-panel {
+    padding: 16px;
   }
-  .review-actions {
-    flex-direction: row;
+  .artifact-panel .graph-canvas {
+    min-height: 420px;
   }
-  .review-page > .page-heading > .MuiButton-root {
-    min-width: 0;
-    white-space: nowrap;
-    padding-inline: 12px;
-    font-size: 12px;
+  .artifact-panel .graph-legend .edge-legend {
+    display: none;
   }
   .metadata {
     grid-template-columns: 88px minmax(0, 1fr);
-    gap: 12px;
   }
-  .empty-state {
-    padding-inline: 20px;
+  .artifact-panel .comparison-footer {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1528,26 +1853,14 @@ button svg {
   }
 }
 
-.react-flow__node-declaration {
-  pointer-events: auto !important;
-}
-.radar-node > button {
-  pointer-events: auto;
-}
-
-.graph-canvas .react-flow {
-  background: #101c25;
-}
-
-.workspace-name {
-  min-width: 0;
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
   overflow: hidden;
+  clip-path: inset(50%);
   white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.chat-panel .page-heading h1 {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
+  border: 0;
 }

@@ -25,7 +25,7 @@ export default defineConfig({
     ],
   ],
   use: {
-    baseURL: "http://127.0.0.1:4320",
+    baseURL: "http://127.0.0.1:4321",
     viewport: { width: 1440, height: 960 },
     reducedMotion: "reduce",
     screenshot: "only-on-failure",
@@ -33,10 +33,11 @@ export default defineConfig({
     launchOptions: { executablePath: chrome, args: ["--no-sandbox"] },
   },
   webServer: {
-    command: "npm run dev",
+    command:
+      "npm run build && npm run preview --workspace @meden/web -- --port 4321",
     cwd: fileURLToPath(new URL("../..", import.meta.url)),
-    url: "http://127.0.0.1:4320",
-    reuseExistingServer: !process.env.CI,
-    timeout: 30_000,
+    url: "http://127.0.0.1:4321",
+    reuseExistingServer: false,
+    timeout: 60_000,
   },
 });

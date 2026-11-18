@@ -1,22 +1,51 @@
 {
   "date": "2026-11-18",
-  "scope": "TypeScript/Vite GUI and shared contracts; no Rust implementation changes",
+  "scope": "Chat-first TypeScript/Vite GUI with recorded meden-demo example; no Rust implementation changes",
   "checks": {
     "typecheck": "passed",
     "format": "passed",
     "production_build": "passed",
-    "domain_tests": 14,
-    "browser_journeys_and_accessibility": 9,
+    "schema_generation": "passed",
+    "domain_tests": 18,
+    "browser_journeys_and_accessibility": 11,
     "public_tui_ux": 19,
-    "tui_inference": "scripted fixtures; not live model validation",
-    "axe_scope": "four desktop workspace views and settings dialog; automated WCAG 2.1 AA checks"
+    "tui_inference": "scripted fixtures; no live-model validation",
+    "tui_screens_reviewed": [
+      "tool failure and correction",
+      "provider limit and resumed conversation",
+      "local setup and restored conversation"
+    ],
+    "axe_scope": "home, recorded conversation, and proof/dependencies/comparison/preview/code tabs; automated WCAG 2.1 AA checks",
+    "responsive_widths": [
+      1440,
+      1120,
+      390
+    ],
+    "failure_and_restart": [
+      "unsent input survives reload",
+      "sent conversation persists",
+      "requirement edits stale proof/analysis across reload",
+      "invalid import preserves current chat",
+      "storage failure retains conversation and retry persists it"
+    ]
+  },
+  "recorded_example": {
+    "project": "meden-demo",
+    "kernel_sha256": "c14e1efc673ef51eae41ac0b435a7233abb005092d48119c965595f780c2ff83",
+    "visible_messages": 13,
+    "archived_pure_step_properties": 8,
+    "graph": "authored declaration-reference projection from retained Lean sources, not new Atlas execution",
+    "comparison": "pending demo; no independent analyzer output",
+    "preview": "TypeScript BigInt mirror, not new Rust or Lean execution"
   },
   "screenshots": {
-    "analysis.png": "64bc4fb490844d29d695c707f78d9a163a918aea42e60db7d4359d0888248466",
-    "chat.png": "1533a0cf972b555debba25fef837339b0f69e013d615ffb445f8acddf6fd6f6a",
-    "compact-review.png": "24b81eaa213c0bdbbad67a777bba23dfecfbb1e9004362d67df2d1911d84756f",
-    "graph.png": "28084597eb7951b4ad180561a1e846a30ad3149d46310b0834a8e45a7f435323",
-    "review.png": "4a0859a6cca4cb5cf3a40fea76cfadee9e323870750782875544329ab4d5163e"
+    "home.png": "364dbd4515bc6b0fd28a7e2f46fb8159fb1eed051f083f4fdef001ba4d2bbe1a",
+    "proof.png": "d5d911405aa79b72da77da5576a98f7b2b5560539a38de11f2e918c307a5d9f8",
+    "graph.png": "8327bebc5ca0722f8db5fd9498a6c99731f12cb4330f099ca79c698411256b7c",
+    "analysis.png": "6af8a3e568e6747b3bf4f440b718e724094d5c01613396e9642056441591f21e",
+    "preview.png": "464b2049251a3a56fb86541f76b2a642160a8c604c1518091a42ef7162ee6c04",
+    "compact-home.png": "da2ae470bd41ee8013d06fc1beff2eb2aac8e1e093bfbc8e9cb5b81e47f3ffeb",
+    "compact-preview.png": "12df2a83c507bbb1991cb049e091a425cbc27296048123f7962c77f767b47f53"
   },
   "not_implemented": [
     "native gateway/model/prover connection",
@@ -24,5 +53,5 @@
     "encryption and Drive sync",
     "review submission and billing"
   ],
-  "tui_binary_sha256": "7f0aa64e732d1bc4baacf8fca800e5a6dc8e62907c1f895bc28714556bb618d3"
+  "tui_binary_sha256": "f8c490a4dee801f4415b8036411e01616a45282bd36871b1ed7c6946b4705e88"
 }

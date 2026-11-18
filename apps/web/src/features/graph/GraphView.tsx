@@ -53,7 +53,9 @@ export function GraphView({
   workspace,
   initialId,
   onClaim,
+  embedded = false,
 }: {
+  embedded?: boolean;
   workspace: Workspace;
   initialId?: string;
   onClaim: (id: string) => void;
@@ -65,7 +67,7 @@ export function GraphView({
   const [history, setHistory] = useState<string[]>([]);
   const [scope, setScope] = useState<GraphScope>("dependencies");
   const [notice, setNotice] = useState("");
-  const [inspectorOpen, setInspectorOpen] = useState(true);
+  const [inspectorOpen, setInspectorOpen] = useState(!embedded);
   useEffect(() => {
     if (
       initialId &&
@@ -155,7 +157,7 @@ export function GraphView({
     return (
       <section className="graph-page">
         <header className="page-heading">
-          <Typography variant="h1">依存関係</Typography>
+          <Typography variant={embedded ? "h2" : "h1"}>依存関係</Typography>
         </header>
         <EmptyState
           icon={<AccountTreeOutlined />}
@@ -168,7 +170,7 @@ export function GraphView({
     <section className="graph-page">
       <header className="page-heading graph-heading">
         <div>
-          <Typography variant="h1">依存関係</Typography>
+          <Typography variant={embedded ? "h2" : "h1"}>依存関係</Typography>
           <Typography variant="body2" color="text.secondary">
             {positions.size} / {workspace.declarations.length} 宣言 ·{" "}
             {edges.length} 依存
@@ -431,20 +433,6 @@ function DeclarationNode({ data }: NodeProps<RadarNode>) {
           event.stopPropagation();
           data.center();
         }}
-        aria-label={[
-          root
-            ? declaration.kind === "theorem"
-              ? "定理"
-              : declaration.kind === "axiom"
-                ? "公理"
-                : "定義"
-            : "",
-          declaration.label,
-          declaration.name,
-          "を選択",
-        ]
-          .filter(Boolean)
-          .join(" ")}
         title={declaration.name}
       >
         <span className="node-dot" />
@@ -459,6 +447,7 @@ function DeclarationNode({ data }: NodeProps<RadarNode>) {
         )}
         <strong>{declaration.label || declaration.name}</strong>
         <code>{declaration.name}</code>
+        <span className="visually-hidden">を選択</span>
       </button>
     </div>
   );

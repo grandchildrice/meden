@@ -87,8 +87,9 @@ export const messageSchema = z
     id,
     role: z.enum(["user", "assistant"]),
     text,
-    status: z.enum(["draft", "received"]),
+    status: z.enum(["draft", "sent", "received"]),
     createdAt: z.string().datetime(),
+    origin: z.enum(["recorded", "demo"]).optional(),
   })
   .strict();
 export const conversationSchema = z
@@ -117,7 +118,7 @@ export const workspaceSchema = z
     name: z.string().min(1).max(300),
     sourceRevision: id,
     inputRevision: z.number().int().nonnegative(),
-    origin: z.enum(["local", "imported", "sample"]),
+    origin: z.enum(["local", "imported", "sample", "replay"]),
     updatedAt: z.string().datetime(),
     requirements: z.array(requirementSchema).max(10_000),
     declarations: z.array(declarationSchema).max(20_000),
@@ -206,14 +207,23 @@ export type Conversation = z.infer<typeof conversationSchema>;
 export type ProofStatus = (typeof proofStatuses)[number];
 export type Verdict = (typeof verdicts)[number];
 
+export function analysisMatchesRevision(
+  workspace: Workspace,
+  analysis: Analysis,
+): boolean {
+  return (
+    analysis.inputRevision === workspace.inputRevision &&
+    analysis.sourceRevision === workspace.sourceRevision
+  );
+}
+
 export function analysisIsCurrent(
   workspace: Workspace,
   analysis: Analysis,
 ): boolean {
   return (
     analysis.status === "complete" &&
-    analysis.inputRevision === workspace.inputRevision &&
-    analysis.sourceRevision === workspace.sourceRevision
+    analysisMatchesRevision(workspace, analysis)
   );
 }
 
@@ -241,7 +251,10 @@ export function importWorkspace(input: unknown): Workspace {
   const workspace = workspaceSchema.parse(input);
   return {
     ...workspace,
-    origin: workspace.origin === "sample" ? "sample" : "imported",
+    origin:
+      workspace.origin === "sample" || workspace.origin === "replay"
+        ? workspace.origin
+        : "imported",
     declarations: workspace.declarations.map((declaration) =>
       ["proved", "bounded", "empirical", "refuted"].includes(
         declaration.proofStatus,
@@ -252,7 +265,7 @@ export function importWorkspace(input: unknown): Workspace {
         : declaration,
     ),
     analyses: workspace.analyses.map((analysis) =>
-      analysisIsCurrent(workspace, analysis)
+      analysisMatchesRevision(workspace, analysis)
         ? analysis
         : { ...analysis, status: "stale" },
     ),

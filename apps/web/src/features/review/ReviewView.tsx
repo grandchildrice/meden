@@ -19,7 +19,9 @@ export function ReviewView({
   claimId,
   onChange,
   onNotify,
+  embedded = false,
 }: {
+  embedded?: boolean;
   workspace: Workspace;
   claimId?: string;
   onChange: (workspace: Workspace) => Promise<boolean>;
@@ -80,7 +82,7 @@ export function ReviewView({
     <section className="review-page">
       <header className="page-heading">
         <div>
-          <Typography variant="h1">レビュー依頼</Typography>
+          <Typography variant={embedded ? "h2" : "h1"}>レビュー依頼</Typography>
           <Typography variant="body2" color="text.secondary">
             要件、定理、根拠をまとめた依頼書を作成します。
           </Typography>

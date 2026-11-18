@@ -9,21 +9,22 @@
     "preview": "vite preview --host 127.0.0.1 --port 4320 --strictPort"
   },
   "dependencies": {
-    "@meden/workspace-schema": "*",
-    "@meden/agent-protocol": "*",
-    "@meden/atlas-adapter": "*",
-    "@mui/material": "9.5.0",
-    "@mui/icons-material": "9.5.0",
+    "@assistant-ui/react": "0.15.36",
+    "@assistant-ui/react-markdown": "^0.14.26",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
-    "@xyflow/react": "13.0.2",
     "@fontsource-variable/roboto": "^5.2.0",
-    "@assistant-ui/react": "0.15.36",
+    "@meden/agent-protocol": "*",
+    "@meden/atlas-adapter": "*",
+    "@meden/expert-review": "*",
+    "@meden/workspace-schema": "*",
+    "@mui/icons-material": "9.5.0",
+    "@mui/material": "9.5.0",
+    "@xyflow/react": "13.0.2",
     "diff": "^8.0.0",
     "idb": "8.0.4",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "@meden/expert-review": "*"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "6.3.0",

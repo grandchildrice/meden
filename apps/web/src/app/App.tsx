@@ -8,7 +8,6 @@ import {
 } from "react";
 import {
   Alert,
-  AppBar,
   Button,
   Chip,
   CircularProgress,
@@ -18,129 +17,129 @@ import {
   DialogTitle,
   Drawer,
   IconButton,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
   Menu,
   MenuItem,
   Snackbar,
   TextField,
-  Toolbar,
   Tooltip,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
-import ChatBubbleOutlineRounded from "@mui/icons-material/ChatBubbleOutlineRounded";
-import AccountTreeOutlined from "@mui/icons-material/AccountTreeOutlined";
-import CompareArrowsRounded from "@mui/icons-material/CompareArrowsRounded";
-import AssignmentOutlined from "@mui/icons-material/AssignmentOutlined";
-import FolderOpenOutlined from "@mui/icons-material/FolderOpenOutlined";
-import AddRounded from "@mui/icons-material/AddRounded";
-import FileUploadOutlined from "@mui/icons-material/FileUploadOutlined";
-import FileDownloadOutlined from "@mui/icons-material/FileDownloadOutlined";
-import MoreHorizRounded from "@mui/icons-material/MoreHorizRounded";
-import MenuRounded from "@mui/icons-material/MenuRounded";
-import ExpandMoreRounded from "@mui/icons-material/ExpandMoreRounded";
+import AddCommentOutlined from "@mui/icons-material/AddCommentOutlined";
+import SearchRounded from "@mui/icons-material/SearchRounded";
 import SettingsOutlined from "@mui/icons-material/SettingsOutlined";
+import MenuRounded from "@mui/icons-material/MenuRounded";
+import MoreHorizRounded from "@mui/icons-material/MoreHorizRounded";
+import AccountTreeOutlined from "@mui/icons-material/AccountTreeOutlined";
+import VerifiedOutlined from "@mui/icons-material/VerifiedOutlined";
+import VerticalSplitOutlined from "@mui/icons-material/VerticalSplitOutlined";
+import CloseRounded from "@mui/icons-material/CloseRounded";
 import {
-  createWorkspace,
   workspaceSchema,
   type Workspace,
+  type Conversation,
 } from "@meden/workspace-schema";
 import { BrowserWorkspaceRepository } from "../adapters/browser-workspaces";
 import { readWorkspaceFile, downloadJson } from "../adapters/files";
-import { sampleWorkspace } from "../fixtures/ledger";
-import { EmptyState } from "../components/EmptyState";
-const ChatView = lazy(() =>
-  import("../features/chat/ChatView").then((module) => ({
-    default: module.ChatView,
+import {
+  createVendingWorkspace,
+  DEMO_WORKSPACE_ID,
+  demoResponse,
+  titleFromInstruction,
+} from "../fixtures/meden-demo";
+import type { ArtifactTab } from "../features/artifacts/ArtifactPanel";
+import { ChatView } from "../features/chat/ChatView";
+const ArtifactPanel = lazy(() =>
+  import("../features/artifacts/ArtifactPanel").then((module) => ({
+    default: module.ArtifactPanel,
   })),
 );
-const GraphView = lazy(() =>
-  import("../features/graph/GraphView").then((module) => ({
-    default: module.GraphView,
-  })),
-);
-const AnalysisView = lazy(() =>
-  import("../features/analysis/AnalysisView").then((module) => ({
-    default: module.AnalysisView,
-  })),
-);
-const ReviewView = lazy(() =>
-  import("../features/review/ReviewView").then((module) => ({
-    default: module.ReviewView,
-  })),
-);
-
-const routes = [
-  { id: "chat", label: "会話", icon: ChatBubbleOutlineRounded },
-  { id: "graph", label: "依存関係", icon: AccountTreeOutlined },
-  { id: "analysis", label: "意味の比較", icon: CompareArrowsRounded },
-  { id: "review", label: "レビュー依頼", icon: AssignmentOutlined },
-] as const;
-type Route = (typeof routes)[number]["id"];
 const repository = new BrowserWorkspaceRepository();
+const SELECTION_KEY = "meden-chat-selection";
 
 export function App() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [route, setRoute] = useState<Route>("chat");
-  const [claimId, setClaimId] = useState<string | undefined>();
-  const [declarationId, setDeclarationId] = useState<string | undefined>();
-  const [conversationId, setConversationId] = useState<string | undefined>();
+  const library = useRef<Workspace[]>([]);
+  const [activeId, setActiveId] = useState(DEMO_WORKSPACE_ID);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [pending, setPending] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [storageError, setStorageError] = useState("");
   const [notification, setNotification] = useState("");
-  const [drawer, setDrawer] = useState(false);
-  const [dialog, setDialog] = useState<"create" | "settings" | "remove" | null>(
-    null,
-  );
-  const [name, setName] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelTab, setPanelTab] = useState<ArtifactTab>("preview");
+  const [settings, setSettings] = useState(false);
   const [menu, setMenu] = useState<HTMLElement | null>(null);
-  const [workspaceMenu, setWorkspaceMenu] = useState<HTMLElement | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [queueDialog, setQueueDialog] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const queue = useRef(Promise.resolve());
-  const operation = useRef(0);
   const unsaved = useRef(new Map<string, Workspace>());
-  const workspace = workspaces.find((item) => item.id === activeId);
-  const routeLabel = routes.find((item) => item.id === route)!.label;
+  const operation = useRef(0);
+  const narrow = useMediaQuery("(max-width:1140px)");
+  const mobile = useMediaQuery("(max-width:839px)");
+  const workspace =
+    workspaces.find((item) => item.id === activeId) || workspaces[0];
+  const conversation = workspace?.conversations.find(
+    (item) => item.id === conversationId,
+  );
+  const running = conversationId ? pending.has(conversationId) : false;
+  const hasMessages = Boolean(conversation?.messages.length);
 
+  const select = (workspaceId: string, id: string | null) => {
+    setActiveId(workspaceId);
+    setConversationId(id);
+    setSidebarOpen(false);
+    localStorage.setItem(
+      SELECTION_KEY,
+      JSON.stringify({ workspaceId, conversationId: id }),
+    );
+  };
   const load = () => {
     setLoading(true);
-    setStorageError("");
     repository
       .list()
       .then((values) => {
-        setWorkspaces(values);
-        const retained = localStorage.getItem("meden-active-workspace");
-        setActiveId(
-          values.find((value) => value.id === retained)?.id ||
-            values[0]?.id ||
-            null,
-        );
+        const next = values.some((item) => item.id === DEMO_WORKSPACE_ID)
+          ? values
+          : [createVendingWorkspace(), ...values];
+        library.current = next;
+        setWorkspaces(next);
+        try {
+          const selected = JSON.parse(
+            localStorage.getItem(SELECTION_KEY) || "null",
+          );
+          if (
+            selected &&
+            next.some((item) => item.id === selected.workspaceId)
+          ) {
+            setActiveId(selected.workspaceId);
+            setConversationId(selected.conversationId);
+          }
+        } catch {
+          /* An unreadable preference does not discard stored conversations. */
+        }
+        setStorageError("");
       })
       .catch(() =>
-        setStorageError(
-          "ワークスペースを読み込めませんでした。ブラウザの保存領域を確認して、再読み込みしてください。",
-        ),
+        setStorageError("会話を読み込めませんでした。再読み込みしてください。"),
       )
       .finally(() => setLoading(false));
   };
   useEffect(load, []);
-  useEffect(() => {
-    if (activeId) localStorage.setItem("meden-active-workspace", activeId);
-  }, [activeId]);
-
   const persist = (next: Workspace): Promise<boolean> => {
     const parsed = workspaceSchema.parse({
       ...next,
       updatedAt: new Date().toISOString(),
     });
-    setWorkspaces((previous) => [
+    library.current = [
       parsed,
-      ...previous.filter((item) => item.id !== parsed.id),
-    ]);
+      ...library.current.filter((item) => item.id !== parsed.id),
+    ];
+    setWorkspaces(library.current);
     unsaved.current.set(parsed.id, parsed);
     setSaving(true);
     const current = ++operation.current;
@@ -157,7 +156,7 @@ export function App() {
       } catch {
         if (current === operation.current) setSaving(false);
         setStorageError(
-          "変更を保存できませんでした。保存を再試行するか、JSONを書き出して変更を保管してください。",
+          "会話を保存できませんでした。保存を再試行するか、JSONを書き出してください。",
         );
         return false;
       }
@@ -165,19 +164,88 @@ export function App() {
     queue.current = result.then(() => {});
     return result;
   };
-  const retryStorage = () => {
+  const retry = () => {
     if (unsaved.current.size)
       for (const next of unsaved.current.values()) void persist(next);
     else load();
   };
-  const open = (next: Workspace) => {
-    persist(next);
-    setActiveId(next.id);
-    setRoute("chat");
-    setClaimId(undefined);
-    setDeclarationId(undefined);
-    setConversationId(undefined);
-    setDrawer(false);
+  const newChat = () => {
+    select(DEMO_WORKSPACE_ID, null);
+    setPanelOpen(false);
+    setQuery("");
+    setSearchOpen(false);
+  };
+  const openPanel = (tab: ArtifactTab) => {
+    setPanelTab(tab);
+    setPanelOpen(true);
+  };
+  const send = async (text: string) => {
+    if (!workspace || !text.trim()) return;
+    const target = workspace.id;
+    const id = conversationId || crypto.randomUUID();
+    if (pending.has(id)) return;
+    const original = library.current.find((item) => item.id === target)!;
+    const thread = original.conversations.find((item) => item.id === id);
+    const next: Conversation = {
+      id,
+      title: thread?.messages.length
+        ? thread.title
+        : titleFromInstruction(text),
+      messages: [
+        ...(thread?.messages || []),
+        {
+          id: crypto.randomUUID(),
+          role: "user",
+          text,
+          status: "sent",
+          origin: "demo",
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    };
+    const first = {
+      ...original,
+      conversations: [
+        ...original.conversations.filter((item) => item.id !== id),
+        next,
+      ],
+    };
+    setPending((previous) => new Set([...previous, id]));
+    select(target, id);
+    openPanel(
+      /依存|graph/i.test(text)
+        ? "graph"
+        : /証明|検証|verify/i.test(text)
+          ? "proof"
+          : "preview",
+    );
+    await persist(first);
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    const latest = library.current.find((item) => item.id === target);
+    const current = latest?.conversations.find((item) => item.id === id);
+    if (latest && current) {
+      const reply = {
+        id: crypto.randomUUID(),
+        role: "assistant" as const,
+        text: demoResponse(text, latest),
+        status: "received" as const,
+        origin: "demo" as const,
+        createdAt: new Date().toISOString(),
+      };
+      await persist({
+        ...latest,
+        conversations: latest.conversations.map((item) =>
+          item.id === id
+            ? { ...item, messages: [...item.messages, reply] }
+            : item,
+        ),
+      });
+    }
+    setPending((previous) => {
+      const next = new Set(previous);
+      next.delete(id);
+      return next;
+    });
   };
   const onImport = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -186,124 +254,136 @@ export function App() {
     try {
       const next = await readWorkspaceFile(file);
       next.id = crypto.randomUUID();
-      open(next);
-      setNotification("ワークスペースを読み込みました");
+      await persist(next);
+      select(next.id, next.conversations[0]?.id || null);
+      openPanel("graph");
+      setNotification("読み込みました");
     } catch (error) {
       setNotification(
         error instanceof Error ? error.message : "読み込めませんでした",
       );
     }
   };
-  const newConversation = () => {
-    if (!workspace) {
-      setDialog("create");
-      return;
-    }
-    const id = crypto.randomUUID();
-    persist({
-      ...workspace,
-      conversations: [
-        ...workspace.conversations,
-        { id, title: "新しい会話", messages: [] },
-      ],
-    });
-    setConversationId(id);
-    setRoute("chat");
-    setDrawer(false);
-  };
-  const navigate = (next: Route) => {
-    setRoute(next);
-    setDrawer(false);
-  };
-  const navigateToClaim = (id: string) => {
-    setClaimId(id);
-    navigate("analysis");
-  };
-  const navigateToDeclaration = (id: string) => {
-    setDeclarationId(id);
-    navigate("graph");
-  };
+  const threads = workspaces
+    .flatMap((item) =>
+      item.conversations
+        .filter((thread) => thread.messages.length)
+        .map((thread) => ({ workspaceId: item.id, conversation: thread })),
+    )
+    .sort((a, b) =>
+      (b.conversation.messages.at(-1)?.createdAt || "").localeCompare(
+        a.conversation.messages.at(-1)?.createdAt || "",
+      ),
+    );
+  const filtered = threads.filter(
+    (item) =>
+      !query ||
+      item.conversation.title.toLowerCase().includes(query.toLowerCase()) ||
+      item.conversation.messages.some((message) =>
+        message.text.toLowerCase().includes(query.toLowerCase()),
+      ),
+  );
   const sidebar = (
     <div className="sidebar-content">
-      <div className="brand">
-        <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M3 19 9 5l6 14 6-14"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinejoin="round"
-          />
-        </svg>
-        <span>Meden</span>
+      <div className="sidebar-brand-row">
+        <div className="brand">
+          <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M3 19 9 5l6 14 6-14"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span>Meden</span>
+        </div>
+        {mobile && (
+          <IconButton
+            aria-label="会話一覧を閉じる"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <CloseRounded fontSize="small" />
+          </IconButton>
+        )}
       </div>
       <Button
-        className="workspace-picker"
-        variant="outlined"
-        startIcon={<FolderOpenOutlined />}
-        endIcon={<ExpandMoreRounded />}
-        onClick={(event) => setWorkspaceMenu(event.currentTarget)}
-      >
-        <span className="workspace-name">
-          {workspace?.name || "ワークスペース"}
-        </span>
-      </Button>
-      <Button
-        className="new-conversation"
-        variant="contained"
-        startIcon={<AddRounded />}
-        onClick={newConversation}
+        className="sidebar-action"
+        color="inherit"
+        startIcon={<AddCommentOutlined />}
+        onClick={newChat}
       >
         新しい会話
       </Button>
-      <nav aria-label="メイン">
-        <List component="div" disablePadding>
-          {routes.map((item) => (
-            <ListItemButton
-              key={item.id}
-              selected={route === item.id}
-              onClick={() => navigate(item.id)}
-              aria-current={route === item.id ? "page" : undefined}
-            >
-              <ListItemIcon>
-                <item.icon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText primary={item.label} />
-            </ListItemButton>
-          ))}
-        </List>
-      </nav>
-      {workspace && (
-        <div className="conversation-history">
-          <Typography variant="caption" color="text.secondary">
-            最近の会話
-          </Typography>
-          {workspace.conversations
-            .slice(-6)
-            .reverse()
-            .map((conversation) => (
-              <button
-                key={conversation.id}
-                className={
-                  conversationId === conversation.id
-                    ? "history-item active"
-                    : "history-item"
-                }
-                onClick={() => {
-                  setConversationId(conversation.id);
-                  navigate("chat");
-                }}
-              >
-                {conversation.title}
-              </button>
-            ))}
-        </div>
+      <Button
+        className="sidebar-action"
+        color="inherit"
+        startIcon={<SearchRounded />}
+        onClick={() => {
+          setSearchOpen((value) => !value);
+          setQuery("");
+        }}
+      >
+        会話を検索
+      </Button>
+      {searchOpen && (
+        <TextField
+          autoFocus
+          size="small"
+          fullWidth
+          label="会話を検索"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+        />
       )}
+      <div className="conversation-history" aria-label="会話履歴">
+        <Typography variant="caption" color="text.secondary">
+          会話
+        </Typography>
+        {filtered.map((item) => (
+          <button
+            key={item.workspaceId + item.conversation.id}
+            className={
+              "history-item " +
+              (activeId === item.workspaceId &&
+              conversationId === item.conversation.id
+                ? "active"
+                : "")
+            }
+            aria-current={
+              activeId === item.workspaceId &&
+              conversationId === item.conversation.id
+                ? "page"
+                : undefined
+            }
+            onClick={() => {
+              select(item.workspaceId, item.conversation.id);
+              if (item.workspaceId === DEMO_WORKSPACE_ID)
+                void persist(
+                  library.current.find(
+                    (value) => value.id === item.workspaceId,
+                  )!,
+                );
+            }}
+          >
+            {item.conversation.title}
+          </button>
+        ))}
+        {query && !filtered.length && (
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            className="empty-history"
+          >
+            一致する会話はありません
+          </Typography>
+        )}
+      </div>
       <div className="sidebar-bottom">
         <Button
+          color="inherit"
           startIcon={<SettingsOutlined />}
-          color="secondary"
-          onClick={() => setDialog("settings")}
+          onClick={() => setSettings(true)}
         >
           設定
         </Button>
@@ -312,80 +392,116 @@ export function App() {
             ? "保存中…"
             : storageError
               ? "保存できません"
-              : "ブラウザに保存"}
+              : "このブラウザに保存"}
         </Typography>
       </div>
     </div>
   );
-
+  const artifacts = workspace && (
+    <Suspense
+      fallback={
+        <div className="loading">
+          <CircularProgress size={24} />
+        </div>
+      }
+    >
+      <ArtifactPanel
+        key={workspace.id}
+        workspace={workspace}
+        tab={panelTab}
+        onTab={setPanelTab}
+        onClose={() => setPanelOpen(false)}
+        onChange={persist}
+        onNotify={setNotification}
+        running={running}
+      />
+    </Suspense>
+  );
   return (
     <div className="app-shell">
-      <a href="#main-content" className="skip-link">
+      <a className="skip-link" href="#main-content">
         本文へ移動
       </a>
-      <aside className="desktop-sidebar">{sidebar}</aside>
+      <aside className="desktop-sidebar" aria-label="会話サイドバー">
+        {sidebar}
+      </aside>
       <Drawer
-        open={drawer}
-        onClose={() => setDrawer(false)}
-        slotProps={{ paper: { sx: { width: 264 } } }}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        slotProps={{ paper: { sx: { width: 268 } } }}
       >
         {sidebar}
       </Drawer>
       <div className="main-column">
-        <AppBar
-          position="static"
-          color="transparent"
-          elevation={0}
-          className="app-bar"
-        >
-          <Toolbar className="app-toolbar">
-            <IconButton
-              className="mobile-menu"
-              aria-label="ナビゲーションを開く"
-              onClick={() => setDrawer(true)}
-            >
-              <MenuRounded />
-            </IconButton>
-            <div className="breadcrumb">
-              <span>{workspace?.name || "Meden"}</span>
-              <span aria-hidden="true">/</span>
-              <Typography component="span">
-                {workspace ? routeLabel : "ワークスペース"}
-              </Typography>
-            </div>
-            <div className="toolbar-actions">
-              {workspace?.origin === "sample" && (
-                <Chip label="サンプル" size="small" variant="outlined" />
-              )}
-              {workspace?.origin === "imported" && (
-                <Chip label="取り込みデータ" size="small" variant="outlined" />
-              )}
-              <Tooltip title="エージェントの接続状態" describeChild>
-                <Button
-                  color="secondary"
-                  className="connection-status"
-                  onClick={() => setDialog("settings")}
-                >
-                  <span className="connection-dot" />
-                  未接続
-                </Button>
-              </Tooltip>
-              <Tooltip title="ワークスペースの操作">
+        <header className="chat-topbar">
+          <IconButton
+            className="mobile-menu"
+            aria-label="会話一覧を開く"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <MenuRounded />
+          </IconButton>
+          {hasMessages ? (
+            <Typography component="h1" className="conversation-title">
+              {conversation?.title}
+            </Typography>
+          ) : (
+            <Typography className="model-label">Meden</Typography>
+          )}
+          <div className="toolbar-actions">
+            <Tooltip title="meden-demoの実装・会話・検証記録を使うGUIデモ">
+              <Chip size="small" label="デモ" variant="outlined" />
+            </Tooltip>
+            <Tooltip title="証明の状態">
+              <span>
                 <IconButton
-                  aria-label="ワークスペースの操作"
-                  onClick={(event) => setMenu(event.currentTarget)}
+                  aria-label="証明の状態を表示"
+                  disabled={!hasMessages}
+                  aria-pressed={panelOpen && panelTab === "proof"}
+                  onClick={() => openPanel("proof")}
                 >
-                  <MoreHorizRounded />
+                  <VerifiedOutlined fontSize="small" />
                 </IconButton>
-              </Tooltip>
-            </div>
-          </Toolbar>
-        </AppBar>
+              </span>
+            </Tooltip>
+            <Tooltip title="依存関係">
+              <span>
+                <IconButton
+                  aria-label="依存関係を表示"
+                  disabled={!hasMessages}
+                  aria-pressed={panelOpen && panelTab === "graph"}
+                  onClick={() => openPanel("graph")}
+                >
+                  <AccountTreeOutlined fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+            <Tooltip title={panelOpen ? "パネルを閉じる" : "実装を表示"}>
+              <span>
+                <IconButton
+                  aria-label={panelOpen ? "パネルを閉じる" : "実装を表示"}
+                  disabled={!hasMessages}
+                  onClick={() =>
+                    panelOpen ? setPanelOpen(false) : openPanel("preview")
+                  }
+                >
+                  <VerticalSplitOutlined fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+            <IconButton
+              aria-label="その他の操作"
+              onClick={(event) => setMenu(event.currentTarget)}
+            >
+              <MoreHorizRounded />
+            </IconButton>
+          </div>
+        </header>
         {storageError && (
           <Alert
             severity="error"
             action={
-              <Button color="inherit" onClick={retryStorage}>
+              <Button color="inherit" onClick={retry}>
                 {unsaved.current.size ? "保存を再試行" : "再読み込み"}
               </Button>
             }
@@ -393,158 +509,51 @@ export function App() {
             {storageError}
           </Alert>
         )}
-        <main id="main-content" tabIndex={-1} className="main-content">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className={
+            "conversation-workbench " +
+            (panelOpen && !narrow ? "with-artifact" : "")
+          }
+        >
           {loading ? (
             <div className="loading">
-              <CircularProgress
-                size={28}
-                aria-label="ワークスペースを読み込み中"
-              />
+              <CircularProgress size={26} aria-label="会話を読み込み中" />
             </div>
-          ) : !workspace ? (
-            <EmptyState
-              icon={<FolderOpenOutlined fontSize="large" />}
-              title="ワークスペースを開く"
-              detail="保存したJSONを読み込むか、新しく作成します。"
-            >
-              <Button
-                variant="contained"
-                startIcon={<FileUploadOutlined />}
-                onClick={() => fileInput.current?.click()}
-              >
-                JSONを読み込む
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  setName("");
-                  setDialog("create");
-                }}
-              >
-                新規作成
-              </Button>
-              <Button onClick={() => open(sampleWorkspace())}>
-                サンプルを開く
-              </Button>
-            </EmptyState>
           ) : (
-            <Suspense
-              fallback={
-                <div className="loading">
-                  <CircularProgress size={28} aria-label="画面を読み込み中" />
-                </div>
-              }
-            >
-              {workspace.origin === "sample" && (
-                <div className="workspace-notice" role="note">
-                  サンプルデータです。解析・証明は実行していません。
-                </div>
-              )}
-              {workspace.origin === "imported" && (
-                <div className="workspace-notice" role="note">
-                  取り込んだ結果を表示しています。この端末では再検証していません。
-                </div>
-              )}
-              {route === "chat" && (
-                <ChatView
-                  key={workspace.id + (conversationId || "")}
-                  workspace={workspace}
-                  conversationId={conversationId}
-                  onChange={persist}
-                  onSelectConversation={setConversationId}
-                  onClaim={navigateToClaim}
-                  onGraph={navigateToDeclaration}
-                />
-              )}
-              {route === "graph" && (
-                <GraphView
-                  key={workspace.id}
-                  workspace={workspace}
-                  initialId={declarationId}
-                  onClaim={navigateToClaim}
-                />
-              )}
-              {route === "analysis" && (
-                <AnalysisView
-                  key={workspace.id}
-                  workspace={workspace}
-                  claimId={claimId}
-                  onSelectClaim={setClaimId}
-                  onChange={persist}
-                  onGraph={navigateToDeclaration}
-                  onReview={(id) => {
-                    setClaimId(id);
-                    navigate("review");
-                  }}
-                />
-              )}
-              {route === "review" && (
-                <ReviewView
-                  key={workspace.id}
-                  workspace={workspace}
-                  claimId={claimId}
-                  onChange={persist}
-                  onNotify={setNotification}
-                />
-              )}
-            </Suspense>
-          )}
+            workspace && (
+              <ChatView
+                projectName={workspace.name}
+                conversation={conversation}
+                draftKey={
+                  "meden-input:" + activeId + ":" + (conversationId || "new")
+                }
+                running={running}
+                onSend={send}
+                onOpenArtifact={() => openPanel("preview")}
+              />
+            )
+          )}{" "}
+          {!narrow && panelOpen && artifacts}
         </main>
       </div>
+      <Drawer
+        anchor="right"
+        open={narrow && panelOpen}
+        onClose={() => setPanelOpen(false)}
+        slotProps={{ paper: { sx: { width: "min(720px, 100vw)" } } }}
+      >
+        {artifacts}
+      </Drawer>
       <input
-        ref={fileInput}
         type="file"
+        ref={fileInput}
         accept=".json,application/json"
         aria-label="ワークスペースのJSON"
         hidden
         onChange={onImport}
       />
-      <Menu
-        anchorEl={workspaceMenu}
-        open={Boolean(workspaceMenu)}
-        onClose={() => setWorkspaceMenu(null)}
-      >
-        {workspaces.map((item) => (
-          <MenuItem
-            key={item.id}
-            selected={activeId === item.id}
-            onClick={() => {
-              setActiveId(item.id);
-              setWorkspaceMenu(null);
-              setConversationId(undefined);
-              setClaimId(undefined);
-              setDeclarationId(undefined);
-            }}
-          >
-            {item.name}
-          </MenuItem>
-        ))}
-        <MenuItem
-          onClick={() => {
-            setWorkspaceMenu(null);
-            setName("");
-            setDialog("create");
-          }}
-        >
-          <AddRounded fontSize="small" /> 新規作成
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            setWorkspaceMenu(null);
-            fileInput.current?.click();
-          }}
-        >
-          <FileUploadOutlined fontSize="small" /> JSONを読み込む
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            setWorkspaceMenu(null);
-            open(sampleWorkspace());
-          }}
-        >
-          サンプルを開く
-        </MenuItem>
-      </Menu>
       <Menu anchorEl={menu} open={Boolean(menu)} onClose={() => setMenu(null)}>
         <MenuItem
           disabled={!workspace}
@@ -553,104 +562,65 @@ export function App() {
             setMenu(null);
           }}
         >
-          <FileDownloadOutlined fontSize="small" /> JSONを書き出す
+          ワークスペースを書き出す
         </MenuItem>
         <MenuItem
           onClick={() => {
-            setMenu(null);
             fileInput.current?.click();
+            setMenu(null);
           }}
         >
-          <FileUploadOutlined fontSize="small" /> JSONを読み込む
+          JSONを読み込む
         </MenuItem>
         <MenuItem
-          disabled={!workspace}
+          disabled={!conversationId}
           onClick={() => {
             setMenu(null);
-            setDialog("remove");
+            setQueueDialog(true);
           }}
         >
-          ワークスペースを削除
+          会話を削除
         </MenuItem>
       </Menu>
-      <Dialog open={dialog === "create"} onClose={() => setDialog(null)}>
-        <DialogTitle>ワークスペースを作成</DialogTitle>
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (name.trim()) {
-              open(createWorkspace(name.trim()));
-              setDialog(null);
-            }
-          }}
-        >
-          <DialogContent>
-            <TextField
-              autoFocus
-              fullWidth
-              label="名前"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              slotProps={{ htmlInput: { maxLength: 300 } }}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDialog(null)}>キャンセル</Button>
-            <Button type="submit" variant="contained" disabled={!name.trim()}>
-              作成
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
-      <Dialog open={dialog === "settings"} onClose={() => setDialog(null)}>
+      <Dialog open={settings} onClose={() => setSettings(false)}>
         <DialogTitle>設定</DialogTitle>
         <DialogContent>
-          <div className="settings-row">
-            <Typography variant="h3">エージェント</Typography>
-            <Chip size="small" label="未接続" />
-          </div>
-          <Typography color="text.secondary">
-            実行系への接続は未実装です。会話は下書きとして保存できます。
+          <Typography variant="h3">デモモード</Typography>
+          <Typography color="text.secondary" sx={{ mt: 1 }}>
+            meden-demoの実装・会話・検証記録を使っています。送信後の応答やパネル表示はGUIのデモです。
           </Typography>
-          <div className="settings-section">
-            <Typography variant="h3">保存先</Typography>
-            <Typography color="text.secondary">
-              このブラウザの保存領域。別の端末で開くには、ワークスペースのJSONを書き出してください。
-            </Typography>
-          </div>
-          <div className="settings-section">
-            <Typography variant="h3">同期</Typography>
-            <Typography color="text.secondary">未設定</Typography>
-          </div>
+          <Typography variant="h3" sx={{ mt: 3 }}>
+            保存先
+          </Typography>
+          <Typography color="text.secondary" sx={{ mt: 1 }}>
+            このブラウザの保存領域。実際のエージェントやLeanは実行していません。
+          </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialog(null)}>閉じる</Button>
+          <Button onClick={() => setSettings(false)}>閉じる</Button>
         </DialogActions>
       </Dialog>
-      <Dialog open={dialog === "remove"} onClose={() => setDialog(null)}>
-        <DialogTitle>このワークスペースを削除しますか？</DialogTitle>
+      <Dialog open={queueDialog} onClose={() => setQueueDialog(false)}>
+        <DialogTitle>この会話を削除しますか？</DialogTitle>
         <DialogContent>
-          <Typography>
-            「{workspace?.name}
-            」をこのブラウザから削除します。必要な場合は、先にJSONを書き出してください。
-          </Typography>
+          <Typography>{conversation?.title}</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialog(null)}>キャンセル</Button>
+          <Button onClick={() => setQueueDialog(false)}>キャンセル</Button>
           <Button
             color="error"
             onClick={async () => {
               if (workspace) {
-                await queue.current;
-                await repository.remove(workspace.id);
-                unsaved.current.delete(workspace.id);
-                if (!unsaved.current.size) setStorageError("");
-                setWorkspaces((previous) =>
-                  previous.filter((item) => item.id !== workspace.id),
-                );
-                setActiveId(null);
-                setDialog(null);
+                await persist({
+                  ...workspace,
+                  conversations: workspace.conversations.filter(
+                    (item) => item.id !== conversationId,
+                  ),
+                });
+                select(activeId, null);
+                setPanelOpen(false);
               }
+              setQueueDialog(false);
             }}
           >
             削除
@@ -660,8 +630,8 @@ export function App() {
       <Snackbar
         open={Boolean(notification)}
         message={notification}
-        autoHideDuration={7000}
         onClose={() => setNotification("")}
+        autoHideDuration={6000}
       />
     </div>
   );

@@ -23,6 +23,7 @@ import CompareArrowsRounded from "@mui/icons-material/CompareArrowsRounded";
 import { diffChars } from "diff";
 import {
   analysisIsCurrent,
+  analysisMatchesRevision,
   analysisFor,
   updateRequirement,
   type Workspace,
@@ -37,7 +38,9 @@ export function AnalysisView({
   onChange,
   onGraph,
   onReview,
+  embedded = false,
 }: {
+  embedded?: boolean;
   workspace: Workspace;
   claimId?: string;
   onSelectClaim: (id: string) => void;
@@ -55,7 +58,9 @@ export function AnalysisView({
   const declaration = workspace.declarations.find(
     (item) => item.id === analysis?.declarationId,
   );
-  const current = analysis ? analysisIsCurrent(workspace, analysis) : false;
+  const current = analysis
+    ? analysisMatchesRevision(workspace, analysis)
+    : false;
   const evidence = workspace.evidence.filter((item) =>
     analysis?.evidenceRefs.includes(item.id),
   );
@@ -72,7 +77,7 @@ export function AnalysisView({
     return (
       <section className="analysis-page">
         <header className="page-heading">
-          <Typography variant="h1">意味の比較</Typography>
+          <Typography variant={embedded ? "h2" : "h1"}>意味の比較</Typography>
         </header>
         <EmptyState
           icon={<CompareArrowsRounded />}
@@ -86,7 +91,7 @@ export function AnalysisView({
     <section className="analysis-page">
       <header className="page-heading">
         <div>
-          <Typography variant="h1">意味の比較</Typography>
+          <Typography variant={embedded ? "h2" : "h1"}>意味の比較</Typography>
           <Typography variant="body2" color="text.secondary">
             要件と、定理から逆翻訳した内容を確認します。
           </Typography>
@@ -132,7 +137,7 @@ export function AnalysisView({
                 <AnalysisStatusChip
                   analysis={result}
                   current={
-                    result ? analysisIsCurrent(workspace, result) : false
+                    result ? analysisMatchesRevision(workspace, result) : false
                   }
                 />
               </button>
@@ -201,7 +206,12 @@ export function AnalysisView({
             </section>
             <section className="comparison-card">
               <div className="comparison-card-title">
-                <Typography variant="h3">定理の逆翻訳</Typography>
+                <Typography variant="h3">
+                  {workspace.origin === "replay" &&
+                  analysis?.status === "pending"
+                    ? "比較用テキスト（デモ）"
+                    : "定理の逆翻訳"}
+                </Typography>
                 {declaration && (
                   <ProofStatusChip status={declaration.proofStatus} />
                 )}

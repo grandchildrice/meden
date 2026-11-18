@@ -109,9 +109,14 @@ No live requests or model performance claims are part of the fast gate.
 ## GUI journeys
 
 The TypeScript/Vite GUI has its own public browser gate: `npm run test:gui`.
-It covers create/import, unsent draft/restart, graph selection/recentering,
-requirement-change freshness, local review export, invalid import recovery,
-compact layout, keyboard entry and automated WCAG AA checks. Screenshots, traces
-and HTML reports are under `target/gui-checks/`. Review those actual screens when
-changing layouts/copy. The GUI is not connected to the native agent, so it does
-not replace the TUI gate or provide live-model/prover validation. See [gui.md](gui.md).
+It covers instruction/send/automatic titles, separate searchable conversations,
+original meden-demo history, unsent input/restart, preview purchase/refund,
+right-panel proof and graph inspection, requirement-change freshness, local
+review export, invalid import recovery and storage failure/retry. Compact layout,
+keyboard entry and automated WCAG AA checks are included. The gate builds and
+serves the production GUI on port 4321. Screenshots, traces and HTML reports are
+under `target/gui-checks/`; inspect them when changing layout or copy.
+
+The GUI is a local demo with archived verification evidence, not a native agent
+connection. It does not replace the required TUI gate or provide live-model/new
+prover validation. See [gui.md](gui.md) for provenance and boundaries.
