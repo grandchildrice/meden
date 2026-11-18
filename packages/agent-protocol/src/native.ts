@@ -94,6 +94,47 @@ export const previewSchema = z
   })
   .strict();
 export type NativePreviewSnapshot = z.infer<typeof previewSchema>;
+export const exportReferenceSchema = z
+  .object({ session: z.string(), id: z.number().int().nonnegative() })
+  .strict();
+export type ExportReference = z.infer<typeof exportReferenceSchema>;
+export const exportSummarySchema = exportReferenceSchema
+  .extend({
+    source: z.string(),
+    contract: z.string().nullable(),
+    target: z.string(),
+    bytes: z.number().int().nonnegative(),
+    payload_sha256: z.string().regex(/^[a-f0-9]{64}$/),
+    state: z.enum([
+      "pending",
+      "reviewed",
+      "rejected",
+      "attempted",
+      "response_received",
+      "delivery_uncertain",
+    ]),
+  })
+  .strict();
+export type ExportSummary = z.infer<typeof exportSummarySchema>;
+export const exportReviewSchema = z
+  .object({
+    serial: z.number().int().positive(),
+    summary: exportSummarySchema,
+    offset: z.number().int().nonnegative(),
+    body_hex: z
+      .string()
+      .regex(/^(?:[0-9a-f]{2})*$/)
+      .max(4096),
+  })
+  .strict();
+export type ExportReview = z.infer<typeof exportReviewSchema>;
+export const exportOutcomeSchema = z
+  .object({
+    summary: exportSummarySchema,
+    http_status: z.number().int().min(100).max(599).nullable(),
+  })
+  .strict();
+export type ExportOutcome = z.infer<typeof exportOutcomeSchema>;
 export const nativeStateSchema = z.object({
   workspace: z.string(),
   endpoint: z.string(),
@@ -138,6 +179,9 @@ export const nativeStateSchema = z.object({
   source_snapshot: sourceSnapshotSchema.nullable(),
   analysis: meaningRecordSchema.nullable(),
   preview: previewSchema.nullable(),
+  exports: z.array(exportSummarySchema),
+  export_review: exportReviewSchema.nullable(),
+  export_outcome: exportOutcomeSchema.nullable(),
 });
 export type NativeState = z.infer<typeof nativeStateSchema>;
 export type NativeCommand =
@@ -146,6 +190,12 @@ export type NativeCommand =
   | { type: "instruction"; text: string }
   | { type: "source_snapshot"; paths: string[] }
   | { type: "capture_preview"; root: string; entry: string }
+  | { type: "review_export"; reference: ExportReference; offset: number }
+  | {
+      type: "send_export" | "reject_export" | "close_export";
+      reference: ExportReference;
+      serial: number;
+    }
   | { type: "analyze_meaning"; input: MeaningInput }
   | {
       type: "review_contract" | "accept_contract" | "reject_contract";

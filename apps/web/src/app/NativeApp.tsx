@@ -23,6 +23,7 @@ import { ChatView } from "../features/chat/ChatView";
 import type { Conversation } from "@meden/workspace-schema";
 import { NativeMeaning } from "../features/native/NativeMeaning";
 import { NativePreview } from "../features/native/NativePreview";
+import { NativeDelivery } from "../features/native/NativeDelivery";
 const NativeGraph = lazy(() =>
   import("../features/native/NativeGraph").then((module) => ({
     default: module.NativeGraph,
@@ -252,8 +253,20 @@ export function NativeApp({ token }: { token: string }) {
                 <Tab label="契約・証明" />
                 <Tab label="グラフ" />
                 <Tab label="プレビュー" />
+                <Tab
+                  label={`配送${state.exports.some((item) => item.state === "pending" || item.state === "reviewed") ? " •" : ""}`}
+                />
               </Tabs>
               <div className="native-panel">
+                <div hidden={tab !== 5}>
+                  <NativeDelivery
+                    exports={state.exports}
+                    review={state.export_review}
+                    outcome={state.export_outcome}
+                    running={running}
+                    onCommand={command}
+                  />
+                </div>
                 <div hidden={tab !== 4}>
                   <NativePreview
                     snapshot={state.preview}

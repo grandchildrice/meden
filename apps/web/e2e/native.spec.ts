@@ -18,6 +18,7 @@ import {
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { once } from "node:events";
+import { createHash } from "node:crypto";
 
 test.describe("native GUI with real offline workers", () => {
   test.describe.configure({ mode: "serial" });
@@ -131,6 +132,282 @@ test.describe("native GUI with real offline workers", () => {
     await stop();
     await new Promise<void>((resolve) => server.close(() => resolve()));
     await rm(root, { recursive: true, force: true });
+  });
+
+  async function nativeState(page: Page) {
+    return page.evaluate(async () => {
+      const response = await fetch("/api/state", {
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("meden-native-session")}`,
+        },
+      });
+      return response.json();
+    });
+  }
+  async function hostCommand(page: Page, command: unknown) {
+    return page.evaluate(async (command) => {
+      const response = await fetch("/api/command", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("meden-native-session")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(command),
+      });
+      return response.status;
+    }, command);
+  }
+  async function queueExports(page: Page, targets: string[]) {
+    for (const target of targets)
+      responses.push((response) =>
+        reply(
+          response,
+          tool("propose_export", { path: "payload.bin", target }),
+        ),
+      );
+    responses.push((response) =>
+      reply(
+        response,
+        tool("write_file", {
+          path: "payload.bin",
+          content: "CHANGED-AFTER-PREPARATION",
+        }),
+      ),
+    );
+    responses.push((response) =>
+      reply(response, { role: "assistant", content: "DELIVERIES-QUEUED" }),
+    );
+    await page.goto(await start());
+    await page
+      .getByRole("button", { name: "接続先を確認", exact: true })
+      .click();
+    await page.getByRole("button", { name: "この送信先を承認" }).click();
+    await page
+      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .fill(
+        "Prepare the original payload for host review, then change the workspace file",
+      );
+    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await expect(
+      page.getByText("DELIVERIES-QUEUED", { exact: true }),
+    ).toBeVisible();
+    await page.getByRole("tab", { name: /^配送/ }).click();
+  }
+
+  test("review frozen delivery bytes, reject another target, send once and restart without a queue", async ({
+    page,
+  }) => {
+    test.setTimeout(60_000);
+    const payload = Buffer.concat([
+      Buffer.from([0, 255]),
+      Buffer.from("FROZEN-PAYLOAD\n".repeat(170)),
+    ]);
+    await writeFile(resolve(project, "payload.bin"), payload);
+    const received: Array<{ path: string; bytes: Buffer }> = [];
+    const receiver = createServer(async (request, response) => {
+      const chunks: Buffer[] = [];
+      for await (const chunk of request) chunks.push(Buffer.from(chunk));
+      received.push({ path: request.url!, bytes: Buffer.concat(chunks) });
+      response.writeHead(201);
+      response.end();
+    });
+    receiver.listen(0, "127.0.0.1");
+    await once(receiver, "listening");
+    const target = `http://127.0.0.1:${(receiver.address() as { port: number }).port}/approved?exact=1`;
+    try {
+      await queueExports(page, [
+        target,
+        target.replace("approved", "rejected"),
+      ]);
+      expect(received).toHaveLength(0);
+      expect(await readFile(resolve(project, "payload.bin"), "utf8")).toBe(
+        "CHANGED-AFTER-PREPARATION",
+      );
+      await page
+        .getByRole("button", {
+          name: "配送 #0 の内容と宛先を確認",
+          exact: true,
+        })
+        .click();
+      const dialog = page.getByRole("dialog");
+      await expect(dialog).toContainText(target);
+      await expect(dialog).toContainText(
+        createHash("sha256").update(payload).digest("hex"),
+      );
+      await expect(dialog.getByLabel("送信する正確なバイト列")).toContainText(
+        "00 ff 46 52",
+      );
+      await expect(
+        dialog.getByRole("button", { name: "この宛先へ1回送信" }),
+      ).toBeEnabled();
+      const first = (await nativeState(page)).export_review;
+      await page.screenshot({
+        path: "target/gui-checks/native-delivery-review.png",
+        fullPage: true,
+      });
+      await page.setViewportSize({ width: 390, height: 240 });
+      await expect(
+        dialog.getByRole("button", { name: "この宛先へ1回送信" }),
+      ).toBeDisabled();
+      await page.setViewportSize({ width: 390, height: 844 });
+      await expect(
+        dialog.getByRole("button", { name: "この宛先へ1回送信" }),
+      ).toBeEnabled();
+      await page.screenshot({
+        path: "target/gui-checks/native-delivery-mobile.png",
+        fullPage: true,
+      });
+      await page.setViewportSize({ width: 1440, height: 960 });
+      await dialog.getByRole("button", { name: "次の内容" }).click();
+      await expect(dialog).toContainText("バイト位置 2048");
+      await expect(dialog).toContainText(target);
+      await dialog.getByRole("button", { name: "この宛先へ1回送信" }).click();
+      await expect(dialog).not.toBeVisible();
+      await expect(
+        page.getByRole("alert").filter({ hasText: "HTTP 201" }),
+      ).toBeVisible();
+      expect(received).toHaveLength(1);
+      expect(received[0]!.bytes.equals(payload)).toBe(true);
+      expect(received[0]!.path).toBe("/approved?exact=1");
+      await hostCommand(page, {
+        type: "send_export",
+        reference: { session: first.summary.session, id: 0 },
+        serial: first.serial,
+      });
+      await expect(
+        page
+          .getByRole("alert")
+          .filter({ hasText: "Open the exact export review" }),
+      ).toBeVisible();
+      expect(received).toHaveLength(1);
+      await page
+        .getByRole("button", {
+          name: "配送 #1 の内容と宛先を確認",
+          exact: true,
+        })
+        .click();
+      await dialog.getByRole("button", { name: "この配送を拒否" }).click();
+      await expect(dialog).not.toBeVisible();
+      await page
+        .getByRole("button", {
+          name: "配送 #1 の内容と宛先を確認",
+          exact: true,
+        })
+        .click();
+      await expect(
+        dialog.getByRole("button", { name: "この宛先へ1回送信" }),
+      ).toBeDisabled();
+      await dialog.getByRole("button", { name: "閉じる", exact: true }).click();
+      const port = Number(new URL(url).port);
+      await stop();
+      await page.goto(await start(port));
+      await page.getByRole("tab", { name: /^配送/ }).click();
+      await expect(
+        page.getByText("配送の提案はありません。", { exact: false }),
+      ).toBeVisible();
+      expect(received).toHaveLength(1);
+    } finally {
+      receiver.closeAllConnections();
+      await new Promise<void>((resolve) => receiver.close(() => resolve()));
+    }
+  });
+
+  test("delivery refuses stale reviews, does not follow redirects and leaves uncertain attempts terminal", async ({
+    page,
+  }) => {
+    test.setTimeout(60_000);
+    await writeFile(resolve(project, "payload.bin"), Buffer.from([0, 255, 10]));
+    const paths: string[] = [];
+    const receiver = createServer(async (request, response) => {
+      for await (const _chunk of request) {
+      }
+      paths.push(request.url!);
+      if (request.url === "/uncertain") {
+        request.socket.destroy();
+        return;
+      }
+      response.writeHead(307, { Location: "/must-not-follow" });
+      response.end();
+    });
+    receiver.listen(0, "127.0.0.1");
+    await once(receiver, "listening");
+    const target = `http://127.0.0.1:${(receiver.address() as { port: number }).port}`;
+    try {
+      await queueExports(page, [target + "/redirect", target + "/uncertain"]);
+      await page
+        .getByRole("button", {
+          name: "配送 #0 の内容と宛先を確認",
+          exact: true,
+        })
+        .click();
+      const old = (await nativeState(page)).export_review;
+      await hostCommand(page, {
+        type: "review_export",
+        reference: { session: old.summary.session, id: 1 },
+        offset: 0,
+      });
+      await expect(page.getByRole("dialog")).toContainText(
+        target + "/uncertain",
+      );
+      await hostCommand(page, {
+        type: "send_export",
+        reference: { session: old.summary.session, id: 0 },
+        serial: old.serial,
+      });
+      await expect(page.getByRole("dialog")).not.toBeVisible();
+      await expect(
+        page
+          .getByRole("alert")
+          .filter({ hasText: "selected export review changed" }),
+      ).toBeVisible();
+      expect(paths).toEqual([]);
+      await page
+        .getByRole("button", {
+          name: "配送 #0 の内容と宛先を確認",
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole("dialog")
+        .getByRole("button", { name: "この宛先へ1回送信" })
+        .click();
+      await expect(
+        page.getByRole("alert").filter({ hasText: "HTTP 307" }),
+      ).toBeVisible();
+      expect(paths).toEqual(["/redirect"]);
+      await page
+        .getByRole("button", {
+          name: "配送 #1 の内容と宛先を確認",
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole("dialog")
+        .getByRole("button", { name: "この宛先へ1回送信" })
+        .click();
+      await expect(
+        page.getByRole("alert").filter({ hasText: "配送結果不明・再送不可" }),
+      ).toBeVisible();
+      expect(paths).toEqual(["/redirect", "/uncertain"]);
+      await page
+        .getByRole("button", {
+          name: "配送 #1 の内容と宛先を確認",
+          exact: true,
+        })
+        .click();
+      await expect(
+        page
+          .getByRole("dialog")
+          .getByRole("button", { name: "この宛先へ1回送信" }),
+      ).toBeDisabled();
+      await page.screenshot({
+        path: "target/gui-checks/native-delivery-uncertain.png",
+        fullPage: true,
+      });
+    } finally {
+      receiver.closeAllConnections();
+      await new Promise<void>((resolve) => receiver.close(() => resolve()));
+    }
   });
 
   async function preview(page: Page, folder = ".", entry = "index.html") {

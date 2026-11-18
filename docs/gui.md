@@ -44,8 +44,43 @@ provider failures are not silently retried. Unsent input remains tab/browser dat
 and completed turns also refresh status; polling alone is not a filesystem watcher.
 Logs/partial reasoning in this initial adapter last for the host process, while
 conversation text and admitted model history persist. The file reader uses the
-native tool's bounded first 200 lines. Elaborated Atlas extraction and
-artifact-export approval remain integration work. Native preview and meaning analysis are described below.
+native tool's bounded first 200 lines. Elaborated Atlas extraction remains
+integration work. Native preview, delivery and meaning analysis are described below.
+
+## Native delivery review
+
+Ask the agent to prepare a file for a specified HTTP destination. **配送** shows the
+same immutable export queue as the TUI: `propose_export` prepares an ordinary file
+only without a project contract; `propose_artifact_export` prepares the retained
+checked package and requires current accepted meaning/evidence. Neither tool sends
+or approves anything. No browser-supplied payload, destination or proof replaces
+the retained request.
+
+Open **内容と宛先を確認** to inspect the exact destination, method/content type,
+payload length, SHA-256 and contract identity. Those fields remain above a separate
+scrolling byte view; **前の内容** / **次の内容** move through 2 KiB pages. Hex and
+printable ASCII show the frozen bytes without interpreting them as HTML or terminal
+controls. **この宛先へ1回送信** and **この配送を拒否** operate on that displayed
+reference and host review sequence. Sending is disabled if the complete heading
+does not fit visibly. This browser geometry check is a tested UI adapter, not the
+Crossterm predicate's Rust-to-Lean refinement or a display-authenticity proof.
+
+Closing a review or starting another host operation discards the selected review;
+reopen it before sending. A stale review sequence or a different session/export
+cannot act on the current selection. Native dispatch checks current project source
+and evidence again and reserves its one attempt before HTTP I/O. Responses show
+their HTTP status, including errors and redirects; redirects are not followed.
+Uncertain delivery remains terminal and instructs the user to inspect the receiver.
+A response is not an assertion about the receiver's application-level processing.
+There is no automatic resend. Queue entries last only for the host process and do
+not return after restart.
+
+Playwright exercises a real loopback receiver with binary snapshots, source edits
+after preparation, fixed headings on desktop/mobile, clipped-heading refusal,
+byte paging, stale selections, rejection, one-use delivery, redirects, uncertain
+results and restart. Existing CLI/TUI delivery tests exercise the shared queue and
+native controls independently. Host input provenance, browser rendering and physical
+HTTP remain adapters; this integration does not complete whole R1.
 
 ## Native application preview
 

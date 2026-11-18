@@ -2758,6 +2758,19 @@ pre {
   border-radius: 8px;
   background: white;
 }
+.native-delivery-entry {
+  padding: 16px;
+  border: 1px solid #d6d9df;
+  border-radius: 8px;
+}
+.native-delivery-heading {
+  flex-shrink: 0;
+}
+.native-delivery-bytes {
+  overflow-x: auto;
+  white-space: pre;
+  font-size: 12px;
+}
 .native-panel pre,
 .native-stream,
 .native-contract {

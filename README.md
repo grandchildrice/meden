@@ -92,6 +92,8 @@ These model assessments do not accept contracts or establish proofs.
 The Preview tab opens selected local HTML/JS/CSS or static build output, so you can
 interact with the developed application and reread files after edits. It supports
 browser applications without backend services or persistent browser storage.
+The Delivery tab reviews the same fixed file/checked-package queue as the TUI,
+then sends once to the displayed destination or rejects the proposal.
 HTTP connections can also use `--base-url URL --model MODEL --api-key-env NAME`.
 Prepare real proof tools with `meden setup` before requesting formal verification.
 

@@ -141,6 +141,10 @@ They check old preview revocation, missing-asset diagnostics, size limits, folde
 aliases resolving outside the selected root, browser parent/storage/API separation,
 blocked cross-origin fetch/image/script loads and exact HTTP host/method/path handling.
 These browser policies do not establish OS egress isolation or whole R1.
+Native delivery cases review original binary snapshots, preserve the fixed target
+and hash while paging bytes, refuse clipped headings and stale selections, reject
+proposals and send once to a real local receiver. Redirects are not followed;
+uncertain results cannot be retried, and restarting discards the old queue.
 Native meaning-analysis cases also cover request separation, actual back-translation
 and discrepancy rendering, unchanged proof status, target edits, historical restart,
 cancellation between passes, concurrent source changes, provider limits and refusal

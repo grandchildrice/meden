@@ -15,6 +15,7 @@ use tiny_http::{Header, Method, Request, Response, Server, StatusCode};
 use crate::{session::history, session::Session, WorkspaceArgs};
 mod analysis;
 mod assets;
+mod delivery;
 mod preview;
 mod sources;
 
@@ -42,6 +43,9 @@ struct View {
     source_snapshot: Option<sources::Snapshot>,
     analysis: Option<analysis::Record>,
     preview: Option<preview::Summary>,
+    exports: Vec<crate::exports::Summary>,
+    export_review: Option<delivery::Review>,
+    export_outcome: Option<delivery::Outcome>,
 }
 
 #[derive(Deserialize)]
@@ -56,6 +60,22 @@ enum Command {
     },
     Cancel,
     RefreshStatus,
+    ReviewExport {
+        reference: crate::exports::Reference,
+        offset: usize,
+    },
+    SendExport {
+        reference: crate::exports::Reference,
+        serial: u64,
+    },
+    RejectExport {
+        reference: crate::exports::Reference,
+        serial: u64,
+    },
+    CloseExport {
+        reference: crate::exports::Reference,
+        serial: u64,
+    },
     CapturePreview {
         root: String,
         entry: String,
@@ -225,6 +245,9 @@ fn initial_view(
         source_snapshot: None,
         analysis,
         preview: None,
+        exports: Vec::new(),
+        export_review: None,
+        export_outcome: None,
     }));
     Ok(view)
 }
@@ -392,19 +415,27 @@ fn worker(
     pages: &Arc<meden_runtime::pages::Pages>,
     preview: &preview::Preview,
 ) {
-    let exports = Arc::new(crate::exports::Exports::new(Arc::clone(project)));
+    let mut delivery = delivery::Delivery::new(project);
     for Task { command, processes } in receiver {
+        delivery.begin(&command);
         let result = (|| -> Result<()> {
             let mut session = Session::new(
                 Arc::clone(workspace),
                 Arc::clone(gateway),
                 Arc::clone(&processes),
-                &exports,
+                &delivery.queue,
                 pages,
                 project,
             )?;
             let instruction = match command {
                 Command::RefreshStatus => None,
+                command @ (Command::ReviewExport { .. }
+                | Command::SendExport { .. }
+                | Command::RejectExport { .. }
+                | Command::CloseExport { .. }) => {
+                    delivery.perform(command, workspace, &processes)?;
+                    None
+                }
                 Command::CapturePreview { root, entry } => {
                     preview.capture(workspace, &processes, &root, &entry)?;
                     None
@@ -458,30 +489,7 @@ fn worker(
             };
             if let Some(instruction) = instruction {
                 preview.clear();
-                let status = session.run(&instruction, &|event| observe(view, &event));
-                let mut current = lock(view);
-                current.partial.clear();
-                current.stopped = session.stop_report().map(str::to_owned);
-                current.activity = match status {
-                    Status::Done(_) => "Complete",
-                    Status::Failed(_) => "Failed",
-                    Status::Incomplete => "Incomplete",
-                    Status::Cancelled => "Cancelled",
-                    Status::NeedsReview => "Contract review required",
-                }
-                .into();
-                if let Status::Failed(error) = status {
-                    current.stopped.get_or_insert(error);
-                }
-                let transcript = current
-                    .messages
-                    .iter()
-                    .map(|message| history::Message {
-                        speaker: message.speaker,
-                        text: message.text.clone(),
-                    })
-                    .collect();
-                history::save_transcript(workspace.path(), transcript, current.stopped.clone())?;
+                run_instruction(&mut session, &instruction, view, workspace)?;
             }
             // This observes real source freshness, not only the last saved report.
             let summary = session.project_status()?;
@@ -489,11 +497,47 @@ fn worker(
             Ok(())
         })();
         let mut view = lock(view);
+        if let Err(error) = delivery.observe(&mut view) {
+            view.stopped = Some(format!("{error:#}"));
+        }
         if let Err(error) = result {
             view.stopped = Some(format!("{error:#}"));
         }
         view.running = false;
     }
+}
+
+fn run_instruction(
+    session: &mut Session,
+    instruction: &str,
+    view: &Mutex<View>,
+    workspace: &Workspace,
+) -> Result<()> {
+    let status = session.run(instruction, &|event| observe(view, &event));
+    let mut current = lock(view);
+    current.partial.clear();
+    current.stopped = session.stop_report().map(str::to_owned);
+    current.activity = match status {
+        Status::Done(_) => "Complete",
+        Status::Failed(_) => "Failed",
+        Status::Incomplete => "Incomplete",
+        Status::Cancelled => "Cancelled",
+        Status::NeedsReview => "Contract review required",
+    }
+    .into();
+    if let Status::Failed(error) = status {
+        current.stopped.get_or_insert(error);
+    }
+    let transcript = current
+        .messages
+        .iter()
+        .map(|message| history::Message {
+            speaker: message.speaker,
+            text: message.text.clone(),
+        })
+        .collect();
+    history::save_transcript(workspace.path(), transcript, current.stopped.clone())?;
+    Ok(())
 }
 
 fn inspect(
