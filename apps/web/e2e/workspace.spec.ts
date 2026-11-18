@@ -229,6 +229,56 @@ test("the sidebar keeps one continuous vending history including its original op
   await expect(sidebar.locator(".history-item")).toHaveCount(1);
 });
 
+test("the conversation artifact shows its Rust and Lean proofs and still opens preview", async ({
+  page,
+}) => {
+  await archivedChat(page);
+  const card = page.getByRole("region", {
+    name: "自販機シミュレーターの成果物",
+  });
+  const statuses = card.getByRole("list", { name: "定理と証明ステータス" });
+  const preview = card.getByRole("button", {
+    name: "自販機シミュレーターのプレビューを開く",
+  });
+  await expect(
+    card.getByText("コード・プレビュー・証明", { exact: true }),
+  ).toHaveCount(0);
+  await expect(statuses.getByRole("listitem")).toHaveCount(8);
+  await expect(statuses.getByText("証明済み", { exact: true })).toHaveCount(8);
+  const purchase = statuses
+    .getByRole("listitem")
+    .filter({ hasText: "KernelProof.law_purchase_exact" });
+  await expect(purchase).toContainText("150円で商品を購入する");
+  await expect(purchase).toContainText("証明済み");
+  for (const name of ["Rust", "Lean"]) {
+    const logo = card.getByRole("img", { name, exact: true });
+    await expect(logo).toHaveJSProperty("complete", true);
+    expect(
+      await logo.evaluate((image: HTMLImageElement) => image.naturalWidth),
+    ).toBeGreaterThan(0);
+  }
+  await preview.scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: "target/gui-checks/screenshots/artifact-card.png",
+  });
+  await preview.press("Enter");
+  await expect(
+    page.getByRole("tab", { name: "プレビュー", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
+  await page
+    .getByRole("button", { name: "パネルを閉じる", exact: true })
+    .click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await card.scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: "target/gui-checks/screenshots/artifact-card-mobile.png",
+  });
+  await preview.click();
+  await expect(
+    page.getByRole("tab", { name: "プレビュー", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
+});
+
 test("proof opens the wider source graph and follows a declaration into its exact Lean source", async ({
   page,
 }) => {
@@ -417,7 +467,19 @@ test("requirement edits invalidate retained proof and analysis across restart", 
   );
   await page.getByRole("button", { name: "グラフに戻る", exact: true }).click();
   await expect(page.locator(".proof-obligations")).toContainText("0 / 8");
+  const cardStatuses = page
+    .getByRole("region", { name: "自販機シミュレーターの成果物" })
+    .getByRole("list", { name: "定理と証明ステータス" });
+  await expect(
+    cardStatuses.getByText("再検証が必要", { exact: true }),
+  ).toHaveCount(8);
   await page.reload();
+  await expect(
+    cardStatuses.getByText("再検証が必要", { exact: true }),
+  ).toHaveCount(8);
+  await expect(cardStatuses.getByText("証明済み", { exact: true })).toHaveCount(
+    0,
+  );
   await openProof(page);
   await page.locator(".proof-obligations>summary").click();
   await expect(page.locator(".proof-list")).toContainText("再検証が必要");

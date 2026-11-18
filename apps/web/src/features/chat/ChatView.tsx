@@ -11,10 +11,9 @@ import {
 import { MarkdownTextPrimitive } from "@assistant-ui/react-markdown";
 import { Button, IconButton, Typography } from "@mui/material";
 import ArrowUpwardRounded from "@mui/icons-material/ArrowUpwardRounded";
-import InsertDriveFileOutlined from "@mui/icons-material/InsertDriveFileOutlined";
-import ArrowForwardRounded from "@mui/icons-material/ArrowForwardRounded";
 import { RecordedActivity } from "./RecordedActivity";
-import type { Conversation } from "@meden/workspace-schema";
+import type { Conversation, Workspace } from "@meden/workspace-schema";
+import { ArtifactCard } from "./ArtifactCard";
 
 const technologyLogos = [
   ["Rust", "rust"],
@@ -30,7 +29,7 @@ const technologyLogos = [
 ] as const;
 
 interface Props {
-  projectName: string;
+  workspace: Workspace;
   conversation?: Conversation;
   draftKey: string;
   running: boolean;
@@ -38,7 +37,7 @@ interface Props {
   onOpenArtifact: () => void;
 }
 export function ChatView({
-  projectName,
+  workspace,
   conversation,
   draftKey,
   running,
@@ -106,16 +105,7 @@ export function ChatView({
               {conversation?.messages.some(
                 (message) => message.role === "assistant",
               ) && (
-                <button className="artifact-card" onClick={onOpenArtifact}>
-                  <span className="artifact-card-icon">
-                    <InsertDriveFileOutlined />
-                  </span>
-                  <span>
-                    <strong>{projectName}</strong>
-                    <small>コード・プレビュー・証明</small>
-                  </span>
-                  <ArrowForwardRounded fontSize="small" />
-                </button>
+                <ArtifactCard workspace={workspace} onOpen={onOpenArtifact} />
               )}
               {running && (
                 <div role="status" className="reply-activity">
@@ -137,7 +127,7 @@ export function ChatView({
               }
             />
             <div className="composer-actions">
-              <span className="composer-project">{projectName}</span>
+              <span className="composer-project">{workspace.name}</span>
               <ComposerPrimitive.Send asChild>
                 <IconButton className="send-message" aria-label="送信">
                   <ArrowUpwardRounded fontSize="small" />

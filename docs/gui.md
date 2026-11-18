@@ -42,6 +42,10 @@ screens use drawers.
 | Edit or request review          | From the meaning result, inspect the retained requirement/theorem record, edit a draft or prepare a revision-bound review export. No extra top-level tab is added.                                          |
 | Preserve work                   | Chat, drafts and edits survive reload. Failed storage retains the in-memory conversation and offers retry/export. Invalid imports keep current work.                                                        |
 
+The vending conversation card shows the Rust implementation and Lean prover
+logos alongside the preview button. Its list shows the eight audited contract
+properties, their Lean theorem names, and the same statuses as the Proof tab.
+
 ## Home screen logos
 
 The logo strip below the message suggestions uses the language and formal

@@ -11,12 +11,9 @@ import {
 import OpenInFullRounded from "@mui/icons-material/OpenInFullRounded";
 import ArrowBackRounded from "@mui/icons-material/ArrowBackRounded";
 import AutoAwesomeOutlined from "@mui/icons-material/AutoAwesomeOutlined";
-import {
-  analysisFor,
-  type Declaration,
-  type Workspace,
-} from "@meden/workspace-schema";
+import type { Declaration, Workspace } from "@meden/workspace-schema";
 import { ProofInspector } from "./ProofInspector";
+import { proofObligations } from "./proof-obligations";
 import { ProofStatusChip } from "../../components/Status";
 import { SemanticMethodInfo } from "./SemanticMethodInfo";
 import { SemanticRun } from "./SemanticRun";
@@ -64,14 +61,8 @@ export function ProofWorkspace({
   const selected = workspace.declarations.find(
     (item) => item.id === selectedId,
   );
-  const proved = workspace.requirements.filter(
-    (claim) =>
-      workspace.declarations.find(
-        (item) =>
-          item.id ===
-          analysisFor(workspace, { claimId: claim.id })?.declarationId,
-      )?.proofStatus === "proved",
-  ).length;
+  const obligations = proofObligations(workspace);
+  const proved = obligations.filter(({ status }) => status === "proved").length;
   const inspect = (id: string) => {
     setClaimId(id);
     setMode("compare");
@@ -85,33 +76,24 @@ export function ProofWorkspace({
             <Chip
               size="small"
               className="status-chip positive"
-              label={proved + " / " + workspace.requirements.length}
+              label={proved + " / " + obligations.length}
             />
           </summary>
           <div className="proof-list">
-            {workspace.requirements.map((claim) => {
-              const declaration = workspace.declarations.find(
-                (item) =>
-                  item.id ===
-                  analysisFor(workspace, { claimId: claim.id })?.declarationId,
-              );
-              return (
-                <button
-                  key={claim.id}
-                  onClick={(event) => {
-                    if (declaration) onSelect(declaration.id);
-                    event.currentTarget
-                      .closest("details")
-                      ?.removeAttribute("open");
-                  }}
-                >
-                  <span>{claim.title}</span>
-                  <ProofStatusChip
-                    status={declaration?.proofStatus || "unproved"}
-                  />
-                </button>
-              );
-            })}
+            {obligations.map(({ claim, declaration, status }) => (
+              <button
+                key={claim.id}
+                onClick={(event) => {
+                  if (declaration) onSelect(declaration.id);
+                  event.currentTarget
+                    .closest("details")
+                    ?.removeAttribute("open");
+                }}
+              >
+                <span>{claim.title}</span>
+                <ProofStatusChip status={status} />
+              </button>
+            ))}
           </div>
         </details>
         <div className="meaning-actions">

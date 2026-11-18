@@ -1019,45 +1019,79 @@ pre {
   object-fit: contain;
 }
 .artifact-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
   border: 1px solid #dce4e8;
   border-radius: 12px;
-  padding: 16px;
   margin: 8px 0 24px 46px;
-  min-width: 260px;
-  max-width: calc(100% - 46px);
+  max-width: 550px;
   background: #fff;
   color: #344f5c;
+}
+.artifact-card-header {
+  display: flex;
+  align-items: center;
+}
+.artifact-card-open {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  min-height: 52px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: inherit;
+  padding: 10px 14px;
   text-align: left;
 }
-.artifact-card:hover {
-  background: #f7fafb;
-  border-color: #9db7c2;
+.artifact-card-open:hover {
+  background: #f3f7f8;
 }
-.artifact-card-icon {
-  width: 36px;
-  height: 40px;
-  border: 1px solid #d8e2e7;
-  border-radius: 8px;
-  background: #f7fafb;
-  display: grid;
-  place-items: center;
-  color: #6a8998;
-}
-.artifact-card > span:nth-child(2) {
+.artifact-card-open strong {
   flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
 }
-.artifact-card strong {
-  display: block;
-  font-weight: 500;
-  font-size: 13px;
-  margin-bottom: 4px;
+.artifact-card-open svg {
+  flex: none;
 }
-.artifact-card small {
+.artifact-card-logos {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  border-left: 1px solid var(--line);
+  padding-inline: 12px;
+}
+.artifact-card-logos img {
   display: block;
+  object-fit: contain;
+}
+.artifact-card-proofs {
+  margin: 0;
+  padding: 0 14px;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+.artifact-card-proofs li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  font-size: 12px;
+}
+.artifact-card-proofs li + li {
+  border-top: 1px solid var(--line);
+}
+.artifact-card-proofs code {
+  display: block;
+  margin-top: 2px;
   color: #596974;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.artifact-card-proofs .MuiChip-root {
   font-size: 11px;
 }
 .reply-activity {
@@ -1672,10 +1706,7 @@ pre {
     padding: 12px 16px;
   }
   .artifact-card {
-    margin-left: 34px;
-    max-width: calc(100% - 34px);
-    min-width: 230px;
-    padding: 12px;
+    margin-left: 0;
   }
   .artifact-panel-heading {
     padding: 14px 16px;

@@ -532,7 +532,7 @@ export function App() {
           ) : (
             workspace && (
               <ChatView
-                projectName={workspace.name}
+                workspace={workspace}
                 conversation={conversation}
                 draftKey={
                   "meden-input:" + activeId + ":" + (conversationId || "new")
