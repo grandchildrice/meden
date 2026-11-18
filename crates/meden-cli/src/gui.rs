@@ -13,6 +13,7 @@ use serde_json::{json, Value};
 use tiny_http::{Header, Method, Request, Response, Server, StatusCode};
 
 use crate::{session::history, session::Session, WorkspaceArgs};
+mod analysis;
 mod sources;
 
 struct Task {
@@ -37,6 +38,7 @@ struct View {
     logs: Vec<Value>,
     inspection: Option<Value>,
     source_snapshot: Option<sources::Snapshot>,
+    analysis: Option<analysis::Record>,
 }
 
 #[derive(Deserialize)]
@@ -54,6 +56,9 @@ enum Command {
     SourceSnapshot {
         paths: Vec<String>,
     },
+    AnalyzeMeaning {
+        input: crate::semantic::Input,
+    },
     ReviewContract {
         reference: crate::project::Reference,
     },
@@ -67,6 +72,21 @@ enum Command {
         path: String,
         directory: bool,
     },
+}
+
+impl Command {
+    fn check_submission(&self, gateway: &Gateway, session: &[u8]) -> Result<()> {
+        if let Self::Instruction { text } = self {
+            anyhow::ensure!(!text.trim().is_empty(), "Instruction is empty");
+        }
+        if matches!(self, Self::Instruction { .. } | Self::AnalyzeMeaning { .. }) {
+            anyhow::ensure!(
+                gateway.is_authorized(session),
+                "Review and approve the processor before sending"
+            );
+        }
+        Ok(())
+    }
 }
 
 fn lock<T>(value: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
@@ -102,6 +122,10 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
         workspace.session_id(),
     )?);
     let saved = history::load(workspace.path())?;
+    let (analysis, analysis_error) = match analysis::load(workspace.path()) {
+        Ok(record) => (record, None),
+        Err(error) => (None, Some(format!("Meaning-analysis checkpoint unavailable: {error:#}. The file was retained; reread sources and rerun analysis in the GUI."))),
+    };
     let view = Arc::new(Mutex::new(View {
         workspace: workspace.path().display().to_string(),
         endpoint: gateway.endpoint().into(),
@@ -114,10 +138,11 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
         reasoning: String::new(),
         messages: saved.transcript,
         project: project.stored_status()?,
-        stopped: saved.stopped,
+        stopped: analysis_error.or(saved.stopped),
         logs: Vec::new(),
         inspection: None,
         source_snapshot: None,
+        analysis,
     }));
     let control = Arc::new(Mutex::new(Arc::new(Control::new(Arc::new(
         AtomicBool::new(false),
@@ -305,13 +330,7 @@ impl Http<'_> {
                 command => {
                     let mut view = lock(self.view);
                     anyhow::ensure!(!view.running, "Wait for the current operation or cancel it");
-                    if let Command::Instruction { ref text } = command {
-                        anyhow::ensure!(!text.trim().is_empty(), "Instruction is empty");
-                        anyhow::ensure!(
-                            self.gateway.is_authorized(self.workspace.session_id()),
-                            "Review and approve the processor before sending"
-                        );
-                    }
+                    command.check_submission(self.gateway, self.workspace.session_id())?;
                     // Reserve before enqueueing: concurrent tabs cannot queue a second turn.
                     let processes = Arc::new(Control::new(Arc::new(AtomicBool::new(false))));
                     *lock(self.control) = Arc::clone(&processes);
@@ -355,15 +374,28 @@ fn worker(
             )?;
             let instruction = match command {
                 Command::RefreshStatus => None,
+                Command::AnalyzeMeaning { input } => {
+                    analysis::run(view, workspace, gateway, &processes, input)?;
+                    None
+                }
                 Command::SourceSnapshot { paths } => {
                     // Discard the old graph even if a replacement observation fails.
                     lock(view).source_snapshot = None;
                     let snapshot = sources::capture(workspace, &processes, &paths)?;
-                    lock(view).source_snapshot = Some(snapshot);
+                    let mut view = lock(view);
+                    if view
+                        .analysis
+                        .as_ref()
+                        .is_some_and(|record| record.input.source_revision != snapshot.revision)
+                    {
+                        analysis::invalidate(&mut view);
+                    }
+                    view.source_snapshot = Some(snapshot);
                     None
                 }
                 Command::Instruction { text } => {
                     lock(view).source_snapshot = None;
+                    analysis::invalidate(&mut lock(view));
                     lock(view).messages.push(history::Message {
                         speaker: history::Speaker::User,
                         text: text.clone(),
@@ -383,26 +415,8 @@ fn worker(
                     None
                 }
                 Command::Inspect { path, directory } => {
-                    let (registry, policy) = crate::workspace::environment(workspace, &processes)?;
-                    let call = meden_agent::conversation::ToolCall {
-                        id: "gui-inspect".into(),
-                        function: meden_agent::conversation::FunctionCall {
-                            name: if directory { "list_files" } else { "read_file" }.into(),
-                            arguments: serde_json::to_string(&json!({"path":path}))?,
-                        },
-                    };
-                    let result = meden_agent::conversation::execute(
-                        &call,
-                        &registry,
-                        &policy,
-                        &|_| {},
-                        processes.flag(),
-                        &|| None,
-                    );
-                    lock(view).inspection = Some(match result {
-                        Ok(text) => json!({"path":path,"directory":directory,"text":text}),
-                        Err(error) => json!({"path":path,"error":format!("{error:?}")}),
-                    });
+                    let observation = inspect(workspace, &processes, &path, directory)?;
+                    lock(view).inspection = Some(observation);
                     None
                 }
                 _ => anyhow::bail!("Unexpected worker command"),
@@ -444,6 +458,34 @@ fn worker(
         }
         view.running = false;
     }
+}
+
+fn inspect(
+    workspace: &Arc<Workspace>,
+    processes: &Arc<Control>,
+    path: &str,
+    directory: bool,
+) -> Result<Value> {
+    let (registry, policy) = crate::workspace::environment(workspace, processes)?;
+    let call = meden_agent::conversation::ToolCall {
+        id: "gui-inspect".into(),
+        function: meden_agent::conversation::FunctionCall {
+            name: if directory { "list_files" } else { "read_file" }.into(),
+            arguments: serde_json::to_string(&json!({"path":path}))?,
+        },
+    };
+    let result = meden_agent::conversation::execute(
+        &call,
+        &registry,
+        &policy,
+        &|_| {},
+        processes.flag(),
+        &|| None,
+    );
+    Ok(match result {
+        Ok(text) => json!({"path":path,"directory":directory,"text":text}),
+        Err(error) => json!({"path":path,"error":format!("{error:?}")}),
+    })
 }
 
 fn observe(view: &Mutex<View>, event: &Event<'_>) {

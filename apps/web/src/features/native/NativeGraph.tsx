@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Button,
@@ -10,16 +10,33 @@ import {
   Typography,
 } from "@mui/material";
 import { workspaceSchema, type Declaration } from "@meden/workspace-schema";
-import type { SourceSnapshot } from "@meden/agent-protocol/native";
+import type {
+  SourceSnapshot,
+  MeaningRecord,
+  MeaningInput,
+} from "@meden/agent-protocol/native";
 import { sourceIndex } from "@meden/atlas-adapter/source-index";
 import { SourceView } from "../source/SourceView";
+import { NativeMeaning } from "./NativeMeaning";
 const GraphView = lazy(() =>
   import("../graph/GraphView").then((module) => ({
     default: module.GraphView,
   })),
 );
 
-export function NativeGraph({ snapshot }: { snapshot: SourceSnapshot }) {
+export function NativeGraph({
+  snapshot,
+  analysis,
+  authorized,
+  running,
+  onAnalyze,
+}: {
+  snapshot: SourceSnapshot;
+  analysis: MeaningRecord | null;
+  authorized: boolean;
+  running: boolean;
+  onAnalyze: (input: MeaningInput) => Promise<boolean>;
+}) {
   const [selected, setSelected] = useState<Declaration>();
   const [sourceOpen, setSourceOpen] = useState(false);
   const [notification, setNotification] = useState("");
@@ -46,6 +63,19 @@ export function NativeGraph({ snapshot }: { snapshot: SourceSnapshot }) {
       return { error: String(error) };
     }
   }, [snapshot.revision]);
+  useEffect(() => {
+    if (!selected && analysis && result.workspace) {
+      const target = analysis.input.target;
+      setSelected(
+        result.workspace.declarations.find(
+          (item) =>
+            item.name === target.name &&
+            item.source?.file === target.file &&
+            item.source?.line === target.line,
+        ),
+      );
+    }
+  }, [analysis?.input.target.name, result.workspace]);
   if (!result.workspace)
     return (
       <Alert severity="error">
@@ -105,6 +135,22 @@ export function NativeGraph({ snapshot }: { snapshot: SourceSnapshot }) {
           </Typography>
         </div>
       )}
+      <NativeMeaning
+        record={analysis}
+        sourceRevision={snapshot.revision}
+        authorized={authorized}
+        running={running}
+        onRun={onAnalyze}
+        target={
+          selected?.source?.line
+            ? {
+                file: selected.source.file,
+                line: selected.source.line,
+                name: selected.name,
+              }
+            : undefined
+        }
+      />
       <Typography className="native-revision" variant="caption">
         読み取った版: {snapshot.revision}
       </Typography>

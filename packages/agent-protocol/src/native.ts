@@ -15,6 +15,73 @@ export const sourceSnapshotSchema = z
   })
   .strict();
 export type SourceSnapshot = z.infer<typeof sourceSnapshotSchema>;
+export const meaningInputSchema = z
+  .object({
+    source_revision: z.string().regex(/^sha256:[a-f0-9]{64}$/),
+    target: z
+      .object({
+        file: z.string().max(4096),
+        line: z.number().int().positive(),
+        name: z.string().max(1000),
+      })
+      .strict(),
+    requirement: z.string().min(1).max(16_384),
+  })
+  .strict();
+export type MeaningInput = z.infer<typeof meaningInputSchema>;
+export const meaningRecordSchema = z
+  .object({
+    version: z.literal(1),
+    engine: z.literal("meden-claimcheck-roundtrip-v1"),
+    model: z.string(),
+    input: meaningInputSchema,
+    state: z.enum([
+      "observing",
+      "translating",
+      "comparing",
+      "complete",
+      "failed",
+      "cancelled",
+      "stale",
+      "historical",
+    ]),
+    error: z.string().nullable(),
+    assessment: z
+      .object({
+        verdict: z.enum(["match", "mismatch", "unclear"]),
+        translation: z
+          .object({
+            lemmaName: z.string(),
+            naturalLanguage: z.string(),
+            preconditions: z.string(),
+            postcondition: z.string(),
+            scope: z.string(),
+            strength: z.enum(["trivial", "weak", "moderate", "strong"]),
+            confidence: z.number().min(0).max(1),
+          })
+          .strict(),
+        comparison: z
+          .object({
+            lemmaName: z.string(),
+            match: z.boolean(),
+            discrepancy: z.string(),
+            weakeningType: z.enum([
+              "none",
+              "tautology",
+              "weakened-postcondition",
+              "narrowed-scope",
+              "missing-case",
+              "wrong-property",
+            ]),
+            explanation: z.string(),
+          })
+          .strict(),
+      })
+      .strict()
+      .nullable(),
+  })
+  .strict();
+export type MeaningRecord = z.infer<typeof meaningRecordSchema>;
 export const nativeStateSchema = z.object({
   workspace: z.string(),
   endpoint: z.string(),
@@ -57,6 +124,7 @@ export const nativeStateSchema = z.object({
     })
     .nullable(),
   source_snapshot: sourceSnapshotSchema.nullable(),
+  analysis: meaningRecordSchema.nullable(),
 });
 export type NativeState = z.infer<typeof nativeStateSchema>;
 export type NativeCommand =
@@ -64,6 +132,7 @@ export type NativeCommand =
   | { type: "revoke_processor" | "cancel" | "refresh_status" }
   | { type: "instruction"; text: string }
   | { type: "source_snapshot"; paths: string[] }
+  | { type: "analyze_meaning"; input: MeaningInput }
   | {
       type: "review_contract" | "accept_contract" | "reject_contract";
       reference: NativeReference;

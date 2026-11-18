@@ -14,6 +14,7 @@ mod gui;
 mod pages;
 mod project;
 mod protocol;
+mod semantic;
 mod session;
 mod shell;
 mod storage;

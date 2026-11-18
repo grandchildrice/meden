@@ -21,6 +21,7 @@ import {
 } from "@meden/agent-protocol/native";
 import { ChatView } from "../features/chat/ChatView";
 import type { Conversation } from "@meden/workspace-schema";
+import { NativeMeaning } from "../features/native/NativeMeaning";
 const NativeGraph = lazy(() =>
   import("../features/native/NativeGraph").then((module) => ({
     default: module.NativeGraph,
@@ -405,12 +406,28 @@ export function NativeApp({ token }: { token: string }) {
                       <NativeGraph
                         key={state.source_snapshot.revision}
                         snapshot={state.source_snapshot}
+                        analysis={state.analysis}
+                        authorized={state.authorized && !connectionError}
+                        running={running}
+                        onAnalyze={(input) =>
+                          command({ type: "analyze_meaning", input })
+                        }
                       />
                     </Suspense>
                   ) : (
                     <p>
                       Rust／Leanファイルを選んで読み込んでください。作業の実行後は読み直しが必要です。
                     </p>
+                  )}
+                  {!state.source_snapshot && state.analysis && (
+                    <NativeMeaning
+                      record={state.analysis}
+                      authorized={state.authorized}
+                      running={running}
+                      onRun={(input) =>
+                        command({ type: "analyze_meaning", input })
+                      }
+                    />
                   )}
                 </div>
               </div>

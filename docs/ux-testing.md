@@ -134,6 +134,12 @@ prerequisites fail rather than skip these browser tests. Native screenshots incl
 `native-source-graph.png`. The source-graph journey covers local files, exact-line
 navigation, rereading after real edits, failed observation recovery and reload;
 source-only declarations must never acquire archived proof status.
+Native meaning-analysis cases also cover request separation, actual back-translation
+and discrepancy rendering, unchanged proof status, target edits, historical restart,
+cancellation between passes, concurrent source changes, provider limits and refusal
+of model-returned executable tools. These cases use scripted provider replies and
+real host/worker execution. The separate live browser driver in [gui.md](gui.md)
+uses an explicitly selected actual provider and independent original Rust tests.
 
 The standalone GUI remains a local recorded demo with archived verification
 evidence. Neither browser gate replaces the public TUI gate or establishes

@@ -45,7 +45,7 @@ and completed turns also refresh status; polling alone is not a filesystem watch
 Logs/partial reasoning in this initial adapter last for the host process, while
 conversation text and admitted model history persist. The file reader uses the
 native tool's bounded first 200 lines. Preview execution, elaborated Atlas extraction,
-semantic analysis and artifact-export approval remain integration work.
+artifact-export approval remain integration work. Native meaning analysis is described below.
 
 The native **グラフ** tab takes one `.lean`/`.rs` path per line; **このファイルのグラフ**
 in the code panel uses the current path. Source observations use the same offline,
@@ -65,6 +65,62 @@ starts **証明は未確認**; source `sorry`, audit-looking comments or model o
 cannot produce proof evidence. Select a node and open its exact highlighted
 source line in the shared syntax-highlighted source reader. The
 following recorded-demo documentation describes a separate standalone mode.
+
+## Native meaning analysis
+
+After reading a source graph, select a declaration, enter **比較する要件** and choose
+**この宣言の意味を解析**. The reviewed processor receives two separate requests:
+first the selected declaration plus observed local files, without the separate
+requirement or conversation; then the requirement plus the back-translation,
+without the formal source or conversation. The same host-selected model handles
+both requests. They are separate contexts, not independent-model evidence.
+
+This uses a Rust adapter of claimcheck's two-pass prompt/output approach, pinned
+at `8eb37fedc0acb5bc5f89efc3933cb3955268a4bd`. Source attribution and the MIT
+license are in `crates/meden-cli/src/semantic/`. It does not run the upstream SDK,
+CLI or Dafny verifier. No extra credential discovery, network client or
+model-selected execution is added. Only the two structured result functions are
+decoded as data; unexpected tool calls/fields/targets are refused, never executed.
+
+The result shows the frozen requirement, literal back-translation, preconditions,
+postcondition, scope and discrepancy/reasoning. **一致の候補** and **意味の差異候補**
+are model assessments. A semantic match never marks a declaration proved, accepts
+native meaning or changes proof/export authority. Low-confidence or contradictory
+matches remain **判定保留**. This interface does not establish analyzer accuracy.
+Lexical graph scope is not complete elaborated scope; comments can still expose
+intent even though the separate requirement is withheld from translation.
+
+The host freezes path/content SHA-256, target and exact requirement, reobserves
+all selected files before and after inference, and checks cancellation and the
+processor grant before admitting a result. A concurrent source change, missing
+file, cancelled turn, provider failure or malformed result leaves no current
+success. No automatic inference retry occurs. Editing the displayed requirement
+or choosing another declaration labels the old result as a different target.
+
+The latest run is saved as host `meaning-analysis.json` next to the existing JSON
+journals, outside the model-writable project. Reload retains it; restarting the
+host labels completed results historical and requires rereading sources, fresh
+processor review and explicit rerun. Interrupted runs are not resumed silently.
+An unreadable optional analysis checkpoint is reported and retained; ordinary
+project development remains available. This is tested adapter behavior, not a
+new Rust-to-Lean refinement or an atomic concurrent-filesystem proof.
+
+A separate live browser smoke exercises real application edits, independent
+original Rust tests, the source graph, matching and mismatching requirements,
+then restart/history with the explicitly selected cloud provider:
+
+```sh
+npm run build
+cargo build -p meden-cli
+node --experimental-strip-types tools/gui/live-native-smoke.ts \
+  --binary target/debug/meden --provider YOUR_PROVIDER --model YOUR_MODEL \
+  --out /tmp/meden-live-gui-review
+```
+
+This driver does not mock inference, alter private configuration or repair
+project files outside the GUI. It writes `report.json` and milestone screenshots.
+Passing these synthetic cases is not a general accuracy, local-inference or
+cold-verifier-installation claim.
 
 ## Recorded demo: start
 
@@ -202,9 +258,8 @@ Recorded and demo messages retain distinct origins in the shared schema. Editing
 requirements only changes browser drafts, not the Rust controller's accepted
 meaning. The existing TUI/runtime remains the execution authority.
 
-A local gateway is still pending. The shared schema, agent protocol and repository
-port establish its frontend seam; existing host persistence uses bounded JSON,
-not an already implemented SQLite gateway. See the [architecture map](architecture/semantic-workspace.md).
+The standalone demo uses the browser repository port; `meden gui` uses the
+implemented native loopback gateway and existing bounded host JSON persistence. See the [architecture map](architecture/semantic-workspace.md).
 
 ## Interaction references
 

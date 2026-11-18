@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import {
   createServer,
@@ -6,7 +6,14 @@ import {
   type ServerResponse,
 } from "node:http";
 import { spawn, type ChildProcess } from "node:child_process";
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import {
+  mkdtemp,
+  mkdir,
+  readFile,
+  readdir,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { once } from "node:events";
@@ -443,4 +450,257 @@ test.describe("native GUI with real offline workers", () => {
       ).violations,
     ).toEqual([]);
   });
+  const formalSource =
+    "namespace Demo\n-- FORMAL_CONTEXT_SENTINEL\ndef purchase (balance stock : Nat) := if balance ≥ 150 then stock - 1 else stock\ntheorem stock_bound (balance stock : Nat) : purchase balance stock ≤ stock := by sorry\nend Demo\n";
+  const informalization = () =>
+    tool("record_informalization", {
+      lemmaName: "Demo.stock_bound",
+      naturalLanguage:
+        "Stock never increases on a single purchase; it may stay unchanged.",
+      preconditions: "Natural-number balance and stock",
+      postcondition: "The output stock is at most the input stock",
+      scope: "A single transition, not every reachable execution",
+      strength: "moderate",
+      confidence: 0.9,
+    });
+  const judgement = (matches = false) =>
+    tool("record_comparison", {
+      lemmaName: "Demo.stock_bound",
+      match: matches,
+      discrepancy: matches
+        ? ""
+        : "The requirement asks for a decrement in every case, but the theorem allows unchanged stock.",
+      weakeningType: matches ? "none" : "missing-case",
+      explanation:
+        "The all-cases decrement condition is not established by non-increase alone.",
+    });
+  async function openMeaning(page: Page) {
+    await writeFile(resolve(project, "Spec.lean"), formalSource);
+    await page.goto(await start());
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+    await page
+      .getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" })
+      .fill("Spec.lean");
+    await page
+      .getByRole("button", { name: "ソースを読み直してグラフを表示" })
+      .click();
+    await page
+      .getByRole("region", { name: "ローカルソースのグラフ" })
+      .getByRole("button", { name: /Demo.stock_bound.*を選択/ })
+      .click();
+    await page
+      .getByRole("textbox", { name: "比較する要件", exact: true })
+      .fill(
+        "ORIGINAL_REQUIREMENT_SENTINEL: A purchase always decrements stock regardless of balance.",
+      );
+    await expect(
+      page.getByRole("button", { name: "この宣言の意味を解析" }),
+    ).toBeDisabled();
+    await page
+      .getByRole("button", { name: "接続先を確認", exact: true })
+      .click();
+    await page.getByRole("button", { name: "この送信先を承認" }).click();
+  }
+  test("meaning analysis runs separated real requests, keeps proof unknown and restores a historical result", async ({
+    page,
+  }) => {
+    responses.push(
+      (response) => reply(response, informalization()),
+      (response) => reply(response, judgement()),
+      (response) => reply(response, informalization()),
+      (response) => reply(response, judgement()),
+    );
+    await openMeaning(page);
+    await page.getByRole("button", { name: "この宣言の意味を解析" }).click();
+    const result = page.getByLabel("意味解析の結果", { exact: true });
+    await expect(result).toContainText("意味の差異候補（モデル評価）");
+    await expect(result).toContainText("Stock never increases");
+    await expect(page.getByLabel("選択した宣言")).toContainText("証明は未確認");
+    expect(requests).toHaveLength(2);
+    expect(JSON.stringify(requests[0])).toContain("FORMAL_CONTEXT_SENTINEL");
+    expect(JSON.stringify(requests[0])).not.toContain(
+      "ORIGINAL_REQUIREMENT_SENTINEL",
+    );
+    expect(JSON.stringify(requests[1])).toContain(
+      "ORIGINAL_REQUIREMENT_SENTINEL",
+    );
+    expect(JSON.stringify(requests[1])).not.toContain(
+      "FORMAL_CONTEXT_SENTINEL",
+    );
+    await result.scrollIntoViewIfNeeded();
+    await page.screenshot({
+      path: "target/gui-checks/native-meaning-mismatch.png",
+      fullPage: true,
+    });
+    const input = page.getByRole("textbox", {
+      name: "比較する要件",
+      exact: true,
+    });
+    const original = await input.inputValue();
+    await input.fill("Changed requirement");
+    await expect(result).toContainText(
+      "表示中の要件・宣言・ソース版と異なる解析",
+    );
+    expect(requests).toHaveLength(2);
+    const port = Number(new URL(url).port);
+    await stop();
+    await page.goto(await start(port));
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+    await expect(result).toContainText("保存された解析です");
+    expect(requests).toHaveLength(2);
+    await page
+      .getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" })
+      .fill("Spec.lean");
+    await page
+      .getByRole("button", { name: "ソースを読み直してグラフを表示" })
+      .click();
+    await expect(input).toHaveValue(original);
+    await expect(
+      page.getByRole("button", { name: "この宣言の意味を解析" }),
+    ).toBeDisabled();
+    await page
+      .getByRole("button", { name: "接続先を確認", exact: true })
+      .click();
+    await page.getByRole("button", { name: "この送信先を承認" }).click();
+    await page.getByRole("button", { name: "この宣言の意味を解析" }).click();
+    await expect(result).toContainText("意味の差異候補（モデル評価）");
+    await expect(result).not.toContainText("保存された解析です");
+    expect(requests).toHaveLength(4);
+    await stop();
+    const journals = resolve(root, "data/meden/projects");
+    const [projectKey] = await readdir(journals);
+    const checkpoint = resolve(journals, projectKey!, "meaning-analysis.json");
+    await writeFile(checkpoint, "invalid analysis checkpoint");
+    await page.goto(await start(port));
+    await expect(
+      page
+        .getByRole("alert")
+        .filter({ hasText: "Meaning-analysis checkpoint unavailable" }),
+    ).toBeVisible();
+    expect(await readFile(checkpoint, "utf8")).toBe(
+      "invalid analysis checkpoint",
+    );
+    responses.push(
+      (response) => reply(response, informalization()),
+      (response) => reply(response, judgement()),
+    );
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+    await page
+      .getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" })
+      .fill("Spec.lean");
+    await page
+      .getByRole("button", { name: "ソースを読み直してグラフを表示" })
+      .click();
+    await page
+      .getByRole("region", { name: "ローカルソースのグラフ" })
+      .getByRole("button", { name: /Demo.stock_bound.*を選択/ })
+      .click();
+    await input.fill(original);
+    await page
+      .getByRole("button", { name: "接続先を確認", exact: true })
+      .click();
+    await page.getByRole("button", { name: "この送信先を承認" }).click();
+    await page.getByRole("button", { name: "この宣言の意味を解析" }).click();
+    await expect(result).toContainText("意味の差異候補（モデル評価）");
+    expect(requests).toHaveLength(6);
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+          .analyze()
+      ).violations,
+    ).toEqual([]);
+  });
+  for (const mode of [
+    "cancel",
+    "revoke",
+    "stale",
+    "provider",
+    "invalid",
+  ] as const) {
+    test(`meaning analysis refuses a current result after ${mode}`, async ({
+      page,
+    }) => {
+      let held: ServerResponse | undefined;
+      if (mode === "cancel" || mode === "revoke")
+        responses.push((response) => {
+          held = response;
+        });
+      if (mode === "stale")
+        responses.push(
+          (response) => reply(response, informalization()),
+          (response) => {
+            held = response;
+          },
+        );
+      if (mode === "provider")
+        responses.push((response) => {
+          response.writeHead(429);
+          response.end();
+        });
+      if (mode === "invalid")
+        responses.push((response) =>
+          reply(
+            response,
+            tool("write_file", {
+              path: "must-not-exist.txt",
+              content: "not admitted",
+            }),
+          ),
+        );
+      await openMeaning(page);
+      await page.getByRole("button", { name: "この宣言の意味を解析" }).click();
+      const result = page.getByLabel("意味解析の結果", { exact: true });
+      if (mode === "cancel" || mode === "revoke" || mode === "stale") {
+        await expect.poll(() => held !== undefined).toBe(true);
+        await expect(result).toContainText(
+          mode === "cancel" || mode === "revoke"
+            ? "自然言語化しています"
+            : "元の要件と比較しています",
+        );
+        if (mode === "cancel")
+          await page
+            .getByRole("button", { name: "実行を中止", exact: true })
+            .click();
+        else if (mode === "revoke")
+          await page
+            .getByRole("button", { name: "送信の許可を取り消す", exact: true })
+            .click();
+        else
+          await writeFile(
+            resolve(project, "Spec.lean"),
+            formalSource + "-- concurrent host change\n",
+          );
+        reply(
+          held!,
+          mode === "cancel" || mode === "revoke"
+            ? informalization()
+            : judgement(true),
+        );
+      }
+      await expect(result).toContainText(
+        mode === "cancel" || mode === "revoke"
+          ? "意味解析を中止しました"
+          : mode === "stale"
+            ? "対象のソースが変更されました"
+            : "意味解析を完了できませんでした",
+      );
+      await expect(result).not.toContainText("一致の候補");
+      expect(requests).toHaveLength(mode === "stale" ? 2 : 1);
+      if (mode === "revoke")
+        await expect(
+          page.getByRole("button", { name: "この宣言の意味を解析" }),
+        ).toBeDisabled();
+      if (mode === "invalid")
+        await expect(
+          readFile(resolve(project, "must-not-exist.txt")),
+        ).rejects.toThrow();
+      await result.scrollIntoViewIfNeeded();
+      await page.screenshot({
+        path: `target/gui-checks/native-meaning-${mode}.png`,
+        fullPage: true,
+      });
+    });
+  }
 });

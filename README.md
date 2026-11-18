@@ -86,12 +86,15 @@ before opening that project in the TUI; the repository permits one writer.
 Code, actual tool inputs/results and native contract status appear beside the chat.
 The Graph tab reads selected local Rust/Lean files and opens each indexed declaration
 at its exact source line. This is a source-reference index, not a new proof check.
+Select a declaration, enter a requirement and run meaning analysis to get a
+source-bound back-translation and comparison through the reviewed processor.
+These model assessments do not accept contracts or establish proofs.
 HTTP connections can also use `--base-url URL --model MODEL --api-key-env NAME`.
 Prepare real proof tools with `meden setup` before requesting formal verification.
 
 `npm run dev` opens the separate recorded vending-machine demo at
 `http://127.0.0.1:4320`. Its graph, preview and simulated meaning-analysis UI use
-archived/demo data. Preview and meaning-analysis execution are not yet attached to live native projects.
+archived/demo data. The native Graph tab now runs real meaning analysis against selected local source; native application preview remains integration work.
 
 [GUI development and checks](docs/gui.md) ·
 [Shared contracts and strategy implementation map](docs/architecture/semantic-workspace.md)
