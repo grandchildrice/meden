@@ -188,13 +188,17 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
     let preview_server = Arc::clone(&preview);
     let preview_stopping = Arc::clone(&stopping);
     let preview_thread = std::thread::spawn(move || preview_server.listen(&preview_stopping));
-    let mut random = [0u8; 32];
+    let mut random = [0u8; 48];
     std::fs::File::open("/dev/urandom")?.read_exact(&mut random)?;
-    let token = random.iter().fold(String::new(), |mut output, byte| {
-        let _ = write!(output, "{byte:02x}");
-        output
-    });
-    println!("Meden GUI: {origin}/#session={token}");
+    let (token_bytes, launch_bytes) = random.split_at(32);
+    let token = nonce_text(token_bytes);
+    // A fresh document URL avoids same-document fragment navigation followed by
+    // a second reload while module-preload requests still belong to the old host.
+    // This public launch nonce is separate from the secret fragment token.
+    println!(
+        "Meden GUI: {origin}/?launch={}#session={token}",
+        nonce_text(launch_bytes)
+    );
     let http = Http {
         assets: &assets,
         authority: &authority,
@@ -630,6 +634,12 @@ fn bounded_append(target: &mut String, text: &str) {
         Some(c)
     }));
 }
+fn nonce_text(bytes: &[u8]) -> String {
+    bytes.iter().fold(String::new(), |mut output, byte| {
+        let _ = write!(output, "{byte:02x}");
+        output
+    })
+}
 fn header<'a>(request: &'a Request, name: &str) -> Option<&'a str> {
     request
         .headers()
@@ -664,7 +674,8 @@ fn serve_asset(request: Request, assets: &Path, frame_source: &str) {
         respond(request, 405, &json!({"error":"GET required"}));
         return;
     }
-    let relative = request.url().trim_start_matches('/');
+    let path = request.url().split('?').next().unwrap_or_default();
+    let relative = path.trim_start_matches('/');
     let relative = if relative.is_empty() {
         "index.html"
     } else {

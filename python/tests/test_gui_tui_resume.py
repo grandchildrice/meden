@@ -12,6 +12,7 @@ import termios
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
 import pyte
@@ -80,7 +81,8 @@ def test_gui_to_tui_and_back_retains_context_but_requires_fresh_review(tmp_path,
         line = process.stdout.readline()
         assert line.startswith("Meden GUI: "), line
         url, token = line.removeprefix("Meden GUI: ").strip().split("#session=")
-        return process, url.rstrip("/"), token
+        parsed = urlsplit(url)
+        return process, f"{parsed.scheme}://{parsed.netloc}", token
 
     def api(origin, token, command=None):
         request = Request(origin + ("/api/state" if command is None else "/api/command"),

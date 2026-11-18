@@ -15,6 +15,10 @@ cargo build -p meden-cli
 Use `meden providers` to list existing host connections, or supply
 `--base-url URL --model MODEL --api-key-env NAME`. Open the exact URL printed by
 the command (default port 4322, `--port 0` selects an available port).
+The URL includes a public per-launch query nonce and a separate secret fragment
+token. The nonce makes reopening a restarted host load a new document immediately,
+including its current preview policy; the token is removed from the address bar
+and retained only in the tab's session storage. A launch nonce grants no authority.
 `--assets DIRECTORY` selects a built GUI from another working directory.
 The browser shows the fixed workspace, exact inference URL and model before
 approval. No inference happens before approval. Revocation/expiry is terminal;

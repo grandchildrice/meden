@@ -12,7 +12,7 @@ function readNativeToken() {
   const fragment = new URLSearchParams(location.hash.slice(1)).get("session");
   if (fragment) {
     sessionStorage.setItem("meden-native-session", fragment);
-    history.replaceState(null, "", location.pathname);
+    history.replaceState(null, "", location.pathname + location.search);
   }
   return fragment || sessionStorage.getItem("meden-native-session");
 }
