@@ -43,8 +43,9 @@ screens use drawers.
 | Preserve work                   | Chat, drafts and edits survive reload. Failed storage retains the in-memory conversation and offers retry/export. Invalid imports keep current work.                                                        |
 
 The vending conversation card shows the Rust implementation and Lean prover
-logos alongside the preview button. Its list shows the eight audited contract
-properties, their Lean theorem names, and the same statuses as the Proof tab.
+logos and opens the preview from anywhere on the card. Its list shows plain
+Japanese summaries of the eight audited contract properties, their Lean theorem
+names, and the same statuses as the Proof tab.
 
 ## Home screen logos
 

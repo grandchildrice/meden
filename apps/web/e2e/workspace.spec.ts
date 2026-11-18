@@ -229,7 +229,7 @@ test("the sidebar keeps one continuous vending history including its original op
   await expect(sidebar.locator(".history-item")).toHaveCount(1);
 });
 
-test("the conversation artifact shows its Rust and Lean proofs and still opens preview", async ({
+test("the full conversation artifact opens preview and keeps proof details readable", async ({
   page,
 }) => {
   await archivedChat(page);
@@ -248,8 +248,13 @@ test("the conversation artifact shows its Rust and Lean proofs and still opens p
   const purchase = statuses
     .getByRole("listitem")
     .filter({ hasText: "KernelProof.law_purchase_exact" });
-  await expect(purchase).toContainText("150円で商品を購入する");
+  await expect(purchase).toContainText(
+    "購入が成立すると、残高が150円、在庫が1個減る",
+  );
   await expect(purchase).toContainText("証明済み");
+  await expect(statuses).toContainText(
+    "返金操作以外では、直近の返金額は変わらない",
+  );
   for (const name of ["Rust", "Lean"]) {
     const logo = card.getByRole("img", { name, exact: true });
     await expect(logo).toHaveJSProperty("complete", true);
@@ -273,10 +278,21 @@ test("the conversation artifact shows its Rust and Lean proofs and still opens p
   await page.screenshot({
     path: "target/gui-checks/screenshots/artifact-card-mobile.png",
   });
-  await preview.click();
-  await expect(
-    page.getByRole("tab", { name: "プレビュー", exact: true }),
-  ).toHaveAttribute("aria-selected", "true");
+  // Click the coordinates of the visible content under the full-card button.
+  for (const target of [purchase, card.getByRole("img", { name: "Lean" })]) {
+    await target.scrollIntoViewIfNeeded();
+    const bounds = (await target.boundingBox())!;
+    await page.mouse.click(
+      bounds.x + bounds.width / 2,
+      bounds.y + bounds.height / 2,
+    );
+    await expect(
+      page.getByRole("tab", { name: "プレビュー", exact: true }),
+    ).toHaveAttribute("aria-selected", "true");
+    await page
+      .getByRole("button", { name: "パネルを閉じる", exact: true })
+      .click();
+  }
 });
 
 test("proof opens the wider source graph and follows a declaration into its exact Lean source", async ({
@@ -321,7 +337,7 @@ test("proof opens the wider source graph and follows a declaration into its exac
   await page.locator(".proof-obligations>summary").click();
   await page
     .locator(".proof-list>button")
-    .filter({ hasText: "150円で商品を購入する" })
+    .filter({ hasText: "購入が成立すると、残高が150円、在庫が1個減る" })
     .click();
   await expect(page.locator(".proof-statement-link")).toContainText(
     "残高と在庫が十分なら",
@@ -594,7 +610,7 @@ test("desktop and compact layouts keep chat and artifact panes usable, with keyb
   await page.locator(".proof-obligations>summary").click();
   await page
     .locator(".proof-list>button")
-    .filter({ hasText: "150円で商品を購入する" })
+    .filter({ hasText: "購入が成立すると、残高が150円、在庫が1個減る" })
     .click();
   await expect(page.locator(".root-node>button")).toBeInViewport({ ratio: 1 });
   await page.screenshot({
@@ -723,6 +739,8 @@ test("legacy v2 continuations merge permanently and start with the exact supplie
   page,
 }) => {
   const original = createVendingWorkspace();
+  original.requirements.find((item) => item.id === "purchase_exact")!.title =
+    "150円で商品を購入する";
   original.conversations[0].messages =
     original.conversations[0].messages.filter(
       (message) => message.origin !== "provided",
@@ -830,6 +848,13 @@ test("legacy v2 continuations merge permanently and start with the exact supplie
   await expect(
     page.getByRole("button", { name: "別件の会話", exact: true }),
   ).toBeVisible();
+  const card = page.getByRole("region", {
+    name: "自販機シミュレーターの成果物",
+  });
+  await expect(card).toContainText(
+    "購入が成立すると、残高が150円、在庫が1個減る",
+  );
+  await expect(card).not.toContainText("150円で商品を購入する");
   await page.reload();
   await expect(page.locator(".message")).toHaveCount(18);
   await page
@@ -873,7 +898,7 @@ test("expanded graph keeps source and statement readers tall, scrollable and syn
   await page.locator(".proof-obligations>summary").click();
   await page
     .locator(".proof-list>button")
-    .filter({ hasText: "150円で商品を購入する" })
+    .filter({ hasText: "購入が成立すると、残高が150円、在庫が1個減る" })
     .click();
   await page.getByRole("button", { name: "広げて読む", exact: true }).click();
   const expanded = page.getByRole("dialog", {

@@ -8,14 +8,14 @@ export const DEMO_WORKSPACE_ID = "meden-demo-vending";
 export const DEMO_HISTORY_ID = "meden-demo-history";
 export const demoSnapshot = snapshot;
 const labels: Record<string, string> = {
-  insert_exact: "投入額を残高に加える",
-  overflow_preserves: "オーバーフロー時は変更しない",
-  purchase_exact: "150円で商品を購入する",
-  purchase_rejected: "残高不足・在庫切れを拒否する",
-  refund_exact: "残高を全額返金する",
-  invalid_preserves: "未定義の操作を拒否する",
-  stock_change_only_buy: "購入成功時だけ在庫を減らす",
-  refund_preserved: "返金以外で返金額を変えない",
+  insert_exact: "残高の上限内なら、投入額だけ残高が増える",
+  overflow_preserves: "残高の上限を超える投入では、何も変わらない",
+  purchase_exact: "購入が成立すると、残高が150円、在庫が1個減る",
+  purchase_rejected: "残高が150円未満か在庫が0個なら、購入は成立しない",
+  refund_exact: "残高の全額が返金され、残高は0円になる",
+  invalid_preserves: "対応していない操作では、何も変わらない",
+  stock_change_only_buy: "在庫が変わるのは、購入が成立したときだけ",
+  refund_preserved: "返金操作以外では、直近の返金額は変わらない",
 };
 export function createVendingWorkspace(): Workspace {
   const sourceRevision = "sha256:" + snapshot.sourceSha256;
@@ -109,7 +109,7 @@ export function demoResponse(text: string, workspace: Workspace): string {
     : "読み込んだワークスペースを右側で確認できます。";
 }
 
-/** Refresh only this bundled recording's graph; retain conversation and edit history. */
+/** Refresh this bundled recording's graph and display titles; retain conversation and edit history. */
 export function refreshVendingGraph(workspace: Workspace): Workspace {
   if (
     workspace.id !== DEMO_WORKSPACE_ID ||
@@ -130,6 +130,10 @@ export function refreshVendingGraph(workspace: Workspace): Workspace {
   return workspaceSchema.parse({
     ...workspace,
     ...graph,
+    requirements: workspace.requirements.map((requirement) => ({
+      ...requirement,
+      title: labels[requirement.id] ?? requirement.title,
+    })),
     conversations: workspace.conversations.map((conversation) =>
       conversation.id !== DEMO_HISTORY_ID
         ? conversation

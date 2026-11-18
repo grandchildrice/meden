@@ -1019,6 +1019,7 @@ pre {
   object-fit: contain;
 }
 .artifact-card {
+  position: relative;
   border: 1px solid #dce4e8;
   border-radius: 12px;
   margin: 8px 0 24px 46px;
@@ -1044,8 +1045,22 @@ pre {
   padding: 10px 14px;
   text-align: left;
 }
-.artifact-card-open:hover {
+.artifact-card:hover {
   background: #f3f7f8;
+  border-color: #9db7c2;
+}
+.artifact-card-open::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 12px;
+}
+.artifact-card-open:focus-visible {
+  outline: none;
+}
+.artifact-card-open:focus-visible::after {
+  outline: 3px solid #487dcb;
+  outline-offset: 3px;
 }
 .artifact-card-open strong {
   flex: 1;
@@ -1707,6 +1722,9 @@ pre {
   }
   .artifact-card {
     margin-left: 0;
+  }
+  .artifact-card-proofs li {
+    padding-block: 6px;
   }
   .artifact-panel-heading {
     padding: 14px 16px;
