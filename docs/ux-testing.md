@@ -110,8 +110,10 @@ No live requests or model performance claims are part of the fast gate.
 
 The TypeScript/Vite GUI has its own public browser gate: `npm run test:gui`.
 It covers instruction/send/automatic titles, separate searchable conversations,
-original meden-demo history, unsent input/restart, preview purchase/refund,
-right-panel proof and graph inspection, requirement-change freshness, local
+original meden-demo messages and 25 tool inputs/results, unsent input/restart,
+preview purchase/refund, three-tab proof-graph/statement/source navigation,
+meaning-progress cancellation and explicit semantic-difference sample,
+requirement-change freshness, local
 review export, invalid import recovery and storage failure/retry. Compact layout,
 keyboard entry and automated WCAG AA checks are included. The gate builds and
 serves the production GUI on port 4321. Screenshots, traces and HTML reports are

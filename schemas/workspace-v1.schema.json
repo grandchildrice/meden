@@ -425,6 +425,55 @@
                     "recorded",
                     "demo"
                   ]
+                },
+                "activities": {
+                  "maxItems": 2000,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "name": {
+                        "type": "string",
+                        "maxLength": 100
+                      },
+                      "arguments": {
+                        "type": "string",
+                        "maxLength": 100000
+                      },
+                      "output": {
+                        "type": "string",
+                        "maxLength": 100000
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "complete",
+                          "failed",
+                          "incomplete",
+                          "unknown"
+                        ]
+                      },
+                      "sourceIndex": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "arguments",
+                      "output",
+                      "status",
+                      "sourceIndex"
+                    ],
+                    "additionalProperties": false
+                  }
                 }
               },
               "required": [

@@ -1,57 +1,68 @@
 {
   "date": "2026-11-18",
-  "scope": "Chat-first TypeScript/Vite GUI with recorded meden-demo example; no Rust implementation changes",
+  "scope": "Chat-first GUI; compact Code/Preview/Proof sidebar; recorded execution activity; graph-to-statement-to-source navigation and semantic-difference demo. No Rust changes.",
   "checks": {
     "typecheck": "passed",
     "format": "passed",
     "production_build": "passed",
     "schema_generation": "passed",
-    "domain_tests": 18,
-    "browser_journeys_and_accessibility": 11,
+    "domain_tests": 20,
+    "browser_journeys_and_accessibility": 12,
     "public_tui_ux": 19,
     "tui_inference": "scripted fixtures; no live-model validation",
     "tui_screens_reviewed": [
-      "tool failure and correction",
-      "provider limit and resumed conversation",
-      "local setup and restored conversation"
+      "tool failure/correction",
+      "provider limit/resume",
+      "local setup/reopen"
     ],
-    "axe_scope": "home, recorded conversation, and proof/dependencies/comparison/preview/code tabs; automated WCAG 2.1 AA checks",
+    "axe_scope": "home, archived chat, three sidebar tabs, proof detail, highlighted source and semantic difference; WCAG 2.1 AA automated checks",
     "responsive_widths": [
       1440,
-      1120,
+      1000,
       390
     ],
     "failure_and_restart": [
       "unsent input survives reload",
-      "sent conversation persists",
-      "requirement edits stale proof/analysis across reload",
-      "invalid import preserves current chat",
-      "storage failure retains conversation and retry persists it"
+      "sent conversations persist",
+      "archived tool output can be expanded",
+      "requirement changes stale evidence across reload",
+      "invalid import preserves chat",
+      "storage failure/retry",
+      "meaning demo cancellation and sample survives tab changes but is not persisted as analysis evidence"
     ]
   },
   "recorded_example": {
     "project": "meden-demo",
     "kernel_sha256": "c14e1efc673ef51eae41ac0b435a7233abb005092d48119c965595f780c2ff83",
+    "original_checkpoint_messages": 57,
     "visible_messages": 13,
+    "original_tool_calls_and_results": 25,
+    "reasoning_text_saved": false,
     "archived_pure_step_properties": 8,
-    "graph": "authored declaration-reference projection from retained Lean sources, not new Atlas execution",
-    "comparison": "pending demo; no independent analyzer output",
-    "preview": "TypeScript BigInt mirror, not new Rust or Lean execution"
+    "local_declarations": 53,
+    "lexical_source_references": 150,
+    "graph": "Project-only lexical source reference index; not elaborated Lean/Atlas extraction or complete library coverage",
+    "comparison": "CI-style GUI simulation and explicitly hypothetical missing-inventory requirement; no actual semantic defect claim",
+    "preview": "TypeScript/BigInt mirror, no new Rust/Lean execution"
   },
   "screenshots": {
-    "home.png": "364dbd4515bc6b0fd28a7e2f46fb8159fb1eed051f083f4fdef001ba4d2bbe1a",
-    "proof.png": "d5d911405aa79b72da77da5576a98f7b2b5560539a38de11f2e918c307a5d9f8",
-    "graph.png": "8327bebc5ca0722f8db5fd9498a6c99731f12cb4330f099ca79c698411256b7c",
-    "analysis.png": "6af8a3e568e6747b3bf4f440b718e724094d5c01613396e9642056441591f21e",
-    "preview.png": "464b2049251a3a56fb86541f76b2a642160a8c604c1518091a42ef7162ee6c04",
-    "compact-home.png": "da2ae470bd41ee8013d06fc1beff2eb2aac8e1e093bfbc8e9cb5b81e47f3ffeb",
-    "compact-preview.png": "12df2a83c507bbb1991cb049e091a425cbc27296048123f7962c77f767b47f53"
+    "home.png": "192a49038e56cec2ecc8dd5ac2a6d0140d94e8483d0af62d50a7cc19cc22b9a2",
+    "history.png": "d532e414ffe9028935ba428d8128f394af684f2aeb8a1a60ad603740c294a7b7",
+    "proof.png": "d7e230799adda7e7ea24e0539ab499c9ef068359bf06c557002a08184431a779",
+    "proof-detail.png": "223241be689a637a55e5f19728cb05fb3ae9ea438de9ae6bb38eac8a96758142",
+    "code.png": "ede2ac2857b97b93596efbe02636c5c888f3b965c3a72e13609f6615969670f2",
+    "analysis.png": "c05d7f80c8a051138e8b0cb88cba72adc5df49548609ac8441b6e30dc842d59e",
+    "preview.png": "17e718d8013810091ac02cfeeacc8659152bc01584a6a2b45e19955b2c9fd031",
+    "compact-home.png": "2569e3f8f032447676b8cb902969b2808726c81403d0e9054a87737982c73d1e",
+    "compact-preview.png": "9d853a92ef1d04dc16562a5aff01e50f3a6505de432d11baf52adfa88ebc3ddc"
   },
   "not_implemented": [
-    "native gateway/model/prover connection",
+    "native model/prover gateway",
+    "independent semantic analyzer",
+    "native reasoning persistence",
     "SQLite integration",
-    "encryption and Drive sync",
-    "review submission and billing"
+    "encryption/Drive sync",
+    "review submission/billing"
   ],
   "tui_binary_sha256": "f8c490a4dee801f4415b8036411e01616a45282bd36871b1ed7c6946b4705e88"
 }

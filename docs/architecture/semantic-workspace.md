@@ -77,16 +77,20 @@ cross-reference checks too. Generated schemas do not establish authorization.
 The shell owns conversation selection and persistence; the left sidebar lists
 conversations across stored workspaces. The central assistant-ui composer sends
 instructions without a title form. New titles derive from the first instruction.
-A right artifact panel owns preview/proof/graph/comparison/code tabs, reachable
+A right artifact panel owns code/preview/proof tabs, reachable
 from upper-right icons and opened automatically on send.
 
 `fixtures/meden-demo` projects actual whitelisted source files, accepted contract,
-matching retained verification report and the 13-message visible transcript into
+matching retained verification report, 13 visible messages and 25 original tool events into
 a workspace with `origin: replay`. Messages distinguish `recorded` from new
 `demo` responses. The capture verifies the current Rust kernel's SHA-256 against
-the report. The graph projects selected Lean declaration references; it does not
-run Atlas. Archived proof records remain version-bound and become stale after
-requirement edits. Demo comparison remains pending/unclear. The interactive
+the report. The graph indexes 53 local declarations and 150 lexical references from three
+retained files; it does not run Atlas or elaborate full library dependencies. Archived proof records remain version-bound and become stale after
+requirement edits. A nested, cancellable CI-style meaning-analysis demo shows
+text differences and an explicit missing-inventory-condition sample; it never
+writes completed analysis evidence. Existing analysis records stay pending/unclear.
+Reasoning is absent from this checkpoint; actual tool inputs/results are displayed
+in their original order, with host-injected prompts/settings excluded. The interactive
 preview mirrors the pure transition with BigInt and has ordinary unit coverage;
 it is not newly extracted or formally verified code.
 

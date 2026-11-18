@@ -30,7 +30,6 @@ import SearchRounded from "@mui/icons-material/SearchRounded";
 import SettingsOutlined from "@mui/icons-material/SettingsOutlined";
 import MenuRounded from "@mui/icons-material/MenuRounded";
 import MoreHorizRounded from "@mui/icons-material/MoreHorizRounded";
-import AccountTreeOutlined from "@mui/icons-material/AccountTreeOutlined";
 import VerifiedOutlined from "@mui/icons-material/VerifiedOutlined";
 import VerticalSplitOutlined from "@mui/icons-material/VerticalSplitOutlined";
 import CloseRounded from "@mui/icons-material/CloseRounded";
@@ -42,8 +41,10 @@ import {
 import { BrowserWorkspaceRepository } from "../adapters/browser-workspaces";
 import { readWorkspaceFile, downloadJson } from "../adapters/files";
 import {
+  refreshVendingGraph,
   createVendingWorkspace,
   DEMO_WORKSPACE_ID,
+  DEMO_HISTORY_ID,
   demoResponse,
   titleFromInstruction,
 } from "../fixtures/meden-demo";
@@ -79,7 +80,7 @@ export function App() {
   const queue = useRef(Promise.resolve());
   const unsaved = useRef(new Map<string, Workspace>());
   const operation = useRef(0);
-  const narrow = useMediaQuery("(max-width:1140px)");
+  const narrow = useMediaQuery("(max-width:1040px)");
   const mobile = useMediaQuery("(max-width:839px)");
   const workspace =
     workspaces.find((item) => item.id === activeId) || workspaces[0];
@@ -103,6 +104,7 @@ export function App() {
     repository
       .list()
       .then((values) => {
+        values = values.map(refreshVendingGraph);
         const next = values.some((item) => item.id === DEMO_WORKSPACE_ID)
           ? values
           : [createVendingWorkspace(), ...values];
@@ -213,11 +215,7 @@ export function App() {
     setPending((previous) => new Set([...previous, id]));
     select(target, id);
     openPanel(
-      /依存|graph/i.test(text)
-        ? "graph"
-        : /証明|検証|verify/i.test(text)
-          ? "proof"
-          : "preview",
+      /依存|graph|証明|検証|verify|意味/i.test(text) ? "proof" : "preview",
     );
     await persist(first);
     await new Promise((resolve) => setTimeout(resolve, 350));
@@ -256,7 +254,7 @@ export function App() {
       next.id = crypto.randomUUID();
       await persist(next);
       select(next.id, next.conversations[0]?.id || null);
-      openPanel("graph");
+      openPanel("proof");
       setNotification("読み込みました");
     } catch (error) {
       setNotification(
@@ -464,18 +462,6 @@ export function App() {
                 </IconButton>
               </span>
             </Tooltip>
-            <Tooltip title="依存関係">
-              <span>
-                <IconButton
-                  aria-label="依存関係を表示"
-                  disabled={!hasMessages}
-                  aria-pressed={panelOpen && panelTab === "graph"}
-                  onClick={() => openPanel("graph")}
-                >
-                  <AccountTreeOutlined fontSize="small" />
-                </IconButton>
-              </span>
-            </Tooltip>
             <Tooltip title={panelOpen ? "パネルを閉じる" : "実装を表示"}>
               <span>
                 <IconButton
@@ -532,6 +518,14 @@ export function App() {
                 running={running}
                 onSend={send}
                 onOpenArtifact={() => openPanel("preview")}
+                onOpenHistory={() => {
+                  select(DEMO_WORKSPACE_ID, DEMO_HISTORY_ID);
+                  void persist(
+                    library.current.find(
+                      (item) => item.id === DEMO_WORKSPACE_ID,
+                    )!,
+                  );
+                }}
               />
             )
           )}{" "}

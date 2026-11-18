@@ -5,6 +5,7 @@ import {
   createVendingWorkspace,
   demoSnapshot,
   titleFromInstruction,
+  refreshVendingGraph,
 } from "../../fixtures/meden-demo";
 import { previewStep } from "./VendingPreview";
 describe("recorded meden-demo and UI preview", () => {
@@ -22,6 +23,23 @@ describe("recorded meden-demo and UI preview", () => {
       ),
     ).toBe(true);
     expect(workspace.conversations[0].messages).toHaveLength(13);
+    const activities = workspace.conversations[0].messages.flatMap(
+      (message) => message.activities || [],
+    );
+    expect(activities).toHaveLength(25);
+    expect(
+      activities.some((activity) =>
+        activity.output.includes("maximum recursion depth"),
+      ),
+    ).toBe(true);
+    expect(
+      activities.some(
+        (activity) =>
+          activity.name === "bash" &&
+          activity.output.includes("7 passed; 0 failed"),
+      ),
+    ).toBe(true);
+    expect(demoSnapshot.recording.reasoningStored).toBe(false);
     expect(workspace.conversations[0].messages[0].text).toBe(
       "開発を続けられますか？",
     );
@@ -39,6 +57,45 @@ describe("recorded meden-demo and UI preview", () => {
     expect(JSON.stringify(demoSnapshot)).not.toMatch(
       /api_key|access_token|tool_calls|role.*system/,
     );
+  });
+  it("indexes local helpers and exact source locations without inventing library dependencies", () => {
+    const workspace = createVendingWorkspace();
+    expect(workspace.declarations.length).toBeGreaterThan(50);
+    const proof = workspace.declarations.find(
+      (item) => item.id === "KernelProof.actual_spec",
+    )!;
+    const source =
+      demoSnapshot.files[proof.source!.file as keyof typeof demoSnapshot.files];
+    expect(source.split("\n")[proof.source!.line! - 1]).toContain(
+      "theorem actual_spec",
+    );
+    expect(
+      workspace.edges.some(
+        (edge) =>
+          edge.source === proof.id &&
+          edge.target === "Check.lean:checked_add_some",
+      ),
+    ).toBe(true);
+    expect(
+      workspace.edges.every((edge) =>
+        workspace.declarations.some((item) => item.id === edge.target),
+      ),
+    ).toBe(true);
+    const edited = {
+      ...workspace,
+      inputRevision: 2,
+      conversations: [
+        ...workspace.conversations,
+        { id: "new-chat", title: "kept", messages: [] },
+      ],
+    };
+    const refreshed = refreshVendingGraph(edited);
+    expect(refreshed.conversations.at(-1)?.title).toBe("kept");
+    expect(
+      refreshed.declarations
+        .filter((item) => item.evidenceRefs.length)
+        .every((item) => item.proofStatus === "stale"),
+    ).toBe(true);
   });
   it("derives conversation titles from instructions, never a separate naming form", () => {
     expect(titleFromInstruction("自販機を作ってください")).toBe(

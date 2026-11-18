@@ -83,6 +83,27 @@ describe("Atlas boundary and dependency traversal", () => {
     ).toBeLessThanOrEqual(workspace.declarations.length);
     expect(radialLayout(workspace, "missing").size).toBe(0);
   });
+  it("includes incoming proof references in the related-declarations overview", () => {
+    const workspace = sampleWorkspace();
+    expect(
+      dependencyScope(workspace, "Ledger.State", "dependencies").has(
+        "Ledger.accepted_transfer",
+      ),
+    ).toBe(false);
+    expect(
+      dependencyScope(workspace, "Ledger.State", "project").has(
+        "Ledger.accepted_transfer",
+      ),
+    ).toBe(true);
+    const positions = radialLayout(workspace, "Ledger.State", "project");
+    expect(positions.has("Ledger.accepted_transfer")).toBe(true);
+    expect(
+      [...positions.values()].every(
+        (position) =>
+          Number.isFinite(position.x) && Number.isFinite(position.y),
+      ),
+    ).toBe(true);
+  });
   it("never uses a pruned edge as a radial depth shortcut", () => {
     const workspace = sampleWorkspace();
     workspace.edges.push({

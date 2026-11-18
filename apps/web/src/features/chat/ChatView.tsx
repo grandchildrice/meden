@@ -13,6 +13,7 @@ import { Button, IconButton, Typography } from "@mui/material";
 import ArrowUpwardRounded from "@mui/icons-material/ArrowUpwardRounded";
 import InsertDriveFileOutlined from "@mui/icons-material/InsertDriveFileOutlined";
 import ArrowForwardRounded from "@mui/icons-material/ArrowForwardRounded";
+import { RecordedActivity } from "./RecordedActivity";
 import type { Conversation } from "@meden/workspace-schema";
 
 interface Props {
@@ -22,6 +23,7 @@ interface Props {
   running: boolean;
   onSend: (text: string) => Promise<void>;
   onOpenArtifact: () => void;
+  onOpenHistory: () => void;
 }
 export function ChatView({
   projectName,
@@ -30,6 +32,7 @@ export function ChatView({
   running,
   onSend,
   onOpenArtifact,
+  onOpenHistory,
 }: Props) {
   const input = useRef<HTMLTextAreaElement>(null);
   const messages = useMemo<ThreadMessageLike[]>(
@@ -37,6 +40,7 @@ export function ChatView({
       (conversation?.messages || []).map((message) => ({
         id: message.id,
         role: message.role,
+        metadata: { custom: { activities: message.activities } },
         content: [{ type: "text", text: message.text }],
       })),
     [conversation],
@@ -85,6 +89,35 @@ export function ChatView({
             </div>
           ) : (
             <ThreadPrimitive.Viewport className="transcript">
+              {conversation?.messages.some(
+                (message) => message.activities?.length,
+              ) && (
+                <div className="recording-banner">
+                  <strong>保存された開発履歴</strong>
+                  <Button
+                    size="small"
+                    onClick={(event) => {
+                      const entries = event.currentTarget
+                        .closest(".transcript")
+                        ?.querySelectorAll(".recorded-activities");
+                      entries
+                        ?.item(entries.length - 1)
+                        ?.scrollIntoView({ block: "start" });
+                    }}
+                  >
+                    実行ログ
+                  </Button>
+                  <span>
+                    実行
+                    {conversation.messages.reduce(
+                      (total, message) =>
+                        total + (message.activities?.length || 0),
+                      0,
+                    )}
+                    件 · reasoning本文は未保存
+                  </span>
+                </div>
+              )}
               <ThreadPrimitive.Messages
                 components={{ UserMessage, AssistantMessage }}
               />
@@ -97,10 +130,21 @@ export function ChatView({
                   </span>
                   <span>
                     <strong>{projectName}</strong>
-                    <small>プレビュー・証明・依存関係</small>
+                    <small>コード・プレビュー・証明</small>
                   </span>
                   <ArrowForwardRounded fontSize="small" />
                 </button>
+              )}
+              {conversation?.messages.some(
+                (message) => message.origin === "demo",
+              ) && (
+                <Button
+                  className="recorded-history-button"
+                  size="small"
+                  onClick={onOpenHistory}
+                >
+                  実際の開発履歴を見る
+                </Button>
               )}
               {running && (
                 <div role="status" className="reply-activity">
@@ -168,8 +212,11 @@ export function ChatView({
 }
 function UserMessage() {
   return (
-    <MessagePrimitive.Root className="message user-message">
-      <MessagePrimitive.Parts />
+    <MessagePrimitive.Root className="message user-turn">
+      <div className="user-message">
+        <MessagePrimitive.Parts />
+      </div>
+      <RecordedActivity />
     </MessagePrimitive.Root>
   );
 }
@@ -183,6 +230,7 @@ function AssistantMessage() {
         <MessagePrimitive.Parts
           components={{ Text: () => <MarkdownTextPrimitive /> }}
         />
+        <RecordedActivity />
       </div>
     </MessagePrimitive.Root>
   );

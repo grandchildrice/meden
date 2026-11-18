@@ -90,6 +90,21 @@ export const messageSchema = z
     status: z.enum(["draft", "sent", "received"]),
     createdAt: z.string().datetime(),
     origin: z.enum(["recorded", "demo"]).optional(),
+    activities: z
+      .array(
+        z
+          .object({
+            id,
+            name: z.string().max(100),
+            arguments: text,
+            output: text,
+            status: z.enum(["complete", "failed", "incomplete", "unknown"]),
+            sourceIndex: z.number().int().nonnegative(),
+          })
+          .strict(),
+      )
+      .max(2000)
+      .optional(),
   })
   .strict();
 export const conversationSchema = z

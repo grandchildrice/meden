@@ -24,63 +24,81 @@ The production build is written to `apps/web/dist`.
 
 ## Layout and journeys
 
-The left sidebar contains **conversations**, new chat and search. The center is
-the conversation, beginning with the large composer on an empty chat. Sending
-an instruction derives the conversation title automatically and opens the right
-artifact panel. The upper-right proof, dependency and panel icons open that same
-panel; tabs switch between preview, proof, dependencies, meaning comparison and
-code. A review draft opens inside the panel. At smaller widths, the sidebar and
-artifact panel become drawers.
+The left sidebar contains conversations, new chat and search. The center remains
+the main work area. The narrower right sidebar has exactly **Code / Preview /
+Proof** tabs. The upper-right proof icon opens the graph; the panel icon opens
+or closes the sidebar. Narrow screens use drawers.
 
-| Goal                     | Entry and observable result                                                                                                                                                        |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Start a conversation     | Type an instruction and send with the arrow or Enter; a title and demo response appear automatically. Shift+Enter adds a newline.                                                  |
-| Continue existing work   | Open the vending-machine conversation to read the 13 original visible messages from meden-demo. New chats stay separate in the list.                                               |
-| Search history           | Search titles and message bodies in the left sidebar.                                                                                                                              |
-| Inspect results          | Send an instruction or use the upper-right icons; open proof, graph, comparison, preview or source tabs.                                                                           |
-| Try the implementation   | Insert money, purchase a 150-yen item, refund or reset in the browser preview.                                                                                                     |
-| Inspect dependencies     | Select a declaration, inspect its statement/source, center on a dependency, return, pan/zoom or select meaning-related dependencies.                                               |
-| Compare meaning          | Read a requirement beside the comparison text, inspect evidence and assumptions, or create a scoped review draft. Demo comparison is pending, with no independent analyzer result. |
-| Edit a requirement draft | Save revised wording; retained proof and analysis become stale and remain stale after reload.                                                                                      |
-| Prepare expert review    | Export selected requirements, related declarations and evidence bound to their revisions. Conversations are excluded. This downloads a file; it does not submit a request.         |
-| Import or export         | Use the upper-right menu for Meden workspace/Lean Atlas JSON. Invalid input retains the current conversation.                                                                      |
-| Recover storage          | A failed write retains the in-memory conversation and offers retry or JSON export; no successful-save claim is shown.                                                              |
+| Goal                            | Entry and result                                                                                                                                                                                            |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Start a conversation            | Send an instruction with the arrow or Enter; its title is automatic. Shift+Enter adds a newline.                                                                                                            |
+| Read actual development history | Open the vending-machine conversation or choose “実際の開発履歴を見る” from a demo chat. “実行ログ” jumps to retained tool activity.                                                                        |
+| Inspect recorded execution      | Expand each tool call for its actual arguments and output, including the Lean recursion-limit failure, verification retries, source edits and seven passing CLI tests.                                      |
+| Inspect a proof                 | Open Proof: the radial graph shows related declarations, including incoming references. Select a node for its statement, status and direct dependencies.                                                    |
+| Open exact source               | Click the statement or file/line link; Code opens the retained file at the highlighted line. Return to Proof with selection intact.                                                                         |
+| Change graph scope              | Search a declaration, center on it and return, or choose only outgoing dependencies / meaning-related dependencies. Pan and zoom remain available.                                                          |
+| Inspect proof coverage          | Open the proof-count control for the eight property records. Source-only helpers without individual audit entries remain unconfirmed.                                                                       |
+| Run the meaning-analysis GUI    | Choose “意味解析” inside Proof. A cancellable CI-style sequence opens comparison results; “差分サンプルを試す” demonstrates missing inventory conditions with colored text differences and a boundary case. |
+| Edit or request review          | From the meaning result, inspect the retained requirement/theorem record, edit a draft or prepare a revision-bound review export. No extra top-level tab is added.                                          |
+| Preserve work                   | Chat, drafts and edits survive reload. Failed storage retains the in-memory conversation and offers retry/export. Invalid imports keep current work.                                                        |
 
 ## Recorded meden-demo example
 
-The default example comes from `../meden-demo`, a Rust vending-machine project,
-and its matching retained Meden verification artifact. The bundled snapshot
-contains the actual `kernel.rs`, CLI, tests, README, specification, extracted Lean
-candidate, proof source, accepted contract, report and **13 visible conversation
-messages**. Hidden model/tool traffic, connection settings and credentials are
-not included. Message timestamps use the recording's last-modified time; they
-are not reconstructed per-message event times.
+The snapshot contains meden-demo's actual Rust kernel, CLI, tests, README,
+retained Lean specification/candidate/proof, contract and matching report. The
+original checkpoint has **57 messages**, from which **13 visible messages and
+25 tool calls/results** are projected in order. Activities attach after their
+preceding visible message; source indices retain checkpoint order. Tool input
+and output are recorded content, not reconstructed thoughts or new execution.
+
+**Reasoning text is absent from this recording.** The native TUI can display
+provider-exposed reasoning deltas, but its saved presentation transcript selects
+only user/assistant message lines. The retained model-message objects in this
+checkpoint contain no reasoning fields either. See
+[`tui.rs`](../crates/meden-cli/src/tui.rs) (`delta` and `save_history`) and
+[`history.rs`](../crates/meden-cli/src/session/history.rs). The GUI marks this
+absence and does not invent reasoning. Persisting future exposed reasoning is a
+separate native-adapter change, not implemented here.
+
+The capture excludes host-injected continuation prompts and connection settings.
+Only project tools are whitelisted; session/workspace/credential fields are
+removed from structured outputs. Message timestamps are the recording's
+last-modified time, not reconstructed individual event times.
 
 The kernel SHA-256 is
 `c14e1efc673ef51eae41ac0b435a7233abb005092d48119c965595f780c2ff83`.
-The capture tool refuses a retained artifact whose source hash does not match
-that file. To refresh from the same local project/state:
+The capture selects a retained report matching that hash:
 
 ```sh
 uv run tools/gui/capture-meden-demo.py
 ```
 
-The capture accepts `--project` and `--state` for another explicit source. Inspect
-the resulting snapshot before committing it. Only whitelisted files and the
-visible presentation transcript are captured.
+`--project` and `--state` select explicit local inputs. Review the snapshot before
+committing it. Existing browser copies of this exact bundled recording refresh
+the graph and original activities while keeping chats and requirement edits.
 
-The **8 proof statuses are archived verification results** for the pure `step`
-transition: insertion, overflow rejection, purchase, rejected purchase, refund,
-invalid action, stock preservation and refunded-amount preservation. CLI input
-parsing, display and I/O are outside that formal scope. Opening a panel does not
-rerun Lean. The browser preview is a TypeScript/BigInt implementation of this
-transition, covered by ordinary tests, not a newly proved Rust execution.
+The graph indexes **53 declarations / 150 references** from three saved Lean
+files, including refinement and helper theorems omitted by the earlier view.
+It resolves known project names in source text and classifies occurrences before
+or after the declaration's definition boundary. This is a **lexical source index**,
+not elaborated Lean dependencies, an Atlas/Compass execution, or complete standard
+library coverage. Imported Atlas graphs continue to use their supplied edges.
+The related-declarations view follows both incoming and outgoing references;
+individual dependency views remain directed.
 
-The graph is an authored projection of declaration references from the retained
-Lean sources, with type/value edges. It is not a new Atlas/Compass extraction.
-The meaning-comparison text is a demo and stays pending/unclear; there is no
-independent judge or claimed analysis accuracy. Imported Atlas progress/no-sorry
-metadata is likewise not promoted to fresh proof evidence.
+Eight property proof results are archived, source/input-bound verification
+records for pure `step`. CLI parsing, display and I/O are outside that scope.
+Opening a panel does not rerun Lean. The browser vending preview mirrors the
+transition in TypeScript/BigInt, with ordinary unit coverage.
+
+Meaning analysis is a **GUI simulation**. The progress sequence does not run an
+analyzer or change stored proof/analysis evidence. Default comparison uses the
+saved requirement text; the explicitly labeled difference sample changes an
+imagined requirement to omit inventory conditions. It is not a discovered
+meden-demo defect or evidence of semantic-analysis accuracy. Its red/green diff
+and “balance 150, stock 0” boundary illustrate the intended result UI. Runs can
+be cancelled; revision changes invalidate the displayed run. Imported proof
+progress/no-sorry metadata is never upgraded to fresh evidence.
 
 ## Storage and runtime boundary
 
@@ -108,7 +126,7 @@ The layout follows documented chat/product interactions:
 - [Claude artifacts](https://support.claude.com/en/articles/17153992-what-are-artifacts-and-how-do-i-use-them): an artifact opens beside the conversation, keeping dialogue and output adjacent.
 - [OpenAI's canvas introduction](https://openai.com/index/introducing-canvas/): a separate work surface alongside chat can open automatically when useful. This is an interaction precedent, not a claim about the exact current screen geometry.
 
-These references inform the layout; the Meden proof/graph/comparison tabs are our
+These references inform the layout; the Meden proof sidebar and nested comparison are our
 adaptation. Controls and copy follow Google's Material Design 3 guidance on
 [UX writing](https://m3.material.io/foundations/content-design/style-guide/ux-writing-best-practices),
 [adaptive layout](https://m3.material.io/foundations/layout/layout-overview) and
@@ -141,13 +159,14 @@ NixOS host the config uses installed Chrome. `MEDEN_GUI_CHROME` overrides its pa
 
 Browser journeys cover send/title/history/reload, preview actions, graph
 inspection, freshness, scoped export, import errors, storage failure/retry,
-compact layout and keyboard entry. Axe checks home, conversation and all five
-artifact tabs against automated WCAG 2.1 AA rules. This is not a complete manual
+compact layout and keyboard entry. Axe checks home, conversation, all three
+sidebar tabs, source navigation and semantic differences against automated WCAG 2.1 AA rules. This is not a complete manual
 or assistive-technology audit. The required [public TUI gate](ux-testing.md)
 remains separate; scripted fixtures are not live inference evidence.
 
-[Home](assets/gui/home.png) · [Chat and proof](assets/gui/proof.png) ·
-[Dependencies](assets/gui/graph.png) · [Meaning comparison](assets/gui/analysis.png) ·
+[Home](assets/gui/home.png) · [Actual execution history](assets/gui/history.png) ·
+[Proof graph](assets/gui/proof.png) · [Selected proof](assets/gui/proof-detail.png) ·
+[Lean source](assets/gui/code.png) · [Meaning difference](assets/gui/analysis.png) ·
 [Preview](assets/gui/preview.png) · [Compact home](assets/gui/compact-home.png) ·
 [Compact preview](assets/gui/compact-preview.png).
 The [check record](assets/gui/verification.json) records scope and limits.

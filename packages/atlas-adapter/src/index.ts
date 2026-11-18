@@ -83,7 +83,7 @@ export function importAtlas(
   };
 }
 
-export type GraphScope = "dependencies" | "meaning";
+export type GraphScope = "dependencies" | "meaning" | "project";
 /** Match Atlas' edge distinction; unclassified edges are retained conservatively. */
 export function dependencyScope(
   workspace: Pick<Workspace, "declarations" | "edges">,
@@ -102,6 +102,11 @@ export function dependencyScope(
     const outgoing = edges.get(edge.source) || [];
     outgoing.push(edge);
     edges.set(edge.source, outgoing);
+    if (scope === "project")
+      edges.set(edge.target, [
+        ...(edges.get(edge.target) || []),
+        { ...edge, target: edge.source },
+      ]);
   }
   const seen = new Set<string>();
   const pending = nodes.has(root) ? [root] : [];
@@ -140,6 +145,11 @@ export function radialLayout(
     const from = adjacency.get(edge.source) || [];
     from.push(edge.target);
     adjacency.set(edge.source, from);
+    if (scope === "project")
+      adjacency.set(edge.target, [
+        ...(adjacency.get(edge.target) || []),
+        edge.source,
+      ]);
   }
   for (let i = 0; i < pending.length; i++)
     for (const target of adjacency.get(pending[i]) || []) {
