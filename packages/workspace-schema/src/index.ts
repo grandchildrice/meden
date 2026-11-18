@@ -89,7 +89,7 @@ export const messageSchema = z
     text,
     status: z.enum(["draft", "sent", "received"]),
     createdAt: z.string().datetime(),
-    origin: z.enum(["recorded", "demo"]).optional(),
+    origin: z.enum(["recorded", "demo", "provided"]).optional(),
     activities: z
       .array(
         z

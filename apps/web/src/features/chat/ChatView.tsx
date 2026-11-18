@@ -23,7 +23,6 @@ interface Props {
   running: boolean;
   onSend: (text: string) => Promise<void>;
   onOpenArtifact: () => void;
-  onOpenHistory: () => void;
 }
 export function ChatView({
   projectName,
@@ -32,7 +31,6 @@ export function ChatView({
   running,
   onSend,
   onOpenArtifact,
-  onOpenHistory,
 }: Props) {
   const input = useRef<HTMLTextAreaElement>(null);
   const messages = useMemo<ThreadMessageLike[]>(
@@ -94,19 +92,31 @@ export function ChatView({
               ) && (
                 <div className="recording-banner">
                   <strong>保存された開発履歴</strong>
-                  <Button
-                    size="small"
-                    onClick={(event) => {
-                      const entries = event.currentTarget
-                        .closest(".transcript")
-                        ?.querySelectorAll(".recorded-activities");
-                      entries
-                        ?.item(entries.length - 1)
-                        ?.scrollIntoView({ block: "start" });
-                    }}
-                  >
-                    実行ログ
-                  </Button>
+                  <div className="recording-shortcuts">
+                    <Button
+                      size="small"
+                      onClick={(event) => {
+                        const viewport =
+                          event.currentTarget.closest(".transcript");
+                        if (viewport) viewport.scrollTop = 0;
+                      }}
+                    >
+                      会話の先頭
+                    </Button>{" "}
+                    <Button
+                      size="small"
+                      onClick={(event) => {
+                        const entries = event.currentTarget
+                          .closest(".transcript")
+                          ?.querySelectorAll(".recorded-activities");
+                        entries
+                          ?.item(entries.length - 1)
+                          ?.scrollIntoView({ block: "start" });
+                      }}
+                    >
+                      実行ログ
+                    </Button>
+                  </div>
                   <span>
                     実行
                     {conversation.messages.reduce(
@@ -134,17 +144,6 @@ export function ChatView({
                   </span>
                   <ArrowForwardRounded fontSize="small" />
                 </button>
-              )}
-              {conversation?.messages.some(
-                (message) => message.origin === "demo",
-              ) && (
-                <Button
-                  className="recorded-history-button"
-                  size="small"
-                  onClick={onOpenHistory}
-                >
-                  実際の開発履歴を見る
-                </Button>
               )}
               {running && (
                 <div role="status" className="reply-activity">

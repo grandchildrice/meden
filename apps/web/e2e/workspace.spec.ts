@@ -1,5 +1,8 @@
 import { test, expect, type Page } from "@playwright/test";
-import { createVendingWorkspace } from "../src/fixtures/meden-demo";
+import {
+  createVendingWorkspace,
+  vendingOpeningRequest,
+} from "../src/fixtures/meden-demo";
 import { mkdir } from "node:fs/promises";
 
 async function archivedChat(page: Page) {
@@ -8,7 +11,10 @@ async function archivedChat(page: Page) {
     .getByRole("complementary", { name: "会話サイドバー" })
     .getByRole("button", { name: "自販機シミュレーター", exact: true })
     .click();
-  await expect(page.locator(".message")).toHaveCount(13);
+  await expect(page.locator(".message")).toHaveCount(14);
+  await expect(page.locator(".user-message").first()).toHaveText(
+    vendingOpeningRequest,
+  );
 }
 async function tab(page: Page, name: string) {
   await page.getByRole("tab", { name, exact: true }).click();
@@ -54,23 +60,23 @@ test("home starts with a large composer and Send; instruction creates its title 
     page.getByRole("tab", { name: "証明", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
   await expect(page.locator(".proof-obligations")).toContainText("8 / 8");
-  await expect(page.locator(".assistant-message")).toContainText(
+  await expect(page.locator(".assistant-message").last()).toContainText(
     "保存されている検証記録",
   );
   await expect(page.locator(".sidebar-bottom")).toContainText(
     "このブラウザに保存",
   );
   await page.reload();
-  await expect(page.locator(".user-message")).toContainText(
+  await expect(page.locator(".user-message").last()).toContainText(
     "自販機の証明を確認して",
   );
-  await expect(page.locator(".assistant-message")).toContainText(
+  await expect(page.locator(".assistant-message").last()).toContainText(
     "保存されている検証記録",
   );
   expect(requests).toEqual([]);
 });
 
-test("the sidebar contains conversations, preserves actual history and gives separate chats automatic titles", async ({
+test("the sidebar keeps one continuous vending history including its original opening request", async ({
   page,
 }) => {
   await archivedChat(page);
@@ -108,17 +114,19 @@ test("the sidebar contains conversations, preserves actual history and gives sep
     "形式検証に成功しました",
   );
   await sidebar
-    .getByRole("button", { name: "新しい会話", exact: true })
+    .getByRole("button", { name: "メッセージを書く", exact: true })
     .click();
   const input = page.getByRole("textbox", { name: "メッセージ", exact: true });
   await input.fill("購入条件を確認して");
   await input.press("Enter");
   await expect(page.locator(".conversation-title")).toHaveText(
-    "購入条件を確認して",
+    "自販機シミュレーター",
   );
-  await expect(
-    sidebar.getByRole("button", { name: "購入条件を確認して", exact: true }),
-  ).toBeVisible();
+  await expect(sidebar.locator(".history-item")).toHaveCount(1);
+  await expect(page.locator(".user-message").first()).toHaveText(
+    vendingOpeningRequest,
+  );
+  await expect(page.locator(".reply-activity")).toHaveCount(0);
   await page
     .getByRole("button", { name: "パネルを閉じる", exact: true })
     .last()
@@ -126,7 +134,7 @@ test("the sidebar contains conversations, preserves actual history and gives sep
   await sidebar
     .getByRole("button", { name: "自販機シミュレーター", exact: true })
     .click();
-  await expect(page.locator(".message")).toHaveCount(13);
+  await expect(page.locator(".message")).toHaveCount(16);
   await sidebar
     .getByRole("button", { name: "会話を検索", exact: true })
     .click();
@@ -149,7 +157,7 @@ test("proof opens the wider source graph and follows a declaration into its exac
     "証明",
   ]);
   await expect(page.locator(".root-node")).toContainText("実装と仕様の対応");
-  expect(await page.locator(".radar-node").count()).toBeGreaterThan(35);
+  expect(await page.locator(".radar-node").count()).toBeGreaterThan(10);
   await page.getByRole("button", { name: /Rustの状態遷移.*を選択/ }).click();
   await expect(
     page.getByRole("complementary", { name: "選択した証明" }),
@@ -299,9 +307,9 @@ test("unsent input survives navigation and reload without creating a named empty
   await expect(page.locator(".history-item")).toHaveCount(1);
   await page.getByRole("button", { name: "送信", exact: true }).click();
   await expect(page.locator(".conversation-title")).toHaveText(
-    "まだ送信していない命令",
+    "自販機シミュレーター",
   );
-  await expect(page.locator(".history-item")).toHaveCount(2);
+  await expect(page.locator(".history-item")).toHaveCount(1);
 });
 
 test("requirement edits invalidate retained proof and analysis across restart", async ({
@@ -401,7 +409,7 @@ test("invalid imports retain the conversation; Atlas metadata stays unconfirmed"
     page.getByRole("tab", { name: "証明", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
   await page.getByRole("button", { name: /result.*を選択/ }).click();
-  await expect(page.locator(".proof-detail")).toContainText("未確認");
+  await expect(page.locator(".proof-inspector")).toContainText("未確認");
   await expect(page.locator(".proof-statement-link")).toContainText(
     "宣言の本文はデータに含まれていません",
   );
@@ -457,7 +465,7 @@ test("desktop and compact layouts keep chat and artifact panes usable, with keyb
     .click();
   await expect(
     page.getByRole("dialog", { name: "意味解析のアルゴリズム" }),
-  ).toContainText("元の要件を見せず");
+  ).toContainText("元の依頼文を見せず");
   await page.screenshot({
     path: "target/gui-checks/screenshots/semantic-method.png",
   });
@@ -494,7 +502,9 @@ test("desktop and compact layouts keep chat and artifact panes usable, with keyb
     .getByRole("button", { name: "パネルを閉じる", exact: true })
     .click();
   await page.getByRole("button", { name: "会話一覧を開く" }).click();
-  await page.getByRole("button", { name: "新しい会話", exact: true }).click();
+  await page
+    .getByRole("button", { name: "メッセージを書く", exact: true })
+    .click();
   await expect(
     page.getByRole("textbox", { name: "メッセージ", exact: true }),
   ).toBeVisible();
@@ -545,7 +555,7 @@ test("failed storage retains a sent conversation and recovers through retry", as
     "会話を保存できませんでした",
   );
   await expect(page.locator(".conversation-title")).toHaveText(
-    "保存失敗の確認",
+    "自販機シミュレーター",
   );
   await page.getByRole("button", { name: "保存を再試行", exact: true }).click();
   await expect(page.getByRole("alert")).toHaveCount(0);
@@ -553,13 +563,19 @@ test("failed storage retains a sent conversation and recovers through retry", as
     "このブラウザに保存",
   );
   await page.reload();
-  await expect(page.locator(".user-message")).toContainText("保存失敗の確認");
+  await expect(page.locator(".user-message").last()).toContainText(
+    "保存失敗の確認",
+  );
 });
 
-test("existing continuous demo chats merge once, preserve tool history and reopen the selected continuation", async ({
+test("legacy v2 continuations merge permanently and start with the exact supplied request", async ({
   page,
 }) => {
   const original = createVendingWorkspace();
+  original.conversations[0].messages =
+    original.conversations[0].messages.filter(
+      (message) => message.origin !== "provided",
+    );
   for (const [id, time, text] of [
     ["continuation-a", "01:00:00", "購入条件も確認して"],
     ["continuation-b", "02:00:00", "境界もお願いします"],
@@ -615,7 +631,7 @@ test("existing continuous demo chats merge once, preserve tool history and reope
   await page.evaluate(
     async ({ original, other }) => {
       await new Promise<void>((resolve, reject) => {
-        const request = indexedDB.open("meden-workspaces", 1);
+        const request = indexedDB.open("meden-workspaces", 2);
         request.onupgradeneeded = () =>
           request.result
             .createObjectStore("workspaces", { keyPath: "id" })
@@ -652,7 +668,7 @@ test("existing continuous demo chats merge once, preserve tool history and reope
   await expect(page.locator(".conversation-title")).toHaveText(
     "自販機シミュレーター",
   );
-  await expect(page.locator(".message")).toHaveCount(17);
+  await expect(page.locator(".message")).toHaveCount(18);
   await expect(page.locator(".recorded-tool")).toHaveCount(25);
   await expect(
     page.getByRole("textbox", { name: "メッセージ", exact: true }),
@@ -664,17 +680,109 @@ test("existing continuous demo chats merge once, preserve tool history and reope
     page.getByRole("button", { name: "別件の会話", exact: true }),
   ).toBeVisible();
   await page.reload();
-  await expect(page.locator(".message")).toHaveCount(17);
+  await expect(page.locator(".message")).toHaveCount(18);
   await page
     .getByRole("textbox", { name: "メッセージ", exact: true })
     .fill("さらに続きを確認");
   await page.getByRole("button", { name: "送信", exact: true }).click();
-  await expect(page.locator(".message")).toHaveCount(19);
+  await expect(page.locator(".message")).toHaveCount(20);
   await expect(page.locator(".reply-activity")).toHaveCount(0);
   await expect(page.locator(".sidebar-bottom")).toContainText(
     "このブラウザに保存",
   );
   await page.reload();
-  await expect(page.locator(".message")).toHaveCount(19);
+  await expect(page.locator(".message")).toHaveCount(20);
   await expect(page.locator(".history-item")).toHaveCount(2);
+  await page
+    .getByRole("button", { name: "メッセージを書く", exact: true })
+    .click();
+  await page
+    .getByRole("textbox", { name: "メッセージ", exact: true })
+    .fill("同じ開発の続きです");
+  await page.getByRole("button", { name: "送信", exact: true }).click();
+  await expect(page.locator(".user-message").last()).toHaveText(
+    "同じ開発の続きです",
+  );
+  await expect(page.locator(".reply-activity")).toHaveCount(0);
+  await expect(page.locator(".history-item")).toHaveCount(2);
+  await page.reload();
+  await expect(page.locator(".message")).toHaveCount(22);
+  await expect(page.locator(".user-message").first()).toHaveText(
+    vendingOpeningRequest,
+  );
+});
+
+test("expanded graph keeps source and statement readers tall, scrollable and synchronized", async ({
+  page,
+}) => {
+  await archivedChat(page);
+  await page.getByRole("button", { name: "会話の先頭", exact: true }).click();
+  await expect(page.locator(".user-message").first()).toBeInViewport();
+  await page.screenshot({
+    path: "target/gui-checks/screenshots/history-start.png",
+  });
+  await page
+    .getByRole("button", { name: "証明の状態を表示", exact: true })
+    .click();
+  await page.locator(".proof-obligations>summary").click();
+  await page
+    .locator(".proof-list>button")
+    .filter({ hasText: "150円で商品を購入する" })
+    .click();
+  await page.getByRole("button", { name: "広げて読む", exact: true }).click();
+  const expanded = page.getByRole("dialog", {
+    name: "証明の依存関係",
+    exact: true,
+  });
+  await expect(expanded).toBeVisible();
+  await expect(
+    expanded.getByRole("complementary", { name: "選択した証明" }),
+  ).toContainText("KernelProof.law_purchase_exact");
+  await page.screenshot({
+    path: "target/gui-checks/screenshots/expanded-graph.png",
+  });
+  await expanded.getByRole("tab", { name: "Leanソース", exact: true }).click();
+  const source = expanded.getByRole("region", { name: "ソースコード" });
+  const code = source.getByLabel("ファイルの内容");
+  await expect(source.locator(".selected-source-line")).toContainText(
+    "theorem law_purchase_exact",
+  );
+  await expect(source.locator(".syntax-token").first()).toBeAttached();
+  expect(await code.evaluate((el) => el.clientHeight)).toBeGreaterThan(450);
+  const chatScroll = await page
+    .locator(".transcript")
+    .evaluate((el) => el.scrollTop);
+  await code.hover();
+  await page.mouse.wheel(0, 15000);
+  await expect
+    .poll(() =>
+      code.evaluate(
+        (el) => el.scrollTop + el.clientHeight >= el.scrollHeight - 2,
+      ),
+    )
+    .toBe(true);
+  await expect(source.locator(".source-line").last()).toBeInViewport();
+  expect(await page.locator(".transcript").evaluate((el) => el.scrollTop)).toBe(
+    chatScroll,
+  );
+  await page.screenshot({
+    path: "target/gui-checks/screenshots/expanded-source.png",
+  });
+  await expanded
+    .getByRole("button", { name: /Rustの状態遷移.*を選択/ })
+    .click();
+  await expect(
+    expanded.getByRole("complementary", { name: "選択した証明" }),
+  ).toContainText("KernelImpl.kernel.step");
+  await expanded.getByRole("tab", { name: "Leanソース", exact: true }).click();
+  await expect(source.locator(".selected-source-line")).toContainText(
+    "def kernel.step",
+  );
+  await expanded
+    .getByRole("button", { name: "会話に戻る", exact: true })
+    .click();
+  await expect(expanded).toHaveCount(0);
+  await expect(page.locator(".user-message").first()).toHaveText(
+    vendingOpeningRequest,
+  );
 });

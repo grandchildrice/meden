@@ -1,5 +1,7 @@
 import { workspaceSchema, type Workspace } from "@meden/workspace-schema";
 import snapshot from "./snapshot.json" with { type: "json" };
+import opening from "./opening-request.json" with { type: "json" };
+import { mergeVendingHistory } from "../../adapters/merge-vending-history";
 import { recordedSourceGraph } from "./source-graph";
 
 export const DEMO_WORKSPACE_ID = "meden-demo-vending";
@@ -66,15 +68,26 @@ export function createVendingWorkspace(): Workspace {
       {
         id: DEMO_HISTORY_ID,
         title: snapshot.name,
-        messages: snapshot.transcript.map((message, index) => ({
-          id: "recorded-" + index,
-          role: message.role,
-          text: message.text,
-          status: "received",
-          createdAt: snapshot.recordedAt,
-          origin: "recorded",
-          activities: "activities" in message ? message.activities : undefined,
-        })),
+        messages: [
+          {
+            id: opening.id,
+            role: "user",
+            text: opening.text,
+            status: "sent",
+            origin: "provided",
+            createdAt: snapshot.recordedAt,
+          },
+          ...snapshot.transcript.map((message, index) => ({
+            id: "recorded-" + index,
+            role: message.role,
+            text: message.text,
+            status: "received",
+            createdAt: snapshot.recordedAt,
+            origin: "recorded",
+            activities:
+              "activities" in message ? message.activities : undefined,
+          })),
+        ],
       },
     ],
     reviewDrafts: [],
@@ -103,6 +116,16 @@ export function refreshVendingGraph(workspace: Workspace): Workspace {
     workspace.sourceRevision !== "sha256:" + snapshot.sourceSha256
   )
     return workspace;
+  workspace = mergeVendingHistory(workspace);
+  const existingOpening = workspace.conversations
+    .flatMap((conversation) => conversation.messages)
+    .find((message) => message.id === opening.id);
+  const openingMessage = {
+    ...createOpeningMessage(),
+    ...(existingOpening?.activities
+      ? { activities: existingOpening.activities }
+      : {}),
+  };
   const graph = recordedSourceGraph(labels);
   return workspaceSchema.parse({
     ...workspace,
@@ -112,22 +135,27 @@ export function refreshVendingGraph(workspace: Workspace): Workspace {
         ? conversation
         : {
             ...conversation,
-            messages: conversation.messages.map((message) => {
-              const index =
-                message.origin === "recorded"
-                  ? Number(message.id.replace(/^recorded-/, ""))
-                  : NaN;
-              const original = snapshot.transcript[index];
-              return original
-                ? {
-                    ...message,
-                    activities:
-                      "activities" in original
-                        ? original.activities
-                        : undefined,
-                  }
-                : message;
-            }),
+            messages: [
+              openingMessage,
+              ...conversation.messages
+                .filter((message) => message.id !== opening.id)
+                .map((message) => {
+                  const index =
+                    message.origin === "recorded"
+                      ? Number(message.id.replace(/^recorded-/, ""))
+                      : NaN;
+                  const original = snapshot.transcript[index];
+                  return original
+                    ? {
+                        ...message,
+                        activities:
+                          "activities" in original
+                            ? original.activities
+                            : undefined,
+                      }
+                    : message;
+                }),
+            ],
           },
     ),
     declarations: graph.declarations.map((declaration) => {
@@ -137,3 +165,15 @@ export function refreshVendingGraph(workspace: Workspace): Workspace {
     }),
   });
 }
+
+function createOpeningMessage() {
+  return {
+    id: opening.id,
+    role: "user" as const,
+    text: opening.text,
+    status: "sent" as const,
+    origin: "provided" as const,
+    createdAt: snapshot.recordedAt,
+  };
+}
+export const vendingOpeningRequest = opening.text;

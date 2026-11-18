@@ -1,0 +1,5 @@
+{
+  "id": "vending-opening-request",
+  "text": "Rustで自販機シミュレーターを作ってください。商品は150円の1種類です。投入、購入、返金ができ、残高と在庫を表示してください。残高不足・在庫切れでは状態を変更せず、購入成功時だけ残高を150円、在庫を1個減らしてください。返金時は投入残高と同額を返し、残高を0にしてください。整数のオーバーフローも拒否してください。計算部分を純粋なRustの状態遷移として形式検証し、標準ライブラリだけで動く操作用CLIを付けてください。検証範囲と未検証部分を明示してください",
+  "provenance": "User supplied the original opening request on 2026-11-18; the initial native session was not persisted."
+}

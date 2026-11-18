@@ -1,13 +1,13 @@
 {
   "date": "2026-11-18",
-  "scope": "Compact proof sidebar: consolidate existing continuous demo conversations, remove two requested notices, show NG/OK comparison examples and algorithm info popover. No Rust changes.",
+  "scope": "Continuous vending conversation with supplied original request; actual L4SB cone-layout reuse, expanded DOM/SVG explorer with independently scrolling highlighted source, public-tool semantic-check explanation. No Rust changes.",
   "checks": {
     "typecheck": "passed",
     "format": "passed",
     "production_build": "passed",
     "schema_generation": "passed",
-    "domain_tests": 22,
-    "browser_journeys_and_accessibility": 13,
+    "domain_tests": 24,
+    "browser_journeys_and_accessibility": 14,
     "public_tui_ux": 19,
     "tui_inference": "scripted fixtures; no live-model validation",
     "tui_screens_reviewed": [
@@ -15,51 +15,58 @@
       "provider limit/resume",
       "local setup/reopen"
     ],
-    "axe_scope": "home, archived chat, three sidebar tabs, source, NG difference and algorithm popover; automated WCAG 2.1 AA",
+    "axe_scope": "home, continuous recorded chat, sidebar tabs, expanded graph and highlighted source, public-tool method popover and NG difference; automated WCAG 2.1 AA",
     "responsive_widths": [
       1440,
       1000,
       390
     ],
     "failure_and_restart": [
-      "unsent input survives reload",
-      "sent conversations persist",
-      "archived tool output can be expanded",
-      "requirement changes stale evidence across reload",
-      "invalid import preserves chat",
-      "storage failure/retry",
-      "meaning demo cancellation and sample survives tab changes but is not persisted as analysis evidence",
-      "database v1-to-v2 history consolidation keeps 25 recorded activities and message order",
-      "selection and active unsent input follow the merged history",
-      "continued conversation survives a second reload",
-      "NG/OK result switching and cancellation"
-    ]
+      "legacy database v2 continuations merge on read and save",
+      "exact user-supplied opening precedes 13 saved messages and 25 tool events",
+      "new home-composer messages append to the same canonical conversation after reload",
+      "existing message order retained when clocks differ",
+      "input/storage failure and retry",
+      "stale proof after requirement edits",
+      "expanded source scroll reaches final line without scrolling the chat",
+      "source selection follows graph nodes",
+      "NG/OK switching and cancellation"
+    ],
+    "reference_algorithm_checks": "Upstream node Graph/ldr_check.js: all passed at 97e7c29df8d3c358c395bd1a4f2fb6973527b33d",
+    "additional_visual_check": "3 targeted desktop/expanded/accessibility journeys passed after final axis-label placement",
+    "additional_history_check": "2 targeted continuous-history/v2-restart journeys passed after preserving repeated opening requests"
   },
   "recorded_example": {
     "project": "meden-demo",
     "kernel_sha256": "c14e1efc673ef51eae41ac0b435a7233abb005092d48119c965595f780c2ff83",
     "original_checkpoint_messages": 57,
-    "visible_messages": 13,
+    "visible_messages": 14,
     "original_tool_calls_and_results": 25,
     "reasoning_text_saved": false,
     "archived_pure_step_properties": 8,
     "local_declarations": 53,
     "lexical_source_references": 150,
-    "graph": "Project-only lexical source reference index; not elaborated Lean/Atlas extraction or complete library coverage",
+    "graph": "Actual MIT L4SB cone layout over a lexical index of local source references; focused view excludes unrelated declarations, project view remains available",
     "comparison": "Initial NG inventory-condition sample and switchable OK text example; GUI simulation, no independent analyzer execution",
-    "preview": "TypeScript/BigInt mirror, no new Rust/Lean execution"
+    "preview": "TypeScript/BigInt mirror, no new Rust/Lean execution",
+    "recorded_native_messages": 13,
+    "supplied_original_request": true,
+    "opening_request_provenance": "User supplied the original request; initial native session was not persisted. No missing assistant or tool turns invented."
   },
   "screenshots": {
-    "home.png": "7c4a59e87acba5f52db2f63af0e73d189a72f7e7f8ddd6094be90a1520cc37b0",
-    "history.png": "d532e414ffe9028935ba428d8128f394af684f2aeb8a1a60ad603740c294a7b7",
-    "proof.png": "4204e7eccefd76eff99c59dfe1d4c0abad9ec907910f2f22d762a0cbcf45341b",
-    "proof-detail.png": "8906d8c7ffb9113360a1591484bbc98a70e7ad0ed709b48113ba384e1bdd6930",
-    "code.png": "ede2ac2857b97b93596efbe02636c5c888f3b965c3a72e13609f6615969670f2",
-    "analysis.png": "c8a71c4efb2b3f83c16f86d287958eecb41afb62cf9d15f2f459a3f37c9c5f3d",
-    "preview.png": "17e718d8013810091ac02cfeeacc8659152bc01584a6a2b45e19955b2c9fd031",
+    "home.png": "273aa3059de27b0da772314038071ce84968004cfd213406149b8ae52becffcd",
+    "history.png": "158b6a146f2dca55061f95fbe88d7732e8a54e62e13c8ab7651e0a2f150bf23b",
+    "proof.png": "6fece1f66e03e43a3c69f426c816e63e74fe98ec9879e39cb4d2998a8d5ad8a6",
+    "proof-detail.png": "69e36ebe6eb9395df9bbb34a09ce2a0a1353c1b5ec3c9092f2a8dd73c87a0cc6",
+    "code.png": "80ad40c342953b336d39f52de46b8888d3a67117f02264a1f61aa6ecd5d6ad02",
+    "analysis.png": "8a2818c17234badc97ff3913a0e093787ac0b8587d89fb32e8047748f1dd8bbe",
+    "preview.png": "cc8c073ba52aa07c932f6608cf68595aeaeb735ce1c0ab984abf4c3d0562ef73",
     "compact-home.png": "2569e3f8f032447676b8cb902969b2808726c81403d0e9054a87737982c73d1e",
     "compact-preview.png": "9d853a92ef1d04dc16562a5aff01e50f3a6505de432d11baf52adfa88ebc3ddc",
-    "semantic-method.png": "33ebadffe2b56071a8542d6fbfbb099b8944cb78cff40c55eb72d086e9ee5026"
+    "semantic-method.png": "82ba13660ba5b4a355b32b0e6fe7b9d215ccbfef5075c74a408da67b9ec52c43",
+    "history-start.png": "1afa14373ee29c13d35e684791ef421d1648ea33ebdcec759a132a11329463e5",
+    "expanded-graph.png": "66ab2c7644dda32e3d1bc9f0f9c9a55040c6263048975fbe96e6709c31181d36",
+    "expanded-source.png": "4d7e1b83500c6fa51774a4551e0bf93912a25f1c85151aa91cefa35556f11996"
   },
   "not_implemented": [
     "native model/prover gateway",
@@ -69,5 +76,18 @@
     "encryption/Drive sync",
     "review submission/billing"
   ],
-  "tui_binary_sha256": "f8c490a4dee801f4415b8036411e01616a45282bd36871b1ed7c6946b4705e88"
+  "tui_binary_sha256": "f8c490a4dee801f4415b8036411e01616a45282bd36871b1ed7c6946b4705e88",
+  "semantic_method_candidates": [
+    "claimcheck",
+    "FormalAlign"
+  ],
+  "layout_source": {
+    "repository": "https://github.com/0xfab0131/Lean4SemanticBench",
+    "commit": "97e7c29df8d3c358c395bd1a4f2fb6973527b33d",
+    "license": "MIT",
+    "functions": [
+      "longestPathLevels",
+      "layoutCone"
+    ]
+  }
 }

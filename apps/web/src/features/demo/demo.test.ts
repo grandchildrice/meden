@@ -6,6 +6,7 @@ import {
   demoSnapshot,
   titleFromInstruction,
   refreshVendingGraph,
+  vendingOpeningRequest,
 } from "../../fixtures/meden-demo";
 import { previewStep } from "./VendingPreview";
 describe("recorded meden-demo and UI preview", () => {
@@ -22,7 +23,19 @@ describe("recorded meden-demo and UI preview", () => {
         (analysis) => analysis.status === "pending",
       ),
     ).toBe(true);
-    expect(workspace.conversations[0].messages).toHaveLength(13);
+    expect(workspace.conversations[0].messages).toHaveLength(14);
+    const repeated = createVendingWorkspace();
+    repeated.conversations[0].messages.push({
+      ...repeated.conversations[0].messages[0],
+      id: "repeat-request",
+      createdAt: "2026-11-18T00:00:00Z",
+    });
+    expect(
+      refreshVendingGraph(repeated).conversations[0].messages.filter(
+        (message) => message.text === vendingOpeningRequest,
+      ),
+    ).toHaveLength(2);
+
     const activities = workspace.conversations[0].messages.flatMap(
       (message) => message.activities || [],
     );
@@ -41,11 +54,12 @@ describe("recorded meden-demo and UI preview", () => {
     ).toBe(true);
     expect(demoSnapshot.recording.reasoningStored).toBe(false);
     expect(workspace.conversations[0].messages[0].text).toBe(
-      "開発を続けられますか？",
+      vendingOpeningRequest,
     );
     expect(
       workspace.conversations[0].messages.every(
-        (message) => message.origin === "recorded",
+        (message) =>
+          message.origin === "recorded" || message.origin === "provided",
       ),
     ).toBe(true);
     expect(
@@ -90,7 +104,10 @@ describe("recorded meden-demo and UI preview", () => {
       ],
     };
     const refreshed = refreshVendingGraph(edited);
-    expect(refreshed.conversations.at(-1)?.title).toBe("kept");
+    expect(refreshed.conversations).toHaveLength(1);
+    expect(refreshed.conversations[0].messages[0].text).toBe(
+      vendingOpeningRequest,
+    );
     expect(
       refreshed.declarations
         .filter((item) => item.evidenceRefs.length)

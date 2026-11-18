@@ -32,7 +32,7 @@ describe("continuous vending-machine history", () => {
     const merged = mergeVendingHistory(workspace);
     expect(merged.conversations).toHaveLength(1);
     expect(merged.conversations[0].id).toBe(DEMO_HISTORY_ID);
-    expect(merged.conversations[0].messages).toHaveLength(15);
+    expect(merged.conversations[0].messages).toHaveLength(16);
     expect(
       merged.conversations[0].messages.slice(-2).map((message) => message.id),
     ).toEqual(["earlier-request", "request"]);
@@ -52,11 +52,11 @@ describe("continuous vending-machine history", () => {
       messages: [{ ...original, text: "別の発言" }],
     });
     const merged = mergeVendingHistory(workspace);
-    expect(merged.conversations[0].messages).toHaveLength(14);
+    expect(merged.conversations[0].messages).toHaveLength(15);
     expect(
       new Set(merged.conversations[0].messages.map((message) => message.id))
         .size,
-    ).toBe(14);
+    ).toBe(15);
     expect(
       merged.conversations[0].messages.some(
         (message) => message.text === "別の発言",
@@ -64,5 +64,30 @@ describe("continuous vending-machine history", () => {
     ).toBe(true);
     const other = { ...workspace, id: "another-project" };
     expect(mergeVendingHistory(other)).toBe(other);
+  });
+  it("preserves the order of an already unified conversation when clocks differ", () => {
+    const workspace = createVendingWorkspace();
+    const thread = workspace.conversations[0];
+    thread.messages.push(
+      {
+        id: "future",
+        role: "user",
+        text: "先の記録",
+        status: "sent",
+        createdAt: "2099-01-01T00:00:00Z",
+      },
+      {
+        id: "continued",
+        role: "user",
+        text: "その続き",
+        status: "sent",
+        createdAt: "2026-11-18T00:00:00Z",
+      },
+    );
+    expect(
+      mergeVendingHistory(workspace)
+        .conversations[0].messages.slice(-2)
+        .map((message) => message.text),
+    ).toEqual(["先の記録", "その続き"]);
   });
 });

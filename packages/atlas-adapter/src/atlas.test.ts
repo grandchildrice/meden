@@ -119,3 +119,23 @@ describe("Atlas boundary and dependency traversal", () => {
     expect(positions.get("Ledger.u64Max")?.depth).toBe(2);
   });
 });
+
+it("places dependencies above and users below with the actual L4SB cone algorithm", async () => {
+  const { coneLayout } = await import("./index");
+  const workspace = sampleWorkspace();
+  const positions = coneLayout(workspace, "Ledger.accepted_transfer");
+  expect(positions.get("Ledger.State")!.y).toBeLessThan(0);
+  workspace.edges.push({
+    source: "Ledger.retry_unchanged",
+    target: "Ledger.accepted_transfer",
+    site: "value",
+  });
+  const related = coneLayout(workspace, "Ledger.accepted_transfer");
+  // A cycle is permitted in displayed source references; layout still terminates.
+  expect(
+    [...related.values()].every(
+      (p) => Number.isFinite(p.x) && Number.isFinite(p.y),
+    ),
+  ).toBe(true);
+  expect(related.size).toBeLessThanOrEqual(workspace.declarations.length);
+});

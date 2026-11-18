@@ -2,11 +2,17 @@ import type { Conversation, Workspace } from "@meden/workspace-schema";
 
 export const VENDING_WORKSPACE_ID = "meden-demo-vending";
 const HISTORY_ID = "meden-demo-history";
-/** Consolidate existing continuations only; newly created conversations stay independent. */
+/** The bundled vending example is one continuous project conversation. */
 export function mergeVendingHistory(workspace: Workspace): Workspace {
   if (
     workspace.id !== VENDING_WORKSPACE_ID ||
-    workspace.conversations.length < 2
+    workspace.conversations.length === 0
+  )
+    return workspace;
+  if (
+    workspace.conversations.length === 1 &&
+    workspace.conversations[0].id === HISTORY_ID &&
+    workspace.conversations[0].title === workspace.name
   )
     return workspace;
   const canonical =
@@ -40,6 +46,8 @@ export function mergeVendingHistory(workspace: Workspace): Workspace {
   }
   return {
     ...workspace,
-    conversations: [{ ...canonical, title: workspace.name, messages }],
+    conversations: [
+      { ...canonical, id: HISTORY_ID, title: workspace.name, messages },
+    ],
   };
 }

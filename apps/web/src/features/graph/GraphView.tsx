@@ -29,7 +29,11 @@ import {
   type NodeProps,
   type EdgeProps,
 } from "@xyflow/react";
-import { radialLayout, type GraphScope } from "@meden/atlas-adapter";
+import {
+  radialLayout,
+  coneLayout,
+  type GraphScope,
+} from "@meden/atlas-adapter";
 import type { Workspace, Declaration } from "@meden/workspace-schema";
 
 type RadarData = Record<string, unknown> & {
@@ -39,6 +43,8 @@ type RadarData = Record<string, unknown> & {
   radii: number[];
   select: () => void;
   center: () => void;
+  muted: boolean;
+  hover: (active: boolean) => void;
 };
 type RadarNode = Node<RadarData, "declaration">;
 const nodeTypes = { declaration: DeclarationNode };
@@ -64,7 +70,15 @@ export function GraphView({
   );
   const canvas = useRef<HTMLDivElement>(null);
   const [history, setHistory] = useState<string[]>([]);
-  const [scope, setScope] = useState<GraphScope>("project");
+  const [scope, setScope] = useState<GraphScope | "related">("related");
+  const [hovered, setHovered] = useState<string>();
+  const emphasized = hovered || selectedId;
+  const nearby = new Set([emphasized, root]);
+  for (const edge of workspace.edges)
+    if (edge.source === emphasized || edge.target === emphasized) {
+      nearby.add(edge.source);
+      nearby.add(edge.target);
+    }
   const center = (id: string) => {
     if (id !== root) {
       setHistory((previous) => [...previous, root]);
@@ -78,7 +92,10 @@ export function GraphView({
     }
   }, [focusId, workspace.declarations]);
   const positions = useMemo(
-    () => radialLayout(workspace, root, scope),
+    () =>
+      scope === "related"
+        ? coneLayout(workspace, root)
+        : radialLayout(workspace, root, scope),
     [workspace, root, scope],
   );
   const radii = [
@@ -97,14 +114,17 @@ export function GraphView({
         type: "declaration",
         position: {
           x: position.x - (declaration.id === root ? 82 : 90),
-          y: position.y - (declaration.id === root ? 82 : 38),
+          y: position.y - (declaration.id === root ? 82 : 25),
         },
         focusable: false,
         data: {
           declaration,
           radii,
           root: declaration.id === root,
-          active: selectedId === declaration.id,
+          active: emphasized === declaration.id,
+          muted: Boolean(emphasized) && !nearby.has(declaration.id),
+          hover: (active: boolean) =>
+            setHovered(active ? declaration.id : undefined),
           select: () => onSelect(declaration),
           center: () => center(declaration.id),
         },
@@ -129,7 +149,24 @@ export function GraphView({
       type: "dependency",
       data: {
         site: edge.site,
-        active: edge.source === selectedId || edge.target === selectedId,
+        active: edge.source === emphasized || edge.target === emphasized,
+        muted:
+          Boolean(emphasized) &&
+          edge.source !== emphasized &&
+          edge.target !== emphasized,
+        side:
+          "side" in positions.get(edge.source)!
+            ? (
+                positions.get(edge.source)! as {
+                  x: number;
+                  y: number;
+                  depth: number;
+                  side?: string;
+                }
+              ).side
+            : undefined,
+        start: positions.get(edge.source),
+        end: positions.get(edge.target),
       },
     }));
   if (!workspace.declarations.length)
@@ -159,15 +196,27 @@ export function GraphView({
         <Select
           size="small"
           value={scope}
-          onChange={(event) => setScope(event.target.value as GraphScope)}
+          onChange={(event) =>
+            setScope(event.target.value as GraphScope | "related")
+          }
           inputProps={{ "aria-label": "依存関係の範囲" }}
         >
-          <MenuItem value="project">関連する宣言</MenuItem>
+          <MenuItem value="related">依存と参照</MenuItem>
+          <MenuItem value="project">プロジェクト全体</MenuItem>
           <MenuItem value="dependencies">この宣言の依存</MenuItem>
           <MenuItem value="meaning">意味に関わる依存</MenuItem>
         </Select>
       </div>
-      <div className="graph-canvas" ref={canvas}>
+      <div
+        className={"graph-canvas " + (scope === "related" ? "cone-graph" : "")}
+        ref={canvas}
+      >
+        {scope === "related" && (
+          <>
+            <div className="cone-label cone-label-up">この宣言が使うもの</div>
+            <div className="cone-label cone-label-down">この宣言を使うもの</div>
+          </>
+        )}
         <div className="canvas-toolbar">
           <Tooltip title="前の中心に戻る">
             <span>
@@ -270,10 +319,14 @@ function DeclarationNode({ data }: NodeProps<RadarNode>) {
   const { zoom } = useViewport();
   return (
     <div
-      data-compact={zoom < 0.32}
+      data-compact={zoom < 0.24}
+      data-muted={data.muted}
       style={
         {
-          "--graph-scale": Math.max(1, (root ? 0.62 : 0.43) / zoom),
+          "--graph-scale": Math.max(
+            1,
+            (root ? 0.62 : active ? 0.9 : 0.43) / zoom,
+          ),
           ...(root
             ? {
                 "--ring-one": (data.radii[0] ?? 180) * 2 + "px",
@@ -293,6 +346,10 @@ function DeclarationNode({ data }: NodeProps<RadarNode>) {
       <Handle type="source" position={Position.Bottom} />
       <button
         type="button"
+        onMouseEnter={() => data.hover(true)}
+        onMouseLeave={() => data.hover(false)}
+        onFocus={() => data.hover(true)}
+        onBlur={() => data.hover(false)}
         onClick={(event) => {
           event.stopPropagation();
           data.select();
@@ -321,13 +378,33 @@ function DeclarationNode({ data }: NodeProps<RadarNode>) {
   );
 }
 function DependencyEdge(props: EdgeProps) {
-  const [path] = getBezierPath(props);
+  const source = props.data?.start as { x: number; y: number } | undefined;
+  const target = props.data?.end as { x: number; y: number } | undefined;
+  const fallback = getBezierPath(props)[0];
+  let path = fallback;
+  if (source && target) {
+    const sr = Math.hypot(source.x, source.y),
+      tr = Math.hypot(target.x, target.y),
+      middle = (sr + tr) / 2;
+    const sa = sr
+      ? Math.atan2(source.y, source.x)
+      : Math.atan2(target.y, target.x);
+    const ta = tr ? Math.atan2(target.y, target.x) : sa;
+    path = `M ${source.x},${source.y} C ${middle * Math.cos(sa)},${middle * Math.sin(sa)} ${middle * Math.cos(ta)},${middle * Math.sin(ta)} ${target.x},${target.y}`;
+  }
   const active = props.data?.active;
   return (
     <BaseEdge
       path={path}
       style={{
-        stroke: active ? "#a4d3d5" : "#66818b",
+        stroke:
+          props.data?.side === "ref"
+            ? props.data?.site === "type"
+              ? "#56cdb6"
+              : "#d6ad76"
+            : props.data?.site === "type"
+              ? "#9dacf1"
+              : "#bca7e7",
         strokeWidth: active ? 1.6 : 1,
         strokeDasharray:
           props.data?.site === "value"
@@ -335,7 +412,7 @@ function DependencyEdge(props: EdgeProps) {
             : props.data?.site === "unknown"
               ? "2 4"
               : undefined,
-        opacity: active ? 1 : 0.65,
+        opacity: props.data?.muted?.valueOf() ? 0.1 : active ? 1 : 0.65,
       }}
     />
   );

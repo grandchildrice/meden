@@ -113,7 +113,8 @@ It covers instruction/send/automatic titles, separate searchable conversations,
 original meden-demo messages and 25 tool inputs/results, unsent input/restart,
 preview purchase/refund, three-tab proof-graph/statement/source navigation,
 meaning-progress cancellation, NG/OK examples and the algorithm info popover,
-transactional consolidation of legacy demo conversations and selection/input restore,
+continuous consolidation of legacy v1/v2 demo conversations and selection/input restore,
+exact supplied opening text, expanded graph/source independent scrolling,
 requirement-change freshness, local
 review export, invalid import recovery and storage failure/retry. Compact layout,
 keyboard entry and automated WCAG AA checks are included. The gate builds and

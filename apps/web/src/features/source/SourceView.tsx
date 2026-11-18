@@ -8,7 +8,9 @@ export function SourceView({
   target,
   onBack,
   onNotify,
+  showBack = true,
 }: {
+  showBack?: boolean;
   workspace: Workspace;
   target?: Declaration;
   onBack: () => void;
@@ -16,12 +18,34 @@ export function SourceView({
 }) {
   const [file, setFile] = useState(target?.source?.file || "kernel.rs");
   const selected = useRef<HTMLSpanElement>(null);
+  const viewport = useRef<HTMLPreElement>(null);
+  const [tokens, setTokens] =
+    useState<{ content: string; color?: string }[][]>();
   useEffect(() => {
     if (target?.source?.file) setFile(target.source.file);
   }, [target]);
   useEffect(() => {
-    selected.current?.scrollIntoView({ block: "center" });
+    const row = selected.current,
+      pane = viewport.current;
+    if (row && pane)
+      pane.scrollTop =
+        row.offsetTop - pane.offsetTop - pane.clientHeight * 0.35;
   }, [file, target]);
+  useEffect(() => {
+    let cancelled = false;
+    setTokens(undefined);
+    const source = demoSnapshot.files[file as keyof typeof demoSnapshot.files];
+    if (workspace.id === DEMO_WORKSPACE_ID && source !== undefined)
+      void import("./highlight")
+        .then((module) => module.highlightSource(source, file))
+        .then((lines) => {
+          if (!cancelled) setTokens(lines);
+        })
+        .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [file, workspace.id]);
   if (workspace.id !== DEMO_WORKSPACE_ID)
     return (
       <div className="panel-empty">
@@ -67,7 +91,7 @@ export function SourceView({
           コピー
         </Button>
       </div>
-      {target && (
+      {target && showBack && (
         <div className="source-location">
           <Button startIcon={<ArrowBackRounded />} onClick={onBack}>
             証明に戻る
@@ -78,6 +102,7 @@ export function SourceView({
         </div>
       )}
       <pre
+        ref={viewport}
         className="source-code numbered-source"
         tabIndex={0}
         aria-label="ファイルの内容"
@@ -97,7 +122,19 @@ export function SourceView({
               <span className="source-line-number" aria-hidden="true">
                 {i + 1}
               </span>
-              <code>{line || " "}</code>
+              <code>
+                {tokens?.[i]?.length
+                  ? tokens[i].map((token, index) => (
+                      <span
+                        className="syntax-token"
+                        key={index}
+                        style={{ color: token.color }}
+                      >
+                        {token.content}
+                      </span>
+                    ))
+                  : line || " "}
+              </code>
             </span>
           );
         })}

@@ -4,20 +4,16 @@ import InfoOutlined from "@mui/icons-material/InfoOutlined";
 import CloseRounded from "@mui/icons-material/CloseRounded";
 const method = [
   [
-    "意味に関わる依存を抽出",
-    "Lean Atlas / Compassで、対象定理の型・仮定・参照する定義を辿り、比較する範囲を絞ります。",
+    "定理を文章に戻す",
+    "claimcheckの方式では、定理から自然文を作り直します。この段階では元の依頼文を見せず、依頼に都合よく訳されるのを避けます。",
   ],
   [
-    "形式的な構造を検査",
-    "型、前提条件、量化、対象範囲を確認し、矛盾した仮定や空虚に成立する命題を調べます。",
+    "依頼と食い違っていないか調べる",
+    "別のモデルで、元の依頼と作り直した文章を比較します。条件の抜け、余分な前提、数や対象の違いを確認します。",
   ],
   [
-    "定理を逆翻訳",
-    "元の要件を見せずに、Leanの宣言と依存する定義から自然言語の意味を復元します。コメントだけを根拠にしません。",
-  ],
-  [
-    "独立した判定で比較",
-    "別モデル・別プロンプトで元の要件と逆翻訳を比較し、条件・例外・量化の差を特定します。差分と境界ケースを根拠として示します。",
+    "違う箇所を示す",
+    "たとえば依頼が「150円あれば購入できる」でも、定理が「在庫がある場合だけ」としていれば、その条件を差分で示します。",
   ],
 ];
 export function SemanticMethodInfo() {
@@ -56,7 +52,7 @@ export function SemanticMethodInfo() {
           </IconButton>
         </header>
         <Typography variant="caption" color="text.secondary">
-          採用予定の解析フロー
+          公開されている意味の評価ツールを再利用する方針です。
         </Typography>
         <ol>
           {method.map(([title, text]) => (
@@ -66,10 +62,25 @@ export function SemanticMethodInfo() {
             </li>
           ))}
         </ol>
-        <Typography variant="caption" color="text.secondary">
-          docs2formalspecの逆翻訳・独立Judgeと、Lean
-          Atlasの依存解析を組み合わせる設計です。
+        <Typography variant="body2" color="text.secondary">
+          候補はclaimcheckとFormalAlign。FormalAlignは、自然文とLeanの文が対応しているかを専用モデルで評価します。
         </Typography>
+        <div className="semantic-method-links">
+          <a
+            href="https://github.com/metareflection/claimcheck"
+            target="_blank"
+            rel="noreferrer"
+          >
+            claimcheck
+          </a>
+          <a
+            href="https://github.com/rookie-joe/FormalAlign"
+            target="_blank"
+            rel="noreferrer"
+          >
+            FormalAlign
+          </a>
+        </div>
       </Popover>
     </>
   );

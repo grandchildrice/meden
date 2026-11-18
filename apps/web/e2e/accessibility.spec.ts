@@ -24,7 +24,7 @@ test("home, three sidebar tabs, source navigation and semantic differences pass 
     .getByRole("complementary", { name: "会話サイドバー" })
     .getByRole("button", { name: "自販機シミュレーター", exact: true })
     .click();
-  await expect(page.locator(".message")).toHaveCount(13);
+  await expect(page.locator(".message")).toHaveCount(14);
   await check();
   await page
     .getByRole("button", { name: "証明の状態を表示", exact: true })
@@ -39,6 +39,20 @@ test("home, three sidebar tabs, source navigation and semantic differences pass 
   await page.getByRole("tab", { name: "証明", exact: true }).click();
   await page.getByRole("button", { name: /Rustの状態遷移.*を選択/ }).click();
   await check();
+  await page.getByRole("button", { name: "広げて読む", exact: true }).click();
+  const expanded = page.getByRole("dialog", {
+    name: "証明の依存関係",
+    exact: true,
+  });
+  await expect(expanded).toBeVisible();
+  await check();
+  await expanded.getByRole("tab", { name: "Leanソース", exact: true }).click();
+  await expect(expanded.locator(".syntax-token").first()).toBeAttached();
+  await check();
+  await expanded
+    .getByRole("button", { name: "会話に戻る", exact: true })
+    .click();
+  await expect(expanded).toHaveCount(0);
   await page.locator(".proof-statement-link").click();
   await expect(page.locator(".selected-source-line")).toBeVisible();
   await check();

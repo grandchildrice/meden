@@ -423,7 +423,8 @@
                   "type": "string",
                   "enum": [
                     "recorded",
-                    "demo"
+                    "demo",
+                    "provided"
                   ]
                 },
                 "activities": {

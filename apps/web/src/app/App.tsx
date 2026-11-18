@@ -171,7 +171,7 @@ export function App() {
   useEffect(load, []);
   const persist = (next: Workspace): Promise<boolean> => {
     const parsed = workspaceSchema.parse({
-      ...next,
+      ...refreshVendingGraph(next),
       updatedAt: new Date().toISOString(),
     });
     library.current = [
@@ -221,7 +221,10 @@ export function App() {
   const send = async (text: string) => {
     if (!workspace || !text.trim()) return;
     const target = workspace.id;
-    const id = conversationId || crypto.randomUUID();
+    const id =
+      workspace.id === DEMO_WORKSPACE_ID
+        ? DEMO_HISTORY_ID
+        : conversationId || crypto.randomUUID();
     if (pending.has(id)) return;
     const original = library.current.find((item) => item.id === target)!;
     const thread = original.conversations.find((item) => item.id === id);
@@ -348,7 +351,7 @@ export function App() {
         startIcon={<AddCommentOutlined />}
         onClick={newChat}
       >
-        新しい会話
+        メッセージを書く
       </Button>
       <Button
         className="sidebar-action"
@@ -555,14 +558,6 @@ export function App() {
                 running={running}
                 onSend={send}
                 onOpenArtifact={() => openPanel("preview")}
-                onOpenHistory={() => {
-                  select(DEMO_WORKSPACE_ID, DEMO_HISTORY_ID);
-                  void persist(
-                    library.current.find(
-                      (item) => item.id === DEMO_WORKSPACE_ID,
-                    )!,
-                  );
-                }}
               />
             )
           )}{" "}

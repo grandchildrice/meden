@@ -81,10 +81,11 @@ A right artifact panel owns code/preview/proof tabs, reachable
 from upper-right icons and opened automatically on send.
 
 `fixtures/meden-demo` projects actual whitelisted source files, accepted contract,
-matching retained verification report, 13 visible messages and 25 original tool events into
+matching retained verification report, the user-supplied original request, 13 recorded messages and 25 original tool events into
 a workspace with `origin: replay`. Messages distinguish `recorded` from new
 `demo` responses. The capture verifies the current Rust kernel's SHA-256 against
-the report. The graph indexes 53 local declarations and 150 lexical references from three
+the report. The graph uses extracted MIT layout functions from Lean4SemanticBench and
+DOM/SVG rendering, with a full-height docked source reader. It indexes 53 local declarations and 150 lexical references from three
 retained files; it does not run Atlas or elaborate full library dependencies. Archived proof records remain version-bound and become stale after
 requirement edits. A nested, cancellable CI-style meaning-analysis demo shows
 text differences and an initial NG sample with missing inventory conditions,
@@ -102,19 +103,19 @@ ports once the gateway is implemented. [GUI provenance and layout references](..
 
 ## Technology map and next adapters
 
-| Strategy choice                                | Current boundary                                                                | Next implementation                                                                                       |
-| ---------------------------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Shared Rust runtime                            | Existing `crates/meden-*` remains the controller                                | Loopback gateway hosting the GUI, attaching a reviewed session and translating typed events               |
-| Chat + Atlas GUI                               | `apps/web`, assistant-ui External Store, Material UI, React Flow                | Implement the client port after gateway authorization/events exist                                        |
-| Local SQLite/event log                         | `WorkspaceRepository`, browser IndexedDB adapter; Rust currently uses host JSON | Add host storage/migration and append-only events behind the gateway, then replace browser persistence    |
-| Lean Atlas/Compass                             | Actual Atlas graph import + graph/review schema                                 | Adapter consuming extractor/Compass output with exact revision identity and selected target set           |
-| docs2formalspec round-trip + independent judge | Analysis input/output fields and comparison view                                | Python `services/semantic-engine` using existing tools; connect through versioned JSON/job events         |
-| Static Lean/SMT checks                         | Existing Rust verification workers, proof/evidence bindings                     | Analyzer adapters consume real reports; keep proof and meaning status independent                         |
-| Google Drive BYOS                              | Separate from repository and agent ports                                        | `packages/sync` and host OAuth adapter after encryption/recovery are tested                               |
-| AES-256-GCM + recovery keys                    | No encryption implementation yet                                                | `packages/crypto`, then key storage/device revocation/recovery tests; never call plaintext IndexedDB E2EE |
-| Expert review                                  | Local draft/package creation                                                    | Encrypted recipient-scoped sharing and an independently authorized submission service                     |
-| Billing/entitlements                           | Absent from workspace content and runtime                                       | Separate `services/business-control` holding minimal business metadata                                    |
-| Desktop/Rust UI                                | JSON contracts and graph/domain packages separated from React                   | Add a Tauri/other host or rewrite the view while retaining the Rust controller and wire contracts         |
+| Strategy choice                      | Current boundary                                                                | Next implementation                                                                                                |
+| ------------------------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Shared Rust runtime                  | Existing `crates/meden-*` remains the controller                                | Loopback gateway hosting the GUI, attaching a reviewed session and translating typed events                        |
+| Chat + Atlas GUI                     | `apps/web`, assistant-ui External Store, Material UI, React Flow                | Implement the client port after gateway authorization/events exist                                                 |
+| Local SQLite/event log               | `WorkspaceRepository`, browser IndexedDB adapter; Rust currently uses host JSON | Add host storage/migration and append-only events behind the gateway, then replace browser persistence             |
+| Lean Atlas/Compass                   | Actual Atlas graph import + graph/review schema                                 | Adapter consuming extractor/Compass output with exact revision identity and selected target set                    |
+| Public semantic-gap assessment tools | Analysis input/output fields and comparison view                                | Evaluate claimcheck/FormalAlign adapters against Lean/software requirements; connect via versioned JSON/job events |
+| Static Lean/SMT checks               | Existing Rust verification workers, proof/evidence bindings                     | Analyzer adapters consume real reports; keep proof and meaning status independent                                  |
+| Google Drive BYOS                    | Separate from repository and agent ports                                        | `packages/sync` and host OAuth adapter after encryption/recovery are tested                                        |
+| AES-256-GCM + recovery keys          | No encryption implementation yet                                                | `packages/crypto`, then key storage/device revocation/recovery tests; never call plaintext IndexedDB E2EE          |
+| Expert review                        | Local draft/package creation                                                    | Encrypted recipient-scoped sharing and an independently authorized submission service                              |
+| Billing/entitlements                 | Absent from workspace content and runtime                                       | Separate `services/business-control` holding minimal business metadata                                             |
+| Desktop/Rust UI                      | JSON contracts and graph/domain packages separated from React                   | Add a Tauri/other host or rewrite the view while retaining the Rust controller and wire contracts                  |
 
 Only packages with implemented responsibility exist; no inert gateway, crypto,
 sync, billing or analysis service is shipped to suggest those functions work.
@@ -124,7 +125,8 @@ sync, billing or analysis service is shipped to suggest those functions work.
 1. **Local gateway and persistence:** same controller/session as TUI, loopback
    binding, origin and single-session attachment checks, typed events, cancellation,
    exact accepted/displayed meaning binding; host storage behind the repository port.
-2. **Analysis:** pinned source/requirement/target inputs → Atlas scope → static
+2. **Analysis:** reusable public assessment tools (claimcheck / FormalAlign candidates),
+   pinned source/requirement/target inputs → Atlas scope → static
    results → blind back-translation → independent judge → candidate findings.
    Store versions/evidence and test false acceptance before claiming quality.
 3. **Desktop and BYOS:** decide host packaging, implement keys/recovery, then

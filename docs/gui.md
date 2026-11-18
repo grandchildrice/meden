@@ -24,7 +24,7 @@ The production build is written to `apps/web/dist`.
 
 ## Layout and journeys
 
-The left sidebar contains conversations, new chat and search. The center remains
+The left sidebar contains the project conversation, message entry and search. The center remains
 the main work area. The narrower right sidebar has exactly **Code / Preview /
 Proof** tabs. The upper-right proof icon opens the graph; the panel icon opens
 or closes the sidebar. Narrow screens use drawers.
@@ -32,7 +32,7 @@ or closes the sidebar. Narrow screens use drawers.
 | Goal                            | Entry and result                                                                                                                                                                                  |
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Start a conversation            | Send an instruction with the arrow or Enter; its title is automatic. Shift+Enter adds a newline.                                                                                                  |
-| Read actual development history | Open the vending-machine conversation or choose “実際の開発履歴を見る” from a demo chat. “実行ログ” jumps to retained tool activity.                                                              |
+| Read actual development history | Open the vending-machine conversation in the sidebar. “会話の先頭” jumps to the supplied opening request; “実行ログ” jumps to retained tool activity.                                             |
 | Inspect recorded execution      | Expand each tool call for its actual arguments and output, including the Lean recursion-limit failure, verification retries, source edits and seven passing CLI tests.                            |
 | Inspect a proof                 | Open Proof: the radial graph shows related declarations, including incoming references. Select a node for its statement, status and direct dependencies.                                          |
 | Open exact source               | Click the statement or file/line link; Code opens the retained file at the highlighted line. Return to Proof with selection intact.                                                               |
@@ -47,7 +47,10 @@ or closes the sidebar. Narrow screens use drawers.
 The snapshot contains meden-demo's actual Rust kernel, CLI, tests, README,
 retained Lean specification/candidate/proof, contract and matching report. The
 original checkpoint has **57 messages**, from which **13 visible messages and
-25 tool calls/results** are projected in order. Activities attach after their
+25 tool calls/results** are projected in order. The original opening request
+provided by the user is prepended verbatim with `origin: provided`; the initial
+displayed conversation therefore has 14 messages. Its missing assistant reply
+and initial tool runs are not reconstructed. Activities attach after their
 preceding visible message; source indices retain checkpoint order. Tool input
 and output are recorded content, not reconstructed thoughts or new execution.
 
@@ -101,9 +104,8 @@ be cancelled; revision changes invalidate the displayed run. Imported proof
 progress/no-sorry metadata is never upgraded to fresh evidence.
 
 The info button beside “意味解析” opens a compact description of the planned
-algorithm: dependency scope, static structure checks, blind back-translation and
-an independent comparison judge. The wording follows section 7.1 of the Semantic
-Assurance strategy. It describes the design, without adding another top-level tab.
+algorithm: public-tool candidates claimcheck and FormalAlign, blind translation
+and comparison of missing/extra conditions. It describes the design, without adding another top-level tab.
 
 ## Storage and runtime boundary
 
@@ -111,13 +113,12 @@ Conversations, requirement edits and review drafts use IndexedDB in this browser
 unsent input and selection preferences use local storage. Clearing site data
 removes this storage. Portable workspace/review exports are unencrypted.
 
-Browser database version 2 performs a one-time merge of pre-existing
-meden-demo conversations. It retains the recorded conversation ID, chronological
-messages and original activities; identical copied records are deduplicated by
-identity/content, while conflicting IDs retain both messages. The upgrade is
-transactional. A selected continuation reopens in the merged thread and its
-unsent input follows the selection. Other projects are untouched. Explicit new
-conversations created after this upgrade remain independent.
+Browser database version 3 normalizes the bundled vending project on every read
+and save. Its existing continuations merge into one conversation, and messages
+sent from home continue that same thread. This also repairs version-2 data and
+prevents the earlier one-time-migration behavior from creating new forks. The
+selected continuation and active unsent input follow the canonical conversation.
+Other projects remain separate; original activities and repeated messages survive.
 
 The small Demo badge and settings describe the current mode. Send appends a
 local demo response and opens the relevant panel. There is **no model call,
@@ -153,6 +154,19 @@ provides the import boundary and type/value distinction.
 [claimcheck](https://github.com/metareflection/claimcheck) informs the requirement
 versus blind back-translation view, without claiming integrated analysis quality.
 
+## Refined dependency explorer
+
+The default view uses actual MIT-licensed layout functions from Lean4SemanticBench:
+dependencies above the center, reverse references below it, parent-based ordering
+and radial spacing. Project Overview still shows the wider connected graph.
+Hover/focus emphasizes a declaration's adjacent references.
+
+“グラフを広げる” or “広げて読む” opens a full-height graph with a docked reader.
+Its statement and syntax-highlighted Lean source scroll independently beside the
+graph. Code no longer depends on a clipped preview beneath the canvas. Source
+links retain exact line selection; “会話に戻る” returns to the chat. At small widths
+the reader uses the full expanded surface. [Source review and algorithm notes](research/2026-11-18-graph-ui.md).
+
 ## Checks and reviewed screens
 
 ```sh
@@ -177,6 +191,7 @@ sidebar tabs, source navigation, algorithm popover and semantic differences agai
 or assistive-technology audit. The required [public TUI gate](ux-testing.md)
 remains separate; scripted fixtures are not live inference evidence.
 
+[Expanded graph](assets/gui/expanded-graph.png) · [Full-height source](assets/gui/expanded-source.png) · [Opening request](assets/gui/history-start.png) ·
 [Home](assets/gui/home.png) · [Actual execution history](assets/gui/history.png) ·
 [Proof graph](assets/gui/proof.png) · [Selected proof](assets/gui/proof-detail.png) ·
 [Lean source](assets/gui/code.png) · [Meaning difference](assets/gui/analysis.png) · [Algorithm](assets/gui/semantic-method.png) ·

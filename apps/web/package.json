@@ -24,7 +24,8 @@
     "diff": "^8.0.0",
     "idb": "8.0.4",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "shiki": "^4.6.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "6.3.0",

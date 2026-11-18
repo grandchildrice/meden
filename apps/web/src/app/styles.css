@@ -2585,3 +2585,320 @@ pre {
   color: #923d32;
   background: #fff1ee;
 }
+/* Full-height reading and a focused cone explorer, adapted from L4SB. */
+.proof-explorer-body {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.proof-explorer-body > .graph-page {
+  min-width: 0;
+  flex: 1;
+}
+.proof-inspector {
+  background: #fff;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.proof-inspector.peek {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  right: 14px;
+  z-index: 12;
+  border: 1px solid #d9e3e8;
+  border-radius: 14px;
+  box-shadow: 0 8px 30px #06141d35;
+  max-height: 45%;
+}
+.inspector-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px 18px 10px;
+  flex: none;
+}
+.inspector-heading > div {
+  min-width: 0;
+}
+.inspector-heading .MuiTypography-h3 {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.inspector-heading code {
+  display: block;
+  font-size: 10px;
+  color: #516b78;
+  overflow-wrap: anywhere;
+  margin-top: 4px;
+}
+.inspector-heading .MuiIconButton-root {
+  width: 30px;
+  height: 30px;
+  flex: none;
+}
+.inspector-reading {
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+  padding: 4px 18px 18px;
+}
+.inspector-proof-status {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.inspector-proof-status > span:last-child {
+  color: #546c79;
+  font-size: 10px;
+}
+.inspector-statement {
+  padding: 16px;
+  border: 1px solid #e0e7ec;
+  background: #f7f9fb;
+  border-radius: 10px;
+  overflow: auto;
+  font-size: 11px;
+  line-height: 1.9;
+}
+.inspector-section-heading.MuiTypography-h3 {
+  font-size: 12px;
+  margin-top: 28px;
+  margin-bottom: 12px;
+}
+.inspector-section-heading > span {
+  color: #607683;
+  margin-left: 8px;
+}
+.inspector-dependencies {
+  border-top: 1px solid #e4eaee;
+}
+.inspector-dependencies > button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 2px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #e4eaee;
+  text-align: left;
+  color: #355460;
+  font-size: 12px;
+}
+.inspector-dependencies > button:hover {
+  background: #f1f6f8;
+}
+.inspector-dependencies small {
+  color: #5a727f;
+  font-size: 10px;
+  flex: none;
+}
+.inspector-axioms {
+  font-size: 11px;
+  color: #526976;
+  line-height: 1.9;
+}
+.meaning-actions > .MuiIconButton-root {
+  width: 32px;
+  height: 32px;
+  color: #536c79;
+}
+.expanded-proof-dialog {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.expanded-proof-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 24px;
+  border-bottom: 1px solid #dde5ea;
+  flex: none;
+}
+.expanded-proof-header .MuiTypography-h2 {
+  font-size: 16px;
+}
+.expanded-proof-header span {
+  font-size: 11px;
+  color: #586f7d;
+}
+.expanded-proof-dialog .proof-graph-view {
+  flex: 1;
+}
+.expanded-proof-dialog .proof-workspace-heading {
+  padding-inline: 24px;
+}
+.expanded-proof-dialog .proof-explorer-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.expanded-proof-dialog .proof-explorer-body.has-selection {
+  grid-template-columns: minmax(0, 1fr) 440px;
+}
+.proof-inspector.docked {
+  border-left: 1px solid #dce5ea;
+  overflow: hidden;
+}
+.proof-inspector > .MuiTabs-root {
+  min-height: 44px;
+  border-bottom: 1px solid #e3e9ee;
+  flex: none;
+}
+.proof-inspector .MuiTab-root {
+  font-size: 12px;
+  min-height: 44px;
+}
+.proof-inspector .source-view {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.source-view {
+  height: 100%;
+  overflow: hidden;
+}
+.source-code.numbered-source {
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  position: relative;
+}
+.source-toolbar,
+.source-location {
+  flex: none;
+}
+.cone-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  pointer-events: none;
+  z-index: 4;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: #b7c4ed;
+}
+.cone-label-up {
+  top: 56px;
+}
+.cone-label-down {
+  bottom: 58px;
+  color: #9bcebf;
+}
+.cone-graph {
+  background:
+    radial-gradient(ellipse at 50% 25%, #212d49 0, transparent 60%),
+    radial-gradient(ellipse at 50% 90%, #143b38 0, transparent 55%), #101d27 !important;
+}
+.radar-node:not(.root-node) {
+  min-height: 50px;
+}
+.radar-node:not(.root-node) > button {
+  min-height: 50px;
+  border-radius: 10px;
+  background: #132932;
+  border-color: #41616f;
+  padding: 7px 10px;
+}
+.radar-node[data-muted="true"] > button {
+  opacity: 0.25;
+}
+.radar-node[data-muted="false"] > button {
+  transition:
+    opacity 0.12s,
+    border-color 0.12s;
+}
+.radar-node:not(.root-node).active > button {
+  border-color: #a9e5e5;
+  background: #254c56;
+  box-shadow: 0 0 18px #69cbca24;
+}
+.radar-node:not(.root-node) strong {
+  font-size: 12px;
+}
+.semantic-method-links {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  font-size: 12px;
+}
+.semantic-method-links > a {
+  color: #285d64;
+  text-underline-offset: 3px;
+}
+@media (max-width: 760px) {
+  .expanded-proof-dialog .proof-explorer-body.has-selection {
+    grid-template-columns: 1fr;
+  }
+  .expanded-proof-dialog .proof-inspector.docked {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+  }
+  .expanded-proof-header {
+    padding: 12px 16px;
+  }
+}
+.recording-shortcuts {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.recording-shortcuts > .MuiButton-root {
+  font-size: 10px;
+  min-height: 32px;
+  padding-inline: 8px;
+  white-space: nowrap;
+}
+.selected-source-line {
+  background: #eff7fa;
+}
+.radar-node[data-muted="true"] > button {
+  opacity: 1;
+  border-color: #344c59;
+  background: #10212a;
+  color: #a5bac7;
+}
+.radar-node.active > button > code,
+.radar-node:hover > button > code {
+  color: #d3e8ee;
+}
+.cone-graph
+  .radar-node[data-compact="true"]:not(.root-node):not(.active):not(:hover)
+  > button {
+  background: transparent;
+  border-color: transparent;
+}
+.cone-graph .radar-node[data-compact="false"] strong {
+  opacity: 1;
+}
+.cone-label {
+  left: 20px;
+  right: auto;
+  text-align: left;
+  background: #101e27e8;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.cone-label-down {
+  left: 70px;
+  bottom: 70px;
+}
+.expanded-proof-dialog {
+  border-radius: 0 !important;
+}
