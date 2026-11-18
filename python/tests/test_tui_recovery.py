@@ -21,7 +21,7 @@ from meden_checks import find_meden
 pytestmark = pytest.mark.ux
 
 
-@pytest.mark.parametrize("mode", ["repair", "provider"])
+@pytest.mark.parametrize("mode", ["repair", "scratch", "provider"])
 def test_tui_recovers_tools_and_explains_retained_stops(tmp_path, tui_verifier, mode):
     project = tmp_path / "project"
     project.mkdir()
@@ -51,6 +51,25 @@ def test_tui_recovers_tools_and_explains_retained_stops(tmp_path, tui_verifier, 
                 if mode == "repair" and index == 1:
                     message["tool_calls"] = [call("bash", {
                         "command": "printf 'fixture compile failure' >&2; exit 1",
+                    })]
+                elif mode == "scratch" and index == 1:
+                    message["tool_calls"] = [call("write_file", {
+                        "path": "/tmp/check.py", "content": "print('outside workspace')",
+                    })]
+                elif mode == "scratch" and index == 2:
+                    assert "fresh /tmp" in json.dumps(request["messages"])
+                    assert allow_repair.wait(15)
+                    message["tool_calls"] = [call("bash", {
+                        "command": "mkdir -p .work && "
+                        "printf '%s\\n' 'print(\"scratch persisted\")' > .work/check.py "
+                        "&& printf 'same\\n' > .work/first && cp .work/first .work/second "
+                        "&& diff -u .work/first .work/second "
+                        "&& printf 'temporary' > /tmp/meden-transient",
+                    })]
+                elif mode == "scratch" and index == 3:
+                    message["tool_calls"] = [call("bash", {
+                        "command": "test ! -e /tmp/meden-transient "
+                        "&& python3 .work/check.py > result.txt",
                     })]
                 elif mode == "repair" and index == 2:
                     assert "fixture compile failure" in json.dumps(request["messages"])
@@ -124,13 +143,14 @@ def test_tui_recovers_tools_and_explains_retained_stops(tmp_path, tui_verifier, 
         os.write(master, b"y")
         wait_for(lambda: "shift+enter" in view())
         os.write(master, b"build fixture\r")
-        if mode == "repair":
+        if mode in ("repair", "scratch"):
             wait_for(lambda: "Recovery:" in view() and len(requests) == 2)
             assert "shift+enter" not in view(), "tool error prematurely stopped work"
             allow_repair.set()
             wait_for(lambda: "RECOVERY-COMPLETE" in view() and "shift+enter" in view())
-            assert (project / "result.txt").read_text() == "fixed"
-            assert len(requests) == 3
+            assert (project / "result.txt").read_text() == (
+                "scratch persisted\n" if mode == "scratch" else "fixed")
+            assert len(requests) == (4 if mode == "scratch" else 3)
         else:
             wait_for(lambda: "Stopped: Model usage limit reached" in view()
                      and "shift+enter" in view())
