@@ -281,6 +281,13 @@ test("the full conversation artifact opens preview and keeps proof details reada
   // Click the coordinates of the visible content under the full-card button.
   for (const target of [purchase, card.getByRole("img", { name: "Lean" })]) {
     await target.scrollIntoViewIfNeeded();
+    // The toolbar hint can overlap the card on a phone. It must not eat clicks.
+    await page
+      .getByRole("button", { name: "成果物を開く", exact: true })
+      .hover();
+    await expect(
+      page.getByRole("tooltip", { name: "成果物を開く", exact: true }),
+    ).toBeVisible();
     const bounds = (await target.boundingBox())!;
     await page.mouse.click(
       bounds.x + bounds.width / 2,

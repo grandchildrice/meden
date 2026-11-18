@@ -470,7 +470,7 @@ export function App() {
       )}
       <div className="main-column">
         <header className="chat-topbar">
-          <Tooltip title={sidebarLabel}>
+          <Tooltip title={sidebarLabel} disableInteractive>
             <IconButton
               className="sidebar-toggle"
               aria-label={sidebarLabel}
@@ -493,7 +493,7 @@ export function App() {
             <Typography className="model-label">Meden</Typography>
           )}
           {workspace && (
-            <Tooltip title={artifactLabel}>
+            <Tooltip title={artifactLabel} disableInteractive>
               <IconButton
                 ref={artifactToggle}
                 className="artifact-toggle"
