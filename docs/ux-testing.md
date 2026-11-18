@@ -198,3 +198,9 @@ The standalone GUI remains a local recorded demo with archived verification
 evidence. Neither browser gate replaces the public TUI gate or establishes
 live-model quality, cold installation or new prover validation. See
 [gui.md](gui.md) for provenance and boundaries.
+
+For a separate-model repair trial, add `--judge-model gpt-oss:120b` to the
+`meaning_smoke` command. Review both model/destination bindings in the actual TUI.
+The driver retains failures as well as successful trials; invalid categories stop
+instead of being normalized. `test_tui_judge.py` checks both HTTP and invalid-category
+failure, retained blind translation, explicit recovery, clipped review and restart.

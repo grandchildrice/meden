@@ -573,3 +573,15 @@ omits unresolved imports. Installed Lean/Atlas library modules are explicit exte
 boundaries; Lake srcDir and external package source roots are not yet discovered.
 A missing import fails collection and clears the current graph. Selected roots,
 collected files and external module names are retained with the source artifact.
+
+The [two-model TUI repair trial](../results/tui-meaning-repair-gptoss120-exact-vocabulary.json)
+used minimax-m3 for translation/repair and gpt-oss:120b for comparison. It detected
+the 150/100 threshold mismatch, reviewed the frozen diff, applied it once,
+reanalyzed the same requirement, passed independent offline Rust boundary tests
+and restarted without restoring approval. The preceding
+[retired-model failure](../results/tui-meaning-repair-qwen480-retired.json) and
+[invalid-category failure](../results/tui-meaning-repair-gptoss120-retained-failure.json)
+are retained too. Naming exact schema vocabulary in the comparison prompt enabled
+this successful retry under a new host review; parsing remained strict with no
+fallback. These synthetic cloud trials use an installed verifier prerequisite,
+not cold setup, local inference or general quality validation.

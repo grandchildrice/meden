@@ -16,7 +16,8 @@ from meden_checks import find_meden
 pytestmark = pytest.mark.ux
 
 
-def test_separate_judge_review_failure_recovery_and_restart(tmp_path, tui_verifier):
+@pytest.mark.parametrize("failure", ["http", "invalid-category"])
+def test_separate_judge_review_failure_recovery_and_restart(tmp_path, tui_verifier, failure):
     project = tmp_path / "project"
     project.mkdir()
     (project / "stock.rs").write_text("// SOURCE_ONLY\npub fn stock(n: u64) -> u64 { n }\n")
@@ -33,7 +34,7 @@ def test_separate_judge_review_failure_recovery_and_restart(tmp_path, tui_verifi
             assert body["model"] == (
                 "translator-fixture" if name == "record_informalization" else "judge-fixture"
             ), "comparison must never fall back to the primary model"
-            if len(requests) == 2:
+            if len(requests) == 2 and failure == "http":
                 self.send_response(401)
                 self.send_header("Content-Length", "0")
                 self.end_headers()
@@ -57,6 +58,8 @@ def test_separate_judge_review_failure_recovery_and_restart(tmp_path, tui_verifi
                     "explanation": "Input remains unchanged.",
                 }
             )
+            if len(requests) == 2 and failure == "invalid-category":
+                data["weakeningType"] = "wrong property"
             payload = json.dumps(
                 {
                     "choices": [
