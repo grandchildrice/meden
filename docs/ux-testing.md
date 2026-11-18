@@ -130,7 +130,10 @@ failure/restart, conversation and unsent-input retention, fresh approval, termin
 revocation, cancellation before dispatch and gateway boundary checks. Build the
 native binary before `npm run test:gui`; Linux/Bubblewrap are required, and missing
 prerequisites fail rather than skip these browser tests. Native screenshots include
-`native-restart.png` and `native-cancel.png`.
+`native-restart.png`, `native-cancel.png`, `native-live-graph.png` and
+`native-source-graph.png`. The source-graph journey covers local files, exact-line
+navigation, rereading after real edits, failed observation recovery and reload;
+source-only declarations must never acquire archived proof status.
 
 The standalone GUI remains a local recorded demo with archived verification
 evidence. Neither browser gate replaces the public TUI gate or establishes

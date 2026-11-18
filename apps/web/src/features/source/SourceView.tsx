@@ -1,22 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 import { Button, MenuItem, Select } from "@mui/material";
 import ArrowBackRounded from "@mui/icons-material/ArrowBackRounded";
-import type { Declaration, Workspace } from "@meden/workspace-schema";
-import { demoSnapshot, DEMO_WORKSPACE_ID } from "../../fixtures/meden-demo";
+import type { Declaration } from "@meden/workspace-schema";
 export function SourceView({
-  workspace,
+  files,
   target,
   onBack,
   onNotify,
   showBack = true,
 }: {
   showBack?: boolean;
-  workspace: Workspace;
+  files: Readonly<Record<string, string>>;
   target?: Declaration;
   onBack: () => void;
   onNotify: (text: string) => void;
 }) {
-  const [file, setFile] = useState(target?.source?.file || "kernel.rs");
+  const [file, setFile] = useState(
+    target?.source?.file ||
+      ("kernel.rs" in files ? "kernel.rs" : Object.keys(files)[0]) ||
+      "",
+  );
   const selected = useRef<HTMLSpanElement>(null);
   const viewport = useRef<HTMLPreElement>(null);
   const [tokens, setTokens] =
@@ -31,11 +34,11 @@ export function SourceView({
       pane.scrollTop =
         row.offsetTop - pane.offsetTop - pane.clientHeight * 0.35;
   }, [file, target]);
+  const source = files[file];
   useEffect(() => {
     let cancelled = false;
     setTokens(undefined);
-    const source = demoSnapshot.files[file as keyof typeof demoSnapshot.files];
-    if (workspace.id === DEMO_WORKSPACE_ID && source !== undefined)
+    if (source !== undefined)
       void import("./highlight")
         .then((module) => module.highlightSource(source, file))
         .then((lines) => {
@@ -45,19 +48,7 @@ export function SourceView({
     return () => {
       cancelled = true;
     };
-  }, [file, workspace.id]);
-  if (workspace.id !== DEMO_WORKSPACE_ID)
-    return (
-      <div className="panel-empty">
-        ソースファイルはこのデータに含まれていません。
-        {target?.source?.file && (
-          <div>
-            {target.source.file}:{target.source.line}
-          </div>
-        )}
-      </div>
-    );
-  const source = demoSnapshot.files[file as keyof typeof demoSnapshot.files];
+  }, [file, source]);
   if (source === undefined)
     return (
       <div className="panel-empty">
@@ -73,7 +64,7 @@ export function SourceView({
           onChange={(event) => setFile(event.target.value)}
           inputProps={{ "aria-label": "表示するファイル" }}
         >
-          {Object.keys(demoSnapshot.files).map((name) => (
+          {Object.keys(files).map((name) => (
             <MenuItem key={name} value={name}>
               {name}
             </MenuItem>

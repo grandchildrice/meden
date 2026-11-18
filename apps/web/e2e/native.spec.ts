@@ -336,4 +336,111 @@ test.describe("native GUI with real offline workers", () => {
       fullPage: true,
     });
   });
+  test("local source graph follows exact code, refreshes after development and rejects unavailable inputs", async ({
+    page,
+  }) => {
+    const source =
+      "namespace Demo\ndef transition (stock : Nat) : Nat :=\n  if stock > 0 then stock - 1 else stock\n\ntheorem stock_bound (stock : Nat) : transition stock ≤ stock := by\n  sorry\nend Demo\n";
+    await writeFile(resolve(project, "Spec.lean"), source);
+    responses.push(
+      (response) =>
+        reply(
+          response,
+          tool("write_file", {
+            path: "Spec.lean",
+            content: source.replace("stock_bound", "inventory_bound"),
+          }),
+        ),
+      (response) =>
+        reply(response, { role: "assistant", content: "SOURCE-UPDATED" }),
+    );
+    await page.goto(await start());
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+    await page
+      .getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" })
+      .fill("Spec.lean");
+    await page
+      .getByRole("button", { name: "ソースを読み直してグラフを表示" })
+      .click();
+    const graph = page.getByRole("region", { name: "ローカルソースのグラフ" });
+    await expect(graph).toContainText("1ファイル · 2宣言 · 1参照候補");
+    expect(requests).toHaveLength(0);
+    await graph
+      .getByRole("button", { name: /Demo.stock_bound.*を選択/ })
+      .click();
+    await expect(page.getByLabel("選択した宣言")).toContainText("証明は未確認");
+    await page.screenshot({
+      path: "target/gui-checks/native-live-graph.png",
+      fullPage: true,
+    });
+    await page
+      .getByRole("button", { name: "Spec.lean:5 のソースを開く", exact: true })
+      .click();
+    await expect(
+      page.getByRole("dialog").locator('[aria-current="location"]'),
+    ).toContainText("theorem stock_bound");
+    await expect(
+      page.getByRole("dialog").getByLabel("ファイルの内容"),
+    ).toContainText("sorry");
+    await page.screenshot({
+      path: "target/gui-checks/native-source-graph.png",
+      fullPage: true,
+    });
+    await page.getByRole("button", { name: "閉じる", exact: true }).click();
+    await page
+      .getByRole("button", { name: "接続先を確認", exact: true })
+      .click();
+    await page.getByRole("button", { name: "この送信先を承認" }).click();
+    await page
+      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .fill("Rename the property to inventory_bound");
+    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await expect(
+      page.getByText("SOURCE-UPDATED", { exact: true }),
+    ).toBeVisible();
+    await expect(graph).not.toBeVisible();
+    await page
+      .getByRole("button", { name: "ソースを読み直してグラフを表示" })
+      .click();
+    await expect(
+      graph.getByRole("button", { name: /Demo.inventory_bound.*を選択/ }),
+    ).toBeVisible();
+    await expect(
+      graph.getByRole("button", { name: /Demo.stock_bound.*を選択/ }),
+    ).not.toBeVisible();
+    await page
+      .getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" })
+      .fill("missing.lean");
+    await page
+      .getByRole("button", { name: "ソースを読み直してグラフを表示" })
+      .click();
+    await expect(
+      page.getByRole("alert").filter({ hasText: "Source observation failed" }),
+    ).toBeVisible();
+    await expect(graph).not.toBeVisible();
+    await page
+      .getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" })
+      .fill("Spec.lean");
+    await page
+      .getByRole("button", { name: "ソースを読み直してグラフを表示" })
+      .click();
+    await expect(graph).toContainText("2宣言");
+    await page.reload();
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+    await expect(graph).toContainText("2宣言");
+    await expect(
+      page.getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" }),
+    ).toHaveValue("Spec.lean");
+    await expect(
+      page.getByRole("button", { name: "ソースを読み直してグラフを表示" }),
+    ).toBeEnabled();
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+          .analyze()
+      ).violations,
+    ).toEqual([]);
+  });
 });

@@ -44,8 +44,26 @@ provider failures are not silently retried. Unsent input remains tab/browser dat
 and completed turns also refresh status; polling alone is not a filesystem watcher.
 Logs/partial reasoning in this initial adapter last for the host process, while
 conversation text and admitted model history persist. The file reader uses the
-native tool's bounded first 200 lines. Preview execution, live graph extraction,
-semantic analysis and artifact-export approval remain integration work. The
+native tool's bounded first 200 lines. Preview execution, elaborated Atlas extraction,
+semantic analysis and artifact-export approval remain integration work.
+
+The native **グラフ** tab takes one `.lean`/`.rs` path per line; **このファイルのグラフ**
+in the code panel uses the current path. Source observations use the same offline,
+policy-bound file worker as project snapshots (1–32 files, 64 KiB per file,
+1 MiB total). No truncated file is indexed. A SHA-256 binds the selected paths
+and complete observed content. Failure discards the previous graph; starting a
+new development turn also requires rereading sources. A snapshot lasts for this
+host process, and reload can redisplay it; restarting the host requires rereading.
+It is an observation, not a filesystem watch or an atomic concurrent-host snapshot.
+
+`@meden/atlas-adapter/source-index` builds lexical declarations and unambiguous
+local references from those files. Nested comments/literals are masked, Lean
+namespaces and private declarations are tracked, and unknown edge kinds remain
+conservative. Imported modules, elaboration, type-class resolution, macros and
+full dependency completeness are outside this index. Every indexed declaration
+starts **証明は未確認**; source `sorry`, audit-looking comments or model output
+cannot produce proof evidence. Select a node and open its exact highlighted
+source line in the shared syntax-highlighted source reader. The
 following recorded-demo documentation describes a separate standalone mode.
 
 ## Recorded demo: start
@@ -246,7 +264,9 @@ NixOS host the config uses installed Chrome. `MEDEN_GUI_CHROME` overrides its pa
 Native browser journeys execute the actual binary and offline workers with a
 scripted HTTP provider: file creation, provider failure, retained context/restart,
 fresh processor review, revocation, silent waiting, cancellation before dispatch,
-concurrent-turn refusal and origin/Host/token checks. They are not live-model or
+concurrent-turn refusal and origin/Host/token checks. A native graph journey covers
+local source observation, exact-line navigation, development changes, failed-read
+recovery, reload and compact accessibility. They are not live-model or
 cold-verifier-install evidence. The Python UX gate also exercises GUI→TUI→GUI
 checkpoint handoff through a real PTY.
 

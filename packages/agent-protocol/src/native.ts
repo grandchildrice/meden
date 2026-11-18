@@ -8,6 +8,13 @@ export const nativeReferenceSchema = z
   })
   .strict();
 export type NativeReference = z.infer<typeof nativeReferenceSchema>;
+export const sourceSnapshotSchema = z
+  .object({
+    revision: z.string().regex(/^sha256:[a-f0-9]{64}$/),
+    files: z.record(z.string(), z.string().max(65_536)),
+  })
+  .strict();
+export type SourceSnapshot = z.infer<typeof sourceSnapshotSchema>;
 export const nativeStateSchema = z.object({
   workspace: z.string(),
   endpoint: z.string(),
@@ -49,12 +56,14 @@ export const nativeStateSchema = z.object({
       error: z.string().optional(),
     })
     .nullable(),
+  source_snapshot: sourceSnapshotSchema.nullable(),
 });
 export type NativeState = z.infer<typeof nativeStateSchema>;
 export type NativeCommand =
   | { type: "approve_processor"; endpoint: string }
   | { type: "revoke_processor" | "cancel" | "refresh_status" }
   | { type: "instruction"; text: string }
+  | { type: "source_snapshot"; paths: string[] }
   | {
       type: "review_contract" | "accept_contract" | "reject_contract";
       reference: NativeReference;

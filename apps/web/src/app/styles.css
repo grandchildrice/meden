@@ -2784,3 +2784,33 @@ pre {
     border-top: 1px solid #e3e5e8;
   }
 }
+
+.native-source-graph .graph-page {
+  min-height: 430px;
+  height: 52dvh;
+}
+.native-source-graph .graph-canvas {
+  min-height: 340px;
+}
+.native-declaration {
+  padding: 16px 0;
+}
+.native-revision {
+  display: block;
+  overflow-wrap: anywhere;
+  margin-top: 16px;
+}
+.native-source-dialog {
+  height: 88dvh;
+}
+.native-source-dialog .MuiDialogContent-root {
+  min-height: 0;
+  display: flex;
+}
+.native-source-dialog .source-view {
+  width: 100%;
+  min-height: 0;
+}
+.native-source-dialog .source-toolbar .MuiSelect-select {
+  max-width: min(60vw, 700px);
+}

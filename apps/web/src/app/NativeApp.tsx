@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Button,
@@ -21,6 +21,11 @@ import {
 } from "@meden/agent-protocol/native";
 import { ChatView } from "../features/chat/ChatView";
 import type { Conversation } from "@meden/workspace-schema";
+const NativeGraph = lazy(() =>
+  import("../features/native/NativeGraph").then((module) => ({
+    default: module.NativeGraph,
+  })),
+);
 
 /** A single host workspace is attached; choosing another requires a new host launch. */
 export function NativeApp({ token }: { token: string }) {
@@ -30,6 +35,7 @@ export function NativeApp({ token }: { token: string }) {
   const [connectionError, setConnectionError] = useState("");
   const [tab, setTab] = useState(0);
   const [path, setPath] = useState(".");
+  const [graphPaths, setGraphPaths] = useState<string>();
   const [review, setReview] = useState<{
     reference: NativeReference;
     text: string;
@@ -81,6 +87,11 @@ export function NativeApp({ token }: { token: string }) {
         });
     }
   }, [reviewing, state]);
+  useEffect(() => {
+    if (graphPaths === undefined && state?.source_snapshot) {
+      setGraphPaths(Object.keys(state.source_snapshot.files).join("\n"));
+    }
+  }, [state?.source_snapshot?.revision, graphPaths]);
   const command = async (command: NativeCommand) => {
     if (inFlight.current) return false;
     inFlight.current = true;
@@ -234,6 +245,7 @@ export function NativeApp({ token }: { token: string }) {
                 <Tab label="コード" />
                 <Tab label="実行ログ" />
                 <Tab label="契約・証明" />
+                <Tab label="グラフ" />
               </Tabs>
               <div className="native-panel">
                 {tab === 0 && (
@@ -266,6 +278,19 @@ export function NativeApp({ token }: { token: string }) {
                       }
                     >
                       ファイルを読む
+                    </Button>
+                    <Button
+                      disabled={running || !/\.(rs|lean)$/.test(path)}
+                      onClick={() => {
+                        setGraphPaths(path);
+                        setTab(3);
+                        void command({
+                          type: "source_snapshot",
+                          paths: [path],
+                        });
+                      }}
+                    >
+                      このファイルのグラフ
                     </Button>
                     {state.inspection && (
                       <>
@@ -340,6 +365,54 @@ export function NativeApp({ token }: { token: string }) {
                     )}
                   </>
                 )}
+                <div hidden={tab !== 3}>
+                  <TextField
+                    label="グラフの対象ファイル（1行に1つ）"
+                    multiline
+                    minRows={2}
+                    fullWidth
+                    size="small"
+                    value={graphPaths ?? state.project.source_path}
+                    onChange={(event) => setGraphPaths(event.target.value)}
+                    placeholder={"Spec.lean\nsrc/kernel.rs"}
+                  />
+                  <Button
+                    disabled={
+                      running ||
+                      !(graphPaths ?? state.project.source_path).trim()
+                    }
+                    onClick={() =>
+                      void command({
+                        type: "source_snapshot",
+                        paths: (graphPaths ?? state.project.source_path)
+                          .split("\n")
+                          .map((path) => path.trim())
+                          .filter(Boolean),
+                      })
+                    }
+                  >
+                    ソースを読み直してグラフを表示
+                  </Button>
+                  {state.source_snapshot ? (
+                    <Suspense
+                      fallback={
+                        <CircularProgress
+                          aria-label="ソースグラフを読み込み中"
+                          size={24}
+                        />
+                      }
+                    >
+                      <NativeGraph
+                        key={state.source_snapshot.revision}
+                        snapshot={state.source_snapshot}
+                      />
+                    </Suspense>
+                  ) : (
+                    <p>
+                      Rust／Leanファイルを選んで読み込んでください。作業の実行後は読み直しが必要です。
+                    </p>
+                  )}
+                </div>
               </div>
             </aside>
           </main>

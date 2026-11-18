@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import CloseRounded from "@mui/icons-material/CloseRounded";
 import type { Declaration, Workspace } from "@meden/workspace-schema";
-import { DEMO_WORKSPACE_ID } from "../../fixtures/meden-demo";
+import { DEMO_WORKSPACE_ID, demoSnapshot } from "../../fixtures/meden-demo";
 import { VendingPreview } from "../demo/VendingPreview";
 import { SourceView } from "../source/SourceView";
 const ProofWorkspace = lazy(() =>
@@ -89,7 +89,9 @@ export function ArtifactPanel({
         >
           {tab === "code" && (
             <SourceView
-              workspace={workspace}
+              files={
+                workspace.id === DEMO_WORKSPACE_ID ? demoSnapshot.files : {}
+              }
               target={source}
               onBack={() => onTab("proof")}
               onNotify={onNotify}

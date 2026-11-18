@@ -13,6 +13,7 @@ use serde_json::{json, Value};
 use tiny_http::{Header, Method, Request, Response, Server, StatusCode};
 
 use crate::{session::history, session::Session, WorkspaceArgs};
+mod sources;
 
 struct Task {
     command: Command,
@@ -35,6 +36,7 @@ struct View {
     stopped: Option<String>,
     logs: Vec<Value>,
     inspection: Option<Value>,
+    source_snapshot: Option<sources::Snapshot>,
 }
 
 #[derive(Deserialize)]
@@ -49,6 +51,9 @@ enum Command {
     },
     Cancel,
     RefreshStatus,
+    SourceSnapshot {
+        paths: Vec<String>,
+    },
     ReviewContract {
         reference: crate::project::Reference,
     },
@@ -112,6 +117,7 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
         stopped: saved.stopped,
         logs: Vec::new(),
         inspection: None,
+        source_snapshot: None,
     }));
     let control = Arc::new(Mutex::new(Arc::new(Control::new(Arc::new(
         AtomicBool::new(false),
@@ -349,7 +355,15 @@ fn worker(
             )?;
             let instruction = match command {
                 Command::RefreshStatus => None,
+                Command::SourceSnapshot { paths } => {
+                    // Discard the old graph even if a replacement observation fails.
+                    lock(view).source_snapshot = None;
+                    let snapshot = sources::capture(workspace, &processes, &paths)?;
+                    lock(view).source_snapshot = Some(snapshot);
+                    None
+                }
                 Command::Instruction { text } => {
+                    lock(view).source_snapshot = None;
                     lock(view).messages.push(history::Message {
                         speaker: history::Speaker::User,
                         text: text.clone(),

@@ -1,6 +1,6 @@
 # Semantic workspace architecture
 
-Status: GUI and native local gateway implemented; live graph/analysis integration pending.
+Status: GUI and native local gateway implemented; native source-reference graph implemented; elaborated graph/analysis integration pending.
 Decision date: 2026-11-18. This applies the Semantic Assurance strategy's local-first
 boundaries while using TypeScript/Vite, as requested, in place of its Next.js SPA.
 
@@ -106,7 +106,14 @@ Processor approval binds the launch-time endpoint; contract review/acceptance us
 native exact references. No browser-supplied credential, tool result or policy is
 accepted. Revocation/expiry cannot renew a grant. GUI visibility, transport and
 input provenance remain unproved adapters. Current live panels cover chat, file
-reads, tool logs and native contract status; graph/preview/analysis remain demo-only.
+reads, tool logs, native contract status and local source-reference graphs.
+Preview and meaning analysis remain demo-only. Source observations bind exact
+selected paths/content with SHA-256 through the existing offline file worker.
+The separate `atlas-adapter/source-index` parses lexical declarations/references;
+all resulting proof statuses remain unknown. It does not execute Lean Atlas or
+provide elaborated dependency completeness. Failed reads and new development
+turns discard the old snapshot. The common source reader takes explicit file data,
+so native content never falls back to archived demo source.
 
 No agent-client call is made by the demo response adapter. Native control,
 accepted meaning, evidence admission and effect authorization stay with Rust.

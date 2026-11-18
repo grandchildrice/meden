@@ -290,7 +290,12 @@ export function GraphView({
             <i className="definition" />
             定義
           </span>
-          <span>実線：型 · 破線：本体</span>
+          {workspace.edges.some((edge) => edge.site !== "unknown") && (
+            <span>実線：型 · 破線：本体</span>
+          )}
+          {workspace.edges.some((edge) => edge.site === "unknown") && (
+            <span>点線：種類未確認の参照候補</span>
+          )}
         </div>
       </div>
     </section>
