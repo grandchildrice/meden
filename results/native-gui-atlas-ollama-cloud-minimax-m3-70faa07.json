@@ -1,0 +1,260 @@
+{
+  "kind": "native-gui-live-atlas-journey",
+  "source_commit": "70faa073cb1a7ddd28f773abf8d9b6a6b7714761",
+  "finished_at": "2026-11-18T09:05:15.247Z",
+  "binary_sha256": "f0100d715785383cad5f338900ce314417044f6711e369039229a8b93c8bb96c",
+  "provider": "hermes:ollama-cloud",
+  "model": "minimax-m3",
+  "inference": "live",
+  "success": true,
+  "application": {
+    "rust": "pub fn can_purchase(balance: u64, stock: u64) -> bool { balance >= 150 && stock > 0 }\n",
+    "browser_source": {
+      "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Purchase check</title>\n</head>\n<body>\n  <main>\n    <h1>Purchase check</h1>\n\n    <form id=\"purchase-form\">\n      <p>\n        <label for=\"balance\">Balance</label>\n        <input type=\"number\" id=\"balance\" name=\"balance\" value=\"149\" min=\"0\" step=\"1\" inputmode=\"numeric\">\n      </p>\n\n      <p>\n        <label for=\"stock\">Stock</label>\n        <input type=\"number\" id=\"stock\" name=\"stock\" value=\"1\" min=\"0\" step=\"1\" inputmode=\"numeric\">\n      </p>\n\n      <p>\n        <button type=\"submit\" id=\"check\" name=\"check\">Check purchase</button>\n      </p>\n    </form>\n\n    <p>\n      <output id=\"result\" aria-label=\"Purchase result\" for=\"balance stock\"></output>\n    </p>\n  </main>\n\n  <script type=\"module\" src=\"app.js\"></script>\n</body>\n</html>\n",
+      "javascript": "// Ordinary browser UI mirror of the Rust rule in kernel.rs:\n// can_purchase(balance, stock) == balance >= 150 && stock > 0\n// This is a UI mirror only; it is not a binding or a proof of the Rust code.\n\nconst MINIMUM_BALANCE = 150;\n\nfunction canPurchase(balance, stock) {\n  return balance >= MINIMUM_BALANCE && stock > 0;\n}\n\n// Reads a number input as a non-negative integer; invalid or empty input is 0.\nfunction readAmount(input) {\n  const raw = input.value.trim();\n  if (raw === \"\") {\n    return 0;\n  }\n  const value = Number(raw);\n  if (!Number.isFinite(value) || value < 0) {\n    return 0;\n  }\n  return Math.floor(value);\n}\n\nconst form = document.getElementById(\"purchase-form\");\nconst balanceInput = document.getElementById(\"balance\");\nconst stockInput = document.getElementById(\"stock\");\nconst result = document.getElementById(\"result\");\n\nform.addEventListener(\"submit\", (event) => {\n  event.preventDefault();\n\n  const balance = readAmount(balanceInput);\n  const stock = readAmount(stockInput);\n\n  result.textContent = canPurchase(balance, stock) ? \"Allowed\" : \"Refused\";\n});\n"
+    },
+    "original_tests_preserved_at_development": true,
+    "independent_rust_result": {
+      "success": true,
+      "exit_code": 0,
+      "status": "exited",
+      "stdout": "\nrunning 1 test\ntest boundary ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "stderr": "",
+      "output_truncated": false
+    },
+    "check_stage": "After application development, before the delivery and Lean-generation turns; delivery independently checked source preservation before Lean generation.",
+    "browser_cases": [
+      {
+        "balance": 149,
+        "stock": 1,
+        "result": "Refused"
+      },
+      {
+        "balance": 150,
+        "stock": 1,
+        "result": "Allowed"
+      },
+      {
+        "balance": 150,
+        "stock": 0,
+        "result": "Refused"
+      }
+    ]
+  },
+  "delivery": {
+    "source": "/workspace/public/index.html",
+    "target_kind": "synthetic literal-loopback HTTP receiver",
+    "bytes": 877,
+    "payload_sha256": "2159bdf3420928300cf8a304fb300e9cdab538f8f821ff63c4fb2206e2695897",
+    "state": "response_received",
+    "http_status": 201,
+    "received": 1,
+    "exact_original_bytes": true
+  },
+  "source_graph": {
+    "revision": "sha256:9ae06872bf6e455d2816c4d6c2df9a919d642422ede12a287e03b04d7414e21c",
+    "files": {
+      "Purchase.lean": "/-\nPurchase.lean — standalone Lean analysis model of the purchase rule.\n\nThis module models the same rule that `kernel.rs` implements\n(`can_purchase (balance stock : u64) : Bool := balance >= 150 && stock > 0`).\nIt is an ordinary Lean analysis model only: it is not a refinement binding,\nnot a native contract, and it establishes no correspondence with the Rust code.\n\nRule: a purchase is eligible exactly when the balance is at least 150 and the\nstock is positive.\n\nOnly the Lean core prelude is used. The proof is complete: no `sorry`, no\nadditional axioms, no `native_decide`.\n-/\n\nnamespace Purchase\n\n/-- A purchase is eligible when the balance is at least 150 and the stock is\npositive. -/\ndef canPurchase (balance stock : Nat) : Prop :=\n  150 ≤ balance ∧ 0 < stock\n\n/-- `canPurchase` holds exactly when both defining conditions hold: the\nbalance is at least 150 and the stock is positive. The two natural inputs are\nuniversally quantified. -/\ntheorem eligibility_exact : ∀ (balance stock : Nat),\n    canPurchase balance stock ↔ (150 ≤ balance ∧ 0 < stock) := by\n  intro balance stock\n  constructor\n  · intro h\n    exact h\n  · intro h\n    exact h\n\nend Purchase\n"
+    },
+    "atlas": {
+      "revision": "sha256:3102d8a207793ec9d0e6224fa0eeb3b041033f27dc4129051fad6b7e32a0c4a7",
+      "upstream": "06be1eb76fb926b8cf8bd42a4a51208d128c327d",
+      "resources_sha256": "6e3c84dad91ba93f3f904c492468578ad1f569841cbc248b75cb592e4338e8aa",
+      "graph": {
+        "metadata": {
+          "projectName": "Selected Lean modules",
+          "leanVersion": "4.35.0"
+        },
+        "nodes": [
+          {
+            "id": "Purchase.canPurchase",
+            "shortName": "canPurchase",
+            "kind": "definition",
+            "filePath": "Purchase.lean",
+            "lineStart": 18,
+            "lineEnd": 21,
+            "hasSorry": false,
+            "statement": "Nat → Nat → Prop",
+            "value": "fun balance stock => 150 ≤ balance ∧ 0 < stock",
+            "axioms": [],
+            "standardAxioms": [],
+            "externalDependencies": [
+              "Nat",
+              "instOfNatNat",
+              "LE.le",
+              "instLENat",
+              "And",
+              "LT.lt",
+              "instLTNat",
+              "OfNat.ofNat"
+            ]
+          },
+          {
+            "id": "Purchase.eligibility_exact",
+            "shortName": "eligibility_exact",
+            "kind": "theorem",
+            "filePath": "Purchase.lean",
+            "lineStart": 23,
+            "lineEnd": 33,
+            "hasSorry": false,
+            "statement": "∀ (balance stock : Nat), Purchase.canPurchase balance stock ↔ 150 ≤ balance ∧ 0 < stock",
+            "value": null,
+            "axioms": [],
+            "standardAxioms": [],
+            "externalDependencies": [
+              "instOfNatNat",
+              "LE.le",
+              "instLENat",
+              "And",
+              "Iff",
+              "Nat",
+              "LT.lt",
+              "instLTNat",
+              "OfNat.ofNat"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "source": "Purchase.eligibility_exact",
+            "target": "Purchase.canPurchase",
+            "kind": "theorem_type_to_definition"
+          }
+        ],
+        "externalReferences": [
+          "instOfNatNat",
+          "LE.le",
+          "instLENat",
+          "And",
+          "Iff",
+          "Nat",
+          "LT.lt",
+          "instLTNat",
+          "OfNat.ofNat"
+        ]
+      }
+    }
+  },
+  "meaning_cases": [
+    {
+      "name": "missing-threshold",
+      "requirement": "A purchase is permitted exactly when balance is at least 100 and stock is positive. This statement covers all natural balances and stocks.",
+      "analysis": {
+        "version": 1,
+        "engine": "meden-claimcheck-roundtrip-v1",
+        "model": "minimax-m3",
+        "input": {
+          "source_revision": "sha256:9ae06872bf6e455d2816c4d6c2df9a919d642422ede12a287e03b04d7414e21c",
+          "graph_revision": "sha256:3102d8a207793ec9d0e6224fa0eeb3b041033f27dc4129051fad6b7e32a0c4a7",
+          "target": {
+            "file": "Purchase.lean",
+            "line": 23,
+            "name": "Purchase.eligibility_exact"
+          },
+          "requirement": "A purchase is permitted exactly when balance is at least 100 and stock is positive. This statement covers all natural balances and stocks."
+        },
+        "state": "complete",
+        "error": null,
+        "assessment": {
+          "verdict": "mismatch",
+          "translation": {
+            "lemmaName": "Purchase.eligibility_exact",
+            "naturalLanguage": "In the file Purchase.lean, `canPurchase` is defined by the term `fun balance stock => 150 ≤ balance ∧ 0 < stock`, i.e. it is a predicate on two naturals that is true exactly when the balance is at least 150 and the stock is strictly positive. The theorem `eligibility_exact` states that for every pair of natural numbers `balance` and `stock`, `canPurchase balance stock` holds if and only if `150 ≤ balance ∧ 0 < stock`. In plain terms: applying the purchase-eligibility predicate to any balance/stock pair is equivalent to directly checking that the balance is at least 150 and the stock is greater than zero. The statement is literally the unfolding of the definition of `canPurchase`; it introduces no new mathematical content beyond the definition it references.",
+            "preconditions": "None beyond the implicit ones: `balance` and `stock` are quantified over `Nat`, and `canPurchase : Nat → Nat → Prop` is a total (always-defined, never-throwing) function. There is no hypothesis, side condition, assumption, or axiom required; the theorem declares no non-standard axioms (the listed axioms array is empty) and, as reported, contains no `sorry`.",
+            "postcondition": "For all `balance stock : Nat`, `canPurchase balance stock ↔ (150 ≤ balance ∧ 0 < stock)`. Equivalently, `canPurchase balance stock` is true exactly when the balance is at least 150 and the stock is strictly positive; it is false whenever balance < 150 or stock = 0. This holds uniformly over all natural-number inputs, including the boundary values balance = 149, balance = 150, stock = 0, and stock = 1.",
+            "scope": "A pointwise, universal characterization over all pairs of naturals: it relates the value of the single predicate `canPurchase` at one input pair to the explicitly written conjunction. It is not a transition, not a statement about reachable states, and not a statement about any purchase process, amount of goods purchasable, or interaction between balance and stock (the two conjuncts are independent).",
+            "strength": "trivial",
+            "confidence": 0.95
+          },
+          "comparison": {
+            "lemmaName": "Purchase.eligibility_exact",
+            "match": false,
+            "discrepancy": "The balance threshold is wrong: the requirement says purchase is permitted exactly when balance is at least 100, whereas the back-translation states the condition as 150 ≤ balance. Thus it incorrectly excludes purchases for balances 100 through 149. The stock condition (> 0) and the universal quantification over natural balances and stocks are preserved.",
+            "weakeningType": "wrong-property",
+            "explanation": "The back-translation does not faithfully express the original requirement. Although it retains the conjunction and covers all natural-number inputs, it replaces the required balance threshold 100 with 150. A faithful formulation would use `100 ≤ balance ∧ 0 < stock`; the reported `150 ≤ balance ∧ 0 < stock` is a different eligibility criterion."
+          }
+        }
+      }
+    },
+    {
+      "name": "matching-threshold",
+      "requirement": "A purchase is permitted exactly when balance is at least 150 and stock is positive. This statement covers all natural balances and stocks.",
+      "analysis": {
+        "version": 1,
+        "engine": "meden-claimcheck-roundtrip-v1",
+        "model": "minimax-m3",
+        "input": {
+          "source_revision": "sha256:9ae06872bf6e455d2816c4d6c2df9a919d642422ede12a287e03b04d7414e21c",
+          "graph_revision": "sha256:3102d8a207793ec9d0e6224fa0eeb3b041033f27dc4129051fad6b7e32a0c4a7",
+          "target": {
+            "file": "Purchase.lean",
+            "line": 23,
+            "name": "Purchase.eligibility_exact"
+          },
+          "requirement": "A purchase is permitted exactly when balance is at least 150 and stock is positive. This statement covers all natural balances and stocks."
+        },
+        "state": "complete",
+        "error": null,
+        "assessment": {
+          "verdict": "match",
+          "translation": {
+            "lemmaName": "Purchase.eligibility_exact",
+            "naturalLanguage": "The theorem `Purchase.eligibility_exact` states: for every pair of natural numbers `balance` and `stock`, the predicate `Purchase.canPurchase balance stock` holds if and only if `150 ≤ balance` and `0 < stock`. Since `Purchase.canPurchase` is defined (in Purchase.lean, lines 18-21) as the function `fun balance stock => 150 ≤ balance ∧ 0 < stock`, the right-hand side of the biconditional is literally the body of the definition. Thus the theorem is exactly the definitional unfolding of `canPurchase`: it asserts that a customer with `balance` dollars and `stock` units available is eligible to purchase precisely when the balance is at least 150 and the stock is positive. Concretely, reading the Nat inequalities numerically: the balance must be 150 or more, and the stock must be at least 1 (there is no upper bound on either quantity). This is a purely pointwise statement about a single predicate application; it says nothing about any transaction, state transition, or behaviour of a purchase operation, and it introduces no information beyond the definition it unfolds. The theorem carries no `sorry` and lists no non-standard axioms among its dependencies (only `Nat`, `Iff`, the `LE`/`LT` instances and `OfNat.ofNat` for the literal 150), so its proof is a definitional equality (`rfl`/`Iff.rfl`) rather than a substantive mathematical argument.",
+            "preconditions": "None beyond the universally quantified variables: the statement ranges over all `balance` and `stock` of type `Nat`, and there are no hypotheses, side conditions, or non-negativity assumptions to check (these are guaranteed by the `Nat` type itself). The only external items involved are the `LE`/`LT` instances on `Nat` and the literal `150` via `OfNat.ofNat`; no library semantics beyond standard natural-number comparison are required, and the meaning of `canPurchase` is fully available from the local definition.",
+            "postcondition": "For all `balance stock : Nat`, `Purchase.canPurchase balance stock ↔ 150 ≤ balance ∧ 0 < stock`. Substituting the definition of `canPurchase`, this is the tautology `150 ≤ balance ∧ 0 < stock ↔ 150 ≤ balance ∧ 0 < stock`, i.e. a reflexive restatement of the definition's body with no new content.",
+            "scope": "A single, pointwise property of a two-argument predicate over natural numbers: it holds for every pair (balance, stock) and concerns one evaluation of `canPurchase` at a time. It does not quantify over sequences of purchases, states, or traces, and it is not a statement about any function's behaviour under composition.",
+            "strength": "trivial",
+            "confidence": 0.95
+          },
+          "comparison": {
+            "lemmaName": "Purchase.eligibility_exact",
+            "match": true,
+            "discrepancy": "",
+            "weakeningType": "none",
+            "explanation": "原文要件は「残高が150以上かつ在庫が正のとき、かつそのときに限り購入が許可される」ことを「すべての自然数の残高と在庫について」述べるiek。バック翻訳の postcondition は「すべての balance stock : Nat について canPurchase balance stock ↔ 150 ≤ balance ∧ 0 < stock」であり、①許可条件の閾値（150以上）、②在庫の正値条件（0 < stock）、③全称量化の対象が自然数であること、がすべて保持されている。「exactly when」に対応する双条件も保たれている。\n\n残存する要素は、canPurchase の定義位置（18-21行目）や sorry/axiom が無いこと、証明が rfl である可能性など、元の要件には含まれないターゲットファイルの実装詳細に関する付随情報に過ぎず、要件の意味を変更・弱化・狭めするものではない。\n\nstrength が \"trivial\" と記載されている点について、元の要件自体が定義の展開に等しい内容（許可条件そのものの述語的再掲）であり、意味の弱化を伴わないため問題ない。Back-translation 内で定義内容との同一性から「tautology」と Downs by the tautology の文言も確認できるが、これは元要件が本質的に定義の unfolding であることを正しく反映しており、要求の充足を弱めるзваではない。\n\nなお、canPurchase の定義が意図した形（閾値・在庫条件）Nw と一致するかは本比較の範囲外だが、バック翻訳の記述は原文の閾値・条件と整合している。"
+          }
+        }
+      }
+    }
+  ],
+  "restart": {
+    "historical_analysis": true,
+    "old_queue_returned": false
+  },
+  "regression_gates": {
+    "typescript_units": {
+      "passed": 30
+    },
+    "cli_units": {
+      "passed": 61
+    },
+    "public_tui_ux": {
+      "passed": 21,
+      "decoded_screens_reviewed": true
+    },
+    "python_adapters": {
+      "passed": 127,
+      "skipped": 56,
+      "skip_reason": "Requires a separate host-prepared pinned verifier/checker bundle; these skips are not validation.",
+      "required_ux_passed": true
+    },
+    "playwright": {
+      "passed": 33,
+      "scripted_inference": true,
+      "real_lean_atlas": true,
+      "decoded_screens_reviewed": true
+    }
+  },
+  "model_limitations_observed": [
+    "The matching back-translation introduced dollars, a unit absent from the compiled input, and inferred a proof script although theorem proof bodies were omitted.",
+    "The matching comparison explanation includes malformed mixed-language fragments. Expected threshold verdicts do not establish faithful prose or general accuracy."
+  ],
+  "scope": [
+    "One synthetic project with approved cloud inference; no local 100–600B deployment or confidentiality evidence.",
+    "The actual installed Lean 4.35.0 compiled a model-written standalone Nat analysis module using the pinned offline Atlas core; source and prepared library were read-only.",
+    "The elaborated scope contains Purchase.eligibility_exact and Purchase.canPurchase, bound to the source and extraction revisions. External definitions are recorded without expansion.",
+    "Application Rust tests, a separate JavaScript UI mirror and a separate Lean analysis model; no accepted formal contract, Rust/Lean correspondence or source-to-UI refinement proof.",
+    "Both semantic passes used the same selected model in separate requests. Results are candidate findings, not independent-model judgment or native proof admission.",
+    "No general accuracy rate, full-project Lake/package discovery, cold verifier installation, whole R1 or GUI refinement claim."
+  ]
+}

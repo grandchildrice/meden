@@ -272,6 +272,12 @@ project files outside the GUI. It writes `report.json` and milestone screenshots
 Passing these synthetic cases is not a general accuracy, local-inference or
 cold-verifier-installation claim.
 
+Add `--atlas` to ask the model for a standalone Lean analysis module, prepare the
+real Atlas library through the GUI, compile that module and compare its elaborated
+scope instead of the lexical Rust graph. This requires installed Lean as described
+above. The generated Lean model does not establish correspondence with the Rust
+application.
+
 The [recorded native GUI cloud trial](../results/native-gui-development-ollama-cloud-minimax-m3-afa18b7.json)
 binds the tested source commit and binary hash to generated source, three browser
 boundary interactions, independent original Rust tests, one exact reviewed delivery,
@@ -280,6 +286,14 @@ preceding failed trials that exposed scratch-file and form-handler friction; tho
 failures were not counted as successful validation. That earlier trial used lexical
 Rust graphs; selected-module Atlas extraction is a separate path described above.
 Independent-model judgment remains open integration work.
+
+The [selected-module Atlas cloud trial](../results/native-gui-atlas-ollama-cloud-minimax-m3-70faa07.json)
+completed the application journey, compiled a model-written Lean module with
+Lean 4.35.0 and obtained the expected threshold mismatch/match through the actual
+graph-bound two-pass adapter. Its raw candidate text also introduced an unsupported
+currency unit, guessed at an omitted proof and contained malformed prose. These
+observations are retained: correct verdicts on two examples do not establish
+general semantic accuracy or reliable explanations.
 
 ## Recorded demo: start
 
