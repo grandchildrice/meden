@@ -163,7 +163,7 @@ async function waitIdle() {
 try {
   const port = await launch();
   const instruction =
-    "Fix kernel.rs so can_purchase(balance: u64, stock: u64) returns true exactly when balance is at least 150 and stock is positive. Keep the existing tests.rs unchanged. Read the files first. Run rustc --edition=2021 --test tests.rs -o tests && ./tests. This task needs ordinary code and tests, not a new formal contract.";
+    'Fix kernel.rs so can_purchase(balance: u64, stock: u64) returns true exactly when balance is at least 150 and stock is positive. Keep the existing tests.rs unchanged. Read the files first. Run rustc --edition=2021 --test tests.rs -o tests && ./tests. Also build an interactive browser app with the same rule: create public/index.html and public/app.js, using a module script and no packages, external services, server or persistent storage. Create the public directory if needed. The app must have number inputs labelled "Balance" (default 149) and "Stock" (default 1), a button named "Check purchase", and an output with aria-label="Purchase result". Clicking the button must show exactly "Allowed" or "Refused" using the rule. The browser implementation is an ordinary UI mirror, not a claimed binding or proof of Rust. This task needs ordinary code and tests, not a new formal contract.';
   await page
     .getByRole("textbox", { name: "メッセージ", exact: true })
     .fill(instruction);
@@ -203,6 +203,43 @@ try {
     independentResult.result?.exit_code !== 0
   )
     throw new Error("Independent original tests did not pass");
+  await page.getByRole("tab", { name: "プレビュー", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "公開フォルダ（ワークスペース内）" })
+    .fill("public");
+  await page
+    .getByRole("button", { name: "ファイルを読み直してプレビュー" })
+    .click();
+  const preview = page.frameLocator(
+    'iframe[title="ローカルアプリのプレビュー"]',
+  );
+  const browserCases: unknown[] = [];
+  for (const [balance, stock, expected] of [
+    [149, 1, "Refused"],
+    [150, 1, "Allowed"],
+    [150, 0, "Refused"],
+  ] as const) {
+    await preview.getByLabel("Balance", { exact: true }).fill(String(balance));
+    await preview.getByLabel("Stock", { exact: true }).fill(String(stock));
+    await preview
+      .getByRole("button", { name: "Check purchase", exact: true })
+      .click();
+    await expect(
+      preview.getByLabel("Purchase result", { exact: true }),
+    ).toHaveText(expected);
+    browserCases.push({ balance, stock, result: expected });
+  }
+  report.browserCases = browserCases;
+  report.preview = (await state(page)).preview;
+  report.browserSource = {
+    html: await readFile(resolve(project, "public/index.html"), "utf8"),
+    javascript: await readFile(resolve(project, "public/app.js"), "utf8"),
+  };
+  await page.screenshot({
+    path: resolve(out, "application-preview.png"),
+    fullPage: true,
+  });
+  console.log("Generated browser app passed its interactive boundary cases");
   await page.getByRole("tab", { name: "グラフ", exact: true }).click();
   await page
     .getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" })

@@ -30,6 +30,7 @@ unicode-segmentation = "1"
 unicode-width = "0.2"
 tiny_http = "0.12"
 signal-hook = "0.3"
+percent-encoding = "2"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 rustix = { version = "1", features = ["fs"] }

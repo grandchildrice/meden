@@ -12,6 +12,7 @@ import {
   readFile,
   readdir,
   rm,
+  symlink,
   writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -130,6 +131,262 @@ test.describe("native GUI with real offline workers", () => {
     await stop();
     await new Promise<void>((resolve) => server.close(() => resolve()));
     await rm(root, { recursive: true, force: true });
+  });
+
+  async function preview(page: Page, folder = ".", entry = "index.html") {
+    await page.getByRole("tab", { name: "プレビュー", exact: true }).click();
+    await page
+      .getByRole("textbox", { name: "公開フォルダ（ワークスペース内）" })
+      .fill(folder);
+    await page
+      .getByRole("textbox", { name: "開始するHTMLファイル" })
+      .fill(entry);
+    await page
+      .getByRole("button", { name: "ファイルを読み直してプレビュー" })
+      .click();
+  }
+  async function previewRequest(
+    address: string,
+    path: string,
+    method = "GET",
+    host?: string,
+  ) {
+    const parsed = new URL(address);
+    return new Promise<{ status: number | undefined; body: string }>(
+      (resolve, reject) => {
+        const request = httpRequest(
+          {
+            hostname: "127.0.0.1",
+            port: parsed.port,
+            path,
+            method,
+            headers: { Host: host ?? parsed.host },
+          },
+          (response) => {
+            let body = "";
+            response.on("data", (chunk) => {
+              body += String(chunk);
+            });
+            response.on("end", () =>
+              resolve({ status: response.statusCode, body }),
+            );
+          },
+        );
+        request.on("error", reject);
+        request.end();
+      },
+    );
+  }
+
+  test("develop and interact with local module assets, refresh edits, recover and restart", async ({
+    page,
+  }) => {
+    test.setTimeout(60_000);
+    await mkdir(resolve(project, "public"));
+    const html =
+      '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Counter</title><link rel="stylesheet" href="/style.css"><script type="module" src="/counter.js"></script></head><body><h1>Local counter</h1><output aria-label="Count">0</output><button>Increment</button></body></html>';
+    const script =
+      'const {step} = await (await fetch("/settings.json")).json(); let count=0; document.querySelector("button").addEventListener("click",()=>{document.querySelector("output").textContent=String(count+=step);});';
+    for (const [path, content] of Object.entries({
+      "public/index.html": html,
+      "public/counter.js": script,
+      "public/settings.json": '{"step":2}',
+      "public/style.css":
+        "body { background: rgb(232, 244, 255); color: #14202c; font: 18px sans-serif; padding: 20px; } button { padding: 12px; }",
+    }))
+      responses.push((response) =>
+        reply(response, tool("write_file", { path, content })),
+      );
+    responses.push((response) =>
+      reply(response, { role: "assistant", content: "COUNTER-BUILT" }),
+    );
+    responses.push((response) =>
+      reply(
+        response,
+        tool("write_file", {
+          path: "public/settings.json",
+          content: '{"step":3}',
+        }),
+      ),
+    );
+    responses.push((response) =>
+      reply(response, { role: "assistant", content: "COUNTER-UPDATED" }),
+    );
+    await page.goto(await start());
+    await page
+      .getByRole("button", { name: "接続先を確認", exact: true })
+      .click();
+    await page.getByRole("button", { name: "この送信先を承認" }).click();
+    await page
+      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .fill("Build a local counter with module assets");
+    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await expect(
+      page.getByText("COUNTER-BUILT", { exact: true }),
+    ).toBeVisible();
+    await preview(page, "public");
+    const frame = page.frameLocator(
+      'iframe[title="ローカルアプリのプレビュー"]',
+    );
+    await expect(
+      frame.getByRole("heading", { name: "Local counter" }),
+    ).toBeVisible();
+    await expect(frame.locator("body")).toHaveCSS(
+      "background-color",
+      "rgb(232, 244, 255)",
+    );
+    await frame.getByRole("button", { name: "Increment" }).click();
+    await expect(frame.getByLabel("Count")).toHaveText("2");
+    const originalUrl = (await page.locator("iframe").getAttribute("src"))!;
+    await page.getByRole("tab", { name: "コード", exact: true }).click();
+    await page.getByRole("tab", { name: "プレビュー", exact: true }).click();
+    await expect(frame.getByLabel("Count")).toHaveText("2");
+    await page.screenshot({
+      path: "target/gui-checks/native-preview.png",
+      fullPage: true,
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page
+      .getByRole("tab", { name: "プレビュー", exact: true })
+      .scrollIntoViewIfNeeded();
+    await expect(
+      page.getByRole("button", { name: "ファイルを読み直してプレビュー" }),
+    ).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await frame.getByRole("button", { name: "Increment" }).click();
+    await expect(frame.getByLabel("Count")).toHaveText("4");
+    await page.screenshot({
+      path: "target/gui-checks/native-preview-mobile.png",
+      fullPage: true,
+    });
+    await page.setViewportSize({ width: 1440, height: 960 });
+    await page
+      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .fill("Change the increment to three");
+    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await expect(
+      page.getByText("COUNTER-UPDATED", { exact: true }),
+    ).toBeVisible();
+    await expect(page.locator("iframe")).toHaveCount(0);
+    expect((await previewRequest(originalUrl, "/index.html")).status).toBe(403);
+    await preview(page, "public");
+    await frame.getByRole("button", { name: "Increment" }).click();
+    await expect(frame.getByLabel("Count")).toHaveText("3");
+    await preview(page, "public", "missing.html");
+    await expect(
+      page.getByRole("alert").filter({ hasText: "preview entry is missing" }),
+    ).toBeVisible();
+    await expect(page.locator("iframe")).toHaveCount(0);
+    await page.screenshot({
+      path: "target/gui-checks/native-preview-failed.png",
+      fullPage: true,
+    });
+    await preview(page, "public");
+    await frame.getByRole("button", { name: "Increment" }).click();
+    await expect(frame.getByLabel("Count")).toHaveText("3");
+    await page.reload();
+    await page.getByRole("tab", { name: "プレビュー", exact: true }).click();
+    await expect(frame.getByLabel("Count")).toHaveText("0");
+    const port = Number(new URL(url).port);
+    await stop();
+    await page.goto(await start(port));
+    await page.getByRole("tab", { name: "プレビュー", exact: true }).click();
+    await expect(page.locator("iframe")).toHaveCount(0);
+    await preview(page, "public");
+    await frame.getByRole("button", { name: "Increment" }).click();
+    await expect(frame.getByLabel("Count")).toHaveText("3");
+    expect(await readFile(resolve(project, "original-test.txt"), "utf8")).toBe(
+      "keep this original test\n",
+    );
+    expect(requests).toHaveLength(7);
+  });
+
+  test("preview separates browser authority, rejects missing assets and bounds captured files", async ({
+    page,
+  }) => {
+    test.setTimeout(60_000);
+    let outbound = 0;
+    const sink = createServer((_request, response) => {
+      outbound++;
+      response.writeHead(200, { "Access-Control-Allow-Origin": "*" });
+      response.end("unapproved");
+    });
+    sink.listen(0, "127.0.0.1");
+    await once(sink, "listening");
+    try {
+      const sinkUrl = `http://127.0.0.1:${(sink.address() as { port: number }).port}`;
+      await page.goto(await start());
+      const parentOrigin = new URL(url).origin;
+      const script = `let results=[]; for(const read of [()=>parent.document.body,()=>parent.sessionStorage,()=>localStorage]){try{read();results.push("leaked")}catch{results.push("denied")}}; Promise.all([fetch(${JSON.stringify(sinkUrl + "/fetch")}).then(()=>"leaked",()=>"blocked"),fetch(${JSON.stringify(parentOrigin + "/api/state")}).then(()=>"leaked",()=>"blocked")]).then(values=>{document.querySelector("output").textContent=results.concat(values).join(",")}); const img=new Image(); img.src=${JSON.stringify(sinkUrl + "/image")}; const s=document.createElement("script");s.src=${JSON.stringify(sinkUrl + "/script")};document.body.append(s);`;
+      await writeFile(
+        resolve(project, "index.html"),
+        `<!doctype html><html lang="en"><head><title>Boundaries</title><script type="module" src="/missing.js"></script></head><body><h1>Boundaries</h1><output aria-label="Boundary results">waiting</output><script>${script}</script></body></html>`,
+      );
+      await preview(page);
+      const frame = page.frameLocator(
+        'iframe[title="ローカルアプリのプレビュー"]',
+      );
+      await expect(frame.getByLabel("Boundary results")).toHaveText(
+        "denied,denied,denied,blocked,blocked",
+      );
+      await expect(
+        page
+          .getByRole("alert")
+          .filter({ hasText: "Missing preview asset: missing.js" }),
+      ).toBeVisible();
+      expect(outbound).toBe(0);
+      expect(requests).toHaveLength(0);
+      const previewUrl = (await page.locator("iframe").getAttribute("src"))!;
+      expect((await previewRequest(previewUrl, "/api/state")).status).toBe(404);
+      expect(
+        (await previewRequest(previewUrl, "/index.html", "POST")).status,
+      ).toBe(405);
+      expect(
+        (await previewRequest(previewUrl, "/index.html", "GET", "evil.invalid"))
+          .status,
+      ).toBe(403);
+      expect(
+        (await previewRequest(previewUrl, "/../original-test.txt")).status,
+      ).toBe(404);
+      const body = (await previewRequest(previewUrl, "/index.html")).body;
+      expect(body).not.toContain(new URL(url).hash.slice(1));
+      await preview(page, "../");
+      await expect(
+        page.getByRole("alert").filter({ hasText: "preview root leaves" }),
+      ).toBeVisible();
+      await expect(page.locator("iframe")).toHaveCount(0);
+      await mkdir(resolve(project, "private"));
+      await writeFile(
+        resolve(project, "private/index.html"),
+        "must not be served through alias",
+      );
+      await symlink("private", resolve(project, "public-alias"));
+      await preview(page, "public-alias");
+      await expect(
+        page
+          .getByRole("alert")
+          .filter({ hasText: "Preview observation failed" }),
+      ).toBeVisible();
+      await expect(page.locator("iframe")).toHaveCount(0);
+      await writeFile(resolve(project, "oversize.js"), Buffer.alloc(4_194_305));
+      await preview(page);
+      await expect(
+        page
+          .getByRole("alert")
+          .filter({ hasText: "snapshot exceeds selected byte limit" }),
+      ).toBeVisible();
+      await expect(page.locator("iframe")).toHaveCount(0);
+      expect((await previewRequest(previewUrl, "/index.html")).status).toBe(
+        403,
+      );
+    } finally {
+      sink.closeAllConnections();
+      await new Promise<void>((resolve) => sink.close(() => resolve()));
+    }
   });
 
   test("develop, recover from provider failure, inspect files and restart without restoring grants", async ({

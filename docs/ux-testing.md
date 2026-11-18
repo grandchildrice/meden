@@ -134,6 +134,13 @@ prerequisites fail rather than skip these browser tests. Native screenshots incl
 `native-source-graph.png`. The source-graph journey covers local files, exact-line
 navigation, rereading after real edits, failed observation recovery and reload;
 source-only declarations must never acquire archived proof status.
+Native application-preview cases develop actual HTML/JS/CSS/JSON through file tools,
+exercise module imports and interactive controls on desktop/mobile, retain the
+document across tabs, reread after edits and recover from a missing entry/restart.
+They check old preview revocation, missing-asset diagnostics, size limits, folder
+aliases resolving outside the selected root, browser parent/storage/API separation,
+blocked cross-origin fetch/image/script loads and exact HTTP host/method/path handling.
+These browser policies do not establish OS egress isolation or whole R1.
 Native meaning-analysis cases also cover request separation, actual back-translation
 and discrepancy rendering, unchanged proof status, target edits, historical restart,
 cancellation between passes, concurrent source changes, provider limits and refusal

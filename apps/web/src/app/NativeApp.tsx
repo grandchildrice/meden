@@ -22,6 +22,7 @@ import {
 import { ChatView } from "../features/chat/ChatView";
 import type { Conversation } from "@meden/workspace-schema";
 import { NativeMeaning } from "../features/native/NativeMeaning";
+import { NativePreview } from "../features/native/NativePreview";
 const NativeGraph = lazy(() =>
   import("../features/native/NativeGraph").then((module) => ({
     default: module.NativeGraph,
@@ -196,7 +197,7 @@ export function NativeApp({ token }: { token: string }) {
             >
               {state.stopped}
               <br />
-              ファイルと会話は保持されています。続ける場合は新しい指示を送信してください。
+              ファイルと会話は保持されています。対象の操作をやり直すか、新しい指示を送信してください。
             </Alert>
           )}
           <main className="native-main">
@@ -242,13 +243,26 @@ export function NativeApp({ token }: { token: string }) {
                 value={tab}
                 onChange={(_, value: number) => setTab(value)}
                 aria-label="作業パネル"
+                variant="scrollable"
+                scrollButtons="auto"
+                allowScrollButtonsMobile
               >
                 <Tab label="コード" />
                 <Tab label="実行ログ" />
                 <Tab label="契約・証明" />
                 <Tab label="グラフ" />
+                <Tab label="プレビュー" />
               </Tabs>
               <div className="native-panel">
+                <div hidden={tab !== 4}>
+                  <NativePreview
+                    snapshot={state.preview}
+                    running={running}
+                    onCapture={(root, entry) =>
+                      command({ type: "capture_preview", root, entry })
+                    }
+                  />
+                </div>
                 {tab === 0 && (
                   <>
                     <Typography variant="h3">ローカルファイル</Typography>

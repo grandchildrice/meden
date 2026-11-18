@@ -44,8 +44,56 @@ provider failures are not silently retried. Unsent input remains tab/browser dat
 and completed turns also refresh status; polling alone is not a filesystem watcher.
 Logs/partial reasoning in this initial adapter last for the host process, while
 conversation text and admitted model history persist. The file reader uses the
-native tool's bounded first 200 lines. Preview execution, elaborated Atlas extraction,
-artifact-export approval remain integration work. Native meaning analysis is described below.
+native tool's bounded first 200 lines. Elaborated Atlas extraction and
+artifact-export approval remain integration work. Native preview and meaning analysis are described below.
+
+## Native application preview
+
+Ask the agent to create a browser application using local files. In **プレビュー**,
+choose **公開フォルダ（ワークスペース内）** (for example `public` for plain HTML/JS,
+or `dist` for an already built Vite app), the entry HTML filename, then
+**ファイルを読み直してプレビュー**. The actual local application runs in the panel;
+root-relative module imports, CSS, images and same-bundle JSON reads are supported.
+Builds and tests still run through the ordinary offline tools. This static preview
+does not start a development server, install packages or support backend endpoints,
+external services, browser storage or service workers.
+
+The panel retains its running document when switching tabs. Explicit rereading
+starts a new document from fresh file observations. A new development/contract
+continuation closes the previous preview. A failed or cancelled capture does not
+retain the previous bundle. Reloading the browser reopens the host's frozen bundle;
+restarting `meden gui` requires rereading. Opening the new session URL at the same
+port reloads the document so the new response policies apply. Missing requested
+assets appear beside the preview; that diagnostic does not detect every JavaScript
+failure. A loaded iframe or successful interaction never grants proof status.
+
+The existing policy-bound, offline file worker reads a bounded inventory and exact
+binary bytes. Its read-only policy limits both original and resolved paths to the
+selected folder; root aliases resolving elsewhere are refused. Hidden entries,
+symlinks, special files, `node_modules` and `target` are excluded. Limits are
+256 supported web files, 64 directories, depth 8, 4 MiB per file, 16 MiB total,
+500 entries per directory and 90 seconds overall. Exceeding a limit fails rather
+than serving a truncated success. Folder names containing policy wildcards `*`/`?`
+are refused. Each bundle's SHA-256 binds the selected root, entry, file paths and
+observed bytes. Concurrent host changes are not an atomic filesystem snapshot.
+
+A separate loopback listener serves only these frozen bytes. Every capture gets
+a fresh random `.localhost` hostname capability; old capabilities are invalidated.
+Requests perform no project filesystem lookup. The document uses an opaque-origin
+`sandbox="allow-scripts"` iframe and response sandbox policy, without same-origin,
+forms, popups, top navigation or workers. Resource CSP limits scripts/styles/images
+and fetch to the frozen origin (inline scripts/styles and data images are supported).
+The parent permits frames only on this loopback preview listener. Browser tests
+check blocked cross-origin fetch/image/script loads and access to the GUI document,
+storage and API, plus wrong-host/method/path rejection.
+
+These are browser adapter constraints, not an OS egress firewall or an offline
+browser worker. Native coding/inference/checker profiles remain offline; the
+preview runs in the user's browser. Browser behavior, other communication APIs,
+extensions and whole R1 confidentiality remain separate obligations. The preview
+adds no Rust-to-Lean proof, application correctness or source-to-UI correspondence
+claim. In particular, a JavaScript mirror of checked Rust is still a separate
+implementation unless a further binding is established.
 
 The native **グラフ** tab takes one `.lean`/`.rs` path per line; **このファイルのグラフ**
 in the code panel uses the current path. Source observations use the same offline,
@@ -105,8 +153,8 @@ An unreadable optional analysis checkpoint is reported and retained; ordinary
 project development remains available. This is tested adapter behavior, not a
 new Rust-to-Lean refinement or an atomic concurrent-filesystem proof.
 
-A separate live browser smoke exercises real application edits, independent
-original Rust tests, the source graph, matching and mismatching requirements,
+A separate live browser smoke exercises real application edits, an interactive
+generated browser app, independent original Rust tests, the source graph, matching and mismatching requirements,
 then restart/history with the explicitly selected cloud provider:
 
 ```sh

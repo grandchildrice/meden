@@ -19,10 +19,16 @@ function readNativeToken() {
 function Bootstrap() {
   const [token, setToken] = useState(readNativeToken);
   useEffect(() => {
-    const changed = () => setToken(readNativeToken());
+    const changed = () => {
+      const next = readNativeToken();
+      // A restarted host has fresh response policies as well as a fresh token.
+      // Opening its fragment URL can otherwise be a same-document navigation.
+      if (next !== token) location.reload();
+      else setToken(next);
+    };
     addEventListener("hashchange", changed);
     return () => removeEventListener("hashchange", changed);
-  }, []);
+  }, [token]);
   return token ? <NativeApp key={token} token={token} /> : <App />;
 }
 

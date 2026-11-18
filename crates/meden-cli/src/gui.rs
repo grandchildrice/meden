@@ -14,6 +14,8 @@ use tiny_http::{Header, Method, Request, Response, Server, StatusCode};
 
 use crate::{session::history, session::Session, WorkspaceArgs};
 mod analysis;
+mod assets;
+mod preview;
 mod sources;
 
 struct Task {
@@ -39,6 +41,7 @@ struct View {
     inspection: Option<Value>,
     source_snapshot: Option<sources::Snapshot>,
     analysis: Option<analysis::Record>,
+    preview: Option<preview::Summary>,
 }
 
 #[derive(Deserialize)]
@@ -53,6 +56,10 @@ enum Command {
     },
     Cancel,
     RefreshStatus,
+    CapturePreview {
+        root: String,
+        entry: String,
+    },
     SourceSnapshot {
         paths: Vec<String>,
     },
@@ -121,6 +128,80 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
         workspace.path(),
         workspace.session_id(),
     )?);
+    let view = initial_view(&workspace, &gateway, &project)?;
+    let control = Arc::new(Mutex::new(Arc::new(Control::new(Arc::new(
+        AtomicBool::new(false),
+    )))));
+    let server = Server::http((std::net::Ipv4Addr::LOCALHOST, port))
+        .map_err(|e| anyhow::anyhow!(e.to_string()))?;
+    let server = Arc::new(server);
+    let address = server
+        .server_addr()
+        .to_ip()
+        .context("loopback listener missing")?;
+    let origin = format!("http://{address}");
+    let authority = address.to_string();
+    let preview = Arc::new(preview::Preview::new(&origin)?);
+    let (sender, receiver) = mpsc::sync_channel::<Task>(1);
+    let worker_view = Arc::clone(&view);
+    let worker_workspace = Arc::clone(&workspace);
+    let worker_gateway = Arc::clone(&gateway);
+    let worker_project = Arc::clone(&project);
+    let worker_preview = Arc::clone(&preview);
+    let worker_thread = std::thread::spawn(move || {
+        worker(
+            receiver,
+            &worker_view,
+            &worker_workspace,
+            &worker_gateway,
+            &worker_project,
+            &pages,
+            &worker_preview,
+        );
+    });
+    let stopping = watch_shutdown(&server, &control)?;
+    let preview_server = Arc::clone(&preview);
+    let preview_stopping = Arc::clone(&stopping);
+    let preview_thread = std::thread::spawn(move || preview_server.listen(&preview_stopping));
+    let mut random = [0u8; 32];
+    std::fs::File::open("/dev/urandom")?.read_exact(&mut random)?;
+    let token = random.iter().fold(String::new(), |mut output, byte| {
+        let _ = write!(output, "{byte:02x}");
+        output
+    });
+    println!("Meden GUI: {origin}/#session={token}");
+    let http = Http {
+        assets: &assets,
+        authority: &authority,
+        origin: &origin,
+        token: &token,
+        view: &view,
+        control: &control,
+        stopping: &stopping,
+        gateway: &gateway,
+        workspace: &workspace,
+        project: &project,
+        sender: &sender,
+        preview: &preview,
+    };
+    http.listen(&server);
+    project.cancel(&lock(&control));
+    drop(sender);
+    preview.clear();
+    preview_thread
+        .join()
+        .map_err(|_| anyhow::anyhow!("Preview server stopped unexpectedly"))?;
+    worker_thread
+        .join()
+        .map_err(|_| anyhow::anyhow!("Native session worker stopped unexpectedly"))?;
+    Ok(())
+}
+
+fn initial_view(
+    workspace: &Workspace,
+    gateway: &Gateway,
+    project: &crate::project::Project,
+) -> Result<Arc<Mutex<View>>> {
     let saved = history::load(workspace.path())?;
     let (analysis, analysis_error) = match analysis::load(workspace.path()) {
         Ok(record) => (record, None),
@@ -143,62 +224,9 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
         inspection: None,
         source_snapshot: None,
         analysis,
+        preview: None,
     }));
-    let control = Arc::new(Mutex::new(Arc::new(Control::new(Arc::new(
-        AtomicBool::new(false),
-    )))));
-    let (sender, receiver) = mpsc::sync_channel::<Task>(1);
-    let worker_view = Arc::clone(&view);
-    let worker_workspace = Arc::clone(&workspace);
-    let worker_gateway = Arc::clone(&gateway);
-    let worker_project = Arc::clone(&project);
-    let worker_thread = std::thread::spawn(move || {
-        worker(
-            receiver,
-            &worker_view,
-            &worker_workspace,
-            &worker_gateway,
-            &worker_project,
-            &pages,
-        );
-    });
-    let server = Server::http((std::net::Ipv4Addr::LOCALHOST, port))
-        .map_err(|e| anyhow::anyhow!(e.to_string()))?;
-    let server = Arc::new(server);
-    let stopping = watch_shutdown(&server, &control)?;
-    let address = server
-        .server_addr()
-        .to_ip()
-        .context("loopback listener missing")?;
-    let origin = format!("http://{address}");
-    let authority = address.to_string();
-    let mut random = [0u8; 32];
-    std::fs::File::open("/dev/urandom")?.read_exact(&mut random)?;
-    let token = random.iter().fold(String::new(), |mut output, byte| {
-        let _ = write!(output, "{byte:02x}");
-        output
-    });
-    println!("Meden GUI: {origin}/#session={token}");
-    let http = Http {
-        assets: &assets,
-        authority: &authority,
-        origin: &origin,
-        token: &token,
-        view: &view,
-        control: &control,
-        stopping: &stopping,
-        gateway: &gateway,
-        workspace: &workspace,
-        project: &project,
-        sender: &sender,
-    };
-    http.listen(&server);
-    project.cancel(&lock(&control));
-    drop(sender);
-    worker_thread
-        .join()
-        .map_err(|_| anyhow::anyhow!("Native session worker stopped unexpectedly"))?;
-    Ok(())
+    Ok(view)
 }
 
 fn watch_shutdown(
@@ -235,6 +263,7 @@ struct Http<'a> {
     workspace: &'a Workspace,
     project: &'a crate::project::Project,
     sender: &'a mpsc::SyncSender<Task>,
+    preview: &'a preview::Preview,
 }
 impl Http<'_> {
     fn listen(&self, server: &Server) {
@@ -270,7 +299,7 @@ impl Http<'_> {
             return;
         }
         if !request.url().starts_with("/api/") {
-            serve_asset(request, self.assets);
+            serve_asset(request, self.assets, &self.preview.frame_source());
             return;
         }
         if header(&request, "Authorization") != Some(format!("Bearer {}", self.token).as_str()) {
@@ -285,6 +314,7 @@ impl Http<'_> {
             let snapshot = {
                 let mut view = lock(self.view);
                 view.authorized = self.gateway.is_authorized(self.workspace.session_id());
+                view.preview = self.preview.summary();
                 json!(&*view)
             };
             respond(request, 200, &snapshot);
@@ -360,6 +390,7 @@ fn worker(
     gateway: &Arc<Gateway>,
     project: &Arc<crate::project::Project>,
     pages: &Arc<meden_runtime::pages::Pages>,
+    preview: &preview::Preview,
 ) {
     let exports = Arc::new(crate::exports::Exports::new(Arc::clone(project)));
     for Task { command, processes } in receiver {
@@ -374,6 +405,10 @@ fn worker(
             )?;
             let instruction = match command {
                 Command::RefreshStatus => None,
+                Command::CapturePreview { root, entry } => {
+                    preview.capture(workspace, &processes, &root, &entry)?;
+                    None
+                }
                 Command::AnalyzeMeaning { input } => {
                     analysis::run(view, workspace, gateway, &processes, input)?;
                     None
@@ -422,6 +457,7 @@ fn worker(
                 _ => anyhow::bail!("Unexpected worker command"),
             };
             if let Some(instruction) = instruction {
+                preview.clear();
                 let status = session.run(&instruction, &|event| observe(view, &event));
                 let mut current = lock(view);
                 current.partial.clear();
@@ -550,21 +586,29 @@ fn header<'a>(request: &'a Request, name: &str) -> Option<&'a str> {
         .find(|h| h.field.to_string().eq_ignore_ascii_case(name))
         .map(|h| h.value.as_str())
 }
-fn response_headers(content_type: &str) -> Vec<Header> {
-    [("Content-Type", content_type), ("Cache-Control", "no-store"), ("X-Content-Type-Options", "nosniff"),
-     ("Referrer-Policy", "no-referrer"), ("Cross-Origin-Resource-Policy", "same-origin"),
-     ("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'")]
-        .into_iter().filter_map(|(name, value)| Header::from_bytes(name, value).ok()).collect()
+fn response_headers(content_type: &str, frame_source: &str) -> Vec<Header> {
+    let policy = format!("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src {frame_source}; frame-ancestors 'none'; base-uri 'none'; form-action 'none'");
+    [
+        ("Content-Type", content_type),
+        ("Cache-Control", "no-store"),
+        ("X-Content-Type-Options", "nosniff"),
+        ("Referrer-Policy", "no-referrer"),
+        ("Cross-Origin-Resource-Policy", "same-origin"),
+        ("Content-Security-Policy", policy.as_str()),
+    ]
+    .into_iter()
+    .filter_map(|(name, value)| Header::from_bytes(name, value).ok())
+    .collect()
 }
 fn respond(request: Request, status: u16, value: &Value) {
     let mut response =
         Response::from_string(value.to_string()).with_status_code(StatusCode(status));
-    for header in response_headers("application/json") {
+    for header in response_headers("application/json", "'none'") {
         response.add_header(header);
     }
     let _ = request.respond(response);
 }
-fn serve_asset(request: Request, assets: &Path) {
+fn serve_asset(request: Request, assets: &Path, frame_source: &str) {
     if request.method() != &Method::Get {
         respond(request, 405, &json!({"error":"GET required"}));
         return;
@@ -602,7 +646,7 @@ fn serve_asset(request: Request, assets: &Path) {
     match std::fs::File::open(&file) {
         Ok(file) => {
             let mut response = Response::from_file(file);
-            for header in response_headers(mime) {
+            for header in response_headers(mime, frame_source) {
                 response.add_header(header);
             }
             let _ = request.respond(response);

@@ -107,7 +107,11 @@ native exact references. No browser-supplied credential, tool result or policy i
 accepted. Revocation/expiry cannot renew a grant. GUI visibility, transport and
 input provenance remain unproved adapters. Current live panels cover chat, file
 reads, tool logs, native contract status and local source-reference graphs.
-Native preview remains integration work; native meaning analysis runs through the reviewed processor. Source observations bind exact
+Native preview freezes a bounded static build through offline file workers and
+serves those bytes on a separate loopback origin with an opaque-origin iframe.
+Browser resource policies are tested adapters, not OS egress isolation or R1
+completion. Preview interactions confer no proof or source-to-UI correspondence.
+Native meaning analysis runs through the reviewed processor. Source observations bind exact
 selected paths/content with SHA-256 through the existing offline file worker.
 The separate `atlas-adapter/source-index` parses lexical declarations/references;
 all resulting proof statuses remain unknown. It does not execute Lean Atlas or

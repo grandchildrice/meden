@@ -82,6 +82,18 @@ export const meaningRecordSchema = z
   })
   .strict();
 export type MeaningRecord = z.infer<typeof meaningRecordSchema>;
+export const previewSchema = z
+  .object({
+    root: z.string(),
+    entry: z.string(),
+    revision: z.string().regex(/^sha256:[a-f0-9]{64}$/),
+    url: z.string().url(),
+    file_count: z.number().int().nonnegative(),
+    byte_count: z.number().int().nonnegative(),
+    errors: z.array(z.string()),
+  })
+  .strict();
+export type NativePreviewSnapshot = z.infer<typeof previewSchema>;
 export const nativeStateSchema = z.object({
   workspace: z.string(),
   endpoint: z.string(),
@@ -125,6 +137,7 @@ export const nativeStateSchema = z.object({
     .nullable(),
   source_snapshot: sourceSnapshotSchema.nullable(),
   analysis: meaningRecordSchema.nullable(),
+  preview: previewSchema.nullable(),
 });
 export type NativeState = z.infer<typeof nativeStateSchema>;
 export type NativeCommand =
@@ -132,6 +145,7 @@ export type NativeCommand =
   | { type: "revoke_processor" | "cancel" | "refresh_status" }
   | { type: "instruction"; text: string }
   | { type: "source_snapshot"; paths: string[] }
+  | { type: "capture_preview"; root: string; entry: string }
   | { type: "analyze_meaning"; input: MeaningInput }
   | {
       type: "review_contract" | "accept_contract" | "reject_contract";
