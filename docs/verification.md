@@ -1648,8 +1648,14 @@ worker mounts, and other tool selections remain independent. An explicit
 `MEDEN_BWRAP`, including an invalid one, still takes precedence without an
 automatic replacement. Missing isolation still stops startup.
 
-The preparation regression removes every bwrap-containing directory from
-PATH, inserts hostile repository `bwrap`/`nix-store` and shell startup files,
+The worker's required `env` executable also has canonical fixed system/Nix
+locations when PATH omits it. It is selected independently, exposed through the
+existing private alias and included in dependency preparation. This does not
+replace the ordinary host toolchain or expose a Nix software profile. Missing
+public Bash or `env` fails preparation before launching a worker.
+
+The preparation regression keeps only public Bash/metadata-helper aliases in
+PATH, inserts hostile repository `bwrap`/`nix-store`/`env` and shell startup files,
 and checks actual offline execution without `MEDEN_BWRAP`, no host marker,
 and no exposed system profiles. Conventional Linux exercises fixed-location
 discovery; the Nix closure branch requires actual installed Nix resources

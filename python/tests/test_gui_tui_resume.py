@@ -128,7 +128,6 @@ def test_gui_to_tui_and_back_retains_context_but_requires_fresh_review(tmp_path,
         assert "Remember the GUI project goal" in json.dumps(requests[1])
         assert (project / "continued.txt").read_text() == "written from the TUI"
         os.write(master, b"/quit\r")
-        wait_for(lambda: process.poll() is not None)
         assert process.wait(timeout=5) == 0
         assert termios.tcgetattr(slave) == initial
         gui, origin, token = launch_gui()

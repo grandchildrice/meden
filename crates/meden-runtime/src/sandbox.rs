@@ -57,6 +57,22 @@ fn find_public(program: &str) -> Option<PathBuf> {
     find(program, public_path)
 }
 
+// The worker launcher requires env even when the host PATH deliberately omits
+// the ordinary tools. Retain a selected canonical object, never a whole profile.
+fn worker_env() -> Option<PathBuf> {
+    find_public("env").or_else(|| {
+        [
+            "/usr/bin/env",
+            "/bin/env",
+            "/run/current-system/sw/bin/env",
+            "/nix/var/nix/profiles/default/bin/env",
+        ]
+        .iter()
+        .filter_map(|path| Path::new(path).canonicalize().ok())
+        .find(|path| path.is_file() && public_path(path))
+    })
+}
+
 // Preparation runs before the namespace exists. Never execute a repository
 // PATH entry, including through a helper's interpreter or child lookup.
 fn host_command(program: &Path, name: &str) -> io::Result<Command> {
@@ -85,7 +101,12 @@ fn public_tools() -> (Vec<(String, PathBuf)>, Option<PathBuf>) {
             // A Python virtualenv/uv executable can shadow the public
             // Nix toolchain without being present in its mounted closure.
             // Pick a visible public object; never expose a host cache.
-            find_public(name).map(|path| ((*name).to_owned(), path))
+            let selected = if *name == "env" {
+                worker_env()
+            } else {
+                find_public(name)
+            };
+            selected.map(|path| ((*name).to_owned(), path))
         })
         .collect();
     let mut manager = None;
@@ -382,8 +403,12 @@ impl Sandbox {
         if let Some(manager) = manager.filter(|path| store_root(path).is_some()) {
             tool_bindings.insert(manager);
         }
-        if !tools.iter().any(|(name, _)| name == "bash") {
-            return Err(io::Error::other("Bash is required for isolated execution"));
+        for required in ["bash", "env"] {
+            if !tools.iter().any(|(name, _)| name == required) {
+                return Err(io::Error::other(format!(
+                    "public {required} is required for isolated execution"
+                )));
+            }
         }
         let mut roots: BTreeSet<_> = tools
             .iter()

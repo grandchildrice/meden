@@ -49,7 +49,7 @@ def test_installed_bubblewrap_needs_no_path_or_environment_setup(tmp_path):
         f"pathlib.Path({str(marker)!r}).write_text('executed before isolation')\n"
         "raise SystemExit(1)\n"
     )
-    for name in ("bwrap", "nix-store"):
+    for name in ("bwrap", "nix-store", "env"):
         helper = hostile / name
         helper.write_text(script)
         helper.chmod(0o700)
@@ -57,7 +57,7 @@ def test_installed_bubblewrap_needs_no_path_or_environment_setup(tmp_path):
     startup.write_text(f"printf startup > '{marker}'\n")
 
     # On conventional Linux, removing /usr/bin from PATH also hides Bash.
-    # Expose only canonical public helpers, without exposing bwrap. The
+    # Expose only canonical public helpers, without exposing env or bwrap. The
     # application still rejects the repository's own helper executables.
     aliases = tmp_path / "public-tool-links"
     aliases.mkdir()
@@ -65,11 +65,9 @@ def test_installed_bubblewrap_needs_no_path_or_environment_setup(tmp_path):
         located = shutil.which(name)
         if located:
             (aliases / name).symlink_to(Path(located).resolve())
-    retained = [directory for directory in os.get_exec_path()
-                if not (Path(directory) / "bwrap").exists()]
     env = {
         **os.environ,
-        "PATH": os.pathsep.join([str(hostile), str(aliases), *retained]),
+        "PATH": os.pathsep.join([str(hostile), str(aliases)]),
         "BASH_ENV": str(startup), "ENV": str(startup),
         "XDG_DATA_HOME": str(tmp_path / "data"),
     }
