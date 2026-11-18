@@ -213,3 +213,18 @@ specifications and Python integration checks. Work on `main` and follow the
 ## License
 
 [Apache-2.0](LICENSE).
+
+### Inspect candidate meaning in the TUI
+
+After choosing your connection, use `/atlas-prepare` to prepare the installed
+Lean Atlas library offline, then `/atlas App.lean Domain.lean` to compile the
+selected modules and list their declarations. Run
+`/analyze Demo.stock_bound -- Stock always decreases on purchase` to compare a
+requirement with a blind natural-language translation of that declaration.
+For a source-only observation, use `/sources stock.rs`, then
+`/analyze stock.rs:2 stock -- Stock always decreases`.
+
+`/analysis` shows the retained assessment. These are model-generated candidate
+findings, separate from native proof evidence. Cancellation and provider errors
+stop the operation. Changed sources require rereading; reopening retains a
+historical result and requires a fresh processor review before inference.

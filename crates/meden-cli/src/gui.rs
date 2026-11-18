@@ -459,7 +459,7 @@ fn worker(
                     None
                 }
                 Command::AnalyzeMeaning { input } => {
-                    analysis::run(view, workspace, gateway, &processes, input)?;
+                    analysis::run(view, &session, input)?;
                     None
                 }
                 Command::SourceSnapshot { paths } => {

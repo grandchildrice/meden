@@ -83,6 +83,38 @@ impl Session {
         })
     }
 
+    pub(crate) fn prepare_atlas(&self) -> Result<()> {
+        crate::atlas::Configuration::host().prepare(&self.processes)
+    }
+
+    pub(crate) fn sources(
+        &self,
+        paths: &[String],
+        atlas: bool,
+    ) -> Result<crate::analysis::sources::Snapshot> {
+        if atlas {
+            crate::analysis::extract(&self.workspace, &self.processes, paths)
+        } else {
+            crate::analysis::sources::capture(&self.workspace, &self.processes, paths)
+        }
+    }
+
+    pub(crate) fn analyze(
+        &self,
+        snapshot: &crate::analysis::sources::Snapshot,
+        input: crate::semantic::Input,
+        notify: &dyn Fn(&crate::analysis::Record),
+    ) -> Result<crate::analysis::Record> {
+        crate::analysis::run(
+            &self.workspace,
+            &self.gateway,
+            &self.processes,
+            snapshot,
+            input,
+            notify,
+        )
+    }
+
     pub fn run(&mut self, instruction: &str, observer: &dyn Fn(Event<'_>)) -> Status {
         let cause = Cell::new(None);
         let mut status = self.run_turn(instruction, observer, &cause);

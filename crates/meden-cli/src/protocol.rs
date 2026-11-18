@@ -30,11 +30,24 @@ pub enum Command {
     AcceptContract(crate::project::Reference),
     RejectContract(crate::project::Reference),
     ProjectStatus(()),
+    SourceSnapshot {
+        paths: Vec<String>,
+        #[serde(default)]
+        atlas: bool,
+    },
+    AnalyzeMeaning(crate::semantic::Input),
+    AnalysisStatus(()),
 }
 
 #[derive(Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 enum Out<'a> {
+    SourceSnapshot {
+        snapshot: &'a crate::analysis::sources::Snapshot,
+    },
+    Analysis {
+        record: Option<&'a crate::analysis::Record>,
+    },
     Project {
         summary: &'a crate::project::Summary,
     },
@@ -126,6 +139,7 @@ pub fn run(
         pages,
         &project,
     )?;
+    let mut snapshot = None;
     let mut next = Some(first);
     while let Some(command) = next {
         let Command::Instruction(instruction) = command else {
@@ -158,16 +172,75 @@ pub fn run(
                         summary: &project.status(workspace, processes)?,
                     },
                 )?,
+                Command::SourceSnapshot { paths, atlas } => {
+                    let captured = session.sources(&paths, atlas)?;
+                    send(
+                        output,
+                        &Out::SourceSnapshot {
+                            snapshot: &captured,
+                        },
+                    )?;
+                    snapshot = Some(captured);
+                }
+                Command::AnalyzeMeaning(input) => {
+                    let source = snapshot
+                        .as_ref()
+                        .context("Read the source graph before meaning analysis")?;
+                    analyze(&session, source, input, processes, output)?;
+                }
+                Command::AnalysisStatus(()) => send(
+                    output,
+                    &Out::Analysis {
+                        record: crate::analysis::load(workspace.path())?.as_ref(),
+                    },
+                )?,
                 _ => export_command(command, &exports, workspace, processes, output)?,
             }
             next = read_command(input)?;
             continue;
         };
+        snapshot = None;
         let status = run_instruction(&mut session, &instruction, output, processes, &project)?;
         if status == Status::Cancelled {
             return Ok(());
         }
         next = read_command(input)?;
+    }
+    Ok(())
+}
+
+fn analyze(
+    session: &Session,
+    source: &crate::analysis::sources::Snapshot,
+    input: crate::semantic::Input,
+    processes: &Control,
+    output: &mut impl Write,
+) -> Result<()> {
+    let writer = RefCell::new(&mut *output);
+    let failure = RefCell::new(None);
+    let result = session.analyze(source, input, &|record| {
+        if failure.borrow().is_none() {
+            if let Err(error) = send(
+                &mut **writer.borrow_mut(),
+                &Out::Analysis {
+                    record: Some(record),
+                },
+            ) {
+                processes.cancel();
+                *failure.borrow_mut() = Some(error);
+            }
+        }
+    });
+    if let Some(error) = failure.into_inner() {
+        return Err(error);
+    }
+    if let Err(error) = result {
+        send(
+            output,
+            &Out::Notice {
+                text: &format!("Meaning analysis stopped: {error:#}"),
+            },
+        )?;
     }
     Ok(())
 }
@@ -322,7 +395,10 @@ fn export_command(
             Command::ReviewContract(_)
             | Command::AcceptContract(_)
             | Command::RejectContract(_)
-            | Command::ProjectStatus(()) => {
+            | Command::ProjectStatus(())
+            | Command::SourceSnapshot { .. }
+            | Command::AnalyzeMeaning(_)
+            | Command::AnalysisStatus(()) => {
                 anyhow::bail!("project command cannot be dispatched as an export")
             }
         })

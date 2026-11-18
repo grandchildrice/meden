@@ -29,6 +29,7 @@ use meden_runtime::workspace::Workspace;
 use ratatui::prelude::*;
 use ratatui::widgets::ListState;
 
+mod analysis;
 mod approval;
 mod assurance;
 mod commands;
@@ -41,7 +42,26 @@ use editor::Overlay;
 use input::Input;
 use view::draw;
 
+enum Task {
+    Instruction(String),
+    Sources {
+        paths: Vec<String>,
+        atlas: bool,
+    },
+    PrepareAtlas,
+    Analyze {
+        snapshot: Box<crate::analysis::sources::Snapshot>,
+        input: crate::semantic::Input,
+    },
+}
+
 enum Update {
+    Sources(crate::analysis::sources::Snapshot),
+    Analysis(crate::analysis::Record),
+    AnalysisDone {
+        text: String,
+        failed: bool,
+    },
     Delta {
         text: String,
         reasoning: bool,
@@ -140,7 +160,9 @@ struct App {
     draft: Option<usize>,
     reasoning: Option<usize>,
     rx: Option<Receiver<Update>>,
-    worker: Option<Sender<String>>,
+    worker: Option<Sender<Task>>,
+    source_snapshot: Option<crate::analysis::sources::Snapshot>,
+    analysis: Option<crate::analysis::Record>,
     worker_gateway: Option<Arc<Gateway>>,
     processes: Arc<Control>,
     scroll_back: u16,
@@ -195,6 +217,8 @@ impl App {
             reasoning: None,
             rx: None,
             worker: None,
+            source_snapshot: None,
+            analysis: None,
             worker_gateway: None,
             processes: Arc::new(Control::new(Arc::new(AtomicBool::new(false)))),
             scroll_back: 0,
@@ -613,6 +637,37 @@ impl App {
         if self.host_command() {
             return;
         }
+        if !self.prepare_worker() {
+            return;
+        }
+        self.source_snapshot = None;
+        self.invalidate_analysis();
+        self.processes.flag().store(false, Ordering::SeqCst);
+        self.last_stop = None;
+        let instruction = self.instruction.take();
+        if show_instruction && !self.record_instruction(&instruction) {
+            return;
+        }
+        self.activity = Some("Waiting for model".into());
+        self.scroll_back = 0;
+        if self
+            .worker
+            .as_ref()
+            .is_some_and(|worker| worker.send(Task::Instruction(instruction)).is_ok())
+        {
+            self.busy = true;
+            self.turn_started = Some(Instant::now());
+            self.screen = Screen::Running;
+        } else {
+            self.finished(
+                crate::session::failure_report("The worker stopped before accepting the instruction. Use the up arrow to recover your unsent instruction."),
+                false,
+                true,
+            );
+            self.worker = None;
+        }
+    }
+    fn prepare_worker(&mut self) -> bool {
         let Some(gateway) = self
             .gateway
             .as_ref()
@@ -624,7 +679,7 @@ impl App {
             .map(Arc::clone)
         else {
             self.select_processor();
-            return;
+            return false;
         };
         if !self
             .worker_gateway
@@ -639,7 +694,7 @@ impl App {
                     "No isolated workspace available.",
                     Style::new().fg(Color::Red),
                 );
-                return;
+                return false;
             };
             let processes = Arc::clone(&self.processes);
             let exports = Arc::clone(&self.exports);
@@ -674,30 +729,7 @@ impl App {
                 }
             });
         }
-        self.processes.flag().store(false, Ordering::SeqCst);
-        self.last_stop = None;
-        let instruction = self.instruction.take();
-        if show_instruction && !self.record_instruction(&instruction) {
-            return;
-        }
-        self.activity = Some("Waiting for model".into());
-        self.scroll_back = 0;
-        if self
-            .worker
-            .as_ref()
-            .is_some_and(|worker| worker.send(instruction).is_ok())
-        {
-            self.busy = true;
-            self.turn_started = Some(Instant::now());
-            self.screen = Screen::Running;
-        } else {
-            self.finished(
-                crate::session::failure_report("The worker stopped before accepting the instruction. Use the up arrow to recover your unsent instruction."),
-                false,
-                true,
-            );
-            self.worker = None;
-        }
+        true
     }
     fn cancel(&mut self) {
         if self.busy && !self.processes.flag().load(Ordering::SeqCst) {
@@ -829,6 +861,25 @@ impl App {
         }
     }
 
+    fn update_project(&mut self, summary: crate::project::Summary) {
+        if summary.verified
+            && !self
+                .project_status
+                .as_ref()
+                .is_some_and(|old| old.verified && old.artifact_sha256 == summary.artifact_sha256)
+        {
+            if let Some(path) = &summary.artifact {
+                self.say(
+                    format!(
+                        "Host: verified project kernel. Artifact: {}",
+                        path.display()
+                    ),
+                    Style::new().fg(Color::Green),
+                );
+            }
+        }
+        self.project_status = Some(summary);
+    }
     fn poll(&mut self) {
         let mut updates = Vec::new();
         let mut disconnected = false;
@@ -846,6 +897,23 @@ impl App {
         }
         for update in updates {
             match update {
+                Update::AnalysisDone { text, failed } => {
+                    self.busy = false;
+                    self.turn_started = None;
+                    self.activity = None;
+                    self.screen = Screen::Instructing;
+                    if !text.is_empty() {
+                        self.say(
+                            text,
+                            Style::new().fg(if failed { Color::Red } else { Color::Gray }),
+                        );
+                    }
+                }
+                Update::Sources(snapshot) => self.observed_sources(snapshot),
+                Update::Analysis(record) => {
+                    self.activity = Some(format!("Meaning analysis · {:?}", record.state));
+                    self.analysis = Some(record);
+                }
                 Update::Notice(text) => {
                     self.activity = Some("Recovering from an error".into());
                     self.say(text, Style::new().fg(Color::Yellow));
@@ -867,24 +935,7 @@ impl App {
                         tool.truncated = truncated;
                     }
                 }
-                Update::Project(summary) => {
-                    if summary.verified
-                        && !self.project_status.as_ref().is_some_and(|old| {
-                            old.verified && old.artifact_sha256 == summary.artifact_sha256
-                        })
-                    {
-                        if let Some(path) = &summary.artifact {
-                            self.say(
-                                format!(
-                                    "Host: verified project kernel. Artifact: {}",
-                                    path.display()
-                                ),
-                                Style::new().fg(Color::Green),
-                            );
-                        }
-                    }
-                    self.project_status = Some(*summary);
-                }
+                Update::Project(summary) => self.update_project(*summary),
                 Update::ProjectDirty => self.project_dirty(),
                 Update::Asking(round) => {
                     self.reveals.values_mut().for_each(reveal::Reveal::finish);
@@ -940,7 +991,7 @@ impl Drop for App {
 
 fn worker(
     mut session: crate::session::Session,
-    tasks: &Receiver<String>,
+    tasks: &Receiver<Task>,
     tx: &Sender<Update>,
     inspect: impl Fn() -> Result<crate::project::Summary>,
 ) {
@@ -1000,7 +1051,16 @@ fn worker(
             }
         }
     };
-    while let Ok(instruction) = tasks.recv() {
+    while let Ok(task) = tasks.recv() {
+        let instruction = match task {
+            Task::Instruction(instruction) => instruction,
+            task => {
+                if !analysis::execute(&session, task, tx) {
+                    return;
+                }
+                continue;
+            }
+        };
         let status = session.run(&instruction, &observer);
         let needs_review = status == Status::NeedsReview;
         let failed = matches!(status, Status::Failed(_) | Status::Incomplete);
@@ -1104,6 +1164,13 @@ pub fn run(
     app.exports = Arc::new(Exports::new(Arc::clone(&app.project)));
     app.project_status = Some(app.project.stored_status()?);
     app.restore_history()?;
+    match crate::analysis::load(&app.root) {
+        Ok(record) => app.analysis = record,
+        Err(error) => app.say(
+            format!("Could not load meaning analysis: {error:#}"),
+            Style::new().fg(Color::Yellow),
+        ),
+    }
     app.pages = pages;
     app.workspace = Some(workspace);
     let restored = interactive && app.restore_connection();

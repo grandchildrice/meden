@@ -1,5 +1,5 @@
 //! One catalog drives the slash popup and the host-only command dispatcher.
-use super::{editor::Overlay, App, Screen, Speaker, TranscriptLine};
+use super::{editor::Overlay, App, Screen, Speaker, Task, TranscriptLine};
 use ratatui::prelude::*;
 
 pub(super) const COMMANDS: &[(&str, &str)] = &[
@@ -25,6 +25,17 @@ pub(super) const COMMANDS: &[(&str, &str)] = &[
     ("/help", "Show keyboard shortcuts and commands"),
     ("/keymap", "Show the current keyboard shortcuts"),
     ("/workspace", "Show the retained working directory"),
+    (
+        "/atlas-prepare",
+        "Prepare the installed Lean Atlas library offline",
+    ),
+    ("/atlas", "Read Lean declarations: /atlas FILE.lean ..."),
+    ("/sources", "Read source files: /sources FILE.rs ..."),
+    ("/analyze", "Compare meaning: /analyze NAME -- requirement"),
+    (
+        "/analysis",
+        "Show the retained candidate analysis (not a proof)",
+    ),
     ("/contract", "Review the project specification"),
     (
         "/proofs",
@@ -211,6 +222,22 @@ impl App {
             ("/help" | "/keymap", []) => { self.overlay = Overlay::Help; self.scroll_back = 0; }
             ("/quit" | "/exit", []) => self.quit_requested = true,
             ("/workspace", []) => self.say(format!("Project: {}\nFile and Bash changes are saved directly here. Reopening this directory resumes the conversation.", self.root.display()), Style::new()),
+            ("/atlas-prepare", []) => self.analysis_task(Task::PrepareAtlas),
+            ("/atlas" | "/sources", paths) if !paths.is_empty() => {
+                self.source_snapshot = None;
+                self.invalidate_analysis();
+                self.analysis_task(Task::Sources { paths: paths.iter().map(|s| (*s).to_owned()).collect(), atlas: command == "/atlas" });
+            }
+            ("/analyze", _) => {
+                match self.meaning_task(text.strip_prefix("/analyze").unwrap_or_default()) {
+                    Ok(task) => self.analysis_task(task),
+                    Err(error) => self.say(format!("{error:#}"), Style::new().fg(Color::Yellow)),
+                }
+            }
+            ("/analysis", []) => {
+                let text = self.analysis.as_ref().map_or_else(|| "No meaning analysis yet. Read files with /atlas or /sources, then /analyze NAME -- requirement.".into(), crate::analysis::Record::summary);
+                self.say(text, Style::new().fg(Color::Gray));
+            }
             ("/contract", []) => self.open_contract(),
             ("/proofs", []) => { self.refresh_project_status(); self.overlay = Overlay::Evidence; self.scroll_back = 0; }
             ("/exports", []) => self.open_export(None),

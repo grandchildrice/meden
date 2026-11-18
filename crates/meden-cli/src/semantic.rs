@@ -88,9 +88,6 @@ impl Prepared {
             elaborated,
         })
     }
-    pub fn input(&self) -> &Input {
-        &self.input
-    }
     fn translation_messages(&self) -> Vec<Value> {
         messages(
             include_str!("semantic/informalize.md"),

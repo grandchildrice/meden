@@ -168,18 +168,22 @@ jobs:
             --rust "$(rustup run nightly-2026-09-17 rustc --print sysroot)" \
             --charon "$CHARON" --driver "$RUNNER_TEMP/aeneas/charon-driver" \
             --aeneas "$AENEAS" --output "$RUNNER_TEMP/project-verifier.json"
+          test -x "$MEDEN_ATLAS_LEAN/bin/lean"
           uv run --project python pytest -q python/tests/test_project_verification.py \
             python/tests/test_project_delivery.py \
+            python/tests/test_tui_atlas.py \
             python/tests/test_toolchains.py::test_mixed_system_and_nix_tools_check_actual_kernel \
             --basetemp "$RUNNER_TEMP/project-tests"
         env:
           MEDEN_BIN: ${{ github.workspace }}/target/release/meden
           MEDEN_VERIFIER_BUNDLE: ${{ runner.temp }}/project-verifier.json
+          MEDEN_ATLAS_LEAN: ${{ runner.temp }}/lean
       - uses: actions/upload-artifact@v7
         with:
           name: meden-project-evidence
           path: |
             ${{ runner.temp }}/project-tests/**/artifacts/**
+            ${{ runner.temp }}/project-tests/**/tui-atlas-observation.json
             ${{ runner.temp }}/project-tests/**/mixed-checker-observation.json
             ${{ runner.temp }}/project-tests/**/mixed-checker-stderr.txt
             ${{ runner.temp }}/project-tests/**/arithmetic-observation.json
