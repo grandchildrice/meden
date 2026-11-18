@@ -44,6 +44,7 @@ import {
   titleFromInstruction,
 } from "../fixtures/meden-demo";
 import type { ArtifactTab } from "../features/artifacts/ArtifactPanel";
+import { ArtifactCard } from "../features/chat/ArtifactCard";
 import { ChatView } from "../features/chat/ChatView";
 const ArtifactPanel = lazy(() =>
   import("../features/artifacts/ArtifactPanel").then((module) => ({
@@ -532,14 +533,19 @@ export function App() {
           ) : (
             workspace && (
               <ChatView
-                workspace={workspace}
+                projectName={workspace.name}
                 conversation={conversation}
                 draftKey={
                   "meden-input:" + activeId + ":" + (conversationId || "new")
                 }
                 running={running}
                 onSend={send}
-                onOpenArtifact={() => openPanel("preview")}
+                artifact={
+                  <ArtifactCard
+                    workspace={workspace}
+                    onOpen={() => openPanel("preview")}
+                  />
+                }
               />
             )
           )}{" "}

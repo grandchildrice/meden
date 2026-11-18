@@ -263,6 +263,13 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.98.1
+      - uses: Swatinem/rust-cache@v2
+      - name: Install native GUI worker prerequisites
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap
+      - run: cargo build -p meden-cli
       - uses: actions/setup-node@v7
         with:
           node-version: 22

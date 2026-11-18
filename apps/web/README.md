@@ -2,6 +2,14 @@
 
 React / TypeScript / Vite GUI in the Meden repository.
 
+For actual project development: build with `npm run build`, build the native
+binary with `cargo build -p meden-cli`, then run `target/debug/meden gui
+--workspace /path/to/project --provider YOUR_PROVIDER --model YOUR_MODEL`.
+Open its printed URL and review/approve the processor. Files and conversation
+are shared with the TUI. [Native mode and current limits](../../docs/gui.md#native-project-development).
+
+The following describes the separate recorded-demo mode.
+
 From the repository root: `npm ci && npm run dev`, then open
 `http://127.0.0.1:4320`. [Usage, provenance and checks](../../docs/gui.md).
 

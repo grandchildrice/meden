@@ -70,24 +70,26 @@ checks run offline, so project dependencies must be available locally.
 
 ## Web GUI
 
-A TypeScript/Vite GUI is available in this repository:
+Build the browser UI and attach it to a real local project:
 
 ```sh
 npm ci
-npm run dev
+npm run build
+cargo build -p meden-cli
+./target/debug/meden gui --workspace /path/to/project --provider YOUR_PROVIDER --model YOUR_MODEL
 ```
 
-Open `http://127.0.0.1:4320` and send an instruction. Conversation titles are
-automatic. Use the button on the left of the toolbar to open or collapse the
-conversation sidebar. The artifact button on the right opens Code, Preview and
-Proof. The default vending-machine example includes meden-demo's
-actual code, the original request supplied by the user, 13 recorded messages,
-25 original tool calls/results and 8 archived
-pure-step proof results. Select a graph node, read its statement and open the
-exact Lean source line. Meaning analysis includes a progress/diff GUI demo.
-Conversations save in this browser. New responses are a GUI demo; the native
-agent/Lean gateway is not connected. Use the TUI for actual agent execution
-and verification.
+Open the session URL printed in the terminal. Review the exact processor destination
+in the browser, approve it, then send an instruction. The GUI uses the same native
+agent, offline tools, files and conversation checkpoints as the TUI. Stop the GUI
+before opening that project in the TUI; the repository permits one writer.
+Code, actual tool inputs/results and native contract status appear beside the chat.
+HTTP connections can also use `--base-url URL --model MODEL --api-key-env NAME`.
+Prepare real proof tools with `meden setup` before requesting formal verification.
+
+`npm run dev` opens the separate recorded vending-machine demo at
+`http://127.0.0.1:4320`. Its graph, preview and simulated meaning-analysis UI use
+archived/demo data. These views are not yet attached to live native projects.
 
 [GUI development and checks](docs/gui.md) ·
 [Shared contracts and strategy implementation map](docs/architecture/semantic-workspace.md)
@@ -116,18 +118,18 @@ they do not measure live-model capability. [Reproduce the captures →](tools/ca
 
 ## Daily use
 
-| Action | Key or command |
-| --- | --- |
-| Send / insert a newline | Enter / Shift+Enter (Ctrl+J also works) |
-| Scroll | Mouse wheel or PgUp/PgDn |
-| Inspect tool details | Ctrl+T |
-| Inspect requirements and evidence | Ctrl+G or `/proofs` |
-| Configure / switch a connection | `/connect` / `/model` |
-| Continue a stopped task | `/retry` |
-| Start a new chat, retaining files | `/new` |
-| Clear chat and its view, retaining files | `/clear` |
-| Find the working directory | `/workspace` |
-| All shortcuts / quit | `/help` / `/quit` |
+| Action                                   | Key or command                          |
+| ---------------------------------------- | --------------------------------------- |
+| Send / insert a newline                  | Enter / Shift+Enter (Ctrl+J also works) |
+| Scroll                                   | Mouse wheel or PgUp/PgDn                |
+| Inspect tool details                     | Ctrl+T                                  |
+| Inspect requirements and evidence        | Ctrl+G or `/proofs`                     |
+| Configure / switch a connection          | `/connect` / `/model`                   |
+| Continue a stopped task                  | `/retry`                                |
+| Start a new chat, retaining files        | `/new`                                  |
+| Clear chat and its view, retaining files | `/clear`                                |
+| Find the working directory               | `/workspace`                            |
+| All shortcuts / quit                     | `/help` / `/quit`                       |
 
 Ordinary tool and checker rejections feed bounded automatic repair. If work
 must stop, the TUI explains why, what remains incomplete and what to do next.

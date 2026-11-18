@@ -3,7 +3,52 @@
 The GUI lives in `apps/web`: React, TypeScript, Vite, Material UI, assistant-ui
 (including Markdown rendering) and React Flow. Node 22.12 or newer is required.
 
-## Start
+## Native project development
+
+```sh
+npm ci
+npm run build
+cargo build -p meden-cli
+./target/debug/meden gui --workspace /path/to/project --provider YOUR_PROVIDER --model YOUR_MODEL
+```
+
+Use `meden providers` to list existing host connections, or supply
+`--base-url URL --model MODEL --api-key-env NAME`. Open the exact URL printed by
+the command (default port 4322, `--port 0` selects an available port).
+`--assets DIRECTORY` selects a built GUI from another working directory.
+The browser shows the fixed workspace, exact inference URL and model before
+approval. No inference happens before approval. Revocation/expiry is terminal;
+restart the host command and open its new URL to review a new session.
+The URL's random session token moves into tab-scoped session storage and is
+removed from the address bar; it never enters project files or exports.
+
+Send natural-language instructions to edit/build/test the actual selected
+repository with the same `Session`, tool registry, policy and offline workers
+as the TUI. Native GUI panels show file/directory reads, real tool arguments and
+results, exposed reasoning/partial output, cancellation, stop explanations and
+native project contract status. A contract review freezes its displayed body and
+reference before accepting/rejecting it through the native controller. These
+browser approval/rendering adapters do not acquire the TUI's refinement proofs.
+Prepare the real verifier using `meden setup` before requesting formal proofs;
+this gateway does not implement an automatic cold-install GUI yet.
+
+Conversation and project journals remain host JSON files outside the writable
+repository. Close the GUI command, then open `meden tui --workspace ...` to
+continue; the same repository lock prevents concurrent native writers. Closing
+the tab does not stop an active host turn: use **実行を中止** or stop the host.
+SIGINT/SIGTERM cancels managed work and waits for the session checkpoint.
+A new instruction starts an explicit new turn after a failure/cancellation;
+provider failures are not silently retried. Unsent input remains tab/browser data.
+
+**現在の証拠を確認** rechecks the accepted source/evidence binding. File inspection
+and completed turns also refresh status; polling alone is not a filesystem watcher.
+Logs/partial reasoning in this initial adapter last for the host process, while
+conversation text and admitted model history persist. The file reader uses the
+native tool's bounded first 200 lines. Preview execution, live graph extraction,
+semantic analysis and artifact-export approval remain integration work. The
+following recorded-demo documentation describes a separate standalone mode.
+
+## Recorded demo: start
 
 ```sh
 npm ci
@@ -188,6 +233,7 @@ npm test
 npm run build
 npm run schema:check
 npm run format:check
+cargo build -p meden-cli
 npm run test:gui
 ```
 
@@ -197,8 +243,14 @@ traces and the HTML report are retained under `target/gui-checks/`. On Linux CI,
 install Chromium with `npx playwright install --with-deps chromium`; on this
 NixOS host the config uses installed Chrome. `MEDEN_GUI_CHROME` overrides its path.
 
-Browser journeys cover send/title/history/reload, independent sidebar controls,
-preview actions, graph
+Native browser journeys execute the actual binary and offline workers with a
+scripted HTTP provider: file creation, provider failure, retained context/restart,
+fresh processor review, revocation, silent waiting, cancellation before dispatch,
+concurrent-turn refusal and origin/Host/token checks. They are not live-model or
+cold-verifier-install evidence. The Python UX gate also exercises GUI→TUI→GUI
+checkpoint handoff through a real PTY.
+
+Recorded-demo browser journeys cover send/title/history/reload, independent sidebar controls, preview actions, graph
 inspection, freshness, scoped export, import errors, storage failure/retry,
 legacy-history migration/restart, compact layout and keyboard entry. Axe checks home, conversation, all three
 sidebar tabs, source navigation, algorithm popover and semantic differences against automated WCAG 2.1 AA rules. This is not a complete manual

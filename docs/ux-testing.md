@@ -38,6 +38,7 @@ Other platform-dependent tests may still skip; required `ux` cases must pass.
 | --- | --- | --- |
 | Start without connection flags | Run `meden` or `meden tui --workspace …`, configure in the TUI, see inline errors, keep the key masked and choose whether to save it | `test_tui_setup.py` |
 | Work in the chosen repository | Files change in that repository; commands run there; original tests remain intact | `test_tui_integration.py`, `test_tui_smoke.py` |
+| Continue across GUI/TUI | A native GUI turn, a public TUI continuation and a reopened GUI retain the same files/conversation, with fresh processor review | `test_gui_tui_resume.py` |
 | Reopen and continue | Files, connection preferences and conversation persist; HTTP requires a fresh review and no old grant returns | `test_tui_setup.py`, `test_tui_smoke.py`, `test_workspace_resume.py` |
 | Understand silent waiting | Before the first response, activity and elapsed time stay visible and the spinner advances | `test_streaming.py` (server held behind an event) |
 | Read a response as it arrives | Partial text appears before response completion; command output appears while the command is running | `test_streaming.py` |
@@ -123,6 +124,15 @@ keyboard entry and automated WCAG AA checks are included. The gate builds and
 serves the production GUI on port 4321. Screenshots, traces and HTML reports are
 under `target/gui-checks/`; inspect them when changing layout or copy.
 
-The GUI is a local demo with archived verification evidence, not a native agent
-connection. It does not replace the required TUI gate or provide live-model/new
-prover validation. See [gui.md](gui.md) for provenance and boundaries.
+Native GUI journeys in `native.spec.ts` start the actual `meden gui` binary and
+execute offline file workers against a temporary project. They cover provider
+failure/restart, conversation and unsent-input retention, fresh approval, terminal
+revocation, cancellation before dispatch and gateway boundary checks. Build the
+native binary before `npm run test:gui`; Linux/Bubblewrap are required, and missing
+prerequisites fail rather than skip these browser tests. Native screenshots include
+`native-restart.png` and `native-cancel.png`.
+
+The standalone GUI remains a local recorded demo with archived verification
+evidence. Neither browser gate replaces the public TUI gate or establishes
+live-model quality, cold installation or new prover validation. See
+[gui.md](gui.md) for provenance and boundaries.

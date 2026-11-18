@@ -10,6 +10,7 @@ use std::process::ExitCode;
 use std::sync::{atomic::AtomicBool, Arc};
 mod connection;
 mod exports;
+mod gui;
 mod pages;
 mod project;
 mod protocol;
@@ -38,6 +39,17 @@ enum Command {
     Tui(WorkspaceArgs),
     /// Run instructions from JSON Lines with offline repository tools.
     Run(WorkspaceArgs),
+    /// Serve the browser UI attached to the native local workspace/session.
+    Gui {
+        #[command(flatten)]
+        args: WorkspaceArgs,
+        /// Built GUI directory (run npm run build first).
+        #[arg(long, default_value = "apps/web/dist")]
+        assets: PathBuf,
+        /// Loopback port; zero selects an available port.
+        #[arg(long, default_value_t = 4322)]
+        port: u16,
+    },
     /// Run Bash from stdin in a new private offline workspace.
     Exec {
         /// Project to import; the original is not modified.
@@ -151,6 +163,7 @@ fn run() -> Result<()> {
             std::path::Path::new("/workspace"),
         )?,
         Command::Providers => print_providers(),
+        Command::Gui { args, assets, port } => gui::run(&args, &assets, port)?,
         Command::Setup => {
             verifier::prepare()?;
         }

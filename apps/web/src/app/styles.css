@@ -2703,3 +2703,84 @@ pre {
 .expanded-proof-dialog {
   border-radius: 0 !important;
 }
+
+.native-shell {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #fafbfc;
+}
+.native-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  border-bottom: 1px solid #e3e5e8;
+  flex-wrap: wrap;
+}
+.native-workspace {
+  flex: 1;
+  min-width: 120px;
+  overflow-wrap: anywhere;
+}
+.native-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.native-chat {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.native-chat .chat-panel {
+  flex: 1;
+  min-height: 180px;
+}
+.native-artifacts {
+  width: 44%;
+  border-left: 1px solid #e3e5e8;
+  display: flex;
+  flex-direction: column;
+  min-width: 300px;
+}
+.native-panel {
+  padding: 20px;
+  overflow: auto;
+  flex: 1;
+}
+.native-panel pre,
+.native-stream,
+.native-contract {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+.native-panel details {
+  margin: 16px 0;
+}
+.native-panel summary {
+  cursor: pointer;
+}
+.native-stream {
+  margin: 8px 20px;
+  max-height: 160px;
+  overflow: auto;
+}
+@media (max-width: 839px) {
+  .native-main {
+    flex-direction: column;
+    overflow: auto;
+  }
+  .native-chat {
+    flex: none;
+    min-height: 60dvh;
+  }
+  .native-artifacts {
+    width: 100%;
+    min-height: 320px;
+    border-left: 0;
+    border-top: 1px solid #e3e5e8;
+  }
+}
