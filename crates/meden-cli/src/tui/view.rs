@@ -60,6 +60,7 @@ pub(super) fn draw(frame: &mut Frame<'_>, app: &mut App) {
         Screen::ReviewingProcessor => draw_processor_review(frame, app, body),
         Screen::ReviewingContract => draw_contract_review(frame, app, body),
         Screen::ReviewingExport => draw_export_review(frame, app, body),
+        Screen::ReviewingRepair => draw_repair_review(frame, app, body),
         Screen::Instructing | Screen::Running => {
             let body = draw_assurance(frame, app, body);
             draw_conversation(frame, app, body);
@@ -89,7 +90,10 @@ fn reading_area(area: Rect) -> Rect {
 fn is_review(screen: &Screen) -> bool {
     matches!(
         screen,
-        Screen::ReviewingProcessor | Screen::ReviewingContract | Screen::ReviewingExport
+        Screen::ReviewingProcessor
+            | Screen::ReviewingContract
+            | Screen::ReviewingExport
+            | Screen::ReviewingRepair
     )
 }
 
@@ -886,6 +890,7 @@ fn draw_controls(frame: &mut Frame<'_>, app: &App, area: Rect) {
         ],
         Screen::ReviewingProcessor => actions("Allow for this session", "n / esc: Back"),
         Screen::ReviewingExport => actions("Send once", "n: Reject · esc: Back · ←/→: Bytes"),
+        Screen::ReviewingRepair => actions("Apply once and reanalyze", "n / esc: Reject"),
         Screen::ReviewingContract => {
             let accepted = app
                 .contract_review
@@ -1057,6 +1062,35 @@ fn draw_export_review(frame: &mut Frame<'_>, app: &mut App, area: Rect) {
             description:
                 "Approval sends these frozen bytes once. Review the payload with PgUp/PgDn.",
             tag: "Delivery details",
+            heading: &heading,
+            details: &details,
+        },
+    );
+}
+
+fn draw_repair_review(frame: &mut Frame<'_>, app: &mut App, area: Rect) {
+    let Some(review) = &app.repair_review else {
+        return;
+    };
+    let contract = review
+        .accepted_reference
+        .as_ref()
+        .map_or("none".into(), |r| {
+            format!("revision {} · {}", r.revision, r.contract)
+        });
+    let heading = format!(
+        "File: {}\nRepair SHA-256: {}\nFinding: {}\nRequirement ID: {}\nAccepted contract: {}",
+        review.file, review.reference.sha256, review.finding_id, review.requirement_id, contract
+    );
+    let details = format!("Original requirement:\n{}\n\nReason:\n{}\n\n{}\nApproval changes this file once and reruns meaning analysis. Proof evidence is invalidated; a candidate match does not establish a proof.", review.input.requirement, review.explanation, review.diff);
+    draw_review(
+        frame,
+        app,
+        area,
+        Review {
+            title: "Apply this repair and reanalyze?",
+            description: "Review the original requirement and exact source diff with PgUp/PgDn.",
+            tag: "Repair identity",
             heading: &heading,
             details: &details,
         },

@@ -23,6 +23,7 @@ import { ChatView } from "../features/chat/ChatView";
 import type { Conversation } from "@meden/workspace-schema";
 import { NativeMeaning } from "../features/native/NativeMeaning";
 import { NativePreview } from "../features/native/NativePreview";
+import { NativeRepair } from "../features/native/NativeRepair";
 import { NativeDelivery } from "../features/native/NativeDelivery";
 const NativeGraph = lazy(() =>
   import("../features/native/NativeGraph").then((module) => ({
@@ -482,6 +483,9 @@ export function NativeApp({ token }: { token: string }) {
                         snapshot={state.source_snapshot}
                         analysis={state.analysis}
                         history={state.analysis_history}
+                        onRepair={(finding_id) =>
+                          command({ type: "prepare_repair", finding_id })
+                        }
                         onSelectAnalysis={(id) =>
                           command({ type: "select_analysis", id })
                         }
@@ -500,6 +504,9 @@ export function NativeApp({ token }: { token: string }) {
                   {!state.source_snapshot && state.analysis && (
                     <NativeMeaning
                       record={state.analysis}
+                      onRepair={(finding_id) =>
+                        command({ type: "prepare_repair", finding_id })
+                      }
                       history={state.analysis_history}
                       onSelect={(id) =>
                         command({ type: "select_analysis", id })
@@ -517,6 +524,11 @@ export function NativeApp({ token }: { token: string }) {
           </main>
         </>
       )}
+      <NativeRepair
+        review={state?.repair_review || null}
+        running={running}
+        onCommand={command}
+      />
       <Dialog
         open={approval}
         onClose={() => setApproval(false)}

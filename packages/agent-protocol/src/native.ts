@@ -49,6 +49,10 @@ export const meaningRecordSchema = z
     sequence: z.number().int().positive(),
     id: z.string().regex(/^analysis-[a-f0-9]{64}$/),
     requirement_id: z.string().regex(/^requirement-[a-f0-9]{64}$/),
+    source_artifact: z
+      .string()
+      .regex(/^sha256:[a-f0-9]{64}$/)
+      .nullable(),
     finding_id: z
       .string()
       .regex(/^finding-[a-f0-9]{64}$/)
@@ -104,6 +108,29 @@ export const meaningRecordSchema = z
   })
   .strict();
 export type MeaningRecord = z.infer<typeof meaningRecordSchema>;
+export const repairReferenceSchema = z
+  .object({
+    id: z.string().regex(/^repair-[a-f0-9]{64}$/),
+    sha256: z.string().regex(/^sha256:[a-f0-9]{64}$/),
+  })
+  .strict();
+export const repairReviewSchema = z
+  .object({
+    reference: repairReferenceSchema,
+    model: z.string(),
+    processor: z.string(),
+    finding_id: z.string(),
+    requirement_id: z.string(),
+    input: meaningInputSchema,
+    file: z.string(),
+    accepted_reference: nativeReferenceSchema.nullable(),
+    explanation: z.string(),
+    diff: z.string(),
+  })
+  .strict();
+export type RepairReview = z.infer<typeof repairReviewSchema>;
+export type RepairReference = z.infer<typeof repairReferenceSchema>;
+
 export const previewSchema = z
   .object({
     root: z.string(),
@@ -201,6 +228,7 @@ export const nativeStateSchema = z.object({
   source_snapshot: sourceSnapshotSchema.nullable(),
   analysis: meaningRecordSchema.nullable(),
   analysis_history: z.array(meaningRecordSchema).max(1000),
+  repair_review: repairReviewSchema.nullable(),
   preview: previewSchema.nullable(),
   exports: z.array(exportSummarySchema),
   export_review: exportReviewSchema.nullable(),
@@ -228,6 +256,8 @@ export type NativeCommand =
       reference: ExportReference;
       serial: number;
     }
+  | { type: "prepare_repair"; finding_id: string }
+  | { type: "apply_repair" | "reject_repair"; reference: RepairReference }
   | { type: "select_analysis"; id: string }
   | { type: "analyze_meaning"; input: MeaningInput }
   | {

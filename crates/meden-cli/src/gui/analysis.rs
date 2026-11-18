@@ -35,3 +35,44 @@ pub(super) fn run(
     result?;
     Ok(())
 }
+
+pub(super) fn apply_repair(
+    view: &std::sync::Mutex<View>,
+    session: &crate::session::Session,
+    queue: &mut crate::analysis::repair::Queue,
+    reference: &crate::analysis::repair::Reference,
+) -> Result<()> {
+    {
+        let mut view = lock(view);
+        anyhow::ensure!(
+            view.repair_review
+                .as_ref()
+                .is_some_and(|review| &review.reference == reference),
+            "Repair review selection changed"
+        );
+        view.repair_review = None;
+        view.source_snapshot = None;
+        view.project.verified = false;
+        invalidate(&mut view);
+    }
+    let result = session.apply_repair(queue, reference, &|record| {
+        lock(view).analysis = Some(record.clone());
+    });
+    lock(view).analysis_history = session.analysis_history()?;
+    let (snapshot, record) = result?;
+    let mut view = lock(view);
+    view.source_snapshot = Some(snapshot);
+    view.analysis = Some(record);
+    view.activity = "修正を適用し、元の要件で再解析しました（モデルによる候補評価）".into();
+    Ok(())
+}
+
+pub(super) fn prepare_atlas(
+    view: &std::sync::Mutex<View>,
+    session: &crate::session::Session,
+) -> Result<()> {
+    lock(view).activity = "Lean Atlasライブラリをオフラインで準備".into();
+    let result = session.prepare_atlas();
+    lock(view).atlas = crate::atlas::Configuration::host().status();
+    result
+}

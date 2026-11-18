@@ -10,6 +10,7 @@ pub(super) enum Choice {
     Processor,
     Export,
     Contract,
+    Repair,
 }
 
 /// An approval key has authority only for the current host review state.
@@ -36,6 +37,7 @@ pub(super) fn route(
         Screen::ReviewingProcessor => Some(Choice::Processor),
         Screen::ReviewingExport => Some(Choice::Export),
         Screen::ReviewingContract => Some(Choice::Contract),
+        Screen::ReviewingRepair => Some(Choice::Repair),
         _ => None,
     }
 }
@@ -97,6 +99,7 @@ mod tests {
             (Screen::ReviewingProcessor, Some(Choice::Processor)),
             (Screen::ReviewingExport, Some(Choice::Export)),
             (Screen::ReviewingContract, Some(Choice::Contract)),
+            (Screen::ReviewingRepair, Some(Choice::Repair)),
         ] {
             for bits in 0..=u8::MAX {
                 for kind in [
@@ -131,6 +134,7 @@ mod tests {
             (Screen::ReviewingProcessor, Choice::Processor),
             (Screen::ReviewingExport, Choice::Export),
             (Screen::ReviewingContract, Choice::Contract),
+            (Screen::ReviewingRepair, Choice::Repair),
         ] {
             for width in [0, 1, 2, 3, 80, u16::MAX] {
                 for height in [0, 1, 2, 3, 24, u16::MAX] {
@@ -151,6 +155,7 @@ mod tests {
             Screen::ReviewingProcessor,
             Screen::ReviewingExport,
             Screen::ReviewingContract,
+            Screen::ReviewingRepair,
         ] {
             for width in [0, 2, 3, 4, 80, u16::MAX] {
                 for height in [0, 2, 3, 4, 24, u16::MAX] {

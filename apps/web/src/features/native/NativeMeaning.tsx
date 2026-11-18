@@ -7,6 +7,7 @@ export function NativeMeaning({
   record,
   history,
   onSelect,
+  onRepair,
   target,
   sourceRevision,
   graphRevision,
@@ -17,6 +18,7 @@ export function NativeMeaning({
   record: MeaningRecord | null;
   history: MeaningRecord[];
   onSelect: (id: string) => Promise<boolean>;
+  onRepair: (finding: string) => Promise<boolean>;
   target?: Target;
   sourceRevision?: string;
   graphRevision?: string;
@@ -96,6 +98,19 @@ export function NativeMeaning({
           >
             この宣言の意味を解析
           </Button>
+          {record?.finding_id && (
+            <Button
+              disabled={
+                running ||
+                !authorized ||
+                !sameInput ||
+                !["complete", "historical"].includes(record.state)
+              }
+              onClick={() => void onRepair(record.finding_id!)}
+            >
+              このFindingの修正差分を作る
+            </Button>
+          )}
           {!authorized && <p>実行するには接続先を確認・承認してください。</p>}
           <Typography variant="caption" component="p">
             {graphRevision
@@ -199,6 +214,11 @@ export function NativeMeaning({
             <p>
               モデル: {record.model} · {record.engine}
             </p>
+            {record.source_artifact && (
+              <p className="native-revision">
+                解析時のソース記録: {record.source_artifact}
+              </p>
+            )}
             <p className="native-revision">処理先: {record.processor}</p>
             <p className="native-revision">{record.input.source_revision}</p>
             <p>

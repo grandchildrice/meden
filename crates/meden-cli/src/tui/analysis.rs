@@ -9,8 +9,12 @@ use std::time::Instant;
 
 impl App {
     pub(super) fn analysis_task(&mut self, task: Task) {
-        if !self.prepare_worker() {
+        if !matches!(task, Task::ApplyRepair(_) | Task::RejectRepair(_)) && !self.prepare_worker() {
             return;
+        }
+        if matches!(task, Task::ApplyRepair(_)) {
+            self.source_snapshot = None;
+            self.invalidate_analysis();
         }
         if matches!(task, Task::Analyze { .. }) {
             self.invalidate_analysis();
@@ -97,7 +101,11 @@ impl App {
 
     pub(super) fn observed_sources(&mut self, snapshot: crate::analysis::sources::Snapshot) {
         self.invalidate_analysis();
-        let mut text = format!("Source graph ready: {} files", snapshot.files.len());
+        let mut text = format!(
+            "Source graph ready: {} files\nRevision: {}",
+            snapshot.files.len(),
+            snapshot.revision
+        );
         if let Some(atlas) = &snapshot.atlas {
             for node in atlas.graph.nodes.iter().take(80) {
                 let _ = write!(
@@ -119,7 +127,18 @@ impl App {
         self.say(text, Style::new().fg(Color::Gray));
     }
 }
-pub(super) fn execute(session: &crate::session::Session, task: Task, tx: &Sender<Update>) -> bool {
+pub(super) fn execute(
+    session: &crate::session::Session,
+    repairs: &mut crate::analysis::repair::Queue,
+    task: Task,
+    tx: &Sender<Update>,
+) -> bool {
+    if matches!(
+        task,
+        Task::PrepareRepair { .. } | Task::ApplyRepair(_) | Task::RejectRepair(_)
+    ) {
+        return super::repair::execute(session, repairs, task, tx);
+    }
     let result = (|| -> Result<String> {
         match task {
             Task::Sources { paths, atlas } => {
@@ -137,7 +156,10 @@ pub(super) fn execute(session: &crate::session::Session, task: Task, tx: &Sender
                 })?;
                 Ok(record.summary())
             }
-            Task::Instruction(_) => unreachable!(),
+            Task::Instruction(_)
+            | Task::PrepareRepair { .. }
+            | Task::ApplyRepair(_)
+            | Task::RejectRepair(_) => unreachable!(),
         }
     })();
     let failed = result.is_err();

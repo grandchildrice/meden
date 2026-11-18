@@ -482,26 +482,28 @@ def crossterm.event.KeyCode.Insts.CoreCmpPartialEqKeyCode.eq
   else ok false
 
 /-- [meden::tui::approval::Choice]
-    Source: 'crates/meden-cli/src/tui/approval.rs', lines 9:0-13:1 -/
+    Source: 'crates/meden-cli/src/tui/approval.rs', lines 9:0-14:1 -/
 @[discriminant isize]
 inductive tui.approval.Choice where
 | Processor : tui.approval.Choice
 | Export : tui.approval.Choice
 | Contract : tui.approval.Choice
+| Repair : tui.approval.Choice
 
 /-- [meden::tui::Screen]
-    Source: 'crates/meden-cli/src/tui.rs', lines 80:0-87:1 -/
+    Source: 'crates/meden-cli/src/tui.rs', lines 109:0-117:1 -/
 @[discriminant isize]
 inductive tui.Screen where
 | Picking : tui.Screen
 | ReviewingProcessor : tui.Screen
 | ReviewingExport : tui.Screen
 | ReviewingContract : tui.Screen
+| ReviewingRepair : tui.Screen
 | Instructing : tui.Screen
 | Running : tui.Screen
 
 /-- [meden::tui::approval::approves]:
-    Source: 'crates/meden-cli/src/tui/approval.rs', lines 43:0-51:1 -/
+    Source: 'crates/meden-cli/src/tui/approval.rs', lines 45:0-53:1 -/
 def tui.approval.approves (event : crossterm.event.Event) : Result Bool := do
   match event with
   | crossterm.event.Event.FocusGained => ok false
@@ -524,7 +526,7 @@ def tui.approval.approves (event : crossterm.event.Event) : Result Bool := do
   | crossterm.event.Event.Resize _ _ => ok false
 
 /-- [meden::tui::approval::route]:
-    Source: 'crates/meden-cli/src/tui/approval.rs', lines 17:0-41:1 -/
+    Source: 'crates/meden-cli/src/tui/approval.rs', lines 18:0-43:1 -/
 def tui.approval.route
   (screen : tui.Screen) (event : crossterm.event.Event) (width : Std.U16)
   (height : Std.U16) (rows : Std.U16) :
@@ -557,6 +559,8 @@ def tui.approval.route
                 ok (some tui.approval.Choice.Export)
               | tui.Screen.ReviewingContract =>
                 ok (some tui.approval.Choice.Contract)
+              | tui.Screen.ReviewingRepair =>
+                ok (some tui.approval.Choice.Repair)
               | tui.Screen.Instructing => ok none
               | tui.Screen.Running => ok none
             else ok none

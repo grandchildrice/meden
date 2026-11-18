@@ -285,7 +285,7 @@ storage against concurrent host mutation, all outbound adapters or R1.
 
 ## Actual TUI approval input
 
-All three approval handlers (processor, export and project contract) use
+All four approval handlers (processor, export, project contract and source repair) use
 [`approval::route`](../crates/meden-cli/src/tui/approval.rs) with the actual
 host `Screen` and decoded event. It returns a typed target only for that
 target's own review screen, and each handler matches its expected target.
@@ -330,7 +330,7 @@ calls the processor handler while each other screen is active and checks
 that no processor grant is issued.
 
 The TUI records the actual review panel from its most recent draw, clearing
-it when a processor, export or contract review is opened. All three handlers
+it when a processor, export, contract or repair review is opened. All four handlers
 pass its dimensions to the same extracted selector. A terminal-size change
 between drawing and input postpones review-key handling until another draw.
 An actual two-column rendering previously allowed a processor grant despite
@@ -343,7 +343,10 @@ approved it even though its end was clipped. Reviews now keep the authority
 heading fixed above the scrolling details. The processor heading includes
 the endpoint, connection/model, credential presence and session scope; export
 review retains the target, method, payload length and accepted contract;
-contract review retains its revision/hash. The row count comes from the
+contract review retains its revision/hash, and repair review retains its file,
+request hash, Finding/requirement identities and accepted contract. A tenth
+actual approval fault substitutes the export target for repair; both native
+routing assertions and the unchanged corresponding refinement reject it. The row count comes from the
 same wrapped Paragraph used for rendering, before adding the border. The
 selector also requires nonzero heading rows, two content columns and enough
 content rows for that heading. A count larger than u16 is saturated to a
@@ -356,6 +359,19 @@ The real export PTY test also shrinks the terminal until the heading is
 clipped, presses `y` followed by rejection and observes no received body.
 After resizing back, another exact host approval still delivers its frozen
 body once. The rejection acknowledgment prevents a timing-only assertion.
+
+The source-repair adapter reuses the same frozen-request `State`: its destination
+is one observed workspace file, and its original bytes contain the exact typed
+edit, source/input bindings and immutable policy. It consumes only the returned
+`Dispatch`, decodes that original data, rechecks source and accepted-contract
+identity, and composes with `Attempt::with_policy` before the offline worker.
+The worker's `whole_file` mode refuses additional or changed contents before
+replacement. The public TUI/browser regressions cover rejection, source changes,
+clipped headings, exact application, reanalysis, replay and restart without old
+approval. These reuse existing generic controller results; JSON interpretation,
+diff construction, source/resource attribution, file observation/replacement and
+concurrent host mutation remain adapters. They do not establish semantic
+correctness of a repair or a whole-workflow refinement.
 
 These are necessary numeric viewport conditions, not a proof that every
 review byte was visible or read. Frame attribution, layout, rendering, physical input and

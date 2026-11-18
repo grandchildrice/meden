@@ -230,3 +230,10 @@ has a stable ID; reruns keep earlier findings and their source revisions. These 
 findings, separate from native proof evidence. Cancellation and provider errors
 stop the operation. Changed sources require rereading; reopening retains a
 historical result and requires a fresh processor review before inference.
+
+For a mismatch/unclear Finding, `/repair` prepares one source diff. The review
+keeps the file, hash and original requirement identity fixed while details
+scroll. Press `y` to apply once and reanalyze the original requirement, or `n`/Esc
+to reject. Changed source or accepted-contract identity invalidates the proposal.
+Pending approval is discarded on restart. Reanalysis is a candidate assessment;
+formal proof evidence requires a fresh check.

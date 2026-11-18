@@ -33,6 +33,10 @@ pub(super) const COMMANDS: &[(&str, &str)] = &[
     ("/sources", "Read source files: /sources FILE.rs ..."),
     ("/analyze", "Compare meaning: /analyze NAME -- requirement"),
     (
+        "/repair",
+        "Propose a reviewed source repair for the selected Finding",
+    ),
+    (
         "/analysis",
         "Show a result: /analysis, /analysis history, /analysis ID",
     ),
@@ -232,6 +236,12 @@ impl App {
                 match self.meaning_task(text.strip_prefix("/analyze").unwrap_or_default()) {
                     Ok(task) => self.analysis_task(task),
                     Err(error) => self.say(format!("{error:#}"), Style::new().fg(Color::Yellow)),
+                }
+            }
+            ("/repair", []) => {
+                match (self.source_snapshot.as_ref(), self.analysis.as_ref()) {
+                    (Some(snapshot), Some(record)) => self.analysis_task(Task::PrepareRepair { snapshot: Box::new(snapshot.clone()), record: Box::new(record.clone()) }),
+                    _ => self.say("Read the source graph and select a retained Finding with /analysis ID before /repair.", Style::new().fg(Color::Yellow)),
                 }
             }
             ("/analysis", ["history"]) => {

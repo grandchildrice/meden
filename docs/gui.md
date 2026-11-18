@@ -270,6 +270,34 @@ is reported and retained; explicitly rerunning analysis preserves that file as
 development remains available. This is tested adapter behavior, not a new
 Rust-to-Lean refinement or an atomic concurrent-filesystem proof.
 
+New runs also retain their original source/Atlas snapshot under host
+`analysis-sources/<content-sha256>.json`; each record links its exact artifact.
+Repeated identical snapshots are shared. A changed retained artifact stops a new
+run instead of overwriting it. Historical data never restores a live graph or
+approval; fresh worker observations still gate execution.
+
+For a retained mismatch/unclear Finding, **このFindingの修正差分を作る** requests
+one data-only repair to an observed source file. The original requirement and
+accepted native contract stay fixed. Review the destination, content hash,
+Finding/requirement identities, exact diff and explanation, then reject or apply
+once. The authority heading remains above scrolling details; clipped headings
+cannot approve. In the TUI, `/repair` opens the same frozen repair with
+`y` to apply/reanalyze and `n`/Esc to reject.
+
+Sources and Atlas resources are observed again; changed sources or accepted
+contract identities refuse the old proposal. The actual admitted file policy
+and typed request reach the ordinary offline worker, whose full-file comparison
+refuses content changes. Applying invalidates native project proof coverage;
+reanalysis uses the original requirement, freshly observed sources and, for
+Atlas, a fresh compilation/target location. A candidate match never restores
+proof evidence. Applied files survive failed/cancelled reanalysis, which must be
+explicitly rerun. Source-only repairs preserve the selected declaration's line
+anchor; Atlas repairs can relocate it by exact declaration name. Repair logs
+under host `repairs/` retain the diff, original Finding/input, selected processor
+and model, terminal outcome and resulting analysis ID. Restart discards all
+pending repair authority. This is a bounded single-file flow, not a claim that
+model repairs are correct or that filesystem concurrency is formally proved.
+
 A separate live browser smoke exercises real application edits, an interactive
 generated browser app, independent original Rust tests, a live model's proposal
 and exact one-use delivery to a synthetic loopback receiver, the source graph, matching and mismatching requirements,

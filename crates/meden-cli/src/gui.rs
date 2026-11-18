@@ -17,6 +17,7 @@ mod analysis;
 mod assets;
 mod delivery;
 mod preview;
+mod repair;
 mod sources;
 
 struct Task {
@@ -43,6 +44,7 @@ struct View {
     source_snapshot: Option<sources::Snapshot>,
     analysis: Option<analysis::Record>,
     analysis_history: Vec<analysis::Record>,
+    repair_review: Option<crate::analysis::repair::Review>,
     preview: Option<preview::Summary>,
     exports: Vec<crate::exports::Summary>,
     export_review: Option<delivery::Review>,
@@ -89,6 +91,15 @@ enum Command {
     SourceSnapshot {
         paths: Vec<String>,
     },
+    PrepareRepair {
+        finding_id: String,
+    },
+    ApplyRepair {
+        reference: crate::analysis::repair::Reference,
+    },
+    RejectRepair {
+        reference: crate::analysis::repair::Reference,
+    },
     SelectAnalysis {
         id: String,
     },
@@ -115,7 +126,10 @@ impl Command {
         if let Self::Instruction { text } = self {
             anyhow::ensure!(!text.trim().is_empty(), "Instruction is empty");
         }
-        if matches!(self, Self::Instruction { .. } | Self::AnalyzeMeaning { .. }) {
+        if matches!(
+            self,
+            Self::Instruction { .. } | Self::AnalyzeMeaning { .. } | Self::PrepareRepair { .. }
+        ) {
             anyhow::ensure!(
                 gateway.is_authorized(session),
                 "Review and approve the processor before sending"
@@ -254,6 +268,7 @@ fn initial_view(
         source_snapshot: None,
         analysis: analysis_history.last().cloned(),
         analysis_history,
+        repair_review: None,
         preview: None,
         exports: Vec::new(),
         export_review: None,
@@ -427,9 +442,19 @@ fn worker(
     preview: &preview::Preview,
 ) {
     let mut delivery = delivery::Delivery::new(project);
+    let mut repairs = crate::analysis::repair::Queue::default();
     for Task { command, processes } in receiver {
         delivery.begin(&command);
         let result = (|| -> Result<()> {
+            if !matches!(
+                command,
+                Command::PrepareRepair { .. }
+                    | Command::ApplyRepair { .. }
+                    | Command::RejectRepair { .. }
+            ) {
+                repairs.abandon(workspace)?;
+                lock(view).repair_review = None;
+            }
             let mut session = Session::new(
                 Arc::clone(workspace),
                 Arc::clone(gateway),
@@ -441,11 +466,7 @@ fn worker(
             let instruction = match command {
                 Command::RefreshStatus => None,
                 Command::PrepareAtlas => {
-                    lock(view).activity = "Lean Atlasライブラリをオフラインで準備".into();
-                    let atlas = crate::atlas::Configuration::host();
-                    let result = atlas.prepare(&processes);
-                    lock(view).atlas = atlas.status();
-                    result?;
+                    analysis::prepare_atlas(view, &session)?;
                     None
                 }
                 Command::AtlasSnapshot { paths } => {
@@ -461,6 +482,12 @@ fn worker(
                 }
                 Command::CapturePreview { root, entry } => {
                     preview.capture(workspace, &processes, &root, &entry)?;
+                    None
+                }
+                command @ (Command::PrepareRepair { .. }
+                | Command::ApplyRepair { .. }
+                | Command::RejectRepair { .. }) => {
+                    repair::perform(view, &session, &mut repairs, command)?;
                     None
                 }
                 Command::SelectAnalysis { id } => {
@@ -513,15 +540,19 @@ fn worker(
             lock(view).project = summary;
             Ok(())
         })();
-        let mut view = lock(view);
-        if let Err(error) = delivery.observe(&mut view) {
-            view.stopped = Some(format!("{error:#}"));
-        }
-        if let Err(error) = result {
-            view.stopped = Some(format!("{error:#}"));
-        }
-        view.running = false;
+        finish_operation(view, &delivery, result);
     }
+}
+
+fn finish_operation(view: &Mutex<View>, delivery: &delivery::Delivery, result: Result<()>) {
+    let mut view = lock(view);
+    if let Err(error) = delivery.observe(&mut view) {
+        view.stopped = Some(format!("{error:#}"));
+    }
+    if let Err(error) = result {
+        view.stopped = Some(format!("{error:#}"));
+    }
+    view.running = false;
 }
 
 fn run_instruction(

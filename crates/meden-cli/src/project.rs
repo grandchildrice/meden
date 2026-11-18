@@ -35,7 +35,7 @@ use sha2::{Digest, Sha256};
 
 mod journal;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct Reference {
     pub revision: u64,

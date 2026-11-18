@@ -291,6 +291,16 @@ fn edited(file: &fs::File, args: &Args) -> Result<String, ToolError> {
     pinned::readable(file)?
         .read_to_string(&mut original)
         .map_err(failed)?;
+    if let Some(whole) = args.get("whole_file") {
+        let whole = whole
+            .as_bool()
+            .ok_or_else(|| ToolError::failed("whole_file must be boolean".into()))?;
+        if whole && args.get("old_text").and_then(Value::as_str) != Some(original.as_str()) {
+            return Err(ToolError::failed(
+                "Reviewed file contents changed; no repair applied".into(),
+            ));
+        }
+    }
     let old = text(args, "old_text")?;
     if old.is_empty() || original.matches(old).count() != 1 {
         return Err(ToolError::failed(
@@ -457,6 +467,24 @@ mod tests {
             fs::read_to_string(root.path().join("note")).expect("unchanged file"),
             "updated\n"
         );
+    }
+
+    #[test]
+    fn reviewed_replacements_compare_the_complete_file_before_writing() {
+        let root = tempfile::tempdir().expect("workspace");
+        let path = root.path().join("reviewed.rs");
+        fs::write(&path, "original\nconcurrent addition\n").expect("source");
+        let request = json!({"path":"reviewed.rs", "old_text":"original\n", "new_text":"replacement\n", "whole_file":true});
+        assert!(execute(root.path(), Operation::Edit, request.clone())
+            .is_err_and(|error| error.to_string().contains("contents changed")));
+        assert_eq!(
+            fs::read_to_string(&path).expect("retained"),
+            "original\nconcurrent addition\n"
+        );
+        fs::write(&path, "original\n").expect("exact source");
+        execute(root.path(), Operation::Edit, request.clone()).expect("exact reviewed replacement");
+        assert_eq!(fs::read_to_string(&path).expect("updated"), "replacement\n");
+        assert!(execute(root.path(), Operation::Edit, request).is_err());
     }
 
     #[cfg(unix)]

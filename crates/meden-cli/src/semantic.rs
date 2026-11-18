@@ -268,7 +268,7 @@ fn validate_text(values: &[&String]) -> Result<()> {
     );
     Ok(())
 }
-fn decode<T: DeserializeOwned>(reply: Reply, expected: &str) -> Result<T> {
+pub(crate) fn decode<T: DeserializeOwned>(reply: Reply, expected: &str) -> Result<T> {
     let mut calls = reply.tool_calls.into_iter();
     let call = calls
         .next()

@@ -4,7 +4,7 @@ use std::cell::{Cell, RefCell};
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use meden_agent::conversation::{
     self, Conversation, Event, ExecutionError, FunctionCall, Status, ToolCall,
 };
@@ -81,6 +81,81 @@ impl Session {
             conversation,
             report: None,
         })
+    }
+
+    pub(crate) fn abandon_repairs(&self, queue: &mut crate::analysis::repair::Queue) -> Result<()> {
+        queue.abandon(&self.workspace)
+    }
+    pub(crate) fn prepare_repair(
+        &self,
+        queue: &mut crate::analysis::repair::Queue,
+        snapshot: &crate::analysis::sources::Snapshot,
+        record: &crate::analysis::Record,
+    ) -> Result<crate::analysis::repair::Review> {
+        let pending = crate::analysis::repair::prepare(
+            &self.workspace,
+            &self.gateway,
+            &self.processes,
+            &self.policy,
+            snapshot,
+            record,
+            &self.project.stored_status()?,
+        )?;
+        queue.install(&self.workspace, pending)
+    }
+    pub(crate) fn reject_repair(
+        &self,
+        queue: &mut crate::analysis::repair::Queue,
+        reference: &crate::analysis::repair::Reference,
+    ) -> Result<()> {
+        queue.reject(&self.workspace, reference)
+    }
+    pub(crate) fn apply_repair(
+        &self,
+        queue: &mut crate::analysis::repair::Queue,
+        reference: &crate::analysis::repair::Reference,
+        notify: &dyn Fn(&crate::analysis::Record),
+    ) -> Result<(crate::analysis::sources::Snapshot, crate::analysis::Record)> {
+        let applied = queue.apply(
+            &self.workspace,
+            &self.processes,
+            reference,
+            self.project.stored_status()?.accepted_reference.as_ref(),
+            &|| self.project.mark_dirty(),
+        )?;
+        let result = (|| -> Result<_> {
+            let snapshot = self.sources(&applied.paths, applied.input.graph_revision.is_some())?;
+            let mut input = applied.input.clone();
+            input.source_revision.clone_from(&snapshot.revision);
+            input.graph_revision = snapshot.atlas.as_ref().map(|atlas| atlas.revision.clone());
+            if let Some(atlas) = &snapshot.atlas {
+                let mut nodes = atlas.graph.nodes.iter().filter(|node| {
+                    node.id == input.target.name && node.file_path == input.target.file
+                });
+                let node = nodes
+                    .next()
+                    .context("Repair applied; declaration is missing from the new graph")?;
+                input.target.line = node
+                    .line_start
+                    .context("Repair applied; new declaration has no source line")?;
+                anyhow::ensure!(
+                    nodes.next().is_none(),
+                    "Repair applied; new declaration identity is ambiguous"
+                );
+            }
+            let record = self.analyze(&snapshot, input, notify)?;
+            Ok((snapshot, record))
+        })();
+        let record_result = result
+            .as_ref()
+            .map(|(_, record)| record.clone())
+            .map_err(|error| anyhow::anyhow!("{error:#}"));
+        crate::analysis::repair::record_reanalysis(
+            self.workspace.path(),
+            &applied,
+            &record_result,
+        ).context("Repair was applied; reanalysis linkage could not be saved. Inspect retained files and analysis history")?;
+        result.context("Repair was applied; reanalysis stopped. Files are retained; reread and explicitly rerun")
     }
 
     pub(crate) fn analysis_history(&self) -> Result<Vec<crate::analysis::Record>> {

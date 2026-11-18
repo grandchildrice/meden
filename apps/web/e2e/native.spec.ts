@@ -1423,6 +1423,212 @@ test.describe("native GUI with real offline workers", () => {
       .click();
     await page.getByRole("button", { name: "この送信先を承認" }).click();
   }
+  const stockSource = "pub fn stock(n: u64) -> u64 { n }\n";
+  const stockRequirement = "Decrement positive stock and keep zero at zero.";
+  const stockTranslation = (fixed = false) =>
+    tool("record_informalization", {
+      lemmaName: "stock",
+      naturalLanguage: fixed
+        ? "Positive stock decreases; zero remains zero."
+        : "Stock remains unchanged.",
+      preconditions: "Any u64 stock",
+      postcondition: fixed ? "Saturating decrement" : "Output equals input",
+      scope: "One transition",
+      strength: "moderate",
+      confidence: 0.9,
+    });
+  const stockComparison = (fixed = false) =>
+    tool("record_comparison", {
+      lemmaName: "stock",
+      match: fixed,
+      discrepancy: fixed ? "" : "No decrement is established.",
+      weakeningType: fixed ? "none" : "wrong-property",
+      explanation: fixed
+        ? "The positive and zero cases agree."
+        : "Unchanged stock does not satisfy the requested decrement.",
+    });
+  const stockRepair = () =>
+    tool("propose_repair", {
+      file: "stock.rs",
+      old_text: "{ n }",
+      new_text: "{ n.saturating_sub(1) }",
+      explanation: "Decrement positive stock and retain zero.",
+    });
+  async function openStockFinding(page: Page) {
+    await writeFile(resolve(project, "stock.rs"), stockSource);
+    await page.goto(await start());
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+    await page
+      .getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" })
+      .fill("stock.rs");
+    await page
+      .getByRole("button", { name: "ソースを読み直してグラフを表示" })
+      .click();
+    await page
+      .getByRole("region", { name: "ローカルソースのグラフ" })
+      .getByRole("button", { name: /stock.*を選択/ })
+      .click();
+    await page
+      .getByRole("textbox", { name: "比較する要件", exact: true })
+      .fill(stockRequirement);
+    await page
+      .getByRole("button", { name: "接続先を確認", exact: true })
+      .click();
+    await page.getByRole("button", { name: "この送信先を承認" }).click();
+    await page.getByRole("button", { name: "この宣言の意味を解析" }).click();
+    await expect(
+      page.getByLabel("意味解析の結果", { exact: true }),
+    ).toContainText("意味の差異候補（モデル評価）");
+  }
+  test("review a Finding repair, reject it, refuse stale sources and reanalyze the applied exact diff", async ({
+    page,
+  }) => {
+    responses.push(
+      ...[
+        stockTranslation(),
+        stockComparison(),
+        stockRepair(),
+        stockRepair(),
+        stockTranslation(),
+        stockComparison(),
+        stockRepair(),
+        stockTranslation(true),
+        stockComparison(true),
+      ].map(
+        (message) => (response: ServerResponse) => reply(response, message),
+      ),
+    );
+    await openStockFinding(page);
+    const prepare = page.getByRole("button", {
+      name: "このFindingの修正差分を作る",
+    });
+    const dialog = page.getByRole("dialog", {
+      name: "修正差分と元の要件を確認",
+    });
+    const apply = dialog.getByRole("button", {
+      name: "この差分を一度適用して再解析",
+    });
+    await prepare.click();
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel("適用する正確な修正差分")).toContainText(
+      "+pub fn stock(n: u64) -> u64 { n.saturating_sub(1) }",
+    );
+    expect(await readFile(resolve(project, "stock.rs"), "utf8")).toBe(
+      stockSource,
+    );
+    await dialog.getByRole("button", { name: "修正を拒否" }).click();
+    await expect(dialog).not.toBeVisible();
+    expect(requests).toHaveLength(3);
+    await prepare.click();
+    await expect(dialog).toBeVisible();
+    const concurrent = stockSource + "// concurrent host edit\n";
+    await writeFile(resolve(project, "stock.rs"), concurrent);
+    await apply.click();
+    await expect(
+      page
+        .getByRole("alert")
+        .filter({ hasText: "Sources changed since the Finding" }),
+    ).toBeVisible();
+    expect(await readFile(resolve(project, "stock.rs"), "utf8")).toBe(
+      concurrent,
+    );
+    expect(requests).toHaveLength(4);
+    await page
+      .getByRole("button", { name: "ソースを読み直してグラフを表示" })
+      .click();
+    await page.getByRole("button", { name: "この宣言の意味を解析" }).click();
+    await expect.poll(() => requests.length).toBe(6);
+    await expect(prepare).toBeEnabled();
+    await prepare.click();
+    await expect(dialog).toBeVisible();
+    const reference = (await nativeState(page)).repair_review.reference;
+    await page.setViewportSize({ width: 300, height: 250 });
+    await expect(apply).toBeDisabled();
+    expect(await readFile(resolve(project, "stock.rs"), "utf8")).toBe(
+      concurrent,
+    );
+    await page.setViewportSize({ width: 1440, height: 960 });
+    await expect(apply).toBeEnabled();
+    await page.screenshot({
+      path: "target/gui-checks/native-repair-review.png",
+      fullPage: true,
+    });
+    await apply.click();
+    const result = page.getByLabel("意味解析の結果", { exact: true });
+    await expect(result).toContainText("一致の候補（モデル評価）");
+    expect(await readFile(resolve(project, "stock.rs"), "utf8")).toBe(
+      concurrent.replace("{ n }", "{ n.saturating_sub(1) }"),
+    );
+    const state = await nativeState(page);
+    expect(state.project.verified).toBe(false);
+    expect(state.analysis_history).toHaveLength(3);
+    expect(
+      new Set(
+        state.analysis_history.map(
+          (entry: { requirement_id: string }) => entry.requirement_id,
+        ),
+      ).size,
+    ).toBe(1);
+    expect(requests).toHaveLength(9);
+    expect(await hostCommand(page, { type: "apply_repair", reference })).toBe(
+      202,
+    );
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    expect((await nativeState(page)).stopped).toContain(
+      "Repair review selection changed",
+    );
+    expect(requests).toHaveLength(9);
+    const port = Number(new URL(url).port);
+    await stop();
+    await page.goto(await start(port));
+    await expect(
+      page.getByRole("tab", { name: "グラフ", exact: true }),
+    ).toBeVisible();
+    expect((await nativeState(page)).repair_review).toBe(null);
+    expect((await nativeState(page)).authorized).toBe(false);
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+    await expect(result).toContainText("保存された解析です");
+  });
+  test("restarting discards a pending repair approval without changing source", async ({
+    page,
+  }) => {
+    responses.push(
+      ...[stockTranslation(), stockComparison(), stockRepair()].map(
+        (message) => (response: ServerResponse) => reply(response, message),
+      ),
+    );
+    await openStockFinding(page);
+    await page
+      .getByRole("button", { name: "このFindingの修正差分を作る" })
+      .click();
+    const dialog = page.getByRole("dialog", {
+      name: "修正差分と元の要件を確認",
+    });
+    await expect(dialog).toBeVisible();
+    const reference = (await nativeState(page)).repair_review.reference;
+    const port = Number(new URL(url).port);
+    await stop();
+    await page.goto(await start(port));
+    await expect(
+      page.getByRole("tab", { name: "グラフ", exact: true }),
+    ).toBeVisible();
+    await expect(dialog).not.toBeVisible();
+    expect(await hostCommand(page, { type: "apply_repair", reference })).toBe(
+      202,
+    );
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    expect((await nativeState(page)).stopped).toContain(
+      "Repair review selection changed",
+    );
+    expect(await readFile(resolve(project, "stock.rs"), "utf8")).toBe(
+      stockSource,
+    );
+    expect(requests).toHaveLength(3);
+  });
   test("local meaning history retains requirement and Finding identities across reruns and restart", async ({
     page,
   }) => {

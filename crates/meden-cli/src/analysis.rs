@@ -11,6 +11,7 @@ use meden_runtime::{process::Control, workspace::Workspace};
 use serde::{Deserialize, Serialize};
 
 pub(crate) mod journal;
+pub(crate) mod repair;
 pub(crate) mod sources;
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
@@ -33,6 +34,7 @@ pub(crate) struct Record {
     pub id: String,
     pub requirement_id: String,
     pub finding_id: Option<String>,
+    pub source_artifact: Option<String>,
     pub engine: String,
     pub model: String,
     pub processor: String,
@@ -104,11 +106,13 @@ pub(crate) fn run(
         snapshot.files.clone(),
         snapshot.atlas.as_ref(),
     )?;
+    let source_artifact = journal::retain_sources(workspace.path(), snapshot)?;
     let record = RefCell::new(journal::begin(
         workspace.path(),
         gateway.endpoint(),
         &gateway.provider().model,
         input,
+        source_artifact,
     )?);
     notify(&record.borrow());
     let observe = || -> Result<()> {

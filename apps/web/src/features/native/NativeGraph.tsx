@@ -30,6 +30,7 @@ export function NativeGraph({
   analysis,
   history,
   onSelectAnalysis,
+  onRepair,
   authorized,
   running,
   onAnalyze,
@@ -38,6 +39,7 @@ export function NativeGraph({
   analysis: MeaningRecord | null;
   history: MeaningRecord[];
   onSelectAnalysis: (id: string) => Promise<boolean>;
+  onRepair: (finding: string) => Promise<boolean>;
   authorized: boolean;
   running: boolean;
   onAnalyze: (input: MeaningInput) => Promise<boolean>;
@@ -156,6 +158,7 @@ export function NativeGraph({
         record={analysis}
         history={history}
         onSelect={onSelectAnalysis}
+        onRepair={onRepair}
         sourceRevision={snapshot.revision}
         graphRevision={snapshot.atlas?.revision}
         authorized={authorized}

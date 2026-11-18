@@ -61,7 +61,11 @@ impl Store {
                     && valid_id(&record.id)
                     && ids.insert(record.id.clone())
                     && record.requirement_id == requirement_id(&record.input.requirement)
-                    && record.finding_id == finding_id(record),
+                    && record.finding_id == finding_id(record)
+                    && record
+                        .source_artifact
+                        .as_ref()
+                        .is_none_or(|id| valid_hex(id, "sha256:")),
                 "invalid meaning-analysis history linkage"
             );
             previous = record.sequence;
@@ -85,7 +89,10 @@ fn analysis_id() -> Result<String> {
     Ok(format!("analysis-{:x}", Sha256::digest(random)))
 }
 fn valid_id(id: &str) -> bool {
-    id.strip_prefix("analysis-").is_some_and(|s| {
+    valid_hex(id, "analysis-")
+}
+fn valid_hex(id: &str, prefix: &str) -> bool {
+    id.strip_prefix(prefix).is_some_and(|s| {
         s.len() == 64
             && s.bytes()
                 .all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c))
@@ -102,7 +109,13 @@ fn finding_id(record: &Record) -> Option<String> {
         .filter(|a| a.verdict != Verdict::Match)
         .map(|_| record.id.replacen("analysis-", "finding-", 1))
 }
-pub(super) fn begin(root: &Path, processor: &str, model: &str, input: Input) -> Result<Record> {
+pub(super) fn begin(
+    root: &Path,
+    processor: &str,
+    model: &str,
+    input: Input,
+    source_artifact: String,
+) -> Result<Record> {
     let store = Store::open(root)?;
     let mut journal = if let Ok(journal) = store.read() {
         journal
@@ -133,6 +146,7 @@ pub(super) fn begin(root: &Path, processor: &str, model: &str, input: Input) -> 
         id: analysis_id()?,
         requirement_id: requirement_id(&input.requirement),
         finding_id: None,
+        source_artifact: Some(source_artifact),
         engine: semantic::ENGINE.into(),
         model: model.into(),
         processor: processor.into(),
@@ -158,6 +172,7 @@ pub(super) fn save(root: &Path, record: &Record) -> Result<()> {
         saved.input == record.input
             && saved.model == record.model
             && saved.processor == record.processor
+            && saved.source_artifact == record.source_artifact
             && saved.requirement_id == record.requirement_id
             && saved.sequence == record.sequence,
         "analysis history binding changed"
@@ -187,4 +202,22 @@ pub(crate) fn select(root: &Path, id: &str) -> Result<Record> {
         .into_iter()
         .find(|record| record.id == id || record.finding_id.as_deref() == Some(id))
         .context("Analysis/Finding ID not found in this project's local history")
+}
+
+/// Retained data only. Historical artifacts never restore a running snapshot or approval.
+pub(super) fn retain_sources(root: &Path, snapshot: &super::sources::Snapshot) -> Result<String> {
+    let value = serde_json::to_value(snapshot)?;
+    let digest = format!("{:x}", Sha256::digest(serde_json::to_vec(&value)?));
+    let path = crate::storage::directory(root)?
+        .join("analysis-sources")
+        .join(format!("{digest}.json"));
+    if let Some(existing) = crate::storage::read::<serde_json::Value>(&path)? {
+        anyhow::ensure!(
+            existing == value,
+            "Retained analysis sources changed; no old artifact was overwritten"
+        );
+    } else {
+        crate::storage::write(&path, &value)?;
+    }
+    Ok(format!("sha256:{digest}"))
 }

@@ -35,6 +35,7 @@ mod assurance;
 mod commands;
 mod editor;
 mod input;
+mod repair;
 mod reveal;
 mod setup;
 mod view;
@@ -43,6 +44,12 @@ use input::Input;
 use view::draw;
 
 enum Task {
+    PrepareRepair {
+        snapshot: Box<crate::analysis::sources::Snapshot>,
+        record: Box<crate::analysis::Record>,
+    },
+    ApplyRepair(crate::analysis::repair::Reference),
+    RejectRepair(crate::analysis::repair::Reference),
     Instruction(String),
     Sources {
         paths: Vec<String>,
@@ -56,6 +63,8 @@ enum Task {
 }
 
 enum Update {
+    RepairReview(Box<crate::analysis::repair::Review>),
+    RepairApplied(Box<(crate::analysis::sources::Snapshot, crate::analysis::Record)>),
     Sources(crate::analysis::sources::Snapshot),
     Analysis(Box<crate::analysis::Record>),
     AnalysisDone {
@@ -102,6 +111,7 @@ enum Screen {
     ReviewingProcessor,
     ReviewingExport,
     ReviewingContract,
+    ReviewingRepair,
     Instructing,
     Running,
 }
@@ -145,6 +155,7 @@ struct App {
     project: Arc<crate::project::Project>,
     project_status: Option<crate::project::Summary>,
     contract_review: Option<crate::project::Summary>,
+    repair_review: Option<crate::analysis::repair::Review>,
     pages: Arc<meden_runtime::pages::Pages>,
     reviewing_export: Option<Reference>,
     export_offset: usize,
@@ -201,6 +212,7 @@ impl App {
             project,
             project_status: None,
             contract_review: None,
+            repair_review: None,
             pages: Arc::default(),
             reviewing_export: None,
             export_offset: 0,
@@ -897,6 +909,8 @@ impl App {
         }
         for update in updates {
             match update {
+                Update::RepairReview(review) => self.show_repair(*review),
+                Update::RepairApplied(applied) => self.repair_applied(*applied),
                 Update::AnalysisDone { text, failed } => {
                     self.busy = false;
                     self.turn_started = None;
@@ -995,6 +1009,7 @@ fn worker(
     tx: &Sender<Update>,
     inspect: impl Fn() -> Result<crate::project::Summary>,
 ) {
+    let mut repairs = crate::analysis::repair::Queue::default();
     let observer = |event: Event<'_>| {
         let refresh_project = matches!(&event, Event::ToolResult { call, .. }
             if matches!(call.function.name.as_str(), "verify_project" | "propose_contract" | "project_status" | "write_file" | "edit_file" | "bash"));
@@ -1055,7 +1070,7 @@ fn worker(
         let instruction = match task {
             Task::Instruction(instruction) => instruction,
             task => {
-                if !analysis::execute(&session, task, tx) {
+                if !analysis::execute(&session, &mut repairs, task, tx) {
                     return;
                 }
                 continue;
@@ -1264,7 +1279,10 @@ where
         }
         if matches!(
             app.screen,
-            Screen::ReviewingProcessor | Screen::ReviewingExport | Screen::ReviewingContract
+            Screen::ReviewingProcessor
+                | Screen::ReviewingExport
+                | Screen::ReviewingContract
+                | Screen::ReviewingRepair
         ) {
             let size = terminal.size()?;
             if size.width != app.review_frame.width || size.height != app.review_frame.height {
@@ -1289,6 +1307,7 @@ where
             Screen::ReviewingProcessor => app.review_key(key),
             Screen::ReviewingExport => app.export_key(key),
             Screen::ReviewingContract => app.contract_key(key),
+            Screen::ReviewingRepair => app.repair_key(key),
             Screen::Instructing => app.instruction_key(key),
             Screen::Running => {
                 if key.code == KeyCode::Esc {
@@ -1311,6 +1330,7 @@ fn selftest(providers: Vec<Provider>) -> Result<String> {
         Screen::ReviewingProcessor,
         Screen::ReviewingExport,
         Screen::ReviewingContract,
+        Screen::ReviewingRepair,
         Screen::Instructing,
         Screen::Running,
     ] {

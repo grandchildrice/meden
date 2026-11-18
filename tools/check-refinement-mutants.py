@@ -824,6 +824,11 @@ GROUPS = [
                 "Screen::ReviewingExport => { let _ = Choice::Export; Some(Choice::Processor) }",
             ),
             (
+                "wrong_repair_review_target",
+                "Screen::ReviewingRepair => Some(Choice::Repair)",
+                "Screen::ReviewingRepair => { let _ = Choice::Repair; Some(Choice::Export) }",
+            ),
+            (
                 "untrusted_review_input",
                 "if !approves(event) {",
                 "if !approves(event) && false {",
