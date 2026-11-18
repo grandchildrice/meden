@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
-import { Button, Chip, CircularProgress, Typography } from "@mui/material";
+import { Button, CircularProgress, Typography } from "@mui/material";
 import CheckCircleRounded from "@mui/icons-material/CheckCircleRounded";
 import ErrorOutlineRounded from "@mui/icons-material/ErrorOutlineRounded";
 import ArrowBackRounded from "@mui/icons-material/ArrowBackRounded";
 import { diffChars } from "diff";
 import type { Workspace } from "@meden/workspace-schema";
+import { SemanticMethodInfo } from "./SemanticMethodInfo";
 import { demoSnapshot } from "../../fixtures/meden-demo";
 const steps = [
-  "対象リビジョンを固定",
-  "依存関係を確認",
-  "定理の意味を展開",
-  "要件と比較",
+  "対象リビジョンの固定",
+  "依存関係の確認",
+  "定理の逆翻訳",
+  "依頼との意味比較",
 ];
 export function SemanticRun({
   workspace,
@@ -36,8 +37,8 @@ export function SemanticRun({
   useEffect(() => {
     if (state !== "running") return;
     const timer = setTimeout(() => {
-      if (step === 3) {
-        setStep(4);
+      if (step === steps.length - 1) {
+        setStep(steps.length);
         setState("complete");
       } else setStep((value) => value + 1);
     }, 650);
@@ -54,82 +55,70 @@ export function SemanticRun({
   const archived = demoSnapshot.contract.properties.find(
     (item) => item.name === claim?.id,
   )?.description;
-  const expected = sample
-    ? "残高が150円以上なら商品を購入できる。在庫の有無は購入条件に含めない。"
-    : claim?.text || "要件が含まれていません。";
-  const actual = sample
-    ? "残高が150円以上かつ在庫が1個以上なら商品を購入できる。購入時に残高を150円、在庫を1個減らす。"
-    : archived ||
-      workspace.analyses.find((item) => item.claimId === claim?.id)
-        ?.backTranslation ||
-      "定理の意味はまだ取得されていません。";
-  const changed = expected !== actual;
-  const parts = diffChars(expected, actual);
+  const expected = claim?.text || "要件が含まれていません。";
+  const actual =
+    archived ||
+    workspace.analyses.find((item) => item.claimId === claim?.id)
+      ?.backTranslation ||
+    "定理の意味はまだ取得されていません。";
+  const changed = sample || expected !== actual;
+  const parts = sample ? [] : diffChars(expected, actual);
   return (
     <section className="semantic-run" aria-label="意味解析">
       <div className="semantic-run-heading">
         <Button size="small" startIcon={<ArrowBackRounded />} onClick={onBack}>
           グラフに戻る
         </Button>
-        <Chip size="small" label="デモ" variant="outlined" />
       </div>
-      <Typography variant="h2">意味解析</Typography>
-      <Typography variant="body2" color="text.secondary">
-        {sample
-          ? "差分サンプル · 保存された要件・証明は変更しません"
-          : "保存された要件と比較テキストの表示"}
-      </Typography>
-      <ol className="check-pipeline" aria-label="解析の進行状況">
-        {steps.map((name, index) => (
-          <li
-            key={name}
-            className={
-              state === "complete" && index === 3 && changed
-                ? "step-failed"
-                : index < step
-                  ? "step-complete"
-                  : index === step && state === "running"
-                    ? "step-running"
-                    : "step-queued"
-            }
-          >
-            {state === "complete" && index === 3 && changed ? (
-              <ErrorOutlineRounded />
-            ) : index < step ? (
-              <CheckCircleRounded />
-            ) : index === step && state === "running" ? (
-              <CircularProgress size={18} />
-            ) : (
-              <span className="step-pending" />
-            )}
-            <span>{name}</span>
-            <small>
-              {state === "complete" && index === 3 && changed
-                ? "NG"
-                : index < step
-                  ? "完了"
-                  : index === step && state === "running"
-                    ? "実行中"
-                    : "待機"}
-            </small>
-          </li>
-        ))}
-      </ol>
-      <div className="semantic-state" role="status" aria-live="polite">
-        {state === "running"
-          ? "比較画面を準備しています…"
-          : state === "cancelled"
-            ? "表示を中止しました"
-            : "比較表示が完了しました"}
+      <header className="semantic-title">
+        <Typography variant="h2">意味の比較</Typography>
+        <SemanticMethodInfo />
+      </header>
+      <div className="semantic-run-status">
+        <Typography variant="body2" color="text.secondary">
+          {sample ? "在庫条件が異なる比較例" : "保存された要件の比較例"}
+        </Typography>
+        {state !== "complete" && (
+          <div className="semantic-state" role="status">
+            {state === "running"
+              ? "比較画面を準備しています…"
+              : "表示を中止しました"}
+          </div>
+        )}
       </div>
-      {state === "running" ? (
-        <Button size="small" onClick={() => setState("cancelled")}>
-          中止
-        </Button>
-      ) : (
-        <Button size="small" onClick={() => run(sample)}>
-          もう一度実行
-        </Button>
+      {state !== "complete" && (
+        <>
+          <ol className="check-pipeline" aria-label="解析の進行状況">
+            {steps.map((name, index) => {
+              const complete = index < step;
+              const active = index === step && state === "running";
+              return (
+                <li key={name} aria-current={active ? "step" : undefined}>
+                  {complete ? (
+                    <CheckCircleRounded />
+                  ) : active ? (
+                    <CircularProgress size={18} />
+                  ) : (
+                    <span className="step-pending" />
+                  )}
+                  <span>{name}</span>
+                  <small>
+                    {complete ? "完了" : active ? "実行中" : "待機"}
+                  </small>
+                </li>
+              );
+            })}
+          </ol>
+          {state === "running" ? (
+            <Button size="small" onClick={() => setState("cancelled")}>
+              中止
+            </Button>
+          ) : (
+            <Button size="small" onClick={() => run(sample)}>
+              もう一度実行
+            </Button>
+          )}
+        </>
       )}
       {state === "complete" && (
         <div className="semantic-results">
@@ -137,6 +126,7 @@ export function SemanticRun({
             className={
               "semantic-result-heading " + (changed ? "has-gap" : "no-gap")
             }
+            role="status"
           >
             {changed ? <ErrorOutlineRounded /> : <CheckCircleRounded />}
             <div>
@@ -147,77 +137,80 @@ export function SemanticRun({
                     : "文面に差分があります"
                   : "表示用テキストに差分はありません"}
               </strong>
-              {sample && <small>想定要件を変えた差分サンプル</small>}
+              {sample && (
+                <p className="boundary-example">
+                  残高150円・在庫0個の場合、依頼では購入でき、定理の条件では購入できません。
+                </p>
+              )}
             </div>
           </div>
           <div className="semantic-diff" aria-label="意味の差分">
             <section>
-              <header>
-                <span className="diff-sign">−</span>
-                {sample ? "想定要件（サンプル）" : "求める意味"}
-              </header>
+              <Typography variant="h3">元の依頼</Typography>
               <p>
-                {parts
-                  .filter((part) => !part.added)
-                  .map((part, i) =>
-                    part.removed ? (
-                      <mark className="expected-diff" key={i}>
-                        {part.value}
-                      </mark>
-                    ) : (
-                      <span key={i}>{part.value}</span>
-                    ),
-                  )}
+                {sample ? (
+                  <>
+                    残高が150円以上なら購入できる。
+                    <mark className="expected-diff">
+                      在庫は購入条件に含めない。
+                    </mark>
+                  </>
+                ) : (
+                  parts
+                    .filter((part) => !part.added)
+                    .map((part, index) =>
+                      part.removed ? (
+                        <mark className="expected-diff" key={index}>
+                          {part.value}
+                        </mark>
+                      ) : (
+                        part.value
+                      ),
+                    )
+                )}
               </p>
             </section>
             <section>
-              <header>
-                <span className="diff-sign">＋</span>
-                {sample
-                  ? "定理が表す意味（サンプル）"
-                  : "定理の比較テキスト（デモ）"}
-              </header>
+              <Typography variant="h3">定理の比較文</Typography>
               <p>
-                {parts
-                  .filter((part) => !part.removed)
-                  .map((part, i) =>
-                    part.added ? (
-                      <mark className="actual-diff" key={i}>
-                        {part.value}
-                      </mark>
-                    ) : (
-                      <span key={i}>{part.value}</span>
-                    ),
-                  )}
+                {sample ? (
+                  <>
+                    残高が150円以上で、
+                    <mark className="actual-diff">在庫が1個以上なら</mark>
+                    購入できる。
+                  </>
+                ) : (
+                  parts
+                    .filter((part) => !part.removed)
+                    .map((part, index) =>
+                      part.added ? (
+                        <mark className="actual-diff" key={index}>
+                          {part.value}
+                        </mark>
+                      ) : (
+                        part.value
+                      ),
+                    )
+                )}
               </p>
             </section>
           </div>
-          {sample && (
-            <div className="boundary-example">
-              <strong>境界ケース</strong>
-              <p>残高150円・在庫0個</p>
-              <div>
-                <span>想定要件：購入できる</span>
-                <span>定理：購入できない</span>
-              </div>
-            </div>
-          )}
-          {claim && (
-            <Button size="small" onClick={() => onInspect(claim.id)}>
-              要件・定理の記録を確認
+          <div className="semantic-result-actions">
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => run(!sample)}
+            >
+              {sample ? "一致例を表示" : "NG例を表示"}
             </Button>
-          )}
+            {claim && (
+              <Button size="small" onClick={() => onInspect(claim.id)}>
+                要件・定理の記録を確認
+              </Button>
+            )}
+          </div>
         </div>
       )}
-      <div className="semantic-demo-footer">
-        <Button
-          variant="outlined"
-          disabled={state === "running"}
-          onClick={() => run(!sample)}
-        >
-          {sample ? "一致例を表示" : "NG例を表示"}
-        </Button>
-      </div>
     </section>
   );
 }

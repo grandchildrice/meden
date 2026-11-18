@@ -24,23 +24,23 @@ The production build is written to `apps/web/dist`.
 
 ## Layout and journeys
 
-The left sidebar contains the project conversation, message entry and search. The center remains
-the main work area. The narrower right sidebar has exactly **Code / Preview /
-Proof** tabs. The upper-right proof icon opens the graph; the panel icon opens
-or closes the sidebar. Narrow screens use drawers.
+The left toolbar button opens or collapses the conversation sidebar, which
+contains history, message entry, search and settings. The upper-right
+“成果物を開く” button opens the **Code / Preview / Proof** sidebar. Narrow
+screens use drawers.
 
-| Goal                            | Entry and result                                                                                                                                                                                  |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Start a conversation            | Send an instruction with the arrow or Enter; its title is automatic. Shift+Enter adds a newline.                                                                                                  |
-| Read actual development history | Open the vending-machine conversation in the sidebar. “会話の先頭” jumps to the supplied opening request; “実行ログ” jumps to retained tool activity.                                             |
-| Inspect recorded execution      | Expand each tool call for its actual arguments and output, including the Lean recursion-limit failure, verification retries, source edits and seven passing CLI tests.                            |
-| Inspect a proof                 | Open Proof: the radial graph shows related declarations, including incoming references. Select a node for its statement, status and direct dependencies.                                          |
-| Open exact source               | Click the statement or file/line link; Code opens the retained file at the highlighted line. Return to Proof with selection intact.                                                               |
-| Change graph scope              | Search a declaration, center on it and return, or choose only outgoing dependencies / meaning-related dependencies. Pan and zoom remain available.                                                |
-| Inspect proof coverage          | Open the proof-count control for the eight property records. Source-only helpers without individual audit entries remain unconfirmed.                                                             |
-| Run the meaning-analysis GUI    | Choose “意味解析” inside Proof. A cancellable CI-style sequence opens the NG inventory-condition sample first. The last comparison step shows NG; switch between “一致例を表示” and “NG例を表示”. |
-| Edit or request review          | From the meaning result, inspect the retained requirement/theorem record, edit a draft or prepare a revision-bound review export. No extra top-level tab is added.                                |
-| Preserve work                   | Chat, drafts and edits survive reload. Failed storage retains the in-memory conversation and offers retry/export. Invalid imports keep current work.                                              |
+| Goal                            | Entry and result                                                                                                                                                                                            |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Start a conversation            | Send an instruction with the arrow or Enter; its title is automatic. Shift+Enter adds a newline.                                                                                                            |
+| Read actual development history | Open the vending-machine conversation in the sidebar. Scroll to the supplied opening request or expand tool activity inline with its message.                                                               |
+| Inspect recorded execution      | Expand each tool call for its actual arguments and output, including the Lean recursion-limit failure, verification retries, source edits and seven passing CLI tests.                                      |
+| Inspect a proof                 | Open Proof: the radial graph shows related declarations, including incoming references. Select a node for its statement, status and direct dependencies.                                                    |
+| Open exact source               | Click the statement or file/line link; Code opens the retained file at the highlighted line. Return to Proof with selection intact.                                                                         |
+| Change graph scope              | Search a declaration, center on it and return, or choose only outgoing dependencies / meaning-related dependencies. Pan and zoom remain available.                                                          |
+| Inspect proof coverage          | Open the proof-count control for the eight property records. Source-only helpers without individual audit entries remain unconfirmed.                                                                       |
+| Run the meaning-analysis GUI    | Choose “意味解析” inside Proof. A cancellable sequence opens the NG inventory-condition example. The result puts the boundary case above the compared text. Switch between “一致例を表示” and “NG例を表示”. |
+| Edit or request review          | From the meaning result, inspect the retained requirement/theorem record, edit a draft or prepare a revision-bound review export. No extra top-level tab is added.                                          |
+| Preserve work                   | Chat, drafts and edits survive reload. Failed storage retains the in-memory conversation and offers retry/export. Invalid imports keep current work.                                                        |
 
 ## Recorded meden-demo example
 
@@ -103,9 +103,10 @@ and “balance 150, stock 0” boundary illustrate the intended result UI. Runs 
 be cancelled; revision changes invalidate the displayed run. Imported proof
 progress/no-sorry metadata is never upgraded to fresh evidence.
 
-The info button beside “意味解析” opens a compact description of the planned
-algorithm: public-tool candidates claimcheck and FormalAlign, blind translation
-and comparison of missing/extra conditions. It describes the design, without adding another top-level tab.
+The information button describes the planned two-pass approach, based on
+claimcheck. A translation LLM sees the Lean theorem and renders it in natural
+language without seeing the original request. A second LLM compares that text to
+the request and flags missing or extra conditions.
 
 ## Storage and runtime boundary
 
@@ -120,8 +121,8 @@ prevents the earlier one-time-migration behavior from creating new forks. The
 selected continuation and active unsent input follow the canonical conversation.
 Other projects remain separate; original activities and repeated messages survive.
 
-The small Demo badge and settings describe the current mode. Send appends a
-local demo response and opens the relevant panel. There is **no model call,
+Settings provides workspace export, JSON import and conversation deletion. Send
+appends a local demo response and opens the relevant panel. There is **no model call,
 Lean execution, native contract acceptance or capability grant** in browser code.
 Recorded and demo messages retain distinct origins in the shared schema. Editing
 requirements only changes browser drafts, not the Rust controller's accepted
@@ -184,12 +185,15 @@ traces and the HTML report are retained under `target/gui-checks/`. On Linux CI,
 install Chromium with `npx playwright install --with-deps chromium`; on this
 NixOS host the config uses installed Chrome. `MEDEN_GUI_CHROME` overrides its path.
 
-Browser journeys cover send/title/history/reload, preview actions, graph
+Browser journeys cover send/title/history/reload, independent sidebar controls,
+preview actions, graph
 inspection, freshness, scoped export, import errors, storage failure/retry,
 legacy-history migration/restart, compact layout and keyboard entry. Axe checks home, conversation, all three
 sidebar tabs, source navigation, algorithm popover and semantic differences against automated WCAG 2.1 AA rules. This is not a complete manual
 or assistive-technology audit. The required [public TUI gate](ux-testing.md)
 remains separate; scripted fixtures are not live inference evidence.
+
+Earlier GUI captures
 
 [Expanded graph](assets/gui/expanded-graph.png) · [Full-height source](assets/gui/expanded-source.png) · [Opening request](assets/gui/history-start.png) ·
 [Home](assets/gui/home.png) · [Actual execution history](assets/gui/history.png) ·

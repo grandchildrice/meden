@@ -325,62 +325,6 @@
   display: flex;
   flex-direction: column;
 }
-.analysis-workspace {
-  display: grid;
-  grid-template-columns: 248px minmax(0, 1fr);
-  flex: 1;
-  min-height: 0;
-}
-.claim-list {
-  background: #f8fafb;
-  border-right: 1px solid var(--line);
-  overflow: auto;
-  padding: 20px 12px;
-}
-.claim-filter {
-  padding: 0 4px 20px;
-}
-.claim-filter .MuiSelect-select {
-  font-size: 12px;
-}
-.claim-item {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-  text-align: left;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  padding: 16px;
-  min-height: 132px;
-  margin-bottom: 12px;
-  color: #243c47;
-}
-.claim-item:hover {
-  background: #edf3f5;
-}
-.claim-item.selected {
-  background: #fff;
-  border-color: #a9c5cc;
-  box-shadow: 0 1px 3px #244c5a08;
-}
-.claim-id {
-  font:
-    11px "SFMono-Regular",
-    Consolas,
-    monospace;
-  letter-spacing: 0.3px;
-  color: #536d7a;
-}
-.claim-item strong {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.6;
-}
-.claim-item .MuiChip-root {
-  align-self: flex-start;
-}
 .comparison-panel {
   overflow: auto;
   padding: 28px 32px 32px;
@@ -388,12 +332,12 @@
 .comparison-heading {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 28px;
+  gap: 12px;
+  margin: 16px 0;
 }
-.comparison-heading .MuiTypography-h2 {
-  margin-top: 6px;
+.comparison-heading .MuiInputBase-root {
+  min-width: 0;
+  font-size: 13px;
 }
 .comparison-panel > .MuiAlert-root {
   margin-bottom: 20px;
@@ -410,7 +354,6 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  min-height: 230px;
 }
 .comparison-card:last-child {
   background: #f9fbfc;
@@ -420,8 +363,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  min-height: 48px;
-  margin-bottom: 12px;
+  min-height: 40px;
+  margin-bottom: 4px;
 }
 .comparison-card-title .MuiTypography-h3 {
   font-size: 14px;
@@ -436,7 +379,7 @@
   color: #213842;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  padding: 8px 0 28px;
+  padding: 4px 0 12px;
   flex: 1;
 }
 .compared-text mark {
@@ -793,11 +736,14 @@ pre {
   padding-left: 12px;
   font-size: 13px;
 }
-.sidebar-bottom > .MuiTypography-root {
-  padding-left: 12px;
-  font-size: 11px;
-  margin-top: 8px;
-  color: #64727c;
+#conversation-sidebar {
+  height: 100%;
+}
+.workspace-actions.MuiDialogContent-root {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
 }
 .main-column {
   display: flex;
@@ -829,40 +775,21 @@ pre {
   min-width: 0;
   line-height: 1.7;
 }
-.toolbar-actions {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex: none;
-}
-.toolbar-actions > .MuiTooltip-root {
-  margin-right: 6px;
-}
-.toolbar-actions .MuiIconButton-root {
+.artifact-toggle.MuiIconButton-root,
+.sidebar-toggle.MuiIconButton-root {
   width: 40px;
   height: 40px;
-  color: #6c7881;
+  color: #526b78;
 }
-.toolbar-actions .MuiIconButton-root[aria-pressed="true"] {
+.artifact-toggle.MuiIconButton-root {
+  margin-left: auto;
+}
+.artifact-toggle[aria-expanded="true"] {
   background: #edf3f4;
   color: #285d64;
 }
-.toolbar-actions .Mui-disabled {
-  opacity: 0.42;
-}
-.toolbar-actions .MuiChip-root {
-  height: 24px;
-  border-color: #e0e4e8;
-  color: #66727a;
-  margin-right: 10px;
-}
-.toolbar-actions .MuiChip-label {
-  font-size: 11px;
-  padding-inline: 8px;
-}
-.mobile-menu.MuiIconButton-root {
-  display: none;
+.sidebar-toggle svg {
+  transform: scaleX(-1);
 }
 .conversation-workbench {
   min-height: 0;
@@ -1264,34 +1191,6 @@ pre {
 .radar-node > button {
   pointer-events: auto;
 }
-.artifact-panel .analysis-workspace {
-  display: flex;
-  flex-direction: column;
-  overflow: auto;
-}
-.artifact-panel .claim-list {
-  display: flex;
-  flex: none;
-  gap: 8px;
-  overflow: auto;
-  padding: 12px;
-  border-right: 0;
-  border-bottom: 1px solid var(--line);
-}
-.artifact-panel .claim-filter {
-  display: none;
-}
-.artifact-panel .claim-item {
-  width: 190px;
-  min-width: 190px;
-  padding: 12px;
-  min-height: 112px;
-  margin: 0;
-  gap: 8px;
-}
-.artifact-panel .claim-item strong {
-  font-size: 12px;
-}
 .artifact-panel .comparison-panel {
   overflow: visible;
   padding: 20px;
@@ -1301,7 +1200,6 @@ pre {
 }
 .artifact-panel .comparison-card {
   padding: 12px;
-  min-height: 190px;
 }
 .artifact-panel .compared-text {
   font-size: 15px;
@@ -1312,9 +1210,6 @@ pre {
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 10px;
-}
-.artifact-panel .comparison-heading .MuiTypography-h2 {
-  font-size: 17px;
 }
 .artifact-panel .comparison-card-title .MuiTypography-h3 {
   font-size: 13px;
@@ -1654,9 +1549,6 @@ pre {
   .with-artifact .thread {
     padding-inline: 22px;
   }
-  .toolbar-actions .MuiIconButton-root {
-    width: 36px;
-  }
   .user-message {
     max-width: 92%;
   }
@@ -1679,9 +1571,6 @@ pre {
   .desktop-sidebar {
     display: none;
   }
-  .mobile-menu.MuiIconButton-root {
-    display: inline-flex;
-  }
   .chat-topbar {
     height: 60px;
     padding-inline: 10px;
@@ -1689,12 +1578,6 @@ pre {
   }
   .conversation-title.MuiTypography-root {
     font-size: 13px;
-  }
-  .toolbar-actions {
-    gap: 0;
-  }
-  .toolbar-actions .MuiChip-root {
-    margin-right: 4px;
   }
   .thread {
     padding-inline: 24px;
@@ -1716,16 +1599,6 @@ pre {
   }
   .chat-topbar {
     height: 56px;
-  }
-  .toolbar-actions .MuiIconButton-root {
-    width: 32px;
-    height: 36px;
-  }
-  .toolbar-actions .MuiChip-root {
-    display: none;
-  }
-  .toolbar-actions svg {
-    font-size: 18px;
   }
   .conversation-title.MuiTypography-root {
     max-width: 145px;
@@ -2153,41 +2026,48 @@ pre {
 .semantic-run {
   min-height: 0;
   overflow: auto;
-  padding: 20px;
+  padding: 12px clamp(16px, 4vw, 24px) 24px;
 }
 .semantic-run-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: -8px -8px 24px;
+  margin: 0 0 12px -8px;
 }
 .semantic-run-heading .MuiButton-root {
-  font-size: 11px;
-  min-height: 32px;
+  font-size: 12px;
+  min-height: 36px;
 }
-.semantic-run > .MuiTypography-h2 {
+.semantic-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.semantic-title > .MuiTypography-root {
   font-size: 22px;
-  margin-bottom: 6px;
+}
+.semantic-title > .semantic-info-button {
+  color: #526b78;
+}
+.semantic-run-status {
+  margin: 6px 0 16px;
+}
+.semantic-state {
+  margin-top: 16px;
+  font-size: 13px;
+  color: #425f6e;
 }
 .check-pipeline {
   padding: 0;
-  margin: 24px 0 12px;
-  border: 1px solid #e1e7eb;
-  border-radius: 12px;
+  margin: 0 0 8px;
   list-style: none;
-  overflow: hidden;
 }
 .check-pipeline li {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-height: 50px;
-  padding: 12px 16px;
+  gap: 10px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: #415a66;
   font-size: 12px;
-  border-bottom: 1px solid #edf0f3;
-}
-.check-pipeline li:last-child {
-  border-bottom: 0;
 }
 .check-pipeline li > svg {
   width: 18px;
@@ -2196,15 +2076,10 @@ pre {
 }
 .check-pipeline li > small {
   margin-left: auto;
-  color: #586f7b;
-  font-size: 10px;
 }
-.check-pipeline .step-running {
+.check-pipeline [aria-current="step"] {
   background: #f1f7fa;
   color: #254d5b;
-}
-.check-pipeline .step-queued {
-  color: #586b77;
 }
 .step-pending {
   width: 18px;
@@ -2212,131 +2087,64 @@ pre {
   border: 1px solid #aabac5;
   border-radius: 50%;
 }
-.semantic-state {
-  font-size: 12px;
-  color: #425f6e;
-}
-.semantic-run > .MuiButton-root {
-  font-size: 11px;
-  min-height: 34px;
-  padding-left: 0;
-}
-.semantic-results {
-  margin-top: 24px;
-}
 .semantic-result-heading {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 16px;
-  border-radius: 10px;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 8px;
   background: #eff6f2;
   color: #265a42;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 .semantic-result-heading.has-gap {
-  color: #775120;
-  background: #fff5e5;
+  background: #fbf3e8;
+  color: #69461d;
 }
 .semantic-result-heading > svg {
   width: 20px;
+  height: 22px;
   flex: none;
 }
 .semantic-result-heading strong {
-  display: block;
-  font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 4px;
-}
-.semantic-result-heading small {
-  display: block;
-  font-size: 11px;
-  line-height: 1.7;
-}
-.semantic-diff {
-  border: 1px solid #dfe5e9;
-  border-radius: 10px;
-  overflow: hidden;
-}
-.semantic-diff section + section {
-  border-top: 1px solid #dfe5e9;
-}
-.semantic-diff header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  font-weight: 500;
-  padding: 10px 14px;
-  background: #fff0ee;
-  color: #7c3b33;
-}
-.semantic-diff section + section header {
-  background: #eaf5ee;
-  color: #2a6049;
-}
-.semantic-diff p {
-  padding: 16px;
-  margin: 0;
-  font-size: 13px;
-  line-height: 2;
-}
-.semantic-diff mark {
-  padding: 2px 0;
-  text-decoration: none;
-}
-.semantic-diff .expected-diff {
-  background: #ffd8d3;
-  color: #7a2f27;
-}
-.semantic-diff .actual-diff {
-  background: #ccebd8;
-  color: #204e37;
-}
-.diff-sign {
-  font: 15px monospace;
+  font-size: 14px;
+  font-weight: 600;
 }
 .boundary-example {
-  margin-top: 20px;
-  border-left: 3px solid #c79b54;
-  padding: 4px 0 4px 14px;
-  font-size: 12px;
-  color: #5e4a2c;
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.75;
 }
-.boundary-example strong {
-  font-size: 11px;
-}
-.boundary-example p {
-  margin: 8px 0;
-}
-.boundary-example > div {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.semantic-results > .MuiButton-root {
-  font-size: 11px;
-  margin-top: 16px;
-  min-height: 36px;
-  padding-left: 0;
-}
-.semantic-demo-footer {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 16px;
-  margin-top: 28px;
-  border-top: 1px solid var(--line);
-  padding-top: 20px;
-}
-.semantic-demo-footer > .MuiTypography-caption {
-  font-size: 11px;
-  line-height: 1.8;
-}
-.semantic-demo-footer > .MuiButton-root {
-  font-size: 11px;
-  min-height: 36px;
+.semantic-diff {
+  border: 1px solid var(--line);
   border-radius: 8px;
+}
+.semantic-diff section {
+  padding: 14px;
+}
+.semantic-diff section + section {
+  border-top: 1px solid var(--line);
+}
+.semantic-diff .MuiTypography-h3 {
+  color: #465f6b;
+  font-size: 12px;
+}
+.semantic-diff p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.85;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.semantic-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 16px;
+}
+.semantic-result-actions .MuiButton-root {
+  font-size: 12px;
+  min-height: 36px;
 }
 @media (min-width: 1700px) {
   .conversation-workbench.with-artifact {
@@ -2357,21 +2165,6 @@ pre {
   .proof-graph-view .react-flow__node {
     animation: none;
   }
-}
-.recording-banner {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  border-bottom: 1px solid var(--line);
-  padding: 0 4px 18px;
-  margin-bottom: 28px;
-  color: #48616e;
-  font-size: 11px;
-}
-.recording-banner strong {
-  font-size: 12px;
-  font-weight: 500;
-  color: #344d59;
 }
 .user-turn {
   margin-bottom: 28px;
@@ -2484,29 +2277,6 @@ pre {
   background: #203b46;
   border-color: #648996;
 }
-.recording-banner {
-  position: sticky;
-  top: 0;
-  background: #fff;
-  z-index: 3;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  padding: 8px 4px 12px;
-}
-.recording-banner > span {
-  grid-column: 1;
-  grid-row: 2;
-}
-.recording-banner > .MuiButton-root {
-  grid-column: 2;
-  grid-row: 1 / 3;
-  min-height: 32px;
-  font-size: 11px;
-  padding-inline: 10px;
-}
-.recorded-activities {
-  scroll-margin-top: 80px;
-}
 /* Semantic zoom: dense overview shows structure; hover/selection reveals labels. */
 .radar-node[data-compact="true"]:not(.root-node):not(.active):not(:hover)
   strong,
@@ -2572,18 +2342,6 @@ pre {
   font-size: 12px;
   line-height: 1.8;
   color: #526976;
-}
-.check-pipeline .step-failed {
-  color: #923d32;
-  background: #fff1ee;
-}
-.check-pipeline .step-failed > svg,
-.check-pipeline .step-failed > small {
-  color: #923d32;
-}
-.semantic-result-heading.has-gap {
-  color: #923d32;
-  background: #fff1ee;
 }
 /* Full-height reading and a focused cone explorer, adapted from L4SB. */
 .proof-explorer-body {
@@ -2829,14 +2587,9 @@ pre {
 .radar-node:not(.root-node) strong {
   font-size: 12px;
 }
-.semantic-method-links {
-  display: flex;
-  gap: 16px;
-  margin-top: 16px;
-  font-size: 12px;
-}
-.semantic-method-links > a {
+.semantic-method-link {
   color: #285d64;
+  font-size: 12px;
   text-underline-offset: 3px;
 }
 @media (max-width: 760px) {
@@ -2851,19 +2604,6 @@ pre {
   .expanded-proof-header {
     padding: 12px 16px;
   }
-}
-.recording-shortcuts {
-  grid-column: 2;
-  grid-row: 1 / 3;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-.recording-shortcuts > .MuiButton-root {
-  font-size: 10px;
-  min-height: 32px;
-  padding-inline: 8px;
-  white-space: nowrap;
 }
 .selected-source-line {
   background: #eff7fa;

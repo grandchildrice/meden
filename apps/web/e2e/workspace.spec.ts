@@ -22,6 +22,42 @@ async function tab(page: Page, name: string) {
   await expect(page.getByRole("tabpanel").locator(".loading")).toHaveCount(0);
 }
 
+async function openProof(page: Page) {
+  await page.getByRole("button", { name: "成果物を開く", exact: true }).click();
+  await tab(page, "証明");
+}
+
+test("the conversation sidebar collapses independently of the artifact panel", async ({
+  page,
+}) => {
+  await archivedChat(page);
+  const sidebar = page.getByRole("complementary", { name: "会話サイドバー" });
+  const topbar = page.getByRole("banner");
+  const artifacts = page.getByRole("region", { name: "実装と検証" });
+  const input = page.getByRole("textbox", { name: "メッセージ", exact: true });
+  await input.fill("作業中の下書き");
+  await expect(topbar.getByRole("button")).toHaveCount(2);
+  await expect(topbar.getByText("デモ", { exact: true })).toHaveCount(0);
+  await topbar.getByRole("button", { name: "成果物を開く" }).click();
+  await expect(artifacts).toBeVisible();
+  await topbar.getByRole("button", { name: "会話一覧を閉じる" }).click();
+  await expect(sidebar).toBeHidden();
+  await expect(artifacts).toBeVisible();
+  await topbar.getByRole("button", { name: "成果物を閉じる" }).click();
+  await expect(artifacts).toBeHidden();
+  await expect(sidebar).toBeHidden();
+  await expect(input).toHaveValue("作業中の下書き");
+  await topbar.getByRole("button", { name: "会話一覧を開く" }).press("Enter");
+  await expect(sidebar).toBeVisible();
+  await expect(
+    sidebar.getByRole("button", { name: "自販機シミュレーター" }),
+  ).toHaveAttribute("aria-current", "page");
+  await sidebar.getByRole("button", { name: "設定" }).click();
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "ワークスペースを書き出す" }).click();
+  expect((await download).suggestedFilename()).toBe("meden-workspace.json");
+});
+
 test("home starts with a large composer and Send; instruction creates its title and opens results", async ({
   page,
 }) => {
@@ -35,7 +71,7 @@ test("home starts with a large composer and Send; instruction creates its title 
   });
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "何を作りますか？",
+    "何を安全に作りますか？",
   );
   await expect(
     page.getByRole("textbox", { name: "メッセージ", exact: true }),
@@ -62,9 +98,6 @@ test("home starts with a large composer and Send; instruction creates its title 
   await expect(page.locator(".proof-obligations")).toContainText("8 / 8");
   await expect(page.locator(".assistant-message").last()).toContainText(
     "保存されている検証記録",
-  );
-  await expect(page.locator(".sidebar-bottom")).toContainText(
-    "このブラウザに保存",
   );
   await page.reload();
   await expect(page.locator(".user-message").last()).toContainText(
@@ -96,9 +129,12 @@ test("the sidebar keeps one continuous vending history including its original op
   await expect(tests).toHaveCount(1);
   await tests.locator("summary").click();
   await expect(tests.locator("pre").last()).toContainText("7 passed; 0 failed");
-  await expect(page.locator(".recording-banner")).toContainText(
-    "reasoning本文は未保存",
-  );
+  await expect(
+    page.getByText("保存された開発履歴", { exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText("このブラウザに保存", { exact: true }),
+  ).toHaveCount(0);
   const sidebar = page.getByRole("complementary", { name: "会話サイドバー" });
   await expect(
     sidebar.getByRole("button", { name: "依存関係", exact: true }),
@@ -148,9 +184,7 @@ test("proof opens the wider source graph and follows a declaration into its exac
   page,
 }) => {
   await archivedChat(page);
-  await page
-    .getByRole("button", { name: "証明の状態を表示", exact: true })
-    .click();
+  await openProof(page);
   await expect(page.getByRole("tab")).toHaveText([
     "コード",
     "プレビュー",
@@ -214,9 +248,7 @@ test("meaning analysis shows an NG comparison by default, can switch to OK and k
   page,
 }) => {
   await archivedChat(page);
-  await page
-    .getByRole("button", { name: "証明の状態を表示", exact: true })
-    .click();
+  await openProof(page);
   await page.getByRole("button", { name: "意味解析", exact: true }).click();
   await expect(page.getByLabel("解析の進行状況")).toContainText("実行中");
   await page.getByRole("button", { name: "中止", exact: true }).click();
@@ -225,7 +257,10 @@ test("meaning analysis shows an NG comparison by default, can switch to OK and k
   await expect(page.locator(".semantic-result-heading")).toContainText(
     "NG · 在庫条件に差分",
   );
-  await expect(page.locator(".step-failed")).toContainText("要件と比較NG");
+  await expect(page.getByLabel("解析の進行状況")).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "意味の比較", exact: true }),
+  ).toBeVisible();
   await expect(
     page.locator(".semantic-diff .expected-diff").first(),
   ).toBeVisible();
@@ -239,7 +274,7 @@ test("meaning analysis shows an NG comparison by default, can switch to OK and k
   await expect(page.locator(".semantic-result-heading")).toContainText(
     "差分はありません",
   );
-  await expect(page.locator(".step-failed")).toHaveCount(0);
+  await expect(page.getByLabel("解析の進行状況")).toHaveCount(0);
   await expect(
     page.getByText(
       "解析エンジンは未接続です。この表示は意味の一致を保証しません。",
@@ -262,9 +297,7 @@ test("meaning analysis shows an NG comparison by default, can switch to OK and k
     "在庫条件に差分",
   );
   await page.reload();
-  await page
-    .getByRole("button", { name: "証明の状態を表示", exact: true })
-    .click();
+  await openProof(page);
   await expect(page.locator(".proof-obligations")).toContainText("8 / 8");
   await expect(page.locator(".semantic-results")).toHaveCount(0);
 });
@@ -316,9 +349,7 @@ test("requirement edits invalidate retained proof and analysis across restart", 
   page,
 }) => {
   await archivedChat(page);
-  await page
-    .getByRole("button", { name: "証明の状態を表示", exact: true })
-    .click();
+  await openProof(page);
   await inspectMeaning(page);
   await expect(page.locator(".comparison-heading")).toContainText("解析待ち");
   await expect(
@@ -331,18 +362,14 @@ test("requirement edits invalidate retained proof and analysis across restart", 
     .getByRole("textbox", { name: "要件", exact: true })
     .fill("投入額は残高の上限以下に制限する。");
   await page.getByRole("button", { name: "保存", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "要件を編集" })).toBeHidden();
   await expect(page.locator(".comparison-heading")).toContainText(
     "再解析が必要",
   );
   await page.getByRole("button", { name: "グラフに戻る", exact: true }).click();
   await expect(page.locator(".proof-obligations")).toContainText("0 / 8");
-  await expect(page.locator(".sidebar-bottom")).toContainText(
-    "このブラウザに保存",
-  );
   await page.reload();
-  await page
-    .getByRole("button", { name: "証明の状態を表示", exact: true })
-    .click();
+  await openProof(page);
   await page.locator(".proof-obligations>summary").click();
   await expect(page.locator(".proof-list")).toContainText("再検証が必要");
 });
@@ -351,9 +378,7 @@ test("review export remains revision-bound and omits conversations", async ({
   page,
 }) => {
   await archivedChat(page);
-  await page
-    .getByRole("button", { name: "証明の状態を表示", exact: true })
-    .click();
+  await openProof(page);
   await inspectMeaning(page);
   await page.getByRole("button", { name: "レビュー依頼を作成" }).click();
   await page.getByRole("textbox", { name: "件名" }).fill("投入条件のレビュー");
@@ -377,7 +402,12 @@ test("invalid imports retain the conversation; Atlas metadata stays unconfirmed"
   page,
 }) => {
   await archivedChat(page);
-  await page.locator("input[type=file]").setInputFiles({
+  await page.getByRole("button", { name: "設定" }).click();
+  const brokenFile = page.waitForEvent("filechooser");
+  await page.getByRole("button", { name: "JSONを読み込む" }).click();
+  await (
+    await brokenFile
+  ).setFiles({
     name: "broken.json",
     mimeType: "application/json",
     buffer: Buffer.from("{"),
@@ -400,7 +430,12 @@ test("invalid imports retain the conversation; Atlas metadata stays unconfirmed"
     ],
     edges: [],
   };
-  await page.locator("input[type=file]").setInputFiles({
+  await page.getByRole("button", { name: "設定" }).click();
+  const graphFile = page.waitForEvent("filechooser");
+  await page.getByRole("button", { name: "JSONを読み込む" }).click();
+  await (
+    await graphFile
+  ).setFiles({
     name: "graph.json",
     mimeType: "application/json",
     buffer: Buffer.from(JSON.stringify(graph)),
@@ -425,13 +460,11 @@ test("desktop and compact layouts keep chat and artifact panes usable, with keyb
   await mkdir("target/gui-checks/screenshots", { recursive: true });
   await page.screenshot({ path: "target/gui-checks/screenshots/home.png" });
   await archivedChat(page);
-  await page.getByRole("button", { name: "実行ログ", exact: true }).click();
+  await page.locator(".recorded-activities").last().scrollIntoViewIfNeeded();
   await expect(page.locator(".recorded-activities").last()).toBeInViewport();
   await page.screenshot({ path: "target/gui-checks/screenshots/history.png" });
 
-  await page
-    .getByRole("button", { name: "証明の状態を表示", exact: true })
-    .click();
+  await openProof(page);
   for (const name of ["証明", "プレビュー"]) {
     await tab(page, name);
     if (name === "証明") await expect(page.locator(".root-node")).toBeVisible();
@@ -463,9 +496,19 @@ test("desktop and compact layouts keep chat and artifact panes usable, with keyb
   await page
     .getByRole("button", { name: "意味解析の仕組み", exact: true })
     .click();
+  const method = page.getByRole("dialog", { name: "意味解析のアルゴリズム" });
+  await expect(method).toContainText("元の依頼文を見せず");
+  await expect(method).toContainText("翻訳用の大規模言語モデル（LLM）");
+  await expect(method).toContainText("比較用の別のLLM");
+  await expect(method).toContainText("実装案");
+  await expect(method.getByText("定理の逆翻訳", { exact: true })).toBeVisible();
   await expect(
-    page.getByRole("dialog", { name: "意味解析のアルゴリズム" }),
-  ).toContainText("元の依頼文を見せず");
+    method.getByText("依頼との意味比較", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    method.getByText("差分と影響の提示", { exact: true }),
+  ).toBeVisible();
+  await expect(method.getByText(/FormalAlign/)).toHaveCount(0);
   await page.screenshot({
     path: "target/gui-checks/screenshots/semantic-method.png",
   });
@@ -559,9 +602,6 @@ test("failed storage retains a sent conversation and recovers through retry", as
   );
   await page.getByRole("button", { name: "保存を再試行", exact: true }).click();
   await expect(page.getByRole("alert")).toHaveCount(0);
-  await expect(page.locator(".sidebar-bottom")).toContainText(
-    "このブラウザに保存",
-  );
   await page.reload();
   await expect(page.locator(".user-message").last()).toContainText(
     "保存失敗の確認",
@@ -687,9 +727,6 @@ test("legacy v2 continuations merge permanently and start with the exact supplie
   await page.getByRole("button", { name: "送信", exact: true }).click();
   await expect(page.locator(".message")).toHaveCount(20);
   await expect(page.locator(".reply-activity")).toHaveCount(0);
-  await expect(page.locator(".sidebar-bottom")).toContainText(
-    "このブラウザに保存",
-  );
   await page.reload();
   await expect(page.locator(".message")).toHaveCount(20);
   await expect(page.locator(".history-item")).toHaveCount(2);
@@ -716,14 +753,12 @@ test("expanded graph keeps source and statement readers tall, scrollable and syn
   page,
 }) => {
   await archivedChat(page);
-  await page.getByRole("button", { name: "会話の先頭", exact: true }).click();
+  await page.locator(".user-message").first().scrollIntoViewIfNeeded();
   await expect(page.locator(".user-message").first()).toBeInViewport();
   await page.screenshot({
     path: "target/gui-checks/screenshots/history-start.png",
   });
-  await page
-    .getByRole("button", { name: "証明の状態を表示", exact: true })
-    .click();
+  await openProof(page);
   await page.locator(".proof-obligations>summary").click();
   await page
     .locator(".proof-list>button")

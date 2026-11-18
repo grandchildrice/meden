@@ -83,51 +83,10 @@ export function ChatView({
                   />
                 </svg>
               </div>
-              <Typography variant="h1">何を作りますか？</Typography>
+              <Typography variant="h1">何を安全に作りますか？</Typography>
             </div>
           ) : (
             <ThreadPrimitive.Viewport className="transcript">
-              {conversation?.messages.some(
-                (message) => message.activities?.length,
-              ) && (
-                <div className="recording-banner">
-                  <strong>保存された開発履歴</strong>
-                  <div className="recording-shortcuts">
-                    <Button
-                      size="small"
-                      onClick={(event) => {
-                        const viewport =
-                          event.currentTarget.closest(".transcript");
-                        if (viewport) viewport.scrollTop = 0;
-                      }}
-                    >
-                      会話の先頭
-                    </Button>{" "}
-                    <Button
-                      size="small"
-                      onClick={(event) => {
-                        const entries = event.currentTarget
-                          .closest(".transcript")
-                          ?.querySelectorAll(".recorded-activities");
-                        entries
-                          ?.item(entries.length - 1)
-                          ?.scrollIntoView({ block: "start" });
-                      }}
-                    >
-                      実行ログ
-                    </Button>
-                  </div>
-                  <span>
-                    実行
-                    {conversation.messages.reduce(
-                      (total, message) =>
-                        total + (message.activities?.length || 0),
-                      0,
-                    )}
-                    件 · reasoning本文は未保存
-                  </span>
-                </div>
-              )}
               <ThreadPrimitive.Messages
                 components={{ UserMessage, AssistantMessage }}
               />
@@ -148,7 +107,7 @@ export function ChatView({
               {running && (
                 <div role="status" className="reply-activity">
                   <span className="activity-dot" />
-                  デモを開いています
+                  応答を準備しています
                 </div>
               )}
             </ThreadPrimitive.Viewport>

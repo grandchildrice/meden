@@ -26,9 +26,7 @@ test("home, three sidebar tabs, source navigation and semantic differences pass 
     .click();
   await expect(page.locator(".message")).toHaveCount(14);
   await check();
-  await page
-    .getByRole("button", { name: "証明の状態を表示", exact: true })
-    .click();
+  await page.getByRole("button", { name: "成果物を開く", exact: true }).click();
   for (const name of ["証明", "コード", "プレビュー"]) {
     await page.getByRole("tab", { name, exact: true }).click();
     await expect(page.getByRole("tabpanel")).toBeVisible();
@@ -69,5 +67,10 @@ test("home, three sidebar tabs, source navigation and semantic differences pass 
   await expect(page.locator(".semantic-result-heading")).toContainText(
     "在庫条件に差分",
   );
+  await check();
+  await page.getByRole("button", { name: "要件・定理の記録を確認" }).click();
+  await expect(
+    page.getByRole("combobox", { name: "比較する要件" }),
+  ).toBeVisible();
   await check();
 });

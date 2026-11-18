@@ -4,16 +4,16 @@ import InfoOutlined from "@mui/icons-material/InfoOutlined";
 import CloseRounded from "@mui/icons-material/CloseRounded";
 const method = [
   [
-    "定理を文章に戻す",
-    "claimcheckの方式では、定理から自然文を作り直します。この段階では元の依頼文を見せず、依頼に都合よく訳されるのを避けます。",
+    "定理の逆翻訳",
+    "翻訳用の大規模言語モデル（LLM）にLeanの定理を渡し、前提と結論を自然文にします。元の依頼文を見せず、定理の記述に基づいて翻訳します。",
   ],
   [
-    "依頼と食い違っていないか調べる",
-    "別のモデルで、元の依頼と作り直した文章を比較します。条件の抜け、余分な前提、数や対象の違いを確認します。",
+    "依頼との意味比較",
+    "比較用の別のLLMに元の依頼文と逆翻訳を渡し、条件の抜け、余分な前提、数値や対象の違いを評価させます。",
   ],
   [
-    "違う箇所を示す",
-    "たとえば依頼が「150円あれば購入できる」でも、定理が「在庫がある場合だけ」としていれば、その条件を差分で示します。",
+    "差分と影響の提示",
+    "差がある条件と、その条件で結果が変わる例を表示します。たとえば在庫が0個のときに購入できるかを示します。",
   ],
 ];
 export function SemanticMethodInfo() {
@@ -52,7 +52,7 @@ export function SemanticMethodInfo() {
           </IconButton>
         </header>
         <Typography variant="caption" color="text.secondary">
-          公開されている意味の評価ツールを再利用する方針です。
+          claimcheckの二段階方式を参考にした実装案です。サンプル画面には、あらかじめ用意した比較例を表示します。
         </Typography>
         <ol>
           {method.map(([title, text]) => (
@@ -62,25 +62,14 @@ export function SemanticMethodInfo() {
             </li>
           ))}
         </ol>
-        <Typography variant="body2" color="text.secondary">
-          候補はclaimcheckとFormalAlign。FormalAlignは、自然文とLeanの文が対応しているかを専用モデルで評価します。
-        </Typography>
-        <div className="semantic-method-links">
-          <a
-            href="https://github.com/metareflection/claimcheck"
-            target="_blank"
-            rel="noreferrer"
-          >
-            claimcheck
-          </a>
-          <a
-            href="https://github.com/rookie-joe/FormalAlign"
-            target="_blank"
-            rel="noreferrer"
-          >
-            FormalAlign
-          </a>
-        </div>
+        <a
+          className="semantic-method-link"
+          href="https://github.com/metareflection/claimcheck"
+          target="_blank"
+          rel="noreferrer"
+        >
+          claimcheckの二段階方式
+        </a>
       </Popover>
     </>
   );

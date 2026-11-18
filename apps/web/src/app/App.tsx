@@ -9,7 +9,6 @@ import {
 import {
   Alert,
   Button,
-  Chip,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -17,8 +16,6 @@ import {
   DialogTitle,
   Drawer,
   IconButton,
-  Menu,
-  MenuItem,
   Snackbar,
   TextField,
   Tooltip,
@@ -28,10 +25,8 @@ import {
 import AddCommentOutlined from "@mui/icons-material/AddCommentOutlined";
 import SearchRounded from "@mui/icons-material/SearchRounded";
 import SettingsOutlined from "@mui/icons-material/SettingsOutlined";
-import MenuRounded from "@mui/icons-material/MenuRounded";
-import MoreHorizRounded from "@mui/icons-material/MoreHorizRounded";
-import VerifiedOutlined from "@mui/icons-material/VerifiedOutlined";
-import VerticalSplitOutlined from "@mui/icons-material/VerticalSplitOutlined";
+import ViewSidebarOutlined from "@mui/icons-material/ViewSidebarOutlined";
+import InsertDriveFileOutlined from "@mui/icons-material/InsertDriveFileOutlined";
 import CloseRounded from "@mui/icons-material/CloseRounded";
 import {
   workspaceSchema,
@@ -65,21 +60,20 @@ export function App() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [pending, setPending] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [storageError, setStorageError] = useState("");
   const [notification, setNotification] = useState("");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelTab, setPanelTab] = useState<ArtifactTab>("preview");
   const [settings, setSettings] = useState(false);
-  const [menu, setMenu] = useState<HTMLElement | null>(null);
   const [queueDialog, setQueueDialog] = useState(false);
+  const artifactToggle = useRef<HTMLButtonElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const queue = useRef(Promise.resolve());
   const unsaved = useRef(new Map<string, Workspace>());
-  const operation = useRef(0);
   const narrow = useMediaQuery("(max-width:1040px)");
   const mobile = useMediaQuery("(max-width:839px)");
   const workspace =
@@ -88,12 +82,15 @@ export function App() {
     (item) => item.id === conversationId,
   );
   const running = conversationId ? pending.has(conversationId) : false;
+  const sidebarOpen = mobile ? mobileSidebarOpen : desktopSidebarOpen;
+  const sidebarLabel = sidebarOpen ? "会話一覧を閉じる" : "会話一覧を開く";
+  const artifactLabel = panelOpen ? "成果物を閉じる" : "成果物を開く";
   const hasMessages = Boolean(conversation?.messages.length);
 
   const select = (workspaceId: string, id: string | null) => {
     setActiveId(workspaceId);
     setConversationId(id);
-    setSidebarOpen(false);
+    setMobileSidebarOpen(false);
     localStorage.setItem(
       SELECTION_KEY,
       JSON.stringify({ workspaceId, conversationId: id }),
@@ -180,20 +177,14 @@ export function App() {
     ];
     setWorkspaces(library.current);
     unsaved.current.set(parsed.id, parsed);
-    setSaving(true);
-    const current = ++operation.current;
     const result = queue.current.then(async () => {
       try {
         await repository.save(parsed);
         if (unsaved.current.get(parsed.id) === parsed)
           unsaved.current.delete(parsed.id);
-        if (current === operation.current) {
-          setSaving(false);
-          if (!unsaved.current.size) setStorageError("");
-        }
+        if (!unsaved.current.size) setStorageError("");
         return true;
       } catch {
-        if (current === operation.current) setSaving(false);
         setStorageError(
           "会話を保存できませんでした。保存を再試行するか、JSONを書き出してください。",
         );
@@ -339,7 +330,7 @@ export function App() {
         {mobile && (
           <IconButton
             aria-label="会話一覧を閉じる"
-            onClick={() => setSidebarOpen(false)}
+            onClick={() => setMobileSidebarOpen(false)}
           >
             <CloseRounded fontSize="small" />
           </IconButton>
@@ -425,13 +416,6 @@ export function App() {
         >
           設定
         </Button>
-        <Typography variant="caption" color="text.secondary">
-          {saving
-            ? "保存中…"
-            : storageError
-              ? "保存できません"
-              : "このブラウザに保存"}
-        </Typography>
       </div>
     </div>
   );
@@ -448,7 +432,10 @@ export function App() {
         workspace={workspace}
         tab={panelTab}
         onTab={setPanelTab}
-        onClose={() => setPanelOpen(false)}
+        onClose={() => {
+          setPanelOpen(false);
+          if (!narrow) artifactToggle.current?.focus();
+        }}
         onChange={persist}
         onNotify={setNotification}
         running={running}
@@ -460,25 +447,43 @@ export function App() {
       <a className="skip-link" href="#main-content">
         本文へ移動
       </a>
-      <aside className="desktop-sidebar" aria-label="会話サイドバー">
-        {sidebar}
-      </aside>
-      <Drawer
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        slotProps={{ paper: { sx: { width: 268 } } }}
-      >
-        {sidebar}
-      </Drawer>
+      {mobile ? (
+        <Drawer
+          open={mobileSidebarOpen}
+          onClose={() => setMobileSidebarOpen(false)}
+          slotProps={{ paper: { sx: { width: 268 } } }}
+        >
+          <aside id="conversation-sidebar" aria-label="会話サイドバー">
+            {sidebar}
+          </aside>
+        </Drawer>
+      ) : (
+        <aside
+          id="conversation-sidebar"
+          className="desktop-sidebar"
+          aria-label="会話サイドバー"
+          hidden={!desktopSidebarOpen}
+        >
+          {sidebar}
+        </aside>
+      )}
       <div className="main-column">
         <header className="chat-topbar">
-          <IconButton
-            className="mobile-menu"
-            aria-label="会話一覧を開く"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <MenuRounded />
-          </IconButton>
+          <Tooltip title={sidebarLabel}>
+            <IconButton
+              className="sidebar-toggle"
+              aria-label={sidebarLabel}
+              aria-expanded={sidebarOpen}
+              aria-controls={sidebarOpen ? "conversation-sidebar" : undefined}
+              onClick={() =>
+                mobile
+                  ? setMobileSidebarOpen((open) => !open)
+                  : setDesktopSidebarOpen((open) => !open)
+              }
+            >
+              <ViewSidebarOutlined fontSize="small" />
+            </IconButton>
+          </Tooltip>
           {hasMessages ? (
             <Typography component="h1" className="conversation-title">
               {conversation?.title}
@@ -486,42 +491,19 @@ export function App() {
           ) : (
             <Typography className="model-label">Meden</Typography>
           )}
-          <div className="toolbar-actions">
-            <Tooltip title="meden-demoの実装・会話・検証記録を使うGUIデモ">
-              <Chip size="small" label="デモ" variant="outlined" />
+          {workspace && (
+            <Tooltip title={artifactLabel}>
+              <IconButton
+                ref={artifactToggle}
+                className="artifact-toggle"
+                aria-label={artifactLabel}
+                aria-expanded={panelOpen}
+                onClick={() => setPanelOpen((open) => !open)}
+              >
+                <InsertDriveFileOutlined fontSize="small" />
+              </IconButton>
             </Tooltip>
-            <Tooltip title="証明の状態">
-              <span>
-                <IconButton
-                  aria-label="証明の状態を表示"
-                  disabled={!hasMessages}
-                  aria-pressed={panelOpen && panelTab === "proof"}
-                  onClick={() => openPanel("proof")}
-                >
-                  <VerifiedOutlined fontSize="small" />
-                </IconButton>
-              </span>
-            </Tooltip>
-            <Tooltip title={panelOpen ? "パネルを閉じる" : "実装を表示"}>
-              <span>
-                <IconButton
-                  aria-label={panelOpen ? "パネルを閉じる" : "実装を表示"}
-                  disabled={!hasMessages}
-                  onClick={() =>
-                    panelOpen ? setPanelOpen(false) : openPanel("preview")
-                  }
-                >
-                  <VerticalSplitOutlined fontSize="small" />
-                </IconButton>
-              </span>
-            </Tooltip>
-            <IconButton
-              aria-label="その他の操作"
-              onClick={(event) => setMenu(event.currentTarget)}
-            >
-              <MoreHorizRounded />
-            </IconButton>
-          </div>
+          )}
         </header>
         {storageError && (
           <Alert
@@ -580,47 +562,35 @@ export function App() {
         hidden
         onChange={onImport}
       />
-      <Menu anchorEl={menu} open={Boolean(menu)} onClose={() => setMenu(null)}>
-        <MenuItem
-          disabled={!workspace}
-          onClick={() => {
-            if (workspace) downloadJson("meden-workspace.json", workspace);
-            setMenu(null);
-          }}
-        >
-          ワークスペースを書き出す
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            fileInput.current?.click();
-            setMenu(null);
-          }}
-        >
-          JSONを読み込む
-        </MenuItem>
-        <MenuItem
-          disabled={!conversationId}
-          onClick={() => {
-            setMenu(null);
-            setQueueDialog(true);
-          }}
-        >
-          会話を削除
-        </MenuItem>
-      </Menu>
       <Dialog open={settings} onClose={() => setSettings(false)}>
         <DialogTitle>設定</DialogTitle>
-        <DialogContent>
-          <Typography variant="h3">デモモード</Typography>
-          <Typography color="text.secondary" sx={{ mt: 1 }}>
-            meden-demoの実装・会話・検証記録を使っています。送信後の応答やパネル表示はGUIのデモです。
-          </Typography>
-          <Typography variant="h3" sx={{ mt: 3 }}>
-            保存先
-          </Typography>
-          <Typography color="text.secondary" sx={{ mt: 1 }}>
-            このブラウザの保存領域。実際のエージェントやLeanは実行していません。
-          </Typography>
+        <DialogContent className="workspace-actions">
+          <Button
+            disabled={!workspace}
+            onClick={() => {
+              if (workspace) downloadJson("meden-workspace.json", workspace);
+            }}
+          >
+            ワークスペースを書き出す
+          </Button>
+          <Button
+            onClick={() => {
+              fileInput.current?.click();
+              setSettings(false);
+            }}
+          >
+            JSONを読み込む
+          </Button>
+          <Button
+            color="error"
+            disabled={!conversationId}
+            onClick={() => {
+              setSettings(false);
+              setQueueDialog(true);
+            }}
+          >
+            会話を削除
+          </Button>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setSettings(false)}>閉じる</Button>

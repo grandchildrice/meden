@@ -78,8 +78,9 @@ npm run dev
 ```
 
 Open `http://127.0.0.1:4320` and send an instruction. Conversation titles are
-automatic, the left sidebar is chat history, and code/preview/proof open
-in a compact right sidebar. The default vending-machine example includes meden-demo's
+automatic. Use the button on the left of the toolbar to open or collapse the
+conversation sidebar. The artifact button on the right opens Code, Preview and
+Proof. The default vending-machine example includes meden-demo's
 actual code, the original request supplied by the user, 13 recorded messages,
 25 original tool calls/results and 8 archived
 pure-step proof results. Select a graph node, read its statement and open the
