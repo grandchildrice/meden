@@ -1059,7 +1059,7 @@ name = "meden-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "base64 0.22.1",
+ "base64 0.23.1",
  "clap",
  "crossterm",
  "meden-agent",
@@ -1094,7 +1094,7 @@ dependencies = [
 name = "meden-llm"
 version = "0.1.0"
 dependencies = [
- "base64 0.22.1",
+ "base64 0.23.1",
  "meden-agent",
  "meden-core",
  "meden-runtime",
