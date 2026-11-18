@@ -16,6 +16,7 @@ import type {
   MeaningInput,
 } from "@meden/agent-protocol/native";
 import { sourceIndex } from "@meden/atlas-adapter/source-index";
+import { importAtlas } from "@meden/atlas-adapter";
 import { SourceView } from "../source/SourceView";
 import { NativeMeaning } from "./NativeMeaning";
 const GraphView = lazy(() =>
@@ -51,7 +52,9 @@ export function NativeGraph({
           inputRevision: 0,
           origin: "local",
           updatedAt: new Date(0).toISOString(),
-          ...sourceIndex(snapshot),
+          ...(snapshot.atlas
+            ? importAtlas(snapshot.atlas.graph)
+            : sourceIndex(snapshot)),
           requirements: [],
           analyses: [],
           evidence: [],
@@ -62,7 +65,7 @@ export function NativeGraph({
     } catch (error) {
       return { error: String(error) };
     }
-  }, [snapshot.revision]);
+  }, [snapshot.revision, snapshot.atlas?.revision]);
   useEffect(() => {
     if (!selected && analysis && result.workspace) {
       const target = analysis.input.target;
@@ -89,11 +92,14 @@ export function NativeGraph({
       aria-label="ローカルソースのグラフ"
     >
       <Alert severity="info">
-        選択したファイルの字句解析による参照候補です。Leanの精密な依存抽出・証明確認は実行していません。
+        {snapshot.atlas
+          ? `Lean Atlasによるコンパイル後の依存です（Lean ${snapshot.atlas.graph.metadata.leanVersion}）。選択モジュール外の定義は展開していません。Medenの契約・証明の受理状態は変更しません。`
+          : "選択したファイルの字句解析による参照候補です。Leanの精密な依存抽出・証明確認は実行していません。"}
       </Alert>
       <Typography variant="caption">
         {Object.keys(snapshot.files).length}ファイル ·{" "}
-        {workspace.declarations.length}宣言 · {workspace.edges.length}参照候補
+        {workspace.declarations.length}宣言 · {workspace.edges.length}
+        {snapshot.atlas ? "依存" : "参照候補"}
       </Typography>
       {notification && <p role="status">{notification}</p>}
       <Suspense
@@ -116,7 +122,14 @@ export function NativeGraph({
       {selected && (
         <div className="native-declaration" aria-label="選択した宣言">
           <Typography component="h3">{selected.name}</Typography>
-          <Chip label="証明は未確認" size="small" />
+          <Chip
+            label={
+              selected.proofStatus === "unproved"
+                ? "未完成の証明を検出"
+                : "証明は未確認"
+            }
+            size="small"
+          />
           <pre>{selected.statement}</pre>
           <Button onClick={() => setSourceOpen(true)}>
             {selected.source?.file}:{selected.source?.line} のソースを開く
@@ -138,6 +151,7 @@ export function NativeGraph({
       <NativeMeaning
         record={analysis}
         sourceRevision={snapshot.revision}
+        graphRevision={snapshot.atlas?.revision}
         authorized={authorized}
         running={running}
         onRun={onAnalyze}

@@ -23,6 +23,7 @@ const { values } = parseArgs({
     assets: { type: "string", default: "apps/web/dist" },
     chrome: { type: "string" },
     timeout: { type: "string", default: "180000" },
+    atlas: { type: "boolean", default: false },
   },
 });
 if (!values.provider || !values.model || !values.out)
@@ -51,6 +52,7 @@ const report: Record<string, unknown> = {
   provider: values.provider,
   model: values.model,
   inference: "live",
+  graphMode: values.atlas ? "Lean Atlas elaboration" : "lexical Rust sources",
   originalTestsPreserved: false,
   cases: [],
 };
@@ -328,20 +330,62 @@ try {
   console.log(
     "Live proposal delivered exact reviewed bytes once through the browser",
   );
+  if (values.atlas) {
+    const formalInstruction =
+      "Create Purchase.lean as a standalone Lean module. In namespace Purchase define canPurchase (balance stock : Nat) : Prop for balance at least 150 and positive stock. Prove eligibility_exact, universally quantifying the two natural inputs, that canPurchase is equivalent to exactly those two conditions. Use a complete proof without sorry or new axioms. This is an ordinary Lean analysis model, not a refinement binding or new native contract. Keep kernel.rs, tests.rs and public/ unchanged. The human will compile it using the GUI Atlas action; do not claim it has already passed Lean. Do not create Lake configuration or propose a contract.";
+    await page
+      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .fill(formalInstruction);
+    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await expect
+      .poll(
+        async () =>
+          (await state(page)).messages.some(
+            (message) => message.text === formalInstruction,
+          ),
+        { timeout: deadline },
+      )
+      .toBe(true);
+    await waitIdle();
+    if ((await state(page)).stopped)
+      throw new Error((await state(page)).stopped!);
+    report.atlasSource = await readFile(
+      resolve(project, "Purchase.lean"),
+      "utf8",
+    );
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+    if (!(await state(page)).atlas.prepared) {
+      await page
+        .getByRole("button", { name: "依存抽出の準備", exact: true })
+        .click();
+      await expect
+        .poll(async () => (await state(page)).atlas.prepared, {
+          timeout: deadline,
+        })
+        .toBe(true);
+    }
+  }
   await page.getByRole("tab", { name: "グラフ", exact: true }).click();
   await page
     .getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" })
-    .fill("kernel.rs");
+    .fill(values.atlas ? "Purchase.lean" : "kernel.rs");
   await page
     .getByRole("button", {
-      name: "ソースを読み直してグラフを表示",
+      name: values.atlas
+        ? "Leanでコンパイルして依存を抽出"
+        : "ソースを読み直してグラフを表示",
       exact: true,
     })
     .click();
   await page
     .getByRole("region", { name: "ローカルソースのグラフ" })
-    .getByRole("button", { name: /can_purchase.*を選択/ })
+    .getByRole("button", {
+      name: values.atlas
+        ? /Purchase.eligibility_exact.*を選択/
+        : /can_purchase.*を選択/,
+    })
     .click();
+  report.sourceGraph = (await state(page)).source_snapshot;
   for (const [name, requirement, expected] of [
     [
       "missing-threshold",
@@ -356,7 +400,12 @@ try {
   ] as const) {
     await page
       .getByRole("textbox", { name: "比較する要件", exact: true })
-      .fill(requirement);
+      .fill(
+        values.atlas
+          ? requirement +
+              " This statement covers all natural balances and stocks."
+          : requirement,
+      );
     await page
       .getByRole("button", { name: "この宣言の意味を解析", exact: true })
       .click();
@@ -365,7 +414,11 @@ try {
         async () => {
           const current = await state(page);
           return (
-            current.analysis?.input.requirement === requirement &&
+            current.analysis?.input.requirement ===
+              (values.atlas
+                ? requirement +
+                  " This statement covers all natural balances and stocks."
+                : requirement) &&
             !current.running &&
             current.analysis?.state
           );
@@ -374,12 +427,19 @@ try {
       )
       .toBe("complete");
     const candidate = (await state(page)).analysis;
+    if (
+      values.atlas &&
+      candidate?.input.graph_revision !==
+        (report.sourceGraph as NonNullable<NativeState["source_snapshot"]>)
+          .atlas?.revision
+    )
+      throw new Error("Live analysis lost its elaborated graph binding");
     console.log(
       `Meaning case completed: ${name} (${candidate?.assessment?.verdict})`,
     );
     (report.cases as unknown[]).push({
       name,
-      requirement,
+      requirement: candidate?.input.requirement,
       analysis: candidate,
     });
     await page

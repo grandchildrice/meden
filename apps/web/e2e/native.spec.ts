@@ -45,7 +45,7 @@ test.describe("native GUI with real offline workers", () => {
       },
     ],
   });
-  async function start(port = 0) {
+  async function start(port = 0, extraEnv: Record<string, string> = {}) {
     let stderr = "";
     child = spawn(
       process.env.MEDEN_BIN || resolve("target/debug/meden"),
@@ -64,7 +64,13 @@ test.describe("native GUI with real offline workers", () => {
         "--api-key",
         "NATIVE-FIXTURE-NOT-SAVED",
       ],
-      { env: { ...process.env, XDG_DATA_HOME: resolve(root, "data") } },
+      {
+        env: {
+          ...process.env,
+          XDG_DATA_HOME: resolve(root, "data"),
+          ...extraEnv,
+        },
+      },
     );
     child.stderr!.on("data", (data) => {
       stderr += String(data);
@@ -132,6 +138,319 @@ test.describe("native GUI with real offline workers", () => {
     await stop();
     await new Promise<void>((resolve) => server.close(() => resolve()));
     await rm(root, { recursive: true, force: true });
+  });
+
+  test("prepare real Atlas offline, extract elaborated cross-module scope, analyze it and recover from compilation failure", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    page.setDefaultTimeout(15_000);
+    const domain =
+      "def eligibility (balance stock : Nat) : Prop := balance ≥ 150 ∧ stock > 0\ntheorem support (b s : Nat) (h : eligibility b s) : eligibility b s := h\n";
+    const app =
+      "import Domain\n-- ORIGINAL_COMMENT_MUST_NOT_REACH_TRANSLATOR\nnamespace Store\ntheorem permitted (b s : Nat) (h : eligibility b s) : eligibility b s := support b s h\ndef price : Nat := 150\ndef invoice (quantity : Nat) : Nat := quantity * price\ntheorem unfinished : True := by sorry\nend Store\n";
+    await writeFile(resolve(project, "Domain.lean"), domain);
+    await writeFile(resolve(project, "App.lean"), app);
+    await page.goto(await start());
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+    await expect(
+      page.getByRole("button", { name: "依存抽出の準備", exact: true }),
+    ).toBeEnabled();
+    await page
+      .getByRole("button", { name: "依存抽出の準備", exact: true })
+      .click();
+    await expect(
+      page.getByText("Lean Atlas: オフライン抽出の準備済み", { exact: false }),
+    ).toBeVisible({ timeout: 120_000 });
+    expect(requests).toHaveLength(0);
+    const paths = page.getByRole("textbox", {
+      name: "グラフの対象ファイル（1行に1つ）",
+    });
+    await paths.fill("App.lean\nDomain.lean");
+    const readyBox = await page
+      .getByText("Lean Atlas: オフライン抽出の準備済み", { exact: false })
+      .boundingBox();
+    const labelBox = await page
+      .locator("label")
+      .filter({ hasText: "グラフの対象ファイル（1行に1つ）" })
+      .boundingBox();
+    expect(readyBox).not.toBeNull();
+    expect(labelBox).not.toBeNull();
+    expect(labelBox!.y).toBeGreaterThanOrEqual(readyBox!.y + readyBox!.height);
+    const extract = page.getByRole("button", {
+      name: "Leanでコンパイルして依存を抽出",
+      exact: true,
+    });
+    await extract.click();
+    const graph = page.getByRole("region", { name: "ローカルソースのグラフ" });
+    await expect(graph).toContainText("Lean Atlasによるコンパイル後の依存", {
+      timeout: 60_000,
+    });
+    const state = await nativeState(page);
+    const atlas = state.source_snapshot.atlas;
+    expect(atlas.graph.edges).toEqual(
+      expect.arrayContaining([
+        {
+          source: "Store.permitted",
+          target: "eligibility",
+          kind: "theorem_type_to_definition",
+        },
+        {
+          source: "Store.permitted",
+          target: "support",
+          kind: "theorem_value_to_theorem",
+        },
+        {
+          source: "Store.invoice",
+          target: "Store.price",
+          kind: "definition_value_to_definition",
+        },
+      ]),
+    );
+    await graph.getByRole("combobox", { name: "依存関係の範囲" }).click();
+    await page
+      .getByRole("option", { name: "プロジェクト全体", exact: true })
+      .click();
+    await graph
+      .getByRole("button", { name: /Store.unfinished.*を選択/ })
+      .click();
+    await expect(page.getByLabel("選択した宣言")).toContainText(
+      "未完成の証明を検出",
+    );
+    await graph
+      .getByRole("button", { name: /Store.permitted.*を選択/ })
+      .click();
+    await expect(page.getByLabel("選択した宣言")).toContainText("eligibility");
+    await page
+      .getByRole("button", { name: "App.lean:4 のソースを開く", exact: true })
+      .click();
+    await expect(
+      page.getByRole("dialog").locator('[aria-current="location"]'),
+    ).toContainText("theorem permitted");
+    await page.getByRole("button", { name: "閉じる", exact: true }).click();
+    await page
+      .getByRole("button", { name: "接続先を確認", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "この送信先を承認", exact: true })
+      .click();
+    responses.push((response) =>
+      reply(
+        response,
+        tool("record_informalization", {
+          lemmaName: "Store.permitted",
+          naturalLanguage: "Eligibility implies itself.",
+          preconditions: "eligibility b s already holds",
+          postcondition: "eligibility b s",
+          scope: "natural balance and stock",
+          strength: "trivial",
+          confidence: 0.95,
+        }),
+      ),
+    );
+    responses.push((response) =>
+      reply(
+        response,
+        tool("record_comparison", {
+          lemmaName: "Store.permitted",
+          match: false,
+          discrepancy:
+            "The theorem assumes eligibility instead of establishing it for all requested inputs.",
+          weakeningType: "tautology",
+          explanation: "It repeats its premise.",
+        }),
+      ),
+    );
+    await page
+      .getByRole("textbox", { name: "比較する要件", exact: true })
+      .fill(
+        "ORIGINAL_SEPARATE_REQUIREMENT: all balances of at least 100 with positive stock permit purchase.",
+      );
+    await page
+      .getByRole("button", { name: "この宣言の意味を解析", exact: true })
+      .click();
+    await expect(
+      page.getByLabel("意味解析の結果", { exact: true }),
+    ).toContainText("意味の差異候補");
+    const first = JSON.stringify(requests[0]);
+    const translationRequest = requests[0] as {
+      messages: Array<{ content: string }>;
+    };
+    const context = JSON.parse(translationRequest.messages.at(-1)!.content);
+    expect(context.files).toBeUndefined();
+    expect(
+      context.elaborated.declarations
+        .map((node: { id: string }) => node.id)
+        .sort(),
+    ).toEqual(["Store.permitted", "eligibility"]);
+    expect(first).toContain("eligibility");
+    expect(first).not.toContain("ORIGINAL_COMMENT_MUST_NOT_REACH_TRANSLATOR");
+    expect(first).not.toContain("ORIGINAL_SEPARATE_REQUIREMENT");
+    expect(first).not.toContain("by sorry");
+    expect((await nativeState(page)).project.verified).toBe(false);
+    await page
+      .getByLabel("意味解析の結果", { exact: true })
+      .scrollIntoViewIfNeeded();
+    await page.screenshot({
+      path: "target/gui-checks/native-atlas-meaning.png",
+      fullPage: true,
+    });
+    responses.push((response) =>
+      reply(
+        response,
+        tool("write_file", {
+          path: "App.lean",
+          content: app + "invalid lean syntax }\n",
+        }),
+      ),
+    );
+    responses.push((response) =>
+      reply(response, { role: "assistant", content: "ATLAS-SOURCE-CHANGED" }),
+    );
+    await page
+      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .fill("Change the selected source to exercise compilation failure");
+    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await expect(
+      page.getByText("ATLAS-SOURCE-CHANGED", { exact: true }),
+    ).toBeVisible();
+    await extract.click();
+    await expect(
+      page
+        .getByRole("alert")
+        .filter({ hasText: "Lean source compilation failed" }),
+    ).toBeVisible();
+    await expect(graph).not.toBeVisible();
+    await page.screenshot({
+      path: "target/gui-checks/native-atlas-compile-failed.png",
+      fullPage: true,
+    });
+    responses.push((response) =>
+      reply(response, tool("write_file", { path: "App.lean", content: app })),
+    );
+    responses.push((response) =>
+      reply(response, { role: "assistant", content: "ATLAS-SOURCE-REPAIRED" }),
+    );
+    await page
+      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .fill(
+        "Restore the valid Lean implementation and keep Domain.lean unchanged",
+      );
+    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await expect(
+      page.getByText("ATLAS-SOURCE-REPAIRED", { exact: true }),
+    ).toBeVisible();
+    await extract.click();
+    await expect(graph).toContainText("Lean Atlasによるコンパイル後の依存");
+    const port = Number(new URL(url).port);
+    await stop();
+    await page.goto(await start(port));
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+    await expect(
+      page.getByText("Lean Atlas: オフライン抽出の準備済み", { exact: false }),
+    ).toBeVisible();
+    await expect(graph).not.toBeVisible();
+    await paths.fill("App.lean\nDomain.lean");
+    await extract.click();
+    await expect(graph).toContainText("Lean Atlasによるコンパイル後の依存");
+    expect(await readFile(resolve(project, "Domain.lean"), "utf8")).toBe(
+      domain,
+    );
+  });
+
+  test("Atlas code stays offline with read-only sources and libraries, and corrupt resources recover through the GUI", async ({
+    page,
+  }) => {
+    test.setTimeout(240_000);
+    page.setDefaultTimeout(15_000);
+    await writeFile(resolve(root, "host-private.txt"), "HOST-CANARY");
+    await writeFile(resolve(project, "unselected.txt"), "UNSELECTED-CANARY");
+    let connections = 0;
+    const sink = createServer((_request, response) => {
+      connections++;
+      response.end();
+    });
+    sink.listen(0, "127.0.0.1");
+    await once(sink, "listening");
+    try {
+      const probe = `import os, socket\nfrom pathlib import Path\nassert os.getenv('MEDEN_ATLAS_TEST_SECRET') is None\nassert not Path(${JSON.stringify(resolve(root, "host-private.txt"))}).exists()\nassert not Path('/workspace/unselected.txt').exists()\nfor path in ['/analysis/sources/SandboxProbe.lean','/analysis/library/MedenAtlas.lean']:\n try: Path(path).write_text('tamper')\n except OSError: pass\n else: raise AssertionError('analysis resource was writable')\ntry: socket.create_connection(('127.0.0.1',${(sink.address() as { port: number }).port}),timeout=0.3)\nexcept OSError: pass\nelse: raise AssertionError('host network was reachable')\nPath('/workspace/job-write').write_text('only private job')\nprint('ISOLATION-CHECKED')\n`;
+      const source = `import Lean\n#eval do\n  let output ← IO.Process.output { cmd := "/tools/python3", args := #["-c", ${JSON.stringify(probe)}] }\n  if output.exitCode != 0 then throw <| IO.userError output.stderr\n  IO.println output.stdout\ndef checked : Nat := 1\n`;
+      await writeFile(resolve(project, "SandboxProbe.lean"), source);
+      await page.goto(
+        await start(0, { MEDEN_ATLAS_TEST_SECRET: "SYNTHETIC-HOST-SECRET" }),
+      );
+      await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+      await page
+        .getByRole("button", { name: "依存抽出の準備", exact: true })
+        .click();
+      await expect(
+        page.getByText("Lean Atlas: オフライン抽出の準備済み", {
+          exact: false,
+        }),
+      ).toBeVisible({ timeout: 120_000 });
+      await page
+        .getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" })
+        .fill("SandboxProbe.lean");
+      const extract = page.getByRole("button", {
+        name: "Leanでコンパイルして依存を抽出",
+        exact: true,
+      });
+      const graph = page.getByRole("region", {
+        name: "ローカルソースのグラフ",
+      });
+      await extract.click();
+      await expect(graph).toContainText("1宣言", { timeout: 60_000 });
+      expect(connections).toBe(0);
+      expect(requests).toHaveLength(0);
+      expect(
+        await readFile(resolve(project, "SandboxProbe.lean"), "utf8"),
+      ).toBe(source);
+      await expect(readFile(resolve(project, "job-write"))).rejects.toThrow();
+      const cache = resolve(root, "data/meden/atlas");
+      const prepared = (await readdir(cache)).filter(
+        (name) => !name.startsWith("."),
+      );
+      expect(prepared).toHaveLength(1);
+      await writeFile(
+        resolve(cache, prepared[0]!, "LeanAtlas/Deps/Core.olean"),
+        "HOST-CORRUPTION",
+      );
+      await extract.click();
+      await expect(
+        page
+          .getByRole("alert")
+          .filter({ hasText: "Atlas compiled library changed" }),
+      ).toBeVisible();
+      await expect(graph).not.toBeVisible();
+      await page
+        .getByRole("button", { name: "依存抽出の準備", exact: true })
+        .click();
+      await expect(
+        page.getByText("Lean Atlas: オフライン抽出の準備済み", {
+          exact: false,
+        }),
+      ).toBeVisible({ timeout: 120_000 });
+      await extract.click();
+      await expect(graph).toContainText("1宣言", { timeout: 60_000 });
+      await writeFile(
+        resolve(project, "SandboxProbe.lean"),
+        'import Lean\n#eval (throw (IO.userError "EXPECTED-PROBE-FAILURE") : IO Unit)\ndef checked : Nat := 1\n',
+      );
+      await extract.click();
+      await expect(
+        page.getByRole("alert").filter({ hasText: "EXPECTED-PROBE-FAILURE" }),
+      ).toBeVisible();
+      await expect(graph).not.toBeVisible();
+      expect(connections).toBe(0);
+      expect(requests).toHaveLength(0);
+      await page.screenshot({
+        path: "target/gui-checks/native-atlas-isolation.png",
+        fullPage: true,
+      });
+    } finally {
+      sink.closeAllConnections();
+      await new Promise<void>((resolve) => sink.close(() => resolve()));
+    }
   });
 
   async function nativeState(page: Page) {

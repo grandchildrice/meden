@@ -22,6 +22,8 @@ pub(crate) struct Target {
 #[serde(deny_unknown_fields)]
 pub(crate) struct Input {
     pub source_revision: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub graph_revision: Option<String>,
     pub target: Target,
     pub requirement: String,
 }
@@ -29,9 +31,14 @@ pub(crate) struct Input {
 pub(crate) struct Prepared {
     input: Input,
     files: BTreeMap<String, String>,
+    elaborated: Option<Value>,
 }
 impl Prepared {
-    pub fn new(input: Input, files: BTreeMap<String, String>) -> Result<Self> {
+    pub fn new(
+        input: Input,
+        files: BTreeMap<String, String>,
+        atlas: Option<&crate::atlas::Extraction>,
+    ) -> Result<Self> {
         input.validate()?;
         anyhow::ensure!(
             !files.is_empty() && files.len() <= 32,
@@ -60,7 +67,26 @@ impl Prepared {
                 .is_some(),
             "selected source line is unavailable"
         );
-        Ok(Self { input, files })
+        let elaborated = match (&input.graph_revision, atlas) {
+            (None, None) => None,
+            (Some(revision), Some(atlas)) if revision == &atlas.revision => {
+                Some(atlas.meaning(&input.target)?)
+            }
+            _ => anyhow::bail!(
+                "Atlas graph revision changed; reread and select the declaration again"
+            ),
+        };
+        if let Some(context) = &elaborated {
+            anyhow::ensure!(
+                serde_json::to_vec(context)?.len() <= 1_048_576,
+                "Elaborated meaning context exceeds 1 MiB; select a smaller target/module set"
+            );
+        }
+        Ok(Self {
+            input,
+            files,
+            elaborated,
+        })
     }
     pub fn input(&self) -> &Input {
         &self.input
@@ -68,7 +94,10 @@ impl Prepared {
     fn translation_messages(&self) -> Vec<Value> {
         messages(
             include_str!("semantic/informalize.md"),
-            &json!({"target":self.input.target,"files":self.files}),
+            &self.elaborated.as_ref().map_or_else(
+                || json!({"target":self.input.target,"files":self.files}),
+                |context| json!({"target":self.input.target,"elaborated":context}),
+            ),
         )
     }
 }
@@ -366,6 +395,7 @@ mod tests {
         Prepared::new(
             Input {
                 source_revision,
+                graph_revision: None,
                 target: Target {
                     file: "Spec.lean".into(),
                     line: 2,
@@ -374,6 +404,7 @@ mod tests {
                 requirement: "ORIGINAL_REQUIREMENT_SENTINEL".into(),
             },
             files,
+            None,
         )
     }
     #[test]
@@ -472,12 +503,13 @@ mod tests {
         let prepared = prepared()?;
         assert!(Prepared::new(
             prepared.input.clone(),
-            BTreeMap::from([("Spec.lean".into(), "replacement".into())])
+            BTreeMap::from([("Spec.lean".into(), "replacement".into())]),
+            None,
         )
         .is_err());
         let mut changed = prepared.input.clone();
         changed.target.line = 100;
-        assert!(Prepared::new(changed, prepared.files).is_err());
+        assert!(Prepared::new(changed, prepared.files, None).is_err());
         Ok(())
     }
 }

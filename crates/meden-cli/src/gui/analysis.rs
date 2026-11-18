@@ -79,7 +79,11 @@ pub(super) fn run(
         .source_snapshot
         .clone()
         .context("Read the source graph before meaning analysis")?;
-    let prepared = Prepared::new(input.clone(), snapshot.files.clone())?;
+    let prepared = Prepared::new(
+        input.clone(),
+        snapshot.files.clone(),
+        snapshot.atlas.as_ref(),
+    )?;
     let record = Record {
         version: 1,
         engine: semantic::ENGINE.into(),
@@ -120,6 +124,12 @@ fn observe_current(
 ) -> Result<()> {
     let paths = snapshot.files.keys().cloned().collect::<Vec<_>>();
     let current = sources::capture(workspace, control, &paths)?;
+    if let Some(atlas) = &snapshot.atlas {
+        anyhow::ensure!(
+            crate::atlas::Configuration::host().current_resources()? == atlas.resources_sha256,
+            "Atlas resources changed; reread the graph and run again"
+        );
+    }
     if current.revision != snapshot.revision {
         if let Some(record) = &mut lock(view).analysis {
             record.state = State::Stale;

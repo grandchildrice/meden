@@ -394,8 +394,30 @@ export function NativeApp({ token }: { token: string }) {
                   </>
                 )}
                 <div hidden={tab !== 3}>
+                  {state.running && (
+                    <Typography role="status">
+                      {state.activity} · {elapsed}秒
+                    </Typography>
+                  )}
+                  <Typography variant="body2">
+                    Lean Atlas:{" "}
+                    {state.atlas.prepared
+                      ? "オフライン抽出の準備済み"
+                      : state.atlas.available
+                        ? "初回は抽出ライブラリの準備が必要です"
+                        : "Lean実行環境が見つかりません。ホストでMEDEN_ATLAS_LEANを設定して起動してください。"}
+                  </Typography>
+                  {!state.atlas.prepared && (
+                    <Button
+                      disabled={running || !state.atlas.available}
+                      onClick={() => void command({ type: "prepare_atlas" })}
+                    >
+                      依存抽出の準備
+                    </Button>
+                  )}
                   <TextField
                     label="グラフの対象ファイル（1行に1つ）"
+                    sx={{ mt: 2 }}
                     multiline
                     minRows={2}
                     fullWidth
@@ -421,6 +443,28 @@ export function NativeApp({ token }: { token: string }) {
                   >
                     ソースを読み直してグラフを表示
                   </Button>
+                  <Button
+                    disabled={
+                      running ||
+                      !state.atlas.prepared ||
+                      !(graphPaths ?? state.project.source_path).trim() ||
+                      (graphPaths ?? state.project.source_path)
+                        .split("\n")
+                        .filter((path) => path.trim())
+                        .some((path) => !path.trim().endsWith(".lean"))
+                    }
+                    onClick={() =>
+                      void command({
+                        type: "atlas_snapshot",
+                        paths: (graphPaths ?? state.project.source_path)
+                          .split("\n")
+                          .map((path) => path.trim())
+                          .filter(Boolean),
+                      })
+                    }
+                  >
+                    Leanでコンパイルして依存を抽出
+                  </Button>
                   {state.source_snapshot ? (
                     <Suspense
                       fallback={
@@ -431,7 +475,10 @@ export function NativeApp({ token }: { token: string }) {
                       }
                     >
                       <NativeGraph
-                        key={state.source_snapshot.revision}
+                        key={
+                          state.source_snapshot.atlas?.revision ||
+                          state.source_snapshot.revision
+                        }
                         snapshot={state.source_snapshot}
                         analysis={state.analysis}
                         authorized={state.authorized && !connectionError}

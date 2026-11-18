@@ -86,6 +86,9 @@ before opening that project in the TUI; the repository permits one writer.
 Code, actual tool inputs/results and native contract status appear beside the chat.
 The Graph tab reads selected local Rust/Lean files and opens each indexed declaration
 at its exact source line. This is a source-reference index, not a new proof check.
+With installed Lean, its preparation/extraction controls run the pinned Lean Atlas
+core offline on selected modules. Compiled type/value dependencies and declarations
+can then supply meaning analysis; a successful extraction does not grant proof status.
 Select a declaration, enter a requirement and run meaning analysis to get a
 source-bound back-translation and comparison through the reviewed processor.
 These model assessments do not accept contracts or establish proofs.

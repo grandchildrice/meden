@@ -1,6 +1,6 @@
 # Semantic workspace architecture
 
-Status: GUI and native local gateway implemented; native source-reference graph implemented; two-pass native meaning analysis implemented; elaborated graph integration pending.
+Status: GUI/native local gateway, source-reference graphs, selected-module Lean Atlas extraction and two-pass native meaning analysis implemented. Full-project dependency discovery and independent-model judging remain open.
 Decision date: 2026-11-18. This applies the Semantic Assurance strategy's local-first
 boundaries while using TypeScript/Vite, as requested, in place of its Next.js SPA.
 
@@ -127,8 +127,22 @@ requests to the same configured model. Strict single-result parsing never execut
 returned functions. Input/source identity, pre/post source observations,
 revocation/cancellation and atomic host JSON persistence keep results scoped.
 Restart restores historical candidates, not current proof or processor authority.
-Static/elaborated scope, broad accuracy and independent-model evaluation remain
-open; these native I/O, model and rendering adapters have no new refinement proof.
+Selected-module Atlas mode compiles fresh source in an offline job, with source
+files and the pinned public library mounted read-only. The actual upstream
+classifier and type/value dependency functions run on the imported environment.
+A separate extraction revision binds observed files, graph data, the Lean executable
+and prepared Atlas hashes. No project Lake configuration or retained project build
+output is executed. Resource/source changes and compile failures discard current
+graph admission.
+
+The server derives the selected declaration's meaning scope, prunes theorem
+proof-only dependencies and retains definition values. Compiled statements/values
+replace source/comments in translation; axioms and unexpanded external references
+stay explicit. This imported analysis data never creates native proof coverage.
+Full-project/library scope, broad accuracy and independent-model evaluation remain
+open. Native I/O, Lean execution, metadata, model and rendering adapters have no new
+refinement proof. Arbitrary source can execute Lean code inside the offline job;
+graph authenticity is not a consequence of the control-kernel proofs.
 
 No agent-client call is made by the demo response adapter. Native control,
 accepted meaning, evidence admission and effect authorization stay with Rust.
@@ -137,19 +151,19 @@ ports as live graph/analysis adapters are implemented. [GUI provenance and layou
 
 ## Technology map and next adapters
 
-| Strategy choice                      | Current boundary                                                                       | Next implementation                                                                                                     |
-| ------------------------------------ | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Shared Rust runtime                  | Native GUI/TUI share sessions, offline tools, contracts and immutable delivery         | Versioned job events and remaining interface correspondence                                                             |
-| Chat + Atlas GUI                     | Native chat, preview, source graph, delivery and two-pass meaning analysis implemented | Real elaborated Atlas extraction and independent judge evaluation                                                       |
-| Local SQLite/event log               | `WorkspaceRepository`, browser IndexedDB adapter; Rust currently uses host JSON        | Native gateway uses existing host JSON journals; recorded demo uses browser IndexedDB; no database needed               |
-| Lean Atlas/Compass                   | Actual Atlas graph import + graph/review schema                                        | Adapter consuming extractor/Compass output with exact revision identity and selected target set                         |
-| Public semantic-gap assessment tools | Analysis input/output fields and comparison view                                       | Claimcheck-derived native adapter implemented; evaluate quality and elaborated scope against Lean/software requirements |
-| Static Lean/SMT checks               | Existing Rust verification workers, proof/evidence bindings                            | Analyzer adapters consume real reports; keep proof and meaning status independent                                       |
-| Google Drive BYOS                    | Separate from repository and agent ports                                               | `packages/sync` and host OAuth adapter after encryption/recovery are tested                                             |
-| AES-256-GCM + recovery keys          | No encryption implementation yet                                                       | `packages/crypto`, then key storage/device revocation/recovery tests; never call plaintext IndexedDB E2EE               |
-| Expert review                        | Local draft/package creation                                                           | Encrypted recipient-scoped sharing and an independently authorized submission service                                   |
-| Billing/entitlements                 | Absent from workspace content and runtime                                              | Separate `services/business-control` holding minimal business metadata                                                  |
-| Desktop/Rust UI                      | JSON contracts and graph/domain packages separated from React                          | Add a Tauri/other host or rewrite the view while retaining the Rust controller and wire contracts                       |
+| Strategy choice                      | Current boundary                                                                              | Next implementation                                                                                                     |
+| ------------------------------------ | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Shared Rust runtime                  | Native GUI/TUI share sessions, offline tools, contracts and immutable delivery                | Versioned job events and remaining interface correspondence                                                             |
+| Chat + Atlas GUI                     | Native chat, preview, source/Atlas graphs, delivery and two-pass meaning analysis implemented | Full-project scope and independent judge evaluation                                                                     |
+| Local SQLite/event log               | `WorkspaceRepository`, browser IndexedDB adapter; Rust currently uses host JSON               | Native gateway uses existing host JSON journals; recorded demo uses browser IndexedDB; no database needed               |
+| Lean Atlas/Compass                   | Pinned extraction core runs offline on selected modules; revision-bound server meaning scope  | Broader library/project closure and large-graph evaluation                                                              |
+| Public semantic-gap assessment tools | Analysis input/output fields and comparison view                                              | Claimcheck-derived native adapter implemented; evaluate quality and elaborated scope against Lean/software requirements |
+| Static Lean/SMT checks               | Existing Rust verification workers, proof/evidence bindings                                   | Analyzer adapters consume real reports; keep proof and meaning status independent                                       |
+| Google Drive BYOS                    | Separate from repository and agent ports                                                      | `packages/sync` and host OAuth adapter after encryption/recovery are tested                                             |
+| AES-256-GCM + recovery keys          | No encryption implementation yet                                                              | `packages/crypto`, then key storage/device revocation/recovery tests; never call plaintext IndexedDB E2EE               |
+| Expert review                        | Local draft/package creation                                                                  | Encrypted recipient-scoped sharing and an independently authorized submission service                                   |
+| Billing/entitlements                 | Absent from workspace content and runtime                                                     | Separate `services/business-control` holding minimal business metadata                                                  |
+| Desktop/Rust UI                      | JSON contracts and graph/domain packages separated from React                                 | Add a Tauri/other host or rewrite the view while retaining the Rust controller and wire contracts                       |
 
 Only packages with implemented responsibility exist; no inert gateway, crypto,
 sync, billing or analysis service is shipped to suggest those functions work.

@@ -8,6 +8,7 @@ use std::io::{self, Read, Write};
 use std::path::PathBuf;
 use std::process::ExitCode;
 use std::sync::{atomic::AtomicBool, Arc};
+mod atlas;
 mod connection;
 mod exports;
 mod gui;
@@ -36,6 +37,10 @@ enum Command {
     Providers,
     /// Prepare and remember the local verification tools (also automatic in TUI).
     Setup,
+    /// Prepare the pinned Lean Atlas library using an installed Lean distribution.
+    SetupAtlas,
+    /// Show notices for bundled source adaptations.
+    SourceNotices,
     /// Open a conversational workspace agent.
     Tui(WorkspaceArgs),
     /// Run instructions from JSON Lines with offline repository tools.
@@ -165,6 +170,12 @@ fn run() -> Result<()> {
         )?,
         Command::Providers => print_providers(),
         Command::Gui { args, assets, port } => gui::run(&args, &assets, port)?,
+        Command::SetupAtlas => setup_atlas()?,
+        Command::SourceNotices => println!(
+            "Lean Atlas (bundled extraction core)\n{}\nclaimcheck (prompt/output adaptation)\n{}",
+            include_str!("atlas/vendor/LICENSE"),
+            include_str!("semantic/CLAIMCHECK-LICENSE")
+        ),
         Command::Setup => {
             verifier::prepare()?;
         }
@@ -225,6 +236,13 @@ fn run() -> Result<()> {
             )?;
         }
     }
+    Ok(())
+}
+
+fn setup_atlas() -> Result<()> {
+    let atlas = atlas::Configuration::host();
+    atlas.prepare(&Control::new(Arc::new(AtomicBool::new(false))))?;
+    println!("{}", serde_json::to_string(&atlas.status())?);
     Ok(())
 }
 

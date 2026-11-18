@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { atlasGraphSchema } from "@meden/workspace-schema";
 
 export const nativeReferenceSchema = z
   .object({
@@ -12,12 +13,25 @@ export const sourceSnapshotSchema = z
   .object({
     revision: z.string().regex(/^sha256:[a-f0-9]{64}$/),
     files: z.record(z.string(), z.string().max(65_536)),
+    atlas: z
+      .object({
+        revision: z.string().regex(/^sha256:[a-f0-9]{64}$/),
+        upstream: z.string(),
+        resources_sha256: z.string(),
+        graph: atlasGraphSchema,
+      })
+      .strict()
+      .optional(),
   })
   .strict();
 export type SourceSnapshot = z.infer<typeof sourceSnapshotSchema>;
 export const meaningInputSchema = z
   .object({
     source_revision: z.string().regex(/^sha256:[a-f0-9]{64}$/),
+    graph_revision: z
+      .string()
+      .regex(/^sha256:[a-f0-9]{64}$/)
+      .optional(),
     target: z
       .object({
         file: z.string().max(4096),
@@ -182,6 +196,13 @@ export const nativeStateSchema = z.object({
   exports: z.array(exportSummarySchema),
   export_review: exportReviewSchema.nullable(),
   export_outcome: exportOutcomeSchema.nullable(),
+  atlas: z
+    .object({
+      available: z.boolean(),
+      prepared: z.boolean(),
+      detail: z.string(),
+    })
+    .strict(),
 });
 export type NativeState = z.infer<typeof nativeStateSchema>;
 export type NativeCommand =
@@ -189,6 +210,8 @@ export type NativeCommand =
   | { type: "revoke_processor" | "cancel" | "refresh_status" }
   | { type: "instruction"; text: string }
   | { type: "source_snapshot"; paths: string[] }
+  | { type: "prepare_atlas" }
+  | { type: "atlas_snapshot"; paths: string[] }
   | { type: "capture_preview"; root: string; entry: string }
   | { type: "review_export"; reference: ExportReference; offset: number }
   | {

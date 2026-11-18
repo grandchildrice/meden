@@ -16,10 +16,61 @@ use sha2::{Digest, Sha256};
 const FILE_LIMIT: usize = 65_536;
 const TOTAL_LIMIT: usize = 1_048_576;
 
+pub(super) fn refresh(
+    view: &std::sync::Mutex<super::View>,
+    workspace: &Workspace,
+    control: &Control,
+    paths: &[String],
+) -> Result<()> {
+    super::lock(view).source_snapshot = None;
+    let snapshot = capture(workspace, control, paths)?;
+    let mut view = super::lock(view);
+    if view.analysis.as_ref().is_some_and(|record| {
+        record.input.source_revision != snapshot.revision || record.input.graph_revision.is_some()
+    }) {
+        super::analysis::invalidate(&mut view);
+    }
+    view.source_snapshot = Some(snapshot);
+    Ok(())
+}
+
+pub(super) fn extract_atlas(
+    view: &std::sync::Mutex<super::View>,
+    workspace: &Workspace,
+    control: &Control,
+    paths: &[String],
+) -> Result<()> {
+    let atlas = crate::atlas::Configuration::host();
+    {
+        let mut view = super::lock(view);
+        view.source_snapshot = None;
+        super::analysis::invalidate(&mut view);
+        view.activity = "LeanでコンパイルしてAtlas依存を抽出".into();
+    }
+    let mut snapshot = capture(workspace, control, paths)?;
+    let extraction = atlas.extract(&snapshot.files, control);
+    super::lock(view).atlas = atlas.status();
+    let graph = extraction?;
+    anyhow::ensure!(
+        capture(workspace, control, paths)?.revision == snapshot.revision,
+        "Sources changed during Atlas extraction; no graph admitted"
+    );
+    snapshot.atlas = Some(graph);
+    control.with_active(|| {
+        let mut view = super::lock(view);
+        view.source_snapshot = Some(snapshot);
+        view.atlas = atlas.status();
+        Ok(())
+    })?;
+    Ok(())
+}
+
 #[derive(Clone, Serialize)]
 pub(super) struct Snapshot {
     pub revision: String,
     pub files: BTreeMap<String, String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub atlas: Option<crate::atlas::Extraction>,
 }
 
 pub(super) fn capture(
@@ -82,5 +133,9 @@ pub(super) fn capture(
         );
     }
     let revision = format!("sha256:{:x}", Sha256::digest(serde_json::to_vec(&files)?));
-    Ok(Snapshot { revision, files })
+    Ok(Snapshot {
+        revision,
+        files,
+        atlas: None,
+    })
 }

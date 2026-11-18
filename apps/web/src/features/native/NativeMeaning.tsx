@@ -7,6 +7,7 @@ export function NativeMeaning({
   record,
   target,
   sourceRevision,
+  graphRevision,
   authorized,
   running,
   onRun,
@@ -14,6 +15,7 @@ export function NativeMeaning({
   record: MeaningRecord | null;
   target?: Target;
   sourceRevision?: string;
+  graphRevision?: string;
   authorized: boolean;
   running: boolean;
   onRun: (input: MeaningInput) => Promise<boolean>;
@@ -30,6 +32,7 @@ export function NativeMeaning({
     record &&
     target &&
     sourceRevision === record?.input.source_revision &&
+    graphRevision === record?.input.graph_revision &&
     sameTarget(record.input.target, target) &&
     requirement === record.input.requirement,
   );
@@ -62,6 +65,7 @@ export function NativeMeaning({
             onClick={() =>
               void onRun({
                 source_revision: sourceRevision,
+                ...(graphRevision ? { graph_revision: graphRevision } : {}),
                 target,
                 requirement,
               })
@@ -71,7 +75,10 @@ export function NativeMeaning({
           </Button>
           {!authorized && <p>実行するには接続先を確認・承認してください。</p>}
           <Typography variant="caption" component="p">
-            選択したファイルを自然言語化し、別のリクエストで要件と比較します。同じ設定モデルを使い、証明・契約の受理状態は変更しません。
+            {graphRevision
+              ? "コンパイル後の宣言と意味に関係する依存を自然言語化します。元ソース・コメント・証明専用の依存は最初のリクエストに含めません。"
+              : "選択したファイルを自然言語化します。"}
+            別のリクエストで要件と比較します。同じ設定モデルを使い、証明・契約の受理状態は変更しません。
           </Typography>
         </>
       )}

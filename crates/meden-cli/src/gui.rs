@@ -46,6 +46,7 @@ struct View {
     exports: Vec<crate::exports::Summary>,
     export_review: Option<delivery::Review>,
     export_outcome: Option<delivery::Outcome>,
+    atlas: crate::atlas::Status,
 }
 
 #[derive(Deserialize)]
@@ -60,6 +61,10 @@ enum Command {
     },
     Cancel,
     RefreshStatus,
+    PrepareAtlas,
+    AtlasSnapshot {
+        paths: Vec<String>,
+    },
     ReviewExport {
         reference: crate::exports::Reference,
         offset: usize,
@@ -248,6 +253,7 @@ fn initial_view(
         exports: Vec::new(),
         export_review: None,
         export_outcome: None,
+        atlas: crate::atlas::Configuration::host().status(),
     }));
     Ok(view)
 }
@@ -429,6 +435,18 @@ fn worker(
             )?;
             let instruction = match command {
                 Command::RefreshStatus => None,
+                Command::PrepareAtlas => {
+                    lock(view).activity = "Lean Atlasライブラリをオフラインで準備".into();
+                    let atlas = crate::atlas::Configuration::host();
+                    let result = atlas.prepare(&processes);
+                    lock(view).atlas = atlas.status();
+                    result?;
+                    None
+                }
+                Command::AtlasSnapshot { paths } => {
+                    sources::extract_atlas(view, workspace, &processes, &paths)?;
+                    None
+                }
                 command @ (Command::ReviewExport { .. }
                 | Command::SendExport { .. }
                 | Command::RejectExport { .. }
@@ -445,18 +463,7 @@ fn worker(
                     None
                 }
                 Command::SourceSnapshot { paths } => {
-                    // Discard the old graph even if a replacement observation fails.
-                    lock(view).source_snapshot = None;
-                    let snapshot = sources::capture(workspace, &processes, &paths)?;
-                    let mut view = lock(view);
-                    if view
-                        .analysis
-                        .as_ref()
-                        .is_some_and(|record| record.input.source_revision != snapshot.revision)
-                    {
-                        analysis::invalidate(&mut view);
-                    }
-                    view.source_snapshot = Some(snapshot);
+                    sources::refresh(view, workspace, &processes, &paths)?;
                     None
                 }
                 Command::Instruction { text } => {

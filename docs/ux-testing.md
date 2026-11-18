@@ -134,6 +134,16 @@ prerequisites fail rather than skip these browser tests. Native screenshots incl
 `native-source-graph.png`. The source-graph journey covers local files, exact-line
 navigation, rereading after real edits, failed observation recovery and reload;
 source-only declarations must never acquire archived proof status.
+Native Atlas cases require a real installed Lean distribution (4.35.0 in CI;
+`MEDEN_ATLAS_LEAN` selects its host path). They prepare the actual pinned library
+from an empty analysis cache, compile selected modules, inspect cross-module type/value
+edges and `sorry`, and compare an elaborated scope without source comments or
+theorem proof-only dependencies. Compilation failure, GUI repair and restart are
+covered. This is installed-Lean analysis preparation, not a cold verifier download.
+The separate isolation case runs real Lean `#eval` code to probe hidden host data,
+unselected files, cleared environment, read-only source/library mounts and offline
+networking; corrupted prepared resources recover via the visible preparation button.
+Inference in these browser cases remains scripted and does not prove model quality.
 Native application-preview cases develop actual HTML/JS/CSS/JSON through file tools,
 exercise module imports and interactive controls on desktop/mobile, retain the
 document across tabs, reread after edits and recover from a missing entry/restart.

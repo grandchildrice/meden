@@ -455,6 +455,56 @@ impl Sandbox {
         self.build(executable, args, None, &[], Network::Offline)
     }
 
+    /// A host-selected Lean distribution and analysis library, mounted read-only.
+    /// The fixed library owns the script; model inputs are filenames/data only.
+    pub fn lean_command(
+        root: &Path,
+        worker: &Path,
+        lean: &Path,
+        library: &Path,
+        sources: Option<&Path>,
+        script: &str,
+        args: &[impl AsRef<OsStr>],
+    ) -> io::Result<Command> {
+        let lean = lean.canonicalize()?;
+        let library = library.canonicalize()?;
+        if !lean.join("bin/lean").is_file()
+            || !library.is_dir()
+            || !matches!(script, "prepare.sh" | "extract.sh" | "compile.sh")
+        {
+            return Err(io::Error::other(
+                "prepared Lean analysis resources are missing",
+            ));
+        }
+        let sandbox = Self::configure(
+            root,
+            worker.canonicalize()?,
+            &[&lean.join("bin/lean")],
+            BTreeSet::new(),
+        )?;
+        let mut parameters = vec![
+            std::ffi::OsString::from("--noprofile"),
+            "--norc".into(),
+            format!("/analysis/library/{script}").into(),
+        ];
+        parameters.extend(args.iter().map(|arg| arg.as_ref().to_os_string()));
+        let sources = sources.map(Path::canonicalize).transpose()?;
+        let mut bindings = vec![
+            (lean.as_path(), "/analysis/lean"),
+            (library.as_path(), "/analysis/library"),
+        ];
+        if let Some(path) = sources.as_deref() {
+            bindings.push((path, "/analysis/sources"));
+        }
+        Ok(sandbox.build(
+            "/tools/bash",
+            &parameters,
+            None,
+            &bindings,
+            Network::Offline,
+        ))
+    }
+
     pub(crate) fn for_verification(
         root: &Path,
         worker: &Path,

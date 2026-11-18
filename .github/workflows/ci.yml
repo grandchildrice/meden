@@ -268,7 +268,17 @@ jobs:
           toolchain: 1.98.1
       - uses: Swatinem/rust-cache@v2
       - name: Install native GUI worker prerequisites
-        run: sudo apt-get update && sudo apt-get install -y bubblewrap
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap zstd python3
+      - name: Prepare pinned Lean for real GUI Atlas journeys
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          bash tools/download-ci-asset.sh repos/leanprover/lean4/releases/assets/634574462 \
+            7289597a44543246c9227b8cae501767e095ce17f6d448b95fc4a8dc97268f6d \
+            "$RUNNER_TEMP/gui-lean.tar.zst"
+          mkdir "$RUNNER_TEMP/gui-lean"
+          tar --zstd -xf "$RUNNER_TEMP/gui-lean.tar.zst" --strip-components=1 -C "$RUNNER_TEMP/gui-lean"
+          echo "MEDEN_ATLAS_LEAN=$RUNNER_TEMP/gui-lean" >> "$GITHUB_ENV"
       - run: cargo build -p meden-cli
       - uses: actions/setup-node@v7
         with:

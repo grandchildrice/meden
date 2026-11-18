@@ -50,6 +50,36 @@ describe("Atlas boundary and dependency traversal", () => {
       }),
     ).toThrow();
   });
+  it("keeps future edge kinds in meaning scope even when they resemble a known value edge", () => {
+    const graph = importAtlas({
+      metadata: { projectName: "future" },
+      nodes: [
+        {
+          id: "A",
+          shortName: "A",
+          kind: "theorem",
+          filePath: "A.lean",
+          hasSorry: false,
+        },
+        {
+          id: "B",
+          shortName: "B",
+          kind: "definition",
+          filePath: "A.lean",
+          hasSorry: false,
+        },
+      ],
+      edges: [
+        {
+          source: "A",
+          target: "B",
+          kind: "future_theorem_value_to_definition",
+        },
+      ],
+    });
+    expect(graph.edges[0]?.site).toBe("unknown");
+    expect(dependencyScope(graph, "A", "meaning").has("B")).toBe(true);
+  });
   it("prunes proof-value edges while retaining value dependencies from definitions", () => {
     const workspace = sampleWorkspace();
     const all = dependencyScope(
@@ -103,6 +133,30 @@ describe("Atlas boundary and dependency traversal", () => {
           Number.isFinite(position.x) && Number.isFinite(position.y),
       ),
     ).toBe(true);
+  });
+  it("project overview includes disconnected declarations without inventing edges", () => {
+    const workspace = sampleWorkspace();
+    const isolated = {
+      ...workspace.declarations[0]!,
+      id: "Isolated.unfinished",
+      name: "Isolated.unfinished",
+      label: "unfinished",
+    };
+    workspace.declarations.push(isolated);
+    expect(
+      dependencyScope(workspace, "Ledger.State", "dependencies").has(
+        isolated.id,
+      ),
+    ).toBe(false);
+    const positions = radialLayout(workspace, "Ledger.State", "project");
+    expect(positions.size).toBe(workspace.declarations.length);
+    expect(Number.isFinite(positions.get(isolated.id)?.x)).toBe(true);
+    expect(Number.isFinite(positions.get(isolated.id)?.y)).toBe(true);
+    expect(
+      workspace.edges.some(
+        (edge) => edge.source === isolated.id || edge.target === isolated.id,
+      ),
+    ).toBe(false);
   });
   it("never uses a pruned edge as a radial depth shortcut", () => {
     const workspace = sampleWorkspace();

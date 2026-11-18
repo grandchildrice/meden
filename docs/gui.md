@@ -49,8 +49,9 @@ provider failures are not silently retried. Unsent input remains tab/browser dat
 and completed turns also refresh status; polling alone is not a filesystem watcher.
 Logs/partial reasoning in this initial adapter last for the host process, while
 conversation text and admitted model history persist. The file reader uses the
-native tool's bounded first 200 lines. Elaborated Atlas extraction remains
-integration work. Native preview, delivery and meaning analysis are described below.
+native tool's bounded first 200 lines. Native preview, selected-module Lean Atlas
+extraction, delivery and meaning analysis are described below. Full-project Lake
+dependency discovery and independent-model judging remain integration work.
 
 ## Native delivery review
 
@@ -156,11 +157,68 @@ cannot produce proof evidence. Select a node and open its exact highlighted
 source line in the shared syntax-highlighted source reader. The
 following recorded-demo documentation describes a separate standalone mode.
 
+## Native Lean Atlas extraction
+
+With an installed Lean distribution, select the **グラフ** tab, choose **依存抽出の準備**,
+enter the local `.lean` module paths, then **Leanでコンパイルして依存を抽出**. Preparation
+compiles the pinned public Atlas library offline without sending source to a model.
+The default host selection is installed Elan Lean 4.35.0. To use another installed
+distribution, set `MEDEN_ATLAS_LEAN=/absolute/lean-root` before launching Meden.
+The public `meden setup-atlas` command prepares the same library as the button.
+It does not download Lean or replace the host's ordinary toolchain.
+`meden source-notices` displays the bundled Atlas and claimcheck source notices.
+
+Selected modules are observed through the existing policy-bound file worker,
+then mounted read-only in a fresh offline compilation job. Only fresh `.olean`
+files from this job are imported. Project Lake files, existing build outputs,
+unselected project files, host credentials and network services are not supplied.
+Lean code can run macros, initializers and `#eval` inside this job; it is untrusted
+executable analysis input, rather than Meden's restricted contract-data language.
+The prepared library and fixed scripts are separate read-only resources. There is
+no unconfined fallback. Import/compile/metadata/OS attribution remains an adapter.
+
+The [MIT-licensed extraction core](../crates/meden-cli/src/atlas/vendor/README.md)
+is pinned to Lean Atlas `06be1eb76fb926b8cf8bd42a4a51208d128c327d`. Its actual
+constant classifier and type/value dependency functions run on the imported
+environment. Meden selects the observed modules, retains cross-module edges,
+adds compiler-printed statements/definition values and transitive axiom names,
+and records references outside those modules separately. Standard library and
+other external definitions are not expanded. **プロジェクト全体** includes disconnected
+declarations; the focused views retain their own dependency cones.
+
+This path supports 1–32 selected modules under the existing 64 KiB/file and 1 MiB
+source limits. Module paths use ordinary ASCII identifier components and cannot
+replace the prepared Lean/Std/Atlas modules. Imports require either another
+selected module or the prepared Lean/Atlas libraries; arbitrary Lake packages are not
+discovered or fetched. Compilation/extraction has a shared 180-second budget;
+truncated/failed/interrupted output produces no graph. Graph output is bounded
+to 5,000 declarations and 100,000 internal edges. Resource hashes bind the selected
+Lean executable and prepared Atlas files; this is not a complete hash of the Lean
+distribution, dynamic libraries, OS or launcher.
+
+The graph retains the observed source hash plus a separate extraction revision
+covering graph data and prepared-resource hashes. Preparation is cached outside
+the model-writable project. Changed resources fail validation; the GUI can prepare
+them again. Changed/missing source or compilation failure discards the old graph.
+Restart retains the public prepared library but requires fresh source extraction.
+`sorry` is displayed as an incomplete proof. Other declarations remain proof-unknown:
+successful compilation and Atlas metadata do not admit a native proof receipt.
+
+Meaning analysis from an Atlas graph uses the exact selected declaration and its
+server-derived meaning scope. Theorem proof-only edges are pruned, definition value
+edges remain, and compiler-printed types/values replace raw source and comments in
+the translation request. Axiom and external-reference information remain explicit.
+Both source and extraction revisions must match. Prepared resources and selected
+source files are checked again around inference; the final context is bounded to
+1 MiB without truncation. Lean parsing, pretty-printing, extensions, malicious source
+effects and extraction authenticity are not established by Meden's control proofs.
+
 ## Native meaning analysis
 
 After reading a source graph, select a declaration, enter **比較する要件** and choose
 **この宣言の意味を解析**. The reviewed processor receives two separate requests:
-first the selected declaration plus observed local files, without the separate
+first the selected declaration plus observed local files (or the elaborated Atlas
+scope above), without the separate
 requirement or conversation; then the requirement plus the back-translation,
 without the formal source or conversation. The same host-selected model handles
 both requests. They are separate contexts, not independent-model evidence.
@@ -177,8 +235,9 @@ postcondition, scope and discrepancy/reasoning. **一致の候補** and **意味
 are model assessments. A semantic match never marks a declaration proved, accepts
 native meaning or changes proof/export authority. Low-confidence or contradictory
 matches remain **判定保留**. This interface does not establish analyzer accuracy.
-Lexical graph scope is not complete elaborated scope; comments can still expose
-intent even though the separate requirement is withheld from translation.
+Lexical mode is not complete elaborated scope; its source comments can still expose
+intent even though the separate requirement is withheld from translation. Atlas
+mode omits those source comments and theorem proof scripts from translation.
 
 The host freezes path/content SHA-256, target and exact requirement, reobserves
 all selected files before and after inference, and checks cancellation and the
@@ -218,8 +277,9 @@ binds the tested source commit and binary hash to generated source, three browse
 boundary interactions, independent original Rust tests, one exact reviewed delivery,
 matching/mismatching meaning candidates and historical restart. It also records the
 preceding failed trials that exposed scratch-file and form-handler friction; those
-failures were not counted as successful validation. Elaborated Atlas extraction and
-independent-model judgment remain open integration work.
+failures were not counted as successful validation. That earlier trial used lexical
+Rust graphs; selected-module Atlas extraction is a separate path described above.
+Independent-model judgment remains open integration work.
 
 ## Recorded demo: start
 
