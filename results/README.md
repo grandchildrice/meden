@@ -8,6 +8,16 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Native GUI and Atlas with Ollama Cloud
 
+The [portable Lean continuation trial](portable-lean-ollama-cloud-minimax-m3.json)
+resumed a genuine failing Lean theorem through the GUI with fresh Ollama Cloud
+approval. `minimax-m3` repaired the original universal statement using the real
+file tools. The host's actual offline Lean check then passed and reported its
+exact type with no axioms. Native Rust contract acceptance remained absent.
+Saved visible messages survived an unapproved restart. The observation probe's
+initial message-locator error is retained separately; no host source repair or
+second inference run rescued that outcome. This is an installed-toolchain cloud
+trial, not local inference, cold installation or confidentiality evidence.
+
 The [application trial at `afa18b7`](native-gui-development-ollama-cloud-minimax-m3-afa18b7.json)
 used live `minimax-m3` to develop an interactive local app, pass independent Rust
 tests, review/send exact delivery bytes and compare lexical source meaning.

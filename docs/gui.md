@@ -110,8 +110,16 @@ acceptance or project verification, and imported successes always require a loca
 recheck. Local checks invalidate previously displayed source/analysis/evidence
 freshness because executable Lake configuration can edit the workspace.
 
+The agent keeps resumed Lean work in its existing language and preserves the
+task's requirement. Native contract verification remains restricted to pure Rust
+transitions. When the model tools lack the project's prepared Lean compiler,
+the agent reports the named host check still needed; run it with the local check
+button. The [actual cloud repair trial](../results/portable-lean-ollama-cloud-minimax-m3.json)
+exercises this path from a compiler rejection to a checked universal Lean theorem,
+with saved conversation and an unapproved restart.
+
 The public TUI supports `/work`, `/work ID`, `/work init NAME`, `/work save`,
-`/work check ID`, `/work note ID TEXT` and `/work resume ID`. At connection
+`/work check ID`, `/work note ID -- TEXT` and `/work resume ID`. At connection
 selection, `/` opens host commands without approving inference. For scripts,
 `meden work --workspace PATH --help` lists the same operations and task editing.
 `meden lake --workspace PATH --lean LEAN_ROOT -- build --wfail MODULE` exposes
