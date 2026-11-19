@@ -65,7 +65,7 @@ enum Task {
 enum Update {
     RepairReview(Box<crate::analysis::repair::Review>),
     RepairApplied(Box<(crate::analysis::sources::Snapshot, crate::analysis::Record)>),
-    Sources(crate::analysis::sources::Snapshot),
+    Sources(Box<crate::analysis::sources::Snapshot>),
     Analysis(Box<crate::analysis::Record>),
     AnalysisDone {
         text: String,
@@ -952,7 +952,7 @@ impl App {
                         );
                     }
                 }
-                Update::Sources(snapshot) => self.observed_sources(snapshot),
+                Update::Sources(snapshot) => self.observed_sources(*snapshot),
                 Update::Analysis(record) => {
                     self.activity = Some(format!("Meaning analysis · {:?}", record.state));
                     self.analysis = Some(*record);

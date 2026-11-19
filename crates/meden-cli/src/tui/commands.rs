@@ -58,11 +58,13 @@ impl App {
         if !prefix.starts_with('/') || prefix.chars().any(char::is_whitespace) {
             return Vec::new();
         }
-        COMMANDS
+        let mut commands = COMMANDS
             .iter()
             .copied()
             .filter(|(name, _)| name.starts_with(prefix))
-            .collect()
+            .collect::<Vec<_>>();
+        commands.sort_by_key(|(name, _)| *name != prefix);
+        commands
     }
 
     pub(super) fn refresh_commands(&mut self) {
@@ -227,7 +229,7 @@ impl App {
             ("/quit" | "/exit", []) => self.quit_requested = true,
             ("/workspace", []) => self.say(format!("Project: {}\nFile and Bash changes are saved directly here. Reopening this directory resumes the conversation.", self.root.display()), Style::new()),
             ("/atlas-prepare", []) => self.analysis_task(Task::PrepareAtlas),
-            ("/atlas" | "/sources", paths) if !paths.is_empty() => {
+            ("/atlas" | "/sources", paths) if !paths.is_empty() || command == "/atlas" => {
                 self.source_snapshot = None;
                 self.invalidate_analysis();
                 self.analysis_task(Task::Sources { paths: paths.iter().map(|s| (*s).to_owned()).collect(), atlas: command == "/atlas" });

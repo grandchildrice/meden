@@ -22,11 +22,14 @@ and SHA-256; individual directories retain timestamped
 not a recording of every paint. Per-test traces are capped at 10 MB and indicate
 truncation in `trace.json`; the final screen is retained separately.
 
-The command needs the Python dev dependencies, Linux, Bubblewrap and the host
-public toolchain used by the existing integration tests. A missing prerequisite,
+The command needs the Python dev dependencies, Linux, Bubblewrap, an actual
+installed Lean/Lake distribution (`MEDEN_ATLAS_LEAN`) and the host public toolchain used by the existing integration tests. A missing prerequisite,
 skipped journey, failed assertion or empty selection fails the required gate.
-Fixtures use temporary projects, synthetic replies and an inert checker manifest;
-they never need a paid model or prove a real cold checker installation.
+Fixtures use temporary projects, synthetic replies and an inert project-checker
+manifest. The required Lake journey additionally uses the actual installed
+Lean/Lake package loader and compiler. These are installed prerequisites, not
+paid-model or cold-install validation. CI downloads the same pinned public Lean
+distribution used by the native GUI journeys.
 
 CI runs these same marked cases once within the existing Python adapter job.
 The public runner starts its test process in a fresh session so each journey
@@ -44,6 +47,7 @@ Other platform-dependent tests may still skip; required `ux` cases must pass.
 | Work in the chosen repository | Files change in that repository; commands run there; original tests remain intact | `test_tui_integration.py`, `test_tui_smoke.py` |
 | Continue across GUI/TUI | A native GUI turn, a public TUI continuation and a reopened GUI retain the same files/conversation, with fresh processor review | `test_gui_tui_resume.py` |
 | Repair a candidate Finding | Reject a diff without edits, refuse stale sources and clipped headings, apply once, reanalyze the original requirement, retain source artifacts/history and restart without an old grant | `test_tui_repair.py`; native browser repair cases |
+| Read Lake projects | Run `/atlas` without enumerating files, follow package/library source roots and cached dependencies, refuse stale configuration and changed glob inventories, recover and restart with fresh approval | `test_tui_lake.py`, actual installed Lean/Lake in the required gate; native Lake browser case |
 | Collect local Lean imports | Select one root with `/atlas App.lean`, collect transitive local modules, ignore comment text, stop on missing imports, refuse an older graph and recover by selecting a valid root | `test_tui_atlas.py`, separate installed-Lean job; native browser Atlas case |
 | Compare through a separate model | Review both fixed model/destination bindings, refuse clipped review, stop on judge failure without fallback, retain translation/provenance and require fresh approval after restart | `test_tui_judge.py`; native separate-judge browser case |
 | Inspect candidate meaning from the TUI | Read selected sources or Atlas declarations, run blind translation and comparison, stop between passes, recover from provider failure, reject concurrent edits, retain failure and Finding history, select a past assessment after restart without restoring a grant | `test_tui_analysis.py` |

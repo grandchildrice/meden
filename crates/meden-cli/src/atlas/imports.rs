@@ -1,5 +1,5 @@
 //! Import headers parsed by installed Lean inside the same offline analysis profile.
-use super::{module_path, Configuration, Execution};
+use super::{Configuration, Execution};
 use anyhow::{Context, Result};
 use meden_runtime::process::Control;
 use serde::Deserialize;
@@ -30,7 +30,7 @@ impl Configuration {
         let job = tempfile::tempdir()?;
         let frozen = tempfile::tempdir()?;
         for (path, source) in files {
-            module_path(path)?;
+            crate::analysis::observe::relative("", path)?;
             let target = frozen.path().join(path);
             fs::create_dir_all(target.parent().context("import source parent missing")?)?;
             fs::write(target, source)?;

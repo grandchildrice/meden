@@ -54,8 +54,8 @@ and completed turns also refresh status; polling alone is not a filesystem watch
 Logs/partial reasoning in this initial adapter last for the host process, while
 conversation text and admitted model history persist. The file reader uses the
 native tool's bounded first 200 lines. Native preview, selected-module Lean Atlas
-extraction, delivery and meaning analysis are described below. Full-project Lake
-dependency discovery and independent-model judging remain integration work.
+extraction, delivery, Lake dependency discovery and separate-model meaning
+judgment are described below with their current bounds.
 
 ## Native delivery review
 
@@ -174,7 +174,7 @@ It does not download Lean or replace the host's ordinary toolchain.
 
 Selected modules are observed through the existing policy-bound file worker,
 then mounted read-only in a fresh offline compilation job. Only fresh `.olean`
-files from this job are imported. Project Lake files, existing build outputs,
+files from this job are imported. Existing build outputs,
 unselected project files, host credentials and network services are not supplied.
 Lean code can run macros, initializers and `#eval` inside this job; it is untrusted
 executable analysis input, rather than Meden's restricted contract-data language.
@@ -191,15 +191,18 @@ other external definitions are not expanded. **プロジェクト全体** includ
 declarations; the focused views retain their own dependency cones.
 
 This path parses import headers with installed Lean and collects project-local
-imports from the selected workspace module root. It supports ordinary ASCII
+imports using the evaluated Lake source directories, or the workspace module root
+when no Lake configuration is present. Leave the target field blank to discover
+Lake library/executable roots, including configured module globs. It supports ordinary ASCII
 module names and at most 32 files in the entire closure, under the existing 64 KiB/file and 1 MiB
 source limits. Module paths use ordinary ASCII identifier components and cannot
 replace the prepared Lean/Std/Atlas modules. Imports require either another
-selected module or the prepared Lean/Atlas libraries; arbitrary Lake packages are not
-discovered or fetched. Compilation/extraction has a shared 180-second budget;
+observed source module or the prepared Lean/Atlas libraries. Lake configuration
+resolves local path dependencies and existing manifest package sources inside the
+selected workspace. Missing packages are not fetched. Compilation/extraction has a shared 180-second budget;
 truncated/failed/interrupted output produces no graph. Graph output is bounded
 to 5,000 declarations and 100,000 internal edges. Resource hashes bind the selected
-Lean executable and prepared Atlas files; this is not a complete hash of the Lean
+Lean executable, Lake shared library and prepared Atlas files; this is not a complete hash of the Lean
 distribution, dynamic libraries, OS or launcher.
 
 The graph retains the observed source hash plus a separate extraction revision
@@ -568,9 +571,15 @@ Earlier GUI captures
 [Compact preview](assets/gui/compact-preview.png).
 The [check record](assets/gui/verification.json) records scope and limits.
 
-Import collection never evaluates lakefile.lean, downloads packages, or silently
-omits unresolved imports. Installed Lean/Atlas library modules are explicit external
-boundaries; Lake srcDir and external package source roots are not yet discovered.
+Import collection evaluates frozen `lakefile.lean` or `lakefile.toml` with the
+installed Lake package loader inside the offline analysis worker. It never calls
+Lake dependency materialization, update, build hooks or host Lake execution.
+Local path dependencies and root-manifest packages already present inside the
+workspace are discovered. Installed Lean/Atlas library modules remain explicit
+external boundaries. Missing/ambiguous sources or conflicting manifest entries stop.
+The frozen graph records configuration/manifest contents, probed absences, module
+identities and glob inventories; changes invalidate analysis and pending repairs.
+Cached source contents are observed and hashed; their Git commit is not attested.
 A missing import fails collection and clears the current graph. Selected roots,
 collected files and external module names are retained with the source artifact.
 
@@ -585,3 +594,12 @@ are retained too. Naming exact schema vocabulary in the comparison prompt enable
 this successful retry under a new host review; parsing remained strict with no
 fallback. These synthetic cloud trials use an installed verifier prerequisite,
 not cold setup, local inference or general quality validation.
+
+The [Lake cloud trial](../results/tui-lake-ollama-cloud-minimax-m3-gptoss120.json)
+used the public TUI to prepare real Lean/Lake, discover four modules across local
+and prepopulated manifest packages, compare `Domain.eligible` through minimax-m3
+and gpt-oss:120b, observe the expected 150/100 mismatch, refuse an older graph after
+a missing input, recover through `/atlas` and restart with fresh processor review.
+It retained the exact graph/source/configuration snapshot and unchanged fixture
+files. This is a synthetic-data cloud workflow, not Git-origin attestation, native
+project proof, cold installation, general semantic accuracy or local inference.

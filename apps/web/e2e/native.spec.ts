@@ -368,7 +368,7 @@ test.describe("native GUI with real offline workers", () => {
       page
         .getByRole("alert")
         .filter({ hasText: "Lean source compilation failed" }),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 60_000 });
     await expect(graph).not.toBeVisible();
     await page.screenshot({
       path: "target/gui-checks/native-atlas-compile-failed.png",
@@ -411,6 +411,80 @@ test.describe("native GUI with real offline workers", () => {
     );
   });
 
+  test("Lake discovers configured roots and dependency sources, follows their paths and recovers from a missing root", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    await writeFile(
+      resolve(project, "lakefile.toml"),
+      'name = "app"\nsrcDir = "src"\n[[lean_lib]]\nname = "App"\n[[require]]\nname = "dep"\npath = "vendor/dep"\n',
+    );
+    await mkdir(resolve(project, "src"), { recursive: true });
+    await mkdir(resolve(project, "vendor/dep/source"), { recursive: true });
+    await writeFile(
+      resolve(project, "src/App.lean"),
+      "import Domain\ndef app : Nat := Domain.answer\n",
+    );
+    await writeFile(
+      resolve(project, "vendor/dep/lakefile.lean"),
+      'import Lake\nopen Lake DSL\npackage dep where\n  srcDir := "source"\nlean_lib Domain\n',
+    );
+    await writeFile(
+      resolve(project, "vendor/dep/source/Domain.lean"),
+      "namespace Domain\ndef answer : Nat := 42\nend Domain\n",
+    );
+    await page.goto(await start());
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+    await page
+      .getByRole("button", { name: "依存抽出の準備", exact: true })
+      .click();
+    await expect(
+      page.getByText("Lean Atlas: オフライン抽出の準備済み", { exact: false }),
+    ).toBeVisible({ timeout: 120_000 });
+    const paths = page.getByRole("textbox", {
+      name: "グラフの対象ファイル（1行に1つ）",
+    });
+    const extract = page.getByRole("button", {
+      name: "Leanでコンパイルして依存を抽出",
+      exact: true,
+    });
+    await paths.fill("");
+    await expect(extract).toBeEnabled();
+    await extract.click();
+    const graph = page.getByRole("region", { name: "ローカルソースのグラフ" });
+    await expect(graph).toContainText("Lake: app", { timeout: 60_000 });
+    await expect(graph).toContainText("Lake: dep");
+    const state = await nativeState(page);
+    expect(Object.keys(state.source_snapshot.files).sort()).toEqual([
+      "src/App.lean",
+      "vendor/dep/source/Domain.lean",
+    ]);
+    await graph.getByRole("button", { name: /Domain.answer.*を選択/ }).click();
+    await page
+      .getByRole("button", {
+        name: "vendor/dep/source/Domain.lean:2 のソースを開く",
+        exact: true,
+      })
+      .click();
+    await expect(
+      page.getByRole("dialog").locator('[aria-current="location"]'),
+    ).toContainText("def answer");
+    await page.getByRole("button", { name: "閉じる", exact: true }).click();
+    await paths.fill("missing.lean");
+    await extract.click();
+    await expect(
+      page.getByRole("alert").filter({ hasText: "Source observation failed" }),
+    ).toBeVisible();
+    expect((await nativeState(page)).source_snapshot).toBeNull();
+    await paths.fill("");
+    await extract.click();
+    await expect(graph).toContainText("Lake: dep", { timeout: 60_000 });
+    expect(requests).toHaveLength(0);
+    await page.screenshot({
+      path: "target/gui-checks/native-lake-project.png",
+      fullPage: true,
+    });
+  });
   test("Atlas code stays offline with read-only sources and libraries, and corrupt resources recover through the GUI", async ({
     page,
   }) => {

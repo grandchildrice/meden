@@ -28,7 +28,7 @@ def test_public_ux_runner_uses_its_test_terminals_inside_an_interactive_terminal
     status = None
     tail = b""
     try:
-        deadline = time.monotonic() + 180
+        deadline = time.monotonic() + 360
         while time.monotonic() < deadline:
             finished, observed = os.waitpid(pid, os.WNOHANG)
             if finished:

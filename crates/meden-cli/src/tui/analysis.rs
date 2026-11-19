@@ -113,6 +113,14 @@ impl App {
                 collection.roots.join(", "),
                 collection.external_modules.join(", ")
             );
+            for package in &collection.packages {
+                let _ = write!(
+                    text,
+                    "\nLake package: {} · {}",
+                    package.name,
+                    package.source_roots.join(", ")
+                );
+            }
         }
         if let Some(atlas) = &snapshot.atlas {
             for node in atlas.graph.nodes.iter().take(80) {
@@ -151,7 +159,7 @@ pub(super) fn execute(
         match task {
             Task::Sources { paths, atlas } => {
                 let snapshot = session.sources(&paths, atlas)?;
-                let _ = tx.send(Update::Sources(snapshot));
+                let _ = tx.send(Update::Sources(Box::new(snapshot)));
                 Ok(String::new())
             }
             Task::PrepareAtlas => {

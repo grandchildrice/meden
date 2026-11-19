@@ -106,6 +106,9 @@ export function NativeGraph({
         <Typography variant="body2">
           自動収集したプロジェクト内の依存です。対象:{" "}
           {snapshot.collection.roots.join(", ")}。
+          {snapshot.collection.packages
+            .map((pkg) => `Lake: ${pkg.name} (${pkg.source_roots.join(", ")})`)
+            .join(" · ")}
           外部モジュール（宣言を展開しない境界）:{" "}
           {snapshot.collection.external_modules.join(", ") || "なし"}。
         </Typography>

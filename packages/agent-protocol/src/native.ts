@@ -17,6 +17,33 @@ export const sourceSnapshotSchema = z
       .object({
         roots: z.array(z.string()),
         external_modules: z.array(z.string()),
+        modules: z.array(
+          z
+            .object({ name: z.string(), file: z.string(), root: z.string() })
+            .strict(),
+        ),
+        packages: z.array(
+          z
+            .object({
+              name: z.string(),
+              directory: z.string(),
+              source_roots: z.array(z.string()),
+            })
+            .strict(),
+        ),
+        metadata: z
+          .object({
+            files: z.record(z.string(), z.string().nullable()),
+            directories: z.record(
+              z.string(),
+              z
+                .array(
+                  z.object({ name: z.string(), kind: z.string() }).strict(),
+                )
+                .nullable(),
+            ),
+          })
+          .strict(),
       })
       .strict()
       .optional(),

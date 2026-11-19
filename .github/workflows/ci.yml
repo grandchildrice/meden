@@ -172,6 +172,7 @@ jobs:
           uv run --project python pytest -q python/tests/test_project_verification.py \
             python/tests/test_project_delivery.py \
             python/tests/test_tui_atlas.py \
+            python/tests/test_lake_analysis.py python/tests/test_tui_lake.py \
             python/tests/test_toolchains.py::test_mixed_system_and_nix_tools_check_actual_kernel \
             --basetemp "$RUNNER_TEMP/project-tests"
         env:
@@ -204,7 +205,17 @@ jobs:
           toolchain: 1.98.1
       - uses: Swatinem/rust-cache@v2
       - name: Install Linux isolation backend
-        run: sudo apt-get update && sudo apt-get install -y bubblewrap
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap zstd
+      - name: Prepare pinned Lean for required Lake TUI journey
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          bash tools/download-ci-asset.sh repos/leanprover/lean4/releases/assets/634574462 \
+            7289597a44543246c9227b8cae501767e095ce17f6d448b95fc4a8dc97268f6d \
+            "$RUNNER_TEMP/adapter-lean.tar.zst"
+          mkdir "$RUNNER_TEMP/adapter-lean"
+          tar --zstd -xf "$RUNNER_TEMP/adapter-lean.tar.zst" --strip-components=1 -C "$RUNNER_TEMP/adapter-lean"
+          echo "MEDEN_ATLAS_LEAN=$RUNNER_TEMP/adapter-lean" >> "$GITHUB_ENV"
       - run: cargo build -p meden-cli
       - uses: astral-sh/setup-uv@v7
       - run: uv sync --group dev

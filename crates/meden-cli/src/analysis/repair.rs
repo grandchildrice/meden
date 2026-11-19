@@ -64,6 +64,7 @@ struct Frozen {
     accepted_reference: Option<crate::project::Reference>,
     files: BTreeMap<String, String>,
     resources: Option<String>,
+    metadata: super::observe::Metadata,
     roots: Option<Vec<String>>,
     request: Request<Args>,
     policy: Policy,
@@ -130,6 +131,7 @@ fn log(
     )
 }
 fn observe(workspace: &Workspace, control: &Control, frozen: &Frozen) -> Result<()> {
+    super::collect::check_metadata(workspace, control, &frozen.metadata)?;
     observe_sources(
         workspace,
         control,
@@ -186,6 +188,12 @@ pub(crate) fn prepare(
         snapshot.files.clone(),
         snapshot.atlas.as_ref(),
     )?;
+    let metadata = snapshot
+        .collection
+        .as_ref()
+        .map(|c| c.metadata.clone())
+        .unwrap_or_default();
+    super::collect::check_metadata(workspace, control, &metadata)?;
     let resources = snapshot
         .atlas
         .as_ref()
@@ -233,6 +241,7 @@ pub(crate) fn prepare(
         accepted_reference: project.accepted_reference.clone(),
         files: snapshot.files.clone(),
         resources,
+        metadata,
         roots: snapshot
             .collection
             .as_ref()

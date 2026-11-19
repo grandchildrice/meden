@@ -497,7 +497,7 @@ impl Sandbox {
             || !library.is_dir()
             || !matches!(
                 script,
-                "prepare.sh" | "extract.sh" | "compile.sh" | "imports.sh"
+                "prepare.sh" | "extract.sh" | "compile.sh" | "imports.sh" | "lake.sh"
             )
         {
             return Err(io::Error::other(

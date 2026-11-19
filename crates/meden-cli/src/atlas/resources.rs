@@ -62,6 +62,7 @@ const SOURCES: &[(&str, &str)] = &[
     ),
     ("MedenAtlas", include_str!("MedenAtlas.lean")),
     ("MedenImports", include_str!("MedenImports.lean")),
+    ("MedenLake", include_str!("MedenLake.lean")),
 ];
 const SCRIPTS: &[(&str, &str)] = &[
     ("LEAN-ATLAS-LICENSE", include_str!("vendor/LICENSE")),
@@ -69,6 +70,7 @@ const SCRIPTS: &[(&str, &str)] = &[
     ("prepare.sh", include_str!("prepare.sh")),
     ("extract.sh", include_str!("extract.sh")),
     ("imports.sh", include_str!("imports.sh")),
+    ("lake.sh", include_str!("lake.sh")),
 ];
 pub(super) fn modules() -> Vec<String> {
     SOURCES.iter().map(|(name, _)| (*name).into()).collect()

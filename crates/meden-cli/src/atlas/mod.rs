@@ -12,6 +12,7 @@ use sha2::{Digest, Sha256};
 
 mod graph;
 mod imports;
+pub(crate) mod lake;
 mod resources;
 pub(crate) use graph::Extraction;
 pub(crate) const UPSTREAM: &str = "06be1eb76fb926b8cf8bd42a4a51208d128c327d";
@@ -160,6 +161,7 @@ impl Configuration {
     pub fn extract(
         &self,
         files: &BTreeMap<String, String>,
+        bindings: &[crate::analysis::layout::Module],
         control: &Control,
     ) -> Result<Extraction> {
         let (lean, library) = self.selected()?;
@@ -167,9 +169,17 @@ impl Configuration {
         let job = tempfile::tempdir()?;
         let frozen = tempfile::tempdir()?;
         let started = Instant::now();
+        anyhow::ensure!(
+            bindings.len() == files.len() && bindings.iter().all(|m| files.contains_key(&m.file)),
+            "Incomplete Atlas module/source correspondence"
+        );
         let mut modules = Vec::new();
+        for binding in bindings {
+            binding.validate()?;
+            modules.push(binding.name.replace('.', "/"));
+        }
         for (path, source) in files {
-            modules.push(module_path(path)?);
+            crate::analysis::observe::relative("", path)?;
             let target = frozen.path().join(path);
             fs::create_dir_all(target.parent().context("source parent missing")?)?;
             fs::write(target, source)?;
@@ -180,18 +190,33 @@ impl Configuration {
             library: &library,
             sources: Some(frozen.path()),
         };
-        execution.compile(&modules, control, started)?;
+        execution.compile(bindings, control, started)?;
         let stdout = execution.execute("extract.sh", &modules, control, remaining(started)?)?;
         anyhow::ensure!(
             serde_json::to_vec(&before)? == serde_json::to_vec(&Self::validate(&lean, &library)?)?,
             "Atlas resources changed during extraction"
         );
-        let graph: Value = serde_json::from_str(&stdout)
+        let mut graph: Value = serde_json::from_str(&stdout)
             .context("Atlas did not return one complete JSON result")?;
+        for node in graph
+            .get_mut("nodes")
+            .and_then(Value::as_array_mut)
+            .context("Missing Atlas nodes")?
+        {
+            let logical = node
+                .get("filePath")
+                .and_then(Value::as_str)
+                .context("Missing Atlas source path")?;
+            let binding = bindings
+                .iter()
+                .find(|binding| format!("{}.lean", binding.name.replace('.', "/")) == logical)
+                .context("Atlas module is outside the frozen binding")?;
+            node["filePath"] = binding.file.clone().into();
+        }
         Extraction::new(graph, files, &before)
     }
 }
-fn module_path(path: &str) -> Result<String> {
+pub(crate) fn module_path(path: &str) -> Result<String> {
     let name = path
         .strip_suffix(".lean")
         .context("Atlas requires .lean source files")?;
@@ -206,7 +231,16 @@ fn module_path(path: &str) -> Result<String> {
     anyhow::ensure!(
         !matches!(
             name.split('/').next(),
-            Some("LeanAtlas" | "MedenAtlas" | "Lean" | "Init" | "Std")
+            Some(
+                "LeanAtlas"
+                    | "MedenAtlas"
+                    | "MedenImports"
+                    | "MedenLake"
+                    | "Lake"
+                    | "Lean"
+                    | "Init"
+                    | "Std"
+            )
         ),
         "Atlas sources cannot replace prepared library modules"
     );
@@ -224,7 +258,12 @@ struct Execution<'a> {
     sources: Option<&'a Path>,
 }
 impl Execution<'_> {
-    fn compile(&self, modules: &[String], control: &Control, started: Instant) -> Result<()> {
+    fn compile(
+        &self,
+        modules: &[crate::analysis::layout::Module],
+        control: &Control,
+        started: Instant,
+    ) -> Result<()> {
         let mut pending = modules.to_vec();
         while !pending.is_empty() {
             let previous = pending.len();
@@ -233,7 +272,11 @@ impl Execution<'_> {
             for module in pending {
                 let output = self.observe(
                     "compile.sh",
-                    std::slice::from_ref(&module),
+                    &[
+                        module.name.replace('.', "/"),
+                        module.file.clone(),
+                        module.root.clone(),
+                    ],
                     control,
                     remaining(started)?,
                 )?;
@@ -329,7 +372,10 @@ fn analysis_command(
 }
 
 fn engine_hash(root: &Path) -> Result<String> {
-    file_hash(&root.join("bin/lean").canonicalize()?)
+    Ok(digest(&serde_json::to_vec(&[
+        file_hash(&root.join("bin/lean").canonicalize()?)?,
+        file_hash(&root.join("lib/lean/libLake_shared.so").canonicalize()?)?,
+    ])?))
 }
 fn file_hash(path: &Path) -> Result<String> {
     let metadata = fs::symlink_metadata(path)?;
@@ -339,6 +385,6 @@ fn file_hash(path: &Path) -> Result<String> {
     );
     Ok(digest(&fs::read(path)?))
 }
-fn digest(bytes: &[u8]) -> String {
+pub(crate) fn digest(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }

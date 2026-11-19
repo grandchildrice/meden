@@ -5,13 +5,15 @@ use std::path::Path;
 use std::sync::atomic::Ordering;
 
 use crate::semantic::{self, Assessment, Input, Prepared, Stage};
-use anyhow::Result;
+use anyhow::{Context, Result};
 use meden_llm::Gateway;
 use meden_runtime::{process::Control, workspace::Workspace};
 use serde::{Deserialize, Serialize};
 
 pub(crate) mod collect;
 pub(crate) mod journal;
+pub(crate) mod layout;
+pub(crate) mod observe;
 pub(crate) mod repair;
 pub(crate) mod sources;
 
@@ -117,7 +119,21 @@ pub(crate) fn extract(
 ) -> Result<sources::Snapshot> {
     let mut snapshot = collect::capture(workspace, control, paths)?;
     let observed = snapshot.files.keys().cloned().collect::<Vec<_>>();
-    let graph = crate::atlas::Configuration::host().extract(&snapshot.files, control)?;
+    let collection = snapshot
+        .collection
+        .as_ref()
+        .context("Missing collected module bindings")?;
+    collect::check_metadata(workspace, control, &collection.metadata)?;
+    let mut graph = crate::atlas::Configuration::host().extract(
+        &snapshot.files,
+        &collection.modules,
+        control,
+    )?;
+    graph.revision = format!(
+        "sha256:{}",
+        crate::atlas::digest(&serde_json::to_vec(&(&graph.revision, collection))?)
+    );
+    collect::check_metadata(workspace, control, &collection.metadata)?;
     anyhow::ensure!(
         sources::capture(workspace, control, &observed)?.revision == snapshot.revision,
         "Sources changed during Atlas extraction; no graph admitted"
@@ -151,28 +167,14 @@ pub(crate) fn run(
         judge.map(crate::judge::binding),
     )?);
     notify(&record.borrow());
-    let observe = || -> Result<()> {
-        let paths = snapshot.files.keys().cloned().collect::<Vec<_>>();
-        let current = sources::capture(workspace, control, &paths)?;
-        if current.revision != snapshot.revision {
-            record.borrow_mut().state = State::Stale;
-            anyhow::bail!("Sources changed during meaning analysis. Reread the graph and run again; no current result admitted.");
-        }
-        if let Some(atlas) = &snapshot.atlas {
-            anyhow::ensure!(
-                crate::atlas::Configuration::host().current_resources()? == atlas.resources_sha256,
-                "Atlas resources changed; reread the graph and run again"
-            );
-        }
-        Ok(())
-    };
+
     let result = (|| -> Result<()> {
         anyhow::ensure!(
             gateway.is_authorized(workspace.session_id())
                 && crate::judge::authorized(judge, workspace.session_id()),
             "Review both configured processors before meaning analysis"
         );
-        observe()?;
+        observe(workspace, control, snapshot, &record)?;
         let assessment = semantic::analyze(
             &gateway.for_session(workspace.session_id()),
             &judge.unwrap_or(gateway).for_session(workspace.session_id()),
@@ -196,7 +198,7 @@ pub(crate) fn run(
                 && crate::judge::authorized(judge, workspace.session_id()),
             "Processor permission ended; no meaning-analysis result admitted"
         );
-        observe()?;
+        observe(workspace, control, snapshot, &record)?;
         control.with_active(|| {
             // Frozen input is owned by this invocation; presentation cannot replace it.
             let mut completed = record.borrow().clone();
@@ -236,4 +238,31 @@ pub(crate) fn run(
     notify(&record.borrow());
     result?;
     Ok(record.into_inner())
+}
+
+fn observe(
+    workspace: &Workspace,
+    control: &Control,
+    snapshot: &sources::Snapshot,
+    record: &RefCell<Record>,
+) -> Result<()> {
+    let paths = snapshot.files.keys().cloned().collect::<Vec<_>>();
+    let current = sources::capture(workspace, control, &paths)?;
+    if current.revision != snapshot.revision {
+        record.borrow_mut().state = State::Stale;
+        anyhow::bail!("Sources changed during meaning analysis. Reread the graph and run again; no current result admitted.");
+    }
+    if let Some(collection) = &snapshot.collection {
+        if let Err(error) = collect::check_metadata(workspace, control, &collection.metadata) {
+            record.borrow_mut().state = State::Stale;
+            return Err(error);
+        }
+    }
+    if let Some(atlas) = &snapshot.atlas {
+        anyhow::ensure!(
+            crate::atlas::Configuration::host().current_resources()? == atlas.resources_sha256,
+            "Atlas resources changed; reread the graph and run again"
+        );
+    }
+    Ok(())
 }

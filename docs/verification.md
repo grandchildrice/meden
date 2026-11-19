@@ -2211,8 +2211,10 @@ under the workspace module root, up to 32 files/1 MiB/64 KiB per file. Missing
 imports and unsupported package roots stop instead of admitting a partial graph.
 Installed Lean/Atlas modules are recorded as external boundaries. Header parsing,
 module/path correspondence, resource attribution and filesystem observation are
-tested adapters, not extracted/refined kernel operations. No Lake program runs,
-package download or unconfined executor is added. The installed-Lean public TUI
+tested adapters, not extracted/refined kernel operations. Frozen Lake configuration
+is evaluated only by the installed package loader in the offline analysis worker;
+no dependency materialization, package download, build-hook dispatch or unconfined
+executor is added. The installed-Lean public TUI
 journey covers transitive imports, nested comments, unresolved-import failure,
 stale-graph refusal and recovery; the native GUI covers selecting only a root.
 
@@ -2285,3 +2287,52 @@ exit indicates a case did not reach an admitted result; the report still retains
 that failure. A zero exit does not assert perfect accuracy. No paid-model call is
 part of CI; the ordinary UX gate exercises synthetic failure/restart paths and
 `test_meaning_eval.py` checks denominator accounting.
+
+
+### Lake configuration and module/source attribution
+
+The source collector supports installed Lake's Lean and TOML package loaders.
+`lakefile.lean` is executable configuration: it runs only in a disposable offline
+analysis job with frozen metadata, public tools and read-only prepared Lean/Atlas
+resources. The host repository and unrelated files are not mounted into this job.
+The selected Lean executable and Lake shared library participate in resource hashing.
+`loadPackage` evaluates one package without resolving/materializing dependencies;
+the host then follows its declared local paths and root-manifest entries through
+the ordinary policy-bound pinned file worker. Configurations and manifests cannot
+select a network executor or an unconfined fallback. Build hooks are not dispatched.
+
+Package and library/executable `srcDir` values stay separate from logical Lean
+module names. Compilation uses each frozen source root and stores private output
+under the logical module name. Graph nodes are mapped back to their exact observed
+workspace paths before admission. Library roots/globs determine module ownership;
+missing or ambiguous bindings stop. Workspace-relative normalization supports
+internal `..` paths and the worker's `/workspace` alias, but refuses escapes.
+Existing Git/copy/registry package sources are read from the manifest's package
+location, including subdirectories and custom config files. Declared Git origin,
+revision/subdirectory and path bindings must agree with the manifest. This is
+source-snapshot validation, not attestation that a dirty cached checkout matches
+its advertised Git commit.
+
+`/atlas` (or a blank GUI target field) selects existing Lake library/executable
+roots and module globs. Explicit source files still work. Limits remain 32 source
+files, 64 KiB per file and 1 MiB of source; metadata and package traversal have
+separate bounds. This does not promise a complete Mathlib graph or replay arbitrary
+host-dependent Lake configuration. Configurations that need unobserved host files,
+custom tool environments, downloads or unavailable artifacts fail inside isolation.
+No existing project `.olean` or native build product is imported as trusted output.
+
+The retained snapshot includes exact configuration/manifest bytes, probed absences
+and glob directory inventories, including absent directories. They are checked
+again before/after extraction, before/after analysis and before repair dispatch.
+A configuration change or newly selected module cannot authorize an old repair.
+These path/layout, evaluator, JSON, observation and rendering correspondences remain
+tested adapters; they are not a Lean refinement of Lake or the filesystem.
+
+`test_lake_analysis.py` uses actual installed Lean/Lake to compile package and
+library source-directory overrides, transitive path dependencies, and a prepared
+Git-package source with subdirectory/custom config. It also checks unavailable
+packages, path escapes, manifest-origin conflict and executable-configuration
+isolation. `test_tui_lake.py` exercises automatic discovery, cross-package meaning
+context, stale-manifest repair refusal, newly created glob-directory invalidation,
+recovery and fresh processor review after restart through the public TUI. The GUI
+journey exercises a blank target, dependency source links and missing-root recovery.

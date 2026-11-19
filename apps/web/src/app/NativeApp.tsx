@@ -448,7 +448,9 @@ export function NativeApp({ token }: { token: string }) {
                     size="small"
                     value={graphPaths ?? state.project.source_path}
                     onChange={(event) => setGraphPaths(event.target.value)}
-                    placeholder={"Spec.lean\nsrc/kernel.rs"}
+                    placeholder={
+                      "空欄ならLakeのターゲットを自動選択\nSpec.lean"
+                    }
                   />
                   <Button
                     disabled={
@@ -471,7 +473,6 @@ export function NativeApp({ token }: { token: string }) {
                     disabled={
                       running ||
                       !state.atlas.prepared ||
-                      !(graphPaths ?? state.project.source_path).trim() ||
                       (graphPaths ?? state.project.source_path)
                         .split("\n")
                         .filter((path) => path.trim())
