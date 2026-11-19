@@ -1786,6 +1786,20 @@ model quality, confidentiality or cold installation.
 
 ## Shared CLI and TUI execution
 
+The native GUI separates its whole-workspace overview from file dependencies.
+The header opens the dependency controls directly; an overview file action starts
+extraction with that exact path. A normal first extraction prepares Atlas automatically.
+Advanced Lake roots and repair stay explicit. Real browser regressions cover
+cross-module compiler edges, original-root selection after browser reload, failed
+compilation without old output, reselection, an unapproved host restart and the
+complete search/display controls in a 390-pixel viewport. The existing required
+public TUI Lake journey retains its actual compiler, failure and restart checks.
+These are GUI/host adapter observations, not new refinement or proof authority.
+The [EthLib navigation observation](../results/gui-dependency-navigation-ethlib.json)
+records compiled extraction with installed dependencies and explicit lexical recovery
+from missing Mathlib in a separate bare clone, without inference or downloads.
+
+
 Missing Lake dependencies report their name and expected directory, with Mathlib's
 host preparation command when appropriate. This is diagnostic guidance: analysis
 still refuses unavailable inputs without fetching or returning a partial compiled

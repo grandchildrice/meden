@@ -76,16 +76,21 @@ Build the browser UI and attach it to a real local project:
 npm ci
 npm run build
 cargo build -p meden-cli
-./target/debug/meden gui --workspace /path/to/project --provider YOUR_PROVIDER --model YOUR_MODEL
+./target/debug/meden gui --workspace /path/to/project
 ```
 
-Open the session URL printed in the terminal. Review the exact processor destination
-in the browser, approve it, then send an instruction. The GUI uses the same native
+Open the session URL printed in the terminal. History and dependency graphs are
+available before connecting a model. For development, use **接続先** to select a
+provider/model, review the exact destination, approve it, then send an instruction. The GUI uses the same native
 agent, offline tools, files and conversation checkpoints as the TUI. Stop the GUI
 before opening that project in the TUI; the repository permits one writer.
 Code, actual tool inputs/results and native contract status appear beside the chat.
-The Graph tab reads selected local Rust/Lean files and opens each indexed declaration
-at its exact source line. This is a source-reference index, not a new proof check.
+Open **依存グラフ** in the page header, or choose it at the top of the Graph tab,
+search for a file and choose **依存グラフを表示**. Or select a file in the overview
+and choose **このファイルの依存グラフを開く** to select and extract in one action.
+The result opens each declaration at its exact source line.
+**ソースの参照候補を表示** provides lexical inspection before Lean dependencies are
+prepared; it is not a compiler dependency graph or a new proof check.
 With installed Lean, extraction automatically prepares the pinned Lean Atlas
 core offline on selected modules. The workspace's `lean-toolchain` selects its
 installed Elan version; no Atlas environment variable is required.

@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "meden_base": "1c1f3a7",
+  "journey": "Open file dependencies from the page header or the whole-workspace file action, without manual Atlas preparation or inference approval.",
+  "public_entry": "./target/debug/meden gui --workspace ../EthLib",
+  "compiled": {
+    "time": "2026-11-19T11:38:03.048Z",
+    "binary_sha256": "e6356d533018edb5fd33aeed9b88fc19527b417ed3687e4422da2f2cded041d3",
+    "assets_index_sha256": "96e332ba3d77938354474759b0f80a439872e4d2470c425dd1861aabcdaa9b60",
+    "workspace": "/home/gohan/workspace/EthLib",
+    "file": "EthLib/Networking/Gossip/Parameters.lean",
+    "header_entry": true,
+    "direct_overview_extraction": true,
+    "manual_preparation": false,
+    "source_files": [
+      "EthLib/Networking/Gossip/Parameters.lean"
+    ],
+    "declarations": 42,
+    "edges": 69,
+    "lexical_only": false,
+    "inference": false,
+    "authorized": false,
+    "native_verified": false,
+    "toolchain_download_tested": false,
+    "dependency_download_tested": false,
+    "project_git_head": "c6a7f0da",
+    "lean": "installed Lean 4.36.0",
+    "project_dependencies": "already installed"
+  },
+  "bare_clone": {
+    "time": "2026-11-19T11:36:14.828Z",
+    "binary_sha256": "e6356d533018edb5fd33aeed9b88fc19527b417ed3687e4422da2f2cded041d3",
+    "assets_index_sha256": "96e332ba3d77938354474759b0f80a439872e4d2470c425dd1861aabcdaa9b60",
+    "workspace": "/tmp/meden-ethlib-missing-deps-20261119",
+    "file": "EthLib/Networking/Gossip/Parameters.lean",
+    "header_entry": true,
+    "direct_overview_extraction": true,
+    "manual_preparation": false,
+    "source_files": [
+      "EthLib/Networking/Gossip/Parameters.lean"
+    ],
+    "stopped": "Lake dependency mathlib is not available at .lake/packages/mathlib.\nFor a Mathlib project, run `lake exe cache get` in the project directory before retrying.\nDependency preparation is separate from offline analysis; no fetching or partial graph was performed. To inspect files now, use the source-only graph.",
+    "lexical_only": true,
+    "inference": false,
+    "authorized": false,
+    "native_verified": false,
+    "toolchain_download_tested": false,
+    "dependency_download_tested": false,
+    "project_git_head": "9312d30c",
+    "project_dependencies": "absent; no project repair or fetching",
+    "recovery": "explicit source-reference button"
+  },
+  "checks": {
+    "full_gui": {
+      "passed": 46,
+      "skipped": 0,
+      "stage": "Before final compact-layout and original-root reload refinements; the following focused runs cover those final changes."
+    },
+    "focused_gui": {
+      "passed": 4,
+      "skipped": 0,
+      "covers": [
+        "dependency entry, compiler failure/reselection, browser reload and unapproved restart",
+        "missing Mathlib and source-reference recovery",
+        "Rust/Lean source observation freshness",
+        "WCAG AA recorded-demo regression"
+      ]
+    },
+    "final_compact_gui": {
+      "passed": 1,
+      "skipped": 0,
+      "covers": "Real two-module Lean extraction, original-root browser reload, failure/reselection, unapproved restart and 390px search/display controls fully in viewport."
+    },
+    "unit": {
+      "passed": 30,
+      "files": 6
+    },
+    "required_tui_ux": {
+      "passed": 33,
+      "skipped": 0,
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/debug/meden",
+        "sha256": "e6356d533018edb5fd33aeed9b88fc19527b417ed3687e4422da2f2cded041d3"
+      },
+      "decoded_screens_reviewed": [
+        "actual Lake compiler success",
+        "missing.lean failure",
+        "historical analysis after host restart"
+      ]
+    },
+    "static": [
+      "TypeScript typecheck",
+      "repository Prettier gate",
+      "git diff --check"
+    ]
+  },
+  "visual_review": [
+    "desktop dependency entry, compiler result and failure",
+    "390px header reentry with search and display button fully visible",
+    "actual EthLib compiled graph",
+    "bare EthLib clone missing-dependency guidance and explicit lexical graph",
+    "required public TUI decoded success/failure/restart screens"
+  ],
+  "observer_retries": [
+    "An initial Lake browser assertion used a five-second wait while real compilation was still running. The outcome wait was aligned with the existing compiler cases; no fixture/configuration repair was made.",
+    "Initial standalone observers sampled before host completion; parallel observers also ended with a closed browser or a result timeout. Final actual-project observations ran sequentially, waited for typed idle state and checked the visible graph. They did not edit project sources or configuration.",
+    "Screen inspection found the first compact check allowed the display controls below the viewport. The native pane geometry and regression were corrected to require both the complete search field and display button in the viewport."
+  ],
+  "limits": [
+    "Installed toolchains and cached dependencies are prerequisites, not cold-install or download validation.",
+    "The compiled observation covers one EthLib root module, not the entire elaborated EthLib graph.",
+    "The bare-clone recovery is explicitly lexical; no partial compiler graph or native proof authority is admitted.",
+    "Scripted browser/TUI inference fixtures are separate from the actual EthLib observations, which perform no inference."
+  ]
+}

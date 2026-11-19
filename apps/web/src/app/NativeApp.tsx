@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Autocomplete,
@@ -23,18 +23,19 @@ import {
 } from "@meden/agent-protocol/native";
 import { ChatView } from "../features/chat/ChatView";
 import type { Conversation } from "@meden/workspace-schema";
-import { NativeMeaning } from "../features/native/NativeMeaning";
+import { NativeDependencyGraph } from "../features/native/NativeDependencyGraph";
 import { NativePreview } from "../features/native/NativePreview";
 import { NativeRepair } from "../features/native/NativeRepair";
 import { NativeDelivery } from "../features/native/NativeDelivery";
 import { NativeWork } from "../features/native/NativeWork";
 import { visibleHistory } from "../features/native/history";
 import { NativeWorkspaceGraph } from "../features/native/NativeWorkspaceGraph";
-const NativeGraph = lazy(() =>
-  import("../features/native/NativeGraph").then((module) => ({
-    default: module.NativeGraph,
-  })),
-);
+
+function focusDependencyPanel(panel: HTMLDivElement | null) {
+  panel?.scrollTo({ top: 0 });
+  if (window.matchMedia("(max-width: 839px)").matches)
+    panel?.parentElement?.scrollIntoView({ block: "start" });
+}
 
 /** A single host workspace is attached; choosing another requires a new host launch. */
 export function NativeApp({ token }: { token: string }) {
@@ -43,6 +44,12 @@ export function NativeApp({ token }: { token: string }) {
   const [error, setError] = useState("");
   const [connectionError, setConnectionError] = useState("");
   const [tab, setTab] = useState(3);
+  const [graphView, setGraphView] = useState("overview");
+  const graphPanel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (tab !== 3 || graphView !== "dependencies") return;
+    focusDependencyPanel(graphPanel.current);
+  }, [tab, graphView, state?.workspace]);
   const [overview, setOverview] = useState<WorkspaceOverview>();
   const [overviewError, setOverviewError] = useState("");
   const [provider, setProvider] = useState("");
@@ -155,7 +162,12 @@ export function NativeApp({ token }: { token: string }) {
   }, [reviewing, state]);
   useEffect(() => {
     if (graphPaths === undefined && state?.source_snapshot) {
-      setGraphPaths(Object.keys(state.source_snapshot.files).join("\n"));
+      setGraphPaths(
+        (
+          state.source_snapshot.collection?.roots ??
+          Object.keys(state.source_snapshot.files)
+        ).join("\n"),
+      );
     }
   }, [state?.source_snapshot?.revision, graphPaths]);
   const command = async (command: NativeCommand) => {
@@ -174,6 +186,15 @@ export function NativeApp({ token }: { token: string }) {
       inFlight.current = false;
       setBusy(false);
     }
+  };
+  const openDependencies = (file: string) => {
+    setGraphPaths(file);
+    setGraphView("dependencies");
+    setTab(3);
+    if (file.endsWith(".lean")) {
+      if (state?.atlas.available)
+        void command({ type: "atlas_snapshot", paths: [file] });
+    } else void command({ type: "source_snapshot", paths: [file] });
   };
   const conversation: Conversation | undefined = state && {
     id: "native",
@@ -217,6 +238,16 @@ export function NativeApp({ token }: { token: string }) {
             送信の許可を取り消す
           </Button>
         )}
+        <Button
+          aria-label="依存グラフを開く"
+          onClick={() => {
+            setGraphView("dependencies");
+            setTab(3);
+            focusDependencyPanel(graphPanel.current);
+          }}
+        >
+          依存グラフ
+        </Button>
       </header>
       {error && (
         <Alert
@@ -274,7 +305,7 @@ export function NativeApp({ token }: { token: string }) {
                   : "送信の許可は終了しています。続けるにはmeden guiを再起動し、新しいURLで送信先を確認してください。"}
             </Alert>
           )}
-          {state.stopped && (
+          {state.stopped && !(tab === 3 && graphView === "dependencies") && (
             <Alert
               severity={state.activity === "Complete" ? "info" : "warning"}
               sx={{ whiteSpace: "pre-wrap" }}
@@ -348,7 +379,7 @@ export function NativeApp({ token }: { token: string }) {
                 />
                 <Tab label="作業・履歴" />
               </Tabs>
-              <div className="native-panel">
+              <div className="native-panel" ref={graphPanel}>
                 <div hidden={tab !== 6}>
                   <NativeWork
                     workspace={state.portable}
@@ -417,14 +448,7 @@ export function NativeApp({ token }: { token: string }) {
                     </Button>
                     <Button
                       disabled={running || !/\.(rs|lean)$/.test(path)}
-                      onClick={() => {
-                        setGraphPaths(path);
-                        setTab(3);
-                        void command({
-                          type: "source_snapshot",
-                          paths: [path],
-                        });
-                      }}
+                      onClick={() => openDependencies(path)}
                     >
                       このファイルのグラフ
                     </Button>
@@ -547,201 +571,50 @@ export function NativeApp({ token }: { token: string }) {
                   </>
                 )}
                 <div hidden={tab !== 3}>
-                  {overviewError && (
-                    <Alert severity="error">{overviewError}</Alert>
-                  )}
-                  <NativeWorkspaceGraph
-                    snapshot={overview}
-                    state={state}
-                    onRead={(file) => {
-                      setPath(file);
-                      setTab(0);
-                      void command({
-                        type: "inspect",
-                        path: file,
-                        directory: false,
-                      });
-                    }}
-                    onRefresh={() => {
-                      setOverviewError("");
-                      void command({ type: "refresh_workspace" });
-                    }}
-                  />
-                  <Typography variant="h3" sx={{ mt: 3 }}>
-                    宣言の依存を詳しく見る
-                  </Typography>
-                  {state.running && (
-                    <Typography>
-                      {state.activity} · {elapsed}秒
-                    </Typography>
-                  )}
-                  <Typography variant="body2">
-                    Lean Atlas:{" "}
-                    {state.atlas.prepared
-                      ? "オフライン抽出の準備済み"
-                      : state.atlas.available
-                        ? "Leanを自動検出しました。初回の準備は依存抽出時に自動で行います"
-                        : "Lean実行環境が見つかりません。下の案内を確認してください。"}
-                  </Typography>
-                  {!state.atlas.available && (
-                    <>
-                      <Alert
-                        severity="info"
-                        sx={{ whiteSpace: "pre-wrap", mt: 1 }}
-                      >
-                        {state.atlas.detail}
-                      </Alert>
-                      <Button
-                        disabled={running}
-                        onClick={() => void command({ type: "refresh_status" })}
-                      >
-                        再検出
-                      </Button>
-                    </>
-                  )}
-                  {!state.atlas.prepared && (
-                    <Button
-                      disabled={running || !state.atlas.available}
-                      onClick={() => void command({ type: "prepare_atlas" })}
-                    >
-                      依存抽出の準備
-                    </Button>
-                  )}
-                  <details style={{ marginTop: 16 }}>
-                    <summary>初回の依存パッケージ準備</summary>
-                    <Typography variant="body2" sx={{ my: 1 }}>
-                      cloneには通常、.lake/packagesの依存パッケージは含まれません。
-                      Mathlibを使うプロジェクトでは、対象のプロジェクトディレクトリで
-                      <code>lake exe cache get</code>
-                      を一度実行してください。準備後に再度抽出できます。
-                      Medenの解析中にはダウンロードしません。
-                    </Typography>
-                    <Typography variant="body2" sx={{ my: 1 }}>
-                      依存の準備前でも、全体グラフや「ソースを読み直してグラフを表示」で
-                      ソース内の宣言・参照を確認できます。
-                      コンパイル後の依存や新しい証明結果を示すものではありません。
-                    </Typography>
-                  </details>
-                  <Autocomplete
-                    sx={{ mt: 2 }}
-                    size="small"
-                    disabled={running}
-                    options={overview?.files.map((file) => file.path) || []}
-                    value={null}
-                    onChange={(_, file) => {
-                      if (file) setGraphPaths(file);
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="依存を調べるファイルを探す"
-                      />
+                  <Tabs
+                    value={graphView}
+                    onChange={(_, view: string) => setGraphView(view)}
+                    aria-label="グラフの表示"
+                    sx={{ mb: 2 }}
+                  >
+                    <Tab value="overview" label="全体グラフ" />
+                    <Tab value="dependencies" label="依存グラフ" />
+                  </Tabs>
+                  <div hidden={graphView !== "overview"}>
+                    {overviewError && (
+                      <Alert severity="error">{overviewError}</Alert>
                     )}
-                  />
-                  <TextField
-                    label="グラフの対象ファイル（1行に1つ）"
-                    sx={{ mt: 2 }}
-                    multiline
-                    minRows={2}
-                    fullWidth
-                    size="small"
-                    value={graphPaths ?? state.project.source_path}
-                    onChange={(event) => setGraphPaths(event.target.value)}
-                    placeholder={
-                      "空欄ならLakeのターゲットを自動選択\nSpec.lean"
-                    }
-                    helperText="空欄はLakeのターゲットを自動選択します（最大32ファイル）。大きなプロジェクトは上の検索から対象ファイルを選んでください。"
-                  />
-                  <Button
-                    disabled={
-                      running ||
-                      !(graphPaths ?? state.project.source_path).trim()
-                    }
-                    onClick={() =>
-                      void command({
-                        type: "source_snapshot",
-                        paths: (graphPaths ?? state.project.source_path)
-                          .split("\n")
-                          .map((path) => path.trim())
-                          .filter(Boolean),
-                      })
-                    }
-                  >
-                    ソースを読み直してグラフを表示
-                  </Button>
-                  <Button
-                    disabled={
-                      running ||
-                      !state.atlas.available ||
-                      (graphPaths ?? state.project.source_path)
-                        .split("\n")
-                        .filter((path) => path.trim())
-                        .some((path) => !path.trim().endsWith(".lean"))
-                    }
-                    onClick={() =>
-                      void command({
-                        type: "atlas_snapshot",
-                        paths: (graphPaths ?? state.project.source_path)
-                          .split("\n")
-                          .map((path) => path.trim())
-                          .filter(Boolean),
-                      })
-                    }
-                  >
-                    Leanでコンパイルして依存を抽出
-                  </Button>
-                  {state.source_snapshot ? (
-                    <Suspense
-                      fallback={
-                        <CircularProgress
-                          aria-label="ソースグラフを読み込み中"
-                          size={24}
-                        />
-                      }
-                    >
-                      <NativeGraph
-                        key={
-                          state.source_snapshot.atlas?.revision ||
-                          state.source_snapshot.revision
-                        }
-                        snapshot={state.source_snapshot}
-                        analysis={state.analysis}
-                        history={state.analysis_history}
-                        onRepair={(finding_id) =>
-                          command({ type: "prepare_repair", finding_id })
-                        }
-                        onSelectAnalysis={(id) =>
-                          command({ type: "select_analysis", id })
-                        }
-                        authorized={state.authorized && !connectionError}
-                        running={running}
-                        onAnalyze={(input) =>
-                          command({ type: "analyze_meaning", input })
-                        }
-                      />
-                    </Suspense>
-                  ) : (
-                    <p>
-                      Rust／Leanファイルを選んで読み込んでください。作業の実行後は読み直しが必要です。
-                    </p>
-                  )}
-                  {!state.source_snapshot && state.analysis && (
-                    <NativeMeaning
-                      record={state.analysis}
-                      onRepair={(finding_id) =>
-                        command({ type: "prepare_repair", finding_id })
-                      }
-                      history={state.analysis_history}
-                      onSelect={(id) =>
-                        command({ type: "select_analysis", id })
-                      }
-                      authorized={state.authorized}
-                      running={running}
-                      onRun={(input) =>
-                        command({ type: "analyze_meaning", input })
-                      }
+                    <NativeWorkspaceGraph
+                      snapshot={overview}
+                      state={state}
+                      onDependencies={openDependencies}
+                      onRead={(file) => {
+                        setPath(file);
+                        setTab(0);
+                        void command({
+                          type: "inspect",
+                          path: file,
+                          directory: false,
+                        });
+                      }}
+                      onRefresh={() => {
+                        setOverviewError("");
+                        void command({ type: "refresh_workspace" });
+                      }}
                     />
-                  )}
+                  </div>
+                  <div hidden={graphView !== "dependencies"}>
+                    <NativeDependencyGraph
+                      state={state}
+                      overview={overview}
+                      paths={graphPaths ?? state.project.source_path}
+                      onPaths={setGraphPaths}
+                      onCommand={command}
+                      running={running}
+                      elapsed={elapsed}
+                      connectionError={connectionError}
+                    />
+                  </div>
                 </div>
               </div>
             </aside>

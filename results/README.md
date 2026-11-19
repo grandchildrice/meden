@@ -8,6 +8,14 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Native GUI and Atlas with Ollama Cloud
 
+The [dependency-navigation observation](gui-dependency-navigation-ethlib.json)
+uses the header and the whole-workspace file action to reach the focused dependency
+view. Installed EthLib dependencies permit real compiler extraction; a separate bare
+clone reports missing Mathlib and can explicitly display lexical references instead.
+Neither path needs inference approval. The record separates GUI/TUI regression checks,
+installed prerequisites and observer retries; it does not establish cold installation
+or new native proof status.
+
 The [dependency-missing EthLib observation](gui-lake-dependency-help-ethlib.json)
 uses an actual bare remote clone: compiled extraction reports missing Mathlib
 and its preparation command; selecting an existing file and explicitly opening

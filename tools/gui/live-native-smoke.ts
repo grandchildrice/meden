@@ -353,27 +353,18 @@ try {
       resolve(project, "Purchase.lean"),
       "utf8",
     );
-    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
-    if (!(await state(page)).atlas.prepared) {
-      await page
-        .getByRole("button", { name: "依存抽出の準備", exact: true })
-        .click();
-      await expect
-        .poll(async () => (await state(page)).atlas.prepared, {
-          timeout: deadline,
-        })
-        .toBe(true);
-    }
   }
-  await page.getByRole("tab", { name: "グラフ", exact: true }).click();
   await page
-    .getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" })
-    .fill(values.atlas ? "Purchase.lean" : "kernel.rs");
+    .getByRole("button", { name: "依存グラフを開く", exact: true })
+    .click();
+  const graphFile = values.atlas ? "Purchase.lean" : "kernel.rs";
+  await page
+    .getByRole("combobox", { name: "依存を調べるファイルを探す", exact: true })
+    .fill(graphFile);
+  await page.getByRole("option", { name: graphFile, exact: true }).click();
   await page
     .getByRole("button", {
-      name: values.atlas
-        ? "Leanでコンパイルして依存を抽出"
-        : "ソースを読み直してグラフを表示",
+      name: values.atlas ? "依存グラフを表示" : "ソースの参照候補を表示",
       exact: true,
     })
     .click();
@@ -458,7 +449,9 @@ try {
   await stop();
   await launch(port);
   await expect(page.getByText(instruction, { exact: true })).toBeVisible();
-  await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+  await page
+    .getByRole("button", { name: "依存グラフを開く", exact: true })
+    .click();
   await expect(
     page.getByLabel("意味解析の結果", { exact: true }),
   ).toContainText("保存された解析です");

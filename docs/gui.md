@@ -251,7 +251,11 @@ The native **グラフ** tab opens with every regular Rust/Lean source indexed a
 the selected workspace. Its overview groups files by area and connects saved
 requirements to theorem targets and source files; source import edges and declaration
 counts are lexical candidates. Select an area to expand its files, or search all files
-and open their actual source. Native accepted contracts retain their own current status;
+and open their actual source. Choose **このファイルの依存グラフを開く** in the
+selection details to switch directly to that file's dependency view and start offline
+extraction (or lexical inspection for Rust). If Lean is unavailable, the view shows
+the installation and rediscovery instructions without substituting a lexical graph.
+Native accepted contracts retain their own current status;
 saved theorem checks remain history with their original requirements/types/axioms.
 
 The index reads through the pinned, policy-bound offline file worker. Read-only batches
@@ -265,9 +269,15 @@ Failures and cancellation retain chat and show a retry action; no partial comple
 is installed. Completed model file/command checks trigger a fresh read of this overview.
 Concurrent host changes are not an atomic filesystem snapshot.
 
-For declaration details, the **グラフ** tab also takes one `.lean`/`.rs` path per line;
-**このファイルのグラフ**
-in the code panel uses the current path. Source observations use the same offline,
+For declaration details, use **依存グラフ** in the page header or at the top of the
+**グラフ** tab. The header also brings the controls into view on narrow screens.
+Search for an indexed file, then choose **依存グラフを表示** for Lean or
+**ソースの参照候補を表示** for lexical inspection. Selection, running status, errors
+and the result share this view, without scrolling past the whole-workspace canvas.
+**複数ファイル・Lakeターゲットの指定** exposes manual paths and a separate action
+for automatic Lake roots. The normal display action requires an explicit file.
+**このファイルのグラフ** in the code panel uses the current path and starts extraction.
+Source observations use the same offline,
 policy-bound file worker as project snapshots (1–32 files, 64 KiB per file,
 1 MiB total). No truncated file is indexed. A SHA-256 binds the selected paths
 and complete observed content. Failure discards the previous graph; starting a
@@ -287,8 +297,8 @@ following recorded-demo documentation describes a separate standalone mode.
 
 ## Native Lean Atlas extraction
 
-With an installed Lean distribution, select the **グラフ** tab, enter the local `.lean`
-module paths, then choose **Leanでコンパイルして依存を抽出**. The first extraction
+With an installed Lean distribution, select **グラフ → 依存グラフ**, search for a
+local `.lean` file, then choose **依存グラフを表示**. The first extraction
 automatically compiles the pinned public Atlas library offline without sending
 source to a model. The public TUI `/atlas` command performs the same preparation.
 Meden selects the workspace's `lean-toolchain` from installed Elan toolchains,
@@ -300,7 +310,9 @@ after installing it, choose **再検出** without restarting Meden. A different 
 version cannot silently replace a missing project pin.
 `MEDEN_ATLAS_LEAN=/absolute/lean-root` remains an optional explicit host override.
 The public `meden setup-atlas --workspace PATH` command prepares the same library as the button.
-Existing corrupted Atlas resources are refused; choose **依存抽出の準備** to rebuild them.
+Existing corrupted Atlas resources are refused; open **抽出ツールの修復** and choose
+**依存抽出の準備** to rebuild them. This maintenance action is unnecessary for the
+normal first extraction.
 It does not download Lean or replace the host's ordinary toolchain.
 `meden source-notices` displays the bundled Atlas and claimcheck source notices.
 
@@ -312,10 +324,11 @@ offline. Missing dependencies show their name, expected location and a preparati
 hint. They do not trigger a download or admit a partial compiled graph.
 
 Use **依存を調べるファイルを探す** to select an indexed file without typing its path.
-Start with one file in a large project; blank targets select Lake roots and still
-obey the 32-file closure limit. EthLib's
+Start with one file in a large project. The advanced
+**Lakeターゲットを自動選択して表示** action selects Lake roots and still obeys the
+32-file closure limit. EthLib's
 `EthLib/Networking/Gossip/Parameters.lean` is a small starting point.
-**ソースを読み直してグラフを表示** also works before dependency preparation; it shows
+**ソースの参照候補を表示** also works before dependency preparation; it shows
 lexical references, separately labelled from compiler-extracted dependencies.
 An unavailable file reports the actual requested path so it can be reselected.
 

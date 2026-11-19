@@ -72,11 +72,13 @@ export function NativeWorkspaceGraph({
   snapshot,
   state,
   onRead,
+  onDependencies,
   onRefresh,
 }: {
   snapshot?: WorkspaceOverview;
   state: NativeState;
   onRead: (file: string) => void;
+  onDependencies: (file: string) => void;
   onRefresh: () => void;
 }) {
   const [selected, setSelected] = useState<Data>();
@@ -318,12 +320,21 @@ export function NativeWorkspaceGraph({
             <article aria-label="全体グラフの選択内容">
               <Typography component="h3">{selected.title}</Typography>
               {selected.file && selected.kind !== "area" && (
-                <Button
-                  disabled={state.running}
-                  onClick={() => onRead(selected.file!)}
-                >
-                  このファイルを読む
-                </Button>
+                <>
+                  <Button
+                    variant="contained"
+                    disabled={state.running}
+                    onClick={() => onDependencies(selected.file!)}
+                  >
+                    このファイルの依存グラフを開く
+                  </Button>
+                  <Button
+                    disabled={state.running}
+                    onClick={() => onRead(selected.file!)}
+                  >
+                    このファイルを読む
+                  </Button>
+                </>
               )}
               {task && (
                 <>
