@@ -202,6 +202,7 @@ def test_public_lake_journey_preserves_metadata_binding_and_history(tmp_path, tu
         command("/analysis", "Result: Stale", 7)
         assert entries()[-1]["assessment"] is None
         command("/atlas missing.lean", "Analysis stopped", 7)
+        assert "Source observation failed for missing.lean" in terminal.view()
         command("/analyze Domain.eligible -- no older graph", "Read the source graph first", 7)
         command("/atlas", "Source graph ready: 5 files", 7)
         terminal.quit()

@@ -277,6 +277,7 @@ export function NativeApp({ token }: { token: string }) {
           {state.stopped && (
             <Alert
               severity={state.activity === "Complete" ? "info" : "warning"}
+              sx={{ whiteSpace: "pre-wrap" }}
             >
               {state.stopped}
               <br />
@@ -606,6 +607,37 @@ export function NativeApp({ token }: { token: string }) {
                       依存抽出の準備
                     </Button>
                   )}
+                  <details style={{ marginTop: 16 }}>
+                    <summary>初回の依存パッケージ準備</summary>
+                    <Typography variant="body2" sx={{ my: 1 }}>
+                      cloneには通常、.lake/packagesの依存パッケージは含まれません。
+                      Mathlibを使うプロジェクトでは、対象のプロジェクトディレクトリで
+                      <code>lake exe cache get</code>
+                      を一度実行してください。準備後に再度抽出できます。
+                      Medenの解析中にはダウンロードしません。
+                    </Typography>
+                    <Typography variant="body2" sx={{ my: 1 }}>
+                      依存の準備前でも、全体グラフや「ソースを読み直してグラフを表示」で
+                      ソース内の宣言・参照を確認できます。
+                      コンパイル後の依存や新しい証明結果を示すものではありません。
+                    </Typography>
+                  </details>
+                  <Autocomplete
+                    sx={{ mt: 2 }}
+                    size="small"
+                    disabled={running}
+                    options={overview?.files.map((file) => file.path) || []}
+                    value={null}
+                    onChange={(_, file) => {
+                      if (file) setGraphPaths(file);
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="依存を調べるファイルを探す"
+                      />
+                    )}
+                  />
                   <TextField
                     label="グラフの対象ファイル（1行に1つ）"
                     sx={{ mt: 2 }}
@@ -618,6 +650,7 @@ export function NativeApp({ token }: { token: string }) {
                     placeholder={
                       "空欄ならLakeのターゲットを自動選択\nSpec.lean"
                     }
+                    helperText="空欄はLakeのターゲットを自動選択します（最大32ファイル）。大きなプロジェクトは上の検索から対象ファイルを選んでください。"
                   />
                   <Button
                     disabled={

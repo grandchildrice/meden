@@ -70,7 +70,7 @@ pub(crate) fn capture(
                 output_bytes: 1_000_000,
             },
         )
-        .map_err(|error| anyhow::anyhow!("Source observation failed: {error}"))?;
+        .map_err(|error| anyhow::anyhow!("Source observation failed for {name}: {error}. Select an existing file from the workspace."))?;
         let bytes: Vec<u8> = serde_json::from_value(value)?;
         anyhow::ensure!(
             bytes.len() <= FILE_LIMIT,

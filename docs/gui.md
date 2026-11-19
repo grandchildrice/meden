@@ -304,6 +304,21 @@ Existing corrupted Atlas resources are refused; choose **依存抽出の準備**
 It does not download Lean or replace the host's ordinary toolchain.
 `meden source-notices` displays the bundled Atlas and claimcheck source notices.
 
+A Git clone normally excludes `.lake/packages`. Prepare the project's pinned
+dependencies before compiled extraction. For EthLib and ordinary Mathlib projects,
+the repository's initial setup is `lake exe cache get` from that project's directory.
+This is a separate host preparation step; Meden's coding and analysis workers stay
+offline. Missing dependencies show their name, expected location and a preparation
+hint. They do not trigger a download or admit a partial compiled graph.
+
+Use **依存を調べるファイルを探す** to select an indexed file without typing its path.
+Start with one file in a large project; blank targets select Lake roots and still
+obey the 32-file closure limit. EthLib's
+`EthLib/Networking/Gossip/Parameters.lean` is a small starting point.
+**ソースを読み直してグラフを表示** also works before dependency preparation; it shows
+lexical references, separately labelled from compiler-extracted dependencies.
+An unavailable file reports the actual requested path so it can be reselected.
+
 Selected modules are observed through the existing policy-bound file worker,
 then mounted read-only in a fresh offline compilation job. Only fresh `.olean`
 files from this job are imported. Existing build outputs,

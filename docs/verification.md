@@ -1786,6 +1786,18 @@ model quality, confidentiality or cold installation.
 
 ## Shared CLI and TUI execution
 
+Missing Lake dependencies report their name and expected directory, with Mathlib's
+host preparation command when appropriate. This is diagnostic guidance: analysis
+still refuses unavailable inputs without fetching or returning a partial compiled
+graph. Source failures retain the requested filename. The GUI offers indexed-file
+selection and a separate lexical graph that needs no dependency compilation.
+The real native browser regression exercises missing Mathlib, a missing filename,
+explicit source-only recovery and an unapproved restart without creating the
+missing dependency. The required Lake PTY journey also checks the filename in its
+failure screen. An [actual bare EthLib clone](../results/gui-lake-dependency-help-ethlib.json)
+reproduces the dependency failure and successful lexical inspection without
+inference. Dependency downloading and cold dependency installation were not tested.
+
 Atlas selects the workspace's installed Elan toolchain automatically, including
 custom Elan homes. Unpinned projects use Elan's default or a complete host PATH
 distribution; a missing project pin never falls back to another version.

@@ -579,6 +579,90 @@ test.describe("native GUI with real offline workers", () => {
       fullPage: true,
     });
   });
+  test("missing Mathlib explains preparation and an existing-file picker recovers through source inspection without fetching", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    await writeFile(
+      resolve(project, "lakefile.toml"),
+      'name = "app"\n[[lean_lib]]\nname = "App"\n[[require]]\nname = "mathlib"\npath = "vendor/mathlib"\n',
+    );
+    await writeFile(
+      resolve(project, "App.lean"),
+      "import Shared\ndef app : Nat := shared\n",
+    );
+    await page.goto(await start());
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+    const picker = page.getByRole("combobox", {
+      name: "依存を調べるファイルを探す",
+      exact: true,
+    });
+    await picker.fill("App.lean");
+    await page.getByRole("option", { name: "App.lean", exact: true }).click();
+    const paths = page.getByRole("textbox", {
+      name: "グラフの対象ファイル（1行に1つ）",
+    });
+    await expect(paths).toHaveValue("App.lean");
+    await page
+      .getByRole("button", {
+        name: "Leanでコンパイルして依存を抽出",
+        exact: true,
+      })
+      .click();
+    const missing = page
+      .getByRole("alert")
+      .filter({ hasText: "Lake dependency mathlib" });
+    await expect(missing).toBeVisible({ timeout: 120_000 });
+    await expect(missing).toHaveCount(1);
+    await expect(missing).toContainText("vendor/mathlib");
+    await expect(missing).toContainText("lake exe cache get");
+    expect((await nativeState(page)).source_snapshot).toBeNull();
+    await page.getByText("初回の依存パッケージ準備", { exact: true }).click();
+    await expect(
+      page.getByText("Medenの解析中にはダウンロードしません。", {
+        exact: false,
+      }),
+    ).toBeVisible();
+    await missing.scrollIntoViewIfNeeded();
+    await page.screenshot({
+      path: "target/gui-checks/native-lake-missing-dependency-help.png",
+    });
+    await paths.fill("missing.lean");
+    const source = page.getByRole("button", {
+      name: "ソースを読み直してグラフを表示",
+      exact: true,
+    });
+    await source.click();
+    await expect(
+      page
+        .getByRole("alert")
+        .filter({ hasText: "Source observation failed for missing.lean" }),
+    ).toBeVisible();
+    await picker.fill("App.lean");
+    await page.getByRole("option", { name: "App.lean", exact: true }).click();
+    await source.click();
+    const graph = page.getByRole("region", { name: "ローカルソースのグラフ" });
+    await expect(graph).toContainText("app");
+    let state = await nativeState(page);
+    expect(state.source_snapshot.atlas).toBeUndefined();
+    expect(state.project.verified).toBe(false);
+    await expect(
+      readFile(resolve(project, "vendor/mathlib/lakefile.lean")),
+    ).rejects.toThrow();
+    expect(requests).toHaveLength(0);
+    await stop();
+    await page.goto(await start());
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+    state = await nativeState(page);
+    expect(state.authorized).toBe(false);
+    expect(state.source_snapshot).toBeNull();
+    await picker.fill("App.lean");
+    await page.getByRole("option", { name: "App.lean", exact: true }).click();
+    await source.click();
+    await expect(graph).toContainText("app");
+    expect(requests).toHaveLength(0);
+  });
+
   test("Atlas code stays offline with read-only sources and libraries, and corrupt resources recover through the GUI", async ({
     page,
   }) => {

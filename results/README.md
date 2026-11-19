@@ -8,6 +8,12 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Native GUI and Atlas with Ollama Cloud
 
+The [dependency-missing EthLib observation](gui-lake-dependency-help-ethlib.json)
+uses an actual bare remote clone: compiled extraction reports missing Mathlib
+and its preparation command; selecting an existing file and explicitly opening
+the lexical graph succeeds without inference or dependency downloading.
+This does not validate cold dependency installation or admit a compiled proof graph.
+
 The [Atlas automatic-discovery observation](gui-atlas-auto-ethlib.json) opens
 EthLib without Lean environment overrides or inference approval and extracts
 42 declarations and 69 dependency edges from its actual Gossip parameter module

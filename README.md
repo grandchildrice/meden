@@ -91,6 +91,9 @@ core offline on selected modules. The workspace's `lean-toolchain` selects its
 installed Elan version; no Atlas environment variable is required.
 Compiled type/value dependencies and declarations
 can then supply meaning analysis; a successful extraction does not grant proof status.
+For a new Mathlib/EthLib clone, run its initial `lake exe cache get` preparation
+from the project directory first. The GUI names missing dependencies and lets you
+choose an existing source file; source-only graphs work before dependency preparation.
 Select a declaration, enter a requirement and run meaning analysis to get a
 source-bound back-translation and comparison through the reviewed processor.
 These model assessments do not accept contracts or establish proofs.

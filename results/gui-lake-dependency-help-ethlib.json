@@ -1,0 +1,16 @@
+{
+  "time": "2026-11-19T11:02:46.796Z",
+  "binary_sha256": "e6356d533018edb5fd33aeed9b88fc19527b417ed3687e4422da2f2cded041d3",
+  "project": "grandchildrice/EthLib meden/assurance-workspace",
+  "file": "EthLib/Networking/Gossip/Parameters.lean",
+  "missing_dependency": "Lake dependency mathlib is not available at .lake/packages/mathlib.\nFor a Mathlib project, run `lake exe cache get` in the project directory before retrying.\nDependency preparation is separate from offline analysis; no fetching or partial graph was performed. To inspect files now, use the source-only graph.",
+  "partial_compiled_graph": false,
+  "source_only_files": [
+    "EthLib/Networking/Gossip/Parameters.lean"
+  ],
+  "inference": false,
+  "authorized": false,
+  "native_verified": false,
+  "dependency_download_tested": false,
+  "initial_observation_probe": "A non-default declaration label timed out. The rerun checks the visible source-mode label and actual source snapshot, with no project changes."
+}

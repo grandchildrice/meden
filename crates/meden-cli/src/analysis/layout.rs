@@ -121,8 +121,14 @@ impl Layout {
             for dep in &pkg.dependencies {
                 let (child, config) =
                     dependency_location(&dir, &directory, &packages_directory, dep, &entries)?;
-                let config = configuration(reader, &child, config.as_deref())?
-                    .with_context(||format!("Lake dependency {} is not available at {child}. Prepare it in the selected workspace; no fetching or partial graph", dep.name))?;
+                let config = configuration(reader, &child, config.as_deref())?.with_context(|| {
+                    let preparation = if dep.name == "mathlib" {
+                        "For a Mathlib project, run `lake exe cache get` in the project directory before retrying."
+                    } else {
+                        "Prepare this dependency using the project's README before retrying."
+                    };
+                    format!("Lake dependency {} is not available at {child}.\n{preparation}\nDependency preparation is separate from offline analysis; no fetching or partial graph was performed. To inspect files now, use the source-only graph.", dep.name)
+                })?;
                 let child_pkg =
                     atlas.lake_package(&reader.metadata, &child, &config, &dep.options, control)?;
                 anyhow::ensure!(
