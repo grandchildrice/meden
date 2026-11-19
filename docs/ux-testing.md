@@ -208,3 +208,21 @@ For a separate-model repair trial, add `--judge-model gpt-oss:120b` to the
 The driver retains failures as well as successful trials; invalid categories stop
 instead of being normalized. `test_tui_judge.py` checks both HTTP and invalid-category
 failure, retained blind translation, explicit recovery, clipped review and restart.
+
+To repeat the Lake workflow with actual cloud inference and installed prerequisites:
+
+```bash
+uv run --project python --group dev python -m meden_checks.lake_smoke \
+  --binary target/release/meden --provider hermes:ollama-cloud \
+  --model minimax-m3 --judge-model gpt-oss:120b \
+  --lean /absolute/path/to/installed/lean \
+  --verifier-bundle /absolute/path/to/installed/bundle.json \
+  --out /tmp/meden-live-lake.json
+```
+
+The synthetic fixture includes already-populated manifest package sources; it does
+not fetch them or attest their advertised Git commit. The driver uses the public
+TUI for root discovery, cross-package meaning comparison, missing-input failure,
+recovery and restart without renewed approval. It retains exact source/configuration
+artifacts and model text. The installed verifier bundle is an explicit prerequisite,
+not evidence of a cold installation or native project proof.

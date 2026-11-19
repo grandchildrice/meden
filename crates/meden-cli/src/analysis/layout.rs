@@ -387,6 +387,16 @@ fn dependency_location(
             matches!(dep.kind.as_str(), "git" | "copy" | "registry"),
             "Unknown Lake dependency source"
         );
+        if dep.kind == "registry"
+            && entry.get("type").and_then(Value::as_str) == Some("path")
+            && entry.get("copy").and_then(Value::as_bool) != Some(true)
+        {
+            let path = entry
+                .get("dir")
+                .and_then(Value::as_str)
+                .context("Missing manifest path override")?;
+            return Ok((relative(workspace, path)?, config));
+        }
         if dep.kind == "git" {
             anyhow::ensure!(
                 entry.get("type").and_then(Value::as_str) == Some("git")

@@ -2336,3 +2336,13 @@ isolation. `test_tui_lake.py` exercises automatic discovery, cross-package meani
 context, stale-manifest repair refusal, newly created glob-directory invalidation,
 recovery and fresh processor review after restart through the public TUI. The GUI
 journey exercises a blank target, dependency source links and missing-root recovery.
+
+The installed-Lake matrix also covers registry dependencies backed by a Git cache,
+registry path overrides in the root manifest and already-populated copied path
+packages. A registry path override is resolved relative to the root workspace,
+rather than silently redirected to the package cache. Eight installed-Lake cases
+pass, including the three refusal cases and the executable-configuration isolation
+case. The public required gate has 28 journeys, the native browser suite has 39,
+and the nested 80×24 runner completes the required gate with real Lake enabled.
+The cloud trial is retained in
+[the public Lake TUI report](../results/tui-lake-ollama-cloud-minimax-m3-gptoss120.json).

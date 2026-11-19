@@ -22,9 +22,41 @@ def installed_lean():
     return lean
 
 
-def test_lake_srcdir_transitive_path_and_cached_git_keep_real_source_links(tmp_path):
+@pytest.mark.parametrize("source", ["git-cache", "registry-cache", "registry-path", "path-copy"])
+def test_lake_srcdir_transitive_path_and_cached_git_keep_real_source_links(tmp_path, source):
     root = tmp_path / "project"
     original = make_project(root)
+    if source != "git-cache":
+        config = root / "lakefile.lean"
+        old = next(
+            line for line in config.read_text().splitlines() if line.startswith("require cached")
+        )
+        replacement = (
+            'require cached from copy "vendor/cached-seed"'
+            if source == "path-copy"
+            else "require cached"
+        )
+        config.write_text(config.read_text().replace(old, replacement))
+        if source in {"registry-path", "path-copy"}:
+            path = root / "lake-manifest.json"
+            manifest = json.loads(path.read_text())
+            manifest["packages"][-1] = dict(
+                type="path",
+                name="cached",
+                inherited=False,
+                dir=(
+                    "vendor/cached-seed" if source == "path-copy" else ".lake/packages/cached/sub"
+                ),
+                copy=source == "path-copy",
+                configFile=(
+                    "sub/config/lakefile.toml" if source == "path-copy" else "config/lakefile.toml"
+                ),
+            )
+            path.write_text(json.dumps(manifest))
+        if source == "path-copy":
+            cached_config = root / ".lake/packages/cached/sub/config/lakefile.toml"
+            cached_config.write_text(cached_config.read_text().replace('"code"', '"sub/code"'))
+        original = {name: (root / name).read_text() for name in original}
     env = {
         **os.environ,
         "XDG_DATA_HOME": str(tmp_path / "data"),
