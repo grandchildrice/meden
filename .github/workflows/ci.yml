@@ -134,7 +134,7 @@ jobs:
           ln -s "$RUNNER_TEMP/lean/bin/lean" "$RUNNER_TEMP/lean-path/lean"
           ln -s "$RUNNER_TEMP/lean/bin/lake" "$RUNNER_TEMP/lean-path/lake"
           echo "$RUNNER_TEMP/lean-path" >> "$GITHUB_PATH"
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         with:
           path: lean/.lake
           key: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean/lean-toolchain') }}-${{ hashFiles('lean/lake-manifest.json') }}-${{ github.sha }}
