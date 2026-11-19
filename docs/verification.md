@@ -1762,6 +1762,17 @@ exercises that boundary. Only the three standard Lean
 axioms are admitted by that inspection. Missing declarations, non-theorems,
 failed/unfinished checks, changed source/configuration and output truncation fail.
 The results remain historical observations rather than native proof admission.
+The model-facing `check_lean_work` tool uses this same path with a stored work ID.
+It requires shell/process execution and the actual metadata read/write paths
+before dispatch; file workers receive the original admitted policy. The checker
+can execute repository code in the existing writable offline workspace, as Bash
+can; file scopes do not confine code admitted under shell execution. The host
+process outcome determines whether a rejection is an ordinary repairable compiler
+failure or a cancellation, limit or unavailable service. Diagnostic text does not
+make that decision. Checks invalidate native project/source/analysis freshness
+and cannot create native Rust evidence. The public TUI regression drives a real
+compiler rejection, model file edit, named-theorem recheck and unapproved restart;
+a separate resource failure must stop before another model request.
 Executable Lake configuration and Lean source, cached/native dependencies, plugins, compiler
 behavior, filesystem and GUI/JSON interpretation remain adapter obligations;
 these changes add no Rust-to-Lean refinement or whole-project source theorem.

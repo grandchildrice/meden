@@ -5,6 +5,7 @@ import subprocess
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 import pytest
 from test_lake_analysis import installed_lean
@@ -59,6 +60,136 @@ def _git(root, *arguments):
         ["git", *arguments], cwd=root, capture_output=True, text=True, timeout=60
     )
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("checker_available", [True, False])
+def test_model_repairs_a_lean_work_item_from_real_checker_feedback(
+    tmp_path, tui_verifier, checker_available
+):
+    """The model checks, edits and rechecks through tools; restart retains historical checks."""
+    binary = str(find_meden())
+    root = tmp_path / "project"
+    root.mkdir()
+    (root / "lean-toolchain").write_text("leanprover/lean4:v4.35.0\n")
+    (root / "lakefile.toml").write_text('name = "model_check"\n[[lean_lib]]\nname = "Proof"\n')
+    source = root / "Proof.lean"
+    source.write_text("theorem portable_identity (n : Nat) : n = n := by exact True.intro\n")
+    env = environment(tmp_path)
+    if checker_available:
+        # Prepare the real installed distribution before entry; this is not a cold install.
+        selected = Path(env["HOME"]) / ".elan/toolchains/leanprover--lean4---v4.35.0"
+        selected.parent.mkdir(parents=True)
+        selected.symlink_to(installed_lean())
+        env.pop("MEDEN_PROJECT_LEAN", None)
+    else:
+        env["MEDEN_PROJECT_LEAN"] = str(tmp_path / "not-installed")
+    _work(binary, root, env, "init", "--name", "Model Lean repair")
+    _work(binary, root, env, "add", "--id", "proof", "--title", "Universal identity",
+          "--requirement", REQUIREMENT, "--module", "Proof", "--theorem", "portable_identity",
+          "--next", "Check and repair the unchanged theorem using check_lean_work.")
+    requests, errors = [], []
+
+    def tool(name, arguments, number):
+        return {"tool_calls": [{"id": f"lean-step-{number}", "type": "function",
+                                "function": {"name": name, "arguments": json.dumps(arguments)}}]}
+
+    def result(body):
+        message = next(m for m in reversed(body["messages"]) if m["role"] == "tool")
+        content = message["content"]
+        if isinstance(content, list):
+            content = "".join(part["text"] for part in content)
+        return json.loads(content)
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *_):
+            pass
+
+        def do_POST(self):
+            body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+            requests.append(body)
+            number = len(requests)
+            try:
+                assert "check_lean_work" in {t["function"]["name"] for t in body["tools"]}
+                if number == 1:
+                    assert REQUIREMENT in json.dumps(body)
+                    message = tool("check_lean_work", {"id": "proof"}, number)
+                elif number == 2:
+                    checked = result(body)
+                    assert checked["success"] is False
+                    assert "Proof.lean" in checked["stdout"] + checked["stderr"]
+                    assert checked["requirement"] == REQUIREMENT
+                    message = tool(
+                        "write_file", {"path": "Proof.lean", "content": VALID_PROOF}, number
+                    )
+                elif number == 3:
+                    message = tool("check_lean_work", {"id": "proof"}, number)
+                else:
+                    assert number == 4
+                    checked = result(body)
+                    assert checked["success"] is True
+                    assert checked["requirement"] == REQUIREMENT
+                    assert checked["theorems"] == ["portable_identity"]
+                    assert "portable_identity" in checked["inspection"]
+                    assert "MEDEN_THEOREMS_CHECKED" in checked["inspection"]
+                    message = {"content": "LEAN-MODEL-REPAIRED"}
+            except Exception as error:
+                errors.append(repr(error))
+                message = {"content": "LEAN-FIXTURE-FAILED"}
+            payload = json.dumps(
+                {"choices": [{"message": {"role": "assistant", **message}}]}
+            ).encode()
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    args = [binary, "tui", "--workspace", str(root), "--base-url",
+            f"http://127.0.0.1:{server.server_port}/v1", "--model", "lean-check-fixture"]
+    terminal = Terminal(args, env, root)
+    try:
+        terminal.wait(lambda screen: "Connection details" in screen)
+        assert requests == []
+        terminal.send("y")
+        terminal.wait(lambda screen: "shift+enter" in screen)
+        expected = "LEAN-MODEL-REPAIRED" if checker_available else "Lean work checker unavailable"
+        _command(terminal, "/work resume proof", expected)
+        assert not errors, errors
+        if not checker_available:
+            assert len(requests) == 1, "Unavailable resources must stop automatic model repair"
+            assert "True.intro" in source.read_text()
+            document = json.loads((root / ".meden/workspace.json").read_text())
+            assert not any(event["check"] for event in document["events"])
+            assert document["tasks"][0]["requirement"] == REQUIREMENT
+            _command(terminal, "/status", "Specification has not been accepted")
+            terminal.quit()
+            return
+        assert len(requests) == 4
+        assert source.read_text() == VALID_PROOF
+        document = json.loads((root / ".meden/workspace.json").read_text())
+        checks = [event["check"] for event in document["events"] if event["check"]]
+        assert [check["success"] for check in checks] == [False, True]
+        assert all(check["requirement"] == REQUIREMENT for check in checks)
+        _command(terminal, "/status", "Specification has not been accepted")
+        terminal.quit()
+        terminal.close()
+
+        terminal = Terminal(args, env, root)
+        terminal.wait(lambda screen: "Connection details" in screen)
+        terminal.send("n")
+        terminal.wait(lambda screen: "Choose a model connection" in screen)
+        screen = _command(terminal, "/work proof", "Saved conversations:", picker=True)
+        assert "LEAN-MODEL-REPAIRED" in screen
+        assert "historical" in screen
+        assert len(requests) == 4
+        terminal.quit()
+    finally:
+        terminal.close()
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
 
 
 def test_portable_work_clones_history_checks_locally_and_requires_fresh_resume_approval(

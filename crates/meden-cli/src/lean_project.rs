@@ -11,6 +11,15 @@ use std::{
     time::Duration,
 };
 
+/// Host-observed process completion, independent of checker diagnostics.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Outcome {
+    Completed,
+    Cancelled,
+    Inconclusive,
+    Unavailable,
+}
+
 pub(crate) fn run(
     root: &Path,
     lean: &Path,
@@ -28,6 +37,16 @@ pub(crate) fn run_controlled(
     seconds: u64,
     control: &Control,
 ) -> Result<serde_json::Value> {
+    Ok(run_observed(root, lean, arguments, seconds, control)?.0)
+}
+
+pub(crate) fn run_observed(
+    root: &Path,
+    lean: &Path,
+    arguments: &[String],
+    seconds: u64,
+    control: &Control,
+) -> Result<(serde_json::Value, Outcome)> {
     anyhow::ensure!(
         !arguments.is_empty() && (1..=7200).contains(&seconds),
         "Lake needs arguments and a timeout from 1 to 7200 seconds"
@@ -83,7 +102,15 @@ pub(crate) fn run_controlled(
     )?;
     let success = matches!(&output.termination, Termination::Exited(code) if code.success())
         && !output.truncated;
-    Ok(
+    let outcome = match &output.termination {
+        Termination::Exited(code) if code.code().is_some() && !output.truncated => {
+            Outcome::Completed
+        }
+        Termination::Cancelled => Outcome::Cancelled,
+        _ => Outcome::Inconclusive,
+    };
+    Ok((
         serde_json::json!({"success":success,"termination":format!("{:?}", output.termination),"stdout":output.stdout,"stderr":output.stderr}),
-    )
+        outcome,
+    ))
 }

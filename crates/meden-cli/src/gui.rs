@@ -716,6 +716,11 @@ fn observe(view: &Mutex<View>, event: &Event<'_>) {
             view.partial.clear();
         }
         Event::Decision { call, refusal } => {
+            if refusal.is_none() && call.function.name == "check_lean_work" {
+                view.project.verified = false;
+                view.source_snapshot = None;
+                analysis::invalidate(&mut view);
+            }
             view.activity = format!(
                 "{} · {}",
                 if refusal.is_some() {

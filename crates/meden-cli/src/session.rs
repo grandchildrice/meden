@@ -54,10 +54,12 @@ impl Session {
         crate::exports::register(&mut registry, &workspace, &processes, exports);
         crate::pages::register(&mut registry, pages);
         crate::project::register(&mut registry, &mut policy, &workspace, &processes, project)?;
+        crate::lean_work::register(&mut registry, &workspace, &processes, project);
         let order = registry.names().map(str::to_owned).collect::<Vec<_>>();
         let tools = conversation::tool_definitions(&registry, &order);
         let summary = project.stored_status()?;
         let mut system = SYSTEM.to_owned();
+        system.push_str("\nFor a stored Lean work item, read the relevant repository guidance and target source, then call check_lean_work with its id BEFORE searching for library APIs. Use the real host compiler and named-theorem diagnostics to repair ordinary compiler errors without changing the stored requirement. The installed host checker is separate from Bash: do not search toolchain paths or install Lean in coding workers. Do not repeat broad library searches when a source edit and compiler feedback can settle the question. A successful historical Lean check does not establish native project_status.verified.");
         if let Some(accepted) = &summary.accepted_contract {
             system.push_str("\nHost-retained accepted meaning follows. Previous proof results are historical; this process requires fresh verification. Do not replace or weaken this meaning without host review.\n");
             system.push_str(&accepted.review_text());

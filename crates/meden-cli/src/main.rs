@@ -16,6 +16,7 @@ mod gui;
 mod handoff;
 mod judge;
 mod lean_project;
+mod lean_work;
 mod pages;
 mod project;
 mod protocol;

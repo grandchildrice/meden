@@ -118,10 +118,18 @@ recheck. Local checks invalidate previously displayed source/analysis/evidence
 freshness because executable Lake configuration can edit the workspace.
 
 The agent keeps resumed Lean work in its existing language and preserves the
-task's requirement. Native contract verification remains restricted to pure Rust
-transitions. When the model tools lack the project's prepared Lean compiler,
-the agent reports the named host check still needed; run it with the local check
-button. The [actual cloud repair trial](../results/portable-lean-ollama-cloud-minimax-m3.json)
+task's requirement. `check_lean_work` takes a stored work ID and runs the same
+offline compiler and fresh theorem inspection as the local check button. It
+returns real diagnostics to the model for source repair and retains each check
+in `.meden`. Lake and Lean can execute repository code, so the tool requires
+process/shell execution with the existing writable, offline workspace mounts.
+File scopes govern the separate metadata reads and history writes; they do not
+restrict code admitted under shell execution. Those file operations use the
+admitted policy. The host-selected compiler must already be
+installed. Missing resources, cancellation and limits stop automatic repair;
+ordinary completed compiler rejections remain repairable. Native contract
+verification remains restricted to pure Rust transitions. The
+[actual cloud repair trial](../results/portable-lean-ollama-cloud-minimax-m3.json)
 exercises this path from a compiler rejection to a checked universal Lean theorem,
 with saved conversation and an unapproved restart.
 

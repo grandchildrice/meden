@@ -2,6 +2,7 @@
 use anyhow::{Context, Result};
 use meden_agent::tool::Args;
 use meden_core::file::{Operation, Request};
+use meden_core::Policy;
 use meden_runtime::{
     process::{self, Control, Limits, Termination},
     workspace::Workspace,
@@ -80,6 +81,9 @@ pub(crate) fn lean(root: &Path) -> Result<PathBuf> {
         return Ok(PathBuf::from(path).canonicalize()?);
     }
     let selected = std::fs::read_to_string(root.join("lean-toolchain"))?;
+    installed_lean(&selected)
+}
+fn installed_lean(selected: &str) -> Result<PathBuf> {
     let version = selected
         .trim()
         .strip_prefix("leanprover/lean4:")
@@ -104,12 +108,13 @@ fn call(
     control: &Control,
     operation: Operation,
     payload: Args,
+    rules: &Policy,
 ) -> Result<Value> {
     meden_runtime::file::run(
         workspace,
         control,
         &Request::new(operation, format!("/workspace/{FILE}").into(), payload),
-        &crate::workspace::file_policy()?,
+        rules,
         &Limits {
             timeout: Duration::from_secs(30),
             capture_bytes: 24_000_000,
@@ -118,7 +123,7 @@ fn call(
     )
     .map_err(|error| anyhow::anyhow!("Workspace record: {error}"))
 }
-fn valid_name(value: &str) -> bool {
+pub(crate) fn valid_name(value: &str) -> bool {
     !value.is_empty()
         && value.len() <= 1000
         && value.split('.').all(|part| {
@@ -197,18 +202,39 @@ pub(crate) fn load(workspace: &Workspace, control: &Control) -> Result<Option<Do
     if !workspace.path().join(FILE).try_exists()? {
         return Ok(None);
     }
+    Ok(Some(read_with_policy(
+        workspace,
+        control,
+        &crate::workspace::file_policy()?,
+    )?))
+}
+fn read_with_policy(workspace: &Workspace, control: &Control, rules: &Policy) -> Result<Document> {
     let bytes: Vec<u8> = serde_json::from_value(call(
         workspace,
         control,
         Operation::Snapshot,
         Args::from_iter([("max_bytes".into(), 4_194_304.into())]),
+        rules,
     )?)?;
     let document: Document = serde_json::from_slice(&bytes)
         .context("Portable history is unreadable; the file was retained")?;
     validate(&document)?;
-    Ok(Some(document))
+    Ok(document)
 }
 fn save(workspace: &Workspace, control: &Control, document: &Document) -> Result<()> {
+    save_with_policy(
+        workspace,
+        control,
+        document,
+        &crate::workspace::file_policy()?,
+    )
+}
+fn save_with_policy(
+    workspace: &Workspace,
+    control: &Control,
+    document: &Document,
+    rules: &Policy,
+) -> Result<()> {
     validate(document)?;
     let content = serde_json::to_string_pretty(document)?;
     anyhow::ensure!(
@@ -220,6 +246,7 @@ fn save(workspace: &Workspace, control: &Control, document: &Document) -> Result
         control,
         Operation::Write,
         Args::from_iter([("content".into(), content.into())]),
+        rules,
     )?;
     Ok(())
 }
@@ -371,19 +398,68 @@ fn prepare_lake(workspace: &Workspace, control: &Control, selected: &Path) -> Re
     Ok(())
 }
 pub(crate) fn check(workspace: &Workspace, control: &Control, id: &str) -> Result<()> {
-    let mut document =
-        load(workspace, control)?.context("Initialize a portable workspace first")?;
+    let observation = check_observed(workspace, control, id, &crate::workspace::file_policy()?)?;
+    anyhow::ensure!(
+        observation.record.success,
+        "Lean check did not complete successfully; its output was retained in workspace history"
+    );
+    Ok(())
+}
+
+pub(crate) struct Observation {
+    pub record: Check,
+    pub outcome: crate::lean_project::Outcome,
+}
+
+fn selected_for_check(workspace: &Workspace, control: &Control, rules: &Policy) -> Result<PathBuf> {
+    if let Some(path) = std::env::var_os("MEDEN_PROJECT_LEAN") {
+        return Ok(PathBuf::from(path).canonicalize()?);
+    }
+    let bytes: Vec<u8> = serde_json::from_value(meden_runtime::file::run(
+        workspace,
+        control,
+        &Request::new(
+            Operation::Snapshot,
+            "/workspace/lean-toolchain".into(),
+            Args::from_iter([("max_bytes".into(), 4096.into())]),
+        ),
+        rules,
+        &Limits {
+            timeout: Duration::from_secs(30),
+            capture_bytes: 32000,
+            output_bytes: 32000,
+        },
+    )?)?;
+    installed_lean(std::str::from_utf8(&bytes)?)
+}
+
+fn work_for_check(document: &Document, id: &str) -> Result<Work> {
     let task = document
         .tasks
         .iter()
-        .find(|t| t.id == id)
+        .find(|task| task.id == id)
         .context("Unknown work item")?
         .clone();
-    let selected = lean(workspace.path())?;
     anyhow::ensure!(
         !task.theorems.is_empty(),
         "Name at least one theorem before checking this work item"
     );
+    Ok(task)
+}
+
+/// Compile the original stored work item under the caller's admitted policy.
+/// The result is a historical observation, never native project proof authority.
+pub(crate) fn check_observed(
+    workspace: &Workspace,
+    control: &Control,
+    id: &str,
+    rules: &Policy,
+) -> Result<Observation> {
+    use crate::lean_project::Outcome;
+    let mut document = read_with_policy(workspace, control, rules)
+        .context("Initialize a readable portable workspace first")?;
+    let task = work_for_check(&document, id)?;
+    let selected = selected_for_check(workspace, control, rules)?;
     let engine = format!(
         "sha256:{:x}",
         Sha256::digest(std::fs::read(selected.join("bin/lean"))?)
@@ -391,35 +467,34 @@ pub(crate) fn check(workspace: &Workspace, control: &Control, id: &str) -> Resul
     prepare_lake(workspace, control, &selected)?;
     let before = fingerprint(workspace, control, &selected)?;
     push(&mut document, id, format!("Started offline Lake build --wfail {}. Interrupted checks remain unfinished; rerun explicitly.", task.module), None)?;
-    save(workspace, control, &document)?;
+    save_with_policy(workspace, control, &document, rules)?;
     let failed = |error: anyhow::Error| {
         json!({
             "success":false,"termination":"PreparationFailed","stdout":"","stderr":format!("{error:#}")
         })
     };
-    let output = crate::lean_project::run_controlled(
+    let (output, build_outcome) = crate::lean_project::run_observed(
         workspace.path(),
         &selected,
         &["build".into(), "--wfail".into(), task.module.clone()],
         7200,
         control,
     )
-    .unwrap_or_else(&failed);
+    .unwrap_or_else(|error| (failed(error), Outcome::Unavailable));
     let mut arguments = vec!["--meden-inspect".into(), task.module.clone()];
     arguments.extend(task.theorems.iter().cloned());
-    let inspection = if succeeded(&output) {
-        Some(
-            crate::lean_project::run_controlled(
-                workspace.path(),
-                &selected,
-                &arguments,
-                600,
-                control,
-            )
-            .unwrap_or_else(&failed),
+    let (inspection, inspection_outcome) = if succeeded(&output) {
+        let (report, outcome) = crate::lean_project::run_observed(
+            workspace.path(),
+            &selected,
+            &arguments,
+            600,
+            control,
         )
+        .unwrap_or_else(|error| (failed(error), Outcome::Unavailable));
+        (Some(report), outcome)
     } else {
-        None
+        (None, Outcome::Unavailable)
     };
     let inspected = inspection.as_ref().is_some_and(|r| {
         succeeded(r)
@@ -428,6 +503,19 @@ pub(crate) fn check(workspace: &Workspace, control: &Control, id: &str) -> Resul
                 .is_some_and(|s| s.contains("MEDEN_THEOREMS_CHECKED"))
     });
     let after = fingerprint(workspace, control, &selected).ok();
+    let outcome = if control.flag().load(std::sync::atomic::Ordering::SeqCst) {
+        Outcome::Cancelled
+    } else if after.as_deref() != Some(before.as_str()) {
+        Outcome::Unavailable
+    } else if !succeeded(&output) {
+        build_outcome
+    } else if inspection.as_ref().is_some_and(|report| !succeeded(report)) {
+        inspection_outcome
+    } else if inspected {
+        Outcome::Completed
+    } else {
+        Outcome::Unavailable
+    };
     let clip = |key: &str| {
         let value = output_text(&output, key);
         value.chars().take(64000).collect::<String>()
@@ -451,24 +539,22 @@ pub(crate) fn check(workspace: &Workspace, control: &Control, id: &str) -> Resul
         source_revision: before.clone(),
         after_revision: after.clone(),
         module: task.module,
-        success: succeeded(&output) && inspected && after.as_deref() == Some(before.as_str()),
+        success: outcome == Outcome::Completed
+            && succeeded(&output)
+            && inspected
+            && after.as_deref() == Some(before.as_str()),
         termination: clip("termination"),
         stdout: clip("stdout"),
         stderr: clip("stderr"),
     };
-    let success = record.success;
-    push(&mut document, id, if success { "Offline Lake build completed for the recorded source/configuration inputs. This record is historical on another machine." } else { "Check failed, was interrupted, or its source/configuration inputs changed. Inspect the retained output before retrying." }.into(), Some(record))?;
+    push(&mut document, id, if record.success { "Offline Lake build completed for the recorded source/configuration inputs. This record is historical on another machine." } else { "Check failed, was interrupted, or its source/configuration inputs changed. Inspect the retained output before retrying." }.into(), Some(record.clone()))?;
     // Retain host observations even when the managed checker was cancelled.
     // This fresh control permits only this fixed history write, never inference.
     let logging = Control::new(std::sync::Arc::new(std::sync::atomic::AtomicBool::new(
         false,
     )));
-    save(workspace, &logging, &document)?;
-    anyhow::ensure!(
-        success,
-        "Lean check did not complete successfully; its output was retained in workspace history"
-    );
-    Ok(())
+    save_with_policy(workspace, &logging, &document, rules)?;
+    Ok(Observation { record, outcome })
 }
 pub(crate) fn checkpoint(workspace: &Workspace, control: &Control) -> Result<()> {
     let Some(mut document) = load(workspace, control)? else {

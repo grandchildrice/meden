@@ -359,6 +359,12 @@ tests additionally exercise cursor editing, Unicode multiline paste,
 conversation retention and `/clear` starting a fresh model history without
 changing files.
 
+`tui-live-smoke-lean-work-tools.json` repeats the two-turn public TUI regression
+with actual `minimax-m3` after adding the stored Lean checker tool. The Python
+repair, original-test preservation, fresh processor review and independent offline
+tests passed. This fixture does not invoke the Lean checker and does not establish
+Lean proof automation. The provider's terminal reasoning capture remains local.
+
 The baseline's old `outcome` fields in `banking-baseline-current-3-passes.json`
 were fallback report values, not observed session statuses. Its utility
 booleans come directly from AgentDojo and are the values used above. The
