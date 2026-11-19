@@ -13,6 +13,7 @@ const TOOLS: &[&str] = &[
     "bash", "python3", "git", "cargo", "rustc", "rustdoc", "node", "npm", "npx", "rg", "cat", "ls",
     "mkdir", "cp", "mv", "rm", "touch", "find", "sed", "awk", "grep", "head", "tail", "wc", "true",
     "false", "env", "sleep", "cc", "c++", "make", "uname", "tar", "gzip", "base64", "diff",
+    "dirname",
 ];
 const SYSTEM_ROOTS: &[&str] = &["/usr", "/bin", "/lib", "/lib64"];
 const RUST_TOOLS: &[&str] = &["cargo", "rustc", "rustdoc"];
@@ -497,7 +498,12 @@ impl Sandbox {
             || !library.is_dir()
             || !matches!(
                 script,
-                "prepare.sh" | "extract.sh" | "compile.sh" | "imports.sh" | "lake.sh"
+                "prepare.sh"
+                    | "extract.sh"
+                    | "compile.sh"
+                    | "imports.sh"
+                    | "lake.sh"
+                    | "project.sh"
             )
         {
             return Err(io::Error::other(

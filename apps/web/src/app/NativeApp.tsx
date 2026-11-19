@@ -25,6 +25,7 @@ import { NativeMeaning } from "../features/native/NativeMeaning";
 import { NativePreview } from "../features/native/NativePreview";
 import { NativeRepair } from "../features/native/NativeRepair";
 import { NativeDelivery } from "../features/native/NativeDelivery";
+import { NativeWork } from "../features/native/NativeWork";
 const NativeGraph = lazy(() =>
   import("../features/native/NativeGraph").then((module) => ({
     default: module.NativeGraph,
@@ -280,8 +281,26 @@ export function NativeApp({ token }: { token: string }) {
                 <Tab
                   label={`配送${state.exports.some((item) => item.state === "pending" || item.state === "reviewed") ? " •" : ""}`}
                 />
+                <Tab label="作業・履歴" />
               </Tabs>
               <div className="native-panel">
+                <div hidden={tab !== 6}>
+                  <NativeWork
+                    workspace={state.portable}
+                    running={running}
+                    authorized={state.authorized}
+                    onCommand={command}
+                    onInspect={(file) => {
+                      setPath(file);
+                      setTab(0);
+                      void command({
+                        type: "inspect",
+                        path: file,
+                        directory: false,
+                      });
+                    }}
+                  />
+                </div>
                 <div hidden={tab !== 5}>
                   <NativeDelivery
                     exports={state.exports}
@@ -349,6 +368,45 @@ export function NativeApp({ token }: { token: string }) {
                         <Typography component="h3">
                           {state.inspection.path}
                         </Typography>
+                        {!state.inspection.directory &&
+                          !state.inspection.error && (
+                            <>
+                              <p>{state.inspection.offset || 1}行目から表示</p>
+                              <Button
+                                disabled={
+                                  running || (state.inspection.offset || 1) <= 1
+                                }
+                                onClick={() =>
+                                  void command({
+                                    type: "inspect",
+                                    path: state.inspection!.path,
+                                    directory: false,
+                                    offset: Math.max(
+                                      1,
+                                      (state.inspection!.offset || 1) - 200,
+                                    ),
+                                  })
+                                }
+                              >
+                                前のページ
+                              </Button>
+                              <Button
+                                disabled={
+                                  running || !state.inspection.next_offset
+                                }
+                                onClick={() =>
+                                  void command({
+                                    type: "inspect",
+                                    path: state.inspection!.path,
+                                    directory: false,
+                                    offset: state.inspection!.next_offset!,
+                                  })
+                                }
+                              >
+                                次のページ
+                              </Button>
+                            </>
+                          )}
                         <pre aria-label="ファイルの内容">
                           {state.inspection.error ||
                             formatInspection(state.inspection.text || "")}

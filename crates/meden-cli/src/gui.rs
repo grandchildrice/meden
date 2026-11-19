@@ -27,6 +27,7 @@ struct Task {
 
 #[derive(Serialize)]
 struct View {
+    portable: crate::handoff::View,
     workspace: String,
     endpoint: String,
     model: String,
@@ -56,6 +57,24 @@ struct View {
 #[derive(Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 enum Command {
+    InitializeWork {
+        name: String,
+    },
+    PutWork {
+        work: crate::handoff::Work,
+    },
+    NoteWork {
+        id: String,
+        text: String,
+        next: Option<String>,
+    },
+    CheckWork {
+        id: String,
+    },
+    ResumeWork {
+        id: String,
+    },
+    SaveWork,
     ApproveProcessor {
         endpoint: String,
         judge: Option<crate::judge::Binding>,
@@ -120,6 +139,8 @@ enum Command {
     Inspect {
         path: String,
         directory: bool,
+        #[serde(default)]
+        offset: Option<usize>,
     },
 }
 
@@ -130,7 +151,10 @@ impl Command {
         }
         if matches!(
             self,
-            Self::Instruction { .. } | Self::AnalyzeMeaning { .. } | Self::PrepareRepair { .. }
+            Self::Instruction { .. }
+                | Self::AnalyzeMeaning { .. }
+                | Self::PrepareRepair { .. }
+                | Self::ResumeWork { .. }
         ) {
             anyhow::ensure!(
                 gateway.is_authorized(session),
@@ -261,6 +285,7 @@ fn initial_view(
         Err(error) => (Vec::new(), Some(format!("Meaning-analysis checkpoint unavailable: {error:#}. The file was retained; reread sources and rerun analysis in the GUI."))),
     };
     let view = Arc::new(Mutex::new(View {
+        portable: crate::handoff::view(workspace, &Control::new(Arc::new(AtomicBool::new(false)))),
         workspace: workspace.path().display().to_string(),
         endpoint: gateway.endpoint().into(),
         model: gateway.provider().model.clone(),
@@ -486,6 +511,14 @@ fn worker(
             )?
             .with_judge(judge.cloned());
             let instruction = match command {
+                command @ (Command::InitializeWork { .. }
+                | Command::PutWork { .. }
+                | Command::NoteWork { .. }
+                | Command::CheckWork { .. }
+                | Command::ResumeWork { .. }
+                | Command::SaveWork) => {
+                    perform_work(command, workspace, &processes, project, view)?
+                }
                 Command::RefreshStatus => None,
                 Command::PrepareAtlas => {
                     analysis::prepare_atlas(view, &session)?;
@@ -525,15 +558,7 @@ fn worker(
                     sources::refresh(view, workspace, &processes, &paths)?;
                     None
                 }
-                Command::Instruction { text } => {
-                    lock(view).source_snapshot = None;
-                    analysis::invalidate(&mut lock(view));
-                    lock(view).messages.push(history::Message {
-                        speaker: history::Speaker::User,
-                        text: text.clone(),
-                    });
-                    Some(text)
-                }
+                Command::Instruction { text } => Some(instruction(view, text)),
                 Command::ReviewContract { reference } => {
                     lock(view).project = project.review(&reference)?;
                     None
@@ -546,8 +571,13 @@ fn worker(
                     lock(view).project = project.reject(&reference)?;
                     None
                 }
-                Command::Inspect { path, directory } => {
-                    let observation = inspect(workspace, &processes, &path, directory)?;
+                Command::Inspect {
+                    path,
+                    directory,
+                    offset,
+                } => {
+                    let observation =
+                        inspect(workspace, &processes, &path, directory, offset.unwrap_or(1))?;
                     lock(view).inspection = Some(observation);
                     None
                 }
@@ -562,8 +592,17 @@ fn worker(
             lock(view).project = summary;
             Ok(())
         })();
+        checkpoint(view, workspace);
         finish_operation(view, &delivery, result);
     }
+}
+
+fn checkpoint(view: &Mutex<View>, workspace: &Workspace) {
+    let logging = Control::new(Arc::new(AtomicBool::new(false)));
+    if let Err(error) = crate::handoff::checkpoint(workspace, &logging) {
+        lock(view).logs.push(json!({"type":"notice","text":format!("Portable history was retained but could not be saved: {error:#}")}));
+    }
+    lock(view).portable = crate::handoff::view(workspace, &logging);
 }
 
 fn finish_operation(view: &Mutex<View>, delivery: &delivery::Delivery, result: Result<()>) {
@@ -615,13 +654,18 @@ fn inspect(
     processes: &Arc<Control>,
     path: &str,
     directory: bool,
+    offset: usize,
 ) -> Result<Value> {
     let (registry, policy) = crate::workspace::environment(workspace, processes)?;
     let call = meden_agent::conversation::ToolCall {
         id: "gui-inspect".into(),
         function: meden_agent::conversation::FunctionCall {
             name: if directory { "list_files" } else { "read_file" }.into(),
-            arguments: serde_json::to_string(&json!({"path":path}))?,
+            arguments: serde_json::to_string(&if directory {
+                json!({"path":path})
+            } else {
+                json!({"path":path,"offset":offset,"limit":200})
+            })?,
         },
     };
     let result = meden_agent::conversation::execute(
@@ -633,7 +677,18 @@ fn inspect(
         &|| None,
     );
     Ok(match result {
-        Ok(text) => json!({"path":path,"directory":directory,"text":text}),
+        Ok(text) => {
+            let next = (!directory)
+                .then(|| {
+                    text.lines().rev().find_map(|line| {
+                        line.split_once(": ")
+                            .and_then(|(number, _)| number.parse::<usize>().ok())
+                    })
+                })
+                .flatten()
+                .and_then(|last| last.checked_add(1));
+            json!({"path":path,"directory":directory,"offset":offset,"next_offset":next,"text":text})
+        }
         Err(error) => json!({"path":path,"error":format!("{error:?}")}),
     })
 }
@@ -767,4 +822,53 @@ fn serve_asset(request: Request, assets: &Path, frame_source: &str) {
         }
         Err(_) => respond(request, 404, &json!({"error":"Not found"})),
     }
+}
+
+fn perform_work(
+    command: Command,
+    workspace: &Workspace,
+    processes: &Control,
+    project: &crate::project::Project,
+    view: &Mutex<View>,
+) -> Result<Option<String>> {
+    Ok(match command {
+        Command::InitializeWork { name } => {
+            crate::handoff::initialize(workspace, processes, name)?;
+            None
+        }
+        Command::PutWork { work } => {
+            crate::handoff::put(workspace, processes, work)?;
+            None
+        }
+        Command::NoteWork { id, text, next } => {
+            crate::handoff::note(workspace, processes, &id, text, next)?;
+            None
+        }
+        Command::CheckWork { id } => {
+            project.mark_dirty();
+            lock(view).project.verified = false;
+            lock(view).source_snapshot = None;
+            analysis::invalidate(&mut lock(view));
+            lock(view).activity = format!("Checking Lean work {id}");
+            crate::handoff::check(workspace, processes, &id)?;
+            None
+        }
+        Command::ResumeWork { id } => Some(instruction(
+            view,
+            crate::handoff::continuation(workspace, processes, &id)?,
+        )),
+        Command::SaveWork => None,
+        _ => anyhow::bail!("Unexpected portable work command"),
+    })
+}
+
+fn instruction(view: &Mutex<View>, text: String) -> String {
+    let mut view = lock(view);
+    view.source_snapshot = None;
+    analysis::invalidate(&mut view);
+    view.messages.push(history::Message {
+        speaker: history::Speaker::User,
+        text: text.clone(),
+    });
+    text
 }

@@ -53,9 +53,69 @@ provider failures are not silently retried. Unsent input remains tab/browser dat
 and completed turns also refresh status; polling alone is not a filesystem watcher.
 Logs/partial reasoning in this initial adapter last for the host process, while
 conversation text and admitted model history persist. The file reader uses the
-native tool's bounded first 200 lines. Native preview, selected-module Lean Atlas
+native tool's bounded 200-line pages. **前のページ** / **次のページ** navigate
+long proof files; the displayed starting line identifies the current range.
+Native preview, selected-module Lean Atlas
 extraction, delivery, Lake dependency discovery and separate-model meaning
 judgment are described below with their current bounds.
+
+## Portable work and check history
+
+**作業・履歴** stores a project's named work items, original requirements, theorem
+names, next steps, progress notes and visible conversation in
+`.meden/workspace.json`. Completed turns checkpoint the visible conversation;
+**会話と作業を保存** checkpoints it explicitly. Raw model reasoning, API keys, processor
+grants and native accepted contracts are not exported to that file. Check the
+visible conversation before publishing it: project text may contain private data.
+
+Commit `.meden/workspace.json` together with the sources on your working branch.
+On another machine, clone the branch and open it with Meden:
+
+```sh
+git clone --branch YOUR_WORK_BRANCH YOUR_FORK_URL project
+meden gui --workspace "$PWD/project" --provider YOUR_PROVIDER --model YOUR_MODEL
+```
+
+Open **作業・履歴**, select a task, inspect its saved output or **証明コードを読む**,
+and use **この作業を再開** after reviewing the new processor connection. The
+selected task becomes a new user instruction with its original requirement,
+next step, recent history and bounded excerpts of recent visible conversation.
+The complete saved text remains available in the panel. Imported conversation is context;
+it is not replayed as system messages or restored tool authority. Each device
+keeps its credentials and native session data outside the repository.
+
+**Leanを再チェック** needs no model approval. Install the exact distribution named
+by `lean-toolchain` through Elan and prepare the project's pinned dependencies
+before checking. An explicit host `MEDEN_PROJECT_LEAN` selects an installed
+distribution instead. This adapter neither installs tools nor downloads dependencies.
+Missing prerequisites remain visible failures. History is still readable without
+Lean or a model connection.
+
+The check runs `lake build --wfail MODULE` offline, then freshly elaborates the
+selected source using Lake's original module setup and inspects each named
+theorem's actual type and transitive axioms. It does not import the selected
+module's old compiled artifact. A missing declaration, a definition
+instead of a theorem, or an axiom beyond `propext`, `Classical.choice` and
+`Quot.sound` fails inspection. The record includes the frozen requirement/names,
+Lean executable digest, source/configuration fingerprints, termination and bounded
+output. Changed inputs, truncation, interruption and failed inspection cannot
+produce a successful record. Interrupted host processes may leave an unfinished
+start event; retry explicitly. Malformed or oversized history is retained and
+refused for import or overwrite.
+
+These are observed Lake execution and declaration-inspection records. Repository
+Lake configuration, executable Lean source, compiled dependencies, plugins, compiler behavior and physical
+filesystem observations remain adapters. The records do not grant native contract
+acceptance or project verification, and imported successes always require a local
+recheck. Local checks invalidate previously displayed source/analysis/evidence
+freshness because executable Lake configuration can edit the workspace.
+
+The public TUI supports `/work`, `/work ID`, `/work init NAME`, `/work save`,
+`/work check ID`, `/work note ID TEXT` and `/work resume ID`. At connection
+selection, `/` opens host commands without approving inference. For scripts,
+`meden work --workspace PATH --help` lists the same operations and task editing.
+`meden lake --workspace PATH --lean LEAN_ROOT -- build --wfail MODULE` exposes
+explicit confined Lake execution; its command result alone is not proof authority.
 
 ## Native delivery review
 

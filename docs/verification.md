@@ -1741,6 +1741,38 @@ checker bundle. Ordinary Ubuntu CI does not install Nix and reports those
 cases as skipped. Local Nix results are evidence of the simulated layouts,
 not validation of every Linux distribution or large-model deployment.
 
+## Portable work records and external Lean checks
+
+The GUI, public TUI `/work` commands and `meden work` CLI share
+`crates/meden-cli/src/handoff.rs`. `.meden/workspace.json` contains bounded, strict
+typed work items, visible conversations and historical check results. Loading it
+restores no processor grant, accepted native contract or proof receipt. Resume
+creates a new user instruction and requires the current session's processor review.
+The fixed record path uses the existing policy-bound pinned file worker; malformed
+records and escaping symlinks are refused and retained.
+
+The host-selected `meden lake` adapter confines executable Lake code and Lean to
+the prepared offline worker. Portable checks freeze requirement/module/theorem
+names, hash the selected Lean executable, fingerprint bounded Lean sources and
+project configuration before and after checking, build with warnings fatal and
+freshly elaborate the selected source with Lake's actual module setup to inspect
+theorem types and transitive axioms. The selected module's old compiled artifact
+is not imported for inspection; an actual cache-restoration/early-exit regression
+exercises that boundary. Only the three standard Lean
+axioms are admitted by that inspection. Missing declarations, non-theorems,
+failed/unfinished checks, changed source/configuration and output truncation fail.
+The results remain historical observations rather than native proof admission.
+Executable Lake configuration and Lean source, cached/native dependencies, plugins, compiler
+behavior, filesystem and GUI/JSON interpretation remain adapter obligations;
+these changes add no Rust-to-Lean refinement or whole-project source theorem.
+
+`test_portable_work.py` uses actual installed Lean for command, declaration and
+input-boundary cases. `test_tui_portable.py` and `apps/web/e2e/portable.spec.ts`
+exercise real Git clones with different host data directories, local checks
+without inference, real Lean failure/recovery, saved visible conversation and
+fresh processor review. Their scripted inference fixtures do not establish live
+model quality, confidentiality or cold installation.
+
 ## Shared CLI and TUI execution
 
 The [coding session](../crates/meden-cli/src/session.rs) owns the fixed tool
@@ -2342,7 +2374,7 @@ registry path overrides in the root manifest and already-populated copied path
 packages. A registry path override is resolved relative to the root workspace,
 rather than silently redirected to the package cache. Eight installed-Lake cases
 pass, including the three refusal cases and the executable-configuration isolation
-case. The public required gate has 28 journeys, the native browser suite has 39,
+case. The public required gate has 31 journeys, the native browser suite has 40,
 and the nested 80×24 runner completes the required gate with real Lake enabled.
 The cloud trial is retained in
 [the public Lake TUI report](../results/tui-lake-ollama-cloud-minimax-m3-gptoss120.json).

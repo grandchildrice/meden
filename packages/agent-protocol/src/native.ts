@@ -184,6 +184,74 @@ export const previewSchema = z
   })
   .strict();
 export type NativePreviewSnapshot = z.infer<typeof previewSchema>;
+export const workItemSchema = z
+  .object({
+    id: z.string(),
+    title: z.string(),
+    requirement: z.string(),
+    module: z.string(),
+    theorems: z.array(z.string()),
+    next: z.string(),
+  })
+  .strict();
+export type WorkItem = z.infer<typeof workItemSchema>;
+export const portableWorkspaceSchema = z
+  .object({
+    document: z
+      .object({
+        version: z.literal(1),
+        name: z.string(),
+        tasks: z.array(workItemSchema),
+        events: z.array(
+          z
+            .object({
+              id: z.string(),
+              task: z.string(),
+              time: z.number().int().nonnegative(),
+              note: z.string(),
+              check: z
+                .object({
+                  engine_sha256: z.string(),
+                  requirement: z.string(),
+                  theorems: z.array(z.string()),
+                  inspection: z.string(),
+                  source_revision: z.string(),
+                  after_revision: z.string().nullable(),
+                  module: z.string(),
+                  success: z.boolean(),
+                  termination: z.string(),
+                  stdout: z.string(),
+                  stderr: z.string(),
+                })
+                .strict()
+                .nullable(),
+            })
+            .strict(),
+        ),
+        conversations: z.array(
+          z
+            .object({
+              id: z.string(),
+              messages: z.array(
+                z
+                  .object({
+                    speaker: z.enum(["user", "assistant"]),
+                    text: z.string(),
+                  })
+                  .strict(),
+              ),
+            })
+            .strict(),
+        ),
+      })
+      .strict()
+      .nullable(),
+    error: z.string().nullable(),
+    lean_available: z.boolean(),
+    lean: z.string(),
+  })
+  .strict();
+export type PortableWorkspace = z.infer<typeof portableWorkspaceSchema>;
 export const exportReferenceSchema = z
   .object({ session: z.string(), id: z.number().int().nonnegative() })
   .strict();
@@ -226,6 +294,7 @@ export const exportOutcomeSchema = z
   .strict();
 export type ExportOutcome = z.infer<typeof exportOutcomeSchema>;
 export const nativeStateSchema = z.object({
+  portable: portableWorkspaceSchema,
   workspace: z.string(),
   endpoint: z.string(),
   model: z.string(),
@@ -267,6 +336,8 @@ export const nativeStateSchema = z.object({
     .object({
       path: z.string(),
       directory: z.boolean().optional(),
+      offset: z.number().int().positive().optional(),
+      next_offset: z.number().int().positive().nullable().optional(),
       text: z.string().optional(),
       error: z.string().optional(),
     })
@@ -289,6 +360,11 @@ export const nativeStateSchema = z.object({
 });
 export type NativeState = z.infer<typeof nativeStateSchema>;
 export type NativeCommand =
+  | { type: "initialize_work"; name: string }
+  | { type: "put_work"; work: WorkItem }
+  | { type: "note_work"; id: string; text: string; next: string | null }
+  | { type: "check_work" | "resume_work"; id: string }
+  | { type: "save_work" }
   | {
       type: "approve_processor";
       endpoint: string;
@@ -314,7 +390,7 @@ export type NativeCommand =
       type: "review_contract" | "accept_contract" | "reject_contract";
       reference: NativeReference;
     }
-  | { type: "inspect"; path: string; directory: boolean };
+  | { type: "inspect"; path: string; directory: boolean; offset?: number };
 
 /** Same-origin native adapter. Tokens never enter workspace/history exports. */
 export class NativeClient {

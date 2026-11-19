@@ -100,6 +100,15 @@ then sends once to the displayed destination or rejects the proposal.
 HTTP connections can also use `--base-url URL --model MODEL --api-key-env NAME`.
 Prepare real proof tools with `meden setup` before requesting formal verification.
 
+The **作業・履歴** tab keeps named work items, requirements, next steps, visible
+conversation and local Lean check records in `.meden/workspace.json`. Commit that
+file with your sources to continue from a clone on another machine. Open the clone
+with `meden gui --workspace /path/to/clone`; select a task and **この作業を再開**.
+The new machine reviews its own processor connection. Imported results are history;
+use **Leanを再チェック** with the project's installed Lean and prepared dependencies.
+The TUI offers the same records through `/work`, including `/work resume ID`.
+[Portable work and prerequisites →](docs/gui.md#portable-work-and-check-history)
+
 `npm run dev` opens the separate recorded vending-machine demo at
 `http://127.0.0.1:4320`. Its graph, preview and simulated meaning-analysis UI use
 archived/demo data. Native preview and meaning analysis use the selected local project.

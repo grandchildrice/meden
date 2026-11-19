@@ -13,7 +13,7 @@ pub(crate) enum Speaker {
     Assistant,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Message {
     pub speaker: Speaker,

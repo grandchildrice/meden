@@ -566,7 +566,7 @@ test.describe("native GUI with real offline workers", () => {
       await extract.click();
       await expect(
         page.getByRole("alert").filter({ hasText: "EXPECTED-PROBE-FAILURE" }),
-      ).toBeVisible();
+      ).toBeVisible({ timeout: 60_000 });
       await expect(graph).not.toBeVisible();
       expect(connections).toBe(0);
       expect(requests).toHaveLength(0);

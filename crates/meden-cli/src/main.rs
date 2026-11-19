@@ -13,7 +13,9 @@ mod atlas;
 mod connection;
 mod exports;
 mod gui;
+mod handoff;
 mod judge;
+mod lean_project;
 mod pages;
 mod project;
 mod protocol;
@@ -35,6 +37,24 @@ struct Cli {
 }
 #[derive(Subcommand)]
 enum Command {
+    /// Keep portable work items and check history under the workspace's .meden directory.
+    Work {
+        #[arg(long, default_value = ".")]
+        workspace: PathBuf,
+        #[command(subcommand)]
+        action: WorkCommand,
+    },
+    /// Run host-selected Lake arguments offline with an explicitly installed Lean distribution.
+    Lake {
+        #[arg(long, default_value = ".")]
+        workspace: PathBuf,
+        #[arg(long)]
+        lean: PathBuf,
+        #[arg(long, default_value_t = 1800)]
+        timeout: u64,
+        #[arg(last = true, required = true)]
+        arguments: Vec<String>,
+    },
     /// List available HTTP model connections.
     Providers,
     /// Prepare and remember the local verification tools (also automatic in TUI).
@@ -105,6 +125,42 @@ enum Command {
         arguments: Vec<std::ffi::OsString>,
     },
 }
+#[derive(Subcommand)]
+enum WorkCommand {
+    Init {
+        #[arg(long)]
+        name: String,
+    },
+    Add {
+        #[arg(long)]
+        id: String,
+        #[arg(long)]
+        title: String,
+        #[arg(long)]
+        requirement: String,
+        #[arg(long)]
+        module: String,
+        #[arg(long)]
+        theorem: Vec<String>,
+        #[arg(
+            long,
+            default_value = "Inspect current sources and continue the recorded requirement."
+        )]
+        next: String,
+    },
+    Note {
+        id: String,
+        #[arg(long)]
+        text: String,
+        #[arg(long)]
+        next: Option<String>,
+    },
+    Check {
+        id: String,
+    },
+    Show,
+    Save,
+}
 #[derive(Args)]
 struct WorkspaceArgs {
     #[command(flatten)]
@@ -143,6 +199,23 @@ fn run() -> Result<()> {
         .command
         .unwrap_or_else(|| Command::Tui(WorkspaceArgs::default()))
     {
+        Command::Work { workspace, action } => {
+            work(&workspace, action)?;
+        }
+        Command::Lake {
+            workspace,
+            lean,
+            timeout,
+            arguments,
+        } => {
+            let report = lean_project::run(&workspace, &lean, &arguments, timeout)?;
+            serde_json::to_writer(io::stdout().lock(), &report)?;
+            println!();
+            anyhow::ensure!(
+                report.get("success").and_then(serde_json::Value::as_bool) == Some(true),
+                "Offline Lake operation failed; see its report"
+            );
+        }
         Command::WorkerLaunch { arguments } => meden_runtime::process::exec_clean(&arguments)?,
         Command::WorkerKernelSyntax => worker_kernel_syntax()?,
         Command::VerifyKernel {
@@ -382,5 +455,45 @@ fn execute(source: &std::path::Path) -> Result<()> {
     };
     println!("{}", serde_json::to_string(&record)?);
     result?;
+    Ok(())
+}
+
+fn work(root: &std::path::Path, action: WorkCommand) -> Result<()> {
+    let workspace = Workspace::open(root, &std::env::current_exe()?)?;
+    let control = Control::new(Arc::new(AtomicBool::new(false)));
+    match action {
+        WorkCommand::Init { name } => handoff::initialize(&workspace, &control, name)?,
+        WorkCommand::Add {
+            id,
+            title,
+            requirement,
+            module,
+            theorem,
+            next,
+        } => handoff::put(
+            &workspace,
+            &control,
+            handoff::Work {
+                id,
+                title,
+                requirement,
+                module,
+                theorems: theorem,
+                next,
+            },
+        )?,
+        WorkCommand::Note { id, text, next } => {
+            handoff::note(&workspace, &control, &id, text, next)?;
+        }
+        WorkCommand::Check { id } => handoff::check(&workspace, &control, &id)?,
+        WorkCommand::Show => {
+            serde_json::to_writer_pretty(
+                io::stdout().lock(),
+                &handoff::view(&workspace, &control),
+            )?;
+            println!();
+        }
+        WorkCommand::Save => handoff::checkpoint(&workspace, &control)?,
+    }
     Ok(())
 }

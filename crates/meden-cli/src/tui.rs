@@ -63,6 +63,7 @@ enum Task {
 }
 
 enum Update {
+    WorkResume(String),
     RepairReview(Box<crate::analysis::repair::Review>),
     RepairApplied(Box<(crate::analysis::sources::Snapshot, crate::analysis::Record)>),
     Sources(Box<crate::analysis::sources::Snapshot>),
@@ -774,6 +775,14 @@ impl App {
     }
     fn cancel(&mut self) {
         if self.busy && !self.processes.flag().load(Ordering::SeqCst) {
+            if self.worker.is_none() {
+                self.processes.cancel();
+                self.say(
+                    "Stopping local work. Its retained result will explain whether the check completed.",
+                    Style::new().fg(Color::Yellow),
+                );
+                return;
+            }
             self.project.cancel(&self.processes);
             self.say(
                 "Stopping tools. The current model request may finish; Ctrl-C again quits.",
@@ -825,7 +834,7 @@ impl App {
         }
     }
 
-    fn save_history(&self) -> Result<()> {
+    fn save_history(&mut self) -> Result<()> {
         use crate::session::history::{self, Message, Speaker as Role};
         if self.workspace.is_none() {
             return Ok(());
@@ -844,7 +853,18 @@ impl App {
                 _ => None,
             })
             .collect();
-        history::save_transcript(&self.root, transcript, self.last_stop.clone())
+        history::save_transcript(&self.root, transcript, self.last_stop.clone())?;
+        if let Some(workspace) = &self.workspace {
+            // Host transcript persistence follows a completed turn, including cancellation.
+            let control = Control::new(Arc::new(AtomicBool::new(false)));
+            if let Err(error) = crate::handoff::checkpoint(workspace, &control) {
+                self.say(
+                    format!("Portable checkpoint was not saved: {error:#}. The repository record was retained; ordinary conversation remains available."),
+                    Style::new().fg(Color::Yellow),
+                );
+            }
+        }
+        Ok(())
     }
 
     fn restore_history(&mut self) -> Result<()> {
@@ -924,6 +944,7 @@ impl App {
     fn poll(&mut self) {
         let mut updates = Vec::new();
         let mut disconnected = false;
+        let mut work_resume = None;
         if let Some(rx) = &self.rx {
             loop {
                 match rx.try_recv() {
@@ -938,20 +959,16 @@ impl App {
         }
         for update in updates {
             match update {
+                Update::WorkResume(instruction) => {
+                    work_resume = Some(instruction);
+                    // This terminal update completes the host task even if its sender
+                    // has not dropped yet; a new processor worker owns a new channel.
+                    self.busy = false;
+                    disconnected = true;
+                }
                 Update::RepairReview(review) => self.show_repair(*review),
                 Update::RepairApplied(applied) => self.repair_applied(*applied),
-                Update::AnalysisDone { text, failed } => {
-                    self.busy = false;
-                    self.turn_started = None;
-                    self.activity = None;
-                    self.screen = Screen::Instructing;
-                    if !text.is_empty() {
-                        self.say(
-                            text,
-                            Style::new().fg(if failed { Color::Red } else { Color::Gray }),
-                        );
-                    }
-                }
+                Update::AnalysisDone { text, failed } => self.analysis_done(text, failed),
                 Update::Sources(snapshot) => self.observed_sources(*snapshot),
                 Update::Analysis(record) => {
                     self.activity = Some(format!("Meaning analysis · {:?}", record.state));
@@ -1010,15 +1027,37 @@ impl App {
             }
         }
         if disconnected {
-            if self.busy {
-                self.finished(crate::session::failure_report("The worker disconnected before finishing. Its last operation may be incomplete."), false, true);
-            }
-            self.busy = false;
-            self.turn_started = None;
-            self.activity = None;
-            self.screen = Screen::Instructing;
-            self.worker = None;
-            self.rx = None;
+            self.worker_disconnected();
+        }
+        if let Some(instruction) = work_resume {
+            self.instruction.insert(&instruction);
+            self.say("Work item loaded from portable history. Review the processor if asked, then press Enter to continue.", Style::new().fg(Color::Gray));
+            self.start_turn(true);
+        }
+    }
+
+    fn worker_disconnected(&mut self) {
+        if self.busy {
+            self.finished(crate::session::failure_report("The worker disconnected before finishing. Its last operation may be incomplete."), false, true);
+        }
+        self.busy = false;
+        self.turn_started = None;
+        self.activity = None;
+        self.screen = Screen::Instructing;
+        self.worker = None;
+        self.rx = None;
+    }
+
+    fn analysis_done(&mut self, text: String, failed: bool) {
+        self.busy = false;
+        self.turn_started = None;
+        self.activity = None;
+        self.screen = Screen::Instructing;
+        if !text.is_empty() {
+            self.say(
+                text,
+                Style::new().fg(if failed { Color::Red } else { Color::Gray }),
+            );
         }
     }
 }
@@ -1338,6 +1377,13 @@ where
         }
         match app.screen {
             Screen::Picking => match key.code {
+                KeyCode::Char('/') => {
+                    // Retain an unsent instruction in input history before opening a host command.
+                    let _ = app.instruction.take();
+                    app.instruction.insert("/");
+                    app.screen = Screen::Instructing;
+                    app.refresh_commands();
+                }
                 KeyCode::Char('q') => return Ok(()),
                 KeyCode::Esc => app.screen = Screen::Instructing,
                 KeyCode::Up | KeyCode::Char('k') => app.move_selection(-1),

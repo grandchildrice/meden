@@ -26,6 +26,10 @@ pub(super) const COMMANDS: &[(&str, &str)] = &[
     ("/keymap", "Show the current keyboard shortcuts"),
     ("/workspace", "Show the retained working directory"),
     (
+        "/work",
+        "Portable history, local Lean checks and resume: /work ID",
+    ),
+    (
         "/atlas-prepare",
         "Prepare the installed Lean Atlas library offline",
     ),
@@ -228,6 +232,7 @@ impl App {
             ("/help" | "/keymap", []) => { self.overlay = Overlay::Help; self.scroll_back = 0; }
             ("/quit" | "/exit", []) => self.quit_requested = true,
             ("/workspace", []) => self.say(format!("Project: {}\nFile and Bash changes are saved directly here. Reopening this directory resumes the conversation.", self.root.display()), Style::new()),
+            ("/work", _) => self.work_command(text.strip_prefix("/work").unwrap_or_default().trim()),
             ("/atlas-prepare", []) => self.analysis_task(Task::PrepareAtlas),
             ("/atlas" | "/sources", paths) if !paths.is_empty() || command == "/atlas" => {
                 self.source_snapshot = None;

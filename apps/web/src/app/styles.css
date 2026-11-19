@@ -2844,6 +2844,14 @@ pre {
 .native-meaning .MuiTextField-root {
   margin-top: 12px;
 }
+.native-work > *,
+.native-work article > *,
+.native-work section > * {
+  margin-top: 12px;
+}
+.native-work pre {
+  overflow-wrap: anywhere;
+}
 .native-meaning-comparison {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

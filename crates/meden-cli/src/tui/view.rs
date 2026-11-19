@@ -876,7 +876,10 @@ fn draw_controls(frame: &mut Frame<'_>, app: &App, area: Rect) {
         Screen::Picking => vec![Line::from(vec![
             Span::styled(" enter ", Style::new().fg(Color::Black).bg(ACCENT).bold()),
             Span::raw(" Continue  "),
-            Span::styled("↑↓ choose · q / esc quit", muted()),
+            Span::styled(
+                "↑↓ choose · / workspace commands · q quit · esc write",
+                muted(),
+            ),
         ])],
         Screen::Running => vec![
             activity_line(app),
