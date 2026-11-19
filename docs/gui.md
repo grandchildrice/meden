@@ -9,7 +9,7 @@ The GUI lives in `apps/web`: React, TypeScript, Vite, Material UI, assistant-ui
 npm ci
 npm run build
 cargo build -p meden-cli
-./target/debug/meden gui --workspace /path/to/project --provider YOUR_PROVIDER --model YOUR_MODEL
+./target/debug/meden gui --workspace /path/to/project
 ```
 
 After updating the checkout, run `npm ci` and `npm run build` again before opening
@@ -19,6 +19,26 @@ advisories, while `npm audit fix` can change dependencies and the lockfile. Revi
 those changes separately. A missing `apps/web/dist` means the browser build has
 not completed; `--assets` selects a completed build from another checkout.
 
+Opening a workspace immediately shows its saved conversations and the whole-workspace
+contract/proof overview. No task or file selection and no model connection are needed
+to read them. Growing conversation checkpoints are shown once; divergent conversations
+remain visible. Saved messages are marked as history. On a new device, the first model
+turn receives bounded, ordinary user context from the saved tasks and recent conversation;
+stored roles and approval/evidence authority are never replayed.
+Unreadable portable history remains untouched and visibly unavailable; it does not
+prevent ordinary conversation or file inspection.
+
+**接続先** lists this computer's existing Hermes, Codex, Claude and HTTP server settings.
+Choose **provider**, select or enter **model**, then **この接続を選ぶ** and review the
+exact destination/model before approving. **モデル一覧を更新** reads model metadata from
+the chosen host connection; a failed list leaves its configured model and manual ID
+entry available. **このPCの接続設定を読み直す** refreshes discovery after a host login or
+server change. Credentials remain in the host and never enter the browser or `.meden`.
+Switching while idle revokes the previous immutable gateway and prepares a new,
+unapproved one. A stale review cannot approve its replacement; running work keeps its
+original connection. No inference occurs before the new review.
+
+Optional `--provider YOUR_PROVIDER --model YOUR_MODEL` preselects a connection.
 Use `meden providers` to list existing host connections, or supply
 `--base-url URL --model MODEL --api-key-env NAME`. Open the exact URL printed by
 the command (default port 4322, `--port 0` selects an available port).
@@ -29,7 +49,8 @@ regression and the real-browser restart journeys exercise separate layers.
 `--assets DIRECTORY` selects a built GUI from another working directory.
 The browser shows the fixed workspace, exact inference URL and model before
 approval. No inference happens before approval. Revocation/expiry is terminal;
-restart the host command and open its new URL to review a new session.
+select a new connection in the GUI to review a new gateway, or restart the host
+command and open its new URL. Old gateways and grants remain terminal.
 The URL's random session token moves into tab-scoped session storage and is
 removed from the address bar; it never enters project files or exports.
 
@@ -83,7 +104,8 @@ git clone --branch YOUR_WORK_BRANCH YOUR_FORK_URL project
 meden gui --workspace "$PWD/project" --provider YOUR_PROVIDER --model YOUR_MODEL
 ```
 
-Open **作業・履歴**, select a task, inspect its saved output or **証明コードを読む**,
+Saved visible conversations already appear in chat. Open **作業・履歴**, select a task,
+inspect its saved output or **証明コードを読む**,
 and use **この作業を再開** after reviewing the new processor connection. The
 selected task becomes a new user instruction with its original requirement,
 next step, recent history and bounded excerpts of recent visible conversation.
@@ -225,7 +247,26 @@ adds no Rust-to-Lean proof, application correctness or source-to-UI corresponden
 claim. In particular, a JavaScript mirror of checked Rust is still a separate
 implementation unless a further binding is established.
 
-The native **グラフ** tab takes one `.lean`/`.rs` path per line; **このファイルのグラフ**
+The native **グラフ** tab opens with every regular Rust/Lean source indexed across
+the selected workspace. Its overview groups files by area and connects saved
+requirements to theorem targets and source files; source import edges and declaration
+counts are lexical candidates. Select an area to expand its files, or search all files
+and open their actual source. Native accepted contracts retain their own current status;
+saved theorem checks remain history with their original requirements/types/axioms.
+
+The index reads through the pinned, policy-bound offline file worker. Read-only batches
+retain each original request and check both original/resolved paths under the same policy;
+partial/failed worker output is refused. These batches and the navigation parser are
+tested I/O adapters, not new Rust-to-Lean refinements. Hidden entries, symlinks, special
+files, `node_modules`, `target`, `dist` and `__pycache__` are excluded. Bounds are 10,000
+source files, 1 MiB per file, 128 MiB total, 65,536 directories, depth 32 and 300 seconds;
+each directory inventory is bounded at 10,000 entries and the traversal at one million.
+Failures and cancellation retain chat and show a retry action; no partial complete graph
+is installed. Completed model file/command checks trigger a fresh read of this overview.
+Concurrent host changes are not an atomic filesystem snapshot.
+
+For declaration details, the **グラフ** tab also takes one `.lean`/`.rs` path per line;
+**このファイルのグラフ**
 in the code panel uses the current path. Source observations use the same offline,
 policy-bound file worker as project snapshots (1–32 files, 64 KiB per file,
 1 MiB total). No truncated file is indexed. A SHA-256 binds the selected paths

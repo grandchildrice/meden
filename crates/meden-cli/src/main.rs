@@ -115,7 +115,10 @@ enum Command {
     #[command(hide = true)]
     WorkerKernelSyntax,
     #[command(hide = true)]
-    WorkerFile,
+    WorkerFile {
+        #[arg(long)]
+        batch: bool,
+    },
     #[command(hide = true)]
     WorkerPrefetch,
     #[command(hide = true)]
@@ -238,7 +241,7 @@ fn run() -> Result<()> {
             println!();
         }
         Command::Exec { workspace } => execute(&workspace)?,
-        Command::WorkerFile => worker_file::run()?,
+        Command::WorkerFile { batch } => worker_file::run(batch)?,
         Command::WorkerPrefetch => meden_runtime::pages::worker_prefetch()?,
         Command::WorkerImport => meden_runtime::workspace::import_tree(
             std::path::Path::new("/source"),

@@ -6,7 +6,6 @@ use std::sync::{atomic::AtomicBool, mpsc, Arc, Mutex};
 
 use anyhow::{Context, Result};
 use meden_agent::conversation::{Delta, Event, Status};
-use meden_llm::Gateway;
 use meden_runtime::{process::Control, workspace::Workspace};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -15,7 +14,9 @@ use tiny_http::{Header, Method, Request, Response, Server, StatusCode};
 use crate::{session::history, session::Session, WorkspaceArgs};
 mod analysis;
 mod assets;
+mod connections;
 mod delivery;
+mod overview;
 mod preview;
 mod repair;
 mod sources;
@@ -31,6 +32,15 @@ struct View {
     workspace: String,
     endpoint: String,
     model: String,
+    provider: Option<String>,
+    connections: Vec<connections::Choice>,
+    connection_revision: u64,
+    models: Vec<String>,
+    models_error: Option<String>,
+    models_provider: Option<String>,
+    overview: overview::Status,
+    #[serde(skip)]
+    overview_snapshot: Option<Arc<overview::Snapshot>>,
     judge: Option<crate::judge::Binding>,
     authorized: bool,
     approval_available: bool,
@@ -76,9 +86,20 @@ enum Command {
     },
     SaveWork,
     ApproveProcessor {
+        connection_revision: u64,
         endpoint: String,
+        model: String,
         judge: Option<crate::judge::Binding>,
     },
+    SelectConnection {
+        provider: String,
+        model: String,
+    },
+    ListModels {
+        provider: String,
+    },
+    RefreshWorkspace,
+    RefreshConnections,
     RevokeProcessor,
     Instruction {
         text: String,
@@ -145,7 +166,11 @@ enum Command {
 }
 
 impl Command {
-    fn check_submission(&self, gateway: &Gateway, session: &[u8]) -> Result<()> {
+    fn check_submission(
+        &self,
+        connections: &connections::Connections,
+        session: &[u8],
+    ) -> Result<()> {
         if let Self::Instruction { text } = self {
             anyhow::ensure!(!text.trim().is_empty(), "Instruction is empty");
         }
@@ -157,7 +182,11 @@ impl Command {
                 | Self::ResumeWork { .. }
         ) {
             anyhow::ensure!(
-                gateway.is_authorized(session),
+                connections
+                    .gateway
+                    .as_ref()
+                    .is_some_and(|gateway| gateway.is_authorized(session))
+                    && crate::judge::authorized(connections.judge.as_deref(), session),
                 "Review and approve the processor before sending"
             );
         }
@@ -188,22 +217,17 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
     let workspace = Arc::new(Workspace::open(&args.workspace, &std::env::current_exe()?)?);
     // The cloud-first development flow uses host-selected connections. Never
     // deserialize model endpoints, credentials or policies from browser/model data.
-    anyhow::ensure!(args.model.tui_local_config()?.is_none(), "GUI currently requires --provider or --base-url/--model; local inference remains available in the TUI");
-    let gateway = Arc::new(Gateway::prepare(
+    anyhow::ensure!(args.model.interactive() || args.model.tui_local_config()?.is_none(), "Prepared GGUF inference remains available in the TUI; the GUI selects existing HTTP connections");
+    let connections = Arc::new(Mutex::new(connections::Connections::new(
+        &args.model,
         workspace.session_id(),
-        args.model.connection()?,
-    )?);
-    let judge = crate::judge::prepare(
-        workspace.session_id(),
-        &gateway,
-        args.model.judge_model.as_deref(),
-    )?;
+    )?));
     let project = Arc::new(crate::project::Project::open(
         workspace.path(),
         workspace.session_id(),
     )?);
-    let view = initial_view(&workspace, &gateway, &project)?;
-    lock(&view).judge = judge.as_deref().map(crate::judge::binding);
+    let view = initial_view(&workspace, &project)?;
+    lock(&connections).display(&mut lock(&view));
     let control = Arc::new(Mutex::new(Arc::new(Control::new(Arc::new(
         AtomicBool::new(false),
     )))));
@@ -220,8 +244,7 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
     let (sender, receiver) = mpsc::sync_channel::<Task>(1);
     let worker_view = Arc::clone(&view);
     let worker_workspace = Arc::clone(&workspace);
-    let worker_gateway = Arc::clone(&gateway);
-    let worker_judge = judge.clone();
+    let worker_connections = Arc::clone(&connections);
     let worker_project = Arc::clone(&project);
     let worker_preview = Arc::clone(&preview);
     let worker_thread = std::thread::spawn(move || {
@@ -229,7 +252,7 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
             receiver,
             &worker_view,
             &worker_workspace,
-            (&worker_gateway, worker_judge.as_ref()),
+            &worker_connections,
             &worker_project,
             &pages,
             &worker_preview,
@@ -254,13 +277,22 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
         view: &view,
         control: &control,
         stopping: &stopping,
-        gateway: &gateway,
-        judge: judge.as_deref(),
+        connections: &connections,
         workspace: &workspace,
         project: &project,
         sender: &sender,
         preview: &preview,
     };
+    let startup = Arc::clone(&lock(&control));
+    {
+        let mut view = lock(&view);
+        view.running = true;
+        view.activity = "ワークスペース全体を読み込み中".into();
+    }
+    sender.try_send(Task {
+        command: Command::RefreshWorkspace,
+        processes: startup,
+    })?;
     http.listen(&server);
     project.cancel(&lock(&control));
     drop(sender);
@@ -276,7 +308,6 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
 
 fn initial_view(
     workspace: &Workspace,
-    gateway: &Gateway,
     project: &crate::project::Project,
 ) -> Result<Arc<Mutex<View>>> {
     let saved = history::load(workspace.path())?;
@@ -287,11 +318,19 @@ fn initial_view(
     let view = Arc::new(Mutex::new(View {
         portable: crate::handoff::view(workspace, &Control::new(Arc::new(AtomicBool::new(false)))),
         workspace: workspace.path().display().to_string(),
-        endpoint: gateway.endpoint().into(),
-        model: gateway.provider().model.clone(),
+        endpoint: String::new(),
+        model: String::new(),
+        provider: None,
+        connections: Vec::new(),
+        connection_revision: 0,
+        models: Vec::new(),
+        models_error: None,
+        models_provider: None,
+        overview: overview::Status::default(),
+        overview_snapshot: None,
         judge: None,
         authorized: false,
-        approval_available: true,
+        approval_available: false,
         running: false,
         activity: "Ready".into(),
         partial: String::new(),
@@ -344,8 +383,7 @@ struct Http<'a> {
     view: &'a Mutex<View>,
     control: &'a Mutex<Arc<Control>>,
     stopping: &'a AtomicBool,
-    gateway: &'a Gateway,
-    judge: Option<&'a Gateway>,
+    connections: &'a Mutex<connections::Connections>,
     workspace: &'a Workspace,
     project: &'a crate::project::Project,
     sender: &'a mpsc::SyncSender<Task>,
@@ -371,23 +409,7 @@ impl Http<'_> {
         });
     }
 
-    fn approve_processors(
-        &self,
-        endpoint: &str,
-        judge: Option<&crate::judge::Binding>,
-    ) -> Result<()> {
-        anyhow::ensure!(
-            endpoint == self.gateway.endpoint()
-                && judge == self.judge.map(crate::judge::binding).as_ref(),
-            "processor review target changed"
-        );
-        self.gateway.approve_from_host()?;
-        if let Some(judge) = self.judge {
-            judge.approve_from_host()?;
-        }
-        Ok(())
-    }
-    fn handle(&self, mut request: Request) {
+    fn handle(&self, request: Request) {
         if header(&request, "Host") != Some(self.authority)
             || header(&request, "Origin").is_some_and(|value| value != self.origin)
             || header(&request, "Sec-Fetch-Site")
@@ -415,12 +437,31 @@ impl Http<'_> {
         if request.method() == &Method::Get && request.url() == "/api/state" {
             let snapshot = {
                 let mut view = lock(self.view);
-                view.authorized = self.gateway.is_authorized(self.workspace.session_id())
-                    && crate::judge::authorized(self.judge, self.workspace.session_id());
+                let connections = lock(self.connections);
+                view.authorized = connections
+                    .gateway
+                    .as_ref()
+                    .is_some_and(|gateway| gateway.is_authorized(self.workspace.session_id()))
+                    && crate::judge::authorized(
+                        connections.judge.as_deref(),
+                        self.workspace.session_id(),
+                    );
                 view.preview = self.preview.summary();
                 json!(&*view)
             };
             respond(request, 200, &snapshot);
+            return;
+        }
+        if request.method() == &Method::Get && request.url() == "/api/overview" {
+            let snapshot = lock(self.view).overview_snapshot.clone();
+            match snapshot {
+                Some(snapshot) => respond(request, 200, &json!(&*snapshot)),
+                None => respond(
+                    request,
+                    409,
+                    &json!({"error":"Workspace graph is not ready; inspect its status or refresh it"}),
+                ),
+            }
             return;
         }
         if request.method() != &Method::Post || request.url() != "/api/command" {
@@ -433,6 +474,10 @@ impl Http<'_> {
             respond(request, 403, &json!({"error":"Same-origin JSON required"}));
             return;
         }
+        self.submit(request);
+    }
+
+    fn submit(&self, mut request: Request) {
         let result = (|| -> Result<()> {
             anyhow::ensure!(
                 !self.stopping.load(std::sync::atomic::Ordering::SeqCst),
@@ -446,23 +491,52 @@ impl Http<'_> {
             anyhow::ensure!(bytes.len() <= 1_048_576, "command exceeds 1 MiB");
             let command: Command = serde_json::from_slice(&bytes)?;
             match command {
-                Command::ApproveProcessor { endpoint, judge } => {
-                    self.approve_processors(&endpoint, judge.as_ref())?;
-                    lock(self.view).approval_available = false;
+                Command::ApproveProcessor {
+                    connection_revision,
+                    endpoint,
+                    model,
+                    judge,
+                } => {
+                    let mut view = lock(self.view);
+                    connections::approve(
+                        self.connections,
+                        self.workspace.session_id(),
+                        connection_revision,
+                        &endpoint,
+                        &model,
+                        judge.as_ref(),
+                    )?;
+                    view.approval_available = false;
                 }
                 Command::RevokeProcessor => {
-                    self.gateway.revoke_from_host()?;
-                    if let Some(judge) = self.judge {
+                    let mut view = lock(self.view);
+                    let connections = lock(self.connections);
+                    if let Some(gateway) = &connections.gateway {
+                        gateway.revoke_from_host()?;
+                    }
+                    if let Some(judge) = &connections.judge {
                         judge.revoke_from_host()?;
                     }
-                    lock(self.view).approval_available = false;
+                    view.approval_available = false;
                     self.project.cancel(&lock(self.control));
+                }
+                Command::SelectConnection { provider, model } => {
+                    let mut view = lock(self.view);
+                    anyhow::ensure!(!view.running, "Wait for the current operation or cancel it");
+                    let mut connections = lock(self.connections);
+                    connections.select(self.workspace.session_id(), &provider, &model)?;
+                    connections.display(&mut view);
+                    view.models.clear();
+                    view.models_error = None;
+                    view.models_provider = None;
+                    view.repair_review = None;
                 }
                 Command::Cancel => self.project.cancel(&lock(self.control)),
                 command => {
                     let mut view = lock(self.view);
                     anyhow::ensure!(!view.running, "Wait for the current operation or cancel it");
-                    command.check_submission(self.gateway, self.workspace.session_id())?;
+                    command
+                        .check_submission(&lock(self.connections), self.workspace.session_id())?;
                     // Reserve before enqueueing: concurrent tabs cannot queue a second turn.
                     let processes = Arc::new(Control::new(Arc::new(AtomicBool::new(false))));
                     *lock(self.control) = Arc::clone(&processes);
@@ -485,32 +559,52 @@ impl Http<'_> {
     }
 }
 
+#[allow(clippy::too_many_lines)] // One flat command dispatcher; effects stay in their own modules.
 fn worker(
     receiver: mpsc::Receiver<Task>,
     view: &Mutex<View>,
     workspace: &Arc<Workspace>,
-    processors: (&Arc<Gateway>, Option<&Arc<Gateway>>),
+    connections: &Mutex<connections::Connections>,
     project: &Arc<crate::project::Project>,
     pages: &Arc<meden_runtime::pages::Pages>,
     preview: &preview::Preview,
 ) {
-    let (gateway, judge) = processors;
     let mut delivery = delivery::Delivery::new(project);
     let mut repairs = crate::analysis::repair::Queue::default();
     for Task { command, processes } in receiver {
         delivery.begin(&command);
         let result = (|| -> Result<()> {
             repair::begin(view, workspace, &mut repairs, &command)?;
-            let mut session = Session::new(
-                Arc::clone(workspace),
-                Arc::clone(gateway),
-                Arc::clone(&processes),
-                &delivery.queue,
-                pages,
-                project,
-            )?
-            .with_judge(judge.cloned());
+            let exports = Arc::clone(&delivery.queue);
+            let session = || {
+                let connections = lock(connections);
+                Session::new(
+                    Arc::clone(workspace),
+                    connections
+                        .gateway
+                        .clone()
+                        .context("Choose a provider and model first")?,
+                    Arc::clone(&processes),
+                    &exports,
+                    pages,
+                    project,
+                )
+                .map(|session| session.with_judge(connections.judge.clone()))
+            };
             let instruction = match command {
+                Command::RefreshConnections => {
+                    let choices = {
+                        let mut connections = lock(connections);
+                        connections.refresh();
+                        connections.choices()
+                    };
+                    lock(view).connections = choices;
+                    None
+                }
+                Command::RefreshWorkspace => {
+                    overview::refresh(view, workspace, &processes)?;
+                    None
+                }
                 command @ (Command::InitializeWork { .. }
                 | Command::PutWork { .. }
                 | Command::NoteWork { .. }
@@ -521,7 +615,18 @@ fn worker(
                 }
                 Command::RefreshStatus => None,
                 Command::PrepareAtlas => {
-                    analysis::prepare_atlas(view, &session)?;
+                    lock(view).activity = "Lean Atlasライブラリをオフラインで準備".into();
+                    let result = crate::atlas::Configuration::host().prepare(&processes);
+                    lock(view).atlas = crate::atlas::Configuration::host().status();
+                    result?;
+                    None
+                }
+                Command::ListModels { provider } => {
+                    let result = lock(connections).models(&provider);
+                    let mut view = lock(view);
+                    view.models_error = result.as_ref().err().map(ToString::to_string);
+                    view.models = result.unwrap_or_default();
+                    view.models_provider = Some(provider);
                     None
                 }
                 Command::AtlasSnapshot { paths } => {
@@ -542,7 +647,7 @@ fn worker(
                 command @ (Command::PrepareRepair { .. }
                 | Command::ApplyRepair { .. }
                 | Command::RejectRepair { .. }) => {
-                    repair::perform(view, &session, &mut repairs, command)?;
+                    repair::perform(view, &session()?, &mut repairs, command)?;
                     None
                 }
                 Command::SelectAnalysis { id } => {
@@ -551,7 +656,7 @@ fn worker(
                     None
                 }
                 Command::AnalyzeMeaning { input } => {
-                    analysis::run(view, &session, input)?;
+                    analysis::run(view, &session()?, input)?;
                     None
                 }
                 Command::SourceSnapshot { paths } => {
@@ -585,10 +690,20 @@ fn worker(
             };
             if let Some(instruction) = instruction {
                 preview.clear();
-                run_instruction(&mut session, &instruction, view, workspace)?;
+                run_instruction(&mut session()?, &instruction, view, workspace)?;
+                if lock(view).overview.state == "stale"
+                    && !processes.flag().load(std::sync::atomic::Ordering::SeqCst)
+                {
+                    // Read-only navigation refresh; it cannot admit native evidence.
+                    let activity = lock(view).activity.clone();
+                    overview::refresh(view, workspace, &processes)?;
+                    lock(view).activity = activity;
+                }
             }
             // This observes real source freshness, not only the last saved report.
-            let summary = session.project_status()?;
+            let summary = project
+                .status(workspace, &processes)
+                .or_else(|_| project.stored_status())?;
             lock(view).project = summary;
             Ok(())
         })();
@@ -716,6 +831,14 @@ fn observe(view: &Mutex<View>, event: &Event<'_>) {
             view.partial.clear();
         }
         Event::Decision { call, refusal } => {
+            if refusal.is_none()
+                && matches!(
+                    call.function.name.as_str(),
+                    "write_file" | "edit_file" | "bash" | "check_lean_work"
+                )
+            {
+                view.overview.state = "stale";
+            }
             if refusal.is_none() && call.function.name == "check_lean_work" {
                 view.project.verified = false;
                 view.source_snapshot = None;

@@ -293,11 +293,54 @@ export const exportOutcomeSchema = z
   })
   .strict();
 export type ExportOutcome = z.infer<typeof exportOutcomeSchema>;
+export const workspaceOverviewSchema = z
+  .object({
+    revision: z.string(),
+    files: z.array(
+      z
+        .object({
+          path: z.string(),
+          sha256: z.string(),
+          bytes: z.number(),
+          declarations: z.number(),
+          theorems: z.number(),
+          imports: z.array(z.string()),
+        })
+        .strict(),
+    ),
+    excluded: z.array(z.string()),
+  })
+  .strict();
+export type WorkspaceOverview = z.infer<typeof workspaceOverviewSchema>;
 export const nativeStateSchema = z.object({
   portable: portableWorkspaceSchema,
   workspace: z.string(),
   endpoint: z.string(),
   model: z.string(),
+  provider: z.string().nullable(),
+  connections: z.array(
+    z
+      .object({
+        id: z.string(),
+        label: z.string(),
+        model: z.string(),
+        note: z.string(),
+      })
+      .strict(),
+  ),
+  connection_revision: z.number().int().nonnegative(),
+  models: z.array(z.string()),
+  models_error: z.string().nullable(),
+  models_provider: z.string().nullable(),
+  overview: z
+    .object({
+      state: z.enum(["loading", "ready", "failed", "stale"]),
+      scanned: z.number(),
+      total: z.number(),
+      revision: z.string().nullable(),
+      error: z.string().nullable(),
+    })
+    .strict(),
   judge: z
     .object({ model: z.string(), endpoint: z.string() })
     .strict()
@@ -324,13 +367,16 @@ export const nativeStateSchema = z.object({
     })
     .passthrough(),
   logs: z.array(
-    z.object({
-      type: z.enum(["call", "result"]),
-      id: z.string(),
-      tool: z.string(),
-      text: z.string(),
-      error: z.boolean().optional(),
-    }),
+    z.union([
+      z.object({ type: z.literal("notice"), text: z.string() }).strict(),
+      z.object({
+        type: z.enum(["call", "result"]),
+        id: z.string(),
+        tool: z.string(),
+        text: z.string(),
+        error: z.boolean().optional(),
+      }),
+    ]),
   ),
   inspection: z
     .object({
@@ -367,10 +413,16 @@ export type NativeCommand =
   | { type: "save_work" }
   | {
       type: "approve_processor";
+      connection_revision: number;
       endpoint: string;
+      model: string;
       judge?: { model: string; endpoint: string } | null;
     }
   | { type: "revoke_processor" | "cancel" | "refresh_status" }
+  | { type: "refresh_workspace" }
+  | { type: "refresh_connections" }
+  | { type: "select_connection"; provider: string; model: string }
+  | { type: "list_models"; provider: string }
   | { type: "instruction"; text: string }
   | { type: "source_snapshot"; paths: string[] }
   | { type: "prepare_atlas" }
@@ -405,6 +457,11 @@ export class NativeClient {
   }
   async command(command: NativeCommand): Promise<void> {
     await this.request("/api/command", command);
+  }
+  async overview(signal?: AbortSignal): Promise<WorkspaceOverview> {
+    return workspaceOverviewSchema.parse(
+      await this.request("/api/overview", undefined, signal),
+    );
   }
   private async request(
     path: string,

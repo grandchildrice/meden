@@ -70,9 +70,15 @@ impl Session {
             );
         }
         let mut conversation = Conversation::new(&system);
-        conversation
-            .messages
-            .extend(history::load(workspace.path())?.messages);
+        let saved = history::load(workspace.path())?;
+        if saved.messages.is_empty() {
+            if let Some(context) = crate::handoff::model_context(&workspace, &processes)? {
+                conversation
+                    .messages
+                    .push(serde_json::json!({"role":"user", "content":context}));
+            }
+        }
+        conversation.messages.extend(saved.messages);
         Ok(Self {
             workspace,
             gateway,

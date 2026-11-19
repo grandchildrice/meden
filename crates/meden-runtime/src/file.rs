@@ -28,6 +28,34 @@ pub fn run<T: Serialize>(
     decode(&output)
 }
 
+/// Batch read-only requests in one confined process. The worker still performs
+/// each request's original/resolved policy checks. Partial or malformed results
+/// never admit a complete inventory; this batching is an I/O adapter.
+pub fn read_batch<T: Serialize>(
+    workspace: &Workspace,
+    control: &Control,
+    requests: &[Request<T>],
+    rules: &Policy,
+    limits: &Limits,
+) -> Result<Vec<Value>, ToolError> {
+    if requests.is_empty() || requests.len() > 256 {
+        return Err(ToolError::unavailable(
+            "Read batch requires 1–256 requests".into(),
+        ));
+    }
+    let input = serde_json::to_vec(&(requests, rules)).map_err(unavailable)?;
+    let mut command = workspace.file_command().map_err(unavailable)?;
+    command.arg("--batch");
+    let output =
+        process::run_with_input(&mut command, &input, limits, control).map_err(unavailable)?;
+    let value = decode(&output)?;
+    let values: Vec<Value> = serde_json::from_value(value).map_err(unavailable)?;
+    if values.len() != requests.len() {
+        return Err(ToolError::unavailable("Incomplete read batch".into()));
+    }
+    Ok(values)
+}
+
 /// Decode one bounded process result. A malformed frame is unavailable, and
 /// an inner JSON string remains file data rather than another protocol frame.
 pub fn decode(output: &Output) -> Result<Value, ToolError> {

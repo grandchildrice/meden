@@ -20,7 +20,14 @@ struct FileOperation {
     operation: Operation,
 }
 
-pub fn run() -> Result<()> {
+pub fn run(batch: bool) -> Result<()> {
+    if batch {
+        let (requests, rules): (Vec<Request<Args>>, meden_core::Policy) =
+            serde_json::from_reader(std::io::stdin().lock())?;
+        let result = read_batch(requests, &rules);
+        serde_json::to_writer(std::io::stdout().lock(), &result)?;
+        return Ok(());
+    }
     let (request, rules): (Request<Args>, meden_core::Policy) =
         serde_json::from_reader(std::io::stdin().lock())?;
     let (operation, path, payload) = request.into_parts();
@@ -32,6 +39,40 @@ pub fn run() -> Result<()> {
     .execute(Path::new(&path), &payload, &rules);
     serde_json::to_writer(std::io::stdout().lock(), &result)?;
     Ok(())
+}
+
+fn read_batch(
+    requests: Vec<Request<Args>>,
+    rules: &meden_core::Policy,
+) -> Result<Value, ToolError> {
+    if requests.is_empty() || requests.len() > 256 {
+        return Err(ToolError::failed(
+            "Read batch requires 1–256 requests".into(),
+        ));
+    }
+    let requests = requests
+        .into_iter()
+        .map(Request::into_parts)
+        .collect::<Vec<_>>();
+    if requests
+        .iter()
+        .any(|(operation, _, _)| !matches!(operation, Operation::List | Operation::Snapshot))
+    {
+        return Err(ToolError::refused(
+            "Read batches admit only directory inventories and source snapshots".into(),
+        ));
+    }
+    requests
+        .into_iter()
+        .map(|(operation, path, payload)| {
+            FileOperation {
+                root: PathBuf::from("/workspace"),
+                operation,
+            }
+            .execute(Path::new(&String::from(path)), &payload, rules)
+        })
+        .collect::<Result<Vec<_>, _>>()
+        .map(Value::Array)
 }
 
 impl FileOperation {
@@ -228,18 +269,31 @@ fn snapshot_file(file: &fs::File, args: &Args) -> Result<Value, ToolError> {
 }
 #[cfg(target_os = "linux")]
 fn directory_entries(directory: &fs::File, args: &Args) -> Result<Value, ToolError> {
+    if args.contains_key("max_entries") && args.get("entries") != Some(&Value::Bool(true)) {
+        return Err(ToolError::failed(
+            "max_entries requires entries:true".into(),
+        ));
+    }
+    let limit = match args.get("max_entries") {
+        None => 500,
+        Some(value) => value
+            .as_u64()
+            .and_then(|n| usize::try_from(n).ok())
+            .filter(|n| (1..=10_000).contains(n))
+            .ok_or_else(|| ToolError::failed("max_entries must be between 1 and 10000".into()))?,
+    };
     let mut entries = fs::read_dir(pinned::descriptor_path(directory))
         .map_err(failed)?
-        .take(501)
+        .take(limit.saturating_add(1))
         .collect::<Result<Vec<_>, _>>()
         .map_err(failed)?;
     entries.sort_by_key(std::fs::DirEntry::file_name);
     match args.get("entries") {
         Some(Value::Bool(true)) => {
-            if entries.len() > 500 {
-                return Err(ToolError::failed(
-                    "directory exceeds 500 entries; no truncated inventory returned".into(),
-                ));
+            if entries.len() > limit {
+                return Err(ToolError::failed(format!(
+                    "directory exceeds {limit} entries; no truncated inventory returned"
+                )));
             }
             let values = entries
                 .into_iter()

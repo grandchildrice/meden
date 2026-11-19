@@ -5,6 +5,7 @@ import {
   MessagePrimitive,
   ThreadPrimitive,
   useExternalStoreRuntime,
+  useAuiState,
   type AppendMessage,
   type ThreadMessageLike,
 } from "@assistant-ui/react";
@@ -53,7 +54,9 @@ export function ChatView({
       (conversation?.messages || []).map((message) => ({
         id: message.id,
         role: message.role,
-        metadata: { custom: { activities: message.activities } },
+        metadata: {
+          custom: { activities: message.activities, origin: message.origin },
+        },
         content: [{ type: "text", text: message.text }],
       })),
     [conversation],
@@ -203,6 +206,7 @@ function UserMessage() {
   return (
     <MessagePrimitive.Root className="message user-turn">
       <div className="user-message">
+        <RecordedOrigin />
         <MessagePrimitive.Parts />
       </div>
       <RecordedActivity />
@@ -216,6 +220,7 @@ function AssistantMessage() {
         M
       </div>
       <div className="assistant-content">
+        <RecordedOrigin />
         <MessagePrimitive.Parts
           components={{ Text: () => <MarkdownTextPrimitive /> }}
         />
@@ -223,4 +228,12 @@ function AssistantMessage() {
       </div>
     </MessagePrimitive.Root>
   );
+}
+function RecordedOrigin() {
+  const origin = useAuiState((state) => state.message.metadata.custom.origin);
+  return origin === "recorded" ? (
+    <Typography variant="caption" component="p">
+      保存された会話
+    </Typography>
+  ) : null;
 }

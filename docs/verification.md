@@ -1786,6 +1786,27 @@ model quality, confidentiality or cold installation.
 
 ## Shared CLI and TUI execution
 
+The native GUI opens portable visible history and a whole-workspace Rust/Lean
+navigation graph without requiring a processor. The graph groups source files and
+links stored requirements/theorem targets; import edges and declaration counts are
+lexical candidates, not elaborated dependencies or newly admitted proof evidence.
+The host uses bounded read-only batches of existing typed file requests. Every request
+retains its operation/path/payload and the same original policy through the pinned
+worker; host exit/truncation admission and exact result count gate the batch. New
+real-namespace tests exercise resolved-alias refusal, full inventories above 500
+entries, bound failures and refusal of writes even with file-write authority.
+The batching/traversal/parser/JSON/browser remain I/O adapters.
+
+GUI connection selection takes only a host-discovered ID and model ID. Host credentials,
+URL and protocol never come from browser/model payloads. A selection revokes the prior
+immutable gateway and prepares a fresh unapproved one. Approval checks its selection
+revision, exact URL/model and judge binding; submitting an inference operation requires
+all configured processors to be authorized. Metadata discovery sends no conversation
+and follows no redirects. Old gateways cannot be renewed or mutated by a new selection.
+Unit and browser tests check old-gateway terminal state, stale review, distinct credentials,
+failed model-list recovery, clone/restart, automatic history and index failure/repair.
+These browser adapters do not acquire the Crossterm approval/refinement theorems.
+
 The [coding session](../crates/meden-cli/src/session.rs) owns the fixed tool
 registry, policy, conversation and workspace-bound model gateway for both
 interfaces. The [CLI protocol](cli.md) accepts only instruction objects;

@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
+  Autocomplete,
   Button,
   Chip,
   CircularProgress,
@@ -18,6 +19,7 @@ import {
   type NativeCommand,
   type NativeReference,
   type NativeState,
+  type WorkspaceOverview,
 } from "@meden/agent-protocol/native";
 import { ChatView } from "../features/chat/ChatView";
 import type { Conversation } from "@meden/workspace-schema";
@@ -26,6 +28,8 @@ import { NativePreview } from "../features/native/NativePreview";
 import { NativeRepair } from "../features/native/NativeRepair";
 import { NativeDelivery } from "../features/native/NativeDelivery";
 import { NativeWork } from "../features/native/NativeWork";
+import { visibleHistory } from "../features/native/history";
+import { NativeWorkspaceGraph } from "../features/native/NativeWorkspaceGraph";
 const NativeGraph = lazy(() =>
   import("../features/native/NativeGraph").then((module) => ({
     default: module.NativeGraph,
@@ -38,7 +42,12 @@ export function NativeApp({ token }: { token: string }) {
   const [state, setState] = useState<NativeState>();
   const [error, setError] = useState("");
   const [connectionError, setConnectionError] = useState("");
-  const [tab, setTab] = useState(0);
+  const [tab, setTab] = useState(3);
+  const [overview, setOverview] = useState<WorkspaceOverview>();
+  const [overviewError, setOverviewError] = useState("");
+  const [provider, setProvider] = useState("");
+  const [model, setModel] = useState("");
+  const listedProvider = useRef("");
   const [path, setPath] = useState(".");
   const [graphPaths, setGraphPaths] = useState<string>();
   const [review, setReview] = useState<{
@@ -54,6 +63,7 @@ export function NativeApp({ token }: { token: string }) {
     state?.endpoint,
     state?.model,
     state?.judge,
+    state?.connection_revision,
   ]);
   useEffect(() => {
     setApprovalVisible(false);
@@ -104,6 +114,34 @@ export function NativeApp({ token }: { token: string }) {
       clearTimeout(timer);
     };
   }, [client, reconnect]);
+  useEffect(() => {
+    const abort = new AbortController();
+    if (!state?.overview.revision) {
+      setOverview(undefined);
+      return;
+    }
+    void client
+      .overview(abort.signal)
+      .then((snapshot) => {
+        if (!abort.signal.aborted) {
+          setOverview(snapshot);
+          setOverviewError("");
+        }
+      })
+      .catch((error) => {
+        if (!abort.signal.aborted) setOverviewError(String(error));
+      });
+    return () => abort.abort();
+  }, [client, state?.overview.revision, reconnect]);
+  useEffect(() => {
+    if (approval) {
+      const choice =
+        state?.connections.find((choice) => choice.id === state.provider) ||
+        state?.connections[0];
+      setProvider(choice?.id || "");
+      setModel(state?.model || choice?.model || "");
+    }
+  }, [approval, state?.connection_revision]);
   // Freeze the reviewed body and exact identity only after the native review completed.
   useEffect(() => {
     if (reviewing && state && !state.running) {
@@ -140,15 +178,24 @@ export function NativeApp({ token }: { token: string }) {
   const conversation: Conversation | undefined = state && {
     id: "native",
     title: state.workspace.split("/").at(-1) || "Workspace",
-    messages: state.messages.map((message, index) => ({
-      id: String(index),
-      role: message.speaker,
-      text: message.text,
-      status: message.speaker === "user" ? "sent" : "received",
-      createdAt: new Date(0).toISOString(),
-    })),
+    messages: visibleHistory(state),
   };
   const running = Boolean(state?.running || busy);
+  useEffect(() => {
+    if (!approval) {
+      listedProvider.current = "";
+      return;
+    }
+    if (
+      provider &&
+      !running &&
+      !inFlight.current &&
+      listedProvider.current !== provider
+    ) {
+      listedProvider.current = provider;
+      void command({ type: "list_models", provider });
+    }
+  }, [approval, provider, running]);
   return (
     <div className="native-shell">
       <header className="native-header">
@@ -159,7 +206,9 @@ export function NativeApp({ token }: { token: string }) {
         <Typography className="native-workspace" title={state?.workspace}>
           {state?.workspace}
         </Typography>
-        <Button onClick={() => setApproval(true)}>接続先</Button>
+        <Button aria-label="接続先" onClick={() => setApproval(true)}>
+          {state?.model ? `接続先 · ${state.model}` : "接続先"}
+        </Button>
         {state?.authorized && (
           <Button
             color="warning"
@@ -205,6 +254,12 @@ export function NativeApp({ token }: { token: string }) {
         </div>
       ) : (
         <>
+          {state.portable.error && (
+            <Alert severity="warning">
+              保存済みの会話・作業履歴を読み込めませんでした。元の記録は保持しています。
+              {state.portable.error}
+            </Alert>
+          )}
           {!state.authorized && (
             <Alert
               severity="info"
@@ -212,9 +267,11 @@ export function NativeApp({ token }: { token: string }) {
                 <Button onClick={() => setApproval(true)}>接続先を確認</Button>
               }
             >
-              {state.approval_available
-                ? "実行前に、会話とツール結果の送信先を確認・承認してください。再起動後は新しい承認が必要です。"
-                : "送信の許可は終了しています。続けるにはmeden guiを再起動し、新しいURLで送信先を確認してください。"}
+              {!state.provider
+                ? "providerとモデルを選ぶと、このworkspaceの作業を続けられます。履歴とグラフは接続せずに閲覧できます。"
+                : state.approval_available
+                  ? "実行前に、会話とツール結果の送信先を確認・承認してください。再起動後は新しい承認が必要です。"
+                  : "送信の許可は終了しています。続けるにはmeden guiを再起動し、新しいURLで送信先を確認してください。"}
             </Alert>
           )}
           {state.stopped && (
@@ -228,6 +285,13 @@ export function NativeApp({ token }: { token: string }) {
           )}
           <main className="native-main">
             <div className="native-chat">
+              {conversation!.messages.some(
+                (message) => message.origin === "recorded",
+              ) && (
+                <Typography variant="caption" className="native-history-note">
+                  .medenから保存された会話を表示しています。過去のチェックや承認は、この起動の検証状態には引き継ぎません。
+                </Typography>
+              )}
               <ChatView
                 projectName={conversation!.title}
                 conversation={conversation}
@@ -423,19 +487,25 @@ export function NativeApp({ token }: { token: string }) {
                     {state.logs.length === 0 && (
                       <p>実行結果がここに表示されます。</p>
                     )}
-                    {state.logs.map((entry, index) => (
-                      <details key={index} open={Boolean(entry.error)}>
-                        <summary>
-                          {entry.tool} ·{" "}
-                          {entry.type === "call"
-                            ? "入力"
-                            : entry.error
-                              ? "失敗"
-                              : "結果"}
-                        </summary>
-                        <pre>{entry.text}</pre>
-                      </details>
-                    ))}
+                    {state.logs.map((entry, index) =>
+                      entry.type === "notice" ? (
+                        <Alert key={index} severity="warning">
+                          {entry.text}
+                        </Alert>
+                      ) : (
+                        <details key={index} open={Boolean(entry.error)}>
+                          <summary>
+                            {entry.tool} ·{" "}
+                            {entry.type === "call"
+                              ? "入力"
+                              : entry.error
+                                ? "失敗"
+                                : "結果"}
+                          </summary>
+                          <pre>{entry.text}</pre>
+                        </details>
+                      ),
+                    )}
                   </>
                 )}
                 {tab === 2 && (
@@ -476,8 +546,31 @@ export function NativeApp({ token }: { token: string }) {
                   </>
                 )}
                 <div hidden={tab !== 3}>
+                  {overviewError && (
+                    <Alert severity="error">{overviewError}</Alert>
+                  )}
+                  <NativeWorkspaceGraph
+                    snapshot={overview}
+                    state={state}
+                    onRead={(file) => {
+                      setPath(file);
+                      setTab(0);
+                      void command({
+                        type: "inspect",
+                        path: file,
+                        directory: false,
+                      });
+                    }}
+                    onRefresh={() => {
+                      setOverviewError("");
+                      void command({ type: "refresh_workspace" });
+                    }}
+                  />
+                  <Typography variant="h3" sx={{ mt: 3 }}>
+                    宣言の依存を詳しく見る
+                  </Typography>
                   {state.running && (
-                    <Typography role="status">
+                    <Typography>
                       {state.activity} · {elapsed}秒
                     </Typography>
                   )}
@@ -639,6 +732,85 @@ export function NativeApp({ token }: { token: string }) {
         </DialogTitle>
         <DialogContent>
           {error && <Alert severity="error">{error}</Alert>}
+          <Button
+            disabled={running}
+            onClick={() => void command({ type: "refresh_connections" })}
+          >
+            このPCの接続設定を読み直す
+          </Button>
+          <TextField
+            select
+            fullWidth
+            label="provider"
+            value={provider}
+            slotProps={{ select: { native: true } }}
+            sx={{ mt: 1 }}
+            onChange={(event) => {
+              const id = event.target.value;
+              setProvider(id);
+              setModel(
+                state?.connections.find((choice) => choice.id === id)?.model ||
+                  "",
+              );
+            }}
+          >
+            <option value="">接続先を選択</option>
+            {state?.connections.map((choice) => (
+              <option key={choice.id} value={choice.id}>
+                {choice.label} · {choice.id}
+              </option>
+            ))}
+          </TextField>
+          <Autocomplete
+            freeSolo
+            options={[
+              ...new Set(
+                [
+                  state?.connections.find((choice) => choice.id === provider)
+                    ?.model || "",
+                  ...(state?.models_provider === provider ? state.models : []),
+                ].filter(Boolean),
+              ),
+            ]}
+            inputValue={model}
+            onInputChange={(_, value) => setModel(value)}
+            value={model || null}
+            onChange={(_, value) => setModel(value || "")}
+            renderInput={(params) => (
+              <TextField {...params} label="model" sx={{ mt: 2 }} />
+            )}
+          />
+          <Button
+            disabled={!provider || running}
+            onClick={() => void command({ type: "list_models", provider })}
+          >
+            モデル一覧を更新
+          </Button>
+          {state?.models_provider === provider && state.models_error && (
+            <Alert severity="info">
+              モデル一覧を取得できませんでした。設定済みのモデルか、モデルIDを入力して選択できます。
+            </Alert>
+          )}
+          {state?.connections.length === 0 && (
+            <Alert severity="info">
+              既存の接続設定が見つかりません。Hermes／Codex／Claudeでログインするか、Ollamaなどのサーバーを起動してからGUIを開き直してください。
+            </Alert>
+          )}
+          <Button
+            disabled={
+              running ||
+              !provider ||
+              !model.trim() ||
+              (provider === state?.provider &&
+                model === state?.model &&
+                (state.authorized || state.approval_available))
+            }
+            onClick={() =>
+              void command({ type: "select_connection", provider, model })
+            }
+          >
+            この接続を選ぶ
+          </Button>
           {!approvalVisible && (
             <Alert severity="info">
               送信先とモデルの見出し全体が見えるように画面を広げてください。
@@ -648,8 +820,7 @@ export function NativeApp({ token }: { token: string }) {
             承認すると、このセッションの会話・ソース・ツール結果をこの接続先に送信できます。有効期間は最大8時間です。コマンドと検証はローカルの隔離環境で実行します。
           </p>
           <p>
-            接続先を変更するにはmeden
-            guiを終了し、新しい接続設定で起動してください。取り消し・期限切れ後はこの承認を更新できません。
+            接続を変更すると以前の送信許可を終了し、新しく選んだ送信先とモデルの承認が必要になります。実行中の接続は変更できません。
           </p>
         </DialogContent>
         <DialogActions>
@@ -657,6 +828,8 @@ export function NativeApp({ token }: { token: string }) {
           <Button
             disabled={
               !state?.approval_available ||
+              provider !== state.provider ||
+              model !== state.model ||
               state.authorized ||
               busy ||
               !approvalVisible
@@ -666,7 +839,9 @@ export function NativeApp({ token }: { token: string }) {
                 state &&
                 (await command({
                   type: "approve_processor",
+                  connection_revision: state.connection_revision,
                   endpoint: state.endpoint,
+                  model: state.model,
                   judge: state.judge,
                 }))
               )

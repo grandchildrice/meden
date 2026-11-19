@@ -124,6 +124,13 @@ test.describe("native GUI with real offline workers", () => {
     requests = [];
     responses = [];
     server = createServer(async (request, response) => {
+      if (request.url === "/v1/models") {
+        response.writeHead(200, { "Content-Type": "application/json" });
+        response.end(
+          JSON.stringify({ data: [{ id: "scripted-gui-fixture" }] }),
+        );
+        return;
+      }
       let body = "";
       for await (const chunk of request) body += String(chunk);
       requests.push(JSON.parse(body));
@@ -1165,6 +1172,7 @@ test.describe("native GUI with real offline workers", () => {
     expect(await readFile(resolve(project, "original-test.txt"), "utf8")).toBe(
       "keep this original test\n",
     );
+    await page.getByRole("tab", { name: "コード", exact: true }).click();
     await page
       .getByRole("textbox", { name: "ワークスペース内のパス" })
       .fill("result.txt");
@@ -1270,7 +1278,9 @@ test.describe("native GUI with real offline workers", () => {
           headers,
           body: JSON.stringify({
             type: "approve_processor",
+            connection_revision: (await nativeState(page)).connection_revision,
             endpoint: "https://evil.invalid",
+            model: (await nativeState(page)).model,
           }),
         })
       ).status,
@@ -1803,13 +1813,17 @@ test.describe("native GUI with real offline workers", () => {
         expect(
           await hostCommand(page, {
             type: "approve_processor",
+            connection_revision: state.connection_revision,
             endpoint: state.endpoint,
+            model: state.model,
           }),
         ).toBe(409);
         expect(
           await hostCommand(page, {
             type: "approve_processor",
+            connection_revision: state.connection_revision,
             endpoint: state.endpoint,
+            model: state.model,
             judge: { ...state.judge, model: "other-model" },
           }),
         ).toBe(409);

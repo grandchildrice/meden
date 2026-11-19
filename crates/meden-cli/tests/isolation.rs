@@ -16,6 +16,117 @@ use meden_runtime::workspace::Workspace;
 use serde_json::{json, Value};
 
 struct Session(Workspace);
+#[test]
+#[allow(clippy::too_many_lines)] // One real namespace journey checks refusal, capacity and retained content.
+fn batched_source_reads_keep_policy_paths_bounds_and_read_only_operations() {
+    use meden_agent::tool::Args;
+    use meden_core::file::{Operation, Request};
+    let source = tempfile::tempdir().expect("source");
+    fs::write(
+        source.path().join("allowed.lean"),
+        "theorem keep : True := True.intro",
+    )
+    .expect("source");
+    fs::write(source.path().join("hidden.lean"), "PRIVATE_BATCH_CANARY").expect("hidden");
+    std::os::unix::fs::symlink("hidden.lean", source.path().join("alias.lean")).expect("alias");
+    fs::create_dir(source.path().join("many")).expect("directory");
+    for index in 0..501 {
+        fs::write(source.path().join(format!("many/{index}.lean")), "").expect("source entry");
+    }
+    let session = import(source.path());
+    let control = Control::new(Arc::new(AtomicBool::new(false)));
+    let policy = meden_core::Policy::from_labels(
+        "source index",
+        &[
+            "fs.read[/workspace/allowed.lean]",
+            "fs.read[/workspace/alias.lean]",
+            "fs.read[/workspace/many]",
+            "fs.write[/workspace/allowed.lean]",
+        ],
+        &[],
+    )
+    .expect("policy");
+    let request = |operation, path: &str, payload| {
+        Request::new(
+            operation,
+            path.into(),
+            serde_json::from_value::<Args>(payload).expect("payload"),
+        )
+    };
+    let read = |requests: Vec<Request<Args>>| {
+        meden_runtime::file::read_batch(
+            &session.0,
+            &control,
+            &requests,
+            &policy,
+            &Limits {
+                timeout: Duration::from_secs(15),
+                capture_bytes: 160_000,
+                output_bytes: 1_000_000,
+            },
+        )
+    };
+    let sources = read(vec![request(
+        Operation::Snapshot,
+        "/workspace/allowed.lean",
+        json!({}),
+    )])
+    .expect("complete source");
+    assert_eq!(
+        serde_json::from_value::<Vec<u8>>(sources.first().expect("first source").clone())
+            .expect("source bytes"),
+        b"theorem keep : True := True.intro"
+    );
+    let error = read(vec![
+        request(Operation::Snapshot, "/workspace/allowed.lean", json!({})),
+        request(Operation::Snapshot, "/workspace/alias.lean", json!({})),
+    ])
+    .expect_err("resolved scope refused");
+    assert!(matches!(error.into_parts(), Ok(Err(_))));
+    assert!(read(vec![request(
+        Operation::List,
+        "/workspace/many",
+        json!({"entries":true})
+    )])
+    .is_err());
+    let inventory = read(vec![request(
+        Operation::List,
+        "/workspace/many",
+        json!({"entries":true,"max_entries":1000}),
+    )])
+    .expect("full bounded inventory");
+    assert_eq!(
+        inventory
+            .first()
+            .expect("first inventory")
+            .as_array()
+            .expect("entries")
+            .len(),
+        501
+    );
+    assert!(read(vec![request(
+        Operation::List,
+        "/workspace/many",
+        json!({"entries":true,"max_entries":10001})
+    )])
+    .is_err());
+    let error = read(vec![request(
+        Operation::Write,
+        "/workspace/allowed.lean",
+        json!({"content":"changed"}),
+    )])
+    .expect_err("batch cannot write");
+    assert!(matches!(error.into_parts(), Ok(Err(_))));
+    assert_eq!(
+        fs::read_to_string(session.0.path().join("allowed.lean")).expect("retained source"),
+        "theorem keep : True := True.intro"
+    );
+    assert!(read(vec![
+        request(Operation::Snapshot, "/workspace/allowed.lean", json!({})),
+        request(Operation::Snapshot, "/workspace/missing.lean", json!({}))
+    ])
+    .is_err());
+}
 impl Drop for Session {
     fn drop(&mut self) {
         let _ = fs::remove_dir_all(self.0.path());

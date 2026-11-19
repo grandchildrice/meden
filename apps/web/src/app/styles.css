@@ -2867,3 +2867,41 @@ pre {
     grid-template-columns: 1fr;
   }
 }
+.workspace-overview-canvas {
+  height: 480px;
+  min-height: 320px;
+  margin: 16px 0;
+  border: 1px solid #d5dcde;
+  border-radius: 12px;
+}
+.workspace-graph-node {
+  width: 175px;
+  padding: 12px 16px;
+  border: 1px solid #b6c9ce;
+  border-radius: 10px;
+  background: #fff;
+  color: #26383d;
+}
+.workspace-graph-node strong {
+  display: block;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.workspace-graph-node span {
+  display: block;
+  font-size: 11px;
+  margin-top: 6px;
+}
+.workspace-graph-node.requirement {
+  background: #edf4ff;
+  border-color: #7d9ec9;
+}
+.workspace-graph-node.proof {
+  background: #f3f0fa;
+  border-color: #a493bf;
+}
+.native-history-note {
+  display: block;
+  padding: 8px 16px;
+  color: #587179;
+}

@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "date": "2026-11-19T08:28:44.464Z",
+  "success": true,
+  "workflow": "Native GUI opened EthLib without provider/model arguments and with a fresh host data directory; saved chat and the whole-workspace graph appeared before selection. Host selected an existing Hermes Ollama Cloud connection and minimax-m3 through the visible GUI, reviewed it, then submitted a fresh check-only instruction.",
+  "scripted_inference": false,
+  "local_inference": false,
+  "cold_install_validation": false,
+  "binary": {
+    "sha256": "5aa5bf9d432221d3f7bd13e7d1feb2e1a5d7a7726739c80073606b2a01b41203"
+  },
+  "inference": {
+    "provider": "hermes:ollama-cloud",
+    "model": "minimax-m3",
+    "endpoint": "https://ollama.com/v1/chat/completions",
+    "connection_revision": 1
+  },
+  "workspace": {
+    "repository": "https://github.com/grandchildrice/EthLib",
+    "branch": "meden/assurance-workspace",
+    "source_base": "4a850ae7d762be5f050762edf5be44e1236300f8",
+    "overview": {
+      "state": "ready",
+      "scanned": 2517,
+      "total": 2517,
+      "revision": "sha256:5b81e7bcb6c5c6a2cd077c7f7ea98aadbec936cdcbc9bda39948d708c71f1b92",
+      "error": null
+    },
+    "work_items": 6,
+    "theorem_targets": 21
+  },
+  "tool": {
+    "name": "check_lean_work",
+    "arguments": {
+      "id": "gossip_invariants"
+    },
+    "result": {
+      "engine_sha256": "sha256:def1b7930aa6a599d5d127f0d48fced40687489d064b2c419f6141153152d428",
+      "requirement": "Prove universal helper lemmas for the reachable-state proof: a topic's candidate peers are unique when the peerTopics keys are unique; lookup in a fanout map returns unique peers when every stored entry has unique peers; applySubscription preserves uniqueness of peerTopics keys. Keep the original router operations and all three WellFormed conditions. This helper stage does not establish the full gossip_reachability trace requirement.",
+      "theorems": [
+        "EthLib.Networking.Proofs.Gossip.Reachability.fanout_nodup_of_entries",
+        "EthLib.Networking.Proofs.Gossip.Reachability.topicPeers_nodup",
+        "EthLib.Networking.Proofs.Gossip.Reachability.applySubscription_nodup"
+      ],
+      "inspection": "EthLib.Networking.Proofs.Gossip.Reachability.fanout_nodup_of_entries : ∀ {m : List (String × List EthLib.Networking.Gossip.PeerId)},\n  (∀ (entry : String × List EthLib.Networking.Gossip.PeerId), entry ∈ m → entry.snd.Nodup) →\n    ∀ (t : String), (EthLib.Networking.Gossip.peersOf m t).Nodup\nAxioms: #[propext, Classical.choice, Quot.sound]\nEthLib.Networking.Proofs.Gossip.Reachability.topicPeers_nodup : ∀ {s : EthLib.Networking.Gossip.RouterState},\n  (List.map Prod.fst s.peerTopics).Nodup → ∀ (t : String), (EthLib.Networking.Gossip.topicPeers s t).Nodup\nAxioms: #[propext, Classical.choice, Quot.sound]\nEthLib.Networking.Proofs.Gossip.Reachability.applySubscription_nodup : ∀ {peerTopics : List (EthLib.Networking.Gossip.PeerId × List String)} {src : EthLib.Networking.Gossip.PeerId}\n  (sub : EthLib.Networking.Gossip.SubOpts),\n  (List.map Prod.fst peerTopics).Nodup →\n    (List.map Prod.fst (EthLib.Networking.Gossip.applySubscription src peerTopics sub)).Nodup\nAxioms: #[propext, Classical.choice, Quot.sound]\nMEDEN_THEOREMS_CHECKED\n\n",
+      "source_revision": "sha256:f2ddfc6d78421256867df35451b367d7be91471225fa59d4147a932c427e6bb2",
+      "after_revision": "sha256:f2ddfc6d78421256867df35451b367d7be91471225fa59d4147a932c427e6bb2",
+      "module": "EthLib.Networking.Proofs.Gossip.Reachability",
+      "success": true,
+      "termination": "Exited(ExitStatus(unix_wait_status(0)))",
+      "stdout": "Build completed successfully (2207 jobs).\n",
+      "stderr": ""
+    }
+  },
+  "native_authority": {
+    "accepted": false,
+    "verified": false
+  },
+  "limits": [
+    "The whole-workspace overview is a lexical file/import index with stored requirement/theorem mappings, not a compiled whole-project proof graph.",
+    "This check freshly inspects only the three named Gossip invariant helper theorems using an already-installed Lean toolchain.",
+    "The receiveRpc preservation theorem and complete initialized finite-trace mesh/fanout result remain unfinished.",
+    "Cloud inference success does not establish local inference, cold installation, whole-application refinement or outbound confidentiality."
+  ],
+  "validation": {
+    "native_binary_sha256": "5aa5bf9d432221d3f7bd13e7d1feb2e1a5d7a7726739c80073606b2a01b41203",
+    "browser_full": {
+      "passed": 42,
+      "failed": 0,
+      "command": "MEDEN_BIN=/tmp/meden-gui-workspace-final npm run test:gui -- --workers=4"
+    },
+    "browser_final_focused": {
+      "passed": 3,
+      "failed": 0,
+      "files": [
+        "workspace-open.spec.ts",
+        "startup.spec.ts"
+      ],
+      "note": "After final historical-status labels and notice rendering, covers a real Git clone, 41 source files, connection/model switch, unavailable model-list recovery, actual offline index failure/repair, unreadable-history retention and ordinary chat."
+    },
+    "required_public_tui": {
+      "passed": 33,
+      "failed": 0,
+      "skipped": 0,
+      "decoded_screens_reviewed": [
+        "GUI to TUI and back with fresh review",
+        "Unreadable portable history retains ordinary conversation",
+        "Real Lean check failure, source repair and restart"
+      ],
+      "inference": "scripted fixtures; actual PTY and offline effects"
+    },
+    "cli": {
+      "unit": 66,
+      "conformance": 1,
+      "real_isolation": 10
+    },
+    "llm_unit": 23,
+    "runtime_unit": {
+      "passed": 45,
+      "note": "The namespace DNS/TCP/TLS test ran with temporary Nix-provided Bubblewrap/iproute2/Python/OpenSSL prerequisites."
+    },
+    "typescript_unit": 30,
+    "static_checks": [
+      "TypeScript typecheck",
+      "Clippy -D warnings for CLI/runtime/LLM all targets",
+      "cargo fmt",
+      "Prettier check",
+      "Ruff changed Python adapter test",
+      "git diff --check"
+    ]
+  }
+}

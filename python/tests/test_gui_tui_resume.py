@@ -103,8 +103,15 @@ def test_gui_to_tui_and_back_retains_context_but_requires_fresh_review(tmp_path,
     try:
         gui, origin, token = launch_gui()
         state = api(origin, token)
+        deadline = time.monotonic() + 15
+        while state["running"]:
+            assert time.monotonic() < deadline
+            threading.Event().wait(.05)
+            state = api(origin, token)
         assert not state["authorized"]
-        api(origin, token, {"type": "approve_processor", "endpoint": state["endpoint"]})
+        api(origin, token, {"type": "approve_processor", "endpoint": state["endpoint"],
+                            "model": state["model"],
+                            "connection_revision": state["connection_revision"]})
         api(origin, token, {"type": "instruction", "text": "Remember the GUI project goal"})
         deadline = time.monotonic() + 15
         while api(origin, token)["running"]:

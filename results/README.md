@@ -8,6 +8,17 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Native GUI and Atlas with Ollama Cloud
 
+The [EthLib workspace-opening trial](gui-workspace-open-ethlib-minimax-m3.json)
+opened the real fork with a fresh host data directory and no provider/model flags.
+Saved chat and the overview of 2,517 source files, six requirements and 21 theorem
+targets appeared before inference approval. The host chose the existing Hermes
+Ollama Cloud connection and `minimax-m3` through the GUI. The real model then
+called the confined checker, freshly confirming the three stored Gossip helper
+theorems with only the three standard axioms and unchanged source fingerprints.
+The receive-RPC and full reachable-state obligations remain open. This is an
+installed-toolchain cloud observation, not whole-project proof admission, cold
+installation, local inference or confidentiality evidence.
+
 The [portable Lean continuation trial](portable-lean-ollama-cloud-minimax-m3.json)
 resumed a genuine failing Lean theorem through the GUI with fresh Ollama Cloud
 approval. `minimax-m3` repaired the original universal statement using the real

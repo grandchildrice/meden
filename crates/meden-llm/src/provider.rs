@@ -108,17 +108,19 @@ pub fn detect() -> Vec<Provider> {
         std::env::var(crate::ENV_BASE_URL),
         std::env::var(crate::ENV_MODEL),
     ) {
-        found.push(Provider {
-            id: "configured".to_owned(),
-            label: "Configured server".to_owned(),
-            model,
-            base_url: base.trim_end_matches('/').to_owned(),
-            protocol: Protocol::ChatCompletions,
-            api_key: std::env::var(crate::ENV_API_KEY)
-                .ok()
-                .filter(|k| !k.is_empty()),
-            note: format!("from {}", crate::ENV_BASE_URL),
-        });
+        if !base.trim().is_empty() && !model.trim().is_empty() {
+            found.push(Provider {
+                id: "configured".to_owned(),
+                label: "Configured server".to_owned(),
+                model,
+                base_url: base.trim_end_matches('/').to_owned(),
+                protocol: Protocol::ChatCompletions,
+                api_key: std::env::var(crate::ENV_API_KEY)
+                    .ok()
+                    .filter(|k| !k.is_empty()),
+                note: format!("from {}", crate::ENV_BASE_URL),
+            });
+        }
     }
 
     for c in &HTTP_CANDIDATES {
@@ -226,6 +228,25 @@ fn list_models(base_url: &str, api_key: Option<&str>) -> Option<Vec<String>> {
     }
     let parsed: Models = response.body_mut().read_json().ok()?;
     Some(parsed.data.into_iter().map(|m| m.id).collect())
+}
+
+/// Model metadata from this host-owned connection only. Credentials and protocol
+/// are never supplied by the browser. Subscription APIs need their configured ID.
+pub fn models(provider: &Provider) -> Option<Vec<String>> {
+    let prepared = crate::Gateway::prepare(b"model-discovery", provider.clone()).ok()?;
+    let provider = prepared.provider();
+    if provider.protocol != Protocol::ChatCompletions {
+        return Some(vec![provider.model.clone()]);
+    }
+    list_models(&provider.base_url, provider.api_key.as_deref()).map(|mut models| {
+        models.retain(|id| !id.trim().is_empty() && id.len() <= 1024);
+        models.sort();
+        models.dedup();
+        if !models.contains(&provider.model) {
+            models.insert(0, provider.model.clone());
+        }
+        models
+    })
 }
 
 #[cfg(test)]

@@ -66,13 +66,3 @@ pub(super) fn apply_repair(
     view.activity = "修正を適用し、元の要件で再解析しました（モデルによる候補評価）".into();
     Ok(())
 }
-
-pub(super) fn prepare_atlas(
-    view: &std::sync::Mutex<View>,
-    session: &crate::session::Session,
-) -> Result<()> {
-    lock(view).activity = "Lean Atlasライブラリをオフラインで準備".into();
-    let result = session.prepare_atlas();
-    lock(view).atlas = crate::atlas::Configuration::host().status();
-    result
-}
