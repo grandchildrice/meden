@@ -91,7 +91,15 @@ def test_public_lake_journey_preserves_metadata_binding_and_history(tmp_path, tu
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     env = environment(tmp_path)
-    env["MEDEN_ATLAS_LEAN"] = str(lean)
+    env.pop("MEDEN_ATLAS_LEAN", None)
+    elan = tmp_path / "elan"
+    (elan / "toolchains").mkdir(parents=True)
+    version = lean.name.removeprefix("leanprover--lean4---")
+    (elan / "toolchains" / f"leanprover--lean4---{version}").symlink_to(
+        lean, target_is_directory=True
+    )
+    (root / "lean-toolchain").write_text(f"leanprover/lean4:{version}\n")
+    env["ELAN_HOME"] = str(elan)
     args = [
         find_meden(),
         "tui",
@@ -134,7 +142,6 @@ def test_public_lake_journey_preserves_metadata_binding_and_history(tmp_path, tu
         )
         terminal.send("y")
         terminal.wait(lambda view: "shift+enter" in view)
-        command("/atlas-prepare", "Atlas is ready", 0)
         command("/atlas", "Domain.eligible · vendor/logic/lean/Domain.lean:3", 0)
         assert "Source graph ready: 4 files" in terminal.view()
         assert "Lake package: shop" in terminal.view()

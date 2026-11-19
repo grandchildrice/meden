@@ -117,6 +117,8 @@ pub(crate) fn extract(
     control: &Control,
     paths: &[String],
 ) -> Result<sources::Snapshot> {
+    // Preparation is local and idempotent; the public extraction journey needs no setup step.
+    crate::atlas::Configuration::host(workspace.path()).ensure_prepared(control)?;
     let mut snapshot = collect::capture(workspace, control, paths)?;
     let observed = snapshot.files.keys().cloned().collect::<Vec<_>>();
     let collection = snapshot
@@ -124,7 +126,7 @@ pub(crate) fn extract(
         .as_ref()
         .context("Missing collected module bindings")?;
     collect::check_metadata(workspace, control, &collection.metadata)?;
-    let mut graph = crate::atlas::Configuration::host().extract(
+    let mut graph = crate::atlas::Configuration::host(workspace.path()).extract(
         &snapshot.files,
         &collection.modules,
         control,
@@ -260,7 +262,8 @@ fn observe(
     }
     if let Some(atlas) = &snapshot.atlas {
         anyhow::ensure!(
-            crate::atlas::Configuration::host().current_resources()? == atlas.resources_sha256,
+            crate::atlas::Configuration::host(workspace.path()).current_resources()?
+                == atlas.resources_sha256,
             "Atlas resources changed; reread the graph and run again"
         );
     }

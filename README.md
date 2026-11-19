@@ -86,8 +86,10 @@ before opening that project in the TUI; the repository permits one writer.
 Code, actual tool inputs/results and native contract status appear beside the chat.
 The Graph tab reads selected local Rust/Lean files and opens each indexed declaration
 at its exact source line. This is a source-reference index, not a new proof check.
-With installed Lean, its preparation/extraction controls run the pinned Lean Atlas
-core offline on selected modules. Compiled type/value dependencies and declarations
+With installed Lean, extraction automatically prepares the pinned Lean Atlas
+core offline on selected modules. The workspace's `lean-toolchain` selects its
+installed Elan version; no Atlas environment variable is required.
+Compiled type/value dependencies and declarations
 can then supply meaning analysis; a successful extraction does not grant proof status.
 Select a declaration, enter a requirement and run meaning analysis to get a
 source-bound back-translation and comparison through the reviewed processor.
@@ -225,10 +227,11 @@ specifications and Python integration checks. Work on `main` and follow the
 
 ### Inspect candidate meaning in the TUI
 
-After choosing your connection, use `/atlas-prepare` to prepare the installed
-Lean Atlas library offline, then `/atlas` to discover Lake library/executable roots, or
+After choosing your connection, use `/atlas` to discover Lake library/executable roots, or
 `/atlas src/App.lean` to select a source. Lake package/library `srcDir`, local path
 dependencies and already-populated manifest packages are resolved offline.
+The project's installed Lean is detected automatically, and the Atlas library is
+prepared offline on first use. `/atlas-prepare` can also prepare it explicitly.
 The collected module closure is compiled and listed with its original file paths. Run
 `/analyze Demo.stock_bound -- Stock always decreases on purchase` to compare a
 requirement with a blind natural-language translation of that declaration.

@@ -1,0 +1,28 @@
+{
+  "time": "2026-11-19T09:38:10.779Z",
+  "binary_sha256": "878659aefb266b3ba17c38dff1bc6c53fb7ee106cfd1051fea76a69db6b14aaa",
+  "atlas": {
+    "available": true,
+    "prepared": true,
+    "detail": "Lean Atlas is prepared for offline extraction"
+  },
+  "files": [
+    "EthLib/Networking/Gossip/Parameters.lean"
+  ],
+  "authorized": false,
+  "environment_override": false,
+  "inference": false,
+  "scope": "One actual EthLib module, not the complete project dependency graph",
+  "kind": "Actual EthLib GUI Atlas extraction without Lean environment overrides",
+  "command": "./target/debug/meden gui --workspace ../EthLib --port 0",
+  "project_branch": "meden/assurance-workspace",
+  "lean_version": "4.36.0",
+  "nodes": 42,
+  "edges": 69,
+  "source_sha256": "a0baa00d312b4b7b7d34024755369db56c91e9eca8f5905a74313b19fc96fc92",
+  "offline_analysis": true,
+  "cold_install": false,
+  "native_proof_admission": false,
+  "running": false,
+  "stopped": null
+}

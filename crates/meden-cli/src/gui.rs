@@ -348,7 +348,7 @@ fn initial_view(
         exports: Vec::new(),
         export_review: None,
         export_outcome: None,
-        atlas: crate::atlas::Configuration::host().status(),
+        atlas: crate::atlas::Configuration::host(workspace.path()).status(),
     }));
     Ok(view)
 }
@@ -613,11 +613,15 @@ fn worker(
                 | Command::SaveWork) => {
                     perform_work(command, workspace, &processes, project, view)?
                 }
-                Command::RefreshStatus => None,
+                Command::RefreshStatus => {
+                    lock(view).atlas = crate::atlas::Configuration::host(workspace.path()).status();
+                    None
+                }
                 Command::PrepareAtlas => {
                     lock(view).activity = "Lean Atlasライブラリをオフラインで準備".into();
-                    let result = crate::atlas::Configuration::host().prepare(&processes);
-                    lock(view).atlas = crate::atlas::Configuration::host().status();
+                    let result =
+                        crate::atlas::Configuration::host(workspace.path()).prepare(&processes);
+                    lock(view).atlas = crate::atlas::Configuration::host(workspace.path()).status();
                     result?;
                     None
                 }

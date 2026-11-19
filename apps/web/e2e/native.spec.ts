@@ -15,7 +15,7 @@ import {
   symlink,
   writeFile,
 } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { once } from "node:events";
 import { createHash } from "node:crypto";
@@ -47,7 +47,7 @@ test.describe("native GUI with real offline workers", () => {
   });
   async function start(
     port = 0,
-    extraEnv: Record<string, string> = {},
+    extraEnv: Record<string, string | undefined> = {},
     extraArgs: string[] = [],
   ) {
     let stderr = "";
@@ -73,6 +73,10 @@ test.describe("native GUI with real offline workers", () => {
         env: {
           ...process.env,
           XDG_DATA_HOME: resolve(root, "data"),
+          // Legacy fixtures have no project pin; their installed compiler is explicit.
+          MEDEN_ATLAS_LEAN:
+            process.env.MEDEN_ATLAS_LEAN ||
+            resolve(homedir(), ".elan/toolchains/leanprover--lean4---v4.35.0"),
           ...extraEnv,
         },
       },
@@ -189,6 +193,89 @@ test.describe("native GUI with real offline workers", () => {
         contentType: "application/json",
       });
     }
+  });
+
+  test("discover the project Lean without Atlas environment variables, recover after installation and extract in one action", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    const lean =
+      process.env.MEDEN_ATLAS_LEAN ||
+      resolve(homedir(), ".elan/toolchains/leanprover--lean4---v4.35.0");
+    const elan = resolve(root, "elan");
+    const installed = resolve(elan, "toolchains/leanprover--lean4---v4.35.0");
+    await mkdir(resolve(elan, "toolchains"), { recursive: true });
+    await writeFile(
+      resolve(project, "lean-toolchain"),
+      "leanprover/lean4:v4.35.0\n",
+    );
+    await writeFile(
+      resolve(project, "Domain.lean"),
+      "def price : Nat := 150\n",
+    );
+    await writeFile(
+      resolve(project, "App.lean"),
+      "import Domain\ndef invoice (n : Nat) := price * n\n",
+    );
+    const env = { MEDEN_ATLAS_LEAN: undefined, ELAN_HOME: elan };
+    await page.goto(await start(0, env));
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+    await expect(
+      page.getByText("Lean実行環境が見つかりません", { exact: false }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("elan toolchain install leanprover/lean4:v4.35.0", {
+        exact: false,
+      }),
+    ).toBeVisible();
+    await page
+      .getByRole("button", { name: "再検出", exact: true })
+      .scrollIntoViewIfNeeded();
+    await page.screenshot({
+      path: "target/gui-checks/native-atlas-missing-installation.png",
+    });
+    // Installed resources are a test prerequisite, not a cold-download validation.
+    await symlink(lean, installed, "dir");
+    await page.getByRole("button", { name: "再検出", exact: true }).click();
+    await expect(
+      page.getByText("Leanを自動検出しました", { exact: false }),
+    ).toBeVisible();
+    await page
+      .getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" })
+      .fill("App.lean");
+    await page
+      .getByRole("button", {
+        name: "Leanでコンパイルして依存を抽出",
+        exact: true,
+      })
+      .click();
+    const graph = page.getByRole("region", { name: "ローカルソースのグラフ" });
+    await expect(graph).toContainText("Lean Atlasによるコンパイル後の依存", {
+      timeout: 120_000,
+    });
+    const first = await nativeState(page);
+    expect(first.atlas.prepared).toBe(true);
+    expect(Object.keys(first.source_snapshot.files).sort()).toEqual([
+      "App.lean",
+      "Domain.lean",
+    ]);
+    expect(first.source_snapshot.atlas.graph.edges).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ source: "invoice", target: "price" }),
+      ]),
+    );
+    expect(requests).toHaveLength(0);
+    await page.screenshot({
+      path: "target/gui-checks/native-atlas-auto-discovered.png",
+    });
+    await stop();
+    await page.goto(await start(0, env));
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+    await expect(
+      page.getByText("Lean Atlas: オフライン抽出の準備済み", { exact: false }),
+    ).toBeVisible();
+    expect((await nativeState(page)).authorized).toBe(false);
+    expect(requests).toHaveLength(0);
   });
 
   test("prepare real Atlas offline, extract elaborated cross-module scope, analyze it and recover from compilation failure", async ({

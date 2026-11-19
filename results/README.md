@@ -8,6 +8,12 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Native GUI and Atlas with Ollama Cloud
 
+The [Atlas automatic-discovery observation](gui-atlas-auto-ethlib.json) opens
+EthLib without Lean environment overrides or inference approval and extracts
+42 declarations and 69 dependency edges from its actual Gossip parameter module
+using project-selected Lean 4.36.0. This is an installed-toolchain, single-module
+observation; it does not establish cold installation or whole-project proof status.
+
 The [EthLib workspace-opening trial](gui-workspace-open-ethlib-minimax-m3.json)
 opened the real fork with a fresh host data directory and no provider/model flags.
 Saved chat and the overview of 2,517 source files, six requirements and 21 theorem

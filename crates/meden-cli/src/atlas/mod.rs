@@ -14,12 +14,13 @@ mod graph;
 mod imports;
 pub(crate) mod lake;
 mod resources;
+mod toolchain;
 pub(crate) use graph::Extraction;
 pub(crate) const UPSTREAM: &str = "06be1eb76fb926b8cf8bd42a4a51208d128c327d";
 
 #[derive(Clone)]
 pub(crate) struct Configuration {
-    lean: Option<PathBuf>,
+    lean: std::result::Result<PathBuf, String>,
     cache: Option<PathBuf>,
 }
 #[derive(Serialize)]
@@ -37,14 +38,8 @@ struct Manifest {
 }
 
 impl Configuration {
-    pub fn host() -> Self {
-        let lean = std::env::var_os("MEDEN_ATLAS_LEAN")
-            .map(PathBuf::from)
-            .or_else(|| {
-                std::env::var_os("HOME").map(|home| {
-                    PathBuf::from(home).join(".elan/toolchains/leanprover--lean4---v4.35.0")
-                })
-            });
+    pub fn host(workspace: &Path) -> Self {
+        let lean = toolchain::discover(workspace).map_err(|error| format!("{error:#}"));
         let cache = std::env::var_os("XDG_DATA_HOME")
             .map(PathBuf::from)
             .or_else(|| {
@@ -78,7 +73,11 @@ impl Configuration {
             cfg!(target_os = "linux"),
             "Offline Lean Atlas requires Linux and Bubblewrap"
         );
-        let lean = self.lean.as_ref().context("Select installed Lean with MEDEN_ATLAS_LEAN on the host")?.canonicalize().context("Lean analysis toolchain is not installed; set MEDEN_ATLAS_LEAN to an installed distribution")?;
+        let lean = self
+            .lean
+            .as_ref()
+            .map_err(|error| anyhow::anyhow!("{error}"))?
+            .canonicalize()?;
         anyhow::ensure!(
             lean.join("bin/lean").is_file(),
             "Lean analysis executable is missing"
@@ -136,6 +135,16 @@ impl Configuration {
         }
         fs::rename(output.path(), &library)?;
         Ok(())
+    }
+    pub fn ensure_prepared(&self, control: &Control) -> Result<()> {
+        let (lean, library) = self.selected()?;
+        if library.try_exists()? {
+            // Existing resources must still validate. Explicit preparation repairs corruption.
+            Self::validate(&lean, &library)?;
+            Ok(())
+        } else {
+            self.prepare(control)
+        }
     }
     fn validate(lean: &Path, library: &Path) -> Result<Manifest> {
         let manifest: Manifest = crate::storage::read(&library.join("manifest.json"))?

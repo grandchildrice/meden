@@ -287,12 +287,20 @@ following recorded-demo documentation describes a separate standalone mode.
 
 ## Native Lean Atlas extraction
 
-With an installed Lean distribution, select the **グラフ** tab, choose **依存抽出の準備**,
-enter the local `.lean` module paths, then **Leanでコンパイルして依存を抽出**. Preparation
-compiles the pinned public Atlas library offline without sending source to a model.
-The default host selection is installed Elan Lean 4.35.0. To use another installed
-distribution, set `MEDEN_ATLAS_LEAN=/absolute/lean-root` before launching Meden.
-The public `meden setup-atlas` command prepares the same library as the button.
+With an installed Lean distribution, select the **グラフ** tab, enter the local `.lean`
+module paths, then choose **Leanでコンパイルして依存を抽出**. The first extraction
+automatically compiles the pinned public Atlas library offline without sending
+source to a model. The public TUI `/atlas` command performs the same preparation.
+Meden selects the workspace's `lean-toolchain` from installed Elan toolchains,
+including a custom `ELAN_HOME`. Without a project pin it uses Elan's default,
+or a complete public distribution on the host PATH. It never runs a repository
+executable or invokes Elan to download a missing version during discovery.
+If the requested version is missing, the GUI shows its exact Elan install command;
+after installing it, choose **再検出** without restarting Meden. A different installed
+version cannot silently replace a missing project pin.
+`MEDEN_ATLAS_LEAN=/absolute/lean-root` remains an optional explicit host override.
+The public `meden setup-atlas --workspace PATH` command prepares the same library as the button.
+Existing corrupted Atlas resources are refused; choose **依存抽出の準備** to rebuild them.
 It does not download Lean or replace the host's ordinary toolchain.
 `meden source-notices` displays the bundled Atlas and claimcheck source notices.
 

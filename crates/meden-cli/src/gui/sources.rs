@@ -27,7 +27,7 @@ pub(super) fn extract_atlas(
     control: &Control,
     paths: &[String],
 ) -> Result<()> {
-    let atlas = crate::atlas::Configuration::host();
+    let atlas = crate::atlas::Configuration::host(workspace.path());
     {
         let mut view = super::lock(view);
         view.source_snapshot = None;

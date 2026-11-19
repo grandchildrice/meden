@@ -579,9 +579,25 @@ export function NativeApp({ token }: { token: string }) {
                     {state.atlas.prepared
                       ? "オフライン抽出の準備済み"
                       : state.atlas.available
-                        ? "初回は抽出ライブラリの準備が必要です"
-                        : "Lean実行環境が見つかりません。ホストでMEDEN_ATLAS_LEANを設定して起動してください。"}
+                        ? "Leanを自動検出しました。初回の準備は依存抽出時に自動で行います"
+                        : "Lean実行環境が見つかりません。下の案内を確認してください。"}
                   </Typography>
+                  {!state.atlas.available && (
+                    <>
+                      <Alert
+                        severity="info"
+                        sx={{ whiteSpace: "pre-wrap", mt: 1 }}
+                      >
+                        {state.atlas.detail}
+                      </Alert>
+                      <Button
+                        disabled={running}
+                        onClick={() => void command({ type: "refresh_status" })}
+                      >
+                        再検出
+                      </Button>
+                    </>
+                  )}
                   {!state.atlas.prepared && (
                     <Button
                       disabled={running || !state.atlas.available}
@@ -623,7 +639,7 @@ export function NativeApp({ token }: { token: string }) {
                   <Button
                     disabled={
                       running ||
-                      !state.atlas.prepared ||
+                      !state.atlas.available ||
                       (graphPaths ?? state.project.source_path)
                         .split("\n")
                         .filter((path) => path.trim())

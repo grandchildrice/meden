@@ -178,7 +178,7 @@ impl Session {
     }
 
     pub(crate) fn prepare_atlas(&self) -> Result<()> {
-        crate::atlas::Configuration::host().prepare(&self.processes)
+        crate::atlas::Configuration::host(self.workspace.path()).prepare(&self.processes)
     }
 
     pub(crate) fn sources(

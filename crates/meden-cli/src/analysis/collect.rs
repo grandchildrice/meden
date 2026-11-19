@@ -29,7 +29,7 @@ pub(super) fn capture(
         .iter()
         .map(|path| relative("", path))
         .collect::<Result<Vec<_>>>()?;
-    let atlas = crate::atlas::Configuration::host();
+    let atlas = crate::atlas::Configuration::host(workspace.path());
     let mut reader = Reader::new(workspace, control);
     let selected = if paths.is_empty() {
         BTreeMap::new()

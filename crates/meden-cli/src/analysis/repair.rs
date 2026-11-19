@@ -155,7 +155,7 @@ fn observe_sources(
     );
     if let Some(resources) = resources {
         anyhow::ensure!(
-            crate::atlas::Configuration::host().current_resources()? == resources,
+            crate::atlas::Configuration::host(workspace.path()).current_resources()? == resources,
             "Atlas resources changed since the Finding; reread and analyze again"
         );
     }

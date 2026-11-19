@@ -1786,6 +1786,25 @@ model quality, confidentiality or cold installation.
 
 ## Shared CLI and TUI execution
 
+Atlas selects the workspace's installed Elan toolchain automatically, including
+custom Elan homes. Unpinned projects use Elan's default or a complete host PATH
+distribution; a missing project pin never falls back to another version.
+Discovery reads bounded metadata without running Elan or repository programs.
+The first GUI extraction and public TUI `/atlas` prepare the extraction library
+offline automatically. Existing corrupted resources are refused and require
+explicit preparation. The GUI shows the requested version's install command and
+can rediscover an installation without restarting. This discovery remains an
+unproved host adapter and does not download toolchains.
+
+The required Lake PTY journey runs without `MEDEN_ATLAS_LEAN` or a preparation
+command. The native browser regression covers missing installation, rediscovery,
+automatic preparation, actual elaborated dependencies and fresh unapproved restart.
+Installed compiler resources remain prerequisites, not cold-install evidence.
+The [actual EthLib observation](../results/gui-atlas-auto-ethlib.json) uses no Lean
+environment override or inference: Lean 4.36.0 extracts 42 declarations and 69
+edges from its Gossip parameter module. It does not cover the entire project's
+dependency graph or admit native proof authority.
+
 The native GUI opens portable visible history and a whole-workspace Rust/Lean
 navigation graph without requiring a processor. The graph groups source files and
 links stored requirements/theorem targets; import edges and declaration counts are
