@@ -12,6 +12,13 @@ cargo build -p meden-cli
 ./target/debug/meden gui --workspace /path/to/project --provider YOUR_PROVIDER --model YOUR_MODEL
 ```
 
+After updating the checkout, run `npm ci` and `npm run build` again before opening
+the GUI. `npm ci` installs the dependency graph in the current lockfile; existing
+`node_modules` may belong to an older Vite version. `npm audit` reports dependency
+advisories, while `npm audit fix` can change dependencies and the lockfile. Review
+those changes separately. A missing `apps/web/dist` means the browser build has
+not completed; `--assets` selects a completed build from another checkout.
+
 Use `meden providers` to list existing host connections, or supply
 `--base-url URL --model MODEL --api-key-env NAME`. Open the exact URL printed by
 the command (default port 4322, `--port 0` selects an available port).
