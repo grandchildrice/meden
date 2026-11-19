@@ -1,0 +1,384 @@
+{
+  "success": true,
+  "binary": "/home/gohan/workspace/meden/target/release/meden",
+  "binary_sha256": "a812feac324130162b47d5b3e10cae4118353e4e423e43207e08e288d3c8b9ea",
+  "provider": "hermes:ollama-cloud",
+  "translator": "minimax-m3",
+  "judge": "gpt-oss:120b",
+  "requirement": "すべての自然数の残高と在庫について、残高100以上かつ在庫が正のとき、かつそのときだけ購入を許可する。",
+  "screens": [
+    {
+      "step": "both processor bindings reviewed",
+      "screen": "                              MEDEN  /  minimax-m3                                                                                                              \n                              Project: /tmp/meden-lake-smoke-bq6cvg7d/project                                                                                   \n                              Repository changes saved in place · offline tools                                                                                 \n                              Allow ollama-cloud (via Hermes) to receive workspace context?                                                                     \n                              Your messages, file contents and tool results will be shared with this connection.                                                \n                                                                                                                                                                \n                              ╭ Connection details ──────────────────────────────────────────────────────────────────────────────╮                              \n                              │Destination: https://ollama.com/v1/chat/completions                                               │                              \n                              │Connection: hermes:ollama-cloud                                                                   │                              \n                              │Model: minimax-m3                                                                                 │                              \n                              │Credential: host-configured account                                                               │                              \n                              │Scope: workspace conversation, files and tool results; one session, up to eight hours.            │                              \n                              │Separate judge destination: https://ollama.com/v1/chat/completions                                │                              \n                              │Judge model: gpt-oss:120b                                                                         │                              \n                              │Judge scope: original requirement and blind back-translation; same session/expiry.                │                              \n                              ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯                              \n                                                                                                                                                                \n                              Account configuration: from /home/gohan/.hermes/config.yaml                                                                       \n                                                                                                                                                                \n                              Code execution and proof checks stay offline.                                                                                     \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                               y: Allow for this session   n / esc: Back                                                                                        \n                              wheel / PgUp/PgDn details · Enter and paste do not ap                                                                             \n                                                                                                                                                                \n                                                                                                                                                                "
+    },
+    {
+      "step": "Lake roots and four cross-package source paths",
+      "screen": "                              MEDEN  /  minimax-m3                                                                                                              \n                              Project: /tmp/meden-lake-smoke-bq6cvg7d/project                                                                                   \n                              Repository changes saved in place · offline tools                                                                                 \n                              · Atlas is ready. Use /atlas FILE.lean to read declarations.                                                                      \n                                                                                                                                                                \n                              · Source graph ready: 4 files                                                                                                     \n                              · Revision: sha256:4a30d329a8cb2b926b92000c2906e73a8674af69394c760dfb6d64e381a527b8                                               \n                              · Selected roots: src/lib/Store.lean                                                                                              \n                              · External modules (not expanded): Init                                                                                           \n                              · Lake package: shop · src, src/lib                                                                                               \n                              · Lake package: logic · vendor/logic/lean                                                                                         \n                              · Lake package: cached · .lake/packages/cached/sub/code                                                                           \n                              · Lake package: base · vendor/base/source                                                                                         \n                              · Base.threshold · vendor/base/source/Base.lean:2                                                                                 \n                              · Domain.eligible · vendor/logic/lean/Domain.lean:3                                                                               \n                              · Extra.tag · .lake/packages/cached/sub/code/Extra.lean:2                                                                         \n                              · Store.permitted · src/lib/Store.lean:4                                                                                          \n                              · Store.reported · src/lib/Store.lean:5                                                                                           \n                              · Use /analyze NAME -- requirement (Atlas), or /analyze FILE:LINE NAME -- requirement.                                            \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                              ╭ Your message ────────────────────────────────────────────────────────────────────────────────────╮                              \n                              │> Describe your app or ask a question…                                                            │                              \n                              ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯                              \n                              enter send · shift+enter newline · ctrl+t transcript · ctrl+o copy                                                                \n                              ctrl+g evidence · / commands · ? shortcuts · wheel / PgUp/PgDn scroll                                                             "
+    },
+    {
+      "step": "candidate mismatch from transitive threshold definition",
+      "screen": "                              MEDEN  /  minimax-m3                                                                                                              \n                              Project: /tmp/meden-lake-smoke-bq6cvg7d/project                                                                                   \n                              Repository changes saved in place · offline tools                                                                                 \n                                                                                                                                                                \n                              · Meaning analysis · Complete (candidate, not proof)                                                                              \n                              · Run: analysis-65330c6f8a542454b9b1591f9b310b7da3e2c011c9093dae93020f20547ee238                                                  \n                              · Requirement ID: requirement-56ae31202446a7c0e0098c2e6abfab65b75e26ddc5edba5b3320779bf1bc09e4                                    \n                              · Finding ID: finding-65330c6f8a542454b9b1591f9b310b7da3e2c011c9093dae93020f20547ee238                                            \n                              · Target: Domain.eligible · vendor/logic/lean/Domain.lean:3                                                                       \n                              · Requirement:                                                                                                                    \n                              すべての自然数の残高と在庫について、残高100以上かつ在庫が正のとき、かつそのときだけ購入を許可する。                               \n                              · Translator: minimax-m3 · https://ollama.com/v1/chat/completions                                                                 \n                              · Judge: gpt-oss:120b · https://ollama.com/v1/chat/completions                                                                    \n                              · Candidate Mismatch                                                                                                              \n                              · Declaration means: `Domain.eligible` is a two-argument Boolean-style predicate on natural numbers.                              \n                              Given two naturals `b` and `s`, it returns the proposition \"150 ≤ b and 0 < s\". Concretely: the                                   \n                              first argument must be at least 150 (the value of the imported constant `Base.threshold`, which is                                \n                              literally the numeral 150), and the second argument must be strictly positive. Because both                                       \n                              arguments range over `Nat`, `0 < s` is equivalent to \"s is not zero\" (s ≥ 1), so `eligible b s`                                   \n                              holds exactly when `b` is at least 150 and `s` is at least 1. The predicate places no relationship                                \n                              between `b` and `s` (no comparison of the two, no upper bounds, no dependence of one on the other),                               \n                              and it says nothing about any sequence of states or transitions — it is a single pointwise test on                                \n                              one pair of inputs. The names `b` and `s` are not given any meaning in the supplied files, so their                               \n                              operational roles (e.g. whether they are meant to be a budget and a score) cannot be recovered from                               \n                              the code; the description above is strictly literal. As a `def` this is not a theorem with a proof                                \n                              obligation: it merely defines a `Nat → Nat → Prop` function, so there is no claim being proved and                                \n                              no risk of an unproved/`sorry` statement here (the supplied record shows `hasSorry: false` and no                                 \n                              axioms beyond the standard ones).                                                                                                 \n                              · Discrepancy: しきい値が100であるべきなのに、バックトランスレーションでは150になっている。                                       \n                              · Explanation:                                                                                                                    \n                              要件は残高が100以上かつ在庫が正のときだけ購入を許可することを要求しているが、定義は残高が150以上かつ                              \n                              在庫が正であると述べており、数値条件が異なるため要件と一致しない。                                                                \n                              · Result: Complete · analysis-65330c6f8a542454b9b1591f9b310b7da3e2c011c9093dae93020f20547ee238                                    \n                              · Candidate Mismatch · candidate assessment, not proof                                                                            \n                                                                                                                                                                \n                              ╭ Your message ────────────────────────────────────────────────────────────────────────────────────╮                              \n                              │> Describe your app or ask a question…                                                            │                              \n                              ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯                              \n                              enter send · shift+enter newline · ce · ctrl+t transcript · wheel / PgUp/PgDn scroll                                              \n                                                                                                                                                                "
+    },
+    {
+      "step": "missing root refuses the older graph",
+      "screen": "                              MEDEN  /  minimax-m3                                                                                                              \n                              Project: /tmp/meden-lake-smoke-bq6cvg7d/project                                                                                   \n                              Repository changes saved in place · offline tools                                                                                 \n                              · Target: Domain.eligible · vendor/logic/lean/Domain.lean:3                                                                       \n                              · Requirement:                                                                                                                    \n                              すべての自然数の残高と在庫について、残高100以上かつ在庫が正のとき、かつそのときだけ購入を許可する。                               \n                              · Translator: minimax-m3 · https://ollama.com/v1/chat/completions                                                                 \n                              · Judge: gpt-oss:120b · https://ollama.com/v1/chat/completions                                                 \n                              · Candidate Mismatch                                                                                                              \n                              · Declaration means: `Domain.eligible` is a two-argument Boolean-style predicate on natural numbers.                              \n                              Given two naturals `b` and `s`, it returns the proposition \"150 ≤ b and 0 < s\". Concretely: the                                 \n                              first argument must be at least 150 (the value of the imported constant `Base.threshold`, which is                                \n                              literally the numeral 150), and the second argument must be strictly positive. Because both                                     \n                              arguments range over `Nat`, `0 < s` is equivalent to \"s is not zero\" (s ≥ 1), so `eligible b s`                                   \n                              holds exactly when `b` is at least 150 and `s` is at least 1. The predicate places no relationship                                \n                              between `b` and `s` (no comparison of the two, no upper bounds, no dependence of one on the other),                               \n                              and it says nothing about any sequence of states or transitions — it is a single pointwise test on                                \n                              one pair of inputs. The names `b` and `s` are not given any meaning in the supplied files, so their                               \n                              operational roles (e.g. whether they are meant to be a budget and a score) cannot be recovered from                               \n                              the code; the description above is strictly literal. As a `def` this is not a theorem with a proof                                \n                              obligation: it merely defines a `Nat → Nat → Prop` function, so there is no claim being proved and                                \n                              no risk of an unproved/`sorry` statement here (the supplied record shows `hasSorry: false` and no                                 \n                              axioms beyond the standard ones).                                                                                                 \n                              · Discrepancy: しきい値が100であるべきなのに、バックトランスレーションでは150になっている。                                       \n                              · Explanation:                                                                                                                    \n                              要件は残高が100以上かつ在庫が正のときだけ購入を許可することを要求しているが、定義は残高が150以上かつ                              \n                              在庫が正であると述べており、数値条件が異なるため要件と一致しない。                                                                \n                              · Result: Complete · analysis-65330c6f8a542454b9b1591f9b310b7da3e2c011c9093dae93020f20547ee238                                 \n                              · Candidate Mismatch · candidate assessment, not proof                                                                      \n                                                                                                                                                                \n                              · Analysis stopped: Source observation failed: No such file or directory (os error 2). Use /analysis                              \n                              to inspect the retained outcome.                                                                                 \n                                                                                                                                                                \n                              · Read the source graph first: /atlas FILE.lean or /sources FILE.rs                                                               \n                                                                                                                                                                \n                              ╭ Your message ────────────────────────────────────────────────────────────────────────────────────╮                              \n                              │> Describe your app or ask a question…                                                            │                              \n                              ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯                              \n                              enter send · shift+enter newline · ctrl+t transcript · ctrl+o copy                                                                \n                              ctrl+g evidence · / commands · ? shortcuts · wheel / PgUp/PgDn scroll                                                             "
+    },
+    {
+      "step": "Lake recovery through the public command",
+      "screen": "                              MEDEN  /  minimax-m3                                                                                                              \n                              Project: /tmp/meden-lake-smoke-bq6cvg7d/project                                                                                   \n                              Repository changes saved in place · offline tools                                                                                 \n                              operational roles (e.g. whether they are meant to be a budget and a score) cannot be recovered from                               \n                              the code; the description above is strictly literal. As a `def` this is not a theorem with a proof                                \n                              obligation: it merely defines a `Nat → Nat → Prop` function, so there is no claim being proved and                               \n                              no risk of an unproved/`sorry` statement here (the supplied record shows `hasSorry: false` and no                                 \n                              axioms beyond the standard ones).                                                                 \n                              · Discrepancy: しきい値が100であるべきなのに、バックトランスレーションでは150になっている。                                       \n                              · Explanation:                                                                                                                    \n                              要件は残高が100以上かつ在庫が正のときだけ購入を許可することを要求しているが、定義は残高が150以上かつ                              \n                              在庫が正であると述べており、数値条件が異なるため要件と一致しない。                                                                \n                              · Result: Complete · analysis-65330c6f8a542454b9b1591f9b310b7da3e2c011c9093dae93020f20547ee238                                  \n                              · Candidate Mismatch · candidate assessment, not proof                                                                            \n                                                                                                                                                                \n                              · Analysis stopped: Source observation failed: No such file or directory (os error 2). Use /analysis                              \n                              to inspect the retained outcome.                                                                                                  \n                                                                                                                                                                \n                              · Read the source graph first: /atlas FILE.lean or /sources FILE.rs                                                               \n                                                                                                                                                                \n                              · Source graph ready: 4 files                                                                                                     \n                              · Revision: sha256:4a30d329a8cb2b926b92000c2906e73a8674af69394c760dfb6d64e381a527b8                                               \n                              · Selected roots: src/lib/Store.lean                                                                                              \n                              · External modules (not expanded): Init                                                                                           \n                              · Lake package: shop · src, src/lib                                                                                               \n                              · Lake package: logic · vendor/logic/lean                                                             \n                              · Lake package: cached · .lake/packages/cached/sub/code                                                                     \n                              · Lake package: base · vendor/base/source                                                             \n                              · Base.threshold · vendor/base/source/Base.lean:2                                                                        \n                              · Domain.eligible · vendor/logic/lean/Domain.lean:3                                                                               \n                              · Extra.tag · .lake/packages/cached/sub/code/Extra.lean:2                                                                         \n                              · Store.permitted · src/lib/Store.lean:4                                                                                         \n                              · Store.reported · src/lib/Store.lean:5                                                                                           \n                              · Use /analyze NAME -- requirement (Atlas), or /analyze FILE:LINE NAME -- requirement.                                            \n                                                                                                                                                                \n                              ╭ Your message ────────────────────────────────────────────────────────────────────────────────────╮                              \n                              │> Describe your app or ask a question…                                                            │                              \n                              ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯                              \n                              enter send · shift+enter newline · ctrl+t transcript · ctrl+o copy                                                                \n                              ctrl+g evidence · / commands · ? shortcuts · wheel / PgUp/PgDn scroll                                                             "
+    },
+    {
+      "step": "fresh processor review after restart",
+      "screen": "                              MEDEN  /  minimax-m3                                                                                                              \n                              Project: /tmp/meden-lake-smoke-bq6cvg7d/project                                                                                   \n                              Repository changes saved in place · offline tools                                                                                 \n                              Allow ollama-cloud (via Hermes) to receive workspace context?                                                                     \n                              Your messages, file contents and tool results will be shared with this connection.                                                \n                                                                                                                                                                \n                              ╭ Connection details ──────────────────────────────────────────────────────────────────────────────╮                              \n                              │Destination: https://ollama.com/v1/chat/completions                                               │                              \n                              │Connection: hermes:ollama-cloud                                                                   │                              \n                              │Model: minimax-m3                                                                                 │                              \n                              │Credential: host-configured account                                                               │                              \n                              │Scope: workspace conversation, files and tool results; one session, up to eight hours.            │                              \n                              │Separate judge destination: https://ollama.com/v1/chat/completions                                │                              \n                              │Judge model: gpt-oss:120b                                                                         │                              \n                              │Judge scope: original requirement and blind back-translation; same session/expiry.                │                              \n                              ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯                              \n                                                                                                                                                                \n                              Account configuration: from /home/gohan/.hermes/config.yaml                                                                       \n                                                                                                                                                                \n                              Code execution and proof checks stay offline.                                                                                     \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                               y: Allow for this session   n / esc: Back                                                                                        \n                              wheel / PgUp/PgDn details · Enter and paste do not ap                                                                             \n                                                                                                                                                                \n                                                                                                                                                                "
+    },
+    {
+      "step": "historical result without renewed approval",
+      "screen": "                              MEDEN  /  minimax-m3                                                                                                              \n                              Project: /tmp/meden-lake-smoke-bq6cvg7d/project                                                                                   \n                              Repository changes saved in place · offline tools                                                                                 \n                              · Meaning analysis · Historical (candidate, not proof)                                                                            \n                              · Run: analysis-65330c6f8a542454b9b1591f9b310b7da3e2c011c9093dae93020f20547ee238                                                  \n                              · Requirement ID: requirement-56ae31202446a7c0e0098c2e6abfab65b75e26ddc5edba5b3320779bf1bc09e4                                    \n                              · Finding ID: finding-65330c6f8a542454b9b1591f9b310b7da3e2c011c9093dae93020f20547ee238                                            \n                              · Target: Domain.eligible · vendor/logic/lean/Domain.lean:3                                                                       \n                              · Requirement:                                                                                                                    \n                              すべての自然数の残高と在庫について、残高100以上かつ在庫が正のとき、かつそのときだけ購入を許可する。                               \n                              · Translator: minimax-m3 · https://ollama.com/v1/chat/completions                                                                 \n                              · Judge: gpt-oss:120b · https://ollama.com/v1/chat/completions                                                                    \n                              · Candidate Mismatch                                                                                                              \n                              · Declaration means: `Domain.eligible` is a two-argument Boolean-style predicate on natural numbers.                              \n                              Given two naturals `b` and `s`, it returns the proposition \"150 ≤ b and 0 < s\". Concretely: the                                   \n                              first argument must be at least 150 (the value of the imported constant `Base.threshold`, which is                                \n                              literally the numeral 150), and the second argument must be strictly positive. Because both                                       \n                              arguments range over `Nat`, `0 < s` is equivalent to \"s is not zero\" (s ≥ 1), so `eligible b s`                                   \n                              holds exactly when `b` is at least 150 and `s` is at least 1. The predicate places no relationship                                \n                              between `b` and `s` (no comparison of the two, no upper bounds, no dependence of one on the other),                               \n                              and it says nothing about any sequence of states or transitions — it is a single pointwise test on                                \n                              one pair of inputs. The names `b` and `s` are not given any meaning in the supplied files, so their                               \n                              operational roles (e.g. whether they are meant to be a budget and a score) cannot be recovered from                               \n                              the code; the description above is strictly literal. As a `def` this is not a theorem with a proof                                \n                              obligation: it merely defines a `Nat → Nat → Prop` function, so there is no claim being proved and                                \n                              no risk of an unproved/`sorry` statement here (the supplied record shows `hasSorry: false` and no                                 \n                              axioms beyond the standard ones).                                                                                                 \n                              · Discrepancy: しきい値が100であるべきなのに、バックトランスレーションでは150になっている。                                       \n                              · Expl                                                                                                                            \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                              ╭ Commands · ↑↓ choose · enter run · tab complete ─────────────────────────────────────────────────╮                              \n                              │› /analysis   Show a result: /analysis, /analysis history, /analysis ID                           │                              \n                              ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯                              \n                              ╭ Your message ────────────────────────────────────────────────────────────────────────────────────╮                              \n                              │> /analysis                                                                                       │                              \n                              ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯                              \n                              enter send · shift+enter newline · ctrl+t transcript · ctrl+o copy                                                                \n                              ctrl+g evidence · / commands · ? shortcuts · wheel / PgUp/PgDn scroll                                                             "
+    }
+  ],
+  "scope": "Synthetic prepopulated Lake packages, actual installed Lean/Lake and approved cloud inference; no Git commit attestation, native proof, local inference or cold install.",
+  "history": [
+    {
+      "version": 2,
+      "sequence": 1,
+      "id": "analysis-65330c6f8a542454b9b1591f9b310b7da3e2c011c9093dae93020f20547ee238",
+      "requirement_id": "requirement-56ae31202446a7c0e0098c2e6abfab65b75e26ddc5edba5b3320779bf1bc09e4",
+      "finding_id": "finding-65330c6f8a542454b9b1591f9b310b7da3e2c011c9093dae93020f20547ee238",
+      "source_artifact": "sha256:32342749817a31bf2bcdd9085a9c662b360976ff856604ad3564a1fd4b3eb321",
+      "engine": "meden-claimcheck-roundtrip-v1",
+      "model": "minimax-m3",
+      "processor": "https://ollama.com/v1/chat/completions",
+      "judge": {
+        "model": "gpt-oss:120b",
+        "endpoint": "https://ollama.com/v1/chat/completions"
+      },
+      "input": {
+        "source_revision": "sha256:4a30d329a8cb2b926b92000c2906e73a8674af69394c760dfb6d64e381a527b8",
+        "graph_revision": "sha256:eb53327063c164cb841a00e30fd89612c3bbdd3d6bcee99ae5a537b52f7d1c13",
+        "target": {
+          "file": "vendor/logic/lean/Domain.lean",
+          "line": 3,
+          "name": "Domain.eligible"
+        },
+        "requirement": "すべての自然数の残高と在庫について、残高100以上かつ在庫が正のとき、かつそのときだけ購入を許可する。"
+      },
+      "state": "complete",
+      "assessment": {
+        "translation": {
+          "lemmaName": "Domain.eligible",
+          "naturalLanguage": "`Domain.eligible` is a two-argument Boolean-style predicate on natural numbers. Given two naturals `b` and `s`, it returns the proposition \"150 ≤ b and 0 < s\". Concretely: the first argument must be at least 150 (the value of the imported constant `Base.threshold`, which is literally the numeral 150), and the second argument must be strictly positive. Because both arguments range over `Nat`, `0 < s` is equivalent to \"s is not zero\" (s ≥ 1), so `eligible b s` holds exactly when `b` is at least 150 and `s` is at least 1. The predicate places no relationship between `b` and `s` (no comparison of the two, no upper bounds, no dependence of one on the other), and it says nothing about any sequence of states or transitions — it is a single pointwise test on one pair of inputs. The names `b` and `s` are not given any meaning in the supplied files, so their operational roles (e.g. whether they are meant to be a budget and a score) cannot be recovered from the code; the description above is strictly literal. As a `def` this is not a theorem with a proof obligation: it merely defines a `Nat → Nat → Prop` function, so there is no claim being proved and no risk of an unproved/`sorry` statement here (the supplied record shows `hasSorry: false` and no axioms beyond the standard ones).",
+          "preconditions": "None in the logical sense: `eligible` is a total function on `Nat × Nat`, defined by pattern-free lambda-abstraction, so it can be applied to any pair of naturals without further hypotheses. The implicit input domain restriction is only that both arguments are natural numbers (hence non-negative), which makes the `0 < s` conjunct equivalent to `s ≥ 1`. The numeric constant used in the comparison, `Base.threshold`, is supplied as the elaborated value 150 and does not depend on any runtime input.",
+          "postcondition": "For all naturals `b` and `s`: `Domain.eligible b s` unfolds to `Base.threshold ≤ b ∧ 0 < s`, i.e. it is true exactly when `150 ≤ b` and `s ≥ 1`; it is false whenever `b < 150` or `s = 0`. The function is computable (the underlying relation is decidable), and it returns a proposition rather than a data value, so it has no other observable effect.",
+          "scope": "A single evaluation of a two-argument predicate over `Nat × Nat` — a relation on one pair of numbers. There is no quantification over states, trajectories, or all reachable states, and no state transition or update is described; the definition is purely pointwise on its two arguments.",
+          "strength": "moderate",
+          "confidence": 0.93
+        },
+        "comparison": {
+          "lemmaName": "Domain.eligible",
+          "match": false,
+          "discrepancy": "しきい値が100であるべきなのに、バックトランスレーションでは150になっている。",
+          "weakeningType": "wrong-property",
+          "explanation": "要件は残高が100以上かつ在庫が正のときだけ購入を許可することを要求しているが、定義は残高が150以上かつ在庫が正であると述べており、数値条件が異なるため要件と一致しない。"
+        },
+        "verdict": "mismatch"
+      },
+      "partial_translation": {
+        "lemmaName": "Domain.eligible",
+        "naturalLanguage": "`Domain.eligible` is a two-argument Boolean-style predicate on natural numbers. Given two naturals `b` and `s`, it returns the proposition \"150 ≤ b and 0 < s\". Concretely: the first argument must be at least 150 (the value of the imported constant `Base.threshold`, which is literally the numeral 150), and the second argument must be strictly positive. Because both arguments range over `Nat`, `0 < s` is equivalent to \"s is not zero\" (s ≥ 1), so `eligible b s` holds exactly when `b` is at least 150 and `s` is at least 1. The predicate places no relationship between `b` and `s` (no comparison of the two, no upper bounds, no dependence of one on the other), and it says nothing about any sequence of states or transitions — it is a single pointwise test on one pair of inputs. The names `b` and `s` are not given any meaning in the supplied files, so their operational roles (e.g. whether they are meant to be a budget and a score) cannot be recovered from the code; the description above is strictly literal. As a `def` this is not a theorem with a proof obligation: it merely defines a `Nat → Nat → Prop` function, so there is no claim being proved and no risk of an unproved/`sorry` statement here (the supplied record shows `hasSorry: false` and no axioms beyond the standard ones).",
+        "preconditions": "None in the logical sense: `eligible` is a total function on `Nat × Nat`, defined by pattern-free lambda-abstraction, so it can be applied to any pair of naturals without further hypotheses. The implicit input domain restriction is only that both arguments are natural numbers (hence non-negative), which makes the `0 < s` conjunct equivalent to `s ≥ 1`. The numeric constant used in the comparison, `Base.threshold`, is supplied as the elaborated value 150 and does not depend on any runtime input.",
+        "postcondition": "For all naturals `b` and `s`: `Domain.eligible b s` unfolds to `Base.threshold ≤ b ∧ 0 < s`, i.e. it is true exactly when `150 ≤ b` and `s ≥ 1`; it is false whenever `b < 150` or `s = 0`. The function is computable (the underlying relation is decidable), and it returns a proposition rather than a data value, so it has no other observable effect.",
+        "scope": "A single evaluation of a two-argument predicate over `Nat × Nat` — a relation on one pair of numbers. There is no quantification over states, trajectories, or all reachable states, and no state transition or update is described; the definition is purely pointwise on its two arguments.",
+        "strength": "moderate",
+        "confidence": 0.93
+      },
+      "error": null
+    }
+  ],
+  "source_artifacts": [
+    {
+      "revision": "sha256:4a30d329a8cb2b926b92000c2906e73a8674af69394c760dfb6d64e381a527b8",
+      "files": {
+        ".lake/packages/cached/sub/code/Extra.lean": "namespace Extra\ndef tag : Nat := 7\nend Extra\n",
+        "src/lib/Store.lean": "import Domain\nimport Extra\nnamespace Store\ntheorem permitted (b s : Nat) : Domain.eligible b s ↔ (150 ≤ b ∧ 0 < s) := Iff.rfl\ndef reported : Nat := Extra.tag\nend Store\n",
+        "vendor/base/source/Base.lean": "namespace Base\ndef threshold : Nat := 150\nend Base\n",
+        "vendor/logic/lean/Domain.lean": "import Base\nnamespace Domain\ndef eligible (b s : Nat) : Prop := Base.threshold ≤ b ∧ 0 < s\nend Domain\n"
+      },
+      "atlas": {
+        "revision": "sha256:eb53327063c164cb841a00e30fd89612c3bbdd3d6bcee99ae5a537b52f7d1c13",
+        "upstream": "06be1eb76fb926b8cf8bd42a4a51208d128c327d",
+        "graph": {
+          "metadata": {
+            "projectName": "Selected Lean modules",
+            "leanVersion": "4.35.0"
+          },
+          "nodes": [
+            {
+              "id": "Base.threshold",
+              "shortName": "threshold",
+              "kind": "definition",
+              "filePath": "vendor/base/source/Base.lean",
+              "lineStart": 2,
+              "lineEnd": 2,
+              "hasSorry": false,
+              "statement": "Nat",
+              "value": "150",
+              "axioms": [],
+              "standardAxioms": [],
+              "externalDependencies": [
+                "Nat",
+                "instOfNatNat",
+                "OfNat.ofNat"
+              ]
+            },
+            {
+              "id": "Domain.eligible",
+              "shortName": "eligible",
+              "kind": "definition",
+              "filePath": "vendor/logic/lean/Domain.lean",
+              "lineStart": 3,
+              "lineEnd": 3,
+              "hasSorry": false,
+              "statement": "Nat → Nat → Prop",
+              "value": "fun b s => Base.threshold ≤ b ∧ 0 < s",
+              "axioms": [],
+              "standardAxioms": [],
+              "externalDependencies": [
+                "Nat",
+                "instOfNatNat",
+                "LE.le",
+                "instLENat",
+                "And",
+                "LT.lt",
+                "instLTNat",
+                "OfNat.ofNat"
+              ]
+            },
+            {
+              "id": "Extra.tag",
+              "shortName": "tag",
+              "kind": "definition",
+              "filePath": ".lake/packages/cached/sub/code/Extra.lean",
+              "lineStart": 2,
+              "lineEnd": 2,
+              "hasSorry": false,
+              "statement": "Nat",
+              "value": "7",
+              "axioms": [],
+              "standardAxioms": [],
+              "externalDependencies": [
+                "Nat",
+                "instOfNatNat",
+                "OfNat.ofNat"
+              ]
+            },
+            {
+              "id": "Store.permitted",
+              "shortName": "permitted",
+              "kind": "theorem",
+              "filePath": "src/lib/Store.lean",
+              "lineStart": 4,
+              "lineEnd": 4,
+              "hasSorry": false,
+              "statement": "∀ (b s : Nat), Domain.eligible b s ↔ 150 ≤ b ∧ 0 < s",
+              "value": null,
+              "axioms": [],
+              "standardAxioms": [],
+              "externalDependencies": [
+                "instOfNatNat",
+                "LE.le",
+                "instLENat",
+                "And",
+                "Iff",
+                "Nat",
+                "LT.lt",
+                "instLTNat",
+                "OfNat.ofNat",
+                "Iff.rfl"
+              ]
+            },
+            {
+              "id": "Store.reported",
+              "shortName": "reported",
+              "kind": "definition",
+              "filePath": "src/lib/Store.lean",
+              "lineStart": 5,
+              "lineEnd": 5,
+              "hasSorry": false,
+              "statement": "Nat",
+              "value": "Extra.tag",
+              "axioms": [],
+              "standardAxioms": [],
+              "externalDependencies": [
+                "Nat"
+              ]
+            }
+          ],
+          "edges": [
+            {
+              "source": "Domain.eligible",
+              "target": "Base.threshold",
+              "kind": "definition_value_to_definition"
+            },
+            {
+              "source": "Store.permitted",
+              "target": "Domain.eligible",
+              "kind": "theorem_type_to_definition"
+            },
+            {
+              "source": "Store.reported",
+              "target": "Extra.tag",
+              "kind": "definition_value_to_definition"
+            }
+          ],
+          "externalReferences": [
+            "Iff.rfl",
+            "instOfNatNat",
+            "LE.le",
+            "instLENat",
+            "And",
+            "Iff",
+            "Nat",
+            "LT.lt",
+            "instLTNat",
+            "OfNat.ofNat"
+          ]
+        },
+        "resources_sha256": "02432c3d6b02b3f492f95fb1090bb9285b67fc86090a2cb3cce5168111d29fbe"
+      },
+      "collection": {
+        "roots": [
+          "src/lib/Store.lean"
+        ],
+        "external_modules": [
+          "Init"
+        ],
+        "modules": [
+          {
+            "name": "Base",
+            "file": "vendor/base/source/Base.lean",
+            "root": "vendor/base/source"
+          },
+          {
+            "name": "Domain",
+            "file": "vendor/logic/lean/Domain.lean",
+            "root": "vendor/logic/lean"
+          },
+          {
+            "name": "Extra",
+            "file": ".lake/packages/cached/sub/code/Extra.lean",
+            "root": ".lake/packages/cached/sub/code"
+          },
+          {
+            "name": "Store",
+            "file": "src/lib/Store.lean",
+            "root": "src/lib"
+          }
+        ],
+        "packages": [
+          {
+            "name": "shop",
+            "directory": "",
+            "source_roots": [
+              "src",
+              "src/lib"
+            ]
+          },
+          {
+            "name": "logic",
+            "directory": "vendor/logic",
+            "source_roots": [
+              "vendor/logic/lean"
+            ]
+          },
+          {
+            "name": "cached",
+            "directory": ".lake/packages/cached/sub",
+            "source_roots": [
+              ".lake/packages/cached/sub/code"
+            ]
+          },
+          {
+            "name": "base",
+            "directory": "vendor/base",
+            "source_roots": [
+              "vendor/base/source"
+            ]
+          }
+        ],
+        "metadata": {
+          "files": {
+            ".lake/packages/cached/sub/config/lakefile.toml": "name = \"cached\"\nsrcDir = \"code\"\n[[lean_lib]]\nname = \"Extra\"\n",
+            "lake-manifest.json": "{\"version\": \"1.4.0\", \"name\": \"shop\", \"lakeDir\": \".lake\", \"packagesDir\": \".lake/packages\", \"packages\": [{\"type\": \"path\", \"name\": \"logic\", \"dir\": \"vendor/logic\", \"inherited\": false, \"configFile\": \"lakefile.toml\"}, {\"type\": \"path\", \"name\": \"base\", \"dir\": \"vendor/base\", \"inherited\": true, \"configFile\": \"lakefile.toml\"}, {\"type\": \"git\", \"name\": \"cached\", \"url\": \"https://example.invalid/never-fetch.git\", \"rev\": \"deadbeef\", \"inputRev\": \"deadbeef\", \"subDir\": \"sub\", \"inherited\": false, \"configFile\": \"config/lakefile.toml\"}]}",
+            "lakefile.lean": "import Lake\nopen Lake DSL\n\ndef sources : System.FilePath := \"src\"\npackage shop where\n  srcDir := sources\nrequire logic from \"vendor/logic\"\nrequire cached from git \"https://example.invalid/never-fetch.git\" @ \"deadbeef\" / \"sub\"\nlean_lib Store where\n  srcDir := \"lib\"\n",
+            "lakefile.toml": null,
+            "vendor/base/lakefile.toml": "name = \"base\"\nsrcDir = \"source\"\n[[lean_lib]]\nname = \"Base\"\n",
+            "vendor/logic/lakefile.toml": "name = \"logic\"\nsrcDir = \"lean\"\n[[lean_lib]]\nname = \"Domain\"\n[[require]]\nname = \"base\"\npath = \"../base\"\n"
+          },
+          "directories": {}
+        }
+      }
+    }
+  ],
+  "first_terminal_restored": true,
+  "terminal_restored": true,
+  "history_after_restart": [
+    {
+      "version": 2,
+      "sequence": 1,
+      "id": "analysis-65330c6f8a542454b9b1591f9b310b7da3e2c011c9093dae93020f20547ee238",
+      "requirement_id": "requirement-56ae31202446a7c0e0098c2e6abfab65b75e26ddc5edba5b3320779bf1bc09e4",
+      "finding_id": "finding-65330c6f8a542454b9b1591f9b310b7da3e2c011c9093dae93020f20547ee238",
+      "source_artifact": "sha256:32342749817a31bf2bcdd9085a9c662b360976ff856604ad3564a1fd4b3eb321",
+      "engine": "meden-claimcheck-roundtrip-v1",
+      "model": "minimax-m3",
+      "processor": "https://ollama.com/v1/chat/completions",
+      "judge": {
+        "model": "gpt-oss:120b",
+        "endpoint": "https://ollama.com/v1/chat/completions"
+      },
+      "input": {
+        "source_revision": "sha256:4a30d329a8cb2b926b92000c2906e73a8674af69394c760dfb6d64e381a527b8",
+        "graph_revision": "sha256:eb53327063c164cb841a00e30fd89612c3bbdd3d6bcee99ae5a537b52f7d1c13",
+        "target": {
+          "file": "vendor/logic/lean/Domain.lean",
+          "line": 3,
+          "name": "Domain.eligible"
+        },
+        "requirement": "すべての自然数の残高と在庫について、残高100以上かつ在庫が正のとき、かつそのときだけ購入を許可する。"
+      },
+      "state": "complete",
+      "assessment": {
+        "translation": {
+          "lemmaName": "Domain.eligible",
+          "naturalLanguage": "`Domain.eligible` is a two-argument Boolean-style predicate on natural numbers. Given two naturals `b` and `s`, it returns the proposition \"150 ≤ b and 0 < s\". Concretely: the first argument must be at least 150 (the value of the imported constant `Base.threshold`, which is literally the numeral 150), and the second argument must be strictly positive. Because both arguments range over `Nat`, `0 < s` is equivalent to \"s is not zero\" (s ≥ 1), so `eligible b s` holds exactly when `b` is at least 150 and `s` is at least 1. The predicate places no relationship between `b` and `s` (no comparison of the two, no upper bounds, no dependence of one on the other), and it says nothing about any sequence of states or transitions — it is a single pointwise test on one pair of inputs. The names `b` and `s` are not given any meaning in the supplied files, so their operational roles (e.g. whether they are meant to be a budget and a score) cannot be recovered from the code; the description above is strictly literal. As a `def` this is not a theorem with a proof obligation: it merely defines a `Nat → Nat → Prop` function, so there is no claim being proved and no risk of an unproved/`sorry` statement here (the supplied record shows `hasSorry: false` and no axioms beyond the standard ones).",
+          "preconditions": "None in the logical sense: `eligible` is a total function on `Nat × Nat`, defined by pattern-free lambda-abstraction, so it can be applied to any pair of naturals without further hypotheses. The implicit input domain restriction is only that both arguments are natural numbers (hence non-negative), which makes the `0 < s` conjunct equivalent to `s ≥ 1`. The numeric constant used in the comparison, `Base.threshold`, is supplied as the elaborated value 150 and does not depend on any runtime input.",
+          "postcondition": "For all naturals `b` and `s`: `Domain.eligible b s` unfolds to `Base.threshold ≤ b ∧ 0 < s`, i.e. it is true exactly when `150 ≤ b` and `s ≥ 1`; it is false whenever `b < 150` or `s = 0`. The function is computable (the underlying relation is decidable), and it returns a proposition rather than a data value, so it has no other observable effect.",
+          "scope": "A single evaluation of a two-argument predicate over `Nat × Nat` — a relation on one pair of numbers. There is no quantification over states, trajectories, or all reachable states, and no state transition or update is described; the definition is purely pointwise on its two arguments.",
+          "strength": "moderate",
+          "confidence": 0.93
+        },
+        "comparison": {
+          "lemmaName": "Domain.eligible",
+          "match": false,
+          "discrepancy": "しきい値が100であるべきなのに、バックトランスレーションでは150になっている。",
+          "weakeningType": "wrong-property",
+          "explanation": "要件は残高が100以上かつ在庫が正のときだけ購入を許可することを要求しているが、定義は残高が150以上かつ在庫が正であると述べており、数値条件が異なるため要件と一致しない。"
+        },
+        "verdict": "mismatch"
+      },
+      "partial_translation": {
+        "lemmaName": "Domain.eligible",
+        "naturalLanguage": "`Domain.eligible` is a two-argument Boolean-style predicate on natural numbers. Given two naturals `b` and `s`, it returns the proposition \"150 ≤ b and 0 < s\". Concretely: the first argument must be at least 150 (the value of the imported constant `Base.threshold`, which is literally the numeral 150), and the second argument must be strictly positive. Because both arguments range over `Nat`, `0 < s` is equivalent to \"s is not zero\" (s ≥ 1), so `eligible b s` holds exactly when `b` is at least 150 and `s` is at least 1. The predicate places no relationship between `b` and `s` (no comparison of the two, no upper bounds, no dependence of one on the other), and it says nothing about any sequence of states or transitions — it is a single pointwise test on one pair of inputs. The names `b` and `s` are not given any meaning in the supplied files, so their operational roles (e.g. whether they are meant to be a budget and a score) cannot be recovered from the code; the description above is strictly literal. As a `def` this is not a theorem with a proof obligation: it merely defines a `Nat → Nat → Prop` function, so there is no claim being proved and no risk of an unproved/`sorry` statement here (the supplied record shows `hasSorry: false` and no axioms beyond the standard ones).",
+        "preconditions": "None in the logical sense: `eligible` is a total function on `Nat × Nat`, defined by pattern-free lambda-abstraction, so it can be applied to any pair of naturals without further hypotheses. The implicit input domain restriction is only that both arguments are natural numbers (hence non-negative), which makes the `0 < s` conjunct equivalent to `s ≥ 1`. The numeric constant used in the comparison, `Base.threshold`, is supplied as the elaborated value 150 and does not depend on any runtime input.",
+        "postcondition": "For all naturals `b` and `s`: `Domain.eligible b s` unfolds to `Base.threshold ≤ b ∧ 0 < s`, i.e. it is true exactly when `150 ≤ b` and `s ≥ 1`; it is false whenever `b < 150` or `s = 0`. The function is computable (the underlying relation is decidable), and it returns a proposition rather than a data value, so it has no other observable effect.",
+        "scope": "A single evaluation of a two-argument predicate over `Nat × Nat` — a relation on one pair of numbers. There is no quantification over states, trajectories, or all reachable states, and no state transition or update is described; the definition is purely pointwise on its two arguments.",
+        "strength": "moderate",
+        "confidence": 0.93
+      },
+      "error": null
+    }
+  ],
+  "unchanged_sources": true,
+  "seconds": 57.626,
+  "tested_source": "Development tree implementing Lake metadata and module bindings after c4812ae; exact tested executable identified by binary_sha256."
+}

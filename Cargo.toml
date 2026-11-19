@@ -1,5 +1,6 @@
 [workspace]
 resolver = "2"
+exclude = ["vendor/tiny_http"]
 members = [
     "crates/meden-core",
     "crates/meden-agent",
@@ -43,3 +44,6 @@ doc_markdown = "allow"
 [profile.release]
 lto = "thin"
 codegen-units = 1
+
+[patch.crates-io]
+tiny_http = { path = "vendor/tiny_http" }

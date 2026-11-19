@@ -54,6 +54,7 @@ def review_screen : Choice → Screen
   | .Processor => .ReviewingProcessor
   | .Export => .ReviewingExport
   | .Contract => .ReviewingContract
+  | .Repair => .ReviewingRepair
 
 abbrev has_content (width height : U16) : Prop := 2 < width.val ∧ 2 < height.val
 
@@ -66,6 +67,7 @@ def expected_route (screen : Screen) (e : Event) (width height rows : U16) : Opt
     | .ReviewingProcessor => some .Processor
     | .ReviewingExport => some .Export
     | .ReviewingContract => some .Contract
+    | .ReviewingRepair => some .Repair
     | _ => none
   else none
 
@@ -104,7 +106,7 @@ theorem paste_cannot_route (screen : Screen) (text : String) (width height rows 
 
 theorem nonreview_cannot_route (screen : Screen) (e : Event) (width height rows : U16)
     (hp : screen ≠ .ReviewingProcessor) (he : screen ≠ .ReviewingExport)
-    (hc : screen ≠ .ReviewingContract) :
+    (hc : screen ≠ .ReviewingContract) (hr : screen ≠ .ReviewingRepair) :
     MedenUIImpl.tui.approval.route screen e width height rows = ok none := by
   rw [route_refines]
   cases screen <;> simp_all [expected_route]

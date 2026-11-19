@@ -3,7 +3,423 @@
 The GUI lives in `apps/web`: React, TypeScript, Vite, Material UI, assistant-ui
 (including Markdown rendering) and React Flow. Node 22.12 or newer is required.
 
-## Start
+## Native project development
+
+```sh
+npm ci
+npm run build
+cargo build -p meden-cli
+./target/debug/meden gui --workspace /path/to/project --provider YOUR_PROVIDER --model YOUR_MODEL
+```
+
+Use `meden providers` to list existing host connections, or supply
+`--base-url URL --model MODEL --api-key-env NAME`. Open the exact URL printed by
+the command (default port 4322, `--port 0` selects an available port).
+The [local HTTP dependency patch](../vendor/tiny_http/MEDEN.md) counts queued
+connections against idle worker capacity, so concurrent module fetches cannot
+remain queued solely because earlier keep-alive readers stay open. Its scheduler
+regression and the real-browser restart journeys exercise separate layers.
+`--assets DIRECTORY` selects a built GUI from another working directory.
+The browser shows the fixed workspace, exact inference URL and model before
+approval. No inference happens before approval. Revocation/expiry is terminal;
+restart the host command and open its new URL to review a new session.
+The URL's random session token moves into tab-scoped session storage and is
+removed from the address bar; it never enters project files or exports.
+
+Send natural-language instructions to edit/build/test the actual selected
+repository with the same `Session`, tool registry, policy and offline workers
+as the TUI. Native GUI panels show file/directory reads, real tool arguments and
+results, exposed reasoning/partial output, cancellation, stop explanations and
+native project contract status. A contract review freezes its displayed body and
+reference before accepting/rejecting it through the native controller. These
+browser approval/rendering adapters do not acquire the TUI's refinement proofs.
+Prepare the real verifier using `meden setup` before requesting formal proofs;
+this gateway does not implement an automatic cold-install GUI yet.
+
+Each Bash invocation has fresh temporary storage. Scripts/intermediate files
+needed in later calls must live in the workspace, then can be removed there.
+File tools accept workspace paths only. The tool descriptions explain this
+boundary; ordinary `diff` is included among independently selected public tools.
+
+Conversation and project journals remain host JSON files outside the writable
+repository. Close the GUI command, then open `meden tui --workspace ...` to
+continue; the same repository lock prevents concurrent native writers. Closing
+the tab does not stop an active host turn: use **実行を中止** or stop the host.
+SIGINT/SIGTERM cancels managed work and waits for the session checkpoint.
+A new instruction starts an explicit new turn after a failure/cancellation;
+provider failures are not silently retried. Unsent input remains tab/browser data.
+
+**現在の証拠を確認** rechecks the accepted source/evidence binding. File inspection
+and completed turns also refresh status; polling alone is not a filesystem watcher.
+Logs/partial reasoning in this initial adapter last for the host process, while
+conversation text and admitted model history persist. The file reader uses the
+native tool's bounded 200-line pages. **前のページ** / **次のページ** navigate
+long proof files; the displayed starting line identifies the current range.
+Native preview, selected-module Lean Atlas
+extraction, delivery, Lake dependency discovery and separate-model meaning
+judgment are described below with their current bounds.
+
+## Portable work and check history
+
+**作業・履歴** stores a project's named work items, original requirements, theorem
+names, next steps, progress notes and visible conversation in
+`.meden/workspace.json`. Completed turns checkpoint the visible conversation;
+**会話と作業を保存** checkpoints it explicitly. Raw model reasoning, API keys, processor
+grants and native accepted contracts are not exported to that file. Check the
+visible conversation before publishing it: project text may contain private data.
+
+Commit `.meden/workspace.json` together with the sources on your working branch.
+On another machine, clone the branch and open it with Meden:
+
+```sh
+git clone --branch YOUR_WORK_BRANCH YOUR_FORK_URL project
+meden gui --workspace "$PWD/project" --provider YOUR_PROVIDER --model YOUR_MODEL
+```
+
+Open **作業・履歴**, select a task, inspect its saved output or **証明コードを読む**,
+and use **この作業を再開** after reviewing the new processor connection. The
+selected task becomes a new user instruction with its original requirement,
+next step, recent history and bounded excerpts of recent visible conversation.
+The complete saved text remains available in the panel. Imported conversation is context;
+it is not replayed as system messages or restored tool authority. Each device
+keeps its credentials and native session data outside the repository.
+
+**Leanを再チェック** needs no model approval. Install the exact distribution named
+by `lean-toolchain` through Elan and prepare the project's pinned dependencies
+before checking. An explicit host `MEDEN_PROJECT_LEAN` selects an installed
+distribution instead. This adapter neither installs tools nor downloads dependencies.
+Missing prerequisites remain visible failures. History is still readable without
+Lean or a model connection.
+
+The check runs `lake build --wfail MODULE` offline, then freshly elaborates the
+selected source using Lake's original module setup and inspects each named
+theorem's actual type and transitive axioms. It does not import the selected
+module's old compiled artifact. A missing declaration, a definition
+instead of a theorem, or an axiom beyond `propext`, `Classical.choice` and
+`Quot.sound` fails inspection. The record includes the frozen requirement/names,
+Lean executable digest, source/configuration fingerprints, termination and bounded
+output. Changed inputs, truncation, interruption and failed inspection cannot
+produce a successful record. Interrupted host processes may leave an unfinished
+start event; retry explicitly. Malformed or oversized history is retained and
+refused for import or overwrite.
+
+These are observed Lake execution and declaration-inspection records. Repository
+Lake configuration, executable Lean source, compiled dependencies, plugins, compiler behavior and physical
+filesystem observations remain adapters. The records do not grant native contract
+acceptance or project verification, and imported successes always require a local
+recheck. Local checks invalidate previously displayed source/analysis/evidence
+freshness because executable Lake configuration can edit the workspace.
+
+The agent keeps resumed Lean work in its existing language and preserves the
+task's requirement. Native contract verification remains restricted to pure Rust
+transitions. When the model tools lack the project's prepared Lean compiler,
+the agent reports the named host check still needed; run it with the local check
+button. The [actual cloud repair trial](../results/portable-lean-ollama-cloud-minimax-m3.json)
+exercises this path from a compiler rejection to a checked universal Lean theorem,
+with saved conversation and an unapproved restart.
+
+The public TUI supports `/work`, `/work ID`, `/work init NAME`, `/work save`,
+`/work check ID`, `/work note ID -- TEXT` and `/work resume ID`. At connection
+selection, `/` opens host commands without approving inference. For scripts,
+`meden work --workspace PATH --help` lists the same operations and task editing.
+`meden lake --workspace PATH --lean LEAN_ROOT -- build --wfail MODULE` exposes
+explicit confined Lake execution; its command result alone is not proof authority.
+
+## Native delivery review
+
+Ask the agent to prepare a file for a specified HTTP destination. **配送** shows the
+same immutable export queue as the TUI: `propose_export` prepares an ordinary file
+only without a project contract; `propose_artifact_export` prepares the retained
+checked package and requires current accepted meaning/evidence. Neither tool sends
+or approves anything. No browser-supplied payload, destination or proof replaces
+the retained request.
+
+Open **内容と宛先を確認** to inspect the exact destination, method/content type,
+payload length, SHA-256 and contract identity. Those fields remain above a separate
+scrolling byte view; **前の内容** / **次の内容** move through 2 KiB pages. Hex and
+printable ASCII show the frozen bytes without interpreting them as HTML or terminal
+controls. **この宛先へ1回送信** and **この配送を拒否** operate on that displayed
+reference and host review sequence. Sending is disabled if the complete heading
+does not fit visibly. This browser geometry check is a tested UI adapter, not the
+Crossterm predicate's Rust-to-Lean refinement or a display-authenticity proof.
+
+Closing a review or starting another host operation discards the selected review;
+reopen it before sending. A stale review sequence or a different session/export
+cannot act on the current selection. Native dispatch checks current project source
+and evidence again and reserves its one attempt before HTTP I/O. Responses show
+their HTTP status, including errors and redirects; redirects are not followed.
+Uncertain delivery remains terminal and instructs the user to inspect the receiver.
+A response is not an assertion about the receiver's application-level processing.
+There is no automatic resend. Queue entries last only for the host process and do
+not return after restart.
+
+Playwright exercises a real loopback receiver with binary snapshots, source edits
+after preparation, fixed headings on desktop/mobile, clipped-heading refusal,
+byte paging, stale selections, rejection, one-use delivery, redirects, uncertain
+results and restart. Existing CLI/TUI delivery tests exercise the shared queue and
+native controls independently. Host input provenance, browser rendering and physical
+HTTP remain adapters; this integration does not complete whole R1.
+
+## Native application preview
+
+Ask the agent to create a browser application using local files. In **プレビュー**,
+choose **公開フォルダ（ワークスペース内）** (for example `public` for plain HTML/JS,
+or `dist` for an already built Vite app), the entry HTML filename, then
+**ファイルを読み直してプレビュー**. The actual local application runs in the panel;
+root-relative module imports, CSS, images and same-bundle JSON reads are supported.
+Builds and tests still run through the ordinary offline tools. This static preview
+does not start a development server, install packages or support backend endpoints,
+external services, browser storage or service workers.
+
+The panel retains its running document when switching tabs. Explicit rereading
+starts a new document from fresh file observations. A new development/contract
+continuation closes the previous preview. A failed or cancelled capture does not
+retain the previous bundle. Reloading the browser reopens the host's frozen bundle;
+restarting `meden gui` requires rereading. Opening the new session URL at the same
+port reloads the document so the new response policies apply. Missing requested
+assets appear beside the preview; that diagnostic does not detect every JavaScript
+failure. A loaded iframe or successful interaction never grants proof status.
+
+The existing policy-bound, offline file worker reads a bounded inventory and exact
+binary bytes. Its read-only policy limits both original and resolved paths to the
+selected folder; root aliases resolving elsewhere are refused. Hidden entries,
+symlinks, special files, `node_modules` and `target` are excluded. Limits are
+256 supported web files, 64 directories, depth 8, 4 MiB per file, 16 MiB total,
+500 entries per directory and 90 seconds overall. Exceeding a limit fails rather
+than serving a truncated success. Folder names containing policy wildcards `*`/`?`
+are refused. Each bundle's SHA-256 binds the selected root, entry, file paths and
+observed bytes. Concurrent host changes are not an atomic filesystem snapshot.
+
+A separate loopback listener serves only these frozen bytes. Every capture gets
+a fresh random `.localhost` hostname capability; old capabilities are invalidated.
+Requests perform no project filesystem lookup. The document uses an opaque-origin
+`sandbox="allow-scripts allow-forms"` iframe and response sandbox policy, without same-origin,
+popups, top navigation or workers. Client-side form submit handlers work; CSP
+`form-action 'none'` blocks actual form navigation and network submissions.
+Resource CSP limits scripts/styles/images
+and fetch to the frozen origin (inline scripts/styles and data images are supported).
+The parent permits frames only on this loopback preview listener. Browser tests
+check blocked cross-origin fetch/image/script/form loads and access to the GUI document,
+storage and API, plus wrong-host/method/path rejection.
+
+These are browser adapter constraints, not an OS egress firewall or an offline
+browser worker. Native coding/inference/checker profiles remain offline; the
+preview runs in the user's browser. Browser behavior, other communication APIs,
+extensions and whole R1 confidentiality remain separate obligations. The preview
+adds no Rust-to-Lean proof, application correctness or source-to-UI correspondence
+claim. In particular, a JavaScript mirror of checked Rust is still a separate
+implementation unless a further binding is established.
+
+The native **グラフ** tab takes one `.lean`/`.rs` path per line; **このファイルのグラフ**
+in the code panel uses the current path. Source observations use the same offline,
+policy-bound file worker as project snapshots (1–32 files, 64 KiB per file,
+1 MiB total). No truncated file is indexed. A SHA-256 binds the selected paths
+and complete observed content. Failure discards the previous graph; starting a
+new development turn also requires rereading sources. A snapshot lasts for this
+host process, and reload can redisplay it; restarting the host requires rereading.
+It is an observation, not a filesystem watch or an atomic concurrent-host snapshot.
+
+`@meden/atlas-adapter/source-index` builds lexical declarations and unambiguous
+local references from those files. Nested comments/literals are masked, Lean
+namespaces and private declarations are tracked, and unknown edge kinds remain
+conservative. Imported modules, elaboration, type-class resolution, macros and
+full dependency completeness are outside this index. Every indexed declaration
+starts **証明は未確認**; source `sorry`, audit-looking comments or model output
+cannot produce proof evidence. Select a node and open its exact highlighted
+source line in the shared syntax-highlighted source reader. The
+following recorded-demo documentation describes a separate standalone mode.
+
+## Native Lean Atlas extraction
+
+With an installed Lean distribution, select the **グラフ** tab, choose **依存抽出の準備**,
+enter the local `.lean` module paths, then **Leanでコンパイルして依存を抽出**. Preparation
+compiles the pinned public Atlas library offline without sending source to a model.
+The default host selection is installed Elan Lean 4.35.0. To use another installed
+distribution, set `MEDEN_ATLAS_LEAN=/absolute/lean-root` before launching Meden.
+The public `meden setup-atlas` command prepares the same library as the button.
+It does not download Lean or replace the host's ordinary toolchain.
+`meden source-notices` displays the bundled Atlas and claimcheck source notices.
+
+Selected modules are observed through the existing policy-bound file worker,
+then mounted read-only in a fresh offline compilation job. Only fresh `.olean`
+files from this job are imported. Existing build outputs,
+unselected project files, host credentials and network services are not supplied.
+Lean code can run macros, initializers and `#eval` inside this job; it is untrusted
+executable analysis input, rather than Meden's restricted contract-data language.
+The prepared library and fixed scripts are separate read-only resources. There is
+no unconfined fallback. Import/compile/metadata/OS attribution remains an adapter.
+
+The [MIT-licensed extraction core](../crates/meden-cli/src/atlas/vendor/README.md)
+is pinned to Lean Atlas `06be1eb76fb926b8cf8bd42a4a51208d128c327d`. Its actual
+constant classifier and type/value dependency functions run on the imported
+environment. Meden selects the observed modules, retains cross-module edges,
+adds compiler-printed statements/definition values and transitive axiom names,
+and records references outside those modules separately. Standard library and
+other external definitions are not expanded. **プロジェクト全体** includes disconnected
+declarations; the focused views retain their own dependency cones.
+
+This path parses import headers with installed Lean and collects project-local
+imports using the evaluated Lake source directories, or the workspace module root
+when no Lake configuration is present. Leave the target field blank to discover
+Lake library/executable roots, including configured module globs. It supports ordinary ASCII
+module names and at most 32 files in the entire closure, under the existing 64 KiB/file and 1 MiB
+source limits. Module paths use ordinary ASCII identifier components and cannot
+replace the prepared Lean/Std/Atlas modules. Imports require either another
+observed source module or the prepared Lean/Atlas libraries. Lake configuration
+resolves local path dependencies and existing manifest package sources inside the
+selected workspace. Missing packages are not fetched. Compilation/extraction has a shared 180-second budget;
+truncated/failed/interrupted output produces no graph. Graph output is bounded
+to 5,000 declarations and 100,000 internal edges. Resource hashes bind the selected
+Lean executable, Lake shared library and prepared Atlas files; this is not a complete hash of the Lean
+distribution, dynamic libraries, OS or launcher.
+
+The graph retains the observed source hash plus a separate extraction revision
+covering graph data and prepared-resource hashes. Preparation is cached outside
+the model-writable project. Changed resources fail validation; the GUI can prepare
+them again. Changed/missing source or compilation failure discards the old graph.
+Restart retains the public prepared library but requires fresh source extraction.
+`sorry` is displayed as an incomplete proof. Other declarations remain proof-unknown:
+successful compilation and Atlas metadata do not admit a native proof receipt.
+
+Meaning analysis from an Atlas graph uses the exact selected declaration and its
+server-derived meaning scope. Theorem proof-only edges are pruned, definition value
+edges remain, and compiler-printed types/values replace raw source and comments in
+the translation request. Axiom and external-reference information remain explicit.
+Both source and extraction revisions must match. Prepared resources and selected
+source files are checked again around inference; the final context is bounded to
+1 MiB without truncation. Lean parsing, pretty-printing, extensions, malicious source
+effects and extraction authenticity are not established by Meden's control proofs.
+
+## Native meaning analysis
+
+After reading a source graph, select a declaration, enter **比較する要件** and choose
+**この宣言の意味を解析**. The reviewed processor receives two separate requests:
+first the selected declaration plus observed local files (or the elaborated Atlas
+scope above), without the separate
+requirement or conversation; then the requirement plus the back-translation,
+without the formal source or conversation. The same host-selected model handles
+both requests. They are separate contexts, not independent-model evidence.
+
+This uses a Rust adapter of claimcheck's two-pass prompt/output approach, pinned
+at `8eb37fedc0acb5bc5f89efc3933cb3955268a4bd`. Source attribution and the MIT
+license are in `crates/meden-cli/src/semantic/`. It does not run the upstream SDK,
+CLI or Dafny verifier. No extra credential discovery, network client or
+model-selected execution is added. Only the two structured result functions are
+decoded as data; unexpected tool calls/fields/targets are refused, never executed.
+
+The result shows the frozen requirement, literal back-translation, preconditions,
+postcondition, scope and discrepancy/reasoning. **一致の候補** and **意味の差異候補**
+are model assessments. A semantic match never marks a declaration proved, accepts
+native meaning or changes proof/export authority. Low-confidence or contradictory
+matches remain **判定保留**. This interface does not establish analyzer accuracy.
+Lexical mode is not complete elaborated scope; its source comments can still expose
+intent even though the separate requirement is withheld from translation. Atlas
+mode omits those source comments and theorem proof scripts from translation.
+
+The host freezes path/content SHA-256, target and exact requirement, reobserves
+all selected files before and after inference, and checks cancellation and the
+processor grant before admitting a result. A concurrent source change, missing
+file, cancelled turn, provider failure or malformed result leaves no current
+success. No automatic inference retry occurs. Editing the displayed requirement
+or choosing another declaration labels the old result as a different target.
+
+Every run is retained in host `meaning-analysis.json` next to the existing JSON
+journals, outside the model-writable project. The atomic, locked local history
+contains exact requirements, target/source/graph revisions, processor/model,
+outputs and failure/cancellation states. Requirement IDs hash the exact original
+text; changing that text creates another ID. Every invocation has a fresh random
+analysis ID; mismatches and unclear assessments additionally have a Finding ID.
+Reanalysis never overwrites a previous finding. The history selector restores
+past assessments for reading without sending inference or renewing approval.
+The TUI has `/analysis history` and `/analysis ID` (analysis or Finding ID); JSONL
+has `analysis_history` and `select_analysis` commands.
+
+Restart labels completed results historical and requires rereading sources,
+fresh processor review and explicit rerun. Interrupted runs are not resumed.
+The journal stops at 1000 runs or the existing 16 MiB storage limit, preserving
+old entries instead of deleting them. An unreadable or older optional checkpoint
+is reported and retained; explicitly rerunning analysis preserves that file as
+`meaning-analysis-retained-*.json` before creating a new history. Ordinary project
+development remains available. This is tested adapter behavior, not a new
+Rust-to-Lean refinement or an atomic concurrent-filesystem proof.
+
+New runs also retain their original source/Atlas snapshot under host
+`analysis-sources/<content-sha256>.json`; each record links its exact artifact.
+Repeated identical snapshots are shared. A changed retained artifact stops a new
+run instead of overwriting it. Historical data never restores a live graph or
+approval; fresh worker observations still gate execution.
+
+For a retained mismatch/unclear Finding, **このFindingの修正差分を作る** requests
+one data-only repair to an observed source file. The original requirement and
+accepted native contract stay fixed. Review the destination, content hash,
+Finding/requirement identities, exact diff and explanation, then reject or apply
+once. The authority heading remains above scrolling details; clipped headings
+cannot approve. In the TUI, `/repair` opens the same frozen repair with
+`y` to apply/reanalyze and `n`/Esc to reject.
+
+Sources and Atlas resources are observed again; changed sources or accepted
+contract identities refuse the old proposal. The actual admitted file policy
+and typed request reach the ordinary offline worker, whose full-file comparison
+refuses content changes. Applying invalidates native project proof coverage;
+reanalysis uses the original requirement, freshly observed sources and, for
+Atlas, a fresh compilation/target location. A candidate match never restores
+proof evidence. Applied files survive failed/cancelled reanalysis, which must be
+explicitly rerun. Source-only repairs preserve the selected declaration's line
+anchor; Atlas repairs can relocate it by exact declaration name. Repair logs
+under host `repairs/` retain the diff, original Finding/input, selected processor
+and model, terminal outcome and resulting analysis ID. Restart discards all
+pending repair authority. This is a bounded single-file flow, not a claim that
+model repairs are correct or that filesystem concurrency is formally proved.
+
+A separate live browser smoke exercises real application edits, an interactive
+generated browser app, independent original Rust tests, a live model's proposal
+and exact one-use delivery to a synthetic loopback receiver, the source graph, matching and mismatching requirements,
+then restart/history with the explicitly selected cloud provider:
+
+```sh
+npm run build
+cargo build -p meden-cli
+node --experimental-strip-types tools/gui/live-native-smoke.ts \
+  --binary target/debug/meden --provider YOUR_PROVIDER --model YOUR_MODEL \
+  --out /tmp/meden-live-gui-review
+```
+
+This driver does not mock inference, alter private configuration or repair
+project files outside the GUI. It writes `report.json` and milestone screenshots.
+Passing these synthetic cases is not a general accuracy, local-inference or
+cold-verifier-installation claim.
+
+Add `--atlas` to ask the model for a standalone Lean analysis module, prepare the
+real Atlas library through the GUI, compile that module and compare its elaborated
+scope instead of the lexical Rust graph. This requires installed Lean as described
+above. The generated Lean model does not establish correspondence with the Rust
+application.
+
+The [recorded native GUI cloud trial](../results/native-gui-development-ollama-cloud-minimax-m3-afa18b7.json)
+binds the tested source commit and binary hash to generated source, three browser
+boundary interactions, independent original Rust tests, one exact reviewed delivery,
+matching/mismatching meaning candidates and historical restart. It also records the
+preceding failed trials that exposed scratch-file and form-handler friction; those
+failures were not counted as successful validation. That earlier trial used lexical
+Rust graphs; selected-module Atlas extraction is a separate path described above.
+A separate comparison model is now selectable with `--judge-model MODEL` on the
+same host-selected HTTP connection. Both models/destinations appear in the fixed
+processor heading and receive separate immutable session grants. Changing providers
+requires a fresh review. Cancellation, revocation, expiry and invalid judge replies
+stop analysis without a fallback. The journal records both bindings and retains a
+completed blind translation when comparison fails. Different model IDs do not
+establish statistical independence or attest provider weights. This option currently
+requires HTTP; the ordinary confined local-model path remains separate.
+
+The [selected-module Atlas cloud trial](../results/native-gui-atlas-ollama-cloud-minimax-m3-70faa07.json)
+completed the application journey, compiled a model-written Lean module with
+Lean 4.35.0 and obtained the expected threshold mismatch/match through the actual
+graph-bound two-pass adapter. Its raw candidate text also introduced an unsupported
+currency unit, guessed at an omitted proof and contained malformed prose. These
+observations are retained: correct verdicts on two examples do not establish
+general semantic accuracy or reliable explanations.
+
+## Recorded demo: start
 
 ```sh
 npm ci
@@ -139,9 +555,8 @@ Recorded and demo messages retain distinct origins in the shared schema. Editing
 requirements only changes browser drafts, not the Rust controller's accepted
 meaning. The existing TUI/runtime remains the execution authority.
 
-A local gateway is still pending. The shared schema, agent protocol and repository
-port establish its frontend seam; existing host persistence uses bounded JSON,
-not an already implemented SQLite gateway. See the [architecture map](architecture/semantic-workspace.md).
+The standalone demo uses the browser repository port; `meden gui` uses the
+implemented native loopback gateway and existing bounded host JSON persistence. See the [architecture map](architecture/semantic-workspace.md).
 
 ## Interaction references
 
@@ -188,6 +603,7 @@ npm test
 npm run build
 npm run schema:check
 npm run format:check
+cargo build -p meden-cli
 npm run test:gui
 ```
 
@@ -197,8 +613,16 @@ traces and the HTML report are retained under `target/gui-checks/`. On Linux CI,
 install Chromium with `npx playwright install --with-deps chromium`; on this
 NixOS host the config uses installed Chrome. `MEDEN_GUI_CHROME` overrides its path.
 
-Browser journeys cover send/title/history/reload, independent sidebar controls,
-preview actions, graph
+Native browser journeys execute the actual binary and offline workers with a
+scripted HTTP provider: file creation, provider failure, retained context/restart,
+fresh processor review, revocation, silent waiting, cancellation before dispatch,
+concurrent-turn refusal and origin/Host/token checks. A native graph journey covers
+local source observation, exact-line navigation, development changes, failed-read
+recovery, reload and compact accessibility. They are not live-model or
+cold-verifier-install evidence. The Python UX gate also exercises GUI→TUI→GUI
+checkpoint handoff through a real PTY.
+
+Recorded-demo browser journeys cover send/title/history/reload, independent sidebar controls, preview actions, graph
 inspection, freshness, scoped export, import errors, storage failure/retry,
 legacy-history migration/restart, compact layout and keyboard entry. Axe checks home, conversation, all three
 sidebar tabs, source navigation, algorithm popover and semantic differences against automated WCAG 2.1 AA rules. This is not a complete manual
@@ -214,3 +638,36 @@ Earlier GUI captures
 [Preview](assets/gui/preview.png) · [Compact home](assets/gui/compact-home.png) ·
 [Compact preview](assets/gui/compact-preview.png).
 The [check record](assets/gui/verification.json) records scope and limits.
+
+Import collection evaluates frozen `lakefile.lean` or `lakefile.toml` with the
+installed Lake package loader inside the offline analysis worker. It never calls
+Lake dependency materialization, update, build hooks or host Lake execution.
+Local path dependencies and root-manifest packages already present inside the
+workspace are discovered. Installed Lean/Atlas library modules remain explicit
+external boundaries. Missing/ambiguous sources or conflicting manifest entries stop.
+The frozen graph records configuration/manifest contents, probed absences, module
+identities and glob inventories; changes invalidate analysis and pending repairs.
+Cached source contents are observed and hashed; their Git commit is not attested.
+A missing import fails collection and clears the current graph. Selected roots,
+collected files and external module names are retained with the source artifact.
+
+The [two-model TUI repair trial](../results/tui-meaning-repair-gptoss120-exact-vocabulary.json)
+used minimax-m3 for translation/repair and gpt-oss:120b for comparison. It detected
+the 150/100 threshold mismatch, reviewed the frozen diff, applied it once,
+reanalyzed the same requirement, passed independent offline Rust boundary tests
+and restarted without restoring approval. The preceding
+[retired-model failure](../results/tui-meaning-repair-qwen480-retired.json) and
+[invalid-category failure](../results/tui-meaning-repair-gptoss120-retained-failure.json)
+are retained too. Naming exact schema vocabulary in the comparison prompt enabled
+this successful retry under a new host review; parsing remained strict with no
+fallback. These synthetic cloud trials use an installed verifier prerequisite,
+not cold setup, local inference or general quality validation.
+
+The [Lake cloud trial](../results/tui-lake-ollama-cloud-minimax-m3-gptoss120.json)
+used the public TUI to prepare real Lean/Lake, discover four modules across local
+and prepopulated manifest packages, compare `Domain.eligible` through minimax-m3
+and gpt-oss:120b, observe the expected 150/100 mismatch, refuse an older graph after
+a missing input, recover through `/atlas` and restart with fresh processor review.
+It retained the exact graph/source/configuration snapshot and unchanged fixture
+files. This is a synthetic-data cloud workflow, not Git-origin attestation, native
+project proof, cold installation, general semantic accuracy or local inference.

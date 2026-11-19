@@ -8,11 +8,18 @@ use std::io::{self, Read, Write};
 use std::path::PathBuf;
 use std::process::ExitCode;
 use std::sync::{atomic::AtomicBool, Arc};
+mod analysis;
+mod atlas;
 mod connection;
 mod exports;
+mod gui;
+mod handoff;
+mod judge;
+mod lean_project;
 mod pages;
 mod project;
 mod protocol;
+mod semantic;
 mod session;
 mod shell;
 mod storage;
@@ -30,14 +37,47 @@ struct Cli {
 }
 #[derive(Subcommand)]
 enum Command {
+    /// Keep portable work items and check history under the workspace's .meden directory.
+    Work {
+        #[arg(long, default_value = ".")]
+        workspace: PathBuf,
+        #[command(subcommand)]
+        action: WorkCommand,
+    },
+    /// Run host-selected Lake arguments offline with an explicitly installed Lean distribution.
+    Lake {
+        #[arg(long, default_value = ".")]
+        workspace: PathBuf,
+        #[arg(long)]
+        lean: PathBuf,
+        #[arg(long, default_value_t = 1800)]
+        timeout: u64,
+        #[arg(last = true, required = true)]
+        arguments: Vec<String>,
+    },
     /// List available HTTP model connections.
     Providers,
     /// Prepare and remember the local verification tools (also automatic in TUI).
     Setup,
+    /// Prepare the pinned Lean Atlas library using an installed Lean distribution.
+    SetupAtlas,
+    /// Show notices for bundled source adaptations.
+    SourceNotices,
     /// Open a conversational workspace agent.
     Tui(WorkspaceArgs),
     /// Run instructions from JSON Lines with offline repository tools.
     Run(WorkspaceArgs),
+    /// Serve the browser UI attached to the native local workspace/session.
+    Gui {
+        #[command(flatten)]
+        args: WorkspaceArgs,
+        /// Built GUI directory (run npm run build first).
+        #[arg(long, default_value = "apps/web/dist")]
+        assets: PathBuf,
+        /// Loopback port; zero selects an available port.
+        #[arg(long, default_value_t = 4322)]
+        port: u16,
+    },
     /// Run Bash from stdin in a new private offline workspace.
     Exec {
         /// Project to import; the original is not modified.
@@ -85,6 +125,42 @@ enum Command {
         arguments: Vec<std::ffi::OsString>,
     },
 }
+#[derive(Subcommand)]
+enum WorkCommand {
+    Init {
+        #[arg(long)]
+        name: String,
+    },
+    Add {
+        #[arg(long)]
+        id: String,
+        #[arg(long)]
+        title: String,
+        #[arg(long)]
+        requirement: String,
+        #[arg(long)]
+        module: String,
+        #[arg(long)]
+        theorem: Vec<String>,
+        #[arg(
+            long,
+            default_value = "Inspect current sources and continue the recorded requirement."
+        )]
+        next: String,
+    },
+    Note {
+        id: String,
+        #[arg(long)]
+        text: String,
+        #[arg(long)]
+        next: Option<String>,
+    },
+    Check {
+        id: String,
+    },
+    Show,
+    Save,
+}
 #[derive(Args)]
 struct WorkspaceArgs {
     #[command(flatten)]
@@ -123,6 +199,23 @@ fn run() -> Result<()> {
         .command
         .unwrap_or_else(|| Command::Tui(WorkspaceArgs::default()))
     {
+        Command::Work { workspace, action } => {
+            work(&workspace, action)?;
+        }
+        Command::Lake {
+            workspace,
+            lean,
+            timeout,
+            arguments,
+        } => {
+            let report = lean_project::run(&workspace, &lean, &arguments, timeout)?;
+            serde_json::to_writer(io::stdout().lock(), &report)?;
+            println!();
+            anyhow::ensure!(
+                report.get("success").and_then(serde_json::Value::as_bool) == Some(true),
+                "Offline Lake operation failed; see its report"
+            );
+        }
         Command::WorkerLaunch { arguments } => meden_runtime::process::exec_clean(&arguments)?,
         Command::WorkerKernelSyntax => worker_kernel_syntax()?,
         Command::VerifyKernel {
@@ -151,6 +244,13 @@ fn run() -> Result<()> {
             std::path::Path::new("/workspace"),
         )?,
         Command::Providers => print_providers(),
+        Command::Gui { args, assets, port } => gui::run(&args, &assets, port)?,
+        Command::SetupAtlas => setup_atlas()?,
+        Command::SourceNotices => println!(
+            "Lean Atlas (bundled extraction core)\n{}\nclaimcheck (prompt/output adaptation)\n{}",
+            include_str!("atlas/vendor/LICENSE"),
+            include_str!("semantic/CLAIMCHECK-LICENSE")
+        ),
         Command::Setup => {
             verifier::prepare()?;
         }
@@ -170,47 +270,68 @@ fn run() -> Result<()> {
                 pages,
                 local,
                 interactive,
+                (&args.model.judge_model, args.model.approve_judge.as_deref()),
             )?;
         }
-        Command::Run(args) => {
-            let pages = load_pages(args.pages.as_deref())?;
-            let local = args.model.local_config()?;
-            let approved = if local.is_none() {
-                Some(args.model.approve_processor.as_deref().context(
+        Command::Run(args) => run_protocol(&args)?,
+    }
+    Ok(())
+}
+
+fn run_protocol(args: &WorkspaceArgs) -> Result<()> {
+    let pages = load_pages(args.pages.as_deref())?;
+    let local = args.model.local_config()?;
+    let approved = if local.is_none() {
+        Some(args.model.approve_processor.as_deref().context(
                 "run requires --approve-processor with the exact inference URL (/chat/completions, /responses or /messages); this permits sending conversation and tool results to that processor for this session (up to eight hours)",
             )?)
-            } else {
-                None
-            };
-            let mut input = io::BufReader::new(io::stdin());
-            let first = protocol::read_command(&mut input)?.context("no command received")?;
-            let workspace = Arc::new(Workspace::open(&args.workspace, &std::env::current_exe()?)?);
-            let processes = Arc::new(Control::new(Arc::new(AtomicBool::new(false))));
-            let session = workspace.session_id();
-            let gateway = Arc::new(if let Some(config) = local {
-                meden_llm::Gateway::prepare_local(
-                    session,
-                    &config,
-                    &std::env::current_exe()?,
-                    Arc::clone(&processes),
-                )?
-            } else {
-                let provider = args.model.connection()?;
-                let gateway = meden_llm::Gateway::prepare(session, provider)?;
-                approve_processor(&gateway, approved.context("missing processor approval")?)?;
-                gateway
-            });
-            protocol::run(
-                first,
-                &mut input,
-                &mut io::stdout().lock(),
-                &workspace,
-                gateway,
-                &processes,
-                &pages,
-            )?;
-        }
+    } else {
+        None
+    };
+    let mut input = io::BufReader::new(io::stdin());
+    let first = protocol::read_command(&mut input)?.context("no command received")?;
+    let workspace = Arc::new(Workspace::open(&args.workspace, &std::env::current_exe()?)?);
+    let processes = Arc::new(Control::new(Arc::new(AtomicBool::new(false))));
+    let session = workspace.session_id();
+    let gateway = Arc::new(if let Some(config) = local {
+        meden_llm::Gateway::prepare_local(
+            session,
+            &config,
+            &std::env::current_exe()?,
+            Arc::clone(&processes),
+        )?
+    } else {
+        let provider = args.model.connection()?;
+        let gateway = meden_llm::Gateway::prepare(session, provider)?;
+        approve_processor(&gateway, approved.context("missing processor approval")?)?;
+        gateway
+    });
+    let judge = judge::prepare(session, &gateway, args.model.judge_model.as_deref())?;
+    if let Some(judge) = &judge {
+        approve_processor(
+            judge,
+            args.model
+                .approve_judge
+                .as_deref()
+                .context("run with --judge-model requires --approve-judge URL")?,
+        )?;
     }
+    protocol::run(
+        first,
+        &mut input,
+        &mut io::stdout().lock(),
+        &workspace,
+        (gateway, judge),
+        &processes,
+        &pages,
+    )?;
+    Ok(())
+}
+
+fn setup_atlas() -> Result<()> {
+    let atlas = atlas::Configuration::host();
+    atlas.prepare(&Control::new(Arc::new(AtomicBool::new(false))))?;
+    println!("{}", serde_json::to_string(&atlas.status())?);
     Ok(())
 }
 
@@ -334,5 +455,45 @@ fn execute(source: &std::path::Path) -> Result<()> {
     };
     println!("{}", serde_json::to_string(&record)?);
     result?;
+    Ok(())
+}
+
+fn work(root: &std::path::Path, action: WorkCommand) -> Result<()> {
+    let workspace = Workspace::open(root, &std::env::current_exe()?)?;
+    let control = Control::new(Arc::new(AtomicBool::new(false)));
+    match action {
+        WorkCommand::Init { name } => handoff::initialize(&workspace, &control, name)?,
+        WorkCommand::Add {
+            id,
+            title,
+            requirement,
+            module,
+            theorem,
+            next,
+        } => handoff::put(
+            &workspace,
+            &control,
+            handoff::Work {
+                id,
+                title,
+                requirement,
+                module,
+                theorems: theorem,
+                next,
+            },
+        )?,
+        WorkCommand::Note { id, text, next } => {
+            handoff::note(&workspace, &control, &id, text, next)?;
+        }
+        WorkCommand::Check { id } => handoff::check(&workspace, &control, &id)?,
+        WorkCommand::Show => {
+            serde_json::to_writer_pretty(
+                io::stdout().lock(),
+                &handoff::view(&workspace, &control),
+            )?;
+            println!();
+        }
+        WorkCommand::Save => handoff::checkpoint(&workspace, &control)?,
+    }
     Ok(())
 }

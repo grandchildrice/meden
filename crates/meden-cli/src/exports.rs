@@ -32,6 +32,7 @@ pub struct Summary {
     pub contract: Option<String>,
     pub target: String,
     pub bytes: usize,
+    pub payload_sha256: String,
     pub state: &'static str,
 }
 
@@ -52,6 +53,7 @@ impl Prepared {
                 .map(|v| format!("{:x}", Sha256::digest(&v.subject.contract))),
             target: snapshot.target,
             bytes: snapshot.payload.len(),
+            payload_sha256: format!("{:x}", Sha256::digest(&snapshot.payload)),
             state: snapshot.phase.label(),
         })
     }

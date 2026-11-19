@@ -70,24 +70,48 @@ checks run offline, so project dependencies must be available locally.
 
 ## Web GUI
 
-A TypeScript/Vite GUI is available in this repository:
+Build the browser UI and attach it to a real local project:
 
 ```sh
 npm ci
-npm run dev
+npm run build
+cargo build -p meden-cli
+./target/debug/meden gui --workspace /path/to/project --provider YOUR_PROVIDER --model YOUR_MODEL
 ```
 
-Open `http://127.0.0.1:4320` and send an instruction. Conversation titles are
-automatic. Use the button on the left of the toolbar to open or collapse the
-conversation sidebar. The artifact button on the right opens Code, Preview and
-Proof. The default vending-machine example includes meden-demo's
-actual code, the original request supplied by the user, 13 recorded messages,
-25 original tool calls/results and 8 archived
-pure-step proof results. Select a graph node, read its statement and open the
-exact Lean source line. Meaning analysis includes a progress/diff GUI demo.
-Conversations save in this browser. New responses are a GUI demo; the native
-agent/Lean gateway is not connected. Use the TUI for actual agent execution
-and verification.
+Open the session URL printed in the terminal. Review the exact processor destination
+in the browser, approve it, then send an instruction. The GUI uses the same native
+agent, offline tools, files and conversation checkpoints as the TUI. Stop the GUI
+before opening that project in the TUI; the repository permits one writer.
+Code, actual tool inputs/results and native contract status appear beside the chat.
+The Graph tab reads selected local Rust/Lean files and opens each indexed declaration
+at its exact source line. This is a source-reference index, not a new proof check.
+With installed Lean, its preparation/extraction controls run the pinned Lean Atlas
+core offline on selected modules. Compiled type/value dependencies and declarations
+can then supply meaning analysis; a successful extraction does not grant proof status.
+Select a declaration, enter a requirement and run meaning analysis to get a
+source-bound back-translation and comparison through the reviewed processor.
+These model assessments do not accept contracts or establish proofs.
+The Preview tab opens selected local HTML/JS/CSS or static build output, so you can
+interact with the developed application and reread files after edits. It supports
+browser applications without backend services or persistent browser storage.
+The Delivery tab reviews the same fixed file/checked-package queue as the TUI,
+then sends once to the displayed destination or rejects the proposal.
+HTTP connections can also use `--base-url URL --model MODEL --api-key-env NAME`.
+Prepare real proof tools with `meden setup` before requesting formal verification.
+
+The **作業・履歴** tab keeps named work items, requirements, next steps, visible
+conversation and local Lean check records in `.meden/workspace.json`. Commit that
+file with your sources to continue from a clone on another machine. Open the clone
+with `meden gui --workspace /path/to/clone`; select a task and **この作業を再開**.
+The new machine reviews its own processor connection. Imported results are history;
+use **Leanを再チェック** with the project's installed Lean and prepared dependencies.
+The TUI offers the same records through `/work`, including `/work resume ID`.
+[Portable work and prerequisites →](docs/gui.md#portable-work-and-check-history)
+
+`npm run dev` opens the separate recorded vending-machine demo at
+`http://127.0.0.1:4320`. Its graph, preview and simulated meaning-analysis UI use
+archived/demo data. Native preview and meaning analysis use the selected local project.
 
 [GUI development and checks](docs/gui.md) ·
 [Shared contracts and strategy implementation map](docs/architecture/semantic-workspace.md)
@@ -116,18 +140,18 @@ they do not measure live-model capability. [Reproduce the captures →](tools/ca
 
 ## Daily use
 
-| Action | Key or command |
-| --- | --- |
-| Send / insert a newline | Enter / Shift+Enter (Ctrl+J also works) |
-| Scroll | Mouse wheel or PgUp/PgDn |
-| Inspect tool details | Ctrl+T |
-| Inspect requirements and evidence | Ctrl+G or `/proofs` |
-| Configure / switch a connection | `/connect` / `/model` |
-| Continue a stopped task | `/retry` |
-| Start a new chat, retaining files | `/new` |
-| Clear chat and its view, retaining files | `/clear` |
-| Find the working directory | `/workspace` |
-| All shortcuts / quit | `/help` / `/quit` |
+| Action                                   | Key or command                          |
+| ---------------------------------------- | --------------------------------------- |
+| Send / insert a newline                  | Enter / Shift+Enter (Ctrl+J also works) |
+| Scroll                                   | Mouse wheel or PgUp/PgDn                |
+| Inspect tool details                     | Ctrl+T                                  |
+| Inspect requirements and evidence        | Ctrl+G or `/proofs`                     |
+| Configure / switch a connection          | `/connect` / `/model`                   |
+| Continue a stopped task                  | `/retry`                                |
+| Start a new chat, retaining files        | `/new`                                  |
+| Clear chat and its view, retaining files | `/clear`                                |
+| Find the working directory               | `/workspace`                            |
+| All shortcuts / quit                     | `/help` / `/quit`                       |
 
 Ordinary tool and checker rejections feed bounded automatic repair. If work
 must stop, the TUI explains why, what remains incomplete and what to do next.
@@ -198,3 +222,34 @@ specifications and Python integration checks. Work on `main` and follow the
 ## License
 
 [Apache-2.0](LICENSE).
+
+### Inspect candidate meaning in the TUI
+
+After choosing your connection, use `/atlas-prepare` to prepare the installed
+Lean Atlas library offline, then `/atlas` to discover Lake library/executable roots, or
+`/atlas src/App.lean` to select a source. Lake package/library `srcDir`, local path
+dependencies and already-populated manifest packages are resolved offline.
+The collected module closure is compiled and listed with its original file paths. Run
+`/analyze Demo.stock_bound -- Stock always decreases on purchase` to compare a
+requirement with a blind natural-language translation of that declaration.
+For a source-only observation, use `/sources stock.rs`, then
+`/analyze stock.rs:2 stock -- Stock always decreases`.
+
+`/analysis` shows the retained assessment; `/analysis history` lists previous
+runs and `/analysis ID` selects an analysis or Finding ID. Exact requirement text
+has a stable ID; reruns keep earlier findings and their source revisions. These are model-generated candidate
+findings, separate from native proof evidence. Cancellation and provider errors
+stop the operation. Changed sources require rereading; reopening retains a
+historical result and requires a fresh processor review before inference.
+
+For a mismatch/unclear Finding, `/repair` prepares one source diff. The review
+keeps the file, hash and original requirement identity fixed while details
+scroll. Press `y` to apply once and reanalyze the original requirement, or `n`/Esc
+to reject. Changed source or accepted-contract identity invalidates the proposal.
+Pending approval is discarded on restart. Reanalysis is a candidate assessment;
+formal proof evidence requires a fresh check.
+
+Use `--judge-model MODEL` with the same HTTP connection to select a different model
+for meaning comparison. The processor review shows both models before sending.
+For JSONL `run`, also provide `--approve-judge` with the exact inference URL;
+approval is session-scoped and is never restored or renewed automatically.

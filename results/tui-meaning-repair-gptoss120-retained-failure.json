@@ -1,0 +1,100 @@
+{
+  "success": false,
+  "provider": "hermes:ollama-cloud",
+  "model": "minimax-m3",
+  "judge_model": "gpt-oss:120b",
+  "binary": "/home/gohan/workspace/meden/target/release/meden",
+  "binary_sha256": "72da2e806ebb23d46de2efc938048044e7b8c88ca060b143e03b882fedd487d3",
+  "verifier_bundle": "/home/gohan/.local/share/meden/verifier/lean-4.35.0-aeneas-c5eb4a2-rust-2026-09-17/bundle.json",
+  "original_source": "pub fn eligible(balance: u64, stock: u64) -> bool { balance >= 150 && stock > 0 }\n",
+  "requirement": "すべてのu64の残高と在庫について、残高が100以上かつ在庫が正のときだけ購入を許可し、それ以外は拒否する。",
+  "screens": [
+    {
+      "step": "processor review",
+      "screen": "                              MEDEN  /  minimax-m3                                                                                                              \n                              Project: /tmp/meden-meaning-smoke-y75q47al/project                                                                                \n                              Repository changes saved in place · offline tools                                                                                 \n                              Allow ollama-cloud (via Hermes) to receive workspace context?                                                                     \n                              Your messages, file contents and tool results will be shared with this connection.                                                \n                                                                                                                                                                \n                              ╭ Connection details ──────────────────────────────────────────────────────────────────────────────╮                              \n                              │Destination: https://ollama.com/v1/chat/completions                                               │                              \n                              │Connection: hermes:ollama-cloud                                                                   │                              \n                              │Model: minimax-m3                                                                                 │                              \n                              │Credential: host-configured account                                                               │                              \n                              │Scope: workspace conversation, files and tool results; one session, up to eight hours.            │                              \n                              │Separate judge destination: https://ollama.com/v1/chat/completions                                │                              \n                              │Judge model: gpt-oss:120b                                                                         │                              \n                              │Judge scope: original requirement and blind back-translation; same session/expiry.                │                              \n                              ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯                              \n                                                                                                                                                                \n                              Account configuration: from /home/gohan/.hermes/config.yaml                                                                       \n                                                                                                                                                                \n                              Code execution and proof checks stay offline.                                                                                     \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                               y: Allow for this session   n / esc: Back                                                                                        \n                              wheel / PgUp/PgDn details · Enter and paste do not approve.                                                                       \n                                                                                                                                                                \n                                                                                                                                                                "
+    },
+    {
+      "step": "failure",
+      "screen": "                              MEDEN  /  minimax-m3                                                                                                              \n                              Project: /tmp/meden-meaning-smoke-y75q47al/project                                                                                \n                              Repository changes saved in place · offline tools                                                                                 \n                              · Source graph ready: 1 files                                                                                                     \n                              · Revision: sha256:4f1ee977b7b5a2e00da464bd2f476e2d85ab8530150dd22b75991ac3c1e4ad9d                                               \n                              · Use /analyze NAME -- requirement (Atlas), or /analyze FILE:LINE NAME -- requirement.                                            \n                                                                                                                                                                \n                              · Analysis stopped: invalid structured meaning-analysis result: unknown variant `postcondition`,                                  \n                              expected one of `none`, `tautology`, `weakened-postcondition`, `narrowed-scope`, `missing-case`,                                  \n                              `wrong-property` at line 1 column 613. Use /analysis to inspect the retained outcome.                                             \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                                                                                                                                                                \n                              ╭ Your message ────────────────────────────────────────────────────────────────────────────────────╮                              \n                              │> Describe your app or ask a question…                                                            │                              \n                              ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯                              \n                              enter send · shift+enter newline · ctrl+t transcript · ctrl+o copy                                                                \n                              ctrl+g evidence · / commands · ? shortcuts · wheel / PgUp/PgDn scroll                                                             "
+    }
+  ],
+  "scope": "Synthetic public-TUI repair; independent real offline Rust tests. No native proof receipt, general accuracy, local inference or cold install claim.",
+  "initial_analysis": {
+    "version": 2,
+    "sequence": 1,
+    "id": "analysis-35ad6f9a06bdb7008b33cb9844503a0cb569000afd82d916b4380bf6bba41c5f",
+    "requirement_id": "requirement-78e294a0254bb2d3ec801f0d1e3b173e531501eb6f9e40ec60fe18bc41890014",
+    "finding_id": null,
+    "source_artifact": "sha256:8836b7e58f6ccd56be597266c3457e7d06173af765c1d05494b55406544be51d",
+    "engine": "meden-claimcheck-roundtrip-v1",
+    "model": "minimax-m3",
+    "processor": "https://ollama.com/v1/chat/completions",
+    "judge": {
+      "model": "gpt-oss:120b",
+      "endpoint": "https://ollama.com/v1/chat/completions"
+    },
+    "input": {
+      "source_revision": "sha256:4f1ee977b7b5a2e00da464bd2f476e2d85ab8530150dd22b75991ac3c1e4ad9d",
+      "target": {
+        "file": "eligibility.rs",
+        "line": 1,
+        "name": "eligible"
+      },
+      "requirement": "すべてのu64の残高と在庫について、残高が100以上かつ在庫が正のときだけ購入を許可し、それ以外は拒否する。"
+    },
+    "state": "failed",
+    "assessment": null,
+    "partial_translation": {
+      "lemmaName": "eligible",
+      "naturalLanguage": "A pure, side-effect-free predicate `eligible(balance: u64, stock: u64) -> bool` that reports whether a customer is eligible. It returns `true` exactly when the balance is at least 150 (inclusive, so a balance of exactly 150 qualifies) and the stock is strictly greater than zero (so a stock of 0 disqualifies). Because Rust's `&&` short-circuits, when `balance < 150` the second comparison is never evaluated, but this is unobservable to the caller since the comparison cannot fail or panic. The function performs no arithmetic, so no overflow or underflow is possible, and it never panics; it takes no references and mutates nothing.",
+      "preconditions": "Inputs are two unsigned 64-bit integers `balance` and `stock`. There are no other preconditions: no bounds, ranges, invariants, or error conditions are required, and the function cannot panic or divide by zero, so it is total on all `u64` inputs.",
+      "postcondition": "The returned value is `true` if and only if `balance >= 150` and `stock > 0`; in every other case (balance below 150, or stock equal to 0, or both) it returns `false`. The function has no effect on the arguments and no side effects.",
+      "scope": "A single, self-contained function evaluation on one pair of inputs; it is pure and stateless, describing no transition, no reachable-state invariant, and no loop over a collection.",
+      "strength": "moderate",
+      "confidence": 0.97
+    },
+    "error": "invalid structured meaning-analysis result: unknown variant `postcondition`, expected one of `none`, `tautology`, `weakened-postcondition`, `narrowed-scope`, `missing-case`, `wrong-property` at line 1 column 613"
+  },
+  "error": "RuntimeError: Initial analysis did not establish the expected candidate mismatch",
+  "history": [
+    {
+      "version": 2,
+      "sequence": 1,
+      "id": "analysis-35ad6f9a06bdb7008b33cb9844503a0cb569000afd82d916b4380bf6bba41c5f",
+      "requirement_id": "requirement-78e294a0254bb2d3ec801f0d1e3b173e531501eb6f9e40ec60fe18bc41890014",
+      "finding_id": null,
+      "source_artifact": "sha256:8836b7e58f6ccd56be597266c3457e7d06173af765c1d05494b55406544be51d",
+      "engine": "meden-claimcheck-roundtrip-v1",
+      "model": "minimax-m3",
+      "processor": "https://ollama.com/v1/chat/completions",
+      "judge": {
+        "model": "gpt-oss:120b",
+        "endpoint": "https://ollama.com/v1/chat/completions"
+      },
+      "input": {
+        "source_revision": "sha256:4f1ee977b7b5a2e00da464bd2f476e2d85ab8530150dd22b75991ac3c1e4ad9d",
+        "target": {
+          "file": "eligibility.rs",
+          "line": 1,
+          "name": "eligible"
+        },
+        "requirement": "すべてのu64の残高と在庫について、残高が100以上かつ在庫が正のときだけ購入を許可し、それ以外は拒否する。"
+      },
+      "state": "failed",
+      "assessment": null,
+      "partial_translation": {
+        "lemmaName": "eligible",
+        "naturalLanguage": "A pure, side-effect-free predicate `eligible(balance: u64, stock: u64) -> bool` that reports whether a customer is eligible. It returns `true` exactly when the balance is at least 150 (inclusive, so a balance of exactly 150 qualifies) and the stock is strictly greater than zero (so a stock of 0 disqualifies). Because Rust's `&&` short-circuits, when `balance < 150` the second comparison is never evaluated, but this is unobservable to the caller since the comparison cannot fail or panic. The function performs no arithmetic, so no overflow or underflow is possible, and it never panics; it takes no references and mutates nothing.",
+        "preconditions": "Inputs are two unsigned 64-bit integers `balance` and `stock`. There are no other preconditions: no bounds, ranges, invariants, or error conditions are required, and the function cannot panic or divide by zero, so it is total on all `u64` inputs.",
+        "postcondition": "The returned value is `true` if and only if `balance >= 150` and `stock > 0`; in every other case (balance below 150, or stock equal to 0, or both) it returns `false`. The function has no effect on the arguments and no side effects.",
+        "scope": "A single, self-contained function evaluation on one pair of inputs; it is pure and stateless, describing no transition, no reachable-state invariant, and no loop over a collection.",
+        "strength": "moderate",
+        "confidence": 0.97
+      },
+      "error": "invalid structured meaning-analysis result: unknown variant `postcondition`, expected one of `none`, `tautology`, `weakened-postcondition`, `narrowed-scope`, `missing-case`, `wrong-property` at line 1 column 613"
+    }
+  ],
+  "final_source": "pub fn eligible(balance: u64, stock: u64) -> bool { balance >= 150 && stock > 0 }\n",
+  "seconds": 13.454,
+  "tested_source": "Binary SHA-256 identifies the tested build. Import-closure/second-judge development tree before the following feature commit; not a clean-release or cold-install claim."
+}

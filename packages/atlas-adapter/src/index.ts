@@ -2,49 +2,14 @@ import {
   longestPathLevels,
   layoutCone,
 } from "../vendor/lean4semanticbench-layout.js";
-import { z } from "zod";
+import { atlasGraphSchema } from "@meden/workspace-schema";
 import type { Declaration, Workspace } from "@meden/workspace-schema";
-
-const atlasSchema = z.object({
-  metadata: z.object({
-    projectName: z.string(),
-    leanVersion: z.string().optional(),
-    generatedAt: z.string().optional(),
-  }),
-  nodes: z
-    .array(
-      z.object({
-        id: z.string().min(1),
-        shortName: z.string(),
-        kind: z.string(),
-        filePath: z.string(),
-        lineStart: z.number().int().positive().nullable().optional(),
-        hasSorry: z.boolean(),
-        meta: z
-          .object({
-            summary: z.string().nullable().optional(),
-            axioms: z.array(z.string()).nullable().optional(),
-          })
-          .passthrough(),
-      }),
-    )
-    .max(20_000),
-  edges: z
-    .array(
-      z.object({
-        source: z.string(),
-        target: z.string(),
-        kind: z.string().optional(),
-      }),
-    )
-    .max(100_000),
-});
 
 /** Structural import. Atlas metadata alone cannot establish a fresh proof receipt. */
 export function importAtlas(
   input: unknown,
 ): Pick<Workspace, "name" | "declarations" | "edges"> {
-  const graph = atlasSchema.parse(input);
+  const graph = atlasGraphSchema.parse(input);
   const ids = new Set(graph.nodes.map((node) => node.id));
   if (ids.size !== graph.nodes.length)
     throw new Error("宣言のIDが重複しています");
@@ -62,15 +27,18 @@ export function importAtlas(
         : node.kind === "axiom"
           ? "axiom"
           : "definition",
-    statement: "",
-    summary: node.meta.summary || undefined,
+    statement: node.statement || "",
+    summary: node.meta?.summary || undefined,
     source: {
       file: node.filePath,
       ...(node.lineStart ? { line: node.lineStart } : {}),
     },
     proofStatus: node.hasSorry ? "unproved" : "unknown",
     evidenceRefs: [],
-    axioms: node.meta.axioms || [],
+    axioms: [
+      ...(node.axioms || node.meta?.axioms || []),
+      ...(node.standardAxioms || []),
+    ],
   }));
   return {
     name: graph.metadata.projectName,
@@ -78,13 +46,26 @@ export function importAtlas(
     edges: graph.edges.map((edge) => ({
       source: edge.source,
       target: edge.target,
-      site: edge.kind?.includes("_type_to_")
-        ? "type"
-        : edge.kind?.includes("_value_to_")
-          ? "value"
-          : "unknown",
+      site: edgeSite(edge.kind),
     })),
   };
+}
+
+function edgeSite(kind: string | undefined): "type" | "value" | "unknown" {
+  switch (kind) {
+    case "theorem_type_to_definition":
+    case "theorem_type_to_theorem":
+    case "definition_type_to_definition":
+    case "definition_type_to_theorem":
+      return "type";
+    case "theorem_value_to_definition":
+    case "theorem_value_to_theorem":
+    case "definition_value_to_definition":
+    case "definition_value_to_theorem":
+      return "value";
+    default:
+      return "unknown";
+  }
 }
 
 export type GraphScope = "dependencies" | "meaning" | "project";
@@ -95,6 +76,7 @@ export function dependencyScope(
   scope: GraphScope,
 ): Set<string> {
   const nodes = new Map(workspace.declarations.map((node) => [node.id, node]));
+  if (scope === "project") return new Set(nodes.keys());
   const edges = new Map<string, Workspace["edges"]>();
   for (const edge of workspace.edges) {
     if (
@@ -106,11 +88,6 @@ export function dependencyScope(
     const outgoing = edges.get(edge.source) || [];
     outgoing.push(edge);
     edges.set(edge.source, outgoing);
-    if (scope === "project")
-      edges.set(edge.target, [
-        ...(edges.get(edge.target) || []),
-        { ...edge, target: edge.source },
-      ]);
   }
   const seen = new Set<string>();
   const pending = nodes.has(root) ? [root] : [];
@@ -162,6 +139,10 @@ export function radialLayout(
         pending.push(target);
       }
     }
+  if (scope === "project") {
+    const outerDepth = Math.max(0, ...depths.values()) + 1;
+    for (const id of visible) if (!depths.has(id)) depths.set(id, outerDepth);
+  }
   const rings = new Map<number, string[]>();
   for (const [id, depth] of depths) {
     const ring = rings.get(depth) || [];

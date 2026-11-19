@@ -95,7 +95,10 @@ impl App {
             || self.evidence_open()
             || matches!(
                 self.screen,
-                Screen::ReviewingProcessor | Screen::ReviewingExport | Screen::ReviewingContract
+                Screen::ReviewingProcessor
+                    | Screen::ReviewingExport
+                    | Screen::ReviewingContract
+                    | Screen::ReviewingRepair
             )
     }
 

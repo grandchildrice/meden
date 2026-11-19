@@ -6,6 +6,32 @@ The old AgentDojo host-tool bridge and benchmark adapter have also been
 removed. Current `meden run` uses the same private offline coding session
 as the TUI; commands below describe historical interfaces, not current ones.
 
+## Native GUI and Atlas with Ollama Cloud
+
+The [portable Lean continuation trial](portable-lean-ollama-cloud-minimax-m3.json)
+resumed a genuine failing Lean theorem through the GUI with fresh Ollama Cloud
+approval. `minimax-m3` repaired the original universal statement using the real
+file tools. The host's actual offline Lean check then passed and reported its
+exact type with no axioms. Native Rust contract acceptance remained absent.
+Saved visible messages survived an unapproved restart. The observation probe's
+initial message-locator error is retained separately; no host source repair or
+second inference run rescued that outcome. This is an installed-toolchain cloud
+trial, not local inference, cold installation or confidentiality evidence.
+
+The [application trial at `afa18b7`](native-gui-development-ollama-cloud-minimax-m3-afa18b7.json)
+used live `minimax-m3` to develop an interactive local app, pass independent Rust
+tests, review/send exact delivery bytes and compare lexical source meaning.
+The [Atlas trial at `70faa07`](native-gui-atlas-ollama-cloud-minimax-m3-70faa07.json)
+also compiled a model-written Lean analysis module with real Lean 4.35.0 and
+compared its elaborated declaration scope. The threshold-100 requirement returned
+mismatch and threshold-150 returned match; restart retained historical analysis.
+
+The second record preserves unsupported units/proof guesses and malformed prose
+in the model's explanations. Two expected verdicts are not a general accuracy
+measurement. The Rust app, JavaScript mirror and Lean analysis model have no new
+correspondence proof; semantic candidates never create native proof coverage.
+Both trials use approved cloud inference, not a measured local deployment.
+
 ## Checked delivery with Ollama Cloud
 
 The [trial at `8dea35f`](checked-delivery-ollama-cloud-minimax-m3-8dea35f.json)

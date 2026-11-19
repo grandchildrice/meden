@@ -12,7 +12,8 @@ mod bubblewrap;
 const TOOLS: &[&str] = &[
     "bash", "python3", "git", "cargo", "rustc", "rustdoc", "node", "npm", "npx", "rg", "cat", "ls",
     "mkdir", "cp", "mv", "rm", "touch", "find", "sed", "awk", "grep", "head", "tail", "wc", "true",
-    "false", "env", "sleep", "cc", "c++", "make", "uname", "tar", "gzip", "base64",
+    "false", "env", "sleep", "cc", "c++", "make", "uname", "tar", "gzip", "base64", "diff",
+    "dirname",
 ];
 const SYSTEM_ROOTS: &[&str] = &["/usr", "/bin", "/lib", "/lib64"];
 const RUST_TOOLS: &[&str] = &["cargo", "rustc", "rustdoc"];
@@ -57,6 +58,22 @@ fn find_public(program: &str) -> Option<PathBuf> {
     find(program, public_path)
 }
 
+// The worker launcher requires env even when the host PATH deliberately omits
+// the ordinary tools. Retain a selected canonical object, never a whole profile.
+fn worker_env() -> Option<PathBuf> {
+    find_public("env").or_else(|| {
+        [
+            "/usr/bin/env",
+            "/bin/env",
+            "/run/current-system/sw/bin/env",
+            "/nix/var/nix/profiles/default/bin/env",
+        ]
+        .iter()
+        .filter_map(|path| Path::new(path).canonicalize().ok())
+        .find(|path| path.is_file() && public_path(path))
+    })
+}
+
 // Preparation runs before the namespace exists. Never execute a repository
 // PATH entry, including through a helper's interpreter or child lookup.
 fn host_command(program: &Path, name: &str) -> io::Result<Command> {
@@ -85,7 +102,12 @@ fn public_tools() -> (Vec<(String, PathBuf)>, Option<PathBuf>) {
             // A Python virtualenv/uv executable can shadow the public
             // Nix toolchain without being present in its mounted closure.
             // Pick a visible public object; never expose a host cache.
-            find_public(name).map(|path| ((*name).to_owned(), path))
+            let selected = if *name == "env" {
+                worker_env()
+            } else {
+                find_public(name)
+            };
+            selected.map(|path| ((*name).to_owned(), path))
         })
         .collect();
     let mut manager = None;
@@ -382,8 +404,12 @@ impl Sandbox {
         if let Some(manager) = manager.filter(|path| store_root(path).is_some()) {
             tool_bindings.insert(manager);
         }
-        if !tools.iter().any(|(name, _)| name == "bash") {
-            return Err(io::Error::other("Bash is required for isolated execution"));
+        for required in ["bash", "env"] {
+            if !tools.iter().any(|(name, _)| name == required) {
+                return Err(io::Error::other(format!(
+                    "public {required} is required for isolated execution"
+                )));
+            }
         }
         let mut roots: BTreeSet<_> = tools
             .iter()
@@ -453,6 +479,64 @@ impl Sandbox {
     /// proxies, host sockets, host process tree or outbound network route.
     pub fn command(&self, executable: &str, args: &[impl AsRef<OsStr>]) -> Command {
         self.build(executable, args, None, &[], Network::Offline)
+    }
+
+    /// A host-selected Lean distribution and analysis library, mounted read-only.
+    /// The fixed library owns the script; model inputs are filenames/data only.
+    pub fn lean_command(
+        root: &Path,
+        worker: &Path,
+        lean: &Path,
+        library: &Path,
+        sources: Option<&Path>,
+        script: &str,
+        args: &[impl AsRef<OsStr>],
+    ) -> io::Result<Command> {
+        let lean = lean.canonicalize()?;
+        let library = library.canonicalize()?;
+        if !lean.join("bin/lean").is_file()
+            || !library.is_dir()
+            || !matches!(
+                script,
+                "prepare.sh"
+                    | "extract.sh"
+                    | "compile.sh"
+                    | "imports.sh"
+                    | "lake.sh"
+                    | "project.sh"
+            )
+        {
+            return Err(io::Error::other(
+                "prepared Lean analysis resources are missing",
+            ));
+        }
+        let sandbox = Self::configure(
+            root,
+            worker.canonicalize()?,
+            &[&lean.join("bin/lean")],
+            BTreeSet::new(),
+        )?;
+        let mut parameters = vec![
+            std::ffi::OsString::from("--noprofile"),
+            "--norc".into(),
+            format!("/analysis/library/{script}").into(),
+        ];
+        parameters.extend(args.iter().map(|arg| arg.as_ref().to_os_string()));
+        let sources = sources.map(Path::canonicalize).transpose()?;
+        let mut bindings = vec![
+            (lean.as_path(), "/analysis/lean"),
+            (library.as_path(), "/analysis/library"),
+        ];
+        if let Some(path) = sources.as_deref() {
+            bindings.push((path, "/analysis/sources"));
+        }
+        Ok(sandbox.build(
+            "/tools/bash",
+            &parameters,
+            None,
+            &bindings,
+            Network::Offline,
+        ))
     }
 
     pub(crate) fn for_verification(

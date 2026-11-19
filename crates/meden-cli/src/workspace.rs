@@ -88,7 +88,7 @@ impl Tool for FileTool {
             .get("path")
             .and_then(Value::as_str)
             .and_then(logical_path)
-            .ok_or_else(|| ToolError::failed("path leaves /workspace".into()))?;
+            .ok_or_else(|| ToolError::failed("path leaves /workspace; file tools accept only workspace paths. Keep scripts needed across Bash calls in /workspace; each Bash invocation has a fresh /tmp.".into()))?;
         args.remove("path");
         let request = Request::new(self.operation, path.to_string_lossy().as_ref().into(), args);
         Ok(Prepared::new(request.prepare(), |request, rules| {

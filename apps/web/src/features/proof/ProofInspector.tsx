@@ -1,3 +1,4 @@
+import { DEMO_WORKSPACE_ID, demoSnapshot } from "../../fixtures/meden-demo";
 import { Button, IconButton, Tab, Tabs, Typography } from "@mui/material";
 import CloseRounded from "@mui/icons-material/CloseRounded";
 import OpenInFullRounded from "@mui/icons-material/OpenInFullRounded";
@@ -67,7 +68,7 @@ export function ProofInspector({
       )}
       {wide && reader === "source" ? (
         <SourceView
-          workspace={workspace}
+          files={workspace.id === DEMO_WORKSPACE_ID ? demoSnapshot.files : {}}
           target={selected}
           showBack={false}
           onBack={() => onReader("statement")}

@@ -1,10 +1,54 @@
 """A skipped or absent UX journey must not produce green evidence."""
 
+import errno
+import fcntl
 import json
+import os
+import pty
+import select
+import signal
+import struct
 import subprocess
 import sys
+import termios
+import time
 
 import pytest
+
+from meden_checks import find_meden
+
+
+def test_public_ux_runner_uses_its_test_terminals_inside_an_interactive_terminal(tmp_path):
+    out = tmp_path / "nested-ux"
+    pid, master = pty.fork()
+    if pid == 0:
+        fcntl.ioctl(0, termios.TIOCSWINSZ, struct.pack("HHHH", 24, 80, 0, 0))
+        env = {**os.environ, "MEDEN_BIN": str(find_meden())}
+        os.execve(sys.executable, [sys.executable, "-m", "meden_checks.ux", "--out", str(out)], env)
+    status = None
+    tail = b""
+    try:
+        deadline = time.monotonic() + 360
+        while time.monotonic() < deadline:
+            finished, observed = os.waitpid(pid, os.WNOHANG)
+            if finished:
+                status = observed
+                break
+            if select.select([master], [], [], .1)[0]:
+                try:
+                    tail = (tail + os.read(master, 65536))[-12000:]
+                except OSError as error:
+                    if error.errno != errno.EIO:
+                        raise
+        assert status is not None, tail.decode(errors="replace")
+        assert os.waitstatus_to_exitcode(status) == 0, tail.decode(errors="replace")
+        summary = json.loads((out / "summary.json").read_text())
+        assert summary["success"] and summary["selected"]
+    finally:
+        if status is None:
+            os.kill(pid, signal.SIGKILL)
+            os.waitpid(pid, 0)
+        os.close(master)
 
 
 @pytest.mark.parametrize("case,expected", [("pass", 0), ("fail", 1), ("skip", 1), ("empty", 5)])

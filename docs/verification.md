@@ -285,7 +285,7 @@ storage against concurrent host mutation, all outbound adapters or R1.
 
 ## Actual TUI approval input
 
-All three approval handlers (processor, export and project contract) use
+All four approval handlers (processor, export, project contract and source repair) use
 [`approval::route`](../crates/meden-cli/src/tui/approval.rs) with the actual
 host `Screen` and decoded event. It returns a typed target only for that
 target's own review screen, and each handler matches its expected target.
@@ -330,7 +330,7 @@ calls the processor handler while each other screen is active and checks
 that no processor grant is issued.
 
 The TUI records the actual review panel from its most recent draw, clearing
-it when a processor, export or contract review is opened. All three handlers
+it when a processor, export, contract or repair review is opened. All four handlers
 pass its dimensions to the same extracted selector. A terminal-size change
 between drawing and input postpones review-key handling until another draw.
 An actual two-column rendering previously allowed a processor grant despite
@@ -343,7 +343,10 @@ approved it even though its end was clipped. Reviews now keep the authority
 heading fixed above the scrolling details. The processor heading includes
 the endpoint, connection/model, credential presence and session scope; export
 review retains the target, method, payload length and accepted contract;
-contract review retains its revision/hash. The row count comes from the
+contract review retains its revision/hash, and repair review retains its file,
+request hash, Finding/requirement identities and accepted contract. A tenth
+actual approval fault substitutes the export target for repair; both native
+routing assertions and the unchanged corresponding refinement reject it. The row count comes from the
 same wrapped Paragraph used for rendering, before adding the border. The
 selector also requires nonzero heading rows, two content columns and enough
 content rows for that heading. A count larger than u16 is saturated to a
@@ -356,6 +359,19 @@ The real export PTY test also shrinks the terminal until the heading is
 clipped, presses `y` followed by rejection and observes no received body.
 After resizing back, another exact host approval still delivers its frozen
 body once. The rejection acknowledgment prevents a timing-only assertion.
+
+The source-repair adapter reuses the same frozen-request `State`: its destination
+is one observed workspace file, and its original bytes contain the exact typed
+edit, source/input bindings and immutable policy. It consumes only the returned
+`Dispatch`, decodes that original data, rechecks source and accepted-contract
+identity, and composes with `Attempt::with_policy` before the offline worker.
+The worker's `whole_file` mode refuses additional or changed contents before
+replacement. The public TUI/browser regressions cover rejection, source changes,
+clipped headings, exact application, reanalysis, replay and restart without old
+approval. These reuse existing generic controller results; JSON interpretation,
+diff construction, source/resource attribution, file observation/replacement and
+concurrent host mutation remain adapters. They do not establish semantic
+correctness of a repair or a whole-workflow refinement.
 
 These are necessary numeric viewport conditions, not a proof that every
 review byte was visible or read. Frame attribution, layout, rendering, physical input and
@@ -1648,8 +1664,14 @@ worker mounts, and other tool selections remain independent. An explicit
 `MEDEN_BWRAP`, including an invalid one, still takes precedence without an
 automatic replacement. Missing isolation still stops startup.
 
-The preparation regression removes every bwrap-containing directory from
-PATH, inserts hostile repository `bwrap`/`nix-store` and shell startup files,
+The worker's required `env` executable also has canonical fixed system/Nix
+locations when PATH omits it. It is selected independently, exposed through the
+existing private alias and included in dependency preparation. This does not
+replace the ordinary host toolchain or expose a Nix software profile. Missing
+public Bash or `env` fails preparation before launching a worker.
+
+The preparation regression keeps only public Bash/metadata-helper aliases in
+PATH, inserts hostile repository `bwrap`/`nix-store`/`env` and shell startup files,
 and checks actual offline execution without `MEDEN_BWRAP`, no host marker,
 and no exposed system profiles. Conventional Linux exercises fixed-location
 discovery; the Nix closure branch requires actual installed Nix resources
@@ -1718,6 +1740,38 @@ nested Linux namespaces; proof cases also require the release binary and
 checker bundle. Ordinary Ubuntu CI does not install Nix and reports those
 cases as skipped. Local Nix results are evidence of the simulated layouts,
 not validation of every Linux distribution or large-model deployment.
+
+## Portable work records and external Lean checks
+
+The GUI, public TUI `/work` commands and `meden work` CLI share
+`crates/meden-cli/src/handoff.rs`. `.meden/workspace.json` contains bounded, strict
+typed work items, visible conversations and historical check results. Loading it
+restores no processor grant, accepted native contract or proof receipt. Resume
+creates a new user instruction and requires the current session's processor review.
+The fixed record path uses the existing policy-bound pinned file worker; malformed
+records and escaping symlinks are refused and retained.
+
+The host-selected `meden lake` adapter confines executable Lake code and Lean to
+the prepared offline worker. Portable checks freeze requirement/module/theorem
+names, hash the selected Lean executable, fingerprint bounded Lean sources and
+project configuration before and after checking, build with warnings fatal and
+freshly elaborate the selected source with Lake's actual module setup to inspect
+theorem types and transitive axioms. The selected module's old compiled artifact
+is not imported for inspection; an actual cache-restoration/early-exit regression
+exercises that boundary. Only the three standard Lean
+axioms are admitted by that inspection. Missing declarations, non-theorems,
+failed/unfinished checks, changed source/configuration and output truncation fail.
+The results remain historical observations rather than native proof admission.
+Executable Lake configuration and Lean source, cached/native dependencies, plugins, compiler
+behavior, filesystem and GUI/JSON interpretation remain adapter obligations;
+these changes add no Rust-to-Lean refinement or whole-project source theorem.
+
+`test_portable_work.py` uses actual installed Lean for command, declaration and
+input-boundary cases. `test_tui_portable.py` and `apps/web/e2e/portable.spec.ts`
+exercise real Git clones with different host data directories, local checks
+without inference, real Lean failure/recovery, saved visible conversation and
+fresh processor review. Their scripted inference fixtures do not establish live
+model quality, confidentiality or cold installation.
 
 ## Shared CLI and TUI execution
 
@@ -2179,3 +2233,148 @@ Installed public system/Nix Bubblewrap is detected without editing PATH.
 `MEDEN_BWRAP` can override this with a trusted Bubblewrap binary. It is host
 configuration, not a tool/model argument. No system package installation is
 performed automatically by the library.
+
+### Bounded project import collection
+
+The shared Atlas service parses exact frozen Lean import headers in the existing
+offline analysis worker, then reads discovered local module paths through the
+ordinary policy-bound file worker. It collects transitive ordinary module names
+under the workspace module root, up to 32 files/1 MiB/64 KiB per file. Missing
+imports and unsupported package roots stop instead of admitting a partial graph.
+Installed Lean/Atlas modules are recorded as external boundaries. Header parsing,
+module/path correspondence, resource attribution and filesystem observation are
+tested adapters, not extracted/refined kernel operations. Frozen Lake configuration
+is evaluated only by the installed package loader in the offline analysis worker;
+no dependency materialization, package download, build-hook dispatch or unconfined
+executor is added. The installed-Lean public TUI
+journey covers transitive imports, nested comments, unresolved-import failure,
+stale-graph refusal and recovery; the native GUI covers selecting only a root.
+
+### Separate comparison processor
+
+`--judge-model` creates a second Gateway using the host-selected HTTP connection
+and a distinct model ID. It has its own unchanged refined processor state, immutable
+parameters and session grant. The TUI complete fixed heading names both destinations
+and models; the GUI matches the submitted judge binding to its actual frozen gateway.
+JSONL requires the exact explicit `--approve-judge` URL. The shared service checks both
+current grants before dispatch and before admission, and never routes a failed judge
+request to the translator. Comparison sees only the original requirement, target and
+blind translation. Parsing, gateway grouping, model-ID attribution, stage/history
+persistence, UI visibility and physical dispatch remain adapters; no statistical
+independence, weight attestation or full application refinement is claimed.
+
+### Synthetic meaning evaluation, 2026-11-19
+
+The public JSONL driver `python -m meden_checks.meaning_eval` ran the
+[repository-authored dataset](../benchmarks/meaning/cases.json): five expected
+matches and fifteen expected mismatches. Every case compiled through the installed
+Lean/Atlas worker before inference, with no `sorry` declarations. Cases cover
+threshold boundaries, missing stock, conjunction/disjunction, assumed conclusions,
+vacuous statements, non-increase versus decrement, extra preconditions, refunds,
+English paraphrase and an excluded source comment. Labels concern the selected
+statement's explicit scope; they are not a theorem of equivalence between all
+provable propositions or entailment from the entire visible environment.
+
+| Translator / judge configuration | Expected verdicts | Output errors | False accepts / 15 | False rejects / 5 |
+| --- | --- | --- | --- | --- |
+| minimax-m3 / minimax-m3, original prompt | 19/20 | 1 | 0 | 0 |
+| minimax-m3 / gpt-oss:120b, original prompt | 5/20 | 15 | 0 | 0 |
+| minimax-m3 / gpt-oss:120b, exact category vocabulary | 20/20 | 0 | 0 | 0 |
+
+Retained observations: [same model](../results/meaning-eval-20261119-same-model-original.json),
+[original separate judge](../results/meaning-eval-20261119-separate-original.json),
+and [exact-vocabulary separate judge](../results/meaning-eval-20261119-separate-exact-vocabulary.json).
+These include every source, expected label/basis, compiled graph, native run/input
+identities, parsed candidate text, typed failures, model bindings and binary/dataset
+hashes. Source-artifact hashes were checked against the retained complete snapshots.
+Errors and abstentions stay in denominators; the first separate-model run's zero
+false accepts does not mean it evaluated the negative cases successfully. All its
+negative cases stopped on invalid category tokens. The updated prompt names the
+exact existing enum literals; decoding remains strict and no category normalization
+or inference fallback was added.
+
+Each condition makes fresh MiniMax translations and uses provider sampling defaults
+without a fixed seed. The original and updated conditions also have different
+comparison prompts. These are small end-to-end observations, not a paired causal
+experiment, independent labels, a population benchmark or evidence of model
+independence. They do not establish reliable explanations, native project proof
+coverage, local inference, cold installation or complete confidentiality. The
+updated run was interrupted after ten saved cases; the remaining ten were run with
+an explicit offset under the same binary/dataset/model binding. Saved cases were
+not resent, and the aggregate retains both execution segments.
+
+To repeat the updated condition using installed Lean and an approved connection:
+
+```bash
+uv run --project python --group dev python -m meden_checks.meaning_eval \
+  --binary target/release/meden --provider hermes:ollama-cloud \
+  --model minimax-m3 --judge-model gpt-oss:120b \
+  --approve-processor https://ollama.com/v1/chat/completions \
+  --lean /absolute/path/to/installed/lean --out /tmp/meden-meaning-evaluation
+```
+
+Use a new output directory. `--offset N --limit M` selects an explicit unevaluated
+range without replaying earlier cases. Each case is saved immediately. A nonzero
+exit indicates a case did not reach an admitted result; the report still retains
+that failure. A zero exit does not assert perfect accuracy. No paid-model call is
+part of CI; the ordinary UX gate exercises synthetic failure/restart paths and
+`test_meaning_eval.py` checks denominator accounting.
+
+
+### Lake configuration and module/source attribution
+
+The source collector supports installed Lake's Lean and TOML package loaders.
+`lakefile.lean` is executable configuration: it runs only in a disposable offline
+analysis job with frozen metadata, public tools and read-only prepared Lean/Atlas
+resources. The host repository and unrelated files are not mounted into this job.
+The selected Lean executable and Lake shared library participate in resource hashing.
+`loadPackage` evaluates one package without resolving/materializing dependencies;
+the host then follows its declared local paths and root-manifest entries through
+the ordinary policy-bound pinned file worker. Configurations and manifests cannot
+select a network executor or an unconfined fallback. Build hooks are not dispatched.
+
+Package and library/executable `srcDir` values stay separate from logical Lean
+module names. Compilation uses each frozen source root and stores private output
+under the logical module name. Graph nodes are mapped back to their exact observed
+workspace paths before admission. Library roots/globs determine module ownership;
+missing or ambiguous bindings stop. Workspace-relative normalization supports
+internal `..` paths and the worker's `/workspace` alias, but refuses escapes.
+Existing Git/copy/registry package sources are read from the manifest's package
+location, including subdirectories and custom config files. Declared Git origin,
+revision/subdirectory and path bindings must agree with the manifest. This is
+source-snapshot validation, not attestation that a dirty cached checkout matches
+its advertised Git commit.
+
+`/atlas` (or a blank GUI target field) selects existing Lake library/executable
+roots and module globs. Explicit source files still work. Limits remain 32 source
+files, 64 KiB per file and 1 MiB of source; metadata and package traversal have
+separate bounds. This does not promise a complete Mathlib graph or replay arbitrary
+host-dependent Lake configuration. Configurations that need unobserved host files,
+custom tool environments, downloads or unavailable artifacts fail inside isolation.
+No existing project `.olean` or native build product is imported as trusted output.
+
+The retained snapshot includes exact configuration/manifest bytes, probed absences
+and glob directory inventories, including absent directories. They are checked
+again before/after extraction, before/after analysis and before repair dispatch.
+A configuration change or newly selected module cannot authorize an old repair.
+These path/layout, evaluator, JSON, observation and rendering correspondences remain
+tested adapters; they are not a Lean refinement of Lake or the filesystem.
+
+`test_lake_analysis.py` uses actual installed Lean/Lake to compile package and
+library source-directory overrides, transitive path dependencies, and a prepared
+Git-package source with subdirectory/custom config. It also checks unavailable
+packages, path escapes, manifest-origin conflict and executable-configuration
+isolation. `test_tui_lake.py` exercises automatic discovery, cross-package meaning
+context, stale-manifest repair refusal, newly created glob-directory invalidation,
+recovery and fresh processor review after restart through the public TUI. The GUI
+journey exercises a blank target, dependency source links and missing-root recovery.
+
+The installed-Lake matrix also covers registry dependencies backed by a Git cache,
+registry path overrides in the root manifest and already-populated copied path
+packages. A registry path override is resolved relative to the root workspace,
+rather than silently redirected to the package cache. Eight installed-Lake cases
+pass, including the three refusal cases and the executable-configuration isolation
+case. The public required gate has 31 journeys, the native browser suite has 40,
+and the nested 80×24 runner completes the required gate with real Lake enabled.
+The cloud trial is retained in
+[the public Lake TUI report](../results/tui-lake-ollama-cloud-minimax-m3-gptoss120.json).

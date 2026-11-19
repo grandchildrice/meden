@@ -1,5 +1,5 @@
 //! One catalog drives the slash popup and the host-only command dispatcher.
-use super::{editor::Overlay, App, Screen, Speaker, TranscriptLine};
+use super::{editor::Overlay, App, Screen, Speaker, Task, TranscriptLine};
 use ratatui::prelude::*;
 
 pub(super) const COMMANDS: &[(&str, &str)] = &[
@@ -25,6 +25,25 @@ pub(super) const COMMANDS: &[(&str, &str)] = &[
     ("/help", "Show keyboard shortcuts and commands"),
     ("/keymap", "Show the current keyboard shortcuts"),
     ("/workspace", "Show the retained working directory"),
+    (
+        "/work",
+        "Portable history, local Lean checks and resume: /work ID",
+    ),
+    (
+        "/atlas-prepare",
+        "Prepare the installed Lean Atlas library offline",
+    ),
+    ("/atlas", "Read Lean declarations: /atlas FILE.lean ..."),
+    ("/sources", "Read source files: /sources FILE.rs ..."),
+    ("/analyze", "Compare meaning: /analyze NAME -- requirement"),
+    (
+        "/repair",
+        "Propose a reviewed source repair for the selected Finding",
+    ),
+    (
+        "/analysis",
+        "Show a result: /analysis, /analysis history, /analysis ID",
+    ),
     ("/contract", "Review the project specification"),
     (
         "/proofs",
@@ -43,11 +62,13 @@ impl App {
         if !prefix.starts_with('/') || prefix.chars().any(char::is_whitespace) {
             return Vec::new();
         }
-        COMMANDS
+        let mut commands = COMMANDS
             .iter()
             .copied()
             .filter(|(name, _)| name.starts_with(prefix))
-            .collect()
+            .collect::<Vec<_>>();
+        commands.sort_by_key(|(name, _)| *name != prefix);
+        commands
     }
 
     pub(super) fn refresh_commands(&mut self) {
@@ -211,6 +232,45 @@ impl App {
             ("/help" | "/keymap", []) => { self.overlay = Overlay::Help; self.scroll_back = 0; }
             ("/quit" | "/exit", []) => self.quit_requested = true,
             ("/workspace", []) => self.say(format!("Project: {}\nFile and Bash changes are saved directly here. Reopening this directory resumes the conversation.", self.root.display()), Style::new()),
+            ("/work", _) => self.work_command(text.strip_prefix("/work").unwrap_or_default().trim()),
+            ("/atlas-prepare", []) => self.analysis_task(Task::PrepareAtlas),
+            ("/atlas" | "/sources", paths) if !paths.is_empty() || command == "/atlas" => {
+                self.source_snapshot = None;
+                self.invalidate_analysis();
+                self.analysis_task(Task::Sources { paths: paths.iter().map(|s| (*s).to_owned()).collect(), atlas: command == "/atlas" });
+            }
+            ("/analyze", _) => {
+                match self.meaning_task(text.strip_prefix("/analyze").unwrap_or_default()) {
+                    Ok(task) => self.analysis_task(task),
+                    Err(error) => self.say(format!("{error:#}"), Style::new().fg(Color::Yellow)),
+                }
+            }
+            ("/repair", []) => {
+                match (self.source_snapshot.as_ref(), self.analysis.as_ref()) {
+                    (Some(snapshot), Some(record)) => self.analysis_task(Task::PrepareRepair { snapshot: Box::new(snapshot.clone()), record: Box::new(record.clone()) }),
+                    _ => self.say("Read the source graph and select a retained Finding with /analysis ID before /repair.", Style::new().fg(Color::Yellow)),
+                }
+            }
+            ("/analysis", ["history"]) => {
+                match crate::analysis::journal::list(&self.root) {
+                    Ok(records) => {
+                        let text = records.iter().rev().map(|record| format!("{} · {:?} · {}\nRequirement: {}\nFinding: {}", record.id, record.state, record.input.target.name, record.input.requirement,
+                            record.finding_id.as_deref().unwrap_or("none"))).collect::<Vec<_>>().join("\n\n");
+                        self.say(if text.is_empty() { "No meaning history yet.".into() } else { text }, Style::new().fg(Color::Gray));
+                    }
+                    Err(error) => self.say(format!("History unavailable: {error:#}"), Style::new().fg(Color::Red)),
+                }
+            }
+            ("/analysis", [id]) => {
+                match crate::analysis::journal::select(&self.root, id) {
+                    Ok(record) => { self.say(record.summary(), Style::new().fg(Color::Gray)); self.analysis = Some(record); }
+                    Err(error) => self.say(format!("{error:#}"), Style::new().fg(Color::Yellow)),
+                }
+            }
+            ("/analysis", []) => {
+                let text = self.analysis.as_ref().map_or_else(|| "No meaning analysis yet. Read files with /atlas or /sources, then /analyze NAME -- requirement.".into(), crate::analysis::Record::summary);
+                self.say(text, Style::new().fg(Color::Gray));
+            }
             ("/contract", []) => self.open_contract(),
             ("/proofs", []) => { self.refresh_project_status(); self.overlay = Overlay::Evidence; self.scroll_back = 0; }
             ("/exports", []) => self.open_export(None),

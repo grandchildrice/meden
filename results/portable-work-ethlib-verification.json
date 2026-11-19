@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "source_parent_commit": "c994236",
+  "final_binary_sha256": "18a74e1db0e9c305dbbb3fa4d3ac44600fca9a00d0812d5e6c9af4f30aab822b",
+  "ethlib": {
+    "repository": "https://github.com/grandchildrice/EthLib",
+    "branch": "meden/assurance-workspace",
+    "contribution_commit": "f241ee98",
+    "whole_offline_build": {
+      "passed": true,
+      "jobs": 14516
+    },
+    "declaration_audit": {
+      "passed": true,
+      "declarations": 135667,
+      "findings": 0
+    },
+    "native_gossip_tests": {
+      "passed": 50
+    },
+    "maintainer_python_checks": {
+      "passed": 8
+    }
+  },
+  "meden": {
+    "required_public_ux": {
+      "passed": 31,
+      "skipped": 0,
+      "binary_sha256": "18a74e1db0e9c305dbbb3fa4d3ac44600fca9a00d0812d5e6c9af4f30aab822b",
+      "decoded_screens_reviewed": true
+    },
+    "browser_suite": {
+      "passed": 40,
+      "skipped": 0,
+      "binary": "v11; same GUI/controller adapters, before final model-guidance clarification"
+    },
+    "portable_cli_real_lean": {
+      "passed": 24,
+      "skipped": 0,
+      "binary": "v8; same final source/axiom inspector"
+    },
+    "additional_adapters": {
+      "passed": 29,
+      "skipped": 4,
+      "skip_reason": "requires pinned checker bundle; skipped cases are not successful coverage"
+    },
+    "cargo_test_workspace": "passed",
+    "cargo_clippy_all_targets": "passed",
+    "typescript_typecheck": "passed",
+    "vitest": {
+      "passed": 30
+    },
+    "schema_check": "passed",
+    "ruff_and_format": "passed"
+  },
+  "real_cloud": [
+    "EthLib gossip continuation after fresh GUI approval; source unchanged",
+    "Lean proof repaired by actual file tools; original universal statement preserved; host Lean check failed then passed; native Rust authority absent"
+  ],
+  "transfer": "Actual GitHub clone with fresh XDG, three tasks/type/axiom/failure/conversation views, long proof pages and unapproved restart; no inference/checks; portable file unchanged",
+  "limits": [
+    "Same Linux workstation transfer with new host data, not another physical PC or cold installation.",
+    "Cloud success is not local inference, confidentiality or general model-quality evidence.",
+    "Historical external check records restore no native contract/proof authority.",
+    "BLS full aggregate bound still needs causal mask probability, zero/overlap losses and distribution averaging."
+  ]
+}

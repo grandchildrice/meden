@@ -13,7 +13,7 @@ use std::time::{Duration, Instant};
 
 use crate::exports::{Exports, Reference};
 use crate::text::visible;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use crossterm::event::{
     self, DisableBracketedPaste, EnableBracketedPaste, KeyCode, KeyEventKind, KeyModifiers,
     KeyboardEnhancementFlags, PopKeyboardEnhancementFlags, PushKeyboardEnhancementFlags,
@@ -29,11 +29,13 @@ use meden_runtime::workspace::Workspace;
 use ratatui::prelude::*;
 use ratatui::widgets::ListState;
 
+mod analysis;
 mod approval;
 mod assurance;
 mod commands;
 mod editor;
 mod input;
+mod repair;
 mod reveal;
 mod setup;
 mod view;
@@ -41,7 +43,35 @@ use editor::Overlay;
 use input::Input;
 use view::draw;
 
+enum Task {
+    PrepareRepair {
+        snapshot: Box<crate::analysis::sources::Snapshot>,
+        record: Box<crate::analysis::Record>,
+    },
+    ApplyRepair(crate::analysis::repair::Reference),
+    RejectRepair(crate::analysis::repair::Reference),
+    Instruction(String),
+    Sources {
+        paths: Vec<String>,
+        atlas: bool,
+    },
+    PrepareAtlas,
+    Analyze {
+        snapshot: Box<crate::analysis::sources::Snapshot>,
+        input: crate::semantic::Input,
+    },
+}
+
 enum Update {
+    WorkResume(String),
+    RepairReview(Box<crate::analysis::repair::Review>),
+    RepairApplied(Box<(crate::analysis::sources::Snapshot, crate::analysis::Record)>),
+    Sources(Box<crate::analysis::sources::Snapshot>),
+    Analysis(Box<crate::analysis::Record>),
+    AnalysisDone {
+        text: String,
+        failed: bool,
+    },
     Delta {
         text: String,
         reasoning: bool,
@@ -82,6 +112,7 @@ enum Screen {
     ReviewingProcessor,
     ReviewingExport,
     ReviewingContract,
+    ReviewingRepair,
     Instructing,
     Running,
 }
@@ -121,10 +152,13 @@ struct App {
     root: PathBuf,
     workspace: Option<Arc<Workspace>>,
     gateway: Option<Arc<Gateway>>,
+    judge_model: Option<String>,
+    judge: Option<Arc<Gateway>>,
     exports: Arc<Exports>,
     project: Arc<crate::project::Project>,
     project_status: Option<crate::project::Summary>,
     contract_review: Option<crate::project::Summary>,
+    repair_review: Option<crate::analysis::repair::Review>,
     pages: Arc<meden_runtime::pages::Pages>,
     reviewing_export: Option<Reference>,
     export_offset: usize,
@@ -140,7 +174,9 @@ struct App {
     draft: Option<usize>,
     reasoning: Option<usize>,
     rx: Option<Receiver<Update>>,
-    worker: Option<Sender<String>>,
+    worker: Option<Sender<Task>>,
+    source_snapshot: Option<crate::analysis::sources::Snapshot>,
+    analysis: Option<crate::analysis::Record>,
     worker_gateway: Option<Arc<Gateway>>,
     processes: Arc<Control>,
     scroll_back: u16,
@@ -175,10 +211,13 @@ impl App {
             root,
             workspace: None,
             gateway: None,
+            judge_model: None,
+            judge: None,
             exports,
             project,
             project_status: None,
             contract_review: None,
+            repair_review: None,
             pages: Arc::default(),
             reviewing_export: None,
             export_offset: 0,
@@ -195,6 +234,8 @@ impl App {
             reasoning: None,
             rx: None,
             worker: None,
+            source_snapshot: None,
+            analysis: None,
             worker_gateway: None,
             processes: Arc::new(Control::new(Arc::new(AtomicBool::new(false)))),
             scroll_back: 0,
@@ -359,7 +400,9 @@ impl App {
             return;
         };
         if self.gateway.as_ref().is_some_and(|gateway| {
-            gateway.provider() == &provider && gateway.is_authorized(self.session_id())
+            gateway.provider() == &provider
+                && gateway.is_authorized(self.session_id())
+                && crate::judge::authorized(self.judge.as_deref(), self.session_id())
         }) {
             self.screen = Screen::Instructing;
             return;
@@ -380,6 +423,9 @@ impl App {
             return;
         }
         self.choose_profile(&provider);
+        if let Some(previous) = self.judge.take() {
+            let _ = previous.revoke_from_host();
+        }
         if let Some(previous) = self.gateway.take() {
             let _ = previous.revoke_from_host();
         }
@@ -389,6 +435,17 @@ impl App {
         self.response_start = self.lines.len();
         match Gateway::prepare(self.session_id(), provider) {
             Ok(gateway) => {
+                match crate::judge::prepare(
+                    self.session_id(),
+                    &gateway,
+                    self.judge_model.as_deref(),
+                ) {
+                    Ok(judge) => self.judge = judge,
+                    Err(error) => {
+                        self.connection_error = Some(error.to_string());
+                        return;
+                    }
+                }
                 self.gateway = Some(Arc::new(gateway));
                 self.scroll_back = 0;
                 self.screen = Screen::ReviewingProcessor;
@@ -400,7 +457,14 @@ impl App {
         let Some(gateway) = &self.gateway else {
             return;
         };
-        match gateway.approve_from_host() {
+        let approval = (|| -> anyhow::Result<()> {
+            gateway.approve_from_host()?;
+            if let Some(judge) = &self.judge {
+                judge.approve_from_host()?;
+            }
+            Ok(())
+        })();
+        match approval {
             Ok(()) => {
                 self.screen = Screen::Instructing;
                 self.remember_connection();
@@ -613,6 +677,37 @@ impl App {
         if self.host_command() {
             return;
         }
+        if !self.prepare_worker() {
+            return;
+        }
+        self.source_snapshot = None;
+        self.invalidate_analysis();
+        self.processes.flag().store(false, Ordering::SeqCst);
+        self.last_stop = None;
+        let instruction = self.instruction.take();
+        if show_instruction && !self.record_instruction(&instruction) {
+            return;
+        }
+        self.activity = Some("Waiting for model".into());
+        self.scroll_back = 0;
+        if self
+            .worker
+            .as_ref()
+            .is_some_and(|worker| worker.send(Task::Instruction(instruction)).is_ok())
+        {
+            self.busy = true;
+            self.turn_started = Some(Instant::now());
+            self.screen = Screen::Running;
+        } else {
+            self.finished(
+                crate::session::failure_report("The worker stopped before accepting the instruction. Use the up arrow to recover your unsent instruction."),
+                false,
+                true,
+            );
+            self.worker = None;
+        }
+    }
+    fn prepare_worker(&mut self) -> bool {
         let Some(gateway) = self
             .gateway
             .as_ref()
@@ -620,11 +715,12 @@ impl App {
                 self.selected()
                     .is_some_and(|provider| gateway.provider() == provider)
                     && gateway.is_authorized(self.session_id())
+                    && crate::judge::authorized(self.judge.as_deref(), self.session_id())
             })
             .map(Arc::clone)
         else {
             self.select_processor();
-            return;
+            return false;
         };
         if !self
             .worker_gateway
@@ -639,8 +735,9 @@ impl App {
                     "No isolated workspace available.",
                     Style::new().fg(Color::Red),
                 );
-                return;
+                return false;
             };
+            let judge = self.judge.clone();
             let processes = Arc::clone(&self.processes);
             let exports = Arc::clone(&self.exports);
             let pages = Arc::clone(&self.pages);
@@ -659,7 +756,7 @@ impl App {
                     &pages,
                     &project,
                 ) {
-                    Ok(session) => worker(session, &tasks, &updates, || {
+                    Ok(session) => worker(session.with_judge(judge), &tasks, &updates, || {
                         project
                             .status(&workspace, &processes)
                             .or_else(|_| project.stored_status())
@@ -674,33 +771,18 @@ impl App {
                 }
             });
         }
-        self.processes.flag().store(false, Ordering::SeqCst);
-        self.last_stop = None;
-        let instruction = self.instruction.take();
-        if show_instruction && !self.record_instruction(&instruction) {
-            return;
-        }
-        self.activity = Some("Waiting for model".into());
-        self.scroll_back = 0;
-        if self
-            .worker
-            .as_ref()
-            .is_some_and(|worker| worker.send(instruction).is_ok())
-        {
-            self.busy = true;
-            self.turn_started = Some(Instant::now());
-            self.screen = Screen::Running;
-        } else {
-            self.finished(
-                crate::session::failure_report("The worker stopped before accepting the instruction. Use the up arrow to recover your unsent instruction."),
-                false,
-                true,
-            );
-            self.worker = None;
-        }
+        true
     }
     fn cancel(&mut self) {
         if self.busy && !self.processes.flag().load(Ordering::SeqCst) {
+            if self.worker.is_none() {
+                self.processes.cancel();
+                self.say(
+                    "Stopping local work. Its retained result will explain whether the check completed.",
+                    Style::new().fg(Color::Yellow),
+                );
+                return;
+            }
             self.project.cancel(&self.processes);
             self.say(
                 "Stopping tools. The current model request may finish; Ctrl-C again quits.",
@@ -752,7 +834,7 @@ impl App {
         }
     }
 
-    fn save_history(&self) -> Result<()> {
+    fn save_history(&mut self) -> Result<()> {
         use crate::session::history::{self, Message, Speaker as Role};
         if self.workspace.is_none() {
             return Ok(());
@@ -771,7 +853,18 @@ impl App {
                 _ => None,
             })
             .collect();
-        history::save_transcript(&self.root, transcript, self.last_stop.clone())
+        history::save_transcript(&self.root, transcript, self.last_stop.clone())?;
+        if let Some(workspace) = &self.workspace {
+            // Host transcript persistence follows a completed turn, including cancellation.
+            let control = Control::new(Arc::new(AtomicBool::new(false)));
+            if let Err(error) = crate::handoff::checkpoint(workspace, &control) {
+                self.say(
+                    format!("Portable checkpoint was not saved: {error:#}. The repository record was retained; ordinary conversation remains available."),
+                    Style::new().fg(Color::Yellow),
+                );
+            }
+        }
+        Ok(())
     }
 
     fn restore_history(&mut self) -> Result<()> {
@@ -829,9 +922,29 @@ impl App {
         }
     }
 
+    fn update_project(&mut self, summary: crate::project::Summary) {
+        if summary.verified
+            && !self
+                .project_status
+                .as_ref()
+                .is_some_and(|old| old.verified && old.artifact_sha256 == summary.artifact_sha256)
+        {
+            if let Some(path) = &summary.artifact {
+                self.say(
+                    format!(
+                        "Host: verified project kernel. Artifact: {}",
+                        path.display()
+                    ),
+                    Style::new().fg(Color::Green),
+                );
+            }
+        }
+        self.project_status = Some(summary);
+    }
     fn poll(&mut self) {
         let mut updates = Vec::new();
         let mut disconnected = false;
+        let mut work_resume = None;
         if let Some(rx) = &self.rx {
             loop {
                 match rx.try_recv() {
@@ -846,6 +959,21 @@ impl App {
         }
         for update in updates {
             match update {
+                Update::WorkResume(instruction) => {
+                    work_resume = Some(instruction);
+                    // This terminal update completes the host task even if its sender
+                    // has not dropped yet; a new processor worker owns a new channel.
+                    self.busy = false;
+                    disconnected = true;
+                }
+                Update::RepairReview(review) => self.show_repair(*review),
+                Update::RepairApplied(applied) => self.repair_applied(*applied),
+                Update::AnalysisDone { text, failed } => self.analysis_done(text, failed),
+                Update::Sources(snapshot) => self.observed_sources(*snapshot),
+                Update::Analysis(record) => {
+                    self.activity = Some(format!("Meaning analysis · {:?}", record.state));
+                    self.analysis = Some(*record);
+                }
                 Update::Notice(text) => {
                     self.activity = Some("Recovering from an error".into());
                     self.say(text, Style::new().fg(Color::Yellow));
@@ -867,24 +995,7 @@ impl App {
                         tool.truncated = truncated;
                     }
                 }
-                Update::Project(summary) => {
-                    if summary.verified
-                        && !self.project_status.as_ref().is_some_and(|old| {
-                            old.verified && old.artifact_sha256 == summary.artifact_sha256
-                        })
-                    {
-                        if let Some(path) = &summary.artifact {
-                            self.say(
-                                format!(
-                                    "Host: verified project kernel. Artifact: {}",
-                                    path.display()
-                                ),
-                                Style::new().fg(Color::Green),
-                            );
-                        }
-                    }
-                    self.project_status = Some(*summary);
-                }
+                Update::Project(summary) => self.update_project(*summary),
                 Update::ProjectDirty => self.project_dirty(),
                 Update::Asking(round) => {
                     self.reveals.values_mut().for_each(reveal::Reveal::finish);
@@ -916,15 +1027,37 @@ impl App {
             }
         }
         if disconnected {
-            if self.busy {
-                self.finished(crate::session::failure_report("The worker disconnected before finishing. Its last operation may be incomplete."), false, true);
-            }
-            self.busy = false;
-            self.turn_started = None;
-            self.activity = None;
-            self.screen = Screen::Instructing;
-            self.worker = None;
-            self.rx = None;
+            self.worker_disconnected();
+        }
+        if let Some(instruction) = work_resume {
+            self.instruction.insert(&instruction);
+            self.say("Work item loaded from portable history. Review the processor if asked, then press Enter to continue.", Style::new().fg(Color::Gray));
+            self.start_turn(true);
+        }
+    }
+
+    fn worker_disconnected(&mut self) {
+        if self.busy {
+            self.finished(crate::session::failure_report("The worker disconnected before finishing. Its last operation may be incomplete."), false, true);
+        }
+        self.busy = false;
+        self.turn_started = None;
+        self.activity = None;
+        self.screen = Screen::Instructing;
+        self.worker = None;
+        self.rx = None;
+    }
+
+    fn analysis_done(&mut self, text: String, failed: bool) {
+        self.busy = false;
+        self.turn_started = None;
+        self.activity = None;
+        self.screen = Screen::Instructing;
+        if !text.is_empty() {
+            self.say(
+                text,
+                Style::new().fg(if failed { Color::Red } else { Color::Gray }),
+            );
         }
     }
 }
@@ -932,6 +1065,9 @@ impl App {
 impl Drop for App {
     fn drop(&mut self) {
         self.project.cancel(&self.processes);
+        if let Some(judge) = &self.judge {
+            let _ = judge.revoke_from_host();
+        }
         if let Some(gateway) = &self.gateway {
             let _ = gateway.revoke_from_host();
         }
@@ -940,10 +1076,11 @@ impl Drop for App {
 
 fn worker(
     mut session: crate::session::Session,
-    tasks: &Receiver<String>,
+    tasks: &Receiver<Task>,
     tx: &Sender<Update>,
     inspect: impl Fn() -> Result<crate::project::Summary>,
 ) {
+    let mut repairs = crate::analysis::repair::Queue::default();
     let observer = |event: Event<'_>| {
         let refresh_project = matches!(&event, Event::ToolResult { call, .. }
             if matches!(call.function.name.as_str(), "verify_project" | "propose_contract" | "project_status" | "write_file" | "edit_file" | "bash"));
@@ -1000,7 +1137,16 @@ fn worker(
             }
         }
     };
-    while let Ok(instruction) = tasks.recv() {
+    while let Ok(task) = tasks.recv() {
+        let instruction = match task {
+            Task::Instruction(instruction) => instruction,
+            task => {
+                if !analysis::execute(&session, &mut repairs, task, tx) {
+                    return;
+                }
+                continue;
+            }
+        };
         let status = session.run(&instruction, &observer);
         let needs_review = status == Status::NeedsReview;
         let failed = matches!(status, Status::Failed(_) | Status::Incomplete);
@@ -1093,6 +1239,7 @@ pub fn run(
     pages: Arc<meden_runtime::pages::Pages>,
     local: Option<meden_llm::LocalConfig>,
     interactive: bool,
+    judge_config: (&Option<String>, Option<&str>),
 ) -> Result<()> {
     crate::verifier::prepare()?;
     let workspace = Arc::new(Workspace::open(root, &std::env::current_exe()?)?);
@@ -1104,8 +1251,16 @@ pub fn run(
     app.exports = Arc::new(Exports::new(Arc::clone(&app.project)));
     app.project_status = Some(app.project.stored_status()?);
     app.restore_history()?;
+    match crate::analysis::load(&app.root) {
+        Ok(record) => app.analysis = record,
+        Err(error) => app.say(
+            format!("Could not load meaning analysis: {error:#}"),
+            Style::new().fg(Color::Yellow),
+        ),
+    }
     app.pages = pages;
     app.workspace = Some(workspace);
+    app.judge_model.clone_from(judge_config.0);
     let restored = interactive && app.restore_connection();
     if restored {
         // A restored HTTP preference still enters the fresh processor review.
@@ -1121,6 +1276,15 @@ pub fn run(
             .cloned()
             .ok_or_else(|| anyhow::anyhow!("no selected processor"))?;
         let gateway = Gateway::prepare(app.session_id(), provider)?;
+        app.judge = crate::judge::prepare(app.session_id(), &gateway, app.judge_model.as_deref())?;
+        if let Some(judge) = &app.judge {
+            crate::approve_processor(
+                judge,
+                judge_config
+                    .1
+                    .context("Preapproved TUI with --judge-model requires --approve-judge URL")?,
+            )?;
+        }
         crate::approve_processor(&gateway, endpoint)?;
         app.gateway = Some(Arc::new(gateway));
         app.screen = Screen::Instructing;
@@ -1197,7 +1361,10 @@ where
         }
         if matches!(
             app.screen,
-            Screen::ReviewingProcessor | Screen::ReviewingExport | Screen::ReviewingContract
+            Screen::ReviewingProcessor
+                | Screen::ReviewingExport
+                | Screen::ReviewingContract
+                | Screen::ReviewingRepair
         ) {
             let size = terminal.size()?;
             if size.width != app.review_frame.width || size.height != app.review_frame.height {
@@ -1210,6 +1377,13 @@ where
         }
         match app.screen {
             Screen::Picking => match key.code {
+                KeyCode::Char('/') => {
+                    // Retain an unsent instruction in input history before opening a host command.
+                    let _ = app.instruction.take();
+                    app.instruction.insert("/");
+                    app.screen = Screen::Instructing;
+                    app.refresh_commands();
+                }
                 KeyCode::Char('q') => return Ok(()),
                 KeyCode::Esc => app.screen = Screen::Instructing,
                 KeyCode::Up | KeyCode::Char('k') => app.move_selection(-1),
@@ -1222,6 +1396,7 @@ where
             Screen::ReviewingProcessor => app.review_key(key),
             Screen::ReviewingExport => app.export_key(key),
             Screen::ReviewingContract => app.contract_key(key),
+            Screen::ReviewingRepair => app.repair_key(key),
             Screen::Instructing => app.instruction_key(key),
             Screen::Running => {
                 if key.code == KeyCode::Esc {
@@ -1244,6 +1419,7 @@ fn selftest(providers: Vec<Provider>) -> Result<String> {
         Screen::ReviewingProcessor,
         Screen::ReviewingExport,
         Screen::ReviewingContract,
+        Screen::ReviewingRepair,
         Screen::Instructing,
         Screen::Running,
     ] {

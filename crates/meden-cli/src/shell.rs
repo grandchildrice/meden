@@ -25,7 +25,7 @@ pub fn register(
     workspace: Arc<Workspace>,
     control: Arc<Control>,
 ) -> Result<()> {
-    let sig = ToolSig::new("bash", "Run Bash offline in /workspace. Host files, credentials and network services are unavailable. Inspect failures before claiming success.", json!({"type":"object","properties":{
+    let sig = ToolSig::new("bash", "Run Bash offline in /workspace. Host files, credentials and network services are unavailable. Every invocation has a fresh /tmp: keep scripts and intermediate files needed by later calls in /workspace, and remove them when done. Use the Bash builtin command -v to locate tools. Inspect exit status and failures before claiming success; a trailing echo can mask a failed command.", json!({"type":"object","properties":{
         "command":{"type":"string"},"timeout_seconds":{"type":"integer","minimum":1,"maximum":300}
     },"required":["command"],"additionalProperties":false}));
     registry.register(Box::new(Shell {

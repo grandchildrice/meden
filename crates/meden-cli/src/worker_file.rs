@@ -141,17 +141,7 @@ impl FileOperation {
     #[cfg(target_os = "linux")]
     fn execute_access(&self, access: Access, args: &Args) -> Result<Value, ToolError> {
         match (self.operation, access) {
-            (Operation::Snapshot, Access::File(file)) => {
-                let mut bytes = Vec::new();
-                pinned::readable(&file)?
-                    .take(1_048_577)
-                    .read_to_end(&mut bytes)
-                    .map_err(failed)?;
-                if bytes.len() > 1_048_576 {
-                    return Err(ToolError::failed("export exceeds 1 MiB".into()));
-                }
-                serde_json::to_value(bytes).map_err(failed)
-            }
+            (Operation::Snapshot, Access::File(file)) => snapshot_file(&file, args),
             (Operation::Read, Access::File(file)) => {
                 let offset = integer(args, "offset", 1)?;
                 let limit = integer(args, "limit", 200)?.min(2000);
@@ -177,31 +167,7 @@ impl FileOperation {
                 }
                 Ok(Value::String(output))
             }
-            (Operation::List, Access::Directory(directory)) => {
-                let mut entries = fs::read_dir(pinned::descriptor_path(&directory))
-                    .map_err(failed)?
-                    .take(501)
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(failed)?;
-                entries.sort_by_key(std::fs::DirEntry::file_name);
-                let mut output = String::new();
-                for entry in entries.iter().take(500) {
-                    let name = entry.file_name().to_string_lossy().into_owned();
-                    let suffix = if entry.file_type().map_err(failed)?.is_dir() {
-                        "/"
-                    } else {
-                        ""
-                    };
-                    let _ = writeln!(output, "{name}{suffix}");
-                    if output.len() > OUTPUT_LIMIT {
-                        break;
-                    }
-                }
-                if entries.len() > 500 {
-                    output.push_str("[more entries omitted]\n");
-                }
-                Ok(Value::String(output))
-            }
+            (Operation::List, Access::Directory(directory)) => directory_entries(&directory, args),
             (
                 Operation::Write,
                 Access::Replacement {
@@ -233,11 +199,108 @@ impl FileOperation {
 }
 
 #[cfg(target_os = "linux")]
+fn snapshot_file(file: &fs::File, args: &Args) -> Result<Value, ToolError> {
+    use base64::Engine as _;
+    let limit = integer(args, "max_bytes", 1_048_576)?;
+    if limit == 0 || limit > 4_194_304 {
+        return Err(ToolError::failed(
+            "snapshot limit must be between 1 byte and 4 MiB".into(),
+        ));
+    }
+    let mut bytes = Vec::new();
+    pinned::readable(file)?
+        .take(u64::try_from(limit.saturating_add(1)).map_err(failed)?)
+        .read_to_end(&mut bytes)
+        .map_err(failed)?;
+    if bytes.len() > limit {
+        return Err(ToolError::failed(
+            "snapshot exceeds selected byte limit".into(),
+        ));
+    }
+    match args.get("encoding").and_then(Value::as_str) {
+        None if !args.contains_key("encoding") => serde_json::to_value(bytes).map_err(failed),
+        Some("bytes") => serde_json::to_value(bytes).map_err(failed),
+        Some("base64") => Ok(Value::String(
+            base64::engine::general_purpose::STANDARD.encode(bytes),
+        )),
+        _ => Err(ToolError::failed("unknown snapshot encoding".into())),
+    }
+}
+#[cfg(target_os = "linux")]
+fn directory_entries(directory: &fs::File, args: &Args) -> Result<Value, ToolError> {
+    let mut entries = fs::read_dir(pinned::descriptor_path(directory))
+        .map_err(failed)?
+        .take(501)
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(failed)?;
+    entries.sort_by_key(std::fs::DirEntry::file_name);
+    match args.get("entries") {
+        Some(Value::Bool(true)) => {
+            if entries.len() > 500 {
+                return Err(ToolError::failed(
+                    "directory exceeds 500 entries; no truncated inventory returned".into(),
+                ));
+            }
+            let values = entries
+                .into_iter()
+                .map(|entry| {
+                    let name = entry
+                        .file_name()
+                        .into_string()
+                        .map_err(|_| ToolError::failed("directory entry is not UTF-8".into()))?;
+                    let kind = entry.file_type().map_err(failed)?;
+                    let kind = if kind.is_file() {
+                        "file"
+                    } else if kind.is_dir() {
+                        "directory"
+                    } else if kind.is_symlink() {
+                        "symlink"
+                    } else {
+                        "other"
+                    };
+                    Ok(serde_json::json!({"name":name,"kind":kind}))
+                })
+                .collect::<Result<Vec<_>, ToolError>>()?;
+            Ok(Value::Array(values))
+        }
+        None | Some(Value::Bool(false)) => {
+            let mut output = String::new();
+            for entry in entries.iter().take(500) {
+                let name = entry.file_name().to_string_lossy().into_owned();
+                let suffix = if entry.file_type().map_err(failed)?.is_dir() {
+                    "/"
+                } else {
+                    ""
+                };
+                let _ = writeln!(output, "{name}{suffix}");
+                if output.len() > OUTPUT_LIMIT {
+                    break;
+                }
+            }
+            if entries.len() > 500 {
+                output.push_str("[more entries omitted]\n");
+            }
+            Ok(Value::String(output))
+        }
+        _ => Err(ToolError::failed("entries must be a boolean".into())),
+    }
+}
+
 fn edited(file: &fs::File, args: &Args) -> Result<String, ToolError> {
     let mut original = String::new();
     pinned::readable(file)?
         .read_to_string(&mut original)
         .map_err(failed)?;
+    if let Some(whole) = args.get("whole_file") {
+        let whole = whole
+            .as_bool()
+            .ok_or_else(|| ToolError::failed("whole_file must be boolean".into()))?;
+        if whole && args.get("old_text").and_then(Value::as_str) != Some(original.as_str()) {
+            return Err(ToolError::failed(
+                "Reviewed file contents changed; no repair applied".into(),
+            ));
+        }
+    }
     let old = text(args, "old_text")?;
     if old.is_empty() || original.matches(old).count() != 1 {
         return Err(ToolError::failed(
@@ -300,6 +363,72 @@ mod tests {
     }
 
     #[test]
+    fn binary_snapshots_are_exact_and_never_return_a_truncated_success() {
+        use base64::Engine as _;
+        let root = tempfile::tempdir().expect("workspace");
+        let bytes = [0, 255, 10, 128, 42];
+        fs::write(root.path().join("image.png"), bytes).expect("binary");
+        let snapshot = |options: Value| {
+            let mut args = options;
+            args.as_object_mut()
+                .expect("options object")
+                .insert("path".into(), json!("image.png"));
+            execute(root.path(), Operation::Snapshot, args)
+        };
+        assert_eq!(snapshot(json!({})).expect("default snapshot"), json!(bytes));
+        let encoded =
+            snapshot(json!({"encoding":"base64", "max_bytes":5})).expect("base64 snapshot");
+        assert_eq!(
+            base64::engine::general_purpose::STANDARD
+                .decode(encoded.as_str().expect("encoded text"))
+                .expect("base64"),
+            bytes
+        );
+        for options in [
+            json!({"max_bytes":4}),
+            json!({"max_bytes":0}),
+            json!({"max_bytes":4_194_305}),
+            json!({"max_bytes":"5"}),
+            json!({"encoding":"unknown"}),
+            json!({"encoding":true}),
+        ] {
+            assert!(snapshot(options).is_err());
+        }
+    }
+
+    #[test]
+    fn structured_inventory_preserves_names_and_does_not_follow_symlinks() {
+        use std::os::unix::ffi::OsStringExt;
+        let root = tempfile::tempdir().expect("workspace");
+        fs::write(root.path().join("日本語\nfile.js"), "").expect("file");
+        fs::create_dir(root.path().join("folder")).expect("folder");
+        std::os::unix::fs::symlink("/etc/passwd", root.path().join("link")).expect("symlink");
+        let list = || {
+            execute(
+                root.path(),
+                Operation::List,
+                json!({"path":".","entries":true}),
+            )
+        };
+        assert_eq!(
+            list().expect("exact inventory"),
+            json!([
+                {"name":"folder","kind":"directory"},
+                {"name":"link","kind":"symlink"},
+                {"name":"日本語\nfile.js","kind":"file"}
+            ])
+        );
+        let non_utf8 = std::ffi::OsString::from_vec(vec![0xff]);
+        fs::write(root.path().join(&non_utf8), "").expect("non-UTF8 entry");
+        assert!(list().is_err_and(|e| e.to_string().contains("not UTF-8")));
+        fs::remove_file(root.path().join(non_utf8)).expect("remove entry");
+        for i in 0..498 {
+            fs::write(root.path().join(format!("{i}.js")), "").expect("large directory");
+        }
+        assert!(list().is_err_and(|e| e.to_string().contains("no truncated inventory")));
+    }
+
+    #[test]
     fn real_files_are_edited_only_for_one_exact_match() {
         let root = tempfile::tempdir().expect("workspace");
         execute(
@@ -338,6 +467,24 @@ mod tests {
             fs::read_to_string(root.path().join("note")).expect("unchanged file"),
             "updated\n"
         );
+    }
+
+    #[test]
+    fn reviewed_replacements_compare_the_complete_file_before_writing() {
+        let root = tempfile::tempdir().expect("workspace");
+        let path = root.path().join("reviewed.rs");
+        fs::write(&path, "original\nconcurrent addition\n").expect("source");
+        let request = json!({"path":"reviewed.rs", "old_text":"original\n", "new_text":"replacement\n", "whole_file":true});
+        assert!(execute(root.path(), Operation::Edit, request.clone())
+            .is_err_and(|error| error.to_string().contains("contents changed")));
+        assert_eq!(
+            fs::read_to_string(&path).expect("retained"),
+            "original\nconcurrent addition\n"
+        );
+        fs::write(&path, "original\n").expect("exact source");
+        execute(root.path(), Operation::Edit, request.clone()).expect("exact reviewed replacement");
+        assert_eq!(fs::read_to_string(&path).expect("updated"), "replacement\n");
+        assert!(execute(root.path(), Operation::Edit, request).is_err());
     }
 
     #[cfg(unix)]

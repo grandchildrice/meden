@@ -133,11 +133,19 @@ test("home displays the pitch logos below the suggestions at desktop and phone w
     page.getByText("メッセージから会話を始めます", { exact: true }),
   ).toHaveCount(0);
   await expect(logos.getByRole("img")).toHaveCount(names.length);
+  const suggestionElement = await suggestion.elementHandle();
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 844 });
-    const suggestionBox = (await suggestion.boundingBox())!;
-    const logoBox = (await logos.boundingBox())!;
-    expect(logoBox.y).toBeGreaterThan(suggestionBox.y + suggestionBox.height);
+    await expect
+      .poll(() =>
+        logos.evaluate(
+          (list, button) =>
+            list.getBoundingClientRect().top -
+            button!.getBoundingClientRect().bottom,
+          suggestionElement,
+        ),
+      )
+      .toBeGreaterThan(0);
     for (const name of names) {
       const logo = logos.getByRole("img", { name, exact: true });
       await expect(logo).toBeInViewport({ ratio: 1 });
@@ -281,6 +289,13 @@ test("the full conversation artifact opens preview and keeps proof details reada
   // Click the coordinates of the visible content under the full-card button.
   for (const target of [purchase, card.getByRole("img", { name: "Lean" })]) {
     await target.scrollIntoViewIfNeeded();
+    // The toolbar hint can overlap the card on a phone. It must not eat clicks.
+    await page
+      .getByRole("button", { name: "成果物を開く", exact: true })
+      .hover();
+    await expect(
+      page.getByRole("tooltip", { name: "成果物を開く", exact: true }),
+    ).toBeVisible();
     const bounds = (await target.boundingBox())!;
     await page.mouse.click(
       bounds.x + bounds.width / 2,

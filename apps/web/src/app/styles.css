@@ -2703,3 +2703,167 @@ pre {
 .expanded-proof-dialog {
   border-radius: 0 !important;
 }
+
+.native-shell {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #fafbfc;
+}
+.native-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  border-bottom: 1px solid #e3e5e8;
+  flex-wrap: wrap;
+}
+.native-workspace {
+  flex: 1;
+  min-width: 120px;
+  overflow-wrap: anywhere;
+}
+.native-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.native-chat {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.native-chat .chat-panel {
+  flex: 1;
+  min-height: 180px;
+}
+.native-artifacts {
+  width: 44%;
+  border-left: 1px solid #e3e5e8;
+  display: flex;
+  flex-direction: column;
+  min-width: 300px;
+}
+.native-panel {
+  padding: 20px;
+  overflow: auto;
+  flex: 1;
+}
+.native-preview {
+  width: 100%;
+  height: 560px;
+  min-height: 320px;
+  border: 1px solid #d6d9df;
+  border-radius: 8px;
+  background: white;
+}
+.native-delivery-entry {
+  padding: 16px;
+  border: 1px solid #d6d9df;
+  border-radius: 8px;
+}
+.native-delivery-heading {
+  flex-shrink: 0;
+}
+.native-delivery-bytes {
+  overflow-x: auto;
+  white-space: pre;
+  font-size: 12px;
+}
+.native-panel pre,
+.native-stream,
+.native-contract {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+.native-panel details {
+  margin: 16px 0;
+}
+.native-panel summary {
+  cursor: pointer;
+}
+.native-stream {
+  margin: 8px 20px;
+  max-height: 160px;
+  overflow: auto;
+}
+@media (max-width: 839px) {
+  .native-main {
+    flex-direction: column;
+    overflow: auto;
+  }
+  .native-chat {
+    flex: none;
+    min-height: 60dvh;
+  }
+  .native-artifacts {
+    width: 100%;
+    min-height: 320px;
+    border-left: 0;
+    border-top: 1px solid #e3e5e8;
+  }
+}
+
+.native-source-graph .graph-page {
+  min-height: 430px;
+  height: 52dvh;
+}
+.native-source-graph .graph-canvas {
+  min-height: 340px;
+}
+.native-declaration {
+  padding: 16px 0;
+}
+.native-revision {
+  display: block;
+  overflow-wrap: anywhere;
+  margin-top: 16px;
+}
+.native-source-dialog {
+  height: 88dvh;
+}
+.native-source-dialog .MuiDialogContent-root {
+  min-height: 0;
+  display: flex;
+}
+.native-source-dialog .source-view {
+  width: 100%;
+  min-height: 0;
+}
+.native-source-dialog .source-toolbar .MuiSelect-select {
+  max-width: min(60vw, 700px);
+}
+
+.native-meaning {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #dce2e5;
+}
+.native-meaning .MuiTextField-root {
+  margin-top: 12px;
+}
+.native-work > *,
+.native-work article > *,
+.native-work section > * {
+  margin-top: 12px;
+}
+.native-work pre {
+  overflow-wrap: anywhere;
+}
+.native-meaning-comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.native-meaning-comparison pre {
+  min-height: 80px;
+  padding: 12px;
+  background: #f0f4f5;
+}
+@media (max-width: 600px) {
+  .native-meaning-comparison {
+    grid-template-columns: 1fr;
+  }
+}

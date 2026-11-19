@@ -1,4 +1,5 @@
 import { z } from "zod";
+export { atlasGraphSchema, type AtlasGraph } from "./atlas.ts";
 
 const id = z.string().min(1).max(256);
 const text = z.string().max(100_000);

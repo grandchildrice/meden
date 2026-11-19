@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, type ReactNode } from "react";
 import {
   AssistantRuntimeProvider,
   ComposerPrimitive,
@@ -12,8 +12,7 @@ import { MarkdownTextPrimitive } from "@assistant-ui/react-markdown";
 import { Button, IconButton, Typography } from "@mui/material";
 import ArrowUpwardRounded from "@mui/icons-material/ArrowUpwardRounded";
 import { RecordedActivity } from "./RecordedActivity";
-import type { Conversation, Workspace } from "@meden/workspace-schema";
-import { ArtifactCard } from "./ArtifactCard";
+import type { Conversation } from "@meden/workspace-schema";
 
 const technologyLogos = [
   ["Rust", "rust"],
@@ -29,20 +28,24 @@ const technologyLogos = [
 ] as const;
 
 interface Props {
-  workspace: Workspace;
+  projectName: string;
   conversation?: Conversation;
   draftKey: string;
   running: boolean;
+  activityText?: string;
+  disabled?: boolean;
+  artifact: ReactNode;
   onSend: (text: string) => Promise<void>;
-  onOpenArtifact: () => void;
 }
 export function ChatView({
-  workspace,
+  projectName,
   conversation,
   draftKey,
   running,
+  activityText,
+  disabled,
+  artifact,
   onSend,
-  onOpenArtifact,
 }: Props) {
   const input = useRef<HTMLTextAreaElement>(null);
   const messages = useMemo<ThreadMessageLike[]>(
@@ -61,7 +64,7 @@ export function ChatView({
       .map((part) => part.text)
       .join("\n")
       .trim();
-    if (!text || running) return;
+    if (!text || running || disabled) return;
     await onSend(text);
     localStorage.removeItem(draftKey);
   };
@@ -104,13 +107,11 @@ export function ChatView({
               />
               {conversation?.messages.some(
                 (message) => message.role === "assistant",
-              ) && (
-                <ArtifactCard workspace={workspace} onOpen={onOpenArtifact} />
-              )}
+              ) && artifact}
               {running && (
                 <div role="status" className="reply-activity">
                   <span className="activity-dot" />
-                  応答を準備しています
+                  {activityText || "応答を準備しています"}
                 </div>
               )}
             </ThreadPrimitive.Viewport>
@@ -121,15 +122,20 @@ export function ChatView({
               className="composer-input"
               placeholder="作りたいものや、確認したいことを入力"
               aria-label="メッセージ"
+              disabled={disabled}
               submitMode="enter"
               onChange={(event) =>
                 localStorage.setItem(draftKey, event.target.value)
               }
             />
             <div className="composer-actions">
-              <span className="composer-project">{workspace.name}</span>
+              <span className="composer-project">{projectName}</span>
               <ComposerPrimitive.Send asChild>
-                <IconButton className="send-message" aria-label="送信">
+                <IconButton
+                  className="send-message"
+                  aria-label="送信"
+                  disabled={disabled || running}
+                >
                   <ArrowUpwardRounded fontSize="small" />
                 </IconButton>
               </ComposerPrimitive.Send>

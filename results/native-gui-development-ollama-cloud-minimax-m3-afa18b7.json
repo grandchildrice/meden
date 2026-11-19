@@ -1,0 +1,171 @@
+{
+  "kind": "native-gui-live-journey",
+  "source_commit": "afa18b7ac10e66a2d26b27f8fab9a05eb98d1501",
+  "finished_at": "2026-11-18T08:03:38.980Z",
+  "binary_sha256": "6a204ab593f776461eb6cc5671a04e1089c7133a3abf205eb7dd09044f2419c8",
+  "gui_entry_sha256": "500b8c415853761b0f59109ec964c87728f74e34053109db5e06f9b9c0f0e8c3",
+  "provider": "hermes:ollama-cloud",
+  "model": "minimax-m3",
+  "inference": "live",
+  "success": true,
+  "source": "pub fn can_purchase(balance: u64, stock: u64) -> bool { balance >= 150 && stock > 0 }\n",
+  "browser_source": {
+    "html": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n    <title>Purchase Check</title>\n  </head>\n  <body>\n    <main>\n      <h1>Purchase Check</h1>\n      <form id=\"purchase-form\">\n        <p>\n          <label for=\"balance\">Balance</label>\n          <input id=\"balance\" name=\"balance\" type=\"number\" min=\"0\" step=\"1\" value=\"149\" />\n        </p>\n        <p>\n          <label for=\"stock\">Stock</label>\n          <input id=\"stock\" name=\"stock\" type=\"number\" min=\"0\" step=\"1\" value=\"1\" />\n        </p>\n        <p>\n          <button id=\"check\" type=\"submit\">Check purchase</button>\n        </p>\n      </form>\n      <output id=\"result\" aria-label=\"Purchase result\"></output>\n    </main>\n    <script type=\"module\" src=\"./app.js\"></script>\n  </body>\n</html>\n",
+    "javascript": "// Ordinary UI mirror of the Rust rule in kernel.rs:\n// can_purchase(balance, stock) === balance >= 150 && stock > 0\n// This is not a proof of, or a binding to, the Rust implementation.\n\nconst MINIMUM_BALANCE = 150;\n\nfunction canPurchase(balance, stock) {\n  return balance >= MINIMUM_BALANCE && stock > 0;\n}\n\nfunction readCount(input) {\n  const value = Number.parseInt(input.value, 10);\n  return Number.isNaN(value) ? 0 : value;\n}\n\nconst form = document.getElementById(\"purchase-form\");\nconst balanceInput = document.getElementById(\"balance\");\nconst stockInput = document.getElementById(\"stock\");\nconst result = document.getElementById(\"result\");\n\nform.addEventListener(\"submit\", (event) => {\n  event.preventDefault();\n  const balance = readCount(balanceInput);\n  const stock = readCount(stockInput);\n  result.textContent = canPurchase(balance, stock) ? \"Allowed\" : \"Refused\";\n});\n"
+  },
+  "original_tests_preserved": true,
+  "independent_rust_result": {
+    "success": true,
+    "exit_code": 0,
+    "status": "exited",
+    "stdout": "\nrunning 1 test\ntest boundary ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "",
+    "output_truncated": false
+  },
+  "browser_cases": [
+    {
+      "balance": 149,
+      "stock": 1,
+      "result": "Refused"
+    },
+    {
+      "balance": 150,
+      "stock": 1,
+      "result": "Allowed"
+    },
+    {
+      "balance": 150,
+      "stock": 0,
+      "result": "Refused"
+    }
+  ],
+  "delivery": {
+    "source": "/workspace/public/index.html",
+    "target_kind": "synthetic literal-loopback HTTP receiver",
+    "bytes": 840,
+    "payload_sha256": "757740508835e4bd1d674c3fbd407a93dfb1bdc355f6c6e8e9a04c6e76d2922b",
+    "state": "response_received",
+    "http_status": 201,
+    "received": 1,
+    "exact_original_bytes": true
+  },
+  "meaning_cases": [
+    {
+      "name": "missing-threshold",
+      "requirement": "A purchase is permitted exactly when balance is at least 100 and stock is positive.",
+      "analysis": {
+        "version": 1,
+        "engine": "meden-claimcheck-roundtrip-v1",
+        "model": "minimax-m3",
+        "input": {
+          "source_revision": "sha256:9ae3a4a162ba19045cd9646dbba981461a27c7b0a05e41f854e735505fab3555",
+          "target": {
+            "file": "kernel.rs",
+            "line": 1,
+            "name": "can_purchase"
+          },
+          "requirement": "A purchase is permitted exactly when balance is at least 100 and stock is positive."
+        },
+        "state": "complete",
+        "error": null,
+        "assessment": {
+          "verdict": "mismatch",
+          "translation": {
+            "lemmaName": "can_purchase",
+            "naturalLanguage": "`can_purchase(balance, stock)` is a pure predicate that answers a single yes/no question: \"is the balance at least 150 and is there at least one item in stock?\". It returns `true` exactly when `balance >= 150` **and** `stock > 0`; it returns `false` in every other case. The two conditions are combined with `&&`, so the `stock > 0` test is not even evaluated when `balance < 150` (short-circuiting); since both operands are already-computed `u64` values with no side effects, the short-circuit is not observable in the result. There is no arithmetic, so no overflow or division-by-zero behavior is possible, and the function cannot panic. Flags and observations: (1) the threshold 150 is a hardcoded magic number with no named constant and no unit/currency indication, and the item price is not a parameter, so the function silently assumes every item costs 150; (2) the stock test only asks whether *anything* is available — there is no quantity argument, so the function cannot say whether a purchase of *n* units is possible, nor how many units are affordable; (3) the function does not model any purchase: it does not deduct from `balance`, decrement `stock`, or return the post-purchase state, so it is a precondition check only, not a transition; (4) it makes no claim about invariants across a sequence of purchases, e.g. it does not detect the case where a caller repeatedly purchases until the balance drops below 150; (5) the boundary cases are asymmetric in a possibly deliberate way — `balance == 150` succeeds (>=) while `stock == 0` fails (> 0), i.e. exactly one unit of stock is accepted.",
+            "preconditions": "Inputs `balance: u64` and `stock: u64` are unsigned 64-bit integers, so they are always in [0, 2^64-1]; no negative-value or overflow guard is needed or present. No further hypotheses are required: the function is total, has no preconditions to be violated, and performs only comparisons, so it cannot panic. Because `&&` short-circuits, `stock > 0` is not evaluated when `balance < 150`, but as both are already-computed values this has no observable effect on the result.",
+            "postcondition": "The return value equals the boolean expression `(balance >= 150 && stock > 0)`. Equivalently: result is `true` iff `balance >= 150` and `stock >= 1`; result is `false` iff `balance <= 149` or `stock == 0`. The function mutates nothing: `balance` and `stock` are passed by value, no state is updated, no balance is deducted and no stock is decremented, and the result carries no information about the number of units purchasable.",
+            "scope": "A single stateless, side-effect-free decision over one (balance, stock) pair. It is a pure predicate on its two arguments — not a state transition, not an invariant over all reachable states, and not a quantified property of any system or of repeated purchases.",
+            "strength": "moderate",
+            "confidence": 0.96
+          },
+          "comparison": {
+            "lemmaName": "can_purchase",
+            "match": false,
+            "discrepancy": "The required balance threshold is 100, but the back-translation specifies `balance >= 150`. Thus it returns false for balances from 100 through 149 even when stock is positive, although those purchases must be permitted by the original requirement.",
+            "weakeningType": "wrong-property",
+            "explanation": "The back-translation faithfully captures the conjunction with `stock > 0` and the inclusive balance comparison, but it changes the required threshold from 100 to 150. Consequently, the claimed predicate is not equivalent to the requirement. For example, with `balance = 120` and `stock = 1`, the original requirement requires `true`, while the back-translation requires `false`."
+          }
+        }
+      }
+    },
+    {
+      "name": "matching-threshold",
+      "requirement": "A purchase is permitted exactly when balance is at least 150 and stock is positive.",
+      "analysis": {
+        "version": 1,
+        "engine": "meden-claimcheck-roundtrip-v1",
+        "model": "minimax-m3",
+        "input": {
+          "source_revision": "sha256:9ae3a4a162ba19045cd9646dbba981461a27c7b0a05e41f854e735505fab3555",
+          "target": {
+            "file": "kernel.rs",
+            "line": 1,
+            "name": "can_purchase"
+          },
+          "requirement": "A purchase is permitted exactly when balance is at least 150 and stock is positive."
+        },
+        "state": "complete",
+        "error": null,
+        "assessment": {
+          "verdict": "match",
+          "translation": {
+            "lemmaName": "can_purchase",
+            "naturalLanguage": "The function `can_purchase(balance: u64, stock: u64) -> bool` is a total, side-effect-free predicate on two unsigned 64-bit integers. It returns `true` exactly when the balance is at least 150 (inclusive) *and* the stock count is strictly greater than zero; otherwise it returns `false`. The two conditions are combined with Rust's short-circuiting `&&`: if `balance < 150`, the `stock > 0` test is not evaluated at all, and the function returns `false` regardless of the stock value. No overflow or panicking arithmetic occurs (the body contains only comparisons, and `u64` comparison against the literal `150` is always well-defined). There is no documentation comment, named constant, or derivation in the file explaining why 150 is the threshold; the value is a bare magic number.",
+            "preconditions": "None beyond the Rust type signature: the function may be called with any pair of `u64` values, including `0`, with no bounds checks, no `debug_assert`ions, and no possibility of overflow or panic. It is a pure function with no mutation of state, no I/O, and no error path.",
+            "postcondition": "Returns `true` iff `balance >= 150 && stock > 0`; returns `false` iff `balance < 150` or `stock == 0`. Concretely: a balance of exactly 150 suffices (the comparison is non-strict), while stock must be at least 1 (the comparison is strict). Due to short-circuiting, the returned value does not depend on `stock` when `balance < 150`.",
+            "scope": "A single pure computation over one pair of inputs; it is not a statement about a state transition, a loop invariant, or all reachable states. There is no surrounding module, trait, or caller context in the supplied file, so the relationship of this predicate to any larger purchasing protocol is not visible from the given source.",
+            "strength": "moderate",
+            "confidence": 0.97
+          },
+          "comparison": {
+            "lemmaName": "can_purchase",
+            "match": true,
+            "discrepancy": "",
+            "weakeningType": "none",
+            "explanation": "元要件「残高が150以上で、かつ在庫が正のときに限り購入が許可される」に対して、バック翻訳は `balance >= 150 && stock > 0` のときに限り true を返す述語として記述している。境界条件（残高150は許可＝非厳密比較、在庫は1以上＝厳密比較）、真偽の両分岐（balance < 150 または stock == 0 なら false）、および「かつ」の結合という主要部分がすべて保持されている。\n\n追加で言及されている短絡評価・オーバーフロー無し・マジックナンバー等の記述は、戻り値の意味を変更しない実装上の補足であり、要件の.postconditionを弱めていない。u64 という型付けは要件には明記されていないが、150 という閾値と「正の在庫」を表現する上で要求の適用を狭めるものではなく、意味の同一性は保たれている。\n\n以上より、バック翻訳は要件の意図を忠実に表現しており、弱化・欠落・言い換えは認められない。"
+          }
+        }
+      }
+    }
+  ],
+  "restart": {
+    "historical_analysis": true,
+    "old_queue_returned": false
+  },
+  "regression_gates": {
+    "playwright": {
+      "passed": 31
+    },
+    "public_tui_ux": {
+      "passed": 21,
+      "decoded_screens_reviewed": true
+    },
+    "tool_preparation_and_mixed_layout": {
+      "passed": 18,
+      "deselected": 4,
+      "deselection": "actual kernel cases need the separate real verifier gate"
+    }
+  },
+  "preceding_failed_trials": [
+    {
+      "stage": "development",
+      "outcome": "outer work budget exhausted",
+      "observed": "Model reused /tmp across Bash invocations and expected unavailable diff; no completion was admitted.",
+      "correction_commit": "9352ff6"
+    },
+    {
+      "stage": "browser interaction",
+      "outcome": "submit-only UI did not update",
+      "observed": "The preview sandbox blocked form submit handlers. Client-side form events are now enabled while actual form network submissions remain blocked by CSP.",
+      "correction_commit": "afa18b7"
+    }
+  ],
+  "scope": [
+    "Synthetic single-project trial; not a general model accuracy rate.",
+    "Approved cloud inference, not local 100–600B validation or confidentiality evidence.",
+    "Ordinary Rust tests and a separate JavaScript UI mirror; no accepted formal contract or source-to-UI refinement proof.",
+    "Meaning results are model candidate findings; graph extraction is lexical.",
+    "No cold verifier installation, elaborate Atlas extraction, independent-model judge, whole R1 or GUI refinement claim."
+  ]
+}

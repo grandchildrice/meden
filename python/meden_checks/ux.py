@@ -175,7 +175,7 @@ def main(argv=None):
         sys.executable, "-m", "pytest", "-q", "-m", "ux", "--ux-required",
         "--ux-artifacts", str(root), "--junitxml", str(root / "junit.xml"),
         "--basetemp", str(root / "work"),
-    ], cwd=Path(__file__).resolve().parents[1])
+    ], cwd=Path(__file__).resolve().parents[1], start_new_session=True)
 
 
 if __name__ == "__main__":

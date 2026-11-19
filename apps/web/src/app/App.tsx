@@ -44,6 +44,7 @@ import {
   titleFromInstruction,
 } from "../fixtures/meden-demo";
 import type { ArtifactTab } from "../features/artifacts/ArtifactPanel";
+import { ArtifactCard } from "../features/chat/ArtifactCard";
 import { ChatView } from "../features/chat/ChatView";
 const ArtifactPanel = lazy(() =>
   import("../features/artifacts/ArtifactPanel").then((module) => ({
@@ -469,7 +470,7 @@ export function App() {
       )}
       <div className="main-column">
         <header className="chat-topbar">
-          <Tooltip title={sidebarLabel}>
+          <Tooltip title={sidebarLabel} disableInteractive>
             <IconButton
               className="sidebar-toggle"
               aria-label={sidebarLabel}
@@ -492,7 +493,7 @@ export function App() {
             <Typography className="model-label">Meden</Typography>
           )}
           {workspace && (
-            <Tooltip title={artifactLabel}>
+            <Tooltip title={artifactLabel} disableInteractive>
               <IconButton
                 ref={artifactToggle}
                 className="artifact-toggle"
@@ -532,14 +533,19 @@ export function App() {
           ) : (
             workspace && (
               <ChatView
-                workspace={workspace}
+                projectName={workspace.name}
                 conversation={conversation}
                 draftKey={
                   "meden-input:" + activeId + ":" + (conversationId || "new")
                 }
                 running={running}
                 onSend={send}
-                onOpenArtifact={() => openPanel("preview")}
+                artifact={
+                  <ArtifactCard
+                    workspace={workspace}
+                    onOpen={() => openPanel("preview")}
+                  />
+                }
               />
             )
           )}{" "}
