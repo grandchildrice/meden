@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Autocomplete,
@@ -29,13 +29,8 @@ import { NativeRepair } from "../features/native/NativeRepair";
 import { NativeDelivery } from "../features/native/NativeDelivery";
 import { NativeWork } from "../features/native/NativeWork";
 import { visibleHistory } from "../features/native/history";
+import { NativeExplorer } from "../features/native/NativeExplorer";
 import { NativeWorkspaceGraph } from "../features/native/NativeWorkspaceGraph";
-
-function focusDependencyPanel(panel: HTMLDivElement | null) {
-  panel?.scrollTo({ top: 0 });
-  if (window.matchMedia("(max-width: 839px)").matches)
-    panel?.parentElement?.scrollIntoView({ block: "start" });
-}
 
 /** A single host workspace is attached; choosing another requires a new host launch. */
 export function NativeApp({ token }: { token: string }) {
@@ -43,19 +38,17 @@ export function NativeApp({ token }: { token: string }) {
   const [state, setState] = useState<NativeState>();
   const [error, setError] = useState("");
   const [connectionError, setConnectionError] = useState("");
-  const [tab, setTab] = useState(3);
-  const [graphView, setGraphView] = useState("overview");
-  const graphPanel = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (tab !== 3 || graphView !== "dependencies") return;
-    focusDependencyPanel(graphPanel.current);
-  }, [tab, graphView, state?.workspace]);
+  const [tab, setTab] = useState(1);
+  const [codeOpened, setCodeOpened] = useState(false);
+  const [utility, setUtility] = useState<
+    "history" | "logs" | "delivery" | "analysis" | null
+  >(null);
+  const [focusedFile, setFocusedFile] = useState<string>();
   const [overview, setOverview] = useState<WorkspaceOverview>();
   const [overviewError, setOverviewError] = useState("");
   const [provider, setProvider] = useState("");
   const [model, setModel] = useState("");
   const listedProvider = useRef("");
-  const [path, setPath] = useState(".");
   const [graphPaths, setGraphPaths] = useState<string>();
   const [review, setReview] = useState<{
     reference: NativeReference;
@@ -170,32 +163,39 @@ export function NativeApp({ token }: { token: string }) {
       );
     }
   }, [state?.source_snapshot?.revision, graphPaths]);
-  const command = async (command: NativeCommand) => {
-    if (inFlight.current) return false;
-    inFlight.current = true;
-    setBusy(true);
-    try {
-      await client.command(command);
-      setState(await client.state());
-      setError("");
-      return true;
-    } catch (error) {
-      setError(String(error));
-      return false;
-    } finally {
-      inFlight.current = false;
-      setBusy(false);
-    }
-  };
-  const openDependencies = (file: string) => {
-    setGraphPaths(file);
-    setGraphView("dependencies");
-    setTab(3);
-    if (file.endsWith(".lean")) {
-      if (state?.atlas.available)
-        void command({ type: "atlas_snapshot", paths: [file] });
-    } else void command({ type: "source_snapshot", paths: [file] });
-  };
+  const command = useCallback(
+    async (command: NativeCommand) => {
+      if (inFlight.current) return false;
+      inFlight.current = true;
+      setBusy(true);
+      try {
+        await client.command(command);
+        setState(await client.state());
+        setError("");
+        return true;
+      } catch (error) {
+        setError(String(error));
+        return false;
+      } finally {
+        inFlight.current = false;
+        setBusy(false);
+      }
+    },
+    [client],
+  );
+  const openDependencies = useCallback(
+    (file: string) => {
+      setUtility(null);
+      setGraphPaths(file);
+      setFocusedFile(file);
+      setTab(1);
+      if (file.endsWith(".lean")) {
+        if (state?.atlas.available)
+          void command({ type: "atlas_snapshot", paths: [file] });
+      } else void command({ type: "source_snapshot", paths: [file] });
+    },
+    [command, state?.atlas.available],
+  );
   const conversation: Conversation | undefined = state && {
     id: "native",
     title: state.workspace.split("/").at(-1) || "Workspace",
@@ -238,16 +238,6 @@ export function NativeApp({ token }: { token: string }) {
             送信の許可を取り消す
           </Button>
         )}
-        <Button
-          aria-label="依存グラフを開く"
-          onClick={() => {
-            setGraphView("dependencies");
-            setTab(3);
-            focusDependencyPanel(graphPanel.current);
-          }}
-        >
-          依存グラフ
-        </Button>
       </header>
       {error && (
         <Alert
@@ -305,18 +295,22 @@ export function NativeApp({ token }: { token: string }) {
                   : "送信の許可は終了しています。続けるにはmeden guiを再起動し、新しいURLで送信先を確認してください。"}
             </Alert>
           )}
-          {state.stopped && !(tab === 3 && graphView === "dependencies") && (
-            <Alert
-              severity={state.activity === "Complete" ? "info" : "warning"}
-              sx={{ whiteSpace: "pre-wrap" }}
-            >
-              {state.stopped}
-              <br />
-              ファイルと会話は保持されています。対象の操作をやり直すか、新しい指示を送信してください。
-            </Alert>
-          )}
           <main className="native-main">
             <div className="native-chat">
+              {state.stopped &&
+                !(tab === 1 && (focusedFile || utility === "analysis")) && (
+                  <Alert
+                    severity={
+                      state.activity === "Complete" ? "info" : "warning"
+                    }
+                    sx={{ whiteSpace: "pre-wrap" }}
+                  >
+                    {state.stopped}
+                    <br />
+                    ファイルと会話は保持されています。対象の操作をやり直すか、新しい指示を送信してください。
+                  </Alert>
+                )}
+
               {conversation!.messages.some(
                 (message) => message.origin === "recorded",
               ) && (
@@ -338,11 +332,31 @@ export function NativeApp({ token }: { token: string }) {
                     );
                 }}
                 artifact={
-                  <Button onClick={() => setTab(0)}>
-                    ローカルファイル・実行ログ・契約を開く
+                  <Button
+                    onClick={() => {
+                      setCodeOpened(true);
+                      setTab(0);
+                    }}
+                  >
+                    コードを開く
                   </Button>
                 }
               />
+              <div className="chat-utilities">
+                <Button onClick={() => setUtility("logs")}>
+                  実行ログ{state.logs.length ? ` · ${state.logs.length}` : ""}
+                </Button>
+                {state.exports.length > 0 && (
+                  <Button
+                    onClick={() => {
+                      setTab(1);
+                      setUtility("delivery");
+                    }}
+                  >
+                    送信提案を確認
+                  </Button>
+                )}
+              </div>
               {state.running && (
                 <Button onClick={() => void command({ type: "cancel" })}>
                   実行を中止
@@ -363,50 +377,30 @@ export function NativeApp({ token }: { token: string }) {
             <aside className="native-artifacts" aria-label="実装と実行結果">
               <Tabs
                 value={tab}
-                onChange={(_, value: number) => setTab(value)}
+                onChange={(_, value: number) => {
+                  setTab(value);
+                  setUtility(null);
+                  if (value === 0) setCodeOpened(true);
+                }}
                 aria-label="作業パネル"
-                variant="scrollable"
-                scrollButtons="auto"
-                allowScrollButtonsMobile
+                variant="fullWidth"
               >
                 <Tab label="コード" />
-                <Tab label="実行ログ" />
-                <Tab label="契約・証明" />
-                <Tab label="グラフ" />
+                <Tab label="証明" />
                 <Tab label="プレビュー" />
-                <Tab
-                  label={`配送${state.exports.some((item) => item.state === "pending" || item.state === "reviewed") ? " •" : ""}`}
-                />
-                <Tab label="作業・履歴" />
               </Tabs>
-              <div className="native-panel" ref={graphPanel}>
-                <div hidden={tab !== 6}>
-                  <NativeWork
-                    workspace={state.portable}
-                    running={running}
-                    authorized={state.authorized}
-                    onCommand={command}
-                    onInspect={(file) => {
-                      setPath(file);
-                      setTab(0);
-                      void command({
-                        type: "inspect",
-                        path: file,
-                        directory: false,
-                      });
-                    }}
-                  />
+              <div className="native-panel">
+                <div hidden={tab !== 0}>
+                  {codeOpened && (
+                    <NativeExplorer
+                      state={state}
+                      running={running}
+                      onCommand={command}
+                      onDependencies={openDependencies}
+                    />
+                  )}
                 </div>
-                <div hidden={tab !== 5}>
-                  <NativeDelivery
-                    exports={state.exports}
-                    review={state.export_review}
-                    outcome={state.export_outcome}
-                    running={running}
-                    onCommand={command}
-                  />
-                </div>
-                <div hidden={tab !== 4}>
+                <div hidden={tab !== 2}>
                   <NativePreview
                     snapshot={state.preview}
                     running={running}
@@ -415,211 +409,206 @@ export function NativeApp({ token }: { token: string }) {
                     }
                   />
                 </div>
-                {tab === 0 && (
-                  <>
-                    <Typography variant="h3">ローカルファイル</Typography>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="ワークスペース内のパス"
-                      value={path}
-                      onChange={(event) => setPath(event.target.value)}
-                      sx={{ my: 2 }}
-                    />
-                    <Button
-                      disabled={running}
-                      onClick={() =>
-                        void command({ type: "inspect", path, directory: true })
-                      }
-                    >
-                      フォルダを開く
+                <div className="native-proof-panel" hidden={tab !== 1}>
+                  <div className="proof-toolbar">
+                    <Button onClick={() => setUtility("history")}>
+                      作業・履歴
                     </Button>
-                    <Button
-                      disabled={running}
-                      onClick={() =>
-                        void command({
-                          type: "inspect",
-                          path,
-                          directory: false,
-                        })
-                      }
-                    >
-                      ファイルを読む
+                    <Button onClick={() => setUtility("analysis")}>
+                      解析の詳細
                     </Button>
-                    <Button
-                      disabled={running || !/\.(rs|lean)$/.test(path)}
-                      onClick={() => openDependencies(path)}
-                    >
-                      このファイルのグラフ
-                    </Button>
-                    {state.inspection && (
-                      <>
-                        <Typography component="h3">
-                          {state.inspection.path}
-                        </Typography>
-                        {!state.inspection.directory &&
-                          !state.inspection.error && (
-                            <>
-                              <p>{state.inspection.offset || 1}行目から表示</p>
-                              <Button
-                                disabled={
-                                  running || (state.inspection.offset || 1) <= 1
-                                }
-                                onClick={() =>
-                                  void command({
-                                    type: "inspect",
-                                    path: state.inspection!.path,
-                                    directory: false,
-                                    offset: Math.max(
-                                      1,
-                                      (state.inspection!.offset || 1) - 200,
-                                    ),
-                                  })
-                                }
-                              >
-                                前のページ
-                              </Button>
-                              <Button
-                                disabled={
-                                  running || !state.inspection.next_offset
-                                }
-                                onClick={() =>
-                                  void command({
-                                    type: "inspect",
-                                    path: state.inspection!.path,
-                                    directory: false,
-                                    offset: state.inspection!.next_offset!,
-                                  })
-                                }
-                              >
-                                次のページ
-                              </Button>
-                            </>
-                          )}
-                        <pre aria-label="ファイルの内容">
-                          {state.inspection.error ||
-                            formatInspection(state.inspection.text || "")}
-                        </pre>
-                      </>
-                    )}
-                  </>
-                )}
-                {tab === 1 && (
-                  <>
-                    <Typography variant="h3">
-                      今回の起動中のツール実行
-                    </Typography>
-                    {state.logs.length === 0 && (
-                      <p>実行結果がここに表示されます。</p>
-                    )}
-                    {state.logs.map((entry, index) =>
-                      entry.type === "notice" ? (
-                        <Alert key={index} severity="warning">
-                          {entry.text}
-                        </Alert>
-                      ) : (
-                        <details key={index} open={Boolean(entry.error)}>
-                          <summary>
-                            {entry.tool} ·{" "}
-                            {entry.type === "call"
-                              ? "入力"
-                              : entry.error
-                                ? "失敗"
-                                : "結果"}
-                          </summary>
-                          <pre>{entry.text}</pre>
-                        </details>
-                      ),
-                    )}
-                  </>
-                )}
-                {tab === 2 && (
-                  <>
-                    <Chip
-                      label={
-                        state.project.verified
-                          ? "検証済み（受理した契約の範囲）"
-                          : state.project.accepted
-                            ? "契約受理済み・現在の証拠なし"
-                            : "契約未受理"
-                      }
-                      color={state.project.verified ? "success" : "default"}
-                    />
-                    <pre>{state.project.review}</pre>
-                    <Button
-                      disabled={running}
-                      onClick={() => void command({ type: "refresh_status" })}
-                    >
-                      現在の証拠を確認
-                    </Button>
-                    {state.project.proposed && !state.project.accepted && (
-                      <Button
-                        disabled={running}
-                        onClick={async () => {
-                          if (
-                            await command({
-                              type: "review_contract",
-                              reference: state.project.reference,
-                            })
-                          )
-                            setReviewing(true);
-                        }}
-                      >
-                        提案された契約を確認
-                      </Button>
-                    )}
-                  </>
-                )}
-                <div hidden={tab !== 3}>
-                  <Tabs
-                    value={graphView}
-                    onChange={(_, view: string) => setGraphView(view)}
-                    aria-label="グラフの表示"
-                    sx={{ mb: 2 }}
+                  </div>
+                  {overviewError && (
+                    <Alert severity="error">{overviewError}</Alert>
+                  )}
+                  <div
+                    className="project-map-page"
+                    hidden={Boolean(focusedFile) || Boolean(utility)}
                   >
-                    <Tab value="overview" label="全体グラフ" />
-                    <Tab value="dependencies" label="依存グラフ" />
-                  </Tabs>
-                  <div hidden={graphView !== "overview"}>
-                    {overviewError && (
-                      <Alert severity="error">{overviewError}</Alert>
-                    )}
                     <NativeWorkspaceGraph
                       snapshot={overview}
-                      state={state}
+                      state={{ ...state, running }}
                       onDependencies={openDependencies}
-                      onRead={(file) => {
-                        setPath(file);
-                        setTab(0);
-                        void command({
-                          type: "inspect",
-                          path: file,
-                          directory: false,
-                        });
-                      }}
                       onRefresh={() => {
                         setOverviewError("");
                         void command({ type: "refresh_workspace" });
                       }}
                     />
                   </div>
-                  <div hidden={graphView !== "dependencies"}>
-                    <NativeDependencyGraph
-                      state={state}
-                      overview={overview}
-                      paths={graphPaths ?? state.project.source_path}
-                      onPaths={setGraphPaths}
-                      onCommand={command}
-                      running={running}
-                      elapsed={elapsed}
-                      connectionError={connectionError}
-                    />
-                  </div>
+                  {focusedFile && !utility && (
+                    <>
+                      <div className="dependency-breadcrumb">
+                        <Button onClick={() => setFocusedFile(undefined)}>
+                          ← プロジェクトマップ
+                        </Button>
+                        <code>{focusedFile}</code>
+                      </div>
+                      <NativeDependencyGraph
+                        compact
+                        state={state}
+                        overview={overview}
+                        paths={focusedFile}
+                        onPaths={setGraphPaths}
+                        onCommand={command}
+                        running={running}
+                        elapsed={elapsed}
+                        connectionError={connectionError}
+                      />
+                      {state.portable.document?.tasks
+                        .filter((task) =>
+                          focusedFile.endsWith(
+                            task.module.replaceAll(".", "/") + ".lean",
+                          ),
+                        )
+                        .map((task) => (
+                          <article className="file-requirement" key={task.id}>
+                            <Typography component="h3">{task.title}</Typography>
+                            <p>{task.requirement}</p>
+                            <Typography variant="caption">
+                              {task.theorems.join(" · ")} · 保存された証明対象
+                            </Typography>
+                          </article>
+                        ))}
+                    </>
+                  )}
+                  {utility === "history" && (
+                    <>
+                      <Button onClick={() => setUtility(null)}>
+                        ← プロジェクトマップ
+                      </Button>
+                      <NativeWork
+                        workspace={state.portable}
+                        running={running}
+                        authorized={state.authorized}
+                        onCommand={command}
+                        onInspect={(file) => {
+                          setUtility(null);
+                          setCodeOpened(true);
+                          setTab(0);
+                          void command({
+                            type: "inspect",
+                            path: file,
+                            directory: false,
+                          });
+                        }}
+                      />
+                    </>
+                  )}
+                  {utility === "delivery" && (
+                    <>
+                      <Button onClick={() => setUtility(null)}>
+                        ← プロジェクトマップ
+                      </Button>
+                      <NativeDelivery
+                        exports={state.exports}
+                        review={state.export_review}
+                        outcome={state.export_outcome}
+                        running={running}
+                        onCommand={command}
+                      />
+                    </>
+                  )}
+                  {utility === "analysis" && (
+                    <>
+                      <Button onClick={() => setUtility(null)}>
+                        ← プロジェクトマップ
+                      </Button>
+                      <NativeDependencyGraph
+                        state={state}
+                        overview={overview}
+                        paths={graphPaths ?? state.project.source_path}
+                        onPaths={setGraphPaths}
+                        onCommand={command}
+                        running={running}
+                        elapsed={elapsed}
+                        connectionError={connectionError}
+                      />
+                    </>
+                  )}
+                  {(state.project.proposed || state.project.accepted) && (
+                    <section className="native-contract-summary">
+                      <Typography variant="h3">検証する要件</Typography>
+                      <Chip
+                        label={
+                          state.project.verified
+                            ? "検証済み（受理した契約の範囲）"
+                            : state.project.accepted
+                              ? "契約受理済み・現在の証拠なし"
+                              : "契約未受理"
+                        }
+                        color={state.project.verified ? "success" : "default"}
+                      />
+                      <pre>{state.project.review}</pre>
+                      <Button
+                        disabled={running}
+                        onClick={() => void command({ type: "refresh_status" })}
+                      >
+                        現在の証拠を確認
+                      </Button>
+                      {state.project.proposed && !state.project.accepted && (
+                        <Button
+                          disabled={running}
+                          onClick={async () => {
+                            if (
+                              await command({
+                                type: "review_contract",
+                                reference: state.project.reference,
+                              })
+                            )
+                              setReviewing(true);
+                          }}
+                        >
+                          提案された契約を確認
+                        </Button>
+                      )}
+                    </section>
+                  )}
                 </div>
               </div>
             </aside>
           </main>
         </>
+      )}
+      {state && (
+        <Dialog
+          open={utility === "logs"}
+          onClose={() => setUtility(null)}
+          fullWidth
+          maxWidth="lg"
+        >
+          <DialogTitle>
+            実行ログ
+            <Button onClick={() => setUtility(null)}>閉じる</Button>
+          </DialogTitle>
+          <DialogContent>
+            {utility === "logs" && (
+              <section aria-label="ツール実行ログ">
+                {state.logs.length === 0 && (
+                  <p>実行結果がここに表示されます。</p>
+                )}
+                {state.logs.map((entry, index) => (
+                  <article key={index}>
+                    {entry.type === "notice" ? (
+                      <Alert severity="warning">{entry.text}</Alert>
+                    ) : (
+                      <>
+                        <Typography component="h3">
+                          {entry.tool} ·{" "}
+                          {entry.type === "call"
+                            ? "入力"
+                            : entry.error
+                              ? "失敗"
+                              : "結果"}
+                        </Typography>
+                        <pre className="native-stream">{entry.text}</pre>
+                      </>
+                    )}
+                  </article>
+                ))}
+              </section>
+            )}
+          </DialogContent>
+        </Dialog>
       )}
       <NativeRepair
         review={state?.repair_review || null}
@@ -825,12 +814,4 @@ export function NativeApp({ token }: { token: string }) {
       </Dialog>
     </div>
   );
-}
-function formatInspection(text: string): string {
-  try {
-    const value: unknown = JSON.parse(text);
-    return typeof value === "string" ? value : JSON.stringify(value, null, 2);
-  } catch {
-    return text;
-  }
 }

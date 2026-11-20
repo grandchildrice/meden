@@ -164,7 +164,7 @@ explicit confined Lake execution; its command result alone is not proof authorit
 
 ## Native delivery review
 
-Ask the agent to prepare a file for a specified HTTP destination. **配送** shows the
+Ask the agent to prepare a file for a specified HTTP destination. **送信提案を確認** appears beside the conversation only when a proposal exists and shows the
 same immutable export queue as the TUI: `propose_export` prepares an ordinary file
 only without a project contract; `propose_artifact_export` prepares the retained
 checked package and requires current accepted meaning/evidence. Neither tool sends
@@ -247,16 +247,25 @@ adds no Rust-to-Lean proof, application correctness or source-to-UI corresponden
 claim. In particular, a JavaScript mirror of checked Rust is still a separate
 implementation unless a further binding is established.
 
-The native **グラフ** tab opens with every regular Rust/Lean source indexed across
-the selected workspace. Its overview groups files by area and connects saved
-requirements to theorem targets and source files; source import edges and declaration
-counts are lexical candidates. Select an area to expand its files, or search all files
-and open their actual source. Choose **このファイルの依存グラフを開く** in the
-selection details to switch directly to that file's dependency view and start offline
-extraction (or lexical inspection for Rust). If Lean is unavailable, the view shows
-the installation and rediscovery instructions without substituting a lexical graph.
-Native accepted contracts retain their own current status;
-saved theorem checks remain history with their original requirements/types/axioms.
+The native sidebar has three tabs: **コード**, **証明** and **プレビュー**.
+**証明** opens a project map immediately, without a filename or model connection.
+Category rectangles use declaration counts for area (a minimum weight of one per
+file); counts of theorem candidates are separate from checked proof evidence.
+A dominant top-level namespace is expanded so the initial map shows useful categories.
+Click a category, or zoom into it, to descend. Breadcrumbs return to any ancestor.
+At file level, lines show lexical import candidates. Click a file to extract real
+Lean declaration dependencies offline, or lexical references for Rust. A declaration
+click shows its source at the original line; related saved requirements appear with
+the focused file. Missing Lean/dependencies remain visible failures, with explicit
+retry and lexical inspection actions. There is no inferred compiler result.
+
+**コード** is a folder explorer. Click folders and files, then use the open-file
+strip to switch between sources. Each read and directory expansion uses the actual
+native file worker. File paths need not be typed. **依存関係を見る** opens the same
+focused dependency view. **作業・履歴** belongs to the proof panel; **実行ログ**
+opens from the conversation. Delivery has no permanent tab and only appears for
+an actual send proposal. Native contract review remains contextual to a proposal
+or accepted agreement, with the same frozen host review and evidence boundaries.
 
 The index reads through the pinned, policy-bound offline file worker. Read-only batches
 retain each original request and check both original/resolved paths under the same policy;
@@ -269,14 +278,9 @@ Failures and cancellation retain chat and show a retry action; no partial comple
 is installed. Completed model file/command checks trigger a fresh read of this overview.
 Concurrent host changes are not an atomic filesystem snapshot.
 
-For declaration details, use **依存グラフ** in the page header or at the top of the
-**グラフ** tab. The header also brings the controls into view on narrow screens.
-Search for an indexed file, then choose **依存グラフを表示** for Lean or
-**ソースの参照候補を表示** for lexical inspection. Selection, running status, errors
-and the result share this view, without scrolling past the whole-workspace canvas.
-**複数ファイル・Lakeターゲットの指定** exposes manual paths and a separate action
-for automatic Lake roots. The normal display action requires an explicit file.
-**このファイルのグラフ** in the code panel uses the current path and starts extraction.
+**解析の詳細** is a separate secondary page for explicit multi-file paths,
+automatic Lake target selection and tool preparation/repair. Its controls are
+visible together; the normal map journey needs none of those settings.
 Source observations use the same offline,
 policy-bound file worker as project snapshots (1–32 files, 64 KiB per file,
 1 MiB total). No truncated file is indexed. A SHA-256 binds the selected paths
@@ -297,8 +301,8 @@ following recorded-demo documentation describes a separate standalone mode.
 
 ## Native Lean Atlas extraction
 
-With an installed Lean distribution, select **グラフ → 依存グラフ**, search for a
-local `.lean` file, then choose **依存グラフを表示**. The first extraction
+With an installed Lean distribution, open **証明** and click through the categories
+to a local Lean file. The first extraction
 automatically compiles the pinned public Atlas library offline without sending
 source to a model. The public TUI `/atlas` command performs the same preparation.
 Meden selects the workspace's `lean-toolchain` from installed Elan toolchains,

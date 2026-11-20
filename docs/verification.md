@@ -1786,15 +1786,21 @@ model quality, confidentiality or cold installation.
 
 ## Shared CLI and TUI execution
 
-The native GUI separates its whole-workspace overview from file dependencies.
-The header opens the dependency controls directly; an overview file action starts
-extraction with that exact path. A normal first extraction prepares Atlas automatically.
-Advanced Lake roots and repair stay explicit. Real browser regressions cover
-cross-module compiler edges, original-root selection after browser reload, failed
-compilation without old output, reselection, an unapproved host restart and the
-complete search/display controls in a 390-pixel viewport. The existing required
-public TUI Lake journey retains its actual compiler, failure and restart checks.
-These are GUI/host adapter observations, not new refinement or proof authority.
+The native GUI has three sidebar tabs: code, proof and preview. Proof opens a
+category treemap immediately. Area represents lexical declaration counts (minimum
+one per file); theorem counts remain candidates. Category clicks or semantic zoom
+expose file-level import candidates. A file click starts the real offline declaration
+extractor; selecting a declaration displays its source line. The code tab reads actual
+directories/files through a folder explorer and keeps open-file buttons. Saved
+requirements are associated with their module rather than treated as dependency roots.
+Advanced extraction settings live on a separate page, and a send review is visible
+only for an actual proposal. No new action grants proof or processor authority.
+Browser regressions cover three-tab navigation without typed paths, real compiler
+edges, source/requirement inspection, compiler failure without old output, recovery,
+390-pixel layout and an unapproved restart. The required public TUI Lake journey
+retains its actual compiler, failure and restart checks. These are GUI/host adapter
+observations, not new refinements. The [project-map observation](../results/gui-project-map-ethlib.json)
+records navigation on the real EthLib checkout using installed resources without inference.
 The [EthLib navigation observation](../results/gui-dependency-navigation-ethlib.json)
 records compiled extraction with installed dependencies and explicit lexical recovery
 from missing Mathlib in a separate bare clone, without inference or downloads.

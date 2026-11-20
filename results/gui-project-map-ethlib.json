@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "meden_base": "2d15542",
+  "journey": "Open the project as a category map, descend without typing filenames, inspect real compiler dependencies and source, and browse folders with exactly three sidebar tabs.",
+  "public_entry": "./target/debug/meden gui --workspace ../EthLib",
+  "compiled_observation": {
+    "time": "2026-11-20T10:53:56.398Z",
+    "workspace": "/home/gohan/workspace/EthLib",
+    "tabs": [
+      "コード",
+      "証明",
+      "プレビュー"
+    ],
+    "map_rect": {
+      "x": 657,
+      "y": 350,
+      "width": 927,
+      "height": 582
+    },
+    "viewport": {
+      "width": 1600,
+      "height": 1000
+    },
+    "root": [
+      "EthLib/Networking/Gossip/Parameters.lean"
+    ],
+    "atlas": {
+      "projectName": "Selected Lean modules",
+      "leanVersion": "4.36.0"
+    },
+    "declarations": 42,
+    "host_idle": true,
+    "edges": 69,
+    "authorized": false,
+    "source_line_visible": true,
+    "project_git_head": "c6a7f0da",
+    "files_in_overview": 2517,
+    "binary_sha256": "e6356d533018edb5fd33aeed9b88fc19527b417ed3687e4422da2f2cded041d3",
+    "assets_index_sha256": "4915e93c61aab73a394b873e4ea2ef9c920bc662dedabe93249d7b65d1c7f096",
+    "source_line_in_viewport": true,
+    "inference": false,
+    "native_verified": false,
+    "toolchain_download_tested": false,
+    "dependency_download_tested": false
+  },
+  "final_map_layout": {
+    "assets_index_sha256": "85c013c4db96f5cec163c1ffa9cc6a16dc574b30c07defe450612dd1fca6e298",
+    "change": "Fit the map again when its canvas changes size, and keep controls legible.",
+    "viewport_regression": "Both sibling file tiles remain completely in the 390px viewport after desktop zoom/navigation.",
+    "service": "meden-ethlib-gui.service; user service on loopback, without processor approval",
+    "actual_ethlib": {
+      "files": 2517,
+      "overview": "ready",
+      "processor_authorized": false,
+      "atlas_available": true,
+      "compiled_snapshot_after_restart": null,
+      "viewport_resize_confirmed": true,
+      "geometry_rounding_tolerance_css_pixels": 0.5
+    }
+  },
+  "checks": {
+    "gui": {
+      "unique_cases_passed": 46,
+      "stages": [
+        {
+          "passed": 29,
+          "description": "Full-suite pass through workspace opening, real Atlas/Lake, the map/explorer and missing-dependency recovery. A later obsolete always-visible empty-delivery expectation failed; later cases did not run in this attempt."
+        },
+        {
+          "passed": 19,
+          "skipped": 0,
+          "description": "Corrected contextual delivery expectation; remaining 17 cases plus map and demo overlap all passed, covering all 46 unique cases across these runs."
+        },
+        {
+          "passed": 3,
+          "skipped": 0,
+          "description": "Final long-source visibility regression, automated WCAG AA demo coverage and expanded source-reader regression."
+        },
+        {
+          "passed": 1,
+          "skipped": 0,
+          "description": "Final map resize/semantic zoom, long-source viewport, file-read failure/recovery, compiler failure/reselection and unapproved restart."
+        }
+      ]
+    },
+    "unit": {
+      "passed": 30,
+      "files": 6
+    },
+    "required_tui_ux": {
+      "passed": 33,
+      "skipped": 0,
+      "decoded_screens_reviewed": [
+        "Actual Lake source graph ready with four source files and exact declarations",
+        "missing.lean source observation refusal",
+        "Historical analysis after host restart without restoring current authority"
+      ]
+    },
+    "static": [
+      "TypeScript typecheck and production build",
+      "Repository Prettier gate",
+      "git diff --check"
+    ]
+  },
+  "visual_review": [
+    "Actual EthLib category map with Networking/Consensus/Cryptography and full canvas",
+    "Networking/Gossip category descent and Parameters compiler graph",
+    "Actual selected GossipsubParameters source line in the viewport",
+    "Folder explorer, open-file strip and actual read failure/recovery",
+    "390px map after viewport resizing",
+    "Public TUI decoded compiler, failure and restart screens"
+  ],
+  "observer_retries": [
+    "The first map put the dominant EthLib namespace in one rectangle; it now exposes that namespace's categories on opening.",
+    "An initial observer checked that the source existed, then a stronger viewport assertion found that a long actual EthLib source line was outside the viewport. SourceView now reveals the exact selected row, with a long-source browser regression and a passing actual EthLib viewport observation.",
+    "Decoded mobile screenshots exposed a desktop zoom retained after a viewport change. Resize observation now refits the visible map; both sibling file tiles must be completely visible.",
+    "Initial test fixtures/selectors were updated for the existing conversations schema and the intentional removal of permanent log/history/delivery tabs. No project source/configuration repair rescued a browser journey.",
+    "The real EthLib mobile observer initially required an exact IntersectionObserver ratio of 1; browser floating-point output was 0.999999523. The final observer additionally checked the tile bounds against its canvas with a 0.5 CSS-pixel rounding tolerance. The fixture resize regression still requires both complete sibling tiles at ratio 1."
+  ],
+  "limits": [
+    "Rectangle area is lexical declaration count, with minimum weight one per file. Theorem candidate counts are not checked proof coverage.",
+    "The overview shows import candidates; only focused Atlas extraction shows compiler declaration dependencies.",
+    "Installed Lean 4.36.0 and cached EthLib dependencies were prerequisites. No cold installation, dependency download or inference was exercised.",
+    "Compiler extraction covers one EthLib root module, not the whole elaborated project. No native contract acceptance, whole-application proof, local-model quality or confidentiality claim is established."
+  ]
+}

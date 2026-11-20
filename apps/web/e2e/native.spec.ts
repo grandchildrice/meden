@@ -110,20 +110,8 @@ test.describe("native GUI with real offline workers", () => {
     return url;
   }
   async function openDependencyControls(page: Page) {
-    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
-    await page.getByRole("tab", { name: "依存グラフ", exact: true }).click();
-    for (const name of [
-      "複数ファイル・Lakeターゲットの指定",
-      "抽出ツールの修復",
-    ]) {
-      const summary = page.getByText(name, { exact: true });
-      if (
-        !(await summary.evaluate(
-          (node) => (node.parentElement as HTMLDetailsElement).open,
-        ))
-      )
-        await summary.click();
-    }
+    await page.getByRole("tab", { name: "証明", exact: true }).click();
+    await page.getByRole("button", { name: "解析の詳細", exact: true }).click();
   }
   async function stop() {
     if (child?.exitCode === null) {
@@ -597,61 +585,90 @@ test.describe("native GUI with real offline workers", () => {
       fullPage: true,
     });
   });
-  test("dependency graph is reachable from the overview, compiles in one action and recovers after failure and restart", async ({
+  test("three tabs expose a category map and clickable explorer, with compiler failure recovery and unapproved restart", async ({
     page,
   }) => {
     test.setTimeout(180_000);
+    await mkdir(resolve(project, "Networking"));
+    await mkdir(resolve(project, ".meden"));
     await writeFile(
-      resolve(project, "Domain.lean"),
+      resolve(project, "Networking/Domain.lean"),
       "def price : Nat := 150\n",
     );
     await writeFile(
-      resolve(project, "App.lean"),
-      "import Domain\ndef invoice (n : Nat) := price * n\n",
+      resolve(project, "Networking/App.lean"),
+      "import Networking.Domain\n" +
+        "-- documentation line\n".repeat(140) +
+        "def invoice (n : Nat) := price * n\n" +
+        "-- trailing detail\n".repeat(140),
     );
     await writeFile(
       resolve(project, "Broken.lean"),
       "def broken : Nat := doesNotExist\n",
     );
+    await writeFile(
+      resolve(project, ".meden/workspace.json"),
+      JSON.stringify({
+        version: 1,
+        name: "Invoices",
+        tasks: [
+          {
+            id: "invoice",
+            title: "Invoice total",
+            requirement: "Multiply the unit price by the requested quantity.",
+            module: "Networking.App",
+            theorems: [],
+            next: "Check the invoice.",
+          },
+        ],
+        events: [],
+        conversations: [],
+      }),
+    );
     await page.goto(await start());
-    const dependencyTab = page.getByRole("tab", {
-      name: "依存グラフ",
+    const sidebar = page.getByRole("complementary", { name: "実装と実行結果" });
+    await expect(sidebar.getByRole("tab")).toHaveText([
+      "コード",
+      "証明",
+      "プレビュー",
+    ]);
+    const map = page.getByRole("region", {
+      name: "プロジェクトマップ",
       exact: true,
     });
-    await expect(dependencyTab).toBeVisible();
-    const entryBox = await dependencyTab.boundingBox();
-    expect(entryBox!.y + entryBox!.height).toBeLessThan(500);
+    await expect(map).toContainText("3ファイル");
     await expect(
-      page.getByRole("region", { name: "ワークスペース全体の契約と証明" }),
+      page.getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: "送信提案を確認" }),
+    ).toHaveCount(0);
+    await expect(
+      map.getByRole("button", { name: "カテゴリ: Networking", exact: true }),
     ).toBeVisible();
-    await page
-      .getByRole("button", { name: "依存グラフを開く", exact: true })
-      .click();
-    await expect(dependencyTab).toHaveAttribute("aria-selected", "true");
-    await expect(
-      page.getByRole("button", { name: "依存グラフを表示", exact: true }),
-    ).toBeDisabled();
     await page.screenshot({
-      path: "target/gui-checks/native-dependency-entry.png",
+      path: "target/gui-checks/native-category-map.png",
     });
-    await page.getByRole("tab", { name: "全体グラフ", exact: true }).click();
-    const wholePicker = page.getByRole("combobox", {
-      name: "全ファイルから探す",
-    });
-    await wholePicker.fill("App.lean");
-    await page.getByRole("option", { name: "App.lean", exact: true }).click();
-    await page
+    const categoryBox = await map
+      .getByRole("button", { name: "カテゴリ: Networking", exact: true })
+      .boundingBox();
+    await page.mouse.move(
+      categoryBox!.x + categoryBox!.width / 2,
+      categoryBox!.y + categoryBox!.height / 2,
+    );
+    await page.mouse.wheel(0, -1200);
+    await expect(
+      map.getByRole("button", {
+        name: "依存関係: Networking/App.lean",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await map
       .getByRole("button", {
-        name: "このファイルの依存グラフを開く",
+        name: "依存関係: Networking/App.lean",
         exact: true,
       })
       .click();
-    await expect(dependencyTab).toHaveAttribute("aria-selected", "true");
-    const picker = page.getByRole("combobox", {
-      name: "依存を調べるファイルを探す",
-      exact: true,
-    });
-    await expect(picker).toHaveValue("App.lean");
     const graph = page.getByRole("region", { name: "ローカルソースのグラフ" });
     await expect(graph).toContainText("Lean Atlasによるコンパイル後の依存", {
       timeout: 120_000,
@@ -662,85 +679,161 @@ test.describe("native GUI with real offline workers", () => {
       ]),
     );
     await expect(
-      page.getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" }),
-    ).not.toBeVisible();
+      page.getByText("Multiply the unit price by the requested quantity.", {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await graph.getByRole("button", { name: /invoice.*を選択/ }).click();
+    await expect(
+      graph.getByLabel("宣言のソース").locator('[aria-current="location"]'),
+    ).toContainText("def invoice");
+    await expect(
+      graph.getByLabel("宣言のソース").locator('[aria-current="location"]'),
+    ).toBeInViewport();
     await page.screenshot({
-      path: "target/gui-checks/native-dependency-direct.png",
+      path: "target/gui-checks/native-map-dependencies.png",
     });
-    const revision = (await nativeState(page)).source_snapshot.revision;
-    await page.reload();
+    await page.getByRole("tab", { name: "コード", exact: true }).click();
     await page
-      .getByRole("button", { name: "依存グラフを開く", exact: true })
-      .click();
-    await expect(picker).toHaveValue("App.lean");
-    await expect(graph).toContainText("Lean Atlasによるコンパイル後の依存");
-    expect((await nativeState(page)).source_snapshot.revision).toBe(revision);
-    await page.getByRole("tab", { name: "全体グラフ", exact: true }).click();
-    await wholePicker.fill("Broken.lean");
-    await page
-      .getByRole("option", { name: "Broken.lean", exact: true })
+      .getByRole("button", { name: "フォルダ: Networking", exact: true })
       .click();
     await page
       .getByRole("button", {
-        name: "このファイルの依存グラフを開く",
+        name: "ファイル: Networking/App.lean",
         exact: true,
       })
       .click();
     await expect(
+      page
+        .getByRole("region", { name: "ファイルエクスプローラー" })
+        .getByLabel("ファイルの内容"),
+    ).toContainText("def invoice");
+    await page
+      .getByRole("button", {
+        name: "ファイル: Networking/Domain.lean",
+        exact: true,
+      })
+      .click();
+    await expect(
+      page.getByLabel("開いているファイル").getByRole("button"),
+    ).toHaveText(["App.lean", "Domain.lean"]);
+    await page
+      .getByLabel("開いているファイル")
+      .getByRole("button", { name: "App.lean", exact: true })
+      .click();
+    await expect(
+      page
+        .getByRole("region", { name: "ファイルエクスプローラー" })
+        .getByLabel("ファイルの内容"),
+    ).toContainText("def invoice");
+    const explorer = page.getByRole("region", {
+      name: "ファイルエクスプローラー",
+    });
+    await explorer
+      .getByRole("button", { name: "ファイル: original-test.txt", exact: true })
+      .click();
+    await expect(explorer.getByLabel("ファイルの内容")).toContainText(
+      "keep this original test",
+    );
+    await rm(resolve(project, "original-test.txt"));
+    await explorer
+      .getByRole("button", { name: "ファイル: original-test.txt", exact: true })
+      .click();
+    await expect(explorer.getByRole("alert")).toContainText("No such file");
+    await expect(explorer.getByLabel("ファイルの内容")).toHaveCount(0);
+    await explorer
+      .getByRole("button", {
+        name: "ファイル: Networking/App.lean",
+        exact: true,
+      })
+      .click();
+    await expect(explorer.getByLabel("ファイルの内容")).toContainText(
+      "def invoice",
+    );
+    await expect(explorer.getByRole("alert")).toHaveCount(0);
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    await page.screenshot({ path: "target/gui-checks/native-explorer.png" });
+    await page.getByRole("tab", { name: "証明", exact: true }).click();
+    await page
+      .getByRole("button", { name: "← プロジェクトマップ", exact: true })
+      .click();
+    await map
+      .getByRole("button", { name: "プロジェクト全体", exact: true })
+      .click();
+    await map
+      .getByRole("button", { name: "依存関係: Broken.lean", exact: true })
+      .click();
+    await expect(
       page.getByRole("alert").filter({ hasText: "doesNotExist" }),
     ).toBeVisible({ timeout: 60_000 });
-    await expect(picker).toHaveValue("Broken.lean");
     await expect(graph).not.toBeVisible();
     expect((await nativeState(page)).source_snapshot).toBeNull();
-    await page.screenshot({
-      path: "target/gui-checks/native-dependency-failure.png",
-    });
-    await picker.fill("App.lean");
-    await page.getByRole("option", { name: "App.lean", exact: true }).click();
+    await page.screenshot({ path: "target/gui-checks/native-map-failure.png" });
     await page
-      .getByRole("button", { name: "依存グラフを表示", exact: true })
+      .getByRole("button", { name: "← プロジェクトマップ", exact: true })
+      .click();
+    await map
+      .getByRole("button", { name: "カテゴリ: Networking", exact: true })
+      .click();
+    await map
+      .getByRole("button", {
+        name: "依存関係: Networking/App.lean",
+        exact: true,
+      })
       .click();
     await expect(graph).toContainText("Lean Atlasによるコンパイル後の依存", {
       timeout: 60_000,
     });
     await page.setViewportSize({ width: 390, height: 844 });
     await page
-      .getByRole("button", { name: "依存グラフを開く", exact: true })
+      .getByRole("button", { name: "← プロジェクトマップ", exact: true })
       .click();
-    await expect(dependencyTab).toBeInViewport();
-    await expect(picker).toBeInViewport({ ratio: 1 });
+    await map.scrollIntoViewIfNeeded();
     await expect(
-      page.getByRole("button", { name: "依存グラフを表示", exact: true }),
+      map.getByRole("button", {
+        name: "依存関係: Networking/App.lean",
+        exact: true,
+      }),
     ).toBeInViewport({ ratio: 1 });
+    await expect(
+      map.getByRole("button", {
+        name: "依存関係: Networking/Domain.lean",
+        exact: true,
+      }),
+    ).toBeInViewport({ ratio: 1 });
+    await expect(sidebar.getByRole("tab")).toHaveText([
+      "コード",
+      "証明",
+      "プレビュー",
+    ]);
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBe(true);
-    await page.screenshot({
-      path: "target/gui-checks/native-dependency-mobile.png",
-    });
+    await page.screenshot({ path: "target/gui-checks/native-map-mobile.png" });
     await stop();
     await page.setViewportSize({ width: 1440, height: 960 });
     await page.goto(await start());
-    await dependencyTab.click();
+    await expect(map).toContainText("3ファイル");
     expect((await nativeState(page)).authorized).toBe(false);
     expect((await nativeState(page)).source_snapshot).toBeNull();
-    await expect(
-      page.getByRole("button", { name: "依存グラフを表示", exact: true }),
-    ).toBeDisabled();
-    await picker.fill("App.lean");
-    await page.getByRole("option", { name: "App.lean", exact: true }).click();
-    await page
-      .getByRole("button", { name: "依存グラフを表示", exact: true })
+    await map
+      .getByRole("button", { name: "カテゴリ: Networking", exact: true })
+      .click();
+    await map
+      .getByRole("button", {
+        name: "依存関係: Networking/App.lean",
+        exact: true,
+      })
       .click();
     await expect(graph).toContainText("Lean Atlasによるコンパイル後の依存", {
       timeout: 60_000,
     });
     expect(requests).toHaveLength(0);
-    await page.screenshot({
-      path: "target/gui-checks/native-dependency-restart.png",
-    });
+    await page.screenshot({ path: "target/gui-checks/native-map-restart.png" });
   });
 
   test("missing Mathlib explains preparation and an existing-file picker recovers through source inspection without fetching", async ({
@@ -781,7 +874,7 @@ test.describe("native GUI with real offline workers", () => {
     await expect(missing).toContainText("vendor/mathlib");
     await expect(missing).toContainText("lake exe cache get");
     expect((await nativeState(page)).source_snapshot).toBeNull();
-    await page.getByText("初回の依存パッケージ準備", { exact: true }).click();
+
     await expect(
       page.getByText("Medenの解析中にはダウンロードしません。", {
         exact: false,
@@ -979,7 +1072,7 @@ test.describe("native GUI with real offline workers", () => {
     await expect(
       page.getByText("DELIVERIES-QUEUED", { exact: true }),
     ).toBeVisible();
-    await page.getByRole("tab", { name: /^配送/ }).click();
+    await page.getByRole("button", { name: "送信提案を確認" }).click();
   }
 
   test("review frozen delivery bytes, reject another target, send once and restart without a queue", async ({
@@ -1089,10 +1182,16 @@ test.describe("native GUI with real offline workers", () => {
       const port = Number(new URL(url).port);
       await stop();
       await page.goto(await start(port));
-      await page.getByRole("tab", { name: /^配送/ }).click();
+      await expect(page.getByRole("tab")).toHaveText([
+        "コード",
+        "証明",
+        "プレビュー",
+      ]);
       await expect(
-        page.getByText("配送の提案はありません。", { exact: false }),
-      ).toBeVisible();
+        page.getByRole("button", { name: "送信提案を確認" }),
+      ).toHaveCount(0);
+      expect((await nativeState(page)).exports).toEqual([]);
+      expect((await nativeState(page)).authorized).toBe(false);
       expect(received).toHaveLength(1);
     } finally {
       receiver.closeAllConnections();
@@ -1509,9 +1608,8 @@ test.describe("native GUI with real offline workers", () => {
     );
     await page.getByRole("tab", { name: "コード", exact: true }).click();
     await page
-      .getByRole("textbox", { name: "ワークスペース内のパス" })
-      .fill("result.txt");
-    await page.getByRole("button", { name: "ファイルを読む" }).click();
+      .getByRole("button", { name: "ファイル: result.txt", exact: true })
+      .click();
     await expect(page.getByLabel("ファイルの内容")).toContainText(
       "built by native worker",
     );
@@ -2004,7 +2102,7 @@ test.describe("native GUI with real offline workers", () => {
     await stop();
     await page.goto(await start(port));
     await expect(
-      page.getByRole("tab", { name: "グラフ", exact: true }),
+      page.getByRole("tab", { name: "証明", exact: true }),
     ).toBeVisible();
     expect((await nativeState(page)).repair_review).toBe(null);
     expect((await nativeState(page)).authorized).toBe(false);
@@ -2032,7 +2130,7 @@ test.describe("native GUI with real offline workers", () => {
     await stop();
     await page.goto(await start(port));
     await expect(
-      page.getByRole("tab", { name: "グラフ", exact: true }),
+      page.getByRole("tab", { name: "証明", exact: true }),
     ).toBeVisible();
     await expect(dialog).not.toBeVisible();
     expect(await hostCommand(page, { type: "apply_repair", reference })).toBe(

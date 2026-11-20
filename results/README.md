@@ -8,6 +8,15 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Native GUI and Atlas with Ollama Cloud
 
+The [project-map observation](gui-project-map-ethlib.json) opens all 2,517 EthLib
+source files as declaration-weighted category rectangles, descends through Networking
+and Gossip without filename input, extracts the actual Parameters module and opens
+its declaration source. It records the three-tab UI, compiler edges and exact source
+line visibility. The browser regressions additionally cover folder/open-file navigation,
+semantic zoom, long-source selection, stale file reads, compiler recovery and restart.
+This uses installed Lean/dependencies without inference; candidate theorem counts and
+historical requirements confer no new proof status.
+
 The [dependency-navigation observation](gui-dependency-navigation-ethlib.json)
 uses the header and the whole-workspace file action to reach the focused dependency
 view. Installed EthLib dependencies permit real compiler extraction; a separate bare

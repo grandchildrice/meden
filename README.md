@@ -85,9 +85,11 @@ provider/model, review the exact destination, approve it, then send an instructi
 agent, offline tools, files and conversation checkpoints as the TUI. Stop the GUI
 before opening that project in the TUI; the repository permits one writer.
 Code, actual tool inputs/results and native contract status appear beside the chat.
-Open **依存グラフ** in the page header, or choose it at the top of the Graph tab,
-search for a file and choose **依存グラフを表示**. Or select a file in the overview
-and choose **このファイルの依存グラフを開く** to select and extract in one action.
+The sidebar has **コード・証明・プレビュー**. **証明** opens a category map
+without choosing a file. Rectangle area represents declaration counts; click or
+zoom through categories, then click a file to open its declaration dependencies.
+**コード** provides a folder explorer and open-file tabs, so source paths need not
+be typed. Saved requirements appear alongside their related source.
 The result opens each declaration at its exact source line.
 **ソースの参照候補を表示** provides lexical inspection before Lean dependencies are
 prepared; it is not a compiler dependency graph or a new proof check.
@@ -105,7 +107,7 @@ These model assessments do not accept contracts or establish proofs.
 The Preview tab opens selected local HTML/JS/CSS or static build output, so you can
 interact with the developed application and reread files after edits. It supports
 browser applications without backend services or persistent browser storage.
-The Delivery tab reviews the same fixed file/checked-package queue as the TUI,
+When the agent proposes a send, **送信提案を確認** reviews the same fixed file/checked-package queue as the TUI,
 then sends once to the displayed destination or rejects the proposal.
 HTTP connections can also use `--base-url URL --model MODEL --api-key-env NAME`.
 Prepare real proof tools with `meden setup` before requesting formal verification.

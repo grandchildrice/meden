@@ -279,7 +279,7 @@ try {
     throw new Error(
       "Live model did not prepare the exact application delivery",
     );
-  await page.getByRole("tab", { name: /^配送/ }).click();
+  await page.getByRole("button", { name: "送信提案を確認" }).click();
   await page
     .getByRole("button", {
       name: `配送 #${proposal.id} の内容と宛先を確認`,
@@ -354,19 +354,10 @@ try {
       "utf8",
     );
   }
-  await page
-    .getByRole("button", { name: "依存グラフを開く", exact: true })
-    .click();
+  await page.getByRole("tab", { name: "証明", exact: true }).click();
   const graphFile = values.atlas ? "Purchase.lean" : "kernel.rs";
   await page
-    .getByRole("combobox", { name: "依存を調べるファイルを探す", exact: true })
-    .fill(graphFile);
-  await page.getByRole("option", { name: graphFile, exact: true }).click();
-  await page
-    .getByRole("button", {
-      name: values.atlas ? "依存グラフを表示" : "ソースの参照候補を表示",
-      exact: true,
-    })
+    .getByRole("button", { name: "依存関係: " + graphFile, exact: true })
     .click();
   await page
     .getByRole("region", { name: "ローカルソースのグラフ" })
@@ -449,9 +440,7 @@ try {
   await stop();
   await launch(port);
   await expect(page.getByText(instruction, { exact: true })).toBeVisible();
-  await page
-    .getByRole("button", { name: "依存グラフを開く", exact: true })
-    .click();
+  await page.getByRole("button", { name: "解析の詳細", exact: true }).click();
   await expect(
     page.getByLabel("意味解析の結果", { exact: true }),
   ).toContainText("保存された解析です");

@@ -135,7 +135,8 @@ test("portable GUI history survives a real git clone and checks actual Lean with
     });
     sessionToken = new URL(url).hash.slice("#session=".length);
     await page.goto(url);
-    await page.getByRole("tab", { name: "作業・履歴", exact: true }).click();
+    await page.getByRole("tab", { name: "証明", exact: true }).click();
+    await page.getByRole("button", { name: "作業・履歴", exact: true }).click();
   }
   async function idle() {
     await expect(
@@ -279,7 +280,8 @@ test("portable GUI history survives a real git clone and checks actual Lean with
     await expect(
       page.getByText("201行目から表示", { exact: true }),
     ).toBeVisible();
-    await page.getByRole("tab", { name: "作業・履歴", exact: true }).click();
+    await page.getByRole("tab", { name: "証明", exact: true }).click();
+    await page.getByRole("button", { name: "作業・履歴", exact: true }).click();
     // Deliberately break the source: old transferred success must not admit a fresh check.
     await writeFile(
       resolve(clone, "Pilot.lean"),

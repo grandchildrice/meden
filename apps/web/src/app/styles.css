@@ -2739,14 +2739,15 @@ pre {
   min-height: 180px;
 }
 .native-artifacts {
-  width: 44%;
+  width: 60%;
   border-left: 1px solid #e3e5e8;
   display: flex;
   flex-direction: column;
-  min-width: 300px;
+  min-width: 0;
 }
 .native-panel {
-  padding: 20px;
+  min-height: 0;
+  padding: 16px;
   overflow: auto;
   flex: 1;
 }
@@ -2883,40 +2884,276 @@ pre {
   }
 }
 .workspace-overview-canvas {
-  height: 480px;
-  min-height: 320px;
+  height: auto;
+  flex: 1;
+  min-height: 220px;
+  background: #101c25;
+  overflow: hidden;
   margin: 16px 0;
   border: 1px solid #d5dcde;
   border-radius: 12px;
-}
-.workspace-graph-node {
-  width: 175px;
-  padding: 12px 16px;
-  border: 1px solid #b6c9ce;
-  border-radius: 10px;
-  background: #fff;
-  color: #26383d;
-}
-.workspace-graph-node strong {
-  display: block;
-  font-size: 13px;
-  overflow-wrap: anywhere;
-}
-.workspace-graph-node span {
-  display: block;
-  font-size: 11px;
-  margin-top: 6px;
-}
-.workspace-graph-node.requirement {
-  background: #edf4ff;
-  border-color: #7d9ec9;
-}
-.workspace-graph-node.proof {
-  background: #f3f0fa;
-  border-color: #a493bf;
 }
 .native-history-note {
   display: block;
   padding: 8px 16px;
   color: #587179;
+}
+
+/* Native workspace: three views, direct navigation, semantic map zoom. */
+.native-artifacts > .MuiTabs-root {
+  flex: none;
+  border-bottom: 1px solid var(--line);
+}
+.native-panel > [hidden],
+.native-panel [hidden] {
+  display: none !important;
+}
+.proof-toolbar,
+.project-map-heading,
+.dependency-breadcrumb,
+.explorer-source-heading,
+.explorer-pages,
+.explorer-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.proof-toolbar {
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+.dependency-breadcrumb code {
+  overflow-wrap: anywhere;
+}
+.project-map-tile {
+  container-type: size;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #ffffff30;
+  border-radius: 5px;
+  padding: 12px;
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  overflow: hidden;
+  transition: filter 0.15s;
+}
+.project-map-tile:hover {
+  filter: brightness(1.2);
+}
+.project-map-tile:focus-visible {
+  outline: 4px solid #ffda87;
+  outline-offset: -4px;
+}
+.project-map-tile strong {
+  overflow-wrap: anywhere;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: clamp(14px, 13cqw, 24px);
+}
+.project-map-tile span,
+.project-map-tile small {
+  font-size: 16px;
+}
+.map-color-0 {
+  background: #275f69;
+}
+.map-color-1 {
+  background: #414b7e;
+}
+.map-color-2 {
+  background: #73516c;
+}
+.map-color-3 {
+  background: #695a38;
+}
+.map-color-4 {
+  background: #365b51;
+}
+.map-breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+}
+.file-requirement,
+.native-contract-summary {
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+  margin-top: 16px;
+}
+.chat-utilities {
+  padding: 0 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+.native-explorer {
+  display: grid;
+  grid-template-columns: minmax(130px, 26%) minmax(0, 1fr);
+  min-height: calc(100dvh - 240px);
+}
+.explorer-tree {
+  border-right: 1px solid var(--line);
+  overflow: auto;
+}
+.explorer-tree ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.explorer-title {
+  padding: 0 8px;
+}
+.explorer-entry {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: none;
+  padding-block: 6px;
+  padding-right: 8px;
+  width: 100%;
+  background: transparent;
+  text-align: left;
+  color: #425c67;
+  cursor: pointer;
+}
+.explorer-entry span {
+  white-space: nowrap;
+}
+.explorer-entry svg {
+  font-size: 17px;
+  flex: none;
+}
+.explorer-entry:hover,
+.explorer-entry.selected {
+  background: #e9f1f4;
+}
+.explorer-entry:focus-visible {
+  outline: 2px solid #487dcb;
+  outline-offset: -2px;
+}
+.explorer-entry:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+.explorer-editor {
+  min-width: 0;
+  overflow: auto;
+}
+.explorer-open-files {
+  display: flex;
+  overflow: auto;
+  border-bottom: 1px solid var(--line);
+  min-height: 38px;
+}
+.explorer-open-files button {
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: #f0f3f5;
+  padding: 8px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.explorer-open-files button[aria-pressed="true"] {
+  background: white;
+  box-shadow: inset 0 2px #347584;
+}
+.explorer-source-heading {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+.explorer-editor pre {
+  white-space: pre;
+  font-size: 12px;
+  overflow: auto;
+  padding: 12px;
+  margin: 0;
+  min-height: 300px;
+  background: #f8fafc;
+}
+.explorer-pages {
+  padding: 8px;
+  font-size: 12px;
+}
+.explorer-empty {
+  padding: 24px;
+  color: #627781;
+}
+@media (max-width: 839px) {
+  .native-artifacts {
+    width: 100%;
+    min-height: 600px;
+  }
+  .native-panel {
+    padding: 12px;
+  }
+  .native-explorer {
+    grid-template-columns: 130px minmax(0, 1fr);
+  }
+}
+.native-selected-source {
+  margin-block: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.native-selected-source .source-code {
+  max-height: 280px;
+}
+.native-selected-source .source-toolbar {
+  padding: 8px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.native-selected-source .source-toolbar .MuiInputBase-root {
+  max-width: 100%;
+}
+.workspace-overview-canvas .react-flow__controls button {
+  background: #f5f8fb !important;
+  fill: #23343d !important;
+  color: #23343d;
+  border-bottom: 1px solid #d3dee4;
+}
+.workspace-overview-canvas .react-flow__controls button svg {
+  fill: currentColor;
+}
+.project-map-tile:disabled {
+  cursor: progress;
+}
+.native-proof-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.project-map-page,
+.workspace-overview {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.native-chat > .MuiAlert-root {
+  margin: 8px 12px;
+  max-height: 160px;
+  overflow: auto;
+  flex: none;
+}
+@container (max-width: 130px) {
+  .project-map-tile span,
+  .project-map-tile small {
+    font-size: 12px;
+  }
+}
+@container (max-height: 90px) {
+  .project-map-tile small {
+    display: none;
+  }
+}
+@container (max-height: 52px) {
+  .project-map-tile span {
+    display: none;
+  }
 }
