@@ -29,7 +29,9 @@ import { NativeRepair } from "../features/native/NativeRepair";
 import { NativeDelivery } from "../features/native/NativeDelivery";
 import { NativeWork } from "../features/native/NativeWork";
 import { visibleHistory } from "../features/native/history";
-import { NativeExplorer } from "../features/native/NativeExplorer";
+import { NativeHistory } from "../features/native/NativeHistory";
+import type { Symbol } from "../features/native/project-map-model";
+import { NativeCode, NativeExplorer } from "../features/native/NativeExplorer";
 import { NativeWorkspaceGraph } from "../features/native/NativeWorkspaceGraph";
 
 /** A single host workspace is attached; choosing another requires a new host launch. */
@@ -38,12 +40,22 @@ export function NativeApp({ token }: { token: string }) {
   const [state, setState] = useState<NativeState>();
   const [error, setError] = useState("");
   const [connectionError, setConnectionError] = useState("");
-  const [tab, setTab] = useState(1);
-  const [codeOpened, setCodeOpened] = useState(false);
+  const [mode, setMode] = useState("graph");
+  const [files, setFiles] = useState<string[]>([]);
+  const [activeFile, setActiveFile] = useState<string>();
+  const [selectedSymbol, setSelectedSymbol] = useState<Symbol>();
+  const [focusSequence, setFocusSequence] = useState(0);
+  const [filesOpen, setFilesOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [readTarget, setReadTarget] = useState<{
+    path: string;
+    offset: number;
+    sequence: number;
+  }>();
+  const dispatchedRead = useRef<number | undefined>(undefined);
   const [utility, setUtility] = useState<
     "history" | "logs" | "delivery" | "analysis" | null
   >(null);
-  const [focusedFile, setFocusedFile] = useState<string>();
   const [overview, setOverview] = useState<WorkspaceOverview>();
   const [overviewError, setOverviewError] = useState("");
   const [provider, setProvider] = useState("");
@@ -80,6 +92,7 @@ export function NativeApp({ token }: { token: string }) {
     return () => observer.disconnect();
   }, [approval, processorHeading, processorIdentity]);
 
+  const initialMessageCount = useRef<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const started = useRef(0);
   const inFlight = useRef(false);
@@ -92,6 +105,8 @@ export function NativeApp({ token }: { token: string }) {
       try {
         const next = await client.state(abort.signal);
         if (!abort.signal.aborted) {
+          if (initialMessageCount.current === null)
+            initialMessageCount.current = next.messages.length;
           setState(next);
           setConnectionError("");
           if (next.running) {
@@ -117,7 +132,6 @@ export function NativeApp({ token }: { token: string }) {
   useEffect(() => {
     const abort = new AbortController();
     if (!state?.overview.revision) {
-      setOverview(undefined);
       return;
     }
     void client
@@ -183,18 +197,25 @@ export function NativeApp({ token }: { token: string }) {
     },
     [client],
   );
-  const openDependencies = useCallback(
-    (file: string) => {
-      setUtility(null);
-      setGraphPaths(file);
-      setFocusedFile(file);
-      setTab(1);
-      if (file.endsWith(".lean")) {
-        if (state?.atlas.available)
-          void command({ type: "atlas_snapshot", paths: [file] });
-      } else void command({ type: "source_snapshot", paths: [file] });
+  const openFile = useCallback((path: string, code = true, line?: number) => {
+    setFiles((previous) =>
+      previous.includes(path) ? previous : [...previous, path],
+    );
+    setActiveFile(path);
+    if (code) setMode("code");
+    setReadTarget((previous) => ({
+      path,
+      offset: line ? Math.max(1, line - 5) : 1,
+      sequence: (previous?.sequence || 0) + 1,
+    }));
+    setFilesOpen(false);
+  }, []);
+  const selectSymbol = useCallback(
+    (symbol: Symbol) => {
+      setSelectedSymbol(symbol);
+      openFile(symbol.file, false, symbol.line);
     },
-    [command, state?.atlas.available],
+    [openFile],
   );
   const conversation: Conversation | undefined = state && {
     id: "native",
@@ -202,6 +223,22 @@ export function NativeApp({ token }: { token: string }) {
     messages: visibleHistory(state),
   };
   const running = Boolean(state?.running || busy);
+  useEffect(() => {
+    if (
+      readTarget &&
+      !running &&
+      !inFlight.current &&
+      dispatchedRead.current !== readTarget.sequence
+    ) {
+      dispatchedRead.current = readTarget.sequence;
+      void command({
+        type: "inspect",
+        path: readTarget.path,
+        directory: false,
+        offset: readTarget.offset,
+      });
+    }
+  }, [readTarget, running, command]);
   useEffect(() => {
     if (!approval) {
       listedProvider.current = "";
@@ -217,370 +254,363 @@ export function NativeApp({ token }: { token: string }) {
       void command({ type: "list_models", provider });
     }
   }, [approval, provider, running]);
+  const sessionLabels: Record<string, string> = {};
+  let previousSession = "",
+    sessionNumber = 0;
+  for (const message of conversation?.messages || []) {
+    const session = message.id.slice(0, message.id.lastIndexOf(":"));
+    if (session !== previousSession) {
+      sessionLabels[message.id] =
+        session === "native"
+          ? initialMessageCount.current
+            ? "前回までの会話"
+            : "現在のセッション"
+          : "保存セッション " + ++sessionNumber;
+      previousSession = session;
+    }
+  }
+  if (initialMessageCount.current !== null)
+    sessionLabels["native:" + initialMessageCount.current] = "現在のセッション";
   return (
-    <div className="native-shell">
-      <header className="native-header">
-        <Typography component="h1" variant="h3">
-          Meden
+    <div className="native-shell native-ide">
+      <header className="ide-header">
+        <Typography component="h1">Meden</Typography>
+        <Typography className="ide-project-name" title={state?.workspace}>
+          {state?.workspace.split("/").at(-1)}
         </Typography>
-        <Chip size="small" label="ローカルワークスペース" />
-        <Typography className="native-workspace" title={state?.workspace}>
-          {state?.workspace}
-        </Typography>
-        <Button aria-label="接続先" onClick={() => setApproval(true)}>
-          {state?.model ? `接続先 · ${state.model}` : "接続先"}
+        <Button
+          className="ide-files-toggle"
+          aria-expanded={filesOpen}
+          onClick={() => setFilesOpen((value) => !value)}
+        >
+          ファイル
         </Button>
-        {state?.authorized && (
-          <Button
-            color="warning"
-            onClick={() => void command({ type: "revoke_processor" })}
-          >
-            送信の許可を取り消す
-          </Button>
-        )}
+        <Button
+          className="ide-chat-toggle"
+          aria-expanded={chatOpen}
+          onClick={() => setChatOpen((value) => !value)}
+        >
+          チャット
+        </Button>
       </header>
-      {error && (
-        <Alert
-          severity="error"
-          action={
-            <Button
-              color="inherit"
-              onClick={() => setReconnect((value) => value + 1)}
-            >
-              再接続
-            </Button>
-          }
-        >
-          {error}
-        </Alert>
-      )}
-      {connectionError && (
-        <Alert
-          severity="error"
-          action={
-            <Button
-              color="inherit"
-              onClick={() => setReconnect((value) => value + 1)}
-            >
-              再接続
-            </Button>
-          }
-        >
-          {connectionError}
-        </Alert>
-      )}
       {!state ? (
         <div className="loading">
-          <CircularProgress aria-label="セッションに接続中" />
+          <CircularProgress aria-label="プロジェクトを開いています" />
         </div>
       ) : (
-        <>
-          {state.portable.error && (
-            <Alert severity="warning">
-              保存済みの会話・作業履歴を読み込めませんでした。元の記録は保持しています。
-              {state.portable.error}
-            </Alert>
-          )}
-          {!state.authorized && (
-            <Alert
-              severity="info"
-              action={
-                <Button onClick={() => setApproval(true)}>接続先を確認</Button>
-              }
+        <main className="ide-main">
+          <aside
+            className={"ide-files " + (filesOpen ? "is-open" : "")}
+            aria-label="ファイル"
+          >
+            <NativeExplorer
+              state={state}
+              active={activeFile}
+              running={running}
+              onCommand={command}
+              onOpen={openFile}
+            />
+          </aside>
+          <section className="ide-workspace" aria-label="実装と実行結果">
+            <div
+              className="ide-file-tabs"
+              role="tablist"
+              aria-label="開いているファイル"
             >
-              {!state.provider
-                ? "providerとモデルを選ぶと、このworkspaceの作業を続けられます。履歴とグラフは接続せずに閲覧できます。"
-                : state.approval_available
-                  ? "実行前に、会話とツール結果の送信先を確認・承認してください。再起動後は新しい承認が必要です。"
-                  : "送信の許可は終了しています。続けるにはmeden guiを再起動し、新しいURLで送信先を確認してください。"}
-            </Alert>
-          )}
-          <main className="native-main">
-            <div className="native-chat">
-              {state.stopped &&
-                !(tab === 1 && (focusedFile || utility === "analysis")) && (
-                  <Alert
-                    severity={
-                      state.activity === "Complete" ? "info" : "warning"
-                    }
-                    sx={{ whiteSpace: "pre-wrap" }}
-                  >
-                    {state.stopped}
-                    <br />
-                    ファイルと会話は保持されています。対象の操作をやり直すか、新しい指示を送信してください。
-                  </Alert>
-                )}
-
-              {conversation!.messages.some(
-                (message) => message.origin === "recorded",
-              ) && (
-                <Typography variant="caption" className="native-history-note">
-                  .medenから保存された会話を表示しています。過去のチェックや承認は、この起動の検証状態には引き継ぎません。
-                </Typography>
-              )}
-              <ChatView
-                projectName={conversation!.title}
-                conversation={conversation}
-                draftKey={`meden-native-input:${state.workspace}`}
-                running={running}
-                activityText={`${state.activity} · ${elapsed}秒`}
-                disabled={!state.authorized || Boolean(connectionError)}
-                onSend={async (text) => {
-                  if (!(await command({ type: "instruction", text })))
-                    throw new Error(
-                      "送信できませんでした。入力を保持しています。",
-                    );
+              <button
+                role="tab"
+                aria-selected={!activeFile}
+                onClick={() => {
+                  setActiveFile(undefined);
+                  setMode("graph");
+                  setFocusSequence((value) => value + 1);
                 }}
-                artifact={
-                  <Button
+              >
+                プロジェクトマップ
+              </button>
+              {files.map((file) => (
+                <div key={file} className="ide-file-tab">
+                  <button
+                    role="tab"
+                    aria-selected={activeFile === file}
+                    title={file}
+                    onClick={() => openFile(file)}
+                  >
+                    {file.split("/").at(-1)}
+                  </button>
+                  <button
+                    aria-label={"閉じる: " + file}
                     onClick={() => {
-                      setCodeOpened(true);
-                      setTab(0);
+                      setFiles((previous) =>
+                        previous.filter((path) => path !== file),
+                      );
+                      if (activeFile === file) {
+                        setActiveFile(undefined);
+                        setMode("graph");
+                      }
                     }}
                   >
-                    コードを開く
-                  </Button>
-                }
-              />
-              <div className="chat-utilities">
-                <Button onClick={() => setUtility("logs")}>
-                  実行ログ{state.logs.length ? ` · ${state.logs.length}` : ""}
-                </Button>
-                {state.exports.length > 0 && (
-                  <Button
-                    onClick={() => {
-                      setTab(1);
-                      setUtility("delivery");
-                    }}
-                  >
-                    送信提案を確認
-                  </Button>
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="ide-stage-toolbar">
+              <Typography
+                variant="caption"
+                className="ide-file-path"
+                title={activeFile}
+              >
+                {activeFile || "プロジェクト"}
+              </Typography>
+              <Tabs
+                value={mode}
+                onChange={(_, value: string) => {
+                  setMode(value);
+                  if (
+                    value === "graph" &&
+                    activeFile &&
+                    selectedSymbol?.file !== activeFile
+                  )
+                    setFocusSequence((n) => n + 1);
+                }}
+                aria-label="表示モード"
+              >
+                <Tab value="graph" label="グラフ" />
+                <Tab value="code" label="コード" disabled={!activeFile} />
+                <Tab value="preview" label="プレビュー" />
+              </Tabs>
+              <Button onClick={() => setUtility("analysis")}>解析の詳細</Button>
+            </div>
+            <div className="ide-stage">
+              {utility === "analysis" && (
+                <div className="ide-analysis-page">
+                  <Button onClick={() => setUtility(null)}>閉じる</Button>
+                  <NativeDependencyGraph
+                    state={state}
+                    overview={overview}
+                    paths={
+                      graphPaths ?? activeFile ?? state.project.source_path
+                    }
+                    onPaths={setGraphPaths}
+                    onCommand={command}
+                    running={running}
+                    elapsed={elapsed}
+                    connectionError={connectionError}
+                  />
+                </div>
+              )}
+
+              <div
+                className="project-map-page"
+                hidden={mode !== "graph" || utility === "analysis"}
+              >
+                {overviewError && (
+                  <Alert severity="error">{overviewError}</Alert>
                 )}
+                <NativeWorkspaceGraph
+                  snapshot={overview}
+                  state={state}
+                  focusPath={activeFile}
+                  focusSequence={focusSequence}
+                  selectedId={selectedSymbol?.id}
+                  onSelect={selectSymbol}
+                  onRefresh={() => void command({ type: "refresh_workspace" })}
+                />
               </div>
+              <div
+                className="ide-code-page"
+                hidden={mode !== "code" || utility === "analysis"}
+              >
+                <NativeCode
+                  state={state}
+                  path={activeFile}
+                  line={
+                    selectedSymbol?.file === activeFile
+                      ? selectedSymbol?.line
+                      : undefined
+                  }
+                  running={running}
+                  onCommand={command}
+                />
+              </div>
+              <div
+                className="ide-preview-page"
+                hidden={mode !== "preview" || utility === "analysis"}
+              >
+                <NativePreview
+                  snapshot={state.preview}
+                  running={running}
+                  onCapture={(root, entry) =>
+                    command({ type: "capture_preview", root, entry })
+                  }
+                />
+              </div>
+            </div>
+          </section>
+          <aside
+            className={"native-chat ide-chat " + (chatOpen ? "is-open" : "")}
+            aria-label="作業チャット"
+          >
+            {(error || connectionError || state.portable.error) && (
+              <Alert
+                severity="error"
+                action={
+                  connectionError ? (
+                    <Button onClick={() => setReconnect((n) => n + 1)}>
+                      再接続
+                    </Button>
+                  ) : undefined
+                }
+              >
+                {error ||
+                  connectionError ||
+                  (state.portable.error &&
+                    "保存済みの会話・作業履歴を読み込めませんでした。" +
+                      state.portable.error)}
+              </Alert>
+            )}
+            {state.stopped && utility !== "analysis" && (
+              <Alert
+                severity={state.activity === "Complete" ? "info" : "warning"}
+                sx={{ whiteSpace: "pre-wrap" }}
+              >
+                {state.stopped}
+              </Alert>
+            )}
+            <ChatView
+              projectName={conversation!.title}
+              conversation={conversation}
+              sessionLabels={sessionLabels}
+              draftKey={"meden-native-input:" + state.workspace}
+              running={running}
+              activityText={state.activity + " · " + elapsed + "秒"}
+              disabled={!state.authorized || Boolean(connectionError)}
+              composerActions={
+                <Button
+                  className="composer-model"
+                  aria-label="モデルを選択"
+                  onClick={() => setApproval(true)}
+                >
+                  {state.model || "モデルを選択"}
+                  {state.model && !state.authorized ? " · 未接続" : ""} ▾
+                </Button>
+              }
+              history={
+                <NativeHistory
+                  state={state}
+                  running={running}
+                  onCommand={command}
+                  onOpen={openFile}
+                  onManage={() => setUtility("history")}
+                />
+              }
+              artifact={null}
+              onSend={async (text) => {
+                if (!(await command({ type: "instruction", text })))
+                  throw new Error(
+                    "送信できませんでした。入力を保持しています。",
+                  );
+              }}
+            />
+            {utility === "delivery" && (
+              <NativeDelivery
+                exports={state.exports}
+                review={state.export_review}
+                outcome={state.export_outcome}
+                running={running}
+                onCommand={command}
+              />
+            )}
+            <div className="chat-utilities">
+              <Button onClick={() => setUtility("logs")}>実行ログ</Button>
+              {state.exports.length > 0 && (
+                <Button onClick={() => setUtility("delivery")}>
+                  送信提案を確認
+                </Button>
+              )}
               {state.running && (
                 <Button onClick={() => void command({ type: "cancel" })}>
                   実行を中止
                 </Button>
               )}
-              {state.reasoning && (
-                <details className="native-stream">
-                  <summary>モデルが公開したreasoning（未確定）</summary>
-                  <pre>{state.reasoning}</pre>
-                </details>
-              )}
-              {state.partial && (
-                <pre className="native-stream" aria-label="実行中の出力">
-                  {state.partial}
-                </pre>
-              )}
             </div>
-            <aside className="native-artifacts" aria-label="実装と実行結果">
-              <Tabs
-                value={tab}
-                onChange={(_, value: number) => {
-                  setTab(value);
-                  setUtility(null);
-                  if (value === 0) setCodeOpened(true);
-                }}
-                aria-label="作業パネル"
-                variant="fullWidth"
-              >
-                <Tab label="コード" />
-                <Tab label="証明" />
-                <Tab label="プレビュー" />
-              </Tabs>
-              <div className="native-panel">
-                <div hidden={tab !== 0}>
-                  {codeOpened && (
-                    <NativeExplorer
-                      state={state}
-                      running={running}
-                      onCommand={command}
-                      onDependencies={openDependencies}
-                    />
-                  )}
-                </div>
-                <div hidden={tab !== 2}>
-                  <NativePreview
-                    snapshot={state.preview}
-                    running={running}
-                    onCapture={(root, entry) =>
-                      command({ type: "capture_preview", root, entry })
-                    }
-                  />
-                </div>
-                <div className="native-proof-panel" hidden={tab !== 1}>
-                  <div className="proof-toolbar">
-                    <Button onClick={() => setUtility("history")}>
-                      作業・履歴
-                    </Button>
-                    <Button onClick={() => setUtility("analysis")}>
-                      解析の詳細
-                    </Button>
-                  </div>
-                  {overviewError && (
-                    <Alert severity="error">{overviewError}</Alert>
-                  )}
-                  <div
-                    className="project-map-page"
-                    hidden={Boolean(focusedFile) || Boolean(utility)}
+            {state.partial && (
+              <pre className="native-stream" aria-label="実行中の出力">
+                {state.partial}
+              </pre>
+            )}
+            {(state.project.proposed || state.project.accepted) && (
+              <article className="chat-contract">
+                <Typography component="h3">検証する要件</Typography>
+                <Chip
+                  size="small"
+                  label={
+                    state.project.verified
+                      ? "検証済み"
+                      : state.project.accepted
+                        ? "契約受理済み"
+                        : "提案"
+                  }
+                />
+                <pre>{state.project.review}</pre>
+                <Button
+                  disabled={running}
+                  onClick={() => void command({ type: "refresh_status" })}
+                >
+                  現在の証拠を確認
+                </Button>
+                {state.project.proposed && !state.project.accepted && (
+                  <Button
+                    disabled={running}
+                    onClick={async () => {
+                      if (
+                        await command({
+                          type: "review_contract",
+                          reference: state.project.reference,
+                        })
+                      )
+                        setReviewing(true);
+                    }}
                   >
-                    <NativeWorkspaceGraph
-                      snapshot={overview}
-                      state={{ ...state, running }}
-                      onDependencies={openDependencies}
-                      onRefresh={() => {
-                        setOverviewError("");
-                        void command({ type: "refresh_workspace" });
-                      }}
-                    />
-                  </div>
-                  {focusedFile && !utility && (
-                    <>
-                      <div className="dependency-breadcrumb">
-                        <Button onClick={() => setFocusedFile(undefined)}>
-                          ← プロジェクトマップ
-                        </Button>
-                        <code>{focusedFile}</code>
-                      </div>
-                      <NativeDependencyGraph
-                        compact
-                        state={state}
-                        overview={overview}
-                        paths={focusedFile}
-                        onPaths={setGraphPaths}
-                        onCommand={command}
-                        running={running}
-                        elapsed={elapsed}
-                        connectionError={connectionError}
-                      />
-                      {state.portable.document?.tasks
-                        .filter((task) =>
-                          focusedFile.endsWith(
-                            task.module.replaceAll(".", "/") + ".lean",
-                          ),
-                        )
-                        .map((task) => (
-                          <article className="file-requirement" key={task.id}>
-                            <Typography component="h3">{task.title}</Typography>
-                            <p>{task.requirement}</p>
-                            <Typography variant="caption">
-                              {task.theorems.join(" · ")} · 保存された証明対象
-                            </Typography>
-                          </article>
-                        ))}
-                    </>
-                  )}
-                  {utility === "history" && (
-                    <>
-                      <Button onClick={() => setUtility(null)}>
-                        ← プロジェクトマップ
-                      </Button>
-                      <NativeWork
-                        workspace={state.portable}
-                        running={running}
-                        authorized={state.authorized}
-                        onCommand={command}
-                        onInspect={(file) => {
-                          setUtility(null);
-                          setCodeOpened(true);
-                          setTab(0);
-                          void command({
-                            type: "inspect",
-                            path: file,
-                            directory: false,
-                          });
-                        }}
-                      />
-                    </>
-                  )}
-                  {utility === "delivery" && (
-                    <>
-                      <Button onClick={() => setUtility(null)}>
-                        ← プロジェクトマップ
-                      </Button>
-                      <NativeDelivery
-                        exports={state.exports}
-                        review={state.export_review}
-                        outcome={state.export_outcome}
-                        running={running}
-                        onCommand={command}
-                      />
-                    </>
-                  )}
-                  {utility === "analysis" && (
-                    <>
-                      <Button onClick={() => setUtility(null)}>
-                        ← プロジェクトマップ
-                      </Button>
-                      <NativeDependencyGraph
-                        state={state}
-                        overview={overview}
-                        paths={graphPaths ?? state.project.source_path}
-                        onPaths={setGraphPaths}
-                        onCommand={command}
-                        running={running}
-                        elapsed={elapsed}
-                        connectionError={connectionError}
-                      />
-                    </>
-                  )}
-                  {(state.project.proposed || state.project.accepted) && (
-                    <section className="native-contract-summary">
-                      <Typography variant="h3">検証する要件</Typography>
-                      <Chip
-                        label={
-                          state.project.verified
-                            ? "検証済み（受理した契約の範囲）"
-                            : state.project.accepted
-                              ? "契約受理済み・現在の証拠なし"
-                              : "契約未受理"
-                        }
-                        color={state.project.verified ? "success" : "default"}
-                      />
-                      <pre>{state.project.review}</pre>
-                      <Button
-                        disabled={running}
-                        onClick={() => void command({ type: "refresh_status" })}
-                      >
-                        現在の証拠を確認
-                      </Button>
-                      {state.project.proposed && !state.project.accepted && (
-                        <Button
-                          disabled={running}
-                          onClick={async () => {
-                            if (
-                              await command({
-                                type: "review_contract",
-                                reference: state.project.reference,
-                              })
-                            )
-                              setReviewing(true);
-                          }}
-                        >
-                          提案された契約を確認
-                        </Button>
-                      )}
-                    </section>
-                  )}
-                </div>
-              </div>
-            </aside>
-          </main>
-        </>
+                    提案された契約を確認
+                  </Button>
+                )}
+              </article>
+            )}
+          </aside>
+        </main>
       )}
       {state && (
         <Dialog
-          open={utility === "logs"}
+          open={utility === "history" || utility === "logs"}
           onClose={() => setUtility(null)}
           fullWidth
           maxWidth="lg"
         >
           <DialogTitle>
-            実行ログ
+            {utility === "history"
+              ? "作業の管理"
+              : utility === "logs"
+                ? "実行ログ"
+                : utility === "delivery"
+                  ? "送信提案"
+                  : "解析の詳細"}
             <Button onClick={() => setUtility(null)}>閉じる</Button>
           </DialogTitle>
           <DialogContent>
+            {utility === "history" && (
+              <NativeWork
+                workspace={state.portable}
+                running={running}
+                authorized={state.authorized}
+                onCommand={command}
+                onInspect={(file) => {
+                  setUtility(null);
+                  openFile(file);
+                }}
+              />
+            )}
             {utility === "logs" && (
               <section aria-label="ツール実行ログ">
                 {state.logs.length === 0 && (
@@ -605,6 +635,7 @@ export function NativeApp({ token }: { token: string }) {
                     )}
                   </article>
                 ))}
+                {state.reasoning && <pre>{state.reasoning}</pre>}
               </section>
             )}
           </DialogContent>
@@ -643,6 +674,14 @@ export function NativeApp({ token }: { token: string }) {
         </DialogTitle>
         <DialogContent>
           {error && <Alert severity="error">{error}</Alert>}
+          {state?.authorized && (
+            <Button
+              color="warning"
+              onClick={() => void command({ type: "revoke_processor" })}
+            >
+              送信の許可を取り消す
+            </Button>
+          )}
           <Button
             disabled={running}
             onClick={() => void command({ type: "refresh_connections" })}

@@ -1,78 +1,65 @@
-import { useEffect, useState } from "react";
-import { Alert, Button, Typography } from "@mui/material";
+import { useEffect, useRef, useState } from "react";
+import { Alert, Button, CircularProgress, Typography } from "@mui/material";
 import FolderOutlined from "@mui/icons-material/FolderOutlined";
 import DescriptionOutlined from "@mui/icons-material/DescriptionOutlined";
 import ChevronRight from "@mui/icons-material/ChevronRight";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import type { NativeCommand, NativeState } from "@meden/agent-protocol/native";
-
-function decoded(text: string) {
+const decoded = (text: string) => {
   try {
     const value: unknown = JSON.parse(text);
     return typeof value === "string" ? value : JSON.stringify(value, null, 2);
   } catch {
     return text;
   }
-}
+};
+
 export function NativeExplorer({
   state,
   running,
   onCommand,
-  onDependencies,
+  onOpen,
+  active,
 }: {
   state: NativeState;
   running: boolean;
   onCommand: (command: NativeCommand) => Promise<boolean>;
-  onDependencies: (path: string) => void;
+  onOpen: (path: string) => void;
+  active?: string;
 }) {
   const [directories, setDirectories] = useState<Record<string, string[]>>({});
   const [expanded, setExpanded] = useState(new Set(["."]));
-  const [files, setFiles] = useState<
-    Record<string, NonNullable<NativeState["inspection"]>>
-  >({});
-  const [active, setActive] = useState("");
+  const loadedRevision = useRef<string | null>(null);
+  const directoryVersion =
+    state.overview.revision + ":" + state.messages.length;
   const inspection = state.inspection;
   useEffect(() => {
-    if (!inspection) return;
-    if (inspection.error) {
-      setFiles((previous) => {
-        const next = { ...previous };
-        delete next[inspection.path];
-        return next;
-      });
-      setDirectories((previous) => {
-        const next = { ...previous };
-        delete next[inspection.path];
-        return next;
-      });
-      return;
-    }
-    if (inspection.directory)
+    if (inspection?.directory && !inspection.error)
       setDirectories((previous) => ({
         ...previous,
         [inspection.path]: decoded(inspection.text || "")
           .split("\n")
           .filter(Boolean),
       }));
-    else {
-      setFiles((previous) => ({ ...previous, [inspection.path]: inspection }));
-      setActive(inspection.path);
-    }
   }, [JSON.stringify(inspection)]);
   useEffect(() => {
-    if (!running && !directories["."] && !inspection?.error)
+    if (
+      !running &&
+      state.overview.revision &&
+      loadedRevision.current !== directoryVersion
+    ) {
+      loadedRevision.current = directoryVersion;
       void onCommand({ type: "inspect", path: ".", directory: true });
-  }, [running, Boolean(directories["."]), Boolean(inspection?.error)]);
-  const read = (path: string, offset = 1) => {
-    setActive(path);
-    void onCommand({ type: "inspect", path, directory: false, offset });
-  };
-  const tree = (parent: string, depth: number) =>
+    }
+  }, [running, state.overview.revision, directoryVersion]);
+  const tree = (parent: string, depth: number): React.ReactNode =>
     (directories[parent] || []).map((entry) => {
-      const directory = entry.endsWith("/");
-      const name = directory ? entry.slice(0, -1) : entry;
-      const path = parent === "." ? name : parent + "/" + name;
-      const open = expanded.has(path);
+      const directory = entry.endsWith("/"),
+        name = directory ? entry.slice(0, -1) : entry,
+        path = parent === "." ? name : parent + "/" + name,
+        open = expanded.has(path);
+      if (name === "[more entries omitted]")
+        return <li key={name}>このフォルダの一部は表示範囲外です。</li>;
       return (
         <li
           key={path}
@@ -84,9 +71,11 @@ export function NativeExplorer({
             className={`explorer-entry ${path === active ? "selected" : ""}`}
             style={{ paddingLeft: 8 + depth * 14 }}
             disabled={running}
+            title={path}
+            aria-label={`${directory ? "フォルダ" : "ファイル"}: ${path}`}
             onClick={() => {
               if (!directory) {
-                read(path);
+                onOpen(path);
                 return;
               }
               setExpanded((previous) => {
@@ -98,7 +87,6 @@ export function NativeExplorer({
               if (!open)
                 void onCommand({ type: "inspect", path, directory: true });
             }}
-            aria-label={`${directory ? "フォルダ" : "ファイル"}: ${path}`}
           >
             {directory ? (
               <>
@@ -114,94 +102,135 @@ export function NativeExplorer({
         </li>
       );
     });
-  const current = files[active];
   return (
-    <section className="native-explorer" aria-label="ファイルエクスプローラー">
-      <nav className="explorer-tree" aria-label="プロジェクトのファイル">
-        <div className="explorer-title">
-          <Typography variant="caption">ファイル</Typography>
-          <Button
-            disabled={running}
-            onClick={() =>
-              void onCommand({ type: "inspect", path: ".", directory: true })
-            }
-          >
-            更新
-          </Button>
-        </div>
-        <ul role="tree" aria-label="フォルダとファイル">
-          {tree(".", 0)}
-        </ul>
-      </nav>
-      <div className="explorer-editor">
-        <div className="explorer-open-files" aria-label="開いているファイル">
-          {Object.keys(files).map((file) => (
-            <button
-              key={file}
-              aria-pressed={active === file}
-              onClick={() => read(file)}
-              disabled={running}
-              title={file}
-            >
-              {file.split("/").at(-1)}
-            </button>
-          ))}
-        </div>
-        {inspection?.error && (
-          <Alert severity="error">
-            {inspection.path}: {inspection.error}
+    <section className="explorer-tree" aria-label="ファイルエクスプローラー">
+      <div className="explorer-title">
+        <Typography variant="caption">エクスプローラー</Typography>
+        <Button
+          disabled={running}
+          onClick={() =>
+            void onCommand({ type: "inspect", path: ".", directory: true })
+          }
+        >
+          更新
+        </Button>
+      </div>
+      <ul role="tree" aria-label="フォルダとファイル">
+        {tree(".", 0)}
+      </ul>
+    </section>
+  );
+}
+
+export function NativeCode({
+  state,
+  path,
+  line,
+  running,
+  onCommand,
+}: {
+  state: NativeState;
+  path?: string;
+  line?: number;
+  running: boolean;
+  onCommand: (command: NativeCommand) => Promise<boolean>;
+}) {
+  const [files, setFiles] = useState<
+    Record<string, NonNullable<NativeState["inspection"]>>
+  >({});
+  const selected = useRef<HTMLSpanElement>(null);
+  const inspection = state.inspection;
+  useEffect(() => {
+    if (!inspection || inspection.directory) return;
+    setFiles((previous) => {
+      const next = { ...previous };
+      if (inspection.error) delete next[inspection.path];
+      else next[inspection.path] = inspection;
+      return next;
+    });
+  }, [JSON.stringify(inspection)]);
+  const current = path ? files[path] : undefined;
+  useEffect(() => {
+    selected.current?.scrollIntoView({ block: "center", inline: "nearest" });
+  }, [path, line, current?.text]);
+  if (!path)
+    return (
+      <p className="explorer-empty">左のファイルを選んでコードを開きます。</p>
+    );
+  if (inspection?.path === path && inspection.error)
+    return (
+      <Alert severity="error">
+        {inspection.error}
+        <Button
+          disabled={running}
+          onClick={() =>
+            void onCommand({
+              type: "inspect",
+              path,
+              directory: false,
+              offset: line ? Math.max(1, line - 5) : 1,
+            })
+          }
+        >
+          再試行
+        </Button>
+      </Alert>
+    );
+  return (
+    <section className="native-code-editor" aria-label="ソースコード">
+      {current ? (
+        <>
+          <pre aria-label="ファイルの内容" tabIndex={0}>
+            {decoded(current.text || "")
+              .split("\n")
+              .map((text, i) => {
+                const number = Number(text.match(/^(\d+): /)?.[1]);
+                return (
+                  <span
+                    key={i}
+                    className={`editor-line ${number === line ? "selected-source-line" : ""}`}
+                    aria-current={number === line ? "location" : undefined}
+                    ref={number === line ? selected : undefined}
+                  >
+                    {text + "\n"}
+                  </span>
+                );
+              })}
+          </pre>
+          <div className="explorer-pages">
             <Button
-              disabled={running}
+              disabled={running || (current.offset || 1) <= 1}
               onClick={() =>
                 void onCommand({
                   type: "inspect",
-                  path: inspection.path,
-                  directory: expanded.has(inspection.path),
+                  path,
+                  directory: false,
+                  offset: Math.max(1, (current.offset || 1) - 200),
                 })
               }
             >
-              再試行
+              前のページ
             </Button>
-          </Alert>
-        )}
-        {current ? (
-          <>
-            <div className="explorer-source-heading">
-              <code>{active}</code>
-              {/\.(lean|rs)$/.test(active) && (
-                <Button
-                  disabled={running}
-                  onClick={() => onDependencies(active)}
-                >
-                  依存関係を見る
-                </Button>
-              )}
-            </div>
-            <pre aria-label="ファイルの内容">{decoded(current.text || "")}</pre>
-            <div className="explorer-pages">
-              <Button
-                disabled={running || (current.offset || 1) <= 1}
-                onClick={() =>
-                  read(active, Math.max(1, (current.offset || 1) - 200))
-                }
-              >
-                前のページ
-              </Button>
-              <span>{current.offset || 1}行目から表示</span>
-              <Button
-                disabled={running || !current.next_offset}
-                onClick={() => read(active, current.next_offset!)}
-              >
-                次のページ
-              </Button>
-            </div>
-          </>
-        ) : (
-          <p className="explorer-empty">
-            左のフォルダを開き、ファイルを選んでください。
-          </p>
-        )}
-      </div>
+            <Button
+              disabled={running || !current.next_offset}
+              onClick={() =>
+                void onCommand({
+                  type: "inspect",
+                  path,
+                  directory: false,
+                  offset: current.next_offset!,
+                })
+              }
+            >
+              次のページ
+            </Button>
+          </div>
+        </>
+      ) : (
+        <div className="loading">
+          <CircularProgress size={22} aria-label="ファイルを読み込み中" />
+        </div>
+      )}
     </section>
   );
 }

@@ -4,6 +4,7 @@ use std::path::Path;
 use std::time::Duration;
 
 use anyhow::{Context, Result};
+use base64::Engine as _;
 use meden_agent::tool::Args;
 use meden_core::file::{Operation, Request};
 use meden_runtime::{
@@ -13,8 +14,8 @@ use meden_runtime::{
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 
-const FILE_LIMIT: usize = 65_536;
-const TOTAL_LIMIT: usize = 1_048_576;
+const FILE_LIMIT: usize = 1_048_576;
+const TOTAL_LIMIT: usize = 16_777_216;
 
 #[derive(Clone, Serialize)]
 pub(crate) struct Snapshot {
@@ -57,7 +58,10 @@ pub(crate) fn capture(
         let request = Request::new(
             Operation::Snapshot,
             resolved.to_string_lossy().as_ref().into(),
-            Args::new(),
+            Args::from_iter([
+                ("encoding".into(), "base64".into()),
+                ("max_bytes".into(), FILE_LIMIT.into()),
+            ]),
         );
         let value = meden_runtime::file::run(
             workspace,
@@ -66,20 +70,21 @@ pub(crate) fn capture(
             &policy,
             &Limits {
                 timeout: Duration::from_secs(30),
-                capture_bytes: 1_000_000,
-                output_bytes: 1_000_000,
+                capture_bytes: 8_388_608,
+                output_bytes: 8_388_608,
             },
         )
         .map_err(|error| anyhow::anyhow!("Source observation failed for {name}: {error}. Select an existing file from the workspace."))?;
-        let bytes: Vec<u8> = serde_json::from_value(value)?;
+        let bytes = base64::engine::general_purpose::STANDARD
+            .decode(value.as_str().context("Invalid source snapshot response")?)?;
         anyhow::ensure!(
             bytes.len() <= FILE_LIMIT,
-            "Source file {name} exceeds 64 KiB; no truncated graph was created"
+            "Source file {name} exceeds 1 MiB; no truncated graph was created"
         );
         total = total
             .checked_add(bytes.len())
             .context("source budget overflow")?;
-        anyhow::ensure!(total <= TOTAL_LIMIT, "Selected sources exceed 1 MiB");
+        anyhow::ensure!(total <= TOTAL_LIMIT, "Selected sources exceed 16 MiB");
         files.insert(
             name,
             String::from_utf8(bytes).context("source must be UTF-8")?,

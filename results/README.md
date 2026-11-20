@@ -8,6 +8,15 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Native GUI and Atlas with Ollama Cloud
 
+The [continuous IDE observation](gui-continuous-ide-ethlib.json) records the current
+file-tree/map/chat layout on all 2,517 EthLib sources. It opens the 241,556-byte
+IntervalBounds source and cached declarations without filename entry, retains the
+camera across code switching, and issues no extraction requests during zoom.
+It also reads the complete original file through explicit source extraction.
+Routine counts/provenance moved behind details, and model selection lives in the
+chat composer. The source-navigation graph contains lexical candidates; no new
+whole-project compiler or proof claim is made.
+
 The [project-map observation](gui-project-map-ethlib.json) opens all 2,517 EthLib
 source files as declaration-weighted category rectangles, descends through Networking
 and Gossip without filename input, extracts the actual Parameters module and opens

@@ -140,9 +140,9 @@ async function launch(port = 0) {
   });
   await page.goto(url);
   await expect(
-    page.getByRole("button", { name: "接続先を確認", exact: true }),
+    page.getByRole("button", { name: "モデルを選択", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "接続先を確認", exact: true }).click();
+  await page.getByRole("button", { name: "モデルを選択", exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText(values.model!);
   await page.screenshot({
     path: resolve(out, "processor-review.png"),
@@ -354,11 +354,19 @@ try {
       "utf8",
     );
   }
-  await page.getByRole("tab", { name: "証明", exact: true }).click();
+  await page.getByRole("tab", { name: "グラフ", exact: true }).click();
   const graphFile = values.atlas ? "Purchase.lean" : "kernel.rs";
+  await page.getByRole("button", { name: "解析の詳細", exact: true }).click();
   await page
-    .getByRole("button", { name: "依存関係: " + graphFile, exact: true })
+    .getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" })
+    .fill(graphFile);
+  await page
+    .getByRole("button", {
+      name: values.atlas ? "依存グラフを表示" : "ソースの参照候補を表示",
+      exact: true,
+    })
     .click();
+  await waitIdle();
   await page
     .getByRole("region", { name: "ローカルソースのグラフ" })
     .getByRole("button", {

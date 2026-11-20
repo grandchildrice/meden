@@ -131,14 +131,12 @@ test("unreadable portable history stays intact while the GUI graph and ordinary 
         .getByRole("alert")
         .filter({ hasText: "保存済みの会話・作業履歴を読み込めませんでした" }),
     ).toBeVisible();
-    await expect(
-      page.getByText("1ファイル · 1定理候補", { exact: true }),
-    ).toBeVisible();
+    await expect.poll(async () => (await state(page)).overview.scanned).toBe(1);
     expect((await state(page)).project.accepted).toBe(false);
     expect((await state(page)).project.verified).toBe(false);
     expect(requests).toBe(0);
     await page
-      .getByRole("button", { name: "接続先を確認", exact: true })
+      .getByRole("button", { name: "モデルを選択", exact: true })
       .click();
     await page
       .getByRole("button", { name: "この送信先を承認", exact: true })
@@ -170,9 +168,7 @@ test("unreadable portable history stays intact while the GUI graph and ordinary 
         .getByRole("region", { name: "会話", exact: true })
         .getByText("ORDINARY-GUI-CHAT-AVAILABLE", { exact: true }),
     ).toBeVisible();
-    await expect(
-      page.getByText("1ファイル · 1定理候補", { exact: true }),
-    ).toBeVisible();
+    await expect.poll(async () => (await state(page)).overview.scanned).toBe(1);
     expect(await readFile(record, "utf8")).toBe(original);
     await page.screenshot({
       path: "target/gui-checks/workspace-unreadable-history.png",
@@ -347,7 +343,7 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
       .poll(async () => (await state(page)).overview.state)
       .toBe("ready");
     await expect(
-      page.getByRole("heading", {
+      page.getByRole("region", {
         name: "プロジェクトマップ",
         exact: true,
       }),
@@ -438,15 +434,16 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
     await expect(
       chat.getByText(messages[1]!.text, { exact: true }),
     ).toBeVisible();
-    await expect(
-      page.getByText("41ファイル · 1定理候補", { exact: true }),
-    ).toBeVisible();
+    await expect
+      .poll(async () => (await state(page)).overview.scanned)
+      .toBe(41);
     await page.getByRole("button", { name: "作業・履歴", exact: true }).click();
     await expect(
       page.getByRole("region", { name: "作業と共有履歴" }),
     ).toContainText("Identity for every natural number");
     await page
-      .getByRole("button", { name: "← プロジェクトマップ", exact: true })
+      .getByRole("dialog")
+      .getByRole("button", { name: "閉じる", exact: true })
       .click();
     const overview: WorkspaceOverview = await page.evaluate(async () =>
       (
@@ -469,7 +466,6 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
     expect(original.project.verified).toBe(false);
     expect(JSON.stringify(original)).not.toContain("HOST_SECRET");
     expect(calls).toHaveLength(0);
-    await page.getByRole("tab", { name: "コード", exact: true }).click();
     await page
       .getByRole("button", { name: "フォルダ: Extra", exact: true })
       .click();
@@ -478,7 +474,7 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
       .click();
     await expect(page.getByLabel("ファイルの内容")).toContainText("value39");
     await page
-      .getByRole("button", { name: "接続先を確認", exact: true })
+      .getByRole("button", { name: "モデルを選択", exact: true })
       .click();
     await page
       .getByRole("button", { name: "このPCの接続設定を読み直す", exact: true })
@@ -521,7 +517,9 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
     );
     expect(JSON.stringify(calls[0]!.messages)).toContain("SAVED-CHAT:");
     const approved = await state(page);
-    await page.getByRole("button", { name: "接続先", exact: true }).click();
+    await page
+      .getByRole("button", { name: "モデルを選択", exact: true })
+      .click();
     modelListAvailable = false;
     await page
       .getByLabel("provider", { exact: true })
@@ -567,15 +565,13 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
     expect(calls).toHaveLength(2);
     expect(calls[1]!.authorization).toBe("Bearer SECOND_HOST_SECRET");
     expect(calls[1]!.model).toBe("second-chosen");
-    await page.getByRole("tab", { name: "証明", exact: true }).click();
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
     await page
       .getByRole("textbox", { name: "メッセージ", exact: true })
       .fill("Create an oversized source to exercise index recovery.");
     await page.getByRole("button", { name: "送信", exact: true }).click();
     await expect(
-      page
-        .getByRole("alert")
-        .filter({ hasText: "全体グラフを読み込めませんでした" }),
+      page.getByRole("alert").filter({ hasText: "地図を更新できませんでした" }),
     ).toBeVisible();
     expect((await state(page)).overview.state).toBe("failed");
     await expect(
@@ -588,9 +584,9 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
     await expect
       .poll(async () => (await state(page)).overview.state)
       .toBe("ready");
-    await expect(
-      page.getByText("41ファイル · 1定理候補", { exact: true }),
-    ).toBeVisible();
+    await expect
+      .poll(async () => (await state(page)).overview.scanned)
+      .toBe(41);
     await expect(
       chat.getByText("OVERSIZED-SOURCE-REMOVED", { exact: true }),
     ).toBeVisible();
@@ -629,9 +625,9 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
     await expect(
       chat.getByText("CONTINUED-ON-second", { exact: true }),
     ).toBeVisible();
-    await expect(
-      page.getByText("41ファイル · 1定理候補", { exact: true }),
-    ).toBeVisible();
+    await expect
+      .poll(async () => (await state(page)).overview.scanned)
+      .toBe(41);
     expect((await state(page)).authorized).toBe(false);
     expect(calls).toHaveLength(completedCalls);
   } finally {

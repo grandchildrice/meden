@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     path::Path,
     sync::{
         atomic::{AtomicUsize, Ordering},
@@ -49,6 +49,16 @@ pub(super) struct File {
     declarations: usize,
     theorems: usize,
     imports: Vec<String>,
+    symbols: Vec<Symbol>,
+}
+
+#[derive(Serialize)]
+struct Symbol {
+    name: String,
+    line: usize,
+    kind: &'static str,
+    private: bool,
+    references: Vec<String>,
 }
 #[derive(Serialize)]
 pub(super) struct Snapshot {
@@ -226,6 +236,12 @@ fn source_files(
                                     declarations,
                                     theorems,
                                     imports,
+                                    symbols: symbols(
+                                        text,
+                                        Path::new(path)
+                                            .extension()
+                                            .is_some_and(|ext| ext == "lean"),
+                                    ),
                                 },
                             );
                             let mut view = lock(view);
@@ -352,6 +368,118 @@ fn headers(source: &str, lean: bool) -> (usize, usize, Vec<String>) {
     (declarations, theorems, imports)
 }
 
+// Precomputed lexical navigation only. No elaboration or proof status is inferred.
+fn symbols(source: &str, lean: bool) -> Vec<Symbol> {
+    let clean = mask(source, lean);
+    let mut result = Vec::new();
+    let mut current: Option<Symbol> = None;
+    let mut references = BTreeSet::new();
+    let mut namespaces = Vec::<String>::new();
+    for (index, line) in clean.lines().enumerate() {
+        let mut words = line.split_whitespace().peekable();
+        while words.peek().is_some_and(|w| {
+            matches!(
+                *w,
+                "public"
+                    | "private"
+                    | "protected"
+                    | "noncomputable"
+                    | "unsafe"
+                    | "partial"
+                    | "async"
+            ) || w.starts_with("pub")
+        }) {
+            words.next();
+        }
+        let kind = words.next().unwrap_or("");
+        let command = lean && matches!(kind, "namespace" | "section" | "end");
+        let declaration = matches!(
+            kind,
+            "theorem"
+                | "lemma"
+                | "def"
+                | "structure"
+                | "class"
+                | "inductive"
+                | "abbrev"
+                | "opaque"
+                | "axiom"
+                | "constant"
+                | "fn"
+                | "struct"
+                | "enum"
+                | "trait"
+                | "type"
+        );
+        if command || declaration {
+            finish_symbol(current.take(), &mut references, &mut result);
+        }
+        if command {
+            match kind {
+                "end" => {
+                    namespaces.pop();
+                }
+                "namespace" => namespaces.push(words.next().unwrap_or("").into()),
+                _ => namespaces.push(String::new()),
+            }
+        } else if declaration {
+            let local = words.next().unwrap_or("").trim_end_matches(':');
+            if !local.is_empty() {
+                let namespace = namespaces
+                    .iter()
+                    .filter(|x| !x.is_empty())
+                    .cloned()
+                    .collect::<Vec<_>>()
+                    .join(".");
+                current = Some(Symbol {
+                    name: if namespace.is_empty() {
+                        local.into()
+                    } else {
+                        format!("{namespace}.{local}")
+                    },
+                    line: index.saturating_add(1),
+                    kind: if matches!(kind, "theorem" | "lemma") {
+                        "theorem"
+                    } else if matches!(kind, "axiom" | "constant") {
+                        "axiom"
+                    } else {
+                        "definition"
+                    },
+                    private: line.split_whitespace().any(|w| w == "private"),
+                    references: Vec::new(),
+                });
+            }
+        }
+        if current.is_some() {
+            for token in
+                line.split(|c: char| !(c.is_alphanumeric() || matches!(c, '_' | '\'' | '.' | ':')))
+            {
+                let token = token.trim_matches(':');
+                if token
+                    .chars()
+                    .next()
+                    .is_some_and(|c| c.is_alphabetic() || c == '_')
+                {
+                    references.insert(token.replace("::", "."));
+                }
+            }
+        }
+    }
+    finish_symbol(current, &mut references, &mut result);
+    result
+}
+
+fn finish_symbol(
+    current: Option<Symbol>,
+    references: &mut BTreeSet<String>,
+    result: &mut Vec<Symbol>,
+) {
+    if let Some(mut symbol) = current {
+        symbol.references = std::mem::take(references).into_iter().collect();
+        result.push(symbol);
+    }
+}
+
 fn mask(source: &str, lean: bool) -> String {
     let mut chars = source.chars().peekable();
     let mut output = String::new();
@@ -438,5 +566,20 @@ mod tests {
             headers(source, true),
             (2, 1, vec!["Real.Module".to_owned()])
         );
+    }
+    #[test]
+    fn cached_symbols_keep_original_lines_names_and_masked_reference_candidates() {
+        let source = "namespace Demo\nprivate def keep : Nat := 1\n/- theorem fake : False := keep -/\npublic theorem actual : keep = keep := rfl\nend Demo\n";
+        let found = symbols(source, true);
+        assert_eq!(found.len(), 2);
+        assert!(found
+            .first()
+            .is_some_and(|symbol| symbol.name == "Demo.keep" && symbol.private));
+        assert!(found
+            .get(1)
+            .is_some_and(|symbol| symbol.name == "Demo.actual"
+                && symbol.line == 4
+                && symbol.references.contains(&"keep".into())
+                && !symbol.references.contains(&"fake".into())));
     }
 }

@@ -12,7 +12,7 @@ export type NativeReference = z.infer<typeof nativeReferenceSchema>;
 export const sourceSnapshotSchema = z
   .object({
     revision: z.string().regex(/^sha256:[a-f0-9]{64}$/),
-    files: z.record(z.string(), z.string().max(65_536)),
+    files: z.record(z.string(), z.string().max(1_048_576)),
     collection: z
       .object({
         roots: z.array(z.string()),
@@ -305,6 +305,17 @@ export const workspaceOverviewSchema = z
           declarations: z.number(),
           theorems: z.number(),
           imports: z.array(z.string()),
+          symbols: z.array(
+            z
+              .object({
+                name: z.string(),
+                line: z.number().int().positive(),
+                kind: z.enum(["definition", "theorem", "axiom"]),
+                private: z.boolean(),
+                references: z.array(z.string()),
+              })
+              .strict(),
+          ),
         })
         .strict(),
     ),

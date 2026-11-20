@@ -78,7 +78,7 @@ test("missing GUI assets explain the build step and a built GUI opens with fresh
     });
     await page.goto(url);
     await expect(
-      page.getByRole("button", { name: "接続先を確認", exact: true }),
+      page.getByRole("button", { name: "モデルを選択", exact: true }),
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "送信", exact: true }),

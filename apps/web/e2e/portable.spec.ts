@@ -135,7 +135,7 @@ test("portable GUI history survives a real git clone and checks actual Lean with
     });
     sessionToken = new URL(url).hash.slice("#session=".length);
     await page.goto(url);
-    await page.getByRole("tab", { name: "証明", exact: true }).click();
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
     await page.getByRole("button", { name: "作業・履歴", exact: true }).click();
   }
   async function idle() {
@@ -144,8 +144,13 @@ test("portable GUI history survives a real git clone and checks actual Lean with
     ).toHaveCount(0, { timeout: 90_000 });
   }
   async function approve() {
+    const manager = page.getByRole("dialog", { name: /作業の管理/ });
+    if (await manager.isVisible())
+      await manager
+        .getByRole("button", { name: "閉じる", exact: true })
+        .click();
     await page
-      .getByRole("button", { name: "接続先を確認", exact: true })
+      .getByRole("button", { name: "モデルを選択", exact: true })
       .click();
     await page
       .getByRole("button", { name: "この送信先を承認", exact: true })
@@ -212,6 +217,7 @@ test("portable GUI history survives a real git clone and checks actual Lean with
       page.getByRole("region", { name: "会話", exact: true }),
     ).toContainText("remaining obligations are retained");
     await idle();
+    await page.getByRole("button", { name: "作業・履歴", exact: true }).click();
     await page
       .getByRole("button", { name: "会話と作業を保存", exact: true })
       .click();
@@ -254,6 +260,11 @@ test("portable GUI history survives a real git clone and checks actual Lean with
     await expect(
       page.getByText("保存された結果は履歴です。", { exact: false }),
     ).toBeVisible();
+    await expect(
+      page
+        .getByRole("region", { name: "会話", exact: true })
+        .getByText("保存された会話", { exact: true }),
+    ).toHaveCount(0);
     expect(requests).toHaveLength(count);
     await page.getByText(/保存された会話 ·/).click();
     await expect(
@@ -263,24 +274,24 @@ test("portable GUI history survives a real git clone and checks actual Lean with
       .getByRole("button", { name: "証明コードを読む", exact: true })
       .click();
     await expect(
-      page.getByText("1行目から表示", { exact: true }),
-    ).toBeVisible();
+      page.getByLabel("ファイルの内容", { exact: true }),
+    ).toContainText("1: ");
     await page.getByRole("button", { name: "次のページ", exact: true }).click();
     await expect(
-      page.getByText("201行目から表示", { exact: true }),
-    ).toBeVisible();
+      page.getByLabel("ファイルの内容", { exact: true }),
+    ).toContainText("201: ");
     await page.getByRole("button", { name: "次のページ", exact: true }).click();
     await expect(
-      page.getByText("401行目から表示", { exact: true }),
-    ).toBeVisible();
+      page.getByLabel("ファイルの内容", { exact: true }),
+    ).toContainText("401: ");
     await expect(
       page.getByLabel("ファイルの内容", { exact: true }),
     ).toContainText("PORTABLE-SOURCE-END");
     await page.getByRole("button", { name: "前のページ", exact: true }).click();
     await expect(
-      page.getByText("201行目から表示", { exact: true }),
-    ).toBeVisible();
-    await page.getByRole("tab", { name: "証明", exact: true }).click();
+      page.getByLabel("ファイルの内容", { exact: true }),
+    ).toContainText("201: ");
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
     await page.getByRole("button", { name: "作業・履歴", exact: true }).click();
     // Deliberately break the source: old transferred success must not admit a fresh check.
     await writeFile(
@@ -294,15 +305,17 @@ test("portable GUI history survives a real git clone and checks actual Lean with
       page.getByText("保存されたチェック記録：失敗・中断", { exact: true }),
     ).toBeVisible({ timeout: 90_000 });
     await page
+      .getByRole("dialog")
       .getByText(/Leanチェック失敗・中断の記録/)
       .first()
       .click();
-    await expect(page.getByLabel("定理の型と公理").first()).toContainText(
-      "Unexpected axiom",
-    );
+    await expect(
+      page.getByRole("dialog").getByLabel("定理の型と公理").first(),
+    ).toContainText("Unexpected axiom");
     expect(requests).toHaveLength(count);
     await approve();
     repair = true;
+    await page.getByRole("button", { name: "作業・履歴", exact: true }).click();
     await page
       .getByRole("button", { name: "この作業を再開", exact: true })
       .click();

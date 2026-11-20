@@ -110,7 +110,7 @@ test.describe("native GUI with real offline workers", () => {
     return url;
   }
   async function openDependencyControls(page: Page) {
-    await page.getByRole("tab", { name: "証明", exact: true }).click();
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
     await page.getByRole("button", { name: "解析の詳細", exact: true }).click();
   }
   async function stop() {
@@ -376,7 +376,7 @@ test.describe("native GUI with real offline workers", () => {
     ).toContainText("theorem permitted");
     await page.getByRole("button", { name: "閉じる", exact: true }).click();
     await page
-      .getByRole("button", { name: "接続先を確認", exact: true })
+      .getByRole("button", { name: "モデルを選択", exact: true })
       .click();
     await page
       .getByRole("button", { name: "この送信先を承認", exact: true })
@@ -585,255 +585,211 @@ test.describe("native GUI with real offline workers", () => {
       fullPage: true,
     });
   });
-  test("three tabs expose a category map and clickable explorer, with compiler failure recovery and unapproved restart", async ({
+  test("IDE map keeps one camera while revealing cached declarations, opens large source files and selects models from chat", async ({
     page,
   }) => {
     test.setTimeout(180_000);
+    page.setDefaultTimeout(15_000);
     await mkdir(resolve(project, "Networking"));
-    await mkdir(resolve(project, ".meden"));
+    await mkdir(resolve(project, "Other"));
     await writeFile(
       resolve(project, "Networking/Domain.lean"),
       "def price : Nat := 150\n",
     );
-    await writeFile(
-      resolve(project, "Networking/App.lean"),
+    const largeSource =
       "import Networking.Domain\n" +
-        "-- documentation line\n".repeat(140) +
-        "def invoice (n : Nat) := price * n\n" +
-        "-- trailing detail\n".repeat(140),
+      "-- a long original source comment with no declarations\n".repeat(4800) +
+      "def invoice (n : Nat) := price * n\n";
+    await writeFile(
+      resolve(project, "Networking/Multistream.lean"),
+      largeSource,
     );
     await writeFile(
-      resolve(project, "Broken.lean"),
-      "def broken : Nat := doesNotExist\n",
+      resolve(project, "Other/Helper.lean"),
+      "def helper : Nat := 1\n",
     );
-    await writeFile(
-      resolve(project, ".meden/workspace.json"),
-      JSON.stringify({
-        version: 1,
-        name: "Invoices",
-        tasks: [
-          {
-            id: "invoice",
-            title: "Invoice total",
-            requirement: "Multiply the unit price by the requested quantity.",
-            module: "Networking.App",
-            theorems: [],
-            next: "Check the invoice.",
-          },
-        ],
-        events: [],
-        conversations: [],
-      }),
-    );
+    const commands: string[] = [];
+    page.on("request", (request) => {
+      if (request.url().endsWith("/api/command"))
+        commands.push(request.postDataJSON()?.type);
+    });
     await page.goto(await start());
-    const sidebar = page.getByRole("complementary", { name: "実装と実行結果" });
-    await expect(sidebar.getByRole("tab")).toHaveText([
-      "コード",
-      "証明",
-      "プレビュー",
-    ]);
     const map = page.getByRole("region", {
       name: "プロジェクトマップ",
       exact: true,
     });
-    await expect(map).toContainText("3ファイル");
-    await expect(
-      page.getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" }),
-    ).toHaveCount(0);
-    await expect(
-      page.getByRole("button", { name: "送信提案を確認" }),
-    ).toHaveCount(0);
     await expect(
       map.getByRole("button", { name: "カテゴリ: Networking", exact: true }),
     ).toBeVisible();
-    await page.screenshot({
-      path: "target/gui-checks/native-category-map.png",
-    });
-    const categoryBox = await map
-      .getByRole("button", { name: "カテゴリ: Networking", exact: true })
-      .boundingBox();
-    await page.mouse.move(
-      categoryBox!.x + categoryBox!.width / 2,
-      categoryBox!.y + categoryBox!.height / 2,
-    );
-    await page.mouse.wheel(0, -1200);
+    const header = page.getByRole("banner");
+    await expect(header).not.toContainText("ローカルワークスペース");
+    await expect(header.getByRole("alert")).toHaveCount(0);
     await expect(
-      map.getByRole("button", {
-        name: "依存関係: Networking/App.lean",
-        exact: true,
-      }),
-    ).toBeVisible();
-    await map
-      .getByRole("button", {
-        name: "依存関係: Networking/App.lean",
-        exact: true,
-      })
-      .click();
-    const graph = page.getByRole("region", { name: "ローカルソースのグラフ" });
-    await expect(graph).toContainText("Lean Atlasによるコンパイル後の依存", {
-      timeout: 120_000,
+      header.getByRole("button", { name: "接続先", exact: true }),
+    ).toHaveCount(0);
+    const chat = page.getByRole("complementary", {
+      name: "作業チャット",
+      exact: true,
     });
+    await expect(
+      chat
+        .locator(".composer")
+        .getByRole("button", { name: "モデルを選択", exact: true }),
+    ).toBeVisible();
+    const treeBox = await page
+      .getByRole("complementary", { name: "ファイル", exact: true })
+      .boundingBox();
+    const mapBox = await map.boundingBox(),
+      chatBox = await chat.boundingBox();
+    expect(treeBox!.x + treeBox!.width).toBeLessThanOrEqual(mapBox!.x + 1);
+    expect(mapBox!.x + mapBox!.width).toBeLessThanOrEqual(chatBox!.x + 1);
+    expect(mapBox!.width).toBeGreaterThan(600);
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    await page
+      .getByRole("tab", { name: "プロジェクトマップ", exact: true })
+      .click();
+    const beforeCommands = commands.length;
+    await map.locator(".continuous-map-scene").evaluate((element) => {
+      (window as any).__originalMap = element;
+    });
+    const category = map.getByRole("button", {
+      name: "カテゴリ: Networking",
+      exact: true,
+    });
+    const originalWorld = await category.getAttribute("data-world-x");
+    const box = await category.boundingBox();
+    await page.mouse.move(
+      box!.x + box!.width * 0.5,
+      box!.y + box!.height * 0.5,
+    );
+    await page.mouse.wheel(0, -700);
+    const file = map.getByRole("button", {
+      name: "依存関係: Networking/Multistream.lean",
+      exact: true,
+    });
+    await expect(file).toBeVisible();
+    await expect(category).toHaveAttribute("data-world-x", originalWorld!);
+    expect(
+      await map
+        .locator(".continuous-map-scene")
+        .evaluate((element) => element === (window as any).__originalMap),
+    ).toBe(true);
+    await file.click();
+    const fileBox = await file.boundingBox();
+    await page.mouse.move(
+      fileBox!.x + fileBox!.width * 0.5,
+      fileBox!.y + fileBox!.height * 0.5,
+    );
+    await page.mouse.wheel(0, -500);
+    const invoice = map.getByRole("button", {
+      name: /宣言: invoice · Networking\/Multistream.lean:/,
+    });
+    await expect(invoice).toBeVisible();
+    expect(commands.slice(beforeCommands)).toEqual([]);
+    expect((await nativeState(page)).source_snapshot).toBeNull();
+    await page.screenshot({
+      path: "target/gui-checks/ide-continuous-graph.png",
+    });
+    const beforeSelection = await map
+      .locator(".react-flow__viewport")
+      .getAttribute("style");
+    await invoice.click();
+    await expect(map.locator(".react-flow__viewport")).toHaveAttribute(
+      "style",
+      beforeSelection!,
+    );
+    await expect(
+      page.getByRole("tab", { name: "グラフ", exact: true }),
+    ).toHaveAttribute("aria-selected", "true");
+    await expect(
+      page.getByRole("tab", { name: "Multistream.lean", exact: true }),
+    ).toHaveAttribute("title", "Networking/Multistream.lean");
+    const camera = await map
+      .locator(".react-flow__viewport")
+      .getAttribute("style");
+    await page.getByRole("tab", { name: "コード", exact: true }).click();
+    await expect(page.getByLabel("ファイルの内容")).toContainText(
+      "def invoice",
+    );
+    await expect(page.locator('[aria-current="location"]')).toContainText(
+      "def invoice",
+    );
+    await page.screenshot({ path: "target/gui-checks/ide-large-source.png" });
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+    await expect(map.locator(".react-flow__viewport")).toHaveAttribute(
+      "style",
+      camera!,
+    );
+    await page.getByRole("button", { name: "解析の詳細", exact: true }).click();
+    const picker = page.getByRole("combobox", {
+      name: "依存を調べるファイルを探す",
+      exact: true,
+    });
+    await expect(picker).toHaveValue("Networking/Multistream.lean");
+    await page
+      .getByRole("button", { name: "依存グラフを表示", exact: true })
+      .click();
+    const compiled = page.getByRole("region", {
+      name: "ローカルソースのグラフ",
+    });
+    await expect(compiled).toBeVisible({ timeout: 120_000 });
+    await expect(compiled.getByText("保存ソース", { exact: true })).toHaveCount(
+      0,
+    );
+    await expect(
+      compiled.locator(".native-graph-information"),
+    ).not.toHaveAttribute("open");
+    await expect(
+      compiled.locator(".native-graph-information .MuiTypography-caption"),
+    ).not.toBeVisible();
+    expect(
+      (await nativeState(page)).source_snapshot.files[
+        "Networking/Multistream.lean"
+      ],
+    ).toBe(largeSource);
     expect((await nativeState(page)).source_snapshot.atlas.graph.edges).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ source: "invoice", target: "price" }),
       ]),
     );
-    await expect(
-      page.getByText("Multiply the unit price by the requested quantity.", {
-        exact: true,
-      }),
-    ).toBeVisible();
-    await graph.getByRole("button", { name: /invoice.*を選択/ }).click();
-    await expect(
-      graph.getByLabel("宣言のソース").locator('[aria-current="location"]'),
-    ).toContainText("def invoice");
-    await expect(
-      graph.getByLabel("宣言のソース").locator('[aria-current="location"]'),
-    ).toBeInViewport();
-    await page.screenshot({
-      path: "target/gui-checks/native-map-dependencies.png",
-    });
-    await page.getByRole("tab", { name: "コード", exact: true }).click();
-    await page
-      .getByRole("button", { name: "フォルダ: Networking", exact: true })
-      .click();
-    await page
-      .getByRole("button", {
-        name: "ファイル: Networking/App.lean",
-        exact: true,
-      })
-      .click();
-    await expect(
-      page
-        .getByRole("region", { name: "ファイルエクスプローラー" })
-        .getByLabel("ファイルの内容"),
-    ).toContainText("def invoice");
-    await page
-      .getByRole("button", {
-        name: "ファイル: Networking/Domain.lean",
-        exact: true,
-      })
-      .click();
-    await expect(
-      page.getByLabel("開いているファイル").getByRole("button"),
-    ).toHaveText(["App.lean", "Domain.lean"]);
-    await page
-      .getByLabel("開いているファイル")
-      .getByRole("button", { name: "App.lean", exact: true })
-      .click();
-    await expect(
-      page
-        .getByRole("region", { name: "ファイルエクスプローラー" })
-        .getByLabel("ファイルの内容"),
-    ).toContainText("def invoice");
-    const explorer = page.getByRole("region", {
-      name: "ファイルエクスプローラー",
-    });
-    await explorer
-      .getByRole("button", { name: "ファイル: original-test.txt", exact: true })
-      .click();
-    await expect(explorer.getByLabel("ファイルの内容")).toContainText(
-      "keep this original test",
+    await page.getByRole("button", { name: "閉じる", exact: true }).click();
+    await expect(map.locator(".react-flow__viewport")).toHaveAttribute(
+      "style",
+      camera!,
     );
-    await rm(resolve(project, "original-test.txt"));
-    await explorer
-      .getByRole("button", { name: "ファイル: original-test.txt", exact: true })
+    await chat
+      .getByRole("button", { name: "モデルを選択", exact: true })
       .click();
-    await expect(explorer.getByRole("alert")).toContainText("No such file");
-    await expect(explorer.getByLabel("ファイルの内容")).toHaveCount(0);
-    await explorer
-      .getByRole("button", {
-        name: "ファイル: Networking/App.lean",
-        exact: true,
-      })
-      .click();
-    await expect(explorer.getByLabel("ファイルの内容")).toContainText(
-      "def invoice",
+    await expect(page.getByRole("dialog")).toContainText(
+      "会話とツール結果の送信先",
     );
-    await expect(explorer.getByRole("alert")).toHaveCount(0);
-    await expect
-      .poll(async () => (await nativeState(page)).running)
-      .toBe(false);
-    await page.screenshot({ path: "target/gui-checks/native-explorer.png" });
-    await page.getByRole("tab", { name: "証明", exact: true }).click();
-    await page
-      .getByRole("button", { name: "← プロジェクトマップ", exact: true })
-      .click();
-    await map
-      .getByRole("button", { name: "プロジェクト全体", exact: true })
-      .click();
-    await map
-      .getByRole("button", { name: "依存関係: Broken.lean", exact: true })
-      .click();
-    await expect(
-      page.getByRole("alert").filter({ hasText: "doesNotExist" }),
-    ).toBeVisible({ timeout: 60_000 });
-    await expect(graph).not.toBeVisible();
-    expect((await nativeState(page)).source_snapshot).toBeNull();
-    await page.screenshot({ path: "target/gui-checks/native-map-failure.png" });
-    await page
-      .getByRole("button", { name: "← プロジェクトマップ", exact: true })
-      .click();
-    await map
-      .getByRole("button", { name: "カテゴリ: Networking", exact: true })
-      .click();
-    await map
-      .getByRole("button", {
-        name: "依存関係: Networking/App.lean",
-        exact: true,
-      })
-      .click();
-    await expect(graph).toContainText("Lean Atlasによるコンパイル後の依存", {
-      timeout: 60_000,
-    });
+    await page.getByRole("button", { name: "閉じる", exact: true }).click();
+    expect(requests).toHaveLength(0);
     await page.setViewportSize({ width: 390, height: 844 });
-    await page
-      .getByRole("button", { name: "← プロジェクトマップ", exact: true })
-      .click();
-    await map.scrollIntoViewIfNeeded();
+    await expect(map).toBeInViewport();
+    await page.getByRole("button", { name: "チャット", exact: true }).click();
     await expect(
-      map.getByRole("button", {
-        name: "依存関係: Networking/App.lean",
-        exact: true,
-      }),
-    ).toBeInViewport({ ratio: 1 });
-    await expect(
-      map.getByRole("button", {
-        name: "依存関係: Networking/Domain.lean",
-        exact: true,
-      }),
-    ).toBeInViewport({ ratio: 1 });
-    await expect(sidebar.getByRole("tab")).toHaveText([
-      "コード",
-      "証明",
-      "プレビュー",
-    ]);
+      chat
+        .locator(".composer")
+        .getByRole("button", { name: "モデルを選択", exact: true }),
+    ).toBeInViewport();
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBe(true);
-    await page.screenshot({ path: "target/gui-checks/native-map-mobile.png" });
+    await page.screenshot({ path: "target/gui-checks/ide-mobile-chat.png" });
     await stop();
     await page.setViewportSize({ width: 1440, height: 960 });
     await page.goto(await start());
-    await expect(map).toContainText("3ファイル");
+    await expect(
+      map.getByRole("button", { name: "カテゴリ: Networking", exact: true }),
+    ).toBeVisible();
     expect((await nativeState(page)).authorized).toBe(false);
-    expect((await nativeState(page)).source_snapshot).toBeNull();
-    await map
-      .getByRole("button", { name: "カテゴリ: Networking", exact: true })
-      .click();
-    await map
-      .getByRole("button", {
-        name: "依存関係: Networking/App.lean",
-        exact: true,
-      })
-      .click();
-    await expect(graph).toContainText("Lean Atlasによるコンパイル後の依存", {
-      timeout: 60_000,
-    });
     expect(requests).toHaveLength(0);
-    await page.screenshot({ path: "target/gui-checks/native-map-restart.png" });
+    await page.screenshot({ path: "target/gui-checks/ide-restart.png" });
   });
 
   test("missing Mathlib explains preparation and an existing-file picker recovers through source inspection without fetching", async ({
@@ -1060,7 +1016,7 @@ test.describe("native GUI with real offline workers", () => {
     );
     await page.goto(await start());
     await page
-      .getByRole("button", { name: "接続先を確認", exact: true })
+      .getByRole("button", { name: "モデルを選択", exact: true })
       .click();
     await page.getByRole("button", { name: "この送信先を承認" }).click();
     await page
@@ -1182,11 +1138,9 @@ test.describe("native GUI with real offline workers", () => {
       const port = Number(new URL(url).port);
       await stop();
       await page.goto(await start(port));
-      await expect(page.getByRole("tab")).toHaveText([
-        "コード",
-        "証明",
-        "プレビュー",
-      ]);
+      await expect(
+        page.getByRole("tablist", { name: "表示モード" }).getByRole("tab"),
+      ).toHaveText(["グラフ", "コード", "プレビュー"]);
       await expect(
         page.getByRole("button", { name: "送信提案を確認" }),
       ).toHaveCount(0);
@@ -1378,7 +1332,7 @@ test.describe("native GUI with real offline workers", () => {
     );
     await page.goto(await start());
     await page
-      .getByRole("button", { name: "接続先を確認", exact: true })
+      .getByRole("button", { name: "モデルを選択", exact: true })
       .click();
     await page.getByRole("button", { name: "この送信先を承認" }).click();
     await page
@@ -1402,7 +1356,7 @@ test.describe("native GUI with real offline workers", () => {
     await frame.getByRole("button", { name: "Increment" }).click();
     await expect(frame.getByLabel("Count")).toHaveText("2");
     const originalUrl = (await page.locator("iframe").getAttribute("src"))!;
-    await page.getByRole("tab", { name: "コード", exact: true }).click();
+    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
     await page.getByRole("tab", { name: "プレビュー", exact: true }).click();
     await expect(frame.getByLabel("Count")).toHaveText("2");
     await page.screenshot({
@@ -1497,16 +1451,18 @@ test.describe("native GUI with real offline workers", () => {
       await expect(frame.getByLabel("Boundary results")).toHaveText(
         "denied,denied,denied,blocked,blocked",
       );
-      const formBlocked = page.waitForEvent("console", {
-        predicate: (message) => message.text().includes("form-action 'none'"),
-      });
-      await frame.getByRole("button", { name: "Attempt upload" }).click();
-      await formBlocked;
+      // Let the actual missing-resource warning settle before interacting with the
+      // frame below it; its appearance can move the form during pointer input.
       await expect(
         page
           .getByRole("alert")
           .filter({ hasText: "Missing preview asset: missing.js" }),
       ).toBeVisible();
+      const formBlocked = page.waitForEvent("console", {
+        predicate: (message) => message.text().includes("form-action 'none'"),
+      });
+      await frame.getByRole("button", { name: "Attempt upload" }).click();
+      await formBlocked;
       expect(outbound).toBe(0);
       expect(requests).toHaveLength(0);
       const previewUrl = (await page.locator("iframe").getAttribute("src"))!;
@@ -1587,7 +1543,7 @@ test.describe("native GUI with real offline workers", () => {
     ).toBeDisabled();
     expect(requests).toHaveLength(0);
     await page
-      .getByRole("button", { name: "接続先を確認", exact: true })
+      .getByRole("button", { name: "モデルを選択", exact: true })
       .click();
     await expect(page.getByRole("dialog")).toContainText(
       "scripted-gui-fixture",
@@ -1606,13 +1562,15 @@ test.describe("native GUI with real offline workers", () => {
     expect(await readFile(resolve(project, "original-test.txt"), "utf8")).toBe(
       "keep this original test\n",
     );
-    await page.getByRole("tab", { name: "コード", exact: true }).click();
     await page
       .getByRole("button", { name: "ファイル: result.txt", exact: true })
       .click();
     await expect(page.getByLabel("ファイルの内容")).toContainText(
       "built by native worker",
     );
+    await expect(
+      page.getByRole("alert").filter({ hasText: "429" }),
+    ).toBeVisible();
     await page
       .getByRole("textbox", { name: "メッセージ", exact: true })
       .fill("Continue from the retained files");
@@ -1632,7 +1590,7 @@ test.describe("native GUI with real offline workers", () => {
       }),
     ).toBeVisible();
     await page
-      .getByRole("button", { name: "接続先を確認", exact: true })
+      .getByRole("button", { name: "モデルを選択", exact: true })
       .click();
     await page.getByRole("button", { name: "この送信先を承認" }).click();
     await page.getByRole("button", { name: "送信", exact: true }).click();
@@ -1641,12 +1599,19 @@ test.describe("native GUI with real offline workers", () => {
     ).toBeVisible();
     expect(JSON.stringify(requests[2])).toContain("built by native worker");
     expect(JSON.stringify(requests[2])).toContain("Build the fixture");
+    await page
+      .getByRole("button", { name: "モデルを選択", exact: true })
+      .click();
     await page.getByRole("button", { name: "送信の許可を取り消す" }).click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "閉じる", exact: true })
+      .click();
     await expect(
       page.getByRole("textbox", { name: "メッセージ", exact: true }),
     ).toBeDisabled();
     await page
-      .getByRole("button", { name: "接続先を確認", exact: true })
+      .getByRole("button", { name: "モデルを選択", exact: true })
       .click();
     await expect(
       page.getByRole("button", { name: "この送信先を承認" }),
@@ -1719,7 +1684,7 @@ test.describe("native GUI with real offline workers", () => {
       ).status,
     ).toBe(409);
     await page
-      .getByRole("button", { name: "接続先を確認", exact: true })
+      .getByRole("button", { name: "モデルを選択", exact: true })
       .click();
     await page.getByRole("button", { name: "この送信先を承認" }).click();
     await page
@@ -1842,7 +1807,7 @@ test.describe("native GUI with real offline workers", () => {
     });
     await page.getByRole("button", { name: "閉じる", exact: true }).click();
     await page
-      .getByRole("button", { name: "接続先を確認", exact: true })
+      .getByRole("button", { name: "モデルを選択", exact: true })
       .click();
     await page.getByRole("button", { name: "この送信先を承認" }).click();
     await page
@@ -1940,7 +1905,7 @@ test.describe("native GUI with real offline workers", () => {
       page.getByRole("button", { name: "この宣言の意味を解析" }),
     ).toBeDisabled();
     await page
-      .getByRole("button", { name: "接続先を確認", exact: true })
+      .getByRole("button", { name: "モデルを選択", exact: true })
       .click();
     if (beforeApproval) await beforeApproval();
     await page.getByRole("button", { name: "この送信先を承認" }).click();
@@ -1992,7 +1957,7 @@ test.describe("native GUI with real offline workers", () => {
       .getByRole("textbox", { name: "比較する要件", exact: true })
       .fill(stockRequirement);
     await page
-      .getByRole("button", { name: "接続先を確認", exact: true })
+      .getByRole("button", { name: "モデルを選択", exact: true })
       .click();
     await page.getByRole("button", { name: "この送信先を承認" }).click();
     await page.getByRole("button", { name: "この宣言の意味を解析" }).click();
@@ -2102,7 +2067,7 @@ test.describe("native GUI with real offline workers", () => {
     await stop();
     await page.goto(await start(port));
     await expect(
-      page.getByRole("tab", { name: "証明", exact: true }),
+      page.getByRole("tab", { name: "グラフ", exact: true }),
     ).toBeVisible();
     expect((await nativeState(page)).repair_review).toBe(null);
     expect((await nativeState(page)).authorized).toBe(false);
@@ -2130,7 +2095,7 @@ test.describe("native GUI with real offline workers", () => {
     await stop();
     await page.goto(await start(port));
     await expect(
-      page.getByRole("tab", { name: "証明", exact: true }),
+      page.getByRole("tab", { name: "グラフ", exact: true }),
     ).toBeVisible();
     await expect(dialog).not.toBeVisible();
     expect(await hostCommand(page, { type: "apply_repair", reference })).toBe(
@@ -2255,7 +2220,9 @@ test.describe("native GUI with real offline workers", () => {
         await page.setViewportSize({ width: 1440, height: 960 });
       },
     );
-    await page.getByRole("button", { name: "接続先", exact: true }).click();
+    await page
+      .getByRole("button", { name: "モデルを選択", exact: true })
+      .click();
     await expect(page.getByRole("dialog")).toContainText(
       "別モデルjudge: separate-judge-fixture",
     );
@@ -2274,7 +2241,14 @@ test.describe("native GUI with real offline workers", () => {
     await result.getByText("解析対象と処理の詳細").click();
     await expect(result).toContainText("比較: separate-judge-fixture");
     await page
+      .getByRole("button", { name: "モデルを選択", exact: true })
+      .click();
+    await page
       .getByRole("button", { name: "送信の許可を取り消す", exact: true })
+      .click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "閉じる", exact: true })
       .click();
     await expect(
       page.getByRole("button", { name: "この宣言の意味を解析" }),
@@ -2344,7 +2318,7 @@ test.describe("native GUI with real offline workers", () => {
       page.getByRole("button", { name: "この宣言の意味を解析" }),
     ).toBeDisabled();
     await page
-      .getByRole("button", { name: "接続先を確認", exact: true })
+      .getByRole("button", { name: "モデルを選択", exact: true })
       .click();
     await page.getByRole("button", { name: "この送信先を承認" }).click();
     await page.getByRole("button", { name: "この宣言の意味を解析" }).click();
@@ -2380,7 +2354,7 @@ test.describe("native GUI with real offline workers", () => {
       .click();
     await input.fill(original);
     await page
-      .getByRole("button", { name: "接続先を確認", exact: true })
+      .getByRole("button", { name: "モデルを選択", exact: true })
       .click();
     await page.getByRole("button", { name: "この送信先を承認" }).click();
     await page.getByRole("button", { name: "この宣言の意味を解析" }).click();
@@ -2446,11 +2420,18 @@ test.describe("native GUI with real offline workers", () => {
           await page
             .getByRole("button", { name: "実行を中止", exact: true })
             .click();
-        else if (mode === "revoke")
+        else if (mode === "revoke") {
+          await page
+            .getByRole("button", { name: "モデルを選択", exact: true })
+            .click();
           await page
             .getByRole("button", { name: "送信の許可を取り消す", exact: true })
             .click();
-        else
+          await page
+            .getByRole("dialog")
+            .getByRole("button", { name: "閉じる", exact: true })
+            .click();
+        } else
           await writeFile(
             resolve(project, "Spec.lean"),
             formalSource + "-- concurrent host change\n",

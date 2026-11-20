@@ -19,24 +19,33 @@ advisories, while `npm audit fix` can change dependencies and the lockfile. Revi
 those changes separately. A missing `apps/web/dist` means the browser build has
 not completed; `--assets` selects a completed build from another checkout.
 
-Opening a workspace immediately shows its saved conversations and the whole-workspace
-contract/proof overview. No task or file selection and no model connection are needed
-to read them. Growing conversation checkpoints are shown once; divergent conversations
-remain visible. Saved messages are marked as history. On a new device, the first model
-turn receives bounded, ordinary user context from the saved tasks and recent conversation;
-stored roles and approval/evidence authority are never replayed.
-Unreadable portable history remains untouched and visibly unavailable; it does not
-prevent ordinary conversation or file inspection.
+Opening a workspace shows a VS Code style layout: a persistent file tree on the
+left, a large project map in the center, and conversation/work history with its
+composer on the right. The center has filename tabs and **グラフ / コード** views;
+**プレビュー** is available for browser applications. Selecting a declaration keeps
+the graph camera in place and opens a filename tab. Switch to code to read the exact
+source line, then return to the same graph position. At compact widths, **ファイル**
+and **チャット** open their respective side panels over the fixed workspace.
 
-**接続先** lists this computer's existing Hermes, Codex, Claude and HTTP server settings.
-Choose **provider**, select or enter **model**, then **この接続を選ぶ** and review the
-exact destination/model before approving. **モデル一覧を更新** reads model metadata from
-the chosen host connection; a failed list leaves its configured model and manual ID
-entry available. **このPCの接続設定を読み直す** refreshes discovery after a host login or
-server change. Credentials remain in the host and never enter the browser or `.meden`.
-Switching while idle revokes the previous immutable gateway and prepares a new,
-unapproved one. A stale review cannot approve its replacement; running work keeps its
-original connection. No inference occurs before the new review.
+The map is built from the initial policy-bound source inventory and retained per
+source revision. D3's treemap layout fixes every category/file rectangle once;
+React Flow supplies the retained pan/zoom camera. Increasing zoom fades in nested
+categories, files, then declaration nodes and reference lines in those same coordinates.
+Zoom never dispatches extraction or switches views. A minimap keeps the current
+position visible. The map contains lexical reference candidates, not compiler
+proof evidence. Exact Lean compilation remains an explicit action in **解析の詳細**;
+a failed extraction does not remove the cached project map. **読み直す** rebuilds
+navigation after external edits; ordinary development turns also refresh the inventory.
+
+The model tag lives in the chat composer. Select it to choose this computer's
+Hermes, Codex, Claude or HTTP server connection and model. Review the exact fixed
+destination/model in the connection dialog before approving it. Credentials remain
+on the host and never enter the browser or project files. Switching a connection
+revokes its predecessor; stale review cannot approve the replacement. The header
+contains the project name and compact navigation, with no connection warning banner.
+Errors and stopped work appear in the chat. Retained conversation streams have
+session dividers; task notes and actual Lean check records appear in that same chat.
+**作業・履歴** opens explicit record management rather than a separate workspace tab.
 
 Optional `--provider YOUR_PROVIDER --model YOUR_MODEL` preselects a connection.
 Use `meden providers` to list existing host connections, or supply
@@ -56,7 +65,7 @@ removed from the address bar; it never enters project files or exports.
 
 Send natural-language instructions to edit/build/test the actual selected
 repository with the same `Session`, tool registry, policy and offline workers
-as the TUI. Native GUI panels show file/directory reads, real tool arguments and
+as the TUI. Native GUI views show file/directory reads, real tool arguments and
 results, exposed reasoning/partial output, cancellation, stop explanations and
 native project contract status. A contract review freezes its displayed body and
 reference before accepting/rejecting it through the native controller. These
@@ -82,7 +91,7 @@ and completed turns also refresh status; polling alone is not a filesystem watch
 Logs/partial reasoning in this initial adapter last for the host process, while
 conversation text and admitted model history persist. The file reader uses the
 native tool's bounded 200-line pages. **前のページ** / **次のページ** navigate
-long proof files; the displayed starting line identifies the current range.
+long proof files; source line numbers identify the current range.
 Native preview, selected-module Lean Atlas
 extraction, delivery, Lake dependency discovery and separate-model meaning
 judgment are described below with their current bounds.
@@ -104,7 +113,7 @@ git clone --branch YOUR_WORK_BRANCH YOUR_FORK_URL project
 meden gui --workspace "$PWD/project" --provider YOUR_PROVIDER --model YOUR_MODEL
 ```
 
-Saved visible conversations already appear in chat. Open **作業・履歴**, select a task,
+Saved visible conversations already appear in chat. Use the task in chat or open **作業・履歴**, select a task,
 inspect its saved output or **証明コードを読む**,
 and use **この作業を再開** after reviewing the new processor connection. The
 selected task becomes a new user instruction with its original requirement,
@@ -247,25 +256,12 @@ adds no Rust-to-Lean proof, application correctness or source-to-UI corresponden
 claim. In particular, a JavaScript mirror of checked Rust is still a separate
 implementation unless a further binding is established.
 
-The native sidebar has three tabs: **コード**, **証明** and **プレビュー**.
-**証明** opens a project map immediately, without a filename or model connection.
-Category rectangles use declaration counts for area (a minimum weight of one per
-file); counts of theorem candidates are separate from checked proof evidence.
-A dominant top-level namespace is expanded so the initial map shows useful categories.
-Click a category, or zoom into it, to descend. Breadcrumbs return to any ancestor.
-At file level, lines show lexical import candidates. Click a file to extract real
-Lean declaration dependencies offline, or lexical references for Rust. A declaration
-click shows its source at the original line; related saved requirements appear with
-the focused file. Missing Lean/dependencies remain visible failures, with explicit
-retry and lexical inspection actions. There is no inferred compiler result.
-
-**コード** is a folder explorer. Click folders and files, then use the open-file
-strip to switch between sources. Each read and directory expansion uses the actual
-native file worker. File paths need not be typed. **依存関係を見る** opens the same
-focused dependency view. **作業・履歴** belongs to the proof panel; **実行ログ**
-opens from the conversation. Delivery has no permanent tab and only appears for
-an actual send proposal. Native contract review remains contextual to a proposal
-or accepted agreement, with the same frozen host review and evidence boundaries.
+The central **プロジェクトマップ** is always the default editor tab. The file tree
+reads actual directories, including non-Lean sources; clicking a file opens its code
+in the center. File tabs show their basename with the complete path available in the
+editor heading/title. Declaration selection prepares the same code tab at the
+recorded line while leaving the camera untouched. Native contract review and exact
+send review remain separate host-controlled operations in the conversation.
 
 The index reads through the pinned, policy-bound offline file worker. Read-only batches
 retain each original request and check both original/resolved paths under the same policy;
@@ -282,8 +278,8 @@ Concurrent host changes are not an atomic filesystem snapshot.
 automatic Lake target selection and tool preparation/repair. Its controls are
 visible together; the normal map journey needs none of those settings.
 Source observations use the same offline,
-policy-bound file worker as project snapshots (1–32 files, 64 KiB per file,
-1 MiB total). No truncated file is indexed. A SHA-256 binds the selected paths
+policy-bound file worker as project snapshots (1–32 files, 1 MiB per file,
+16 MiB total). No truncated file is indexed. A SHA-256 binds the selected paths
 and complete observed content. Failure discards the previous graph; starting a
 new development turn also requires rereading sources. A snapshot lasts for this
 host process, and reload can redisplay it; restarting the host requires rereading.
@@ -301,8 +297,8 @@ following recorded-demo documentation describes a separate standalone mode.
 
 ## Native Lean Atlas extraction
 
-With an installed Lean distribution, open **証明** and click through the categories
-to a local Lean file. The first extraction
+With an installed Lean distribution, open **解析の詳細**, select a local Lean file
+and choose **依存グラフを表示**. The first explicit extraction
 automatically compiles the pinned public Atlas library offline without sending
 source to a model. The public TUI `/atlas` command performs the same preparation.
 Meden selects the workspace's `lean-toolchain` from installed Elan toolchains,
@@ -358,7 +354,7 @@ This path parses import headers with installed Lean and collects project-local
 imports using the evaluated Lake source directories, or the workspace module root
 when no Lake configuration is present. Leave the target field blank to discover
 Lake library/executable roots, including configured module globs. It supports ordinary ASCII
-module names and at most 32 files in the entire closure, under the existing 64 KiB/file and 1 MiB
+module names and at most 32 files in the entire closure, under the 1 MiB/file and 16 MiB
 source limits. Module paths use ordinary ASCII identifier components and cannot
 replace the prepared Lean/Std/Atlas modules. Imports require either another
 observed source module or the prepared Lean/Atlas libraries. Lake configuration

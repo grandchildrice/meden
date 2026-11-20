@@ -537,6 +537,7 @@ impl Http<'_> {
                     anyhow::ensure!(!view.running, "Wait for the current operation or cancel it");
                     command
                         .check_submission(&lock(self.connections), self.workspace.session_id())?;
+                    let preserve_stop = matches!(&command, Command::Inspect { .. });
                     // Reserve before enqueueing: concurrent tabs cannot queue a second turn.
                     let processes = Arc::new(Control::new(Arc::new(AtomicBool::new(false))));
                     *lock(self.control) = Arc::clone(&processes);
@@ -547,7 +548,9 @@ impl Http<'_> {
                     view.activity = "Preparing".into();
                     view.partial.clear();
                     view.reasoning.clear();
-                    view.stopped = None;
+                    if !preserve_stop {
+                        view.stopped = None;
+                    }
                 }
             }
             Ok(())

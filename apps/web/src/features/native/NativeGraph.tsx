@@ -26,7 +26,6 @@ const GraphView = lazy(() =>
 );
 
 export function NativeGraph({
-  compact = false,
   snapshot,
   analysis,
   history,
@@ -36,7 +35,6 @@ export function NativeGraph({
   running,
   onAnalyze,
 }: {
-  compact?: boolean;
   snapshot: SourceSnapshot;
   analysis: MeaningRecord | null;
   history: MeaningRecord[];
@@ -99,36 +97,33 @@ export function NativeGraph({
       className="native-source-graph"
       aria-label="ローカルソースのグラフ"
     >
-      {!compact && (
+      <details className="native-graph-information">
+        <summary>解析の情報</summary>
         <Alert severity="info">
           {snapshot.atlas
             ? `Lean Atlasによるコンパイル後の依存です（Lean ${snapshot.atlas.graph.metadata.leanVersion}）。プロジェクト内のimportを自動収集し、外部ライブラリは展開しない境界として表示します。Medenの契約・証明の受理状態は変更しません。`
             : "選択したファイルの字句解析による参照候補です。Leanの精密な依存抽出・証明確認は実行していません。"}
         </Alert>
-      )}
-      {compact && (
-        <Typography variant="body2">
-          {snapshot.atlas
-            ? `Lean Atlasによるコンパイル後の依存 · Lean ${snapshot.atlas.graph.metadata.leanVersion}`
-            : "ソースの参照候補 · コンパイル・証明確認なし"}
+
+        {snapshot.collection && (
+          <Typography variant="body2">
+            自動収集したプロジェクト内の依存です。対象:{" "}
+            {snapshot.collection.roots.join(", ")}。
+            {snapshot.collection.packages
+              .map(
+                (pkg) => `Lake: ${pkg.name} (${pkg.source_roots.join(", ")})`,
+              )
+              .join(" · ")}
+            外部モジュール（宣言を展開しない境界）:{" "}
+            {snapshot.collection.external_modules.join(", ") || "なし"}。
+          </Typography>
+        )}
+        <Typography variant="caption">
+          {Object.keys(snapshot.files).length}ファイル ·{" "}
+          {workspace.declarations.length}宣言 · {workspace.edges.length}
+          {snapshot.atlas ? "依存" : "参照候補"}
         </Typography>
-      )}
-      {snapshot.collection && !compact && (
-        <Typography variant="body2">
-          自動収集したプロジェクト内の依存です。対象:{" "}
-          {snapshot.collection.roots.join(", ")}。
-          {snapshot.collection.packages
-            .map((pkg) => `Lake: ${pkg.name} (${pkg.source_roots.join(", ")})`)
-            .join(" · ")}
-          外部モジュール（宣言を展開しない境界）:{" "}
-          {snapshot.collection.external_modules.join(", ") || "なし"}。
-        </Typography>
-      )}
-      <Typography variant="caption">
-        {Object.keys(snapshot.files).length}ファイル ·{" "}
-        {workspace.declarations.length}宣言 · {workspace.edges.length}
-        {snapshot.atlas ? "依存" : "参照候補"}
-      </Typography>
+      </details>
       {notification && <p role="status">{notification}</p>}
       <Suspense
         fallback={
@@ -159,18 +154,6 @@ export function NativeGraph({
             size="small"
           />
           <pre>{selected.statement}</pre>
-          {compact && (
-            <div className="native-selected-source" aria-label="宣言のソース">
-              <SourceView
-                files={snapshot.files}
-                target={selected}
-                revealTarget
-                onBack={() => {}}
-                onNotify={setNotification}
-                showBack={false}
-              />
-            </div>
-          )}
           <Button onClick={() => setSourceOpen(true)}>
             {selected.source?.file}:{selected.source?.line} のソースを開く
           </Button>
@@ -188,31 +171,27 @@ export function NativeGraph({
           </Typography>
         </div>
       )}
-      {(!compact || selected) && (
-        <NativeMeaning
-          record={analysis}
-          history={history}
-          onSelect={onSelectAnalysis}
-          onRepair={onRepair}
-          sourceRevision={snapshot.revision}
-          graphRevision={snapshot.atlas?.revision}
-          authorized={authorized}
-          running={running}
-          onRun={onAnalyze}
-          target={
-            selected?.source?.line
-              ? {
-                  file: selected.source.file,
-                  line: selected.source.line,
-                  name: selected.name,
-                }
-              : undefined
-          }
-        />
-      )}
-      <Typography className="native-revision" variant="caption">
-        読み取った版: {snapshot.revision}
-      </Typography>
+      <NativeMeaning
+        record={analysis}
+        history={history}
+        onSelect={onSelectAnalysis}
+        onRepair={onRepair}
+        sourceRevision={snapshot.revision}
+        graphRevision={snapshot.atlas?.revision}
+        authorized={authorized}
+        running={running}
+        onRun={onAnalyze}
+        target={
+          selected?.source?.line
+            ? {
+                file: selected.source.file,
+                line: selected.source.line,
+                name: selected.name,
+              }
+            : undefined
+        }
+      />
+
       <Dialog
         open={sourceOpen}
         onClose={() => setSourceOpen(false)}

@@ -8,10 +8,8 @@ export function SourceView({
   onBack,
   onNotify,
   showBack = true,
-  revealTarget = false,
 }: {
   showBack?: boolean;
-  revealTarget?: boolean;
   files: Readonly<Record<string, string>>;
   target?: Declaration;
   onBack: () => void;
@@ -36,10 +34,6 @@ export function SourceView({
       pane.scrollTop =
         row.offsetTop - pane.offsetTop - pane.clientHeight * 0.35;
   }, [file, target]);
-  useEffect(() => {
-    if (revealTarget)
-      selected.current?.scrollIntoView({ block: "center", inline: "nearest" });
-  }, [file, target, tokens, revealTarget]);
   const source = files[file];
   useEffect(() => {
     let cancelled = false;

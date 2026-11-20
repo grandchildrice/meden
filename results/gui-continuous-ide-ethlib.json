@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "meden_base": "d0c97f6",
+  "observed_at": "2026-11-20T14:03:23.067Z",
+  "journey": "Explore EthLib in one persistent map with a nested file tree, filename tabs and conversation composer; retain world coordinates across semantic zoom and code switching, without filename entry or inference.",
+  "public_entry": "./target/debug/meden gui --workspace ../EthLib",
+  "implementation": {
+    "layout": [
+      "file explorer",
+      "central map / code / preview",
+      "conversation and work history"
+    ],
+    "layout_engine": "d3-hierarchy treemapBinary, prepared once per source revision",
+    "camera": "existing React Flow viewport; continuous SVG scene at fixed world coordinates",
+    "default_graph": "Precomputed lexical declarations and unambiguous reference candidates; no compiler or proof status is inferred",
+    "compiled_graph": "Explicit offline action on the analysis page; zoom never requests it",
+    "annotations": "Routine declaration/reference counts and provenance live behind details; no header warnings, connection button or local-workspace badge; preview hashes/size behind details, imported messages labeled once per session",
+    "model_selection": "Tag in the chat composer; original exact processor review remains mandatory"
+  },
+  "actual_ethlib": {
+    "workspace": "/home/gohan/workspace/EthLib",
+    "git_head": "c6a7f0da01cba0f66adab6d9c201c5ee6aff6d5d",
+    "viewport": {
+      "width": 1600,
+      "height": 1000
+    },
+    "target": "EthLib/Consensus/Proofs/DirectSafety/IntervalBounds.lean",
+    "highlighted": {
+      "text": "50: theorem funding_step_of_run {g a b : ForkedBeaconState preset}\n",
+      "background": "rgb(239, 247, 250)"
+    },
+    "selected": "宣言: EthLib.Consensus.DirectSafety.funding_step_of_run · EthLib/Consensus/Proofs/DirectSafety/IntervalBounds.lean:50",
+    "retainedCamera": true,
+    "zoomCommands": 0,
+    "errors": [],
+    "overview": {
+      "state": "ready",
+      "scanned": 2517,
+      "total": 2517,
+      "revision": "sha256:0fa7c48e7f1c7659c9f7a559df59fada20f69ed1a44100c114b837282f4f4d19",
+      "error": null
+    },
+    "authorized": false,
+    "sourceSnapshot": {
+      "bytes": 241556,
+      "authorized": false,
+      "stopped": null
+    },
+    "source_sha256": "c9e5361f89f184bbb138cf7c0756bb775a585ce3eed7d7f5f956073d36b2ef46",
+    "screens": [
+      "/tmp/meden-ide-ethlib-initial.png",
+      "/tmp/meden-ide-ethlib-file-graph.png",
+      "/tmp/meden-ide-ethlib-declaration-source.png",
+      "/tmp/meden-ide-ethlib-zoom.png"
+    ],
+    "source_changes": false,
+    "configuration_rescue": false,
+    "live_inference": false,
+    "observed_assets_index_sha256": "d14e74ac6785ebe5c60ff0d381429a1ceb2c881dc23b8dc7659c300871093bcd"
+  },
+  "bounds": {
+    "overview_files": 10000,
+    "overview_total_bytes": 134217728,
+    "source_file_bytes": 1048576,
+    "selected_source_files": 32,
+    "selected_source_total_bytes": 16777216,
+    "configuration_file_bytes": 65536,
+    "truncation_accepted": false
+  },
+  "checks": {
+    "required_tui_ux": {
+      "passed": 33,
+      "skipped": 0,
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/debug/meden",
+        "sha256": "81e30a9ee36ef6975ea2d25cf5791ed5573e56b3b97066457e8e1decbeea4ef2"
+      },
+      "evidence": "/tmp/meden-ux-ide-stop-20261120",
+      "screens_inspected": [
+        "Actual Lake four-source compilation and declarations",
+        "missing.lean failure without the older graph",
+        "Five-source automatic-root recovery",
+        "Historical analysis after unapproved restart",
+        "Stale repair stopped without applying another edit"
+      ],
+      "inference": "scripted; installed Lean/Lake compiler is real"
+    },
+    "unit": {
+      "passed": 30,
+      "files": 6
+    },
+    "rust_overview": {
+      "passed": 2
+    },
+    "clippy": "cargo clippy -p meden-cli --all-targets -- -D warnings passed",
+    "build": "cargo build -p meden-cli passed",
+    "format": "npm run format:check and cargo fmt --all -- --check passed",
+    "browser": {
+      "unique_cases_passed": 46,
+      "stages": [
+        {
+          "passed": 32,
+          "description": "Full suite through demo, portability, workspace opening, real Atlas/Lake, IDE map, isolation, delivery and interactive preview. The next browser form-policy case exposed a click/layout timing race; the later serial cases did not run in that attempt."
+        },
+        {
+          "passed": 4,
+          "description": "Final compact annotations: portable session grouping, IDE graph information closed by default, actual large-source compilation and interactive app preview."
+        },
+        {
+          "passed": 15,
+          "skipped": 0,
+          "description": "Form-policy warning is observed before actual input; original CSP refusal and zero receiver requests pass. All remaining provider failure/restart, cancellation, source freshness, Finding repair and meaning-analysis cases pass, covering every previously unrun case plus demo overlap."
+        }
+      ],
+      "additional_automated_wcag_aa_passed": true,
+      "final_camera_regression": {
+        "passed": 1,
+        "skipped": 0,
+        "description": "After an explicit map focus, declaration selection must retain the camera even as it opens a filename tab; graph/code switching and wheel zoom still retain scene coordinates. Includes large-source compilation, compact chat and unapproved restart."
+      },
+      "production_assets": true,
+      "screens_inspected": [
+        "Actual EthLib category overview, IntervalBounds declaration graph and highlighted original source line",
+        "IDE 390-pixel chat composer with model tag",
+        "Public TUI decoded success/failure/restart screens"
+      ]
+    }
+  },
+  "binary_sha256": "81e30a9ee36ef6975ea2d25cf5791ed5573e56b3b97066457e8e1decbeea4ef2",
+  "assets_index_sha256": "557090bb10caf391b8cc8fdaa61625d3523eaa5677dddd0ea2123c82c68fb739",
+  "boundaries": [
+    "No cold toolchain/dependency installation was exercised.",
+    "No live model inference or large local-model validation was performed.",
+    "Actual EthLib default and explicit source graphs are lexical candidates; the large synthetic browser fixture additionally compiles with real installed Lean.",
+    "No new native project proof or whole-project compiler completeness claim."
+  ],
+  "service": "meden-ethlib-gui.service; persistent user service on loopback without inference approval"
+}

@@ -36,6 +36,9 @@ interface Props {
   activityText?: string;
   disabled?: boolean;
   artifact: ReactNode;
+  history?: ReactNode;
+  composerActions?: ReactNode;
+  sessionLabels?: Record<string, string>;
   onSend: (text: string) => Promise<void>;
 }
 export function ChatView({
@@ -46,6 +49,9 @@ export function ChatView({
   activityText,
   disabled,
   artifact,
+  history,
+  composerActions,
+  sessionLabels,
   onSend,
 }: Props) {
   const input = useRef<HTMLTextAreaElement>(null);
@@ -55,7 +61,12 @@ export function ChatView({
         id: message.id,
         role: message.role,
         metadata: {
-          custom: { activities: message.activities, origin: message.origin },
+          custom: {
+            activities: message.activities,
+            origin: message.origin,
+            sessionLabel: sessionLabels?.[message.id],
+            groupedSession: Boolean(sessionLabels),
+          },
         },
         content: [{ type: "text", text: message.text }],
       })),
@@ -80,7 +91,7 @@ export function ChatView({
   useEffect(() => {
     runtime.thread.composer.setText(localStorage.getItem(draftKey) || "");
   }, [draftKey, runtime]);
-  const empty = !conversation?.messages.length;
+  const empty = !conversation?.messages.length && !history;
   return (
     <AssistantRuntimeProvider runtime={runtime}>
       <section
@@ -105,6 +116,7 @@ export function ChatView({
             </div>
           ) : (
             <ThreadPrimitive.Viewport className="transcript">
+              {history}
               <ThreadPrimitive.Messages
                 components={{ UserMessage, AssistantMessage }}
               />
@@ -132,7 +144,9 @@ export function ChatView({
               }
             />
             <div className="composer-actions">
-              <span className="composer-project">{projectName}</span>
+              {composerActions || (
+                <span className="composer-project">{projectName}</span>
+              )}
               <ComposerPrimitive.Send asChild>
                 <IconButton
                   className="send-message"
@@ -230,8 +244,24 @@ function AssistantMessage() {
   );
 }
 function RecordedOrigin() {
+  const sessionLabel = useAuiState(
+    (state) => state.message.metadata.custom.sessionLabel,
+  );
   const origin = useAuiState((state) => state.message.metadata.custom.origin);
-  return origin === "recorded" ? (
+  const groupedSession = useAuiState(
+    (state) => state.message.metadata.custom.groupedSession,
+  );
+  if (typeof sessionLabel === "string")
+    return (
+      <Typography
+        className="chat-session-divider"
+        variant="caption"
+        component="p"
+      >
+        {sessionLabel}
+      </Typography>
+    );
+  return origin === "recorded" && !groupedSession ? (
     <Typography variant="caption" component="p">
       保存された会話
     </Typography>

@@ -233,11 +233,6 @@ export function GraphView({
               </IconButton>
             </span>
           </Tooltip>
-          <code>
-            {positions.size} / {workspace.declarations.length} 宣言 ·{" "}
-            {edges.length} 参照
-          </code>
-          <span className="graph-source-note">保存ソース</span>
         </div>
         <GraphInteraction.Provider
           value={{
@@ -281,22 +276,25 @@ export function GraphView({
             </ReactFlow>
           </ReactFlowProvider>
         </GraphInteraction.Provider>
-        <div className="graph-legend">
-          <span>
-            <i className="theorem" />
-            定理
-          </span>
-          <span>
-            <i className="definition" />
-            定義
-          </span>
-          {workspace.edges.some((edge) => edge.site !== "unknown") && (
-            <span>実線：型 · 破線：本体</span>
-          )}
-          {workspace.edges.some((edge) => edge.site === "unknown") && (
-            <span>点線：種類未確認の参照候補</span>
-          )}
-        </div>
+        <details className="graph-information">
+          <summary>グラフの詳細</summary>
+          <div className="graph-legend">
+            <span>
+              <i className="theorem" />
+              定理
+            </span>
+            <span>
+              <i className="definition" />
+              定義
+            </span>
+            {workspace.edges.some((edge) => edge.site !== "unknown") && (
+              <span>実線：型 · 破線：本体</span>
+            )}
+            {workspace.edges.some((edge) => edge.site === "unknown") && (
+              <span>点線：種類未確認の参照候補</span>
+            )}
+          </div>
+        </details>
       </div>
     </section>
   );

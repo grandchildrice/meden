@@ -1,12 +1,5 @@
 import { useState } from "react";
-import {
-  Alert,
-  Button,
-  Chip,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Button, Stack, TextField, Typography } from "@mui/material";
 import type { NativePreviewSnapshot } from "@meden/agent-protocol/native";
 
 export function NativePreview({
@@ -23,9 +16,6 @@ export function NativePreview({
   return (
     <Stack spacing={2}>
       <Typography variant="h3">アプリのプレビュー</Typography>
-      <Typography>
-        ローカルのHTML・JavaScript・CSSを開いて操作できます。ビルドが必要なアプリは、指示でビルドしてから出力フォルダを選んでください。
-      </Typography>
       <TextField
         label="公開フォルダ（ワークスペース内）"
         size="small"
@@ -47,17 +37,20 @@ export function NativePreview({
       </Button>
       {snapshot ? (
         <>
-          <Chip label="読み込んだファイルの動作確認・証明なし" />
-          <Typography variant="body2" sx={{ overflowWrap: "anywhere" }}>
-            {snapshot.root}/{snapshot.entry} · {snapshot.file_count}ファイル ·{" "}
-            {snapshot.byte_count.toLocaleString()} bytes
-          </Typography>
-          <Typography variant="caption" sx={{ overflowWrap: "anywhere" }}>
-            {snapshot.revision}
-          </Typography>
-          <Typography variant="body2">
-            表示は読み込み時点のファイルです。新しい指示を送ると閉じます。ブラウザ内の実行に対応し、サーバー処理・外部サービス・永続ストレージは利用できません。
-          </Typography>
+          <details>
+            <summary>プレビューの情報</summary>
+            <Typography variant="body2" sx={{ overflowWrap: "anywhere" }}>
+              {snapshot.root}/{snapshot.entry} · {snapshot.file_count}ファイル ·{" "}
+              {snapshot.byte_count.toLocaleString()} bytes
+            </Typography>
+            <Typography variant="caption" sx={{ overflowWrap: "anywhere" }}>
+              {snapshot.revision}
+            </Typography>
+            <Typography variant="body2">
+              読み込み時点のローカルファイルを表示します。ブラウザ内の操作確認であり、証明結果ではありません。
+              ビルドが必要なアプリは出力フォルダを選んでください。サーバー処理・外部サービス・永続ストレージは利用できません。
+            </Typography>
+          </details>
           {snapshot.errors.length > 0 && (
             <Alert severity="warning">
               読み込めないファイルがあります。出力フォルダと参照先を確認して、読み直してください。

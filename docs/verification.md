@@ -1786,24 +1786,28 @@ model quality, confidentiality or cold installation.
 
 ## Shared CLI and TUI execution
 
-The native GUI has three sidebar tabs: code, proof and preview. Proof opens a
-category treemap immediately. Area represents lexical declaration counts (minimum
-one per file); theorem counts remain candidates. Category clicks or semantic zoom
-expose file-level import candidates. A file click starts the real offline declaration
-extractor; selecting a declaration displays its source line. The code tab reads actual
-directories/files through a folder explorer and keeps open-file buttons. Saved
-requirements are associated with their module rather than treated as dependency roots.
-Advanced extraction settings live on a separate page, and a send review is visible
-only for an actual proposal. No new action grants proof or processor authority.
-Browser regressions cover three-tab navigation without typed paths, real compiler
-edges, source/requirement inspection, compiler failure without old output, recovery,
-390-pixel layout and an unapproved restart. The required public TUI Lake journey
-retains its actual compiler, failure and restart checks. These are GUI/host adapter
-observations, not new refinements. The [project-map observation](../results/gui-project-map-ethlib.json)
-records navigation on the real EthLib checkout using installed resources without inference.
-The [EthLib navigation observation](../results/gui-dependency-navigation-ethlib.json)
-records compiled extraction with installed dependencies and explicit lexical recovery
-from missing Mathlib in a separate bare clone, without inference or downloads.
+The native GUI uses a persistent file tree, a central project map/file editor and a
+right conversation pane. D3 prepares one declaration-weighted treemap and reference
+index per source revision; React Flow retains its camera while finer categories,
+files and lexical declaration references fade into the same coordinates. Zoom never
+starts compilation or switches tabs. Selecting a declaration opens a filename tab
+and prepares its original source line without moving the camera; graph/code switching
+retains it. The default map is navigation over source candidates, not compiled
+proof evidence. Explicit compiler extraction remains on the secondary analysis page.
+
+The chat composer owns provider/model selection and processor review. Task/check
+records and previous-session dividers appear in that conversation; header warnings,
+connection controls and routine graph counts are absent. Existing authority and
+review boundaries are unchanged. Browser regressions cover a single retained scene,
+zero extraction requests during zoom, complete sources above 64 KiB, real compiler
+edges, provider failure with newly written files, 390-pixel layout and unapproved
+restart. The required public TUI Lake journey retains actual compilation, failure
+and restart checks. These are tested GUI/host adapters, not new refinements.
+The [continuous IDE observation](../results/gui-continuous-ide-ethlib.json) records
+navigation on real EthLib with installed resources and no inference. The earlier
+[project-map observation](../results/gui-project-map-ethlib.json) and
+[dependency-navigation observation](../results/gui-dependency-navigation-ethlib.json)
+record the preceding layouts and actual compiled extraction.
 
 
 Missing Lake dependencies report their name and expected directory, with Mathlib's
@@ -2322,7 +2326,7 @@ performed automatically by the library.
 The shared Atlas service parses exact frozen Lean import headers in the existing
 offline analysis worker, then reads discovered local module paths through the
 ordinary policy-bound file worker. It collects transitive ordinary module names
-under the workspace module root, up to 32 files/1 MiB/64 KiB per file. Missing
+under the workspace module root, up to 32 files/16 MiB/1 MiB per file. Missing
 imports and unsupported package roots stop instead of admitting a partial graph.
 Installed Lean/Atlas modules are recorded as external boundaries. Header parsing,
 module/path correspondence, resource attribution and filesystem observation are
@@ -2430,7 +2434,7 @@ its advertised Git commit.
 
 `/atlas` (or a blank GUI target field) selects existing Lake library/executable
 roots and module globs. Explicit source files still work. Limits remain 32 source
-files, 64 KiB per file and 1 MiB of source; metadata and package traversal have
+files, 1 MiB per file and 16 MiB of source; metadata and package traversal have
 separate bounds. This does not promise a complete Mathlib graph or replay arbitrary
 host-dependent Lake configuration. Configurations that need unobserved host files,
 custom tool environments, downloads or unavailable artifacts fail inside isolation.

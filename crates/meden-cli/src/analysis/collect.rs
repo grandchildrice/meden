@@ -75,8 +75,8 @@ pub(super) fn capture(
                     insert(&mut modules, &module)?;
                     anyhow::ensure!(
                         files.len() <= 32
-                            && files.values().map(String::len).sum::<usize>() <= 1_048_576,
-                        "Local import closure exceeds 32 files/1 MiB; no partial graph admitted"
+                            && files.values().map(String::len).sum::<usize>() <= 16_777_216,
+                        "Local import closure exceeds 32 files/16 MiB; no partial graph admitted"
                     );
                 }
             }

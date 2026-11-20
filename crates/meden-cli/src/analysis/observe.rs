@@ -1,5 +1,6 @@
 //! Host observations use the same policy-bound, pinned file worker as source snapshots.
 use anyhow::{Context, Result};
+use base64::Engine as _;
 use meden_agent::tool::Args;
 use meden_core::file::{Operation, Request};
 use meden_runtime::{
@@ -56,8 +57,8 @@ impl<'a> Reader<'a> {
             &crate::workspace::file_policy()?,
             &Limits {
                 timeout: Duration::from_secs(30),
-                capture_bytes: 1_000_000,
-                output_bytes: 1_000_000,
+                capture_bytes: 8_388_608,
+                output_bytes: 8_388_608,
             },
         )
         .map_err(|error| anyhow::anyhow!("Lake workspace observation failed: {error}"))
@@ -119,10 +120,18 @@ impl<'a> Reader<'a> {
     pub fn read(&mut self, path: &str, retain: bool) -> Result<Option<String>> {
         let path = relative("", path)?;
         let value = if self.exists(&path)? {
-            let payload = Args::from_iter([("max_bytes".into(), 65_536.into())]);
-            let bytes: Vec<u8> =
-                serde_json::from_value(self.call(Operation::Snapshot, &path, payload)?)?;
-            anyhow::ensure!(bytes.len() <= 65_536, "Lake input exceeds 64 KiB");
+            let limit: usize = if retain { 65_536 } else { 1_048_576 };
+            let payload = Args::from_iter([
+                ("max_bytes".into(), limit.into()),
+                ("encoding".into(), "base64".into()),
+            ]);
+            let value = self.call(Operation::Snapshot, &path, payload)?;
+            let bytes = base64::engine::general_purpose::STANDARD
+                .decode(value.as_str().context("Invalid Lake input response")?)?;
+            anyhow::ensure!(
+                bytes.len() <= limit,
+                "Lake input exceeds selected byte limit"
+            );
             Some(String::from_utf8(bytes).context("Lake input is not UTF-8")?)
         } else {
             None

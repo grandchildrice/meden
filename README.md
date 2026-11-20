@@ -80,17 +80,17 @@ cargo build -p meden-cli
 ```
 
 Open the session URL printed in the terminal. History and dependency graphs are
-available before connecting a model. For development, use **接続先** to select a
+available before connecting a model. For development, use the model tag in the chat composer to select a
 provider/model, review the exact destination, approve it, then send an instruction. The GUI uses the same native
 agent, offline tools, files and conversation checkpoints as the TUI. Stop the GUI
 before opening that project in the TUI; the repository permits one writer.
 Code, actual tool inputs/results and native contract status appear beside the chat.
-The sidebar has **コード・証明・プレビュー**. **証明** opens a category map
-without choosing a file. Rectangle area represents declaration counts; click or
-zoom through categories, then click a file to open its declaration dependencies.
-**コード** provides a folder explorer and open-file tabs, so source paths need not
-be typed. Saved requirements appear alongside their related source.
-The result opens each declaration at its exact source line.
+The file tree is on the left, a large project map is in the center, and chat/work
+history with the composer is on the right. Filename tabs and **グラフ / コード**
+let you inspect source without losing your place. The initial source inventory
+prepares the reference map once: zoom reveals categories, files and declarations
+in the same coordinates, without switching views or starting compilation.
+The model selector is inside the composer; selecting it opens connection review.
 **ソースの参照候補を表示** provides lexical inspection before Lean dependencies are
 prepared; it is not a compiler dependency graph or a new proof check.
 With installed Lean, extraction automatically prepares the pinned Lean Atlas
@@ -112,7 +112,7 @@ then sends once to the displayed destination or rejects the proposal.
 HTTP connections can also use `--base-url URL --model MODEL --api-key-env NAME`.
 Prepare real proof tools with `meden setup` before requesting formal verification.
 
-The **作業・履歴** tab keeps named work items, requirements, next steps, visible
+Chat work records keep named work items, requirements, next steps, visible
 conversation and local Lean check records in `.meden/workspace.json`. Commit that
 file with your sources to continue from a clone on another machine. Open the clone
 with `meden gui --workspace /path/to/clone`; select a task and **この作業を再開**.

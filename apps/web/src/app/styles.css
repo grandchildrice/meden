@@ -2710,24 +2710,6 @@ pre {
   flex-direction: column;
   background: #fafbfc;
 }
-.native-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 12px 20px;
-  border-bottom: 1px solid #e3e5e8;
-  flex-wrap: wrap;
-}
-.native-workspace {
-  flex: 1;
-  min-width: 120px;
-  overflow-wrap: anywhere;
-}
-.native-main {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-}
 .native-chat {
   flex: 1;
   min-width: 0;
@@ -2737,19 +2719,6 @@ pre {
 .native-chat .chat-panel {
   flex: 1;
   min-height: 180px;
-}
-.native-artifacts {
-  width: 60%;
-  border-left: 1px solid #e3e5e8;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.native-panel {
-  min-height: 0;
-  padding: 16px;
-  overflow: auto;
-  flex: 1;
 }
 .native-preview {
   width: 100%;
@@ -2772,18 +2741,11 @@ pre {
   white-space: pre;
   font-size: 12px;
 }
-.native-panel pre,
 .native-stream,
 .native-contract {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   font-size: 13px;
-}
-.native-panel details {
-  margin: 16px 0;
-}
-.native-panel summary {
-  cursor: pointer;
 }
 .native-stream {
   margin: 8px 20px;
@@ -2791,34 +2753,13 @@ pre {
   overflow: auto;
 }
 @media (max-width: 839px) {
-  .native-header {
-    gap: 8px;
-  }
-  .native-workspace {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
   .native-shell > .MuiAlert-root .MuiAlert-action {
     flex-shrink: 0;
     white-space: nowrap;
   }
-
-  .native-main {
-    flex-direction: column;
-    overflow: auto;
-  }
   .native-chat {
     flex: none;
     min-height: 60dvh;
-  }
-  .native-artifacts {
-    flex: none;
-    height: 100%;
-    width: 100%;
-    min-height: 320px;
-    border-left: 0;
-    border-top: 1px solid #e3e5e8;
   }
 }
 
@@ -2893,25 +2834,7 @@ pre {
   border: 1px solid #d5dcde;
   border-radius: 12px;
 }
-.native-history-note {
-  display: block;
-  padding: 8px 16px;
-  color: #587179;
-}
-
-/* Native workspace: three views, direct navigation, semantic map zoom. */
-.native-artifacts > .MuiTabs-root {
-  flex: none;
-  border-bottom: 1px solid var(--line);
-}
-.native-panel > [hidden],
-.native-panel [hidden] {
-  display: none !important;
-}
-.proof-toolbar,
 .project-map-heading,
-.dependency-breadcrumb,
-.explorer-source-heading,
 .explorer-pages,
 .explorer-title {
   display: flex;
@@ -2920,79 +2843,14 @@ pre {
   justify-content: space-between;
   flex-wrap: wrap;
 }
-.proof-toolbar {
-  justify-content: flex-end;
-  margin-bottom: 8px;
-}
-.dependency-breadcrumb code {
-  overflow-wrap: anywhere;
-}
-.project-map-tile {
-  container-type: size;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 8px;
-  border: 1px solid #ffffff30;
-  border-radius: 5px;
-  padding: 12px;
-  color: #fff;
-  cursor: pointer;
-  text-align: left;
-  overflow: hidden;
-  transition: filter 0.15s;
-}
-.project-map-tile:hover {
-  filter: brightness(1.2);
-}
-.project-map-tile:focus-visible {
-  outline: 4px solid #ffda87;
-  outline-offset: -4px;
-}
-.project-map-tile strong {
-  overflow-wrap: anywhere;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-size: clamp(14px, 13cqw, 24px);
-}
-.project-map-tile span,
-.project-map-tile small {
-  font-size: 16px;
-}
-.map-color-0 {
-  background: #275f69;
-}
-.map-color-1 {
-  background: #414b7e;
-}
-.map-color-2 {
-  background: #73516c;
-}
-.map-color-3 {
-  background: #695a38;
-}
-.map-color-4 {
-  background: #365b51;
-}
 .map-breadcrumbs {
   display: flex;
   flex-wrap: wrap;
-}
-.file-requirement,
-.native-contract-summary {
-  padding: 16px 0;
-  border-top: 1px solid var(--line);
-  margin-top: 16px;
 }
 .chat-utilities {
   padding: 0 12px;
   display: flex;
   justify-content: flex-end;
-}
-.native-explorer {
-  display: grid;
-  grid-template-columns: minmax(130px, 26%) minmax(0, 1fr);
-  min-height: calc(100dvh - 240px);
 }
 .explorer-tree {
   border-right: 1px solid var(--line);
@@ -3038,41 +2896,6 @@ pre {
   cursor: wait;
   opacity: 0.6;
 }
-.explorer-editor {
-  min-width: 0;
-  overflow: auto;
-}
-.explorer-open-files {
-  display: flex;
-  overflow: auto;
-  border-bottom: 1px solid var(--line);
-  min-height: 38px;
-}
-.explorer-open-files button {
-  border: 0;
-  border-right: 1px solid var(--line);
-  background: #f0f3f5;
-  padding: 8px 14px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.explorer-open-files button[aria-pressed="true"] {
-  background: white;
-  box-shadow: inset 0 2px #347584;
-}
-.explorer-source-heading {
-  padding: 6px 12px;
-  font-size: 12px;
-}
-.explorer-editor pre {
-  white-space: pre;
-  font-size: 12px;
-  overflow: auto;
-  padding: 12px;
-  margin: 0;
-  min-height: 300px;
-  background: #f8fafc;
-}
 .explorer-pages {
   padding: 8px;
   font-size: 12px;
@@ -3080,35 +2903,6 @@ pre {
 .explorer-empty {
   padding: 24px;
   color: #627781;
-}
-@media (max-width: 839px) {
-  .native-artifacts {
-    width: 100%;
-    min-height: 600px;
-  }
-  .native-panel {
-    padding: 12px;
-  }
-  .native-explorer {
-    grid-template-columns: 130px minmax(0, 1fr);
-  }
-}
-.native-selected-source {
-  margin-block: 16px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  overflow: hidden;
-}
-.native-selected-source .source-code {
-  max-height: 280px;
-}
-.native-selected-source .source-toolbar {
-  padding: 8px;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.native-selected-source .source-toolbar .MuiInputBase-root {
-  max-width: 100%;
 }
 .workspace-overview-canvas .react-flow__controls button {
   background: #f5f8fb !important;
@@ -3118,15 +2912,6 @@ pre {
 }
 .workspace-overview-canvas .react-flow__controls button svg {
   fill: currentColor;
-}
-.project-map-tile:disabled {
-  cursor: progress;
-}
-.native-proof-panel {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
 }
 .project-map-page,
 .workspace-overview {
@@ -3141,19 +2926,426 @@ pre {
   overflow: auto;
   flex: none;
 }
-@container (max-width: 130px) {
-  .project-map-tile span,
-  .project-map-tile small {
-    font-size: 12px;
-  }
+
+/* One workspace, one fixed camera. Files and conversation flank the stage. */
+.native-ide {
+  background: #fff;
+  overflow: hidden;
 }
-@container (max-height: 90px) {
-  .project-map-tile small {
+.ide-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  height: 48px;
+  flex: none;
+  padding: 0 18px;
+  border-bottom: 1px solid var(--line);
+}
+.ide-header h1 {
+  font-size: 16px;
+  font-weight: 600;
+}
+.ide-project-name {
+  flex: 1;
+  font-size: 12px !important;
+  color: #5c6e79;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ide-header .ide-files-toggle,
+.ide-header .ide-chat-toggle {
+  display: none;
+}
+.ide-main {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 350px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.ide-files {
+  min-width: 0;
+  overflow: auto;
+  background: #f7f9fa;
+  border-right: 1px solid var(--line);
+}
+.ide-files .explorer-tree {
+  border: 0;
+  overflow: visible;
+}
+.ide-files .explorer-tree ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ide-files .explorer-entry {
+  font-size: 12px;
+}
+.ide-files .explorer-entry span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ide-workspace {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.ide-file-tabs {
+  display: flex;
+  overflow: auto;
+  flex: none;
+  min-height: 38px;
+  max-height: 38px;
+  border-bottom: 1px solid var(--line);
+  background: #f5f7f8;
+}
+.ide-file-tab {
+  display: flex;
+  flex: none;
+  border-right: 1px solid var(--line);
+}
+.ide-file-tabs button {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  padding: 8px 12px;
+  color: #5b6d77;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ide-file-tabs button[aria-selected="true"] {
+  color: #244c58;
+  background: #fff;
+  box-shadow: inset 0 2px #487d8d;
+}
+.ide-file-tabs button:focus-visible {
+  outline: 2px solid #487d8d;
+  outline-offset: -2px;
+}
+.ide-stage-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  min-height: 40px;
+  flex: none;
+  border-bottom: 1px solid var(--line);
+}
+.ide-file-path {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #6f8089;
+}
+.ide-stage-toolbar .MuiTabs-root,
+.ide-stage-toolbar .MuiTab-root {
+  min-height: 38px;
+}
+.ide-stage-toolbar .MuiTab-root {
+  min-width: 55px;
+  font-size: 12px;
+  padding: 6px 12px;
+}
+.ide-stage-toolbar > .MuiButton-root {
+  font-size: 11px;
+}
+.ide-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.ide-stage > div {
+  height: 100%;
+  min-height: 0;
+}
+.native-ide [hidden] {
+  display: none !important;
+}
+.ide-stage .workspace-overview {
+  padding: 8px 12px 12px;
+}
+.continuous-map .project-map-heading {
+  min-height: 24px;
+}
+.continuous-map .project-map-heading .MuiButton-root {
+  font-size: 11px;
+  padding: 0 8px;
+}
+.continuous-map .map-breadcrumbs {
+  min-height: 30px;
+  flex-wrap: nowrap;
+  overflow: auto;
+}
+.continuous-map .map-breadcrumbs .MuiButton-root {
+  font-size: 11px;
+  white-space: nowrap;
+  flex: none;
+  min-width: 0;
+  padding: 4px 8px;
+}
+.continuous-map .workspace-overview-canvas {
+  position: relative;
+  margin: 4px 0 0;
+  border-radius: 5px;
+  min-height: 150px;
+}
+.react-flow__node-scene {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+}
+.continuous-map-scene {
+  display: block;
+  overflow: visible;
+}
+.continuous-map-scene [role="button"] {
+  cursor: pointer;
+  outline: none;
+}
+.continuous-map-scene [role="button"]:focus-visible > rect,
+.continuous-map-scene [role="button"]:focus-visible > circle {
+  stroke: #ffe59c;
+}
+.project-minimap {
+  position: absolute;
+  width: 125px;
+  height: 83px;
+  bottom: 14px;
+  right: 14px;
+  border: 1px solid #89a2ae;
+  background: #0e1c24;
+  pointer-events: none;
+  opacity: 0.9;
+}
+.native-code-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.native-code-editor pre {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  margin: 0;
+  padding: 16px 20px;
+  font:
+    12px/1.9 ui-monospace,
+    monospace;
+  white-space: pre;
+}
+.editor-line {
+  display: block;
+  min-width: max-content;
+}
+.ide-preview-page {
+  overflow: auto;
+  padding: 20px;
+}
+.native-chat.ide-chat {
+  min-width: 0;
+  min-height: 0;
+  border-left: 1px solid var(--line);
+  overflow: hidden;
+  width: 100%;
+}
+.ide-chat .chat-panel {
+  flex: 1;
+  min-height: 0;
+}
+.ide-chat .thread {
+  min-height: 0;
+}
+.ide-chat .transcript {
+  padding: 14px;
+}
+.ide-chat .message {
+  font-size: 13px;
+}
+.ide-chat .assistant-avatar {
+  display: none;
+}
+.ide-chat .assistant-content {
+  width: 100%;
+}
+.ide-chat .user-turn {
+  padding: 0;
+  margin: 8px 0 18px;
+}
+.ide-chat .user-message {
+  padding: 12px;
+  border-radius: 9px;
+}
+.ide-chat .composer {
+  margin: 8px 12px;
+  width: auto;
+}
+.ide-chat .composer-input {
+  min-height: 70px;
+  padding: 12px 14px 4px;
+  font-size: 13px;
+}
+.ide-chat .composer-actions {
+  padding: 2px 8px 8px;
+}
+.ide-chat .composer-model {
+  max-width: 235px;
+  font-size: 11px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.ide-chat .composer-caption {
+  font-size: 10px;
+  padding-bottom: 8px;
+}
+.ide-chat > .MuiAlert-root {
+  margin: 6px 8px;
+  max-height: 110px;
+  font-size: 12px;
+}
+.ide-chat .chat-utilities {
+  padding: 0 8px 6px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+.ide-chat .chat-utilities .MuiButton-root {
+  font-size: 11px;
+}
+.chat-session-divider {
+  padding: 12px 0 5px;
+  color: #6a7f8a;
+  border-top: 1px solid #e8edef;
+  font-size: 10px !important;
+}
+.chat-work-history {
+  margin: 0 0 18px;
+}
+.chat-work-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.chat-work-heading .MuiButton-root {
+  font-size: 11px;
+}
+.chat-work-card {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 12px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+.chat-work-card h3 {
+  font-size: 13px;
+  margin: 0;
+}
+.chat-work-card p {
+  line-height: 1.7;
+  margin: 6px 0;
+}
+.chat-work-actions {
+  display: flex;
+  flex-wrap: wrap;
+}
+.chat-work-actions .MuiButton-root {
+  font-size: 11px;
+  padding: 3px 6px;
+}
+.chat-work-card details {
+  margin-top: 7px;
+}
+.chat-work-card pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.chat-contract {
+  padding: 12px;
+  max-height: 250px;
+  overflow: auto;
+}
+.native-graph-information,
+.graph-information {
+  font-size: 11px;
+  color: #627984;
+}
+@media (max-width: 1150px) {
+  .ide-main {
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+  .ide-chat {
     display: none;
   }
+  .ide-header .ide-chat-toggle {
+    display: inline-flex;
+  }
+  .native-chat.ide-chat.is-open {
+    display: flex;
+    position: absolute;
+    z-index: 12;
+    right: 0;
+    top: 48px;
+    bottom: 0;
+    width: min(350px, 100%);
+    background: white;
+    box-shadow: -8px 0 24px #10253022;
+  }
 }
-@container (max-height: 52px) {
-  .project-map-tile span {
+@media (max-width: 700px) {
+  .ide-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ide-files {
     display: none;
   }
+  .ide-header {
+    padding-inline: 12px;
+    gap: 10px;
+  }
+  .ide-header .ide-files-toggle {
+    display: inline-flex;
+  }
+  .ide-files.is-open {
+    display: block;
+    position: absolute;
+    z-index: 11;
+    left: 0;
+    top: 48px;
+    bottom: 0;
+    width: min(270px, 80%);
+    box-shadow: 8px 0 24px #10253022;
+  }
+  .ide-stage-toolbar {
+    gap: 4px;
+    padding-inline: 5px;
+  }
+  .ide-file-path {
+    display: none;
+  }
+  .ide-stage-toolbar .MuiTab-root {
+    min-width: 52px;
+    padding-inline: 10px;
+  }
+  .project-minimap {
+    width: 85px;
+    height: 56px;
+  }
+}
+.ide-analysis-page {
+  overflow: auto;
+  padding: 18px;
+}
+.ide-chat > .native-delivery {
+  overflow: auto;
+  max-height: 40%;
+  padding: 12px;
 }
