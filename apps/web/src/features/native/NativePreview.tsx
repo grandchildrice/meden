@@ -4,10 +4,12 @@ import type { NativePreviewSnapshot } from "@meden/agent-protocol/native";
 
 export function NativePreview({
   snapshot,
+  error,
   running,
   onCapture,
 }: {
   snapshot: NativePreviewSnapshot | null;
+  error: string | null;
   running: boolean;
   onCapture: (root: string, entry: string) => Promise<boolean>;
 }) {
@@ -16,6 +18,7 @@ export function NativePreview({
   return (
     <Stack spacing={2}>
       <Typography variant="h3">アプリのプレビュー</Typography>
+      {error && <Alert severity="error">{error}</Alert>}
       <TextField
         label="公開フォルダ（ワークスペース内）"
         size="small"

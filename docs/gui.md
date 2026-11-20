@@ -21,11 +21,14 @@ not completed; `--assets` selects a completed build from another checkout.
 
 Opening a workspace shows a VS Code style layout: a persistent file tree on the
 left, a large project map in the center, and conversation/work history with its
-composer on the right. The center has filename tabs and **グラフ / コード** views;
-**プレビュー** is available for browser applications. Selecting a declaration keeps
-the graph camera in place and opens a filename tab. Switch to code to read the exact
-source line, then return to the same graph position. At compact widths, **ファイル**
-and **チャット** open their respective side panels over the fixed workspace.
+composer on the right. The project-map tab stays mounted with its own camera.
+Select a declaration to open a filename tab containing its source and reference
+graph side by side. Selecting another declaration updates the source line; returning
+to the project map preserves the scene and camera. At compact widths, **ファイル**
+and **チャット** open side panels and the file split stacks vertically.
+There are no separate graph/code/preview/settings mode tabs. Preview opens through
+its play icon as a temporary editor tab. The explorer heading shows the shortened
+workspace path and one refresh icon; the map has no refresh or project-whole button.
 
 The map is built from the initial policy-bound source inventory and retained per
 source revision. D3's treemap layout fixes every category/file rectangle once;
@@ -33,17 +36,22 @@ React Flow supplies the retained pan/zoom camera. Increasing zoom fades in neste
 categories, files, then declaration nodes and reference lines in those same coordinates.
 Zoom never dispatches extraction or switches views. A minimap keeps the current
 position visible. The map contains lexical reference candidates, not compiler
-proof evidence. Exact Lean compilation remains an explicit action in **解析の詳細**;
-a failed extraction does not remove the cached project map. **読み直す** rebuilds
+proof evidence. Exact Lean compilation remains an explicit **Leanで解析** action in the file tab;
+a failed extraction does not remove the cached project map. The explorer refresh icon rebuilds
 navigation after external edits; ordinary development turns also refresh the inventory.
 
 The model tag lives in the chat composer. Select it to choose this computer's
 Hermes, Codex, Claude or HTTP server connection and model. Review the exact fixed
-destination/model in the connection dialog before approving it. Credentials remain
+destination/model in the model picker before choosing **このモデルを使用**.
+Selecting provider/model updates the native binding directly; there are no list-refresh,
+connection-selection or host-settings-refresh buttons. The picker retains the exact
+endpoint and selected model within the fully visible approval heading. Credentials remain
 on the host and never enter the browser or project files. Switching a connection
 revokes its predecessor; stale review cannot approve the replacement. The header
 contains the project name and compact navigation, with no connection warning banner.
-Errors and stopped work appear in the chat. Retained conversation streams have
+Conversation errors and stopped model work appear in chat. File reads never produce
+chat activity; compiler progress, failures and cancellation stay with the file graph.
+Cached references remain visible during compilation and after failure. Retained conversation streams have
 session dividers; task notes and actual Lean check records appear in that same chat.
 **作業・履歴** opens explicit record management rather than a separate workspace tab.
 
@@ -256,7 +264,7 @@ adds no Rust-to-Lean proof, application correctness or source-to-UI corresponden
 claim. In particular, a JavaScript mirror of checked Rust is still a separate
 implementation unless a further binding is established.
 
-The central **プロジェクトマップ** is always the default editor tab. The file tree
+The permanent **プロジェクトマップ** is always the default editor tab. The file tree
 reads actual directories, including non-Lean sources; clicking a file opens its code
 in the center. File tabs show their basename with the complete path available in the
 editor heading/title. Declaration selection prepares the same code tab at the
@@ -274,9 +282,13 @@ Failures and cancellation retain chat and show a retry action; no partial comple
 is installed. Completed model file/command checks trigger a fresh read of this overview.
 Concurrent host changes are not an atomic filesystem snapshot.
 
-**解析の詳細** is a separate secondary page for explicit multi-file paths,
-automatic Lake target selection and tool preparation/repair. Its controls are
-visible together; the normal map journey needs none of those settings.
+The **Lean解析ツール** icon opens optional single-file selection and a closed
+multi-file/environment section. Ordinary file-tree and map-node navigation needs
+no filename input or extraction action. **Leanで解析** starts an explicit compiler
+job in the file split; **参照を更新** captures complete selected sources without
+compiler import traversal. A job cannot silently replace a source candidate with
+proof evidence. Tool inputs/results and checkpoint notices live in a closed inline
+chat record, without a separate execution-log button.
 Source observations use the same offline,
 policy-bound file worker as project snapshots (1–32 files, 1 MiB per file,
 16 MiB total). No truncated file is indexed. A SHA-256 binds the selected paths
@@ -297,8 +309,7 @@ following recorded-demo documentation describes a separate standalone mode.
 
 ## Native Lean Atlas extraction
 
-With an installed Lean distribution, open **解析の詳細**, select a local Lean file
-and choose **依存グラフを表示**. The first explicit extraction
+With an installed Lean distribution, open a local Lean file and choose **Leanで解析**. The first explicit extraction
 automatically compiles the pinned public Atlas library offline without sending
 source to a model. The public TUI `/atlas` command performs the same preparation.
 Meden selects the workspace's `lean-toolchain` from installed Elan toolchains,

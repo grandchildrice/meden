@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Button, CircularProgress, Typography } from "@mui/material";
+import {
+  Alert,
+  Button,
+  IconButton,
+  Tooltip,
+  CircularProgress,
+  Typography,
+} from "@mui/material";
+import Refresh from "@mui/icons-material/Refresh";
 import FolderOutlined from "@mui/icons-material/FolderOutlined";
 import DescriptionOutlined from "@mui/icons-material/DescriptionOutlined";
 import ChevronRight from "@mui/icons-material/ChevronRight";
@@ -30,8 +38,9 @@ export function NativeExplorer({
   const [directories, setDirectories] = useState<Record<string, string[]>>({});
   const [expanded, setExpanded] = useState(new Set(["."]));
   const loadedRevision = useRef<string | null>(null);
+  const [refresh, setRefresh] = useState(0);
   const directoryVersion =
-    state.overview.revision + ":" + state.messages.length;
+    state.overview.revision + ":" + state.messages.length + ":" + refresh;
   const inspection = state.inspection;
   useEffect(() => {
     if (inspection?.directory && !inspection.error)
@@ -105,15 +114,28 @@ export function NativeExplorer({
   return (
     <section className="explorer-tree" aria-label="ファイルエクスプローラー">
       <div className="explorer-title">
-        <Typography variant="caption">エクスプローラー</Typography>
-        <Button
-          disabled={running}
-          onClick={() =>
-            void onCommand({ type: "inspect", path: ".", directory: true })
-          }
+        <Typography
+          className="explorer-workspace-path"
+          variant="caption"
+          title={state.workspace}
         >
-          更新
-        </Button>
+          {state.workspace.replace(/^\/home\/[^/]+/, "~")}
+        </Typography>
+        <Tooltip title="ファイルとマップを更新">
+          <span>
+            <IconButton
+              aria-label="ファイルとマップを更新"
+              size="small"
+              disabled={running}
+              onClick={() => {
+                setRefresh((n) => n + 1);
+                void onCommand({ type: "refresh_workspace" });
+              }}
+            >
+              <Refresh fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
       </div>
       <ul role="tree" aria-label="フォルダとファイル">
         {tree(".", 0)}
@@ -141,7 +163,7 @@ export function NativeCode({
   const selected = useRef<HTMLSpanElement>(null);
   const inspection = state.inspection;
   useEffect(() => {
-    if (!inspection || inspection.directory) return;
+    if (!inspection || inspection.directory || inspection.path !== path) return;
     setFiles((previous) => {
       const next = { ...previous };
       if (inspection.error) delete next[inspection.path];

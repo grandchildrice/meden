@@ -248,6 +248,7 @@ export function GraphView({
         >
           <ReactFlowProvider>
             <ReactFlow
+              proOptions={{ hideAttribution: true }}
               key={root + scope}
               nodes={nodes}
               edges={edges}

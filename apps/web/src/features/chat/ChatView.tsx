@@ -35,6 +35,7 @@ interface Props {
   running: boolean;
   activityText?: string;
   disabled?: boolean;
+  pending?: boolean;
   artifact: ReactNode;
   history?: ReactNode;
   composerActions?: ReactNode;
@@ -48,6 +49,7 @@ export function ChatView({
   running,
   activityText,
   disabled,
+  pending,
   artifact,
   history,
   composerActions,
@@ -86,7 +88,7 @@ export function ChatView({
     messages,
     onNew,
     convertMessage: (message) => message,
-    isRunning: running,
+    isRunning: Boolean(running || pending),
   });
   useEffect(() => {
     runtime.thread.composer.setText(localStorage.getItem(draftKey) || "");
@@ -151,7 +153,7 @@ export function ChatView({
                 <IconButton
                   className="send-message"
                   aria-label="送信"
-                  disabled={disabled || running}
+                  disabled={disabled || running || pending}
                 >
                   <ArrowUpwardRounded fontSize="small" />
                 </IconButton>

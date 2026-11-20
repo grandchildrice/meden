@@ -3041,7 +3041,7 @@ pre {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: #6f8089;
+  color: #536975;
 }
 .ide-stage-toolbar .MuiTabs-root,
 .ide-stage-toolbar .MuiTab-root {
@@ -3276,7 +3276,7 @@ pre {
 .native-graph-information,
 .graph-information {
   font-size: 11px;
-  color: #627984;
+  color: #4c6571;
 }
 @media (max-width: 1150px) {
   .ide-main {
@@ -3348,4 +3348,145 @@ pre {
   overflow: auto;
   max-height: 40%;
   padding: 12px;
+}
+
+/* File tabs own their split editor; the project scene stays mounted behind them. */
+.ide-file-tab.active {
+  background: #fff;
+  box-shadow: inset 0 2px #487d8d;
+}
+.ide-file-tab.active button {
+  color: #244c58;
+}
+.ide-file-tab button[aria-selected="true"] {
+  box-shadow: none;
+}
+.ide-tab-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  padding-inline: 4px;
+  position: sticky;
+  right: 0;
+  background: #f5f7f8;
+}
+.ide-file-tabs .ide-tab-actions button {
+  padding: 5px;
+}
+.file-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+}
+.file-source-pane,
+.file-graph-pane {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+.file-source-pane {
+  border-right: 1px solid var(--line);
+}
+.file-graph-pane {
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+}
+.file-graph-pane > .graph-page {
+  flex: 1;
+  min-height: 400px;
+}
+.file-graph-pane .graph-canvas {
+  min-height: 300px;
+}
+.file-graph-pane .native-source-graph {
+  padding: 10px;
+}
+.file-graph-pane .native-source-graph .graph-page {
+  height: 50dvh;
+}
+.file-graph-pane .graph-toolbar {
+  flex-wrap: wrap;
+}
+.file-analysis-progress {
+  flex: none;
+  padding: 8px;
+  font-size: 12px;
+}
+.file-analysis-progress .MuiLinearProgress-root {
+  margin-bottom: 6px;
+}
+.file-analysis-tools .file-tool-actions {
+  display: flex;
+  gap: 8px;
+  padding-block: 16px;
+}
+.file-analysis-tools details {
+  margin-top: 12px;
+}
+.file-empty {
+  padding: 20px;
+  font-size: 13px;
+  color: #536975;
+}
+.explorer-workspace-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+  color: #354e5b;
+}
+.explorer-title {
+  flex-wrap: nowrap;
+  min-height: 36px;
+}
+.model-destination {
+  margin-top: 12px !important;
+  overflow-wrap: anywhere;
+  color: #536975;
+}
+@media (max-width: 700px) {
+  .file-split {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(220px, 1fr) minmax(260px, 1fr);
+    overflow: auto;
+  }
+  .file-source-pane {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+}
+.file-graph-pane > .graph-page > .graph-canvas {
+  flex: 1;
+}
+.ide-editor-tabs {
+  display: flex;
+  min-height: 38px;
+  flex: none;
+  border-bottom: 1px solid var(--line);
+  background: #f5f7f8;
+}
+.ide-editor-tabs .ide-file-tabs {
+  flex: 1;
+  min-width: 0;
+  border-bottom: 0;
+}
+.ide-editor-tabs .ide-tab-actions {
+  position: static;
+  flex: none;
+}
+.ide-file-tabs > .ide-file-tab {
+  align-items: center;
+  gap: 12px;
+}
+.file-tab-close {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: 3px;
+}
+.file-tab-close:hover {
+  background: #dce7eb;
 }

@@ -1,14 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import {
-  Alert,
-  Button,
-  Chip,
-  CircularProgress,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  Typography,
-} from "@mui/material";
+import { Alert, Chip, CircularProgress, Typography } from "@mui/material";
 import { workspaceSchema, type Declaration } from "@meden/workspace-schema";
 import type {
   SourceSnapshot,
@@ -17,7 +8,6 @@ import type {
 } from "@meden/agent-protocol/native";
 import { sourceIndex } from "@meden/atlas-adapter/source-index";
 import { importAtlas } from "@meden/atlas-adapter";
-import { SourceView } from "../source/SourceView";
 import { NativeMeaning } from "./NativeMeaning";
 const GraphView = lazy(() =>
   import("../graph/GraphView").then((module) => ({
@@ -34,6 +24,7 @@ export function NativeGraph({
   authorized,
   running,
   onAnalyze,
+  onSource,
 }: {
   snapshot: SourceSnapshot;
   analysis: MeaningRecord | null;
@@ -43,10 +34,9 @@ export function NativeGraph({
   authorized: boolean;
   running: boolean;
   onAnalyze: (input: MeaningInput) => Promise<boolean>;
+  onSource: (file: string, line: number, name: string) => void;
 }) {
   const [selected, setSelected] = useState<Declaration>();
-  const [sourceOpen, setSourceOpen] = useState(false);
-  const [notification, setNotification] = useState("");
   const result = useMemo(() => {
     try {
       return {
@@ -124,7 +114,6 @@ export function NativeGraph({
           {snapshot.atlas ? "依存" : "参照候補"}
         </Typography>
       </details>
-      {notification && <p role="status">{notification}</p>}
       <Suspense
         fallback={
           <CircularProgress aria-label="グラフを読み込み中" size={24} />
@@ -134,7 +123,15 @@ export function NativeGraph({
           <GraphView
             workspace={workspace}
             selectedId={selected?.id}
-            onSelect={setSelected}
+            onSelect={(declaration) => {
+              setSelected(declaration);
+              if (declaration.source?.line)
+                onSource(
+                  declaration.source.file,
+                  declaration.source.line,
+                  declaration.name,
+                );
+            }}
           />
         ) : (
           <p>
@@ -154,9 +151,6 @@ export function NativeGraph({
             size="small"
           />
           <pre>{selected.statement}</pre>
-          <Button onClick={() => setSourceOpen(true)}>
-            {selected.source?.file}:{selected.source?.line} のソースを開く
-          </Button>
           <Typography variant="caption" component="p">
             参照先:{" "}
             {workspace.edges
@@ -191,28 +185,6 @@ export function NativeGraph({
             : undefined
         }
       />
-
-      <Dialog
-        open={sourceOpen}
-        onClose={() => setSourceOpen(false)}
-        fullWidth
-        maxWidth="lg"
-        slotProps={{ paper: { className: "native-source-dialog" } }}
-      >
-        <DialogTitle>
-          読み取ったソース{" "}
-          <Button onClick={() => setSourceOpen(false)}>閉じる</Button>
-        </DialogTitle>
-        <DialogContent>
-          <SourceView
-            files={snapshot.files}
-            target={selected}
-            onBack={() => setSourceOpen(false)}
-            onNotify={setNotification}
-            showBack={false}
-          />
-        </DialogContent>
-      </Dialog>
     </section>
   );
 }

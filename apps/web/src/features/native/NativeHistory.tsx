@@ -1,4 +1,4 @@
-import { Button, Typography } from "@mui/material";
+import { Alert, Button, Typography } from "@mui/material";
 import type { NativeState, NativeCommand } from "@meden/agent-protocol/native";
 export function NativeHistory({
   state,
@@ -20,6 +20,23 @@ export function NativeHistory({
         <Typography variant="caption">作業の記録</Typography>
         <Button onClick={onManage}>作業・履歴</Button>
       </div>
+      {state.logs.length > 0 && (
+        <details className="chat-tool-records">
+          <summary>ツールの記録</summary>
+          {state.logs.map((entry, i) => (
+            <details key={i}>
+              <summary>
+                {entry.type === "notice" ? "保存の通知" : entry.tool}
+              </summary>
+              {entry.type === "notice" ? (
+                <Alert severity="warning">{entry.text}</Alert>
+              ) : (
+                <pre>{entry.text}</pre>
+              )}
+            </details>
+          ))}
+        </details>
+      )}
       {document?.tasks.map((task) => (
         <article key={task.id} className="chat-work-card">
           <Typography component="h3">{task.title}</Typography>

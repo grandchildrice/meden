@@ -135,7 +135,9 @@ test("portable GUI history survives a real git clone and checks actual Lean with
     });
     sessionToken = new URL(url).hash.slice("#session=".length);
     await page.goto(url);
-    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+    await page
+      .getByRole("tab", { name: "プロジェクトマップ", exact: true })
+      .click();
     await page.getByRole("button", { name: "作業・履歴", exact: true }).click();
   }
   async function idle() {
@@ -153,7 +155,7 @@ test("portable GUI history survives a real git clone and checks actual Lean with
       .getByRole("button", { name: "モデルを選択", exact: true })
       .click();
     await page
-      .getByRole("button", { name: "この送信先を承認", exact: true })
+      .getByRole("button", { name: "このモデルを使用", exact: true })
       .click();
   }
   try {
@@ -274,24 +276,36 @@ test("portable GUI history survives a real git clone and checks actual Lean with
       .getByRole("button", { name: "証明コードを読む", exact: true })
       .click();
     await expect(
-      page.getByLabel("ファイルの内容", { exact: true }),
+      page
+        .locator(".ide-file-page:not([hidden])")
+        .getByLabel("ファイルの内容", { exact: true }),
     ).toContainText("1: ");
     await page.getByRole("button", { name: "次のページ", exact: true }).click();
     await expect(
-      page.getByLabel("ファイルの内容", { exact: true }),
+      page
+        .locator(".ide-file-page:not([hidden])")
+        .getByLabel("ファイルの内容", { exact: true }),
     ).toContainText("201: ");
     await page.getByRole("button", { name: "次のページ", exact: true }).click();
     await expect(
-      page.getByLabel("ファイルの内容", { exact: true }),
+      page
+        .locator(".ide-file-page:not([hidden])")
+        .getByLabel("ファイルの内容", { exact: true }),
     ).toContainText("401: ");
     await expect(
-      page.getByLabel("ファイルの内容", { exact: true }),
+      page
+        .locator(".ide-file-page:not([hidden])")
+        .getByLabel("ファイルの内容", { exact: true }),
     ).toContainText("PORTABLE-SOURCE-END");
     await page.getByRole("button", { name: "前のページ", exact: true }).click();
     await expect(
-      page.getByLabel("ファイルの内容", { exact: true }),
+      page
+        .locator(".ide-file-page:not([hidden])")
+        .getByLabel("ファイルの内容", { exact: true }),
     ).toContainText("201: ");
-    await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+    await page
+      .getByRole("tab", { name: "プロジェクトマップ", exact: true })
+      .click();
     await page.getByRole("button", { name: "作業・履歴", exact: true }).click();
     // Deliberately break the source: old transferred success must not admit a fresh check.
     await writeFile(

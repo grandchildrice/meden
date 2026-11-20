@@ -86,12 +86,14 @@ agent, offline tools, files and conversation checkpoints as the TUI. Stop the GU
 before opening that project in the TUI; the repository permits one writer.
 Code, actual tool inputs/results and native contract status appear beside the chat.
 The file tree is on the left, a large project map is in the center, and chat/work
-history with the composer is on the right. Filename tabs and **グラフ / コード**
-let you inspect source without losing your place. The initial source inventory
+history with the composer is on the right. The project-map tab stays mounted; selecting a declaration opens its filename tab
+with source and reference graph side by side. Returning to the map retains its camera. The initial source inventory
 prepares the reference map once: zoom reveals categories, files and declarations
 in the same coordinates, without switching views or starting compilation.
-The model selector is inside the composer; selecting it opens connection review.
-**ソースの参照候補を表示** provides lexical inspection before Lean dependencies are
+The model selector is inside the composer. Provider/model choices update directly;
+**このモデルを使用** approves the exact displayed binding. The explorer heading
+shows the workspace path, with one refresh icon for files and the map.
+**参照を更新** provides lexical inspection before Lean dependencies are
 prepared; it is not a compiler dependency graph or a new proof check.
 With installed Lean, extraction automatically prepares the pinned Lean Atlas
 core offline on selected modules. The workspace's `lean-toolchain` selects its

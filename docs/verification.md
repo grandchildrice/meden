@@ -1786,28 +1786,36 @@ model quality, confidentiality or cold installation.
 
 ## Shared CLI and TUI execution
 
-The native GUI uses a persistent file tree, a central project map/file editor and a
-right conversation pane. D3 prepares one declaration-weighted treemap and reference
-index per source revision; React Flow retains its camera while finer categories,
-files and lexical declaration references fade into the same coordinates. Zoom never
-starts compilation or switches tabs. Selecting a declaration opens a filename tab
-and prepares its original source line without moving the camera; graph/code switching
-retains it. The default map is navigation over source candidates, not compiled
-proof evidence. Explicit compiler extraction remains on the secondary analysis page.
+The native GUI keeps a permanent project-map tab and opens each selected source in
+its own filename tab with source and a precomputed reference graph side by side.
+The map retains its scene and camera while hidden; declaration selection issues only
+a source inspection, never compiler extraction. D3 fixes source rectangles per revision;
+React Flow retains pan/zoom, without its optional attribution badge. Child categories
+use distinct backgrounds and fully opaque labels rather than fading text.
 
-The chat composer owns provider/model selection and processor review. Task/check
-records and previous-session dividers appear in that conversation; header warnings,
-connection controls and routine graph counts are absent. Existing authority and
-review boundaries are unchanged. Browser regressions cover a single retained scene,
-zero extraction requests during zoom, complete sources above 64 KiB, real compiler
-edges, provider failure with newly written files, 390-pixel layout and unapproved
-restart. The required public TUI Lake journey retains actual compilation, failure
-and restart checks. These are tested GUI/host adapters, not new refinements.
-The [continuous IDE observation](../results/gui-continuous-ide-ethlib.json) records
-navigation on real EthLib with installed resources and no inference. The earlier
-[project-map observation](../results/gui-project-map-ethlib.json) and
-[dependency-navigation observation](../results/gui-dependency-navigation-ethlib.json)
-record the preceding layouts and actual compiled extraction.
+Explicit Lean extraction belongs to the selected file. While running or after failure,
+its cached reference graph and readable source remain available; progress, cancellation
+and failure explanations stay in that pane. The bounded 32-file import collector is
+unchanged. A regression crosses this bound and requires failure without a partial
+compiled graph, without chat activity or lost source. The whole-workspace cache is
+lexical navigation, not proof admission or compiler completeness.
+
+The explorer heading is the shortened workspace path with a refresh icon. There are
+no graph/code/preview/settings mode tabs, map-refresh or project-whole buttons. Preview
+opens a temporary editor tab; compiler tools use an optional context dialog. Model
+selection lives in the composer; provider/model changes select the host binding and
+**このモデルを使用** approves the exact displayed endpoint/model. The complete
+visible picker heading and immutable native identity still gate approval. Tool logs
+are inline conversation records rather than a separate button. Native operations carry
+a presentation category and preserve model-stop reporting separately, so inspection
+cannot create a model-wait indicator or misattribute a compiler failure to chat.
+These are tested GUI/host adapters, not new Rust-to-Lean refinements.
+
+The [file-split observation](../results/gui-file-split-ethlib.json) records real EthLib
+navigation without inference. Earlier [continuous IDE](../results/gui-continuous-ide-ethlib.json),
+[project-map](../results/gui-project-map-ethlib.json) and
+[dependency-navigation](../results/gui-dependency-navigation-ethlib.json) observations
+retain the preceding layouts and installed-toolchain compiler trials.
 
 
 Missing Lake dependencies report their name and expected directory, with Mathlib's

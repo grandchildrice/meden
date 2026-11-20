@@ -45,6 +45,8 @@ struct View {
     authorized: bool,
     approval_available: bool,
     running: bool,
+    operation: &'static str,
+    chat_stopped: Option<String>,
     activity: String,
     partial: String,
     reasoning: String,
@@ -166,6 +168,25 @@ enum Command {
 }
 
 impl Command {
+    fn operation(&self) -> &'static str {
+        match self {
+            Self::Instruction { .. } | Self::ResumeWork { .. } | Self::AcceptContract { .. } => {
+                "conversation"
+            }
+            Self::Inspect { .. } => "inspection",
+            Self::CapturePreview { .. } => "preview",
+            Self::AtlasSnapshot { .. }
+            | Self::SourceSnapshot { .. }
+            | Self::PrepareAtlas
+            | Self::AnalyzeMeaning { .. }
+            | Self::SelectAnalysis { .. }
+            | Self::PrepareRepair { .. }
+            | Self::ApplyRepair { .. }
+            | Self::RejectRepair { .. } => "analysis",
+            _ => "workspace",
+        }
+    }
+
     fn check_submission(
         &self,
         connections: &connections::Connections,
@@ -332,6 +353,8 @@ fn initial_view(
         authorized: false,
         approval_available: false,
         running: false,
+        operation: "workspace",
+        chat_stopped: saved.stopped.clone(),
         activity: "Ready".into(),
         partial: String::new(),
         reasoning: String::new(),
@@ -538,6 +561,10 @@ impl Http<'_> {
                     command
                         .check_submission(&lock(self.connections), self.workspace.session_id())?;
                     let preserve_stop = matches!(&command, Command::Inspect { .. });
+                    view.operation = command.operation();
+                    if view.operation == "conversation" {
+                        view.chat_stopped = None;
+                    }
                     // Reserve before enqueueing: concurrent tabs cannot queue a second turn.
                     let processes = Arc::new(Control::new(Arc::new(AtomicBool::new(false))));
                     *lock(self.control) = Arc::clone(&processes);
@@ -734,6 +761,10 @@ fn finish_operation(view: &Mutex<View>, delivery: &delivery::Delivery, result: R
     }
     if let Err(error) = result {
         view.stopped = Some(format!("{error:#}"));
+    }
+    if view.operation == "conversation" {
+        let stopped = view.stopped.clone();
+        view.chat_stopped = stopped;
     }
     view.running = false;
 }

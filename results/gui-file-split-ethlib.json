@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "meden_base": "8a02043",
+  "observed_at": "2026-11-20T15:26:11.740Z",
+  "journey": "Keep the project map mounted; click a declaration to open its filename tab with source and a cached reference graph side by side. Return to exactly the same map camera without compilation or model activity.",
+  "public_entry": "./target/debug/meden gui --workspace ../EthLib",
+  "actual_ethlib": {
+    "source": "EthLib/Consensus/Proofs/DirectSafety/IntervalBounds.lean",
+    "selected": "宣言: EthLib.Consensus.DirectSafety.funding_step_of_run · EthLib/Consensus/Proofs/DirectSafety/IntervalBounds.lean:50",
+    "sourceLine": "50: theorem funding_step_of_run {g a b : ForkedBeaconState preset}\n",
+    "geometry": {
+      "source": {
+        "x": 220,
+        "width": 555
+      },
+      "graph": {
+        "x": 775,
+        "width": 555
+      }
+    },
+    "cameraPreserved": true,
+    "commandsOnSelection": [
+      "inspect"
+    ],
+    "sourceSnapshot": null,
+    "overview": {
+      "state": "ready",
+      "scanned": 2517,
+      "total": 2517,
+      "revision": "sha256:0fa7c48e7f1c7659c9f7a559df59fada20f69ed1a44100c114b837282f4f4d19",
+      "error": null
+    },
+    "authorized": false,
+    "errors": [],
+    "attributionLinks": 0,
+    "legacyModeTabs": 0,
+    "projectWholeButtons": 0,
+    "git_head": "c6a7f0da01cba0f66adab6d9c201c5ee6aff6d5d",
+    "viewport": {
+      "width": 1680,
+      "height": 1050
+    },
+    "source_bytes": 241556,
+    "source_sha256": "c9e5361f89f184bbb138cf7c0756bb775a585ce3eed7d7f5f956073d36b2ef46",
+    "screens": [
+      "/tmp/meden-split-categories.png",
+      "/tmp/meden-split-ethlib-source-graph.png"
+    ],
+    "source_changes": false,
+    "configuration_rescue": false,
+    "inference": false
+  },
+  "implementation": {
+    "map": "One D3 scene per source revision; no parent-driven recentering when tabs open. Opaque category text and distinct depth/path backgrounds.",
+    "file_tabs": "Persistent source/reference split, matching active close-icon background; Delete closes a focused file tab. Optional preview is a temporary editor tab.",
+    "navigation": "Shortened workspace path and one refresh icon; no mode tabs, execution-log button, map refresh or project-whole button; React Flow attribution hidden.",
+    "model_picker": "Automatic provider/model binding selection, no redundant refresh/select controls; このモデルを使用 approves the complete visible exact endpoint/model under the original native identity check.",
+    "feedback": "Host operation category separates conversation, inspection, analysis, preview and other workspace work. Reading never creates chat waiting. Compiler failure/progress/cancellation is file-local and retains source and cached references. Native grants/controllers are unchanged."
+  },
+  "checks": {
+    "browser": {
+      "unique_cases_passed": 47,
+      "stages": [
+        {
+          "passed": 32,
+          "total": 47,
+          "description": "Full suite; remaining failures identified obsolete modal/control assumptions and feedback placement while those native journeys were being adapted."
+        },
+        {
+          "passed": 18,
+          "total": 25,
+          "description": "Native-only suite after routing preview/delivery failures and adapting direct source navigation."
+        },
+        {
+          "passed": 7,
+          "total": 8,
+          "description": "All previously outstanding cases except one low-contrast summary; includes actual offline isolation, provider cancellation, Finding repair and historical restart. The contrast issue was then fixed."
+        },
+        {
+          "passed": 7,
+          "total": 7,
+          "skipped": 0,
+          "description": "Final source/graph split, no automatic 33-import compilation, complete large-source compiler extraction, file-read failure/recovery/reload, model selection/revocation, real Git-clone portability and automated WCAG AA."
+        }
+      ],
+      "screens_inspected": true,
+      "inference": "scripted providers; actual offline file workers and installed Lean/Lake compiler"
+    },
+    "required_tui_ux": {
+      "passed": 33,
+      "skipped": 0,
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/debug/meden",
+        "sha256": "b015a6197057de854c45585a92990c77245d6801620ea37d0b2211ad42e6abfb"
+      },
+      "evidence": "/tmp/meden-ux-file-split-20261121",
+      "decoded_screens_inspected": [
+        "Four-source real Lake compilation",
+        "missing.lean failure without reusing the rejected graph",
+        "Five-source automatic-root recovery",
+        "Historical restart after inventory invalidation"
+      ]
+    },
+    "unit": {
+      "passed": 30,
+      "files": 6
+    },
+    "clippy": "cargo clippy -p meden-cli --all-targets -- -D warnings passed",
+    "format": "cargo fmt --all -- --check and npm run format:check passed",
+    "types": "npm run typecheck passed"
+  },
+  "bounds": {
+    "source_file_bytes": 1048576,
+    "explicit_import_closure_files": 32,
+    "explicit_import_closure_total_bytes": 16777216,
+    "default_reference_map": "Uses the whole indexed workspace, without requesting this compiler closure; does not establish compiler dependencies or proof coverage."
+  },
+  "binary_sha256": "b015a6197057de854c45585a92990c77245d6801620ea37d0b2211ad42e6abfb",
+  "assets_index_sha256": "a48be7c949c152605808b1be6d862ea30acab822d62fae687c79ebca37f13604",
+  "service": "meden-ethlib-gui.service; active persistent user service on loopback without inference approval",
+  "boundaries": [
+    "No live inference or large local-model validation.",
+    "No toolchain/dependency cold installation.",
+    "Actual EthLib navigation uses lexical reference candidates, not a whole-project compiled dependency/proof graph.",
+    "No new Rust-to-Lean refinement or whole-renderer authority claim."
+  ]
+}

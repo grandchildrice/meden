@@ -8,6 +8,14 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Native GUI and Atlas with Ollama Cloud
 
+The [file-split observation](gui-file-split-ethlib.json) records the current permanent
+map and source/reference split on real EthLib. Selecting a declaration performs only
+source inspection, preserves the map camera and needs no compiler or inference.
+Explicit compiler failures remain in the file pane; a real 33-import regression
+checks that the bounded collector cannot remove the readable source or cached graph.
+The model picker uses direct selection and **このモデルを使用**, with exact host
+binding and full-heading visibility still required.
+
 The [continuous IDE observation](gui-continuous-ide-ethlib.json) records the current
 file-tree/map/chat layout on all 2,517 EthLib sources. It opens the 241,556-byte
 IntervalBounds source and cached declarations without filename entry, retains the

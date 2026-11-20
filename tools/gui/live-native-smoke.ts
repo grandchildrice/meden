@@ -143,13 +143,15 @@ async function launch(port = 0) {
     page.getByRole("button", { name: "モデルを選択", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "モデルを選択", exact: true }).click();
-  await expect(page.getByRole("dialog")).toContainText(values.model!);
+  await expect(
+    page.getByRole("combobox", { name: "model", exact: true }),
+  ).toHaveValue(values.model!);
   await page.screenshot({
     path: resolve(out, "processor-review.png"),
     fullPage: true,
   });
   await page
-    .getByRole("button", { name: "この送信先を承認", exact: true })
+    .getByRole("button", { name: "このモデルを使用", exact: true })
     .click();
   console.log("Processor reviewed through the browser");
   return Number(new URL(url).port);
@@ -216,7 +218,9 @@ try {
     independentResult.result?.exit_code !== 0
   )
     throw new Error("Independent original tests did not pass");
-  await page.getByRole("tab", { name: "プレビュー", exact: true }).click();
+  await page
+    .getByRole("button", { name: "アプリをプレビュー", exact: true })
+    .click();
   await page
     .getByRole("textbox", { name: "公開フォルダ（ワークスペース内）" })
     .fill("public");
@@ -354,15 +358,20 @@ try {
       "utf8",
     );
   }
-  await page.getByRole("tab", { name: "グラフ", exact: true }).click();
+  await page
+    .getByRole("tab", { name: "プロジェクトマップ", exact: true })
+    .click();
   const graphFile = values.atlas ? "Purchase.lean" : "kernel.rs";
-  await page.getByRole("button", { name: "解析の詳細", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Lean解析ツール", exact: true })
+    .click();
+  await page.getByText("複数ファイル・環境設定", { exact: true }).click();
   await page
     .getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" })
     .fill(graphFile);
   await page
     .getByRole("button", {
-      name: values.atlas ? "依存グラフを表示" : "ソースの参照候補を表示",
+      name: values.atlas ? "Leanで解析" : "参照を更新",
       exact: true,
     })
     .click();
@@ -448,7 +457,9 @@ try {
   await stop();
   await launch(port);
   await expect(page.getByText(instruction, { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "解析の詳細", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Lean解析ツール", exact: true })
+    .click();
   await expect(
     page.getByLabel("意味解析の結果", { exact: true }),
   ).toContainText("保存された解析です");

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Button, Typography } from "@mui/material";
+import { Alert, Button, LinearProgress } from "@mui/material";
 import {
   ReactFlow,
   Controls,
@@ -8,12 +8,8 @@ import {
   type NodeProps,
   type ReactFlowInstance,
 } from "@xyflow/react";
-import type {
-  NativeState,
-  WorkspaceOverview,
-} from "@meden/agent-protocol/native";
+import type { NativeState } from "@meden/agent-protocol/native";
 import {
-  projectMap,
   fade,
   MAP_WIDTH,
   MAP_HEIGHT,
@@ -44,7 +40,7 @@ function Scene({ data }: NodeProps<SceneNode>) {
     const parent = data.scene.byPath.get(area.parent);
     const alpha = parent
       ? (opacity.get(parent.path) || 0) *
-        fade(Math.min(parent.width, parent.height) * v.zoom)
+        fade(Math.max(parent.width, parent.height) * v.zoom, 650, 950)
       : 1;
     opacity.set(area.path, alpha);
     if (
@@ -89,10 +85,10 @@ function Scene({ data }: NodeProps<SceneNode>) {
       aria-label="同じ座標に保持されたプロジェクト"
       data-scene-revision="fixed"
     >
-      {visible.map(({ area: a, opacity: alpha, detail }) => (
+      {visible.map(({ area: a, opacity: alpha }) => (
         <g
           key={a.path}
-          opacity={alpha}
+          pointerEvents={alpha < 0.5 ? "none" : undefined}
           className="nodrag"
           data-map-path={a.path}
           data-world-x={a.x}
@@ -113,13 +109,18 @@ function Scene({ data }: NodeProps<SceneNode>) {
             width={a.width}
             height={a.height}
             rx={3 / v.zoom}
-            fill={colors[a.color]}
+            fill={
+              a.depth === 1
+                ? colors[a.color]
+                : `hsl(${(a.color * 67 + a.depth * 31 + (a.path.split("").reduce((n, c) => n + c.charCodeAt(0), 0) % 47)) % 360} 32% 28%)`
+            }
+            fillOpacity={alpha}
             stroke="#c7d9ee"
-            strokeOpacity={0.28}
+            strokeOpacity={0.75 * alpha}
             strokeWidth={0.6 / v.zoom}
           />
-          {a.width * v.zoom > 65 && a.height * v.zoom > 28 && (
-            <g pointerEvents="none" opacity={a.file ? 1 : 1 - detail * 0.6}>
+          {alpha > 0.65 && a.width * v.zoom > 65 && a.height * v.zoom > 28 && (
+            <g pointerEvents="none">
               <text
                 x={a.x + 10 / v.zoom}
                 y={a.y + Math.min(a.height * 0.5, 25 / v.zoom)}
@@ -206,33 +207,22 @@ function Scene({ data }: NodeProps<SceneNode>) {
 const nodeTypes = { scene: Scene };
 
 export function NativeWorkspaceGraph({
-  snapshot,
+  scene,
   state,
-  focusPath,
-  focusSequence = 0,
   selectedId,
   onSelect,
-  onRefresh,
 }: {
-  snapshot?: WorkspaceOverview;
+  scene?: MapScene;
   state: NativeState;
-  focusPath?: string;
-  focusSequence?: number;
   selectedId?: string;
   onSelect: (symbol: Symbol) => void;
-  onRefresh: () => void;
 }) {
-  const scene = useMemo(
-    () => (snapshot ? projectMap(snapshot) : undefined),
-    [snapshot?.revision],
-  );
   const [canvas, setCanvas] = useState<HTMLDivElement | null>(null);
   const [flow, setFlow] = useState<ReactFlowInstance<SceneNode>>();
   const [size, setSize] = useState({ width: 1, height: 1 });
   const [location, setLocation] = useState("");
   const [camera, setCamera] = useState({ x: 0, y: 0, zoom: 0.08 });
   const initial = useRef(false);
-  const handledFocus = useRef(0);
   const focus = (path: string) => {
     const a = scene?.byPath.get(path);
     if (flow)
@@ -241,7 +231,7 @@ export function NativeWorkspaceGraph({
           ? { x: a.x, y: a.y, width: a.width, height: a.height }
           : { x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT },
         {
-          padding: 0.12,
+          padding: 0.02,
           duration: window.matchMedia("(prefers-reduced-motion: reduce)")
             .matches
             ? 0
@@ -279,12 +269,6 @@ export function NativeWorkspaceGraph({
     observer.observe(canvas);
     return () => observer.disconnect();
   }, [canvas, flow, Boolean(scene)]);
-  useEffect(() => {
-    if (flow && scene && focusSequence !== handledFocus.current) {
-      handledFocus.current = focusSequence;
-      focus(focusPath || "");
-    }
-  }, [flow, scene, focusPath, focusSequence]);
   const nodes = useMemo<SceneNode[]>(
     () =>
       scene
@@ -311,35 +295,32 @@ export function NativeWorkspaceGraph({
       aria-label="プロジェクトマップ"
       className="workspace-overview continuous-map"
     >
-      <div className="project-map-heading">
-        <Typography variant="caption">
-          {state.overview.state === "loading" ? "地図を準備中…" : ""}
-        </Typography>
-        <Button onClick={onRefresh} disabled={state.running}>
-          読み直す
-        </Button>
-      </div>
+      {state.overview.state === "loading" && (
+        <LinearProgress aria-label="マップを準備中" />
+      )}
       {state.overview.error && (
         <Alert severity="error">
           地図を更新できませんでした。{state.overview.error}
         </Alert>
       )}
-      <nav className="map-breadcrumbs" aria-label="マップの位置">
-        <Button onClick={() => focus("")}>プロジェクト全体</Button>
-        {location
-          .split("/")
-          .filter(Boolean)
-          .map((part, i, parts) => (
-            <Button
-              key={i}
-              onClick={() => focus(parts.slice(0, i + 1).join("/"))}
-            >
-              / {part}
-            </Button>
-          ))}
-      </nav>
+      {location && (
+        <nav className="map-breadcrumbs" aria-label="マップの位置">
+          {location
+            .split("/")
+            .filter(Boolean)
+            .map((part, i, parts) => (
+              <Button
+                key={i}
+                onClick={() => focus(parts.slice(0, i + 1).join("/"))}
+              >
+                / {part}
+              </Button>
+            ))}
+        </nav>
+      )}
       <div className="workspace-overview-canvas" ref={setCanvas}>
         <ReactFlow
+          proOptions={{ hideAttribution: true }}
           nodes={nodes}
           nodeTypes={nodeTypes}
           onInit={setFlow}
