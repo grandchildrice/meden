@@ -18,6 +18,50 @@ import {
   type Symbol,
 } from "./project-map-model";
 
+import { declarationRoles } from "./declaration-role";
+
+function SymbolMarker({
+  symbol,
+  zoom,
+  selected,
+}: {
+  symbol: Symbol;
+  zoom: number;
+  selected: boolean;
+}) {
+  const r = selected ? 8 : 6;
+  const style = {
+    fill: symbol.role.color,
+    stroke: selected ? "#fff2ad" : "#263a46",
+    strokeWidth: selected ? 2 : 1,
+  };
+  const shape = symbol.role.shape;
+  return (
+    <g transform={`translate(${symbol.x}, ${symbol.y}) scale(${1 / zoom})`}>
+      {shape === "circle" ? (
+        <circle r={r} {...style} />
+      ) : shape === "square" ? (
+        <rect x={-r} y={-r} width={r * 2} height={r * 2} rx={1} {...style} />
+      ) : (
+        <path
+          d={
+            shape === "diamond"
+              ? `M 0 ${-r - 2} L ${r + 1} 0 L 0 ${r + 2} L ${-r - 1} 0 Z`
+              : shape === "triangle"
+                ? `M 0 ${-r - 2} L ${r + 2} ${r} L ${-r - 2} ${r} Z`
+                : Array.from({ length: 10 }, (_, i) => {
+                    const angle = (i * Math.PI) / 5 - Math.PI / 2,
+                      radius = i % 2 ? r * 0.45 : r + 2;
+                    return `${i ? "L" : "M"} ${Math.cos(angle) * radius} ${Math.sin(angle) * radius}`;
+                  }).join(" ") + " Z"
+          }
+          {...style}
+        />
+      )}
+    </g>
+  );
+}
+
 type SceneData = Record<string, unknown> & {
   scene: MapScene;
   width: number;
@@ -170,6 +214,8 @@ function Scene({ data }: NodeProps<SceneNode>) {
               tabIndex={alpha > 0.5 ? 0 : -1}
               aria-hidden={alpha <= 0.5}
               aria-label={`宣言: ${symbol.name} · ${symbol.file}:${symbol.line}`}
+              aria-description={symbol.role.label}
+              data-declaration-role={symbol.role.id}
               opacity={alpha}
               data-symbol-id={symbol.id}
               onClick={(e) => {
@@ -178,14 +224,11 @@ function Scene({ data }: NodeProps<SceneNode>) {
               }}
               onKeyDown={(e) => keyboard(e, () => data.select(symbol))}
             >
-              <title>{symbol.name}</title>
-              <circle
-                cx={symbol.x}
-                cy={symbol.y}
-                r={(data.selected === symbol.id ? 7 : 5) / v.zoom}
-                fill={symbol.kind === "theorem" ? "#b7e6cd" : "#e0eafa"}
-                stroke={data.selected === symbol.id ? "#ffe59c" : "#2c4855"}
-                strokeWidth={2 / v.zoom}
+              <title>{symbol.role.label + " · " + symbol.name}</title>
+              <SymbolMarker
+                symbol={symbol}
+                zoom={v.zoom}
+                selected={data.selected === symbol.id}
               />
               <text
                 x={symbol.x + 9 / v.zoom}
@@ -365,6 +408,24 @@ export function NativeWorkspaceGraph({
         >
           <Controls showInteractive={false} />
         </ReactFlow>
+        {scene?.areas.some(
+          (a) => a.file && Math.min(a.width, a.height) * camera.zoom > 320,
+        ) && (
+          <div className="map-declaration-legend" aria-label="宣言の種類">
+            {declarationRoles.map((role) => (
+              <span
+                key={role.id}
+                title={
+                  role.id === "main_theorem"
+                    ? "保存された作業で証明対象に指定された宣言。証明済みという意味ではありません。"
+                    : role.label
+                }
+              >
+                <b style={{ color: role.color }}>{role.glyph}</b> {role.label}
+              </span>
+            ))}
+          </div>
+        )}
         {scene && (
           <svg
             className="project-minimap"

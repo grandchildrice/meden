@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, type ReactNode } from "react";
+import { memo, useEffect, useMemo, useRef, type ReactNode } from "react";
 import {
   AssistantRuntimeProvider,
   ComposerPrimitive,
@@ -42,7 +42,8 @@ interface Props {
   sessionLabels?: Record<string, string>;
   onSend: (text: string) => Promise<void>;
 }
-export function ChatView({
+const convertMessage = (message: ThreadMessageLike) => message;
+export const ChatView = memo(function ChatView({
   projectName,
   conversation,
   draftKey,
@@ -72,7 +73,7 @@ export function ChatView({
         },
         content: [{ type: "text", text: message.text }],
       })),
-    [conversation],
+    [conversation, sessionLabels],
   );
   const onNew = async (message: AppendMessage) => {
     const text = message.content
@@ -87,7 +88,7 @@ export function ChatView({
   const runtime = useExternalStoreRuntime<ThreadMessageLike>({
     messages,
     onNew,
-    convertMessage: (message) => message,
+    convertMessage,
     isRunning: Boolean(running || pending),
   });
   useEffect(() => {
@@ -217,7 +218,7 @@ export function ChatView({
       </section>
     </AssistantRuntimeProvider>
   );
-}
+});
 function UserMessage() {
   return (
     <MessagePrimitive.Root className="message user-turn">

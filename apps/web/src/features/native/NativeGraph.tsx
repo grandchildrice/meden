@@ -122,6 +122,8 @@ export function NativeGraph({
         {workspace.declarations.length ? (
           <GraphView
             workspace={workspace}
+            controls={false}
+            focusId={selected?.id}
             selectedId={selected?.id}
             onSelect={(declaration) => {
               setSelected(declaration);

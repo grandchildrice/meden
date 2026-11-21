@@ -8,6 +8,12 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Native GUI and Atlas with Ollama Cloud
 
+The [highlighting/kinds observation](gui-highlight-kinds-ethlib.json) records source
+highlighting and typed map markers without inference. The browser regression holds
+a real inspection response and requires zero chat DOM changes until a chat send,
+then exactly one queued model turn. Compiler import bounds remain explicit optional
+tool limits, with no primary file-toolbar action or graph center/scope dropdown.
+
 The [file-split observation](gui-file-split-ethlib.json) records the current permanent
 map and source/reference split on real EthLib. Selecting a declaration performs only
 source inspection, preserves the map camera and needs no compiler or inference.

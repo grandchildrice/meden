@@ -57,6 +57,7 @@ struct Symbol {
     name: String,
     line: usize,
     kind: &'static str,
+    declaration: String,
     private: bool,
     references: Vec<String>,
 }
@@ -438,6 +439,7 @@ fn symbols(source: &str, lean: bool) -> Vec<Symbol> {
                         format!("{namespace}.{local}")
                     },
                     line: index.saturating_add(1),
+                    declaration: kind.into(),
                     kind: if matches!(kind, "theorem" | "lemma") {
                         "theorem"
                     } else if matches!(kind, "axiom" | "constant") {
@@ -578,8 +580,20 @@ mod tests {
         assert!(found
             .get(1)
             .is_some_and(|symbol| symbol.name == "Demo.actual"
+                && symbol.declaration == "theorem"
                 && symbol.line == 4
                 && symbol.references.contains(&"keep".into())
                 && !symbol.references.contains(&"fake".into())));
+    }
+    #[test]
+    fn declaration_keywords_distinguish_lemmas_from_theorems_and_data() {
+        let found = symbols("lemma helper : True := True.intro\ntheorem result : True := helper\nstructure Record where\n  field : Nat\n", true);
+        assert_eq!(
+            found
+                .iter()
+                .map(|item| item.declaration.as_str())
+                .collect::<Vec<_>>(),
+            vec!["lemma", "theorem", "structure"]
+        );
     }
 }

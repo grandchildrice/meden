@@ -87,14 +87,20 @@ before opening that project in the TUI; the repository permits one writer.
 Code, actual tool inputs/results and native contract status appear beside the chat.
 The file tree is on the left, a large project map is in the center, and chat/work
 history with the composer is on the right. The project-map tab stays mounted; selecting a declaration opens its filename tab
-with source and reference graph side by side. Returning to the map retains its camera. The initial source inventory
+with syntax-highlighted source and reference graph side by side. Returning to the map retains its camera. The initial source inventory
 prepares the reference map once: zoom reveals categories, files and declarations
 in the same coordinates, without switching views or starting compilation.
+Map markers distinguish main proof targets, theorems, lemmas and definitions by
+shape and color. Main targets come from saved work items, not a name heuristic or
+proof-status claim. Clicking graph nodes never changes chat activity or send state;
+a submitted message waits for a concurrent inspection and is then dispatched.
 The model selector is inside the composer. Provider/model choices update directly;
 **このモデルを使用** approves the exact displayed binding. The explorer heading
 shows the workspace path, with one refresh icon for files and the map.
 **参照を更新** provides lexical inspection before Lean dependencies are
 prepared; it is not a compiler dependency graph or a new proof check.
+The optional tools action **コンパイル後の依存を抽出** recompiles selected Lean
+modules and their imports (up to 32 files / 16 MiB); ordinary browsing does not need it.
 With installed Lean, extraction automatically prepares the pinned Lean Atlas
 core offline on selected modules. The workspace's `lean-toolchain` selects its
 installed Elan version; no Atlas environment variable is required.

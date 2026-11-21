@@ -23,7 +23,9 @@ Opening a workspace shows a VS Code style layout: a persistent file tree on the
 left, a large project map in the center, and conversation/work history with its
 composer on the right. The project-map tab stays mounted with its own camera.
 Select a declaration to open a filename tab containing its source and reference
-graph side by side. Selecting another declaration updates the source line; returning
+graph side by side. Source uses the existing browser Shiki Lean/Rust highlighting;
+line numbers and selected source locations remain separate from token colors.
+Selecting another declaration updates the source line; returning
 to the project map preserves the scene and camera. At compact widths, **ファイル**
 and **チャット** open side panels and the file split stacks vertically.
 There are no separate graph/code/preview/settings mode tabs. Preview opens through
@@ -36,9 +38,18 @@ React Flow supplies the retained pan/zoom camera. Increasing zoom fades in neste
 categories, files, then declaration nodes and reference lines in those same coordinates.
 Zoom never dispatches extraction or switches views. A minimap keeps the current
 position visible. The map contains lexical reference candidates, not compiler
-proof evidence. Exact Lean compilation remains an explicit **Leanで解析** action in the file tab;
+proof evidence. The optional tools action **コンパイル後の依存を抽出** recompiles
+the selected source and its imports to extract elaborated dependencies (at most
+32 files / 16 MiB). Its tooltip explains this scope. It has no permanent file-toolbar
+button and is not required for source navigation;
 a failed extraction does not remove the cached project map. The explorer refresh icon rebuilds
 navigation after external edits; ordinary development turns also refresh the inventory.
+
+Markers distinguish main tracked targets (star), theorems (diamond), lemmas (circle),
+definitions (square) and axioms (triangle). Classes/structures have their own label.
+The declaration keyword comes from the source; main markers are explicitly named
+proof targets in saved work, not inferred mathematical importance or checked status.
+Native file graphs have no center/scope dropdowns; select a node directly to navigate.
 
 The model tag lives in the chat composer. Select it to choose this computer's
 Hermes, Codex, Claude or HTTP server connection and model. Review the exact fixed
@@ -50,7 +61,11 @@ on the host and never enter the browser or project files. Switching a connection
 revokes its predecessor; stale review cannot approve the replacement. The header
 contains the project name and compact navigation, with no connection warning banner.
 Conversation errors and stopped model work appear in chat. File reads never produce
-chat activity; compiler progress, failures and cancellation stay with the file graph.
+chat activity, button-state changes or transcript scrolling. Conversation messages,
+history and composer state are memoized from their actual presentation inputs;
+inspection does not checkpoint conversation/portable history. Chat submissions are
+queued until an existing host operation settles, with waiting shown only after a
+chat send. Compiler progress, failures and cancellation stay with the file graph.
 Cached references remain visible during compilation and after failure. Retained conversation streams have
 session dividers; task notes and actual Lean check records appear in that same chat.
 **作業・履歴** opens explicit record management rather than a separate workspace tab.
@@ -284,7 +299,7 @@ Concurrent host changes are not an atomic filesystem snapshot.
 
 The **Lean解析ツール** icon opens optional single-file selection and a closed
 multi-file/environment section. Ordinary file-tree and map-node navigation needs
-no filename input or extraction action. **Leanで解析** starts an explicit compiler
+no filename input or extraction action. **コンパイル後の依存を抽出** starts an explicit compiler
 job in the file split; **参照を更新** captures complete selected sources without
 compiler import traversal. A job cannot silently replace a source candidate with
 proof evidence. Tool inputs/results and checkpoint notices live in a closed inline
@@ -309,7 +324,7 @@ following recorded-demo documentation describes a separate standalone mode.
 
 ## Native Lean Atlas extraction
 
-With an installed Lean distribution, open a local Lean file and choose **Leanで解析**. The first explicit extraction
+With an installed Lean distribution, open a local Lean file and use the optional tools action **コンパイル後の依存を抽出**. The first explicit extraction
 automatically compiles the pinned public Atlas library offline without sending
 source to a model. The public TUI `/atlas` command performs the same preparation.
 Meden selects the workspace's `lean-toolchain` from installed Elan toolchains,

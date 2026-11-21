@@ -3490,3 +3490,40 @@ pre {
 .file-tab-close:hover {
   background: #dce7eb;
 }
+.editor-line-number {
+  display: inline-block;
+  min-width: 4ch;
+  text-align: right;
+  color: #536b78;
+  user-select: none;
+}
+.native-code-editor code {
+  font: inherit;
+}
+.map-declaration-legend {
+  position: absolute;
+  z-index: 5;
+  left: 60px;
+  bottom: 14px;
+  right: 150px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 5px;
+  background: #101c25eb;
+  color: #e6eef5;
+  font-size: 11px;
+  pointer-events: auto;
+}
+.map-declaration-legend span {
+  white-space: nowrap;
+}
+@media (max-width: 700px) {
+  .map-declaration-legend {
+    right: 100px;
+    font-size: 10px;
+    gap: 4px 8px;
+  }
+}

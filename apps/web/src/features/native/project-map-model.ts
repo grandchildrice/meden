@@ -1,6 +1,8 @@
 import { hierarchy, treemap, treemapBinary } from "d3-hierarchy";
 import type { WorkspaceOverview } from "@meden/agent-protocol/native";
 
+import { declarationRole, type DeclarationRole } from "./declaration-role";
+
 export const MAP_WIDTH = 10000;
 export const MAP_HEIGHT = 6600;
 type File = WorkspaceOverview["files"][number];
@@ -10,6 +12,7 @@ export type Symbol = File["symbols"][number] & {
   x: number;
   y: number;
   cellWidth: number;
+  role: DeclarationRole;
 };
 type Branch = { path: string; file?: File; children?: Branch[] };
 export type MapArea = {
@@ -35,7 +38,10 @@ export type MapScene = {
 };
 
 /** Prepared once per native source revision. Navigation never changes these coordinates. */
-export function projectMap(snapshot: WorkspaceOverview): MapScene {
+export function projectMap(
+  snapshot: WorkspaceOverview,
+  tracked: ReadonlySet<string> = new Set(),
+): MapScene {
   const root: Branch = { path: "", children: [] };
   const branches = new Map([["", root]]);
   for (const file of snapshot.files) {
@@ -100,6 +106,10 @@ export function projectMap(snapshot: WorkspaceOverview): MapScene {
       const symbols = (d.data.file?.symbols || []).map((s, i) => ({
         ...s,
         name: s.name.split(/[^\p{L}\p{N}_'.«»]/u)[0] || s.name,
+        role: declarationRole(
+          s.declaration,
+          tracked.has(s.name.split(/[^\p{L}\p{N}_'.«»]/u)[0] || s.name),
+        ),
         cellWidth: (width * 0.88) / columns,
         id: `${d.data.path}:${s.line}:${s.name}`,
         file: d.data.path,

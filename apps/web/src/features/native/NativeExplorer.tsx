@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Button,
@@ -172,6 +172,38 @@ export function NativeCode({
     });
   }, [JSON.stringify(inspection)]);
   const current = path ? files[path] : undefined;
+  const rows = useMemo(
+    () =>
+      decoded(current?.text || "")
+        .split("\n")
+        .map((text) => {
+          const match = text.match(/^(\d+): (.*)$/);
+          return {
+            number: match ? Number(match[1]) : undefined,
+            content: match ? match[2]! : text,
+          };
+        }),
+    [current?.text],
+  );
+  const [tokens, setTokens] =
+    useState<Array<Array<{ content: string; color?: string }>>>();
+  useEffect(() => {
+    let cancelled = false;
+    setTokens(undefined);
+    if (current && path)
+      void import("../source/highlight")
+        .then((m) =>
+          m.highlightSource(rows.map((row) => row.content).join("\n"), path),
+        )
+        .then((value) => {
+          if (!cancelled) setTokens(value);
+        })
+        .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [path, current?.text]);
+
   useEffect(() => {
     selected.current?.scrollIntoView({ block: "center", inline: "nearest" });
   }, [path, line, current?.text]);
@@ -203,21 +235,39 @@ export function NativeCode({
       {current ? (
         <>
           <pre aria-label="ファイルの内容" tabIndex={0}>
-            {decoded(current.text || "")
-              .split("\n")
-              .map((text, i) => {
-                const number = Number(text.match(/^(\d+): /)?.[1]);
-                return (
-                  <span
-                    key={i}
-                    className={`editor-line ${number === line ? "selected-source-line" : ""}`}
-                    aria-current={number === line ? "location" : undefined}
-                    ref={number === line ? selected : undefined}
-                  >
-                    {text + "\n"}
-                  </span>
-                );
-              })}
+            {rows.map((row, i) => (
+              <span
+                key={i}
+                className={
+                  "editor-line " +
+                  (row.number === line ? "selected-source-line" : "")
+                }
+                aria-current={row.number === line ? "location" : undefined}
+                ref={row.number === line ? selected : undefined}
+              >
+                {row.number !== undefined && (
+                  <>
+                    <span className="editor-line-number" aria-hidden="true">
+                      {row.number}:
+                    </span>{" "}
+                  </>
+                )}
+                <code>
+                  {tokens?.[i]?.length
+                    ? tokens[i].map((token, j) => (
+                        <span
+                          className="syntax-token"
+                          key={j}
+                          style={{ color: token.color }}
+                        >
+                          {token.content}
+                        </span>
+                      ))
+                    : row.content}
+                </code>
+                {"\n"}
+              </span>
+            ))}
           </pre>
           <div className="explorer-pages">
             <Button

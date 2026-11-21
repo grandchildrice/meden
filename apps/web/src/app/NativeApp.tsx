@@ -65,9 +65,19 @@ export function NativeApp({ token }: { token: string }) {
   >(null);
   const [overview, setOverview] = useState<WorkspaceOverview>();
   const [overviewError, setOverviewError] = useState("");
+  const trackedTargets = JSON.stringify(
+    [
+      ...new Set(
+        state?.portable.document?.tasks.flatMap((task) => task.theorems) || [],
+      ),
+    ].sort(),
+  );
   const scene = useMemo(
-    () => (overview ? projectMap(overview) : undefined),
-    [overview?.revision],
+    () =>
+      overview
+        ? projectMap(overview, new Set<string>(JSON.parse(trackedTargets)))
+        : undefined,
+    [overview?.revision, trackedTargets],
   );
   const [provider, setProvider] = useState("");
   const [model, setModel] = useState("");
@@ -106,8 +116,17 @@ export function NativeApp({ token }: { token: string }) {
   const initialMessageCount = useRef<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const started = useRef(0);
-  const inFlight = useRef(false);
+  const inFlight = useRef(0);
   const [busy, setBusy] = useState(false);
+  const [chatPending, setChatPending] = useState(false);
+  const [historyPending, setHistoryPending] = useState(false);
+  const [queue, setQueue] = useState<
+    Array<{
+      input: NativeCommand;
+      source: "chat" | "history";
+      done: (ok: boolean) => void;
+    }>
+  >([]);
   const [reconnect, setReconnect] = useState(0);
   useEffect(() => {
     const abort = new AbortController();
@@ -216,8 +235,15 @@ export function NativeApp({ token }: { token: string }) {
   }, [state?.source_snapshot?.revision, graphPaths]);
   const command = useCallback(
     async (command: NativeCommand) => {
-      if (inFlight.current) return false;
-      inFlight.current = true;
+      // These host operations are admitted independently of a running worker.
+      // Never lose approval, revocation or cancellation to a background read.
+      const immediate = [
+        "approve_processor",
+        "revoke_processor",
+        "cancel",
+      ].includes(command.type);
+      if (inFlight.current && !immediate) return false;
+      inFlight.current++;
       setBusy(true);
       try {
         await client.command(command);
@@ -246,8 +272,8 @@ export function NativeApp({ token }: { token: string }) {
         else setWorkspaceError(String(error));
         return false;
       } finally {
-        inFlight.current = false;
-        setBusy(false);
+        inFlight.current--;
+        setBusy(inFlight.current > 0);
       }
     },
     [client],
@@ -271,14 +297,108 @@ export function NativeApp({ token }: { token: string }) {
     },
     [openFile],
   );
-  const conversation: Conversation | undefined = state && {
-    id: "native",
-    title: state.workspace.split("/").at(-1) || "Workspace",
-    messages: visibleHistory(state),
-  };
+  const messageKey = JSON.stringify(state ? visibleHistory(state) : []);
+  const conversation = useMemo<Conversation | undefined>(
+    () =>
+      state
+        ? {
+            id: "native",
+            title: state.workspace.split("/").at(-1) || "Workspace",
+            messages: visibleHistory(state),
+          }
+        : undefined,
+    [messageKey, state?.workspace],
+  );
   const running = Boolean(state?.running || busy);
   const chatRunning = Boolean(
     state?.running && state.operation === "conversation",
+  );
+  const enqueue = useCallback(
+    (input: NativeCommand, source: "chat" | "history") =>
+      new Promise<boolean>((done) => {
+        if (source === "chat") setChatPending(true);
+        else setHistoryPending(true);
+        setQueue((previous) => [...previous, { input, source, done }]);
+      }),
+    [],
+  );
+  useEffect(() => {
+    const next = queue[0];
+    if (!next || running || inFlight.current) return;
+    setQueue((previous) => previous.slice(1));
+    void command(next.input).then((ok) => {
+      next.done(ok);
+      if (next.source === "chat") setChatPending(false);
+      else if (!ok) setHistoryPending(false);
+    });
+  }, [queue, running, command]);
+  useEffect(() => {
+    if (
+      !running &&
+      !inFlight.current &&
+      !queue.some((item) => item.source === "history")
+    )
+      setHistoryPending(false);
+  }, [running, queue]);
+  const sendMessage = useCallback(
+    async (text: string) => {
+      if (!(await enqueue({ type: "instruction", text }, "chat")))
+        throw new Error("送信できませんでした。入力を保持しています。");
+    },
+    [enqueue],
+  );
+  const cancelChat = useCallback(async () => {
+    setChatPending(true);
+    try {
+      await command({ type: "cancel" });
+    } finally {
+      setChatPending(false);
+    }
+  }, [command]);
+  const historyCommand = useCallback(
+    (input: NativeCommand) => enqueue(input, "history"),
+    [enqueue],
+  );
+  const manageHistory = useCallback(() => setUtility("history"), []);
+  const historyKey = JSON.stringify([
+    state?.portable.document?.tasks,
+    state?.portable.document?.events,
+    state?.logs,
+    state?.portable.lean_available,
+    state?.authorized,
+  ]);
+  const history = useMemo(
+    () =>
+      state ? (
+        <NativeHistory
+          state={state}
+          running={chatRunning || historyPending}
+          onCommand={historyCommand}
+          onOpen={openFile}
+          onManage={manageHistory}
+        />
+      ) : undefined,
+    [
+      historyKey,
+      chatRunning,
+      historyPending,
+      historyCommand,
+      openFile,
+      manageHistory,
+    ],
+  );
+  const composerActions = useMemo(
+    () => (
+      <Button
+        className="composer-model"
+        aria-label="モデルを選択"
+        onClick={() => setApproval(true)}
+      >
+        {state?.model || "モデルを選択"}
+        {state?.model && !state.authorized ? " · 未接続" : ""} ▾
+      </Button>
+    ),
+    [state?.model, state?.authorized],
   );
   const toolsCommand = async (input: NativeCommand) => {
     if (input.type === "atlas_snapshot" || input.type === "source_snapshot") {
@@ -339,23 +459,28 @@ export function NativeApp({ token }: { token: string }) {
     state?.connection_revision,
     running,
   ]);
-  const sessionLabels: Record<string, string> = {};
-  let previousSession = "",
-    sessionNumber = 0;
-  for (const message of conversation?.messages || []) {
-    const session = message.id.slice(0, message.id.lastIndexOf(":"));
-    if (session !== previousSession) {
-      sessionLabels[message.id] =
-        session === "native"
-          ? initialMessageCount.current
-            ? "前回までの会話"
-            : "現在のセッション"
-          : "保存セッション " + ++sessionNumber;
-      previousSession = session;
+  const sessionLabels = useMemo(() => {
+    const sessionLabels: Record<string, string> = {};
+    let previousSession = "",
+      sessionNumber = 0;
+    for (const message of conversation?.messages || []) {
+      const session = message.id.slice(0, message.id.lastIndexOf(":"));
+      if (session !== previousSession) {
+        sessionLabels[message.id] =
+          session === "native"
+            ? initialMessageCount.current
+              ? "前回までの会話"
+              : "現在のセッション"
+            : "保存セッション " + ++sessionNumber;
+        previousSession = session;
+      }
     }
-  }
-  if (initialMessageCount.current !== null)
-    sessionLabels["native:" + initialMessageCount.current] = "現在のセッション";
+    if (initialMessageCount.current !== null)
+      sessionLabels["native:" + initialMessageCount.current] =
+        "現在のセッション";
+    return sessionLabels;
+  }, [conversation?.messages, initialMessageCount.current]);
+
   return (
     <div className="native-shell native-ide">
       <header className="ide-header">
@@ -512,19 +637,6 @@ export function NativeApp({ token }: { token: string }) {
             {activeFile && activeFile !== "__preview__" && (
               <div className="ide-stage-toolbar">
                 <code className="ide-file-path">{activeFile}</code>
-                {activeFile.endsWith(".lean") && (
-                  <Button
-                    disabled={running || !state.atlas.available}
-                    onClick={() =>
-                      void toolsCommand({
-                        type: "atlas_snapshot",
-                        paths: [activeFile],
-                      })
-                    }
-                  >
-                    Leanで解析
-                  </Button>
-                )}
               </div>
             )}
             {(workspaceError || startupError) && (
@@ -614,7 +726,9 @@ export function NativeApp({ token }: { token: string }) {
             )}
             {state.chat_stopped && (
               <Alert
-                severity={state.activity === "Complete" ? "info" : "warning"}
+                severity={
+                  state.chat_stopped.startsWith("Stopped") ? "warning" : "info"
+                }
                 sx={{ whiteSpace: "pre-wrap" }}
               >
                 {state.chat_stopped}
@@ -625,36 +739,22 @@ export function NativeApp({ token }: { token: string }) {
               conversation={conversation}
               sessionLabels={sessionLabels}
               draftKey={"meden-native-input:" + state.workspace}
-              running={chatRunning}
-              pending={running}
-              activityText={state.activity + " · " + elapsed + "秒"}
+              running={
+                chatRunning || queue.some((item) => item.source === "chat")
+              }
+              pending={chatPending}
+              activityText={
+                queue.some((item) => item.source === "chat")
+                  ? "送信を待っています…"
+                  : chatRunning
+                    ? state.activity + " · " + elapsed + "秒"
+                    : undefined
+              }
               disabled={!state.authorized || Boolean(connectionError)}
-              composerActions={
-                <Button
-                  className="composer-model"
-                  aria-label="モデルを選択"
-                  onClick={() => setApproval(true)}
-                >
-                  {state.model || "モデルを選択"}
-                  {state.model && !state.authorized ? " · 未接続" : ""} ▾
-                </Button>
-              }
-              history={
-                <NativeHistory
-                  state={state}
-                  running={running}
-                  onCommand={command}
-                  onOpen={openFile}
-                  onManage={() => setUtility("history")}
-                />
-              }
+              composerActions={composerActions}
+              history={history}
               artifact={null}
-              onSend={async (text) => {
-                if (!(await command({ type: "instruction", text })))
-                  throw new Error(
-                    "送信できませんでした。入力を保持しています。",
-                  );
-              }}
+              onSend={sendMessage}
             />
             {utility === "delivery" && (
               <NativeDelivery
@@ -672,9 +772,7 @@ export function NativeApp({ token }: { token: string }) {
                 </Button>
               )}
               {chatRunning && (
-                <Button onClick={() => void command({ type: "cancel" })}>
-                  実行を中止
-                </Button>
+                <Button onClick={() => void cancelChat()}>実行を中止</Button>
               )}
             </div>
             {chatRunning && state.partial && (

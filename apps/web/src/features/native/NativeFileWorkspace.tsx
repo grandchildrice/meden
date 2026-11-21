@@ -5,6 +5,7 @@ import type { NativeState, NativeCommand } from "@meden/agent-protocol/native";
 import type { MapScene, Symbol } from "./project-map-model";
 import { NativeCode } from "./NativeExplorer";
 import { NativeMeaning } from "./NativeMeaning";
+import { declarationRole } from "./declaration-role";
 import { NativeGraph } from "./NativeGraph";
 const GraphView = lazy(() =>
   import("../graph/GraphView").then((m) => ({ default: m.GraphView })),
@@ -34,7 +35,7 @@ function references(
       return {
         id,
         name: s.name,
-        label: s.name.split(".").at(-1) || s.name,
+        label: s.role.label + " · " + (s.name.split(".").at(-1) || s.name),
         kind: s.kind,
         statement: s.name,
         source: { file: s.file, line: s.line },
@@ -120,12 +121,11 @@ export function NativeFileWorkspace({
         )}
         {failure && (
           <Alert severity="warning">
-            <Typography>
-              このファイルのLean解析を完了できませんでした。
-            </Typography>
+            <Typography>コンパイル後の依存を抽出できませんでした。</Typography>
             {failure.includes("closure exceeds") && (
               <p>
-                依存先が一度に解析できる範囲を超えています。ソースと参照グラフはそのまま閲覧できます。
+                この抽出は依存先も含め最大32ファイル・合計16
+                MiBまでです。通常のソース閲覧と参照グラフには影響しません。
               </p>
             )}
             <details>
@@ -163,6 +163,8 @@ export function NativeFileWorkspace({
                   name,
                   line,
                   kind: "definition",
+                  declaration: "def",
+                  role: declarationRole("def"),
                   private: false,
                   references: [],
                   x: 0,
@@ -175,6 +177,7 @@ export function NativeFileWorkspace({
           <Suspense fallback={<LinearProgress />}>
             <GraphView
               workspace={graph}
+              controls={false}
               selectedId={selected?.id}
               focusId={selected?.file === path ? selected.id : undefined}
               onSelect={pick}

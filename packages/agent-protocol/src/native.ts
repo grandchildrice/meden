@@ -311,6 +311,7 @@ export const workspaceOverviewSchema = z
                 name: z.string(),
                 line: z.number().int().positive(),
                 kind: z.enum(["definition", "theorem", "axiom"]),
+                declaration: z.string(),
                 private: z.boolean(),
                 references: z.array(z.string()),
               })

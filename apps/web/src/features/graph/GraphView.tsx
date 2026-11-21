@@ -58,11 +58,13 @@ const nodeTypes = { declaration: DeclarationNode };
 const edgeTypes = { dependency: DependencyEdge };
 export function GraphView({
   workspace,
+  controls = true,
   focusId,
   selectedId,
   onSelect,
 }: {
   workspace: Workspace;
+  controls?: boolean;
   focusId?: string;
   selectedId?: string;
   onSelect: (declaration: Declaration) => void;
@@ -77,7 +79,9 @@ export function GraphView({
   );
   const canvas = useRef<HTMLDivElement>(null);
   const [history, setHistory] = useState<string[]>([]);
-  const [scope, setScope] = useState<GraphScope | "related">("related");
+  const [scope, setScope] = useState<GraphScope | "related">(
+    controls ? "related" : "project",
+  );
   const [hovered, setHovered] = useState<string>();
   const emphasized = hovered || selectedId;
   const nearby = new Set([emphasized, root]);
@@ -179,35 +183,39 @@ export function GraphView({
     );
   return (
     <section className="graph-page" aria-label="証明の依存関係">
-      <div className="proof-graph-toolbar">
-        <Autocomplete
-          size="small"
-          options={workspace.declarations}
-          getOptionLabel={(item) => item.label || item.name}
-          value={index.get(root) || null}
-          isOptionEqualToValue={(a, b) => a.id === b.id}
-          onChange={(_, item) => {
-            if (item) {
-              center(item.id);
-              onSelect(item);
+      {controls && (
+        <div className="proof-graph-toolbar">
+          <Autocomplete
+            size="small"
+            options={workspace.declarations}
+            getOptionLabel={(item) => item.label || item.name}
+            value={index.get(root) || null}
+            isOptionEqualToValue={(a, b) => a.id === b.id}
+            onChange={(_, item) => {
+              if (item) {
+                center(item.id);
+                onSelect(item);
+              }
+            }}
+            renderInput={(params) => (
+              <TextField {...params} label="中心の宣言" />
+            )}
+          />
+          <Select
+            size="small"
+            value={scope}
+            onChange={(event) =>
+              setScope(event.target.value as GraphScope | "related")
             }
-          }}
-          renderInput={(params) => <TextField {...params} label="中心の宣言" />}
-        />
-        <Select
-          size="small"
-          value={scope}
-          onChange={(event) =>
-            setScope(event.target.value as GraphScope | "related")
-          }
-          inputProps={{ "aria-label": "依存関係の範囲" }}
-        >
-          <MenuItem value="related">依存と参照</MenuItem>
-          <MenuItem value="project">プロジェクト全体</MenuItem>
-          <MenuItem value="dependencies">この宣言の依存</MenuItem>
-          <MenuItem value="meaning">意味に関わる依存</MenuItem>
-        </Select>
-      </div>
+            inputProps={{ "aria-label": "依存関係の範囲" }}
+          >
+            <MenuItem value="related">依存と参照</MenuItem>
+            <MenuItem value="project">プロジェクト全体</MenuItem>
+            <MenuItem value="dependencies">この宣言の依存</MenuItem>
+            <MenuItem value="meaning">意味に関わる依存</MenuItem>
+          </Select>
+        </div>
+      )}
       <div
         className={"graph-canvas " + (scope === "related" ? "cone-graph" : "")}
         ref={canvas}
@@ -218,22 +226,24 @@ export function GraphView({
             <div className="cone-label cone-label-down">この宣言を使うもの</div>
           </>
         )}
-        <div className="canvas-toolbar">
-          <Tooltip title="前の中心に戻る">
-            <span>
-              <IconButton
-                aria-label="前の中心に戻る"
-                disabled={!history.length}
-                onClick={() => {
-                  setRoot(history.at(-1)!);
-                  setHistory(history.slice(0, -1));
-                }}
-              >
-                <ArrowBackRounded fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-        </div>
+        {controls && (
+          <div className="canvas-toolbar">
+            <Tooltip title="前の中心に戻る">
+              <span>
+                <IconButton
+                  aria-label="前の中心に戻る"
+                  disabled={!history.length}
+                  onClick={() => {
+                    setRoot(history.at(-1)!);
+                    setHistory(history.slice(0, -1));
+                  }}
+                >
+                  <ArrowBackRounded fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </div>
+        )}
         <GraphInteraction.Provider
           value={{
             emphasized,

@@ -1786,6 +1786,24 @@ model quality, confidentiality or cold installation.
 
 ## Shared CLI and TUI execution
 
+Native source pages use browser-local Shiki highlighting and preserve their original
+numbered lines. A source regression checks exact token-content reconstruction and
+prevents Lean keywords inside line comments from acquiring code colors. Map symbols
+retain declaration keywords: source theorems, lemmas, data declarations and definitions
+have different shapes/colors, with explicit saved-work proof targets marked as main.
+These navigation labels do not admit proof evidence or infer mathematical importance.
+The [quiet-chat observation](../results/gui-highlight-kinds-ethlib.json) records the new UI.
+
+A held real inspection regression observes zero chat DOM mutations, unchanged scroll
+and draft, and an enabled send button until the host sends a message. Sending while
+the inspection response is held queues one instruction; only that send exposes wait
+state and later dispatches it. Inspection skips conversation checkpoint writes. Native
+file graphs expose direct node navigation without center/scope dropdowns; the bounded
+compiler extractor is an optional, explicitly named tool rather than a primary button.
+A held model-list response cannot swallow processor revocation; the native host still
+checks the original displayed identity when approving a processor.
+These are UI/host adapter tests, not a conversation-controller refinement theorem.
+
 The native GUI keeps a permanent project-map tab and opens each selected source in
 its own filename tab with source and a precomputed reference graph side by side.
 The map retains its scene and camera while hidden; declaration selection issues only
@@ -1793,7 +1811,7 @@ a source inspection, never compiler extraction. D3 fixes source rectangles per r
 React Flow retains pan/zoom, without its optional attribution badge. Child categories
 use distinct backgrounds and fully opaque labels rather than fading text.
 
-Explicit Lean extraction belongs to the selected file. While running or after failure,
+Explicit Lean extraction belongs to optional tools for the selected file. While running or after failure,
 its cached reference graph and readable source remain available; progress, cancellation
 and failure explanations stay in that pane. The bounded 32-file import collector is
 unchanged. A regression crosses this bound and requires failure without a partial

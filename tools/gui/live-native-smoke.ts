@@ -371,7 +371,7 @@ try {
     .fill(graphFile);
   await page
     .getByRole("button", {
-      name: values.atlas ? "Leanで解析" : "参照を更新",
+      name: values.atlas ? "コンパイル後の依存を抽出" : "参照を更新",
       exact: true,
     })
     .click();

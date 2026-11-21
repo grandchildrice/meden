@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "meden_base": "1f7f0c2",
+  "observed_at": "2026-11-21T00:53:05.958Z",
+  "journey": "Open cached map declarations directly, distinguish source declaration roles, read highlighted original source beside references, and keep chat unchanged until an explicit chat send.",
+  "public_entry": "./target/debug/meden gui --workspace ../EthLib",
+  "actual_ethlib": {
+    "overview": {
+      "state": "ready",
+      "scanned": 2517,
+      "total": 2517,
+      "revision": "sha256:3f5daf80724a0c4a90f3e3e17db7f7e39b5c6aab872c3b35547999d89f6b30c2",
+      "error": null
+    },
+    "authorized": false,
+    "sourceSnapshot": null,
+    "declaredKeywords": {
+      "abbrev": 594,
+      "def": 11607,
+      "inductive": 364,
+      "theorem": 29456,
+      "structure": 792,
+      "class": 25,
+      "type": 12,
+      "lemma": 1,
+      "axiom": 4,
+      "opaque": 2
+    },
+    "trackedTargetsMatched": [
+      {
+        "name": "EthLib.Consensus.DepositRegistration.Adaptive.cachedHash_after_adaptive",
+        "file": "EthLib/Consensus/Proofs/DepositAdaptive.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Consensus.DepositRegistration.Adaptive.prEvent_verified_ready_le_solver",
+        "file": "EthLib/Consensus/Proofs/DepositAdaptive.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Consensus.DepositRegistration.Aggregate.extractAggregate_eq_of_registrations",
+        "file": "EthLib/Consensus/Proofs/DepositAggregate.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Consensus.DepositRegistration.signingRoot_binding",
+        "file": "EthLib/Consensus/Proofs/DepositRegistration.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Consensus.DepositRegistration.registered_of_processDeposits_from_empty",
+        "file": "EthLib/Consensus/Proofs/DepositRegistry.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Consensus.DepositRegistration.Forgery.advantage_le_coCdhAdvantage",
+        "file": "EthLib/Consensus/Proofs/DepositSecurity.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Consensus.DepositRegistration.Forgery.nonzeroAdvantage_le_coCdhAdvantage",
+        "file": "EthLib/Consensus/Proofs/DepositSecurity.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Networking.Proofs.Gossip.Reachability.fanout_nodup_of_entries",
+        "file": "EthLib/Networking/Proofs/Gossip/Reachability.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Networking.Proofs.Gossip.Reachability.topicPeers_nodup",
+        "file": "EthLib/Networking/Proofs/Gossip/Reachability.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Networking.Proofs.Gossip.Reachability.applySubscription_nodup",
+        "file": "EthLib/Networking/Proofs/Gossip/Reachability.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Networking.Proofs.Gossip.Reachability.receiveRpc_wellFormed",
+        "file": "EthLib/Networking/Proofs/Gossip/Reachability.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Networking.Proofs.Gossip.Reachability.step_wellFormed",
+        "file": "EthLib/Networking/Proofs/Gossip/Reachability.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Networking.Proofs.Gossip.Reachability.run_wellFormed",
+        "file": "EthLib/Networking/Proofs/Gossip/Reachability.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Networking.Proofs.Gossip.Reachability.run_empty_mesh_nodup",
+        "file": "EthLib/Networking/Proofs/Gossip/Reachability.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Networking.Proofs.Gossip.Reachability.run_empty_fanout_nodup",
+        "file": "EthLib/Networking/Proofs/Gossip/Reachability.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Networking.Proofs.Gossip.Trace.emits_once",
+        "file": "EthLib/Networking/Proofs/Gossip/Trace.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Networking.Proofs.Gossip.Trace.publish_once",
+        "file": "EthLib/Networking/Proofs/Gossip/Trace.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Networking.Quic.Tls.Handshake.ClientTrace.completion_authenticated",
+        "file": "EthLib/Networking/Proofs/Quic/Tls/Reachable.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Networking.Quic.Tls.Handshake.ServerTrace.completion_authenticated",
+        "file": "EthLib/Networking/Proofs/Quic/Tls/Reachable.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Networking.Quic.Tls.Handshake.ClientTrace.no_completion_without_certificateVerify",
+        "file": "EthLib/Networking/Proofs/Quic/Tls/Reachable.lean",
+        "kind": "theorem"
+      },
+      {
+        "name": "EthLib.Networking.Quic.Tls.Handshake.ServerTrace.no_completion_without_certificateVerify",
+        "file": "EthLib/Networking/Proofs/Quic/Tls/Reachable.lean",
+        "kind": "theorem"
+      }
+    ],
+    "chatChanges": [],
+    "source": "EthLib/Networking/Proofs/Gossip/Reachability.lean",
+    "selected": {
+      "label": "宣言: EthLib.Networking.Proofs.Gossip.Reachability.fanout_nodup_of_entries · EthLib/Networking/Proofs/Gossip/Reachability.lean:71",
+      "role": "main_theorem",
+      "rect": {
+        "x": 858.15234375,
+        "y": 245.755859375,
+        "width": 137.94921875,
+        "height": 15.001953125,
+        "top": 245.755859375,
+        "right": 996.1015625,
+        "bottom": 260.7578125,
+        "left": 858.15234375
+      }
+    },
+    "sourceColors": [
+      "rgb(14, 17, 22)",
+      "rgb(160, 17, 31)",
+      "rgb(102, 112, 123)",
+      "rgb(98, 44, 188)",
+      "rgb(2, 59, 149)"
+    ],
+    "sourceLine": "71: theorem fanout_nodup_of_entries {m : List (String × List PeerId)}\n",
+    "commandsOnSelection": [
+      "inspect"
+    ],
+    "centerSelectors": 0,
+    "scopeSelectors": 0,
+    "primaryCompileButton": 0,
+    "visibleMarkerKinds": [
+      "definition",
+      "theorem",
+      "main_theorem"
+    ],
+    "errors": [],
+    "git_head": "c6a7f0da01cba0f66adab6d9c201c5ee6aff6d5d",
+    "viewport": {
+      "width": 1680,
+      "height": 1050
+    },
+    "source_bytes": 16347,
+    "source_sha256": "1b2453383f3f80647a0df50914d0eaf21a6459dbf944eda8e8476463c702f86b",
+    "screens": [
+      "/tmp/meden-kinds-map.png",
+      "/tmp/meden-kinds-highlighted-source.png"
+    ],
+    "source_changes": false,
+    "configuration_rescue": false,
+    "inference": false
+  },
+  "implementation": {
+    "source": "Browser-local Shiki Lean/Rust highlighting, preserving source and numbered locations. A regression prevents line comments from acquiring keyword colors.",
+    "roles": "Original declaration keywords distinguish theorems, lemmas, definitions, data and axioms. Main stars identify explicit saved-work theorem targets; they do not infer importance or verified status.",
+    "navigation": "Native center/scope dropdowns and center-history toolbar removed. Direct node selection preserves source/reference split and permanent project map.",
+    "compiler": "No primary Lean analysis button. Optional コンパイル後の依存を抽出 explains compilation and its 32-file / 16 MiB import bound; regular navigation needs no compilation.",
+    "chat": "Memoized conversation/history/composer presentation, no inspection checkpoints, and separate chat pending state. Explicit chat sends wait for an existing inspection before dispatching. Host approval/revocation/cancel are never dropped behind a background request."
+  },
+  "checks": {
+    "browser": {
+      "passed": 48,
+      "total": 48,
+      "skipped": 0,
+      "duration": "3.0m",
+      "screens_inspected": true,
+      "inference": "scripted providers; actual offline file workers and installed Lean/Lake compiler",
+      "regressions": [
+        "Source declaration kinds, original highlighted locations and absence of center/scope/primary compiler controls",
+        "Held real inspection: zero chat DOM mutations, unchanged scroll/draft, enabled send; exactly one dispatch after explicit queued chat send",
+        "Held model metadata response: processor revocation still completes",
+        "Complete large-source browsing, explicit compiler bounds, missing-source failure/recovery and fresh unapproved restart",
+        "Real Git-clone portability and automated WCAG AA"
+      ]
+    },
+    "required_tui_ux": {
+      "passed": 33,
+      "skipped": 0,
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/debug/meden",
+        "sha256": "4c68a1630bc8ed6f6085ea95e9be2b4fbe9a4c415efa12782913354c09c6ff54"
+      },
+      "evidence": "/tmp/meden-ux-quiet-chat-20261121",
+      "decoded_screens_inspected": [
+        "Four-source real Lake compilation",
+        "missing.lean failure without reusing the rejected graph",
+        "Five-source automatic-root recovery",
+        "Historical restart after inventory invalidation",
+        "Meaning cancellation and historical restart"
+      ]
+    },
+    "unit": {
+      "passed": 31,
+      "files": 7
+    },
+    "rust_overview": {
+      "passed": 3
+    },
+    "clippy": "cargo clippy -p meden-cli --all-targets -- -D warnings passed",
+    "format": "cargo fmt --all -- --check and npm run format:check passed",
+    "types": "npm run typecheck passed"
+  },
+  "bounds": {
+    "source_file_bytes": 1048576,
+    "explicit_import_closure_files": 32,
+    "explicit_import_closure_total_bytes": 16777216,
+    "default_reference_map": "Whole indexed workspace lexical reference candidates, not compiler/proof evidence."
+  },
+  "binary_sha256": "4c68a1630bc8ed6f6085ea95e9be2b4fbe9a4c415efa12782913354c09c6ff54",
+  "assets_index_sha256": "099609523323df9fb0c8b494827cce4e29f4c5a8f8dd62346973c40c5215c242",
+  "service": "meden-ethlib-gui.service; active persistent user service on loopback without inference approval",
+  "boundaries": [
+    "No live inference or large local-model validation.",
+    "No toolchain/dependency cold installation.",
+    "No whole-project compiled dependency/proof graph or new refinement claim.",
+    "Screenshot capture occurs after the chat-mutation observation; Playwright temporarily changes the textarea caret style when taking screenshots."
+  ]
+}

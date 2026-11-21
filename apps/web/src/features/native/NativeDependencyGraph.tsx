@@ -3,6 +3,7 @@ import {
   Autocomplete,
   Button,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import type {
@@ -41,20 +42,24 @@ export function NativeDependencyGraph({
         renderInput={(params) => <TextField {...params} label="ファイル" />}
       />
       <div className="file-tool-actions">
-        <Button
-          variant="contained"
-          disabled={
-            running ||
-            !state.atlas.available ||
-            !selected.length ||
-            !selected.every((p) => p.endsWith(".lean"))
-          }
-          onClick={() =>
-            void onCommand({ type: "atlas_snapshot", paths: selected })
-          }
-        >
-          Leanで解析
-        </Button>
+        <Tooltip title="対象と依存先をLeanでコンパイルし、型や本体の参照を抽出します。最大32ファイル・合計16 MiB。通常の閲覧には不要です。">
+          <span>
+            <Button
+              variant="contained"
+              disabled={
+                running ||
+                !state.atlas.available ||
+                !selected.length ||
+                !selected.every((p) => p.endsWith(".lean"))
+              }
+              onClick={() =>
+                void onCommand({ type: "atlas_snapshot", paths: selected })
+              }
+            >
+              コンパイル後の依存を抽出
+            </Button>
+          </span>
+        </Tooltip>
         <Button
           disabled={running || !selected.length}
           onClick={() =>
@@ -64,6 +69,9 @@ export function NativeDependencyGraph({
           参照を更新
         </Button>
       </div>
+      <Typography variant="body2">
+        ソース閲覧用の参照グラフは準備済みです。この抽出はLeanのコンパイルを伴う追加操作です。
+      </Typography>
       {!state.atlas.available && (
         <Alert severity="info">
           {state.atlas.detail}

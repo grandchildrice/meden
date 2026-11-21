@@ -602,6 +602,7 @@ fn worker(
     let mut delivery = delivery::Delivery::new(project);
     let mut repairs = crate::analysis::repair::Queue::default();
     for Task { command, processes } in receiver {
+        let checkpoint_after = !matches!(&command, Command::Inspect { .. });
         delivery.begin(&command);
         let result = (|| -> Result<()> {
             repair::begin(view, workspace, &mut repairs, &command)?;
@@ -741,7 +742,9 @@ fn worker(
             lock(view).project = summary;
             Ok(())
         })();
-        checkpoint(view, workspace);
+        if checkpoint_after {
+            checkpoint(view, workspace);
+        }
         finish_operation(view, &delivery, result);
     }
 }
