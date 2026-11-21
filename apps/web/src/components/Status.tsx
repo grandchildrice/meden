@@ -31,13 +31,14 @@ export function AnalysisStatusChip({
   analysis?: Analysis;
   current?: boolean;
 }) {
-  if (!analysis) return <Chip size="small" label="未解析" variant="outlined" />;
+  if (!analysis)
+    return <Chip size="small" label="Not analyzed" variant="outlined" />;
   if (!current || analysis.status === "stale")
     return (
       <Chip
         size="small"
         icon={<ScheduleRounded />}
-        label="再解析が必要"
+        label="Reanalysis required"
         className="status-chip neutral"
       />
     );
@@ -45,7 +46,9 @@ export function AnalysisStatusChip({
     return (
       <Chip
         size="small"
-        label={analysis.status === "failed" ? "解析失敗" : "解析待ち"}
+        label={
+          analysis.status === "failed" ? "Analysis failed" : "Analysis pending"
+        }
         variant="outlined"
       />
     );

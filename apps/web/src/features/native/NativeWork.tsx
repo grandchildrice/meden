@@ -31,21 +31,21 @@ export function NativeWork({
     document?.events.filter((event) => event.task === task?.id) || [];
   const latest = events.filter((event) => event.check).at(-1);
   return (
-    <section aria-label="作業と共有履歴" className="native-work">
-      <Typography variant="h3">作業と共有履歴</Typography>
+    <section aria-label="Work and shared history" className="native-work">
+      <Typography variant="h3">Work and shared history</Typography>
       <p>
-        要件・証明チェック・再開メモ・会話を .meden
-        に保存します。Gitに含めると、clone先でも確認できます。
+        Requirements, proof checks, notes and conversations are saved in .meden
+        . Include it in Git to read it after cloning.
       </p>
       {workspace.error && (
         <Alert severity="error">
-          {workspace.error} 元の記録は保持されています。
+          {workspace.error} The original record is retained.
         </Alert>
       )}
       {!document ? (
         <>
           <TextField
-            label="プロジェクト名"
+            label="Project name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             fullWidth
@@ -54,7 +54,7 @@ export function NativeWork({
             disabled={running || !name.trim() || Boolean(workspace.error)}
             onClick={() => void onCommand({ type: "initialize_work", name })}
           >
-            共有履歴を作成
+            Create shared history
           </Button>
         </>
       ) : (
@@ -64,7 +64,7 @@ export function NativeWork({
             disabled={running}
             onClick={() => void onCommand({ type: "save_work" })}
           >
-            会話と作業を保存
+            Save conversation and work
           </Button>
           <Button
             disabled={running}
@@ -79,13 +79,13 @@ export function NativeWork({
               })
             }
           >
-            作業を追加
+            Add work item
           </Button>
           {document.tasks.length > 0 && (
             <TextField
               select
               fullWidth
-              label="保存された作業"
+              label="Saved work item"
               value={task?.id || ""}
               slotProps={{ select: { native: true } }}
               onChange={(e) => {
@@ -102,11 +102,11 @@ export function NativeWork({
             </TextField>
           )}
           {task && (
-            <article aria-label="作業の詳細">
+            <article aria-label="Work item details">
               <Typography component="h3">{task.title}</Typography>
-              <Typography component="h4">要件</Typography>
+              <Typography component="h4">Requirement</Typography>
               <pre>{task.requirement}</pre>
-              <Typography component="h4">証明対象</Typography>
+              <Typography component="h4">Proof targets</Typography>
               <pre>
                 {task.module}
                 {"\n"}
@@ -118,20 +118,22 @@ export function NativeWork({
                   onInspect(`${task.module.replaceAll(".", "/")}.lean`)
                 }
               >
-                証明コードを読む
+                Read proof source
               </Button>
               <Button disabled={running} onClick={() => setDraft({ ...task })}>
-                作業を編集
+                Edit work item
               </Button>
-              <Typography component="h4">次にすること</Typography>
-              <pre>{task.next || "再開メモはまだありません。"}</pre>
+              <Typography component="h4">Next steps</Typography>
+              <pre>{task.next || "No continuation note yet."}</pre>
               {latest && (
                 <Chip
-                  label={`保存されたチェック記録：${latest.check?.success ? "成功" : "失敗・中断"}`}
+                  label={`Saved check: ${latest.check?.success ? "Passed" : "Failed or interrupted"}`}
                 />
               )}
               <p>
-                保存された結果は履歴です。このPCで確かめるには再チェックしてください。受理した契約や承認権限は復元しません。
+                Saved results are historical. Recheck on this machine to
+                validate them. Accepted contracts and authorization are not
+                restored.
               </p>
               <Button
                 disabled={
@@ -143,10 +145,10 @@ export function NativeWork({
                   void onCommand({ type: "check_work", id: task.id })
                 }
               >
-                Leanを再チェック
+                Recheck with Lean
               </Button>
               {task.theorems.length === 0 && (
-                <p>チェックする定理名を作業に追加してください。</p>
+                <p>Add theorem names to this work item before checking.</p>
               )}
               <Button
                 disabled={running || !authorized}
@@ -154,20 +156,21 @@ export function NativeWork({
                   void onCommand({ type: "resume_work", id: task.id })
                 }
               >
-                この作業を再開
+                Resume this work item
               </Button>
               {!authorized && (
                 <p>
-                  モデルと作業を再開するには、接続先を確認・承認してください。履歴の閲覧とLeanチェックには推論を使いません。
+                  Review and approve a connection to continue with a model.
+                  Reading history and checking with Lean do not use inference.
                 </p>
               )}
               {!workspace.lean_available && (
                 <Alert severity="info">
-                  Leanの準備が必要です：{workspace.lean}
+                  Lean setup required: {workspace.lean}
                 </Alert>
               )}
               <TextField
-                label="進捗メモ"
+                label="Progress note"
                 multiline
                 minRows={2}
                 fullWidth
@@ -175,7 +178,7 @@ export function NativeWork({
                 onChange={(e) => setNote(e.target.value)}
               />
               <TextField
-                label="次の作業のメモ"
+                label="Next steps note"
                 multiline
                 fullWidth
                 value={next}
@@ -197,38 +200,42 @@ export function NativeWork({
                   }
                 }}
               >
-                進捗を保存
+                Save progress
               </Button>
-              <Typography component="h4">作業履歴</Typography>
+              <Typography component="h4">Work history</Typography>
               {[...events].reverse().map((event) => (
                 <details key={event.id}>
                   <summary>
-                    {new Date(event.time * 1000).toLocaleString()} ·{" "}
+                    {new Date(event.time * 1000).toLocaleString("en-US")} ·{" "}
                     {event.check
                       ? event.check.success
-                        ? "Leanチェック成功の記録"
-                        : "Leanチェック失敗・中断の記録"
-                      : "作業メモ"}
+                        ? "Successful Lean check"
+                        : "Failed or interrupted Lean check"
+                      : "Work note"}
                   </summary>
                   <pre>{event.note}</pre>
                   {event.check && (
                     <>
-                      <p>チェック時の要件：{event.check.requirement}</p>
-                      <p>対象モジュール：{event.check.module}</p>
-                      <p>Lean実行ファイル：{event.check.engine_sha256}</p>
-                      <p>入力ソース版：{event.check.source_revision}</p>
                       <p>
-                        終了後のソース版：
-                        {event.check.after_revision || "取得できませんでした"}
+                        Requirement at check time: {event.check.requirement}
                       </p>
-                      <pre aria-label="証明チェックの出力">
+                      <p>Target module: {event.check.module}</p>
+                      <p>Lean executable: {event.check.engine_sha256}</p>
+                      <p>
+                        Input source revision: {event.check.source_revision}
+                      </p>
+                      <p>
+                        Source revision after check:
+                        {event.check.after_revision || "Unavailable"}
+                      </p>
+                      <pre aria-label="Proof check output">
                         {event.check.stdout}
                         {"\n"}
                         {event.check.stderr}
                         {"\n"}
                         {event.check.termination}
                       </pre>
-                      <pre aria-label="定理の型と公理">
+                      <pre aria-label="Theorem types and axioms">
                         {event.check.inspection}
                       </pre>
                     </>
@@ -238,21 +245,21 @@ export function NativeWork({
             </article>
           )}
           {draft && (
-            <section aria-label="作業の編集">
+            <section aria-label="Edit work item">
               <TextField
-                label="作業ID"
+                label="Work item ID"
                 fullWidth
                 value={draft.id}
                 onChange={(e) => setDraft({ ...draft, id: e.target.value })}
               />
               <TextField
-                label="作業名"
+                label="Work item title"
                 fullWidth
                 value={draft.title}
                 onChange={(e) => setDraft({ ...draft, title: e.target.value })}
               />
               <TextField
-                label="作業の要件"
+                label="Work item requirement"
                 multiline
                 minRows={3}
                 fullWidth
@@ -262,13 +269,13 @@ export function NativeWork({
                 }
               />
               <TextField
-                label="Leanモジュール"
+                label="Lean module"
                 fullWidth
                 value={draft.module}
                 onChange={(e) => setDraft({ ...draft, module: e.target.value })}
               />
               <TextField
-                label="定理名（1行に1件）"
+                label="Theorem names (one per line)"
                 multiline
                 fullWidth
                 value={draft.theorems.join("\n")}
@@ -280,7 +287,7 @@ export function NativeWork({
                 }
               />
               <TextField
-                label="再開時の作業"
+                label="Continuation note"
                 multiline
                 fullWidth
                 value={draft.next}
@@ -301,24 +308,24 @@ export function NativeWork({
                   }
                 }}
               >
-                作業を保存
+                Save work item
               </Button>
-              <Button onClick={() => setDraft(undefined)}>編集を閉じる</Button>
+              <Button onClick={() => setDraft(undefined)}>Close editor</Button>
             </section>
           )}
-          <Typography component="h4">保存された会話</Typography>
+          <Typography component="h4">Saved conversation</Typography>
           {document.conversations.length === 0 && (
-            <p>このworkspaceで保存した会話はまだありません。</p>
+            <p>No conversations saved in this workspace yet.</p>
           )}
           {document.conversations.map((conversation) => (
             <details key={conversation.id}>
               <summary>
-                保存された会話 · {conversation.messages.length}メッセージ
+                Saved conversation · {conversation.messages.length} messages
               </summary>
               {conversation.messages.map((message, index) => (
                 <div key={index}>
                   <strong>
-                    {message.speaker === "user" ? "ユーザー" : "アシスタント"}
+                    {message.speaker === "user" ? "User" : "Assistant"}
                   </strong>
                   <pre>{message.text}</pre>
                 </div>

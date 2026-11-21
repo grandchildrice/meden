@@ -1,21 +1,49 @@
 import { workspaceSchema, type Workspace } from "@meden/workspace-schema";
-import snapshot from "./snapshot.json" with { type: "json" };
-import opening from "./opening-request.json" with { type: "json" };
+import recordedSnapshot from "./snapshot.json" with { type: "json" };
+import recordedOpening from "./opening-request.json" with { type: "json" };
 import { mergeVendingHistory } from "../../adapters/merge-vending-history";
 import { recordedSourceGraph } from "./source-graph";
+
+import {
+  messages,
+  openingText,
+  propertyDescriptions,
+  assumptions,
+} from "./english";
+const opening = { ...recordedOpening, text: openingText };
+const snapshot = {
+  ...recordedSnapshot,
+  name: "Vending machine simulator",
+  contract: {
+    ...recordedSnapshot.contract,
+    description:
+      "Pure vending machine step for all u64 inputs. Fixed price 150. Insertion refuses overflow; purchase requires balance at least 150 and positive stock; refund returns the full balance; unsupported actions preserve state. Only refunds update the last refund.",
+    properties: recordedSnapshot.contract.properties.map((p, i) => ({
+      ...p,
+      description: propertyDescriptions[i] || p.description,
+    })),
+    assumptions,
+  },
+  transcript: recordedSnapshot.transcript.map((m, i) => ({
+    ...m,
+    text: messages[i] || m.text,
+  })),
+};
 
 export const DEMO_WORKSPACE_ID = "meden-demo-vending";
 export const DEMO_HISTORY_ID = "meden-demo-history";
 export const demoSnapshot = snapshot;
 const labels: Record<string, string> = {
-  insert_exact: "残高の上限内なら、投入額だけ残高が増える",
-  overflow_preserves: "残高の上限を超える投入では、何も変わらない",
-  purchase_exact: "購入が成立すると、残高が150円、在庫が1個減る",
-  purchase_rejected: "残高が150円未満か在庫が0個なら、購入は成立しない",
-  refund_exact: "残高の全額が返金され、残高は0円になる",
-  invalid_preserves: "対応していない操作では、何も変わらない",
-  stock_change_only_buy: "在庫が変わるのは、購入が成立したときだけ",
-  refund_preserved: "返金操作以外では、直近の返金額は変わらない",
+  insert_exact:
+    "Inserting within the balance limit adds exactly the inserted amount",
+  overflow_preserves:
+    "An insertion exceeding the balance limit changes nothing",
+  purchase_exact: "A successful purchase subtracts 150 yen and one item",
+  purchase_rejected: "Purchase is rejected below 150 yen or when out of stock",
+  refund_exact: "Refund returns the full balance and resets it to zero",
+  invalid_preserves: "Unsupported operations change nothing",
+  stock_change_only_buy: "Only successful purchases change stock",
+  refund_preserved: "Only refunds change the last refunded amount",
 };
 export function createVendingWorkspace(): Workspace {
   const sourceRevision = "sha256:" + snapshot.sourceSha256;
@@ -46,7 +74,7 @@ export function createVendingWorkspace(): Workspace {
       verdict: "unclear",
       backTranslation: property.description,
       reasoning:
-        "形式証明は保存された検証記録を表示しています。意味の比較はGUIのデモ表示で、独立した解析は実行していません。",
+        "Proof status comes from saved verification records. The meaning comparison is a GUI demo; no independent analysis was run.",
       evidenceRefs: ["recorded-verification"],
       modelVersions: [],
       assumptions: snapshot.contract.assumptions,
@@ -55,7 +83,7 @@ export function createVendingWorkspace(): Workspace {
       {
         id: "recorded-verification",
         kind: "report",
-        label: "meden-demoの検証記録",
+        label: "meden-demo verification record",
         content:
           snapshot.report.scope +
           "\n\nsource_sha256: " +
@@ -95,18 +123,19 @@ export function createVendingWorkspace(): Workspace {
 }
 export function titleFromInstruction(text: string): string {
   if (/自販機|自動販売機|vending\s*machine/i.test(text))
-    return "自販機シミュレーター";
+    return "Vending machine simulator";
   return (
-    Array.from(text.trim().split("\n")[0]).slice(0, 32).join("") || "新しい会話"
+    Array.from(text.trim().split("\n")[0]).slice(0, 32).join("") ||
+    "New conversation"
   );
 }
 export function demoResponse(text: string, workspace: Workspace): string {
-  if (/証明|検証|verify/i.test(text) && workspace.id === DEMO_WORKSPACE_ID) {
-    return "保存されている検証記録では、kernel.rsの純粋なstepについて8件の性質が検証されています。\n\n右側で証明の状態と依存関係を確認できます。CLIの入力解析・表示・I/Oは形式検証の対象外です。";
+  if (/Proof|検証|verify/i.test(text) && workspace.id === DEMO_WORKSPACE_ID) {
+    return "The saved record verifies eight properties of the pure step in kernel.rs.\n\nInspect proof status and dependencies on the right. CLI input parsing, rendering and I/O are outside the formal verification scope.";
   }
   return workspace.id === DEMO_WORKSPACE_ID
-    ? "meden-demoの自販機シミュレーターを開きました。商品は150円で、投入・購入・返金に対応しています。\n\n右側のプレビューを操作できます。コードと証明も同じパネルで確認できます。"
-    : "読み込んだワークスペースを右側で確認できます。";
+    ? "Opened the meden-demo vending machine simulator. Items cost 150 yen; insert, purchase and refund are supported.\n\nUse the preview on the right. Code and proofs are available in the same panel."
+    : "The imported workspace is available on the right.";
 }
 
 /** Refresh this bundled recording's graph and display titles; retain conversation and edit history. */

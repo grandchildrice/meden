@@ -304,6 +304,7 @@ export const workspaceOverviewSchema = z
           bytes: z.number(),
           declarations: z.number(),
           theorems: z.number(),
+          indexed: z.boolean(),
           imports: z.array(z.string()),
           symbols: z.array(
             z
@@ -321,6 +322,7 @@ export const workspaceOverviewSchema = z
         .strict(),
     ),
     excluded: z.array(z.string()),
+    inventory_only: z.boolean(),
   })
   .strict();
 export type WorkspaceOverview = z.infer<typeof workspaceOverviewSchema>;

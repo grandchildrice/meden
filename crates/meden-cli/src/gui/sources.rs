@@ -32,7 +32,7 @@ pub(super) fn extract_atlas(
         let mut view = super::lock(view);
         view.source_snapshot = None;
         super::analysis::invalidate(&mut view);
-        view.activity = "LeanでコンパイルしてAtlas依存を抽出".into();
+        view.activity = "Compiling Lean and extracting Atlas dependencies".into();
     }
     let extraction = crate::analysis::extract(workspace, control, paths);
     super::lock(view).atlas = atlas.status();

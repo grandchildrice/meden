@@ -84,8 +84,10 @@ export function App() {
   );
   const running = conversationId ? pending.has(conversationId) : false;
   const sidebarOpen = mobile ? mobileSidebarOpen : desktopSidebarOpen;
-  const sidebarLabel = sidebarOpen ? "会話一覧を閉じる" : "会話一覧を開く";
-  const artifactLabel = panelOpen ? "成果物を閉じる" : "成果物を開く";
+  const sidebarLabel = sidebarOpen
+    ? "Close conversations"
+    : "Open conversations";
+  const artifactLabel = panelOpen ? "Close artifact" : "Open artifact";
   const hasMessages = Boolean(conversation?.messages.length);
 
   const select = (workspaceId: string, id: string | null) => {
@@ -162,7 +164,7 @@ export function App() {
         setStorageError("");
       })
       .catch(() =>
-        setStorageError("会話を読み込めませんでした。再読み込みしてください。"),
+        setStorageError("Could not load conversations. Reload to retry."),
       )
       .finally(() => setLoading(false));
   };
@@ -187,7 +189,7 @@ export function App() {
         return true;
       } catch {
         setStorageError(
-          "会話を保存できませんでした。保存を再試行するか、JSONを書き出してください。",
+          "Could not save the conversation. Retry saving or export JSON.",
         );
         return false;
       }
@@ -247,7 +249,9 @@ export function App() {
     setPending((previous) => new Set([...previous, id]));
     select(target, id);
     openPanel(
-      /依存|graph|証明|検証|verify|意味/i.test(text) ? "proof" : "preview",
+      /Dependencies|graph|Proof|検証|verify|意味/i.test(text)
+        ? "proof"
+        : "preview",
     );
     await persist(first);
     await new Promise((resolve) => setTimeout(resolve, 350));
@@ -287,11 +291,9 @@ export function App() {
       await persist(next);
       select(next.id, next.conversations[0]?.id || null);
       openPanel("proof");
-      setNotification("読み込みました");
+      setNotification("Imported");
     } catch (error) {
-      setNotification(
-        error instanceof Error ? error.message : "読み込めませんでした",
-      );
+      setNotification(error instanceof Error ? error.message : "Import failed");
     }
   };
   const threads = workspaces
@@ -330,7 +332,7 @@ export function App() {
         </div>
         {mobile && (
           <IconButton
-            aria-label="会話一覧を閉じる"
+            aria-label="Close conversations"
             onClick={() => setMobileSidebarOpen(false)}
           >
             <CloseRounded fontSize="small" />
@@ -343,7 +345,7 @@ export function App() {
         startIcon={<AddCommentOutlined />}
         onClick={newChat}
       >
-        メッセージを書く
+        New message
       </Button>
       <Button
         className="sidebar-action"
@@ -354,21 +356,21 @@ export function App() {
           setQuery("");
         }}
       >
-        会話を検索
+        Search conversations
       </Button>
       {searchOpen && (
         <TextField
           autoFocus
           size="small"
           fullWidth
-          label="会話を検索"
+          label="Search conversations"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
       )}
-      <div className="conversation-history" aria-label="会話履歴">
+      <div className="conversation-history" aria-label="Conversation history">
         <Typography variant="caption" color="text.secondary">
-          会話
+          Conversation
         </Typography>
         {filtered.map((item) => (
           <button
@@ -405,7 +407,7 @@ export function App() {
             color="text.secondary"
             className="empty-history"
           >
-            一致する会話はありません
+            No matching conversations
           </Typography>
         )}
       </div>
@@ -415,7 +417,7 @@ export function App() {
           startIcon={<SettingsOutlined />}
           onClick={() => setSettings(true)}
         >
-          設定
+          Settings
         </Button>
       </div>
     </div>
@@ -446,7 +448,7 @@ export function App() {
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">
-        本文へ移動
+        Skip to content
       </a>
       {mobile ? (
         <Drawer
@@ -454,7 +456,7 @@ export function App() {
           onClose={() => setMobileSidebarOpen(false)}
           slotProps={{ paper: { sx: { width: 268 } } }}
         >
-          <aside id="conversation-sidebar" aria-label="会話サイドバー">
+          <aside id="conversation-sidebar" aria-label="Conversation sidebar">
             {sidebar}
           </aside>
         </Drawer>
@@ -462,7 +464,7 @@ export function App() {
         <aside
           id="conversation-sidebar"
           className="desktop-sidebar"
-          aria-label="会話サイドバー"
+          aria-label="Conversation sidebar"
           hidden={!desktopSidebarOpen}
         >
           {sidebar}
@@ -511,7 +513,7 @@ export function App() {
             severity="error"
             action={
               <Button color="inherit" onClick={retry}>
-                {unsaved.current.size ? "保存を再試行" : "再読み込み"}
+                {unsaved.current.size ? "Retry save" : "Reload"}
               </Button>
             }
           >
@@ -528,7 +530,7 @@ export function App() {
         >
           {loading ? (
             <div className="loading">
-              <CircularProgress size={26} aria-label="会話を読み込み中" />
+              <CircularProgress size={26} aria-label="Loading conversation" />
             </div>
           ) : (
             workspace && (
@@ -564,12 +566,12 @@ export function App() {
         type="file"
         ref={fileInput}
         accept=".json,application/json"
-        aria-label="ワークスペースのJSON"
+        aria-label="Workspace JSON"
         hidden
         onChange={onImport}
       />
       <Dialog open={settings} onClose={() => setSettings(false)}>
-        <DialogTitle>設定</DialogTitle>
+        <DialogTitle>Settings</DialogTitle>
         <DialogContent className="workspace-actions">
           <Button
             disabled={!workspace}
@@ -577,7 +579,7 @@ export function App() {
               if (workspace) downloadJson("meden-workspace.json", workspace);
             }}
           >
-            ワークスペースを書き出す
+            Export workspace
           </Button>
           <Button
             onClick={() => {
@@ -585,7 +587,7 @@ export function App() {
               setSettings(false);
             }}
           >
-            JSONを読み込む
+            Import JSON
           </Button>
           <Button
             color="error"
@@ -595,20 +597,20 @@ export function App() {
               setQueueDialog(true);
             }}
           >
-            会話を削除
+            Delete conversation
           </Button>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setSettings(false)}>閉じる</Button>
+          <Button onClick={() => setSettings(false)}>Close</Button>
         </DialogActions>
       </Dialog>
       <Dialog open={queueDialog} onClose={() => setQueueDialog(false)}>
-        <DialogTitle>この会話を削除しますか？</DialogTitle>
+        <DialogTitle>Delete this conversation?</DialogTitle>
         <DialogContent>
           <Typography>{conversation?.title}</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setQueueDialog(false)}>キャンセル</Button>
+          <Button onClick={() => setQueueDialog(false)}>Cancel</Button>
           <Button
             color="error"
             onClick={async () => {
@@ -625,7 +627,7 @@ export function App() {
               setQueueDialog(false);
             }}
           >
-            削除
+            Delete
           </Button>
         </DialogActions>
       </Dialog>

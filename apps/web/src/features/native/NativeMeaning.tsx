@@ -48,18 +48,18 @@ export function NativeMeaning({
     record && ["observing", "translating", "comparing"].includes(record.state);
   const verdict =
     result?.verdict === "match"
-      ? "一致の候補"
+      ? "Candidate match"
       : result?.verdict === "mismatch"
-        ? "意味の差異候補"
-        : "判定保留";
+        ? "Candidate mismatch"
+        : "Undetermined";
   return (
-    <section className="native-meaning" aria-label="意味解析">
+    <section className="native-meaning" aria-label="Meaning analysis">
       {history.length > 0 && (
         <TextField
           select
           fullWidth
           size="small"
-          label="保存された解析履歴"
+          label="Saved analyses"
           value={record?.id || ""}
           disabled={running}
           slotProps={{ select: { native: true } }}
@@ -73,11 +73,13 @@ export function NativeMeaning({
           ))}
         </TextField>
       )}
-      <Typography component="h3">要件と宣言の意味を比較</Typography>
+      <Typography component="h3">
+        Compare requirements with declaration meaning
+      </Typography>
       {target && sourceRevision && (
         <>
           <TextField
-            label="比較する要件"
+            label="Requirement to compare"
             value={requirement}
             onChange={(event) => setRequirement(event.target.value)}
             multiline
@@ -96,7 +98,7 @@ export function NativeMeaning({
               })
             }
           >
-            この宣言の意味を解析
+            Analyze declaration meaning
           </Button>
           {record?.finding_id && (
             <Button
@@ -108,28 +110,33 @@ export function NativeMeaning({
               }
               onClick={() => void onRepair(record.finding_id!)}
             >
-              このFindingの修正差分を作る
+              Prepare patch for this Finding
             </Button>
           )}
-          {!authorized && <p>実行するには接続先を確認・承認してください。</p>}
+          {!authorized && (
+            <p>Review and approve a connection to run this analysis.</p>
+          )}
           <Typography variant="caption" component="p">
             {graphRevision
-              ? "コンパイル後の宣言と意味に関係する依存を自然言語化します。元ソース・コメント・証明専用の依存は最初のリクエストに含めません。"
-              : "選択したファイルを自然言語化します。"}
-            別のリクエストで要件と比較します。比較用モデルは起動時に指定でき、解析時の両モデルを履歴に記録します。証明・契約の受理状態は変更しません。
+              ? "Translate the elaborated declaration and meaning-related dependencies. The first request excludes original source, comments and proof-only dependencies."
+              : "Translate the selected file into natural language."}
+            Compare with the requirement in a separate request. A separate judge
+            can be configured at launch. Both model identities are recorded.
+            This does not change proof or contract acceptance.
           </Typography>
         </>
       )}
       {record && (
-        <div aria-label="意味解析の結果">
+        <div aria-label="Meaning analysis result">
           {active && (
             <p role="status">
               {
                 (
                   {
-                    observing: "対象のソースを再確認しています",
-                    translating: "宣言を自然言語化しています（要件は未送信）",
-                    comparing: "元の要件と比較しています",
+                    observing: "Rechecking target source",
+                    translating:
+                      "Translating declaration (requirement not sent)",
+                    comparing: "Comparing with original requirement",
                   } as Record<string, string>
                 )[record.state]
               }
@@ -137,42 +144,47 @@ export function NativeMeaning({
           )}
           {record.state === "historical" && (
             <Alert severity="info">
-              保存された解析です。現在のソースに対する結果として使うには、グラフを読み直して明示的に再実行してください。
+              Historical analysis. Refresh the graph and explicitly rerun it for
+              the current source.
             </Alert>
           )}
           {record.state === "stale" && (
             <Alert severity="warning">
-              対象のソースが変更されました。グラフを読み直して再実行してください。
+              The source changed. Refresh the graph and rerun the analysis.
             </Alert>
           )}
           {record.state === "complete" && !current && (
             <Alert severity="warning">
               {running
-                ? "処理を実行中です。表示中の解析は前回の結果です。"
-                : "表示中の要件・宣言・ソース版と異なる解析です。再実行が必要です。"}
+                ? "An operation is running. The displayed analysis is from the previous run."
+                : "This analysis uses different requirements, declarations or source revisions. Rerun it."}
             </Alert>
           )}
           {record.state === "cancelled" && (
             <Alert severity="warning">
-              意味解析を中止しました。再実行は明示的に指示してください。
+              Meaning analysis was cancelled. Explicitly request a new run to
+              retry.
             </Alert>
           )}
           {record.state === "failed" && (
             <Alert severity="error">
-              意味解析を完了できませんでした。内容と接続状態を確認して再実行してください。
+              Meaning analysis failed. Check the input and connection, then
+              retry.
             </Alert>
           )}
           {record.error && <pre>{record.error}</pre>}
           {!result && record.partial_translation && (
             <details>
-              <summary>比較が完了しなかった逆翻訳（候補）</summary>
+              <summary>
+                Candidate translation from an incomplete comparison
+              </summary>
               <pre>{record.partial_translation.naturalLanguage}</pre>
             </details>
           )}
           {result && (
             <>
               <Chip
-                label={`${verdict}（モデル評価${current ? "" : "・過去の対象"}）`}
+                label={`${verdict} (Model assessment${current ? "" : " · Historical target"})`}
                 color={
                   current && result.verdict === "mismatch"
                     ? "warning"
@@ -180,25 +192,30 @@ export function NativeMeaning({
                 }
               />
               <Typography variant="caption" component="p">
-                証明済みを意味しません。自然言語の意味や解析精度は形式証明されていません。
+                This is not proof. Natural-language meaning and analysis
+                accuracy are not formally verified.
               </Typography>
               <div className="native-meaning-comparison">
                 <div>
-                  <Typography component="h4">解析時の要件</Typography>
+                  <Typography component="h4">
+                    Requirement at analysis time
+                  </Typography>
                   <pre>{record.input.requirement}</pre>
                 </div>
                 <div>
-                  <Typography component="h4">宣言からの自然言語化</Typography>
+                  <Typography component="h4">
+                    Declaration translated into natural language
+                  </Typography>
                   <pre>{result.translation.naturalLanguage}</pre>
                 </div>
               </div>
-              <Typography component="h4">前提条件</Typography>
+              <Typography component="h4">Assumptions</Typography>
               <pre>{result.translation.preconditions}</pre>
-              <Typography component="h4">結論・動作</Typography>
+              <Typography component="h4">Conclusion and behavior</Typography>
               <pre>{result.translation.postcondition}</pre>
-              <Typography component="h4">適用範囲</Typography>
+              <Typography component="h4">Scope</Typography>
               <pre>{result.translation.scope}</pre>
-              <Typography component="h4">差異と比較理由</Typography>
+              <Typography component="h4">Differences and reasoning</Typography>
               <pre>
                 {[result.comparison.discrepancy, result.comparison.explanation]
                   .filter(Boolean)
@@ -207,34 +224,39 @@ export function NativeMeaning({
             </>
           )}
           <details>
-            <p className="native-revision">解析ID: {record.id}</p>
-            <p className="native-revision">要件ID: {record.requirement_id}</p>
+            <p className="native-revision">Analysis ID: {record.id}</p>
+            <p className="native-revision">
+              Requirement ID: {record.requirement_id}
+            </p>
             {record.finding_id && (
               <p className="native-revision">Finding ID: {record.finding_id}</p>
             )}
-            <summary>解析対象と処理の詳細</summary>
+            <summary>Analysis target and process details</summary>
             <p>
               {record.input.target.name} · {record.input.target.file}:
               {record.input.target.line}
             </p>
             <p>
-              モデル: {record.model} · {record.engine}
+              Model: {record.model} · {record.engine}
             </p>
             {record.source_artifact && (
               <p className="native-revision">
-                解析時のソース記録: {record.source_artifact}
+                Source artifact at analysis time: {record.source_artifact}
               </p>
             )}
             <p className="native-revision">
-              翻訳: {record.model} · {record.processor}
+              Translation: {record.model} · {record.processor}
             </p>
             <p className="native-revision">
-              比較: {record.judge?.model ?? record.model} ·{" "}
+              Comparison: {record.judge?.model ?? record.model} ·{" "}
               {record.judge?.endpoint ?? record.processor}
             </p>
             <p className="native-revision">{record.input.source_revision}</p>
             <p>
-              claimcheckの二段階方式をRust／Leanへ適用するMedenアダプタです。別リクエストで処理し、元の会話は渡しません。完全な依存抽出や解析精度の保証は含みません。
+              Meden applies claimcheck's two-stage approach to Rust and Lean
+              using separate requests, without the original conversation. It
+              does not guarantee complete dependency extraction or analysis
+              accuracy.
             </p>
           </details>
         </div>

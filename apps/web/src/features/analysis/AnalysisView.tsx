@@ -67,12 +67,14 @@ export function AnalysisView({
     return (
       <section className="analysis-page">
         <header className="page-heading">
-          <Typography variant={embedded ? "h2" : "h1"}>意味の比較</Typography>
+          <Typography variant={embedded ? "h2" : "h1"}>
+            Meaning comparison
+          </Typography>
         </header>
         <EmptyState
           icon={<CompareArrowsRounded />}
-          title="要件がありません"
-          detail="要件と解析結果を含むワークスペースを読み込んでください。"
+          title="No requirements"
+          detail="Load a workspace containing requirements and analyses."
         />
       </section>
     );
@@ -81,7 +83,9 @@ export function AnalysisView({
     <section className="analysis-page">
       <div className="comparison-panel">
         <header className="semantic-title">
-          <Typography variant={embedded ? "h2" : "h1"}>意味の比較</Typography>
+          <Typography variant={embedded ? "h2" : "h1"}>
+            Meaning comparison
+          </Typography>
           <SemanticMethodInfo />
         </header>
         <header className="comparison-heading">
@@ -90,7 +94,7 @@ export function AnalysisView({
             fullWidth
             value={claim.id}
             onChange={(event) => onSelectClaim(event.target.value)}
-            inputProps={{ "aria-label": "比較する要件" }}
+            inputProps={{ "aria-label": "Requirement to compare" }}
           >
             {workspace.requirements.map((requirement) => (
               <MenuItem key={requirement.id} value={requirement.id}>
@@ -102,16 +106,17 @@ export function AnalysisView({
         </header>
         {analysis && !current && (
           <Alert severity="info">
-            要件または対象版が変更されています。以前の解析結果を表示しています。
+            Requirements or source revisions changed. Showing a previous
+            analysis.
           </Alert>
         )}
         <div className="comparison-grid">
           <section className="comparison-card">
             <div className="comparison-card-title">
-              <Typography variant="h3">要件</Typography>
-              <Tooltip title="要件を編集">
+              <Typography variant="h3">Requirement</Typography>
+              <Tooltip title="Edit requirement">
                 <IconButton
-                  aria-label="要件を編集"
+                  aria-label="Edit requirement"
                   onClick={() => {
                     setBody(claim.text);
                     setEditing(true);
@@ -145,8 +150,8 @@ export function AnalysisView({
             <div className="comparison-card-title">
               <Typography variant="h3">
                 {workspace.origin === "replay" && analysis?.status === "pending"
-                  ? "定理の比較文（表示例）"
-                  : "定理の逆翻訳"}
+                  ? "Theorem comparison (example)"
+                  : "Theorem back-translation"}
               </Typography>
               {declaration && (
                 <ProofStatusChip status={declaration.proofStatus} />
@@ -167,7 +172,7 @@ export function AnalysisView({
                   )
               ) : (
                 <Typography color="text.secondary">
-                  逆翻訳はまだありません。
+                  No back-translation yet.
                 </Typography>
               )}
             </div>
@@ -185,12 +190,12 @@ export function AnalysisView({
         {analysis ? (
           <>
             <div className="reasoning">
-              <Typography variant="h3">判定の理由</Typography>
+              <Typography variant="h3">Assessment reasoning</Typography>
               <Typography>{analysis.reasoning}</Typography>
             </div>
             {evidence.length > 0 && (
               <div className="analysis-evidence">
-                <Typography variant="h3">根拠</Typography>
+                <Typography variant="h3">Evidence</Typography>
                 {evidence.map((item) => (
                   <div className="evidence-item" key={item.id}>
                     <div>
@@ -199,12 +204,12 @@ export function AnalysisView({
                         variant="outlined"
                         label={
                           item.kind === "counterexample"
-                            ? "境界ケース"
+                            ? "Boundary case"
                             : item.kind === "declaration"
-                              ? "宣言"
+                              ? "Declaration"
                               : item.kind === "report"
-                                ? "レポート"
-                                : "要件"
+                                ? "Report"
+                                : "Requirement"
                         }
                       />
                       <Typography component="span" variant="body2">
@@ -218,60 +223,61 @@ export function AnalysisView({
             )}
             <Accordion className="analysis-metadata" disableGutters>
               <AccordionSummary expandIcon={<ExpandMoreRounded />}>
-                <Typography>解析の情報</Typography>
+                <Typography>Analysis information</Typography>
               </AccordionSummary>
               <AccordionDetails>
                 <dl className="metadata">
-                  <dt>対象版</dt>
+                  <dt>Source revision</dt>
                   <dd>{analysis.sourceRevision}</dd>
-                  <dt>要件の版</dt>
+                  <dt>Requirement revision</dt>
                   <dd>{analysis.inputRevision}</dd>
-                  <dt>モデル</dt>
-                  <dd>{analysis.modelVersions.join(", ") || "記録なし"}</dd>
-                  <dt>前提・未確認範囲</dt>
+                  <dt>Model</dt>
+                  <dd>{analysis.modelVersions.join(", ") || "Not recorded"}</dd>
+                  <dt>Assumptions and unchecked scope</dt>
                   <dd>
                     {analysis.assumptions.length
                       ? analysis.assumptions.map((item) => (
                           <div key={item}>{item}</div>
                         ))
-                      : "記録なし"}
+                      : "Not recorded"}
                   </dd>
                 </dl>
               </AccordionDetails>
             </Accordion>
             <div className="comparison-footer">
               <Typography variant="caption" color="text.secondary">
-                対象版 {workspace.sourceRevision}
+                Source revision {workspace.sourceRevision}
               </Typography>
               <Button variant="outlined" onClick={() => onReview(claim.id)}>
-                レビュー依頼を作成
+                Create review request
               </Button>
             </div>
           </>
         ) : (
           <EmptyState
-            title="解析結果がありません"
-            detail="エージェントへの接続後に解析するか、解析済みの結果を読み込んでください。"
+            title="No analyses"
+            detail="Connect an agent to run an analysis, or import existing results."
           />
         )}
       </div>
       <Dialog open={editing} onClose={() => setEditing(false)}>
-        <DialogTitle>要件を編集</DialogTitle>
+        <DialogTitle>Edit requirement</DialogTitle>
         <DialogContent>
           <TextField
             fullWidth
             multiline
             minRows={5}
-            label="要件"
+            label="Requirement"
             value={body}
             onChange={(event) => setBody(event.target.value)}
           />
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            変更すると、以前の証明と解析は再確認が必要になります。実行系の承認済み仕様は変更しません。
+            Edits require rechecking previous proof and analysis results. They
+            do not change the runtime's accepted specification.
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEditing(false)}>キャンセル</Button>
+          <Button onClick={() => setEditing(false)}>Cancel</Button>
           <Button
             variant="contained"
             disabled={!body.trim() || body.length > 100_000}
@@ -280,7 +286,7 @@ export function AnalysisView({
                 setEditing(false);
             }}
           >
-            保存
+            Save
           </Button>
         </DialogActions>
       </Dialog>

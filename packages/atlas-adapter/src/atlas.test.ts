@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dependencyScope, importAtlas, radialLayout } from "./index";
+import { meaningDependencies, importAtlas } from "./index";
 import { sampleWorkspace } from "../../../apps/web/src/fixtures/ledger";
 
 describe("Atlas boundary and dependency traversal", () => {
@@ -78,21 +78,11 @@ describe("Atlas boundary and dependency traversal", () => {
       ],
     });
     expect(graph.edges[0]?.site).toBe("unknown");
-    expect(dependencyScope(graph, "A", "meaning").has("B")).toBe(true);
+    expect(meaningDependencies(graph, "A").has("B")).toBe(true);
   });
   it("prunes proof-value edges while retaining value dependencies from definitions", () => {
     const workspace = sampleWorkspace();
-    const all = dependencyScope(
-      workspace,
-      "Ledger.accepted_transfer",
-      "dependencies",
-    );
-    const meaning = dependencyScope(
-      workspace,
-      "Ledger.accepted_transfer",
-      "meaning",
-    );
-    expect(all.has("Nat.add_sub_cancel")).toBe(true);
+    const meaning = meaningDependencies(workspace, "Ledger.accepted_transfer");
     expect(meaning.has("Nat.add_sub_cancel")).toBe(false);
     expect(meaning.has("Ledger.u64Max")).toBe(true);
   });
@@ -104,73 +94,10 @@ describe("Atlas boundary and dependency traversal", () => {
       site: "unknown",
     });
     expect(
-      dependencyScope(workspace, "Ledger.accepted_transfer", "meaning").has(
+      meaningDependencies(workspace, "Ledger.accepted_transfer").has(
         "Ledger.State",
       ),
     ).toBe(true);
-    expect(
-      radialLayout(workspace, "Ledger.accepted_transfer").size,
-    ).toBeLessThanOrEqual(workspace.declarations.length);
-    expect(radialLayout(workspace, "missing").size).toBe(0);
-  });
-  it("includes incoming proof references in the related-declarations overview", () => {
-    const workspace = sampleWorkspace();
-    expect(
-      dependencyScope(workspace, "Ledger.State", "dependencies").has(
-        "Ledger.accepted_transfer",
-      ),
-    ).toBe(false);
-    expect(
-      dependencyScope(workspace, "Ledger.State", "project").has(
-        "Ledger.accepted_transfer",
-      ),
-    ).toBe(true);
-    const positions = radialLayout(workspace, "Ledger.State", "project");
-    expect(positions.has("Ledger.accepted_transfer")).toBe(true);
-    expect(
-      [...positions.values()].every(
-        (position) =>
-          Number.isFinite(position.x) && Number.isFinite(position.y),
-      ),
-    ).toBe(true);
-  });
-  it("project overview includes disconnected declarations without inventing edges", () => {
-    const workspace = sampleWorkspace();
-    const isolated = {
-      ...workspace.declarations[0]!,
-      id: "Isolated.unfinished",
-      name: "Isolated.unfinished",
-      label: "unfinished",
-    };
-    workspace.declarations.push(isolated);
-    expect(
-      dependencyScope(workspace, "Ledger.State", "dependencies").has(
-        isolated.id,
-      ),
-    ).toBe(false);
-    const positions = radialLayout(workspace, "Ledger.State", "project");
-    expect(positions.size).toBe(workspace.declarations.length);
-    expect(Number.isFinite(positions.get(isolated.id)?.x)).toBe(true);
-    expect(Number.isFinite(positions.get(isolated.id)?.y)).toBe(true);
-    expect(
-      workspace.edges.some(
-        (edge) => edge.source === isolated.id || edge.target === isolated.id,
-      ),
-    ).toBe(false);
-  });
-  it("never uses a pruned edge as a radial depth shortcut", () => {
-    const workspace = sampleWorkspace();
-    workspace.edges.push({
-      source: "Ledger.accepted_transfer",
-      target: "Ledger.u64Max",
-      site: "value",
-    });
-    const positions = radialLayout(
-      workspace,
-      "Ledger.accepted_transfer",
-      "meaning",
-    );
-    expect(positions.get("Ledger.u64Max")?.depth).toBe(2);
   });
 });
 
@@ -192,4 +119,45 @@ it("places dependencies above and users below with the actual L4SB cone algorith
     ),
   ).toBe(true);
   expect(related.size).toBeLessThanOrEqual(workspace.declarations.length);
+});
+
+it("separates human review, known proof-only dependencies and unknown paths without granting proof status", async () => {
+  const { reviewScope } = await import("./index");
+  const w = sampleWorkspace();
+  const root = "Ledger.accepted_transfer";
+  let scope = reviewScope(w, [root]);
+  expect(scope.get(root)).toBe("human");
+  expect(scope.get("Nat.add_sub_cancel")).toBe("proof-only");
+  expect(scope.get("Ledger.u64Max")).toBe("human");
+  w.edges.push({ source: root, target: "Nat.add_sub_cancel", site: "unknown" });
+  scope = reviewScope(w, [root]);
+  expect(scope.get("Nat.add_sub_cancel")).toBe("unknown");
+  expect([...reviewScope(w, []).values()].every((v) => v === "unknown")).toBe(
+    true,
+  );
+  expect(w.declarations.find((d) => d.id === root)?.proofStatus).toBe("proved");
+});
+
+it("keeps dense L4SB layers disjoint at their actual rendered widths and heights", async () => {
+  const { coneLayout } = await import("./index");
+  const example = sampleWorkspace().declarations[0]!;
+  const declarations = Array.from({ length: 81 }, (_, i) => ({
+    ...example,
+    id: "node" + i,
+    name: "node" + i,
+  }));
+  const edges = declarations
+    .slice(1)
+    .map((d) => ({ source: "node0", target: d.id, site: "type" as const }));
+  const positions = [...coneLayout({ declarations, edges }, "node0").values()];
+  expect(positions).toHaveLength(81);
+  for (let i = 0; i < positions.length; i++)
+    for (let j = i + 1; j < positions.length; j++) {
+      const a = positions[i]!,
+        b = positions[j]!;
+      expect(
+        Math.abs(a.x - b.x) >= (a.width + b.width) / 2 ||
+          Math.abs(a.y - b.y) >= 34,
+      ).toBe(true);
+    }
 });

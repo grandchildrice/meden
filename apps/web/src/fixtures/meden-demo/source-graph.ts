@@ -1,3 +1,4 @@
+import { propertyDescriptions } from "./english";
 import type { Declaration, Workspace } from "@meden/workspace-schema";
 import snapshot from "./snapshot.json" with { type: "json" };
 
@@ -43,23 +44,25 @@ export function recordedSourceGraph(
       const label = property
         ? labels[property] || local
         : {
-            actual_spec: "実装と仕様の対応",
-            actual_refines: "すべての性質の保存",
-            abstractState: "Rustと仕様の状態対応",
-            transition: "仕様の状態遷移",
-            State: "仕様の状態",
-            "kernel.step": "Rustの状態遷移",
-            "kernel.Machine": "Rustの状態",
-            output_bounds: "出力値の範囲",
-            success: "状態遷移の成功",
-          }[local] || local.replace(/^example_(\d+)$/, "具体例 $1");
+            actual_spec: "Implementation/specification correspondence",
+            actual_refines: "Preservation of all properties",
+            abstractState: "Rust/specification state correspondence",
+            transition: "Specification transition",
+            State: "Specification state",
+            "kernel.step": "Rust transition",
+            "kernel.Machine": "Rust state",
+            output_bounds: "Output bounds",
+            success: "Successful transition",
+          }[local] || local.replace(/^example_(\d+)$/, "Example $1");
       const declaration: Declaration = {
         id,
         name: match[1] === "private" ? local : id,
         label,
         kind: match[2] === "theorem" ? "theorem" : "definition",
         statement,
-        summary: contract?.description,
+        summary: contract
+          ? propertyDescriptions[snapshot.contract.properties.indexOf(contract)]
+          : undefined,
         source: { file, line: source.slice(0, match.index).split("\n").length },
         proofStatus: audit ? "proved" : "unknown",
         ...(audit

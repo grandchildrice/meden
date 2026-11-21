@@ -50,19 +50,15 @@ export function SourceView({
     };
   }, [file, source]);
   if (source === undefined)
-    return (
-      <div className="panel-empty">
-        このファイルは保存されていません：{file}
-      </div>
-    );
+    return <div className="panel-empty">This file is not saved: {file}</div>;
   return (
-    <section className="source-view" aria-label="ソースコード">
+    <section className="source-view" aria-label="Source code">
       <div className="source-toolbar">
         <Select
           size="small"
           value={file}
           onChange={(event) => setFile(event.target.value)}
-          inputProps={{ "aria-label": "表示するファイル" }}
+          inputProps={{ "aria-label": "Displayed file" }}
         >
           {Object.keys(files).map((name) => (
             <MenuItem key={name} value={name}>
@@ -75,17 +71,17 @@ export function SourceView({
           onClick={() =>
             navigator.clipboard
               .writeText(source)
-              .then(() => onNotify("コピーしました"))
-              .catch(() => onNotify("コピーできませんでした"))
+              .then(() => onNotify("Copied"))
+              .catch(() => onNotify("Copy failed"))
           }
         >
-          コピー
+          Copy
         </Button>
       </div>
       {target && showBack && (
         <div className="source-location">
           <Button startIcon={<ArrowBackRounded />} onClick={onBack}>
-            証明に戻る
+            Back to proof
           </Button>
           <code>
             {target.source?.file}:{target.source?.line}
@@ -96,7 +92,7 @@ export function SourceView({
         ref={viewport}
         className="source-code numbered-source"
         tabIndex={0}
-        aria-label="ファイルの内容"
+        aria-label="File contents"
       >
         {source.split("\n").map((line, i) => {
           const active =

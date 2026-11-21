@@ -46,29 +46,30 @@ export function ArtifactPanel({
     if (tab === "proof") setVisitedProof(true);
   }, [tab]);
   return (
-    <section className="artifact-panel" aria-label="実装と検証">
+    <section
+      className="artifact-panel"
+      aria-label="Implementation and verification"
+    >
       <header className="artifact-panel-heading">
         <div>
           <Typography variant="h2">{workspace.name}</Typography>
           <Typography variant="caption" color="text.secondary">
-            {workspace.id === DEMO_WORKSPACE_ID
-              ? "meden-demo"
-              : "ワークスペース"}
+            {workspace.id === DEMO_WORKSPACE_ID ? "meden-demo" : "Workspace"}
           </Typography>
         </div>
-        <IconButton aria-label="パネルを閉じる" onClick={onClose}>
+        <IconButton aria-label="Close panel" onClick={onClose}>
           <CloseRounded fontSize="small" />
         </IconButton>
       </header>
       <Tabs
         value={tab}
         onChange={(_, value: ArtifactTab) => onTab(value)}
-        aria-label="実装と検証のタブ"
+        aria-label="Implementation and verification tabs"
       >
         {[
-          ["code", "コード"],
-          ["preview", "プレビュー"],
-          ["proof", "証明"],
+          ["code", "Code"],
+          ["preview", "Preview"],
+          ["proof", "Proof"],
         ].map(([value, label]) => (
           <Tab
             key={value}
@@ -110,7 +111,7 @@ export function ArtifactPanel({
               <VendingPreview />
             ) : (
               <div className="panel-empty">
-                このワークスペースにはプレビューがありません。
+                No preview is available in this workspace.
               </div>
             ))}
         </div>

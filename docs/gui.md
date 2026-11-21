@@ -26,8 +26,8 @@ Select a declaration to open a filename tab containing its source and reference
 graph side by side. Source uses the existing browser Shiki Lean/Rust highlighting;
 line numbers and selected source locations remain separate from token colors.
 Selecting another declaration updates the source line; returning
-to the project map preserves the scene and camera. At compact widths, **ファイル**
-and **チャット** open side panels and the file split stacks vertically.
+to the project map preserves the scene and camera. At compact widths, **Files**
+and **Chat** open side panels and the file split stacks vertically.
 There are no separate graph/code/preview/settings mode tabs. Preview opens through
 its play icon as a temporary editor tab. The explorer heading shows the shortened
 workspace path and one refresh icon; the map has no refresh or project-whole button.
@@ -38,7 +38,7 @@ React Flow supplies the retained pan/zoom camera. Increasing zoom fades in neste
 categories, files, then declaration nodes and reference lines in those same coordinates.
 Zoom never dispatches extraction or switches views. A minimap keeps the current
 position visible. The map contains lexical reference candidates, not compiler
-proof evidence. The optional tools action **コンパイル後の依存を抽出** recompiles
+proof evidence. The optional tools action **Extract compiled dependencies** recompiles
 the selected source and its imports to extract elaborated dependencies (at most
 32 files / 16 MiB). Its tooltip explains this scope. It has no permanent file-toolbar
 button and is not required for source navigation;
@@ -53,13 +53,13 @@ Native file graphs have no center/scope dropdowns; select a node directly to nav
 
 The model tag lives in the chat composer. Select it to choose this computer's
 Hermes, Codex, Claude or HTTP server connection and model. Review the exact fixed
-destination/model in the model picker before choosing **このモデルを使用**.
+destination/model in the model picker before choosing **Use this model**.
 Selecting provider/model updates the native binding directly; there are no list-refresh,
 connection-selection or host-settings-refresh buttons. The picker retains the exact
 endpoint and selected model within the fully visible approval heading. Credentials remain
 on the host and never enter the browser or project files. Switching a connection
-revokes its predecessor; stale review cannot approve the replacement. The header
-contains the project name and compact navigation, with no connection warning banner.
+revokes its predecessor; stale review cannot approve the replacement. The header shows only Meden and compact navigation, without a duplicated project name
+or connection warning banner. All product labels and accessibility names are English.
 Conversation errors and stopped model work appear in chat. File reads never produce
 chat activity, button-state changes or transcript scrolling. Conversation messages,
 history and composer state are memoized from their actual presentation inputs;
@@ -67,8 +67,14 @@ inspection does not checkpoint conversation/portable history. Chat submissions a
 queued until an existing host operation settles, with waiting shown only after a
 chat send. Compiler progress, failures and cancellation stay with the file graph.
 Cached references remain visible during compilation and after failure. Retained conversation streams have
-session dividers; task notes and actual Lean check records appear in that same chat.
-**作業・履歴** opens explicit record management rather than a separate workspace tab.
+session dividers. Work items, saved checks and tool records open through the composer’s
+**Work history** icon; they no longer form task trees above the conversation.
+Stopped responses use a compact inline disclosure at the end of the transcript.
+Cancellation is not an error banner; actual failures retain an accessible inline alert.
+Long user/assistant messages fold by rendered height, with Show more / Show less.
+Drag either sidebar separator to resize it; arrow keys also resize it, and Home or
+a double click resets the width. Width preferences are saved per workspace.
+On compact screens the separators hide and the side panels use their normal drawers.
 
 Optional `--provider YOUR_PROVIDER --model YOUR_MODEL` preselects a connection.
 Use `meden providers` to list existing host connections, or supply
@@ -104,16 +110,16 @@ boundary; ordinary `diff` is included among independently selected public tools.
 Conversation and project journals remain host JSON files outside the writable
 repository. Close the GUI command, then open `meden tui --workspace ...` to
 continue; the same repository lock prevents concurrent native writers. Closing
-the tab does not stop an active host turn: use **実行を中止** or stop the host.
+the tab does not stop an active host turn: use **Stop** or stop the host.
 SIGINT/SIGTERM cancels managed work and waits for the session checkpoint.
 A new instruction starts an explicit new turn after a failure/cancellation;
 provider failures are not silently retried. Unsent input remains tab/browser data.
 
-**現在の証拠を確認** rechecks the accepted source/evidence binding. File inspection
+**Check current evidence** rechecks the accepted source/evidence binding. File inspection
 and completed turns also refresh status; polling alone is not a filesystem watcher.
 Logs/partial reasoning in this initial adapter last for the host process, while
 conversation text and admitted model history persist. The file reader uses the
-native tool's bounded 200-line pages. **前のページ** / **次のページ** navigate
+native tool's bounded 200-line pages. **Previous page** / **Next page** navigate
 long proof files; source line numbers identify the current range.
 Native preview, selected-module Lean Atlas
 extraction, delivery, Lake dependency discovery and separate-model meaning
@@ -121,10 +127,10 @@ judgment are described below with their current bounds.
 
 ## Portable work and check history
 
-**作業・履歴** stores a project's named work items, original requirements, theorem
+**Work history** stores a project's named work items, original requirements, theorem
 names, next steps, progress notes and visible conversation in
 `.meden/workspace.json`. Completed turns checkpoint the visible conversation;
-**会話と作業を保存** checkpoints it explicitly. Raw model reasoning, API keys, processor
+**Save conversation and work** checkpoints it explicitly. Raw model reasoning, API keys, processor
 grants and native accepted contracts are not exported to that file. Check the
 visible conversation before publishing it: project text may contain private data.
 
@@ -136,16 +142,16 @@ git clone --branch YOUR_WORK_BRANCH YOUR_FORK_URL project
 meden gui --workspace "$PWD/project" --provider YOUR_PROVIDER --model YOUR_MODEL
 ```
 
-Saved visible conversations already appear in chat. Use the task in chat or open **作業・履歴**, select a task,
-inspect its saved output or **証明コードを読む**,
-and use **この作業を再開** after reviewing the new processor connection. The
+Saved visible conversations already appear in chat. Use the task in chat or open **Work history**, select a task,
+inspect its saved output or **Read proof source**,
+and use **Resume this work item** after reviewing the new processor connection. The
 selected task becomes a new user instruction with its original requirement,
 next step, recent history and bounded excerpts of recent visible conversation.
 The complete saved text remains available in the panel. Imported conversation is context;
 it is not replayed as system messages or restored tool authority. Each device
 keeps its credentials and native session data outside the repository.
 
-**Leanを再チェック** needs no model approval. Install the exact distribution named
+**Recheck with Lean** needs no model approval. Install the exact distribution named
 by `lean-toolchain` through Elan and prepare the project's pinned dependencies
 before checking. An explicit host `MEDEN_PROJECT_LEAN` selects an installed
 distribution instead. This adapter neither installs tools nor downloads dependencies.
@@ -196,7 +202,7 @@ explicit confined Lake execution; its command result alone is not proof authorit
 
 ## Native delivery review
 
-Ask the agent to prepare a file for a specified HTTP destination. **送信提案を確認** appears beside the conversation only when a proposal exists and shows the
+Ask the agent to prepare a file for a specified HTTP destination. **Review delivery** appears beside the conversation only when a proposal exists and shows the
 same immutable export queue as the TUI: `propose_export` prepares an ordinary file
 only without a project contract; `propose_artifact_export` prepares the retained
 checked package and requires current accepted meaning/evidence. Neither tool sends
@@ -205,9 +211,9 @@ the retained request.
 
 Open **内容と宛先を確認** to inspect the exact destination, method/content type,
 payload length, SHA-256 and contract identity. Those fields remain above a separate
-scrolling byte view; **前の内容** / **次の内容** move through 2 KiB pages. Hex and
+scrolling byte view; **Previous bytes** / **Next bytes** move through 2 KiB pages. Hex and
 printable ASCII show the frozen bytes without interpreting them as HTML or terminal
-controls. **この宛先へ1回送信** and **この配送を拒否** operate on that displayed
+controls. **Send once to this destination** and **Reject this delivery** operate on that displayed
 reference and host review sequence. Sending is disabled if the complete heading
 does not fit visibly. This browser geometry check is a tested UI adapter, not the
 Crossterm predicate's Rust-to-Lean refinement or a display-authenticity proof.
@@ -231,10 +237,10 @@ HTTP remain adapters; this integration does not complete whole R1.
 
 ## Native application preview
 
-Ask the agent to create a browser application using local files. In **プレビュー**,
-choose **公開フォルダ（ワークスペース内）** (for example `public` for plain HTML/JS,
+Ask the agent to create a browser application using local files. In **Preview**,
+choose **Public folder (inside workspace)** (for example `public` for plain HTML/JS,
 or `dist` for an already built Vite app), the entry HTML filename, then
-**ファイルを読み直してプレビュー**. The actual local application runs in the panel;
+**Reload files and preview**. The actual local application runs in the panel;
 root-relative module imports, CSS, images and same-bundle JSON reads are supported.
 Builds and tests still run through the ordinary offline tools. This static preview
 does not start a development server, install packages or support backend endpoints,
@@ -279,7 +285,7 @@ adds no Rust-to-Lean proof, application correctness or source-to-UI corresponden
 claim. In particular, a JavaScript mirror of checked Rust is still a separate
 implementation unless a further binding is established.
 
-The permanent **プロジェクトマップ** is always the default editor tab. The file tree
+The permanent **Project map** is always the default editor tab. The file tree
 reads actual directories, including non-Lean sources; clicking a file opens its code
 in the center. File tabs show their basename with the complete path available in the
 editor heading/title. Declaration selection prepares the same code tab at the
@@ -291,16 +297,17 @@ retain each original request and check both original/resolved paths under the sa
 partial/failed worker output is refused. These batches and the navigation parser are
 tested I/O adapters, not new Rust-to-Lean refinements. Hidden entries, symlinks, special
 files, `node_modules`, `target`, `dist` and `__pycache__` are excluded. Bounds are 10,000
-source files, 1 MiB per file, 128 MiB total, 65,536 directories, depth 32 and 300 seconds;
+source files for full declaration indexing, 1 MiB per file, 128 MiB total,
+65,536 directories, depth 32 and 300 seconds;
 each directory inventory is bounded at 10,000 entries and the traversal at one million.
 Failures and cancellation retain chat and show a retry action; no partial complete graph
 is installed. Completed model file/command checks trigger a fresh read of this overview.
 Concurrent host changes are not an atomic filesystem snapshot.
 
-The **Lean解析ツール** icon opens optional single-file selection and a closed
+The **Lean tools** icon opens optional single-file selection and a closed
 multi-file/environment section. Ordinary file-tree and map-node navigation needs
-no filename input or extraction action. **コンパイル後の依存を抽出** starts an explicit compiler
-job in the file split; **参照を更新** captures complete selected sources without
+no filename input or extraction action. **Extract compiled dependencies** starts an explicit compiler
+job in the file split; **Refresh references** captures complete selected sources without
 compiler import traversal. A job cannot silently replace a source candidate with
 proof evidence. Tool inputs/results and checkpoint notices live in a closed inline
 chat record, without a separate execution-log button.
@@ -317,14 +324,26 @@ local references from those files. Nested comments/literals are masked, Lean
 namespaces and private declarations are tracked, and unknown edge kinds remain
 conservative. Imported modules, elaboration, type-class resolution, macros and
 full dependency completeness are outside this index. Every indexed declaration
-starts **証明は未確認**; source `sorry`, audit-looking comments or model output
+starts **Proof unchecked**; source `sorry`, audit-looking comments or model output
 cannot produce proof evidence. Select a node and open its exact highlighted
 source line in the shared syntax-highlighted source reader. The
 following recorded-demo documentation describes a separate standalone mode.
 
+## Large source inventories
+
+Projects with more than 10,000 Lean/Rust sources use a complete file inventory instead
+of parsing every declaration up front. The bounded inventory admits up to 250,000 files
+and 100,000 entries per directory. Unread files have indexed=false, no source hash and
+no declared proof information; file-count weights keep map coordinates stable.
+Opening a file enriches its lexical references and follows nearby import-only barrel
+modules, with at most 32 inspected files per operation. Local source paths must resolve
+to an inventory entry; ambiguous suffix matches are not selected. This does not build
+Lean or establish a complete import closure. Refresh the map after external edits.
+The actual Riemann clone exercises all 175,187 files; its whole Lean build is not claimed.
+
 ## Native Lean Atlas extraction
 
-With an installed Lean distribution, open a local Lean file and use the optional tools action **コンパイル後の依存を抽出**. The first explicit extraction
+With an installed Lean distribution, open a local Lean file and use the optional tools action **Extract compiled dependencies**. The first explicit extraction
 automatically compiles the pinned public Atlas library offline without sending
 source to a model. The public TUI `/atlas` command performs the same preparation.
 Meden selects the workspace's `lean-toolchain` from installed Elan toolchains,
@@ -332,12 +351,12 @@ including a custom `ELAN_HOME`. Without a project pin it uses Elan's default,
 or a complete public distribution on the host PATH. It never runs a repository
 executable or invokes Elan to download a missing version during discovery.
 If the requested version is missing, the GUI shows its exact Elan install command;
-after installing it, choose **再検出** without restarting Meden. A different installed
+after installing it, choose **Rediscover** without restarting Meden. A different installed
 version cannot silently replace a missing project pin.
 `MEDEN_ATLAS_LEAN=/absolute/lean-root` remains an optional explicit host override.
 The public `meden setup-atlas --workspace PATH` command prepares the same library as the button.
 Existing corrupted Atlas resources are refused; open **抽出ツールの修復** and choose
-**依存抽出の準備** to rebuild them. This maintenance action is unnecessary for the
+**Prepare dependency extraction** to rebuild them. This maintenance action is unnecessary for the
 normal first extraction.
 It does not download Lean or replace the host's ordinary toolchain.
 `meden source-notices` displays the bundled Atlas and claimcheck source notices.
@@ -349,12 +368,12 @@ This is a separate host preparation step; Meden's coding and analysis workers st
 offline. Missing dependencies show their name, expected location and a preparation
 hint. They do not trigger a download or admit a partial compiled graph.
 
-Use **依存を調べるファイルを探す** to select an indexed file without typing its path.
+Use **Dependenciesを調べるFileを探す** to select an indexed file without typing its path.
 Start with one file in a large project. The advanced
-**Lakeターゲットを自動選択して表示** action selects Lake roots and still obeys the
+**Select Lake targets automatically** action selects Lake roots and still obeys the
 32-file closure limit. EthLib's
 `EthLib/Networking/Gossip/Parameters.lean` is a small starting point.
-**ソースの参照候補を表示** also works before dependency preparation; it shows
+**ソースのReference candidatesを表示** also works before dependency preparation; it shows
 lexical references, separately labelled from compiler-extracted dependencies.
 An unavailable file reports the actual requested path so it can be reselected.
 
@@ -373,7 +392,7 @@ constant classifier and type/value dependency functions run on the imported
 environment. Meden selects the observed modules, retains cross-module edges,
 adds compiler-printed statements/definition values and transitive axiom names,
 and records references outside those modules separately. Standard library and
-other external definitions are not expanded. **プロジェクト全体** includes disconnected
+other external definitions are not expanded. **Whole project** includes disconnected
 declarations; the focused views retain their own dependency cones.
 
 This path parses import headers with installed Lean and collects project-local
@@ -410,8 +429,8 @@ effects and extraction authenticity are not established by Meden's control proof
 
 ## Native meaning analysis
 
-After reading a source graph, select a declaration, enter **比較する要件** and choose
-**この宣言の意味を解析**. The reviewed processor receives two separate requests:
+After reading a source graph, select a declaration, enter **Requirement to compare** and choose
+**Analyze declaration meaning**. The reviewed processor receives two separate requests:
 first the selected declaration plus observed local files (or the elaborated Atlas
 scope above), without the separate
 requirement or conversation; then the requirement plus the back-translation,
@@ -426,10 +445,10 @@ model-selected execution is added. Only the two structured result functions are
 decoded as data; unexpected tool calls/fields/targets are refused, never executed.
 
 The result shows the frozen requirement, literal back-translation, preconditions,
-postcondition, scope and discrepancy/reasoning. **一致の候補** and **意味の差異候補**
+postcondition, scope and discrepancy/reasoning. **Candidate match** and **Candidate mismatch**
 are model assessments. A semantic match never marks a declaration proved, accepts
 native meaning or changes proof/export authority. Low-confidence or contradictory
-matches remain **判定保留**. This interface does not establish analyzer accuracy.
+matches remain **Undetermined**. This interface does not establish analyzer accuracy.
 Lexical mode is not complete elaborated scope; its source comments can still expose
 intent even though the separate requirement is withheld from translation. Atlas
 mode omits those source comments and theorem proof scripts from translation.
@@ -467,7 +486,7 @@ Repeated identical snapshots are shared. A changed retained artifact stops a new
 run instead of overwriting it. Historical data never restores a live graph or
 approval; fresh worker observations still gate execution.
 
-For a retained mismatch/unclear Finding, **このFindingの修正差分を作る** requests
+For a retained mismatch/unclear Finding, **Prepare patch for this Finding** requests
 one data-only repair to an observed source file. The original requirement and
 accepted native contract stay fixed. Review the destination, content hash,
 Finding/requirement identities, exact diff and explanation, then reject or apply
@@ -560,21 +579,21 @@ The production build is written to `apps/web/dist`.
 
 The left toolbar button opens or collapses the conversation sidebar, which
 contains history, message entry, search and settings. The upper-right
-“成果物を開く” button opens the **Code / Preview / Proof** sidebar. Narrow
+“Open artifact” button opens the **Code / Preview / Proof** sidebar. Narrow
 screens use drawers.
 
-| Goal                            | Entry and result                                                                                                                                                                                                       |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Start a conversation            | Send an instruction with the arrow or Enter; its title is automatic. Shift+Enter adds a newline.                                                                                                                       |
-| Read actual development history | Open the vending-machine conversation in the sidebar. Scroll to the supplied opening request or expand tool activity inline with its message.                                                                          |
-| Inspect recorded execution      | Expand each tool call for its actual arguments and output, including the Lean recursion-limit failure, verification retries, source edits and seven passing CLI tests.                                                 |
-| Inspect a proof                 | Open Proof: the radial graph shows related declarations, including incoming references. Select a node for its statement, status and direct dependencies.                                                               |
-| Open exact source               | Click the statement or file/line link; Code opens the retained file at the highlighted line. Return to Proof with selection intact.                                                                                    |
-| Change graph scope              | Search a declaration, center on it and return, or choose only outgoing dependencies / meaning-related dependencies. Pan and zoom remain available.                                                                     |
-| Inspect proof coverage          | Open the proof-count control for the eight property records. Source-only helpers without individual audit entries remain unconfirmed.                                                                                  |
-| Run the meaning-analysis GUI    | Choose “意味解析” inside Proof. A cancellable sequence opens the NG example at the ¥150 purchase threshold. The result puts the boundary case above the compared text. Switch between “一致例を表示” and “NG例を表示”. |
-| Edit or request review          | From the meaning result, inspect the retained requirement/theorem record, edit a draft or prepare a revision-bound review export. No extra top-level tab is added.                                                     |
-| Preserve work                   | Chat, drafts and edits survive reload. Failed storage retains the in-memory conversation and offers retry/export. Invalid imports keep current work.                                                                   |
+| Goal                            | Entry and result                                                                                                                                                                                                                                   |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Start a conversation            | Send an instruction with the arrow or Enter; its title is automatic. Shift+Enter adds a newline.                                                                                                                                                   |
+| Read actual development history | Open the vending-machine conversation in the sidebar. Scroll to the supplied opening request or expand tool activity inline with its message.                                                                                                      |
+| Inspect recorded execution      | Expand each tool call for its actual arguments and output, including the Lean recursion-limit failure, verification retries, source edits and seven passing CLI tests.                                                                             |
+| Inspect a proof                 | Open Proof: the radial graph shows related declarations, including incoming references. Select a node for its statement, status and direct dependencies.                                                                                           |
+| Open exact source               | Click the statement or file/line link; Code opens the retained file at the highlighted line. Return to Proof with selection intact.                                                                                                                |
+| Follow dependencies             | Select a declaration to inspect it; double-click to center its immediate uses and users. Pan and zoom remain available.                                                                                                                            |
+| Inspect proof coverage          | Open the proof-count control for the eight property records. Source-only helpers without individual audit entries remain unconfirmed.                                                                                                              |
+| Run the meaning-analysis GUI    | Choose “Meaning analysis” inside Proof. A cancellable sequence opens the NG example at the ¥150 purchase threshold. The result puts the boundary case above the compared text. Switch between “Show matching example” and “Show mismatch example”. |
+| Edit or request review          | From the meaning result, inspect the retained requirement/theorem record, edit a draft or prepare a revision-bound review export. No extra top-level tab is added.                                                                                 |
+| Preserve work                   | Chat, drafts and edits survive reload. Failed storage retains the in-memory conversation and offers retry/export. Invalid imports keep current work.                                                                                               |
 
 The vending conversation card shows the Rust implementation and Lean prover
 logos and opens the preview from anywhere on the card. Its list shows plain
@@ -701,16 +720,22 @@ versus blind back-translation view, without claiming integrated analysis quality
 
 ## Refined dependency explorer
 
-The default view uses actual MIT-licensed layout functions from Lean4SemanticBench:
-dependencies above the center, reverse references below it, parent-based ordering
-and radial spacing. Project Overview still shows the wider connected graph.
+File dependency views use the actual MIT-licensed layout functions from Lean4SemanticBench:
+uses above the center, used-by below it, parent barycenter ordering and adaptive radial
+spacing. The default shows one hop, as L4SB does; double-click a node to center its
+neighborhood. The project map remains the complete category/file navigation surface.
+The previous radial scope modes and their dropdown/history toolbar have been removed.
+Atlas meaning-review coloring walks from saved/main targets (or the focused theorem),
+excluding only known theorem-body dependencies and retaining definition-body dependencies.
+Unknown edge kinds remain unknown. No target means unknown scope. The colors label
+review scope, not whether a person checked it or whether native proof evidence was admitted.
 Hover and focus emphasize adjacent references while preserving the node's
 position and hit area.
 
-“グラフを広げる” or “広げて読む” opens a full-height graph with a docked reader.
+“Expand graph” or “Expand reader” opens a full-height graph with a docked reader.
 Its statement and syntax-highlighted Lean source scroll independently beside the
 graph. Code no longer depends on a clipped preview beneath the canvas. Source
-links retain exact line selection; “会話に戻る” returns to the chat. At small widths
+links retain exact line selection; “Back to conversation” returns to the chat. At small widths
 the reader uses the full expanded surface. [Source review and algorithm notes](research/2026-11-18-graph-ui.md).
 
 ## Checks and reviewed screens

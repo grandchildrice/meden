@@ -33,16 +33,16 @@ export function NativeDependencyGraph({
     .map((x) => x.trim())
     .filter(Boolean);
   return (
-    <section className="file-analysis-tools" aria-label="Lean解析ツール">
+    <section className="file-analysis-tools" aria-label="Lean tools">
       <Autocomplete
         size="small"
         options={overview?.files.map((f) => f.path) || []}
         value={paths.includes("\n") ? null : paths || null}
         onChange={(_, file) => onPaths(file || "")}
-        renderInput={(params) => <TextField {...params} label="ファイル" />}
+        renderInput={(params) => <TextField {...params} label="File" />}
       />
       <div className="file-tool-actions">
-        <Tooltip title="対象と依存先をLeanでコンパイルし、型や本体の参照を抽出します。最大32ファイル・合計16 MiB。通常の閲覧には不要です。">
+        <Tooltip title="Compile the selected modules and imports to extract type and body references. Maximum 32 files / 16 MiB. Not needed for browsing.">
           <span>
             <Button
               variant="contained"
@@ -56,7 +56,7 @@ export function NativeDependencyGraph({
                 void onCommand({ type: "atlas_snapshot", paths: selected })
               }
             >
-              コンパイル後の依存を抽出
+              Extract compiled dependencies
             </Button>
           </span>
         </Tooltip>
@@ -66,11 +66,12 @@ export function NativeDependencyGraph({
             void onCommand({ type: "source_snapshot", paths: selected })
           }
         >
-          参照を更新
+          Refresh references
         </Button>
       </div>
       <Typography variant="body2">
-        ソース閲覧用の参照グラフは準備済みです。この抽出はLeanのコンパイルを伴う追加操作です。
+        The browsing reference graph is ready. This optional extraction runs the
+        Lean compiler.
       </Typography>
       {!state.atlas.available && (
         <Alert severity="info">
@@ -79,14 +80,14 @@ export function NativeDependencyGraph({
             disabled={running}
             onClick={() => void onCommand({ type: "refresh_status" })}
           >
-            再検出
+            Rediscover
           </Button>
         </Alert>
       )}
       <details>
-        <summary>複数ファイル・環境設定</summary>
+        <summary>Multiple files and environment</summary>
         <TextField
-          label="グラフの対象ファイル（1行に1つ）"
+          label="Graph source files (one per line)"
           fullWidth
           multiline
           minRows={2}
@@ -101,22 +102,23 @@ export function NativeDependencyGraph({
             void onCommand({ type: "atlas_snapshot", paths: [] });
           }}
         >
-          Lakeターゲットを自動選択して表示
+          Select Lake targets automatically
         </Button>
         <Typography variant="body2">
           Lean Atlas:{" "}
           {state.atlas.prepared
-            ? "オフライン抽出の準備済み"
-            : "初回の解析時に準備します"}
+            ? "Offline extraction ready"
+            : "Prepared on first extraction"}
         </Typography>
         <Button
           disabled={running || !state.atlas.available}
           onClick={() => void onCommand({ type: "prepare_atlas" })}
         >
-          依存抽出の準備
+          Prepare dependency extraction
         </Button>
         <p>
-          Mathlibなどの依存はプロジェクト側で準備します。Medenは解析中にダウンロードしません。
+          Prepare dependencies such as Mathlib in the project. Meden does not
+          download them during analysis.
         </p>
       </details>
     </section>

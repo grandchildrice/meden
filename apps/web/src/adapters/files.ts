@@ -8,12 +8,12 @@ import { importAtlas } from "@meden/atlas-adapter";
 const MAX_IMPORT_BYTES = 16 * 1024 * 1024;
 export async function readWorkspaceFile(file: File): Promise<Workspace> {
   if (file.size > MAX_IMPORT_BYTES)
-    throw new Error("16 MB以下のJSONファイルを選んでください。");
+    throw new Error("Choose a JSON file no larger than 16 MB.");
   let data: unknown;
   try {
     data = JSON.parse(await file.text());
   } catch {
-    throw new Error("JSONを読み込めません。ファイルの形式を確認してください。");
+    throw new Error("Could not parse JSON. Check the file format.");
   }
   try {
     if (typeof data === "object" && data !== null && "schemaVersion" in data)
@@ -22,7 +22,7 @@ export async function readWorkspaceFile(file: File): Promise<Workspace> {
     return { ...createWorkspace(graph.name), ...graph, origin: "imported" };
   } catch {
     throw new Error(
-      "MedenワークスペースまたはLean Atlasのグラフ形式を確認してください。要件・宣言・根拠の参照先も必要です。",
+      "Check the Meden workspace or Lean Atlas graph format, including requirement, declaration and evidence references.",
     );
   }
 }

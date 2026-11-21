@@ -41,7 +41,7 @@ impl Default for Status {
         }
     }
 }
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub(super) struct File {
     path: String,
     sha256: String,
@@ -50,9 +50,10 @@ pub(super) struct File {
     theorems: usize,
     imports: Vec<String>,
     symbols: Vec<Symbol>,
+    indexed: bool,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 struct Symbol {
     name: String,
     line: usize,
@@ -61,11 +62,12 @@ struct Symbol {
     private: bool,
     references: Vec<String>,
 }
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub(super) struct Snapshot {
     pub revision: String,
     files: Vec<File>,
     excluded: Vec<&'static str>,
+    inventory_only: bool,
 }
 #[derive(Deserialize)]
 struct Entry {
@@ -79,7 +81,7 @@ pub(super) fn refresh(view: &Mutex<View>, workspace: &Workspace, control: &Contr
         let mut view = lock(view);
         view.overview = Status::default();
         view.overview_snapshot = None;
-        view.activity = "ワークスペース全体のファイルと契約・証明を読み込み中".into();
+        view.activity = "Reading workspace sources and proof declarations".into();
     }
     let result = capture(view, workspace, control);
     let mut view = lock(view);
@@ -89,7 +91,7 @@ pub(super) fn refresh(view: &Mutex<View>, workspace: &Workspace, control: &Contr
             view.overview.scanned = snapshot.files.len();
             view.overview.revision = Some(snapshot.revision.clone());
             view.overview_snapshot = Some(Arc::new(snapshot));
-            view.activity = "ワークスペース全体を読み込みました".into();
+            view.activity = "Workspace loaded".into();
             Ok(())
         }
         Err(error) => {
@@ -123,7 +125,7 @@ fn capture(view: &Mutex<View>, workspace: &Workspace, control: &Control) -> Resu
                 .iter()
                 .map(|(path, _)| path.clone())
                 .collect::<Vec<_>>(),
-            &json!({"entries":true,"max_entries":10000}),
+            &json!({"entries":true,"max_entries":100_000}),
             started,
         )?;
         for ((directory, depth), value) in batch.into_iter().zip(values) {
@@ -160,8 +162,8 @@ fn capture(view: &Mutex<View>, workspace: &Workspace, control: &Control) -> Resu
                 {
                     paths.push(path);
                     anyhow::ensure!(
-                        paths.len() <= 10_000,
-                        "Workspace index exceeds 10000 source files"
+                        paths.len() <= 250_000,
+                        "Workspace inventory exceeds 250000 source files"
                     );
                 }
                 // Inventory symlinks and special files are never followed.
@@ -170,13 +172,132 @@ fn capture(view: &Mutex<View>, workspace: &Workspace, control: &Control) -> Resu
     }
     paths.sort();
     lock(view).overview.total = paths.len();
-    let files = source_files(view, workspace, control, &paths, started)?;
+    let inventory_only = paths.len() > 10_000;
+    let files = if inventory_only {
+        // Keep a complete file inventory without parsing gigabytes of declarations.
+        // Individual files are indexed through the same policy-bound read on open.
+        paths
+            .iter()
+            .map(|path| File {
+                path: path.clone(),
+                sha256: String::new(),
+                bytes: 0,
+                declarations: 0,
+                theorems: 0,
+                imports: Vec::new(),
+                symbols: Vec::new(),
+                indexed: false,
+            })
+            .collect()
+    } else {
+        source_files(view, workspace, control, &paths, started)?
+    };
     let revision = format!("sha256:{:x}", Sha256::digest(serde_json::to_vec(&files)?));
     Ok(Snapshot {
         revision,
         files,
         excluded: EXCLUDED.to_vec(),
+        inventory_only,
     })
+}
+
+/// Expand a large project's opened file and nearby import-only modules.
+/// Unread files remain explicit inventory entries, never compiler evidence.
+pub(super) fn index_opened_file(
+    view: &Mutex<View>,
+    workspace: &Workspace,
+    control: &Control,
+    path: &str,
+) -> Result<()> {
+    let snapshot = lock(view).overview_snapshot.clone();
+    let Some(snapshot) =
+        snapshot.filter(|s| s.inventory_only && s.files.iter().any(|f| f.path == path))
+    else {
+        return Ok(());
+    };
+    let mut root = snapshot
+        .files
+        .first()
+        .and_then(|f| f.path.rsplit_once('/'))
+        .map_or("", |(dir, _)| dir)
+        .to_owned();
+    while !root.is_empty()
+        && snapshot
+            .files
+            .iter()
+            .any(|f| !f.path.starts_with(&format!("{root}/")))
+    {
+        root = root.rsplit_once('/').map_or("", |(dir, _)| dir).to_owned();
+    }
+    let resolve = |module: &str| -> Option<String> {
+        let relative = format!("{}.lean", module.replace('.', "/"));
+        for candidate in [format!("{root}/{relative}"), relative.clone()] {
+            if snapshot
+                .files
+                .binary_search_by(|f| f.path.cmp(&candidate))
+                .is_ok()
+            {
+                return Some(candidate);
+            }
+        }
+        let suffix = format!("/{relative}");
+        let mut matches = snapshot.files.iter().filter(|f| f.path.ends_with(&suffix));
+        let found = matches.next()?;
+        matches.next().is_none().then(|| found.path.clone())
+    };
+    let started = Instant::now();
+    let mut indexed = source_files(view, workspace, control, &[path.to_owned()], started)?;
+    let mut seen = BTreeSet::from([path.to_owned()]);
+    let mut cursor = 0;
+    while cursor < indexed.len() && indexed.len() < 32 {
+        let file = indexed.get(cursor).context("Invalid navigation cursor")?;
+        let neighbors = if cursor == 0 || file.declarations == 0 {
+            file.imports
+                .iter()
+                .filter_map(|module| resolve(module))
+                .filter(|p| seen.insert(p.clone()))
+                .take(32usize.saturating_sub(indexed.len()))
+                .collect::<Vec<_>>()
+        } else {
+            Vec::new()
+        };
+        if !neighbors.is_empty() {
+            indexed.extend(source_files(view, workspace, control, &neighbors, started)?);
+        }
+        cursor = cursor.saturating_add(1);
+    }
+    let mut view = lock(view);
+    if let Some(snapshot) = view.overview_snapshot.as_mut() {
+        let snapshot = Arc::make_mut(snapshot);
+        let changed = indexed.iter().any(|file| {
+            snapshot
+                .files
+                .binary_search_by(|old| old.path.cmp(&file.path))
+                .ok()
+                .and_then(|i| snapshot.files.get(i))
+                .is_some_and(|old| old.sha256 != file.sha256)
+        });
+        if !changed {
+            return Ok(());
+        }
+        let revision = format!(
+            "sha256:{:x}",
+            Sha256::digest(serde_json::to_vec(&(&snapshot.revision, &indexed))?)
+        );
+        for file in indexed {
+            if let Ok(index) = snapshot
+                .files
+                .binary_search_by(|old| old.path.cmp(&file.path))
+            {
+                if let Some(original) = snapshot.files.get_mut(index) {
+                    *original = file;
+                }
+            }
+        }
+        snapshot.revision.clone_from(&revision);
+        view.overview.revision = Some(revision);
+    }
+    Ok(())
 }
 
 fn source_files(
@@ -243,10 +364,13 @@ fn source_files(
                                             .extension()
                                             .is_some_and(|ext| ext == "lean"),
                                     ),
+                                    indexed: true,
                                 },
                             );
                             let mut view = lock(view);
-                            view.overview.scanned = view.overview.scanned.saturating_add(1);
+                            if view.overview.state == "loading" {
+                                view.overview.scanned = view.overview.scanned.saturating_add(1);
+                            }
                         }
                     }
                     Ok(())

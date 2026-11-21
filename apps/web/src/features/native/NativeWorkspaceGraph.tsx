@@ -126,7 +126,7 @@ function Scene({ data }: NodeProps<SceneNode>) {
       className="continuous-map-scene"
       width={MAP_WIDTH}
       height={MAP_HEIGHT}
-      aria-label="同じ座標に保持されたプロジェクト"
+      aria-label="Project in stable coordinates"
       data-scene-revision="fixed"
     >
       {visible.map(({ area: a, opacity: alpha }) => (
@@ -140,7 +140,7 @@ function Scene({ data }: NodeProps<SceneNode>) {
           role="button"
           tabIndex={alpha > 0.5 ? 0 : -1}
           aria-hidden={alpha <= 0.5}
-          aria-label={`${a.file ? "依存関係" : "カテゴリ"}: ${a.path}`}
+          aria-label={`${a.file ? (a.file.indexed ? "Dependencies" : "File") : "Category"}: ${a.path}`}
           onClick={(e) => {
             e.stopPropagation();
             data.focus(a.path);
@@ -213,7 +213,7 @@ function Scene({ data }: NodeProps<SceneNode>) {
               role="button"
               tabIndex={alpha > 0.5 ? 0 : -1}
               aria-hidden={alpha <= 0.5}
-              aria-label={`宣言: ${symbol.name} · ${symbol.file}:${symbol.line}`}
+              aria-label={`Declaration: ${symbol.name} · ${symbol.file}:${symbol.line}`}
               aria-description={symbol.role.label}
               data-declaration-role={symbol.role.id}
               opacity={alpha}
@@ -254,11 +254,13 @@ export function NativeWorkspaceGraph({
   state,
   selectedId,
   onSelect,
+  onOpen,
 }: {
   scene?: MapScene;
   state: NativeState;
   selectedId?: string;
   onSelect: (symbol: Symbol) => void;
+  onOpen: (path: string) => void;
 }) {
   const [canvas, setCanvas] = useState<HTMLDivElement | null>(null);
   const [flow, setFlow] = useState<ReactFlowInstance<SceneNode>>();
@@ -268,6 +270,7 @@ export function NativeWorkspaceGraph({
   const initial = useRef(false);
   const focus = (path: string) => {
     const a = scene?.byPath.get(path);
+    if (a?.file && !a.file.indexed) onOpen(path);
     if (flow)
       void flow.fitBounds(
         a
@@ -335,19 +338,24 @@ export function NativeWorkspaceGraph({
   );
   return (
     <section
-      aria-label="プロジェクトマップ"
+      aria-label="Project map"
       className="workspace-overview continuous-map"
     >
+      {scene?.inventoryOnly && (
+        <span className="map-inventory-note">
+          File map · declarations load when opened
+        </span>
+      )}
       {state.overview.state === "loading" && (
-        <LinearProgress aria-label="マップを準備中" />
+        <LinearProgress aria-label="Preparing map" />
       )}
       {state.overview.error && (
         <Alert severity="error">
-          地図を更新できませんでした。{state.overview.error}
+          Could not refresh the map. {state.overview.error}
         </Alert>
       )}
       {location && (
-        <nav className="map-breadcrumbs" aria-label="マップの位置">
+        <nav className="map-breadcrumbs" aria-label="Map location">
           {location
             .split("/")
             .filter(Boolean)
@@ -404,20 +412,23 @@ export function NativeWorkspaceGraph({
             }
             setLocation(a?.path || "");
           }}
-          aria-label="連続ズームのプロジェクトマップ"
+          aria-label="Continuous project map"
         >
           <Controls showInteractive={false} />
         </ReactFlow>
         {scene?.areas.some(
           (a) => a.file && Math.min(a.width, a.height) * camera.zoom > 320,
         ) && (
-          <div className="map-declaration-legend" aria-label="宣言の種類">
+          <div
+            className="map-declaration-legend"
+            aria-label="Declaration types"
+          >
             {declarationRoles.map((role) => (
               <span
                 key={role.id}
                 title={
                   role.id === "main_theorem"
-                    ? "保存された作業で証明対象に指定された宣言。証明済みという意味ではありません。"
+                    ? "Explicit proof target in saved work. This does not indicate verified status."
                     : role.label
                 }
               >
@@ -430,7 +441,7 @@ export function NativeWorkspaceGraph({
           <svg
             className="project-minimap"
             viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
-            aria-label="全体に対する現在位置"
+            aria-label="Position in the whole project"
           >
             {scene.areas
               .filter((a) => a.depth === 1)

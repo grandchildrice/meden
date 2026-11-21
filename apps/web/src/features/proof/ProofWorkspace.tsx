@@ -72,7 +72,7 @@ export function ProofWorkspace({
       <header className="proof-workspace-heading">
         <details className="proof-obligations">
           <summary>
-            <span>証明の状態</span>
+            <span>Proof status</span>
             <Chip
               size="small"
               className="status-chip positive"
@@ -97,9 +97,9 @@ export function ProofWorkspace({
           </div>
         </details>
         <div className="meaning-actions">
-          <Tooltip title="グラフを広げる">
+          <Tooltip title="Expand graph">
             <IconButton
-              aria-label="グラフを広げる"
+              aria-label="Expand graph"
               onClick={() => setExpanded(true)}
             >
               <OpenInFullRounded fontSize="small" />
@@ -113,7 +113,7 @@ export function ProofWorkspace({
               setMode("run");
             }}
           >
-            意味解析
+            Meaning analysis
           </Button>
           <SemanticMethodInfo />
         </div>
@@ -149,17 +149,17 @@ export function ProofWorkspace({
           />
         )}
       </div>
-      <Tooltip title="保存されたLeanソース内の参照を表示しています。Leanによる完全な依存抽出ではなく、標準ライブラリは省略しています。">
+      <Tooltip title="References in saved Lean sources. This is not complete compiler dependency extraction; standard libraries are omitted.">
         <div className="proof-scope-note">
           {workspace.id === "meden-demo-vending"
-            ? "保存ソースの参照 · 純粋なstepが検証対象 · CLI・I/Oは対象外"
-            : "読み込んだ宣言の参照 · 検証範囲は元の記録を参照"}
+            ? "Saved source references · Pure step verified · CLI and I/O excluded"
+            : "Imported declaration references · See original records for verification scope"}
         </div>
       </Tooltip>
     </div>
   );
   return (
-    <section className="proof-workspace" aria-label="証明ワークスペース">
+    <section className="proof-workspace" aria-label="Proof workspace">
       <Suspense
         fallback={
           <div className="loading">
@@ -178,11 +178,13 @@ export function ProofWorkspace({
           <header className="expanded-proof-header">
             <div>
               <Typography variant="h2" id="expanded-proof-title">
-                証明の依存関係
+                Proof dependencies
               </Typography>
               <span>{workspace.name}</span>
             </div>
-            <Button onClick={() => setExpanded(false)}>会話に戻る</Button>
+            <Button onClick={() => setExpanded(false)}>
+              Back to conversation
+            </Button>
           </header>
           {board}
         </Dialog>
@@ -200,7 +202,7 @@ export function ProofWorkspace({
               startIcon={<ArrowBackRounded />}
               onClick={() => setMode("graph")}
             >
-              グラフに戻る
+              Back to graph
             </Button>
             {mode === "compare" ? (
               <AnalysisView

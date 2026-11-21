@@ -115,13 +115,15 @@ describe("recorded meden-demo and UI preview", () => {
     ).toBe(true);
   });
   it("derives conversation titles from instructions, never a separate naming form", () => {
-    expect(titleFromInstruction("自販機を作ってください")).toBe(
-      "自販機シミュレーター",
+    expect(titleFromInstruction("Build a vending machine")).toBe(
+      "Vending machine simulator",
     );
-    expect(titleFromInstruction("  購入条件を確認して\n境界も調べて")).toBe(
-      "購入条件を確認して",
-    );
-    expect(titleFromInstruction("")).toBe("新しい会話");
+    expect(
+      titleFromInstruction(
+        "  Check purchase conditions\nAlso check the boundaries",
+      ),
+    ).toBe("Check purchase conditions");
+    expect(titleFromInstruction("")).toBe("New conversation");
   });
   it("preserves rejected purchases and exactly changes balance/stock on success", () => {
     const empty = { balance: 100n, stock: 2n, refunded: 7n };

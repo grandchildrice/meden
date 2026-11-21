@@ -43,7 +43,7 @@ export function ProofInspector({
   return (
     <aside
       className={"proof-inspector " + (wide ? "docked" : "peek")}
-      aria-label="選択した証明"
+      aria-label="Selected proof"
     >
       <header className="inspector-heading">
         <div>
@@ -52,7 +52,7 @@ export function ProofInspector({
           </Typography>
           <code>{selected.name}</code>
         </div>
-        <IconButton aria-label="証明の詳細を閉じる" onClick={onClose}>
+        <IconButton aria-label="Close proof details" onClick={onClose}>
           <CloseRounded fontSize="small" />
         </IconButton>
       </header>
@@ -60,10 +60,10 @@ export function ProofInspector({
         <Tabs
           value={reader}
           onChange={(_, value: "statement" | "source") => onReader(value)}
-          aria-label="宣言の表示"
+          aria-label="Declaration view"
         >
-          <Tab value="statement" label="説明" />
-          <Tab value="source" label="Leanソース" />
+          <Tab value="statement" label="Statement" />
+          <Tab value="source" label="Lean source" />
         </Tabs>
       )}
       {wide && reader === "source" ? (
@@ -78,7 +78,7 @@ export function ProofInspector({
         <div
           className="inspector-reading"
           tabIndex={wide ? 0 : undefined}
-          aria-label={wide ? "証明の説明" : undefined}
+          aria-label={wide ? "Proof statement" : undefined}
         >
           <div className="inspector-proof-status">
             {selected.kind === "theorem" && (
@@ -91,10 +91,10 @@ export function ProofInspector({
           <button className="proof-statement-link" onClick={onSource}>
             {selected.summary && <p>{selected.summary}</p>}
             {!selected.statement && (
-              <p>宣言の本文はデータに含まれていません。</p>
+              <p>The declaration body is not included in this data.</p>
             )}
             <span>
-              Leanソースを開く <ArrowForwardRounded fontSize="small" />
+              Open Lean source <ArrowForwardRounded fontSize="small" />
             </span>
           </button>
           {wide && selected.statement && (
@@ -109,11 +109,11 @@ export function ProofInspector({
                 startIcon={<OpenInFullRounded />}
                 onClick={onExpand}
               >
-                広げて読む
+                Expand reader
               </Button>
             )}
             <Button size="small" onClick={onCenter}>
-              中心にする
+              Center here
             </Button>
             {analysisFor(workspace, { declarationId: selected.id }) && (
               <Button
@@ -125,14 +125,14 @@ export function ProofInspector({
                   )
                 }
               >
-                要件を確認
+                View requirement
               </Button>
             )}
           </div>
           {wide && (
             <>
               <Typography variant="h3" className="inspector-section-heading">
-                参照先 <span>{dependencies.length}</span>
+                References <span>{dependencies.length}</span>
               </Typography>
               <div className="inspector-dependencies">
                 {dependencies.map((edge) => (
@@ -145,7 +145,9 @@ export function ProofInspector({
                         (item) => item.id === edge.target,
                       )?.label || edge.target}
                     </span>
-                    <small>{edge.site === "type" ? "主張" : "証明"}</small>
+                    <small>
+                      {edge.site === "type" ? "Statement" : "Proof"}
+                    </small>
                   </button>
                 ))}
               </div>
@@ -155,7 +157,7 @@ export function ProofInspector({
                     variant="h3"
                     className="inspector-section-heading"
                   >
-                    使用公理
+                    Axioms used
                   </Typography>
                   <pre className="inspector-axioms">
                     {selected.axioms.join("\n")}

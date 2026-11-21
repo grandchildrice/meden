@@ -68,7 +68,11 @@ export function NativeExplorer({
         path = parent === "." ? name : parent + "/" + name,
         open = expanded.has(path);
       if (name === "[more entries omitted]")
-        return <li key={name}>このフォルダの一部は表示範囲外です。</li>;
+        return (
+          <li key={name}>
+            Some entries in this folder are outside the display limit.
+          </li>
+        );
       return (
         <li
           key={path}
@@ -81,7 +85,7 @@ export function NativeExplorer({
             style={{ paddingLeft: 8 + depth * 14 }}
             disabled={running}
             title={path}
-            aria-label={`${directory ? "フォルダ" : "ファイル"}: ${path}`}
+            aria-label={`${directory ? "Folder" : "File"}: ${path}`}
             onClick={() => {
               if (!directory) {
                 onOpen(path);
@@ -112,7 +116,7 @@ export function NativeExplorer({
       );
     });
   return (
-    <section className="explorer-tree" aria-label="ファイルエクスプローラー">
+    <section className="explorer-tree" aria-label="File explorer">
       <div className="explorer-title">
         <Typography
           className="explorer-workspace-path"
@@ -121,10 +125,10 @@ export function NativeExplorer({
         >
           {state.workspace.replace(/^\/home\/[^/]+/, "~")}
         </Typography>
-        <Tooltip title="ファイルとマップを更新">
+        <Tooltip title="Refresh files and map">
           <span>
             <IconButton
-              aria-label="ファイルとマップを更新"
+              aria-label="Refresh files and map"
               size="small"
               disabled={running}
               onClick={() => {
@@ -137,7 +141,7 @@ export function NativeExplorer({
           </span>
         </Tooltip>
       </div>
-      <ul role="tree" aria-label="フォルダとファイル">
+      <ul role="tree" aria-label="Folders and files">
         {tree(".", 0)}
       </ul>
     </section>
@@ -209,7 +213,9 @@ export function NativeCode({
   }, [path, line, current?.text]);
   if (!path)
     return (
-      <p className="explorer-empty">左のファイルを選んでコードを開きます。</p>
+      <p className="explorer-empty">
+        Choose a file on the left to open its source.
+      </p>
     );
   if (inspection?.path === path && inspection.error)
     return (
@@ -226,15 +232,15 @@ export function NativeCode({
             })
           }
         >
-          再試行
+          Retry
         </Button>
       </Alert>
     );
   return (
-    <section className="native-code-editor" aria-label="ソースコード">
+    <section className="native-code-editor" aria-label="Source code">
       {current ? (
         <>
-          <pre aria-label="ファイルの内容" tabIndex={0}>
+          <pre aria-label="File contents" tabIndex={0}>
             {rows.map((row, i) => (
               <span
                 key={i}
@@ -281,7 +287,7 @@ export function NativeCode({
                 })
               }
             >
-              前のページ
+              Previous page
             </Button>
             <Button
               disabled={running || !current.next_offset}
@@ -294,13 +300,13 @@ export function NativeCode({
                 })
               }
             >
-              次のページ
+              Next page
             </Button>
           </div>
         </>
       ) : (
         <div className="loading">
-          <CircularProgress size={22} aria-label="ファイルを読み込み中" />
+          <CircularProgress size={22} aria-label="Reading file" />
         </div>
       )}
     </section>

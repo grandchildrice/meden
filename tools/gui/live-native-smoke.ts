@@ -140,9 +140,9 @@ async function launch(port = 0) {
   });
   await page.goto(url);
   await expect(
-    page.getByRole("button", { name: "モデルを選択", exact: true }),
+    page.getByRole("button", { name: "Choose model", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "モデルを選択", exact: true }).click();
+  await page.getByRole("button", { name: "Choose model", exact: true }).click();
   await expect(
     page.getByRole("combobox", { name: "model", exact: true }),
   ).toHaveValue(values.model!);
@@ -151,7 +151,7 @@ async function launch(port = 0) {
     fullPage: true,
   });
   await page
-    .getByRole("button", { name: "このモデルを使用", exact: true })
+    .getByRole("button", { name: "Use this model", exact: true })
     .click();
   console.log("Processor reviewed through the browser");
   return Number(new URL(url).port);
@@ -180,9 +180,9 @@ try {
   const instruction =
     'Fix kernel.rs so can_purchase(balance: u64, stock: u64) returns true exactly when balance is at least 150 and stock is positive. Keep the existing tests.rs unchanged. Read the files first. Run rustc --edition=2021 --test tests.rs -o tests && ./tests. Also build an interactive browser app with the same rule: create public/index.html and public/app.js, using a module script and no packages, external services, server or persistent storage. Create the public directory if needed. The app must have number inputs labelled "Balance" (default 149) and "Stock" (default 1), a button named "Check purchase", and an output with aria-label="Purchase result". Clicking the button must show exactly "Allowed" or "Refused" using the rule. The browser implementation is an ordinary UI mirror, not a claimed binding or proof of Rust. This task needs ordinary code and tests, not a new formal contract.';
   await page
-    .getByRole("textbox", { name: "メッセージ", exact: true })
+    .getByRole("textbox", { name: "Message", exact: true })
     .fill(instruction);
-  await page.getByRole("button", { name: "送信", exact: true }).click();
+  await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect
     .poll(
       async () =>
@@ -218,18 +218,12 @@ try {
     independentResult.result?.exit_code !== 0
   )
     throw new Error("Independent original tests did not pass");
+  await page.getByRole("button", { name: "Preview app", exact: true }).click();
   await page
-    .getByRole("button", { name: "アプリをプレビュー", exact: true })
-    .click();
-  await page
-    .getByRole("textbox", { name: "公開フォルダ（ワークスペース内）" })
+    .getByRole("textbox", { name: "Public folder (inside workspace)" })
     .fill("public");
-  await page
-    .getByRole("button", { name: "ファイルを読み直してプレビュー" })
-    .click();
-  const preview = page.frameLocator(
-    'iframe[title="ローカルアプリのプレビュー"]',
-  );
+  await page.getByRole("button", { name: "Reload files and preview" }).click();
+  const preview = page.frameLocator('iframe[title="Local app preview"]');
   const browserCases: unknown[] = [];
   for (const [balance, stock, expected] of [
     [149, 1, "Refused"],
@@ -260,9 +254,9 @@ try {
   const target = `http://127.0.0.1:${(receiver.address() as { port: number }).port}/application`;
   const deliveryInstruction = `Prepare public/index.html as an immutable HTTP POST proposal to exactly ${target} using propose_export. Do not change any files. Do not send it; the human will review and approve through the GUI.`;
   await page
-    .getByRole("textbox", { name: "メッセージ", exact: true })
+    .getByRole("textbox", { name: "Message", exact: true })
     .fill(deliveryInstruction);
-  await page.getByRole("button", { name: "送信", exact: true }).click();
+  await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect
     .poll(
       async () =>
@@ -283,10 +277,10 @@ try {
     throw new Error(
       "Live model did not prepare the exact application delivery",
     );
-  await page.getByRole("button", { name: "送信提案を確認" }).click();
+  await page.getByRole("button", { name: "Review delivery" }).click();
   await page
     .getByRole("button", {
-      name: `配送 #${proposal.id} の内容と宛先を確認`,
+      name: `Delivery #${proposal.id} : review content and destination`,
       exact: true,
     })
     .click();
@@ -301,7 +295,7 @@ try {
     fullPage: true,
   });
   await dialog
-    .getByRole("button", { name: "この宛先へ1回送信", exact: true })
+    .getByRole("button", { name: "Send once to this destination", exact: true })
     .click();
   await expect(
     page.getByRole("alert").filter({ hasText: "HTTP 201" }),
@@ -338,9 +332,9 @@ try {
     const formalInstruction =
       "Create Purchase.lean as a standalone Lean module. In namespace Purchase define canPurchase (balance stock : Nat) : Prop for balance at least 150 and positive stock. Prove eligibility_exact, universally quantifying the two natural inputs, that canPurchase is equivalent to exactly those two conditions. Use a complete proof without sorry or new axioms. This is an ordinary Lean analysis model, not a refinement binding or new native contract. Keep kernel.rs, tests.rs and public/ unchanged. The human will compile it using the GUI Atlas action; do not claim it has already passed Lean. Do not create Lake configuration or propose a contract.";
     await page
-      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .getByRole("textbox", { name: "Message", exact: true })
       .fill(formalInstruction);
-    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect
       .poll(
         async () =>
@@ -358,30 +352,30 @@ try {
       "utf8",
     );
   }
-  await page
-    .getByRole("tab", { name: "プロジェクトマップ", exact: true })
-    .click();
+  await page.getByRole("tab", { name: "Project map", exact: true }).click();
   const graphFile = values.atlas ? "Purchase.lean" : "kernel.rs";
+  await page.getByRole("button", { name: "Lean tools", exact: true }).click();
   await page
-    .getByRole("button", { name: "Lean解析ツール", exact: true })
+    .getByText("Multiple files and environment", { exact: true })
     .click();
-  await page.getByText("複数ファイル・環境設定", { exact: true }).click();
   await page
-    .getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" })
+    .getByRole("textbox", { name: "Graph source files (one per line)" })
     .fill(graphFile);
   await page
     .getByRole("button", {
-      name: values.atlas ? "コンパイル後の依存を抽出" : "参照を更新",
+      name: values.atlas
+        ? "Extract compiled dependencies"
+        : "Refresh references",
       exact: true,
     })
     .click();
   await waitIdle();
   await page
-    .getByRole("region", { name: "ローカルソースのグラフ" })
+    .getByRole("region", { name: "Local source graph" })
     .getByRole("button", {
       name: values.atlas
-        ? /Purchase.eligibility_exact.*を選択/
-        : /can_purchase.*を選択/,
+        ? /Purchase.eligibility_exact.*: select/
+        : /can_purchase.*: select/,
     })
     .click();
   report.sourceGraph = (await state(page)).source_snapshot;
@@ -398,7 +392,7 @@ try {
     ],
   ] as const) {
     await page
-      .getByRole("textbox", { name: "比較する要件", exact: true })
+      .getByRole("textbox", { name: "Requirement to compare", exact: true })
       .fill(
         values.atlas
           ? requirement +
@@ -406,7 +400,7 @@ try {
           : requirement,
       );
     await page
-      .getByRole("button", { name: "この宣言の意味を解析", exact: true })
+      .getByRole("button", { name: "Analyze declaration meaning", exact: true })
       .click();
     await expect
       .poll(
@@ -442,7 +436,7 @@ try {
       analysis: candidate,
     });
     await page
-      .getByLabel("意味解析の結果", { exact: true })
+      .getByLabel("Meaning analysis result", { exact: true })
       .scrollIntoViewIfNeeded();
     await page.screenshot({
       path: resolve(out, name + ".png"),
@@ -452,17 +446,17 @@ try {
       throw new Error(
         `Live meaning case ${name}: expected ${expected}, observed ${candidate?.assessment?.verdict}`,
       );
-    await expect(page.getByLabel("選択した宣言")).toContainText("証明は未確認");
+    await expect(page.getByLabel("Selected declaration")).toContainText(
+      "Proof unchecked",
+    );
   }
   await stop();
   await launch(port);
   await expect(page.getByText(instruction, { exact: true })).toBeVisible();
-  await page
-    .getByRole("button", { name: "Lean解析ツール", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Lean tools", exact: true }).click();
   await expect(
-    page.getByLabel("意味解析の結果", { exact: true }),
-  ).toContainText("保存された解析です");
+    page.getByLabel("Meaning analysis result", { exact: true }),
+  ).toContainText("Historical analysis.");
   report.restartedWithHistoricalAnalysis = true;
   if ((await state(page)).exports.length !== 0)
     throw new Error("Old delivery queue returned after restart");

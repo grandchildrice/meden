@@ -37,6 +37,7 @@ function references(
         name: s.name,
         label: s.role.label + " · " + (s.name.split(".").at(-1) || s.name),
         kind: s.kind,
+        isMainTheorem: s.role.id === "main_theorem",
         statement: s.name,
         source: { file: s.file, line: s.line },
         proofStatus: "unknown",
@@ -59,6 +60,7 @@ export function NativeFileWorkspace({
   scene,
   revision,
   selected,
+  focused,
   running,
   analysisFile,
   onCommand,
@@ -69,6 +71,7 @@ export function NativeFileWorkspace({
   scene?: MapScene;
   revision: string;
   selected?: Symbol;
+  focused?: Symbol;
   running: boolean;
   analysisFile?: string;
   onCommand: (command: NativeCommand) => Promise<boolean>;
@@ -95,7 +98,7 @@ export function NativeFileWorkspace({
     if (symbol) onSelect(symbol);
   };
   return (
-    <section className="file-split" aria-label={"ファイル: " + path}>
+    <section className="file-split" aria-label={"File: " + path}>
       <div className="file-source-pane">
         <NativeCode
           state={state}
@@ -108,34 +111,36 @@ export function NativeFileWorkspace({
       <div
         className="file-graph-pane"
         role="region"
-        aria-label="ファイルの参照グラフ"
+        aria-label="File reference graph"
       >
         {analyzing && (
           <div className="file-analysis-progress" role="status">
             <LinearProgress />
-            <span>解析中…</span>
+            <span>Analyzing…</span>
             <Button onClick={() => void onCommand({ type: "cancel" })}>
-              中止
+              Cancel
             </Button>
           </div>
         )}
         {failure && (
           <Alert severity="warning">
-            <Typography>コンパイル後の依存を抽出できませんでした。</Typography>
+            <Typography>Could not extract compiled dependencies.</Typography>
             {failure.includes("closure exceeds") && (
               <p>
-                この抽出は依存先も含め最大32ファイル・合計16
-                MiBまでです。通常のソース閲覧と参照グラフには影響しません。
+                Extraction accepts at most 32 files including imports, totaling
+                16 MiB. Source browsing and the reference graph remain
+                available.
               </p>
             )}
             <details>
-              <summary>原因</summary>
+              <summary>Cause</summary>
               {failure}
             </details>
           </Alert>
         )}
         {snapshot ? (
           <NativeGraph
+            focusName={focused?.file === path ? focused.name : undefined}
             key={snapshot.atlas?.revision || snapshot.revision}
             snapshot={snapshot}
             analysis={state.analysis}
@@ -177,15 +182,14 @@ export function NativeFileWorkspace({
           <Suspense fallback={<LinearProgress />}>
             <GraphView
               workspace={graph}
-              controls={false}
               selectedId={selected?.id}
-              focusId={selected?.file === path ? selected.id : undefined}
+              focusId={focused?.file === path ? focused.id : undefined}
               onSelect={pick}
             />
           </Suspense>
         ) : (
           <p className="file-empty">
-            このファイルには参照グラフの対象となる宣言がありません。
+            This file has no declarations supported by the reference graph.
           </p>
         )}
         {!snapshot && state.analysis?.input.target.file === path && (

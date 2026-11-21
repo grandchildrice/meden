@@ -127,31 +127,33 @@ test("unreadable portable history stays intact while the GUI graph and ordinary 
     });
     await page.goto(url);
     await expect(
-      page
-        .getByRole("alert")
-        .filter({ hasText: "保存済みの会話・作業履歴を読み込めませんでした" }),
+      page.getByRole("alert").filter({
+        hasText: "Could not read saved conversations and work history.",
+      }),
     ).toBeVisible();
     await expect.poll(async () => (await state(page)).overview.scanned).toBe(1);
     expect((await state(page)).project.accepted).toBe(false);
     expect((await state(page)).project.verified).toBe(false);
     expect(requests).toBe(0);
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
     await page
-      .getByRole("button", { name: "このモデルを使用", exact: true })
+      .getByRole("button", { name: "Use this model", exact: true })
       .click();
     await page
-      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .getByRole("textbox", { name: "Message", exact: true })
       .fill("Keep ordinary chat available and preserve the unreadable record.");
-    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(
       page
-        .getByRole("region", { name: "会話", exact: true })
+        .getByRole("region", { name: "Conversation", exact: true })
         .getByText("ORDINARY-GUI-CHAT-AVAILABLE", { exact: true }),
     ).toBeVisible();
-    await page.getByText("ツールの記録", { exact: true }).click();
-    await page.getByText("保存の通知", { exact: true }).first().click();
+    await page
+      .getByRole("button", { name: "Work history", exact: true })
+      .click();
+    await page.getByText("Save notice", { exact: true }).first().click();
     await expect(
       page
         .getByRole("alert")
@@ -162,10 +164,11 @@ test("unreadable portable history stays intact while the GUI graph and ordinary 
     ).toBeVisible();
     expect(requests).toBe(1);
     expect(await readFile(record, "utf8")).toBe(original);
+    await page.getByRole("button", { name: "Close", exact: true }).click();
     await page.reload();
     await expect(
       page
-        .getByRole("region", { name: "会話", exact: true })
+        .getByRole("region", { name: "Conversation", exact: true })
         .getByText("ORDINARY-GUI-CHAT-AVAILABLE", { exact: true }),
     ).toBeVisible();
     await expect.poll(async () => (await state(page)).overview.scanned).toBe(1);
@@ -344,7 +347,7 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
       .toBe("ready");
     await expect(
       page.getByRole("region", {
-        name: "プロジェクトマップ",
+        name: "Project map",
         exact: true,
       }),
     ).toBeVisible();
@@ -427,7 +430,10 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
     );
     await writeFile(resolve(project, ".gitignore"), "target/\n");
     await start(project, resolve(root, "pc-one"));
-    const chat = page.getByRole("region", { name: "会話", exact: true });
+    const chat = page.getByRole("region", {
+      name: "Conversation",
+      exact: true,
+    });
     await expect(
       chat.getByText(messages[0]!.text, { exact: true }),
     ).toHaveCount(1);
@@ -437,13 +443,15 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
     await expect
       .poll(async () => (await state(page)).overview.scanned)
       .toBe(41);
-    await page.getByRole("button", { name: "作業・履歴", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Work history", exact: true })
+      .click();
     await expect(
-      page.getByRole("region", { name: "作業と共有履歴" }),
+      page.getByRole("region", { name: "Work and shared history" }),
     ).toContainText("Identity for every natural number");
     await page
       .getByRole("dialog")
-      .getByRole("button", { name: "閉じる", exact: true })
+      .getByRole("button", { name: "Close", exact: true })
       .click();
     const overview: WorkspaceOverview = await page.evaluate(async () =>
       (
@@ -467,16 +475,16 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
     expect(JSON.stringify(original)).not.toContain("HOST_SECRET");
     expect(calls).toHaveLength(0);
     await page
-      .getByRole("button", { name: "フォルダ: Extra", exact: true })
+      .getByRole("button", { name: "Folder: Extra", exact: true })
       .click();
     await page
-      .getByRole("button", { name: "ファイル: Extra/Part39.lean", exact: true })
+      .getByRole("button", { name: "File: Extra/Part39.lean", exact: true })
       .click();
     await expect(
-      page.locator(".ide-file-page:not([hidden])").getByLabel("ファイルの内容"),
+      page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
     ).toContainText("value39");
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
     await expect.poll(async () => (await state(page)).running).toBe(false);
     await page
@@ -496,12 +504,12 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
       page.getByRole("combobox", { name: "model", exact: true }),
     ).toHaveValue("first-chosen");
     await page
-      .getByRole("button", { name: "このモデルを使用", exact: true })
+      .getByRole("button", { name: "Use this model", exact: true })
       .click();
     await page
-      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .getByRole("textbox", { name: "Message", exact: true })
       .fill("Continue the saved identity work.");
-    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(
       chat.getByText("CONTINUED-ON-first", { exact: true }),
     ).toBeVisible();
@@ -514,19 +522,19 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
     expect(JSON.stringify(calls[0]!.messages)).toContain("SAVED-CHAT:");
     const approved = await state(page);
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
     modelListAvailable = false;
     await page
       .getByLabel("provider", { exact: true })
       .selectOption("hermes:second");
     await expect(
-      page.getByText("モデル一覧を取得できませんでした。", { exact: false }),
+      page.getByText("Could not load models.", { exact: false }),
     ).toBeVisible();
     modelListAvailable = true;
-    await page.getByRole("button", { name: "閉じる", exact: true }).click();
+    await page.getByRole("button", { name: "Close", exact: true }).click();
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
     await expect
       .poll(async () => (await state(page)).models)
@@ -547,36 +555,34 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
     ).toBe(409);
     expect(calls).toHaveLength(1);
     await page
-      .getByRole("button", { name: "このモデルを使用", exact: true })
+      .getByRole("button", { name: "Use this model", exact: true })
       .click();
     await page
-      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .getByRole("textbox", { name: "Message", exact: true })
       .fill("Continue on the newly reviewed connection.");
-    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(
       chat.getByText("CONTINUED-ON-second", { exact: true }),
     ).toBeVisible();
     expect(calls).toHaveLength(2);
     expect(calls[1]!.authorization).toBe("Bearer SECOND_HOST_SECRET");
     expect(calls[1]!.model).toBe("second-chosen");
+    await page.getByRole("tab", { name: "Project map", exact: true }).click();
     await page
-      .getByRole("tab", { name: "プロジェクトマップ", exact: true })
-      .click();
-    await page
-      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .getByRole("textbox", { name: "Message", exact: true })
       .fill("Create an oversized source to exercise index recovery.");
-    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(
-      page.getByRole("alert").filter({ hasText: "地図を更新できませんでした" }),
+      page.getByRole("alert").filter({ hasText: "Could not refresh the map." }),
     ).toBeVisible();
     expect((await state(page)).overview.state).toBe("failed");
     await expect(
       chat.getByText("OVERSIZED-SOURCE-CREATED", { exact: true }),
     ).toBeVisible();
     await page
-      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .getByRole("textbox", { name: "Message", exact: true })
       .fill("Remove the oversized source and reread the whole graph.");
-    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect
       .poll(async () => (await state(page)).overview.state)
       .toBe("ready");

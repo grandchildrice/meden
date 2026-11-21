@@ -8,6 +8,12 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Native GUI and Atlas with Ollama Cloud
 
+The [English chat / L4SB / Riemann observation](gui-english-chat-l4sb-riemann.json)
+records the flat English chat, long-message folding and resizable sidebars, the
+single L4SB graph layout with explicit review scope, and real 175,187-file inventory
+navigation. It uses no inference or whole-Riemann Lean build.
+
+
 The [highlighting/kinds observation](gui-highlight-kinds-ethlib.json) records source
 highlighting and typed map markers without inference. The browser regression holds
 a real inspection response and requires zero chat DOM changes until a chat send,

@@ -10,20 +10,11 @@ import {
   type CSSProperties,
 } from "react";
 import {
-  Autocomplete,
-  IconButton,
-  MenuItem,
-  Select,
-  TextField,
-  Tooltip,
-} from "@mui/material";
-import ArrowBackRounded from "@mui/icons-material/ArrowBackRounded";
-import {
   ReactFlow,
   ReactFlowProvider,
-  useViewport,
   useReactFlow,
   Controls,
+  ViewportPortal,
   Handle,
   Position,
   BaseEdge,
@@ -32,16 +23,14 @@ import {
   type NodeProps,
   type EdgeProps,
 } from "@xyflow/react";
-import {
-  radialLayout,
-  coneLayout,
-  type GraphScope,
-} from "@meden/atlas-adapter";
+import { coneLayout, reviewScope } from "@meden/atlas-adapter";
 import type { Workspace, Declaration } from "@meden/workspace-schema";
 
 type RadarData = Record<string, unknown> & {
   declaration: Declaration;
   root: boolean;
+  width: number;
+  review: string;
   radii: number[];
 };
 
@@ -58,13 +47,11 @@ const nodeTypes = { declaration: DeclarationNode };
 const edgeTypes = { dependency: DependencyEdge };
 export function GraphView({
   workspace,
-  controls = true,
   focusId,
   selectedId,
   onSelect,
 }: {
   workspace: Workspace;
-  controls?: boolean;
   focusId?: string;
   selectedId?: string;
   onSelect: (declaration: Declaration) => void;
@@ -74,14 +61,12 @@ export function GraphView({
       workspace.declarations.find(
         (item) => item.id === "KernelProof.actual_spec",
       )?.id ||
+      workspace.declarations.find((item) => item.isMainTheorem)?.id ||
+      workspace.declarations.find((item) => item.kind === "theorem")?.id ||
       workspace.declarations[0]?.id ||
       "",
   );
   const canvas = useRef<HTMLDivElement>(null);
-  const [history, setHistory] = useState<string[]>([]);
-  const [scope, setScope] = useState<GraphScope | "related">(
-    controls ? "related" : "project",
-  );
   const [hovered, setHovered] = useState<string>();
   const emphasized = hovered || selectedId;
   const nearby = new Set([emphasized, root]);
@@ -90,25 +75,25 @@ export function GraphView({
       nearby.add(edge.source);
       nearby.add(edge.target);
     }
-  const center = (id: string) => {
-    if (id !== root) {
-      setHistory((previous) => [...previous, root]);
-      setRoot(id);
-    }
-  };
   useEffect(() => {
     if (focusId && workspace.declarations.some((item) => item.id === focusId)) {
-      if (focusId !== root) setHistory((previous) => [...previous, root]);
       setRoot(focusId);
     }
   }, [focusId, workspace.declarations]);
   const positions = useMemo(
-    () =>
-      scope === "related"
-        ? coneLayout(workspace, root)
-        : radialLayout(workspace, root, scope),
-    [workspace, root, scope],
+    () => coneLayout(workspace, root),
+    [workspace, root],
   );
+  const review = useMemo(() => {
+    const main = workspace.declarations
+      .filter((d) => d.isMainTheorem)
+      .map((d) => d.id);
+    const selected = workspace.declarations.find((d) => d.id === root);
+    return reviewScope(
+      workspace,
+      main.length ? main : selected?.kind === "theorem" ? [root] : [],
+    );
+  }, [workspace, root]);
   // Keep the measured React Flow nodes stable while hover and selection change.
   const nodes = useMemo<RadarNode[]>(() => {
     const radii = [
@@ -123,30 +108,27 @@ export function GraphView({
       .map((declaration) => {
         const position = positions.get(declaration.id)!;
         const isRoot = declaration.id === root;
+        const width = position.width;
         return {
           id: declaration.id,
           type: "declaration",
           position: {
-            x: position.x - (isRoot ? 82 : 90),
-            y: position.y - (isRoot ? 82 : 25),
+            x: position.x - width / 2,
+            y: position.y - 17,
           },
           focusable: false,
-          data: { declaration, radii, root: isRoot },
+          data: {
+            declaration,
+            radii,
+            root: isRoot,
+            width,
+            review: review.get(declaration.id) || "unknown",
+          },
         };
       });
-  }, [workspace.declarations, positions, root]);
-  const index = new Map(workspace.declarations.map((item) => [item.id, item]));
+  }, [workspace.declarations, positions, root, review]);
   const edges = workspace.edges
-    .filter(
-      (edge) =>
-        positions.has(edge.source) &&
-        positions.has(edge.target) &&
-        !(
-          scope === "meaning" &&
-          index.get(edge.source)?.kind === "theorem" &&
-          edge.site === "value"
-        ),
-    )
+    .filter((edge) => positions.has(edge.source) && positions.has(edge.target))
     .map((edge, i) => ({
       id: edge.source + ":" + edge.target + ":" + i,
       source: edge.source,
@@ -177,73 +159,23 @@ export function GraphView({
   if (!workspace.declarations.length)
     return (
       <div className="panel-empty">
-        宣言がありません。Lean
-        AtlasまたはワークスペースのJSONを読み込んでください。
+        No declarations found. Import a Lean Atlas graph or workspace JSON.
       </div>
     );
   return (
-    <section className="graph-page" aria-label="証明の依存関係">
-      {controls && (
-        <div className="proof-graph-toolbar">
-          <Autocomplete
-            size="small"
-            options={workspace.declarations}
-            getOptionLabel={(item) => item.label || item.name}
-            value={index.get(root) || null}
-            isOptionEqualToValue={(a, b) => a.id === b.id}
-            onChange={(_, item) => {
-              if (item) {
-                center(item.id);
-                onSelect(item);
-              }
-            }}
-            renderInput={(params) => (
-              <TextField {...params} label="中心の宣言" />
-            )}
-          />
-          <Select
-            size="small"
-            value={scope}
-            onChange={(event) =>
-              setScope(event.target.value as GraphScope | "related")
-            }
-            inputProps={{ "aria-label": "依存関係の範囲" }}
-          >
-            <MenuItem value="related">依存と参照</MenuItem>
-            <MenuItem value="project">プロジェクト全体</MenuItem>
-            <MenuItem value="dependencies">この宣言の依存</MenuItem>
-            <MenuItem value="meaning">意味に関わる依存</MenuItem>
-          </Select>
+    <section className="graph-page" aria-label="Proof dependencies">
+      <div data-layout="l4sb" className="graph-canvas cone-graph" ref={canvas}>
+        <div className="cone-label cone-label-up">Uses</div>
+        <div className="cone-label cone-label-down">Used by</div>
+        <div
+          className="graph-review-legend"
+          aria-label="Review scope"
+          title="Meaning review scope excludes known theorem-body dependencies. Unknown edge kinds remain unknown. This is not proof or review completion."
+        >
+          <span>● Human review</span>
+          <span>○ Proof only</span>
+          <span>◌ Unknown</span>
         </div>
-      )}
-      <div
-        className={"graph-canvas " + (scope === "related" ? "cone-graph" : "")}
-        ref={canvas}
-      >
-        {scope === "related" && (
-          <>
-            <div className="cone-label cone-label-up">この宣言が使うもの</div>
-            <div className="cone-label cone-label-down">この宣言を使うもの</div>
-          </>
-        )}
-        {controls && (
-          <div className="canvas-toolbar">
-            <Tooltip title="前の中心に戻る">
-              <span>
-                <IconButton
-                  aria-label="前の中心に戻る"
-                  disabled={!history.length}
-                  onClick={() => {
-                    setRoot(history.at(-1)!);
-                    setHistory(history.slice(0, -1));
-                  }}
-                >
-                  <ArrowBackRounded fontSize="small" />
-                </IconButton>
-              </span>
-            </Tooltip>
-          </div>
-        )}
         <GraphInteraction.Provider
           value={{
             emphasized,
@@ -253,13 +185,13 @@ export function GraphView({
                 active ? id : previous === id ? undefined : previous,
               ),
             onSelect,
-            onCenter: center,
+            onCenter: setRoot,
           }}
         >
           <ReactFlowProvider>
             <ReactFlow
               proOptions={{ hideAttribution: true }}
-              key={root + scope}
+              key={root}
               nodes={nodes}
               edges={edges}
               nodeTypes={nodeTypes}
@@ -267,7 +199,7 @@ export function GraphView({
               fitView
               fitViewOptions={{
                 padding: {
-                  top: "72px",
+                  top: "60px",
                   bottom: "60px",
                   left: "28px",
                   right: "28px",
@@ -280,32 +212,25 @@ export function GraphView({
               elementsSelectable={false}
               zoomOnDoubleClick={false}
               forceColorMode="dark"
-              aria-label="宣言の依存グラフ"
+              aria-label="Declaration dependency graph"
             >
               <FitToPane canvas={canvas} />
+              <ViewportPortal>
+                <svg
+                  className="l4sb-rings"
+                  width="1"
+                  height="1"
+                  aria-hidden="true"
+                >
+                  {nodes[0]?.data.radii.map((r) => (
+                    <circle key={r} cx="0" cy="0" r={r} />
+                  ))}
+                </svg>
+              </ViewportPortal>
               <Controls showInteractive={false} />
             </ReactFlow>
           </ReactFlowProvider>
         </GraphInteraction.Provider>
-        <details className="graph-information">
-          <summary>グラフの詳細</summary>
-          <div className="graph-legend">
-            <span>
-              <i className="theorem" />
-              定理
-            </span>
-            <span>
-              <i className="definition" />
-              定義
-            </span>
-            {workspace.edges.some((edge) => edge.site !== "unknown") && (
-              <span>実線：型 · 破線：本体</span>
-            )}
-            {workspace.edges.some((edge) => edge.site === "unknown") && (
-              <span>点線：種類未確認の参照候補</span>
-            )}
-          </div>
-        </details>
       </div>
     </section>
   );
@@ -347,14 +272,13 @@ function DeclarationNode({ data }: NodeProps<RadarNode>) {
   const { emphasized, nearby, onHover, onSelect, onCenter } =
     useContext(GraphInteraction)!;
   const active = emphasized === declaration.id;
-  const { zoom } = useViewport();
   return (
     <div
-      data-compact={zoom < 0.24}
       data-muted={Boolean(emphasized) && !nearby.has(declaration.id)}
+      data-review={data.review}
       style={
         {
-          "--graph-scale": Math.max(1, (root ? 0.62 : 0.43) / zoom),
+          "--node-width": data.width + "px",
           ...(root
             ? {
                 "--ring-one": (data.radii[0] ?? 180) * 2 + "px",
@@ -375,6 +299,12 @@ function DeclarationNode({ data }: NodeProps<RadarNode>) {
       <button
         type="button"
         className="nopan"
+        aria-label={
+          (declaration.label || declaration.name) +
+          " · " +
+          declaration.name +
+          ": select"
+        }
         onMouseEnter={() => onHover(declaration.id, true)}
         onMouseLeave={() => onHover(declaration.id, false)}
         onFocus={() => onHover(declaration.id, true)}
@@ -387,21 +317,19 @@ function DeclarationNode({ data }: NodeProps<RadarNode>) {
           event.stopPropagation();
           onCenter(declaration.id);
         }}
-        title={declaration.name}
+        title={
+          declaration.name +
+          " · " +
+          (data.review === "human"
+            ? "Human meaning review target"
+            : data.review === "proof-only"
+              ? "Proof-only dependency; not a meaning-review target"
+              : "Review scope unknown") +
+          (declaration.proofStatus === "unproved" ? " · Unfinished proof" : "")
+        }
       >
         <span className="node-dot" />
-        {root && (
-          <span className="node-kind">
-            {declaration.kind === "theorem"
-              ? "定理"
-              : declaration.kind === "axiom"
-                ? "公理"
-                : "定義"}
-          </span>
-        )}
         <strong>{declaration.label || declaration.name}</strong>
-        <code>{declaration.name}</code>
-        <span className="visually-hidden">を選択</span>
       </button>
     </div>
   );

@@ -75,7 +75,7 @@ fn discover_in(workspace: &Path, elan: Option<&Path>, path: Option<OsString>) ->
             }
         }
     }
-    anyhow::bail!("Installed Lean was not found. Install Lean with Elan, then choose 再検出. No environment variable is required.")
+    anyhow::bail!("Installed Lean was not found. Install Lean with Elan, then choose Rediscover. No environment variable is required.")
 }
 
 fn installed(selected: &str, elan: Option<&Path>) -> Result<PathBuf> {
@@ -92,7 +92,7 @@ fn installed(selected: &str, elan: Option<&Path>) -> Result<PathBuf> {
         "Invalid Lean toolchain version"
     );
     let missing = || {
-        format!("Project Lean {selected} is not installed. Run `elan toolchain install {selected}`, then choose 再検出; no restart or environment variable is required.")
+        format!("Project Lean {selected} is not installed. Run `elan toolchain install {selected}`, then choose Rediscover; no restart or environment variable is required.")
     };
     let elan = elan.with_context(missing)?;
     anyhow::ensure!(elan.is_absolute(), "Elan's host directory must be absolute");

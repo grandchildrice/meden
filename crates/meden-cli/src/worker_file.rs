@@ -279,8 +279,8 @@ fn directory_entries(directory: &fs::File, args: &Args) -> Result<Value, ToolErr
         Some(value) => value
             .as_u64()
             .and_then(|n| usize::try_from(n).ok())
-            .filter(|n| (1..=10_000).contains(n))
-            .ok_or_else(|| ToolError::failed("max_entries must be between 1 and 10000".into()))?,
+            .filter(|n| (1..=100_000).contains(n))
+            .ok_or_else(|| ToolError::failed("max_entries must be between 1 and 100000".into()))?,
     };
     let mut entries = fs::read_dir(pinned::descriptor_path(directory))
         .map_err(failed)?

@@ -10,7 +10,7 @@ describe("continuous vending-machine history", () => {
     const request = {
       id: "request",
       role: "user" as const,
-      text: "お願いします",
+      text: "Please continue",
       status: "sent" as const,
       createdAt: "2026-11-18T02:00:00Z",
     };
@@ -49,7 +49,7 @@ describe("continuous vending-machine history", () => {
     workspace.conversations.push({
       id: "more",
       title: "more",
-      messages: [{ ...original, text: "別の発言" }],
+      messages: [{ ...original, text: "Another message" }],
     });
     const merged = mergeVendingHistory(workspace);
     expect(merged.conversations[0].messages).toHaveLength(15);
@@ -59,7 +59,7 @@ describe("continuous vending-machine history", () => {
     ).toBe(15);
     expect(
       merged.conversations[0].messages.some(
-        (message) => message.text === "別の発言",
+        (message) => message.text === "Another message",
       ),
     ).toBe(true);
     const other = { ...workspace, id: "another-project" };
@@ -72,14 +72,14 @@ describe("continuous vending-machine history", () => {
       {
         id: "future",
         role: "user",
-        text: "先の記録",
+        text: "Earlier record",
         status: "sent",
         createdAt: "2099-01-01T00:00:00Z",
       },
       {
         id: "continued",
         role: "user",
-        text: "その続き",
+        text: "Continuation",
         status: "sent",
         createdAt: "2026-11-18T00:00:00Z",
       },
@@ -88,6 +88,6 @@ describe("continuous vending-machine history", () => {
       mergeVendingHistory(workspace)
         .conversations[0].messages.slice(-2)
         .map((message) => message.text),
-    ).toEqual(["先の記録", "その続き"]);
+    ).toEqual(["Earlier record", "Continuation"]);
   });
 });

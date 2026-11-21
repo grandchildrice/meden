@@ -30,6 +30,7 @@ export type MapArea = {
   symbols: Symbol[];
 };
 export type MapScene = {
+  inventoryOnly: boolean;
   areas: MapArea[];
   byPath: Map<string, MapArea>;
   symbols: Map<string, Symbol>;
@@ -69,7 +70,13 @@ export function projectMap(
       b === dominant ? b.children! : [b],
     );
   const tree = hierarchy(root)
-    .sum((b) => (b.file ? Math.max(1, b.file.declarations) : 0))
+    .sum((b) =>
+      b.file
+        ? snapshot.inventory_only
+          ? 1
+          : Math.max(1, b.file.declarations)
+        : 0,
+    )
     .sort(
       (a, b) => b.value! - a.value! || a.data.path.localeCompare(b.data.path),
     );
@@ -184,6 +191,7 @@ export function projectMap(
     edgesByFile.set(file, found);
   }
   return {
+    inventoryOnly: snapshot.inventory_only,
     areas,
     byPath: new Map(areas.map((a) => [a.path, a])),
     symbols,

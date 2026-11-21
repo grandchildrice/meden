@@ -25,6 +25,7 @@ export const atlasGraphSchema = z.object({
         meta: z
           .object({
             summary: z.string().nullable().optional(),
+            isMainTheorem: z.boolean().optional(),
             axioms: z.array(z.string()).nullable().optional(),
           })
           .passthrough()

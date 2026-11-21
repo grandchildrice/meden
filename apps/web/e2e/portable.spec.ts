@@ -135,56 +135,58 @@ test("portable GUI history survives a real git clone and checks actual Lean with
     });
     sessionToken = new URL(url).hash.slice("#session=".length);
     await page.goto(url);
+    await page.getByRole("tab", { name: "Project map", exact: true }).click();
     await page
-      .getByRole("tab", { name: "プロジェクトマップ", exact: true })
+      .getByRole("button", { name: "Work history", exact: true })
       .click();
-    await page.getByRole("button", { name: "作業・履歴", exact: true }).click();
   }
   async function idle() {
     await expect(
-      page.getByRole("button", { name: "実行を中止", exact: true }),
+      page.getByRole("button", { name: "Stop", exact: true }),
     ).toHaveCount(0, { timeout: 90_000 });
   }
   async function approve() {
-    const manager = page.getByRole("dialog", { name: /作業の管理/ });
+    const manager = page.getByRole("dialog", { name: /Work history/ });
     if (await manager.isVisible())
-      await manager
-        .getByRole("button", { name: "閉じる", exact: true })
-        .click();
+      await manager.getByRole("button", { name: "Close", exact: true }).click();
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
     await page
-      .getByRole("button", { name: "このモデルを使用", exact: true })
+      .getByRole("button", { name: "Use this model", exact: true })
       .click();
   }
   try {
     await start(project, resolve(root, "pc-one"));
     await page
-      .getByLabel("プロジェクト名", { exact: true })
+      .getByLabel("Project name", { exact: true })
       .fill("Portable verification");
     await page
-      .getByRole("button", { name: "共有履歴を作成", exact: true })
+      .getByRole("button", { name: "Create shared history", exact: true })
       .click();
     await expect(
       page.getByRole("heading", { name: "Portable verification", exact: true }),
     ).toBeVisible();
-    await page.getByRole("button", { name: "作業を追加", exact: true }).click();
-    await page.getByLabel("作業ID", { exact: true }).fill("identity");
     await page
-      .getByLabel("作業名", { exact: true })
+      .getByRole("button", { name: "Add work item", exact: true })
+      .click();
+    await page.getByLabel("Work item ID", { exact: true }).fill("identity");
+    await page
+      .getByLabel("Work item title", { exact: true })
       .fill("Natural-number identity");
     await page
-      .getByLabel("作業の要件", { exact: true })
+      .getByLabel("Work item requirement", { exact: true })
       .fill("Every natural number equals itself.");
-    await page.getByLabel("Leanモジュール", { exact: true }).fill("Pilot");
+    await page.getByLabel("Lean module", { exact: true }).fill("Pilot");
     await page
-      .getByLabel("定理名（1行に1件）", { exact: true })
+      .getByLabel("Theorem names (one per line)", { exact: true })
       .fill("portable_identity");
     await page
-      .getByLabel("再開時の作業", { exact: true })
+      .getByLabel("Continuation note", { exact: true })
       .fill("Read the theorem and preserve its statement.");
-    await page.getByRole("button", { name: "作業を保存", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Save work item", exact: true })
+      .click();
     await expect(
       page.getByRole("heading", {
         name: "Natural-number identity",
@@ -192,19 +194,21 @@ test("portable GUI history survives a real git clone and checks actual Lean with
       }),
     ).toBeVisible();
     await page
-      .getByRole("button", { name: "Leanを再チェック", exact: true })
+      .getByRole("button", { name: "Recheck with Lean", exact: true })
       .click();
     await expect(
-      page.getByText("保存されたチェック記録：成功", { exact: true }),
+      page.getByText("Saved check: Passed", { exact: true }),
     ).toBeVisible({ timeout: 90_000 });
     expect(requests).toHaveLength(0);
     await page
-      .getByLabel("進捗メモ", { exact: true })
+      .getByLabel("Progress note", { exact: true })
       .fill("The original theorem passed the real local checker.");
     await page
-      .getByLabel("次の作業のメモ", { exact: true })
+      .getByLabel("Next steps note", { exact: true })
       .fill("Inspect the same theorem after cloning.");
-    await page.getByRole("button", { name: "進捗を保存", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Save progress", exact: true })
+      .click();
     await expect(
       page.getByText("Inspect the same theorem after cloning.", {
         exact: true,
@@ -212,16 +216,18 @@ test("portable GUI history survives a real git clone and checks actual Lean with
     ).toBeVisible();
     await approve();
     await page
-      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .getByRole("textbox", { name: "Message", exact: true })
       .fill("Retain this conversation for another computer.");
-    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(
-      page.getByRole("region", { name: "会話", exact: true }),
+      page.getByRole("region", { name: "Conversation", exact: true }),
     ).toContainText("remaining obligations are retained");
     await idle();
-    await page.getByRole("button", { name: "作業・履歴", exact: true }).click();
     await page
-      .getByRole("button", { name: "会話と作業を保存", exact: true })
+      .getByRole("button", { name: "Work history", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Save conversation and work", exact: true })
       .click();
     await idle();
     await stop();
@@ -254,94 +260,101 @@ test("portable GUI history survives a real git clone and checks actual Lean with
       }),
     ).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "この作業を再開", exact: true }),
+      page.getByRole("button", { name: "Resume this work item", exact: true }),
     ).toBeDisabled();
     await expect(
-      page.getByText("保存されたチェック記録：成功", { exact: true }),
+      page.getByText("Saved check: Passed", { exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByText("保存された結果は履歴です。", { exact: false }),
+      page.getByText("Saved results are historical.", { exact: false }),
     ).toBeVisible();
     await expect(
       page
-        .getByRole("region", { name: "会話", exact: true })
-        .getByText("保存された会話", { exact: true }),
+        .getByRole("region", { name: "Conversation", exact: true })
+        .getByText("Saved conversation", { exact: true }),
     ).toHaveCount(0);
     expect(requests).toHaveLength(count);
-    await page.getByText(/保存された会話 ·/).click();
+    await page.getByText(/Saved conversation ·/).click();
     await expect(
-      page.getByRole("region", { name: "作業と共有履歴", exact: true }),
+      page.getByRole("region", {
+        name: "Work and shared history",
+        exact: true,
+      }),
     ).toContainText("Retain this conversation for another computer.");
     await page
-      .getByRole("button", { name: "証明コードを読む", exact: true })
+      .getByRole("button", { name: "Read proof source", exact: true })
       .click();
     await expect(
       page
         .locator(".ide-file-page:not([hidden])")
-        .getByLabel("ファイルの内容", { exact: true }),
+        .getByLabel("File contents", { exact: true }),
     ).toContainText("1: ");
-    await page.getByRole("button", { name: "次のページ", exact: true }).click();
+    await page.getByRole("button", { name: "Next page", exact: true }).click();
     await expect(
       page
         .locator(".ide-file-page:not([hidden])")
-        .getByLabel("ファイルの内容", { exact: true }),
+        .getByLabel("File contents", { exact: true }),
     ).toContainText("201: ");
-    await page.getByRole("button", { name: "次のページ", exact: true }).click();
+    await page.getByRole("button", { name: "Next page", exact: true }).click();
     await expect(
       page
         .locator(".ide-file-page:not([hidden])")
-        .getByLabel("ファイルの内容", { exact: true }),
+        .getByLabel("File contents", { exact: true }),
     ).toContainText("401: ");
     await expect(
       page
         .locator(".ide-file-page:not([hidden])")
-        .getByLabel("ファイルの内容", { exact: true }),
+        .getByLabel("File contents", { exact: true }),
     ).toContainText("PORTABLE-SOURCE-END");
-    await page.getByRole("button", { name: "前のページ", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Previous page", exact: true })
+      .click();
     await expect(
       page
         .locator(".ide-file-page:not([hidden])")
-        .getByLabel("ファイルの内容", { exact: true }),
+        .getByLabel("File contents", { exact: true }),
     ).toContainText("201: ");
+    await page.getByRole("tab", { name: "Project map", exact: true }).click();
     await page
-      .getByRole("tab", { name: "プロジェクトマップ", exact: true })
+      .getByRole("button", { name: "Work history", exact: true })
       .click();
-    await page.getByRole("button", { name: "作業・履歴", exact: true }).click();
     // Deliberately break the source: old transferred success must not admit a fresh check.
     await writeFile(
       resolve(clone, "Pilot.lean"),
       "axiom injected : False\ntheorem portable_identity : False := injected\n",
     );
     await page
-      .getByRole("button", { name: "Leanを再チェック", exact: true })
+      .getByRole("button", { name: "Recheck with Lean", exact: true })
       .click();
     await expect(
-      page.getByText("保存されたチェック記録：失敗・中断", { exact: true }),
+      page.getByText("Saved check: Failed or interrupted", { exact: true }),
     ).toBeVisible({ timeout: 90_000 });
     await page
       .getByRole("dialog")
-      .getByText(/Leanチェック失敗・中断の記録/)
+      .getByText(/Failed or interrupted Lean check/)
       .first()
       .click();
     await expect(
-      page.getByRole("dialog").getByLabel("定理の型と公理").first(),
+      page.getByRole("dialog").getByLabel("Theorem types and axioms").first(),
     ).toContainText("Unexpected axiom");
     expect(requests).toHaveLength(count);
     await approve();
     repair = true;
-    await page.getByRole("button", { name: "作業・履歴", exact: true }).click();
     await page
-      .getByRole("button", { name: "この作業を再開", exact: true })
+      .getByRole("button", { name: "Work history", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Resume this work item", exact: true })
       .click();
     await expect
       .poll(async () => readFile(resolve(clone, "Pilot.lean"), "utf8"))
       .toBe(original);
     await idle();
     await page
-      .getByRole("button", { name: "Leanを再チェック", exact: true })
+      .getByRole("button", { name: "Recheck with Lean", exact: true })
       .click();
     await expect(
-      page.getByText("保存されたチェック記録：成功", { exact: true }),
+      page.getByText("Saved check: Passed", { exact: true }),
     ).toBeVisible({ timeout: 90_000 });
     await page.screenshot({
       path: resolve("target/gui-checks/portable-workspace.png"),

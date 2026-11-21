@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "meden_base": "2a85430daf9fd95c0a08e748b492c4869893699c",
+  "observed_on": "2026-11-21",
+  "journey": "Read a quiet English chat, resize sidebars, and navigate a permanent project map into highlighted source and an L4SB dependency graph without inference.",
+  "public_entries": [
+    "./target/debug/meden gui --workspace ../EthLib --port 4322",
+    "./target/debug/meden gui --workspace ../Riemann --port 4323"
+  ],
+  "implementation": {
+    "removed": ["Default task-history trees", "Header project name", "Legacy radial layout", "Graph scope switches"],
+    "chat": "Long user and assistant messages fold; cancellation is an inline disclosure; work history opens from the composer. Both sidebars resize by pointer or keyboard and retain widths on reload.",
+    "graph_pipeline": "Cached lexical source references or explicitly requested Atlas compiler extraction feed the shared declaration/edge schema. L4SB computes positions independently of review-scope coloring.",
+    "layout": {
+      "source": "https://github.com/0xfab0131/Lean4SemanticBench",
+      "revision": "97e7c29df8d3c358c395bd1a4f2fb6973527b33d",
+      "default": "One-hop dependency cone above and reverse-reference cone below; double-click recenters. Parent-angle ordering, adaptive radial spacing and polar Bezier links use the vendored MIT implementation."
+    },
+    "review_scope": "Explicit main targets, otherwise the focused theorem, seed meaning traversal. Known theorem-body edges can be excluded; definition bodies remain relevant. Unknown edges retain unknown scope. Colors confer no checked or proof authority.",
+    "large_inventory": {
+      "max_sources": 250000,
+      "eager_declaration_source_threshold": 10000,
+      "max_directory_entries": 100000,
+      "opened_navigation_file_bound": 32,
+      "behavior": "Every source remains in the file inventory. Opening a file indexes it and follows import-only barrels through policy-bound reads; file-count map weights stay fixed. This is separate from bounded Atlas compiler extraction."
+    }
+  },
+  "actual_ethlib": {
+    "sources": 2517,
+    "overview": "ready",
+    "header": "Meden",
+    "language": "en",
+    "task_trees": 0,
+    "long_messages_folded": 36,
+    "top_stop_alerts": 0,
+    "inline_stop": "Response stopped",
+    "sidebar_drag_observed": true,
+    "visible_japanese_labels": 0,
+    "page_errors": [],
+    "commands": ["inspect"],
+    "processor_authorized": false,
+    "compiler_source_snapshot": false,
+    "portable_english_migration": {
+      "provenance": "../EthLib/.meden/english-translations.json",
+      "scope": "Local translation of saved conversation/status prose and evidence captions, including nested JSON copies; original and English hashes retained.",
+      "task_and_event_records_unchanged": true,
+      "source_and_proof_bytes_unchanged": true,
+      "historical_screenshots_unchanged": true,
+      "new_model_output_or_check_evidence": false,
+      "committed_to_ethlib": false
+    }
+  },
+  "actual_riemann": {
+    "remote": "https://github.com/Tomodovodoo/Riemann",
+    "revision": "3c2640f015af442db8e3c971161f893e4266f580",
+    "sources": 175187,
+    "inventory_only": true,
+    "overview": "ready",
+    "indexed_files_after_opening_main": 9,
+    "opened_source": "src/Main.lean",
+    "main_graph": [
+      { "name": "riemannHypothesis", "kind": "theorem", "review_scope": "human" },
+      { "name": "rhOfAll", "kind": "theorem", "review_scope": "unknown" }
+    ],
+    "cross_file_click": {
+      "source": "src/Supplements/Kernels/MainTheorems.lean",
+      "focused_declaration": "rhOfAll",
+      "observed_line": "theorem rhOfAll : RiemannHypothesis := Formalism.VW.rh_of_every allChi"
+    },
+    "processor_authorized": false,
+    "compiler_source_snapshot": false,
+    "commands": ["inspect", "inspect", "inspect", "inspect", "inspect"],
+    "page_errors": [],
+    "visible_japanese_labels": 0,
+    "checkout_clean": true
+  },
+  "validation": {
+    "binary_sha256": "a46c9ba622d3983fdd730df2fd84fc8db83f2d736b0e34f3d3444a97567c3f05",
+    "browser": {
+      "full_suite": { "passed": 50, "duration": "3.2 minutes" },
+      "final_cross_file_focus_delta": { "passed": 3, "duration_seconds": 59.8 },
+      "outcomes": ["Quiet chat during held file inspection, followed by exactly one explicitly queued send", "Long-message folding and sidebar drag/keyboard/reload/mobile behavior", "10,001-file inventory with import-only barrel navigation", "Real installed Lean/Lake extraction, missing-root recovery and exact clicked declaration focus", "Clone/restart, cancellation, provider failure and automated accessibility"]
+    },
+    "required_public_tui_gate": {
+      "artifact_directory": "/tmp/meden-ux-flat-english-l4sb-release-20261121",
+      "passed": 33,
+      "skipped": 0,
+      "deselected": 197,
+      "duration_seconds": 212.76,
+      "decoded_screens_inspected": ["Successful installed-Lake graph", "Missing source refusal", "Recovery with new graph", "Historical restart", "Provider 429 stop and explicit retry recovery"]
+    },
+    "javascript_units_passed": 30,
+    "rust_file_worker_tests_passed": 13,
+    "rust_overview_tests_passed": 3,
+    "other_passed": ["Rust build", "Clippy with warnings denied", "Rust formatting", "TypeScript typecheck", "Prettier", "Schema export", "git diff --check", "Actual EthLib and Riemann browser observation"]
+  },
+  "limits": [
+    "No inference was used in the actual workspace observations. Automated provider responses are scripted, not live-model or cold-install validation.",
+    "Riemann is a source inventory and lexical navigation observation, not a whole-project Lean build or proof validation.",
+    "Atlas extraction remains explicit and bounded; lexical edges do not establish compiler dependencies or semantic certainty.",
+    "Inventory, file I/O, rendering and review colors are tested adapters, not newly refined controller or renderer proofs."
+  ]
+}

@@ -12,15 +12,16 @@ export function importAtlas(
   const graph = atlasGraphSchema.parse(input);
   const ids = new Set(graph.nodes.map((node) => node.id));
   if (ids.size !== graph.nodes.length)
-    throw new Error("宣言のIDが重複しています");
+    throw new Error("Duplicate declaration IDs");
   if (
     graph.edges.some((edge) => !ids.has(edge.source) || !ids.has(edge.target))
   )
-    throw new Error("依存先の宣言がありません");
+    throw new Error("Dependency target declaration not found");
   const declarations: Declaration[] = graph.nodes.map((node) => ({
     id: node.id,
     name: node.id,
     label: node.shortName,
+    isMainTheorem: node.meta?.isMainTheorem,
     kind:
       node.kind === "theorem"
         ? "theorem"
@@ -68,22 +69,15 @@ function edgeSite(kind: string | undefined): "type" | "value" | "unknown" {
   }
 }
 
-export type GraphScope = "dependencies" | "meaning" | "project";
 /** Match Atlas' edge distinction; unclassified edges are retained conservatively. */
-export function dependencyScope(
+export function meaningDependencies(
   workspace: Pick<Workspace, "declarations" | "edges">,
   root: string,
-  scope: GraphScope,
 ): Set<string> {
   const nodes = new Map(workspace.declarations.map((node) => [node.id, node]));
-  if (scope === "project") return new Set(nodes.keys());
   const edges = new Map<string, Workspace["edges"]>();
   for (const edge of workspace.edges) {
-    if (
-      scope === "meaning" &&
-      nodes.get(edge.source)?.kind === "theorem" &&
-      edge.site === "value"
-    )
+    if (nodes.get(edge.source)?.kind === "theorem" && edge.site === "value")
       continue;
     const outgoing = edges.get(edge.source) || [];
     outgoing.push(edge);
@@ -101,90 +95,33 @@ export function dependencyScope(
   return seen;
 }
 
-/** Breadth-first rings, independent of React and of a future desktop renderer. */
-export function radialLayout(
-  workspace: Pick<Workspace, "declarations" | "edges">,
-  root: string,
-  scope: GraphScope = "dependencies",
-): Map<string, { x: number; y: number; depth: number }> {
-  const visible = dependencyScope(workspace, root, scope);
-  const depths = new Map<string, number>();
-  if (!visible.has(root)) return new Map();
-  const pending = [root];
-  depths.set(root, 0);
-  const declarations = new Map(
-    workspace.declarations.map((node) => [node.id, node]),
-  );
-  const adjacency = new Map<string, string[]>();
-  for (const edge of workspace.edges) {
-    if (
-      scope === "meaning" &&
-      declarations.get(edge.source)?.kind === "theorem" &&
-      edge.site === "value"
-    )
-      continue;
-    const from = adjacency.get(edge.source) || [];
-    from.push(edge.target);
-    adjacency.set(edge.source, from);
-    if (scope === "project")
-      adjacency.set(edge.target, [
-        ...(adjacency.get(edge.target) || []),
-        edge.source,
-      ]);
-  }
-  for (let i = 0; i < pending.length; i++)
-    for (const target of adjacency.get(pending[i]) || []) {
-      if (visible.has(target) && !depths.has(target)) {
-        depths.set(target, depths.get(pending[i])! + 1);
-        pending.push(target);
-      }
-    }
-  if (scope === "project") {
-    const outerDepth = Math.max(0, ...depths.values()) + 1;
-    for (const id of visible) if (!depths.has(id)) depths.set(id, outerDepth);
-  }
-  const rings = new Map<number, string[]>();
-  for (const [id, depth] of depths) {
-    const ring = rings.get(depth) || [];
-    ring.push(id);
-    rings.set(depth, ring);
-  }
-  const positions = new Map<string, { x: number; y: number; depth: number }>();
-  let previousRadius = 0;
-  for (const [depth, ring] of rings) {
-    ring.sort();
-    const radius =
-      depth === 0 ? 0 : Math.max(previousRadius + 180, ring.length * 46);
-    previousRadius = radius;
-    ring.forEach((id, index) => {
-      const angle =
-        -Math.PI / 2 +
-        (2 * Math.PI * index) / ring.length +
-        (depth % 2 ? 0 : 0.25);
-      positions.set(id, {
-        x: Math.cos(angle) * radius,
-        y: Math.sin(angle) * radius,
-        depth,
-      });
-    });
-  }
-  return positions;
-}
-
 /** Actual MIT-licensed L4SB layout, adapted to Meden's project-reference schema. */
 export function coneLayout(
   workspace: Pick<Workspace, "declarations" | "edges">,
   root: string,
 ): Map<
   string,
-  { x: number; y: number; depth: number; side: "dep" | "ref" | "root" }
+  {
+    x: number;
+    y: number;
+    depth: number;
+    width: number;
+    side: "dep" | "ref" | "root";
+  }
 > {
   const result = new Map<
     string,
-    { x: number; y: number; depth: number; side: "dep" | "ref" | "root" }
+    {
+      x: number;
+      y: number;
+      depth: number;
+      width: number;
+      side: "dep" | "ref" | "root";
+    }
   >();
   if (!workspace.declarations.some((item) => item.id === root)) return result;
-  result.set(root, { x: 0, y: 0, depth: 0, side: "root" });
+  result.set(root, { x: 0, y: 0, depth: 0, width: 186, side: "root" });
+  const byId = new Map(workspace.declarations.map((item) => [item.id, item]));
   const adj: Record<string, string[]> = {},
     rev: Record<string, string[]> = {};
   for (const edge of workspace.edges) {
@@ -198,30 +135,38 @@ export function coneLayout(
     const hop: Record<string, number> = { [root]: 0 },
       pending = [root];
     for (let i = 0; i < pending.length; i++)
-      for (const id of index[pending[i]] || [])
-        if (hop[id] === undefined) {
-          hop[id] = hop[pending[i]] + 1;
-          pending.push(id);
-        }
+      if (hop[pending[i]!] < 1)
+        for (const id of index[pending[i]] || [])
+          if (hop[id] === undefined) {
+            hop[id] = hop[pending[i]] + 1;
+            pending.push(id);
+          }
     const { layers } = longestPathLevels(root, index, hop);
     const geometry = layoutCone({
       layers,
       adj: index,
       th0: side === "dep" ? -Math.PI + 0.2 : 0.2,
       th1: side === "dep" ? -0.2 : Math.PI - 0.2,
-      r0: 210,
-      dr: 210,
-      slotMax: 190,
-      slotMin: 110,
-      slotPref: 210,
+      r0: 196,
+      dr: 200,
+      slotMax: 200,
+      slotMin: 94,
+      slotPref: 202,
+      rSoft: 1180,
       maxPerLayer: 20000,
-      groupOf: (name) =>
-        workspace.declarations.find((item) => item.id === name)?.source?.file ||
-        "",
+      groupOf: (name) => byId.get(name)?.source?.file || "",
     });
     for (const [id, pos] of Object.entries(geometry.pos))
       if (id !== root && !result.has(id))
-        result.set(id, { x: pos.x, y: pos.y, depth: pos.level, side });
+        result.set(id, {
+          x: pos.x,
+          y: pos.y,
+          depth: pos.level,
+          width: pos.w,
+          side,
+        });
   }
   return result;
 }
+
+export { reviewScope, type ReviewScope } from "./review-scope";

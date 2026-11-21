@@ -8,10 +8,10 @@ import type { Workspace } from "@meden/workspace-schema";
 import { SemanticMethodInfo } from "./SemanticMethodInfo";
 import { demoSnapshot } from "../../fixtures/meden-demo";
 const steps = [
-  "対象リビジョンの固定",
-  "依存関係の確認",
-  "定理の逆翻訳",
-  "依頼との意味比較",
+  "Freeze target revision",
+  "Inspect dependencies",
+  "Theorem back-translation",
+  "Compare meaning with the request",
 ];
 export function SemanticRun({
   workspace,
@@ -55,40 +55,42 @@ export function SemanticRun({
   const archived = demoSnapshot.contract.properties.find(
     (item) => item.name === claim?.id,
   )?.description;
-  const expected = claim?.text || "要件が含まれていません。";
+  const expected = claim?.text || "No requirement included.";
   const actual =
     archived ||
     workspace.analyses.find((item) => item.claimId === claim?.id)
       ?.backTranslation ||
-    "定理の意味はまだ取得されていません。";
+    "Theorem meaning is not available yet.";
   const changed = sample || expected !== actual;
   const parts = sample ? [] : diffChars(expected, actual);
   return (
-    <section className="semantic-run" aria-label="意味解析">
+    <section className="semantic-run" aria-label="Meaning analysis">
       <div className="semantic-run-heading">
         <Button size="small" startIcon={<ArrowBackRounded />} onClick={onBack}>
-          グラフに戻る
+          Back to graph
         </Button>
       </div>
       <header className="semantic-title">
-        <Typography variant="h2">意味の比較</Typography>
+        <Typography variant="h2">Meaning comparison</Typography>
         <SemanticMethodInfo />
       </header>
       <div className="semantic-run-status">
         <Typography variant="body2" color="text.secondary">
-          {sample ? "購入条件の境界を比べる例" : "保存された要件の比較例"}
+          {sample
+            ? "Purchase boundary comparison example"
+            : "Saved requirement comparison example"}
         </Typography>
         {state !== "complete" && (
           <div className="semantic-state" role="status">
             {state === "running"
-              ? "比較画面を準備しています…"
-              : "表示を中止しました"}
+              ? "Preparing comparison…"
+              : "Display cancelled"}
           </div>
         )}
       </div>
       {state !== "complete" && (
         <>
-          <ol className="check-pipeline" aria-label="解析の進行状況">
+          <ol className="check-pipeline" aria-label="Analysis progress">
             {steps.map((name, index) => {
               const complete = index < step;
               const active = index === step && state === "running";
@@ -103,7 +105,7 @@ export function SemanticRun({
                   )}
                   <span>{name}</span>
                   <small>
-                    {complete ? "完了" : active ? "実行中" : "待機"}
+                    {complete ? "Complete" : active ? "Running" : "Waiting"}
                   </small>
                 </li>
               );
@@ -111,11 +113,11 @@ export function SemanticRun({
           </ol>
           {state === "running" ? (
             <Button size="small" onClick={() => setState("cancelled")}>
-              中止
+              Cancel
             </Button>
           ) : (
             <Button size="small" onClick={() => run(sample)}>
-              もう一度実行
+              Run again
             </Button>
           )}
         </>
@@ -133,27 +135,29 @@ export function SemanticRun({
               <strong>
                 {changed
                   ? sample
-                    ? "NG · 残高150円の境界に差分があります"
-                    : "文面に差分があります"
-                  : "表示用テキストに差分はありません"}
+                    ? "NG · Difference at the 150-yen boundary"
+                    : "The wording differs"
+                  : "The displayed text matches"}
               </strong>
               {sample && (
                 <p className="boundary-example">
-                  残高150円・在庫1個の場合、依頼では購入できますが、定理例では購入できません。
+                  At a balance of 150 yen and stock of one, the request permits
+                  purchase but the example theorem does not.
                 </p>
               )}
             </div>
           </div>
-          <div className="semantic-diff" aria-label="意味の差分">
+          <div className="semantic-diff" aria-label="Meaning differences">
             <section>
               <Typography variant="h3">
-                {sample ? "依頼の例" : "保存された要件"}
+                {sample ? "Example request" : "Saved requirement"}
               </Typography>
               <p>
                 {sample ? (
                   <>
-                    残高が<mark className="expected-diff">150円以上</mark>
-                    で、在庫が1個以上なら購入できる。
+                    Purchase is allowed only when the balance is{" "}
+                    <mark className="expected-diff">at least 150 yen</mark> and
+                    stock is at least one.
                   </>
                 ) : (
                   parts
@@ -172,13 +176,18 @@ export function SemanticRun({
             </section>
             <section>
               <Typography variant="h3">
-                {sample ? "仮の定理を自然文にした例" : "定理の比較文"}
+                {sample
+                  ? "Example theorem translated into natural language"
+                  : "Theorem comparison text"}
               </Typography>
               <p>
                 {sample ? (
                   <>
-                    残高が<mark className="actual-diff">150円を超え</mark>
-                    、在庫が1個以上の場合に限り購入できる。
+                    The balance is{" "}
+                    <mark className="actual-diff">
+                      strictly greater than 150 yen
+                    </mark>
+                    and stock is at least one, purchase is allowed.
                   </>
                 ) : (
                   parts
@@ -202,11 +211,11 @@ export function SemanticRun({
               variant="outlined"
               onClick={() => run(!sample)}
             >
-              {sample ? "一致例を表示" : "NG例を表示"}
+              {sample ? "Show matching example" : "Show mismatch example"}
             </Button>
             {claim && (
               <Button size="small" onClick={() => onInspect(claim.id)}>
-                要件・定理の記録を確認
+                Inspect requirement and theorem records
               </Button>
             )}
           </div>

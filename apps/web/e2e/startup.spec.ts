@@ -78,14 +78,19 @@ test("missing GUI assets explain the build step and a built GUI opens with fresh
     });
     await page.goto(url);
     await expect(
-      page.getByRole("button", { name: "モデルを選択", exact: true }),
+      page.getByRole("button", { name: "Choose model", exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "送信", exact: true }),
+      page.getByRole("button", { name: "Send", exact: true }),
     ).toBeDisabled();
-    await page.getByRole("button", { name: "作業・履歴", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Work history", exact: true })
+      .click();
     await expect(
-      page.getByRole("heading", { name: "作業と共有履歴", exact: true }),
+      page.getByRole("heading", {
+        name: "Work and shared history",
+        exact: true,
+      }),
     ).toBeVisible();
     expect(requests).toBe(0);
     await page.screenshot({

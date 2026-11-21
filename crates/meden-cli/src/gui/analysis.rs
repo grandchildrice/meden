@@ -23,10 +23,10 @@ pub(super) fn run(
     let result = session.analyze(&snapshot, input, &|record| {
         let mut view = lock(view);
         view.activity = match record.state {
-            State::Translating => "意味解析：宣言の自然言語化",
-            State::Comparing => "意味解析：要件との比較",
-            State::Complete => "意味解析が完了（モデルによる候補評価）",
-            _ => "意味解析",
+            State::Translating => "Meaning analysis: translating declaration",
+            State::Comparing => "Meaning analysis: comparing requirements",
+            State::Complete => "Meaning analysis complete (candidate model assessment)",
+            _ => "Meaning analysis",
         }
         .into();
         view.analysis = Some(record.clone());
@@ -63,6 +63,7 @@ pub(super) fn apply_repair(
     let mut view = lock(view);
     view.source_snapshot = Some(snapshot);
     view.analysis = Some(record);
-    view.activity = "修正を適用し、元の要件で再解析しました（モデルによる候補評価）".into();
+    view.activity =
+        "Patch applied and original requirement reanalyzed (candidate model assessment)".into();
     Ok(())
 }

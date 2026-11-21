@@ -33,13 +33,13 @@ export function VendingPreview() {
     let value = 0n;
     if (action === "insert") {
       if (!/^\d+$/.test(amount)) {
-        setNotice("0以上の整数を入力してください");
+        setNotice("Enter a nonnegative integer");
         setError(true);
         return;
       }
       value = BigInt(amount);
       if (value > MAX) {
-        setNotice("金額がu64の範囲を超えています");
+        setNotice("Amount exceeds the u64 range");
         setError(true);
         return;
       }
@@ -50,21 +50,21 @@ export function VendingPreview() {
     setNotice(
       action === "insert"
         ? next === state
-          ? "残高がオーバーフローするため拒否しました"
-          : value.toLocaleString("ja-JP") + "円を投入しました"
+          ? "Rejected because the balance would overflow"
+          : value.toLocaleString("en-US") + " yen inserted"
         : action === "buy"
           ? next === state
             ? state.stock === 0n
-              ? "在庫切れです"
-              : "残高が不足しています"
-            : "商品を1個購入しました"
-          : state.balance.toLocaleString("ja-JP") + "円を返金しました",
+              ? "Out of stock"
+              : "Insufficient balance"
+            : "Purchased one item"
+          : state.balance.toLocaleString("en-US") + " yen refunded",
     );
   };
   return (
     <div className="vending-preview">
       <div className="preview-heading">
-        <Typography variant="h2">自販機シミュレーター</Typography>
+        <Typography variant="h2">Vending machine simulator</Typography>
         <Typography color="text.secondary" variant="body2">
           meden-demo / kernel.rs
         </Typography>
@@ -73,44 +73,47 @@ export function VendingPreview() {
         <div className="drink-icon">
           <LocalDrinkOutlined />
         </div>
-        <Typography>商品</Typography>
+        <Typography>Item</Typography>
         <strong>
-          150<span>円</span>
+          150<span> yen</span>
         </strong>
-        <span className="stock-count">在庫 {state.stock.toString()}個</span>
+        <span className="stock-count">
+          Stock {state.stock.toString()} items
+        </span>
       </div>
       <div className="vending-balance">
-        <span>残高</span>
+        <span>Balance</span>
         <strong>
-          {state.balance.toLocaleString("ja-JP")}
-          <small>円</small>
+          {state.balance.toLocaleString("en-US")}
+          <small> yen</small>
         </strong>
       </div>
       <div className="insert-row">
         <TextField
           size="small"
-          label="投入金額（円）"
+          label="Insert amount (yen)"
           value={amount}
           onChange={(event) => setAmount(event.target.value)}
           slotProps={{ htmlInput: { inputMode: "numeric", maxLength: 20 } }}
         />
         <Button variant="outlined" onClick={() => apply("insert")}>
-          投入
+          Insert
         </Button>
       </div>
       <div className="vending-actions">
         <Button variant="contained" onClick={() => apply("buy")}>
-          購入
+          Buy
         </Button>
         <Button variant="outlined" onClick={() => apply("refund")}>
-          返金
+          Refund
         </Button>
       </div>
       {notice && (
         <Alert severity={error ? "warning" : "success"}>{notice}</Alert>
       )}
       <Typography variant="caption" color="text.secondary">
-        純粋なstepの動きをブラウザで再現しています。実際の現金や在庫は操作しません。
+        Simulates the pure step function in your browser. No real money or
+        inventory is involved.
       </Typography>
       <Button
         size="small"
@@ -120,7 +123,7 @@ export function VendingPreview() {
           setNotice("");
         }}
       >
-        リセット
+        Reset
       </Button>
     </div>
   );

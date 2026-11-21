@@ -7,7 +7,7 @@ export function sampleWorkspace(): Workspace {
   return workspaceSchema.parse({
     schemaVersion: 1,
     id: crypto.randomUUID(),
-    name: "送金処理",
+    name: "Transfers",
     sourceRevision,
     inputRevision: 1,
     origin: "sample",
@@ -15,20 +15,20 @@ export function sampleWorkspace(): Workspace {
     requirements: [
       {
         id: "REQ-001",
-        title: "同額の送金を受け付ける",
-        text: "送金額が残高以下なら、送金を受け付ける。",
+        title: "Accept equal-balance transfers",
+        text: "Accept transfers whose amount does not exceed the balance.",
         source: { file: "requirements.md", line: 12 },
       },
       {
         id: "REQ-002",
-        title: "総残高を保つ",
-        text: "送金の前後で、二つの口座の総残高が変わらない。",
+        title: "Preserve total balance",
+        text: "The total balance of both accounts is unchanged by a transfer.",
         source: { file: "requirements.md", line: 16 },
       },
       {
         id: "REQ-003",
-        title: "再試行で二重送金しない",
-        text: "同じ要求IDで再試行しても、口座の残高を変更しない。",
+        title: "No duplicate transfer on retry",
+        text: "Retrying the same request ID leaves account balances unchanged.",
         source: { file: "requirements.md", line: 20 },
       },
     ],
@@ -36,7 +36,7 @@ export function sampleWorkspace(): Workspace {
       {
         id: "Ledger.accepted_transfer",
         name: "Ledger.accepted_transfer",
-        label: "送金の受理",
+        label: "Transfer admission",
         kind: "theorem",
         statement:
           "∀ (s : LedgerState) (amount : Nat),\n  transferAllowed s amount →\n  (transfer s amount).accepted = true",
@@ -50,7 +50,7 @@ export function sampleWorkspace(): Workspace {
       {
         id: "Ledger.transferAllowed",
         name: "Ledger.transferAllowed",
-        label: "送金の受理条件",
+        label: "Transfer admission condition",
         kind: "definition",
         statement:
           "def transferAllowed (s : LedgerState) (amount : Nat) : Prop :=\n  0 < amount ∧ amount < s.debit ∧\n  s.credit + amount ≤ u64Max",
@@ -62,7 +62,7 @@ export function sampleWorkspace(): Workspace {
       {
         id: "Ledger.State",
         name: "Ledger.State",
-        label: "台帳の状態",
+        label: "Ledger state",
         kind: "definition",
         statement:
           "structure LedgerState where\n  debit : Nat\n  credit : Nat\n  lastRequest : Nat",
@@ -74,7 +74,7 @@ export function sampleWorkspace(): Workspace {
       {
         id: "Ledger.total_balance",
         name: "Ledger.total_balance",
-        label: "総残高の保存",
+        label: "Total balance preservation",
         kind: "theorem",
         statement:
           "∀ s amount,\n  totalBalance (transfer s amount) = totalBalance s",
@@ -88,7 +88,7 @@ export function sampleWorkspace(): Workspace {
       {
         id: "Ledger.retry_unchanged",
         name: "Ledger.retry_unchanged",
-        label: "再試行時の残高",
+        label: "Balance after retry",
         kind: "theorem",
         statement:
           "∀ s request,\n  request.id ≤ s.lastRequest →\n  applyRequest s request = s",
@@ -100,7 +100,7 @@ export function sampleWorkspace(): Workspace {
       {
         id: "Ledger.totalBalance",
         name: "Ledger.totalBalance",
-        label: "総残高",
+        label: "Total balance",
         kind: "definition",
         statement: "def totalBalance (s : LedgerState) := s.debit + s.credit",
         source: { file: "Ledger.lean", line: 15 },
@@ -111,7 +111,7 @@ export function sampleWorkspace(): Workspace {
       {
         id: "Ledger.transfer",
         name: "Ledger.transfer",
-        label: "送金処理",
+        label: "Transfers",
         kind: "definition",
         statement:
           "def transfer (s : LedgerState) (amount : Nat) :=\n  if transferAllowed s amount then\n    { s with debit := s.debit - amount,\n             credit := s.credit + amount }\n  else s",
@@ -123,7 +123,7 @@ export function sampleWorkspace(): Workspace {
       {
         id: "Ledger.u64Max",
         name: "Ledger.u64Max",
-        label: "64ビット整数の上限",
+        label: "64-bit integer maximum",
         kind: "definition",
         statement: "def u64Max : Nat := 18446744073709551615",
         source: { file: "Ledger.lean", line: 12 },
@@ -134,7 +134,7 @@ export function sampleWorkspace(): Workspace {
       {
         id: "Ledger.requestId",
         name: "Ledger.requestId",
-        label: "要求ID",
+        label: "Request ID",
         kind: "definition",
         statement: "def requestId (request : Request) : Nat := request.id",
         source: { file: "Ledger.lean", line: 80 },
@@ -145,7 +145,7 @@ export function sampleWorkspace(): Workspace {
       {
         id: "Nat.add_sub_cancel",
         name: "Nat.add_sub_cancel",
-        label: "加減算の補題",
+        label: "Addition and subtraction lemma",
         kind: "theorem",
         statement: "∀ n m : Nat, n + m - m = n",
         source: { file: "Mathlib/Data/Nat/Basic.lean" },
@@ -216,16 +216,15 @@ export function sampleWorkspace(): Workspace {
       {
         id: "sample-check",
         kind: "report",
-        label: "証明状態のサンプル",
-        content:
-          "画面確認用に作成したレポートです。Leanの実行結果ではありません。",
+        label: "Proof status sample",
+        content: "UI sample report; not a Lean execution result.",
       },
       {
         id: "boundary-001",
         kind: "counterexample",
-        label: "同額送金の境界ケース",
+        label: "Equal-balance boundary case",
         content:
-          "残高: 100\n送金額: 100\n要件: 受理する\n定理の前提: amount < balance を満たさない",
+          "Balance: 100\nTransfer amount: 100\nRequirement: Accept\nTheorem assumption: amount < balance  is not satisfied",
       },
       {
         id: "decl-001",
@@ -243,14 +242,15 @@ export function sampleWorkspace(): Workspace {
         sourceRevision,
         status: "complete",
         verdict: "partial",
-        backTranslation: "送金額が残高未満なら、送金を受け付ける。",
+        backTranslation:
+          "Accept transfers whose amount is strictly below the balance.",
         reasoning:
-          "定理が使う受理条件は amount < balance です。同額の送金は前提を満たさず、この定理の対象に含まれません。",
+          "The theorem uses amount < balance. Equal-balance transfers do not satisfy this assumption and are outside its scope.",
         evidenceRefs: ["boundary-001", "decl-001"],
         modelVersions: ["sample/back-translation", "sample/judge"],
         assumptions: [
-          "口座の権限と要求IDが有効であること。",
-          "受取口座の残高が64ビット整数の上限を超えないこと。",
+          "Account authorization and request ID are valid.",
+          "The receiving balance does not exceed the 64-bit integer maximum.",
         ],
       },
       {
@@ -261,12 +261,13 @@ export function sampleWorkspace(): Workspace {
         sourceRevision,
         status: "complete",
         verdict: "full",
-        backTranslation: "送金の前後で、二つの口座の総残高が変わらない。",
+        backTranslation:
+          "The total balance of both accounts is unchanged by a transfer.",
         reasoning:
-          "totalBalance は二つの残高の和です。定理は送金前後の和が等しいことを述べています。",
+          "totalBalance is the sum of both balances. The theorem states that this sum is unchanged by transfers.",
         evidenceRefs: ["sample-check"],
         modelVersions: ["sample/back-translation", "sample/judge"],
-        assumptions: ["残高の表現を自然数とする。"],
+        assumptions: ["Balances are represented by natural numbers."],
       },
       {
         id: "analysis-003",
@@ -276,23 +277,24 @@ export function sampleWorkspace(): Workspace {
         sourceRevision,
         status: "complete",
         verdict: "full",
-        backTranslation: "同じ要求IDで再試行しても、口座の残高を変更しない。",
+        backTranslation:
+          "Retrying the same request ID leaves account balances unchanged.",
         reasoning:
-          "過去または同一の要求IDに対して、元の状態を返すという命題です。意味の比較と証明の完了は別に確認します。",
+          "Past or repeated request IDs return the original state. Meaning alignment and proof completion are checked separately.",
         evidenceRefs: [],
         modelVersions: ["sample/back-translation", "sample/judge"],
-        assumptions: ["要求IDは単調増加で発行される。"],
+        assumptions: ["Request IDs are issued in strictly increasing order."],
       },
     ],
     conversations: [
       {
         id: "conversation-sample",
-        title: "送金処理の仕様",
+        title: "Transfer specification",
         messages: [
           {
             id: "message-sample",
             role: "user",
-            text: "残高以下の送金を受け付ける台帳を作成してください。送金で総残高が変わらず、同じ要求IDでは二重に送金されないようにします。",
+            text: "Build a ledger accepting transfers up to the available balance. Preserve total balance and prevent duplicate transfers with the same request ID.",
             status: "draft",
             createdAt: now,
           },

@@ -1786,6 +1786,23 @@ model quality, confidentiality or cold installation.
 
 ## Shared CLI and TUI execution
 
+The [English chat and L4SB observation](../results/gui-english-chat-l4sb-riemann.json)
+records flat chat presentation, rendered-height folding, persistent pointer/keyboard
+sidebar resizing and a header without a duplicate workspace name. Native cancellation
+is an inline disclosure rather than a banner. Tool records and work-item management
+remain available through Work history. UI copy is English; original recorded demo
+source/tool bytes remain unchanged while its visible conversation has English translations.
+
+L4SB cone geometry is the only file-graph layout. Native map selection chooses an
+explicit center; ordinary node selection and hover preserve the current layout.
+Tests cover dense-node rectangle separation, type/definition traversal, known proof-only
+edges and conservative unknown-edge classification. Colors do not grant proof evidence.
+The large-project inventory preserves every path and loads bounded lexical neighborhoods
+through the same policy-bound worker; no new unconfined path, model request, extraction
+receipt or controller authority is introduced. Inventory/resolution/JSON/rendering remain
+adapters, not new Rust-to-Lean refinement claims.
+
+
 Native source pages use browser-local Shiki highlighting and preserve their original
 numbered lines. A source regression checks exact token-content reconstruction and
 prevents Lean keywords inside line comments from acquiring code colors. Map symbols

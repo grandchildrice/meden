@@ -34,11 +34,11 @@ export function RecordedActivity() {
   ) as Activities | undefined;
   if (!activities?.length) return null;
   return (
-    <section className="recorded-activities" aria-label="保存された実行履歴">
+    <section className="recorded-activities" aria-label="Saved tool activity">
       <details open>
         <summary>
           <TerminalRounded fontSize="small" />
-          <span>実行履歴 · {activities.length}件</span>
+          <span>Tool activity · {activities.length} entries</span>
         </summary>
         <div className="activity-entries">
           {activities.map((activity) => (
@@ -58,20 +58,20 @@ export function RecordedActivity() {
                 </span>
                 <small>
                   {activity.status === "complete"
-                    ? "完了"
+                    ? "Complete"
                     : activity.status === "failed"
-                      ? "失敗"
+                      ? "Failed"
                       : activity.status === "incomplete"
-                        ? "未完了"
-                        : "結果なし"}
+                        ? "Incomplete"
+                        : "No result"}
                 </small>
               </summary>
               <div className="recorded-tool-details">
-                <div>入力</div>
+                <div>Input</div>
                 <pre tabIndex={0}>{activity.arguments}</pre>
-                <div>出力</div>
+                <div>Output</div>
                 <pre tabIndex={0}>
-                  {output(activity.output) || "出力は記録されていません。"}
+                  {output(activity.output) || "No output recorded."}
                 </pre>
               </div>
             </details>

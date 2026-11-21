@@ -115,6 +115,9 @@
               "axiom"
             ]
           },
+          "isMainTheorem": {
+            "type": "boolean"
+          },
           "statement": {
             "type": "string",
             "maxLength": 100000

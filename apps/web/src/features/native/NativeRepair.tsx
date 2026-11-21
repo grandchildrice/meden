@@ -61,42 +61,46 @@ export function NativeRepair({
             sx={{ overflowWrap: "anywhere" }}
           >
             <Typography component="h2" variant="h3">
-              修正差分と元の要件を確認
+              Review patch and original requirement
             </Typography>
-            <Typography>変更するファイル: {review.file}</Typography>
+            <Typography>File to change: {review.file}</Typography>
             <Typography variant="body2">
-              差分ID: {review.reference.sha256}
+              Patch ID: {review.reference.sha256}
             </Typography>
             <Typography variant="body2">
               Finding: {review.finding_id}
             </Typography>
             <Typography variant="body2">
-              要件ID: {review.requirement_id}
+              Requirement ID: {review.requirement_id}
             </Typography>
             <Typography variant="body2">
-              受理済み契約: {review.accepted_reference?.contract || "なし"}
+              Accepted contract: {review.accepted_reference?.contract || "None"}
             </Typography>
           </DialogTitle>
           <DialogContent dividers>
             <Alert severity="info">
-              承認するとこの差分を一度だけ適用し、元の要件で再解析します。既存の証明結果は失効し、再解析の一致は証明済みを意味しません。
+              Approval applies this exact patch once and reanalyzes the original
+              requirement. Previous proof results are invalidated. A matching
+              analysis is not a proof.
             </Alert>
-            <Typography component="h3">元の要件</Typography>
+            <Typography component="h3">Original requirement</Typography>
             <pre>{review.input.requirement}</pre>
-            <Typography variant="body2">生成モデル: {review.model}</Typography>
-            <Typography component="h3">修正の理由</Typography>
+            <Typography variant="body2">
+              Generation model: {review.model}
+            </Typography>
+            <Typography component="h3">Patch rationale</Typography>
             <pre>{review.explanation}</pre>
-            <pre aria-label="適用する正確な修正差分">{review.diff}</pre>
+            <pre aria-label="Exact patch to apply">{review.diff}</pre>
           </DialogContent>
           <DialogActions>
             <Button disabled={running} onClick={() => act("reject_repair")}>
-              修正を拒否
+              Reject patch
             </Button>
             <Button
               disabled={running || visible !== review.reference.sha256}
               onClick={() => act("apply_repair")}
             >
-              この差分を一度適用して再解析
+              Apply this patch once and reanalyze
             </Button>
           </DialogActions>
         </>

@@ -7,35 +7,35 @@ export type DeclarationRole = {
 };
 const main: DeclarationRole = {
   id: "main_theorem",
-  label: "主定理",
+  label: "Main theorem",
   color: "#ffd166",
   glyph: "★",
   shape: "star",
 };
 const theorem: DeclarationRole = {
   id: "theorem",
-  label: "定理",
+  label: "Theorem",
   color: "#a4cfff",
   glyph: "◆",
   shape: "diamond",
 };
 const lemma: DeclarationRole = {
   id: "lemma",
-  label: "補題",
+  label: "Lemma",
   color: "#a5e4bf",
   glyph: "●",
   shape: "circle",
 };
 const definition: DeclarationRole = {
   id: "definition",
-  label: "定義",
+  label: "Definition",
   color: "#e0eafa",
   glyph: "■",
   shape: "square",
 };
 const axiom: DeclarationRole = {
   id: "axiom",
-  label: "公理",
+  label: "Axiom",
   color: "#ffb6cb",
   glyph: "▲",
   shape: "triangle",
@@ -59,10 +59,10 @@ export function declarationRole(
       id: keyword,
       label:
         keyword === "class"
-          ? "クラス"
+          ? "Class"
           : keyword === "inductive"
-            ? "帰納型"
-            : "構造体",
+            ? "Inductive type"
+            : "Structure",
       color: "#d7c3ff",
     };
   return definition;

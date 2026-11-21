@@ -14,6 +14,7 @@ import { Button, IconButton, Typography } from "@mui/material";
 import ArrowUpwardRounded from "@mui/icons-material/ArrowUpwardRounded";
 import { RecordedActivity } from "./RecordedActivity";
 import type { Conversation } from "@meden/workspace-schema";
+import { CollapsibleMessage } from "./CollapsibleMessage";
 
 const technologyLogos = [
   ["Rust", "rust"],
@@ -30,6 +31,7 @@ const technologyLogos = [
 
 interface Props {
   projectName: string;
+  compact?: boolean;
   conversation?: Conversation;
   draftKey: string;
   running: boolean;
@@ -37,7 +39,7 @@ interface Props {
   disabled?: boolean;
   pending?: boolean;
   artifact: ReactNode;
-  history?: ReactNode;
+  notice?: ReactNode;
   composerActions?: ReactNode;
   sessionLabels?: Record<string, string>;
   onSend: (text: string) => Promise<void>;
@@ -45,6 +47,7 @@ interface Props {
 const convertMessage = (message: ThreadMessageLike) => message;
 export const ChatView = memo(function ChatView({
   projectName,
+  compact,
   conversation,
   draftKey,
   running,
@@ -52,7 +55,7 @@ export const ChatView = memo(function ChatView({
   disabled,
   pending,
   artifact,
-  history,
+  notice,
   composerActions,
   sessionLabels,
   onSend,
@@ -94,12 +97,12 @@ export const ChatView = memo(function ChatView({
   useEffect(() => {
     runtime.thread.composer.setText(localStorage.getItem(draftKey) || "");
   }, [draftKey, runtime]);
-  const empty = !conversation?.messages.length && !history;
+  const empty = !compact && !conversation?.messages.length && !notice;
   return (
     <AssistantRuntimeProvider runtime={runtime}>
       <section
         className={"chat-panel " + (empty ? "chat-home" : "chat-started")}
-        aria-label="会話"
+        aria-label="Conversation"
       >
         <ThreadPrimitive.Root className="thread">
           {empty ? (
@@ -115,21 +118,23 @@ export const ChatView = memo(function ChatView({
                   />
                 </svg>
               </div>
-              <Typography variant="h1">何を安全に作りますか？</Typography>
+              <Typography variant="h1">
+                What would you like to build safely?
+              </Typography>
             </div>
           ) : (
             <ThreadPrimitive.Viewport className="transcript">
-              {history}
               <ThreadPrimitive.Messages
                 components={{ UserMessage, AssistantMessage }}
               />
               {conversation?.messages.some(
                 (message) => message.role === "assistant",
               ) && artifact}
+              {notice}
               {running && (
                 <div role="status" className="reply-activity">
                   <span className="activity-dot" />
-                  {activityText || "応答を準備しています"}
+                  {activityText || "Preparing response"}
                 </div>
               )}
             </ThreadPrimitive.Viewport>
@@ -138,8 +143,8 @@ export const ChatView = memo(function ChatView({
             <ComposerPrimitive.Input
               ref={input}
               className="composer-input"
-              placeholder="作りたいものや、確認したいことを入力"
-              aria-label="メッセージ"
+              placeholder="Describe what to build or check"
+              aria-label="Message"
               disabled={disabled}
               submitMode="enter"
               onChange={(event) =>
@@ -153,7 +158,7 @@ export const ChatView = memo(function ChatView({
               <ComposerPrimitive.Send asChild>
                 <IconButton
                   className="send-message"
-                  aria-label="送信"
+                  aria-label="Send"
                   disabled={disabled || running || pending}
                 >
                   <ArrowUpwardRounded fontSize="small" />
@@ -167,23 +172,23 @@ export const ChatView = memo(function ChatView({
                 variant="outlined"
                 onClick={() => {
                   runtime.thread.composer.setText(
-                    "自販機シミュレーターを作成して",
+                    "Build a vending machine simulator",
                   );
                   input.current?.focus();
                 }}
               >
-                自販機シミュレーターを作る
+                Build a vending machine simulator
               </Button>
               <Button
                 variant="outlined"
                 onClick={() => {
                   runtime.thread.composer.setText(
-                    "自販機の証明と依存関係を確認して",
+                    "Check the vending machine proofs and dependencies",
                   );
                   input.current?.focus();
                 }}
               >
-                証明と依存関係を確認する
+                Check proofs and dependencies
               </Button>
             </div>
           )}
@@ -191,7 +196,7 @@ export const ChatView = memo(function ChatView({
             <ul
               className="technology-logos"
               role="list"
-              aria-label="言語・形式検証ツールの例"
+              aria-label="Languages and verification tools"
             >
               {technologyLogos.map(([name, file]) => (
                 <li key={file}>
@@ -211,7 +216,7 @@ export const ChatView = memo(function ChatView({
             </ul>
           ) : (
             <div className="composer-caption">
-              Enterで送信・Shift + Enterで改行
+              Enter to send · Shift + Enter for a new line
             </div>
           )}
         </ThreadPrimitive.Root>
@@ -224,7 +229,9 @@ function UserMessage() {
     <MessagePrimitive.Root className="message user-turn">
       <div className="user-message">
         <RecordedOrigin />
-        <MessagePrimitive.Parts />
+        <CollapsibleMessage>
+          <MessagePrimitive.Parts />
+        </CollapsibleMessage>
       </div>
       <RecordedActivity />
     </MessagePrimitive.Root>
@@ -238,9 +245,11 @@ function AssistantMessage() {
       </div>
       <div className="assistant-content">
         <RecordedOrigin />
-        <MessagePrimitive.Parts
-          components={{ Text: () => <MarkdownTextPrimitive /> }}
-        />
+        <CollapsibleMessage>
+          <MessagePrimitive.Parts
+            components={{ Text: () => <MarkdownTextPrimitive /> }}
+          />
+        </CollapsibleMessage>
         <RecordedActivity />
       </div>
     </MessagePrimitive.Root>
@@ -266,7 +275,7 @@ function RecordedOrigin() {
     );
   return origin === "recorded" && !groupedSession ? (
     <Typography variant="caption" component="p">
-      保存された会話
+      Saved conversation
     </Typography>
   ) : null;
 }

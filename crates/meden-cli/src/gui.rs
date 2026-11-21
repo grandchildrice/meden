@@ -308,7 +308,7 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
     {
         let mut view = lock(&view);
         view.running = true;
-        view.activity = "ワークスペース全体を読み込み中".into();
+        view.activity = "Reading workspace".into();
     }
     sender.try_send(Task {
         command: Command::RefreshWorkspace,
@@ -649,7 +649,7 @@ fn worker(
                     None
                 }
                 Command::PrepareAtlas => {
-                    lock(view).activity = "Lean Atlasライブラリをオフラインで準備".into();
+                    lock(view).activity = "Preparing Lean Atlas offline".into();
                     let result =
                         crate::atlas::Configuration::host(workspace.path()).prepare(&processes);
                     lock(view).atlas = crate::atlas::Configuration::host(workspace.path()).status();
@@ -718,7 +718,15 @@ fn worker(
                 } => {
                     let observation =
                         inspect(workspace, &processes, &path, directory, offset.unwrap_or(1))?;
+                    let index = !directory && observation.get("error").is_none();
                     lock(view).inspection = Some(observation);
+                    if index {
+                        if let Err(error) =
+                            overview::index_opened_file(view, workspace, &processes, &path)
+                        {
+                            lock(view).overview.error = Some(format!("Could not index {path}: {error:#}. Source browsing remains available."));
+                        }
+                    }
                     None
                 }
                 _ => anyhow::bail!("Unexpected worker command"),

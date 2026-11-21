@@ -93,6 +93,14 @@ pub(crate) struct Node {
     pub axioms: Vec<String>,
     pub standard_axioms: Vec<String>,
     pub external_dependencies: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub meta: Option<NodeMeta>,
+}
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct NodeMeta {
+    #[serde(default)]
+    pub is_main_theorem: bool,
 }
 #[derive(Clone, Deserialize, Serialize)]
 pub(crate) struct Edge {

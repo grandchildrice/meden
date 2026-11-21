@@ -16,12 +16,15 @@ export function ArtifactCard({
 }) {
   const obligations = proofObligations(workspace);
   return (
-    <section className="artifact-card" aria-label={workspace.name + "の成果物"}>
+    <section
+      className="artifact-card"
+      aria-label={workspace.name + " artifact"}
+    >
       <header className="artifact-card-header">
         <button
           type="button"
           className="artifact-card-open"
-          aria-label={workspace.name + "のプレビューを開く"}
+          aria-label={workspace.name + ": open preview"}
           onClick={onOpen}
         >
           <InsertDriveFileOutlined fontSize="small" />
@@ -39,7 +42,7 @@ export function ArtifactCard({
         <ul
           className="artifact-card-proofs"
           role="list"
-          aria-label="定理と証明ステータス"
+          aria-label="Theorems and proof status"
         >
           {obligations.map(({ claim, declaration, status }) => (
             <li key={claim.id}>

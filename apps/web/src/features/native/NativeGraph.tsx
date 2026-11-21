@@ -17,6 +17,7 @@ const GraphView = lazy(() =>
 
 export function NativeGraph({
   snapshot,
+  focusName,
   analysis,
   history,
   onSelectAnalysis,
@@ -27,6 +28,7 @@ export function NativeGraph({
   onSource,
 }: {
   snapshot: SourceSnapshot;
+  focusName?: string;
   analysis: MeaningRecord | null;
   history: MeaningRecord[];
   onSelectAnalysis: (id: string) => Promise<boolean>;
@@ -43,7 +45,7 @@ export function NativeGraph({
         workspace: workspaceSchema.parse({
           schemaVersion: 1,
           id: "native-sources",
-          name: "選択したローカルソース",
+          name: "Selected local sources",
           sourceRevision: snapshot.revision,
           inputRevision: 0,
           origin: "local",
@@ -62,8 +64,14 @@ export function NativeGraph({
       return { error: String(error) };
     }
   }, [snapshot.revision, snapshot.atlas?.revision]);
+  const focused = result.workspace?.declarations.find(
+    (d) => d.name === focusName,
+  );
   useEffect(() => {
-    if (!selected && analysis && result.workspace) {
+    if (focused) setSelected(focused);
+  }, [focused]);
+  useEffect(() => {
+    if (!focused && !selected && analysis && result.workspace) {
       const target = analysis.input.target;
       setSelected(
         result.workspace.declarations.find(
@@ -74,56 +82,51 @@ export function NativeGraph({
         ),
       );
     }
-  }, [analysis?.input.target.name, result.workspace]);
+  }, [analysis?.input.target.name, result.workspace, focused]);
   if (!result.workspace)
     return (
       <Alert severity="error">
-        ソースのグラフを表示できません。{result.error}
+        Could not display the source graph. {result.error}
       </Alert>
     );
   const workspace = result.workspace;
   return (
-    <section
-      className="native-source-graph"
-      aria-label="ローカルソースのグラフ"
-    >
+    <section className="native-source-graph" aria-label="Local source graph">
       <details className="native-graph-information">
-        <summary>解析の情報</summary>
+        <summary>Analysis information</summary>
         <Alert severity="info">
           {snapshot.atlas
-            ? `Lean Atlasによるコンパイル後の依存です（Lean ${snapshot.atlas.graph.metadata.leanVersion}）。プロジェクト内のimportを自動収集し、外部ライブラリは展開しない境界として表示します。Medenの契約・証明の受理状態は変更しません。`
-            : "選択したファイルの字句解析による参照候補です。Leanの精密な依存抽出・証明確認は実行していません。"}
+            ? `Compiled dependencies from Lean Atlas (Lean ${snapshot.atlas.graph.metadata.leanVersion}). Local imports are collected automatically; external libraries are shown as unexpanded boundaries. Contract and proof acceptance are unchanged.`
+            : "Lexical reference candidates from selected files. No compiler dependency extraction or proof checking was performed."}
         </Alert>
 
         {snapshot.collection && (
           <Typography variant="body2">
-            自動収集したプロジェクト内の依存です。対象:{" "}
-            {snapshot.collection.roots.join(", ")}。
+            Collected local dependencies. Roots:{" "}
+            {snapshot.collection.roots.join(", ")}.
             {snapshot.collection.packages
               .map(
                 (pkg) => `Lake: ${pkg.name} (${pkg.source_roots.join(", ")})`,
               )
               .join(" · ")}
-            外部モジュール（宣言を展開しない境界）:{" "}
-            {snapshot.collection.external_modules.join(", ") || "なし"}。
+            External module boundaries:{" "}
+            {snapshot.collection.external_modules.join(", ") || "None"}.
           </Typography>
         )}
         <Typography variant="caption">
-          {Object.keys(snapshot.files).length}ファイル ·{" "}
-          {workspace.declarations.length}宣言 · {workspace.edges.length}
-          {snapshot.atlas ? "依存" : "参照候補"}
+          {Object.keys(snapshot.files).length} files ·{" "}
+          {workspace.declarations.length} declarations ·{" "}
+          {workspace.edges.length}
+          {snapshot.atlas ? " dependencies" : " reference candidates"}
         </Typography>
       </details>
       <Suspense
-        fallback={
-          <CircularProgress aria-label="グラフを読み込み中" size={24} />
-        }
+        fallback={<CircularProgress aria-label="Loading graph" size={24} />}
       >
         {workspace.declarations.length ? (
           <GraphView
             workspace={workspace}
-            controls={false}
-            focusId={selected?.id}
+            focusId={focused?.id}
             selectedId={selected?.id}
             onSelect={(declaration) => {
               setSelected(declaration);
@@ -137,24 +140,25 @@ export function NativeGraph({
           />
         ) : (
           <p>
-            この索引で扱えるRust／Lean宣言がありません。対象ファイルを確認してください。
+            No supported Rust or Lean declarations were found. Check the
+            selected files.
           </p>
         )}
       </Suspense>
       {selected && (
-        <div className="native-declaration" aria-label="選択した宣言">
+        <div className="native-declaration" aria-label="Selected declaration">
           <Typography component="h3">{selected.name}</Typography>
           <Chip
             label={
               selected.proofStatus === "unproved"
-                ? "未完成の証明を検出"
-                : "証明は未確認"
+                ? "Unfinished proof detected"
+                : "Proof unchecked"
             }
             size="small"
           />
           <pre>{selected.statement}</pre>
           <Typography variant="caption" component="p">
-            参照先:{" "}
+            References:{" "}
             {workspace.edges
               .filter((edge) => edge.source === selected.id)
               .map(
@@ -163,7 +167,7 @@ export function NativeGraph({
                     (declaration) => declaration.id === edge.target,
                   )?.name,
               )
-              .join(", ") || "この索引内では見つかりません"}
+              .join(", ") || "Not found in this index"}
           </Typography>
         </div>
       )}

@@ -28,7 +28,7 @@ pub(super) fn perform(
                 record.finding_id.as_deref() == Some(finding_id.as_str()),
                 "Repair Finding selection changed"
             );
-            lock(view).activity = "修正差分を準備しています".into();
+            lock(view).activity = "Preparing patch".into();
             lock(view).repair_review = Some(session.prepare_repair(repairs, &snapshot, &record)?);
         }
         Command::ApplyRepair { reference } => {
@@ -44,7 +44,7 @@ pub(super) fn perform(
             );
             lock(view).repair_review = None;
             session.reject_repair(repairs, &reference)?;
-            lock(view).activity = "修正を拒否しました（ファイルは変更していません）".into();
+            lock(view).activity = "Patch rejected; files unchanged".into();
         }
         _ => anyhow::bail!("not a repair command"),
     }

@@ -112,14 +112,14 @@ test.describe("native GUI with real offline workers", () => {
   async function openDependencyControls(page: Page) {
     if (
       !(await page
-        .getByRole("region", { name: "Lean解析ツール", exact: true })
+        .getByRole("region", { name: "Lean tools", exact: true })
         .isVisible())
     )
       await page
-        .getByRole("button", { name: "Lean解析ツール", exact: true })
+        .getByRole("button", { name: "Lean tools", exact: true })
         .click();
     const details = page
-      .getByRole("region", { name: "Lean解析ツール", exact: true })
+      .getByRole("region", { name: "Lean tools", exact: true })
       .locator("details");
     if (!(await details.evaluate((e) => (e as HTMLDetailsElement).open)))
       await details.locator("summary").click();
@@ -127,23 +127,25 @@ test.describe("native GUI with real offline workers", () => {
   async function setPaths(page: Page, value: string) {
     await openDependencyControls(page);
     await page
-      .getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" })
+      .getByRole("textbox", { name: "Graph source files (one per line)" })
       .fill(value);
   }
   async function refreshReferences(page: Page) {
     await openDependencyControls(page);
-    await page.getByRole("button", { name: "参照を更新", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Refresh references", exact: true })
+      .click();
   }
   async function compileDependencies(page: Page) {
     await openDependencyControls(page);
     const paths = await page
-      .getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" })
+      .getByRole("textbox", { name: "Graph source files (one per line)" })
       .inputValue();
     await page
       .getByRole("button", {
         name: paths.trim()
-          ? "コンパイル後の依存を抽出"
-          : "Lakeターゲットを自動選択して表示",
+          ? "Extract compiled dependencies"
+          : "Select Lake targets automatically",
         exact: true,
       })
       .click();
@@ -195,6 +197,198 @@ test.describe("native GUI with real offline workers", () => {
     await rm(root, { recursive: true, force: true });
   });
 
+  test("chat stays flat, folds long messages and remembers draggable sidebar widths", async ({
+    page,
+  }) => {
+    await mkdir(resolve(project, ".meden"));
+    const user =
+      "USER-LONG-START\n" +
+      "Original user context stays available.\n".repeat(45) +
+      "USER-LONG-END";
+    const assistant =
+      "ASSISTANT-LONG-START\n\n```lean\n" +
+      "example : True := True.intro\n".repeat(45) +
+      "```\nASSISTANT-LONG-END";
+    await writeFile(
+      resolve(project, "Spec.lean"),
+      "theorem identity : True := True.intro\n",
+    );
+    await writeFile(
+      resolve(project, ".meden/workspace.json"),
+      JSON.stringify({
+        version: 1,
+        name: "Clean chat",
+        tasks: [
+          {
+            id: "work",
+            title: "Archived work",
+            requirement: "Preserve original intent",
+            module: "Spec",
+            theorems: ["identity"],
+            next: "Continue carefully",
+          },
+        ],
+        events: [],
+        conversations: [
+          {
+            id: "saved",
+            messages: [
+              { speaker: "user", text: user },
+              { speaker: "assistant", text: assistant },
+            ],
+          },
+        ],
+      }),
+    );
+    await page.goto(await start());
+    const chat = page.getByRole("complementary", {
+      name: "Workspace chat",
+      exact: true,
+    });
+    await expect(page.locator(".ide-header h1")).toHaveText("Meden");
+    await expect(page.locator(".ide-project-name")).toHaveCount(0);
+    await expect(
+      chat.locator(".chat-work-card, .chat-work-history"),
+    ).toHaveCount(0);
+    const userMessage = chat.locator(".user-turn"),
+      assistantMessage = chat.locator(".assistant-message");
+    for (const message of [userMessage, assistantMessage]) {
+      await expect(
+        message.getByRole("button", { name: "Show more", exact: true }),
+      ).toHaveAttribute("aria-expanded", "false");
+      expect(
+        await message.locator(".message-body").evaluate((e) => e.clientHeight),
+      ).toBeLessThanOrEqual(240);
+      await message
+        .getByRole("button", { name: "Show more", exact: true })
+        .click();
+      expect(
+        await message.locator(".message-body").evaluate((e) => e.clientHeight),
+      ).toBeGreaterThan(500);
+      await message
+        .getByRole("button", { name: "Show less", exact: true })
+        .click();
+    }
+    const draft = chat.getByRole("textbox", { name: "Message", exact: true });
+    // The model need not be approved to resize, inspect history or expand text.
+    const resize = async (name: string, dx: number) => {
+      const handle = page.getByRole("separator", { name });
+      const box = (await handle.boundingBox())!;
+      await page.mouse.move(box.x + box.width / 2, box.y + 150);
+      await page.mouse.down();
+      await page.mouse.move(box.x + box.width / 2 + dx, box.y + 150, {
+        steps: 8,
+      });
+      await page.mouse.up();
+    };
+    await resize("Resize chat sidebar", -180);
+    await expect
+      .poll(async () => Math.round((await chat.boundingBox())!.width))
+      .toBe(530);
+    await resize("Resize file sidebar", 70);
+    await expect
+      .poll(async () =>
+        Math.round(
+          (await page
+            .getByRole("complementary", { name: "Files", exact: true })
+            .boundingBox())!.width,
+        ),
+      )
+      .toBe(290);
+    await page.reload();
+    await expect
+      .poll(async () => Math.round((await chat.boundingBox())!.width))
+      .toBe(530);
+    const handle = page.getByRole("separator", { name: "Resize chat sidebar" });
+    await handle.focus();
+    await handle.press("ArrowLeft");
+    await expect
+      .poll(async () => Math.round((await chat.boundingBox())!.width))
+      .toBe(546);
+    await handle.press("Home");
+    await expect
+      .poll(async () => Math.round((await chat.boundingBox())!.width))
+      .toBe(350);
+    await chat
+      .getByRole("button", { name: "Work history", exact: true })
+      .click();
+    await expect(page.getByRole("dialog")).toContainText("Archived work");
+    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(draft).toBeVisible();
+    expect(requests).toHaveLength(0);
+    await page.screenshot({ path: "target/gui-checks/flat-chat-resize.png" });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.getByRole("separator")).toHaveCount(0);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  });
+
+  test("large project inventory includes every file and indexes declarations only when opened", async ({
+    page,
+  }) => {
+    test.setTimeout(90000);
+    await mkdir(resolve(project, "Many"));
+    for (let start = 0; start < 10001; start += 200)
+      await Promise.all(
+        Array.from({ length: Math.min(200, 10001 - start) }, (_, i) =>
+          writeFile(
+            resolve(project, "Many", "File" + (start + i) + ".lean"),
+            "theorem identity" + (start + i) + " : True := True.intro\n",
+          ),
+        ),
+      );
+    await writeFile(
+      resolve(project, "Many/File0.lean"),
+      "import Many.File2\ntheorem identity0 : True := identity1\n",
+    );
+    await writeFile(resolve(project, "Many/File2.lean"), "import Many.File1\n");
+    await page.goto(await start());
+    await expect
+      .poll(async () => (await nativeState(page)).overview.state, {
+        timeout: 60000,
+      })
+      .toBe("ready");
+    const inventory = await page.evaluate(async () =>
+      (
+        await fetch("/api/overview", {
+          headers: {
+            Authorization:
+              "Bearer " + sessionStorage.getItem("meden-native-session"),
+          },
+        })
+      ).json(),
+    );
+    expect(inventory.files).toHaveLength(10001);
+    expect(inventory.inventory_only).toBe(true);
+    expect(inventory.files.every((f: { indexed: boolean }) => !f.indexed)).toBe(
+      true,
+    );
+    await page
+      .getByRole("button", { name: "Folder: Many", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "File: Many/File0.lean", exact: true })
+      .first()
+      .click();
+    await expect(page.locator(".ide-file-page:not([hidden])")).toContainText(
+      "identity0",
+    );
+    await expect(
+      page.locator(".ide-file-page:not([hidden]) [data-layout=l4sb]"),
+    ).toBeVisible();
+    await expect(
+      page.locator(".ide-file-page:not([hidden]) .root-node"),
+    ).toContainText("identity0");
+    await expect(
+      page.locator(".ide-file-page:not([hidden]) .radar-node"),
+    ).toHaveCount(2);
+    expect((await nativeState(page)).source_snapshot).toBeNull();
+    expect(requests).toHaveLength(0);
+  });
+
   test("warm browser assets survive repeated host restart with fresh session review", async ({
     page,
   }, testInfo) => {
@@ -209,12 +403,12 @@ test.describe("native GUI with real offline workers", () => {
       await page.goto(await start());
       for (let restart = 0; restart < 6; restart++) {
         await expect(
-          page.getByRole("button", { name: "アプリをプレビュー", exact: true }),
+          page.getByRole("button", { name: "Preview app", exact: true }),
         ).toBeVisible();
         const before = await nativeState(page);
         expect(before.authorized).toBe(false);
         await page
-          .getByRole("button", { name: "アプリをプレビュー", exact: true })
+          .getByRole("button", { name: "Preview app", exact: true })
           .click();
         await expect(page.locator("iframe")).toHaveCount(0);
         const port = Number(new URL(url).port);
@@ -222,7 +416,7 @@ test.describe("native GUI with real offline workers", () => {
         await page.goto(await start(port));
       }
       await expect(
-        page.getByRole("button", { name: "アプリをプレビュー", exact: true }),
+        page.getByRole("button", { name: "Preview app", exact: true }),
       ).toBeVisible();
       expect((await nativeState(page)).authorized).toBe(false);
       expect(requests).toHaveLength(0);
@@ -261,7 +455,7 @@ test.describe("native GUI with real offline workers", () => {
     await openDependencyControls(page);
     await expect(
       page.getByRole("button", {
-        name: "コンパイル後の依存を抽出",
+        name: "Extract compiled dependencies",
         exact: true,
       }),
     ).toBeDisabled();
@@ -271,21 +465,24 @@ test.describe("native GUI with real offline workers", () => {
       }),
     ).toBeVisible();
     await page
-      .getByRole("button", { name: "再検出", exact: true })
+      .getByRole("button", { name: "Rediscover", exact: true })
       .scrollIntoViewIfNeeded();
     await page.screenshot({
       path: "target/gui-checks/native-atlas-missing-installation.png",
     });
     // Installed resources are a test prerequisite, not a cold-download validation.
     await symlink(lean, installed, "dir");
-    await page.getByRole("button", { name: "再検出", exact: true }).click();
+    await page.getByRole("button", { name: "Rediscover", exact: true }).click();
     await expect(
-      page.getByRole("button", { name: "依存抽出の準備", exact: true }),
+      page.getByRole("button", {
+        name: "Prepare dependency extraction",
+        exact: true,
+      }),
     ).toBeEnabled();
     await setPaths(page, "App.lean");
     await compileDependencies(page);
-    const graph = page.getByRole("region", { name: "ローカルソースのグラフ" });
-    await expect(graph).toContainText("Lean Atlasによるコンパイル後の依存", {
+    const graph = page.getByRole("region", { name: "Local source graph" });
+    await expect(graph).toContainText("Compiled dependencies from Lean Atlas", {
       timeout: 120_000,
     });
     const first = await nativeState(page);
@@ -307,7 +504,7 @@ test.describe("native GUI with real offline workers", () => {
     await page.goto(await start(0, env));
     await openDependencyControls(page);
     await expect(
-      page.getByText("Lean Atlas: オフライン抽出の準備済み", { exact: false }),
+      page.getByText("Lean Atlas: Offline extraction ready", { exact: false }),
     ).toBeVisible();
     expect((await nativeState(page)).authorized).toBe(false);
     expect(requests).toHaveLength(0);
@@ -327,29 +524,35 @@ test.describe("native GUI with real offline workers", () => {
     await page.goto(await start());
     await openDependencyControls(page);
     await expect(
-      page.getByRole("button", { name: "依存抽出の準備", exact: true }),
+      page.getByRole("button", {
+        name: "Prepare dependency extraction",
+        exact: true,
+      }),
     ).toBeEnabled();
     await page
-      .getByRole("button", { name: "依存抽出の準備", exact: true })
+      .getByRole("button", {
+        name: "Prepare dependency extraction",
+        exact: true,
+      })
       .click();
     await expect(
-      page.getByText("Lean Atlas: オフライン抽出の準備済み", { exact: false }),
+      page.getByText("Lean Atlas: Offline extraction ready", { exact: false }),
     ).toBeVisible({ timeout: 120_000 });
     expect(requests).toHaveLength(0);
     await setPaths(page, "App.lean");
     const readyBox = await page
-      .getByText("Lean Atlas: オフライン抽出の準備済み", { exact: false })
+      .getByText("Lean Atlas: Offline extraction ready", { exact: false })
       .boundingBox();
     const labelBox = await page
       .locator("label")
-      .filter({ hasText: "グラフの対象ファイル（1行に1つ）" })
+      .filter({ hasText: "Graph source files (one per line)" })
       .boundingBox();
     expect(readyBox).not.toBeNull();
     expect(labelBox).not.toBeNull();
     expect(readyBox!.y).toBeGreaterThanOrEqual(labelBox!.y + labelBox!.height);
     await compileDependencies(page);
-    const graph = page.getByRole("region", { name: "ローカルソースのグラフ" });
-    await expect(graph).toContainText("Lean Atlasによるコンパイル後の依存", {
+    const graph = page.getByRole("region", { name: "Local source graph" });
+    await expect(graph).toContainText("Compiled dependencies from Lean Atlas", {
       timeout: 60_000,
     });
     const state = await nativeState(page);
@@ -378,24 +581,33 @@ test.describe("native GUI with real offline workers", () => {
         },
       ]),
     );
-    await graph
-      .getByRole("button", { name: /Store.unfinished.*を選択/ })
+    await page.getByRole("tab", { name: "Project map", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Dependencies: App.lean", exact: true })
+      .click({ position: { x: 20, y: 15 } });
+    await page
+      .getByRole("button", {
+        name: /Declaration: Store.unfinished · App.lean:/,
+      })
       .click();
-    await expect(page.getByLabel("選択した宣言")).toContainText(
-      "未完成の証明を検出",
+    await expect(page.getByLabel("Selected declaration")).toContainText(
+      "Unfinished proof detected",
     );
-    await graph
-      .getByRole("button", { name: /Store.permitted.*を選択/ })
+    await page.getByRole("tab", { name: "Project map", exact: true }).click();
+    await page
+      .getByRole("button", { name: /Declaration: Store.permitted · App.lean:/ })
       .click();
-    await expect(page.getByLabel("選択した宣言")).toContainText("eligibility");
+    await expect(page.getByLabel("Selected declaration")).toContainText(
+      "eligibility",
+    );
     await expect(
       page.locator(".ide-file-page:not([hidden]) [aria-current=location]"),
     ).toContainText("theorem permitted");
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
     await page
-      .getByRole("button", { name: "このモデルを使用", exact: true })
+      .getByRole("button", { name: "Use this model", exact: true })
       .click();
     responses.push((response) =>
       reply(
@@ -425,16 +637,16 @@ test.describe("native GUI with real offline workers", () => {
       ),
     );
     await page
-      .getByRole("textbox", { name: "比較する要件", exact: true })
+      .getByRole("textbox", { name: "Requirement to compare", exact: true })
       .fill(
         "ORIGINAL_SEPARATE_REQUIREMENT: all balances of at least 100 with positive stock permit purchase.",
       );
     await page
-      .getByRole("button", { name: "この宣言の意味を解析", exact: true })
+      .getByRole("button", { name: "Analyze declaration meaning", exact: true })
       .click();
     await expect(
-      page.getByLabel("意味解析の結果", { exact: true }),
-    ).toContainText("意味の差異候補");
+      page.getByLabel("Meaning analysis result", { exact: true }),
+    ).toContainText("Candidate mismatch");
     const first = JSON.stringify(requests[0]);
     const translationRequest = requests[0] as {
       messages: Array<{ content: string }>;
@@ -452,7 +664,7 @@ test.describe("native GUI with real offline workers", () => {
     expect(first).not.toContain("by sorry");
     expect((await nativeState(page)).project.verified).toBe(false);
     await page
-      .getByLabel("意味解析の結果", { exact: true })
+      .getByLabel("Meaning analysis result", { exact: true })
       .scrollIntoViewIfNeeded();
     await page.screenshot({
       path: "target/gui-checks/native-atlas-meaning.png",
@@ -471,9 +683,9 @@ test.describe("native GUI with real offline workers", () => {
       reply(response, { role: "assistant", content: "ATLAS-SOURCE-CHANGED" }),
     );
     await page
-      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .getByRole("textbox", { name: "Message", exact: true })
       .fill("Change the selected source to exercise compilation failure");
-    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(
       page.getByText("ATLAS-SOURCE-CHANGED", { exact: true }),
     ).toBeVisible();
@@ -495,16 +707,16 @@ test.describe("native GUI with real offline workers", () => {
       reply(response, { role: "assistant", content: "ATLAS-SOURCE-REPAIRED" }),
     );
     await page
-      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .getByRole("textbox", { name: "Message", exact: true })
       .fill(
         "Restore the valid Lean implementation and keep Domain.lean unchanged",
       );
-    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(
       page.getByText("ATLAS-SOURCE-REPAIRED", { exact: true }),
     ).toBeVisible();
     await compileDependencies(page);
-    await expect(graph).toContainText("Lean Atlasによるコンパイル後の依存", {
+    await expect(graph).toContainText("Compiled dependencies from Lean Atlas", {
       timeout: 60_000,
     });
     const port = Number(new URL(url).port);
@@ -512,12 +724,12 @@ test.describe("native GUI with real offline workers", () => {
     await page.goto(await start(port));
     await openDependencyControls(page);
     await expect(
-      page.getByText("Lean Atlas: オフライン抽出の準備済み", { exact: false }),
+      page.getByText("Lean Atlas: Offline extraction ready", { exact: false }),
     ).toBeVisible();
     await expect(graph).not.toBeVisible();
     await setPaths(page, "App.lean\nDomain.lean");
     await compileDependencies(page);
-    await expect(graph).toContainText("Lean Atlasによるコンパイル後の依存", {
+    await expect(graph).toContainText("Compiled dependencies from Lean Atlas", {
       timeout: 60_000,
     });
     expect(await readFile(resolve(project, "Domain.lean"), "utf8")).toBe(
@@ -550,19 +762,22 @@ test.describe("native GUI with real offline workers", () => {
     await page.goto(await start());
     await openDependencyControls(page);
     await page
-      .getByRole("button", { name: "依存抽出の準備", exact: true })
+      .getByRole("button", {
+        name: "Prepare dependency extraction",
+        exact: true,
+      })
       .click();
     await expect(
-      page.getByText("Lean Atlas: オフライン抽出の準備済み", { exact: false }),
+      page.getByText("Lean Atlas: Offline extraction ready", { exact: false }),
     ).toBeVisible({ timeout: 120_000 });
     const extract = page.getByRole("button", {
-      name: "Lakeターゲットを自動選択して表示",
+      name: "Select Lake targets automatically",
       exact: true,
     });
     await setPaths(page, "");
     await expect(extract).toBeEnabled();
     await compileDependencies(page);
-    const graph = page.getByRole("region", { name: "ローカルソースのグラフ" });
+    const graph = page.getByRole("region", { name: "Local source graph" });
     await expect(graph).toContainText("Lake: app", { timeout: 60_000 });
     await expect(graph).toContainText("Lake: dep");
     const state = await nativeState(page);
@@ -570,10 +785,17 @@ test.describe("native GUI with real offline workers", () => {
       "src/App.lean",
       "vendor/dep/source/Domain.lean",
     ]);
-    await graph.getByRole("button", { name: /Domain.answer.*を選択/ }).click();
+    await graph
+      .getByRole("button", { name: /Domain.answer.*: select/ })
+      .click();
     await expect(
       page.locator(".ide-file-page:not([hidden]) [aria-current=location]"),
     ).toContainText("def answer");
+    await expect(
+      page
+        .locator(".ide-file-page:not([hidden]) .root-node")
+        .getByRole("button", { name: /Domain.answer.*: select/ }),
+    ).toBeVisible();
     await setPaths(page, "missing.lean");
     await compileDependencies(page);
     await expect(
@@ -619,36 +841,38 @@ test.describe("native GUI with real offline workers", () => {
     );
     await page.goto(await start());
     const map = page.getByRole("region", {
-      name: "プロジェクトマップ",
+      name: "Project map",
       exact: true,
     });
-    const main = map.getByRole("button", { name: /宣言: Demo.result ·/ });
+    const main = map.getByRole("button", {
+      name: /Declaration: Demo.result ·/,
+    });
     await expect(main).toHaveAttribute("data-declaration-role", "main_theorem");
     await expect(
-      map.getByRole("button", { name: /宣言: Demo.helper ·/ }),
+      map.getByRole("button", { name: /Declaration: Demo.helper ·/ }),
     ).toHaveAttribute("data-declaration-role", "lemma");
     await expect(
-      map.getByRole("button", { name: /宣言: Demo.value ·/ }),
+      map.getByRole("button", { name: /Declaration: Demo.value ·/ }),
     ).toHaveAttribute("data-declaration-role", "definition");
     await expect(
-      map.getByRole("button", { name: /宣言: Demo.Container ·/ }),
+      map.getByRole("button", { name: /Declaration: Demo.Container ·/ }),
     ).toHaveAttribute("data-declaration-role", "structure");
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
     await page
-      .getByRole("button", { name: "このモデルを使用", exact: true })
+      .getByRole("button", { name: "Use this model", exact: true })
       .click();
     await expect(page.getByRole("dialog")).not.toBeVisible();
     const chat = page.getByRole("complementary", {
-      name: "作業チャット",
+      name: "Workspace chat",
       exact: true,
     });
     const input = chat.getByRole("textbox", {
-      name: "メッセージ",
+      name: "Message",
       exact: true,
     });
-    const send = chat.getByRole("button", { name: "送信", exact: true });
+    const send = chat.getByRole("button", { name: "Send", exact: true });
     await input.fill("Only a chat send may change this conversation");
     await expect(send).toBeEnabled();
     await page.getByRole("heading", { name: "Meden", exact: true }).click();
@@ -692,7 +916,7 @@ test.describe("native GUI with real offline workers", () => {
       await expect.poll(() => reading).toBe(true);
       const source = page
         .locator(".ide-file-page:not([hidden])")
-        .getByLabel("ファイルの内容");
+        .getByLabel("File contents");
       await expect(
         source.locator(".syntax-token").filter({ hasText: /^theorem$/ }),
       ).toHaveCount(1);
@@ -707,13 +931,13 @@ test.describe("native GUI with real offline workers", () => {
         "theorem result",
       );
       await expect(
-        page.getByRole("combobox", { name: "中心の宣言" }),
+        page.getByRole("combobox", { name: "Center declaration" }),
       ).toHaveCount(0);
       await expect(
-        page.getByRole("combobox", { name: "依存関係の範囲" }),
+        page.getByRole("combobox", { name: "Dependency scope" }),
       ).toHaveCount(0);
       await expect(
-        page.getByRole("button", { name: "Leanで解析", exact: true }),
+        page.getByRole("button", { name: "Analyze with Lean", exact: true }),
       ).toHaveCount(0);
       await expect(send).toBeEnabled();
       await expect(input).toHaveValue(
@@ -733,9 +957,7 @@ test.describe("native GUI with real offline workers", () => {
         }),
       );
       await send.click();
-      await expect(chat.getByRole("status")).toContainText(
-        "送信を待っています",
-      );
+      await expect(chat.getByRole("status")).toContainText("Waiting to send");
       expect(requests).toHaveLength(0);
       release();
       await expect(
@@ -780,30 +1002,30 @@ test.describe("native GUI with real offline workers", () => {
     });
     await page.goto(await start());
     const map = page.getByRole("region", {
-      name: "プロジェクトマップ",
+      name: "Project map",
       exact: true,
       includeHidden: true,
     });
     await expect(
-      map.getByRole("button", { name: "カテゴリ: Networking", exact: true }),
+      map.getByRole("button", { name: "Category: Networking", exact: true }),
     ).toBeVisible();
     const header = page.getByRole("banner");
-    await expect(header).not.toContainText("ローカルワークスペース");
+    await expect(header).not.toContainText("Local workspace");
     await expect(header.getByRole("alert")).toHaveCount(0);
     await expect(
-      header.getByRole("button", { name: "接続先", exact: true }),
+      header.getByRole("button", { name: "Connection", exact: true }),
     ).toHaveCount(0);
     const chat = page.getByRole("complementary", {
-      name: "作業チャット",
+      name: "Workspace chat",
       exact: true,
     });
     await expect(
       chat
         .locator(".composer")
-        .getByRole("button", { name: "モデルを選択", exact: true }),
+        .getByRole("button", { name: "Choose model", exact: true }),
     ).toBeVisible();
     const treeBox = await page
-      .getByRole("complementary", { name: "ファイル", exact: true })
+      .getByRole("complementary", { name: "Files", exact: true })
       .boundingBox();
     const mapBox = await map.boundingBox(),
       chatBox = await chat.boundingBox();
@@ -813,15 +1035,13 @@ test.describe("native GUI with real offline workers", () => {
     await expect
       .poll(async () => (await nativeState(page)).running)
       .toBe(false);
-    await page
-      .getByRole("tab", { name: "プロジェクトマップ", exact: true })
-      .click();
+    await page.getByRole("tab", { name: "Project map", exact: true }).click();
     const beforeCommands = commands.length;
     await map.locator(".continuous-map-scene").evaluate((element) => {
       (window as any).__originalMap = element;
     });
     const category = map.getByRole("button", {
-      name: "カテゴリ: Networking",
+      name: "Category: Networking",
       exact: true,
     });
     const originalWorld = await category.getAttribute("data-world-x");
@@ -832,7 +1052,7 @@ test.describe("native GUI with real offline workers", () => {
     );
     await page.mouse.wheel(0, -700);
     const file = map.getByRole("button", {
-      name: "依存関係: Networking/Multistream.lean",
+      name: "Dependencies: Networking/Multistream.lean",
       exact: true,
     });
     await expect(file).toBeVisible();
@@ -850,7 +1070,7 @@ test.describe("native GUI with real offline workers", () => {
     );
     await page.mouse.wheel(0, -500);
     const invoice = map.getByRole("button", {
-      name: /宣言: invoice · Networking\/Multistream.lean:/,
+      name: /Declaration: invoice · Networking\/Multistream.lean:/,
     });
     await expect(invoice).toBeVisible();
     expect(commands.slice(beforeCommands)).toEqual([]);
@@ -871,34 +1091,34 @@ test.describe("native GUI with real offline workers", () => {
       page.getByRole("tab", { name: "Multistream.lean", exact: true }),
     ).toHaveAttribute("aria-selected", "true");
     await expect(
-      page.locator(".ide-file-page:not([hidden])").getByLabel("ファイルの内容"),
+      page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
     ).toContainText("def invoice");
     await expect(page.locator('[aria-current="location"]')).toContainText(
       "def invoice",
     );
     const references = page.getByRole("region", {
-      name: "ファイルの参照グラフ",
+      name: "File reference graph",
       exact: true,
     });
     await expect(references).toBeVisible();
     const sourceBox = await page
-      .getByRole("region", { name: "ソースコード", exact: true })
+      .getByRole("region", { name: "Source code", exact: true })
       .boundingBox();
     const graphBox = await references.boundingBox();
     expect(sourceBox!.x + sourceBox!.width).toBeLessThanOrEqual(
       graphBox!.x + 1,
     );
     await expect(chat.getByRole("status")).toHaveCount(0);
-    await expect(page.getByRole("tablist", { name: "表示モード" })).toHaveCount(
+    await expect(page.getByRole("tablist", { name: "View mode" })).toHaveCount(
       0,
     );
     await expect(
       page.getByRole("link", { name: "React Flow attribution" }),
     ).toHaveCount(0);
     await expect(
-      page.getByRole("button", { name: "プロジェクト全体", exact: true }),
+      page.getByRole("button", { name: "Whole project", exact: true }),
     ).toHaveCount(0);
-    const close = page.getByTitle("閉じる: Networking/Multistream.lean", {
+    const close = page.getByTitle("Close: Networking/Multistream.lean", {
       exact: true,
     });
     expect(
@@ -907,9 +1127,7 @@ test.describe("native GUI with real offline workers", () => {
       ),
     ).toBe("rgb(255, 255, 255)");
     await page.screenshot({ path: "target/gui-checks/file-split-source.png" });
-    await page
-      .getByRole("tab", { name: "プロジェクトマップ", exact: true })
-      .click();
+    await page.getByRole("tab", { name: "Project map", exact: true }).click();
     await expect(map).toBeVisible();
     await expect(map.locator(".react-flow__viewport")).toHaveAttribute(
       "style",
@@ -925,7 +1143,7 @@ test.describe("native GUI with real offline workers", () => {
       .click();
     await compileDependencies(page);
     const compiled = page.getByRole("region", {
-      name: "ローカルソースのグラフ",
+      name: "Local source graph",
       exact: true,
     });
     await expect(compiled).toBeVisible({ timeout: 120000 });
@@ -941,32 +1159,30 @@ test.describe("native GUI with real offline workers", () => {
     );
     await expect(chat.getByRole("alert")).toHaveCount(0);
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
     for (const name of [
-      "モデル一覧を更新",
-      "この接続を選ぶ",
-      "このPCの接続設定を読み直す",
+      "Refresh model list",
+      "Select this connection",
+      "Reload connection settings on this PC",
     ])
       await expect(page.getByRole("button", { name, exact: true })).toHaveCount(
         0,
       );
     await expect(
-      page.getByRole("button", { name: "このモデルを使用", exact: true }),
+      page.getByRole("button", { name: "Use this model", exact: true }),
     ).toBeVisible();
     await expect(page.getByRole("dialog")).not.toContainText(
-      "作業ディレクトリ:",
+      "Working directory:",
     );
-    await page.getByRole("button", { name: "閉じる", exact: true }).click();
-    await page
-      .getByRole("tab", { name: "プロジェクトマップ", exact: true })
-      .click();
+    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await page.getByRole("tab", { name: "Project map", exact: true }).click();
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.getByRole("button", { name: "チャット", exact: true }).click();
+    await page.getByRole("button", { name: "Chat", exact: true }).click();
     await expect(
       chat
         .locator(".composer")
-        .getByRole("button", { name: "モデルを選択", exact: true }),
+        .getByRole("button", { name: "Choose model", exact: true }),
     ).toBeInViewport();
     expect(
       await page.evaluate(
@@ -998,31 +1214,31 @@ test.describe("native GUI with real offline workers", () => {
     );
     await page.goto(await start());
     const chat = page.getByRole("complementary", {
-      name: "作業チャット",
+      name: "Workspace chat",
       exact: true,
     });
     await page
-      .getByRole("button", { name: "ファイル: Main.lean", exact: true })
+      .getByRole("button", { name: "File: Main.lean", exact: true })
       .click();
     await expect(
-      page.locator(".ide-file-page:not([hidden])").getByLabel("ファイルの内容"),
+      page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
     ).toContainText("def original");
     await expect(
-      page.getByRole("region", { name: "ファイルの参照グラフ", exact: true }),
+      page.getByRole("region", { name: "File reference graph", exact: true }),
     ).toBeVisible();
     expect((await nativeState(page)).source_snapshot).toBeNull();
     await expect(chat.getByRole("status")).toHaveCount(0);
     await compileDependencies(page);
     const pane = page.getByRole("region", {
-      name: "ファイルの参照グラフ",
+      name: "File reference graph",
       exact: true,
     });
     await expect(pane.getByRole("alert")).toContainText(
-      "コンパイル後の依存を抽出できませんでした",
+      "Could not extract compiled dependencies",
       { timeout: 60000 },
     );
     await expect(
-      page.locator(".ide-file-page:not([hidden])").getByLabel("ファイルの内容"),
+      page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
     ).toContainText("def original");
     await expect(chat.getByRole("alert")).toHaveCount(0);
     await expect(chat.getByRole("status")).toHaveCount(0);
@@ -1047,7 +1263,7 @@ test.describe("native GUI with real offline workers", () => {
     await page.goto(await start());
     await openDependencyControls(page);
     const picker = page.getByRole("combobox", {
-      name: "ファイル",
+      name: "File",
       exact: true,
     });
     await openDependencyControls(page);
@@ -1055,7 +1271,7 @@ test.describe("native GUI with real offline workers", () => {
     await picker.fill("App.lean");
     await page.getByRole("option", { name: "App.lean", exact: true }).click();
     await expect(
-      page.getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" }),
+      page.getByRole("textbox", { name: "Graph source files (one per line)" }),
     ).toHaveValue("App.lean");
     await compileDependencies(page);
     const missing = page
@@ -1074,7 +1290,7 @@ test.describe("native GUI with real offline workers", () => {
     });
     await setPaths(page, "missing.lean");
     const source = page.getByRole("button", {
-      name: "参照を更新",
+      name: "Refresh references",
       exact: true,
     });
     await source.click();
@@ -1087,7 +1303,7 @@ test.describe("native GUI with real offline workers", () => {
     await picker.fill("App.lean");
     await page.getByRole("option", { name: "App.lean", exact: true }).click();
     await source.click();
-    const graph = page.getByRole("region", { name: "ローカルソースのグラフ" });
+    const graph = page.getByRole("region", { name: "Local source graph" });
     await expect(graph).toContainText("app");
     let state = await nativeState(page);
     expect(state.source_snapshot.atlas).toBeUndefined();
@@ -1136,19 +1352,22 @@ test.describe("native GUI with real offline workers", () => {
       await openDependencyControls(page);
       await openDependencyControls(page);
       await page
-        .getByRole("button", { name: "依存抽出の準備", exact: true })
+        .getByRole("button", {
+          name: "Prepare dependency extraction",
+          exact: true,
+        })
         .click();
       await expect(
-        page.getByText("Lean Atlas: オフライン抽出の準備済み", {
+        page.getByText("Lean Atlas: Offline extraction ready", {
           exact: false,
         }),
       ).toBeVisible({ timeout: 120_000 });
       await setPaths(page, "SandboxProbe.lean");
       const graph = page.getByRole("region", {
-        name: "ローカルソースのグラフ",
+        name: "Local source graph",
       });
       await compileDependencies(page);
-      await expect(graph).toContainText("1宣言", { timeout: 60_000 });
+      await expect(graph).toContainText("1 declarations", { timeout: 60_000 });
       expect(connections).toBe(0);
       expect(requests).toHaveLength(0);
       expect(
@@ -1173,15 +1392,18 @@ test.describe("native GUI with real offline workers", () => {
       await expect(graph).not.toBeVisible();
       await openDependencyControls(page);
       await page
-        .getByRole("button", { name: "依存抽出の準備", exact: true })
+        .getByRole("button", {
+          name: "Prepare dependency extraction",
+          exact: true,
+        })
         .click();
       await expect(
-        page.getByText("Lean Atlas: オフライン抽出の準備済み", {
+        page.getByText("Lean Atlas: Offline extraction ready", {
           exact: false,
         }),
       ).toBeVisible({ timeout: 120_000 });
       await compileDependencies(page);
-      await expect(graph).toContainText("1宣言", { timeout: 60_000 });
+      await expect(graph).toContainText("1 declarations", { timeout: 60_000 });
       await writeFile(
         resolve(project, "SandboxProbe.lean"),
         'import Lean\n#eval (throw (IO.userError "EXPECTED-PROBE-FAILURE") : IO Unit)\ndef checked : Nat := 1\n',
@@ -1248,19 +1470,19 @@ test.describe("native GUI with real offline workers", () => {
     );
     await page.goto(await start());
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
-    await page.getByRole("button", { name: "このモデルを使用" }).click();
+    await page.getByRole("button", { name: "Use this model" }).click();
     await page
-      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .getByRole("textbox", { name: "Message", exact: true })
       .fill(
         "Prepare the original payload for host review, then change the workspace file",
       );
-    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(
       page.getByText("DELIVERIES-QUEUED", { exact: true }),
     ).toBeVisible();
-    await page.getByRole("button", { name: "送信提案を確認" }).click();
+    await page.getByRole("button", { name: "Review delivery" }).click();
   }
 
   test("review frozen delivery bytes, reject another target, send once and restart without a queue", async ({
@@ -1294,7 +1516,7 @@ test.describe("native GUI with real offline workers", () => {
       );
       await page
         .getByRole("button", {
-          name: "配送 #0 の内容と宛先を確認",
+          name: "Delivery #0 : review content and destination",
           exact: true,
         })
         .click();
@@ -1303,11 +1525,11 @@ test.describe("native GUI with real offline workers", () => {
       await expect(dialog).toContainText(
         createHash("sha256").update(payload).digest("hex"),
       );
-      await expect(dialog.getByLabel("送信する正確なバイト列")).toContainText(
+      await expect(dialog.getByLabel("Exact bytes to send")).toContainText(
         "00 ff 46 52",
       );
       await expect(
-        dialog.getByRole("button", { name: "この宛先へ1回送信" }),
+        dialog.getByRole("button", { name: "Send once to this destination" }),
       ).toBeEnabled();
       const first = (await nativeState(page)).export_review;
       await page.screenshot({
@@ -1316,21 +1538,23 @@ test.describe("native GUI with real offline workers", () => {
       });
       await page.setViewportSize({ width: 390, height: 240 });
       await expect(
-        dialog.getByRole("button", { name: "この宛先へ1回送信" }),
+        dialog.getByRole("button", { name: "Send once to this destination" }),
       ).toBeDisabled();
       await page.setViewportSize({ width: 390, height: 844 });
       await expect(
-        dialog.getByRole("button", { name: "この宛先へ1回送信" }),
+        dialog.getByRole("button", { name: "Send once to this destination" }),
       ).toBeEnabled();
       await page.screenshot({
         path: "target/gui-checks/native-delivery-mobile.png",
         fullPage: true,
       });
       await page.setViewportSize({ width: 1440, height: 960 });
-      await dialog.getByRole("button", { name: "次の内容" }).click();
-      await expect(dialog).toContainText("バイト位置 2048");
+      await dialog.getByRole("button", { name: "Next bytes" }).click();
+      await expect(dialog).toContainText("Byte offset 2048");
       await expect(dialog).toContainText(target);
-      await dialog.getByRole("button", { name: "この宛先へ1回送信" }).click();
+      await dialog
+        .getByRole("button", { name: "Send once to this destination" })
+        .click();
       await expect(dialog).not.toBeVisible();
       await expect(
         page.getByRole("alert").filter({ hasText: "HTTP 201" }),
@@ -1351,32 +1575,32 @@ test.describe("native GUI with real offline workers", () => {
       expect(received).toHaveLength(1);
       await page
         .getByRole("button", {
-          name: "配送 #1 の内容と宛先を確認",
+          name: "Delivery #1 : review content and destination",
           exact: true,
         })
         .click();
-      await dialog.getByRole("button", { name: "この配送を拒否" }).click();
+      await dialog
+        .getByRole("button", { name: "Reject this delivery" })
+        .click();
       await expect(dialog).not.toBeVisible();
       await page
         .getByRole("button", {
-          name: "配送 #1 の内容と宛先を確認",
+          name: "Delivery #1 : review content and destination",
           exact: true,
         })
         .click();
       await expect(
-        dialog.getByRole("button", { name: "この宛先へ1回送信" }),
+        dialog.getByRole("button", { name: "Send once to this destination" }),
       ).toBeDisabled();
-      await dialog.getByRole("button", { name: "閉じる", exact: true }).click();
+      await dialog.getByRole("button", { name: "Close", exact: true }).click();
       const port = Number(new URL(url).port);
       await stop();
       await page.goto(await start(port));
       await expect(
-        page
-          .getByRole("tablist", { name: "開いているファイル" })
-          .getByRole("tab"),
-      ).toHaveText(["プロジェクトマップ"]);
+        page.getByRole("tablist", { name: "Open files" }).getByRole("tab"),
+      ).toHaveText(["Project map"]);
       await expect(
-        page.getByRole("button", { name: "送信提案を確認" }),
+        page.getByRole("button", { name: "Review delivery" }),
       ).toHaveCount(0);
       expect((await nativeState(page)).exports).toEqual([]);
       expect((await nativeState(page)).authorized).toBe(false);
@@ -1411,7 +1635,7 @@ test.describe("native GUI with real offline workers", () => {
       await queueExports(page, [target + "/redirect", target + "/uncertain"]);
       await page
         .getByRole("button", {
-          name: "配送 #0 の内容と宛先を確認",
+          name: "Delivery #0 : review content and destination",
           exact: true,
         })
         .click();
@@ -1438,13 +1662,13 @@ test.describe("native GUI with real offline workers", () => {
       expect(paths).toEqual([]);
       await page
         .getByRole("button", {
-          name: "配送 #0 の内容と宛先を確認",
+          name: "Delivery #0 : review content and destination",
           exact: true,
         })
         .click();
       await page
         .getByRole("dialog")
-        .getByRole("button", { name: "この宛先へ1回送信" })
+        .getByRole("button", { name: "Send once to this destination" })
         .click();
       await expect(
         page.getByRole("alert").filter({ hasText: "HTTP 307" }),
@@ -1452,28 +1676,30 @@ test.describe("native GUI with real offline workers", () => {
       expect(paths).toEqual(["/redirect"]);
       await page
         .getByRole("button", {
-          name: "配送 #1 の内容と宛先を確認",
+          name: "Delivery #1 : review content and destination",
           exact: true,
         })
         .click();
       await page
         .getByRole("dialog")
-        .getByRole("button", { name: "この宛先へ1回送信" })
+        .getByRole("button", { name: "Send once to this destination" })
         .click();
       await expect(
-        page.getByRole("alert").filter({ hasText: "配送結果不明・再送不可" }),
+        page
+          .getByRole("alert")
+          .filter({ hasText: "Delivery uncertain; do not resend" }),
       ).toBeVisible();
       expect(paths).toEqual(["/redirect", "/uncertain"]);
       await page
         .getByRole("button", {
-          name: "配送 #1 の内容と宛先を確認",
+          name: "Delivery #1 : review content and destination",
           exact: true,
         })
         .click();
       await expect(
         page
           .getByRole("dialog")
-          .getByRole("button", { name: "この宛先へ1回送信" }),
+          .getByRole("button", { name: "Send once to this destination" }),
       ).toBeDisabled();
       await page.screenshot({
         path: "target/gui-checks/native-delivery-uncertain.png",
@@ -1487,16 +1713,14 @@ test.describe("native GUI with real offline workers", () => {
 
   async function preview(page: Page, folder = ".", entry = "index.html") {
     await page
-      .getByRole("button", { name: "アプリをプレビュー", exact: true })
+      .getByRole("button", { name: "Preview app", exact: true })
       .click();
     await page
-      .getByRole("textbox", { name: "公開フォルダ（ワークスペース内）" })
+      .getByRole("textbox", { name: "Public folder (inside workspace)" })
       .fill(folder);
+    await page.getByRole("textbox", { name: "Entry HTML file" }).fill(entry);
     await page
-      .getByRole("textbox", { name: "開始するHTMLファイル" })
-      .fill(entry);
-    await page
-      .getByRole("button", { name: "ファイルを読み直してプレビュー" })
+      .getByRole("button", { name: "Reload files and preview" })
       .click();
   }
   async function previewRequest(
@@ -1568,20 +1792,18 @@ test.describe("native GUI with real offline workers", () => {
     );
     await page.goto(await start());
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
-    await page.getByRole("button", { name: "このモデルを使用" }).click();
+    await page.getByRole("button", { name: "Use this model" }).click();
     await page
-      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .getByRole("textbox", { name: "Message", exact: true })
       .fill("Build a local counter with module assets");
-    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(
       page.getByText("COUNTER-BUILT", { exact: true }),
     ).toBeVisible();
     await preview(page, "public");
-    const frame = page.frameLocator(
-      'iframe[title="ローカルアプリのプレビュー"]',
-    );
+    const frame = page.frameLocator('iframe[title="Local app preview"]');
     await expect(
       frame.getByRole("heading", { name: "Local counter" }),
     ).toBeVisible();
@@ -1592,11 +1814,9 @@ test.describe("native GUI with real offline workers", () => {
     await frame.getByRole("button", { name: "Increment" }).click();
     await expect(frame.getByLabel("Count")).toHaveText("2");
     const originalUrl = (await page.locator("iframe").getAttribute("src"))!;
+    await page.getByRole("tab", { name: "Project map", exact: true }).click();
     await page
-      .getByRole("tab", { name: "プロジェクトマップ", exact: true })
-      .click();
-    await page
-      .getByRole("button", { name: "アプリをプレビュー", exact: true })
+      .getByRole("button", { name: "Preview app", exact: true })
       .click();
     await expect(frame.getByLabel("Count")).toHaveText("2");
     await page.screenshot({
@@ -1605,10 +1825,10 @@ test.describe("native GUI with real offline workers", () => {
     });
     await page.setViewportSize({ width: 390, height: 844 });
     await page
-      .getByRole("button", { name: "アプリをプレビュー", exact: true })
+      .getByRole("button", { name: "Preview app", exact: true })
       .scrollIntoViewIfNeeded();
     await expect(
-      page.getByRole("button", { name: "ファイルを読み直してプレビュー" }),
+      page.getByRole("button", { name: "Reload files and preview" }),
     ).toBeVisible();
     expect(
       await page.evaluate(
@@ -1623,9 +1843,9 @@ test.describe("native GUI with real offline workers", () => {
     });
     await page.setViewportSize({ width: 1440, height: 960 });
     await page
-      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .getByRole("textbox", { name: "Message", exact: true })
       .fill("Change the increment to three");
-    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(
       page.getByText("COUNTER-UPDATED", { exact: true }),
     ).toBeVisible();
@@ -1648,14 +1868,14 @@ test.describe("native GUI with real offline workers", () => {
     await expect(frame.getByLabel("Count")).toHaveText("3");
     await page.reload();
     await page
-      .getByRole("button", { name: "アプリをプレビュー", exact: true })
+      .getByRole("button", { name: "Preview app", exact: true })
       .click();
     await expect(frame.getByLabel("Count")).toHaveText("0");
     const port = Number(new URL(url).port);
     await stop();
     await page.goto(await start(port));
     await page
-      .getByRole("button", { name: "アプリをプレビュー", exact: true })
+      .getByRole("button", { name: "Preview app", exact: true })
       .click();
     await expect(page.locator("iframe")).toHaveCount(0);
     await preview(page, "public");
@@ -1689,9 +1909,7 @@ test.describe("native GUI with real offline workers", () => {
         `<!doctype html><html lang="en"><head><title>Boundaries</title><script type="module" src="/missing.js"></script></head><body><h1>Boundaries</h1><output aria-label="Boundary results">waiting</output><form action="${sinkUrl}/upload" method="post"><input name="secret" value="synthetic-private-data"><button>Attempt upload</button></form><script>${script}</script></body></html>`,
       );
       await preview(page);
-      const frame = page.frameLocator(
-        'iframe[title="ローカルアプリのプレビュー"]',
-      );
+      const frame = page.frameLocator('iframe[title="Local app preview"]');
       await expect(frame.getByLabel("Boundary results")).toHaveText(
         "denied,denied,denied,blocked,blocked",
       );
@@ -1783,20 +2001,20 @@ test.describe("native GUI with real offline workers", () => {
     );
     await page.goto(await start());
     await expect(
-      page.getByRole("textbox", { name: "メッセージ", exact: true }),
+      page.getByRole("textbox", { name: "Message", exact: true }),
     ).toBeDisabled();
     expect(requests).toHaveLength(0);
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
     await expect(
       page.getByRole("combobox", { name: "model", exact: true }),
     ).toHaveValue("scripted-gui-fixture");
-    await page.getByRole("button", { name: "このモデルを使用" }).click();
+    await page.getByRole("button", { name: "Use this model" }).click();
     await page
-      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .getByRole("textbox", { name: "Message", exact: true })
       .fill("Build the fixture and keep the original tests");
-    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(
       page.getByRole("alert").filter({ hasText: "429" }),
     ).toBeVisible();
@@ -1807,26 +2025,26 @@ test.describe("native GUI with real offline workers", () => {
       "keep this original test\n",
     );
     await page
-      .getByRole("button", { name: "ファイル: result.txt", exact: true })
+      .getByRole("button", { name: "File: result.txt", exact: true })
       .click();
     await expect(
-      page.locator(".ide-file-page:not([hidden])").getByLabel("ファイルの内容"),
+      page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
     ).toContainText("built by native worker");
     await expect(
       page.getByRole("alert").filter({ hasText: "429" }),
     ).toBeVisible();
     await page
-      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .getByRole("textbox", { name: "Message", exact: true })
       .fill("Continue from the retained files");
     await page.reload();
     await expect(
-      page.getByRole("textbox", { name: "メッセージ", exact: true }),
+      page.getByRole("textbox", { name: "Message", exact: true }),
     ).toHaveValue("Continue from the retained files");
     const port = Number(new URL(url).port);
     await stop();
     await page.goto(await start(port));
     await expect(
-      page.getByRole("textbox", { name: "メッセージ", exact: true }),
+      page.getByRole("textbox", { name: "Message", exact: true }),
     ).toBeDisabled();
     await expect(
       page.getByText("Build the fixture and keep the original tests", {
@@ -1834,33 +2052,33 @@ test.describe("native GUI with real offline workers", () => {
       }),
     ).toBeVisible();
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
-    await page.getByRole("button", { name: "このモデルを使用" }).click();
-    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await page.getByRole("button", { name: "Use this model" }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(
       page.getByText("RESTART-CONTEXT-RETAINED", { exact: true }),
     ).toBeVisible();
     expect(JSON.stringify(requests[2])).toContain("built by native worker");
     expect(JSON.stringify(requests[2])).toContain("Build the fixture");
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
-    await page.getByRole("button", { name: "送信の許可を取り消す" }).click();
+    await page.getByRole("button", { name: "Revoke access" }).click();
     await page
       .getByRole("dialog")
-      .getByRole("button", { name: "閉じる", exact: true })
+      .getByRole("button", { name: "Close", exact: true })
       .click();
     await expect(
-      page.getByRole("textbox", { name: "メッセージ", exact: true }),
+      page.getByRole("textbox", { name: "Message", exact: true }),
     ).toBeDisabled();
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
     await expect(
-      page.getByRole("button", { name: "このモデルを使用" }),
+      page.getByRole("button", { name: "Use this model" }),
     ).toBeDisabled();
-    await page.getByRole("button", { name: "閉じる", exact: true }).click();
+    await page.getByRole("button", { name: "Close", exact: true }).click();
     await page.screenshot({
       path: "target/gui-checks/native-restart.png",
       fullPage: true,
@@ -1928,13 +2146,13 @@ test.describe("native GUI with real offline workers", () => {
       ).status,
     ).toBe(409);
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
-    await page.getByRole("button", { name: "このモデルを使用" }).click();
+    await page.getByRole("button", { name: "Use this model" }).click();
     await page
-      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .getByRole("textbox", { name: "Message", exact: true })
       .fill("Wait for cancellation");
-    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(page.getByRole("status")).toContainText("Waiting for model");
     await expect.poll(() => held !== undefined).toBe(true);
     expect(
@@ -1959,35 +2177,38 @@ test.describe("native GUI with real offline workers", () => {
       await cancelResponse;
       await route.fulfill({ response });
     });
-    await page.getByRole("button", { name: "実行を中止" }).click();
+    await page.getByRole("button", { name: "Stop" }).click();
     reply(
       held!,
       tool("write_file", { path: "must-not-exist.txt", content: "bad" }),
     );
-    await expect(
-      page.getByRole("button", { name: "実行を中止" }),
-    ).not.toBeVisible();
+    await expect(page.getByRole("button", { name: "Stop" })).not.toBeVisible();
     await expect(
       readFile(resolve(project, "must-not-exist.txt")),
     ).rejects.toThrow();
     await page
-      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .getByRole("textbox", { name: "Message", exact: true })
       .fill("Start an explicit new turn");
     await expect.poll(() => cancellationReachedHost).toBe(true);
     await expect(
-      page.getByRole("button", { name: "送信", exact: true }),
+      page.getByRole("button", { name: "Send", exact: true }),
     ).toBeDisabled();
     releaseCancel();
     await expect(
-      page.getByRole("button", { name: "送信", exact: true }),
+      page.getByRole("button", { name: "Send", exact: true }),
     ).toBeEnabled();
-    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await expect(page.locator(".chat-stop-notice > summary")).toHaveText(
+      "Response stopped",
+    );
+    await expect(page.locator(".chat-stop-notice")).not.toHaveAttribute("open");
+    await expect(page.locator(".ide-chat > [role=alert]")).toHaveCount(0);
+    await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(
       page.getByText("EXPLICIT-NEW-TURN", { exact: true }),
     ).toBeVisible();
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(
-      page.getByRole("tab", { name: "プロジェクトマップ", exact: true }),
+      page.getByRole("tab", { name: "Project map", exact: true }),
     ).toBeVisible();
     expect(
       (
@@ -2023,13 +2244,17 @@ test.describe("native GUI with real offline workers", () => {
     await openDependencyControls(page);
     await setPaths(page, "Spec.lean");
     await refreshReferences(page);
-    const graph = page.getByRole("region", { name: "ローカルソースのグラフ" });
-    await expect(graph).toContainText("1ファイル · 2宣言 · 1参照候補");
+    const graph = page.getByRole("region", { name: "Local source graph" });
+    await expect(graph).toContainText(
+      "1 files · 2 declarations · 1 reference candidates",
+    );
     expect(requests).toHaveLength(0);
     await graph
-      .getByRole("button", { name: /Demo.stock_bound.*を選択/ })
+      .getByRole("button", { name: /Demo.stock_bound.*: select/ })
       .click();
-    await expect(page.getByLabel("選択した宣言")).toContainText("証明は未確認");
+    await expect(page.getByLabel("Selected declaration")).toContainText(
+      "Proof unchecked",
+    );
     await page.screenshot({
       path: "target/gui-checks/native-live-graph.png",
       fullPage: true,
@@ -2038,30 +2263,30 @@ test.describe("native GUI with real offline workers", () => {
       page.locator(".ide-file-page:not([hidden]) [aria-current=location]"),
     ).toContainText("theorem stock_bound");
     await expect(
-      page.locator(".ide-file-page:not([hidden])").getByLabel("ファイルの内容"),
+      page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
     ).toContainText("sorry");
     await page.screenshot({
       path: "target/gui-checks/native-source-graph.png",
       fullPage: true,
     });
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
-    await page.getByRole("button", { name: "このモデルを使用" }).click();
+    await page.getByRole("button", { name: "Use this model" }).click();
     await page
-      .getByRole("textbox", { name: "メッセージ", exact: true })
+      .getByRole("textbox", { name: "Message", exact: true })
       .fill("Rename the property to inventory_bound");
-    await page.getByRole("button", { name: "送信", exact: true }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(
       page.getByText("SOURCE-UPDATED", { exact: true }),
     ).toBeVisible();
     await expect(graph).not.toBeVisible();
     await refreshReferences(page);
     await expect(
-      graph.getByRole("button", { name: /Demo.inventory_bound.*を選択/ }),
+      graph.getByRole("button", { name: /Demo.inventory_bound.*: select/ }),
     ).toBeVisible();
     await expect(
-      graph.getByRole("button", { name: /Demo.stock_bound.*を選択/ }),
+      graph.getByRole("button", { name: /Demo.stock_bound.*: select/ }),
     ).not.toBeVisible();
     await setPaths(page, "missing.lean");
     await refreshReferences(page);
@@ -2071,17 +2296,17 @@ test.describe("native GUI with real offline workers", () => {
     await expect(graph).not.toBeVisible();
     await setPaths(page, "Spec.lean");
     await refreshReferences(page);
-    await expect(graph).toContainText("2宣言");
+    await expect(graph).toContainText("2 declarations");
     await page.reload();
     await openDependencyControls(page);
     await expect(
-      page.getByRole("textbox", { name: "グラフの対象ファイル（1行に1つ）" }),
+      page.getByRole("textbox", { name: "Graph source files (one per line)" }),
     ).toHaveValue("Spec.lean");
     await expect(
-      page.getByRole("button", { name: "参照を更新" }),
+      page.getByRole("button", { name: "Refresh references" }),
     ).toBeEnabled();
-    await page.getByRole("button", { name: "閉じる", exact: true }).click();
-    await expect(graph).toContainText("2宣言");
+    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(graph).toContainText("2 declarations");
     await page.setViewportSize({ width: 390, height: 844 });
     expect(
       (
@@ -2126,22 +2351,22 @@ test.describe("native GUI with real offline workers", () => {
     await setPaths(page, "Spec.lean");
     await refreshReferences(page);
     await page
-      .getByRole("region", { name: "ローカルソースのグラフ" })
-      .getByRole("button", { name: /Demo.stock_bound.*を選択/ })
+      .getByRole("region", { name: "Local source graph" })
+      .getByRole("button", { name: /Demo.stock_bound.*: select/ })
       .click();
     await page
-      .getByRole("textbox", { name: "比較する要件", exact: true })
+      .getByRole("textbox", { name: "Requirement to compare", exact: true })
       .fill(
         "ORIGINAL_REQUIREMENT_SENTINEL: A purchase always decrements stock regardless of balance.",
       );
     await expect(
-      page.getByRole("button", { name: "この宣言の意味を解析" }),
+      page.getByRole("button", { name: "Analyze declaration meaning" }),
     ).toBeDisabled();
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
     if (beforeApproval) await beforeApproval();
-    await page.getByRole("button", { name: "このモデルを使用" }).click();
+    await page.getByRole("button", { name: "Use this model" }).click();
   }
   const stockSource = "pub fn stock(n: u64) -> u64 { n }\n";
   const stockRequirement = "Decrement positive stock and keep zero at zero.";
@@ -2181,20 +2406,22 @@ test.describe("native GUI with real offline workers", () => {
     await setPaths(page, "stock.rs");
     await refreshReferences(page);
     await page
-      .getByRole("region", { name: "ローカルソースのグラフ" })
-      .getByRole("button", { name: /stock.*を選択/ })
+      .getByRole("region", { name: "Local source graph" })
+      .getByRole("button", { name: /stock.*: select/ })
       .click();
     await page
-      .getByRole("textbox", { name: "比較する要件", exact: true })
+      .getByRole("textbox", { name: "Requirement to compare", exact: true })
       .fill(stockRequirement);
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
-    await page.getByRole("button", { name: "このモデルを使用" }).click();
-    await page.getByRole("button", { name: "この宣言の意味を解析" }).click();
+    await page.getByRole("button", { name: "Use this model" }).click();
+    await page
+      .getByRole("button", { name: "Analyze declaration meaning" })
+      .click();
     await expect(
-      page.getByLabel("意味解析の結果", { exact: true }),
-    ).toContainText("意味の差異候補（モデル評価）");
+      page.getByLabel("Meaning analysis result", { exact: true }),
+    ).toContainText("Candidate mismatch (Model assessment)");
   }
   test("review a Finding repair, reject it, refuse stale sources and reanalyze the applied exact diff", async ({
     page,
@@ -2216,23 +2443,23 @@ test.describe("native GUI with real offline workers", () => {
     );
     await openStockFinding(page);
     const prepare = page.getByRole("button", {
-      name: "このFindingの修正差分を作る",
+      name: "Prepare patch for this Finding",
     });
     const dialog = page.getByRole("dialog", {
-      name: "修正差分と元の要件を確認",
+      name: "Review patch and original requirement",
     });
     const apply = dialog.getByRole("button", {
-      name: "この差分を一度適用して再解析",
+      name: "Apply this patch once and reanalyze",
     });
     await prepare.click();
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByLabel("適用する正確な修正差分")).toContainText(
+    await expect(dialog.getByLabel("Exact patch to apply")).toContainText(
       "+pub fn stock(n: u64) -> u64 { n.saturating_sub(1) }",
     );
     expect(await readFile(resolve(project, "stock.rs"), "utf8")).toBe(
       stockSource,
     );
-    await dialog.getByRole("button", { name: "修正を拒否" }).click();
+    await dialog.getByRole("button", { name: "Reject patch" }).click();
     await expect(dialog).not.toBeVisible();
     expect(requests).toHaveLength(3);
     await prepare.click();
@@ -2250,7 +2477,9 @@ test.describe("native GUI with real offline workers", () => {
     );
     expect(requests).toHaveLength(4);
     await refreshReferences(page);
-    await page.getByRole("button", { name: "この宣言の意味を解析" }).click();
+    await page
+      .getByRole("button", { name: "Analyze declaration meaning" })
+      .click();
     await expect.poll(() => requests.length).toBe(6);
     await expect(prepare).toBeEnabled();
     await prepare.click();
@@ -2268,8 +2497,8 @@ test.describe("native GUI with real offline workers", () => {
       fullPage: true,
     });
     await apply.click();
-    const result = page.getByLabel("意味解析の結果", { exact: true });
-    await expect(result).toContainText("一致の候補（モデル評価）");
+    const result = page.getByLabel("Meaning analysis result", { exact: true });
+    await expect(result).toContainText("Candidate match (Model assessment)");
     expect(await readFile(resolve(project, "stock.rs"), "utf8")).toBe(
       concurrent.replace("{ n }", "{ n.saturating_sub(1) }"),
     );
@@ -2298,14 +2527,14 @@ test.describe("native GUI with real offline workers", () => {
     await stop();
     await page.goto(await start(port));
     await expect(
-      page.getByRole("tab", { name: "プロジェクトマップ", exact: true }),
+      page.getByRole("tab", { name: "Project map", exact: true }),
     ).toBeVisible();
     expect((await nativeState(page)).repair_review).toBe(null);
     expect((await nativeState(page)).authorized).toBe(false);
     await page
-      .getByRole("button", { name: "ファイル: stock.rs", exact: true })
+      .getByRole("button", { name: "File: stock.rs", exact: true })
       .click();
-    await expect(result).toContainText("保存された解析です");
+    await expect(result).toContainText("Historical analysis.");
   });
   test("restarting discards a pending repair approval without changing source", async ({
     page,
@@ -2317,10 +2546,10 @@ test.describe("native GUI with real offline workers", () => {
     );
     await openStockFinding(page);
     await page
-      .getByRole("button", { name: "このFindingの修正差分を作る" })
+      .getByRole("button", { name: "Prepare patch for this Finding" })
       .click();
     const dialog = page.getByRole("dialog", {
-      name: "修正差分と元の要件を確認",
+      name: "Review patch and original requirement",
     });
     await expect(dialog).toBeVisible();
     const reference = (await nativeState(page)).repair_review.reference;
@@ -2328,7 +2557,7 @@ test.describe("native GUI with real offline workers", () => {
     await stop();
     await page.goto(await start(port));
     await expect(
-      page.getByRole("tab", { name: "プロジェクトマップ", exact: true }),
+      page.getByRole("tab", { name: "Project map", exact: true }),
     ).toBeVisible();
     await expect(dialog).not.toBeVisible();
     expect(await hostCommand(page, { type: "apply_repair", reference })).toBe(
@@ -2355,14 +2584,16 @@ test.describe("native GUI with real offline workers", () => {
       ]).flat(),
     );
     await openMeaning(page);
-    const result = page.getByLabel("意味解析の結果", { exact: true });
-    const run = page.getByRole("button", { name: "この宣言の意味を解析" });
+    const result = page.getByLabel("Meaning analysis result", { exact: true });
+    const run = page.getByRole("button", {
+      name: "Analyze declaration meaning",
+    });
     const requirement = page.getByRole("textbox", {
-      name: "比較する要件",
+      name: "Requirement to compare",
       exact: true,
     });
     await run.click();
-    await expect(result).toContainText("意味の差異候補（モデル評価）");
+    await expect(result).toContainText("Candidate mismatch (Model assessment)");
     const first = (await nativeState(page)).analysis;
     expect(first.finding_id).toMatch(/^finding-/);
     await requirement.fill("A different requirement retained as its own input");
@@ -2373,9 +2604,9 @@ test.describe("native GUI with real offline workers", () => {
     const second = (await nativeState(page)).analysis;
     expect(second.id).not.toBe(first.id);
     expect(second.requirement_id).not.toBe(first.requirement_id);
-    const history = page.getByRole("combobox", { name: "保存された解析履歴" });
+    const history = page.getByRole("combobox", { name: "Saved analyses" });
     await history.selectOption(first.id);
-    await expect(result).toContainText("保存された解析です");
+    await expect(result).toContainText("Historical analysis.");
     await expect(requirement).toHaveValue(first.input.requirement);
     expect(requests).toHaveLength(4);
     await run.click();
@@ -2387,19 +2618,21 @@ test.describe("native GUI with real offline workers", () => {
     expect(state.analysis.finding_id).not.toBe(first.finding_id);
     expect(state.analysis_history[0].assessment).toEqual(first.assessment);
     expect(state.analysis_history[1].input).toEqual(second.input);
-    await expect(result).toContainText("意味の差異候補（モデル評価）");
+    await expect(result).toContainText("Candidate mismatch (Model assessment)");
     const port = Number(new URL(url).port);
     await stop();
     await page.goto(await start(port));
     await page
-      .getByRole("button", { name: "ファイル: Spec.lean", exact: true })
+      .getByRole("button", { name: "File: Spec.lean", exact: true })
       .click();
     await history.selectOption(second.id);
     await expect(result).toContainText(second.input.requirement);
     expect((await nativeState(page)).authorized).toBe(false);
     expect(requests).toHaveLength(6);
     await page.setViewportSize({ width: 390, height: 844 });
-    await result.getByText("解析対象と処理の詳細", { exact: true }).click();
+    await result
+      .getByText("Analysis target and process details", { exact: true })
+      .click();
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
@@ -2450,21 +2683,23 @@ test.describe("native GUI with real offline workers", () => {
         expect(requests).toHaveLength(0);
         await page.setViewportSize({ width: 390, height: 250 });
         await expect(
-          page.getByRole("button", { name: "このモデルを使用" }),
+          page.getByRole("button", { name: "Use this model" }),
         ).toBeDisabled();
         await page.setViewportSize({ width: 1440, height: 960 });
       },
     );
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
     await expect(page.getByRole("dialog")).toContainText(
       "separate-judge-fixture",
     );
-    await page.getByRole("button", { name: "閉じる", exact: true }).click();
-    await page.getByRole("button", { name: "この宣言の意味を解析" }).click();
-    const result = page.getByLabel("意味解析の結果", { exact: true });
-    await expect(result).toContainText("意味の差異候補");
+    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Analyze declaration meaning" })
+      .click();
+    const result = page.getByLabel("Meaning analysis result", { exact: true });
+    await expect(result).toContainText("Candidate mismatch");
     expect((requests[0] as { model: string }).model).toBe(
       "scripted-gui-fixture",
     );
@@ -2473,8 +2708,8 @@ test.describe("native GUI with real offline workers", () => {
     );
     const record = (await nativeState(page)).analysis;
     expect(record.judge.model).toBe("separate-judge-fixture");
-    await result.getByText("解析対象と処理の詳細").click();
-    await expect(result).toContainText("比較: separate-judge-fixture");
+    await result.getByText("Analysis target and process details").click();
+    await expect(result).toContainText("Comparison: separate-judge-fixture");
     let releaseMetadata = () => {};
     const metadataReleased = new Promise<void>(
       (resolve) => (releaseMetadata = resolve),
@@ -2489,12 +2724,12 @@ test.describe("native GUI with real offline workers", () => {
       await route.fulfill({ response });
     });
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
     try {
       await expect.poll(() => metadataHeld).toBe(true);
       await page
-        .getByRole("button", { name: "送信の許可を取り消す", exact: true })
+        .getByRole("button", { name: "Revoke access", exact: true })
         .click();
       await expect
         .poll(async () => (await nativeState(page)).authorized)
@@ -2504,10 +2739,10 @@ test.describe("native GUI with real offline workers", () => {
     }
     await page
       .getByRole("dialog")
-      .getByRole("button", { name: "閉じる", exact: true })
+      .getByRole("button", { name: "Close", exact: true })
       .click();
     await expect(
-      page.getByRole("button", { name: "この宣言の意味を解析" }),
+      page.getByRole("button", { name: "Analyze declaration meaning" }),
     ).toBeDisabled();
     await expect
       .poll(async () => (await nativeState(page)).authorized)
@@ -2528,11 +2763,15 @@ test.describe("native GUI with real offline workers", () => {
       (response) => reply(response, judgement()),
     );
     await openMeaning(page);
-    await page.getByRole("button", { name: "この宣言の意味を解析" }).click();
-    const result = page.getByLabel("意味解析の結果", { exact: true });
-    await expect(result).toContainText("意味の差異候補（モデル評価）");
+    await page
+      .getByRole("button", { name: "Analyze declaration meaning" })
+      .click();
+    const result = page.getByLabel("Meaning analysis result", { exact: true });
+    await expect(result).toContainText("Candidate mismatch (Model assessment)");
     await expect(result).toContainText("Stock never increases");
-    await expect(page.getByLabel("選択した宣言")).toContainText("証明は未確認");
+    await expect(page.getByLabel("Selected declaration")).toContainText(
+      "Proof unchecked",
+    );
     expect(requests).toHaveLength(2);
     expect(JSON.stringify(requests[0])).toContain("FORMAL_CONTEXT_SENTINEL");
     expect(JSON.stringify(requests[0])).not.toContain(
@@ -2550,34 +2789,36 @@ test.describe("native GUI with real offline workers", () => {
       fullPage: true,
     });
     const input = page.getByRole("textbox", {
-      name: "比較する要件",
+      name: "Requirement to compare",
       exact: true,
     });
     const original = await input.inputValue();
     await input.fill("Changed requirement");
     await expect(result).toContainText(
-      "表示中の要件・宣言・ソース版と異なる解析",
+      "This analysis uses different requirements, declarations or source revisions",
     );
     expect(requests).toHaveLength(2);
     const port = Number(new URL(url).port);
     await stop();
     await page.goto(await start(port));
     await openDependencyControls(page);
-    await expect(result).toContainText("保存された解析です");
+    await expect(result).toContainText("Historical analysis.");
     expect(requests).toHaveLength(2);
     await setPaths(page, "Spec.lean");
     await refreshReferences(page);
     await expect(input).toHaveValue(original);
     await expect(
-      page.getByRole("button", { name: "この宣言の意味を解析" }),
+      page.getByRole("button", { name: "Analyze declaration meaning" }),
     ).toBeDisabled();
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
-    await page.getByRole("button", { name: "このモデルを使用" }).click();
-    await page.getByRole("button", { name: "この宣言の意味を解析" }).click();
-    await expect(result).toContainText("意味の差異候補（モデル評価）");
-    await expect(result).not.toContainText("保存された解析です");
+    await page.getByRole("button", { name: "Use this model" }).click();
+    await page
+      .getByRole("button", { name: "Analyze declaration meaning" })
+      .click();
+    await expect(result).toContainText("Candidate mismatch (Model assessment)");
+    await expect(result).not.toContainText("Historical analysis.");
     expect(requests).toHaveLength(4);
     await stop();
     const journals = resolve(root, "data/meden/projects");
@@ -2601,16 +2842,18 @@ test.describe("native GUI with real offline workers", () => {
     await setPaths(page, "Spec.lean");
     await refreshReferences(page);
     await page
-      .getByRole("region", { name: "ローカルソースのグラフ" })
-      .getByRole("button", { name: /Demo.stock_bound.*を選択/ })
+      .getByRole("region", { name: "Local source graph" })
+      .getByRole("button", { name: /Demo.stock_bound.*: select/ })
       .click();
     await input.fill(original);
     await page
-      .getByRole("button", { name: "モデルを選択", exact: true })
+      .getByRole("button", { name: "Choose model", exact: true })
       .click();
-    await page.getByRole("button", { name: "このモデルを使用" }).click();
-    await page.getByRole("button", { name: "この宣言の意味を解析" }).click();
-    await expect(result).toContainText("意味の差異候補（モデル評価）");
+    await page.getByRole("button", { name: "Use this model" }).click();
+    await page
+      .getByRole("button", { name: "Analyze declaration meaning" })
+      .click();
+    await expect(result).toContainText("Candidate mismatch (Model assessment)");
     expect(requests).toHaveLength(6);
     await page.setViewportSize({ width: 390, height: 844 });
     expect(
@@ -2659,27 +2902,33 @@ test.describe("native GUI with real offline workers", () => {
           ),
         );
       await openMeaning(page);
-      await page.getByRole("button", { name: "この宣言の意味を解析" }).click();
-      const result = page.getByLabel("意味解析の結果", { exact: true });
+      await page
+        .getByRole("button", { name: "Analyze declaration meaning" })
+        .click();
+      const result = page.getByLabel("Meaning analysis result", {
+        exact: true,
+      });
       if (mode === "cancel" || mode === "revoke" || mode === "stale") {
         await expect.poll(() => held !== undefined).toBe(true);
         await expect(result).toContainText(
           mode === "cancel" || mode === "revoke"
-            ? "自然言語化しています"
-            : "元の要件と比較しています",
+            ? "Translating declaration"
+            : "Comparing with original requirement",
         );
         if (mode === "cancel")
-          await page.getByRole("button", { name: "中止", exact: true }).click();
+          await page
+            .getByRole("button", { name: "Cancel", exact: true })
+            .click();
         else if (mode === "revoke") {
           await page
-            .getByRole("button", { name: "モデルを選択", exact: true })
+            .getByRole("button", { name: "Choose model", exact: true })
             .click();
           await page
-            .getByRole("button", { name: "送信の許可を取り消す", exact: true })
+            .getByRole("button", { name: "Revoke access", exact: true })
             .click();
           await page
             .getByRole("dialog")
-            .getByRole("button", { name: "閉じる", exact: true })
+            .getByRole("button", { name: "Close", exact: true })
             .click();
         } else
           await writeFile(
@@ -2695,16 +2944,16 @@ test.describe("native GUI with real offline workers", () => {
       }
       await expect(result).toContainText(
         mode === "cancel" || mode === "revoke"
-          ? "意味解析を中止しました"
+          ? "Meaning analysis was cancelled"
           : mode === "stale"
-            ? "対象のソースが変更されました"
-            : "意味解析を完了できませんでした",
+            ? "The source changed"
+            : "Meaning analysis failed",
       );
-      await expect(result).not.toContainText("一致の候補");
+      await expect(result).not.toContainText("Candidate match");
       expect(requests).toHaveLength(mode === "stale" ? 2 : 1);
       if (mode === "revoke")
         await expect(
-          page.getByRole("button", { name: "この宣言の意味を解析" }),
+          page.getByRole("button", { name: "Analyze declaration meaning" }),
         ).toBeDisabled();
       if (mode === "invalid")
         await expect(

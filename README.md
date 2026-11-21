@@ -94,12 +94,21 @@ Map markers distinguish main proof targets, theorems, lemmas and definitions by
 shape and color. Main targets come from saved work items, not a name heuristic or
 proof-status claim. Clicking graph nodes never changes chat activity or send state;
 a submitted message waits for a concurrent inspection and is then dispatched.
+UI labels are English. Drag either sidebar boundary to resize it; widths are saved
+per workspace. Long user and assistant messages fold automatically. Work items and
+tool records open through the composer's **Work history** icon; cancellation is a
+compact inline conversation notice, not a header banner.
+File graphs use L4SB's cone layout (uses above, used-by below). Atlas type/value
+edges distinguish human meaning-review targets from proof-only dependencies;
+unknown references stay unknown. These colors are not proof or review completion.
+Large projects retain a complete file map and index opened files and nearby import
+barrels on demand; ordinary-sized projects retain the full prebuilt reference map.
 The model selector is inside the composer. Provider/model choices update directly;
-**このモデルを使用** approves the exact displayed binding. The explorer heading
+**Use this model** approves the exact displayed binding. The explorer heading
 shows the workspace path, with one refresh icon for files and the map.
-**参照を更新** provides lexical inspection before Lean dependencies are
+**Refresh references** provides lexical inspection before Lean dependencies are
 prepared; it is not a compiler dependency graph or a new proof check.
-The optional tools action **コンパイル後の依存を抽出** recompiles selected Lean
+The optional tools action **Extract compiled dependencies** recompiles selected Lean
 modules and their imports (up to 32 files / 16 MiB); ordinary browsing does not need it.
 With installed Lean, extraction automatically prepares the pinned Lean Atlas
 core offline on selected modules. The workspace's `lean-toolchain` selects its

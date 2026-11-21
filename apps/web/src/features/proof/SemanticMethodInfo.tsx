@@ -4,16 +4,16 @@ import InfoOutlined from "@mui/icons-material/InfoOutlined";
 import CloseRounded from "@mui/icons-material/CloseRounded";
 const method = [
   [
-    "定理の逆翻訳",
-    "翻訳用の大規模言語モデル（LLM）にLeanの定理を渡し、前提と結論を自然文にします。元の依頼文を見せず、定理の記述に基づいて翻訳します。",
+    "Theorem back-translation",
+    "A translator LLM receives the Lean theorem and describes its assumptions and conclusions without seeing the original requirement.",
   ],
   [
-    "依頼との意味比較",
-    "比較用の別のLLMに元の依頼文と逆翻訳を渡し、条件の抜け、余分な前提、数値や対象の違いを評価させます。",
+    "Compare meaning with the request",
+    "A separate judge receives the original requirement and back-translation to assess missing conditions, extra assumptions, numerical differences and scope.",
   ],
   [
-    "差分と影響の提示",
-    "差がある条件と、その条件で結果が変わる例を表示します。たとえば在庫があるとき、残高がちょうど150円で購入できるかを示します。",
+    "Show differences and their effects",
+    "Show differing conditions and examples of their effects, such as whether a purchase is allowed at exactly 150 yen when stock is available.",
   ],
 ];
 export function SemanticMethodInfo() {
@@ -21,7 +21,7 @@ export function SemanticMethodInfo() {
   return (
     <>
       <IconButton
-        aria-label="意味解析の仕組み"
+        aria-label="How meaning analysis works"
         aria-haspopup="dialog"
         aria-expanded={Boolean(anchor)}
         onClick={(event) => setAnchor(event.currentTarget)}
@@ -45,14 +45,18 @@ export function SemanticMethodInfo() {
       >
         <header>
           <Typography variant="h3" id="semantic-method-title">
-            意味解析のアルゴリズム
+            Meaning analysis algorithm
           </Typography>
-          <IconButton aria-label="説明を閉じる" onClick={() => setAnchor(null)}>
+          <IconButton
+            aria-label="Close explanation"
+            onClick={() => setAnchor(null)}
+          >
             <CloseRounded fontSize="small" />
           </IconButton>
         </header>
         <Typography variant="caption" color="text.secondary">
-          claimcheckの二段階方式を参考にした実装案です。サンプル画面には、あらかじめ用意した比較例を表示します。
+          A design based on claimcheck's two-stage approach. The demo displays
+          prepared comparison examples.
         </Typography>
         <ol>
           {method.map(([title, text]) => (
@@ -68,7 +72,7 @@ export function SemanticMethodInfo() {
           target="_blank"
           rel="noreferrer"
         >
-          claimcheckの二段階方式
+          claimcheck's two-stage approach
         </a>
       </Popover>
     </>

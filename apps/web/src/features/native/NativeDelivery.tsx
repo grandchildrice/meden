@@ -18,12 +18,12 @@ import type {
 } from "@meden/agent-protocol/native";
 
 const states: Record<ExportSummary["state"], string> = {
-  pending: "確認待ち",
-  reviewed: "内容確認中",
-  rejected: "拒否済み",
-  attempted: "送信試行済み",
-  response_received: "応答受信済み",
-  delivery_uncertain: "配送結果不明・再送不可",
+  pending: "Pending review",
+  reviewed: "Under review",
+  rejected: "Rejected",
+  attempted: "Attempted",
+  response_received: "Response received",
+  delivery_uncertain: "Delivery uncertain; do not resend",
 };
 
 export function NativeDelivery({
@@ -68,14 +68,15 @@ export function NativeDelivery({
       });
   };
   return (
-    <Stack spacing={2} aria-label="成果物の配送">
-      <Typography variant="h3">成果物の配送</Typography>
+    <Stack spacing={2} aria-label="Artifact delivery">
+      <Typography variant="h3">Artifact delivery</Typography>
       <Typography>
-        エージェントが準備した内容と宛先を確認して、1回だけ送信できます。確認だけでは送信されません。
+        Review the prepared content and destination before sending once.
+        Reviewing does not send anything.
       </Typography>
       {exports.length === 0 && (
         <p>
-          配送の提案はありません。必要なら、送るファイルと宛先を指示してください。
+          No delivery proposed. Specify a file and destination to prepare one.
         </p>
       )}
       {outcome && (
@@ -84,11 +85,12 @@ export function NativeDelivery({
             outcome.summary.state === "delivery_uncertain" ? "warning" : "info"
           }
         >
-          配送 #{outcome.summary.id} · {states[outcome.summary.state]}
+          Delivery #{outcome.summary.id} · {states[outcome.summary.state]}
           {outcome.http_status !== null && <> · HTTP {outcome.http_status}</>}
           {outcome.summary.state === "delivery_uncertain" && (
             <p>
-              相手側に届いている可能性があります。送信を繰り返さず、受信側で確認してください。
+              The recipient may have received it. Check with the recipient
+              instead of sending again.
             </p>
           )}
         </Alert>
@@ -100,17 +102,17 @@ export function NativeDelivery({
           className="native-delivery-entry"
         >
           <Typography component="h3">
-            配送 #{item.id} · {item.source}
+            Delivery #{item.id} · {item.source}
           </Typography>
           <Typography sx={{ overflowWrap: "anywhere" }}>
             {item.target}
           </Typography>
           <Chip size="small" label={states[item.state]} />
           <Typography variant="body2">
-            {item.bytes.toLocaleString()} bytes ·{" "}
+            {item.bytes.toLocaleString("en-US")} bytes ·{" "}
             {item.contract
-              ? "検証した契約のパッケージ"
-              : "通常のファイル・証明なし"}
+              ? "Verified contract package"
+              : "Ordinary file; no proof"}
           </Typography>
           <Button
             disabled={running}
@@ -122,7 +124,7 @@ export function NativeDelivery({
               })
             }
           >
-            配送 #{item.id} の内容と宛先を確認
+            Delivery #{item.id} : review content and destination
           </Button>
         </Stack>
       ))}
@@ -144,36 +146,37 @@ export function NativeDelivery({
               className="native-delivery-heading"
             >
               <Typography component="h2" variant="h3">
-                この配送の内容と宛先を確認
+                Review delivery content and destination
               </Typography>
               <Typography>
-                配送 #{review.summary.id} · POST · application/octet-stream
+                Delivery #{review.summary.id} · POST · application/octet-stream
               </Typography>
               <Typography sx={{ overflowWrap: "anywhere" }}>
-                送信先: {review.summary.target}
+                Destination: {review.summary.target}
               </Typography>
               <Typography variant="body2" sx={{ overflowWrap: "anywhere" }}>
-                固定した内容: {review.summary.bytes.toLocaleString()} bytes ·
-                SHA-256 {review.summary.payload_sha256}
+                Frozen content: {review.summary.bytes.toLocaleString("en-US")}{" "}
+                bytes · SHA-256 {review.summary.payload_sha256}
               </Typography>
               <Typography variant="body2" sx={{ overflowWrap: "anywhere" }}>
-                契約:{" "}
-                {review.summary.contract || "なし（通常のファイル・証明なし）"}
+                Contract:{" "}
+                {review.summary.contract || "None (Ordinary file; no proof)"}
               </Typography>
             </DialogTitle>
             <DialogContent dividers>
               <Typography>
-                送信する固定済みのバイト列です。準備後に元ファイルが変わっても、この内容と宛先は変わりません。
+                These are the exact frozen bytes. Later source edits do not
+                change this content or destination.
               </Typography>
               <Typography>
-                状態: {states[review.summary.state]} · バイト位置{" "}
+                Status: {states[review.summary.state]} · Byte offset{" "}
                 {review.offset}〜{review.offset + review.body_hex.length / 2}
               </Typography>
               <pre
                 className="native-delivery-bytes"
-                aria-label="送信する正確なバイト列"
+                aria-label="Exact bytes to send"
               >
-                {hexDump(review.body_hex, review.offset) || "（空のファイル）"}
+                {hexDump(review.body_hex, review.offset) || "(Empty file)"}
               </pre>
               <Stack direction="row" spacing={2}>
                 <Button
@@ -189,7 +192,7 @@ export function NativeDelivery({
                     })
                   }
                 >
-                  前の内容
+                  Previous bytes
                 </Button>
                 <Button
                   disabled={
@@ -206,18 +209,19 @@ export function NativeDelivery({
                     })
                   }
                 >
-                  次の内容
+                  Next bytes
                 </Button>
               </Stack>
               {visibleSerial !== review.serial && (
                 <Alert severity="info">
-                  送信先と内容の見出しをすべて表示できる大きさに画面を広げてください。
+                  Enlarge the window until the complete destination and content
+                  heading is visible.
                 </Alert>
               )}
             </DialogContent>
             <DialogActions sx={{ flexWrap: "wrap" }}>
               <Button disabled={running} onClick={() => act("close_export")}>
-                閉じる
+                Close
               </Button>
               <Button
                 disabled={
@@ -226,7 +230,7 @@ export function NativeDelivery({
                 }
                 onClick={() => act("reject_export")}
               >
-                この配送を拒否
+                Reject this delivery
               </Button>
               <Button
                 variant="contained"
@@ -237,7 +241,7 @@ export function NativeDelivery({
                 }
                 onClick={() => act("send_export")}
               >
-                この宛先へ1回送信
+                Send once to this destination
               </Button>
             </DialogActions>
           </>

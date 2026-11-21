@@ -42,6 +42,7 @@ export const declarationSchema = z
     name: z.string().min(1).max(1000),
     label: z.string().max(300),
     kind: z.enum(["theorem", "definition", "axiom"]),
+    isMainTheorem: z.boolean().optional(),
     statement: text,
     summary: z.string().max(10_000).optional(),
     source: sourceSchema.optional(),
@@ -159,7 +160,7 @@ export const workspaceSchema = z
         ctx.addIssue({
           code: "custom",
           path: [key],
-          message: "IDが重複しています",
+          message: "Duplicate IDs",
         });
     }
     const declarations = new Set(workspace.declarations.map((item) => item.id));
@@ -170,7 +171,7 @@ export const workspaceSchema = z
         ctx.addIssue({
           code: "custom",
           path: ["edges", index],
-          message: "依存先の宣言がありません",
+          message: "Dependency target declaration not found",
         });
     });
     workspace.analyses.forEach((analysis, index) => {
@@ -181,13 +182,13 @@ export const workspaceSchema = z
         ctx.addIssue({
           code: "custom",
           path: ["analyses", index],
-          message: "要件または定理がありません",
+          message: "Requirement or theorem not found",
         });
       if (analysis.evidenceRefs.some((ref) => !evidence.has(ref)))
         ctx.addIssue({
           code: "custom",
           path: ["analyses", index, "evidenceRefs"],
-          message: "参照する根拠がありません",
+          message: "Referenced evidence not found",
         });
     });
     workspace.declarations.forEach((declaration, index) => {
@@ -203,7 +204,8 @@ export const workspaceSchema = z
         ctx.addIssue({
           code: "custom",
           path: ["declarations", index, "evidenceRefs"],
-          message: "検証結果の表示には根拠と対象版が必要です",
+          message:
+            "Displaying verification results requires evidence and source revision",
         });
     });
     workspace.reviewDrafts.forEach((draft, index) => {
@@ -211,7 +213,7 @@ export const workspaceSchema = z
         ctx.addIssue({
           code: "custom",
           path: ["reviewDrafts", index],
-          message: "レビュー対象の要件がありません",
+          message: "Review target requirement not found",
         });
     });
   });
@@ -295,7 +297,7 @@ export function updateRequirement(
   body: string,
 ): Workspace {
   if (!workspace.requirements.some((claim) => claim.id === claimId))
-    throw new Error("要件がありません");
+    throw new Error("No requirements");
   if (
     workspace.requirements.find((claim) => claim.id === claimId)?.text === body
   )
@@ -343,21 +345,21 @@ export function createWorkspace(name: string): Workspace {
 }
 
 export const proofLabels: Record<ProofStatus, string> = {
-  proved: "証明済み",
-  bounded: "範囲内で確認",
-  empirical: "テスト済み",
-  refuted: "反例あり",
-  unproved: "未証明",
-  unknown: "未確認",
-  unsupported: "対象外",
-  stale: "再検証が必要",
+  proved: "Proved",
+  bounded: "Checked within bounds",
+  empirical: "Tested",
+  refuted: "Refuted",
+  unproved: "Unproved",
+  unknown: "Unknown",
+  unsupported: "Unsupported",
+  stale: "Recheck required",
 };
 export const verdictLabels: Record<Verdict, string> = {
-  full: "一致",
-  partial: "一部一致",
-  mismatch: "不一致",
-  vacuous: "空虚な命題",
-  missing: "定理なし",
-  unformalizable: "形式化の対象外",
-  unclear: "判定保留",
+  full: "Match",
+  partial: "Partial match",
+  mismatch: "Mismatch",
+  vacuous: "Vacuous",
+  missing: "TheoremNone",
+  unformalizable: "Not formalizable",
+  unclear: "Undetermined",
 };

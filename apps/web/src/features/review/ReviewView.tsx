@@ -31,7 +31,7 @@ export function ReviewView({
     ? workspace.reviewDrafts.find((draft) => draft.claimIds.includes(claimId))
     : workspace.reviewDrafts[workspace.reviewDrafts.length - 1];
   const [draftId, setDraftId] = useState(initial?.id || crypto.randomUUID());
-  const [title, setTitle] = useState(initial?.title || "仕様のレビュー");
+  const [title, setTitle] = useState(initial?.title || "Specification review");
   const [notes, setNotes] = useState(initial?.notes || "");
   const [selected, setSelected] = useState<string[]>(
     initial?.claimIds || (claimId ? [claimId] : []),
@@ -62,7 +62,7 @@ export function ReviewView({
     });
     if (saved) {
       setDirty(false);
-      onNotify("下書きを保存しました");
+      onNotify("Draft saved");
     }
     return saved;
   };
@@ -82,16 +82,18 @@ export function ReviewView({
     <section className="review-page">
       <header className="page-heading">
         <div>
-          <Typography variant={embedded ? "h2" : "h1"}>レビュー依頼</Typography>
+          <Typography variant={embedded ? "h2" : "h1"}>
+            Review request
+          </Typography>
           <Typography variant="body2" color="text.secondary">
-            要件、定理、根拠をまとめた依頼書を作成します。
+            Prepare a review request with requirements, theorems and evidence.
           </Typography>
         </div>
         <Button
           startIcon={<AddRounded />}
           onClick={() => {
             setDraftId(crypto.randomUUID());
-            setTitle("仕様のレビュー");
+            setTitle("Specification review");
             setNotes("");
             setSelected([]);
             setTarget({
@@ -101,13 +103,13 @@ export function ReviewView({
             setDirty(true);
           }}
         >
-          新しい依頼
+          New request
         </Button>
       </header>
       <div className="review-workspace">
-        <aside className="review-list" aria-label="保存したレビュー依頼">
+        <aside className="review-list" aria-label="Saved review requests">
           <Typography variant="caption" color="text.secondary">
-            下書き · {workspace.reviewDrafts.length}
+            Draft · {workspace.reviewDrafts.length}
           </Typography>
           {workspace.reviewDrafts.map((item) => (
             <button
@@ -119,13 +121,13 @@ export function ReviewView({
             >
               <strong>{item.title}</strong>
               <span>
-                {item.claimIds.length}件の要件 · {item.sourceRevision}
+                {item.claimIds.length} requirements · {item.sourceRevision}
               </span>
             </button>
           ))}
           {!workspace.reviewDrafts.length && (
             <Typography variant="body2" color="text.secondary">
-              保存した依頼はありません。
+              No saved review requests.
             </Typography>
           )}
         </aside>
@@ -137,10 +139,10 @@ export function ReviewView({
           }}
         >
           <div className="review-form-header">
-            <Typography variant="h2">依頼内容</Typography>
+            <Typography variant="h2">Request details</Typography>
             <Chip
               size="small"
-              label={dirty ? "未保存" : "下書き"}
+              label={dirty ? "Unsaved" : "Draft"}
               variant="outlined"
             />
           </div>
@@ -158,17 +160,17 @@ export function ReviewView({
                     setDirty(true);
                   }}
                 >
-                  対象を更新
+                  Update target
                 </Button>
               }
             >
-              要件または対象版が変更されています。
+              Requirements or source revision changed.
             </Alert>
           )}
           <TextField
             fullWidth
             required
-            label="件名"
+            label="Subject"
             value={title}
             onChange={(event) => {
               setTitle(event.target.value);
@@ -177,7 +179,7 @@ export function ReviewView({
             slotProps={{ htmlInput: { maxLength: 300 } }}
           />
           <div className="review-target">
-            <Typography variant="h3">対象の要件</Typography>
+            <Typography variant="h3">Target requirements</Typography>
             {workspace.requirements.map((claim) => (
               <FormControlLabel
                 key={claim.id}
@@ -203,7 +205,7 @@ export function ReviewView({
             ))}
             {!workspace.requirements.length && (
               <Typography color="text.secondary">
-                選択できる要件はありません。
+                No requirements available.
               </Typography>
             )}
           </div>
@@ -211,8 +213,8 @@ export function ReviewView({
             fullWidth
             multiline
             minRows={5}
-            label="確認してほしい点"
-            placeholder="前提、境界条件、判断に迷っている点など"
+            label="Review questions"
+            placeholder="Assumptions, boundary conditions or open questions"
             value={notes}
             onChange={(event) => {
               setNotes(event.target.value);
@@ -221,13 +223,15 @@ export function ReviewView({
             slotProps={{ htmlInput: { maxLength: 100_000 } }}
           />
           <dl className="metadata review-binding">
-            <dt>対象版</dt>
+            <dt>Source revision</dt>
             <dd>{target.sourceRevision}</dd>
-            <dt>要件の版</dt>
+            <dt>Requirement revision</dt>
             <dd>{target.inputRevision}</dd>
           </dl>
           <Typography variant="body2" color="text.secondary">
-            選択した要件と関連する定理・根拠を、暗号化していないJSONに書き出します。会話は含めません。外部への送信は行いません。
+            Export selected requirements, related theorems and evidence as
+            unencrypted JSON. Conversations are excluded. Nothing is sent
+            externally.
           </Typography>
           <div className="review-actions">
             <Button
@@ -235,7 +239,7 @@ export function ReviewView({
               variant="contained"
               disabled={!title.trim() || !selected.length}
             >
-              下書きを保存
+              Save draft
             </Button>
             <Button
               variant="outlined"
@@ -246,17 +250,15 @@ export function ReviewView({
                   const value = createReviewPackage(workspace, draft);
                   await save();
                   downloadJson("meden-review-request.json", value);
-                  onNotify("依頼書を書き出しました");
+                  onNotify("Review request exported");
                 } catch (error) {
                   onNotify(
-                    error instanceof Error
-                      ? error.message
-                      : "書き出せませんでした",
+                    error instanceof Error ? error.message : "Export failed",
                   );
                 }
               }}
             >
-              JSONを書き出す
+              Export JSON
             </Button>
           </div>
         </form>
