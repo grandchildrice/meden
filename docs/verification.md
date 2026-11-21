@@ -2515,3 +2515,29 @@ case. The public required gate has 31 journeys, the native browser suite has 40,
 and the nested 80×24 runner completes the required gate with real Lake enabled.
 The cloud trial is retained in
 [the public Lake TUI report](../results/tui-lake-ollama-cloud-minimax-m3-gptoss120.json).
+
+## Deterministic declaration explanations
+
+The Atlas adapter interprets elaborated declaration types/definition bodies with
+fixed English templates and runs a pinned Plausible runtime with a fixed seed.
+Source-only navigation has a separately labeled bounded grammar preview.
+Compilation stores explanation and sampling observations; hovering only reads
+them. No counterexample found, unsuitable assumptions, unsupported generators,
+compiler-task failure and an actual candidate are distinct outcomes. A false
+input for a defined predicate is not a refutation of its definition.
+
+The native browser journey covers distant main-target markers in a 10,004-file
+inventory, quantified English, preserved membership order, deterministic candidate
+bindings, assumptions, opaque types, definitions and restart without inference.
+Changing a root or dependency invalidates the bound artifact. The separate
+`test_deterministic_explanation.py` compiles the actual bundled Lean/Plausible
+modules, forces a compiler-budget failure, retains its English statement and
+then obtains a candidate from the next normal observation. This is compiler
+failure isolation coverage, not large-model, cold-install or mathematical proof
+coverage. Installed Lean 4.33.1 and 4.36.0 preparation additionally cover the
+active Riemann/EthLib toolchains.
+
+The [method and limits](research/2026-11-21-deterministic-semantics.md) describe
+the controlled vocabulary, cache binding and checker configuration. Presentation,
+sampling, compiler execution and cache I/O are adapters with tests; none adds
+native proof authority or establishes arbitrary natural-language equivalence.

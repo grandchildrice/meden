@@ -1,0 +1,207 @@
+{
+  "recorded_at": "2026-11-22T00:00:31.975919+09:00",
+  "binary": {
+    "path": "target/debug/meden",
+    "sha256": "061885d4093a09bb1d24e4ff9817945ebbb509ba4729b464259ba03f57ef99a0"
+  },
+  "scope": "Deterministic controlled-English presentation and cached Plausible sampling; no new proof authority",
+  "method": {
+    "expressions": "Elaborated Lean types and defining expressions, bounded fixed templates; unsupported operators retain names",
+    "source_preview": "Separately labeled bounded grammar; no imported notation or type-check claim",
+    "checker": "Plausible b7eb3304aeae834b12dda98993a37f6a41f6f0bb, six runtime modules only",
+    "configuration": {
+      "seed": 0,
+      "numInst": 64,
+      "numRetries": 10,
+      "maxSize": 32
+    },
+    "display": "Source information icons and graph hover read saved data; no model or sampling call on hover"
+  },
+  "checks": {
+    "public_tui_gate": {
+      "success": true,
+      "passed": 33,
+      "skipped": 0,
+      "artifact_directory": "/tmp/meden-ux-semantic-isolation-20261122",
+      "decoded_screens_inspected": [
+        "Lake inventory invalidation",
+        "provider 429 and retry after restart",
+        "meaning source staleness and recovery",
+        "GUI/TUI continuation with fresh review"
+      ],
+      "inference": "scripted fixtures; real installed Lean/Lake; no live-model or cold-install claim"
+    },
+    "native_browser": {
+      "full_suite_stage": {
+        "passed": 50,
+        "failed": 1,
+        "failure": "An overly specific single index-request assertion excluded legitimate visible-neighbor loading after fit padding changed."
+      },
+      "corrected_large_map_retest": {
+        "passed": 1,
+        "assertions": "Unique per-path map indexing, File0 once, no compiler/model/tab/chat/camera changes"
+      },
+      "final_semantic_journey": {
+        "passed": 1,
+        "inventory_sources": 10004,
+        "outcomes": [
+          "counterexample",
+          "not_found",
+          "gave_up",
+          "unsupported",
+          "predicate_false_example",
+          "not_proposition"
+        ],
+        "assertions": [
+          "Distant main-target marker and source navigation",
+          "English node labels and membership operand order",
+          "Seed-zero n := 0 candidate",
+          "Repeated extraction equality",
+          "Popup stays within source pane",
+          "Unapproved restart loads cached compilation without atlas_snapshot",
+          "Root and dependency edits discard stale candidates"
+        ]
+      }
+    },
+    "rust_unit": {
+      "passed": 71,
+      "skipped": 0
+    },
+    "typescript_unit": {
+      "passed": 30,
+      "files": 7
+    },
+    "actual_lean_failure_isolation": {
+      "passed": 1,
+      "test": "python/tests/test_deterministic_explanation.py",
+      "outcome": "A forced compiler-budget failure retains English and admits no candidate; the next ordinary observation returns n := 0. Trusted compiler fixture, separate from public journey coverage."
+    },
+    "installed_lake_matrix": {
+      "passed": 8,
+      "skipped": 0
+    },
+    "active_toolchains": {
+      "Lean 4.33.1 Riemann": "offline setup-atlas prepared",
+      "Lean 4.36.0 EthLib": "offline setup-atlas prepared"
+    },
+    "static": [
+      "cargo fmt --check",
+      "cargo clippy -p meden-cli --all-targets -- -D warnings",
+      "npm run typecheck",
+      "npm run format:check",
+      "schema export",
+      "ruff check/format new compiler regression",
+      "git diff --check"
+    ]
+  },
+  "actual_workspaces": [
+    {
+      "workspace": "/home/gohan/workspace/Riemann",
+      "overview": {
+        "state": "ready",
+        "scanned": 175187,
+        "total": 175187,
+        "revision": "sha256:5127b809a2152cfd170ca2371b9007119d2cd753639078deb85582dab7327b26",
+        "error": null
+      },
+      "mainPins": [
+        {
+          "label": "Main theorems: src/Main.lean (5)",
+          "title": "Theorems in the project entry module: riemannHypothesis, riemannZeta_eq_zero_re, LFunction_ne_zero_of_half_lt_re, LFunction_eq_zero_re, LFunction_eq_zero_re_of_isPrimitive"
+        }
+      ],
+      "compiledDeclarations": null,
+      "chatUnchanged": true,
+      "authorized": false,
+      "errors": [],
+      "commands": [
+        "inspect",
+        "inspect"
+      ],
+      "inference_requests": 0,
+      "screenshots": [
+        "/tmp/meden-riemann-main-pins.png",
+        "/tmp/meden-riemann-source-meaning.png"
+      ]
+    },
+    {
+      "workspace": "/home/gohan/workspace/EthLib",
+      "overview": {
+        "state": "ready",
+        "scanned": 2517,
+        "total": 2517,
+        "revision": "sha256:d18609f7a0651a95dbeb369ec2f1af7f37ae0feff88266aeb8cf8c94281df1d3",
+        "error": null
+      },
+      "mainPins": [
+        {
+          "label": "Main theorems: EthLib/Consensus/Proofs/DepositAdaptive.lean (2)",
+          "title": "Saved proof targets: EthLib.Consensus.DepositRegistration.Adaptive.cachedHash_after_adaptive, EthLib.Consensus.DepositRegistration.Adaptive.prEvent_verified_ready_le_solver"
+        },
+        {
+          "label": "Main theorems: EthLib/Consensus/Proofs/DepositSecurity.lean (2)",
+          "title": "Saved proof targets: EthLib.Consensus.DepositRegistration.Forgery.advantage_le_coCdhAdvantage, EthLib.Consensus.DepositRegistration.Forgery.nonzeroAdvantage_le_coCdhAdvantage"
+        },
+        {
+          "label": "Main theorems: EthLib/Consensus/Proofs/DepositRegistry.lean (1)",
+          "title": "Saved proof targets: EthLib.Consensus.DepositRegistration.registered_of_processDeposits_from_empty"
+        },
+        {
+          "label": "Main theorems: EthLib/Consensus/Proofs/DepositRegistration.lean (1)",
+          "title": "Saved proof targets: EthLib.Consensus.DepositRegistration.signingRoot_binding"
+        },
+        {
+          "label": "Main theorems: EthLib/Consensus/Proofs/DepositAggregate.lean (1)",
+          "title": "Saved proof targets: EthLib.Consensus.DepositRegistration.Aggregate.extractAggregate_eq_of_registrations"
+        },
+        {
+          "label": "Main theorems: EthLib/Networking/Proofs/Gossip/Reachability.lean (8)",
+          "title": "Saved proof targets: EthLib.Networking.Proofs.Gossip.Reachability.fanout_nodup_of_entries, EthLib.Networking.Proofs.Gossip.Reachability.topicPeers_nodup, EthLib.Networking.Proofs.Gossip.Reachability.applySubscription_nodup, EthLib.Networking.Proofs.Gossip.Reachability.receiveRpc_wellFormed, EthLib.Networking.Proofs.Gossip.Reachability.step_wellFormed, EthLib.Networking.Proofs.Gossip.Reachability.run_wellFormed, EthLib.Networking.Proofs.Gossip.Reachability.run_empty_mesh_nodup, EthLib.Networking.Proofs.Gossip.Reachability.run_empty_fanout_nodup"
+        },
+        {
+          "label": "Main theorems: EthLib/Networking/Proofs/Gossip/Trace.lean (2)",
+          "title": "Saved proof targets: EthLib.Networking.Proofs.Gossip.Trace.emits_once, EthLib.Networking.Proofs.Gossip.Trace.publish_once"
+        },
+        {
+          "label": "Main theorems: EthLib/Networking/Proofs/Quic/Tls/Reachable.lean (4)",
+          "title": "Saved proof targets: EthLib.Networking.Quic.Tls.Handshake.ClientTrace.completion_authenticated, EthLib.Networking.Quic.Tls.Handshake.ServerTrace.completion_authenticated, EthLib.Networking.Quic.Tls.Handshake.ClientTrace.no_completion_without_certificateVerify, EthLib.Networking.Quic.Tls.Handshake.ServerTrace.no_completion_without_certificateVerify"
+        }
+      ],
+      "compiledDeclarations": 42,
+      "chatUnchanged": true,
+      "authorized": false,
+      "errors": [],
+      "commands": [
+        "inspect",
+        "inspect",
+        "inspect",
+        "inspect",
+        "inspect",
+        "inspect"
+      ],
+      "inference_requests": 0,
+      "stored_outcomes": {
+        "not_proposition": 36,
+        "unsupported": 3,
+        "unavailable": 3
+      },
+      "screenshots": [
+        "/tmp/meden-ethlib-main-pins.png",
+        "/tmp/meden-ethlib-compiled-meaning.png"
+      ]
+    }
+  ],
+  "failure_and_recovery": [
+    "Real EthLib extraction initially failed with a compiler LCNF heartbeat exception outside Meta handling. Checker execution now has a separate PPContext and IO catch; 42 declarations remain available with 3 explicit unavailable observations.",
+    "Observer retries corrected selection of an existing Project map tab and an actual visible source hint; no private configuration/source rescue was used.",
+    "Popup bounds regression initially found CSS overriding its width; an inline bound now passes the real browser rectangle assertion."
+  ],
+  "limits": [
+    "No whole-Riemann build; its initial node text is labeled source preview.",
+    "32-source/16-MiB compiler collection bounds remain.",
+    "Fixed-seed samples do not prove a theorem; opaque/noncomputable types can be unsupported.",
+    "Defined-predicate false inputs describe a boundary, not a refutation of the definition.",
+    "No live inference, local large-model or cold-install validation.",
+    "Naturalization, compiler, cache I/O and rendering are tested adapters, not extracted/refined proof kernels."
+  ]
+}

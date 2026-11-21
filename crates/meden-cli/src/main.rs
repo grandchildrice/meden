@@ -11,6 +11,7 @@ use std::sync::{atomic::AtomicBool, Arc};
 mod analysis;
 mod atlas;
 mod connection;
+mod explanation;
 mod exports;
 mod gui;
 mod handoff;
@@ -254,8 +255,9 @@ fn run() -> Result<()> {
         Command::Gui { args, assets, port } => gui::run(&args, &assets, port)?,
         Command::SetupAtlas { workspace } => setup_atlas(&workspace)?,
         Command::SourceNotices => println!(
-            "Lean Atlas (bundled extraction core)\n{}\nclaimcheck (prompt/output adaptation)\n{}",
+            "Lean Atlas (bundled extraction core)\n{}\nPlausible (fixed-seed checker)\n{}\nclaimcheck (prompt/output adaptation)\n{}",
             include_str!("atlas/vendor/LICENSE"),
+            include_str!("atlas/vendor/MedenPlausible/LICENSE"),
             include_str!("semantic/CLAIMCHECK-LICENSE")
         ),
         Command::Setup => {

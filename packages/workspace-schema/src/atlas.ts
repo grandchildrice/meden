@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { explanationSchema } from "./explanation.ts";
 
 /** Atlas data is analysis input, never a native proof or approval receipt. */
 export const atlasGraphSchema = z.object({
@@ -19,6 +20,7 @@ export const atlasGraphSchema = z.object({
         hasSorry: z.boolean(),
         statement: z.string().max(65536).optional(),
         value: z.string().max(65536).nullable().optional(),
+        semantic: explanationSchema.optional(),
         axioms: z.array(z.string()).optional(),
         standardAxioms: z.array(z.string()).optional(),
         externalDependencies: z.array(z.string()).optional(),

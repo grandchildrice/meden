@@ -265,6 +265,12 @@ requirement with a blind natural-language translation of that declaration.
 For a source-only observation, use `/sources stock.rs`, then
 `/analyze stock.rs:2 stock -- Stock always decreases`.
 
+The GUI shows distant main-target stars, controlled-English graph cards and source
+hovers. Atlas compilation also runs fixed-seed Plausible checks; source/resource-bound
+observations are cached for display without inference or recompilation. Source previews,
+counterexample candidates, inconclusive sampling and unsupported types stay distinct
+from proof. [Method and limits](docs/research/2026-11-21-deterministic-semantics.md).
+
 `/analysis` shows the retained assessment; `/analysis history` lists previous
 runs and `/analysis ID` selects an analysis or Finding ID. Exact requirement text
 has a stable ID; reruns keep earlier findings and their source revisions. These are model-generated candidate

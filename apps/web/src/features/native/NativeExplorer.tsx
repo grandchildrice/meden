@@ -8,6 +8,10 @@ import {
   Typography,
 } from "@mui/material";
 import Refresh from "@mui/icons-material/Refresh";
+import {
+  ExplanationHint,
+  type SourceExplanation,
+} from "../source/ExplanationHint";
 import FolderOutlined from "@mui/icons-material/FolderOutlined";
 import DescriptionOutlined from "@mui/icons-material/DescriptionOutlined";
 import ChevronRight from "@mui/icons-material/ChevronRight";
@@ -153,12 +157,16 @@ export function NativeCode({
   line,
   running,
   onCommand,
+  explanations = [],
+  hoveredLine,
 }: {
   state: NativeState;
   path?: string;
   line?: number;
   running: boolean;
   onCommand: (command: NativeCommand) => Promise<boolean>;
+  explanations?: SourceExplanation[];
+  hoveredLine?: number;
 }) {
   const [files, setFiles] = useState<
     Record<string, NonNullable<NativeState["inspection"]>>
@@ -245,7 +253,9 @@ export function NativeCode({
                 key={i}
                 className={
                   "editor-line " +
-                  (row.number === line ? "selected-source-line" : "")
+                  (row.number === line || row.number === hoveredLine
+                    ? "selected-source-line"
+                    : "")
                 }
                 aria-current={row.number === line ? "location" : undefined}
                 ref={row.number === line ? selected : undefined}
@@ -257,6 +267,17 @@ export function NativeCode({
                     </span>{" "}
                   </>
                 )}
+                <span className="editor-semantic-gutter">
+                  {explanations
+                    .filter((note) => note.line === row.number)
+                    .map((note) => (
+                      <ExplanationHint
+                        key={note.name}
+                        note={note}
+                        active={hoveredLine === row.number}
+                      />
+                    ))}
+                </span>
                 <code>
                   {tokens?.[i]?.length
                     ? tokens[i].map((token, j) => (

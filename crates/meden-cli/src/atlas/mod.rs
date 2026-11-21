@@ -115,13 +115,7 @@ impl Configuration {
         };
         execution.execute("prepare.sh", &modules, control, Duration::from_secs(180))?;
         resources::write(output.path())?;
-        let files = resources::modules()
-            .iter()
-            .map(|module| {
-                let name = format!("{module}.olean");
-                Ok((name.clone(), file_hash(&output.path().join(name))?))
-            })
-            .collect::<Result<BTreeMap<_, _>>>()?;
+        let files = compiled_files(output.path())?;
         crate::storage::write(
             &output.path().join("manifest.json"),
             &Manifest {
@@ -154,16 +148,9 @@ impl Configuration {
             "Lean analysis engine changed; prepare again"
         );
         anyhow::ensure!(
-            manifest.files.len() == resources::modules().len(),
-            "Atlas library manifest is incomplete"
+            manifest.files == compiled_files(library)?,
+            "Atlas compiled library changed or is incomplete; prepare again"
         );
-        for module in resources::modules() {
-            let name = format!("{module}.olean");
-            anyhow::ensure!(
-                manifest.files.get(&name) == Some(&file_hash(&library.join(&name))?),
-                "Atlas compiled library changed; prepare again"
-            );
-        }
         resources::validate(library)?;
         Ok(manifest)
     }
@@ -225,6 +212,26 @@ impl Configuration {
         Extraction::new(graph, files, &before)
     }
 }
+
+fn compiled_files(root: &Path) -> Result<BTreeMap<String, String>> {
+    let mut files = BTreeMap::new();
+    for module in resources::modules() {
+        for suffix in [
+            ".olean",
+            ".olean.private",
+            ".olean.server",
+            ".ir",
+            ".ir.sig",
+        ] {
+            let name = format!("{module}{suffix}");
+            let path = root.join(&name);
+            if suffix == ".olean" || path.try_exists()? {
+                files.insert(name, file_hash(&path)?);
+            }
+        }
+    }
+    Ok(files)
+}
 pub(crate) fn module_path(path: &str) -> Result<String> {
     let name = path
         .strip_suffix(".lean")
@@ -245,6 +252,8 @@ pub(crate) fn module_path(path: &str) -> Result<String> {
                     | "MedenAtlas"
                     | "MedenImports"
                     | "MedenLake"
+                    | "MedenSemantic"
+                    | "MedenPlausible"
                     | "Lake"
                     | "Lean"
                     | "Init"

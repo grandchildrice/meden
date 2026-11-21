@@ -1,8 +1,8 @@
 set -euo pipefail
 export LEAN_SYSROOT=/analysis/lean
 export LEAN_PATH=/workspace
-cp -R /analysis/library/LeanAtlas /workspace/
-cp /analysis/library/LeanAtlas.lean /analysis/library/MedenAtlas.lean /analysis/library/MedenImports.lean /analysis/library/MedenLake.lean /workspace/
 for module in "$@"; do
+  mkdir -p "$(dirname "$module")"
+  cp "/analysis/library/$module.lean" "$module.lean"
   /analysis/lean/bin/lean -o "$module.olean" "$module.lean"
 done

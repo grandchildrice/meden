@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { Alert, Chip, CircularProgress, Typography } from "@mui/material";
+import { Alert, CircularProgress, Typography } from "@mui/material";
 import { workspaceSchema, type Declaration } from "@meden/workspace-schema";
 import type {
   SourceSnapshot,
@@ -26,6 +26,7 @@ export function NativeGraph({
   running,
   onAnalyze,
   onSource,
+  onHover,
 }: {
   snapshot: SourceSnapshot;
   focusName?: string;
@@ -37,6 +38,7 @@ export function NativeGraph({
   running: boolean;
   onAnalyze: (input: MeaningInput) => Promise<boolean>;
   onSource: (file: string, line: number, name: string) => void;
+  onHover?: (declaration: Declaration | undefined) => void;
 }) {
   const [selected, setSelected] = useState<Declaration>();
   const result = useMemo(() => {
@@ -125,6 +127,7 @@ export function NativeGraph({
       >
         {workspace.declarations.length ? (
           <GraphView
+            onHover={onHover}
             workspace={workspace}
             focusId={focused?.id}
             selectedId={selected?.id}
@@ -145,32 +148,6 @@ export function NativeGraph({
           </p>
         )}
       </Suspense>
-      {selected && (
-        <div className="native-declaration" aria-label="Selected declaration">
-          <Typography component="h3">{selected.name}</Typography>
-          <Chip
-            label={
-              selected.proofStatus === "unproved"
-                ? "Unfinished proof detected"
-                : "Proof unchecked"
-            }
-            size="small"
-          />
-          <pre>{selected.statement}</pre>
-          <Typography variant="caption" component="p">
-            References:{" "}
-            {workspace.edges
-              .filter((edge) => edge.source === selected.id)
-              .map(
-                (edge) =>
-                  workspace.declarations.find(
-                    (declaration) => declaration.id === edge.target,
-                  )?.name,
-              )
-              .join(", ") || "Not found in this index"}
-          </Typography>
-        </div>
-      )}
       <NativeMeaning
         record={analysis}
         history={history}

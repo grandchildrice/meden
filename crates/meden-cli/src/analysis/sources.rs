@@ -21,6 +21,7 @@ const TOTAL_LIMIT: usize = 16_777_216;
 pub(crate) struct Snapshot {
     pub revision: String,
     pub files: BTreeMap<String, String>,
+    pub explanations: BTreeMap<String, Vec<crate::explanation::source::Symbol>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub atlas: Option<crate::atlas::Extraction>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -91,9 +92,20 @@ pub(crate) fn capture(
         );
     }
     let revision = format!("sha256:{:x}", Sha256::digest(serde_json::to_vec(&files)?));
+    let explanations = files
+        .iter()
+        .filter(|(path, _)| Path::new(path).extension().is_some_and(|ext| ext == "lean"))
+        .map(|(path, text)| {
+            (
+                path.clone(),
+                crate::explanation::source::symbols(text, true),
+            )
+        })
+        .collect();
     Ok(Snapshot {
         revision,
         files,
+        explanations,
         atlas: None,
         collection: None,
     })

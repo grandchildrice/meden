@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { explanationSchema } from "./explanation.ts";
+export { explanationSchema, type Explanation } from "./explanation.ts";
 export { atlasGraphSchema, type AtlasGraph } from "./atlas.ts";
 
 const id = z.string().min(1).max(256);
@@ -45,6 +47,7 @@ export const declarationSchema = z
     isMainTheorem: z.boolean().optional(),
     statement: text,
     summary: z.string().max(10_000).optional(),
+    semantic: explanationSchema.optional(),
     source: sourceSchema.optional(),
     proofStatus: z.enum(proofStatuses),
     evidenceRefs: z.array(id).max(1000),

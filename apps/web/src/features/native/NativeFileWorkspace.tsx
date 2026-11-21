@@ -7,6 +7,7 @@ import { NativeCode } from "./NativeExplorer";
 import { NativeMeaning } from "./NativeMeaning";
 import { declarationRole } from "./declaration-role";
 import { NativeGraph } from "./NativeGraph";
+import { importAtlas, reviewScope } from "@meden/atlas-adapter";
 const GraphView = lazy(() =>
   import("../graph/GraphView").then((m) => ({ default: m.GraphView })),
 );
@@ -39,6 +40,7 @@ function references(
         kind: s.kind,
         isMainTheorem: s.role.id === "main_theorem",
         statement: s.name,
+        semantic: s.semantic || undefined,
         source: { file: s.file, line: s.line },
         proofStatus: "unknown",
         evidenceRefs: [],
@@ -82,6 +84,7 @@ export function NativeFileWorkspace({
     [scene, path, revision],
   );
   const [failure, setFailure] = useState<string>();
+  const [hovered, setHovered] = useState<Declaration>();
   const analyzing =
     state.running && state.operation === "analysis" && analysisFile === path;
   useEffect(() => {
@@ -93,6 +96,36 @@ export function NativeFileWorkspace({
     state.source_snapshot?.files[path] !== undefined
       ? state.source_snapshot
       : undefined;
+  const semanticGraph = useMemo(
+    () => (snapshot?.atlas ? importAtlas(snapshot.atlas.graph) : graph),
+    [snapshot?.atlas?.revision, graph],
+  );
+  const explanations = useMemo(() => {
+    if (!semanticGraph) return [];
+    const main = semanticGraph.declarations
+      .filter((d) => d.isMainTheorem)
+      .map((d) => d.id);
+    const root =
+      semanticGraph.declarations.find((d) => d.name === focused?.name) ||
+      semanticGraph.declarations.find((d) => d.kind === "theorem");
+    const scope = reviewScope(
+      semanticGraph,
+      main.length ? main : root ? [root.id] : [],
+    );
+    return semanticGraph.declarations.flatMap((d) =>
+      d.semantic && d.source?.file === path && d.source.line
+        ? [
+            {
+              name: d.name,
+              line: d.source.line,
+              semantic: d.semantic,
+              proofStatus: d.proofStatus,
+              review: scope.get(d.id) || "unknown",
+            },
+          ]
+        : [],
+    );
+  }, [semanticGraph, focused?.name, path]);
   const pick = (declaration: Declaration) => {
     const symbol = scene?.symbols.get(declaration.id);
     if (symbol) onSelect(symbol);
@@ -106,6 +139,10 @@ export function NativeFileWorkspace({
           line={selected?.file === path ? selected.line : undefined}
           running={running}
           onCommand={onCommand}
+          explanations={explanations}
+          hoveredLine={
+            hovered?.source?.file === path ? hovered.source.line : undefined
+          }
         />
       </div>
       <div
@@ -153,6 +190,7 @@ export function NativeFileWorkspace({
             }
             authorized={state.authorized}
             running={running}
+            onHover={setHovered}
             onAnalyze={(input) => onCommand({ type: "analyze_meaning", input })}
             onSource={(file, line, name) => {
               const found =
@@ -172,6 +210,8 @@ export function NativeFileWorkspace({
                   role: declarationRole("def"),
                   private: false,
                   references: [],
+                  semantic: null,
+                  main_theorem: false,
                   x: 0,
                   y: 0,
                   cellWidth: 0,
@@ -185,6 +225,7 @@ export function NativeFileWorkspace({
               selectedId={selected?.id}
               focusId={focused?.file === path ? focused.id : undefined}
               onSelect={pick}
+              onHover={setHovered}
             />
           </Suspense>
         ) : (

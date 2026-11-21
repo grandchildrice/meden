@@ -142,6 +142,7 @@ pub(crate) fn extract(
     );
     snapshot.atlas = Some(graph);
     control.with_active(|| Ok(()))?;
+    crate::explanation::cache::retain(workspace, &snapshot)?;
     Ok(snapshot)
 }
 

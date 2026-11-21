@@ -50,11 +50,13 @@ export function GraphView({
   focusId,
   selectedId,
   onSelect,
+  onHover,
 }: {
   workspace: Workspace;
   focusId?: string;
   selectedId?: string;
   onSelect: (declaration: Declaration) => void;
+  onHover?: (declaration: Declaration | undefined) => void;
 }) {
   const [root, setRoot] = useState(
     focusId ||
@@ -114,7 +116,7 @@ export function GraphView({
           type: "declaration",
           position: {
             x: position.x - width / 2,
-            y: position.y - 17,
+            y: position.y - 37,
           },
           focusable: false,
           data: {
@@ -180,10 +182,16 @@ export function GraphView({
           value={{
             emphasized,
             nearby,
-            onHover: (id, active) =>
+            onHover: (id, active) => {
+              onHover?.(
+                active
+                  ? workspace.declarations.find((d) => d.id === id)
+                  : undefined,
+              );
               setHovered((previous) =>
                 active ? id : previous === id ? undefined : previous,
-              ),
+              );
+            },
             onSelect,
             onCenter: setRoot,
           }}
@@ -303,6 +311,10 @@ function DeclarationNode({ data }: NodeProps<RadarNode>) {
           (declaration.label || declaration.name) +
           " · " +
           declaration.name +
+          " · " +
+          (declaration.semantic?.sentence ||
+            declaration.summary ||
+            declaration.label) +
           ": select"
         }
         onMouseEnter={() => onHover(declaration.id, true)}
@@ -329,7 +341,12 @@ function DeclarationNode({ data }: NodeProps<RadarNode>) {
         }
       >
         <span className="node-dot" />
-        <strong>{declaration.label || declaration.name}</strong>
+        <strong>
+          {declaration.semantic?.sentence ||
+            declaration.summary ||
+            declaration.label ||
+            declaration.name}
+        </strong>
       </button>
     </div>
   );

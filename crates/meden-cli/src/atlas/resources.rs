@@ -4,6 +4,31 @@ use sha2::{Digest, Sha256};
 use std::{fs, path::Path};
 const SOURCES: &[(&str, &str)] = &[
     (
+        "MedenPlausible/Random",
+        include_str!("vendor/MedenPlausible/Random.lean"),
+    ),
+    (
+        "MedenPlausible/Gen",
+        include_str!("vendor/MedenPlausible/Gen.lean"),
+    ),
+    (
+        "MedenPlausible/Shrinkable",
+        include_str!("vendor/MedenPlausible/Shrinkable.lean"),
+    ),
+    (
+        "MedenPlausible/Arbitrary",
+        include_str!("vendor/MedenPlausible/Arbitrary.lean"),
+    ),
+    (
+        "MedenPlausible/Sampleable",
+        include_str!("vendor/MedenPlausible/Sampleable.lean"),
+    ),
+    (
+        "MedenPlausible/Testable",
+        include_str!("vendor/MedenPlausible/Testable.lean"),
+    ),
+    ("MedenSemantic", include_str!("MedenSemantic.lean")),
+    (
         "LeanAtlas/Config/Types",
         include_str!("vendor/LeanAtlas/Config/Types.lean"),
     ),
@@ -65,6 +90,10 @@ const SOURCES: &[(&str, &str)] = &[
     ("MedenLake", include_str!("MedenLake.lean")),
 ];
 const SCRIPTS: &[(&str, &str)] = &[
+    (
+        "PLAUSIBLE-LICENSE",
+        include_str!("vendor/MedenPlausible/LICENSE"),
+    ),
     ("LEAN-ATLAS-LICENSE", include_str!("vendor/LICENSE")),
     ("compile.sh", include_str!("compile.sh")),
     ("prepare.sh", include_str!("prepare.sh")),

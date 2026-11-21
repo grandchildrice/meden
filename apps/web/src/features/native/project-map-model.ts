@@ -27,11 +27,14 @@ export type MapArea = {
   color: number;
   files: number;
   declarations: number;
+  main: boolean;
+  cellHeight: number;
   symbols: Symbol[];
 };
 export type MapScene = {
   inventoryOnly: boolean;
   maxZoom: number;
+  mainPins: Array<{ area: MapArea; symbols: Symbol[]; origin: string }>;
   areas: MapArea[];
   byPath: Map<string, MapArea>;
   symbols: Map<string, Symbol>;
@@ -84,9 +87,15 @@ export function projectMap(
   const layout = treemap<Branch>()
     .size([MAP_WIDTH, MAP_HEIGHT])
     .tile(treemapBinary)
-    .paddingInner((d) =>
-      d.depth ? Math.min(d.x1 - d.x0, d.y1 - d.y0) * 0.012 : 22,
-    )
+    .paddingInner((d) => {
+      const span = Math.min(d.x1 - d.x0, d.y1 - d.y0);
+      const smallest = (d.children || []).reduce(
+        (value, child) => Math.min(value, (child.value || 1) / (d.value || 1)),
+        1,
+      );
+      // A fixed gap can collapse a rare entry file next to a huge category.
+      return Math.min(d.depth ? span * 0.012 : 22, span * smallest * 0.2);
+    })
     .paddingOuter((d) =>
       d.depth ? Math.min(d.x1 - d.x0, d.y1 - d.y0) * 0.016 : 0,
     )
@@ -104,9 +113,13 @@ export function projectMap(
         height = d.y1 - d.y0;
       const columns = Math.max(
         1,
-        Math.ceil(
-          Math.sqrt(
-            ((d.data.file?.symbols.length || 1) * width) / Math.max(1, height),
+        Math.min(
+          d.data.file?.symbols.length || 1,
+          Math.ceil(
+            Math.sqrt(
+              ((d.data.file?.symbols.length || 1) * width) /
+                Math.max(1, height),
+            ),
           ),
         ),
       );
@@ -116,7 +129,11 @@ export function projectMap(
         name: s.name.split(/[^\p{L}\p{N}_'.«»]/u)[0] || s.name,
         role: declarationRole(
           s.declaration,
-          tracked.has(s.name.split(/[^\p{L}\p{N}_'.«»]/u)[0] || s.name),
+          tracked.has(s.name.split(/[^\p{L}\p{N}_'.«»]/u)[0] || s.name) ||
+            s.main_theorem ||
+            (s.kind === "theorem" &&
+              d.data.path.split("/").length <= 2 &&
+              d.data.path.split("/").at(-1) === "Main.lean"),
         ),
         cellWidth: (width * 0.88) / columns,
         id: `${d.data.path}:${s.line}:${s.name}`,
@@ -138,6 +155,8 @@ export function projectMap(
         color: colors.get(top.data.path) || 0,
         files: count(d.data),
         declarations: d.value || 0,
+        main: symbols.some((symbol) => symbol.role.id === "main_theorem"),
+        cellHeight: (height * 0.76) / rows,
         symbols,
       };
     });
@@ -193,6 +212,22 @@ export function projectMap(
   }
   return {
     inventoryOnly: snapshot.inventory_only,
+    mainPins: areas.flatMap((area) => {
+      const main = area.symbols.filter((s) => s.role.id === "main_theorem");
+      return main.length
+        ? [
+            {
+              area,
+              symbols: main,
+              origin: main.some((s) => tracked.has(s.name))
+                ? "Saved proof targets"
+                : main.some((s) => s.main_theorem)
+                  ? "Main-theorem attributes from compiled metadata"
+                  : "Theorems in the project entry module",
+            },
+          ]
+        : [];
+    }),
     maxZoom: areas.reduce(
       (zoom, a) =>
         a.file ? Math.max(zoom, 600 / Math.min(a.width, a.height)) : zoom,
@@ -215,6 +250,12 @@ export function declarationDetail(
   zoom: number,
   size: { width: number; height: number },
 ) {
+  if (area.main && area.symbols.length)
+    return fade(
+      Math.max(area.symbols[0]!.cellWidth, area.cellHeight) * zoom,
+      32,
+      64,
+    );
   const end = Math.min(500, Math.min(size.width, size.height) * 0.4);
   return fade(Math.min(area.width, area.height) * zoom, end * 0.64, end);
 }
@@ -245,8 +286,8 @@ export function visibleMapAreas(
       area.y > bottom ||
       area.x + area.width < left ||
       area.y + area.height < top ||
-      area.width * zoom < 2 ||
-      area.height * zoom < 2
+      ((area.width * zoom < 2 || area.height * zoom < 2) &&
+        !(area.main && declarationDetail(area, zoom, size) > 0.01))
     )
       continue;
     visible.push({ area, opacity: alpha });

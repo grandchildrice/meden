@@ -217,6 +217,36 @@ function Scene({ data }: NodeProps<SceneNode>) {
             </g>
           ));
         })}
+      {data.scene.mainPins
+        .filter((pin) => declarationDetail(pin.area, v.zoom, data) < 0.5)
+        .map(({ area, symbols, origin }) => (
+          <g
+            key={area.path}
+            className="nodrag map-main-pin"
+            role="button"
+            tabIndex={0}
+            aria-label={`Main theorems: ${area.path} (${symbols.length})`}
+            transform={`translate(${area.x + area.width / 2}, ${area.y + area.height / 2}) scale(${1 / v.zoom})`}
+            onClick={(event) => {
+              event.stopPropagation();
+              data.focus(area.path);
+            }}
+            onKeyDown={(event) => keyboard(event, () => data.focus(area.path))}
+          >
+            <title>
+              {origin + ": " + symbols.map((s) => s.name).join(", ")}
+            </title>
+            <circle r={13} fill="#132631" stroke="#ffdc78" strokeWidth={1.5} />
+            <text textAnchor="middle" y={5} fill="#ffdc78" fontSize={18}>
+              ★
+            </text>
+            {symbols.length > 1 && (
+              <text x={16} y={4} fill="#ffdc78" fontSize={11}>
+                {symbols.length}
+              </text>
+            )}
+          </g>
+        ))}
     </svg>
   );
 }
@@ -284,7 +314,7 @@ export function NativeWorkspaceGraph({
           ? { x: a.x, y: a.y, width: a.width, height: a.height }
           : { x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT },
         {
-          padding: 0.02,
+          padding: "28px",
           duration: window.matchMedia("(prefers-reduced-motion: reduce)")
             .matches
             ? 0
@@ -304,7 +334,7 @@ export function NativeWorkspaceGraph({
         initial.current = true;
         void flow.fitBounds(
           { x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT },
-          { padding: 0.05 },
+          { padding: "32px" },
         );
       } else if (
         previous.width &&
@@ -377,6 +407,7 @@ export function NativeWorkspaceGraph({
         )}
         {state.overview.error && (
           <Alert className="map-load-error" severity="error">
+            {state.overview.state === "failed" && "Could not refresh the map. "}
             {state.overview.error}
           </Alert>
         )}
@@ -424,7 +455,10 @@ export function NativeWorkspaceGraph({
           }}
           aria-label="Continuous project map"
         >
-          <Controls showInteractive={false} />
+          <Controls
+            showInteractive={false}
+            fitViewOptions={{ padding: "32px" }}
+          />
         </ReactFlow>
         {scene?.areas.some(
           (a) => a.file && declarationDetail(a, camera.zoom, size) > 0.01,
@@ -438,7 +472,7 @@ export function NativeWorkspaceGraph({
                 key={role.id}
                 title={
                   role.id === "main_theorem"
-                    ? "Explicit proof target in saved work. This does not indicate verified status."
+                    ? "Saved target, compiled main-theorem attribute or theorem in the project entry module. This does not indicate verified status."
                     : role.label
                 }
               >

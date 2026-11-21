@@ -30,6 +30,7 @@ export function importAtlas(
           : "definition",
     statement: node.statement || "",
     summary: node.meta?.summary || undefined,
+    semantic: node.semantic,
     source: {
       file: node.filePath,
       ...(node.lineStart ? { line: node.lineStart } : {}),
@@ -165,6 +166,12 @@ export function coneLayout(
           width: pos.w,
           side,
         });
+  }
+  // Uniform enlargement preserves L4SB angles and gives English cards room.
+  for (const point of result.values()) {
+    point.x *= 2.2;
+    point.y *= 2.2;
+    point.width *= 1.6;
   }
   return result;
 }

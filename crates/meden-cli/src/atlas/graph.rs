@@ -94,6 +94,8 @@ pub(crate) struct Node {
     pub standard_axioms: Vec<String>,
     pub external_dependencies: Vec<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub semantic: Option<crate::explanation::Explanation>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub meta: Option<NodeMeta>,
 }
 #[derive(Clone, Deserialize, Serialize)]
@@ -135,6 +137,12 @@ impl Extraction {
                 node.statement.len() <= 65_536
                     && node.value.as_ref().is_none_or(|v| v.len() <= 65_536),
                 "Atlas expression exceeds bounds"
+            );
+            anyhow::ensure!(
+                node.semantic
+                    .as_ref()
+                    .is_none_or(crate::explanation::Explanation::valid),
+                "Invalid semantic observation"
             );
             if let Some(line) = node.line_start {
                 anyhow::ensure!(
@@ -206,7 +214,16 @@ impl Extraction {
             .nodes
             .iter()
             .filter(|node| seen.contains(node.id.as_str()))
-            .collect::<Vec<_>>();
+            .map(|node| {
+                let mut value = serde_json::to_value(node)?;
+                // The separate blind language comparison receives only formal
+                // expressions, never our generated prose or sample observations.
+                if let Some(fields) = value.as_object_mut() {
+                    fields.remove("semantic");
+                }
+                Ok(value)
+            })
+            .collect::<Result<Vec<_>>>()?;
         Ok(
             serde_json::json!({"graph_revision":self.revision,"extractor":"Lean Atlas","upstream":self.upstream,"lean_version":self.graph.metadata.lean_version,"scope":"Selected observed modules; theorem proof-only dependencies pruned; external definitions are not expanded","declarations":declarations}),
         )

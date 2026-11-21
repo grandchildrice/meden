@@ -4,9 +4,21 @@ import Lake.Config.LeanExe
 
 open Lean Lake System
 
+/-- The two active workspace toolchains expose different path constructors.
+Inspect the selected constructor, rather than guessing from a version string. -/
+elab "dependencyCopy% " value:term : term => do
+  let ctor ← getConstInfoCtor ``DependencySrc.path
+  if ctor.numFields == 2 then
+    Lean.Elab.Term.elabTerm (← `(term| match ($value : Lake.DependencySrc) with
+      | .path _ isCopy => isCopy
+      | _ => false)) none
+  else if ctor.numFields == 1 then
+    pure (mkConst ``Bool.false)
+  else throwError "Unsupported Lake path dependency shape"
+
 private def dependencyJson (dep : Dependency) : Json :=
   let (kind, path, subDir) := match dep.src? with
-    | some (.path path copy) => (if copy then "copy" else "path", path.toString, "")
+    | some _source@(.path path ..) => (if dependencyCopy% _source then "copy" else "path", path.toString, "")
     | some (.git _ _ subDir) => ("git", "", subDir.map FilePath.toString |>.getD "")
     | none => ("registry", "", "")
   Json.mkObj [("name", .str (dep.name.toString (escape := false))), ("kind", .str kind),

@@ -331,6 +331,25 @@ following recorded-demo documentation describes a separate standalone mode.
 
 ## Large source inventories
 
+Main targets remain visible as fixed-size stars while zoomed out. Marks aggregate
+by file and include saved targets, compiled main-theorem attributes and theorems in
+the conventional `Main.lean` entry module; hover shows the provenance. Stars indicate
+location rather than proof status.
+
+File graphs use controlled-English declaration labels. Information icons beside
+source lines, or hovering a graph node, show the explanation without a model request.
+**Extract compiled dependencies** also runs the bundled fixed-seed Plausible checker
+and retains its result for later display and restart. A meaning-review target shows
+its falsification condition and any candidate bindings. Missing candidates are not
+proof; unsupported generators and inconclusive assumptions have separate outcomes.
+A false input to a predicate definition is labeled as an input example, rather than
+a counterexample to the definition. Ordinary definitions do not assert a universal
+claim. Before compilation, the same UI explicitly identifies source previews.
+
+The host cache checks the entire observed source set, Lake metadata and analysis
+resources before reuse. External edits require refresh; stale observations are then
+replaced by current source previews. [Method and limits](research/2026-11-21-deterministic-semantics.md).
+
 Projects with more than 10,000 Lean/Rust sources use a complete file inventory instead
 of parsing every declaration up front. The bounded inventory admits up to 250,000 files
 and 100,000 entries per directory. Unread files have indexed=false, no source hash and

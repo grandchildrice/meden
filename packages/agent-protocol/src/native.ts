@@ -1,5 +1,18 @@
 import { z } from "zod";
-import { atlasGraphSchema } from "@meden/workspace-schema";
+import { atlasGraphSchema, explanationSchema } from "@meden/workspace-schema";
+
+const sourceSymbolSchema = z
+  .object({
+    name: z.string(),
+    line: z.number().int().positive(),
+    kind: z.enum(["definition", "theorem", "axiom"]),
+    declaration: z.string(),
+    private: z.boolean(),
+    references: z.array(z.string()),
+    semantic: explanationSchema.nullable(),
+    main_theorem: z.boolean(),
+  })
+  .strict();
 
 export const nativeReferenceSchema = z
   .object({
@@ -13,6 +26,7 @@ export const sourceSnapshotSchema = z
   .object({
     revision: z.string().regex(/^sha256:[a-f0-9]{64}$/),
     files: z.record(z.string(), z.string().max(1_048_576)),
+    explanations: z.record(z.string(), z.array(sourceSymbolSchema)),
     collection: z
       .object({
         roots: z.array(z.string()),
@@ -306,18 +320,7 @@ export const workspaceOverviewSchema = z
           theorems: z.number(),
           indexed: z.boolean(),
           imports: z.array(z.string()),
-          symbols: z.array(
-            z
-              .object({
-                name: z.string(),
-                line: z.number().int().positive(),
-                kind: z.enum(["definition", "theorem", "axiom"]),
-                declaration: z.string(),
-                private: z.boolean(),
-                references: z.array(z.string()),
-              })
-              .strict(),
-          ),
+          symbols: z.array(sourceSymbolSchema),
         })
         .strict(),
     ),

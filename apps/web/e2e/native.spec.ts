@@ -141,6 +141,11 @@ test.describe("native GUI with real offline workers", () => {
     const paths = await page
       .getByRole("textbox", { name: "Graph source files (one per line)" })
       .inputValue();
+    const accepted = page.waitForResponse(
+      (response) =>
+        response.url().endsWith("/api/command") &&
+        response.request().postDataJSON()?.type === "atlas_snapshot",
+    );
     await page
       .getByRole("button", {
         name: paths.trim()
@@ -149,6 +154,7 @@ test.describe("native GUI with real offline workers", () => {
         exact: true,
       })
       .click();
+    await accepted;
   }
   async function stop() {
     if (child?.exitCode === null) {
@@ -358,9 +364,13 @@ test.describe("native GUI with real offline workers", () => {
       Buffer.from([255]),
     );
     const commands: string[] = [];
+    const indexedPaths: string[] = [];
     page.on("request", (request) => {
-      if (request.url().endsWith("/api/command"))
+      if (request.url().endsWith("/api/command")) {
         commands.push(request.postDataJSON().type);
+        if (request.postDataJSON().type === "index_map")
+          indexedPaths.push(request.postDataJSON().path);
+      }
     });
     await page.goto(await start());
     await expect
@@ -425,7 +435,13 @@ test.describe("native GUI with real offline workers", () => {
       camera!,
     );
     expect(await chat.innerHTML()).toBe(chatBefore);
-    expect(commands.slice(beforeCommands)).toEqual(["index_map"]);
+    expect(commands.slice(beforeCommands).length).toBeGreaterThan(0);
+    expect(
+      commands
+        .slice(beforeCommands)
+        .every((command) => command === "index_map"),
+    ).toBe(true);
+    expect(new Set(indexedPaths).size).toBe(indexedPaths.length);
     expect((await nativeState(page)).inspection).toEqual(beforeInspection);
     await page.screenshot({
       path: "target/gui-checks/large-project-map-declarations.png",
@@ -438,8 +454,10 @@ test.describe("native GUI with real offline workers", () => {
       page.locator(".ide-file-page:not([hidden]) [data-layout=l4sb]"),
     ).toBeVisible();
     await expect(
-      page.locator(".ide-file-page:not([hidden]) .root-node"),
-    ).toContainText("identity0");
+      page
+        .locator(".ide-file-page:not([hidden]) .root-node")
+        .getByRole("button", { name: /identity0.*: select/ }),
+    ).toContainText("true");
     await expect(
       page.locator(".ide-file-page:not([hidden]) .radar-node"),
     ).toHaveCount(2);
@@ -451,9 +469,9 @@ test.describe("native GUI with real offline workers", () => {
       "style",
       camera!,
     );
-    expect(commands.filter((command) => command === "index_map")).toHaveLength(
-      1,
-    );
+    expect(
+      indexedPaths.filter((path) => path === "Many/Group0/File0.lean"),
+    ).toHaveLength(1);
     await stop();
     await page.goto(await start());
     await expect(map.locator(".continuous-map-scene")).toBeVisible();
@@ -488,6 +506,178 @@ test.describe("native GUI with real offline workers", () => {
     );
     expect((await nativeState(page)).authorized).toBe(false);
     expect(requests).toHaveLength(0);
+  });
+
+  test("main targets stay visible at a distance and compiled English/counterexamples annotate source without inference", async ({
+    page,
+  }) => {
+    test.setTimeout(240000);
+    const original =
+      [
+        "import Shared",
+        "def twice (n : Nat) : Nat := n + n",
+        "def allowed (n : Nat) : Prop := n ≥ 2",
+        "theorem aa_bad (n : Nat) : n + 1 ≤ n := by sorry",
+        "theorem bb_good (n : Nat) (h : allowed n) : n ≥ 2 := h",
+        "theorem cc_vacuous (n : Nat) (h : n < 0) : False := by omega",
+        "opaque Token : Type := Nat",
+        "axiom dd_opaque (x : Token) : False",
+        "axiom zz_anyprop (p : Prop) : p",
+        "theorem member_order (xs : List Nat) (x : Nat) (h : x ∈ xs) : x ∈ xs := h",
+      ].join("\n") + "\n";
+    await writeFile(resolve(project, "Main.lean"), original);
+    await writeFile(resolve(project, "Shared.lean"), "def shared : Nat := 1\n");
+    await mkdir(resolve(project, "Noise"));
+    await mkdir(resolve(project, "Extra"));
+    for (let start = 0; start < 10002; start += 200)
+      await Promise.all(
+        Array.from({ length: Math.min(200, 10002 - start) }, (_, offset) => {
+          const i = start + offset;
+          return writeFile(
+            resolve(project, i < 5001 ? "Noise" : "Extra", `File${i}.lean`),
+            `def value${i} : Nat := ${i}\n`,
+          );
+        }),
+      );
+    const commands: string[] = [];
+    page.on("request", (request) => {
+      if (request.url().endsWith("/api/command"))
+        commands.push(request.postDataJSON().type);
+    });
+    await page.goto(await start());
+    const map = page.getByRole("region", { name: "Project map", exact: true });
+    const pin = map.getByRole("button", {
+      name: "Main theorems: Main.lean (4)",
+      exact: true,
+    });
+    await expect(pin).toBeVisible();
+    await page.screenshot({
+      path: "target/gui-checks/main-theorem-distant-map.png",
+    });
+    await pin.click();
+    await map.getByRole("button", { name: /Declaration: aa_bad ·/ }).click();
+    const source = page.getByRole("region", {
+      name: "Source code",
+      exact: true,
+    });
+    const meaning = page.getByRole("region", {
+      name: "Meaning: aa_bad",
+      exact: true,
+    });
+    const graph = page.getByRole("region", {
+      name: "File reference graph",
+      exact: true,
+    });
+    await expect(
+      graph.getByRole("button", { name: /aa_bad.*: select/ }),
+    ).toContainText("for every n");
+    await expect(source.getByLabel("File contents")).toContainText(
+      "theorem aa_bad",
+    );
+    await setPaths(page, "Main.lean");
+    await compileDependencies(page);
+    await expect
+      .poll(async () => (await nativeState(page)).running, { timeout: 120000 })
+      .toBe(false);
+    const first = await nativeState(page);
+    expect(first.stopped).toBeNull();
+    const compiled = first.source_snapshot.atlas.graph.nodes;
+    const observations = Object.fromEntries(
+      compiled.map((n: any) => [n.id, n.semantic]),
+    );
+    expect(observations.aa_bad.checker.candidates.join(" ")).toContain(
+      "n := 0",
+    );
+    expect(observations.aa_bad.checker.status).toBe("counterexample");
+    expect(observations.member_order.sentence).toContain("(x) belongs to (xs)");
+    expect(observations.bb_good.checker.status).toBe("not_found");
+    expect(observations.cc_vacuous.checker.status).toBe("gave_up");
+    expect(observations.dd_opaque.checker.status).toBe("unsupported");
+    expect(observations.zz_anyprop.checker.status).toBe("counterexample");
+    expect(observations.twice.checker.status).toBe("not_proposition");
+    expect(observations.allowed.checker.status).toBe("predicate_false_example");
+    await source
+      .getByRole("button", { name: "Explain aa_bad", exact: true })
+      .hover();
+    await expect(meaning).toContainText("Counterexample candidate");
+    await expect(meaning).toContainText("n := 0");
+    const sourceBounds = (await source.boundingBox())!;
+    const meaningBounds = (await meaning.boundingBox())!;
+    expect(meaningBounds.x).toBeGreaterThanOrEqual(sourceBounds.x);
+    expect(meaningBounds.x + meaningBounds.width).toBeLessThanOrEqual(
+      sourceBounds.x + sourceBounds.width,
+    );
+    await page.screenshot({
+      path: "target/gui-checks/compiled-meaning-counterexample.png",
+    });
+    await page.mouse.move(20, 20);
+    await compileDependencies(page);
+    await expect
+      .poll(async () => (await nativeState(page)).running, { timeout: 120000 })
+      .toBe(false);
+    const repeated = (await nativeState(page)).source_snapshot.atlas.graph
+      .nodes;
+    expect(
+      Object.fromEntries(repeated.map((n: any) => [n.id, n.semantic])),
+    ).toEqual(observations);
+    expect(requests).toHaveLength(0);
+    await stop();
+    commands.length = 0;
+    await page.goto(await start());
+    await expect(pin).toBeVisible();
+    await pin.click();
+    await map.getByRole("button", { name: /Declaration: aa_bad ·/ }).click();
+    await source
+      .getByRole("button", { name: "Explain aa_bad", exact: true })
+      .hover();
+    await expect(meaning).toContainText("n := 0");
+    expect(commands).not.toContain("atlas_snapshot");
+    expect((await nativeState(page)).source_snapshot).toBeNull();
+    expect((await nativeState(page)).authorized).toBe(false);
+    await page.mouse.move(20, 20);
+    await writeFile(resolve(project, "Shared.lean"), "def shared : Nat := 2\n");
+    await page.getByRole("tab", { name: "Project map", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Refresh files and map", exact: true })
+      .click();
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    await map.getByRole("button", { name: /Declaration: aa_bad ·/ }).click();
+    await source
+      .getByRole("button", { name: "Explain aa_bad", exact: true })
+      .hover();
+    await expect(meaning).toContainText("Source preview");
+    await expect(meaning).not.toContainText("n := 0");
+    expect(await readFile(resolve(project, "Main.lean"), "utf8")).toBe(
+      original,
+    );
+    await page.mouse.move(20, 20);
+    await writeFile(resolve(project, "Shared.lean"), "def shared : Nat := 1\n");
+    await writeFile(
+      resolve(project, "Main.lean"),
+      original.replace("n + 1 ≤ n := by sorry", "n + 1 ≤ n + 1 := by rfl"),
+    );
+    await page.getByRole("tab", { name: "Project map", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Refresh files and map", exact: true })
+      .click();
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    await map.getByRole("button", { name: /Declaration: aa_bad ·/ }).click();
+    await source
+      .getByRole("button", { name: "Explain aa_bad", exact: true })
+      .hover();
+    await expect(meaning).toContainText("Source preview");
+    await expect(meaning).not.toContainText("n := 0");
+    await expect(source.getByLabel("File contents")).toContainText(
+      "n + 1 ≤ n + 1",
+    );
+    expect(requests).toHaveLength(0);
+    expect(await readFile(resolve(project, "Main.lean"), "utf8")).toContain(
+      "n + 1 ≤ n + 1",
+    );
   });
 
   test("warm browser assets survive repeated host restart with fresh session review", async ({
@@ -691,16 +881,22 @@ test.describe("native GUI with real offline workers", () => {
         name: /Declaration: Store.unfinished · App.lean:/,
       })
       .click();
-    await expect(page.getByLabel("Selected declaration")).toContainText(
-      "Unfinished proof detected",
-    );
+    await page
+      .getByRole("button", { name: "Explain Store.unfinished", exact: true })
+      .hover();
+    await expect(
+      page.getByRole("region", {
+        name: "Meaning: Store.unfinished",
+        exact: true,
+      }),
+    ).toContainText("Unfinished proof detected");
     await page.getByRole("tab", { name: "Project map", exact: true }).click();
     await page
       .getByRole("button", { name: /Declaration: Store.permitted · App.lean:/ })
       .click();
-    await expect(page.getByLabel("Selected declaration")).toContainText(
-      "eligibility",
-    );
+    await expect(
+      page.locator(".ide-file-page:not([hidden]) [aria-current=location]"),
+    ).toContainText("eligibility");
     await expect(
       page.locator(".ide-file-page:not([hidden]) [aria-current=location]"),
     ).toContainText("theorem permitted");
@@ -1405,7 +1601,9 @@ test.describe("native GUI with real offline workers", () => {
     await page.getByRole("option", { name: "App.lean", exact: true }).click();
     await source.click();
     const graph = page.getByRole("region", { name: "Local source graph" });
-    await expect(graph).toContainText("app");
+    await expect(
+      graph.getByRole("button", { name: /app.*: select/ }),
+    ).toContainText("Defined as");
     let state = await nativeState(page);
     expect(state.source_snapshot.atlas).toBeUndefined();
     expect(state.project.verified).toBe(false);
@@ -1423,7 +1621,9 @@ test.describe("native GUI with real offline workers", () => {
     await picker.fill("App.lean");
     await page.getByRole("option", { name: "App.lean", exact: true }).click();
     await source.click();
-    await expect(graph).toContainText("app");
+    await expect(
+      graph.getByRole("button", { name: /app.*: select/ }),
+    ).toContainText("Defined as");
     expect(requests).toHaveLength(0);
   });
 
@@ -2353,9 +2553,15 @@ test.describe("native GUI with real offline workers", () => {
     await graph
       .getByRole("button", { name: /Demo.stock_bound.*: select/ })
       .click();
-    await expect(page.getByLabel("Selected declaration")).toContainText(
-      "Proof unchecked",
-    );
+    await page
+      .getByRole("button", { name: "Explain Demo.stock_bound", exact: true })
+      .hover();
+    await expect(
+      page.getByRole("region", {
+        name: "Meaning: Demo.stock_bound",
+        exact: true,
+      }),
+    ).toContainText("Proof unchecked");
     await page.screenshot({
       path: "target/gui-checks/native-live-graph.png",
       fullPage: true,
@@ -2870,9 +3076,15 @@ test.describe("native GUI with real offline workers", () => {
     const result = page.getByLabel("Meaning analysis result", { exact: true });
     await expect(result).toContainText("Candidate mismatch (Model assessment)");
     await expect(result).toContainText("Stock never increases");
-    await expect(page.getByLabel("Selected declaration")).toContainText(
-      "Proof unchecked",
-    );
+    await page
+      .getByRole("button", { name: "Explain Demo.stock_bound", exact: true })
+      .hover();
+    await expect(
+      page.getByRole("region", {
+        name: "Meaning: Demo.stock_bound",
+        exact: true,
+      }),
+    ).toContainText("Proof unchecked");
     expect(requests).toHaveLength(2);
     expect(JSON.stringify(requests[0])).toContain("FORMAL_CONTEXT_SENTINEL");
     expect(JSON.stringify(requests[0])).not.toContain(

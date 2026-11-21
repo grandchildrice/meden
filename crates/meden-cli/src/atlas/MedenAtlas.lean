@@ -1,5 +1,6 @@
 import LeanAtlas.GraphData.Core
 import LeanAtlas.GraphData.Json
+import MedenSemantic
 
 open Lean LeanAtlas.Config LeanAtlas.GraphData.Core
 
@@ -14,7 +15,7 @@ unsafe def main (args : List String) : IO UInt32 := do
   Lean.initSearchPath (← Lean.findSysroot)
   Lean.enableInitializersExecution
   let modules := args.toArray.map fun arg => stringToName (arg.replace "/" ".")
-  let env ← Lean.importModules (modules.map fun name => { module := name }) {} (trustLevel := 0) (loadExts := true)
+  let env ← Lean.importModules (#[{module := `MedenSemantic}] ++ modules.map fun name => { module := name }) {} (trustLevel := 0) (loadExts := true)
   let scope : ProjectScope := { projectNamespace := .anonymous }
   let mut nodes : Array NodeData := #[]
   for (name, _) in env.constants.toList do
@@ -38,6 +39,9 @@ unsafe def main (args : List String) : IO UInt32 := do
     let row := LeanAtlas.GraphData.Json.nodeDataToJson node
     let row := row.setObjVal! "statement" (.str statement)
     let row := row.setObjVal! "value" value
+    let ctx : PPContext := { env := env, opts := {} }
+    let semantic ← ctx.runMetaM <| MedenSemantic.analyze ci modules
+    let row := row.setObjVal! "semantic" semantic
     let row := row.setObjVal! "axioms" (toJson (axioms.map Name.toString))
     let row := row.setObjVal! "standardAxioms" (toJson (standardAxioms.map Name.toString))
     let row := row.setObjVal! "externalDependencies" (toJson ((node.dependencies.filter (fun name => !names.contains name)).map Name.toString))

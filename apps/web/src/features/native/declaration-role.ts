@@ -41,7 +41,7 @@ const axiom: DeclarationRole = {
   shape: "triangle",
 };
 export const declarationRoles = [main, theorem, lemma, definition, axiom];
-/** Main marks explicitly tracked proof targets; it is not inferred proof status. */
+/** Main marks saved/attributed targets or entry-module theorems, never proof status. */
 export function declarationRole(
   keyword: string,
   tracked = false,

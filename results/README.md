@@ -8,6 +8,11 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Native GUI and Atlas with Ollama Cloud
 
+The [deterministic semantics observation](gui-deterministic-semantics.json) records
+distant main-target marks, controlled English and build-time Plausible results,
+source hover/restart/freshness coverage and the actual Riemann/EthLib browser
+observations. It distinguishes installed compiler checks from inference or proof.
+
 The [Riemann map zoom observation](gui-riemann-map-zoom.json) records declaration
 nodes loading directly on zoom without switching tabs or changing chat. It retains
 the map camera after source navigation and covers indexing failure/refresh recovery.
