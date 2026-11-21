@@ -11,6 +11,8 @@ import {
 import type { NativeState } from "@meden/agent-protocol/native";
 import {
   fade,
+  declarationDetail,
+  visibleMapAreas,
   MAP_WIDTH,
   MAP_HEIGHT,
   type MapScene,
@@ -74,42 +76,13 @@ type SceneNode = Node<SceneData, "scene">;
 const colors = ["#275f69", "#414b7e", "#73516c", "#695a38", "#365b51"];
 function Scene({ data }: NodeProps<SceneNode>) {
   const v = useViewport();
-  const left = -v.x / v.zoom,
-    top = -v.y / v.zoom,
-    right = left + data.width / v.zoom,
-    bottom = top + data.height / v.zoom;
-  const opacity = new Map<string, number>([["", 1]]);
-  const visible: Array<{ area: MapArea; opacity: number; detail: number }> = [];
-  for (const area of data.scene.areas) {
-    const parent = data.scene.byPath.get(area.parent);
-    const alpha = parent
-      ? (opacity.get(parent.path) || 0) *
-        fade(Math.max(parent.width, parent.height) * v.zoom, 650, 950)
-      : 1;
-    opacity.set(area.path, alpha);
-    if (
-      alpha < 0.015 ||
-      area.x > right ||
-      area.y > bottom ||
-      area.x + area.width < left ||
-      area.y + area.height < top ||
-      area.width * v.zoom < 2 ||
-      area.height * v.zoom < 2
-    )
-      continue;
-    visible.push({
-      area,
-      opacity: alpha,
-      detail: fade(Math.min(area.width, area.height) * v.zoom),
-    });
-  }
+  const visible = visibleMapAreas(data.scene, v, data);
   const fileGraphs = new Map(
     visible
       .filter((x) => x.area.file)
       .map((x) => [
         x.area.path,
-        x.opacity *
-          fade(Math.min(x.area.width, x.area.height) * v.zoom, 320, 500),
+        x.opacity * declarationDetail(x.area, v.zoom, data),
       ]),
   );
   const edgeNodes = new Set(
@@ -254,13 +227,17 @@ export function NativeWorkspaceGraph({
   state,
   selectedId,
   onSelect,
-  onOpen,
+  active,
+  canIndex,
+  onIndex,
 }: {
   scene?: MapScene;
   state: NativeState;
   selectedId?: string;
   onSelect: (symbol: Symbol) => void;
-  onOpen: (path: string) => void;
+  active: boolean;
+  canIndex: boolean;
+  onIndex: (path: string) => Promise<boolean>;
 }) {
   const [canvas, setCanvas] = useState<HTMLDivElement | null>(null);
   const [flow, setFlow] = useState<ReactFlowInstance<SceneNode>>();
@@ -268,9 +245,39 @@ export function NativeWorkspaceGraph({
   const [location, setLocation] = useState("");
   const [camera, setCamera] = useState({ x: 0, y: 0, zoom: 0.08 });
   const initial = useRef(false);
+  const requested = useRef(new Set<string>());
+  const indexing = useRef(false);
+  useEffect(() => {
+    if (state.overview.state === "loading" || !state.overview.error)
+      requested.current.clear();
+  }, [state.overview.state, state.overview.error]);
+  useEffect(() => {
+    if (!active || !canIndex || !scene?.inventoryOnly || indexing.current)
+      return;
+    const file = visibleMapAreas(scene, camera, size).find(
+      ({ area, opacity }) =>
+        area.file &&
+        !area.file.indexed &&
+        opacity > 0.5 &&
+        declarationDetail(area, camera.zoom, size) > 0.01 &&
+        !requested.current.has(area.path),
+    )?.area;
+    if (!file) return;
+    // Wait for the camera to settle; queue no work for regions passed en route.
+    const timer = setTimeout(() => {
+      indexing.current = true;
+      void onIndex(file.path)
+        .then((accepted) => {
+          if (accepted) requested.current.add(file.path);
+        })
+        .finally(() => {
+          indexing.current = false;
+        });
+    }, 220);
+    return () => clearTimeout(timer);
+  }, [active, canIndex, scene, camera, size, onIndex, state.overview.error]);
   const focus = (path: string) => {
     const a = scene?.byPath.get(path);
-    if (a?.file && !a.file.indexed) onOpen(path);
     if (flow)
       void flow.fitBounds(
         a
@@ -341,19 +348,6 @@ export function NativeWorkspaceGraph({
       aria-label="Project map"
       className="workspace-overview continuous-map"
     >
-      {scene?.inventoryOnly && (
-        <span className="map-inventory-note">
-          File map · declarations load when opened
-        </span>
-      )}
-      {state.overview.state === "loading" && (
-        <LinearProgress aria-label="Preparing map" />
-      )}
-      {state.overview.error && (
-        <Alert severity="error">
-          Could not refresh the map. {state.overview.error}
-        </Alert>
-      )}
       {location && (
         <nav className="map-breadcrumbs" aria-label="Map location">
           {location
@@ -370,13 +364,29 @@ export function NativeWorkspaceGraph({
         </nav>
       )}
       <div className="workspace-overview-canvas" ref={setCanvas}>
+        {(state.overview.state === "loading" ||
+          (active && state.running && state.operation === "inspection")) && (
+          <LinearProgress
+            className="map-load-progress"
+            aria-label={
+              state.overview.state === "loading"
+                ? "Preparing map"
+                : "Loading declarations"
+            }
+          />
+        )}
+        {state.overview.error && (
+          <Alert className="map-load-error" severity="error">
+            {state.overview.error}
+          </Alert>
+        )}
         <ReactFlow
           proOptions={{ hideAttribution: true }}
           nodes={nodes}
           nodeTypes={nodeTypes}
           onInit={setFlow}
           minZoom={0.003}
-          maxZoom={500}
+          maxZoom={scene?.maxZoom || 500}
           nodesDraggable={false}
           nodesConnectable={false}
           zoomOnDoubleClick={false}
@@ -417,7 +427,7 @@ export function NativeWorkspaceGraph({
           <Controls showInteractive={false} />
         </ReactFlow>
         {scene?.areas.some(
-          (a) => a.file && Math.min(a.width, a.height) * camera.zoom > 320,
+          (a) => a.file && declarationDetail(a, camera.zoom, size) > 0.01,
         ) && (
           <div
             className="map-declaration-legend"

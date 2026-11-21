@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "meden_base": "b1ae8d9",
+  "observed_on": "2026-11-21",
+  "reported_friction": "The large Riemann project map showed no declaration nodes: indexing required opening a source file first.",
+  "public_entry": "./target/debug/meden gui --workspace ../Riemann --port 4323",
+  "change": {
+    "indexing": "Once the camera settles, visible unread file areas request one policy-bound index_map operation at a time. This reads declarations without replacing source inspection or opening a file tab. Hidden maps and queued chat work do not schedule background indexing.",
+    "rendering": "Rendering and prefetch share semantic-zoom visibility. Declaration opacity adapts to the map viewport, and the maximum zoom allows small file areas to reach readable detail. Progress and errors overlay the canvas without resizing it.",
+    "coupling_removed": "Declaration index updates no longer relist the explorer root; directory reads follow conversation edits and explicit refresh."
+  },
+  "actual_riemann": {
+    "revision": "3c2640f015af442db8e3c971161f893e4266f580",
+    "inventory_sources": 175187,
+    "overview_state": "ready",
+    "navigation": [
+      "src/Formalism",
+      "src/Formalism/LocalToGlobal",
+      "src/Formalism/LocalToGlobal/SiegelLatticeTheory",
+      "src/Formalism/LocalToGlobal/SiegelLatticeTheory/CokernelGLCounts/RankPointCounts/AaF.lean"
+    ],
+    "visible_declarations": [
+      { "name": "Formalism.L2.SG.Pf.FibQ.aaF", "line": 19 },
+      { "name": "Formalism.L2.SG.Pf.FibQ.entry_mem", "line": 22 }
+    ],
+    "commands_before_node_selection": [
+      { "type": "inspect", "path": ".", "directory": true },
+      { "type": "index_map", "path": "src/Formalism/LocalToGlobal/SiegelLatticeTheory/CokernelGLCounts/RankPointCounts/AaF.lean" }
+    ],
+    "project_map_selected": true,
+    "open_source_tabs_before_node_selection": 0,
+    "chat_html_unchanged": true,
+    "node_selection_source_line": "19: abbrev aaF (a : Fin (D.R.rS + 1)) : FractionalIdeal (nonZeroDivisors (𝓞 D.host.E)) D.host.E :=",
+    "map_camera_retained_after_return": true,
+    "processor_authorized": false,
+    "page_errors": [],
+    "screenshot_inspected": "/tmp/meden-riemann-map-zoom-nodes.png"
+  },
+  "validation": {
+    "binary_sha256": "b7225668417f408396c0debc07c0578b78d7217aca6f1e0759c5477e8866fcab",
+    "native_browser": {
+      "passed": 4,
+      "duration_seconds": 48.2,
+      "journeys": [
+        "10,001-file map: zoom shows declarations, leaves chat and inspection unchanged, opens source/L4SB on node selection and retains camera; restart, invalid UTF-8 failure and external-edit/public-refresh recovery",
+        "Repeated real host restarts with warm browser assets and fresh session review",
+        "Declaration kinds and highlighted source remain independent of chat until explicit send",
+        "Existing IDE map navigation, large source, compiler extraction and model selection"
+      ]
+    },
+    "required_public_tui_gate": {
+      "artifact_directory": "/tmp/meden-ux-riemann-map-zoom-20261121",
+      "passed": 33,
+      "skipped": 0,
+      "deselected": 197,
+      "duration_seconds": 201.8,
+      "decoded_screens_inspected": ["Installed-Lake graph, missing source refusal and five-file recovery", "Historical analysis after restart", "Provider 429 stop and explicit retry recovery"]
+    },
+    "javascript_units_passed": 30,
+    "other_passed": ["Rust build", "Clippy with warnings denied", "Rust formatting", "TypeScript typecheck and production web build", "Prettier", "git diff --check"]
+  },
+  "limits": [
+    "No inference or whole-Riemann Lean build was performed. Scripted automated providers do not establish live-model or cold-install success.",
+    "The map is a bounded lexical navigation index. Compiler extraction, proof authority and existing file policy remain separate; no new controller refinement is claimed."
+  ]
+}

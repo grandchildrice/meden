@@ -335,7 +335,10 @@ Projects with more than 10,000 Lean/Rust sources use a complete file inventory i
 of parsing every declaration up front. The bounded inventory admits up to 250,000 files
 and 100,000 entries per directory. Unread files have indexed=false, no source hash and
 no declared proof information; file-count weights keep map coordinates stable.
-Opening a file enriches its lexical references and follows nearby import-only barrel
+Zooming to a file automatically loads its declaration nodes in place, without opening
+a source tab or changing chat. Reads start after the camera settles, one operation at
+a time, and stop being scheduled when the map is hidden or chat work is queued.
+Opening a file also enriches its lexical references and follows nearby import-only barrel
 modules, with at most 32 inspected files per operation. Local source paths must resolve
 to an inventory entry; ambiguous suffix matches are not selected. This does not build
 Lean or establish a complete import closure. Refresh the map after external edits.

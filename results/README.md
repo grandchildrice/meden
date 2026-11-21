@@ -8,6 +8,10 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Native GUI and Atlas with Ollama Cloud
 
+The [Riemann map zoom observation](gui-riemann-map-zoom.json) records declaration
+nodes loading directly on zoom without switching tabs or changing chat. It retains
+the map camera after source navigation and covers indexing failure/refresh recovery.
+
 The [English chat / L4SB / Riemann observation](gui-english-chat-l4sb-riemann.json)
 records the flat English chat, long-message folding and resizable sidebars, the
 single L4SB graph layout with explicit review scope, and real 175,187-file inventory

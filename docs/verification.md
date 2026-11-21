@@ -1802,6 +1802,13 @@ through the same policy-bound worker; no new unconfined path, model request, ext
 receipt or controller authority is introduced. Inventory/resolution/JSON/rendering remain
 adapters, not new Rust-to-Lean refinement claims.
 
+The [Riemann map zoom regression](../results/gui-riemann-map-zoom.json) records
+declarations loading directly in the large-project map. Camera settling selects
+visible unread files for one policy-bound indexing operation at a time; no source
+tab or inspection result is replaced. Rendering and prefetch share visibility and
+viewport-aware declaration thresholds. Progress/errors overlay the canvas without
+moving it. Tests cover unchanged chat, node-to-source navigation, restart and a
+UTF-8 indexing failure followed by external correction and GUI refresh recovery.
 
 Native source pages use browser-local Shiki highlighting and preserve their original
 numbered lines. A source regression checks exact token-content reconstruction and

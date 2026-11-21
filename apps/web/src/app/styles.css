@@ -3036,6 +3036,22 @@ pre {
   border-radius: 5px;
   min-height: 150px;
 }
+.map-load-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 6;
+}
+.map-load-error {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  max-height: 40%;
+  overflow: auto;
+  z-index: 5;
+}
 .react-flow__node-scene {
   border: 0;
   box-shadow: none;
@@ -3598,11 +3614,6 @@ pre {
   color: #ced8e0;
 }
 
-.map-inventory-note {
-  color: #4c6571;
-  font-size: 11px;
-  padding: 5px 14px;
-}
 .native-shell:has(.sidebar-resize.is-dragging),
 .native-shell:has(.sidebar-resize.is-dragging) * {
   cursor: col-resize !important;

@@ -293,6 +293,10 @@ export function NativeApp({ token }: { token: string }) {
     }));
     setFilesOpen(false);
   }, []);
+  const indexMapFile = useCallback(
+    (path: string) => command({ type: "index_map", path }),
+    [command],
+  );
   const selectSymbol = useCallback(
     (symbol: Symbol) => {
       setSelectedSymbol(symbol);
@@ -662,7 +666,9 @@ export function NativeApp({ token }: { token: string }) {
                   <Alert severity="error">{overviewError}</Alert>
                 )}
                 <NativeWorkspaceGraph
-                  onOpen={openFile}
+                  active={!activeFile}
+                  canIndex={!running && queue.length === 0}
+                  onIndex={indexMapFile}
                   scene={scene}
                   state={state}
                   selectedId={selectedSymbol?.id}

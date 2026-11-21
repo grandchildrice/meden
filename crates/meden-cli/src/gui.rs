@@ -165,6 +165,9 @@ enum Command {
         #[serde(default)]
         offset: Option<usize>,
     },
+    IndexMap {
+        path: String,
+    },
 }
 
 impl Command {
@@ -173,7 +176,7 @@ impl Command {
             Self::Instruction { .. } | Self::ResumeWork { .. } | Self::AcceptContract { .. } => {
                 "conversation"
             }
-            Self::Inspect { .. } => "inspection",
+            Self::Inspect { .. } | Self::IndexMap { .. } => "inspection",
             Self::CapturePreview { .. } => "preview",
             Self::AtlasSnapshot { .. }
             | Self::SourceSnapshot { .. }
@@ -560,7 +563,7 @@ impl Http<'_> {
                     anyhow::ensure!(!view.running, "Wait for the current operation or cancel it");
                     command
                         .check_submission(&lock(self.connections), self.workspace.session_id())?;
-                    let preserve_stop = matches!(&command, Command::Inspect { .. });
+                    let preserve_stop = command.operation() == "inspection";
                     view.operation = command.operation();
                     if view.operation == "conversation" {
                         view.chat_stopped = None;
@@ -602,7 +605,7 @@ fn worker(
     let mut delivery = delivery::Delivery::new(project);
     let mut repairs = crate::analysis::repair::Queue::default();
     for Task { command, processes } in receiver {
-        let checkpoint_after = !matches!(&command, Command::Inspect { .. });
+        let checkpoint_after = command.operation() != "inspection";
         delivery.begin(&command);
         let result = (|| -> Result<()> {
             repair::begin(view, workspace, &mut repairs, &command)?;
@@ -721,12 +724,12 @@ fn worker(
                     let index = !directory && observation.get("error").is_none();
                     lock(view).inspection = Some(observation);
                     if index {
-                        if let Err(error) =
-                            overview::index_opened_file(view, workspace, &processes, &path)
-                        {
-                            lock(view).overview.error = Some(format!("Could not index {path}: {error:#}. Source browsing remains available."));
-                        }
+                        overview::index_file(view, workspace, &processes, &path);
                     }
+                    None
+                }
+                Command::IndexMap { path } => {
+                    overview::index_file(view, workspace, &processes, &path);
                     None
                 }
                 _ => anyhow::bail!("Unexpected worker command"),

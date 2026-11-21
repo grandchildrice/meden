@@ -201,9 +201,17 @@ fn capture(view: &Mutex<View>, workspace: &Workspace, control: &Control) -> Resu
     })
 }
 
-/// Expand a large project's opened file and nearby import-only modules.
+/// Expand a large project's visible file and nearby import-only modules.
 /// Unread files remain explicit inventory entries, never compiler evidence.
-pub(super) fn index_opened_file(
+pub(super) fn index_file(view: &Mutex<View>, workspace: &Workspace, control: &Control, path: &str) {
+    if let Err(error) = index_sources(view, workspace, control, path) {
+        lock(view).overview.error = Some(format!(
+            "Could not index {path}: {error:#}. Source browsing remains available."
+        ));
+    }
+}
+
+fn index_sources(
     view: &Mutex<View>,
     workspace: &Workspace,
     control: &Control,

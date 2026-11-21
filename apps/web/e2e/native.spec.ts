@@ -326,25 +326,42 @@ test.describe("native GUI with real offline workers", () => {
     ).toBe(true);
   });
 
-  test("large project inventory includes every file and indexes declarations only when opened", async ({
+  test("large project map loads declaration nodes on zoom without opening files or changing chat", async ({
     page,
   }) => {
-    test.setTimeout(90000);
-    await mkdir(resolve(project, "Many"));
+    test.setTimeout(120000);
+    for (let group = 0; group <= 10; group++)
+      await mkdir(resolve(project, "Many/Group" + group), { recursive: true });
     for (let start = 0; start < 10001; start += 200)
       await Promise.all(
         Array.from({ length: Math.min(200, 10001 - start) }, (_, i) =>
           writeFile(
-            resolve(project, "Many", "File" + (start + i) + ".lean"),
+            resolve(
+              project,
+              "Many/Group" + Math.floor((start + i) / 1000),
+              "File" + (start + i) + ".lean",
+            ),
             "theorem identity" + (start + i) + " : True := True.intro\n",
           ),
         ),
       );
     await writeFile(
-      resolve(project, "Many/File0.lean"),
-      "import Many.File2\ntheorem identity0 : True := identity1\n",
+      resolve(project, "Many/Group0/File0.lean"),
+      "import Many.Group0.File2\ntheorem identity0 : True := identity1\n",
     );
-    await writeFile(resolve(project, "Many/File2.lean"), "import Many.File1\n");
+    await writeFile(
+      resolve(project, "Many/Group0/File2.lean"),
+      "import Many.Group0.File1\n",
+    );
+    await writeFile(
+      resolve(project, "Many/Group0/File3.lean"),
+      Buffer.from([255]),
+    );
+    const commands: string[] = [];
+    page.on("request", (request) => {
+      if (request.url().endsWith("/api/command"))
+        commands.push(request.postDataJSON().type);
+    });
     await page.goto(await start());
     await expect
       .poll(async () => (await nativeState(page)).overview.state, {
@@ -366,13 +383,54 @@ test.describe("native GUI with real offline workers", () => {
     expect(inventory.files.every((f: { indexed: boolean }) => !f.indexed)).toBe(
       true,
     );
-    await page
-      .getByRole("button", { name: "Folder: Many", exact: true })
-      .click();
-    await page
-      .getByRole("button", { name: "File: Many/File0.lean", exact: true })
-      .first()
-      .click();
+    const map = page.getByRole("region", { name: "Project map", exact: true });
+    const chat = page.getByRole("complementary", {
+      name: "Workspace chat",
+      exact: true,
+    });
+    const chatBefore = await chat.innerHTML();
+    await expect(
+      page.getByRole("button", { name: "Folder: Many", exact: true }),
+    ).toBeVisible();
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    const beforeCommands = commands.length;
+    const beforeInspection = (await nativeState(page)).inspection;
+    const zoomFile = async (name: string) => {
+      await map
+        .getByRole("button", { name: "Category: Many/Group0", exact: true })
+        .click();
+      const file = map.locator(`[data-map-path="Many/Group0/${name}.lean"]`);
+      await expect(file).toBeVisible();
+      const box = await file.boundingBox();
+      await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+      await page.mouse.wheel(0, -600);
+      await file.click();
+    };
+    await zoomFile("File0");
+    const camera = await map
+      .locator(".react-flow__viewport")
+      .getAttribute("style");
+    const declaration = map.getByRole("button", {
+      name: /Declaration: identity0 · Many\/Group0\/File0.lean:/,
+    });
+    await expect(declaration).toBeVisible({ timeout: 30000 });
+    await expect(
+      page.getByRole("tab", { name: "Project map", exact: true }),
+    ).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator(".ide-file-tab")).toHaveCount(0);
+    await expect(map.locator(".react-flow__viewport")).toHaveAttribute(
+      "style",
+      camera!,
+    );
+    expect(await chat.innerHTML()).toBe(chatBefore);
+    expect(commands.slice(beforeCommands)).toEqual(["index_map"]);
+    expect((await nativeState(page)).inspection).toEqual(beforeInspection);
+    await page.screenshot({
+      path: "target/gui-checks/large-project-map-declarations.png",
+    });
+    await declaration.click();
     await expect(page.locator(".ide-file-page:not([hidden])")).toContainText(
       "identity0",
     );
@@ -386,6 +444,49 @@ test.describe("native GUI with real offline workers", () => {
       page.locator(".ide-file-page:not([hidden]) .radar-node"),
     ).toHaveCount(2);
     expect((await nativeState(page)).source_snapshot).toBeNull();
+    expect(requests).toHaveLength(0);
+    await page.getByRole("tab", { name: "Project map", exact: true }).click();
+    await expect(declaration).toBeVisible();
+    await expect(map.locator(".react-flow__viewport")).toHaveAttribute(
+      "style",
+      camera!,
+    );
+    expect(commands.filter((command) => command === "index_map")).toHaveLength(
+      1,
+    );
+    await stop();
+    await page.goto(await start());
+    await expect(map.locator(".continuous-map-scene")).toBeVisible();
+    await zoomFile("File3");
+    await expect(map.getByRole("alert")).toContainText(
+      "Could not index Many/Group0/File3.lean",
+    );
+    await expect(chat.getByRole("alert")).toHaveCount(0);
+    await expect(chat.getByRole("status")).toHaveCount(0);
+    await expect(page.locator(".ide-file-tab")).toHaveCount(0);
+    await page.screenshot({
+      path: "target/gui-checks/large-project-map-index-failure.png",
+    });
+    const failedCamera = await map
+      .locator(".react-flow__viewport")
+      .getAttribute("style");
+    // An external edit is discovered through the public refresh control.
+    await writeFile(
+      resolve(project, "Many/Group0/File3.lean"),
+      "theorem identity3 : True := True.intro\n",
+    );
+    await page
+      .getByRole("button", { name: "Refresh files and map", exact: true })
+      .click();
+    await expect(
+      map.getByRole("button", { name: /Declaration: identity3 ·/ }),
+    ).toBeVisible({ timeout: 30000 });
+    await expect(map.getByRole("alert")).toHaveCount(0);
+    await expect(map.locator(".react-flow__viewport")).toHaveAttribute(
+      "style",
+      failedCamera!,
+    );
+    expect((await nativeState(page)).authorized).toBe(false);
     expect(requests).toHaveLength(0);
   });
 

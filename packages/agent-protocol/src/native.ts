@@ -464,7 +464,8 @@ export type NativeCommand =
       type: "review_contract" | "accept_contract" | "reject_contract";
       reference: NativeReference;
     }
-  | { type: "inspect"; path: string; directory: boolean; offset?: number };
+  | { type: "inspect"; path: string; directory: boolean; offset?: number }
+  | { type: "index_map"; path: string };
 
 /** Same-origin native adapter. Tokens never enter workspace/history exports. */
 export class NativeClient {

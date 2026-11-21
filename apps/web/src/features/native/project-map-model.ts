@@ -31,6 +31,7 @@ export type MapArea = {
 };
 export type MapScene = {
   inventoryOnly: boolean;
+  maxZoom: number;
   areas: MapArea[];
   byPath: Map<string, MapArea>;
   symbols: Map<string, Symbol>;
@@ -192,6 +193,11 @@ export function projectMap(
   }
   return {
     inventoryOnly: snapshot.inventory_only,
+    maxZoom: areas.reduce(
+      (zoom, a) =>
+        a.file ? Math.max(zoom, 600 / Math.min(a.width, a.height)) : zoom,
+      500,
+    ),
     areas,
     byPath: new Map(areas.map((a) => [a.path, a])),
     symbols,
@@ -202,3 +208,48 @@ export function projectMap(
 
 export const fade = (pixels: number, start = 600, end = 900) =>
   Math.max(0, Math.min(1, (pixels - start) / (end - start)));
+
+/** A fitted file must reach readable detail even in a narrow map pane. */
+export function declarationDetail(
+  area: MapArea,
+  zoom: number,
+  size: { width: number; height: number },
+) {
+  const end = Math.min(500, Math.min(size.width, size.height) * 0.4);
+  return fade(Math.min(area.width, area.height) * zoom, end * 0.64, end);
+}
+
+/** Rendering and source prefetch share the same semantic-zoom visibility. */
+export function visibleMapAreas(
+  scene: MapScene,
+  viewport: { x: number; y: number; zoom: number },
+  size: { width: number; height: number },
+) {
+  const { x, y, zoom } = viewport;
+  const left = -x / zoom,
+    top = -y / zoom,
+    right = left + size.width / zoom,
+    bottom = top + size.height / zoom;
+  const opacity = new Map<string, number>([["", 1]]);
+  const visible: Array<{ area: MapArea; opacity: number }> = [];
+  for (const area of scene.areas) {
+    const parent = scene.byPath.get(area.parent);
+    const alpha = parent
+      ? (opacity.get(parent.path) || 0) *
+        fade(Math.max(parent.width, parent.height) * zoom, 650, 950)
+      : 1;
+    opacity.set(area.path, alpha);
+    if (
+      alpha < 0.015 ||
+      area.x > right ||
+      area.y > bottom ||
+      area.x + area.width < left ||
+      area.y + area.height < top ||
+      area.width * zoom < 2 ||
+      area.height * zoom < 2
+    )
+      continue;
+    visible.push({ area, opacity: alpha });
+  }
+  return visible;
+}
