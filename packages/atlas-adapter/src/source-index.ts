@@ -1,17 +1,9 @@
-import type {
-  Declaration,
-  Workspace,
-  Explanation,
-} from "@meden/workspace-schema";
+import type { Declaration, Workspace } from "@meden/workspace-schema";
 
 /** Lexical project references only: no elaboration, imported library closure or proof admission. */
 export function sourceIndex(snapshot: {
   revision: string;
   files: Record<string, string>;
-  explanations?: Record<
-    string,
-    Array<{ name: string; line: number; semantic: Explanation | null }>
-  >;
 }): Pick<Workspace, "declarations" | "edges"> {
   const entries = Object.entries(snapshot.files)
     .sort(([a], [b]) => a.localeCompare(b))
@@ -39,15 +31,7 @@ export function sourceIndex(snapshot: {
     }
   }
   return {
-    declarations: entries.map((entry) => ({
-      ...entry.declaration,
-      semantic:
-        snapshot.explanations?.[entry.file]?.find(
-          (note) =>
-            note.name === entry.declaration.name &&
-            note.line === entry.declaration.source?.line,
-        )?.semantic || undefined,
-    })),
+    declarations: entries.map((entry) => entry.declaration),
     edges,
   };
 }

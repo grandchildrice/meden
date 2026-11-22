@@ -336,37 +336,42 @@ by file and include saved targets, compiled main-theorem attributes and theorems
 the conventional `Main.lean` entry module; hover shows the provenance. Stars indicate
 location rather than proof status.
 
-File graphs use controlled-English declaration labels. Information icons beside
-source lines, or hovering a graph node, show the explanation without a model request.
-**Extract compiled dependencies** also runs the bundled fixed-seed Plausible checker
-and retains its result for later display and restart. A meaning-review target shows
-its falsification condition and any candidate bindings. Missing candidates are not
-proof; unsupported generators and inconclusive assumptions have separate outcomes.
-A false input to a predicate definition is labeled as an input example, rather than
-a counterexample to the definition. Ordinary definitions do not assert a universal
-claim. Before compilation, the same UI explicitly identifies source previews.
+Opening a Lean file prepares compilation, deterministic meaning and counterexample
+observations before its graph/source page appears. Conventional Main entry modules
+are warmed during workspace preparation; a previously unseen file may need its first
+preparation. Warm visits reuse full snapshots after source/configuration/resource
+validation. The optional extraction action remains available for an explicit rebuild.
+There is no source-English preview or unrun-search message presented as an analysis.
+A preparation failure remains local to the file, with a retry and the original source.
+Explicit graph requests render their own saved source directly; selecting a node or
+paging that source starts no duplicate inspection or compilation.
 
-The host cache checks the entire observed source set, Lake metadata and analysis
-resources before reuse. External edits require refresh; stale observations are then
-replaced by current source previews. [Method and limits](research/2026-11-21-deterministic-semantics.md).
+The installed Informath 0.4 / Grammatical Framework adapter generates verbal English;
+the structural Lean renderer remains the base for unsupported forms. Information
+icons and graph hovers show saved **Meaning**, a separate **Counterexample search**
+outcome and a table of candidate values. Falsification conditions and provenance are
+collapsible. A false input to a predicate definition is a boundary example, not a
+refutation of its definition. Sampling without a candidate is not proof.
+Prepare the pinned optional external renderer with
+`uv run --project python python tools/prepare-informath.py` on Linux x86-64.
+[Research implementation, adapter interface and limits](research/2026-11-22-observation-adapters.md).
 
-Projects with more than 10,000 Lean/Rust sources use a complete file inventory instead
-of parsing every declaration up front. The bounded inventory admits up to 250,000 files
-and 100,000 entries per directory. Unread files have indexed=false, no source hash and
-no declared proof information; file-count weights keep map coordinates stable.
-Zooming to a file automatically loads its declaration nodes in place, without opening
-a source tab or changing chat. Reads start after the camera settles, one operation at
-a time, and stop being scheduled when the map is hidden or chat work is queued.
-Opening a file also enriches its lexical references and follows nearby import-only barrel
-modules, with at most 32 inspected files per operation. Local source paths must resolve
-to an inventory entry; ambiguous suffix matches are not selected. This does not build
-Lean or establish a complete import closure. Refresh the map after external edits.
-The actual Riemann clone exercises all 175,187 files; its whole Lean build is not claimed.
+Projects with more than 10,000 Lean/Rust sources retain a complete inventory (up to
+250,000 files and 100,000 entries per directory) and prepare a disk source-map cache
+before the map becomes ready. Reopening reuses the prepared inventory; explicit refresh checks file metadata
+and rereads changed sources. The initial browser inventory has unloaded declaration details; file-count
+weights keep coordinates stable. Zoom fetches small prepared chunks through a read-only
+API instead of starting a worker or refetching the whole inventory. It preserves the
+map camera, source tab and chat. Nearby import-only barrels are included, at most 32
+files per chunk. Cached navigation errors are file-local and refresh repairs changed
+sources; ambiguous module suffix matches are not chosen. This is lexical navigation,
+not a whole-project Lean/proof build. The actual Riemann corpus has 175,187 files.
 
 ## Native Lean Atlas extraction
 
-With an installed Lean distribution, open a local Lean file and use the optional tools action **Extract compiled dependencies**. The first explicit extraction
-automatically compiles the pinned public Atlas library offline without sending
+With an installed Lean distribution, opening a local Lean file prepares its compiled
+dependencies automatically. The optional tools action **Extract compiled dependencies**
+requests an explicit rebuild. The first preparation automatically compiles the pinned public Atlas library offline without sending
 source to a model. The public TUI `/atlas` command performs the same preparation.
 Meden selects the workspace's `lean-toolchain` from installed Elan toolchains,
 including a custom `ELAN_HOME`. Without a project pin it uses Elan's default,

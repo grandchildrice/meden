@@ -5,7 +5,7 @@ use std::path::Path;
 use std::sync::atomic::Ordering;
 
 use crate::semantic::{self, Assessment, Input, Prepared, Stage};
-use anyhow::{Context, Result};
+use anyhow::Result;
 use meden_llm::Gateway;
 use meden_runtime::{process::Control, workspace::Workspace};
 use serde::{Deserialize, Serialize};
@@ -117,30 +117,24 @@ pub(crate) fn extract(
     control: &Control,
     paths: &[String],
 ) -> Result<sources::Snapshot> {
-    // Preparation is local and idempotent; the public extraction journey needs no setup step.
-    crate::atlas::Configuration::host(workspace.path()).ensure_prepared(control)?;
-    let mut snapshot = collect::capture(workspace, control, paths)?;
-    let observed = snapshot.files.keys().cloned().collect::<Vec<_>>();
-    let collection = snapshot
-        .collection
-        .as_ref()
-        .context("Missing collected module bindings")?;
-    collect::check_metadata(workspace, control, &collection.metadata)?;
-    let mut graph = crate::atlas::Configuration::host(workspace.path()).extract(
-        &snapshot.files,
-        &collection.modules,
-        control,
+    use meden_core::adapter::{Adapter, Input};
+    let artifact = crate::adapters::lean::Lean.run(
+        &crate::adapters::Context { workspace, control },
+        Input {
+            format: "meden/source-paths+json".into(),
+            bytes: serde_json::to_vec(paths)?,
+        },
     )?;
-    graph.revision = format!(
-        "sha256:{}",
-        crate::atlas::digest(&serde_json::to_vec(&(&graph.revision, collection))?)
-    );
-    collect::check_metadata(workspace, control, &collection.metadata)?;
     anyhow::ensure!(
-        sources::capture(workspace, control, &observed)?.revision == snapshot.revision,
-        "Sources changed during Atlas extraction; no graph admitted"
+        artifact.format == "meden/compiled-snapshot+json",
+        "Unexpected compiler output format"
     );
-    snapshot.atlas = Some(graph);
+    let mut snapshot: sources::Snapshot = serde_json::from_slice(&artifact.bytes)?;
+    // The host composes independent integrations. The compiler adapter knows
+    // neither the optional language realizer nor the observation cache.
+    if let Some(graph) = snapshot.atlas.as_mut() {
+        crate::adapters::informath::enrich(graph, control)?;
+    }
     control.with_active(|| Ok(()))?;
     crate::explanation::cache::retain(workspace, &snapshot)?;
     Ok(snapshot)

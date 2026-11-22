@@ -135,10 +135,7 @@
               },
               "origin": {
                 "type": "string",
-                "enum": [
-                  "source",
-                  "elaborated"
-                ]
+                "const": "elaborated"
               },
               "sentence": {
                 "type": "string",
@@ -149,20 +146,29 @@
                 "type": "string",
                 "maxLength": 65536
               },
+              "intermediate": {
+                "type": "string",
+                "maxLength": 65536
+              },
+              "renderer": {
+                "type": "string",
+                "maxLength": 256
+              },
+              "rendering_error": {
+                "type": "string",
+                "maxLength": 65536
+              },
               "checker": {
                 "type": "object",
                 "properties": {
                   "engine": {
                     "type": "string",
-                    "enum": [
-                      "none",
-                      "Plausible"
-                    ]
+                    "minLength": 1,
+                    "maxLength": 128
                   },
                   "status": {
                     "type": "string",
                     "enum": [
-                      "not_run",
                       "not_proposition",
                       "unsupported",
                       "counterexample",

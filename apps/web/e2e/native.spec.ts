@@ -141,26 +141,30 @@ test.describe("native GUI with real offline workers", () => {
     const paths = await page
       .getByRole("textbox", { name: "Graph source files (one per line)" })
       .inputValue();
+    const extract = page.getByRole("button", {
+      name: paths.trim()
+        ? "Extract compiled dependencies"
+        : "Select Lake targets automatically",
+      exact: true,
+    });
+    await expect(extract).toBeEnabled({ timeout: 120000 });
     const accepted = page.waitForResponse(
       (response) =>
         response.url().endsWith("/api/command") &&
         response.request().postDataJSON()?.type === "atlas_snapshot",
     );
-    await page
-      .getByRole("button", {
-        name: paths.trim()
-          ? "Extract compiled dependencies"
-          : "Select Lake targets automatically",
-        exact: true,
-      })
-      .click();
+    await extract.click();
     await accepted;
   }
   async function stop() {
-    if (child?.exitCode === null) {
+    if (child?.exitCode === null && !child.signalCode) {
       const exited = once(child, "exit");
       child.kill("SIGTERM");
-      await exited;
+      const timer = setTimeout(() => child?.kill("SIGKILL"), 15000);
+      const [code, signal] = await exited;
+      clearTimeout(timer);
+      if (signal === "SIGKILL")
+        throw new Error(`Gateway did not stop normally: ${code}`);
     }
     child = undefined;
   }
@@ -335,7 +339,7 @@ test.describe("native GUI with real offline workers", () => {
   test("large project map loads declaration nodes on zoom without opening files or changing chat", async ({
     page,
   }) => {
-    test.setTimeout(120000);
+    test.setTimeout(180000);
     for (let group = 0; group <= 10; group++)
       await mkdir(resolve(project, "Many/Group" + group), { recursive: true });
     for (let start = 0; start < 10001; start += 200)
@@ -365,12 +369,18 @@ test.describe("native GUI with real offline workers", () => {
     );
     const commands: string[] = [];
     const indexedPaths: string[] = [];
+    const mapReadTimes: number[] = [];
     page.on("request", (request) => {
+      const requestUrl = new URL(request.url());
+      if (requestUrl.pathname === "/api/map")
+        indexedPaths.push(requestUrl.searchParams.get("path")!);
       if (request.url().endsWith("/api/command")) {
         commands.push(request.postDataJSON().type);
-        if (request.postDataJSON().type === "index_map")
-          indexedPaths.push(request.postDataJSON().path);
       }
+    });
+    page.on("requestfinished", (request) => {
+      if (new URL(request.url()).pathname === "/api/map")
+        mapReadTimes.push(request.timing().responseEnd);
     });
     await page.goto(await start());
     await expect
@@ -435,12 +445,10 @@ test.describe("native GUI with real offline workers", () => {
       camera!,
     );
     expect(await chat.innerHTML()).toBe(chatBefore);
-    expect(commands.slice(beforeCommands).length).toBeGreaterThan(0);
-    expect(
-      commands
-        .slice(beforeCommands)
-        .every((command) => command === "index_map"),
-    ).toBe(true);
+    expect(indexedPaths.length).toBeGreaterThan(0);
+    expect(commands.slice(beforeCommands)).toEqual([]);
+    expect(mapReadTimes.length).toBeGreaterThan(0);
+    expect(Math.max(...mapReadTimes)).toBeLessThan(2000);
     expect(new Set(indexedPaths).size).toBe(indexedPaths.length);
     expect((await nativeState(page)).inspection).toEqual(beforeInspection);
     await page.screenshot({
@@ -449,6 +457,7 @@ test.describe("native GUI with real offline workers", () => {
     await declaration.click();
     await expect(page.locator(".ide-file-page:not([hidden])")).toContainText(
       "identity0",
+      { timeout: 120000 },
     );
     await expect(
       page.locator(".ide-file-page:not([hidden]) [data-layout=l4sb]"),
@@ -461,7 +470,10 @@ test.describe("native GUI with real offline workers", () => {
     await expect(
       page.locator(".ide-file-page:not([hidden]) .radar-node"),
     ).toHaveCount(2);
-    expect((await nativeState(page)).source_snapshot).toBeNull();
+    expect(
+      (await nativeState(page)).source_preparation["Many/Group0/File0.lean"]
+        .state,
+    ).toBe("ready");
     expect(requests).toHaveLength(0);
     await page.getByRole("tab", { name: "Project map", exact: true }).click();
     await expect(declaration).toBeVisible();
@@ -511,7 +523,7 @@ test.describe("native GUI with real offline workers", () => {
   test("main targets stay visible at a distance and compiled English/counterexamples annotate source without inference", async ({
     page,
   }) => {
-    test.setTimeout(240000);
+    test.setTimeout(360000);
     const original =
       [
         "import Shared",
@@ -550,7 +562,7 @@ test.describe("native GUI with real offline workers", () => {
       name: "Main theorems: Main.lean (4)",
       exact: true,
     });
-    await expect(pin).toBeVisible();
+    await expect(pin).toBeVisible({ timeout: 120000 });
     await page.screenshot({
       path: "target/gui-checks/main-theorem-distant-map.png",
     });
@@ -570,12 +582,11 @@ test.describe("native GUI with real offline workers", () => {
     });
     await expect(
       graph.getByRole("button", { name: /aa_bad.*: select/ }),
-    ).toContainText("for every n");
+    ).toContainText(/for all natural numbers/i);
     await expect(source.getByLabel("File contents")).toContainText(
       "theorem aa_bad",
     );
-    await setPaths(page, "Main.lean");
-    await compileDependencies(page);
+    expect(commands).not.toContain("atlas_snapshot");
     await expect
       .poll(async () => (await nativeState(page)).running, { timeout: 120000 })
       .toBe(false);
@@ -589,7 +600,8 @@ test.describe("native GUI with real offline workers", () => {
       "n := 0",
     );
     expect(observations.aa_bad.checker.status).toBe("counterexample");
-    expect(observations.member_order.sentence).toContain("(x) belongs to (xs)");
+    expect(observations.member_order.sentence).toMatch(/element|belongs/);
+    expect(observations.aa_bad.renderer).toContain("Informath 0.4");
     expect(observations.bb_good.checker.status).toBe("not_found");
     expect(observations.cc_vacuous.checker.status).toBe("gave_up");
     expect(observations.dd_opaque.checker.status).toBe("unsupported");
@@ -598,9 +610,11 @@ test.describe("native GUI with real offline workers", () => {
     expect(observations.allowed.checker.status).toBe("predicate_false_example");
     await source
       .getByRole("button", { name: "Explain aa_bad", exact: true })
-      .hover();
+      .hover({ timeout: 15000 });
     await expect(meaning).toContainText("Counterexample candidate");
-    await expect(meaning).toContainText("n := 0");
+    await expect(
+      meaning.getByRole("row", { name: "n 0", exact: true }),
+    ).toBeVisible();
     const sourceBounds = (await source.boundingBox())!;
     const meaningBounds = (await meaning.boundingBox())!;
     expect(meaningBounds.x).toBeGreaterThanOrEqual(sourceBounds.x);
@@ -611,6 +625,7 @@ test.describe("native GUI with real offline workers", () => {
       path: "target/gui-checks/compiled-meaning-counterexample.png",
     });
     await page.mouse.move(20, 20);
+    await setPaths(page, "Main.lean");
     await compileDependencies(page);
     await expect
       .poll(async () => (await nativeState(page)).running, { timeout: 120000 })
@@ -624,15 +639,19 @@ test.describe("native GUI with real offline workers", () => {
     await stop();
     commands.length = 0;
     await page.goto(await start());
-    await expect(pin).toBeVisible();
+    await expect(pin).toBeVisible({ timeout: 120000 });
     await pin.click();
     await map.getByRole("button", { name: /Declaration: aa_bad ·/ }).click();
     await source
       .getByRole("button", { name: "Explain aa_bad", exact: true })
-      .hover();
-    await expect(meaning).toContainText("n := 0");
+      .hover({ timeout: 15000 });
+    await expect(
+      meaning.getByRole("row", { name: "n 0", exact: true }),
+    ).toBeVisible();
     expect(commands).not.toContain("atlas_snapshot");
-    expect((await nativeState(page)).source_snapshot).toBeNull();
+    expect(
+      (await nativeState(page)).source_preparation["Main.lean"].cache_hit,
+    ).toBe(true);
     expect((await nativeState(page)).authorized).toBe(false);
     await page.mouse.move(20, 20);
     await writeFile(resolve(project, "Shared.lean"), "def shared : Nat := 2\n");
@@ -641,14 +660,19 @@ test.describe("native GUI with real offline workers", () => {
       .getByRole("button", { name: "Refresh files and map", exact: true })
       .click();
     await expect
-      .poll(async () => (await nativeState(page)).running)
+      .poll(async () => (await nativeState(page)).running, { timeout: 120000 })
       .toBe(false);
     await map.getByRole("button", { name: /Declaration: aa_bad ·/ }).click();
     await source
       .getByRole("button", { name: "Explain aa_bad", exact: true })
-      .hover();
-    await expect(meaning).toContainText("Source preview");
-    await expect(meaning).not.toContainText("n := 0");
+      .hover({ timeout: 15000 });
+    await expect(meaning).toContainText("Compiled expression");
+    expect((await nativeState(page)).source_snapshot.revision).not.toBe(
+      first.source_snapshot.revision,
+    );
+    await expect(
+      meaning.getByRole("row", { name: "n 0", exact: true }),
+    ).toBeVisible();
     expect(await readFile(resolve(project, "Main.lean"), "utf8")).toBe(
       original,
     );
@@ -656,20 +680,20 @@ test.describe("native GUI with real offline workers", () => {
     await writeFile(resolve(project, "Shared.lean"), "def shared : Nat := 1\n");
     await writeFile(
       resolve(project, "Main.lean"),
-      original.replace("n + 1 ≤ n := by sorry", "n + 1 ≤ n + 1 := by rfl"),
+      original.replace("n + 1 ≤ n := by sorry", "n + 1 ≤ n + 1 := by omega"),
     );
     await page.getByRole("tab", { name: "Project map", exact: true }).click();
     await page
       .getByRole("button", { name: "Refresh files and map", exact: true })
       .click();
     await expect
-      .poll(async () => (await nativeState(page)).running)
+      .poll(async () => (await nativeState(page)).running, { timeout: 120000 })
       .toBe(false);
     await map.getByRole("button", { name: /Declaration: aa_bad ·/ }).click();
     await source
       .getByRole("button", { name: "Explain aa_bad", exact: true })
-      .hover();
-    await expect(meaning).toContainText("Source preview");
+      .hover({ timeout: 15000 });
+    await expect(meaning).toContainText("Compiled expression");
     await expect(meaning).not.toContainText("n := 0");
     await expect(source.getByLabel("File contents")).toContainText(
       "n + 1 ≤ n + 1",
@@ -804,7 +828,7 @@ test.describe("native GUI with real offline workers", () => {
   test("prepare real Atlas offline, extract elaborated cross-module scope, analyze it and recover from compilation failure", async ({
     page,
   }) => {
-    test.setTimeout(180_000);
+    test.setTimeout(300_000);
     page.setDefaultTimeout(15_000);
     const domain =
       "def eligibility (balance stock : Nat) : Prop := balance ≥ 150 ∧ stock > 0\ntheorem support (b s : Nat) (h : eligibility b s) : eligibility b s := h\n";
@@ -1216,7 +1240,7 @@ test.describe("native GUI with real offline workers", () => {
         .getByLabel("File contents");
       await expect(
         source.locator(".syntax-token").filter({ hasText: /^theorem$/ }),
-      ).toHaveCount(1);
+      ).toHaveCount(1, { timeout: 60000 });
       const color = await source
         .locator(".syntax-token")
         .filter({ hasText: /^theorem$/ })
@@ -1389,7 +1413,7 @@ test.describe("native GUI with real offline workers", () => {
     ).toHaveAttribute("aria-selected", "true");
     await expect(
       page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
-    ).toContainText("def invoice");
+    ).toContainText("def invoice", { timeout: 120000 });
     await expect(page.locator('[aria-current="location"]')).toContainText(
       "def invoice",
     );
@@ -1495,7 +1519,7 @@ test.describe("native GUI with real offline workers", () => {
     expect((await nativeState(page)).authorized).toBe(false);
   });
 
-  test("opening a file never compiles its import closure and an explicit analysis failure stays beside its readable source", async ({
+  test("opening a file prepares analysis and keeps a bounded-import failure beside its readable source", async ({
     page,
   }) => {
     test.setTimeout(90000);
@@ -1519,7 +1543,7 @@ test.describe("native GUI with real offline workers", () => {
       .click();
     await expect(
       page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
-    ).toContainText("def original");
+    ).toContainText("def original", { timeout: 60000 });
     await expect(
       page.getByRole("region", { name: "File reference graph", exact: true }),
     ).toBeVisible();
@@ -1531,12 +1555,12 @@ test.describe("native GUI with real offline workers", () => {
       exact: true,
     });
     await expect(pane.getByRole("alert")).toContainText(
-      "Could not extract compiled dependencies",
+      "Analysis could not be prepared for this file.",
       { timeout: 60000 },
     );
     await expect(
       page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
-    ).toContainText("def original");
+    ).toContainText("def original", { timeout: 60000 });
     await expect(chat.getByRole("alert")).toHaveCount(0);
     await expect(chat.getByRole("status")).toHaveCount(0);
     expect((await nativeState(page)).source_snapshot).toBeNull();
@@ -1603,7 +1627,7 @@ test.describe("native GUI with real offline workers", () => {
     const graph = page.getByRole("region", { name: "Local source graph" });
     await expect(
       graph.getByRole("button", { name: /app.*: select/ }),
-    ).toContainText("Defined as");
+    ).toContainText("app");
     let state = await nativeState(page);
     expect(state.source_snapshot.atlas).toBeUndefined();
     expect(state.project.verified).toBe(false);
@@ -1623,7 +1647,7 @@ test.describe("native GUI with real offline workers", () => {
     await source.click();
     await expect(
       graph.getByRole("button", { name: /app.*: select/ }),
-    ).toContainText("Defined as");
+    ).toContainText("app");
     expect(requests).toHaveLength(0);
   });
 
@@ -1729,6 +1753,7 @@ test.describe("native GUI with real offline workers", () => {
   async function nativeState(page: Page) {
     return page.evaluate(async () => {
       const response = await fetch("/api/state", {
+        signal: AbortSignal.timeout(5000),
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem("meden-native-session")}`,
         },
@@ -2526,6 +2551,7 @@ test.describe("native GUI with real offline workers", () => {
   test("local source graph follows exact code, refreshes after development and rejects unavailable inputs", async ({
     page,
   }) => {
+    test.setTimeout(180000);
     const source =
       "namespace Demo\ndef transition (stock : Nat) : Nat :=\n  if stock > 0 then stock - 1 else stock\n\ntheorem stock_bound (stock : Nat) : transition stock ≤ stock := by\n  sorry\nend Demo\n";
     await writeFile(resolve(project, "Spec.lean"), source);
@@ -2553,15 +2579,13 @@ test.describe("native GUI with real offline workers", () => {
     await graph
       .getByRole("button", { name: /Demo.stock_bound.*: select/ })
       .click();
-    await page
-      .getByRole("button", { name: "Explain Demo.stock_bound", exact: true })
-      .hover();
+    // Lexical navigation does not present a source-English approximation.
     await expect(
-      page.getByRole("region", {
-        name: "Meaning: Demo.stock_bound",
+      page.getByRole("button", {
+        name: "Explain Demo.stock_bound",
         exact: true,
       }),
-    ).toContainText("Proof unchecked");
+    ).toHaveCount(0);
     await page.screenshot({
       path: "target/gui-checks/native-live-graph.png",
       fullPage: true,
@@ -2841,7 +2865,9 @@ test.describe("native GUI with real offline workers", () => {
     await page
       .getByRole("button", { name: "File: stock.rs", exact: true })
       .click();
-    await expect(result).toContainText("Historical analysis.");
+    await expect(result).toContainText("Historical analysis.", {
+      timeout: 120000,
+    });
   });
   test("restarting discards a pending repair approval without changing source", async ({
     page,
@@ -2884,6 +2910,7 @@ test.describe("native GUI with real offline workers", () => {
   test("local meaning history retains requirement and Finding identities across reruns and restart", async ({
     page,
   }) => {
+    test.setTimeout(180000);
     responses.push(
       ...Array.from({ length: 3 }, () => [
         (response: ServerResponse) => reply(response, informalization()),
@@ -2913,7 +2940,9 @@ test.describe("native GUI with real offline workers", () => {
     expect(second.requirement_id).not.toBe(first.requirement_id);
     const history = page.getByRole("combobox", { name: "Saved analyses" });
     await history.selectOption(first.id);
-    await expect(result).toContainText("Historical analysis.");
+    await expect(result).toContainText("Historical analysis.", {
+      timeout: 120000,
+    });
     await expect(requirement).toHaveValue(first.input.requirement);
     expect(requests).toHaveLength(4);
     await run.click();
@@ -2932,7 +2961,7 @@ test.describe("native GUI with real offline workers", () => {
     await page
       .getByRole("button", { name: "File: Spec.lean", exact: true })
       .click();
-    await history.selectOption(second.id);
+    await history.selectOption(second.id, { timeout: 120000 });
     await expect(result).toContainText(second.input.requirement);
     expect((await nativeState(page)).authorized).toBe(false);
     expect(requests).toHaveLength(6);
@@ -3063,6 +3092,7 @@ test.describe("native GUI with real offline workers", () => {
   test("meaning analysis runs separated real requests, keeps proof unknown and restores a historical result", async ({
     page,
   }) => {
+    test.setTimeout(180000);
     responses.push(
       (response) => reply(response, informalization()),
       (response) => reply(response, judgement()),
@@ -3076,15 +3106,7 @@ test.describe("native GUI with real offline workers", () => {
     const result = page.getByLabel("Meaning analysis result", { exact: true });
     await expect(result).toContainText("Candidate mismatch (Model assessment)");
     await expect(result).toContainText("Stock never increases");
-    await page
-      .getByRole("button", { name: "Explain Demo.stock_bound", exact: true })
-      .hover();
-    await expect(
-      page.getByRole("region", {
-        name: "Meaning: Demo.stock_bound",
-        exact: true,
-      }),
-    ).toContainText("Proof unchecked");
+    expect((await nativeState(page)).project.verified).toBe(false);
     expect(requests).toHaveLength(2);
     expect(JSON.stringify(requests[0])).toContain("FORMAL_CONTEXT_SENTINEL");
     expect(JSON.stringify(requests[0])).not.toContain(
@@ -3115,7 +3137,9 @@ test.describe("native GUI with real offline workers", () => {
     await stop();
     await page.goto(await start(port));
     await openDependencyControls(page);
-    await expect(result).toContainText("Historical analysis.");
+    await expect(result).toContainText("Historical analysis.", {
+      timeout: 120000,
+    });
     expect(requests).toHaveLength(2);
     await setPaths(page, "Spec.lean");
     await refreshReferences(page);

@@ -288,7 +288,7 @@ test("portable GUI history survives a real git clone and checks actual Lean with
       page
         .locator(".ide-file-page:not([hidden])")
         .getByLabel("File contents", { exact: true }),
-    ).toContainText("1: ");
+    ).toContainText("1: ", { timeout: 120000 });
     await page.getByRole("button", { name: "Next page", exact: true }).click();
     await expect(
       page

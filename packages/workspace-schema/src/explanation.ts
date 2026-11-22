@@ -4,14 +4,16 @@ import { z } from "zod";
 export const explanationSchema = z
   .object({
     version: z.literal(1),
-    origin: z.enum(["source", "elaborated"]),
+    origin: z.literal("elaborated"),
     sentence: z.string().min(1).max(65536),
     refutation: z.string().max(65536),
+    intermediate: z.string().max(65536).optional(),
+    renderer: z.string().max(256).optional(),
+    rendering_error: z.string().max(65536).optional(),
     checker: z
       .object({
-        engine: z.enum(["none", "Plausible"]),
+        engine: z.string().min(1).max(128),
         status: z.enum([
-          "not_run",
           "not_proposition",
           "unsupported",
           "counterexample",

@@ -43,7 +43,7 @@ def test_compiler_budget_failure_retains_english_and_next_observation(tmp_path):
             "Sampleable",
             "Testable",
         )
-    ] + ["MedenSemantic"]
+    ] + ["MedenSemantic", "MedenSearch"]
     for module in modules:
         path = tmp_path / f"{module}.lean"
         path.parent.mkdir(exist_ok=True)
@@ -55,15 +55,19 @@ def test_compiler_budget_failure_retains_english_and_next_observation(tmp_path):
     (tmp_path / "Fixture.lean").write_text("axiom broken : ∀ n : Nat, n + 1 < n\n")
     run("-o", "Fixture.olean", "Fixture.lean")
     (tmp_path / "Run.lean").write_text("""import MedenSemantic
+import MedenSearch
 open Lean
 unsafe def main : IO Unit := do
   Lean.initSearchPath (← Lean.findSysroot)
   Lean.enableInitializersExecution
-  let env ← Lean.importModules #[{module := `Fixture}, {module := `MedenSemantic}] {}
+  let imports := #[{module := `Fixture}, {module := `MedenSemantic}, {module := `MedenSearch}]
+  let env ← Lean.importModules imports {}
     (trustLevel := 0) (loadExts := true)
   for options in [({} : Options).set `maxHeartbeats (1 : Nat), {}] do
     let context : PPContext := {env, opts := options}
-    let result ← context.runMetaM <| MedenSemantic.analyze (env.find? `broken).get!
+    let ci := (env.find? `broken).get!
+    let checker ← context.runMetaM <| MedenSearch.analyze ci #[`Fixture]
+    let result ← context.runMetaM <| MedenSemantic.describe ci checker
     IO.println result.compress
 """)
     failed, next_node = map(json.loads, run("--run", "Run.lean").splitlines())

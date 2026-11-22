@@ -8,6 +8,11 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Native GUI and Atlas with Ollama Cloud
 
+The [prepared observation adapters record](gui-observation-adapters.json) covers the
+actual Informath/GF integration, prepare-before-display source pages, richer candidate
+tables, cached map reads and public TUI failure/restart screens. It records unavailable
+Riemann dependencies separately from its prepared lexical map.
+
 The [deterministic semantics observation](gui-deterministic-semantics.json) records
 distant main-target marks, controlled English and build-time Plausible results,
 source hover/restart/freshness coverage and the actual Riemann/EthLib browser

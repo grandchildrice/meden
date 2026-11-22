@@ -242,6 +242,15 @@ impl FileOperation {
 #[cfg(target_os = "linux")]
 fn snapshot_file(file: &fs::File, args: &Args) -> Result<Value, ToolError> {
     use base64::Engine as _;
+    if args.get("metadata") == Some(&Value::Bool(true)) {
+        use std::os::unix::fs::MetadataExt as _;
+        let metadata = file.metadata().map_err(failed)?;
+        return Ok(
+            serde_json::json!({"device":metadata.dev(),"inode":metadata.ino(),"bytes":metadata.len(),
+            "modified":metadata.mtime(),"modified_ns":metadata.mtime_nsec(),
+            "changed":metadata.ctime(),"changed_ns":metadata.ctime_nsec()}),
+        );
+    }
     let limit = integer(args, "max_bytes", 1_048_576)?;
     if limit == 0 || limit > 4_194_304 {
         return Err(ToolError::failed(
@@ -414,6 +423,38 @@ mod tests {
             &meden_core::Policy::from_labels("native worker", &["fs.read", "fs.write"], &[])
                 .expect("test policy"),
         )
+    }
+
+    #[test]
+    fn navigation_metadata_uses_the_pinned_file_without_returning_contents() {
+        let root = tempfile::tempdir().expect("workspace");
+        fs::write(root.path().join("source"), "private source bytes").expect("source");
+        let before = execute(
+            root.path(),
+            Operation::Snapshot,
+            json!({"path":"source","metadata":true}),
+        )
+        .expect("metadata");
+        assert_eq!(before.get("bytes"), Some(&json!(20)));
+        assert!(before.get("inode").is_some());
+        assert!(!before.to_string().contains("private"));
+        fs::write(root.path().join("source"), "changed").expect("edit");
+        let after = execute(
+            root.path(),
+            Operation::Snapshot,
+            json!({"path":"source","metadata":true}),
+        )
+        .expect("new metadata");
+        assert_ne!(before, after);
+        assert_eq!(
+            execute(
+                root.path(),
+                Operation::Snapshot,
+                json!({"path":"source","encoding":"base64"})
+            )
+            .expect("bytes"),
+            json!("Y2hhbmdlZA==")
+        );
     }
 
     #[test]

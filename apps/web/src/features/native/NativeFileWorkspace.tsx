@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { Alert, Button, LinearProgress, Typography } from "@mui/material";
+import { Alert, Button, LinearProgress } from "@mui/material";
 import type { Declaration, Workspace } from "@meden/workspace-schema";
 import type { NativeState, NativeCommand } from "@meden/agent-protocol/native";
 import type { MapScene, Symbol } from "./project-map-model";
@@ -40,7 +40,6 @@ function references(
         kind: s.kind,
         isMainTheorem: s.role.id === "main_theorem",
         statement: s.name,
-        semantic: s.semantic || undefined,
         source: { file: s.file, line: s.line },
         proofStatus: "unknown",
         evidenceRefs: [],
@@ -101,7 +100,7 @@ export function NativeFileWorkspace({
     [snapshot?.atlas?.revision, graph],
   );
   const explanations = useMemo(() => {
-    if (!semanticGraph) return [];
+    if (!semanticGraph || !snapshot?.atlas) return [];
     const main = semanticGraph.declarations
       .filter((d) => d.isMainTheorem)
       .map((d) => d.id);
@@ -130,6 +129,22 @@ export function NativeFileWorkspace({
     const symbol = scene?.symbols.get(declaration.id);
     if (symbol) onSelect(symbol);
   };
+  const preparation = state.source_preparation[path];
+  if (
+    path.endsWith(".lean") &&
+    (preparation?.state === "preparing" ||
+      (!snapshot && preparation?.state !== "failed" && !failure))
+  )
+    return (
+      <section className="file-preparation" aria-label={"Preparing " + path}>
+        <LinearProgress />
+        <p>Preparing the graph and explanations…</p>
+        <small>
+          Compilation and counterexample observations are saved for the next
+          visit.
+        </small>
+      </section>
+    );
   return (
     <section className="file-split" aria-label={"File: " + path}>
       <div className="file-source-pane">
@@ -150,6 +165,36 @@ export function NativeFileWorkspace({
         role="region"
         aria-label="File reference graph"
       >
+        {preparation?.state === "failed" && (
+          <Alert severity="warning">
+            <p>Analysis could not be prepared for this file.</p>
+            <details>
+              <summary>Details</summary>
+              <p>{preparation.error}</p>
+            </details>
+            <Button
+              onClick={() =>
+                void onCommand({
+                  type: "inspect",
+                  path,
+                  directory: false,
+                  offset: selected?.line || 1,
+                })
+              }
+            >
+              Retry preparation
+            </Button>
+          </Alert>
+        )}
+        {failure && preparation?.state !== "failed" && (
+          <Alert severity="warning">
+            <p>Analysis stopped.</p>
+            <details>
+              <summary>Details</summary>
+              <p>{failure}</p>
+            </details>
+          </Alert>
+        )}
         {analyzing && (
           <div className="file-analysis-progress" role="status">
             <LinearProgress />
@@ -158,22 +203,6 @@ export function NativeFileWorkspace({
               Cancel
             </Button>
           </div>
-        )}
-        {failure && (
-          <Alert severity="warning">
-            <Typography>Could not extract compiled dependencies.</Typography>
-            {failure.includes("closure exceeds") && (
-              <p>
-                Extraction accepts at most 32 files including imports, totaling
-                16 MiB. Source browsing and the reference graph remain
-                available.
-              </p>
-            )}
-            <details>
-              <summary>Cause</summary>
-              {failure}
-            </details>
-          </Alert>
         )}
         {snapshot ? (
           <NativeGraph

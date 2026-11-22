@@ -1,6 +1,8 @@
 import LeanAtlas.GraphData.Core
 import LeanAtlas.GraphData.Json
 import MedenSemantic
+import MedenSearch
+import MedenInterchange
 
 open Lean LeanAtlas.Config LeanAtlas.GraphData.Core
 
@@ -15,7 +17,7 @@ unsafe def main (args : List String) : IO UInt32 := do
   Lean.initSearchPath (← Lean.findSysroot)
   Lean.enableInitializersExecution
   let modules := args.toArray.map fun arg => stringToName (arg.replace "/" ".")
-  let env ← Lean.importModules (#[{module := `MedenSemantic}] ++ modules.map fun name => { module := name }) {} (trustLevel := 0) (loadExts := true)
+  let env ← Lean.importModules (#[{module := `MedenSemantic}, {module := `MedenSearch}] ++ modules.map fun name => { module := name }) {} (trustLevel := 0) (loadExts := true)
   let scope : ProjectScope := { projectNamespace := .anonymous }
   let mut nodes : Array NodeData := #[]
   for (name, _) in env.constants.toList do
@@ -40,7 +42,13 @@ unsafe def main (args : List String) : IO UInt32 := do
     let row := row.setObjVal! "statement" (.str statement)
     let row := row.setObjVal! "value" value
     let ctx : PPContext := { env := env, opts := {} }
-    let semantic ← ctx.runMetaM <| MedenSemantic.analyze ci modules
+    let checker ← ctx.runMetaM <| MedenSearch.analyze ci modules
+    let semantic ← ctx.runMetaM <| MedenSemantic.describe ci checker
+    let intermediate ← try
+      let text ← ctx.runMetaM <| MedenInterchange.declaration ci
+      pure <| if text.utf8ByteSize <= 60000 then Json.str text else Json.null
+      catch _ => pure Json.null
+    let semantic := if intermediate == Json.null then semantic else semantic.setObjVal! "intermediate" intermediate
     let row := row.setObjVal! "semantic" semantic
     let row := row.setObjVal! "axioms" (toJson (axioms.map Name.toString))
     let row := row.setObjVal! "standardAxioms" (toJson (standardAxioms.map Name.toString))

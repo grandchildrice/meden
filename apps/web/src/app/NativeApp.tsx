@@ -51,6 +51,7 @@ export function NativeApp({ token }: { token: string }) {
   const [connectionError, setConnectionError] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [analysisFile, setAnalysisFile] = useState<string>();
+  const openRequestedSnapshot = useRef(false);
   const [workspaceError, setWorkspaceError] = useState("");
   const [startupError, setStartupError] = useState("");
   const [files, setFiles] = useState<string[]>([]);
@@ -65,11 +66,14 @@ export function NativeApp({ token }: { token: string }) {
     sequence: number;
   }>();
   const dispatchedRead = useRef<number | undefined>(undefined);
+  const readSequence = useRef(0);
   const [utility, setUtility] = useState<
     "history" | "delivery" | "analysis" | null
   >(null);
   const [overview, setOverview] = useState<WorkspaceOverview>();
   const [overviewError, setOverviewError] = useState("");
+  const [overviewCycle, setOverviewCycle] = useState(0);
+  const mapEpoch = useRef(0);
   const trackedTargets = JSON.stringify(
     [
       ...new Set(
@@ -82,7 +86,7 @@ export function NativeApp({ token }: { token: string }) {
       overview
         ? projectMap(overview, new Set<string>(JSON.parse(trackedTargets)))
         : undefined,
-    [overview?.revision, trackedTargets],
+    [overview, trackedTargets],
   );
   const [provider, setProvider] = useState("");
   const [model, setModel] = useState("");
@@ -167,14 +171,29 @@ export function NativeApp({ token }: { token: string }) {
   }, [client, reconnect]);
   useEffect(() => {
     const abort = new AbortController();
-    if (!state?.overview.revision) {
+    if (!state?.overview.revision || state.overview.state !== "ready") {
       return;
     }
+    const epoch = mapEpoch.current;
     void client
       .overview(abort.signal)
       .then((snapshot) => {
-        if (!abort.signal.aborted) {
-          setOverview(snapshot);
+        if (!abort.signal.aborted && mapEpoch.current === epoch) {
+          setOverview((previous) => {
+            if (!previous || previous.revision !== snapshot.revision)
+              return snapshot;
+            const loaded = new Map(
+              previous.files
+                .filter((file) => file.indexed)
+                .map((file) => [file.path, file]),
+            );
+            return {
+              ...snapshot,
+              files: snapshot.files.map((file) =>
+                file.indexed ? file : loaded.get(file.path) || file,
+              ),
+            };
+          });
           setOverviewError("");
         }
       })
@@ -182,7 +201,13 @@ export function NativeApp({ token }: { token: string }) {
         if (!abort.signal.aborted) setOverviewError(String(error));
       });
     return () => abort.abort();
-  }, [client, state?.overview.revision, reconnect]);
+  }, [
+    client,
+    state?.overview.revision,
+    state?.overview.state,
+    reconnect,
+    overviewCycle,
+  ]);
   useEffect(() => {
     if (approval) {
       const choice =
@@ -250,7 +275,14 @@ export function NativeApp({ token }: { token: string }) {
       setBusy(true);
       try {
         await client.command(command);
-        setState(await client.state());
+        const next = await client.state();
+        if (command.type === "refresh_workspace") {
+          mapEpoch.current++;
+          setOverview(undefined);
+          setOverviewError("");
+          setOverviewCycle((value) => value + 1);
+        }
+        setState(next);
         if (
           [
             "instruction",
@@ -281,29 +313,61 @@ export function NativeApp({ token }: { token: string }) {
     },
     [client],
   );
-  const openFile = useCallback((path: string, line?: number) => {
+  const openFile = useCallback((path: string, line?: number, read = true) => {
     setFiles((previous) =>
       previous.includes(path) ? previous : [...previous, path],
     );
     setActiveFile(path);
-    setReadTarget((previous) => ({
-      path,
-      offset: line ? Math.max(1, line - 5) : 1,
-      sequence: (previous?.sequence || 0) + 1,
-    }));
+    setReadTarget(
+      read
+        ? {
+            path,
+            offset: line ? Math.max(1, line - 5) : 1,
+            sequence: ++readSequence.current,
+          }
+        : undefined,
+    );
     setFilesOpen(false);
   }, []);
   const indexMapFile = useCallback(
-    (path: string) => command({ type: "index_map", path }),
-    [command],
+    async (path: string) => {
+      const epoch = mapEpoch.current;
+      try {
+        const chunk = await client.map(path);
+        if (mapEpoch.current !== epoch) return false;
+        setOverview((previous) => {
+          if (!previous || previous.revision !== chunk.revision)
+            return previous;
+          const files = new Map(chunk.files.map((file) => [file.path, file]));
+          return {
+            ...previous,
+            files: previous.files.map((file) => files.get(file.path) || file),
+          };
+        });
+        return true;
+      } catch (error) {
+        if (mapEpoch.current !== epoch) return false;
+        setOverviewError(`Could not index ${path}: ${String(error)}`);
+        return true;
+      }
+    },
+    [client],
   );
   const selectSymbol = useCallback(
     (symbol: Symbol) => {
       setSelectedSymbol(symbol);
       if (activeFile !== symbol.file) setFocusedSymbol(symbol);
-      openFile(symbol.file, symbol.line);
+      if (
+        activeFile !== symbol.file ||
+        state?.source_snapshot?.files[symbol.file] === undefined
+      )
+        openFile(
+          symbol.file,
+          symbol.line,
+          state?.source_snapshot?.files[symbol.file] === undefined,
+        );
     },
-    [openFile, activeFile],
+    [openFile, activeFile, state?.source_snapshot],
   );
   const selectMapSymbol = useCallback(
     (symbol: Symbol) => {
@@ -411,24 +475,30 @@ export function NativeApp({ token }: { token: string }) {
   const toolsCommand = async (input: NativeCommand) => {
     if (input.type === "atlas_snapshot" || input.type === "source_snapshot") {
       const path = input.paths[0];
+      openRequestedSnapshot.current = !path;
       setAnalysisFile(path);
-      if (path) openFile(path);
+      if (path) openFile(path, undefined, false);
       setUtility(null);
     }
     return command(input);
   };
   useEffect(() => {
     if (state?.source_snapshot) setStartupError("");
-    if (state?.source_snapshot && !analysisFile) {
+    if (
+      openRequestedSnapshot.current &&
+      state?.source_snapshot &&
+      !state.running
+    ) {
+      openRequestedSnapshot.current = false;
       const path =
         state.source_snapshot.collection?.roots[0] ||
         Object.keys(state.source_snapshot.files)[0];
       if (path) {
         setAnalysisFile(path);
-        openFile(path);
+        openFile(path, undefined, false);
       }
     }
-  }, [state?.source_snapshot?.revision]);
+  }, [state?.source_snapshot?.revision, state?.running]);
   useEffect(() => {
     if (
       readTarget &&
@@ -662,10 +732,8 @@ export function NativeApp({ token }: { token: string }) {
               )}
             <div className="ide-stage">
               <div className="project-map-page" hidden={Boolean(activeFile)}>
-                {overviewError && (
-                  <Alert severity="error">{overviewError}</Alert>
-                )}
                 <NativeWorkspaceGraph
+                  error={overviewError}
                   active={!activeFile}
                   canIndex={!running && queue.length === 0}
                   onIndex={indexMapFile}

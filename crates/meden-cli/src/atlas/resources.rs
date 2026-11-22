@@ -28,6 +28,8 @@ const SOURCES: &[(&str, &str)] = &[
         include_str!("vendor/MedenPlausible/Testable.lean"),
     ),
     ("MedenSemantic", include_str!("MedenSemantic.lean")),
+    ("MedenSearch", include_str!("MedenSearch.lean")),
+    ("MedenInterchange", include_str!("MedenInterchange.lean")),
     (
         "LeanAtlas/Config/Types",
         include_str!("vendor/LeanAtlas/Config/Types.lean"),

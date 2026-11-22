@@ -1,11 +1,11 @@
 //! Shared pure source navigation and explanation preview; no elaboration or proof.
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
-#[derive(Clone, Serialize, PartialEq, Eq)]
+#[derive(Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub(crate) struct Symbol {
     pub name: String,
     pub line: usize,
-    pub kind: &'static str,
+    pub kind: String,
     pub declaration: String,
     pub private: bool,
     pub references: Vec<String>,
@@ -143,13 +143,14 @@ pub(crate) fn symbols(source: &str, lean: bool) -> Vec<Symbol> {
                     },
                     line: index.saturating_add(1),
                     declaration: kind.into(),
-                    kind: if matches!(kind, "theorem" | "lemma") {
+                    kind: (if matches!(kind, "theorem" | "lemma") {
                         "theorem"
                     } else if matches!(kind, "axiom" | "constant") {
                         "axiom"
                     } else {
                         "definition"
-                    },
+                    })
+                    .into(),
                     private: line.split_whitespace().any(|w| w == "private"),
                     references: Vec::new(),
                     semantic: None,
@@ -173,38 +174,7 @@ pub(crate) fn symbols(source: &str, lean: bool) -> Vec<Symbol> {
         }
     }
     finish_symbol(current, &mut references, &mut result);
-    if lean {
-        explain_symbols(&clean, &mut result);
-    }
     result
-}
-
-fn explain_symbols(clean: &str, result: &mut [Symbol]) {
-    let lines = clean.lines().collect::<Vec<_>>();
-    let ends = result
-        .iter()
-        .skip(1)
-        .map(|symbol| symbol.line.saturating_sub(1))
-        .chain(std::iter::once(lines.len()))
-        .collect::<Vec<_>>();
-    for (symbol, end) in result.iter_mut().zip(ends) {
-        let text = lines
-            .get(symbol.line.saturating_sub(1)..end)
-            .unwrap_or_default()
-            .join("\n");
-        // Namespace terminators are not part of a declaration expression.
-        let text = text
-            .lines()
-            .take_while(|line| {
-                !matches!(
-                    line.split_whitespace().next(),
-                    Some("end" | "namespace" | "section")
-                )
-            })
-            .collect::<Vec<_>>()
-            .join("\n");
-        symbol.semantic = Some(crate::explanation::source(&symbol.declaration, &text));
-    }
 }
 
 fn finish_symbol(

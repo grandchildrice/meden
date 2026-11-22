@@ -16,6 +16,65 @@ use meden_runtime::workspace::Workspace;
 use serde_json::{json, Value};
 
 struct Session(Workspace);
+
+#[test]
+fn prepared_adapter_sees_only_its_resources_scratch_and_stdin() {
+    let host = tempfile::tempdir().expect("host");
+    let scratch = tempfile::tempdir().expect("scratch");
+    let resources = tempfile::tempdir().expect("prepared resources");
+    let secret = host.path().join("secret");
+    fs::write(&secret, "HOST_PRIVATE_ADAPTER_CANARY").expect("secret");
+    fs::write(resources.path().join("grammar"), "PUBLIC_GRAMMAR").expect("grammar");
+    let bash = ["/run/current-system/sw/bin/bash", "/bin/bash"]
+        .iter()
+        .map(Path::new)
+        .find(|p| p.is_file())
+        .expect("installed public bash");
+    let script = "test ! -e \"$1\" && test ! -w /adapter/grammar && test \"$(cat /adapter/grammar)\" = PUBLIC_GRAMMAR && test \"$(wc -l </proc/net/route)\" -eq 1 && cat";
+    let mut command = meden_runtime::sandbox::Sandbox::adapter_command(
+        scratch.path(),
+        Path::new(env!("CARGO_BIN_EXE_meden")),
+        bash,
+        resources.path(),
+        &[],
+        &[
+            "--noprofile",
+            "--norc",
+            "-c",
+            script,
+            "adapter",
+            secret.to_str().expect("path"),
+        ],
+    )
+    .expect("isolated adapter command");
+    let control = Control::new(Arc::new(AtomicBool::new(false)));
+    let output = process::run_with_input(
+        &mut command,
+        b"FROZEN_FORMAL_INPUT",
+        &Limits {
+            timeout: Duration::from_secs(15),
+            capture_bytes: 4096,
+            output_bytes: 4096,
+        },
+        &control,
+    )
+    .expect("adapter run");
+    assert!(
+        matches!(output.termination, Termination::Exited(status) if status.success()),
+        "{}",
+        output.stderr
+    );
+    assert_eq!(output.stdout, "FROZEN_FORMAL_INPUT");
+    assert_eq!(
+        fs::read_to_string(secret).expect("host secret"),
+        "HOST_PRIVATE_ADAPTER_CANARY"
+    );
+    assert_eq!(
+        fs::read_to_string(resources.path().join("grammar")).expect("resource"),
+        "PUBLIC_GRAMMAR"
+    );
+}
+
 #[test]
 #[allow(clippy::too_many_lines)] // One real namespace journey checks refusal, capacity and retained content.
 fn batched_source_reads_keep_policy_paths_bounds_and_read_only_operations() {

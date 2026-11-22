@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Tooltip, IconButton } from "@mui/material";
 import InfoOutlined from "@mui/icons-material/InfoOutlined";
 import type { Explanation } from "@meden/workspace-schema";
+import { MathText } from "./MathText";
 
 const outcomes = {
   counterexample: "Counterexample candidate",
@@ -12,7 +13,6 @@ const outcomes = {
   unavailable: "Search could not complete · no result available",
   unsupported: "This proposition is not supported by the installed generators",
   not_proposition: "Definition · no universal proposition asserted",
-  not_run: "Counterexample search has not run",
 };
 
 export type SourceExplanation = {
@@ -37,6 +37,13 @@ export function ExplanationHint({
   ) as HTMLElement | null;
   const { semantic, review } = note;
   const check = semantic.checker;
+  const bindings = check.candidates.flatMap((candidate) => {
+    const match = candidate.match(/^(.+?)\s*:=\s*([\s\S]*)$/);
+    return match ? [{ name: match[1]!, value: match[2]! }] : [];
+  });
+  const issues = check.candidates.filter(
+    (candidate) => !candidate.includes(":="),
+  );
   return (
     <Tooltip
       describeChild
@@ -68,38 +75,80 @@ export function ExplanationHint({
       }}
       title={
         <section aria-label={"Meaning: " + note.name}>
-          <p className="semantic-sentence">{semantic.sentence}</p>
+          <header className="semantic-heading">
+            <strong>Meaning</strong>
+            <span>{note.name.split(".").at(-1)}</span>
+          </header>
+          <p className="semantic-sentence">
+            <MathText text={semantic.sentence} />
+          </p>
           {(review !== "proof-only" || check.status === "counterexample") && (
             <div className="semantic-refutation">
-              <p>{semantic.refutation}</p>
+              <h4>
+                {check.mode === "predicate"
+                  ? "Boundary examples"
+                  : "Counterexample search"}
+              </h4>
               <p data-check-status={check.status}>
                 {check.mode === "predicate" && check.status === "not_found"
                   ? "No false input found in the tested range"
                   : outcomes[check.status]}
               </p>
-              {!!check.candidates.length && (
-                <ul>
-                  {check.candidates.map((candidate, i) => (
-                    <li key={i}>{candidate}</li>
-                  ))}
-                </ul>
+              {!!bindings.length && (
+                <table className="semantic-bindings">
+                  <thead>
+                    <tr>
+                      <th>Input</th>
+                      <th>Candidate value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bindings.map((binding, i) => (
+                      <tr key={i}>
+                        <th scope="row">
+                          <code>{binding.name}</code>
+                        </th>
+                        <td>
+                          <code>{binding.value}</code>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               )}
+              {issues.map((issue, i) => (
+                <p className="semantic-witness-issue" key={i}>
+                  {issue.replace(/^issue:\s*/, "")}
+                </p>
+              ))}
+              <details className="semantic-falsification">
+                <summary>
+                  {check.mode === "predicate"
+                    ? "What these examples mean"
+                    : "How this statement could fail"}
+                </summary>
+                <p>{semantic.refutation}</p>
+              </details>
             </div>
           )}
           <small>
-            {semantic.origin === "elaborated"
-              ? "Compiled expression"
-              : "Source preview · not elaborated"}
-            {check.seed !== undefined && ` · Plausible · seed ${check.seed}`}
+            Compiled expression
+            {` · ${check.engine}`}
             {` · ${note.proofStatus === "unproved" ? "Unfinished proof detected" : "Proof unchecked"}`}
             {review === "unknown" && " · Review scope unknown"}
           </small>
-          {check.diagnostic && (
-            <details>
-              <summary>Details</summary>
-              <p>{check.diagnostic}</p>
-            </details>
-          )}
+          <details className="semantic-provenance">
+            <summary>Analysis details</summary>
+            <p>{semantic.renderer || "Structural English"}</p>
+            {semantic.rendering_error && <p>{semantic.rendering_error}</p>}
+            {check.seed !== undefined && (
+              <p>
+                {check.engine} · seed {check.seed} · up to {check.numInst}{" "}
+                samples · size {check.maxSize}
+              </p>
+            )}
+            {check.diagnostic && <p>{check.diagnostic}</p>}
+          </details>
         </section>
       }
     >

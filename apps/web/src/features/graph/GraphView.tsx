@@ -9,6 +9,7 @@ import {
   type RefObject,
   type CSSProperties,
 } from "react";
+import { MathText } from "../source/MathText";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -342,10 +343,14 @@ function DeclarationNode({ data }: NodeProps<RadarNode>) {
       >
         <span className="node-dot" />
         <strong>
-          {declaration.semantic?.sentence ||
-            declaration.summary ||
-            declaration.label ||
-            declaration.name}
+          <MathText
+            text={
+              declaration.semantic?.sentence ||
+              declaration.summary ||
+              declaration.label ||
+              declaration.name
+            }
+          />
         </strong>
       </button>
     </div>

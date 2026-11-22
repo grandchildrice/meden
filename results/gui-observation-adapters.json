@@ -1,0 +1,116 @@
+{
+  "date": "2026-11-22",
+  "subject": "Prepared observations and replaceable compiler/meaning adapters",
+  "binary_sha256": "f1039af4cfc7e3c8afa9e559f66a5b9c4b0ddd86f9effc4437fa4ec9a70cb4e9",
+  "research": {
+    "implementation": "Informath 0.4 / Grammatical Framework",
+    "paper": "https://arxiv.org/abs/2606.16893",
+    "resources_commit": "cb11ebc4cf62d3563b547800b6e445c981f1178f",
+    "options": [
+      "-parallel-data",
+      "-synonyms=1",
+      "-symbolics=0",
+      "-nbest=1",
+      "-sampling=1"
+    ]
+  },
+  "checks": {
+    "cli_unit": 71,
+    "core_unit": 39,
+    "core_doctests": 12,
+    "real_adapter_isolation": 1,
+    "typescript_unit": 30,
+    "compiler_failure_isolation": 1,
+    "required_public_tui": 33,
+    "rust_clippy": "workspace/all-targets/all-features",
+    "public_gui": 51,
+    "gui_command": "npm run test:gui",
+    "pinned_resource_preparation": "passed in a fresh temporary directory with installed Linux/Nix prerequisites; not a cold-machine validation"
+  },
+  "tui_evidence": "/tmp/meden-ux-observation-adapters-complete-20261122",
+  "decoded_screen_review": [
+    "Lake source-inventory failure and historical restart",
+    "HTTP 429 stop and explicit retry",
+    "GUI/TUI continuation with retained conversation"
+  ],
+  "actual_workspaces": [
+    {
+      "workspace": "/home/gohan/workspace/Riemann",
+      "overview": {
+        "state": "ready",
+        "scanned": 175187,
+        "total": 175187,
+        "revision": "sha256:e24d93688f53bc2e5b39a5be2ef26cb3add518f687dc4f6b2f8bdfdf70392b4f",
+        "error": null
+      },
+      "commands": [
+        "inspect"
+      ],
+      "errors": [],
+      "preparation": {
+        "state": "failed",
+        "cache_hit": false,
+        "error": "Lake dependency mathlib is not available at .lake/packages/mathlib.\nFor a Mathlib project, run `lake exe cache get` in the project directory before retrying.\nDependency preparation is separate from offline analysis; no fetching or partial graph was performed. To inspect files now, use the source-only graph."
+      },
+      "chunk": {
+        "milliseconds": 99.40000000596046,
+        "status": 200,
+        "files": 9
+      },
+      "mainNodeVisible": true,
+      "chatUnchanged": true,
+      "authorized": false
+    },
+    {
+      "workspace": "/home/gohan/workspace/EthLib",
+      "overview": {
+        "state": "ready",
+        "scanned": 2517,
+        "total": 2517,
+        "revision": "sha256:492558d1eadc0d2a9e469a8c33f1dee15503fe4efbec0a3798229fbb1d399792",
+        "error": null
+      },
+      "commands": [
+        "inspect",
+        "inspect",
+        "inspect",
+        "inspect",
+        "inspect"
+      ],
+      "errors": [],
+      "preparation": {
+        "state": "ready",
+        "cache_hit": true,
+        "error": null
+      },
+      "declarations": 42,
+      "renderers": [
+        "Structural English",
+        "Informath 0.4 / GF \u00b7 6a2c28c063d0"
+      ],
+      "searchOutcomes": {
+        "not_proposition": 36,
+        "unsupported": 3,
+        "unavailable": 3
+      },
+      "chatUnchanged": true,
+      "authorized": false
+    }
+  ],
+  "limitations": [
+    "No Z3 or Yosys adapter is implemented yet.",
+    "Riemann lexical cache is prepared; its missing Mathlib dependency prevents full Lean analysis.",
+    "Compiler collection remains bounded at 32 sources/16 MiB.",
+    "Plausible observations are finite search, not proof; unsupported/unavailable results remain explicit.",
+    "No live model, large local model, cold-machine installation, or whole-application refinement claim."
+  ],
+  "screenshots": [
+    "target/gui-checks/compiled-meaning-counterexample.png",
+    "target/gui-checks/large-project-map-declarations.png",
+    "target/gui-checks/large-project-map-index-failure.png",
+    "/tmp/meden-riemann-prepared-map.png",
+    "/tmp/meden-ethlib-prepared-meaning.png"
+  ],
+  "gui_evidence": "target/gui-checks/report/index.html",
+  "success": true
+}

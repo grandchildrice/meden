@@ -56,6 +56,7 @@ struct View {
     logs: Vec<Value>,
     inspection: Option<Value>,
     source_snapshot: Option<sources::Snapshot>,
+    source_preparation: std::collections::BTreeMap<String, sources::Preparation>,
     analysis: Option<analysis::Record>,
     analysis_history: Vec<analysis::Record>,
     repair_review: Option<crate::analysis::repair::Review>,
@@ -165,9 +166,6 @@ enum Command {
         #[serde(default)]
         offset: Option<usize>,
     },
-    IndexMap {
-        path: String,
-    },
 }
 
 impl Command {
@@ -176,7 +174,7 @@ impl Command {
             Self::Instruction { .. } | Self::ResumeWork { .. } | Self::AcceptContract { .. } => {
                 "conversation"
             }
-            Self::Inspect { .. } | Self::IndexMap { .. } => "inspection",
+            Self::Inspect { .. } => "inspection",
             Self::CapturePreview { .. } => "preview",
             Self::AtlasSnapshot { .. }
             | Self::SourceSnapshot { .. }
@@ -367,6 +365,7 @@ fn initial_view(
         logs: Vec::new(),
         inspection: None,
         source_snapshot: None,
+        source_preparation: std::collections::BTreeMap::new(),
         analysis: analysis_history.last().cloned(),
         analysis_history,
         repair_review: None,
@@ -489,6 +488,21 @@ impl Http<'_> {
                 ),
             }
             return;
+        }
+        if request.method() == &Method::Get {
+            if let Some(encoded) = request.url().strip_prefix("/api/map?path=") {
+                let path = percent_encoding::percent_decode_str(encoded)
+                    .decode_utf8()
+                    .map(std::borrow::Cow::into_owned);
+                match path
+                    .map_err(anyhow::Error::new)
+                    .and_then(|path| overview::cached(self.view, self.workspace, &path))
+                {
+                    Ok(chunk) => respond(request, 200, &json!(chunk)),
+                    Err(error) => respond(request, 409, &json!({"error":format!("{error:#}")})),
+                }
+                return;
+            }
         }
         if request.method() != &Method::Post || request.url() != "/api/command" {
             respond(request, 404, &json!({"error":"Unknown route"}));
@@ -722,14 +736,23 @@ fn worker(
                     let observation =
                         inspect(workspace, &processes, &path, directory, offset.unwrap_or(1))?;
                     let index = !directory && observation.get("error").is_none();
+                    if index {
+                        sources::prepare(view, workspace, &processes, &path, true);
+                    } else if !directory {
+                        sources::unavailable(
+                            view,
+                            &path,
+                            observation
+                                .get("error")
+                                .and_then(Value::as_str)
+                                .unwrap_or("Source observation failed")
+                                .into(),
+                        );
+                    }
                     lock(view).inspection = Some(observation);
                     if index {
-                        overview::index_file(view, workspace, &processes, &path);
+                        overview::observe_file(view, workspace, &processes, &path);
                     }
-                    None
-                }
-                Command::IndexMap { path } => {
-                    overview::index_file(view, workspace, &processes, &path);
                     None
                 }
                 _ => anyhow::bail!("Unexpected worker command"),

@@ -73,6 +73,22 @@ Generated JSON Schema describes structural fields; the Zod reference/freshness
 checks also run in TypeScript. Future Rust/Python adapters must implement those
 cross-reference checks too. Generated schemas do not establish authorization.
 
+## Replaceable compiler and meaning integrations
+
+`meden-core::adapter` defines owned `Input`, `Artifact` and `Adapter<Context>`.
+Formats/producers are explicit, while tool syntax, processes and configuration
+remain host adapters. These artifacts are observations and cannot issue evidence
+receipts or approve actions. The Lean compiler and the actual pinned Informath/GF
+renderer implement this interface; future Z3/Yosys implementations need no
+solver-specific core dependency. They are not implemented yet.
+
+The Lean adapter separates elaboration, structural rendering, Dedukti presentation
+interchange and Plausible sampling. It saves a full prepared snapshot before the
+file page is published. Exact source/configuration/resource validation gates reuse.
+A lexical navigation cache is prepared separately: zoom reads cached chunks without
+starting compilation, workers or inference. Neither cache grants proof authority.
+See [the implementation and research limits](../research/2026-11-22-observation-adapters.md).
+
 ## Chat and recorded-demo adapter
 
 The shell owns conversation selection and persistence; the left sidebar lists

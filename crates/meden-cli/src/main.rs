@@ -8,6 +8,7 @@ use std::io::{self, Read, Write};
 use std::path::PathBuf;
 use std::process::ExitCode;
 use std::sync::{atomic::AtomicBool, Arc};
+mod adapters;
 mod analysis;
 mod atlas;
 mod connection;

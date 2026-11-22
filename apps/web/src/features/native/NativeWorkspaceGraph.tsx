@@ -260,6 +260,7 @@ export function NativeWorkspaceGraph({
   active,
   canIndex,
   onIndex,
+  error,
 }: {
   scene?: MapScene;
   state: NativeState;
@@ -268,6 +269,7 @@ export function NativeWorkspaceGraph({
   active: boolean;
   canIndex: boolean;
   onIndex: (path: string) => Promise<boolean>;
+  error?: string;
 }) {
   const [canvas, setCanvas] = useState<HTMLDivElement | null>(null);
   const [flow, setFlow] = useState<ReactFlowInstance<SceneNode>>();
@@ -280,7 +282,7 @@ export function NativeWorkspaceGraph({
   useEffect(() => {
     if (state.overview.state === "loading" || !state.overview.error)
       requested.current.clear();
-  }, [state.overview.state, state.overview.error]);
+  }, [state.overview.state, state.overview.error, state.overview.revision]);
   useEffect(() => {
     if (!active || !canIndex || !scene?.inventoryOnly || indexing.current)
       return;
@@ -293,7 +295,7 @@ export function NativeWorkspaceGraph({
         !requested.current.has(area.path),
     )?.area;
     if (!file) return;
-    // Wait for the camera to settle; queue no work for regions passed en route.
+    // Declarations are already prepared on disk; zoom only reads that cache.
     const timer = setTimeout(() => {
       indexing.current = true;
       void onIndex(file.path)
@@ -303,7 +305,7 @@ export function NativeWorkspaceGraph({
         .finally(() => {
           indexing.current = false;
         });
-    }, 220);
+    }, 0);
     return () => clearTimeout(timer);
   }, [active, canIndex, scene, camera, size, onIndex, state.overview.error]);
   const focus = (path: string) => {
@@ -360,6 +362,8 @@ export function NativeWorkspaceGraph({
               id: "project-scene",
               type: "scene",
               position: { x: 0, y: 0 },
+              width: MAP_WIDTH,
+              height: MAP_HEIGHT,
               style: { width: MAP_WIDTH, height: MAP_HEIGHT },
               data: {
                 scene,
@@ -405,10 +409,10 @@ export function NativeWorkspaceGraph({
             }
           />
         )}
-        {state.overview.error && (
+        {(error || state.overview.error) && (
           <Alert className="map-load-error" severity="error">
             {state.overview.state === "failed" && "Could not refresh the map. "}
-            {state.overview.error}
+            {error || state.overview.error}
           </Alert>
         )}
         <ReactFlow

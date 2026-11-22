@@ -31,7 +31,7 @@ impl Module {
         Ok(())
     }
 }
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub(crate) struct PackageView {
     pub name: String,
     pub directory: String,

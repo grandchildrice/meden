@@ -182,7 +182,27 @@ export function NativeCode({
       return next;
     });
   }, [JSON.stringify(inspection)]);
-  const current = path ? files[path] : undefined;
+  // A prepared snapshot already owns the source. Explicit graph requests must
+  // not queue another inspection/compilation merely to populate the reader.
+  const source = path ? state.source_snapshot?.files[path] : undefined;
+  const [offset, setOffset] = useState(1);
+  useEffect(() => {
+    setOffset(line ? Math.max(1, line - 5) : 1);
+  }, [path, line]);
+  const current = useMemo(() => {
+    if (source === undefined || !path) return path ? files[path] : undefined;
+    const lines = source.split("\n");
+    return {
+      path,
+      directory: false,
+      offset,
+      next_offset: offset + 200 <= lines.length ? offset + 200 : null,
+      text: lines
+        .slice(offset - 1, offset + 199)
+        .map((text, i) => `${offset + i}: ${text}`)
+        .join("\n"),
+    };
+  }, [source, path, offset, files]);
   const rows = useMemo(
     () =>
       decoded(current?.text || "")
@@ -299,12 +319,14 @@ export function NativeCode({
             <Button
               disabled={running || (current.offset || 1) <= 1}
               onClick={() =>
-                void onCommand({
-                  type: "inspect",
-                  path,
-                  directory: false,
-                  offset: Math.max(1, (current.offset || 1) - 200),
-                })
+                source !== undefined
+                  ? setOffset(Math.max(1, offset - 200))
+                  : void onCommand({
+                      type: "inspect",
+                      path,
+                      directory: false,
+                      offset: Math.max(1, (current.offset || 1) - 200),
+                    })
               }
             >
               Previous page
@@ -312,12 +334,14 @@ export function NativeCode({
             <Button
               disabled={running || !current.next_offset}
               onClick={() =>
-                void onCommand({
-                  type: "inspect",
-                  path,
-                  directory: false,
-                  offset: current.next_offset!,
-                })
+                source !== undefined
+                  ? setOffset(current.next_offset!)
+                  : void onCommand({
+                      type: "inspect",
+                      path,
+                      directory: false,
+                      offset: current.next_offset!,
+                    })
               }
             >
               Next page

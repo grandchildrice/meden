@@ -15,6 +15,7 @@
 
 #![forbid(unsafe_code)]
 
+pub mod adapter;
 pub mod capability;
 pub mod check;
 pub mod evidence;

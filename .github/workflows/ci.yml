@@ -287,7 +287,9 @@ jobs:
           toolchain: 1.98.1
       - uses: Swatinem/rust-cache@v2
       - name: Install native GUI worker prerequisites
-        run: sudo apt-get update && sudo apt-get install -y bubblewrap zstd python3
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap zstd python3 libgmp10 libtinfo6
+      - name: Prepare pinned symbolic meaning renderer
+        run: python3 tools/prepare-informath.py
       - name: Prepare pinned Lean for real GUI Atlas journeys
         env:
           GH_TOKEN: ${{ github.token }}

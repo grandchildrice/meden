@@ -6,13 +6,13 @@ use super::{
 };
 use anyhow::Result;
 use meden_runtime::{process::Control, workspace::Workspace};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeMap, BTreeSet},
     time::{Duration, Instant},
 };
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub(crate) struct Collection {
     pub roots: Vec<String>,
     pub external_modules: Vec<String>,
@@ -20,7 +20,7 @@ pub(crate) struct Collection {
     pub packages: Vec<PackageView>,
     pub metadata: Metadata,
 }
-pub(super) fn capture(
+pub(crate) fn capture(
     workspace: &Workspace,
     control: &Control,
     paths: &[String],

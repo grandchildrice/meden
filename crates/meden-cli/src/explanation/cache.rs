@@ -20,10 +20,11 @@ pub(crate) struct Note {
 struct Artifact {
     version: u8,
     resources: String,
+    renderer: String,
     source_revision: String,
     paths: Vec<String>,
     metadata: crate::analysis::observe::Metadata,
-    notes: Vec<Note>,
+    snapshot: crate::analysis::sources::Snapshot,
 }
 
 pub(crate) fn retain(
@@ -37,6 +38,7 @@ pub(crate) fn retain(
     let artifact = Artifact {
         version: 1,
         resources: graph.resources_sha256.clone(),
+        renderer: crate::adapters::informath::fingerprint()?,
         source_revision: snapshot.revision.clone(),
         paths: snapshot.files.keys().cloned().collect(),
         metadata: snapshot
@@ -45,20 +47,7 @@ pub(crate) fn retain(
             .context("Missing compilation bindings")?
             .metadata
             .clone(),
-        notes: graph
-            .graph
-            .nodes
-            .iter()
-            .filter_map(|node| {
-                Some(Note {
-                    file: node.file_path.clone(),
-                    name: node.id.clone(),
-                    line: node.line_start?,
-                    semantic: node.semantic.clone()?,
-                    main_theorem: node.meta.as_ref().is_some_and(|meta| meta.is_main_theorem),
-                })
-            })
-            .collect(),
+        snapshot: snapshot.clone(),
     };
     let directory = crate::storage::directory(workspace.path())?.join("explanations");
     let id = crate::atlas::digest(&serde_json::to_vec(&artifact)?);
@@ -76,11 +65,7 @@ pub(crate) fn retain(
     crate::storage::write(&index_path, &index)
 }
 
-pub(crate) fn load(
-    workspace: &Workspace,
-    control: &Control,
-    paths: &[String],
-) -> Result<Vec<Note>> {
+fn artifacts(workspace: &Workspace, control: &Control, paths: &[String]) -> Result<Vec<Artifact>> {
     let directory = crate::storage::directory(workspace.path())?.join("explanations");
     let index: BTreeMap<String, String> =
         crate::storage::read(&directory.join("index.json"))?.unwrap_or_default();
@@ -96,7 +81,8 @@ pub(crate) fn load(
         return Ok(Vec::new());
     }
     let resources = crate::atlas::Configuration::host(workspace.path()).current_resources()?;
-    let mut notes = Vec::new();
+    let renderer = crate::adapters::informath::fingerprint()?;
+    let mut observations = Vec::new();
     for id in ids {
         anyhow::ensure!(
             id.len() == 64 && id.bytes().all(|c| c.is_ascii_hexdigit()),
@@ -106,15 +92,21 @@ pub(crate) fn load(
             .context("Missing explanation artifact")?;
         anyhow::ensure!(
             artifact.version == 1
+                && artifact.snapshot.revision == artifact.source_revision
+                && artifact.snapshot.files.keys().cloned().collect::<Vec<_>>() == artifact.paths
                 && artifact.paths.len() <= 32
-                && artifact.notes.len() <= 5000
+                && artifact
+                    .snapshot
+                    .atlas
+                    .as_ref()
+                    .is_some_and(|a| a.graph.nodes.len() <= 5000)
                 && crate::atlas::digest(&serde_json::to_vec(&artifact)?) == *id,
             "Invalid explanation artifact binding"
         );
-        if artifact.resources != resources {
+        if artifact.resources != resources || artifact.renderer != renderer {
             continue;
         }
-        // Stale observations never supersede a current source preview.
+        // Only exact current compiler inputs admit a cached observation.
         if crate::analysis::collect::check_metadata(workspace, control, &artifact.metadata).is_err()
         {
             continue;
@@ -126,18 +118,52 @@ pub(crate) fn load(
         if current.revision != artifact.source_revision {
             continue;
         }
-        for note in artifact.notes {
-            anyhow::ensure!(
-                artifact.paths.contains(&note.file)
-                    && note.line > 0
-                    && note.semantic.origin == "elaborated"
-                    && note.semantic.valid(),
-                "Invalid explanation observation"
-            );
-            if paths.contains(&note.file) {
-                notes.push(note);
+        observations.push(artifact);
+    }
+    Ok(observations)
+}
+
+pub(crate) fn load(
+    workspace: &Workspace,
+    control: &Control,
+    paths: &[String],
+) -> Result<Vec<Note>> {
+    let mut notes = Vec::new();
+    for artifact in artifacts(workspace, control, paths)? {
+        let graph = artifact.snapshot.atlas.context("Missing compiled graph")?;
+        for node in graph.graph.nodes {
+            if !paths.contains(&node.file_path) {
+                continue;
             }
+            let (Some(line), Some(semantic)) = (node.line_start, node.semantic) else {
+                continue;
+            };
+            anyhow::ensure!(
+                artifact.paths.contains(&node.file_path)
+                    && line > 0
+                    && semantic.origin == "elaborated"
+                    && semantic.valid(),
+                "Invalid compiled observation"
+            );
+            notes.push(Note {
+                file: node.file_path,
+                name: node.id,
+                line,
+                semantic,
+                main_theorem: node.meta.is_some_and(|m| m.is_main_theorem),
+            });
         }
     }
     Ok(notes)
+}
+
+pub(crate) fn compiled(
+    workspace: &Workspace,
+    control: &Control,
+    path: &str,
+) -> Result<Option<crate::analysis::sources::Snapshot>> {
+    Ok(artifacts(workspace, control, &[path.into()])?
+        .into_iter()
+        .next()
+        .map(|a| a.snapshot))
 }

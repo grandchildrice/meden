@@ -71,7 +71,10 @@ impl<'a> Reader<'a> {
             self.directories.len() < 2048,
             "Lake directory observation budget exceeded"
         );
-        let payload = Args::from_iter([("entries".into(), true.into())]);
+        let payload = Args::from_iter([
+            ("entries".into(), true.into()),
+            ("max_entries".into(), 100_000.into()),
+        ]);
         let entries: Vec<Entry> =
             serde_json::from_value(self.call(Operation::List, directory, payload)?)?;
         anyhow::ensure!(

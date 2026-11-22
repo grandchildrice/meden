@@ -2518,11 +2518,14 @@ The cloud trial is retained in
 
 ## Deterministic declaration explanations
 
-The Atlas adapter interprets elaborated declaration types/definition bodies with
-fixed English templates and runs a pinned Plausible runtime with a fixed seed.
-Source-only navigation has a separately labeled bounded grammar preview.
-Compilation stores explanation and sampling observations; hovering only reads
-them. No counterexample found, unsuitable assumptions, unsupported generators,
+The compiler, structural English renderer, Informath interchange and Plausible
+search are separate adapters/modules. The core exposes only owned input/artifact
+bytes, format identities and an adapter interface; artifacts carry no proof authority.
+The actual pinned Informath 0.4 executable and English GF grammar realize supported
+elaborated statements deterministically. Structural English remains available when
+realization is unsupported or exceeds its budget. Source-only English previews have
+been removed. File pages are published after compilation and search preparation;
+hovering reads saved observations only. No counterexample found, unsuitable assumptions, unsupported generators,
 compiler-task failure and an actual candidate are distinct outcomes. A false
 input for a defined predicate is not a refutation of its definition.
 
@@ -2537,7 +2540,17 @@ failure isolation coverage, not large-model, cold-install or mathematical proof
 coverage. Installed Lean 4.33.1 and 4.36.0 preparation additionally cover the
 active Riemann/EthLib toolchains.
 
-The [method and limits](research/2026-11-21-deterministic-semantics.md) describe
-the controlled vocabulary, cache binding and checker configuration. Presentation,
+The current [adapter method and limits](research/2026-11-22-observation-adapters.md)
+supersede the earlier source-preview path. Compiled caches recheck exact source,
+configuration and resource bytes. Separately, large navigation inventories prepare
+sharded lexical caches before display; zoom only reads small authenticated chunks.
+Their metadata/revision hints do not establish semantic or evidence freshness.
+The real offline adapter isolation test checks stdin, scratch, read-only resources
+and absence of host-private files/network routes. Browser journeys cover actual
+Informath output, rich candidate tables, cold preparation, warm restart, dependency
+edits, cached invalid-file failure and recovery through the public refresh button. Presentation,
 sampling, compiler execution and cache I/O are adapters with tests; none adds
 native proof authority or establishes arbitrary natural-language equivalence.
+
+Current prepared-observation browser/TUI checks and actual workspace observations
+are recorded in [the adapter validation record](../results/gui-observation-adapters.json).

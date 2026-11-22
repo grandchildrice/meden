@@ -482,7 +482,7 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
       .click();
     await expect(
       page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
-    ).toContainText("value39");
+    ).toContainText("value39", { timeout: 120000 });
     await page
       .getByRole("button", { name: "Choose model", exact: true })
       .click();

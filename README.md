@@ -265,11 +265,11 @@ requirement with a blind natural-language translation of that declaration.
 For a source-only observation, use `/sources stock.rs`, then
 `/analyze stock.rs:2 stock -- Stock always decreases`.
 
-The GUI shows distant main-target stars, controlled-English graph cards and source
-hovers. Atlas compilation also runs fixed-seed Plausible checks; source/resource-bound
-observations are cached for display without inference or recompilation. Source previews,
-counterexample candidates, inconclusive sampling and unsupported types stay distinct
-from proof. [Method and limits](docs/research/2026-11-21-deterministic-semantics.md).
+The GUI shows distant main-target stars and prepares Lean compilation, deterministic
+English and Plausible observations before opening the source/graph page. The optional
+Informath/GF adapter uses a pinned research implementation; hover only displays saved
+meaning and candidate values. Large project maps prepare a disk index and fetch small
+cached chunks on zoom. [Adapters and preparation](docs/research/2026-11-22-observation-adapters.md).
 
 `/analysis` shows the retained assessment; `/analysis history` lists previous
 runs and `/analysis ID` selects an analysis or Finding ID. Exact requirement text

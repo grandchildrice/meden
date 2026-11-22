@@ -3657,3 +3657,64 @@ pre {
   cursor: col-resize !important;
   user-select: none;
 }
+
+.file-preparation {
+  padding: 32px;
+  max-width: 640px;
+  margin: auto;
+  color: #52636e;
+}
+.semantic-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: #afd9df;
+  font-size: 11px;
+}
+.semantic-heading span {
+  opacity: 0.75;
+  overflow-wrap: anywhere;
+}
+.semantic-sentence {
+  font-size: 14px;
+  line-height: 1.7;
+}
+.semantic-refutation h4 {
+  margin: 4px 0 10px;
+  font-size: 11px;
+  color: #afd9df;
+  font-weight: 500;
+}
+.semantic-bindings {
+  width: 100%;
+  margin: 10px 0;
+  border-collapse: collapse;
+  background: #203d48;
+  border-radius: 6px;
+}
+.semantic-bindings th,
+.semantic-bindings td {
+  padding: 6px 10px;
+  text-align: left;
+  border-bottom: 1px solid #36545f;
+}
+.semantic-bindings thead th {
+  font-size: 11px;
+  font-weight: 500;
+  color: #b8ced9;
+}
+.semantic-witness-issue {
+  color: #ffd990;
+}
+.semantic-falsification,
+.semantic-provenance {
+  margin: 12px 0;
+}
+.semantic-hover-card summary {
+  cursor: pointer;
+  color: #b8ced9;
+}
+.semantic-hover-card {
+  max-height: 70vh;
+  overflow-y: auto;
+}

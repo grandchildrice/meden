@@ -1,7 +1,7 @@
 //! Read-only workspace inventory through the policy-bound file worker. This is
 //! a lexical navigation index, never compiler evidence or contract acceptance.
 use super::{lock, View};
-use crate::explanation::source::{headers, symbols, Symbol};
+use crate::adapters::source::{headers, symbols, Symbol};
 use anyhow::{Context, Result};
 use base64::Engine as _;
 use meden_agent::tool::Args;
@@ -22,6 +22,7 @@ use std::{
     },
     time::{Duration, Instant},
 };
+mod cache;
 
 #[derive(Clone, Serialize)]
 pub(super) struct Status {
@@ -42,7 +43,7 @@ impl Default for Status {
         }
     }
 }
-#[derive(Clone, Serialize, PartialEq, Eq)]
+#[derive(Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub(super) struct File {
     path: String,
     sha256: String,
@@ -60,6 +61,8 @@ pub(super) struct Snapshot {
     files: Vec<File>,
     excluded: Vec<&'static str>,
     inventory_only: bool,
+    #[serde(skip)]
+    generation: u64,
 }
 #[derive(Deserialize)]
 struct Entry {
@@ -69,13 +72,35 @@ struct Entry {
 const EXCLUDED: &[&str] = &["node_modules", "target", "dist", "__pycache__"];
 
 pub(super) fn refresh(view: &Mutex<View>, workspace: &Workspace, control: &Control) -> Result<()> {
+    let fresh = {
+        let view = lock(view);
+        view.overview_snapshot.is_some() || view.overview.state != "loading"
+    };
     {
         let mut view = lock(view);
         view.overview = Status::default();
         view.overview_snapshot = None;
+        view.source_snapshot = None;
         view.activity = "Reading workspace sources and proof declarations".into();
     }
-    let result = capture(view, workspace, control);
+    let result = capture(view, workspace, control, fresh).and_then(|mut snapshot| {
+        for path in snapshot
+            .files
+            .iter()
+            .filter(|f| f.path.split('/').count() <= 2 && f.path.ends_with("Main.lean"))
+            .take(8)
+            .map(|f| f.path.clone())
+            .collect::<Vec<_>>()
+        {
+            super::sources::prepare(view, workspace, control, &path, false);
+        }
+        apply_compiled(workspace, control, &mut snapshot.files);
+        snapshot.revision = format!(
+            "sha256:{:x}",
+            Sha256::digest(serde_json::to_vec(&(&snapshot.files, snapshot.generation))?)
+        );
+        Ok(snapshot)
+    });
     let mut view = lock(view);
     match result {
         Ok(snapshot) => {
@@ -94,7 +119,12 @@ pub(super) fn refresh(view: &Mutex<View>, workspace: &Workspace, control: &Contr
     }
 }
 
-fn capture(view: &Mutex<View>, workspace: &Workspace, control: &Control) -> Result<Snapshot> {
+fn capture(
+    view: &Mutex<View>,
+    workspace: &Workspace,
+    control: &Control,
+    fresh: bool,
+) -> Result<Snapshot> {
     let started = Instant::now();
     let mut pending = vec![(String::new(), 0usize)];
     let mut paths = Vec::new();
@@ -166,17 +196,26 @@ fn capture(view: &Mutex<View>, workspace: &Workspace, control: &Control) -> Resu
     lock(view).overview.total = paths.len();
     let inventory_only = paths.len() > 10_000;
     let mut files = if inventory_only {
-        inventory_files(view, workspace, control, &paths, started)?
+        inventory_files(view, workspace, control, &paths, started, fresh)?
     } else {
         source_files(view, workspace, control, &paths, started)?
     };
     apply_compiled(workspace, control, &mut files);
-    let revision = format!("sha256:{:x}", Sha256::digest(serde_json::to_vec(&files)?));
+    let generation = if inventory_only {
+        cache::generation(workspace)?
+    } else {
+        0
+    };
+    let revision = format!(
+        "sha256:{:x}",
+        Sha256::digest(serde_json::to_vec(&(&files, generation))?)
+    );
     Ok(Snapshot {
         revision,
         files,
         excluded: EXCLUDED.to_vec(),
         inventory_only,
+        generation,
     })
 }
 
@@ -186,7 +225,9 @@ fn inventory_files(
     control: &Control,
     paths: &[String],
     started: Instant,
+    fresh: bool,
 ) -> Result<Vec<File>> {
+    cache::prepare(view, workspace, control, paths, started, fresh)?;
     // Keep a complete file inventory without parsing gigabytes of declarations.
     // Individual files are indexed through the same policy-bound read on open.
     let mut inventory: Vec<File> = paths
@@ -241,6 +282,32 @@ pub(super) fn index_file(view: &Mutex<View>, workspace: &Workspace, control: &Co
     }
 }
 
+pub(super) fn observe_file(
+    view: &Mutex<View>,
+    workspace: &Workspace,
+    control: &Control,
+    path: &str,
+) {
+    let large = lock(view)
+        .overview_snapshot
+        .as_ref()
+        .is_some_and(|s| s.inventory_only);
+    if large {
+        if let Err(error) = cache::prepare(
+            view,
+            workspace,
+            control,
+            &[path.into()],
+            Instant::now(),
+            true,
+        ) {
+            lock(view).overview.error = Some(format!("Could not update {path}: {error:#}"));
+            return;
+        }
+    }
+    index_file(view, workspace, control, path);
+}
+
 fn index_sources(
     view: &Mutex<View>,
     workspace: &Workspace,
@@ -248,62 +315,14 @@ fn index_sources(
     path: &str,
 ) -> Result<()> {
     let snapshot = lock(view).overview_snapshot.clone();
-    let Some(snapshot) =
-        snapshot.filter(|s| s.inventory_only && s.files.iter().any(|f| f.path == path))
-    else {
+    let Some(snapshot) = snapshot.filter(|s| s.files.iter().any(|f| f.path == path)) else {
         return Ok(());
     };
-    let mut root = snapshot
-        .files
-        .first()
-        .and_then(|f| f.path.rsplit_once('/'))
-        .map_or("", |(dir, _)| dir)
-        .to_owned();
-    while !root.is_empty()
-        && snapshot
-            .files
-            .iter()
-            .any(|f| !f.path.starts_with(&format!("{root}/")))
-    {
-        root = root.rsplit_once('/').map_or("", |(dir, _)| dir).to_owned();
-    }
-    let resolve = |module: &str| -> Option<String> {
-        let relative = format!("{}.lean", module.replace('.', "/"));
-        for candidate in [format!("{root}/{relative}"), relative.clone()] {
-            if snapshot
-                .files
-                .binary_search_by(|f| f.path.cmp(&candidate))
-                .is_ok()
-            {
-                return Some(candidate);
-            }
-        }
-        let suffix = format!("/{relative}");
-        let mut matches = snapshot.files.iter().filter(|f| f.path.ends_with(&suffix));
-        let found = matches.next()?;
-        matches.next().is_none().then(|| found.path.clone())
+    let mut indexed = if snapshot.inventory_only {
+        cached_sources(&snapshot, workspace, path)?
+    } else {
+        source_files(view, workspace, control, &[path.into()], Instant::now())?
     };
-    let started = Instant::now();
-    let mut indexed = source_files(view, workspace, control, &[path.to_owned()], started)?;
-    let mut seen = BTreeSet::from([path.to_owned()]);
-    let mut cursor = 0;
-    while cursor < indexed.len() && indexed.len() < 32 {
-        let file = indexed.get(cursor).context("Invalid navigation cursor")?;
-        let neighbors = if cursor == 0 || file.declarations == 0 {
-            file.imports
-                .iter()
-                .filter_map(|module| resolve(module))
-                .filter(|p| seen.insert(p.clone()))
-                .take(32usize.saturating_sub(indexed.len()))
-                .collect::<Vec<_>>()
-        } else {
-            Vec::new()
-        };
-        if !neighbors.is_empty() {
-            indexed.extend(source_files(view, workspace, control, &neighbors, started)?);
-        }
-        cursor = cursor.saturating_add(1);
-    }
     apply_compiled(workspace, control, &mut indexed);
     let mut view = lock(view);
     if let Some(snapshot) = view.overview_snapshot.as_mut() {
@@ -376,12 +395,12 @@ fn source_files(
             .map(|_| {
                 scope.spawn(|| -> Result<()> {
                     loop {
-                        let index = cursor.fetch_add(8, Ordering::SeqCst);
+                        let index = cursor.fetch_add(32, Ordering::SeqCst);
                         if index >= paths.len() {
                             break;
                         }
                         let batch = paths
-                            .get(index..index.saturating_add(8).min(paths.len()))
+                            .get(index..index.saturating_add(32).min(paths.len()))
                             .context("Invalid source batch")?;
                         let values = observe_batch(
                             workspace,
@@ -429,8 +448,14 @@ fn source_files(
                                 },
                             );
                             let mut view = lock(view);
-                            if view.overview.state == "loading" {
-                                view.overview.scanned = view.overview.scanned.saturating_add(1);
+                            if view.overview.state == "loading"
+                                && view.activity != "Preparing cached project map"
+                            {
+                                view.overview.scanned = view
+                                    .overview
+                                    .scanned
+                                    .saturating_add(1)
+                                    .min(view.overview.total);
                             }
                         }
                     }
@@ -467,8 +492,8 @@ fn observe_batch(
     started: Instant,
 ) -> Result<Vec<Value>> {
     anyhow::ensure!(
-        started.elapsed() < Duration::from_secs(300),
-        "Workspace index exceeded 300 seconds"
+        started.elapsed() < Duration::from_secs(1800),
+        "Workspace preparation exceeded 30 minutes"
     );
     let requests = paths
         .iter()
@@ -491,9 +516,101 @@ fn observe_batch(
         &crate::workspace::file_policy()?,
         &Limits {
             timeout: Duration::from_secs(30),
-            capture_bytes: 16_777_216,
-            output_bytes: 16_777_216,
+            capture_bytes: 67_108_864,
+            output_bytes: 67_108_864,
         },
     )
     .map_err(anyhow::Error::new)
+}
+
+#[derive(Serialize)]
+pub(super) struct Chunk {
+    revision: String,
+    files: Vec<File>,
+}
+
+pub(super) fn cached(view: &Mutex<View>, workspace: &Workspace, path: &str) -> Result<Chunk> {
+    let snapshot = lock(view)
+        .overview_snapshot
+        .clone()
+        .context("Project map is still preparing")?;
+    anyhow::ensure!(
+        snapshot
+            .files
+            .binary_search_by(|file| file.path.as_str().cmp(path))
+            .is_ok(),
+        "Source is outside the prepared map inventory"
+    );
+    Ok(Chunk {
+        revision: snapshot.revision.clone(),
+        files: cached_sources(&snapshot, workspace, path)?,
+    })
+}
+
+fn cached_sources(snapshot: &Snapshot, workspace: &Workspace, path: &str) -> Result<Vec<File>> {
+    if !snapshot.inventory_only {
+        return Ok(snapshot
+            .files
+            .iter()
+            .filter(|file| file.path == path)
+            .cloned()
+            .collect());
+    }
+    let mut root = snapshot
+        .files
+        .first()
+        .and_then(|f| f.path.rsplit_once('/'))
+        .map_or("", |(dir, _)| dir)
+        .to_owned();
+    while !root.is_empty()
+        && snapshot
+            .files
+            .iter()
+            .any(|f| !f.path.starts_with(&format!("{root}/")))
+    {
+        root = root.rsplit_once('/').map_or("", |(dir, _)| dir).to_owned();
+    }
+    let resolve = |module: &str| -> Option<String> {
+        let relative = format!("{}.lean", module.replace('.', "/"));
+        for candidate in [format!("{root}/{relative}"), relative.clone()] {
+            if snapshot
+                .files
+                .binary_search_by(|f| f.path.cmp(&candidate))
+                .is_ok()
+            {
+                return Some(candidate);
+            }
+        }
+        let suffix = format!("/{relative}");
+        let mut matches = snapshot.files.iter().filter(|f| f.path.ends_with(&suffix));
+        let found = matches.next()?;
+        matches.next().is_none().then(|| found.path.clone())
+    };
+    let mut indexed = vec![cache::load(workspace, path)?
+        .context("Project map cache is unavailable; refresh the workspace")?];
+    let mut seen = BTreeSet::from([path.to_owned()]);
+    let mut cursor = 0;
+    while cursor < indexed.len() && indexed.len() < 32 {
+        let file = indexed.get(cursor).context("Invalid navigation cursor")?;
+        let neighbors = if cursor == 0 || file.declarations == 0 {
+            file.imports
+                .iter()
+                .filter_map(|module| resolve(module))
+                .filter(|p| seen.insert(p.clone()))
+                .take(32usize.saturating_sub(indexed.len()))
+                .collect::<Vec<_>>()
+        } else {
+            Vec::new()
+        };
+        if !neighbors.is_empty() {
+            for path in neighbors {
+                indexed.push(
+                    cache::load(workspace, &path)?
+                        .context("Project map cache is incomplete; refresh the workspace")?,
+                );
+            }
+        }
+        cursor = cursor.saturating_add(1);
+    }
+    Ok(indexed)
 }

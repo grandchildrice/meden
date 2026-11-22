@@ -539,6 +539,39 @@ impl Sandbox {
         ))
     }
 
+    /// Run a host-prepared adapter over private scratch and one read-only
+    /// resource directory. No workspace, credentials or network are exposed.
+    pub fn adapter_command(
+        root: &Path,
+        worker: &Path,
+        executable: &Path,
+        resources: &Path,
+        environment: &[(&str, &str)],
+        args: &[impl AsRef<OsStr>],
+    ) -> io::Result<Command> {
+        let executable = executable.canonicalize()?;
+        let resources = resources.canonicalize()?;
+        let sandbox = Self::configure(
+            root,
+            worker.canonicalize()?,
+            &[&executable],
+            BTreeSet::from([executable.clone()]),
+        )?;
+        let mut parameters = environment
+            .iter()
+            .map(|(key, value)| std::ffi::OsString::from(format!("{key}={value}")))
+            .collect::<Vec<_>>();
+        parameters.push(executable.into_os_string());
+        parameters.extend(args.iter().map(|arg| arg.as_ref().to_os_string()));
+        Ok(sandbox.build(
+            "/tools/env",
+            &parameters,
+            None,
+            &[(resources.as_path(), "/adapter")],
+            Network::Offline,
+        ))
+    }
+
     pub(crate) fn for_verification(
         root: &Path,
         worker: &Path,

@@ -253,6 +253,8 @@ pub(crate) fn module_path(path: &str) -> Result<String> {
                     | "MedenImports"
                     | "MedenLake"
                     | "MedenSemantic"
+                    | "MedenSearch"
+                    | "MedenInterchange"
                     | "MedenPlausible"
                     | "Lake"
                     | "Lean"

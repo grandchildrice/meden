@@ -42,7 +42,7 @@ export function NativeDependencyGraph({
         renderInput={(params) => <TextField {...params} label="File" />}
       />
       <div className="file-tool-actions">
-        <Tooltip title="Compile the selected modules and imports to extract type and body references. Maximum 32 files / 16 MiB. Not needed for browsing.">
+        <Tooltip title="Rebuild the selected modules and their saved observations. Maximum 32 files / 16 MiB.">
           <span>
             <Button
               variant="contained"
@@ -69,10 +69,6 @@ export function NativeDependencyGraph({
           Refresh references
         </Button>
       </div>
-      <Typography variant="body2">
-        The browsing reference graph is ready. This optional extraction runs the
-        Lean compiler.
-      </Typography>
       {!state.atlas.available && (
         <Alert severity="info">
           {state.atlas.detail}

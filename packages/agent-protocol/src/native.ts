@@ -26,7 +26,6 @@ export const sourceSnapshotSchema = z
   .object({
     revision: z.string().regex(/^sha256:[a-f0-9]{64}$/),
     files: z.record(z.string(), z.string().max(1_048_576)),
-    explanations: z.record(z.string(), z.array(sourceSymbolSchema)),
     collection: z
       .object({
         roots: z.array(z.string()),
@@ -330,6 +329,18 @@ export const workspaceOverviewSchema = z
   .strict();
 export type WorkspaceOverview = z.infer<typeof workspaceOverviewSchema>;
 export const nativeStateSchema = z.object({
+  source_preparation: z
+    .record(
+      z.string(),
+      z
+        .object({
+          state: z.enum(["preparing", "ready", "failed"]),
+          cache_hit: z.boolean(),
+          error: z.string().nullable(),
+        })
+        .strict(),
+    )
+    .default({}),
   portable: portableWorkspaceSchema,
   workspace: z.string(),
   endpoint: z.string(),
@@ -467,8 +478,7 @@ export type NativeCommand =
       type: "review_contract" | "accept_contract" | "reject_contract";
       reference: NativeReference;
     }
-  | { type: "inspect"; path: string; directory: boolean; offset?: number }
-  | { type: "index_map"; path: string };
+  | { type: "inspect"; path: string; directory: boolean; offset?: number };
 
 /** Same-origin native adapter. Tokens never enter workspace/history exports. */
 export class NativeClient {
@@ -488,6 +498,11 @@ export class NativeClient {
     return workspaceOverviewSchema.parse(
       await this.request("/api/overview", undefined, signal),
     );
+  }
+  async map(path: string) {
+    return workspaceOverviewSchema
+      .pick({ revision: true, files: true })
+      .parse(await this.request("/api/map?path=" + encodeURIComponent(path)));
   }
   private async request(
     path: string,
