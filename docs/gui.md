@@ -423,6 +423,14 @@ current step, elapsed time and **Stop preparation**. Logs remain visible after a
 timeout or cancellation, and **Retry preparation** reuses completed Lake outputs.
 Successful pages retain a collapsed **Build log**. Diagnostic history keeps the
 latest 64 KiB; it does not appear in the conversation or grant proof status.
+Open file tabs retain their observed source, graph and explanations in memory.
+Returning to a retained tab or its graph declaration does not inspect,
+compile or validate dependencies again; local source paging also needs no worker.
+The file tree also reuses open tabs. Refresh and chat edits invalidate
+retained observations; returning to an invalidated tab prepares fresh inputs.
+Navigation is presentation only:
+an explicit meaning-analysis request rechecks the frozen source/configuration,
+resources and prepared dependency fingerprint before making model requests.
 Lake builds use a separate two-hour default budget; the trusted host can set
 `MEDEN_ATLAS_BUILD_TIMEOUT_SECONDS` from 1 to 86400. Extraction retains its own
 ten-minute ceiling. Counterexample observation workers have a ten-second wall

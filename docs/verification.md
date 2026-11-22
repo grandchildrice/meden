@@ -2608,3 +2608,23 @@ observation must time out while a later declaration still completes and the grap
 remains readable.
 This is installed-tool adapter coverage, not live inference, cold installation or
 a refinement proof of compiler execution.
+
+Open GUI file tabs retain display snapshots independently of the last native
+observation. Navigation to retained tabs sends no inspection or extraction
+request and preserves the mounted graph camera. The host keeps its own immutable observed
+snapshots for explicit analysis, selected by target and source/graph revisions;
+client display state cannot supply analysis inputs or confer authority. The
+normal source/configuration/resource checks still run, including the exact
+prepared Lake fingerprint before and after model comparison. Source rereads and
+failures replace the affected display observation. Refresh and chat instructions
+discard retained observations, and the host serializes only their path/revision
+index rather than duplicating all retained source bodies in state polling.
+Refresh immediately clears the browser index too; command generations prevent
+older polling responses from restoring it. This is a presentation cache, not an
+evidence-freshness shortcut or restored approval.
+
+Identifier display preserves literal underscore names in code typography in
+graph cards and meaning popups. Genuine formula rendering retains its bounded,
+untrusted KaTeX path. Card padding/height and the dependency-node center agree
+with the tested L4SB geometry; typography changes do not change statements,
+search observations or contract acceptance.

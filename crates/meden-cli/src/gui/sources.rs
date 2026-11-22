@@ -7,8 +7,30 @@ mod preparation;
 pub(super) use preparation::Preparation;
 use std::sync::{Arc, Mutex};
 
+pub(super) fn serialize_views<S: serde::Serializer>(
+    views: &std::collections::BTreeMap<String, Arc<Snapshot>>,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
+    use serde::Serialize;
+    views
+        .iter()
+        .map(|(path, snapshot)| (path, &snapshot.revision))
+        .collect::<std::collections::BTreeMap<_, _>>()
+        .serialize(serializer)
+}
+
+/// Retain host-observed inputs for explicit analysis from any open file tab.
+/// These presentation snapshots confer no authority; analysis rechecks freshness.
+pub(super) fn remember(view: &mut super::View, snapshot: &Snapshot) {
+    let saved = Arc::new(snapshot.clone());
+    for path in snapshot.files.keys() {
+        view.source_views.insert(path.clone(), Arc::clone(&saved));
+    }
+}
+
 pub(super) fn unavailable(view: &Mutex<super::View>, path: &str, error: String) {
     let mut view = super::lock(view);
+    view.source_views.remove(path);
     view.source_preparation
         .entry(path.into())
         .or_insert_with(Preparation::new)
@@ -39,6 +61,7 @@ pub(super) fn prepare(
     super::lock(view)
         .source_preparation
         .insert(path.into(), Preparation::new());
+    super::lock(view).source_views.remove(path);
     let result = (|| -> Result<(Snapshot, bool)> {
         if !crate::adapters::lake::enabled()? {
             if let Some(snapshot) = crate::explanation::cache::compiled(workspace, control, path)
@@ -59,6 +82,7 @@ pub(super) fn prepare(
     match result {
         Ok((snapshot, cache_hit)) => {
             if publish {
+                remember(&mut view, &snapshot);
                 view.source_snapshot = Some(snapshot);
             }
             if let Some(preparation) = view.source_preparation.get_mut(path) {
@@ -98,6 +122,7 @@ pub(super) fn refresh(
     }) {
         super::analysis::invalidate(&mut view);
     }
+    remember(&mut view, &snapshot);
     view.source_snapshot = Some(snapshot);
     Ok(())
 }
@@ -144,6 +169,7 @@ pub(super) fn extract_atlas(
                 .or_insert_with(Preparation::new)
                 .finish(None, false);
         }
+        remember(&mut view, &snapshot);
         view.source_snapshot = Some(snapshot);
         view.atlas = atlas.status();
         Ok(())

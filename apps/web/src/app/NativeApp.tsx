@@ -126,6 +126,7 @@ export function NativeApp({ token }: { token: string }) {
   const [elapsed, setElapsed] = useState(0);
   const started = useRef(0);
   const inFlight = useRef(0);
+  const stateGeneration = useRef(0);
   const [busy, setBusy] = useState(false);
   const [chatPending, setChatPending] = useState(false);
   const [queue, setQueue] = useState<
@@ -140,8 +141,15 @@ export function NativeApp({ token }: { token: string }) {
     let timer: ReturnType<typeof setTimeout>;
     const poll = async () => {
       try {
+        const generation = stateGeneration.current;
+        const idle = inFlight.current === 0;
         const next = await client.state(abort.signal);
-        if (!abort.signal.aborted) {
+        if (
+          !abort.signal.aborted &&
+          idle &&
+          inFlight.current === 0 &&
+          generation === stateGeneration.current
+        ) {
           if (initialMessageCount.current === null) {
             initialMessageCount.current = next.messages.length;
             if (next.stopped?.includes("checkpoint unavailable"))
@@ -271,18 +279,21 @@ export function NativeApp({ token }: { token: string }) {
         "cancel",
       ].includes(command.type);
       if (inFlight.current && !immediate) return false;
+      const generation = ++stateGeneration.current;
       inFlight.current++;
       setBusy(true);
       try {
         await client.command(command);
         const next = await client.state();
         if (command.type === "refresh_workspace") {
+          next.source_snapshot = null;
+          next.source_views = {};
           mapEpoch.current++;
           setOverview(undefined);
           setOverviewError("");
           setOverviewCycle((value) => value + 1);
         }
-        setState(next);
+        if (generation === stateGeneration.current) setState(next);
         if (
           [
             "instruction",
@@ -364,10 +375,12 @@ export function NativeApp({ token }: { token: string }) {
         openFile(
           symbol.file,
           symbol.line,
-          state?.source_snapshot?.files[symbol.file] === undefined,
+          (!files.includes(symbol.file) ||
+            state?.source_views[symbol.file] === undefined) &&
+            state?.source_snapshot?.files[symbol.file] === undefined,
         );
     },
-    [openFile, activeFile, state?.source_snapshot],
+    [openFile, activeFile, files, state?.source_views, state?.source_snapshot],
   );
   const selectMapSymbol = useCallback(
     (symbol: Symbol) => {
@@ -594,7 +607,14 @@ export function NativeApp({ token }: { token: string }) {
               active={activeFile}
               running={running}
               onCommand={command}
-              onOpen={openFile}
+              onOpen={(path) =>
+                openFile(
+                  path,
+                  undefined,
+                  !files.includes(path) ||
+                    state.source_views[path] === undefined,
+                )
+              }
             />
           </aside>
           <SidebarResize side="files" layout={layout} />
@@ -630,7 +650,13 @@ export function NativeApp({ token }: { token: string }) {
                       aria-selected={activeFile === file}
                       aria-keyshortcuts="Delete"
                       title={file}
-                      onClick={() => openFile(file)}
+                      onClick={() =>
+                        openFile(
+                          file,
+                          undefined,
+                          state.source_views[file] === undefined,
+                        )
+                      }
                       onKeyDown={(e) => {
                         if (e.key === "Delete") {
                           e.preventDefault();

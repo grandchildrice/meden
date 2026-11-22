@@ -336,6 +336,218 @@ test.describe("native GUI with real offline workers", () => {
     ).toBe(true);
   });
 
+  test("open file tabs restore source, graph camera and explanations without another inspection", async ({
+    page,
+  }) => {
+    test.setTimeout(180000);
+    await writeFile(
+      resolve(project, "Alpha.lean"),
+      "axiom N_DD_AA : Nat\ntheorem alpha (h : N_DD_AA = 0) : N_DD_AA = 0 := h\n" +
+        Array.from({ length: 100 }, (_, i) => `-- retained line ${i}`).join(
+          "\n",
+        ),
+    );
+    await writeFile(
+      resolve(project, "Beta.lean"),
+      "theorem beta : True := True.intro\n",
+    );
+    await writeFile(
+      resolve(project, "lakefile.toml"),
+      'name = "retained"\n[[lean_lib]]\nname = "Tabs"\nroots = ["Alpha", "Beta"]\n',
+    );
+    // This journey starts from an installed, built Lake project, as Riemann does.
+    const build = spawn(
+      process.env.MEDEN_BIN || resolve("target/debug/meden"),
+      [
+        "lake",
+        "--workspace",
+        project,
+        "--lean",
+        process.env.MEDEN_ATLAS_LEAN ||
+          resolve(homedir(), ".elan/toolchains/leanprover--lean4---v4.35.0"),
+        "--timeout",
+        "120",
+        "--",
+        "build",
+        "+Alpha",
+        "+Beta",
+      ],
+    );
+    let buildOutput = "";
+    build.stdout.on("data", (data) => (buildOutput += String(data)));
+    build.stderr.on("data", (data) => (buildOutput += String(data)));
+    expect((await once(build, "exit"))[0], buildOutput).toBe(0);
+    const commands: string[] = [];
+    page.on("request", (r) => {
+      if (r.url().endsWith("/api/command"))
+        commands.push(r.postDataJSON().type);
+    });
+    await page.goto(await start(0, { MEDEN_ATLAS_BACKEND: "lake" }));
+    await page
+      .getByRole("button", { name: "File: Alpha.lean", exact: true })
+      .click();
+    const alpha = page.locator(".ide-file-page").filter({
+      has: page.getByRole("region", {
+        name: "File: Alpha.lean",
+        exact: true,
+      }),
+    });
+    const source = alpha.getByLabel("File contents");
+    await expect
+      .poll(
+        async () =>
+          (await nativeState(page)).source_preparation["Alpha.lean"]?.state,
+        { timeout: 120000 },
+      )
+      .toBe("ready");
+    await expect(source).toContainText("theorem alpha", { timeout: 120000 });
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    const button = alpha.locator(".root-node > button");
+    const margins = await button.evaluate((b) => {
+      const outer = b.getBoundingClientRect(),
+        inner = b.querySelector("strong")!.getBoundingClientRect();
+      const scale = outer.height / (b as HTMLElement).offsetHeight;
+      return [
+        (inner.top - outer.top) / scale,
+        (outer.bottom - inner.bottom) / scale,
+      ];
+    });
+    expect(Math.min(...margins)).toBeGreaterThan(10);
+    await source.evaluate((e) => {
+      e.scrollTop = 160;
+    });
+    const scroll = await source.evaluate((e) => e.scrollTop);
+    expect(scroll).toBeGreaterThan(0);
+    const graph = alpha.locator("[data-layout=l4sb]");
+    const box = await graph.boundingBox();
+    await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await page.mouse.wheel(0, -240);
+    await expect
+      .poll(() => graph.locator(".react-flow__viewport").getAttribute("style"))
+      .toContain("scale");
+    await page.waitForTimeout(300);
+    const camera = await graph
+      .locator(".react-flow__viewport")
+      .getAttribute("style");
+    await graph.evaluate((e) => {
+      (window as any).__retainedAlpha = e;
+    });
+    await page
+      .getByRole("button", { name: "File: Beta.lean", exact: true })
+      .click();
+    await expect(
+      page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
+    ).toContainText("theorem beta", { timeout: 120000 });
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    expect(
+      Object.keys((await nativeState(page)).source_snapshot.files),
+    ).toEqual(["Beta.lean"]);
+    expect(
+      (await nativeState(page)).source_snapshot.collection.prepared,
+    ).toMatch(/^[a-f0-9]{64}$/);
+    const before = commands.length;
+    for (let i = 0; i < 3; i++) {
+      await page.getByRole("tab", { name: "Project map", exact: true }).click();
+      await page.getByRole("tab", { name: "Alpha.lean", exact: true }).click();
+      await expect(source).toBeVisible({ timeout: 1000 });
+      await expect(graph).toBeVisible({ timeout: 1000 });
+      await expect(
+        alpha.getByRole("region", {
+          name: "Preparing Alpha.lean",
+          exact: true,
+        }),
+      ).toHaveCount(0);
+      await page.getByRole("tab", { name: "Beta.lean", exact: true }).click();
+    }
+    await page.getByRole("tab", { name: "Alpha.lean", exact: true }).click();
+    await page
+      .getByRole("button", { name: "File: Alpha.lean", exact: true })
+      .click();
+    expect(
+      await graph.evaluate((e) => e === (window as any).__retainedAlpha),
+    ).toBe(true);
+    await expect(graph.locator(".react-flow__viewport")).toHaveAttribute(
+      "style",
+      camera!,
+    );
+    expect(await source.evaluate((e) => e.scrollTop)).toBe(scroll);
+    expect(commands.slice(before)).toEqual([]);
+    expect(requests).toHaveLength(0);
+    await source.evaluate((e) => {
+      e.scrollTop = 0;
+    });
+    await alpha
+      .getByRole("button", { name: "Explain alpha", exact: true })
+      .click();
+    const meaning = page.getByRole("region", {
+      name: "Meaning: alpha",
+      exact: true,
+    });
+    await expect(meaning).toBeVisible();
+    const font = await meaning
+      .locator(".semantic-heading code")
+      .evaluate((e) => getComputedStyle(e).fontFamily);
+    expect(font).toContain("monospace");
+    await page.screenshot({
+      path: "target/gui-checks/retained-tabs-and-identifiers.png",
+    });
+    await page.mouse.move(1300, 700);
+    await graph
+      .getByRole("button", { name: /alpha.*: select/ })
+      .first()
+      .click();
+    await alpha
+      .getByRole("textbox", { name: "Requirement to compare", exact: true })
+      .fill("Review alpha from its retained original graph");
+    await page
+      .getByRole("button", { name: "Choose model", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Use this model", exact: true })
+      .click();
+    responses.push(
+      (r) =>
+        reply(
+          r,
+          tool("record_informalization", {
+            lemmaName: "alpha",
+            naturalLanguage: "The supplied equality is returned.",
+            preconditions: "The equality holds.",
+            postcondition: "The same equality holds.",
+            scope: "One theorem",
+            strength: "trivial",
+            confidence: 1,
+          }),
+        ),
+      (r) =>
+        reply(
+          r,
+          tool("record_comparison", {
+            lemmaName: "alpha",
+            match: true,
+            discrepancy: "",
+            weakeningType: "none",
+            explanation: "The supplied equality is retained.",
+          }),
+        ),
+    );
+    await alpha
+      .getByRole("button", { name: "Analyze declaration meaning", exact: true })
+      .click();
+    await expect(
+      alpha.getByLabel("Meaning analysis result", { exact: true }),
+    ).toContainText("Candidate match", { timeout: 60000 });
+    expect(requests).toHaveLength(2);
+    expect((await nativeState(page)).analysis.input.target.file).toBe(
+      "Alpha.lean",
+    );
+    expect((await nativeState(page)).project.verified).toBe(false);
+  });
+
   test("build logs stream before completion, retain timeout and cancellation output, and retry the real compiler", async ({
     page,
   }) => {
@@ -565,7 +777,16 @@ theorem slow : True := fast
     await expect
       .poll(async () => (await nativeState(page)).running)
       .toBe(false);
-    await open();
+    const reread = async () => {
+      await page
+        .getByRole("button", { name: "Refresh files and map", exact: true })
+        .click();
+      await expect
+        .poll(async () => (await nativeState(page)).running)
+        .toBe(false);
+      await open();
+    };
+    await reread();
     await expect
       .poll(
         async () =>
@@ -577,7 +798,15 @@ theorem slow : True := fast
       .poll(async () => (await nativeState(page)).running)
       .toBe(false);
     await writeFile(resolve(project, "Part0.lean"), "def part0 : Nat := 2\n");
-    await open();
+    await reread();
+    await expect
+      .poll(
+        async () => (await nativeState(page)).source_snapshot?.atlas?.revision,
+        {
+          timeout: 120000,
+        },
+      )
+      .toBeTruthy();
     await expect
       .poll(
         async () => (await nativeState(page)).source_snapshot?.atlas?.revision,
@@ -593,7 +822,7 @@ theorem slow : True := fast
       .poll(async () => (await nativeState(page)).running)
       .toBe(false);
     await writeFile(resolve(project, "Part0.lean"), "invalid lean syntax }\n");
-    await open();
+    await reread();
     await expect
       .poll(
         async () =>

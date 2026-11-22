@@ -317,7 +317,9 @@ export function NativeCode({
           </pre>
           <div className="explorer-pages">
             <Button
-              disabled={running || (current.offset || 1) <= 1}
+              disabled={
+                (running && source === undefined) || (current.offset || 1) <= 1
+              }
               onClick={() =>
                 source !== undefined
                   ? setOffset(Math.max(1, offset - 200))
@@ -332,7 +334,9 @@ export function NativeCode({
               Previous page
             </Button>
             <Button
-              disabled={running || !current.next_offset}
+              disabled={
+                (running && source === undefined) || !current.next_offset
+              }
               onClick={() =>
                 source !== undefined
                   ? setOffset(current.next_offset!)

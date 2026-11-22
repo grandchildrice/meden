@@ -2,7 +2,11 @@ import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Alert, Button, LinearProgress } from "@mui/material";
 import { NativePreparation, PreparationLog } from "./NativePreparation";
 import type { Declaration, Workspace } from "@meden/workspace-schema";
-import type { NativeState, NativeCommand } from "@meden/agent-protocol/native";
+import type {
+  NativeState,
+  NativeCommand,
+  SourceSnapshot,
+} from "@meden/agent-protocol/native";
 import type { MapScene, Symbol } from "./project-map-model";
 import { NativeCode } from "./NativeExplorer";
 import { NativeMeaning } from "./NativeMeaning";
@@ -92,10 +96,21 @@ export function NativeFileWorkspace({
     if (state.running) setFailure(undefined);
     else if (state.stopped) setFailure(state.stopped);
   }, [state.running, state.operation, state.stopped, analysisFile, path]);
-  const snapshot =
+  const incoming =
     state.source_snapshot?.files[path] !== undefined
       ? state.source_snapshot
       : undefined;
+  const preparation = state.source_preparation[path];
+  const [retained, setRetained] = useState<SourceSnapshot>();
+  const retainedRevision = state.source_views[path];
+  useEffect(() => {
+    if (incoming) setRetained(incoming);
+    else if (!retainedRevision) setRetained(undefined);
+  }, [incoming?.revision, incoming?.atlas?.revision, retainedRevision]);
+  const snapshot =
+    incoming ||
+    (retained?.revision === retainedRevision ? retained : undefined);
+  const displayed = snapshot ? { ...state, source_snapshot: snapshot } : state;
   const semanticGraph = useMemo(
     () => (snapshot?.atlas ? importAtlas(snapshot.atlas.graph) : graph),
     [snapshot?.atlas?.revision, graph],
@@ -130,7 +145,6 @@ export function NativeFileWorkspace({
     const symbol = scene?.symbols.get(declaration.id);
     if (symbol) onSelect(symbol);
   };
-  const preparation = state.source_preparation[path];
   if (
     path.endsWith(".lean") &&
     (preparation?.state === "preparing" ||
@@ -153,7 +167,7 @@ export function NativeFileWorkspace({
     <section className="file-split" aria-label={"File: " + path}>
       <div className="file-source-pane">
         <NativeCode
-          state={state}
+          state={displayed}
           path={path}
           line={selected?.file === path ? selected.line : undefined}
           running={running}

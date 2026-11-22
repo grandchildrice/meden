@@ -117,7 +117,7 @@ export function GraphView({
           type: "declaration",
           position: {
             x: position.x - width / 2,
-            y: position.y - 37,
+            y: position.y - 52,
           },
           focusable: false,
           data: {
@@ -247,6 +247,9 @@ export function GraphView({
 
 function FitToPane({ canvas }: { canvas: RefObject<HTMLDivElement | null> }) {
   const { fitView } = useReactFlow();
+  const lastSize = useRef<{ width: number; height: number } | undefined>(
+    undefined,
+  );
   const fitToCanvas = useEffectEvent(() => {
     void fitView({
       padding: {
@@ -264,6 +267,12 @@ function FitToPane({ canvas }: { canvas: RefObject<HTMLDivElement | null> }) {
     const observer = new ResizeObserver((entries) => {
       const bounds = entries[0]?.contentRect;
       if (!bounds || bounds.width === 0 || bounds.height === 0) return;
+      if (
+        lastSize.current?.width === bounds.width &&
+        lastSize.current?.height === bounds.height
+      )
+        return;
+      lastSize.current = { width: bounds.width, height: bounds.height };
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => fitToCanvas());
     });

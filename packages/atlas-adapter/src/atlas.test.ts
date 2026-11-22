@@ -157,7 +157,7 @@ it("keeps dense L4SB layers disjoint at their actual rendered widths and heights
         b = positions[j]!;
       expect(
         Math.abs(a.x - b.x) >= (a.width + b.width) / 2 ||
-          Math.abs(a.y - b.y) >= 74,
+          Math.abs(a.y - b.y) >= 104,
       ).toBe(true);
     }
 });

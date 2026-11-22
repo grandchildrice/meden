@@ -8,6 +8,11 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Native GUI and Atlas with Ollama Cloud
 
+The [retained file views record](gui-retained-tabs.json) covers navigation without
+repeat inspection, retained source/graph positions, literal identifier typography
+and readable card padding. It records actual Riemann navigation timings separately
+from first-open builds, plus host cache invalidation and explicit-analysis checks.
+
 The [streamed preparation record](gui-build-log-streaming.json) covers actual
 build logs before completion, timeout/cancellation output, explicit retry and
 independently bounded checker workers. The formerly failing Riemann `DictGen`

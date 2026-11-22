@@ -3527,18 +3527,18 @@ pre {
 .cone-graph .radar-node,
 .cone-graph .radar-node.root-node {
   width: var(--node-width, 186px);
-  height: 74px;
-  min-height: 74px;
+  height: 104px;
+  min-height: 104px;
 }
 .cone-graph .radar-node > button,
 .cone-graph .radar-node.root-node > button {
   width: var(--node-width, 186px);
-  height: 74px;
-  min-height: 74px;
+  height: 104px;
+  min-height: 104px;
   transform: none;
   border-radius: 6px;
-  padding: 3px 7px;
-  gap: 5px;
+  padding: 14px 18px;
+  gap: 10px;
   flex-direction: row;
   background: #162c35;
   border: 1px solid #53717d;
@@ -3550,7 +3550,7 @@ pre {
 }
 .cone-graph .radar-node strong {
   font-size: 13px;
-  line-height: 1.25;
+  line-height: 1.4;
   white-space: normal;
   display: -webkit-box;
   -webkit-line-clamp: 4;
@@ -3558,6 +3558,8 @@ pre {
   overflow: hidden;
   text-align: left;
   max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .semantic-inlay.MuiIconButton-root {
   color: #397d94;
@@ -3710,6 +3712,19 @@ pre {
 .semantic-heading span {
   opacity: 0.75;
   overflow-wrap: anywhere;
+}
+.math-identifier,
+.semantic-heading code {
+  font-family:
+    ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-style: normal;
+  font-size: 0.95em;
+  font-weight: 500;
+}
+.cone-graph .radar-node .math-identifier {
+  display: inline;
+  color: inherit;
+  font-size: 0.95em;
 }
 .semantic-sentence {
   font-size: 14px;

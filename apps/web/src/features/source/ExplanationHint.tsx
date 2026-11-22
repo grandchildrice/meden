@@ -77,7 +77,7 @@ export function ExplanationHint({
         <section aria-label={"Meaning: " + note.name}>
           <header className="semantic-heading">
             <strong>Meaning</strong>
-            <span>{note.name.split(".").at(-1)}</span>
+            <code>{note.name.split(".").at(-1)}</code>
           </header>
           <p className="semantic-sentence">
             <MathText text={semantic.sentence} />

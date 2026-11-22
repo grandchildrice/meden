@@ -283,6 +283,28 @@ fn observe(
             record.borrow_mut().state = State::Stale;
             return Err(error);
         }
+        if let Some(expected) = &collection.prepared {
+            let output = crate::atlas::Configuration::host(workspace.path()).project(
+                workspace.path(),
+                "project-atlas-prepare.sh",
+                &[
+                    "fingerprint".into(),
+                    serde_json::to_string(&collection.modules)?,
+                ],
+                control,
+            )?;
+            let observed: serde_json::Value = serde_json::from_str(&output)?;
+            if observed
+                .get("fingerprint")
+                .and_then(serde_json::Value::as_str)
+                != Some(expected.as_str())
+            {
+                record.borrow_mut().state = State::Stale;
+                anyhow::bail!(
+                    "Prepared dependencies changed; reread the file before meaning analysis"
+                );
+            }
+        }
     }
     if let Some(atlas) = &snapshot.atlas {
         anyhow::ensure!(

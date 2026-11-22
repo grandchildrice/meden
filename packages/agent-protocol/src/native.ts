@@ -435,6 +435,7 @@ export const nativeStateSchema = z.object({
     })
     .nullable(),
   source_snapshot: sourceSnapshotSchema.nullable(),
+  source_views: z.record(z.string(), z.string()),
   analysis: meaningRecordSchema.nullable(),
   analysis_history: z.array(meaningRecordSchema).max(1000),
   repair_review: repairReviewSchema.nullable(),

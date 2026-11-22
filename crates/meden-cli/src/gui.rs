@@ -56,6 +56,8 @@ struct View {
     logs: Vec<Value>,
     inspection: Option<Value>,
     source_snapshot: Option<sources::Snapshot>,
+    #[serde(serialize_with = "sources::serialize_views")]
+    source_views: std::collections::BTreeMap<String, Arc<sources::Snapshot>>,
     source_preparation: std::collections::BTreeMap<String, sources::Preparation>,
     analysis: Option<analysis::Record>,
     analysis_history: Vec<analysis::Record>,
@@ -365,6 +367,7 @@ fn initial_view(
         logs: Vec::new(),
         inspection: None,
         source_snapshot: None,
+        source_views: std::collections::BTreeMap::new(),
         source_preparation: std::collections::BTreeMap::new(),
         analysis: analysis_history.last().cloned(),
         analysis_history,
@@ -917,6 +920,7 @@ fn observe(view: &Mutex<View>, event: &Event<'_>) {
             if refusal.is_none() && call.function.name == "check_lean_work" {
                 view.project.verified = false;
                 view.source_snapshot = None;
+                view.source_views.clear();
                 analysis::invalidate(&mut view);
             }
             view.activity = format!(
@@ -1051,6 +1055,7 @@ fn perform_work(
             project.mark_dirty();
             lock(view).project.verified = false;
             lock(view).source_snapshot = None;
+            lock(view).source_views.clear();
             analysis::invalidate(&mut lock(view));
             lock(view).activity = format!("Checking Lean work {id}");
             crate::handoff::check(workspace, processes, &id)?;
@@ -1068,6 +1073,7 @@ fn perform_work(
 fn instruction(view: &Mutex<View>, text: String) -> String {
     let mut view = lock(view);
     view.source_snapshot = None;
+    view.source_views.clear();
     analysis::invalidate(&mut view);
     view.messages.push(history::Message {
         speaker: history::Speaker::User,

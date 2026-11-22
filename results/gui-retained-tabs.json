@@ -1,0 +1,96 @@
+{
+  "date": "2026-11-22",
+  "subject": "Retained file views, responsive tab navigation and literal identifier typography",
+  "binary_sha256": "5fda9cd8a9355e72f4be65ae65ce949b0e25d4d9423e8cf7ce712ff7c4064aeb",
+  "behavior": {
+    "navigation": "Retained file tabs and file-tree selections reuse mounted source, graph, explanations, source scroll and graph camera without inspection, compilation or model requests.",
+    "invalidation": "The host publishes only retained path/revision keys in state polling. Refresh, chat instructions, checked work and repair discard observations; failed/reread inputs replace their affected view. Returning to an invalidated tab prepares fresh inputs. The refresh response clears the browser index immediately, and command generations discard superseded polling responses.",
+    "explicit_analysis": "The host selects its original immutable observation by target and exact source/graph revisions, then rechecks sources, configuration, resources and the prepared Lake fingerprint before/after model comparison. Client presentation state confers no authority.",
+    "visuals": "Dependency cards have 14px/18px padding and 104px height, matching node centers/layout checks. Literal underscore identifiers use code typography in cards and info popups. True formulas keep bounded untrusted KaTeX; inline code inherits readable card contrast."
+  },
+  "actual_riemann_observation": {
+    "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+    "switch_ms": [
+      148,
+      175,
+      163,
+      137,
+      107
+    ],
+    "navigation_commands": [],
+    "authorized": false,
+    "preparation": "ready"
+  },
+  "checks": {
+    "typescript_unit": 31,
+    "cli_unit": 71,
+    "required_public_tui": 33,
+    "tui_evidence": "/tmp/meden-ux-retained-tabs-final-20261122",
+    "decoded_screen_review": [
+      "Lake source-inventory refusal and retained historical result",
+      "GUI/TUI continuation and retained repository edits",
+      "HTTP 429 stop, restart and explicit retry"
+    ],
+    "gui_full_attempt": {
+      "passed": 51,
+      "failed": 3,
+      "log": "/tmp/meden-tab-full-gui.log",
+      "failures": "Refresh, failed lexical recovery and post-edit invalidation exposed retained-view regressions, fixed with host path/revision invalidation."
+    },
+    "gui_followups": [
+      {
+        "log": "/tmp/meden-tab-rerun-gui.log",
+        "passed": 2,
+        "failed": 2,
+        "notes": "Retained tabs and missing-Mathlib recovery passed. One accessibility contrast failure was fixed; a concurrent runner cleared trace artifacts and caused the completed main-target case to fail teardown."
+      },
+      {
+        "log": "/tmp/meden-tab-final-gui.log",
+        "passed": 2,
+        "failed": 1,
+        "notes": "Main-target freshness/restart and edited-source/mobile accessibility passed. The new Lake variant initially lacked a manifest, so its build changed frozen metadata and was correctly refused. The regression now explicitly starts from a project built using the public meden lake command and requires ready before testing navigation."
+      },
+      {
+        "log": "/tmp/meden-tab-lake-gui.log",
+        "passed": 1,
+        "failed": 1,
+        "notes": "The real prepared-Lake retained-tab and explicit-analysis journey passed. Rapid refresh exposed a missing reread: the display could still retain its previous path index."
+      },
+      {
+        "log": "/tmp/meden-tab-last-gui.log",
+        "passed": 1,
+        "failed": 1,
+        "notes": "Retained tabs passed again. Poll-response generation guards alone did not resolve rapid refresh; the refresh command now immediately clears the browser observation index before navigation is enabled."
+      }
+    ],
+    "final_prepared_lake_regression": {
+      "passed": 1,
+      "failed": 0,
+      "log": "/tmp/meden-tab-refresh-gui.log",
+      "outcomes": [
+        "Warm artifact validation after explicit refresh",
+        "Imported source change rebuilds exact graph",
+        "Compiler failure refuses stale graph",
+        "Explicit retry recovers",
+        "Restart reuses valid cache without inference approval"
+      ]
+    },
+    "format_typecheck_clippy": "passed",
+    "gui_distinct_cases_passed": 54,
+    "nonpassing_setup_attempts": [
+      "A concurrent browser launch found port 4321 occupied; it did not run a product journey.",
+      "Type checking rejected an explorer callback with an extra argument; the signature was corrected before the succeeding build/checks."
+    ]
+  },
+  "screenshots": [
+    "target/gui-checks/retained-tabs-and-identifiers.png",
+    "/tmp/meden-riemann-retained-tabs.png"
+  ],
+  "limitations": [
+    "Timings measure five automated returns to an already prepared Riemann file, not first-open compilation or a universal latency guarantee.",
+    "Initial Lake builds and explicit input-freshness checks may still take time; no whole-project Riemann Main build completion is claimed.",
+    "Actual installed Lean/Lake and offline workers were exercised. Model responses in regression fixtures were scripted; this is not live-model, local-inference, cold-install or whole-application refinement evidence.",
+    "An exploratory browser helper initially used a five-second idle wait during real preparation. It was rerun with an explicit inspection-dispatch/completion wait; no project/configuration rescue was used."
+  ],
+  "screenshots_reviewed": true
+}
