@@ -38,6 +38,11 @@ pub(super) fn prepare(
     {
         return;
     }
+    // A Lake project can span hundreds of thousands of modules. Its host
+    // preparation is explicit; do not start a whole-project build on map startup.
+    if !publish && crate::adapters::lake::enabled().unwrap_or(false) {
+        return;
+    }
     super::lock(view).source_preparation.insert(
         path.into(),
         Preparation {
@@ -47,16 +52,15 @@ pub(super) fn prepare(
         },
     );
     let result = (|| -> Result<(Snapshot, bool)> {
-        if let Some(snapshot) = crate::explanation::cache::compiled(workspace, control, path)
-            .ok()
-            .flatten()
-        {
-            return Ok((snapshot, true));
+        if !crate::adapters::lake::enabled()? {
+            if let Some(snapshot) = crate::explanation::cache::compiled(workspace, control, path)
+                .ok()
+                .flatten()
+            {
+                return Ok((snapshot, true));
+            }
         }
-        Ok((
-            crate::analysis::extract(workspace, control, &[path.into()])?,
-            false,
-        ))
+        crate::analysis::extract_cached(workspace, control, &[path.into()])
     })();
     let mut view = super::lock(view);
     match result {

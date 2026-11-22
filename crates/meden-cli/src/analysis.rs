@@ -117,27 +117,50 @@ pub(crate) fn extract(
     control: &Control,
     paths: &[String],
 ) -> Result<sources::Snapshot> {
+    Ok(extract_cached(workspace, control, paths)?.0)
+}
+
+pub(crate) fn extract_cached(
+    workspace: &Workspace,
+    control: &Control,
+    paths: &[String],
+) -> Result<(sources::Snapshot, bool)> {
     use meden_core::adapter::{Adapter, Input};
-    let artifact = crate::adapters::lean::Lean.run(
-        &crate::adapters::Context { workspace, control },
-        Input {
-            format: "meden/source-paths+json".into(),
-            bytes: serde_json::to_vec(paths)?,
-        },
-    )?;
+    let context = crate::adapters::Context { workspace, control };
+    let atlas = crate::atlas::Configuration::host(workspace.path());
+    atlas.ensure_prepared(control)?;
+    let artifact = if crate::adapters::lake::enabled()? {
+        let selected = collect::roots(workspace, control, paths)?;
+        crate::adapters::lake::Lake.run(
+            &context,
+            Input {
+                format: "meden/selected-snapshot+json".into(),
+                bytes: serde_json::to_vec(&selected)?,
+            },
+        )?
+    } else {
+        crate::adapters::lean::Lean.run(
+            &context,
+            Input {
+                format: "meden/source-paths+json".into(),
+                bytes: serde_json::to_vec(paths)?,
+            },
+        )?
+    };
+    let cached = artifact.format == "meden/cached-snapshot+json";
     anyhow::ensure!(
-        artifact.format == "meden/compiled-snapshot+json",
+        cached || artifact.format == "meden/compiled-snapshot+json",
         "Unexpected compiler output format"
     );
     let mut snapshot: sources::Snapshot = serde_json::from_slice(&artifact.bytes)?;
-    // The host composes independent integrations. The compiler adapter knows
-    // neither the optional language realizer nor the observation cache.
-    if let Some(graph) = snapshot.atlas.as_mut() {
-        crate::adapters::informath::enrich(graph, control)?;
+    if !cached {
+        if let Some(graph) = snapshot.atlas.as_mut() {
+            crate::adapters::informath::enrich(graph, control)?;
+        }
+        control.with_active(|| Ok(()))?;
+        crate::explanation::cache::retain(workspace, &snapshot)?;
     }
-    control.with_active(|| Ok(()))?;
-    crate::explanation::cache::retain(workspace, &snapshot)?;
-    Ok(snapshot)
+    Ok((snapshot, cached))
 }
 
 pub(crate) fn run(

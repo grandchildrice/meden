@@ -8,6 +8,12 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Native GUI and Atlas with Ollama Cloud
 
+The [prepared Riemann Lake record](gui-riemann-prepared-lake.json) records the
+actual pinned dependency/cache installation, successful `Statements` compilation,
+selected-module graph preparation and exact artifact-cache reuse. It keeps the
+unfinished 175,187-module `Main` build separate from completed file analysis and
+records public GUI/TUI checks without inference or whole-project proof claims.
+
 The [prepared observation adapters record](gui-observation-adapters.json) covers the
 actual Informath/GF integration, prepare-before-display source pages, richer candidate
 tables, cached map reads and public TUI failure/restart screens. It records unavailable

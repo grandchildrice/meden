@@ -504,6 +504,8 @@ impl Sandbox {
                     | "imports.sh"
                     | "lake.sh"
                     | "project.sh"
+                    | "project-atlas-prepare.sh"
+                    | "project-atlas-extract.sh"
             )
         {
             return Err(io::Error::other(
@@ -527,6 +529,11 @@ impl Sandbox {
             (lean.as_path(), "/analysis/lean"),
             (library.as_path(), "/analysis/library"),
         ];
+        // Extraction observes prepared project artifacts through a read-only
+        // overlay; only the separate preparation profile may run Lake builds.
+        if script == "project-atlas-extract.sh" {
+            bindings.push((sandbox.root.as_path(), "/workspace"));
+        }
         if let Some(path) = sources.as_deref() {
             bindings.push((path, "/analysis/sources"));
         }
@@ -709,13 +716,11 @@ impl Sandbox {
         if let Some(source) = source {
             command.arg("--ro-bind").arg(source).arg("/source");
         }
+        command.arg("--bind").arg(&self.root).arg("/workspace");
         for (source, destination) in bindings {
             command.arg("--ro-bind").arg(source).arg(destination);
         }
         command
-            .arg("--bind")
-            .arg(&self.root)
-            .arg("/workspace")
             .args([
                 "--chdir",
                 "/workspace",

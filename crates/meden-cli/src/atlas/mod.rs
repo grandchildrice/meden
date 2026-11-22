@@ -13,6 +13,7 @@ use sha2::{Digest, Sha256};
 mod graph;
 mod imports;
 pub(crate) mod lake;
+mod project;
 mod resources;
 mod toolchain;
 pub(crate) use graph::Extraction;
@@ -326,7 +327,7 @@ impl Execution<'_> {
             &mut command,
             &Limits {
                 timeout,
-                capture_bytes: if script == "extract.sh" {
+                capture_bytes: if matches!(script, "extract.sh" | "project-atlas-extract.sh") {
                     8_388_608
                 } else {
                     32768

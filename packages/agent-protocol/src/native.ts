@@ -30,6 +30,10 @@ export const sourceSnapshotSchema = z
       .object({
         roots: z.array(z.string()),
         external_modules: z.array(z.string()),
+        prepared: z
+          .string()
+          .regex(/^[a-f0-9]{64}$/)
+          .optional(),
         modules: z.array(
           z
             .object({ name: z.string(), file: z.string(), root: z.string() })

@@ -148,8 +148,8 @@ def collectAxiomsPartition (env : Environment) (root : Name) : (Array Name × Ar
   let mut visited : NameSet := {}
   let mut toProcess : Array Name := #[root]
   while h : toProcess.size > 0 do
-    let current := toProcess[0]
-    toProcess := toProcess.eraseIdx 0
+    let current := toProcess[toProcess.size - 1]!
+    toProcess := toProcess.pop
     if visited.contains current then
       continue
     visited := visited.insert current

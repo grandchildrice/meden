@@ -65,7 +65,12 @@ pub(crate) fn retain(
     crate::storage::write(&index_path, &index)
 }
 
-fn artifacts(workspace: &Workspace, control: &Control, paths: &[String]) -> Result<Vec<Artifact>> {
+fn artifacts(
+    workspace: &Workspace,
+    control: &Control,
+    paths: &[String],
+    prepared: Option<&str>,
+) -> Result<Vec<Artifact>> {
     let directory = crate::storage::directory(workspace.path())?.join("explanations");
     let index: BTreeMap<String, String> =
         crate::storage::read(&directory.join("index.json"))?.unwrap_or_default();
@@ -103,6 +108,15 @@ fn artifacts(workspace: &Workspace, control: &Control, paths: &[String]) -> Resu
                 && crate::atlas::digest(&serde_json::to_vec(&artifact)?) == *id,
             "Invalid explanation artifact binding"
         );
+        if artifact
+            .snapshot
+            .collection
+            .as_ref()
+            .and_then(|c| c.prepared.as_deref())
+            != prepared
+        {
+            continue;
+        }
         if artifact.resources != resources || artifact.renderer != renderer {
             continue;
         }
@@ -129,7 +143,7 @@ pub(crate) fn load(
     paths: &[String],
 ) -> Result<Vec<Note>> {
     let mut notes = Vec::new();
-    for artifact in artifacts(workspace, control, paths)? {
+    for artifact in artifacts(workspace, control, paths, None)? {
         let graph = artifact.snapshot.atlas.context("Missing compiled graph")?;
         for node in graph.graph.nodes {
             if !paths.contains(&node.file_path) {
@@ -162,7 +176,20 @@ pub(crate) fn compiled(
     control: &Control,
     path: &str,
 ) -> Result<Option<crate::analysis::sources::Snapshot>> {
-    Ok(artifacts(workspace, control, &[path.into()])?
+    Ok(artifacts(workspace, control, &[path.into()], None)?
+        .into_iter()
+        .next()
+        .map(|a| a.snapshot))
+}
+
+/// Only a freshly prepared, exact compiled-input fingerprint may reuse these observations.
+pub(crate) fn compiled_prepared(
+    workspace: &Workspace,
+    control: &Control,
+    paths: &[String],
+    fingerprint: &str,
+) -> Result<Option<crate::analysis::sources::Snapshot>> {
+    Ok(artifacts(workspace, control, paths, Some(fingerprint))?
         .into_iter()
         .next()
         .map(|a| a.snapshot))

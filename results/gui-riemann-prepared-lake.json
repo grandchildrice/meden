@@ -1,0 +1,183 @@
+{
+  "date": "2026-11-22",
+  "subject": "Prepared Lake dependencies and Riemann file analysis",
+  "binary_sha256": "324a5fb0fb8bf9f7c89a715bfc35c28c932f14b55bff133ef2c28cf5b8fdf25a",
+  "workspace": "/home/gohan/workspace/Riemann",
+  "lean": "4.33.1",
+  "dependency_preparation": {
+    "packages": [
+      {
+        "name": "mathlib",
+        "commit": "0df444a360eaa60ab8c11dca51a86af692955474"
+      },
+      {
+        "name": "plausible",
+        "commit": "b7eb3304aeae834b12dda98993a37f6a41f6f0bb"
+      },
+      {
+        "name": "LeanSearchClient",
+        "commit": "5f4d51b81cbd3f6b32b156bfad9056621a040404"
+      },
+      {
+        "name": "importGraph",
+        "commit": "16f02aa7642864af59f1ff0e384a015994db9118"
+      },
+      {
+        "name": "proofwidgets",
+        "commit": "4be2e3d5087eeb272cf5a8853b8f9dd025ef5957"
+      },
+      {
+        "name": "aesop",
+        "commit": "3448c0bcc5ce01b2d1546e483ec3620e32df3d0e"
+      },
+      {
+        "name": "Qq",
+        "commit": "92c15be17b7caf78c2ad767ec40f89052d908d81"
+      },
+      {
+        "name": "batteries",
+        "commit": "4488d40d070b9700d4d5a6aa342f0d40c31b2a2d"
+      },
+      {
+        "name": "Cli",
+        "commit": "6130a47896ce867c6a4a55373441e59e565bad0f"
+      }
+    ],
+    "cache_plan_archives": 8690,
+    "unpack": {
+      "success": true,
+      "termination": "Exited(ExitStatus(unix_wait_status(0)))",
+      "stdout": "Decompressing 8689 file(s) (1 already decompressed)\nDecompressed in 6671 ms\nCompleted successfully!\n",
+      "stderr": ""
+    },
+    "method": "Fixed host-side pinned Git clones and exact public Mathlib cache downloads; cache executable build/unpack and project compilation ran in public offline meden lake workers. No model-selected network executor."
+  },
+  "statements_build": {
+    "success": true,
+    "termination": "Exited(ExitStatus(unix_wait_status(0)))",
+    "stdout": "✔ [8706/8706] Built Statements (2.8s)\nBuild completed successfully (8706 jobs).\n",
+    "stderr": ""
+  },
+  "gui": {
+    "file": "src/Statements.lean",
+    "preparation": {
+      "state": "ready",
+      "cache_hit": false,
+      "error": null
+    },
+    "warm": {
+      "state": "ready",
+      "cache_hit": true,
+      "error": null
+    },
+    "declarations": [
+      {
+        "id": "DirichletLNonvanishingRightOfHalf",
+        "kind": "definition",
+        "checker": {
+          "engine": "Plausible",
+          "status": "unsupported",
+          "candidates": [],
+          "diagnostic": "failed to synthesize\n  MedenPlausible.Testable\n    (MedenPlausible.NamedBinder \"N\"\n      (∀ (N : ℕ),\n        MedenPlausible.NamedBinder \"inst._@.Statements.2658817955._hygCtx._hyg.8\"\n          (∀ [inst : NeZero N],\n            MedenPlausible.NamedBinder \"χ\"\n              (∀ (χ : DirichletCharacter ℂ N),\n                MedenPlausible.NamedBinder \"s\"\n                  (∀ (s : ℂ),\n                    MedenPlausible.NamedBinder \"a._@._internal._hyg.0\"\n                      (1 / 2 < s.re →\n                        MedenPlausible.NamedBinder \"a._@._internal._hyg.0\"\n                          (χ ≠ 1 ∨ s ≠ 1 → DirichletCharacter.LFunction χ s ≠ 0)))))))\n\nHint: Additional diagnostic information may be available using the `set_option diagnostics true` command.",
+          "mode": "predicate"
+        },
+        "renderer": "Informath 0.4 / GF · 6a2c28c063d0"
+      },
+      {
+        "id": "DirichletLZerosOnLine",
+        "kind": "definition",
+        "checker": {
+          "engine": "Plausible",
+          "status": "unsupported",
+          "candidates": [],
+          "diagnostic": "failed to synthesize\n  MedenPlausible.Testable\n    (MedenPlausible.NamedBinder \"N\"\n      (∀ (N : ℕ),\n        MedenPlausible.NamedBinder \"inst._@.Statements.2306055118._hygCtx._hyg.8\"\n          (∀ [inst : NeZero N],\n            MedenPlausible.NamedBinder \"χ\"\n              (∀ (χ : DirichletCharacter ℂ N),\n                MedenPlausible.NamedBinder \"s\"\n                  (∀ (s : ℂ),\n                    MedenPlausible.NamedBinder \"a._@._internal._hyg.0\"\n                      (0 < s.re →\n                        MedenPlausible.NamedBinder \"a._@._internal._hyg.0\"\n                          (s.re < 1 →\n                            MedenPlausible.NamedBinder \"a._@._internal._hyg.0\"\n                              (DirichletCharacter.LFunction χ s = 0 → s.re = 1 / 2))))))))\n\nHint: Additional diagnostic information may be available using the `set_option diagnostics true` command.",
+          "mode": "predicate"
+        },
+        "renderer": "Informath 0.4 / GF · 6a2c28c063d0"
+      },
+      {
+        "id": "PrimitiveDirichletLZerosOnLine",
+        "kind": "definition",
+        "checker": {
+          "engine": "Plausible",
+          "status": "unsupported",
+          "candidates": [],
+          "diagnostic": "failed to synthesize\n  MedenPlausible.Testable\n    (MedenPlausible.NamedBinder \"N\"\n      (∀ (N : ℕ),\n        MedenPlausible.NamedBinder \"inst._@.Statements.1090354679._hygCtx._hyg.8\"\n          (∀ [inst : NeZero N],\n            MedenPlausible.NamedBinder \"χ\"\n              (∀ (χ : DirichletCharacter ℂ N),\n                MedenPlausible.NamedBinder \"a._@._internal._hyg.0\"\n                  (χ.IsPrimitive →\n                    MedenPlausible.NamedBinder \"s\"\n                      (∀ (s : ℂ),\n                        MedenPlausible.NamedBinder \"a._@._internal._hyg.0\"\n                          (0 < s.re →\n                            MedenPlausible.NamedBinder \"a._@._internal._hyg.0\"\n                              (s.re < 1 →\n                                MedenPlausible.NamedBinder \"a._@._internal._hyg.0\"\n                                  (DirichletCharacter.LFunction χ s = 0 → s.re = 1 / 2)))))))))\n\nHint: Additional diagnostic information may be available using the `set_option diagnostics true` command.",
+          "mode": "predicate"
+        },
+        "renderer": "Informath 0.4 / GF · 6a2c28c063d0"
+      },
+      {
+        "id": "RiemannZetaZerosOnLine",
+        "kind": "definition",
+        "checker": {
+          "engine": "Plausible",
+          "status": "unsupported",
+          "candidates": [],
+          "diagnostic": "failed to synthesize\n  MedenPlausible.Testable\n    (MedenPlausible.NamedBinder \"s\"\n      (∀ (s : ℂ),\n        MedenPlausible.NamedBinder \"a._@._internal._hyg.0\"\n          (riemannZeta s = 0 →\n            MedenPlausible.NamedBinder \"a._@._internal._hyg.0\"\n              ((¬∃ n, s = -2 * (↑n + 1)) → MedenPlausible.NamedBinder \"a._@._internal._hyg.0\" (s ≠ 1 → s.re = 1 / 2)))))\n\nHint: Additional diagnostic information may be available using the `set_option diagnostics true` command.",
+          "mode": "predicate"
+        },
+        "renderer": "Informath 0.4 / GF · 6a2c28c063d0"
+      }
+    ],
+    "prepared_inputs_sha256": "7db97b7154c38cfd5861ea085c03b1c5830407dd2706261b93f39053ce9834c5",
+    "external_modules": [
+      "Init",
+      "Mathlib"
+    ],
+    "source_files": [
+      "src/Statements.lean"
+    ],
+    "chat_unchanged": true,
+    "authorized": false,
+    "stopped": null,
+    "screenshot": "/tmp/meden-riemann-prepared-lake.png"
+  },
+  "main_build": {
+    "state": "active",
+    "source_closure_files": 175187,
+    "compiled_local_modules_observed": 2397,
+    "unit": "meden-riemann-build.service",
+    "scope": "Incremental offline Main build; migration preserves the original 7200-second aggregate time budget. CPU capped at two cores during interactive validation. No whole-Main success claim."
+  },
+  "checks": {
+    "status": "passed",
+    "cli_unit": 71,
+    "typescript_unit": 30,
+    "os_isolation": 12,
+    "compiler_failure_isolation": 1,
+    "clippy": "workspace/all-targets/all-features; passed",
+    "format": "Rust, Python adapter and browser formatting passed",
+    "required_public_tui": 33,
+    "tui_evidence": "/tmp/meden-ux-prepared-lake-20261122",
+    "decoded_screen_review": [
+      "Lake configuration refusal, inventory-change stop and historical restart",
+      "GUI/TUI continuation with retained conversation and file writes",
+      "HTTP 429 stop followed by explicit retry and retained work"
+    ],
+    "installed_resource_preparation": [
+      "Lean 4.33.1 (Riemann)",
+      "Lean 4.35.0 (native regressions)",
+      "Lean 4.36.0 (EthLib)"
+    ],
+    "public_gui": 52,
+    "gui_command": "npm run test:gui -- --workers=4",
+    "gui_evidence": "target/gui-checks/report/index.html",
+    "initial_gui_attempt": {
+      "workers": 8,
+      "passed": 2,
+      "failed": 3,
+      "interrupted": 8,
+      "not_run": 39,
+      "note": "Timed-out waits during concurrent Main build, browser observation and public TUI gate (observed system load exceeded 30 on 16 cores). Interrupted and reran all 52 cases with four workers and background build CPU limited to two cores. No validation credit from this incomplete attempt."
+    }
+  },
+  "limitations": [
+    "Main is not compiled; selected file success does not establish whole-project validity.",
+    "Host-selected Lake preparation executes trusted project configuration/source with writable workspace access; extraction is read-only. Both run offline.",
+    "The default frozen adapter keeps its 32-source/16 MiB closure bound; the opt-in Lake adapter represents imports as unexpanded compiled-library boundaries.",
+    "Finite Plausible observations, compiler/artifact/cache I/O and UI behavior are adapters, not new proof authority or extracted/refined kernel operations.",
+    "No live model, large local model or cold-machine install validation."
+  ],
+  "success": true
+}

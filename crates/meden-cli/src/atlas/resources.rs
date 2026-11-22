@@ -97,6 +97,15 @@ const SCRIPTS: &[(&str, &str)] = &[
         include_str!("vendor/MedenPlausible/LICENSE"),
     ),
     ("LEAN-ATLAS-LICENSE", include_str!("vendor/LICENSE")),
+    ("project-atlas.py", include_str!("project-atlas.py")),
+    (
+        "project-atlas-prepare.sh",
+        include_str!("project-atlas-prepare.sh"),
+    ),
+    (
+        "project-atlas-extract.sh",
+        include_str!("project-atlas-extract.sh"),
+    ),
     ("compile.sh", include_str!("compile.sh")),
     ("prepare.sh", include_str!("prepare.sh")),
     ("extract.sh", include_str!("extract.sh")),

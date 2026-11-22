@@ -395,15 +395,35 @@ This is a separate host preparation step; Meden's coding and analysis workers st
 offline. Missing dependencies show their name, expected location and a preparation
 hint. They do not trigger a download or admit a partial compiled graph.
 
-Use **Dependenciesを調べるFileを探す** to select an indexed file without typing its path.
-Start with one file in a large project. The advanced
-**Select Lake targets automatically** action selects Lake roots and still obeys the
-32-file closure limit. EthLib's
-`EthLib/Networking/Gossip/Parameters.lean` is a small starting point.
-**ソースのReference candidatesを表示** also works before dependency preparation; it shows
-lexical references, separately labelled from compiler-extracted dependencies.
-An unavailable file reports the actual requested path so it can be reselected.
+For a trusted local Lake workspace with installed dependencies, the host can select
+the prepared-build adapter:
 
+```bash
+MEDEN_ATLAS_BACKEND=lake meden gui --workspace /path/to/project
+```
+
+Opening a file runs offline `lake build +Module` before preparing its page. Lake's
+resolved source and reported compiled import artifacts are fingerprinted;
+unchanged inputs reuse saved analysis, while dependency edits trigger a rebuild.
+This profile executes project configuration/source with writable workspace access
+during preparation. Extraction then mounts the workspace and Atlas resources read-only.
+Both phases stay offline, without host credentials or an unconfined fallback. It is a
+trusted host choice, not a model-selectable network executor. Initial dependency
+downloads remain a separate host operation.
+
+Only selected modules become graph nodes; imported library declarations remain
+explicit unexpanded boundaries. This avoids the frozen collector's 32-source limit
+without claiming a complete Mathlib graph. Preparation does not start a whole-project
+build when the map opens. Selecting a large root can still require a long compilation;
+compiler failures remain in its file pane. Exact source/configuration/resource and
+compiled-artifact checks precede cache reuse, including after restart.
+
+Select files from the left tree without typing a path. Start with one file in a
+large project, such as `EthLib/Networking/Gossip/Parameters.lean` or Riemann's
+`src/Statements.lean`. The project map remains available independently of compiler
+preparation. An unavailable file reports the actual requested path.
+
+The default `MEDEN_ATLAS_BACKEND=frozen` adapter copies a bounded source closure.
 Selected modules are observed through the existing policy-bound file worker,
 then mounted read-only in a fresh offline compilation job. Only fresh `.olean`
 files from this job are imported. Existing build outputs,

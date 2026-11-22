@@ -336,6 +336,156 @@ test.describe("native GUI with real offline workers", () => {
     ).toBe(true);
   });
 
+  test("prepared Lake dependencies bypass source-copy limits, refresh exact artifacts and survive restart", async ({
+    page,
+  }) => {
+    test.setTimeout(300000);
+    const lean =
+      process.env.MEDEN_ATLAS_LEAN ||
+      resolve(homedir(), ".elan/toolchains/leanprover--lean4---v4.35.0");
+    await writeFile(
+      resolve(project, "lakefile.toml"),
+      'name = "prepared"\n[[lean_lib]]\nname = "App"\nroots = ' +
+        JSON.stringify([
+          "Entry",
+          ...Array.from({ length: 34 }, (_, i) => `Part${i}`),
+        ]) +
+        "\n",
+    );
+    for (let i = 0; i < 34; i++)
+      await writeFile(
+        resolve(project, `Part${i}.lean`),
+        `def part${i} : Nat := 1\n`,
+      );
+    const source =
+      Array.from({ length: 34 }, (_, i) => `import Part${i}`).join("\n") +
+      "\ntheorem fromLibrary : part0 = part0 := rfl\ntheorem sampleCounterexample (n : Nat) : n + 1 ≤ n := by sorry\n";
+    await writeFile(resolve(project, "Entry.lean"), source);
+    const build = async () => {
+      const worker = spawn(
+        process.env.MEDEN_BIN || resolve("target/debug/meden"),
+        [
+          "lake",
+          "--workspace",
+          project,
+          "--lean",
+          lean,
+          "--timeout",
+          "120",
+          "--",
+          "build",
+          "+Entry",
+        ],
+      );
+      let output = "",
+        error = "";
+      worker.stdout.on("data", (data) => (output += String(data)));
+      worker.stderr.on("data", (data) => (error += String(data)));
+      const [code] = await once(worker, "exit");
+      expect(code, error + output).toBe(0);
+      expect(JSON.parse(output).success).toBe(true);
+    };
+    await build();
+    await page.goto(await start(0, { MEDEN_ATLAS_BACKEND: "lake" }));
+    const open = () =>
+      page
+        .getByRole("button", { name: "File: Entry.lean", exact: true })
+        .click();
+    const prepared = async () => {
+      await expect
+        .poll(
+          async () =>
+            (await nativeState(page)).source_preparation["Entry.lean"]?.state,
+          { timeout: 120000 },
+        )
+        .toBe("ready");
+      return nativeState(page);
+    };
+    await open();
+    let state = await prepared();
+    expect(Object.keys(state.source_snapshot.files)).toEqual(["Entry.lean"]);
+    expect(state.source_snapshot.collection.prepared).toMatch(/^[a-f0-9]{64}$/);
+    expect(state.source_snapshot.collection.external_modules).toContain(
+      "Part33",
+    );
+    expect(
+      state.source_snapshot.atlas.graph.nodes
+        .find((n: any) => n.id === "sampleCounterexample")
+        .semantic.checker.candidates.join(" "),
+    ).toContain("n := 0");
+    const first = state.source_snapshot;
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    await open();
+    await expect
+      .poll(
+        async () =>
+          (await nativeState(page)).source_preparation["Entry.lean"]?.cache_hit,
+        { timeout: 120000 },
+      )
+      .toBe(true);
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    await writeFile(resolve(project, "Part0.lean"), "def part0 : Nat := 2\n");
+    await open();
+    await expect
+      .poll(
+        async () => (await nativeState(page)).source_snapshot?.atlas?.revision,
+        { timeout: 120000 },
+      )
+      .not.toBe(first.atlas.revision);
+    state = await prepared();
+    expect(state.source_snapshot.collection.prepared).not.toBe(
+      first.collection.prepared,
+    );
+    expect(state.source_preparation["Entry.lean"].cache_hit).toBe(false);
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    await writeFile(resolve(project, "Part0.lean"), "invalid lean syntax }\n");
+    await open();
+    await expect
+      .poll(
+        async () =>
+          (await nativeState(page)).source_preparation["Entry.lean"]?.state,
+        { timeout: 120000 },
+      )
+      .toBe("failed");
+    expect((await nativeState(page)).source_snapshot).toBeNull();
+    const pane = page.getByRole("region", {
+      name: "File reference graph",
+      exact: true,
+    });
+    await expect(pane.getByRole("alert")).toContainText(
+      "Prepared Lake compilation failed",
+    );
+    await expect(
+      page
+        .getByRole("complementary", { name: "Workspace chat", exact: true })
+        .getByRole("alert"),
+    ).toHaveCount(0);
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    await writeFile(resolve(project, "Part0.lean"), "def part0 : Nat := 2\n");
+    await pane
+      .getByRole("button", { name: "Retry preparation", exact: true })
+      .click();
+    await prepared();
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    await stop();
+    await page.goto(await start(0, { MEDEN_ATLAS_BACKEND: "lake" }));
+    await open();
+    state = await prepared();
+    expect(state.source_preparation["Entry.lean"].cache_hit).toBe(true);
+    expect(requests).toHaveLength(0);
+    expect((await nativeState(page)).authorized).toBe(false);
+  });
+
   test("large project map loads declaration nodes on zoom without opening files or changing chat", async ({
     page,
   }) => {

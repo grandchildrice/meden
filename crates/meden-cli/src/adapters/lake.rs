@@ -1,0 +1,158 @@
+//! Prepared Lake builds keep installed imports outside the selected-source graph.
+use super::Context;
+use anyhow::{Context as _, Result};
+use meden_core::adapter::{Adapter, Artifact, Input};
+use serde::Deserialize;
+
+pub(crate) struct Lake;
+#[derive(Deserialize)]
+struct Prepared {
+    fingerprint: String,
+}
+
+/// Trusted host choice: Lake preparation may execute project code with writable
+/// workspace access. It never becomes a model-selected network executor.
+pub(crate) fn enabled() -> Result<bool> {
+    match std::env::var("MEDEN_ATLAS_BACKEND").ok().as_deref() {
+        None | Some("frozen") => Ok(false),
+        Some("lake") => Ok(true),
+        Some(_) => anyhow::bail!("MEDEN_ATLAS_BACKEND must be frozen or lake"),
+    }
+}
+
+impl Adapter<Context<'_>> for Lake {
+    type Error = anyhow::Error;
+    fn run(&self, context: &Context<'_>, input: Input) -> Result<Artifact> {
+        anyhow::ensure!(
+            input.format == "meden/selected-snapshot+json",
+            "Unsupported prepared Lake input"
+        );
+        let mut snapshot: crate::analysis::sources::Snapshot =
+            serde_json::from_slice(&input.bytes)?;
+        let collection = snapshot
+            .collection
+            .as_mut()
+            .context("Missing Lake bindings")?;
+        crate::analysis::collect::check_metadata(
+            context.workspace,
+            context.control,
+            &collection.metadata,
+        )?;
+        let atlas = crate::atlas::Configuration::host(context.workspace.path());
+        let bindings = serde_json::to_string(&collection.modules)?;
+        let prepared: Prepared = serde_json::from_str(&atlas.project(
+            context.workspace.path(),
+            "project-atlas-prepare.sh",
+            &["prepare".into(), bindings.clone()],
+            context.control,
+        )?)?;
+        anyhow::ensure!(
+            prepared.fingerprint.len() == 64
+                && prepared.fingerprint.bytes().all(|b| b.is_ascii_hexdigit()),
+            "Invalid prepared-input fingerprint"
+        );
+        collection.prepared = Some(prepared.fingerprint.clone());
+        if let Some(cached) = crate::explanation::cache::compiled_prepared(
+            context.workspace,
+            context.control,
+            &collection.roots,
+            &prepared.fingerprint,
+        )? {
+            return Ok(Artifact {
+                producer: "lean-lake-atlas".into(),
+                format: "meden/cached-snapshot+json".into(),
+                bytes: serde_json::to_vec(&cached)?,
+            });
+        }
+        let modules = collection
+            .modules
+            .iter()
+            .map(|m| m.name.replace('.', "/"))
+            .collect::<Vec<_>>();
+        let output = atlas.project(
+            context.workspace.path(),
+            "project-atlas-extract.sh",
+            &modules,
+            context.control,
+        )?;
+        let after: Prepared = serde_json::from_str(&atlas.project(
+            context.workspace.path(),
+            "project-atlas-prepare.sh",
+            &["fingerprint".into(), bindings],
+            context.control,
+        )?)?;
+        anyhow::ensure!(
+            prepared.fingerprint == after.fingerprint,
+            "Prepared Lake inputs changed during extraction"
+        );
+        crate::analysis::collect::check_metadata(
+            context.workspace,
+            context.control,
+            &collection.metadata,
+        )?;
+        let paths = snapshot.files.keys().cloned().collect::<Vec<_>>();
+        anyhow::ensure!(
+            crate::analysis::sources::capture(context.workspace, context.control, &paths)?.files
+                == snapshot.files,
+            "Selected sources changed during prepared extraction"
+        );
+        let mut graph: serde_json::Value = serde_json::from_str(&output)
+            .context("Prepared Atlas did not return a complete graph")?;
+        bind_nodes(&mut graph, &collection.modules)?;
+        let mut graph = atlas.admit_project(graph, &snapshot.files)?;
+        graph.revision = format!(
+            "sha256:{}",
+            crate::atlas::digest(&serde_json::to_vec(&(&graph.revision, &collection))?)
+        );
+        collection.external_modules = external_modules(
+            &atlas,
+            &snapshot.files,
+            &collection.modules,
+            context.control,
+        )?;
+        snapshot.atlas = Some(graph);
+        Ok(Artifact {
+            producer: "lean-lake-atlas".into(),
+            format: "meden/compiled-snapshot+json".into(),
+            bytes: serde_json::to_vec(&snapshot)?,
+        })
+    }
+}
+
+fn bind_nodes(
+    graph: &mut serde_json::Value,
+    bindings: &[crate::analysis::layout::Module],
+) -> Result<()> {
+    for node in graph
+        .get_mut("nodes")
+        .and_then(serde_json::Value::as_array_mut)
+        .context("Missing prepared graph nodes")?
+    {
+        let logical = node
+            .get("filePath")
+            .and_then(serde_json::Value::as_str)
+            .context("Missing graph source")?;
+        let binding = bindings
+            .iter()
+            .find(|m| format!("{}.lean", m.name.replace('.', "/")) == logical)
+            .context("Graph is outside selected Lake roots")?;
+        node["filePath"] = binding.file.clone().into();
+    }
+    Ok(())
+}
+
+fn external_modules(
+    atlas: &crate::atlas::Configuration,
+    files: &std::collections::BTreeMap<String, String>,
+    bindings: &[crate::analysis::layout::Module],
+    control: &meden_runtime::process::Control,
+) -> Result<Vec<String>> {
+    Ok(atlas
+        .imports(files, control)?
+        .into_iter()
+        .flat_map(|row| row.modules.into_iter().map(|m| m.name))
+        .filter(|name| !bindings.iter().any(|m| m.name == *name))
+        .collect::<std::collections::BTreeSet<_>>()
+        .into_iter()
+        .collect())
+}

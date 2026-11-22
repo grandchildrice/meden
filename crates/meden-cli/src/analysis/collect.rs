@@ -19,43 +19,22 @@ pub(crate) struct Collection {
     pub modules: Vec<Module>,
     pub packages: Vec<PackageView>,
     pub metadata: Metadata,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prepared: Option<String>,
 }
 pub(crate) fn capture(
     workspace: &Workspace,
     control: &Control,
     paths: &[String],
 ) -> Result<Snapshot> {
-    let paths = paths
-        .iter()
-        .map(|path| relative("", path))
-        .collect::<Result<Vec<_>>>()?;
-    let atlas = crate::atlas::Configuration::host(workspace.path());
-    let mut reader = Reader::new(workspace, control);
-    let selected = if paths.is_empty() {
-        BTreeMap::new()
-    } else {
-        sources::capture(workspace, control, &paths)?.files
-    };
-    let layout = Layout::discover(
-        &mut reader,
-        &atlas,
-        control,
-        &selected.keys().cloned().collect::<Vec<_>>(),
-    )?;
-    let mut files = selected;
-    let mut modules = BTreeMap::new();
-    if files.is_empty() {
-        files = layout.automatic_sources(&mut reader)?;
-        for path in files.keys() {
-            insert(&mut modules, &layout.bind_selected(path)?)?;
-        }
-        anyhow::ensure!(!files.is_empty(), "Select a Lean source file, or use /atlas in a Lake project with library/executable roots");
-    } else {
-        for path in files.keys() {
-            insert(&mut modules, &layout.bind_selected(path)?)?;
-        }
-    }
-    let roots = files.keys().cloned().collect();
+    let Selection {
+        atlas,
+        mut reader,
+        layout,
+        mut files,
+        mut modules,
+        roots,
+    } = select(workspace, control, paths)?;
     let mut external = BTreeSet::new();
     let started = Instant::now();
     loop {
@@ -100,9 +79,101 @@ pub(crate) fn capture(
         modules: modules.into_values().collect(),
         packages: layout.packages,
         metadata: reader.metadata,
+        prepared: None,
     });
     Ok(snapshot)
 }
+struct Selection<'a> {
+    atlas: crate::atlas::Configuration,
+    reader: Reader<'a>,
+    layout: Layout,
+    files: BTreeMap<String, String>,
+    modules: BTreeMap<String, Module>,
+    roots: Vec<String>,
+}
+
+fn select<'a>(
+    workspace: &'a Workspace,
+    control: &'a Control,
+    paths: &[String],
+) -> Result<Selection<'a>> {
+    let paths = paths
+        .iter()
+        .map(|path| relative("", path))
+        .collect::<Result<Vec<_>>>()?;
+    let atlas = crate::atlas::Configuration::host(workspace.path());
+    let mut reader = Reader::new(workspace, control);
+    let selected = if paths.is_empty() {
+        BTreeMap::new()
+    } else {
+        sources::capture(workspace, control, &paths)?.files
+    };
+    let layout = Layout::discover(
+        &mut reader,
+        &atlas,
+        control,
+        &selected.keys().cloned().collect::<Vec<_>>(),
+    )?;
+    let mut files = selected;
+    let mut modules = BTreeMap::new();
+    if files.is_empty() {
+        files = layout.automatic_sources(&mut reader)?;
+        for path in files.keys() {
+            insert(&mut modules, &layout.bind_selected(path)?)?;
+        }
+        anyhow::ensure!(!files.is_empty(), "Select a Lean source file, or use /atlas in a Lake project with library/executable roots");
+    } else {
+        for path in files.keys() {
+            insert(&mut modules, &layout.bind_selected(path)?)?;
+        }
+    }
+
+    let roots = files.keys().cloned().collect();
+    Ok(Selection {
+        atlas,
+        reader,
+        layout,
+        files,
+        modules,
+        roots,
+    })
+}
+
+/// Select observed roots without recursively copying installed dependency sources.
+/// Prepared Lake imports remain explicitly unexpanded library boundaries.
+pub(crate) fn roots(
+    workspace: &Workspace,
+    control: &Control,
+    paths: &[String],
+) -> Result<Snapshot> {
+    let Selection {
+        reader,
+        layout,
+        files,
+        modules,
+        roots,
+        ..
+    } = select(workspace, control, paths)?;
+    let mut snapshot = sources::capture(
+        workspace,
+        control,
+        &files.keys().cloned().collect::<Vec<_>>(),
+    )?;
+    anyhow::ensure!(
+        snapshot.files == files,
+        "Sources changed during Lake root selection"
+    );
+    snapshot.collection = Some(Collection {
+        roots,
+        external_modules: Vec::new(),
+        modules: modules.into_values().collect(),
+        packages: layout.packages,
+        metadata: reader.metadata,
+        prepared: None,
+    });
+    Ok(snapshot)
+}
+
 fn insert(modules: &mut BTreeMap<String, Module>, module: &Module) -> Result<()> {
     module.validate()?;
     anyhow::ensure!(

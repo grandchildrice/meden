@@ -2554,3 +2554,29 @@ native proof authority or establishes arbitrary natural-language equivalence.
 
 Current prepared-observation browser/TUI checks and actual workspace observations
 are recorded in [the adapter validation record](../results/gui-observation-adapters.json).
+
+### Host-prepared Lake observation adapter
+
+`MEDEN_ATLAS_BACKEND=lake` is an explicit trusted-host alternative to frozen source
+compilation. It runs offline Lake preparation with writable workspace access, then
+imports only selected compiled roots in a read-only extraction profile. Lake's
+source resolution must match the selected root. Setup metadata, Lake-reported imported
+artifacts and selected output bytes contribute to the cache fingerprint;
+native plugins/dynamic libraries and symlinked/out-of-workspace inputs are refused.
+Source/configuration/resource checks accompany preparation and cache admission.
+The installed Lean distribution remains a trusted host prerequisite; this is not
+a complete content attestation of the toolchain or standard library.
+Imported declarations are recorded as unexpanded boundaries, not silently copied
+or presented as an analyzed whole-project closure. Map startup never builds all
+Lake roots in this profile.
+
+The native browser regression uses a real 35-module Lake build, imported edits,
+compiler rejection, visible retry and restart without inference. The separate Rust
+mount probe checks writable preparation followed by read-only workspace/resources
+and writable private scratch; its dependency-discovery ELF is not a compiler fixture
+or live-model validation. The vendored axiom collector uses a stack instead of
+repeated array-front erasure; it still traverses all reachable constants and sorts
+the same axiom sets. None of these adapter checks extends the extracted/refined
+core, grants proof authority, proves Lake configuration or establishes cold installation.
+Actual Riemann preparation, file/cache observations and the unfinished `Main` build
+are recorded separately in [the prepared Lake record](../results/gui-riemann-prepared-lake.json).

@@ -97,9 +97,11 @@ export function NativeGraph({
       <details className="native-graph-information">
         <summary>Analysis information</summary>
         <Alert severity="info">
-          {snapshot.atlas
-            ? `Compiled dependencies from Lean Atlas (Lean ${snapshot.atlas.graph.metadata.leanVersion}). Local imports are collected automatically; external libraries are shown as unexpanded boundaries. Contract and proof acceptance are unchanged.`
-            : "Lexical reference candidates from selected files. No compiler dependency extraction or proof checking was performed."}
+          {snapshot.collection?.prepared
+            ? "Compiled selected modules using prepared Lake dependencies. Imported declarations remain unexpanded boundaries. Contract and proof acceptance are unchanged."
+            : snapshot.atlas
+              ? `Compiled dependencies from Lean Atlas (Lean ${snapshot.atlas.graph.metadata.leanVersion}). Local imports are collected automatically; external libraries are shown as unexpanded boundaries. Contract and proof acceptance are unchanged.`
+              : "Lexical reference candidates from selected files. No compiler dependency extraction or proof checking was performed."}
         </Alert>
 
         {snapshot.collection && (

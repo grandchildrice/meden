@@ -20,10 +20,15 @@ unsafe def main (args : List String) : IO UInt32 := do
   let env ← Lean.importModules (#[{module := `MedenSemantic}, {module := `MedenSearch}] ++ modules.map fun name => { module := name }) {} (trustLevel := 0) (loadExts := true)
   let scope : ProjectScope := { projectNamespace := .anonymous }
   let mut nodes : Array NodeData := #[]
-  for (name, _) in env.constants.toList do
-    if (getModuleFor? env name).any modules.contains && LeanAtlas.Deps.Core.isRelevantConstant scope env name then
-      if nodes.size >= 5000 then throw <| IO.userError "Atlas exceeds 5000 declarations"
-      nodes := nodes.push (buildNodeData scope env name)
+  -- Read the selected modules' declaration inventories directly. Scanning every
+  -- imported Mathlib constant adds work unrelated to the requested graph.
+  for i in [:env.header.moduleData.size] do
+    if modules.contains env.header.moduleNames[i]! then
+      let data := env.header.moduleData[i]!
+      for name in data.constNames ++ data.extraConstNames do
+        if (getModuleFor? env name).any modules.contains && LeanAtlas.Deps.Core.isRelevantConstant scope env name then
+          if nodes.size >= 5000 then throw <| IO.userError "Atlas exceeds 5000 declarations"
+          nodes := nodes.push (buildNodeData scope env name)
   nodes := nodes.qsort (·.id.toString < ·.id.toString)
   let names := nodes.foldl (fun set node => set.insert node.id) ({} : NameSet)
   let mut external : NameSet := {}

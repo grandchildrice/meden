@@ -18,6 +18,74 @@ use serde_json::{json, Value};
 struct Session(Workspace);
 
 #[test]
+fn prepared_lake_extraction_is_read_only_while_preparation_can_write() {
+    // OS mount coverage only: this profile probe uses the actual worker ELF as
+    // a dependency-discovery asset, and does not claim compiler/model validation.
+    let workspace = tempfile::tempdir().expect("workspace");
+    let resources = tempfile::tempdir().expect("resources");
+    let tools = tempfile::tempdir().expect("profile tools");
+    fs::create_dir(tools.path().join("bin")).expect("bin");
+    fs::copy(env!("CARGO_BIN_EXE_meden"), tools.path().join("bin/lean"))
+        .expect("ELF dependency asset");
+    fs::write(workspace.path().join("source"), "ORIGINAL").expect("source");
+    fs::write(
+        resources.path().join("project-atlas-prepare.sh"),
+        "printf PREPARED > /workspace/prepared",
+    )
+    .expect("preparation probe");
+    fs::write(resources.path().join("project-atlas-extract.sh"), r"/tools/python3 - <<'PYTHON'
+import errno
+from pathlib import Path
+assert Path('/workspace/prepared').read_text() == 'PREPARED'
+for path in ['/workspace/source', '/workspace/new-file', '/analysis/library/project-atlas-extract.sh']:
+    try:
+        Path(path).write_text('TAMPERED')
+    except OSError as error:
+        assert error.errno == errno.EROFS, error
+    else:
+        raise AssertionError('prepared extraction was writable')
+Path('/tmp/private-scratch').write_text('allowed')
+print('READ_ONLY_CONFIRMED')
+PYTHON
+").expect("extraction probe");
+    for script in ["project-atlas-prepare.sh", "project-atlas-extract.sh"] {
+        let mut command = meden_runtime::sandbox::Sandbox::lean_command(
+            workspace.path(),
+            Path::new(env!("CARGO_BIN_EXE_meden")),
+            tools.path(),
+            resources.path(),
+            None,
+            script,
+            &[] as &[String],
+        )
+        .expect("profile command");
+        let output = process::run(
+            &mut command,
+            &Limits {
+                timeout: Duration::from_secs(15),
+                capture_bytes: 4096,
+                output_bytes: 4096,
+            },
+            &Control::new(Arc::new(AtomicBool::new(false))),
+        )
+        .expect("profile run");
+        assert!(
+            matches!(output.termination, Termination::Exited(status) if status.success()),
+            "{}",
+            output.stderr
+        );
+        if script == "project-atlas-extract.sh" {
+            assert_eq!(output.stdout.trim(), "READ_ONLY_CONFIRMED");
+        }
+    }
+    assert_eq!(
+        fs::read_to_string(workspace.path().join("source")).expect("source"),
+        "ORIGINAL"
+    );
+    assert!(!workspace.path().join("new-file").exists());
+}
+
+#[test]
 fn prepared_adapter_sees_only_its_resources_scratch_and_stdin() {
     let host = tempfile::tempdir().expect("host");
     let scratch = tempfile::tempdir().expect("scratch");
@@ -166,7 +234,7 @@ fn batched_source_reads_keep_policy_paths_bounds_and_read_only_operations() {
     assert!(read(vec![request(
         Operation::List,
         "/workspace/many",
-        json!({"entries":true,"max_entries":10001})
+        json!({"entries":true,"max_entries":100_001})
     )])
     .is_err());
     let error = read(vec![request(

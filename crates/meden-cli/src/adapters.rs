@@ -2,6 +2,7 @@
 //! source formats, compiler resources, rendering and execution stay here.
 use meden_runtime::{process::Control, workspace::Workspace};
 pub(crate) mod informath;
+pub(crate) mod lake;
 pub(crate) mod lean;
 pub(crate) mod source;
 
