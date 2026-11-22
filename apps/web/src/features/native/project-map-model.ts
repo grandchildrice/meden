@@ -37,6 +37,7 @@ export type MapScene = {
   mainPins: Array<{ area: MapArea; symbols: Symbol[]; origin: string }>;
   areas: MapArea[];
   byPath: Map<string, MapArea>;
+  children: Map<string, MapArea[]>;
   symbols: Map<string, Symbol>;
   edges: Array<{ source: string; target: string }>;
   edgesByFile: Map<string, Array<{ source: string; target: string }>>;
@@ -210,6 +211,12 @@ export function projectMap(
     found.push(edge);
     edgesByFile.set(file, found);
   }
+  const children = new Map<string, MapArea[]>();
+  for (const area of areas) {
+    const siblings = children.get(area.parent) || [];
+    siblings.push(area);
+    children.set(area.parent, siblings);
+  }
   return {
     inventoryOnly: snapshot.inventory_only,
     mainPins: areas.flatMap((area) => {
@@ -235,6 +242,7 @@ export function projectMap(
     ),
     areas,
     byPath: new Map(areas.map((a) => [a.path, a])),
+    children,
     symbols,
     edges,
     edgesByFile,
@@ -271,26 +279,33 @@ export function visibleMapAreas(
     top = -y / zoom,
     right = left + size.width / zoom,
     bottom = top + size.height / zoom;
-  const opacity = new Map<string, number>([["", 1]]);
+  const queue = (scene.children.get("") || []).map((area) => ({
+    area,
+    opacity: 1,
+  }));
   const visible: Array<{ area: MapArea; opacity: number }> = [];
-  for (const area of scene.areas) {
-    const parent = scene.byPath.get(area.parent);
-    const alpha = parent
-      ? (opacity.get(parent.path) || 0) *
-        fade(Math.max(parent.width, parent.height) * zoom, 650, 950)
-      : 1;
-    opacity.set(area.path, alpha);
+  for (let i = 0; i < queue.length; i++) {
+    const { area, opacity: alpha } = queue[i]!;
     if (
       alpha < 0.015 ||
       area.x > right ||
       area.y > bottom ||
       area.x + area.width < left ||
-      area.y + area.height < top ||
-      ((area.width * zoom < 2 || area.height * zoom < 2) &&
-        !(area.main && declarationDetail(area, zoom, size) > 0.01))
+      area.y + area.height < top
     )
       continue;
-    visible.push({ area, opacity: alpha });
+    if (
+      (area.width * zoom >= 2 && area.height * zoom >= 2) ||
+      (area.main && declarationDetail(area, zoom, size) > 0.01)
+    )
+      visible.push({ area, opacity: alpha });
+    // Descendants are contained in their parent's rectangle and cannot become
+    // more opaque. Invisible branches need no per-file traversal.
+    const childAlpha =
+      alpha * fade(Math.max(area.width, area.height) * zoom, 650, 950);
+    if (childAlpha >= 0.015)
+      for (const child of scene.children.get(area.path) || [])
+        queue.push({ area: child, opacity: childAlpha });
   }
   return visible;
 }

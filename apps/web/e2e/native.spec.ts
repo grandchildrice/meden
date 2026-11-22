@@ -345,7 +345,8 @@ test.describe("native GUI with real offline workers", () => {
       "axiom N_DD_AA : Nat\ntheorem alpha (h : N_DD_AA = 0) : N_DD_AA = 0 := h\n" +
         Array.from({ length: 100 }, (_, i) => `-- retained line ${i}`).join(
           "\n",
-        ),
+        ) +
+        "\ntheorem later (h : N_DD_AA = 0) : N_DD_AA = 0 := alpha h\n",
     );
     await writeFile(
       resolve(project, "Beta.lean"),
@@ -431,6 +432,29 @@ test.describe("native GUI with real offline workers", () => {
     const camera = await graph
       .locator(".react-flow__viewport")
       .getAttribute("style");
+    for (let i = 0; i < 3; i++) {
+      await graph.locator(".root-node > button").hover();
+      await page.mouse.move(box!.x + box!.width - 8, box!.y + 8);
+      await expect(graph.locator(".react-flow__viewport")).toHaveAttribute(
+        "style",
+        camera!,
+      );
+    }
+    await page.setViewportSize({ width: 1380, height: 960 });
+    await expect
+      .poll(async () => (await graph.boundingBox())!.width)
+      .not.toBe(box!.width);
+    await graph.evaluate(async () => {
+      for (let i = 0; i < 8; i++) await new Promise(requestAnimationFrame);
+    });
+    await expect(graph.locator(".react-flow__viewport")).toHaveAttribute(
+      "style",
+      camera!,
+    );
+    await page.setViewportSize({ width: 1440, height: 960 });
+    await expect
+      .poll(async () => (await graph.boundingBox())!.width)
+      .toBe(box!.width);
     await graph.evaluate((e) => {
       (window as any).__retainedAlpha = e;
     });
@@ -546,6 +570,16 @@ test.describe("native GUI with real offline workers", () => {
       "Alpha.lean",
     );
     expect((await nativeState(page)).project.verified).toBe(false);
+    await graph.getByRole("button", { name: "Fit View", exact: true }).click();
+    await graph.getByRole("button", { name: /later.*: select/ }).click();
+    await expect(source.locator('[aria-current="location"]')).toContainText(
+      "theorem later",
+    );
+    // Selecting a line already in this page must not replace/re-highlight it.
+    await expect(source.locator(".editor-line").first()).toContainText(
+      "axiom N_DD_AA",
+    );
+    expect(requests).toHaveLength(2);
   });
 
   test("build logs stream before completion, retain timeout and cancellation output, and retry the real compiler", async ({

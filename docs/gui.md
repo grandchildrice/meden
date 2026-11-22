@@ -424,6 +424,10 @@ timeout or cancellation, and **Retry preparation** reuses completed Lake outputs
 Successful pages retain a collapsed **Build log**. Diagnostic history keeps the
 latest 64 KiB; it does not appear in the conversation or grant proof status.
 Open file tabs retain their observed source, graph and explanations in memory.
+Graph hover, wheel gestures and resizing preserve the camera; the passive legend
+passes pointer events through. Fit View remains an explicit reset. Selecting a
+line already in the source page keeps its syntax tokens and scrolls to the line.
+See [interaction measurements](gui-performance.md) for the performance audit.
 Returning to a retained tab or its graph declaration does not inspect,
 compile or validate dependencies again; local source paging also needs no worker.
 The file tree also reuses open tabs. Refresh and chat edits invalidate

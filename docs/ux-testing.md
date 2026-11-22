@@ -81,6 +81,13 @@ in [verification.md](verification.md) and [project-verification.md](project-veri
 
 ## Completion criteria for changes
 
+Graph interaction regression coverage also requires that wheel input over the
+passive review legend reaches the graph, hover/resize preserves the user's
+camera, reduced motion creates no graph transitions, and selecting a loaded
+source line keeps its page. Native browser coverage retains the real compiled
+graph and the 10,001-file map journey; visibility pruning is compared with a
+full-scan oracle. See [the event audit](gui-performance.md) for measured costs.
+
 1. Name the affected goal and observable outcome before editing. Use the README's
    public entry command and the intended starting state, including an empty
    configuration when changing onboarding.

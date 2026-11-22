@@ -1,0 +1,5364 @@
+{
+  "date": "2026-11-22",
+  "subject": "Graph camera continuity and Riemann interaction profiling",
+  "binary_sha256": "5fda9cd8a9355e72f4be65ae65ce949b0e25d4d9423e8cf7ce712ff7c4064aeb",
+  "scope": "Frontend-only changes; verification kernels, prepared-input validation and inference grants are unchanged.",
+  "camera_regression": {
+    "before_zoom": 0.168469,
+    "after_incidental_resize_before_fix": 0.0948569,
+    "fix": "Delete the resize-triggered fit controller; initial fit and explicit fit remain. Passive review labels pass pointer/wheel events through to the graph."
+  },
+  "methodology": [
+    "Actual installed Chrome, Riemann workspace, 175187 indexed files and a real 15-declaration compiled DictGen graph. No CPU/network throttling. All runs used reduced motion.",
+    "24 wheel events per zoom phase, 24 tab clicks, 40 hover pointer moves and 30 drag moves. Node selection includes eight node clicks plus one explicit Fit View click.",
+    "CDP EventDispatch spans measure renderer event processing. CPU profiles use approximately 1ms sampling and local source maps; these are sampled attribution, not exact function timings.",
+    "Input-to-two-animation-frames is a presentation proxy, not measured physical presentation or field INP. Nested browser trace spans overlap.",
+    "Baseline frame intervals include profiler start/stop boundaries; those boundaries were excluded in later runs. Do not compare frame maxima across these captures. The report compares dispatch and input observations instead.",
+    "Wheel-end/debounce work can finish outside the action window; the trace is retained for inspection. A run with no recorded long task does not establish universal absence of stalls.",
+    "These are controlled local samples, not repeated field percentiles or hardware-independent latency guarantees. Setup cache validation is recorded separately.",
+    "The final timing capture preceded the passive-legend pointer-events change. That routing fix was validated in the final public browser regression, without forced clicks; it was not separately retimed."
+  ],
+  "runs": [
+    {
+      "stage": "Camera fix; original event work",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "setup_cache_validation_ms": 52946.8768,
+        "reduced_motion": "reduce",
+        "project_files": 175187
+      },
+      "artifacts": "target/gui-profile/riemann-baseline",
+      "events": {
+        "graph-idle-poll": {
+          "event_dispatch": {},
+          "input_to_two_frames": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "layout": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "paint": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 2489.4040000000045,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 511.83599999999984,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 114.49100000000003,
+              "location": "../../src/features/native/project-map-model.ts:264 \u00b7 visibleMapAreas"
+            },
+            {
+              "self_ms": 37.62899999999999,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:468 \u00b7 a"
+            },
+            {
+              "self_ms": 17.084999999999997,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 NativeWorkspaceGraph"
+            },
+            {
+              "self_ms": 6.48,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 5.594,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 \u00b7 workLoopSync"
+            },
+            {
+              "self_ms": 5.333,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 4.941,
+              "location": "../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 4.3149999999999995,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 4.252,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:495 \u00b7 a"
+            },
+            {
+              "self_ms": 3.3049999999999997,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 \u00b7 commitHostUpdate"
+            },
+            {
+              "self_ms": 3.233,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 3.2230000000000003,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 3.207,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 3.192,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:8359 \u00b7 completeWork"
+            },
+            {
+              "self_ms": 2.176,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:7768 \u00b7 beginWork"
+            },
+            {
+              "self_ms": 2.1639999999999997,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 \u00b7 renderWithHooks"
+            },
+            {
+              "self_ms": 2.153,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 \u00b7 propagateParentContextChanges"
+            },
+            {
+              "self_ms": 2.148,
+              "location": "../../../../node_modules/@emotion/hash/dist/emotion-hash.esm.js:4 \u00b7 murmur2"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 9,
+              "bytes": 1603197
+            }
+          }
+        },
+        "graph-wheel": {
+          "event_dispatch": {
+            "pointerout": {
+              "count": 1,
+              "p50_ms": 0.207,
+              "p95_ms": 0.207,
+              "max_ms": 0.207,
+              "total_ms": 0.207
+            },
+            "pointerover": {
+              "count": 1,
+              "p50_ms": 0.029,
+              "p95_ms": 0.029,
+              "max_ms": 0.029,
+              "total_ms": 0.029
+            },
+            "mouseout": {
+              "count": 1,
+              "p50_ms": 0.055,
+              "p95_ms": 0.055,
+              "max_ms": 0.055,
+              "total_ms": 0.055
+            },
+            "mouseover": {
+              "count": 1,
+              "p50_ms": 0.082,
+              "p95_ms": 0.082,
+              "max_ms": 0.082,
+              "total_ms": 0.082
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 0.016,
+              "p95_ms": 0.016,
+              "max_ms": 0.016,
+              "total_ms": 0.016
+            },
+            "mousemove": {
+              "count": 1,
+              "p50_ms": 0.091,
+              "p95_ms": 0.091,
+              "max_ms": 0.091,
+              "total_ms": 0.091
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 0.332,
+              "p95_ms": 0.762,
+              "max_ms": 2.235,
+              "total_ms": 9.575999999999999
+            },
+            "transitionrun": {
+              "count": 24,
+              "p50_ms": 0.09,
+              "p95_ms": 0.18,
+              "max_ms": 0.194,
+              "total_ms": 2.473
+            }
+          },
+          "input_to_two_frames": {
+            "count": 26,
+            "p50_ms": 16.80000001192093,
+            "p95_ms": 25.5,
+            "max_ms": 32.900000005960464,
+            "total_ms": 455.0000000298023
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 49,
+            "p50_ms": 1.124,
+            "p95_ms": 1.983,
+            "max_ms": 2.058,
+            "total_ms": 56.437000000000005
+          },
+          "layout": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "paint": {
+            "count": 94,
+            "p50_ms": 1.951,
+            "p95_ms": 4.562,
+            "max_ms": 4.764,
+            "total_ms": 166.64300000000003
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 637.687,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 536.1320000000002,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 41.185,
+              "location": "../../src/features/native/project-map-model.ts:264 \u00b7 visibleMapAreas"
+            },
+            {
+              "self_ms": 18.287999999999997,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 8.61,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:468 \u00b7 a"
+            },
+            {
+              "self_ms": 5.373,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 NativeWorkspaceGraph"
+            },
+            {
+              "self_ms": 4.278,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:495 \u00b7 a"
+            },
+            {
+              "self_ms": 2.183,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 2.176,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 2.158,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 1.416,
+              "location": "../../../../node_modules/@mui/material/ButtonBase/ButtonBase.mjs:97 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.139,
+              "location": "../../src/features/native/NativeExplorer.tsx:29 \u00b7 NativeExplorer"
+            },
+            {
+              "self_ms": 1.099,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:8335 \u00b7 bubbleProperties"
+            },
+            {
+              "self_ms": 1.096,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:14406 \u00b7 setProp"
+            },
+            {
+              "self_ms": 1.091,
+              "location": "../../../../node_modules/@mui/material/Tooltip/Tooltip.mjs:220 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.091,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4078 \u00b7 reconcileChildFibersImpl"
+            },
+            {
+              "self_ms": 1.09,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 \u00b7 commitHostUpdate"
+            },
+            {
+              "self_ms": 1.089,
+              "location": "../../../../node_modules/@xyflow/system/dist/index.js:2753 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.089,
+              "location": "../../../../node_modules/d3-zoom/dist/d3-zoom.mjs:308 \u00b7 wheeled"
+            },
+            {
+              "self_ms": 1.089,
+              "location": "../../../../node_modules/@mui/material/IconButton/IconButton.mjs:170 \u00b7 (anonymous)"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 4,
+              "bytes": 712532
+            }
+          }
+        },
+        "graph-hover": {
+          "event_dispatch": {
+            "pointerout": {
+              "count": 40,
+              "p50_ms": 0.131,
+              "p95_ms": 0.227,
+              "max_ms": 0.265,
+              "total_ms": 5.691999999999999
+            },
+            "pointerover": {
+              "count": 40,
+              "p50_ms": 0.039,
+              "p95_ms": 0.089,
+              "max_ms": 0.136,
+              "total_ms": 1.7600000000000002
+            },
+            "mouseout": {
+              "count": 40,
+              "p50_ms": 0.081,
+              "p95_ms": 0.168,
+              "max_ms": 0.169,
+              "total_ms": 3.512
+            },
+            "mouseover": {
+              "count": 40,
+              "p50_ms": 0.028,
+              "p95_ms": 0.065,
+              "max_ms": 0.087,
+              "total_ms": 1.2220000000000004
+            },
+            "pointermove": {
+              "count": 40,
+              "p50_ms": 0.026,
+              "p95_ms": 0.053,
+              "max_ms": 0.081,
+              "total_ms": 1.1450000000000005
+            },
+            "mousemove": {
+              "count": 40,
+              "p50_ms": 0.039,
+              "p95_ms": 0.073,
+              "max_ms": 0.089,
+              "total_ms": 1.7470000000000003
+            },
+            "transitionrun": {
+              "count": 63,
+              "p50_ms": 0.032,
+              "p95_ms": 0.054,
+              "max_ms": 0.063,
+              "total_ms": 2.0670000000000006
+            }
+          },
+          "input_to_two_frames": {
+            "count": 80,
+            "p50_ms": 17.5,
+            "p95_ms": 29.400000005960464,
+            "max_ms": 69.80000001192093,
+            "total_ms": 1573.000000089407
+          },
+          "long_tasks": {
+            "count": 1,
+            "p50_ms": 58,
+            "p95_ms": 58,
+            "max_ms": 58,
+            "total_ms": 58
+          },
+          "style_recalculation": {
+            "count": 168,
+            "p50_ms": 0.396,
+            "p95_ms": 3.789,
+            "max_ms": 6.322,
+            "total_ms": 190.24600000000007
+          },
+          "layout": {
+            "count": 105,
+            "p50_ms": 0.257,
+            "p95_ms": 0.416,
+            "max_ms": 7.981,
+            "total_ms": 35.29900000000001
+          },
+          "paint": {
+            "count": 127,
+            "p50_ms": 0.656,
+            "p95_ms": 3.091,
+            "max_ms": 4.92,
+            "total_ms": 156.60599999999997
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 486.0329999999947,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 294.52899999999994,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 69.61300000000001,
+              "location": "get scrollTop"
+            },
+            {
+              "self_ms": 68.43400000000001,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/isScrollParent.js:2 \u00b7 isScrollParent"
+            },
+            {
+              "self_ms": 31.137,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 \u00b7 getTrueOffsetParent"
+            },
+            {
+              "self_ms": 25.264,
+              "location": "../../src/features/native/project-map-model.ts:264 \u00b7 visibleMapAreas"
+            },
+            {
+              "self_ms": 18.377,
+              "location": "../../src/features/native/project-map-model.ts:264 \u00b7 visibleMapAreas"
+            },
+            {
+              "self_ms": 17.075,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 \u00b7 getTrueOffsetParent"
+            },
+            {
+              "self_ms": 14.998000000000001,
+              "location": "../../src/features/native/project-map-model.ts:264 \u00b7 visibleMapAreas"
+            },
+            {
+              "self_ms": 14.84,
+              "location": "query"
+            },
+            {
+              "self_ms": 13.808999999999997,
+              "location": "get scrollTop"
+            },
+            {
+              "self_ms": 8.625000000000002,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 NativeWorkspaceGraph"
+            },
+            {
+              "self_ms": 8.125,
+              "location": "../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 7.487,
+              "location": "../../src/features/native/project-map-model.ts:244 \u00b7 G2"
+            },
+            {
+              "self_ms": 7.289000000000001,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 \u00b7 renderWithHooks"
+            },
+            {
+              "self_ms": 6.701,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 \u00b7 workLoopSync"
+            },
+            {
+              "self_ms": 6.635999999999999,
+              "location": "../../src/features/native/NativeExplorer.tsx:271 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 6.507000000000001,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 \u00b7 renderWithHooks"
+            },
+            {
+              "self_ms": 6.491,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 6.031000000000001,
+              "location": "../../../../node_modules/@emotion/hash/dist/emotion-hash.esm.js:4 \u00b7 murmur2"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 3,
+              "bytes": 534399
+            }
+          }
+        },
+        "graph-pan": {
+          "event_dispatch": {
+            "pointermove": {
+              "count": 31,
+              "p50_ms": 0.114,
+              "p95_ms": 0.212,
+              "max_ms": 0.346,
+              "total_ms": 3.9819999999999993
+            },
+            "mousemove": {
+              "count": 31,
+              "p50_ms": 0.159,
+              "p95_ms": 0.286,
+              "max_ms": 0.522,
+              "total_ms": 5.188000000000001
+            },
+            "transitionrun": {
+              "count": 11,
+              "p50_ms": 0.087,
+              "p95_ms": 0.189,
+              "max_ms": 0.189,
+              "total_ms": 1.045
+            },
+            "click": {
+              "count": 1,
+              "p50_ms": 0.101,
+              "p95_ms": 0.101,
+              "max_ms": 0.101,
+              "total_ms": 0.101
+            }
+          },
+          "input_to_two_frames": {
+            "count": 2,
+            "p50_ms": 30.400000005960464,
+            "p95_ms": 30.400000005960464,
+            "max_ms": 30.400000005960464,
+            "total_ms": 49.20000001788139
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 43,
+            "p50_ms": 0.984,
+            "p95_ms": 1.843,
+            "max_ms": 1.963,
+            "total_ms": 45.11799999999999
+          },
+          "layout": {
+            "count": 1,
+            "p50_ms": 0.344,
+            "p95_ms": 0.344,
+            "max_ms": 0.344,
+            "total_ms": 0.344
+          },
+          "paint": {
+            "count": 45,
+            "p50_ms": 1.895,
+            "p95_ms": 4.268,
+            "max_ms": 4.349,
+            "total_ms": 71.894
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 442.602999999999,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 347.84100000000007,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 24.732000000000003,
+              "location": "../../src/features/native/project-map-model.ts:264 \u00b7 visibleMapAreas"
+            },
+            {
+              "self_ms": 5.401,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 NativeWorkspaceGraph"
+            },
+            {
+              "self_ms": 3.187,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:468 \u00b7 a"
+            },
+            {
+              "self_ms": 2.815,
+              "location": "(anonymous)"
+            },
+            {
+              "self_ms": 2.176,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 2.128,
+              "location": "getBoundingClientRect"
+            },
+            {
+              "self_ms": 2.125,
+              "location": "../../src/features/native/project-map-model.ts:244 \u00b7 G2"
+            },
+            {
+              "self_ms": 2.102,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 1.101,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 1.099,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 1.095,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 \u00b7 reconcileChildrenArray"
+            },
+            {
+              "self_ms": 1.089,
+              "location": "../../../../node_modules/@mui/material/ButtonBase/ButtonBase.mjs:97 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.087,
+              "location": "../../src/features/native/project-map-model.ts:248 \u00b7 declarationDetail"
+            },
+            {
+              "self_ms": 1.082,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:2625 \u00b7 getRootForUpdatedFiber"
+            },
+            {
+              "self_ms": 1.077,
+              "location": "removeEventListener"
+            },
+            {
+              "self_ms": 1.063,
+              "location": "../../../../node_modules/react/cjs/react.production.js:453 \u00b7 Eq.Jt.createElement"
+            },
+            {
+              "self_ms": 1.059,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 \u00b7 propagateParentContextChanges"
+            },
+            {
+              "self_ms": 1.059,
+              "location": "(anonymous)"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 2,
+              "bytes": 356266
+            }
+          }
+        },
+        "graph-resize": {
+          "event_dispatch": {
+            "resize": {
+              "count": 6,
+              "p50_ms": 1.105,
+              "p95_ms": 1.133,
+              "max_ms": 1.133,
+              "total_ms": 6.3740000000000006
+            }
+          },
+          "input_to_two_frames": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 20,
+            "p50_ms": 0.068,
+            "p95_ms": 1.466,
+            "max_ms": 1.466,
+            "total_ms": 10.554
+          },
+          "layout": {
+            "count": 20,
+            "p50_ms": 0.29,
+            "p95_ms": 1.336,
+            "max_ms": 1.336,
+            "total_ms": 11.629000000000001
+          },
+          "paint": {
+            "count": 8,
+            "p50_ms": 2.852,
+            "p95_ms": 3.088,
+            "max_ms": 3.088,
+            "total_ms": 22.871000000000002
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 215.6980000000001,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 94.48399999999998,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 23.694,
+              "location": "../../src/features/native/project-map-model.ts:264 \u00b7 visibleMapAreas"
+            },
+            {
+              "self_ms": 6.421,
+              "location": "../../src/features/native/project-map-model.ts:248 \u00b7 declarationDetail"
+            },
+            {
+              "self_ms": 4.277,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 NativeWorkspaceGraph"
+            },
+            {
+              "self_ms": 3.232,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:495 \u00b7 a"
+            },
+            {
+              "self_ms": 3.223,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:468 \u00b7 a"
+            },
+            {
+              "self_ms": 3.205,
+              "location": "../../src/features/native/project-map-model.ts:244 \u00b7 G2"
+            },
+            {
+              "self_ms": 2.18,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 2.1580000000000004,
+              "location": "../../../../node_modules/@mui/material/Popper/BasePopper.mjs:196 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 2.0860000000000003,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 2.043,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 1.104,
+              "location": "../../../../node_modules/react/cjs/react-jsx-runtime.production.js:14 \u00b7 jsxProd"
+            },
+            {
+              "self_ms": 1.103,
+              "location": "../../../../node_modules/@emotion/serialize/dist/emotion-serialize.esm.js:49 \u00b7 handleInterpolation"
+            },
+            {
+              "self_ms": 1.089,
+              "location": "../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.086,
+              "location": "../../../../node_modules/@mui/material/ButtonBase/ButtonBase.mjs:97 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.086,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:5445 \u00b7 updateCallback"
+            },
+            {
+              "self_ms": 1.083,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 1.08,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:10497 \u00b7 commitMutationEffectsOnFiber"
+            },
+            {
+              "self_ms": 1.08,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 \u00b7 renderWithHooks"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 1,
+              "bytes": 178133
+            }
+          }
+        },
+        "tab-switch": {
+          "event_dispatch": {
+            "pointerout": {
+              "count": 24,
+              "p50_ms": 0.19,
+              "p95_ms": 0.243,
+              "max_ms": 0.257,
+              "total_ms": 4.193
+            },
+            "pointerover": {
+              "count": 24,
+              "p50_ms": 0.058,
+              "p95_ms": 0.1,
+              "max_ms": 0.102,
+              "total_ms": 1.4500000000000002
+            },
+            "mouseout": {
+              "count": 24,
+              "p50_ms": 0.063,
+              "p95_ms": 0.091,
+              "max_ms": 0.127,
+              "total_ms": 1.559
+            },
+            "mouseover": {
+              "count": 24,
+              "p50_ms": 0.037,
+              "p95_ms": 0.053,
+              "max_ms": 0.059,
+              "total_ms": 0.8450000000000002
+            },
+            "pointermove": {
+              "count": 24,
+              "p50_ms": 0.034,
+              "p95_ms": 0.052,
+              "max_ms": 0.055,
+              "total_ms": 0.8340000000000002
+            },
+            "mousemove": {
+              "count": 24,
+              "p50_ms": 0.059,
+              "p95_ms": 0.069,
+              "max_ms": 0.08,
+              "total_ms": 1.2989999999999997
+            },
+            "click": {
+              "count": 24,
+              "p50_ms": 37.964,
+              "p95_ms": 47.509,
+              "max_ms": 48.161,
+              "total_ms": 866.3420000000001
+            },
+            "transitionrun": {
+              "count": 240,
+              "p50_ms": 0.024,
+              "p95_ms": 0.078,
+              "max_ms": 0.137,
+              "total_ms": 7.891000000000002
+            }
+          },
+          "input_to_two_frames": {
+            "count": 120,
+            "p50_ms": 80.2000000178814,
+            "p95_ms": 93.40000000596046,
+            "max_ms": 95.89999997615814,
+            "total_ms": 8661.799999922514
+          },
+          "long_tasks": {
+            "count": 13,
+            "p50_ms": 53,
+            "p95_ms": 60,
+            "max_ms": 60,
+            "total_ms": 693
+          },
+          "style_recalculation": {
+            "count": 167,
+            "p50_ms": 0.454,
+            "p95_ms": 6.433,
+            "max_ms": 9.132,
+            "total_ms": 174.885
+          },
+          "layout": {
+            "count": 24,
+            "p50_ms": 6.557,
+            "p95_ms": 7.499,
+            "max_ms": 7.772,
+            "total_ms": 93.479
+          },
+          "paint": {
+            "count": 144,
+            "p50_ms": 2.056,
+            "p95_ms": 3.433,
+            "max_ms": 3.588,
+            "total_ms": 319.545
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 1141.7669999999875,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 555.8480000000003,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 452.22599999999954,
+              "location": "../../src/features/native/project-map-model.ts:264 \u00b7 visibleMapAreas"
+            },
+            {
+              "self_ms": 401.1869999999997,
+              "location": "../../src/features/native/project-map-model.ts:264 \u00b7 visibleMapAreas"
+            },
+            {
+              "self_ms": 168.4629999999999,
+              "location": "../../src/features/native/project-map-model.ts:264 \u00b7 visibleMapAreas"
+            },
+            {
+              "self_ms": 160.97500000000002,
+              "location": "../../src/features/native/project-map-model.ts:264 \u00b7 visibleMapAreas"
+            },
+            {
+              "self_ms": 131.974,
+              "location": "../../src/features/native/project-map-model.ts:264 \u00b7 visibleMapAreas"
+            },
+            {
+              "self_ms": 122.49200000000002,
+              "location": "../../src/features/native/project-map-model.ts:264 \u00b7 visibleMapAreas"
+            },
+            {
+              "self_ms": 87.23700000000001,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 NativeWorkspaceGraph"
+            },
+            {
+              "self_ms": 74.22399999999999,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 51.683,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 NativeWorkspaceGraph"
+            },
+            {
+              "self_ms": 42.23500000000001,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 NativeWorkspaceGraph"
+            },
+            {
+              "self_ms": 37.573,
+              "location": "query"
+            },
+            {
+              "self_ms": 36.804999999999986,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 NativeWorkspaceGraph"
+            },
+            {
+              "self_ms": 17.092,
+              "location": "elementSafeTagName"
+            },
+            {
+              "self_ms": 15.96,
+              "location": "(anonymous)"
+            },
+            {
+              "self_ms": 11.192,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:77 \u00b7 Scene"
+            },
+            {
+              "self_ms": 11.116,
+              "location": "getExplicitAriaRole"
+            },
+            {
+              "self_ms": 10.655999999999999,
+              "location": "elementsFromPoint"
+            },
+            {
+              "self_ms": 10.418999999999999,
+              "location": "getAttribute"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 9,
+              "bytes": 1603197
+            }
+          }
+        },
+        "graph-node-select": {
+          "event_dispatch": {
+            "pointerout": {
+              "count": 2,
+              "p50_ms": 0.146,
+              "p95_ms": 0.146,
+              "max_ms": 0.146,
+              "total_ms": 0.261
+            },
+            "pointerover": {
+              "count": 2,
+              "p50_ms": 0.049,
+              "p95_ms": 0.049,
+              "max_ms": 0.049,
+              "total_ms": 0.096
+            },
+            "mouseout": {
+              "count": 2,
+              "p50_ms": 0.106,
+              "p95_ms": 0.106,
+              "max_ms": 0.106,
+              "total_ms": 0.145
+            },
+            "mouseover": {
+              "count": 2,
+              "p50_ms": 0.037,
+              "p95_ms": 0.037,
+              "max_ms": 0.037,
+              "total_ms": 0.059
+            },
+            "pointermove": {
+              "count": 9,
+              "p50_ms": 0.057,
+              "p95_ms": 0.071,
+              "max_ms": 0.071,
+              "total_ms": 0.46900000000000003
+            },
+            "mousemove": {
+              "count": 9,
+              "p50_ms": 0.05,
+              "p95_ms": 0.054,
+              "max_ms": 0.054,
+              "total_ms": 0.40199999999999997
+            },
+            "click": {
+              "count": 9,
+              "p50_ms": 0.095,
+              "p95_ms": 66.353,
+              "max_ms": 66.353,
+              "total_ms": 67.50399999999999
+            },
+            "transitionrun": {
+              "count": 23,
+              "p50_ms": 0.023,
+              "p95_ms": 0.054,
+              "max_ms": 0.118,
+              "total_ms": 0.661
+            }
+          },
+          "input_to_two_frames": {
+            "count": 31,
+            "p50_ms": 53.5,
+            "p95_ms": 102,
+            "max_ms": 102,
+            "total_ms": 1643.3000001609325
+          },
+          "long_tasks": {
+            "count": 2,
+            "p50_ms": 248,
+            "p95_ms": 248,
+            "max_ms": 248,
+            "total_ms": 332
+          },
+          "style_recalculation": {
+            "count": 47,
+            "p50_ms": 0.237,
+            "p95_ms": 4.826,
+            "max_ms": 240.611,
+            "total_ms": 271.258
+          },
+          "layout": {
+            "count": 17,
+            "p50_ms": 0.321,
+            "p95_ms": 3.152,
+            "max_ms": 3.152,
+            "total_ms": 14.131
+          },
+          "paint": {
+            "count": 41,
+            "p50_ms": 0.012,
+            "p95_ms": 2.537,
+            "max_ms": 3.213,
+            "total_ms": 15.902000000000001
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 241.43099999999976,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/isScrollParent.js:2 \u00b7 isScrollParent"
+            },
+            {
+              "self_ms": 223.78199999999728,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 112.92299999999994,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 14.021,
+              "location": "../../src/features/native/project-map-model.ts:264 \u00b7 visibleMapAreas"
+            },
+            {
+              "self_ms": 11.968000000000002,
+              "location": "../../src/features/native/project-map-model.ts:264 \u00b7 visibleMapAreas"
+            },
+            {
+              "self_ms": 11.841,
+              "location": "../../src/features/native/project-map-model.ts:264 \u00b7 visibleMapAreas"
+            },
+            {
+              "self_ms": 10.183,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/isScrollParent.js:2 \u00b7 isScrollParent"
+            },
+            {
+              "self_ms": 7.5840000000000005,
+              "location": "get scrollTop"
+            },
+            {
+              "self_ms": 7.564,
+              "location": "scrollIntoView"
+            },
+            {
+              "self_ms": 7.258,
+              "location": "(anonymous)"
+            },
+            {
+              "self_ms": 5.325,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 4.308,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 NativeWorkspaceGraph"
+            },
+            {
+              "self_ms": 3.271,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:468 \u00b7 a"
+            },
+            {
+              "self_ms": 3.235,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 \u00b7 getTrueOffsetParent"
+            },
+            {
+              "self_ms": 3.1790000000000003,
+              "location": "../../../../node_modules/@mui/material/TextareaAutosize/TextareaAutosize.mjs:66 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 2.1710000000000003,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:495 \u00b7 a"
+            },
+            {
+              "self_ms": 2.162,
+              "location": "query"
+            },
+            {
+              "self_ms": 2.1239999999999997,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 \u00b7 propagateParentContextChanges"
+            },
+            {
+              "self_ms": 2.123,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 \u00b7 getTrueOffsetParent"
+            },
+            {
+              "self_ms": 1.938,
+              "location": "../../../../node_modules/@emotion/react/dist/emotion-element-f0de968e.browser.esm.js:29 \u00b7 (anonymous)"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 2,
+              "bytes": 356266
+            }
+          }
+        },
+        "project-map-wheel": {
+          "event_dispatch": {
+            "pointerout": {
+              "count": 5,
+              "p50_ms": 0.138,
+              "p95_ms": 0.158,
+              "max_ms": 0.158,
+              "total_ms": 0.7120000000000001
+            },
+            "pointerover": {
+              "count": 5,
+              "p50_ms": 0.036,
+              "p95_ms": 0.068,
+              "max_ms": 0.068,
+              "total_ms": 0.20700000000000002
+            },
+            "mouseout": {
+              "count": 5,
+              "p50_ms": 0.039,
+              "p95_ms": 0.095,
+              "max_ms": 0.095,
+              "total_ms": 0.249
+            },
+            "mouseover": {
+              "count": 5,
+              "p50_ms": 0.021,
+              "p95_ms": 0.044,
+              "max_ms": 0.044,
+              "total_ms": 0.132
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 0.024,
+              "p95_ms": 0.024,
+              "max_ms": 0.024,
+              "total_ms": 0.024
+            },
+            "mousemove": {
+              "count": 1,
+              "p50_ms": 0.037,
+              "p95_ms": 0.037,
+              "max_ms": 0.037,
+              "total_ms": 0.037
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 33.674,
+              "p95_ms": 42.809,
+              "max_ms": 43.984,
+              "total_ms": 837.228
+            },
+            "transitionrun": {
+              "count": 1813,
+              "p50_ms": 0.019,
+              "p95_ms": 0.037,
+              "max_ms": 0.143,
+              "total_ms": 41.076999999999735
+            }
+          },
+          "input_to_two_frames": {
+            "count": 34,
+            "p50_ms": 41.900000005960464,
+            "p95_ms": 66.5,
+            "max_ms": 70.19999998807907,
+            "total_ms": 1299.5000000298023
+          },
+          "long_tasks": {
+            "count": 10,
+            "p50_ms": 58,
+            "p95_ms": 73,
+            "max_ms": 73,
+            "total_ms": 593
+          },
+          "style_recalculation": {
+            "count": 44,
+            "p50_ms": 2.033,
+            "p95_ms": 4.728,
+            "max_ms": 4.868,
+            "total_ms": 88.44200000000001
+          },
+          "layout": {
+            "count": 48,
+            "p50_ms": 0.21,
+            "p95_ms": 0.472,
+            "max_ms": 4.545,
+            "total_ms": 15.968999999999996
+          },
+          "paint": {
+            "count": 135,
+            "p50_ms": 0.065,
+            "p95_ms": 2.46,
+            "max_ms": 3.186,
+            "total_ms": 105.67099999999999
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 1377.171000000065,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 448.7870000000004,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 404.34099999999995,
+              "location": "../../src/features/native/project-map-model.ts:264 \u00b7 visibleMapAreas"
+            },
+            {
+              "self_ms": 297.0130000000001,
+              "location": "../../src/features/native/project-map-model.ts:264 \u00b7 visibleMapAreas"
+            },
+            {
+              "self_ms": 115.42399999999999,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 NativeWorkspaceGraph"
+            },
+            {
+              "self_ms": 56.436000000000014,
+              "location": "../../src/features/native/project-map-model.ts:264 \u00b7 visibleMapAreas"
+            },
+            {
+              "self_ms": 46.37200000000001,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 32.15599999999999,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 NativeWorkspaceGraph"
+            },
+            {
+              "self_ms": 11.773,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:77 \u00b7 Scene"
+            },
+            {
+              "self_ms": 7.5360000000000005,
+              "location": "../../src/features/native/project-map-model.ts:244 \u00b7 G2"
+            },
+            {
+              "self_ms": 4.281000000000001,
+              "location": "../../src/features/native/project-map-model.ts:244 \u00b7 G2"
+            },
+            {
+              "self_ms": 4.269,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:286 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 3.2640000000000002,
+              "location": "../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 3.2150000000000003,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 3.2119999999999997,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:6425 \u00b7 updateForwardRef"
+            },
+            {
+              "self_ms": 3.1980000000000004,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:105 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 2.194,
+              "location": "../../../../node_modules/zustand/esm/vanilla.mjs:4 \u00b7 r"
+            },
+            {
+              "self_ms": 2.172,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:10497 \u00b7 commitMutationEffectsOnFiber"
+            },
+            {
+              "self_ms": 2.153,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 2.129,
+              "location": "../../src/features/native/NativeExplorer.tsx:67 \u00b7 y"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 7,
+              "bytes": 1246931
+            }
+          }
+        }
+      }
+    },
+    {
+      "stage": "Pruned visibility and suspended hidden map",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_cache_validation_ms": 54738.441978999996,
+        "reduced_motion": "reduce"
+      },
+      "artifacts": "target/gui-profile/riemann-after",
+      "events": {
+        "graph-idle-poll": {
+          "event_dispatch": {},
+          "input_to_two_frames": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "layout": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "paint": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 2622.8870000000106,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 538.0239999999995,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 8.536,
+              "location": "../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 5.399,
+              "location": "../../src/features/native/NativeExplorer.tsx:67 \u00b7 y"
+            },
+            {
+              "self_ms": 5.333,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 4.288,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 4.285,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:6425 \u00b7 updateForwardRef"
+            },
+            {
+              "self_ms": 4.273,
+              "location": "../../../../node_modules/@mui/material/Tooltip/Tooltip.mjs:220 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 4.2620000000000005,
+              "location": "fetch"
+            },
+            {
+              "self_ms": 3.201,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 3.1959999999999997,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 \u00b7 commitHostUpdate"
+            },
+            {
+              "self_ms": 3.189,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 \u00b7 reconcileChildrenArray"
+            },
+            {
+              "self_ms": 3.189,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 3.161,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 \u00b7 reconcileChildrenArray"
+            },
+            {
+              "self_ms": 3.039,
+              "location": "frame"
+            },
+            {
+              "self_ms": 2.769,
+              "location": "../../../../node_modules/react/cjs/react.production.js:453 \u00b7 Eq.Jt.createElement"
+            },
+            {
+              "self_ms": 2.1639999999999997,
+              "location": "../../../../node_modules/@emotion/hash/dist/emotion-hash.esm.js:4 \u00b7 murmur2"
+            },
+            {
+              "self_ms": 2.153,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4078 \u00b7 reconcileChildFibersImpl"
+            },
+            {
+              "self_ms": 2.141,
+              "location": "../../src/features/source/ExplanationHint.tsx:26 \u00b7 ExplanationHint"
+            },
+            {
+              "self_ms": 2.14,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 \u00b7 workLoopSync"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 9,
+              "bytes": 1603197
+            }
+          }
+        },
+        "graph-wheel": {
+          "event_dispatch": {
+            "pointerout": {
+              "count": 1,
+              "p50_ms": 0.176,
+              "p95_ms": 0.176,
+              "max_ms": 0.176,
+              "total_ms": 0.176
+            },
+            "pointerover": {
+              "count": 1,
+              "p50_ms": 0.031,
+              "p95_ms": 0.031,
+              "max_ms": 0.031,
+              "total_ms": 0.031
+            },
+            "mouseout": {
+              "count": 1,
+              "p50_ms": 0.08,
+              "p95_ms": 0.08,
+              "max_ms": 0.08,
+              "total_ms": 0.08
+            },
+            "mouseover": {
+              "count": 1,
+              "p50_ms": 0.018,
+              "p95_ms": 0.018,
+              "max_ms": 0.018,
+              "total_ms": 0.018
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 0.076,
+              "p95_ms": 0.076,
+              "max_ms": 0.076,
+              "total_ms": 0.076
+            },
+            "mousemove": {
+              "count": 1,
+              "p50_ms": 0.086,
+              "p95_ms": 0.086,
+              "max_ms": 0.086,
+              "total_ms": 0.086
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 0.333,
+              "p95_ms": 0.759,
+              "max_ms": 1.341,
+              "total_ms": 9.642
+            },
+            "transitionrun": {
+              "count": 24,
+              "p50_ms": 0.166,
+              "p95_ms": 0.234,
+              "max_ms": 0.242,
+              "total_ms": 3.488
+            }
+          },
+          "input_to_two_frames": {
+            "count": 26,
+            "p50_ms": 16.69999998807907,
+            "p95_ms": 18,
+            "max_ms": 21,
+            "total_ms": 428.39999997615814
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 47,
+            "p50_ms": 1.282,
+            "p95_ms": 2.18,
+            "max_ms": 2.268,
+            "total_ms": 66.241
+          },
+          "layout": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "paint": {
+            "count": 86,
+            "p50_ms": 2.034,
+            "p95_ms": 4.867,
+            "max_ms": 5.385,
+            "total_ms": 167.9689999999999
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 682.3690000000005,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 681.9169999999993,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 3.221,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 3.215,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4078 \u00b7 reconcileChildFibersImpl"
+            },
+            {
+              "self_ms": 2.1550000000000002,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15482 \u00b7 shouldSetTextContent"
+            },
+            {
+              "self_ms": 2.13,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4249 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.837,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 1.151,
+              "location": "mark"
+            },
+            {
+              "self_ms": 1.096,
+              "location": "../../../../node_modules/react/cjs/react.production.js:453 \u00b7 Eq.Jt.createElement"
+            },
+            {
+              "self_ms": 1.09,
+              "location": "../../../../node_modules/@emotion/utils/dist/emotion-utils.browser.esm.js:5 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.088,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:13389 \u00b7 scheduleCallback$1"
+            },
+            {
+              "self_ms": 1.081,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:6459 \u00b7 updateMemoComponent"
+            },
+            {
+              "self_ms": 1.081,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:1457 \u00b7 setValueForStyles"
+            },
+            {
+              "self_ms": 1.08,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:14406 \u00b7 setProp"
+            },
+            {
+              "self_ms": 1.08,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 1.078,
+              "location": "../../../../node_modules/@mui/system/createStyled/createStyled.mjs:68 \u00b7 processStyleVariants"
+            },
+            {
+              "self_ms": 1.077,
+              "location": "../../../../node_modules/@mui/material/Dialog/Dialog.mjs:209 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.076,
+              "location": "../../../../node_modules/react/cjs/react-jsx-runtime.production.js:14 \u00b7 jsxProd"
+            },
+            {
+              "self_ms": 1.076,
+              "location": "../../../../node_modules/@mui/material/Popper/Popper.mjs:29 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.073,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 \u00b7 workLoopSync"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 4,
+              "bytes": 712532
+            }
+          }
+        },
+        "graph-hover": {
+          "event_dispatch": {
+            "pointerout": {
+              "count": 40,
+              "p50_ms": 0.145,
+              "p95_ms": 0.302,
+              "max_ms": 0.47,
+              "total_ms": 6.681000000000001
+            },
+            "pointerover": {
+              "count": 40,
+              "p50_ms": 0.042,
+              "p95_ms": 0.087,
+              "max_ms": 0.098,
+              "total_ms": 1.8470000000000006
+            },
+            "mouseout": {
+              "count": 40,
+              "p50_ms": 0.087,
+              "p95_ms": 0.225,
+              "max_ms": 0.258,
+              "total_ms": 4.188
+            },
+            "mouseover": {
+              "count": 40,
+              "p50_ms": 0.026,
+              "p95_ms": 0.056,
+              "max_ms": 0.085,
+              "total_ms": 1.2320000000000007
+            },
+            "pointermove": {
+              "count": 40,
+              "p50_ms": 0.026,
+              "p95_ms": 0.056,
+              "max_ms": 0.077,
+              "total_ms": 1.1720000000000006
+            },
+            "mousemove": {
+              "count": 40,
+              "p50_ms": 0.041,
+              "p95_ms": 0.079,
+              "max_ms": 0.124,
+              "total_ms": 1.9020000000000001
+            },
+            "transitionrun": {
+              "count": 64,
+              "p50_ms": 0.036,
+              "p95_ms": 0.104,
+              "max_ms": 0.142,
+              "total_ms": 2.5980000000000008
+            }
+          },
+          "input_to_two_frames": {
+            "count": 80,
+            "p50_ms": 18,
+            "p95_ms": 37.80000001192093,
+            "max_ms": 40.89999997615814,
+            "total_ms": 1603.5000000298023
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 171,
+            "p50_ms": 0.556,
+            "p95_ms": 3.788,
+            "max_ms": 10.48,
+            "total_ms": 211.246
+          },
+          "layout": {
+            "count": 107,
+            "p50_ms": 0.277,
+            "p95_ms": 0.525,
+            "max_ms": 6.326,
+            "total_ms": 38.317
+          },
+          "paint": {
+            "count": 127,
+            "p50_ms": 0.704,
+            "p95_ms": 3.847,
+            "max_ms": 5.59,
+            "total_ms": 170.40199999999993
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 571.2099999999957,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 234.20399999999998,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 76.11800000000004,
+              "location": "get scrollTop"
+            },
+            {
+              "self_ms": 72.85399999999997,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/isScrollParent.js:2 \u00b7 isScrollParent"
+            },
+            {
+              "self_ms": 37.66300000000001,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 \u00b7 getTrueOffsetParent"
+            },
+            {
+              "self_ms": 18.790999999999997,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 15.256,
+              "location": "query"
+            },
+            {
+              "self_ms": 14.088999999999999,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 \u00b7 getTrueOffsetParent"
+            },
+            {
+              "self_ms": 12.182,
+              "location": "get scrollTop"
+            },
+            {
+              "self_ms": 7.263999999999999,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:6425 \u00b7 updateForwardRef"
+            },
+            {
+              "self_ms": 6.5120000000000005,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 \u00b7 workLoopSync"
+            },
+            {
+              "self_ms": 6.4639999999999995,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 \u00b7 commitHostUpdate"
+            },
+            {
+              "self_ms": 6.008,
+              "location": "../../../../node_modules/@emotion/react/dist/emotion-element-f0de968e.browser.esm.js:29 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 5.8919999999999995,
+              "location": "../../../../node_modules/@mui/material/Tooltip/Tooltip.mjs:220 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 5.226,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 \u00b7 reconcileChildrenArray"
+            },
+            {
+              "self_ms": 4.68,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 \u00b7 renderWithHooks"
+            },
+            {
+              "self_ms": 4.5040000000000004,
+              "location": "../../src/features/native/NativeExplorer.tsx:271 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 4.287,
+              "location": "../../src/features/native/NativeExplorer.tsx:154 \u00b7 NativeCode"
+            },
+            {
+              "self_ms": 4.268000000000001,
+              "location": "../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 4.258,
+              "location": "../../../../node_modules/react/cjs/react.production.js:453 \u00b7 Eq.Jt.createElement"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 4,
+              "bytes": 712532
+            }
+          }
+        },
+        "graph-pan": {
+          "event_dispatch": {
+            "pointermove": {
+              "count": 31,
+              "p50_ms": 0.113,
+              "p95_ms": 0.19,
+              "max_ms": 0.201,
+              "total_ms": 3.556
+            },
+            "mousemove": {
+              "count": 31,
+              "p50_ms": 0.154,
+              "p95_ms": 0.359,
+              "max_ms": 0.624,
+              "total_ms": 5.2379999999999995
+            },
+            "transitionrun": {
+              "count": 15,
+              "p50_ms": 0.084,
+              "p95_ms": 0.199,
+              "max_ms": 0.199,
+              "total_ms": 1.49
+            },
+            "click": {
+              "count": 1,
+              "p50_ms": 0.017,
+              "p95_ms": 0.017,
+              "max_ms": 0.017,
+              "total_ms": 0.017
+            }
+          },
+          "input_to_two_frames": {
+            "count": 2,
+            "p50_ms": 36.10000002384186,
+            "p95_ms": 36.10000002384186,
+            "max_ms": 36.10000002384186,
+            "total_ms": 61.10000002384186
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 46,
+            "p50_ms": 1.057,
+            "p95_ms": 1.65,
+            "max_ms": 1.773,
+            "total_ms": 48.52699999999999
+          },
+          "layout": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "paint": {
+            "count": 60,
+            "p50_ms": 1.96,
+            "p95_ms": 4.209,
+            "max_ms": 4.653,
+            "total_ms": 102.30200000000002
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 458.89500000000004,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 285.34,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 3.2199999999999998,
+              "location": "../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 2.1550000000000002,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 \u00b7 commitHostUpdate"
+            },
+            {
+              "self_ms": 1.753,
+              "location": "mark"
+            },
+            {
+              "self_ms": 1.101,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 1.097,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4249 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.096,
+              "location": "../../../../node_modules/@mui/material/ButtonBase/ButtonBase.mjs:97 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.095,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 \u00b7 commitHostUpdate"
+            },
+            {
+              "self_ms": 1.094,
+              "location": "../../../../node_modules/@mui/system/createStyled/createStyled.mjs:68 \u00b7 processStyleVariants"
+            },
+            {
+              "self_ms": 1.091,
+              "location": "../../../../node_modules/d3-selection/dist/d3-selection.mjs:758 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.081,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:1457 \u00b7 setValueForStyles"
+            },
+            {
+              "self_ms": 1.078,
+              "location": "../../src/features/source/ExplanationHint.tsx:26 \u00b7 ExplanationHint"
+            },
+            {
+              "self_ms": 1.067,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:6425 \u00b7 updateForwardRef"
+            },
+            {
+              "self_ms": 1.067,
+              "location": "../../../../node_modules/d3-zoom/dist/d3-zoom.mjs:359 \u00b7 mousemoved"
+            },
+            {
+              "self_ms": 1.065,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 1.063,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15482 \u00b7 shouldSetTextContent"
+            },
+            {
+              "self_ms": 1.061,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 1.06,
+              "location": "../../../../node_modules/scheduler/cjs/scheduler.production.js:121 \u00b7 performWorkUntilDeadline"
+            },
+            {
+              "self_ms": 1.059,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 2,
+              "bytes": 356266
+            }
+          }
+        },
+        "graph-resize": {
+          "event_dispatch": {
+            "resize": {
+              "count": 3,
+              "p50_ms": 1.322,
+              "p95_ms": 1.38,
+              "max_ms": 1.38,
+              "total_ms": 3.543
+            }
+          },
+          "input_to_two_frames": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 14,
+            "p50_ms": 0.905,
+            "p95_ms": 1.254,
+            "max_ms": 1.254,
+            "total_ms": 8.482000000000001
+          },
+          "layout": {
+            "count": 14,
+            "p50_ms": 0.883,
+            "p95_ms": 1.2,
+            "max_ms": 1.2,
+            "total_ms": 9.355999999999998
+          },
+          "paint": {
+            "count": 4,
+            "p50_ms": 3.152,
+            "p95_ms": 3.405,
+            "max_ms": 3.405,
+            "total_ms": 12.741
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 175.50500000000014,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 92.27499999999996,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 2.183,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 2.144,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 1.483,
+              "location": "mark"
+            },
+            {
+              "self_ms": 1.181,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 \u00b7 workLoopSync"
+            },
+            {
+              "self_ms": 1.104,
+              "location": "../../../../node_modules/react/cjs/react.production.js:453 \u00b7 Eq.Jt.createElement"
+            },
+            {
+              "self_ms": 1.093,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:14406 \u00b7 setProp"
+            },
+            {
+              "self_ms": 1.091,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 \u00b7 commitHostUpdate"
+            },
+            {
+              "self_ms": 1.089,
+              "location": "../../../../node_modules/@mui/material/ButtonBase/ButtonBase.mjs:21 \u00b7 ownerState"
+            },
+            {
+              "self_ms": 1.088,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 \u00b7 reconcileChildrenArray"
+            },
+            {
+              "self_ms": 1.087,
+              "location": "../../../../node_modules/@xyflow/system/dist/index.js:726 \u00b7 Xp"
+            },
+            {
+              "self_ms": 1.087,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:14406 \u00b7 setProp"
+            },
+            {
+              "self_ms": 1.085,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4078 \u00b7 reconcileChildFibersImpl"
+            },
+            {
+              "self_ms": 1.083,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 1.058,
+              "location": "../../../../node_modules/@mui/material/utils/useSlot.mjs:21 \u00b7 useSlot"
+            },
+            {
+              "self_ms": 1.057,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4078 \u00b7 reconcileChildFibersImpl"
+            },
+            {
+              "self_ms": 1.055,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:8335 \u00b7 bubbleProperties"
+            },
+            {
+              "self_ms": 1.054,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 1.054,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 1,
+              "bytes": 178133
+            }
+          }
+        },
+        "tab-switch": {
+          "event_dispatch": {
+            "pointerout": {
+              "count": 24,
+              "p50_ms": 0.21,
+              "p95_ms": 0.273,
+              "max_ms": 0.293,
+              "total_ms": 5.083000000000001
+            },
+            "pointerover": {
+              "count": 24,
+              "p50_ms": 0.065,
+              "p95_ms": 0.113,
+              "max_ms": 0.201,
+              "total_ms": 1.7739999999999998
+            },
+            "mouseout": {
+              "count": 24,
+              "p50_ms": 0.086,
+              "p95_ms": 0.123,
+              "max_ms": 0.176,
+              "total_ms": 2.0820000000000003
+            },
+            "mouseover": {
+              "count": 24,
+              "p50_ms": 0.041,
+              "p95_ms": 0.059,
+              "max_ms": 0.075,
+              "total_ms": 1.0360000000000003
+            },
+            "pointermove": {
+              "count": 24,
+              "p50_ms": 0.04,
+              "p95_ms": 0.065,
+              "max_ms": 0.084,
+              "total_ms": 1.0030000000000003
+            },
+            "mousemove": {
+              "count": 24,
+              "p50_ms": 0.07,
+              "p95_ms": 0.086,
+              "max_ms": 0.101,
+              "total_ms": 1.64
+            },
+            "click": {
+              "count": 24,
+              "p50_ms": 15.171,
+              "p95_ms": 19.968,
+              "max_ms": 24.207,
+              "total_ms": 375.46900000000005
+            },
+            "transitionrun": {
+              "count": 240,
+              "p50_ms": 0.022,
+              "p95_ms": 0.069,
+              "max_ms": 0.313,
+              "total_ms": 7.301999999999999
+            }
+          },
+          "input_to_two_frames": {
+            "count": 120,
+            "p50_ms": 39.5,
+            "p95_ms": 47.099999994039536,
+            "max_ms": 48.599999994039536,
+            "total_ms": 4396.40000012517
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 167,
+            "p50_ms": 0.535,
+            "p95_ms": 6.238,
+            "max_ms": 7.033,
+            "total_ms": 179.46099999999998
+          },
+          "layout": {
+            "count": 24,
+            "p50_ms": 7.321,
+            "p95_ms": 7.924,
+            "max_ms": 9.47,
+            "total_ms": 98.42900000000002
+          },
+          "paint": {
+            "count": 144,
+            "p50_ms": 1.949,
+            "p95_ms": 3.375,
+            "max_ms": 3.565,
+            "total_ms": 318.5050000000001
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 1072.205999999995,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 728.3160000000001,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 43.956,
+              "location": "../../src/features/native/project-map-model.ts:252 \u00b7 G2"
+            },
+            {
+              "self_ms": 35.242000000000004,
+              "location": "query"
+            },
+            {
+              "self_ms": 27.848999999999997,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:468 \u00b7 a"
+            },
+            {
+              "self_ms": 21.349000000000004,
+              "location": "getAriaRole"
+            },
+            {
+              "self_ms": 20.387,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 WorkspaceMap"
+            },
+            {
+              "self_ms": 18.131,
+              "location": "../../src/features/native/project-map-model.ts:256 \u00b7 declarationDetail"
+            },
+            {
+              "self_ms": 16.31,
+              "location": "../../../../node_modules/@xyflow/system/dist/index.js:1847 \u00b7 updateNodeInternals"
+            },
+            {
+              "self_ms": 13.978000000000002,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 13.966999999999999,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 \u00b7 workLoopSync"
+            },
+            {
+              "self_ms": 12.885,
+              "location": "../../src/features/source/ExplanationHint.tsx:26 \u00b7 ExplanationHint"
+            },
+            {
+              "self_ms": 12.876999999999999,
+              "location": "elementsFromPoint"
+            },
+            {
+              "self_ms": 11.733,
+              "location": "(anonymous)"
+            },
+            {
+              "self_ms": 11.711000000000002,
+              "location": "getAttribute"
+            },
+            {
+              "self_ms": 10.732000000000001,
+              "location": "(anonymous)"
+            },
+            {
+              "self_ms": 10.713000000000001,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 10.637,
+              "location": "elementSafeTagName"
+            },
+            {
+              "self_ms": 8.761000000000001,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:468 \u00b7 a"
+            },
+            {
+              "self_ms": 8.548,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 \u00b7 propagateParentContextChanges"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 6,
+              "bytes": 1068798
+            }
+          }
+        },
+        "graph-node-select": {
+          "event_dispatch": {
+            "pointerout": {
+              "count": 4,
+              "p50_ms": 0.147,
+              "p95_ms": 0.162,
+              "max_ms": 0.162,
+              "total_ms": 0.518
+            },
+            "pointerover": {
+              "count": 4,
+              "p50_ms": 0.043,
+              "p95_ms": 0.046,
+              "max_ms": 0.046,
+              "total_ms": 0.164
+            },
+            "mouseout": {
+              "count": 4,
+              "p50_ms": 0.077,
+              "p95_ms": 0.085,
+              "max_ms": 0.085,
+              "total_ms": 0.259
+            },
+            "mouseover": {
+              "count": 4,
+              "p50_ms": 0.025,
+              "p95_ms": 0.026,
+              "max_ms": 0.026,
+              "total_ms": 0.094
+            },
+            "pointermove": {
+              "count": 9,
+              "p50_ms": 0.052,
+              "p95_ms": 0.088,
+              "max_ms": 0.088,
+              "total_ms": 0.479
+            },
+            "mousemove": {
+              "count": 9,
+              "p50_ms": 0.046,
+              "p95_ms": 0.07,
+              "max_ms": 0.07,
+              "total_ms": 0.434
+            },
+            "click": {
+              "count": 9,
+              "p50_ms": 0.087,
+              "p95_ms": 49.7,
+              "max_ms": 49.7,
+              "total_ms": 50.962
+            },
+            "transitionrun": {
+              "count": 25,
+              "p50_ms": 0.021,
+              "p95_ms": 0.044,
+              "max_ms": 0.08,
+              "total_ms": 0.6250000000000001
+            }
+          },
+          "input_to_two_frames": {
+            "count": 35,
+            "p50_ms": 29.400000005960464,
+            "p95_ms": 84.90000000596046,
+            "max_ms": 85,
+            "total_ms": 1348.7000001966953
+          },
+          "long_tasks": {
+            "count": 2,
+            "p50_ms": 258,
+            "p95_ms": 258,
+            "max_ms": 258,
+            "total_ms": 327
+          },
+          "style_recalculation": {
+            "count": 50,
+            "p50_ms": 0.248,
+            "p95_ms": 4.669,
+            "max_ms": 247.529,
+            "total_ms": 280.105
+          },
+          "layout": {
+            "count": 18,
+            "p50_ms": 0.312,
+            "p95_ms": 3.622,
+            "max_ms": 3.622,
+            "total_ms": 15.048
+          },
+          "paint": {
+            "count": 38,
+            "p50_ms": 0.028,
+            "p95_ms": 2.644,
+            "max_ms": 3.427,
+            "total_ms": 15.436
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 247.88800000000032,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/isScrollParent.js:2 \u00b7 isScrollParent"
+            },
+            {
+              "self_ms": 230.30799999999695,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 128.04699999999994,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 10.238,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/isScrollParent.js:2 \u00b7 isScrollParent"
+            },
+            {
+              "self_ms": 9.745999999999999,
+              "location": "get scrollTop"
+            },
+            {
+              "self_ms": 9.497,
+              "location": "(anonymous)"
+            },
+            {
+              "self_ms": 8.652000000000001,
+              "location": "scrollIntoView"
+            },
+            {
+              "self_ms": 3.266,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 \u00b7 getTrueOffsetParent"
+            },
+            {
+              "self_ms": 3.2209999999999996,
+              "location": "../../../../node_modules/@mui/material/TextareaAutosize/TextareaAutosize.mjs:66 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 3.191,
+              "location": "querySelectorAll"
+            },
+            {
+              "self_ms": 2.7350000000000003,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 \u00b7 getTrueOffsetParent"
+            },
+            {
+              "self_ms": 2.369,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:7768 \u00b7 beginWork"
+            },
+            {
+              "self_ms": 2.169,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 2.1559999999999997,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 \u00b7 getTrueOffsetParent"
+            },
+            {
+              "self_ms": 1.159,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 \u00b7 renderWithHooks"
+            },
+            {
+              "self_ms": 1.104,
+              "location": "../../../../node_modules/@mui/material/Dialog/Dialog.mjs:209 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.094,
+              "location": "query"
+            },
+            {
+              "self_ms": 1.093,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 1.093,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:6459 \u00b7 updateMemoComponent"
+            },
+            {
+              "self_ms": 1.093,
+              "location": "../../../../node_modules/@mui/utils/mergeSlotProps/mergeSlotProps.mjs:17 \u00b7 mergeSlotProps"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 2,
+              "bytes": 356266
+            }
+          }
+        },
+        "project-map-wheel": {
+          "event_dispatch": {
+            "transitionrun": {
+              "count": 1848,
+              "p50_ms": 0.02,
+              "p95_ms": 0.05,
+              "max_ms": 0.159,
+              "total_ms": 45.85099999999985
+            },
+            "pointerout": {
+              "count": 5,
+              "p50_ms": 0.16,
+              "p95_ms": 0.182,
+              "max_ms": 0.182,
+              "total_ms": 0.776
+            },
+            "pointerover": {
+              "count": 5,
+              "p50_ms": 0.033,
+              "p95_ms": 0.05,
+              "max_ms": 0.05,
+              "total_ms": 0.177
+            },
+            "mouseout": {
+              "count": 5,
+              "p50_ms": 0.044,
+              "p95_ms": 0.06,
+              "max_ms": 0.06,
+              "total_ms": 0.23299999999999998
+            },
+            "mouseover": {
+              "count": 5,
+              "p50_ms": 0.021,
+              "p95_ms": 0.031,
+              "max_ms": 0.031,
+              "total_ms": 0.119
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 0.022,
+              "p95_ms": 0.022,
+              "max_ms": 0.022,
+              "total_ms": 0.022
+            },
+            "mousemove": {
+              "count": 1,
+              "p50_ms": 0.034,
+              "p95_ms": 0.034,
+              "max_ms": 0.034,
+              "total_ms": 0.034
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 4.779,
+              "p95_ms": 6.492,
+              "max_ms": 8.178,
+              "total_ms": 116.718
+            }
+          },
+          "input_to_two_frames": {
+            "count": 34,
+            "p50_ms": 16.599999994039536,
+            "p95_ms": 25.5,
+            "max_ms": 25.599999994039536,
+            "total_ms": 503.59999999403954
+          },
+          "long_tasks": {
+            "count": 1,
+            "p50_ms": 79,
+            "p95_ms": 79,
+            "max_ms": 79,
+            "total_ms": 79
+          },
+          "style_recalculation": {
+            "count": 54,
+            "p50_ms": 1.755,
+            "p95_ms": 5.098,
+            "max_ms": 5.315,
+            "total_ms": 102.84200000000001
+          },
+          "layout": {
+            "count": 56,
+            "p50_ms": 0.234,
+            "p95_ms": 0.671,
+            "max_ms": 3.459,
+            "total_ms": 17.942
+          },
+          "paint": {
+            "count": 149,
+            "p50_ms": 0.07,
+            "p95_ms": 2.748,
+            "max_ms": 3.548,
+            "total_ms": 122.76699999999997
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 1392.692000000102,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 495.6130000000003,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 28.610000000000003,
+              "location": "../../src/features/native/project-map-model.ts:252 \u00b7 G2"
+            },
+            {
+              "self_ms": 19.072,
+              "location": "../../src/features/native/project-map-model.ts:256 \u00b7 declarationDetail"
+            },
+            {
+              "self_ms": 16.514000000000003,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:468 \u00b7 a"
+            },
+            {
+              "self_ms": 12.978000000000002,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 WorkspaceMap"
+            },
+            {
+              "self_ms": 10.796999999999999,
+              "location": "../../src/features/native/project-map-model.ts:252 \u00b7 G2"
+            },
+            {
+              "self_ms": 4.281000000000001,
+              "location": "../../src/features/native/project-map-model.ts:256 \u00b7 declarationDetail"
+            },
+            {
+              "self_ms": 4.277,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:10497 \u00b7 commitMutationEffectsOnFiber"
+            },
+            {
+              "self_ms": 4.256,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 \u00b7 workLoopSync"
+            },
+            {
+              "self_ms": 3.2580000000000005,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 WorkspaceMap"
+            },
+            {
+              "self_ms": 3.2350000000000003,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 \u00b7 propagateParentContextChanges"
+            },
+            {
+              "self_ms": 2.2969999999999997,
+              "location": "../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 2.189,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:10497 \u00b7 commitMutationEffectsOnFiber"
+            },
+            {
+              "self_ms": 2.184,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 \u00b7 renderWithHooks"
+            },
+            {
+              "self_ms": 2.165,
+              "location": "../../../../node_modules/@mui/material/ButtonBase/ButtonBase.mjs:97 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 2.1470000000000002,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 2.145,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:468 \u00b7 a"
+            },
+            {
+              "self_ms": 2.137,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:105 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 2.137,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:8335 \u00b7 bubbleProperties"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 6,
+              "bytes": 1068798
+            }
+          }
+        }
+      }
+    },
+    {
+      "stage": "Retained source page for selections within it",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_cache_validation_ms": 55781.571013,
+        "reduced_motion": "reduce"
+      },
+      "artifacts": "target/gui-profile/riemann-final",
+      "events": {
+        "graph-idle-poll": {
+          "event_dispatch": {},
+          "input_to_two_frames": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "layout": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "paint": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 2546.319999999997,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 552.9499999999997,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 51.153000000000006,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 7.5009999999999994,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 \u00b7 workLoopSync"
+            },
+            {
+              "self_ms": 4.700000000000001,
+              "location": "../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 4.258,
+              "location": "../../../../node_modules/@mui/material/Tooltip/Tooltip.mjs:220 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 4.208,
+              "location": "frame"
+            },
+            {
+              "self_ms": 3.2889999999999997,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:14406 \u00b7 setProp"
+            },
+            {
+              "self_ms": 3.2089999999999996,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 3.207,
+              "location": "../../src/features/native/NativeExplorer.tsx:67 \u00b7 y"
+            },
+            {
+              "self_ms": 3.202,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:8359 \u00b7 completeWork"
+            },
+            {
+              "self_ms": 3.192,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:8335 \u00b7 bubbleProperties"
+            },
+            {
+              "self_ms": 3.191,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 3.183,
+              "location": "fetch"
+            },
+            {
+              "self_ms": 3.1529999999999996,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 \u00b7 commitHostUpdate"
+            },
+            {
+              "self_ms": 2.259,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:6425 \u00b7 updateForwardRef"
+            },
+            {
+              "self_ms": 2.158,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:14406 \u00b7 setProp"
+            },
+            {
+              "self_ms": 2.156,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 2.1559999999999997,
+              "location": "../../../../node_modules/react/cjs/react.production.js:453 \u00b7 Eq.Jt.createElement"
+            },
+            {
+              "self_ms": 2.136,
+              "location": "../../../../node_modules/@emotion/serialize/dist/emotion-serialize.esm.js:188 \u00b7 serializeStyles"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 9,
+              "bytes": 1603197
+            }
+          }
+        },
+        "graph-wheel": {
+          "event_dispatch": {
+            "pointerout": {
+              "count": 1,
+              "p50_ms": 0.17,
+              "p95_ms": 0.17,
+              "max_ms": 0.17,
+              "total_ms": 0.17
+            },
+            "pointerover": {
+              "count": 1,
+              "p50_ms": 0.037,
+              "p95_ms": 0.037,
+              "max_ms": 0.037,
+              "total_ms": 0.037
+            },
+            "mouseout": {
+              "count": 1,
+              "p50_ms": 0.066,
+              "p95_ms": 0.066,
+              "max_ms": 0.066,
+              "total_ms": 0.066
+            },
+            "mouseover": {
+              "count": 1,
+              "p50_ms": 0.033,
+              "p95_ms": 0.033,
+              "max_ms": 0.033,
+              "total_ms": 0.033
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 0.017,
+              "p95_ms": 0.017,
+              "max_ms": 0.017,
+              "total_ms": 0.017
+            },
+            "mousemove": {
+              "count": 1,
+              "p50_ms": 0.103,
+              "p95_ms": 0.103,
+              "max_ms": 0.103,
+              "total_ms": 0.103
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 0.348,
+              "p95_ms": 0.785,
+              "max_ms": 1.476,
+              "total_ms": 10.403000000000002
+            },
+            "transitionrun": {
+              "count": 24,
+              "p50_ms": 0.155,
+              "p95_ms": 0.242,
+              "max_ms": 0.248,
+              "total_ms": 3.577
+            }
+          },
+          "input_to_two_frames": {
+            "count": 26,
+            "p50_ms": 16.599999994039536,
+            "p95_ms": 18.700000017881393,
+            "max_ms": 27.700000017881393,
+            "total_ms": 432.4000000357628
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 48,
+            "p50_ms": 1.325,
+            "p95_ms": 2.319,
+            "max_ms": 3.684,
+            "total_ms": 67.21400000000001
+          },
+          "layout": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "paint": {
+            "count": 90,
+            "p50_ms": 2.145,
+            "p95_ms": 5.017,
+            "max_ms": 7.162,
+            "total_ms": 193.677
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 727.1779999999994,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 639.5109999999999,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 3.247,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 3.2119999999999997,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:6425 \u00b7 updateForwardRef"
+            },
+            {
+              "self_ms": 2.168,
+              "location": "../../../../node_modules/d3-zoom/dist/d3-zoom.mjs:308 \u00b7 wheeled"
+            },
+            {
+              "self_ms": 2.162,
+              "location": "../../../../node_modules/@emotion/hash/dist/emotion-hash.esm.js:4 \u00b7 murmur2"
+            },
+            {
+              "self_ms": 2.136,
+              "location": "../../../../node_modules/@mui/material/Tooltip/Tooltip.mjs:220 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 2.134,
+              "location": "../../../../node_modules/react/cjs/react.production.js:453 \u00b7 Eq.Jt.createElement"
+            },
+            {
+              "self_ms": 1.364,
+              "location": "mark"
+            },
+            {
+              "self_ms": 1.104,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 1.103,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 \u00b7 propagateParentContextChanges"
+            },
+            {
+              "self_ms": 1.091,
+              "location": "../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.086,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:1457 \u00b7 setValueForStyles"
+            },
+            {
+              "self_ms": 1.085,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4078 \u00b7 reconcileChildFibersImpl"
+            },
+            {
+              "self_ms": 1.084,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:14406 \u00b7 setProp"
+            },
+            {
+              "self_ms": 1.08,
+              "location": "../../src/features/source/ExplanationHint.tsx:26 \u00b7 ExplanationHint"
+            },
+            {
+              "self_ms": 1.079,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:7768 \u00b7 beginWork"
+            },
+            {
+              "self_ms": 1.073,
+              "location": "document.addEventListener.capture"
+            },
+            {
+              "self_ms": 1.072,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 1.067,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:8335 \u00b7 bubbleProperties"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 4,
+              "bytes": 712532
+            }
+          }
+        },
+        "graph-hover": {
+          "event_dispatch": {
+            "pointerout": {
+              "count": 40,
+              "p50_ms": 0.149,
+              "p95_ms": 0.347,
+              "max_ms": 0.385,
+              "total_ms": 6.683
+            },
+            "pointerover": {
+              "count": 40,
+              "p50_ms": 0.041,
+              "p95_ms": 0.119,
+              "max_ms": 0.163,
+              "total_ms": 1.957
+            },
+            "mouseout": {
+              "count": 40,
+              "p50_ms": 0.088,
+              "p95_ms": 0.188,
+              "max_ms": 0.27,
+              "total_ms": 3.8190000000000013
+            },
+            "mouseover": {
+              "count": 40,
+              "p50_ms": 0.026,
+              "p95_ms": 0.073,
+              "max_ms": 0.086,
+              "total_ms": 1.2520000000000007
+            },
+            "pointermove": {
+              "count": 40,
+              "p50_ms": 0.024,
+              "p95_ms": 0.071,
+              "max_ms": 0.108,
+              "total_ms": 1.1920000000000006
+            },
+            "mousemove": {
+              "count": 40,
+              "p50_ms": 0.04,
+              "p95_ms": 0.134,
+              "max_ms": 0.138,
+              "total_ms": 1.9270000000000005
+            },
+            "transitionrun": {
+              "count": 57,
+              "p50_ms": 0.03,
+              "p95_ms": 0.119,
+              "max_ms": 0.598,
+              "total_ms": 2.7930000000000006
+            }
+          },
+          "input_to_two_frames": {
+            "count": 80,
+            "p50_ms": 17.900000005960464,
+            "p95_ms": 35.80000001192093,
+            "max_ms": 42.39999997615814,
+            "total_ms": 1616.6000000834465
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 171,
+            "p50_ms": 0.413,
+            "p95_ms": 4.772,
+            "max_ms": 7.567,
+            "total_ms": 209.416
+          },
+          "layout": {
+            "count": 107,
+            "p50_ms": 0.297,
+            "p95_ms": 0.559,
+            "max_ms": 6.847,
+            "total_ms": 41.24100000000001
+          },
+          "paint": {
+            "count": 136,
+            "p50_ms": 0.703,
+            "p95_ms": 3.715,
+            "max_ms": 9.716,
+            "total_ms": 178.942
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 553.9229999999953,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 255.49100000000007,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 82.768,
+              "location": "get scrollTop"
+            },
+            {
+              "self_ms": 68.81199999999998,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/isScrollParent.js:2 \u00b7 isScrollParent"
+            },
+            {
+              "self_ms": 37.83799999999999,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 \u00b7 getTrueOffsetParent"
+            },
+            {
+              "self_ms": 18.322000000000003,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 \u00b7 getTrueOffsetParent"
+            },
+            {
+              "self_ms": 14.030000000000001,
+              "location": "get scrollTop"
+            },
+            {
+              "self_ms": 12.434999999999999,
+              "location": "query"
+            },
+            {
+              "self_ms": 9.862,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 \u00b7 reconcileChildrenArray"
+            },
+            {
+              "self_ms": 9.784,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 6.487,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 6.2330000000000005,
+              "location": "get scrollTop"
+            },
+            {
+              "self_ms": 6.007,
+              "location": "../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 5.651,
+              "location": "../../../../node_modules/react/cjs/react.production.js:453 \u00b7 Eq.Jt.createElement"
+            },
+            {
+              "self_ms": 5.346,
+              "location": "../../src/features/source/ExplanationHint.tsx:26 \u00b7 ExplanationHint"
+            },
+            {
+              "self_ms": 5.321999999999999,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 \u00b7 workLoopSync"
+            },
+            {
+              "self_ms": 4.869,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 4.709,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:7768 \u00b7 beginWork"
+            },
+            {
+              "self_ms": 4.348000000000001,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15482 \u00b7 shouldSetTextContent"
+            },
+            {
+              "self_ms": 4.295,
+              "location": "../../../../node_modules/@mui/material/ButtonBase/ButtonBase.mjs:97 \u00b7 (anonymous)"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 4,
+              "bytes": 712532
+            }
+          }
+        },
+        "graph-pan": {
+          "event_dispatch": {
+            "pointermove": {
+              "count": 31,
+              "p50_ms": 0.118,
+              "p95_ms": 0.284,
+              "max_ms": 0.437,
+              "total_ms": 4.446000000000001
+            },
+            "mousemove": {
+              "count": 31,
+              "p50_ms": 0.174,
+              "p95_ms": 0.308,
+              "max_ms": 0.591,
+              "total_ms": 5.89
+            },
+            "transitionrun": {
+              "count": 14,
+              "p50_ms": 0.107,
+              "p95_ms": 0.318,
+              "max_ms": 0.318,
+              "total_ms": 1.567
+            },
+            "click": {
+              "count": 1,
+              "p50_ms": 0.017,
+              "p95_ms": 0.017,
+              "max_ms": 0.017,
+              "total_ms": 0.017
+            }
+          },
+          "input_to_two_frames": {
+            "count": 2,
+            "p50_ms": 32.39999997615814,
+            "p95_ms": 32.39999997615814,
+            "max_ms": 32.39999997615814,
+            "total_ms": 57.79999998211861
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 46,
+            "p50_ms": 1.128,
+            "p95_ms": 1.85,
+            "max_ms": 2.617,
+            "total_ms": 53.373000000000005
+          },
+          "layout": {
+            "count": 1,
+            "p50_ms": 0.382,
+            "p95_ms": 0.382,
+            "max_ms": 0.382,
+            "total_ms": 0.382
+          },
+          "paint": {
+            "count": 57,
+            "p50_ms": 1.983,
+            "p95_ms": 5.322,
+            "max_ms": 6.526,
+            "total_ms": 109.32799999999999
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 495.2069999999991,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 314.89,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 2.592,
+              "location": "(anonymous)"
+            },
+            {
+              "self_ms": 2.293,
+              "location": "../../../../node_modules/@emotion/hash/dist/emotion-hash.esm.js:4 \u00b7 murmur2"
+            },
+            {
+              "self_ms": 2.214,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 2.136,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:1457 \u00b7 setValueForStyles"
+            },
+            {
+              "self_ms": 2.1340000000000003,
+              "location": "window.__cleanupDrag"
+            },
+            {
+              "self_ms": 1.751,
+              "location": "mark"
+            },
+            {
+              "self_ms": 1.103,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 \u00b7 reconcileChildrenArray"
+            },
+            {
+              "self_ms": 1.095,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4749 \u00b7 updateWorkInProgressHook"
+            },
+            {
+              "self_ms": 1.093,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:14406 \u00b7 setProp"
+            },
+            {
+              "self_ms": 1.089,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 1.087,
+              "location": "../../../../node_modules/@xyflow/react/dist/index.js:7 \u00b7 v"
+            },
+            {
+              "self_ms": 1.082,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 1.078,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 1.078,
+              "location": "../../src/features/graph/GraphView.tsx:242 \u00b7 DeclarationNode"
+            },
+            {
+              "self_ms": 1.077,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:6425 \u00b7 updateForwardRef"
+            },
+            {
+              "self_ms": 1.072,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 1.071,
+              "location": "../../../../node_modules/d3-zoom/dist/d3-zoom.mjs:10 \u00b7 ZoomEvent"
+            },
+            {
+              "self_ms": 1.07,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:5440 \u00b7 updateImperativeHandle"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 2,
+              "bytes": 356266
+            }
+          }
+        },
+        "graph-resize": {
+          "event_dispatch": {
+            "resize": {
+              "count": 4,
+              "p50_ms": 1.071,
+              "p95_ms": 1.272,
+              "max_ms": 1.272,
+              "total_ms": 3.976
+            }
+          },
+          "input_to_two_frames": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 16,
+            "p50_ms": 0.924,
+            "p95_ms": 1.351,
+            "max_ms": 1.351,
+            "total_ms": 9.484000000000002
+          },
+          "layout": {
+            "count": 16,
+            "p50_ms": 0.827,
+            "p95_ms": 1.55,
+            "max_ms": 1.55,
+            "total_ms": 10.533999999999999
+          },
+          "paint": {
+            "count": 6,
+            "p50_ms": 3.157,
+            "p95_ms": 3.283,
+            "max_ms": 3.283,
+            "total_ms": 17.807000000000002
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 201.79999999999993,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 113.44899999999993,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 2.134,
+              "location": "../../src/features/native/NativeExplorer.tsx:67 \u00b7 y"
+            },
+            {
+              "self_ms": 1.274,
+              "location": "mark"
+            },
+            {
+              "self_ms": 1.068,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 1.065,
+              "location": "../../../../node_modules/@mui/material/ButtonBase/ButtonBase.mjs:97 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.063,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 \u00b7 renderWithHooks"
+            },
+            {
+              "self_ms": 1.063,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 \u00b7 commitHostUpdate"
+            },
+            {
+              "self_ms": 1.059,
+              "location": "../../../../node_modules/scheduler/cjs/scheduler.production.js:85 \u00b7 advanceTimers"
+            },
+            {
+              "self_ms": 1.058,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 \u00b7 commitHostUpdate"
+            },
+            {
+              "self_ms": 1.057,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 1.055,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3700 \u00b7 updateFragment"
+            },
+            {
+              "self_ms": 1.055,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:8335 \u00b7 bubbleProperties"
+            },
+            {
+              "self_ms": 1.055,
+              "location": "../../src/features/native/NativeGraph.tsx:18 \u00b7 NativeGraph"
+            },
+            {
+              "self_ms": 1.054,
+              "location": "../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.044,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 \u00b7 workLoopSync"
+            },
+            {
+              "self_ms": 0.607,
+              "location": "../../../../node_modules/react-textarea-autosize/dist/react-textarea-autosize.browser.esm.js:37 \u00b7 calculateNodeHeight"
+            },
+            {
+              "self_ms": 0.53,
+              "location": "../../../../node_modules/react-textarea-autosize/dist/react-textarea-autosize.browser.esm.js:27 \u00b7 bA"
+            },
+            {
+              "self_ms": 0.529,
+              "location": "mark"
+            },
+            {
+              "self_ms": -0.253,
+              "location": "../../../../node_modules/zod/v4/core/schemas.js:1044 \u00b7 t._zod.parse"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 1,
+              "bytes": 178133
+            }
+          }
+        },
+        "tab-switch": {
+          "event_dispatch": {
+            "pointerout": {
+              "count": 24,
+              "p50_ms": 0.213,
+              "p95_ms": 0.299,
+              "max_ms": 0.558,
+              "total_ms": 5.459
+            },
+            "pointerover": {
+              "count": 24,
+              "p50_ms": 0.065,
+              "p95_ms": 0.097,
+              "max_ms": 0.111,
+              "total_ms": 1.569
+            },
+            "mouseout": {
+              "count": 24,
+              "p50_ms": 0.082,
+              "p95_ms": 0.12,
+              "max_ms": 0.124,
+              "total_ms": 1.9210000000000003
+            },
+            "mouseover": {
+              "count": 24,
+              "p50_ms": 0.038,
+              "p95_ms": 0.062,
+              "max_ms": 0.066,
+              "total_ms": 0.9310000000000003
+            },
+            "pointermove": {
+              "count": 24,
+              "p50_ms": 0.037,
+              "p95_ms": 0.054,
+              "max_ms": 0.069,
+              "total_ms": 0.9150000000000003
+            },
+            "mousemove": {
+              "count": 24,
+              "p50_ms": 0.064,
+              "p95_ms": 0.094,
+              "max_ms": 0.1,
+              "total_ms": 1.557
+            },
+            "click": {
+              "count": 24,
+              "p50_ms": 15,
+              "p95_ms": 19.28,
+              "max_ms": 21.956,
+              "total_ms": 368.4200000000001
+            },
+            "transitionrun": {
+              "count": 240,
+              "p50_ms": 0.019,
+              "p95_ms": 0.085,
+              "max_ms": 0.122,
+              "total_ms": 7.636999999999996
+            }
+          },
+          "input_to_two_frames": {
+            "count": 120,
+            "p50_ms": 38.29999998211861,
+            "p95_ms": 51.19999998807907,
+            "max_ms": 56.70000001788139,
+            "total_ms": 4442.799999684095
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 167,
+            "p50_ms": 0.509,
+            "p95_ms": 6.205,
+            "max_ms": 7.366,
+            "total_ms": 178.301
+          },
+          "layout": {
+            "count": 24,
+            "p50_ms": 7.249,
+            "p95_ms": 9.305,
+            "max_ms": 11.367,
+            "total_ms": 103.996
+          },
+          "paint": {
+            "count": 144,
+            "p50_ms": 2.173,
+            "p95_ms": 4.144,
+            "max_ms": 4.541,
+            "total_ms": 349.3300000000001
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 1148.5010000000032,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 744.2999999999998,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 43.890000000000015,
+              "location": "../../src/features/native/project-map-model.ts:252 \u00b7 G2"
+            },
+            {
+              "self_ms": 40.281,
+              "location": "query"
+            },
+            {
+              "self_ms": 22.616,
+              "location": "../../src/features/native/project-map-model.ts:256 \u00b7 declarationDetail"
+            },
+            {
+              "self_ms": 21.509999999999998,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:468 \u00b7 a"
+            },
+            {
+              "self_ms": 21.067,
+              "location": "../../src/features/native/project-map-model.ts:252 \u00b7 G2"
+            },
+            {
+              "self_ms": 19.314000000000004,
+              "location": "elementsFromPoint"
+            },
+            {
+              "self_ms": 17.108,
+              "location": "getAriaRole"
+            },
+            {
+              "self_ms": 17.085,
+              "location": "getAttribute"
+            },
+            {
+              "self_ms": 17.036,
+              "location": "(anonymous)"
+            },
+            {
+              "self_ms": 14.919,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 WorkspaceMap"
+            },
+            {
+              "self_ms": 13.853,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 13.828,
+              "location": "../../../../node_modules/@xyflow/system/dist/index.js:1847 \u00b7 updateNodeInternals"
+            },
+            {
+              "self_ms": 12.765,
+              "location": "elementSafeTagName"
+            },
+            {
+              "self_ms": 11.989999999999998,
+              "location": "../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 11.764,
+              "location": "getExplicitAriaRole"
+            },
+            {
+              "self_ms": 11.762,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 \u00b7 reconcileChildrenArray"
+            },
+            {
+              "self_ms": 9.660999999999998,
+              "location": "../../src/features/source/ExplanationHint.tsx:26 \u00b7 ExplanationHint"
+            },
+            {
+              "self_ms": 9.605,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 \u00b7 workLoopSync"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 6,
+              "bytes": 1068798
+            }
+          }
+        },
+        "graph-node-select": {
+          "event_dispatch": {
+            "pointerout": {
+              "count": 2,
+              "p50_ms": 0.453,
+              "p95_ms": 0.453,
+              "max_ms": 0.453,
+              "total_ms": 0.694
+            },
+            "pointerover": {
+              "count": 2,
+              "p50_ms": 0.118,
+              "p95_ms": 0.118,
+              "max_ms": 0.118,
+              "total_ms": 0.204
+            },
+            "mouseout": {
+              "count": 2,
+              "p50_ms": 0.184,
+              "p95_ms": 0.184,
+              "max_ms": 0.184,
+              "total_ms": 0.261
+            },
+            "mouseover": {
+              "count": 2,
+              "p50_ms": 0.059,
+              "p95_ms": 0.059,
+              "max_ms": 0.059,
+              "total_ms": 0.11699999999999999
+            },
+            "pointermove": {
+              "count": 9,
+              "p50_ms": 0.113,
+              "p95_ms": 0.236,
+              "max_ms": 0.236,
+              "total_ms": 1.02
+            },
+            "mousemove": {
+              "count": 9,
+              "p50_ms": 0.083,
+              "p95_ms": 0.151,
+              "max_ms": 0.151,
+              "total_ms": 0.745
+            },
+            "click": {
+              "count": 9,
+              "p50_ms": 0.159,
+              "p95_ms": 36.165,
+              "max_ms": 36.165,
+              "total_ms": 38.547
+            },
+            "transitionrun": {
+              "count": 21,
+              "p50_ms": 0.023,
+              "p95_ms": 0.122,
+              "max_ms": 0.207,
+              "total_ms": 0.8029999999999999
+            }
+          },
+          "input_to_two_frames": {
+            "count": 31,
+            "p50_ms": 25.099999994039536,
+            "p95_ms": 67.09999999403954,
+            "max_ms": 67.5,
+            "total_ms": 886.500000089407
+          },
+          "long_tasks": {
+            "count": 1,
+            "p50_ms": 58,
+            "p95_ms": 58,
+            "max_ms": 58,
+            "total_ms": 58
+          },
+          "style_recalculation": {
+            "count": 36,
+            "p50_ms": 0.436,
+            "p95_ms": 5.251,
+            "max_ms": 11.045,
+            "total_ms": 33.619
+          },
+          "layout": {
+            "count": 10,
+            "p50_ms": 0.453,
+            "p95_ms": 1.57,
+            "max_ms": 1.57,
+            "total_ms": 5.934
+          },
+          "paint": {
+            "count": 45,
+            "p50_ms": 0.009,
+            "p95_ms": 4.788,
+            "max_ms": 8.581,
+            "total_ms": 29.236
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 271.730999999999,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 130.56499999999994,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 10.875,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/isScrollParent.js:2 \u00b7 isScrollParent"
+            },
+            {
+              "self_ms": 9.274,
+              "location": "(anonymous)"
+            },
+            {
+              "self_ms": 6.438,
+              "location": "get scrollTop"
+            },
+            {
+              "self_ms": 5.381,
+              "location": "query"
+            },
+            {
+              "self_ms": 3.13,
+              "location": "query"
+            },
+            {
+              "self_ms": 2.17,
+              "location": "../../../../node_modules/@mui/material/TextareaAutosize/TextareaAutosize.mjs:66 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 2.145,
+              "location": "../../../../node_modules/@emotion/hash/dist/emotion-hash.esm.js:4 \u00b7 murmur2"
+            },
+            {
+              "self_ms": 2.129,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 \u00b7 commitHostUpdate"
+            },
+            {
+              "self_ms": 1.809,
+              "location": "mark"
+            },
+            {
+              "self_ms": 1.63,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 \u00b7 getTrueOffsetParent"
+            },
+            {
+              "self_ms": 1.107,
+              "location": "(anonymous)"
+            },
+            {
+              "self_ms": 1.101,
+              "location": "scrollIntoView"
+            },
+            {
+              "self_ms": 1.095,
+              "location": "../../src/features/source/ExplanationHint.tsx:26 \u00b7 ExplanationHint"
+            },
+            {
+              "self_ms": 1.094,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:17907 \u00b7 dispatchEvent"
+            },
+            {
+              "self_ms": 1.089,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 \u00b7 commitHostUpdate"
+            },
+            {
+              "self_ms": 1.087,
+              "location": "(anonymous)"
+            },
+            {
+              "self_ms": 1.087,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 \u00b7 reconcileChildrenArray"
+            },
+            {
+              "self_ms": 1.085,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:7768 \u00b7 beginWork"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 1,
+              "bytes": 178133
+            }
+          }
+        },
+        "project-map-wheel": {
+          "event_dispatch": {
+            "pointerout": {
+              "count": 5,
+              "p50_ms": 0.152,
+              "p95_ms": 0.201,
+              "max_ms": 0.201,
+              "total_ms": 0.8
+            },
+            "pointerover": {
+              "count": 5,
+              "p50_ms": 0.032,
+              "p95_ms": 0.043,
+              "max_ms": 0.043,
+              "total_ms": 0.17099999999999999
+            },
+            "mouseout": {
+              "count": 5,
+              "p50_ms": 0.043,
+              "p95_ms": 0.048,
+              "max_ms": 0.048,
+              "total_ms": 0.21099999999999997
+            },
+            "mouseover": {
+              "count": 5,
+              "p50_ms": 0.024,
+              "p95_ms": 0.03,
+              "max_ms": 0.03,
+              "total_ms": 0.123
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 0.024,
+              "p95_ms": 0.024,
+              "max_ms": 0.024,
+              "total_ms": 0.024
+            },
+            "mousemove": {
+              "count": 1,
+              "p50_ms": 0.037,
+              "p95_ms": 0.037,
+              "max_ms": 0.037,
+              "total_ms": 0.037
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 4.735,
+              "p95_ms": 8.15,
+              "max_ms": 8.258,
+              "total_ms": 124.29699999999997
+            },
+            "transitionrun": {
+              "count": 1837,
+              "p50_ms": 0.022,
+              "p95_ms": 0.049,
+              "max_ms": 0.167,
+              "total_ms": 48.113999999999606
+            }
+          },
+          "input_to_two_frames": {
+            "count": 34,
+            "p50_ms": 16.80000001192093,
+            "p95_ms": 29.80000001192093,
+            "max_ms": 31.700000017881393,
+            "total_ms": 601.500000089407
+          },
+          "long_tasks": {
+            "count": 2,
+            "p50_ms": 102,
+            "p95_ms": 102,
+            "max_ms": 102,
+            "total_ms": 174
+          },
+          "style_recalculation": {
+            "count": 48,
+            "p50_ms": 1.963,
+            "p95_ms": 4.972,
+            "max_ms": 6.324,
+            "total_ms": 107.59900000000003
+          },
+          "layout": {
+            "count": 52,
+            "p50_ms": 0.256,
+            "p95_ms": 0.737,
+            "max_ms": 3.323,
+            "total_ms": 17.929
+          },
+          "paint": {
+            "count": 144,
+            "p50_ms": 0.075,
+            "p95_ms": 3.152,
+            "max_ms": 4.721,
+            "total_ms": 137.649
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 1574.5940000001553,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 528.9959999999996,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 37.111,
+              "location": "../../src/features/native/project-map-model.ts:252 \u00b7 G2"
+            },
+            {
+              "self_ms": 19.887999999999998,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:468 \u00b7 a"
+            },
+            {
+              "self_ms": 15.961,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 WorkspaceMap"
+            },
+            {
+              "self_ms": 13.563,
+              "location": "../../src/features/native/project-map-model.ts:256 \u00b7 declarationDetail"
+            },
+            {
+              "self_ms": 8.605,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:468 \u00b7 a"
+            },
+            {
+              "self_ms": 6.492,
+              "location": "../../src/features/native/project-map-model.ts:252 \u00b7 G2"
+            },
+            {
+              "self_ms": 4.29,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:10497 \u00b7 commitMutationEffectsOnFiber"
+            },
+            {
+              "self_ms": 4.2860000000000005,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 WorkspaceMap"
+            },
+            {
+              "self_ms": 3.2230000000000003,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 \u00b7 workLoopSync"
+            },
+            {
+              "self_ms": 3.008,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 2.1550000000000002,
+              "location": "../../src/features/native/project-map-model.ts:256 \u00b7 declarationDetail"
+            },
+            {
+              "self_ms": 2.127,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 2.084,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:7768 \u00b7 beginWork"
+            },
+            {
+              "self_ms": 1.476,
+              "location": "mark"
+            },
+            {
+              "self_ms": 1.138,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:1385 \u00b7 updateTextarea"
+            },
+            {
+              "self_ms": 1.113,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 1.105,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:5454 \u00b7 updateMemo"
+            },
+            {
+              "self_ms": 1.105,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:2281 \u00b7 shallowEqual"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 6,
+              "bytes": 1068798
+            }
+          }
+        }
+      }
+    },
+    {
+      "stage": "Zero-duration reduced-motion transitions",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "reduce",
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_cache_validation_ms": 55939.295667
+      },
+      "artifacts": "target/gui-profile/riemann-motion-fix",
+      "events": {
+        "graph-idle-poll": {
+          "event_dispatch": {},
+          "input_to_two_frames": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "layout": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "paint": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 2638.912000000006,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 533.0649999999994,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 7.556,
+              "location": "../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 6.548,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 \u00b7 propagateParentContextChanges"
+            },
+            {
+              "self_ms": 5.390000000000001,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 \u00b7 workLoopSync"
+            },
+            {
+              "self_ms": 4.302,
+              "location": "fetch"
+            },
+            {
+              "self_ms": 3.2740000000000005,
+              "location": "../../../../node_modules/@mui/system/createStyled/createStyled.mjs:68 \u00b7 processStyleVariants"
+            },
+            {
+              "self_ms": 3.23,
+              "location": "../../../../node_modules/@mui/material/Tooltip/Tooltip.mjs:220 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 3.2270000000000003,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 3.1820000000000004,
+              "location": "../../src/features/native/NativeExplorer.tsx:277 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 3.1790000000000003,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 3.162,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 2.156,
+              "location": "../../../../packages/agent-protocol/src/native.ts:518 \u00b7 request"
+            },
+            {
+              "self_ms": 2.156,
+              "location": "frame"
+            },
+            {
+              "self_ms": 2.137,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 \u00b7 commitHostUpdate"
+            },
+            {
+              "self_ms": 2.137,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 \u00b7 commitHostUpdate"
+            },
+            {
+              "self_ms": 2.129,
+              "location": "../../../../node_modules/@mui/material/Popper/BasePopper.mjs:196 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 2.1189999999999998,
+              "location": "../../../../node_modules/@emotion/hash/dist/emotion-hash.esm.js:4 \u00b7 murmur2"
+            },
+            {
+              "self_ms": 2.1159999999999997,
+              "location": "../../../../node_modules/@mui/material/Popper/Popper.mjs:29 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 2.113,
+              "location": "../../../../node_modules/@emotion/serialize/dist/emotion-serialize.esm.js:49 \u00b7 handleInterpolation"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 9,
+              "bytes": 1603197
+            }
+          }
+        },
+        "graph-wheel": {
+          "event_dispatch": {
+            "pointerout": {
+              "count": 1,
+              "p50_ms": 0.328,
+              "p95_ms": 0.328,
+              "max_ms": 0.328,
+              "total_ms": 0.328
+            },
+            "pointerover": {
+              "count": 1,
+              "p50_ms": 0.064,
+              "p95_ms": 0.064,
+              "max_ms": 0.064,
+              "total_ms": 0.064
+            },
+            "mouseout": {
+              "count": 1,
+              "p50_ms": 0.11,
+              "p95_ms": 0.11,
+              "max_ms": 0.11,
+              "total_ms": 0.11
+            },
+            "mouseover": {
+              "count": 1,
+              "p50_ms": 0.032,
+              "p95_ms": 0.032,
+              "max_ms": 0.032,
+              "total_ms": 0.032
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 0.03,
+              "p95_ms": 0.03,
+              "max_ms": 0.03,
+              "total_ms": 0.03
+            },
+            "mousemove": {
+              "count": 1,
+              "p50_ms": 0.198,
+              "p95_ms": 0.198,
+              "max_ms": 0.198,
+              "total_ms": 0.198
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 0.598,
+              "p95_ms": 1.031,
+              "max_ms": 1.421,
+              "total_ms": 15.136
+            }
+          },
+          "input_to_two_frames": {
+            "count": 26,
+            "p50_ms": 16.5,
+            "p95_ms": 20.599999994039536,
+            "max_ms": 23.69999998807907,
+            "total_ms": 438.8999999165535
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 25,
+            "p50_ms": 1.064,
+            "p95_ms": 1.709,
+            "max_ms": 1.87,
+            "total_ms": 25.114000000000004
+          },
+          "layout": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "paint": {
+            "count": 48,
+            "p50_ms": 2.366,
+            "p95_ms": 4.713,
+            "max_ms": 4.886,
+            "total_ms": 99.95899999999999
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 555.8180000000008,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 495.5050000000003,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 2.167,
+              "location": "../../../../node_modules/react/cjs/react.production.js:453 \u00b7 Eq.Jt.createElement"
+            },
+            {
+              "self_ms": 2.136,
+              "location": "fetch"
+            },
+            {
+              "self_ms": 1.106,
+              "location": "../../../../node_modules/@emotion/utils/dist/emotion-utils.browser.esm.js:3 \u00b7 getRegisteredStyles"
+            },
+            {
+              "self_ms": 1.101,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 1.097,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 1.096,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 \u00b7 workLoopSync"
+            },
+            {
+              "self_ms": 1.092,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:7622 \u00b7 bailoutOnAlreadyFinishedWork"
+            },
+            {
+              "self_ms": 1.088,
+              "location": "../../../../node_modules/react/cjs/react.production.js:413 \u00b7 Eq.Jt.cloneElement"
+            },
+            {
+              "self_ms": 1.079,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:10497 \u00b7 commitMutationEffectsOnFiber"
+            },
+            {
+              "self_ms": 1.077,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 \u00b7 renderWithHooks"
+            },
+            {
+              "self_ms": 1.074,
+              "location": "../../../../node_modules/react/cjs/react-jsx-runtime.production.js:14 \u00b7 jsxProd"
+            },
+            {
+              "self_ms": 1.072,
+              "location": "../../../../node_modules/@xyflow/system/dist/index.js:2753 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.072,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:14406 \u00b7 setProp"
+            },
+            {
+              "self_ms": 1.07,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:6414 \u00b7 reconcileChildren"
+            },
+            {
+              "self_ms": 1.069,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 1.066,
+              "location": "../../../../node_modules/d3-zoom/dist/d3-zoom.mjs:308 \u00b7 wheeled"
+            },
+            {
+              "self_ms": 1.066,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:5373 \u00b7 updateEffectImpl"
+            },
+            {
+              "self_ms": 1.065,
+              "location": "../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 \u00b7 (anonymous)"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 3,
+              "bytes": 534399
+            }
+          }
+        },
+        "graph-hover": {
+          "event_dispatch": {
+            "pointerout": {
+              "count": 40,
+              "p50_ms": 0.184,
+              "p95_ms": 0.375,
+              "max_ms": 0.572,
+              "total_ms": 8.328000000000001
+            },
+            "pointerover": {
+              "count": 40,
+              "p50_ms": 0.048,
+              "p95_ms": 0.128,
+              "max_ms": 0.133,
+              "total_ms": 2.3650000000000007
+            },
+            "mouseout": {
+              "count": 40,
+              "p50_ms": 0.116,
+              "p95_ms": 0.254,
+              "max_ms": 0.322,
+              "total_ms": 5.210000000000002
+            },
+            "mouseover": {
+              "count": 40,
+              "p50_ms": 0.034,
+              "p95_ms": 0.07,
+              "max_ms": 0.082,
+              "total_ms": 1.5790000000000004
+            },
+            "pointermove": {
+              "count": 40,
+              "p50_ms": 0.033,
+              "p95_ms": 0.068,
+              "max_ms": 0.08,
+              "total_ms": 1.4740000000000006
+            },
+            "mousemove": {
+              "count": 40,
+              "p50_ms": 0.05,
+              "p95_ms": 0.104,
+              "max_ms": 0.238,
+              "total_ms": 2.4630000000000005
+            },
+            "transitionrun": {
+              "count": 20,
+              "p50_ms": 0.036,
+              "p95_ms": 0.148,
+              "max_ms": 0.148,
+              "total_ms": 0.9809999999999999
+            }
+          },
+          "input_to_two_frames": {
+            "count": 80,
+            "p50_ms": 19.400000005960464,
+            "p95_ms": 29.19999998807907,
+            "max_ms": 38.5,
+            "total_ms": 1630.300000101328
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 170,
+            "p50_ms": 0.416,
+            "p95_ms": 1.027,
+            "max_ms": 3.212,
+            "total_ms": 83.68400000000001
+          },
+          "layout": {
+            "count": 106,
+            "p50_ms": 0.329,
+            "p95_ms": 0.866,
+            "max_ms": 6.312,
+            "total_ms": 46.26299999999999
+          },
+          "paint": {
+            "count": 281,
+            "p50_ms": 0.018,
+            "p95_ms": 3.63,
+            "max_ms": 8.779,
+            "total_ms": 204.78599999999994
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 595.7149999999974,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 272.1150000000003,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 25.958999999999996,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 \u00b7 getTrueOffsetParent"
+            },
+            {
+              "self_ms": 24.295999999999996,
+              "location": "get scrollTop"
+            },
+            {
+              "self_ms": 22.553999999999995,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/isScrollParent.js:2 \u00b7 isScrollParent"
+            },
+            {
+              "self_ms": 20.018,
+              "location": "query"
+            },
+            {
+              "self_ms": 19.392,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 \u00b7 getTrueOffsetParent"
+            },
+            {
+              "self_ms": 16.728,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 11.957,
+              "location": "../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 9.525,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 \u00b7 propagateParentContextChanges"
+            },
+            {
+              "self_ms": 9.517999999999999,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 \u00b7 workLoopSync"
+            },
+            {
+              "self_ms": 8.642,
+              "location": "get scrollTop"
+            },
+            {
+              "self_ms": 6.465,
+              "location": "querySelectorAll"
+            },
+            {
+              "self_ms": 6.456,
+              "location": "../../../../node_modules/react/cjs/react.production.js:453 \u00b7 Eq.Jt.createElement"
+            },
+            {
+              "self_ms": 5.3790000000000004,
+              "location": "../../../../node_modules/@emotion/serialize/dist/emotion-serialize.esm.js:49 \u00b7 handleInterpolation"
+            },
+            {
+              "self_ms": 4.335,
+              "location": "../../../../node_modules/@emotion/hash/dist/emotion-hash.esm.js:4 \u00b7 murmur2"
+            },
+            {
+              "self_ms": 4.314,
+              "location": "../../src/features/source/ExplanationHint.tsx:26 \u00b7 ExplanationHint"
+            },
+            {
+              "self_ms": 4.249,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:6425 \u00b7 updateForwardRef"
+            },
+            {
+              "self_ms": 4.007,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 \u00b7 renderWithHooks"
+            },
+            {
+              "self_ms": 3.54,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 3,
+              "bytes": 534399
+            }
+          }
+        },
+        "graph-pan": {
+          "event_dispatch": {
+            "pointermove": {
+              "count": 31,
+              "p50_ms": 0.17,
+              "p95_ms": 0.351,
+              "max_ms": 0.377,
+              "total_ms": 5.699
+            },
+            "mousemove": {
+              "count": 31,
+              "p50_ms": 0.195,
+              "p95_ms": 0.415,
+              "max_ms": 0.454,
+              "total_ms": 6.762999999999999
+            },
+            "click": {
+              "count": 1,
+              "p50_ms": 0.029,
+              "p95_ms": 0.029,
+              "max_ms": 0.029,
+              "total_ms": 0.029
+            }
+          },
+          "input_to_two_frames": {
+            "count": 2,
+            "p50_ms": 35.39999997615814,
+            "p95_ms": 35.39999997615814,
+            "max_ms": 35.39999997615814,
+            "total_ms": 61.69999998807907
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 32,
+            "p50_ms": 0.87,
+            "p95_ms": 1.414,
+            "max_ms": 1.754,
+            "total_ms": 28.101
+          },
+          "layout": {
+            "count": 1,
+            "p50_ms": 0.47,
+            "p95_ms": 0.47,
+            "max_ms": 0.47,
+            "total_ms": 0.47
+          },
+          "paint": {
+            "count": 61,
+            "p50_ms": 2.064,
+            "p95_ms": 6.646,
+            "max_ms": 7.019,
+            "total_ms": 146.47500000000002
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 585.9180000000001,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 288.1990000000001,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 4.316000000000001,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 \u00b7 reconcileChildrenArray"
+            },
+            {
+              "self_ms": 3.192,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 2.161,
+              "location": "fetch"
+            },
+            {
+              "self_ms": 2.15,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 2.1189999999999998,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 \u00b7 updateElement"
+            },
+            {
+              "self_ms": 1.105,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 \u00b7 renderWithHooks"
+            },
+            {
+              "self_ms": 1.1,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:1482 \u00b7 isCustomElement"
+            },
+            {
+              "self_ms": 1.097,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9033 \u00b7 commitHookEffectListUnmount"
+            },
+            {
+              "self_ms": 1.091,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4078 \u00b7 reconcileChildFibersImpl"
+            },
+            {
+              "self_ms": 1.091,
+              "location": "../../../../node_modules/@mui/material/Tooltip/Tooltip.mjs:220 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.089,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 1.089,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 1.088,
+              "location": "../../../../node_modules/d3-zoom/dist/d3-zoom.mjs:359 \u00b7 mousemoved"
+            },
+            {
+              "self_ms": 1.087,
+              "location": "../../../../node_modules/d3-zoom/dist/d3-zoom.mjs:221 \u00b7 translate"
+            },
+            {
+              "self_ms": 1.085,
+              "location": "../../../../node_modules/@emotion/hash/dist/emotion-hash.esm.js:4 \u00b7 murmur2"
+            },
+            {
+              "self_ms": 1.083,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 1.081,
+              "location": "../../../../node_modules/d3-zoom/dist/d3-zoom.mjs:10 \u00b7 ZoomEvent"
+            },
+            {
+              "self_ms": 1.08,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 \u00b7 renderWithHooks"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 2,
+              "bytes": 356266
+            }
+          }
+        },
+        "graph-resize": {
+          "event_dispatch": {
+            "resize": {
+              "count": 4,
+              "p50_ms": 0.998,
+              "p95_ms": 1.461,
+              "max_ms": 1.461,
+              "total_ms": 4.226
+            }
+          },
+          "input_to_two_frames": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 16,
+            "p50_ms": 0.71,
+            "p95_ms": 1.78,
+            "max_ms": 1.78,
+            "total_ms": 8.545
+          },
+          "layout": {
+            "count": 16,
+            "p50_ms": 0.976,
+            "p95_ms": 2.058,
+            "max_ms": 2.058,
+            "total_ms": 12.485000000000001
+          },
+          "paint": {
+            "count": 6,
+            "p50_ms": 3.147,
+            "p95_ms": 4.155,
+            "max_ms": 4.155,
+            "total_ms": 19.289
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 195.24499999999983,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 104.71299999999994,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 1.285,
+              "location": "mark"
+            },
+            {
+              "self_ms": 1.102,
+              "location": "../../../../node_modules/@emotion/serialize/dist/emotion-serialize.esm.js:188 \u00b7 serializeStyles"
+            },
+            {
+              "self_ms": 1.096,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            },
+            {
+              "self_ms": 1.072,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:1457 \u00b7 setValueForStyles"
+            },
+            {
+              "self_ms": 1.068,
+              "location": "../../src/features/native/NativeExplorer.tsx:67 \u00b7 y"
+            },
+            {
+              "self_ms": 1.066,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 \u00b7 reconcileChildrenArray"
+            },
+            {
+              "self_ms": 1.066,
+              "location": "../../../../node_modules/react/cjs/react.production.js:453 \u00b7 Eq.Jt.createElement"
+            },
+            {
+              "self_ms": 1.064,
+              "location": "setProperty"
+            },
+            {
+              "self_ms": 1.064,
+              "location": "../../../../node_modules/react-compiler-runtime/dist/index.js:30 \u00b7 get"
+            },
+            {
+              "self_ms": 1.064,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 \u00b7 commitHostUpdate"
+            },
+            {
+              "self_ms": 1.063,
+              "location": "../../../../node_modules/@mui/material/ButtonBase/useButtonBase.mjs:6 \u00b7 useButtonBase"
+            },
+            {
+              "self_ms": 1.062,
+              "location": "queueMicrotask"
+            },
+            {
+              "self_ms": 1.061,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4852 \u00b7 updateReducerImpl"
+            },
+            {
+              "self_ms": 1.06,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 \u00b7 commitHostUpdate"
+            },
+            {
+              "self_ms": 1.059,
+              "location": "../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.058,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 \u00b7 workLoopSync"
+            },
+            {
+              "self_ms": 0.67,
+              "location": "../../src/features/native/NativeExplorer.tsx:67 \u00b7 y"
+            },
+            {
+              "self_ms": 0.145,
+              "location": "mark"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 1,
+              "bytes": 178133
+            }
+          }
+        },
+        "tab-switch": {
+          "event_dispatch": {
+            "pointerout": {
+              "count": 24,
+              "p50_ms": 0.259,
+              "p95_ms": 0.418,
+              "max_ms": 0.952,
+              "total_ms": 6.970000000000001
+            },
+            "pointerover": {
+              "count": 24,
+              "p50_ms": 0.07,
+              "p95_ms": 0.152,
+              "max_ms": 0.24,
+              "total_ms": 1.9089999999999998
+            },
+            "mouseout": {
+              "count": 24,
+              "p50_ms": 0.087,
+              "p95_ms": 0.166,
+              "max_ms": 0.429,
+              "total_ms": 2.5549999999999997
+            },
+            "mouseover": {
+              "count": 24,
+              "p50_ms": 0.044,
+              "p95_ms": 0.085,
+              "max_ms": 0.098,
+              "total_ms": 1.1300000000000003
+            },
+            "pointermove": {
+              "count": 24,
+              "p50_ms": 0.045,
+              "p95_ms": 0.09,
+              "max_ms": 0.165,
+              "total_ms": 1.2220000000000002
+            },
+            "mousemove": {
+              "count": 24,
+              "p50_ms": 0.072,
+              "p95_ms": 0.12,
+              "max_ms": 0.182,
+              "total_ms": 1.9180000000000001
+            },
+            "click": {
+              "count": 24,
+              "p50_ms": 15.925,
+              "p95_ms": 25.809,
+              "max_ms": 30.291,
+              "total_ms": 416.328
+            }
+          },
+          "input_to_two_frames": {
+            "count": 120,
+            "p50_ms": 38.400000005960464,
+            "p95_ms": 60.099999994039536,
+            "max_ms": 76.30000001192093,
+            "total_ms": 4757.100000023842
+          },
+          "long_tasks": {
+            "count": 2,
+            "p50_ms": 58,
+            "p95_ms": 58,
+            "max_ms": 58,
+            "total_ms": 109
+          },
+          "style_recalculation": {
+            "count": 119,
+            "p50_ms": 0.521,
+            "p95_ms": 6.502,
+            "max_ms": 10.482,
+            "total_ms": 167.24600000000004
+          },
+          "layout": {
+            "count": 24,
+            "p50_ms": 7.425,
+            "p95_ms": 10.425,
+            "max_ms": 10.749,
+            "total_ms": 108.035
+          },
+          "paint": {
+            "count": 48,
+            "p50_ms": 3.35,
+            "p95_ms": 4.395,
+            "max_ms": 8.979,
+            "total_ms": 159.099
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 971.2689999999927,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 697.9899999999997,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 46.26400000000001,
+              "location": "../../src/features/native/project-map-model.ts:252 \u00b7 G2"
+            },
+            {
+              "self_ms": 44.51899999999998,
+              "location": "query"
+            },
+            {
+              "self_ms": 32.24499999999999,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:468 \u00b7 a"
+            },
+            {
+              "self_ms": 22.587,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 WorkspaceMap"
+            },
+            {
+              "self_ms": 20.310000000000002,
+              "location": "(anonymous)"
+            },
+            {
+              "self_ms": 17.5,
+              "location": "../../../../node_modules/@xyflow/system/dist/index.js:1847 \u00b7 updateNodeInternals"
+            },
+            {
+              "self_ms": 17.354,
+              "location": "../../src/features/native/project-map-model.ts:256 \u00b7 declarationDetail"
+            },
+            {
+              "self_ms": 16.346999999999998,
+              "location": "elementsFromPoint"
+            },
+            {
+              "self_ms": 14.013,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 \u00b7 reconcileChildrenArray"
+            },
+            {
+              "self_ms": 13.901000000000002,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 \u00b7 workLoopSync"
+            },
+            {
+              "self_ms": 13.243999999999998,
+              "location": "../../src/features/native/NativeExplorer.tsx:68 \u00b7 entry"
+            },
+            {
+              "self_ms": 12.687999999999999,
+              "location": "match"
+            },
+            {
+              "self_ms": 11.781,
+              "location": "../../src/features/source/ExplanationHint.tsx:26 \u00b7 ExplanationHint"
+            },
+            {
+              "self_ms": 11.711,
+              "location": "elementSafeTagName"
+            },
+            {
+              "self_ms": 11.689000000000002,
+              "location": "getAriaRole"
+            },
+            {
+              "self_ms": 10.798,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:468 \u00b7 a"
+            },
+            {
+              "self_ms": 10.722000000000001,
+              "location": "getAttribute"
+            },
+            {
+              "self_ms": 8.929,
+              "location": "../../src/features/native/project-map-model.ts:252 \u00b7 G2"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 6,
+              "bytes": 1068798
+            }
+          }
+        },
+        "graph-node-select": {
+          "event_dispatch": {
+            "pointerout": {
+              "count": 2,
+              "p50_ms": 0.3,
+              "p95_ms": 0.3,
+              "max_ms": 0.3,
+              "total_ms": 0.496
+            },
+            "pointerover": {
+              "count": 2,
+              "p50_ms": 0.074,
+              "p95_ms": 0.074,
+              "max_ms": 0.074,
+              "total_ms": 0.136
+            },
+            "mouseout": {
+              "count": 2,
+              "p50_ms": 0.176,
+              "p95_ms": 0.176,
+              "max_ms": 0.176,
+              "total_ms": 0.311
+            },
+            "mouseover": {
+              "count": 2,
+              "p50_ms": 0.044,
+              "p95_ms": 0.044,
+              "max_ms": 0.044,
+              "total_ms": 0.08499999999999999
+            },
+            "pointermove": {
+              "count": 9,
+              "p50_ms": 0.059,
+              "p95_ms": 0.114,
+              "max_ms": 0.114,
+              "total_ms": 0.579
+            },
+            "mousemove": {
+              "count": 9,
+              "p50_ms": 0.042,
+              "p95_ms": 0.075,
+              "max_ms": 0.075,
+              "total_ms": 0.44800000000000006
+            },
+            "click": {
+              "count": 9,
+              "p50_ms": 0.097,
+              "p95_ms": 40.223,
+              "max_ms": 40.223,
+              "total_ms": 41.737
+            }
+          },
+          "input_to_two_frames": {
+            "count": 31,
+            "p50_ms": 27,
+            "p95_ms": 86.09999999403954,
+            "max_ms": 86.30000001192093,
+            "total_ms": 1240.2999999523163
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 37,
+            "p50_ms": 0.27,
+            "p95_ms": 2.766,
+            "max_ms": 9.313,
+            "total_ms": 21.696
+          },
+          "layout": {
+            "count": 11,
+            "p50_ms": 0.327,
+            "p95_ms": 1.536,
+            "max_ms": 1.536,
+            "total_ms": 5.804
+          },
+          "paint": {
+            "count": 7,
+            "p50_ms": 0.15,
+            "p95_ms": 4.439,
+            "max_ms": 4.439,
+            "total_ms": 10.425
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 229.6039999999978,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 131.47399999999993,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 8.511,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/isScrollParent.js:2 \u00b7 isScrollParent"
+            },
+            {
+              "self_ms": 5.359,
+              "location": "query"
+            },
+            {
+              "self_ms": 4.2170000000000005,
+              "location": "get scrollTop"
+            },
+            {
+              "self_ms": 3.2540000000000004,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:7768 \u00b7 beginWork"
+            },
+            {
+              "self_ms": 2.151,
+              "location": "../../../../node_modules/@mui/material/TextareaAutosize/TextareaAutosize.mjs:66 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 2.113,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 \u00b7 reconcileChildrenArray"
+            },
+            {
+              "self_ms": 2.056,
+              "location": "mark"
+            },
+            {
+              "self_ms": 1.665,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 \u00b7 renderWithHooks"
+            },
+            {
+              "self_ms": 1.465,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 \u00b7 getTrueOffsetParent"
+            },
+            {
+              "self_ms": 1.124,
+              "location": "../../../../node_modules/@emotion/utils/dist/emotion-utils.browser.esm.js:3 \u00b7 getRegisteredStyles"
+            },
+            {
+              "self_ms": 1.116,
+              "location": "scrollIntoView"
+            },
+            {
+              "self_ms": 1.109,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:1457 \u00b7 setValueForStyles"
+            },
+            {
+              "self_ms": 1.106,
+              "location": "elementsFromPoint"
+            },
+            {
+              "self_ms": 1.104,
+              "location": "../../../../node_modules/@emotion/utils/dist/emotion-utils.browser.esm.js:3 \u00b7 getRegisteredStyles"
+            },
+            {
+              "self_ms": 1.098,
+              "location": "../../../../node_modules/@popperjs/core/lib/dom-utils/getClippingRect.js:16 \u00b7 getInnerBoundingClientRect"
+            },
+            {
+              "self_ms": 1.097,
+              "location": "../../src/features/native/NativeExplorer.tsx:277 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 1.096,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3700 \u00b7 updateFragment"
+            },
+            {
+              "self_ms": 1.095,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 \u00b7 updateProperties"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 1,
+              "bytes": 178133
+            }
+          }
+        },
+        "project-map-wheel": {
+          "event_dispatch": {
+            "pointerout": {
+              "count": 5,
+              "p50_ms": 0.14,
+              "p95_ms": 0.159,
+              "max_ms": 0.159,
+              "total_ms": 0.6950000000000001
+            },
+            "pointerover": {
+              "count": 5,
+              "p50_ms": 0.035,
+              "p95_ms": 0.054,
+              "max_ms": 0.054,
+              "total_ms": 0.194
+            },
+            "mouseout": {
+              "count": 5,
+              "p50_ms": 0.043,
+              "p95_ms": 0.065,
+              "max_ms": 0.065,
+              "total_ms": 0.23399999999999999
+            },
+            "mouseover": {
+              "count": 5,
+              "p50_ms": 0.026,
+              "p95_ms": 0.031,
+              "max_ms": 0.031,
+              "total_ms": 0.13
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 0.029,
+              "p95_ms": 0.029,
+              "max_ms": 0.029,
+              "total_ms": 0.029
+            },
+            "mousemove": {
+              "count": 1,
+              "p50_ms": 0.033,
+              "p95_ms": 0.033,
+              "max_ms": 0.033,
+              "total_ms": 0.033
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 8.358,
+              "p95_ms": 10.554,
+              "max_ms": 12.083,
+              "total_ms": 186.81099999999998
+            }
+          },
+          "input_to_two_frames": {
+            "count": 34,
+            "p50_ms": 17.099999994039536,
+            "p95_ms": 28.900000005960464,
+            "max_ms": 29.099999994039536,
+            "total_ms": 623.2999998033047
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "style_recalculation": {
+            "count": 29,
+            "p50_ms": 1.122,
+            "p95_ms": 1.679,
+            "max_ms": 1.852,
+            "total_ms": 30.210999999999995
+          },
+          "layout": {
+            "count": 27,
+            "p50_ms": 0.327,
+            "p95_ms": 0.546,
+            "max_ms": 2.714,
+            "total_ms": 11.564
+          },
+          "paint": {
+            "count": 73,
+            "p50_ms": 0.096,
+            "p95_ms": 4.065,
+            "max_ms": 4.418,
+            "total_ms": 77.07900000000002
+          },
+          "cpu_self_samples_top": [
+            {
+              "self_ms": 450.5259999999993,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 437.78499999999985,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 138.228,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 WorkspaceMap"
+            },
+            {
+              "self_ms": 19.803,
+              "location": "../../src/features/native/NativeWorkspaceGraph.tsx:255 \u00b7 WorkspaceMap"
+            },
+            {
+              "self_ms": 2.173,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:10497 \u00b7 commitMutationEffectsOnFiber"
+            },
+            {
+              "self_ms": 2.144,
+              "location": "../../src/features/native/NativeExplorer.tsx:67 \u00b7 y"
+            },
+            {
+              "self_ms": 2.127,
+              "location": "../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 \u00b7 (anonymous)"
+            },
+            {
+              "self_ms": 2.122,
+              "location": "../../../../node_modules/react/cjs/react-jsx-runtime.production.js:14 \u00b7 jsxProd"
+            },
+            {
+              "self_ms": 1.113,
+              "location": "../../../../node_modules/@xyflow/react/dist/index.js:7 \u00b7 Ka"
+            },
+            {
+              "self_ms": 1.104,
+              "location": "../../../../node_modules/@xyflow/react/dist/index.js:7 \u00b7 $a"
+            },
+            {
+              "self_ms": 1.101,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 \u00b7 renderWithHooks"
+            },
+            {
+              "self_ms": 1.096,
+              "location": "../../../../node_modules/@xyflow/system/dist/index.js:726 \u00b7 Xp"
+            },
+            {
+              "self_ms": 1.096,
+              "location": "setAttribute"
+            },
+            {
+              "self_ms": 1.093,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:7768 \u00b7 beginWork"
+            },
+            {
+              "self_ms": 1.09,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 \u00b7 reconcileChildrenArray"
+            },
+            {
+              "self_ms": 1.0879999999999999,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 \u00b7 renderWithHooks"
+            },
+            {
+              "self_ms": 1.085,
+              "location": "queueMicrotask"
+            },
+            {
+              "self_ms": 1.079,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:11830 \u00b7 recursivelyTraversePassiveUnmountEffects"
+            },
+            {
+              "self_ms": 1.077,
+              "location": "../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 \u00b7 propagateParentContextChanges"
+            },
+            {
+              "self_ms": 1.076,
+              "location": "../../../../node_modules/@xyflow/react/dist/index.js:7 \u00b7 ga"
+            }
+          ],
+          "requests": {
+            "GET /api/state": {
+              "count": 3,
+              "bytes": 534399
+            }
+          }
+        }
+      }
+    }
+  ],
+  "checks": {
+    "typescript_unit": 32,
+    "required_public_tui": 33,
+    "tui_evidence": "/tmp/meden-ux-stable-camera-20261122",
+    "decoded_screens_reviewed": [
+      "GUI/TUI continuation",
+      "Lake inventory-change refusal and historical result",
+      "Provider failure, retained stop and explicit retry"
+    ],
+    "targeted_gui_final": {
+      "distinct_cases_passed": 5,
+      "final_camera_and_source": "/tmp/meden-camera-complete-gui.log",
+      "large_map_and_normal_hover": "/tmp/meden-camera-verified-gui.log",
+      "source_edit_failure_mobile_recovery": "/tmp/meden-camera-source-gui.log",
+      "note": "The final legend-routing/camera/source-page recheck passed both selected cases. The earlier five distinct relevant journeys passed across focused runs; no single full GUI-suite pass is claimed."
+    },
+    "prior_gui_checks": "Camera/hover, 10001-file map and retained tabs passed after branch pruning; source edit/mobile accessibility passed after page reuse. The new later-node selection exposed a real legend hit-test obstruction; fixed with pointer-events:none, without forced clicks or off-screen project repair."
+  },
+  "profiling_tool": "tools/gui/profile-interactions.mjs",
+  "adapters": "The profiler is an opt-in development tool. It records locally, opens a prepared file through the public explorer and may validate its compile cache before recording. It makes no model requests and is not application telemetry."
+}

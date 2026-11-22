@@ -2,18 +2,14 @@ import {
   createContext,
   useContext,
   useEffect,
-  useEffectEvent,
   useMemo,
   useState,
-  useRef,
-  type RefObject,
   type CSSProperties,
 } from "react";
 import { MathText } from "../source/MathText";
 import {
   ReactFlow,
   ReactFlowProvider,
-  useReactFlow,
   Controls,
   ViewportPortal,
   Handle,
@@ -69,7 +65,6 @@ export function GraphView({
       workspace.declarations[0]?.id ||
       "",
   );
-  const canvas = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState<string>();
   const emphasized = hovered || selectedId;
   const nearby = new Set([emphasized, root]);
@@ -167,7 +162,7 @@ export function GraphView({
     );
   return (
     <section className="graph-page" aria-label="Proof dependencies">
-      <div data-layout="l4sb" className="graph-canvas cone-graph" ref={canvas}>
+      <div data-layout="l4sb" className="graph-canvas cone-graph">
         <div className="cone-label cone-label-up">Uses</div>
         <div className="cone-label cone-label-down">Used by</div>
         <div
@@ -223,7 +218,6 @@ export function GraphView({
               forceColorMode="dark"
               aria-label="Declaration dependency graph"
             >
-              <FitToPane canvas={canvas} />
               <ViewportPortal>
                 <svg
                   className="l4sb-rings"
@@ -243,46 +237,6 @@ export function GraphView({
       </div>
     </section>
   );
-}
-
-function FitToPane({ canvas }: { canvas: RefObject<HTMLDivElement | null> }) {
-  const { fitView } = useReactFlow();
-  const lastSize = useRef<{ width: number; height: number } | undefined>(
-    undefined,
-  );
-  const fitToCanvas = useEffectEvent(() => {
-    void fitView({
-      padding: {
-        top: "68px",
-        bottom: "56px",
-        left: "26px",
-        right: "26px",
-      },
-    });
-  });
-  useEffect(() => {
-    const element = canvas.current;
-    if (!element) return;
-    let frame = 0;
-    const observer = new ResizeObserver((entries) => {
-      const bounds = entries[0]?.contentRect;
-      if (!bounds || bounds.width === 0 || bounds.height === 0) return;
-      if (
-        lastSize.current?.width === bounds.width &&
-        lastSize.current?.height === bounds.height
-      )
-        return;
-      lastSize.current = { width: bounds.width, height: bounds.height };
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => fitToCanvas());
-    });
-    observer.observe(element);
-    return () => {
-      observer.disconnect();
-      cancelAnimationFrame(frame);
-    };
-  }, [canvas]);
-  return null;
 }
 
 function DeclarationNode({ data }: NodeProps<RadarNode>) {

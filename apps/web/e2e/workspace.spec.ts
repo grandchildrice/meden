@@ -378,6 +378,72 @@ test("proof opens the wider source graph and follows a declaration into its exac
   await expect(page.locator(".source-location")).toContainText("Check.lean:");
 });
 
+test("graph zoom survives pointer movement and canvas resizing until explicit fit", async ({
+  page,
+}) => {
+  await archivedChat(page);
+  await openProof(page);
+  const canvas = page.locator(".cone-graph");
+  await canvas.evaluate((element) => {
+    (window as any).__graphTransitions = 0;
+    element.addEventListener("transitionrun", () => {
+      (window as any).__graphTransitions++;
+    });
+  });
+  const viewport = canvas.locator(".react-flow__viewport");
+  const zoom = () =>
+    viewport.evaluate(
+      (e) => new DOMMatrixReadOnly(getComputedStyle(e).transform).a,
+    );
+  const initial = await zoom();
+  const box = (await canvas.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.wheel(0, -320);
+  await expect.poll(zoom).toBeGreaterThan(initial * 1.2);
+  // Observe the completed wheel gesture before testing pointer-only changes.
+  const settle = () =>
+    viewport.evaluate(async (e) => {
+      let previous = "",
+        stable = 0;
+      for (let frame = 0; frame < 90; frame++) {
+        await new Promise(requestAnimationFrame);
+        const current = getComputedStyle(e).transform;
+        stable = current === previous ? stable + 1 : 0;
+        previous = current;
+        if (stable >= 8) return current;
+      }
+      throw new Error("Wheel zoom did not settle");
+    });
+  const camera = await settle();
+  for (let i = 0; i < 3; i++) {
+    await canvas.locator(".root-node > button").hover();
+    await page.mouse.move(box.x + box.width - 8, box.y + 8);
+    await expect(viewport).toHaveCSS("transform", camera);
+  }
+  const beforeLegend = await zoom();
+  const legend = (await canvas.getByLabel("Review scope").boundingBox())!;
+  await page.mouse.move(
+    legend.x + legend.width / 2,
+    legend.y + legend.height / 2,
+  );
+  await page.mouse.wheel(0, -160);
+  await expect.poll(zoom).toBeGreaterThan(beforeLegend * 1.1);
+  await settle();
+  const enlarged = await zoom();
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect
+    .poll(async () => (await canvas.boundingBox())!.width)
+    .not.toBe(box.width);
+  // Wait for resize observers and rendering, then check that they did not fit.
+  await viewport.evaluate(async () => {
+    for (let i = 0; i < 8; i++) await new Promise(requestAnimationFrame);
+  });
+  expect(await zoom()).toBeCloseTo(enlarged, 6);
+  await canvas.getByRole("button", { name: "Fit View", exact: true }).click();
+  await expect.poll(zoom).toBeLessThan(enlarged);
+  expect(await page.evaluate(() => (window as any).__graphTransitions)).toBe(0);
+});
+
 test("hover keeps dense graph nodes in place until the pointer selects them", async ({
   page,
 }) => {

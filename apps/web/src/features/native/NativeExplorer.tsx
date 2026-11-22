@@ -186,8 +186,14 @@ export function NativeCode({
   // not queue another inspection/compilation merely to populate the reader.
   const source = path ? state.source_snapshot?.files[path] : undefined;
   const [offset, setOffset] = useState(1);
+  useEffect(() => setOffset(1), [path]);
   useEffect(() => {
-    setOffset(line ? Math.max(1, line - 5) : 1);
+    if (line)
+      setOffset((current) =>
+        line >= current && line < current + 200
+          ? current
+          : Math.max(1, line - 5),
+      );
   }, [path, line]);
   const current = useMemo(() => {
     if (source === undefined || !path) return path ? files[path] : undefined;

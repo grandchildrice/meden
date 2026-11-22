@@ -8,6 +8,11 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Native GUI and Atlas with Ollama Cloud
 
+The [interaction profile](gui-interactions-20261122.json) and
+[analysis](../docs/gui-performance.md) record event costs on the 175,187-file
+Riemann map, camera continuity, branch pruning, source-page reuse and reduced-
+motion transition removal. Raw browser traces and CPU profiles remain local.
+
 The [retained file views record](gui-retained-tabs.json) covers navigation without
 repeat inspection, retained source/graph positions, literal identifier typography
 and readable card padding. It records actual Riemann navigation timings separately

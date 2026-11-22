@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Button, LinearProgress } from "@mui/material";
 import {
   ReactFlow,
@@ -252,7 +252,7 @@ function Scene({ data }: NodeProps<SceneNode>) {
 }
 const nodeTypes = { scene: Scene };
 
-export function NativeWorkspaceGraph({
+function WorkspaceMap({
   scene,
   state,
   selectedId,
@@ -491,18 +491,16 @@ export function NativeWorkspaceGraph({
             viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
             aria-label="Position in the whole project"
           >
-            {scene.areas
-              .filter((a) => a.depth === 1)
-              .map((a) => (
-                <rect
-                  key={a.path}
-                  x={a.x}
-                  y={a.y}
-                  width={a.width}
-                  height={a.height}
-                  fill={colors[a.color]}
-                />
-              ))}
+            {(scene.children.get("") || []).map((a) => (
+              <rect
+                key={a.path}
+                x={a.x}
+                y={a.y}
+                width={a.width}
+                height={a.height}
+                fill={colors[a.color]}
+              />
+            ))}
             <rect
               x={-camera.x / camera.zoom}
               y={-camera.y / camera.zoom}
@@ -518,3 +516,10 @@ export function NativeWorkspaceGraph({
     </section>
   );
 }
+
+// Hidden tabs retain their camera but do no parent-driven map work. Activation
+// always supplies the latest scene, callbacks and native status.
+export const NativeWorkspaceGraph = memo(
+  WorkspaceMap,
+  (previous, next) => !previous.active && !next.active,
+);

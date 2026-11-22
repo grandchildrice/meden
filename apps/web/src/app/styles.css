@@ -1751,7 +1751,7 @@ pre {
   *:before,
   *:after {
     animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 0s !important;
     scroll-behavior: auto !important;
   }
 }
@@ -3636,6 +3636,7 @@ pre {
   stroke-dasharray: 3 5;
 }
 .graph-review-legend {
+  pointer-events: none;
   position: absolute;
   z-index: 4;
   left: 56px;
