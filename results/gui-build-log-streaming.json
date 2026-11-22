@@ -1,0 +1,93 @@
+{
+  "date": "2026-11-22",
+  "subject": "Streaming build diagnostics and independently bounded counterexample observations",
+  "binary_sha256": "0c184c1aba8b8d45de070d932fa36fa4ca4abd5e735dd12cc90236a19ec028b4",
+  "behavior": {
+    "logs": "Actual compiler/adapter stderr and diagnostic stdout update the file pane before completion. Retained tail: 64 KiB; ready logs collapse; timeout/cancel keeps the failed phase and tail. No chat transcript writes.",
+    "build_limit_seconds": 7200,
+    "build_host_setting": "MEDEN_ATLAS_BUILD_TIMEOUT_SECONDS (1..86400)",
+    "extraction_limit_seconds": 600,
+    "checker_worker_limit_seconds": 10,
+    "checker_file_limit_seconds": 120,
+    "checker_heartbeat_limit": 10000,
+    "instance_heartbeat_limit": 2000,
+    "axioms": "Lean collectAxioms with its imported metadata index; standard/nonstandard partition retained",
+    "composition": "Compiler emits a private pending graph; fixed offline workers fill every checker slot with a result or explicit inconclusive observation before publication. No incomplete graph or pending checker is admitted."
+  },
+  "actual_failure_reproduction": {
+    "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+    "prior_stage": "Plausible predicate expansion for exists_denominator_fmat stalled the whole Atlas process; all 26 local source dependencies were already compiled.",
+    "cold": {
+      "state": "ready",
+      "elapsed_ms": 233699,
+      "declarations": 15,
+      "error": null,
+      "checker_outcomes": {
+        "budget_exhausted": 10,
+        "unsupported": 4,
+        "not_proposition": 1
+      },
+      "chat_unchanged": true,
+      "authorized": false,
+      "graph_revision": "sha256:8a762372e1e425910ec39c1f05285b33e296b48492093d667855a3cea2db8d4e"
+    },
+    "warm": {
+      "state": "ready",
+      "cache_hit": true,
+      "elapsed_ms": 72225,
+      "declarations": 15,
+      "chat_unchanged": true,
+      "authorized": false,
+      "visible_source_and_graph": true
+    },
+    "screenshots": [
+      "/tmp/meden-riemann-build-streaming.png",
+      "/tmp/meden-riemann-dictgen-result.png"
+    ]
+  },
+  "checks": {
+    "runtime_unit": 46,
+    "runtime_command": "nix shell nixpkgs#python3 nixpkgs#bubblewrap --command cargo test -p meden-runtime",
+    "runtime_prerequisite_note": "The initial ordinary/uv PATH attempts lacked a canonical public Python for the namespace fixture and failed before the fixture launched. A Nix shell supplied public Python/Bubblewrap; all 46 cases then passed with no skips. This is not cold-machine validation.",
+    "cli_unit": 71,
+    "os_isolation": 12,
+    "typescript_unit": 30,
+    "compiler_budget_isolation": 1,
+    "required_public_tui": 33,
+    "tui_evidence": "/tmp/meden-ux-streamed-preparation-20261122",
+    "decoded_screen_review": [
+      "Lake source-inventory refusal and historical restart",
+      "GUI/TUI continuation with retained writes",
+      "HTTP 429 stop and explicit retry"
+    ],
+    "gui_distinct_cases_passed": 53,
+    "gui_full_attempt": {
+      "command": "npm run test:gui -- --workers=4",
+      "passed": 51,
+      "failed": 2,
+      "report": "target/gui-checks/stream-full-report/index.html",
+      "failures": "Large-map test mistook a declaration name in streamed output for displayed code; unreadable-history journey exceeded its ordinary 30-second test budget during cold compiler preparation."
+    },
+    "gui_targeted_rerun": {
+      "command": "npm run test:gui -- --grep 'large project map loads declaration nodes|unreadable portable history' --workers=2",
+      "passed": 2,
+      "report": "target/gui-checks/report/index.html",
+      "test_only_corrections": "Wait for the actual File contents element; use the compiler journey deadline for cold preparation. Production binary unchanged."
+    },
+    "new_regression": "Real Lean source-side compiler gate: partial build output before release, ten-second build timeout, retained logs/readable source, cancellation without chat mutation, explicit retry with >32 KiB UTF-8 diagnostics, native axiom comparison, a nonterminating partial-function checker that times out while later checking completes, and unapproved cached restart.",
+    "clippy": "workspace/all-targets/all-features; passed",
+    "format": "Rust, TypeScript/CSS/docs and both Python helpers passed"
+  },
+  "reviewed_screens": [
+    "target/gui-checks/build-log-streaming.png",
+    "target/gui-checks/build-log-timeout.png",
+    "/tmp/meden-riemann-dictgen-result.png"
+  ],
+  "limitations": [
+    "Budget-exhausted and unsupported observations are inconclusive; they are never treated as no counterexample or proof.",
+    "The earlier full Riemann Main background build reached its aggregate wall limit and is not complete. This run fixes selected-file preparation; it does not establish whole-project compilation.",
+    "Compiler, metadata, subprocess/OS cleanup, JSON/cache and renderer behavior remain adapters; no core proof/evidence authority changed.",
+    "No live inference, large local model or cold-machine installation validation."
+  ],
+  "success": true
+}

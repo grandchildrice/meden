@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Alert, Button, LinearProgress } from "@mui/material";
+import { NativePreparation, PreparationLog } from "./NativePreparation";
 import type { Declaration, Workspace } from "@meden/workspace-schema";
 import type { NativeState, NativeCommand } from "@meden/agent-protocol/native";
 import type { MapScene, Symbol } from "./project-map-model";
@@ -136,14 +137,17 @@ export function NativeFileWorkspace({
       (!snapshot && preparation?.state !== "failed" && !failure))
   )
     return (
-      <section className="file-preparation" aria-label={"Preparing " + path}>
-        <LinearProgress />
-        <p>Preparing the graph and explanations…</p>
-        <small>
-          Compilation and counterexample observations are saved for the next
-          visit.
-        </small>
-      </section>
+      <NativePreparation
+        preparation={preparation}
+        path={path}
+        onCancel={
+          state.running && state.operation === "inspection"
+            ? () => {
+                void onCommand({ type: "cancel" });
+              }
+            : undefined
+        }
+      />
     );
   return (
     <section className="file-split" aria-label={"File: " + path}>
@@ -167,7 +171,8 @@ export function NativeFileWorkspace({
       >
         {preparation?.state === "failed" && (
           <Alert severity="warning">
-            <p>Analysis could not be prepared for this file.</p>
+            <p>{preparation.phase} stopped.</p>
+            <p>{preparation.error?.split("\n")[0]}</p>
             <details>
               <summary>Details</summary>
               <p>{preparation.error}</p>
@@ -185,6 +190,15 @@ export function NativeFileWorkspace({
               Retry preparation
             </Button>
           </Alert>
+        )}
+        {preparation?.state === "failed" && (
+          <PreparationLog preparation={preparation} />
+        )}
+        {preparation?.state === "ready" && preparation.log && (
+          <details className="preparation-history">
+            <summary>Build log</summary>
+            <PreparationLog preparation={preparation} />
+          </details>
         )}
         {failure && preparation?.state !== "failed" && (
           <Alert severity="warning">

@@ -341,6 +341,12 @@ export const nativeStateSchema = z.object({
           state: z.enum(["preparing", "ready", "failed"]),
           cache_hit: z.boolean(),
           error: z.string().nullable(),
+          phase: z.string(),
+          elapsed_ms: z.number().nonnegative(),
+          phase_elapsed_ms: z.number().nonnegative(),
+          limit_seconds: z.number().nonnegative(),
+          log: z.string(),
+          log_truncated: z.boolean(),
         })
         .strict(),
     )

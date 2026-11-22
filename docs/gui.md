@@ -418,6 +418,20 @@ build when the map opens. Selecting a large root can still require a long compil
 compiler failures remain in its file pane. Exact source/configuration/resource and
 compiled-artifact checks precede cache reuse, including after restart.
 
+File preparation streams actual compiler output into the file pane, with the
+current step, elapsed time and **Stop preparation**. Logs remain visible after a
+timeout or cancellation, and **Retry preparation** reuses completed Lake outputs.
+Successful pages retain a collapsed **Build log**. Diagnostic history keeps the
+latest 64 KiB; it does not appear in the conversation or grant proof status.
+Lake builds use a separate two-hour default budget; the trusted host can set
+`MEDEN_ATLAS_BUILD_TIMEOUT_SECONDS` from 1 to 86400. Extraction retains its own
+ten-minute ceiling. Counterexample observation workers have a ten-second wall
+limit and share a 120-second file budget. Their Lean preparation additionally
+caps each declaration at 10000 heartbeats and instance synthesis at 2000.
+Exhausted or unavailable observations stay explicit; they do not discard the
+compiled graph or prevent the next eligible declaration's observation within
+the remaining file budget. These are search limits, not proof of a statement.
+
 Select files from the left tree without typing a path. Start with one file in a
 large project, such as `EthLib/Networking/Gossip/Parameters.lean` or Riemann's
 `src/Statements.lean`. The project map remains available independently of compiler

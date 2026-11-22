@@ -13,6 +13,7 @@ use sha2::{Digest, Sha256};
 mod graph;
 mod imports;
 pub(crate) mod lake;
+pub(crate) mod progress;
 mod project;
 mod resources;
 mod toolchain;
@@ -23,6 +24,7 @@ pub(crate) const UPSTREAM: &str = "06be1eb76fb926b8cf8bd42a4a51208d128c327d";
 pub(crate) struct Configuration {
     lean: std::result::Result<PathBuf, String>,
     cache: Option<PathBuf>,
+    observer: Option<crate::adapters::Observer>,
 }
 #[derive(Serialize)]
 pub(crate) struct Status {
@@ -48,7 +50,15 @@ impl Configuration {
             })
             .filter(|path| path.is_absolute())
             .map(|root| root.join("meden/atlas"));
-        Self { lean, cache }
+        Self {
+            lean,
+            cache,
+            observer: None,
+        }
+    }
+    pub(crate) fn with_observer(mut self, observer: Option<crate::adapters::Observer>) -> Self {
+        self.observer = observer;
+        self
     }
     pub fn status(&self) -> Status {
         let selected = self.selected();
@@ -113,6 +123,7 @@ impl Configuration {
             lean: &lean,
             library: source.path(),
             sources: None,
+            observer: self.observer.as_ref(),
         };
         execution.execute("prepare.sh", &modules, control, Duration::from_secs(180))?;
         resources::write(output.path())?;
@@ -186,6 +197,7 @@ impl Configuration {
             lean: &lean,
             library: &library,
             sources: Some(frozen.path()),
+            observer: self.observer.as_ref(),
         };
         execution.compile(bindings, control, started)?;
         let stdout = execution.execute("extract.sh", &modules, control, remaining(started)?)?;
@@ -255,6 +267,7 @@ pub(crate) fn module_path(path: &str) -> Result<String> {
                     | "MedenLake"
                     | "MedenSemantic"
                     | "MedenSearch"
+                    | "MedenSearchMain"
                     | "MedenInterchange"
                     | "MedenPlausible"
                     | "Lake"
@@ -277,6 +290,7 @@ struct Execution<'a> {
     lean: &'a Path,
     library: &'a Path,
     sources: Option<&'a Path>,
+    observer: Option<&'a crate::adapters::Observer>,
 }
 impl Execution<'_> {
     fn compile(
@@ -323,8 +337,21 @@ impl Execution<'_> {
         timeout: Duration,
     ) -> Result<process::Output> {
         let mut command = analysis_command(self, script, args)?;
-        let output = process::run(
+        let notify = |output: &process::OutputProgress| {
+            if let Some(observer) = self.observer {
+                observer(
+                    progress::stage(script, args),
+                    timeout,
+                    Some(&progress::diagnostic(script, output)),
+                );
+            }
+        };
+        if let Some(observer) = self.observer {
+            observer(progress::stage(script, args), timeout, None);
+        }
+        let output = process::run_with_input_observed(
             &mut command,
+            b"",
             &Limits {
                 timeout,
                 capture_bytes: if matches!(script, "extract.sh" | "project-atlas-extract.sh") {
@@ -335,11 +362,23 @@ impl Execution<'_> {
                 output_bytes: 16_777_216,
             },
             control,
+            self.observer
+                .map(|_| &notify as &dyn Fn(&process::OutputProgress)),
         )?;
+        if !matches!(output.termination, Termination::Exited(_)) {
+            let reason = match output.termination {
+                Termination::TimedOut => {
+                    format!("reached the {}-second time limit", timeout.as_secs())
+                }
+                Termination::Cancelled => "was cancelled".into(),
+                _ => "exceeded its output limit".into(),
+            };
+            anyhow::bail!("{} {reason}. Completed build files are retained; retry continues incrementally. No incomplete graph was saved.\n{}",
+                progress::stage(script, args), output.stderr.chars().rev().take(4096).collect::<String>().chars().rev().collect::<String>());
+        }
         anyhow::ensure!(
-            matches!(output.termination, Termination::Exited(_)) && !output.truncated,
-            "Offline Lean Atlas stopped: {:?}; output was not admitted",
-            output.termination
+            !output.stdout_truncated,
+            "Analysis result exceeded its capture limit; no incomplete graph was saved"
         );
         Ok(output)
     }

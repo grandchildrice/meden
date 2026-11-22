@@ -117,20 +117,26 @@ pub(crate) fn extract(
     control: &Control,
     paths: &[String],
 ) -> Result<sources::Snapshot> {
-    Ok(extract_cached(workspace, control, paths)?.0)
+    Ok(extract_cached(workspace, control, paths, None)?.0)
 }
 
 pub(crate) fn extract_cached(
     workspace: &Workspace,
     control: &Control,
     paths: &[String],
+    observer: Option<crate::adapters::Observer>,
 ) -> Result<(sources::Snapshot, bool)> {
     use meden_core::adapter::{Adapter, Input};
-    let context = crate::adapters::Context { workspace, control };
-    let atlas = crate::atlas::Configuration::host(workspace.path());
+    let context = crate::adapters::Context {
+        workspace,
+        control,
+        observer,
+    };
+    let atlas = crate::atlas::Configuration::host(context.workspace.path())
+        .with_observer(context.observer.clone());
     atlas.ensure_prepared(control)?;
     let artifact = if crate::adapters::lake::enabled()? {
-        let selected = collect::roots(workspace, control, paths)?;
+        let selected = collect::roots(workspace, control, paths, atlas)?;
         crate::adapters::lake::Lake.run(
             &context,
             Input {

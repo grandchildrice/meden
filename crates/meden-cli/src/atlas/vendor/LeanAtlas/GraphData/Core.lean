@@ -141,33 +141,17 @@ def isExcludedAxiom (n : Name) : Bool :=
   ]
   excluded.any (fun ex => ex == n || ex.isSuffixOf n)
 
-/-- Collect axioms used by a constant (transitively) -/
-def collectAxiomsPartition (env : Environment) (root : Name) : (Array Name × Array Name) := Id.run do
-  let mut axioms : NameSet := {}
-  let mut hidden : NameSet := {}
-  let mut visited : NameSet := {}
-  let mut toProcess : Array Name := #[root]
-  while h : toProcess.size > 0 do
-    let current := toProcess[toProcess.size - 1]!
-    toProcess := toProcess.pop
-    if visited.contains current then
-      continue
-    visited := visited.insert current
-    let some ci := env.find? current | continue
-    match ci with
-    | .axiomInfo _ =>
-        if isExcludedAxiom current then
-          hidden := hidden.insert current
-        else
-          axioms := axioms.insert current
-    | _ => pure ()
-    let deps := ci.getUsedConstantsAsSet
-    for dep in deps do
-      if !visited.contains dep then
-        toProcess := toProcess.push dep
-  let axiomsSorted := axioms.toList.toArray.qsort (·.toString < ·.toString)
-  let hiddenSorted := hidden.toList.toArray.qsort (·.toString < ·.toString)
-  return (axiomsSorted, hiddenSorted)
+/-- Adapt Lean's imported axiom index instead of traversing every proof body. -/
+private instance : MonadEnv (StateM Environment) where
+  getEnv := get
+  modifyEnv := modify
+
+/-- Collect exact kernel axiom dependencies using Lean's cached module metadata. -/
+def collectAxiomsPartition (env : Environment) (root : Name) : (Array Name × Array Name) :=
+  let all := (Lean.collectAxioms root : StateM Environment (Array Name)).run' env
+  let visible := all.filter (!isExcludedAxiom ·) |>.qsort (·.toString < ·.toString)
+  let hidden := all.filter isExcludedAxiom |>.qsort (·.toString < ·.toString)
+  (visible, hidden)
 
 /-- Count non-comment lines in Lean source -/
 def countNonCommentLines (content : String) (startLine endLine : Nat) : Nat := Id.run do

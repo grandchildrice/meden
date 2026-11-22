@@ -3,30 +3,23 @@ pub(super) use crate::analysis::sources::{capture, Snapshot};
 use anyhow::Result;
 use meden_runtime::{process::Control, workspace::Workspace};
 
-#[derive(Clone, serde::Serialize)]
-pub(super) struct Preparation {
-    state: &'static str,
-    cache_hit: bool,
-    error: Option<String>,
-}
+mod preparation;
+pub(super) use preparation::Preparation;
+use std::sync::{Arc, Mutex};
 
-pub(super) fn unavailable(view: &std::sync::Mutex<super::View>, path: &str, error: String) {
+pub(super) fn unavailable(view: &Mutex<super::View>, path: &str, error: String) {
     let mut view = super::lock(view);
-    view.source_preparation.insert(
-        path.into(),
-        Preparation {
-            state: "failed",
-            cache_hit: false,
-            error: Some(error),
-        },
-    );
+    view.source_preparation
+        .entry(path.into())
+        .or_insert_with(Preparation::new)
+        .finish(Some(error), false);
     view.source_snapshot = None;
 }
 
 /// Finish compiler, meaning and search preparation before publishing the page.
 /// Hover/graph selection never executes a model or a checker.
 pub(super) fn prepare(
-    view: &std::sync::Mutex<super::View>,
+    view: &Arc<Mutex<super::View>>,
     workspace: &Workspace,
     control: &Control,
     path: &str,
@@ -43,14 +36,9 @@ pub(super) fn prepare(
     if !publish && crate::adapters::lake::enabled().unwrap_or(false) {
         return;
     }
-    super::lock(view).source_preparation.insert(
-        path.into(),
-        Preparation {
-            state: "preparing",
-            cache_hit: false,
-            error: None,
-        },
-    );
+    super::lock(view)
+        .source_preparation
+        .insert(path.into(), Preparation::new());
     let result = (|| -> Result<(Snapshot, bool)> {
         if !crate::adapters::lake::enabled()? {
             if let Some(snapshot) = crate::explanation::cache::compiled(workspace, control, path)
@@ -60,7 +48,12 @@ pub(super) fn prepare(
                 return Ok((snapshot, true));
             }
         }
-        crate::analysis::extract_cached(workspace, control, &[path.into()])
+        crate::analysis::extract_cached(
+            workspace,
+            control,
+            &[path.into()],
+            Some(preparation::observer(view, &[path.into()])),
+        )
     })();
     let mut view = super::lock(view);
     match result {
@@ -68,33 +61,23 @@ pub(super) fn prepare(
             if publish {
                 view.source_snapshot = Some(snapshot);
             }
-            view.source_preparation.insert(
-                path.into(),
-                Preparation {
-                    state: "ready",
-                    cache_hit,
-                    error: None,
-                },
-            );
+            if let Some(preparation) = view.source_preparation.get_mut(path) {
+                preparation.finish(None, cache_hit);
+            }
         }
         Err(error) => {
             if publish {
                 view.source_snapshot = None;
             }
-            view.source_preparation.insert(
-                path.into(),
-                Preparation {
-                    state: "failed",
-                    cache_hit: false,
-                    error: Some(format!("{error:#}")),
-                },
-            );
+            if let Some(preparation) = view.source_preparation.get_mut(path) {
+                preparation.finish(Some(format!("{error:#}")), false);
+            }
         }
     }
 }
 
 pub(super) fn refresh(
-    view: &std::sync::Mutex<super::View>,
+    view: &Mutex<super::View>,
     workspace: &Workspace,
     control: &Control,
     paths: &[String],
@@ -120,7 +103,7 @@ pub(super) fn refresh(
 }
 
 pub(super) fn extract_atlas(
-    view: &std::sync::Mutex<super::View>,
+    view: &Arc<Mutex<super::View>>,
     workspace: &Workspace,
     control: &Control,
     paths: &[String],
@@ -132,17 +115,17 @@ pub(super) fn extract_atlas(
         super::analysis::invalidate(&mut view);
         view.activity = "Compiling Lean and extracting Atlas dependencies".into();
         for path in paths {
-            view.source_preparation.insert(
-                path.clone(),
-                Preparation {
-                    state: "preparing",
-                    cache_hit: false,
-                    error: None,
-                },
-            );
+            view.source_preparation
+                .insert(path.clone(), Preparation::new());
         }
     }
-    let extraction = crate::analysis::extract(workspace, control, paths);
+    let extraction = crate::analysis::extract_cached(
+        workspace,
+        control,
+        paths,
+        Some(preparation::observer(view, paths)),
+    )
+    .map(|(snapshot, _)| snapshot);
     super::lock(view).atlas = atlas.status();
     let snapshot = match extraction {
         Ok(snapshot) => snapshot,
@@ -156,14 +139,10 @@ pub(super) fn extract_atlas(
     control.with_active(|| {
         let mut view = super::lock(view);
         for path in snapshot.files.keys() {
-            view.source_preparation.insert(
-                path.clone(),
-                Preparation {
-                    state: "ready",
-                    cache_hit: false,
-                    error: None,
-                },
-            );
+            view.source_preparation
+                .entry(path.clone())
+                .or_insert_with(Preparation::new)
+                .finish(None, false);
         }
         view.source_snapshot = Some(snapshot);
         view.atlas = atlas.status();

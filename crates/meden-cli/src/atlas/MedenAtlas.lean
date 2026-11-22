@@ -1,7 +1,6 @@
 import LeanAtlas.GraphData.Core
 import LeanAtlas.GraphData.Json
 import MedenSemantic
-import MedenSearch
 import MedenInterchange
 
 open Lean LeanAtlas.Config LeanAtlas.GraphData.Core
@@ -17,7 +16,8 @@ unsafe def main (args : List String) : IO UInt32 := do
   Lean.initSearchPath (← Lean.findSysroot)
   Lean.enableInitializersExecution
   let modules := args.toArray.map fun arg => stringToName (arg.replace "/" ".")
-  let env ← Lean.importModules (#[{module := `MedenSemantic}, {module := `MedenSearch}] ++ modules.map fun name => { module := name }) {} (trustLevel := 0) (loadExts := true)
+  IO.eprintln "Loading compiled modules…"
+  let env ← Lean.importModules (#[{module := `MedenSemantic}] ++ modules.map fun name => { module := name }) {} (trustLevel := 0) (loadExts := true)
   let scope : ProjectScope := { projectNamespace := .anonymous }
   let mut nodes : Array NodeData := #[]
   -- Read the selected modules' declaration inventories directly. Scanning every
@@ -29,6 +29,7 @@ unsafe def main (args : List String) : IO UInt32 := do
         if (getModuleFor? env name).any modules.contains && LeanAtlas.Deps.Core.isRelevantConstant scope env name then
           if nodes.size >= 5000 then throw <| IO.userError "Atlas exceeds 5000 declarations"
           nodes := nodes.push (buildNodeData scope env name)
+  IO.eprintln s!"Preparing {nodes.size} declarations…"
   nodes := nodes.qsort (·.id.toString < ·.id.toString)
   let names := nodes.foldl (fun set node => set.insert node.id) ({} : NameSet)
   let mut external : NameSet := {}
@@ -36,19 +37,30 @@ unsafe def main (args : List String) : IO UInt32 := do
   let mut localNodes : Array NodeData := #[]
   for node in nodes do
     let some ci := env.find? node.id | throw <| IO.userError "declaration disappeared"
+    IO.eprintln s!"Reading {node.id}"
     let statement ← pretty env ci.type
     let value ← match ci with
       | .defnInfo definition => do
           let expression ← pretty env definition.value
           pure (Json.str expression)
       | _ => pure Json.null
+    IO.eprintln s!"Collecting axioms: {node.id}"
     let (axioms, standardAxioms) := collectAxiomsPartition env node.id
     let row := LeanAtlas.GraphData.Json.nodeDataToJson node
     let row := row.setObjVal! "statement" (.str statement)
     let row := row.setObjVal! "value" value
     let ctx : PPContext := { env := env, opts := {} }
-    let checker ← ctx.runMetaM <| MedenSearch.analyze ci modules
+    -- The host driver replaces this private pending value after independently
+    -- bounded checker execution. It is never published as a completed graph.
+    let checker ← ctx.runMetaM do
+      let proposition ← Lean.Meta.isProp ci.type
+      let predicate ← if proposition then pure false else
+        Lean.Meta.forallTelescope ci.type fun _ result => pure (result.isSort && result.sortLevel!.isZero)
+      let pending := Json.mkObj [("status", .str (if proposition || predicate then "pending" else "not_proposition")), ("candidates", .arr #[])]
+      pure <| if predicate then pending.setObjVal! "mode" (.str "predicate") else pending
+    IO.eprintln s!"Explaining {node.id}"
     let semantic ← ctx.runMetaM <| MedenSemantic.describe ci checker
+    IO.eprintln s!"Realizing English: {node.id}"
     let intermediate ← try
       let text ← ctx.runMetaM <| MedenInterchange.declaration ci
       pure <| if text.utf8ByteSize <= 60000 then Json.str text else Json.null
@@ -70,5 +82,6 @@ unsafe def main (args : List String) : IO UInt32 := do
     ("nodes", .arr rows),
     ("edges", .arr (edges.map LeanAtlas.GraphData.Json.edgeDataToJson)),
     ("externalReferences", toJson (external.toList.map Name.toString))]
+  IO.eprintln "Compiled graph and explanations complete."
   IO.println result.compress
   return 0

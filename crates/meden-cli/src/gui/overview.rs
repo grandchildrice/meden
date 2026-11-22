@@ -71,7 +71,11 @@ struct Entry {
 }
 const EXCLUDED: &[&str] = &["node_modules", "target", "dist", "__pycache__"];
 
-pub(super) fn refresh(view: &Mutex<View>, workspace: &Workspace, control: &Control) -> Result<()> {
+pub(super) fn refresh(
+    view: &Arc<Mutex<View>>,
+    workspace: &Workspace,
+    control: &Control,
+) -> Result<()> {
     let fresh = {
         let view = lock(view);
         view.overview_snapshot.is_some() || view.overview.state != "loading"

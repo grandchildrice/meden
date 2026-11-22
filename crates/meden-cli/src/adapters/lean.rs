@@ -14,9 +14,11 @@ impl Adapter<Context<'_>> for Lean {
         let paths: Vec<String> = serde_json::from_slice(&input.bytes)?;
         let workspace = context.workspace;
         let control = context.control;
-        let atlas = crate::atlas::Configuration::host(workspace.path());
+        let atlas = crate::atlas::Configuration::host(context.workspace.path())
+            .with_observer(context.observer.clone());
         atlas.ensure_prepared(control)?;
-        let mut snapshot = crate::analysis::collect::capture(workspace, control, &paths)?;
+        let mut snapshot =
+            crate::analysis::collect::capture(workspace, control, &paths, atlas.clone())?;
         let observed = snapshot.files.keys().cloned().collect::<Vec<_>>();
         let collection = snapshot
             .collection

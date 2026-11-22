@@ -12,6 +12,7 @@ discovery, Lake configuration, cache or metadata mutation commands.
 This is executable analysis, not an extracted/refined Meden control kernel or a
 new proof of dependency completeness, parser correctness or analysis authenticity.
 
-Meden changes the axiom collector worklist from front-erasure to a stack. The
-visited set and sorted results are unchanged; imported Mathlib closures no longer
-shift the remaining array on every visited declaration.
+Meden replaces repeated proof-body walks with Lean's `collectAxioms`, using the
+compiler's imported axiom index. The adapter retains Atlas's standard/nonstandard
+axiom partition and sorted presentation; it does not provide an independent proof
+of Lean's metadata or promote graph observations to evidence.

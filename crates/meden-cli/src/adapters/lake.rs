@@ -38,7 +38,8 @@ impl Adapter<Context<'_>> for Lake {
             context.control,
             &collection.metadata,
         )?;
-        let atlas = crate::atlas::Configuration::host(context.workspace.path());
+        let atlas = crate::atlas::Configuration::host(context.workspace.path())
+            .with_observer(context.observer.clone());
         let bindings = serde_json::to_string(&collection.modules)?;
         let prepared: Prepared = serde_json::from_str(&atlas.project(
             context.workspace.path(),

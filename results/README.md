@@ -8,6 +8,13 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Native GUI and Atlas with Ollama Cloud
 
+The [streamed preparation record](gui-build-log-streaming.json) covers actual
+build logs before completion, timeout/cancellation output, explicit retry and
+independently bounded checker workers. The formerly failing Riemann `DictGen`
+file reaches a 15-declaration graph with explicit inconclusive observations.
+It records the full GUI attempt and two test-only wait corrections/rechecks
+separately, plus the required public TUI screens and installed-tool checks.
+
 The [prepared Riemann Lake record](gui-riemann-prepared-lake.json) records the
 actual pinned dependency/cache installation, successful `Statements` compilation,
 selected-module graph preparation and exact artifact-cache reuse. It keeps the

@@ -336,6 +336,154 @@ test.describe("native GUI with real offline workers", () => {
     ).toBe(true);
   });
 
+  test("build logs stream before completion, retain timeout and cancellation output, and retry the real compiler", async ({
+    page,
+  }) => {
+    test.setTimeout(300000);
+    await writeFile(
+      resolve(project, "lakefile.toml"),
+      'name = "streamed"\n[[lean_lib]]\nname = "Entry"\nroots = ["Fast", "Slow", "Entry"]\n',
+    );
+    await writeFile(
+      resolve(project, "Fast.lean"),
+      "theorem fast : True := True.intro\n",
+    );
+    await writeFile(
+      resolve(project, "Slow.lean"),
+      `import Lean
+import Fast
+#eval do
+  IO.FS.writeFile "/workspace/.lake/compiler-started" "started"
+  while !(← System.FilePath.pathExists "/workspace/.lake/release-compiler") do
+    IO.sleep 20
+  IO.println (String.join (List.replicate 25000 "λ"))
+theorem slow : True := fast
+`,
+    );
+    await writeFile(
+      resolve(project, "Entry.lean"),
+      "import Slow\npartial def forever (n : Nat) : Nat := forever (n + 1)\naxiom longSearch : ∀ n : Nat, forever n = 0\naxiom supplied : False\ntheorem tracked : False := supplied\n#print axioms tracked\n",
+    );
+    const environment = {
+      MEDEN_ATLAS_BACKEND: "lake",
+      MEDEN_ATLAS_BUILD_TIMEOUT_SECONDS: "10",
+    };
+    await page.goto(await start(0, environment));
+    const chat = page.getByRole("complementary", {
+      name: "Workspace chat",
+      exact: true,
+    });
+    const before = await chat.innerHTML();
+    await page
+      .getByRole("button", { name: "File: Entry.lean", exact: true })
+      .click();
+    await expect
+      .poll(
+        () =>
+          readFile(resolve(project, ".lake/compiler-started"), "utf8").catch(
+            () => "",
+          ),
+        { timeout: 120000 },
+      )
+      .toBe("started");
+    const loading = page.getByRole("region", {
+      name: "Preparing Entry.lean",
+      exact: true,
+    });
+    await expect(loading.getByRole("log", { name: "Build log" })).toContainText(
+      "Built Fast",
+    );
+    expect(
+      (await nativeState(page)).source_preparation["Entry.lean"].state,
+    ).toBe("preparing");
+    expect((await nativeState(page)).source_snapshot).toBeNull();
+    expect(await chat.innerHTML()).toBe(before);
+    await page.screenshot({
+      path: "target/gui-checks/build-log-streaming.png",
+    });
+    const failed = async () => {
+      await expect
+        .poll(
+          async () =>
+            (await nativeState(page)).source_preparation["Entry.lean"]?.state,
+          { timeout: 30000 },
+        )
+        .toBe("failed");
+      await expect
+        .poll(async () => (await nativeState(page)).running)
+        .toBe(false);
+    };
+    await failed();
+    const pane = page.getByRole("region", {
+      name: "File reference graph",
+      exact: true,
+    });
+    await expect(pane.getByRole("alert")).toContainText(
+      "Building Lean dependencies reached the 10-second time limit",
+    );
+    await expect(pane.getByRole("log", { name: "Build log" })).toContainText(
+      "Built Fast",
+    );
+    await expect(
+      page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
+    ).toContainText("theorem tracked");
+    expect(await chat.innerHTML()).toBe(before);
+    await page.screenshot({ path: "target/gui-checks/build-log-timeout.png" });
+    await pane
+      .getByRole("button", { name: "Retry preparation", exact: true })
+      .click();
+    await expect(loading.getByRole("log", { name: "Build log" })).toContainText(
+      "$ lake build +Entry",
+      { timeout: 120000 },
+    );
+    await loading
+      .getByRole("button", { name: "Stop preparation", exact: true })
+      .click();
+    await failed();
+    await expect(pane.getByRole("alert")).toContainText("was cancelled");
+    expect(await chat.innerHTML()).toBe(before);
+    // Release the explicit compiler gate; no source/configuration repair is needed.
+    await writeFile(resolve(project, ".lake/release-compiler"), "release");
+    await pane
+      .getByRole("button", { name: "Retry preparation", exact: true })
+      .click();
+    const ready = async () => {
+      await expect
+        .poll(
+          async () =>
+            (await nativeState(page)).source_preparation["Entry.lean"]?.state,
+          { timeout: 120000 },
+        )
+        .toBe("ready");
+      await expect
+        .poll(async () => (await nativeState(page)).running)
+        .toBe(false);
+      return nativeState(page);
+    };
+    const state = await ready();
+    expect(state.source_preparation["Entry.lean"].log_truncated).toBe(true);
+    expect(
+      state.source_snapshot.atlas.graph.nodes.find(
+        (n: any) => n.id === "tracked",
+      ).axioms,
+    ).toEqual(["supplied"]);
+    expect(
+      state.source_snapshot.atlas.graph.nodes.find(
+        (n: any) => n.id === "longSearch",
+      ).semantic.checker.status,
+    ).toBe("budget_exhausted");
+    expect(await chat.innerHTML()).toBe(before);
+    expect(requests).toHaveLength(0);
+    await stop();
+    await page.goto(await start(0, environment));
+    await page
+      .getByRole("button", { name: "File: Entry.lean", exact: true })
+      .click();
+    const reopened = await ready();
+    expect(reopened.source_preparation["Entry.lean"].cache_hit).toBe(true);
+    expect(reopened.authorized).toBe(false);
+  });
+
   test("prepared Lake dependencies bypass source-copy limits, refresh exact artifacts and survive restart", async ({
     page,
   }) => {
@@ -605,10 +753,9 @@ test.describe("native GUI with real offline workers", () => {
       path: "target/gui-checks/large-project-map-declarations.png",
     });
     await declaration.click();
-    await expect(page.locator(".ide-file-page:not([hidden])")).toContainText(
-      "identity0",
-      { timeout: 120000 },
-    );
+    await expect(
+      page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
+    ).toContainText("theorem identity0", { timeout: 120000 });
     await expect(
       page.locator(".ide-file-page:not([hidden]) [data-layout=l4sb]"),
     ).toBeVisible();
@@ -1705,7 +1852,7 @@ test.describe("native GUI with real offline workers", () => {
       exact: true,
     });
     await expect(pane.getByRole("alert")).toContainText(
-      "Analysis could not be prepared for this file.",
+      "Local import closure exceeds 32 files/16 MiB",
       { timeout: 60000 },
     );
     await expect(

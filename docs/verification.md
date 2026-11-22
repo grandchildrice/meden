@@ -2574,9 +2574,37 @@ The native browser regression uses a real 35-module Lake build, imported edits,
 compiler rejection, visible retry and restart without inference. The separate Rust
 mount probe checks writable preparation followed by read-only workspace/resources
 and writable private scratch; its dependency-discovery ELF is not a compiler fixture
-or live-model validation. The vendored axiom collector uses a stack instead of
-repeated array-front erasure; it still traverses all reachable constants and sorts
-the same axiom sets. None of these adapter checks extends the extracted/refined
+or live-model validation. The vendored axiom collector now uses Lean's
+`collectAxioms` and imported axiom index, retaining the standard/nonstandard
+partition and sorted presentation. None of these adapter checks extends the extracted/refined
 core, grants proof authority, proves Lake configuration or establishes cold installation.
 Actual Riemann preparation, file/cache observations and the unfinished `Main` build
 are recorded separately in [the prepared Lake record](../results/gui-riemann-prepared-lake.json).
+
+Preparation diagnostics use an optional host adapter observer, not the core's
+proof/evidence interface. The file pane shows bounded real output before process
+completion, retains the failed step and log on timeout/cancel, and reuses completed
+Lake artifacts on explicit retry. Build and extraction budgets are independent.
+Plausible preparation additionally caps each declaration's Lean heartbeat budget
+and checks predicate expansion. A separate fixed worker evaluates each eligible
+declaration, with a ten-second wall limit and a 120-second shared file budget.
+The supervisor kills and reaps timed-out workers; timeouts and unavailable workers
+produce an inconclusive checker observation, never a counterexample verdict.
+Ordinary object definitions are classified as non-propositions without sampling.
+The complete graph is published only after every pending checker slot has been
+replaced by an actual result or an explicit inconclusive outcome. These adapters
+do not prove termination of arbitrary user instances; the outer isolated process
+retains its own wall/output limits and OS cleanup obligations.
+
+The managed-process adapter reports stdout truncation separately from combined
+capture truncation. Atlas requires complete protocol stdout and normal process
+completion; a bounded diagnostic tail alone does not invalidate that stdout.
+The file/checker worker admission rules still reject their existing combined
+truncation signal. The real browser journey holds a compiler task while observing
+completed-module output, exercises timeout/cancel/retry, emits more than 32 KiB of
+UTF-8 diagnostics, checks the native axiom result, and reopens an unapproved cache.
+It also supplies an actual nonterminating partial function to the checker: that
+observation must time out while a later declaration still completes and the graph
+remains readable.
+This is installed-tool adapter coverage, not live inference, cold installation or
+a refinement proof of compiler execution.

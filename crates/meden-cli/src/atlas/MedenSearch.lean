@@ -18,6 +18,7 @@ def sampleResult (p : Prop) [MedenPlausible.Testable p] : IO String := do
 def expandPredicates : Nat → Array Name → Expr → MetaM Expr
   | 0, _, _ => throwError "Predicate expansion exceeds its depth bound"
   | fuel + 1, modules, input => do
+    Core.checkSystem "Meden predicate expansion"
     let e := input.consumeMData
     let fn := e.getAppFn
     if let .const name levels := fn then
@@ -46,12 +47,16 @@ private unsafe def checkCore (type : Expr) (modules : Array Name) : MetaM Json :
     return Json.mkObj [field "engine" "Plausible", field "status" "not_proposition",
       ("candidates", toJson ([] : List String))]
   try withCurrHeartbeats do
+    IO.eprintln "  Expanding project predicates"
     let normalized ← expandPredicates 64 modules type
     unless ← isDefEq type normalized do throwError "Predicate expansion changed the proposition"
     let decorated ← MedenPlausible.Decorations.addDecorations normalized
+    IO.eprintln "  Preparing a bounded testable instance"
     let testable ← synthInstance (mkApp (mkConst ``MedenPlausible.Testable) decorated)
     let expression := mkApp2 (mkConst ``sampleResult) decorated testable
+    IO.eprintln "  Compiling the counterexample observation"
     let action ← evalExpr (IO String) (mkApp (mkConst ``IO) (mkConst ``String)) expression
+    IO.eprintln "  Running fixed-seed samples"
     let output ← action
     match Json.parse output with
     | .ok result => return result
@@ -69,6 +74,11 @@ private unsafe def checkCore (type : Expr) (modules : Array Name) : MetaM Json :
 /-- Compiler tasks may surface an IO failure instead of a Meta exception. Keep
 their state and failure inside a separate context, preserving the explanation. -/
 private unsafe def observe (ctx : PPContext) (type : Expr) (modules : Array Name) : IO Json := do
+  -- Compiler defaults allow expensive proof elaboration. Interactive search is
+  -- optional observation: bound each declaration and retain an explicit outcome.
+  let supplied := maxHeartbeats.get ctx.opts
+  let budget := if supplied == 0 then 10000 else min supplied 10000
+  let ctx := { ctx with opts := ctx.opts.set `maxHeartbeats budget |>.set `synthInstance.maxHeartbeats (2000 : Nat) }
   try ctx.runMetaM <| checkCore type modules
   catch error =>
     let detail := error.toString

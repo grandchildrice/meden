@@ -104,6 +104,7 @@ impl Configuration {
             lean: &lean,
             library: &library,
             sources: Some(frozen.path()),
+            observer: self.observer.as_ref(),
         };
         let output = execution
             .execute("lake.sh", args, control, Duration::from_secs(60))

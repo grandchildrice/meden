@@ -36,7 +36,20 @@ def regular(value):
 
 
 if mode == "prepare":
-    command([lake, "build", *["+" + b["name"] for b in bindings]])
+    targets = ["+" + b["name"] for b in bindings]
+    print("$ lake build " + " ".join(targets), file=sys.stderr, flush=True)
+    # Stream Lake's actual output rather than buffering it until completion.
+    result = subprocess.run(
+        [lake, "--no-ansi", "build", *targets],
+        stdout=sys.stderr,
+        stderr=sys.stderr,
+        check=False,
+    )
+    if result.returncode:
+        sys.exit(
+            "Prepared Lake compilation failed (exit " + str(result.returncode) + ")"
+        )
+    print("Build complete. Resolving compiled inputs…", file=sys.stderr, flush=True)
 paths = set()
 setups = []
 for binding in bindings:
@@ -68,12 +81,23 @@ for binding in bindings:
     setups.append(paths_json)
 if len(paths) > 1250000:
     raise RuntimeError("Prepared compiler inputs exceed 1250000 files")
+print(
+    "Validating " + str(len(paths)) + " compiled input files…",
+    file=sys.stderr,
+    flush=True,
+)
 digest = hashlib.sha256()
 for setup in setups:
     digest.update(len(setup).to_bytes(8, "big"))
     digest.update(setup)
 size = 0
-for path in sorted(paths):
+for index, path in enumerate(sorted(paths)):
+    if index and index % 5000 == 0:
+        print(
+            "Validated " + str(index) + "/" + str(len(paths)) + " files",
+            file=sys.stderr,
+            flush=True,
+        )
     name = str(path.relative_to(root)).encode()
     digest.update(len(name).to_bytes(8, "big"))
     digest.update(name)

@@ -226,6 +226,7 @@ mod tests {
     #[test]
     fn wire_tags_are_strict_and_json_shaped_file_data_stays_data() {
         let output = |stdout: String| Output {
+            stdout_truncated: false,
             termination: Termination::Exited(ExitStatus::from_raw(0)),
             stdout,
             stderr: String::new(),

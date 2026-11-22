@@ -19,8 +19,22 @@ impl Configuration {
             lean: &lean,
             library: &library,
             sources: None,
+            observer: self.observer.as_ref(),
         };
-        let output = execution.execute(script, args, control, Duration::from_secs(600))?;
+        let timeout = if script == "project-atlas-prepare.sh"
+            && args.first().is_some_and(|a| a == "prepare")
+        {
+            let seconds = std::env::var("MEDEN_ATLAS_BUILD_TIMEOUT_SECONDS")
+                .map_or_else(|_| Ok(7200), |s| s.parse::<u64>())?;
+            anyhow::ensure!(
+                (1..=86_400).contains(&seconds),
+                "Build timeout must be between 1 and 86400 seconds"
+            );
+            Duration::from_secs(seconds)
+        } else {
+            Duration::from_secs(600)
+        };
+        let output = execution.execute(script, args, control, timeout)?;
         anyhow::ensure!(
             serde_json::to_vec(&before)? == serde_json::to_vec(&Self::validate(&lean, &library)?)?,
             "Atlas resources changed during prepared extraction"

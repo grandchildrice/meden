@@ -126,6 +126,8 @@ pub struct Output {
     pub stderr: String,
     /// At least one stream exceeded the returned text limit.
     pub truncated: bool,
+    /// Standard output exceeded the capture budget, independently of diagnostics.
+    pub stdout_truncated: bool,
 }
 
 /// Live capture snapshots, independent of final exit/cancellation admission.
@@ -136,6 +138,18 @@ pub struct OutputProgress {
     pub stderr: String,
     /// A capture budget has been reached.
     pub truncated: bool,
+}
+
+impl Output {
+    fn unstarted(termination: Termination) -> Self {
+        Self {
+            termination,
+            stdout: String::new(),
+            stderr: String::new(),
+            truncated: false,
+            stdout_truncated: false,
+        }
+    }
 }
 
 /// Execution and capture budgets.
@@ -328,16 +342,11 @@ fn run_inner(
             .lock()
             .map_err(|_| io::Error::other("process registry poisoned"))?;
         if control.cancelled.load(Ordering::SeqCst) || limits.timeout.is_zero() {
-            return Ok(Output {
-                termination: if limits.timeout.is_zero() {
-                    Termination::TimedOut
-                } else {
-                    Termination::Cancelled
-                },
-                stdout: String::new(),
-                stderr: String::new(),
-                truncated: false,
-            });
+            return Ok(Output::unstarted(if limits.timeout.is_zero() {
+                Termination::TimedOut
+            } else {
+                Termination::Cancelled
+            }));
         }
         let child = command.spawn()?;
         active.insert(child.id());
@@ -399,6 +408,7 @@ fn run_inner(
         stdout,
         stderr,
         truncated: out_cut || err_cut,
+        stdout_truncated: out_cut,
     })
 }
 
@@ -635,6 +645,19 @@ mod tests {
     }
 
     #[test]
+    fn diagnostic_truncation_keeps_stdout_completeness_separate() {
+        let output = run(
+            &mut shell("printf '{\"ok\":true}'; i=0; while [ $i -lt 1000 ]; do printf 'diagnostic-output\n' >&2; i=$((i+1)); done"),
+            &Limits { capture_bytes: 64, ..limits() },
+            &control(),
+        ).expect("bounded diagnostics");
+        assert!(matches!(output.termination, Termination::Exited(status) if status.success()));
+        assert_eq!(output.stdout, "{\"ok\":true}");
+        assert!(output.truncated);
+        assert!(!output.stdout_truncated);
+    }
+
+    #[test]
     fn runaway_output_is_stopped() {
         let limits = Limits {
             output_bytes: 65_536,
@@ -643,5 +666,6 @@ mod tests {
         let output = run(&mut shell("yes output"), &limits, &control()).expect("run");
         assert!(matches!(output.termination, Termination::OutputLimit));
         assert!(output.truncated);
+        assert!(output.stdout_truncated);
     }
 }

@@ -26,6 +26,7 @@ pub(crate) fn capture(
     workspace: &Workspace,
     control: &Control,
     paths: &[String],
+    atlas: crate::atlas::Configuration,
 ) -> Result<Snapshot> {
     let Selection {
         atlas,
@@ -34,7 +35,7 @@ pub(crate) fn capture(
         mut files,
         mut modules,
         roots,
-    } = select(workspace, control, paths)?;
+    } = select(workspace, control, paths, atlas)?;
     let mut external = BTreeSet::new();
     let started = Instant::now();
     loop {
@@ -96,12 +97,12 @@ fn select<'a>(
     workspace: &'a Workspace,
     control: &'a Control,
     paths: &[String],
+    atlas: crate::atlas::Configuration,
 ) -> Result<Selection<'a>> {
     let paths = paths
         .iter()
         .map(|path| relative("", path))
         .collect::<Result<Vec<_>>>()?;
-    let atlas = crate::atlas::Configuration::host(workspace.path());
     let mut reader = Reader::new(workspace, control);
     let selected = if paths.is_empty() {
         BTreeMap::new()
@@ -145,6 +146,7 @@ pub(crate) fn roots(
     workspace: &Workspace,
     control: &Control,
     paths: &[String],
+    atlas: crate::atlas::Configuration,
 ) -> Result<Snapshot> {
     let Selection {
         reader,
@@ -153,7 +155,7 @@ pub(crate) fn roots(
         modules,
         roots,
         ..
-    } = select(workspace, control, paths)?;
+    } = select(workspace, control, paths, atlas)?;
     let mut snapshot = sources::capture(
         workspace,
         control,

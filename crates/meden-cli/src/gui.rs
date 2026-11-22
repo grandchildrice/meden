@@ -609,7 +609,7 @@ impl Http<'_> {
 #[allow(clippy::too_many_lines)] // One flat command dispatcher; effects stay in their own modules.
 fn worker(
     receiver: mpsc::Receiver<Task>,
-    view: &Mutex<View>,
+    view: &Arc<Mutex<View>>,
     workspace: &Arc<Workspace>,
     connections: &Mutex<connections::Connections>,
     project: &Arc<crate::project::Project>,

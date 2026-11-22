@@ -29,6 +29,7 @@ const SOURCES: &[(&str, &str)] = &[
     ),
     ("MedenSemantic", include_str!("MedenSemantic.lean")),
     ("MedenSearch", include_str!("MedenSearch.lean")),
+    ("MedenSearchMain", include_str!("MedenSearchMain.lean")),
     ("MedenInterchange", include_str!("MedenInterchange.lean")),
     (
         "LeanAtlas/Config/Types",
@@ -98,6 +99,7 @@ const SCRIPTS: &[(&str, &str)] = &[
     ),
     ("LEAN-ATLAS-LICENSE", include_str!("vendor/LICENSE")),
     ("project-atlas.py", include_str!("project-atlas.py")),
+    ("observe-atlas.py", include_str!("observe-atlas.py")),
     (
         "project-atlas-prepare.sh",
         include_str!("project-atlas-prepare.sh"),

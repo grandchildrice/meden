@@ -3659,10 +3659,46 @@ pre {
 }
 
 .file-preparation {
-  padding: 32px;
-  max-width: 640px;
-  margin: auto;
+  padding: 24px;
+  width: min(100%, 1100px);
+  margin: 0 auto;
+  box-sizing: border-box;
   color: #52636e;
+}
+.preparation-heading {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 16px 0 4px;
+}
+.preparation-heading strong {
+  flex: 1;
+}
+.preparation-heading span {
+  font-variant-numeric: tabular-nums;
+}
+.preparation-log {
+  margin: 12px 0;
+  padding: 16px;
+  height: clamp(220px, 50vh, 600px);
+  max-width: 100%;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: #10202b;
+  color: #e0eaf1;
+  border-radius: 6px;
+  font:
+    12px/1.6 ui-monospace,
+    monospace;
+}
+.preparation-history {
+  margin: 8px 0;
+}
+.preparation-history summary {
+  cursor: pointer;
+  color: #52636e;
+  font-size: 12px;
 }
 .semantic-heading {
   display: flex;

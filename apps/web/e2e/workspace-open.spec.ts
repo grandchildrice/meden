@@ -50,6 +50,7 @@ async function command(page: Page, body: unknown) {
 test("unreadable portable history stays intact while the GUI graph and ordinary chat remain usable", async ({
   page,
 }) => {
+  test.setTimeout(120000);
   const root = await mkdtemp(resolve(tmpdir(), "meden-unreadable-history-"));
   const project = resolve(root, "project");
   await mkdir(resolve(project, ".meden"), { recursive: true });

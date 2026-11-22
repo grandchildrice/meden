@@ -702,6 +702,7 @@ mod tests {
         use std::os::unix::process::ExitStatusExt as _;
         use std::process::ExitStatus;
         let mut output = Output {
+            stdout_truncated: false,
             termination: Termination::Exited(ExitStatus::from_raw(66 << 8)),
             stdout: String::new(),
             stderr: String::new(),
