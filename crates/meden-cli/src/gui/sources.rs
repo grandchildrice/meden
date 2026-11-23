@@ -1,6 +1,7 @@
 //! GUI presentation for shared policy-bound source observations.
-pub(super) use crate::analysis::sources::{capture, Snapshot};
+use crate::analysis::sources::capture;
 use anyhow::Result;
+pub(super) use meden_app::view::PreparedSource as Snapshot;
 use meden_runtime::{process::Control, workspace::Workspace};
 
 mod preparation;
@@ -68,7 +69,7 @@ pub(super) fn prepare(
                 .ok()
                 .flatten()
             {
-                return Ok((snapshot, true));
+                return Ok((Snapshot::new(snapshot)?, true));
             }
         }
         crate::analysis::extract_cached(
@@ -77,6 +78,7 @@ pub(super) fn prepare(
             &[path.into()],
             Some(preparation::observer(view, &[path.into()])),
         )
+        .and_then(|(snapshot, cached)| Ok((Snapshot::new(snapshot)?, cached)))
     })();
     let mut view = super::lock(view);
     match result {
@@ -107,7 +109,7 @@ pub(super) fn refresh(
     paths: &[String],
 ) -> Result<()> {
     super::lock(view).source_snapshot = None;
-    let snapshot = match capture(workspace, control, paths) {
+    let snapshot = match capture(workspace, control, paths).and_then(Snapshot::new) {
         Ok(snapshot) => snapshot,
         Err(error) => {
             for path in paths {
@@ -150,7 +152,7 @@ pub(super) fn extract_atlas(
         paths,
         Some(preparation::observer(view, paths)),
     )
-    .map(|(snapshot, _)| snapshot);
+    .and_then(|(snapshot, _)| Snapshot::new(snapshot));
     super::lock(view).atlas = atlas.status();
     let snapshot = match extraction {
         Ok(snapshot) => snapshot,

@@ -91,6 +91,13 @@ revocation without sending. The
 native startup/retained-tab journeys and recorded-workspace import/edit/restart
 journeys exercise the actual browser adapter and evidence invalidation. Pure
 workspace transitions receive explicit identity/time so replay is reproducible.
+Native source projection changes also exercise the lexical source, real offline
+Atlas, prepared Lake and retained-tab browser journeys. Projection checks cover
+namespaces, comments, privacy, original lines, oversized UTF-8 refusal, stale
+source bindings, duplicate IDs, missing targets and valid cycles. Generated
+schema checks cover the owned vocabulary and reject unsupported constraints;
+they are not a general JSON Schema equivalence proof. The source/graph projection
+does not carry current accepted-contract evidence.
 
 Graph interaction regression coverage also requires that wheel input over the
 passive review legend reaches the graph, hover/resize preserves the user's

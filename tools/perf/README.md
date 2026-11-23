@@ -71,6 +71,11 @@ host's executable can invalidate its prepared worker path (`/proc/self/exe`
 reports a deleted file); a resulting ENOENT is not a valid latency sample.
 Do not rebuild that path while measuring. Restart deployed hosts only after
 confirming no job is active, and issue fresh session URLs after restart.
+Pin the built browser assets alongside the executable as well: a running host
+must not serve a mutable `apps/web/dist` while browser tests replace its chunks
+or a new wire contract is being built. Name the deployment from both the binary
+digest and a deterministic asset-tree digest, and pass that copied asset directory
+to `gui --assets`. A pinned executable alone does not freeze its browser client.
 
 The serialized native browser performance gate sets `MEDEN_GUI_PERFORMANCE=1`:
 

@@ -14,6 +14,7 @@ meden-agent = { path = "../meden-agent", version = "0.1.0" }
 meden-runtime = { path = "../meden-runtime", version = "0.1.0" }
 serde = { workspace = true }
 serde_json = { workspace = true }
+schemars = "=1.2.3"
 sha2 = "0.10"
 anyhow = "1"
 base64 = "0.22"

@@ -25,6 +25,8 @@ pub mod shell;
 pub mod storage;
 #[allow(missing_docs)]
 pub mod verifier;
+/// Backend-neutral materialized source/graph observations for presentation.
+pub mod view;
 #[allow(missing_docs)]
 pub mod workspace;
 

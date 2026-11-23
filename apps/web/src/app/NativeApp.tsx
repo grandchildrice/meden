@@ -263,7 +263,7 @@ export function NativeApp({ token }: { token: string }) {
     if (graphPaths === undefined && state?.source_snapshot) {
       setGraphPaths(
         (
-          state.source_snapshot.collection?.roots ??
+          state.source_snapshot.roots ??
           Object.keys(state.source_snapshot.files)
         ).join("\n"),
       );
@@ -504,7 +504,7 @@ export function NativeApp({ token }: { token: string }) {
     ) {
       openRequestedSnapshot.current = false;
       const path =
-        state.source_snapshot.collection?.roots[0] ||
+        state.source_snapshot.roots[0] ||
         Object.keys(state.source_snapshot.files)[0];
       if (path) {
         setAnalysisFile(path);

@@ -1,0 +1,416 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SourcePage",
+  "description": "Read-only source page, materialized before publication. Raw prover records\nand recorded-workspace conversation/evidence fields are absent.",
+  "type": "object",
+  "properties": {
+    "revision": {
+      "description": "Revision of the exact retained source map.",
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "files": {
+      "description": "Bounded UTF-8 inputs. Other availability states are a separate projection.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/SourceText"
+      }
+    },
+    "roots": {
+      "description": "Explicit selected roots rather than backend package/configuration internals.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "graph": {
+      "description": "Prepared graph, absent when no supported graph was produced.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Graph"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "description": {
+      "description": "Human-readable backend/scope attribution prepared by the host.",
+      "type": "string"
+    },
+    "external": {
+      "description": "Explicit external boundaries, not invented declaration nodes.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "compiled": {
+      "description": "Whether a semantic/compiler observation or lexical navigation was prepared.",
+      "type": "boolean"
+    },
+    "inputs_revision": {
+      "description": "Exact prepared compiler-input binding when a backend provides one.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "revision",
+    "files",
+    "roots",
+    "description",
+    "external",
+    "compiled"
+  ],
+  "$defs": {
+    "SourceText": {
+      "description": "A retained UTF-8 input, byte-bounded before publication. The generated wire\nvalidator also limits string length; it does not replace this byte check.",
+      "type": "string",
+      "maxLength": 1048576
+    },
+    "Graph": {
+      "description": "One backend-independent graph; cycles are valid and preserved.",
+      "type": "object",
+      "properties": {
+        "revision": {
+          "description": "Exact graph/artifact revision.",
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "declarations": {
+          "description": "Display nodes with source linkage.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Node"
+          },
+          "maxItems": 5000
+        },
+        "edges": {
+          "description": "Complete local cross-references in the prepared scope.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Edge"
+          },
+          "maxItems": 100000
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "revision",
+        "declarations",
+        "edges"
+      ]
+    },
+    "Node": {
+      "description": "Prepared graph node. It cannot assert a proved/bounded/refined receipt.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Stable backend/source declaration identity.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "name": {
+          "description": "Original formal name used for source/meaning selection.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "label": {
+          "description": "Short display label.",
+          "type": "string",
+          "maxLength": 1000
+        },
+        "kind": {
+          "description": "Presentation category.",
+          "$ref": "#/$defs/Kind"
+        },
+        "isMainTheorem": {
+          "description": "Explicit metadata about a project target, never a proof status.",
+          "type": "boolean"
+        },
+        "statement": {
+          "description": "Bounded original statement or lexical header.",
+          "type": "string",
+          "maxLength": 100000
+        },
+        "source": {
+          "description": "Original source location.",
+          "$ref": "#/$defs/Location"
+        },
+        "proofStatus": {
+          "description": "Observation only; admitted evidence is queried independently.",
+          "$ref": "#/$defs/ProofHint"
+        },
+        "axioms": {
+          "description": "Original assumptions reported by the backend.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 1000
+        },
+        "semantic": {
+          "description": "A prepared deterministic reading/search observation, if supported.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Explanation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "label",
+        "kind",
+        "isMainTheorem",
+        "statement",
+        "source",
+        "proofStatus",
+        "axioms"
+      ]
+    },
+    "Kind": {
+      "description": "Presentation category, independent of the checker implementation.",
+      "oneOf": [
+        {
+          "description": "Formal claim, without an inferred proof receipt.",
+          "type": "string",
+          "const": "theorem"
+        },
+        {
+          "description": "Named definition or data declaration.",
+          "type": "string",
+          "const": "definition"
+        },
+        {
+          "description": "Declared assumption.",
+          "type": "string",
+          "const": "axiom"
+        }
+      ]
+    },
+    "Location": {
+      "description": "Source location in the exact retained input.",
+      "type": "object",
+      "properties": {
+        "file": {
+          "description": "Logical workspace-relative source path.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "line": {
+          "description": "One-based original line.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "file"
+      ]
+    },
+    "ProofHint": {
+      "description": "Only source/compiler observations. Successful verification is not inferred.",
+      "oneOf": [
+        {
+          "description": "No admitted verification is represented by this graph.",
+          "type": "string",
+          "const": "unknown"
+        },
+        {
+          "description": "Backend explicitly reported a missing proof.",
+          "type": "string",
+          "const": "unproved"
+        }
+      ]
+    },
+    "Explanation": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "origin": {
+          "type": "string",
+          "const": "elaborated"
+        },
+        "sentence": {
+          "type": "string"
+        },
+        "refutation": {
+          "type": "string"
+        },
+        "checker": {
+          "$ref": "#/$defs/Check"
+        },
+        "intermediate": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "renderer": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rendering_error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "origin",
+        "sentence",
+        "refutation",
+        "checker"
+      ]
+    },
+    "Check": {
+      "type": "object",
+      "properties": {
+        "engine": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "counterexample",
+            "predicate_false_example",
+            "not_found",
+            "gave_up",
+            "budget_exhausted",
+            "unavailable",
+            "unsupported",
+            "not_proposition"
+          ]
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "diagnostic": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "seed": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "numInst": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "numRetries": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "maxSize": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "mode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "engine",
+        "status",
+        "candidates"
+      ]
+    },
+    "Edge": {
+      "description": "Validated cross-reference within this graph.",
+      "type": "object",
+      "properties": {
+        "source": {
+          "description": "Referencing node ID.",
+          "type": "string"
+        },
+        "target": {
+          "description": "Referenced node ID.",
+          "type": "string"
+        },
+        "site": {
+          "description": "Type, implementation, or conservatively unknown dependency.",
+          "$ref": "#/$defs/Site"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "target",
+        "site"
+      ]
+    },
+    "Site": {
+      "description": "Edge scope used by generic dependency navigation.",
+      "oneOf": [
+        {
+          "description": "Statement or type dependency.",
+          "type": "string",
+          "const": "type"
+        },
+        {
+          "description": "Implementation/proof-body dependency.",
+          "type": "string",
+          "const": "value"
+        },
+        {
+          "description": "Retain an unclassified dependency conservatively.",
+          "type": "string",
+          "const": "unknown"
+        }
+      ]
+    }
+  }
+}

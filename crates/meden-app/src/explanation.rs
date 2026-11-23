@@ -2,10 +2,11 @@
 use serde::{Deserialize, Serialize};
 pub mod cache;
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Explanation {
     pub version: u8,
+    #[schemars(schema_with = "elaborated_schema")]
     pub origin: String,
     pub sentence: String,
     pub refutation: String,
@@ -18,10 +19,11 @@ pub struct Explanation {
     pub rendering_error: Option<String>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Check {
     pub engine: String,
+    #[schemars(schema_with = "status_schema")]
     pub status: String,
     pub candidates: Vec<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -36,6 +38,13 @@ pub struct Check {
     pub max_size: Option<u64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mode: Option<String>,
+}
+
+fn elaborated_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+    schemars::json_schema!({"type":"string", "const":"elaborated"})
+}
+fn status_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+    schemars::json_schema!({"type":"string", "enum":["counterexample","predicate_false_example","not_found","gave_up","budget_exhausted","unavailable","unsupported","not_proposition"]})
 }
 
 impl Explanation {

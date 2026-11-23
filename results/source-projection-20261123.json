@@ -1,0 +1,492 @@
+{
+  "date": "2026-11-23",
+  "parent_commit": "2f57944",
+  "scope": "First generic native source/graph materialization slice. The complete plugin/second-backend/read-model migration is unfinished.",
+  "changes": [
+    "Application-owned immutable prepared source page serializes only generic source/graph observations; exact original snapshot stays retained for explicit analysis.",
+    "Generated JSON Schema and browser validator/type replace the handwritten raw-Atlas wire definition. Unsupported schema vocabulary fails generation.",
+    "Removed duplicate browser lexical index and fake recorded-workspace construction; application lexical projection indexes names and original source lines once.",
+    "Added bounded local analysis.materialize_view timing and pinned deployed executable plus browser assets."
+  ],
+  "checks": {
+    "rust": {
+      "reported_passes_including_doctest": 232,
+      "log": "/tmp/meden-source-rust-final.log",
+      "command": "nix shell nixpkgs#python3 nixpkgs#bubblewrap --command cargo test --workspace --all-features",
+      "source_projection_cases": 7,
+      "projection_4000_declarations_diagnostic_ms": 89.639145,
+      "diagnostic_scope": "One unoptimized development-test observation, not a repeated performance gate."
+    },
+    "typescript": {
+      "passed": 30,
+      "log": "/tmp/meden-source-web-final.log"
+    },
+    "architecture": {
+      "passed": 20,
+      "rust_crates": 6,
+      "owned_data_port_sources": 11,
+      "log": "/tmp/meden-source-architecture-final.log"
+    },
+    "native_gui": {
+      "initial_real_compiler_journeys": 4,
+      "initial_binary_sha256": "67e967a6f9e9d2e2e747b754a93f4ad9952b91d28aaa1fca87c4e196ee8add22",
+      "initial_log": "/tmp/meden-source-gui-final.log",
+      "final_binary_journeys": 2,
+      "final_log": "/tmp/meden-source-gui-complete.log",
+      "final_report": "target/gui-source-complete/report/index.html",
+      "screens_reviewed": [
+        "target/gui-checks/native-source-graph.png",
+        "target/gui-checks/native-atlas-compile-failed.png"
+      ],
+      "navigation_budget": {
+        "browser": "149.0.7827.53",
+        "motion": "no-preference",
+        "cold_analysis_store_preparation_ms": 34854.778446,
+        "warm_tab_two_raf_ms": [
+          27.600000023841858,
+          28.099999994039536,
+          28.80000001192093,
+          23,
+          29.19999998807907,
+          27.900000005960464,
+          25.599999994039536,
+          27.099999994039536,
+          29,
+          25.30000001192093
+        ],
+        "p95_ms": 29.19999998807907,
+        "maximum_p95_ms": 250,
+        "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+      }
+    },
+    "required_tui": {
+      "success": true,
+      "selected": 33,
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/validation/1202cbeaa2270d7de1aa9756466a18e6d3ad718be9953493777c89f27ce13690/meden",
+        "sha256": "1202cbeaa2270d7de1aa9756466a18e6d3ad718be9953493777c89f27ce13690"
+      },
+      "evidence": "/tmp/meden-ux-source-projection-complete-20261123",
+      "log": "/tmp/meden-ux-source-projection-complete.log",
+      "decoded_screens_reviewed": [
+        "GUI/TUI continuation after restart",
+        "Lake input inventory refusal retained as historical",
+        "HTTP 429 stop retained and explicit retry completed"
+      ]
+    },
+    "static": {
+      "typecheck": true,
+      "clippy": true,
+      "format": true,
+      "schema_check": true
+    }
+  },
+  "captures": [
+    {
+      "directory": "target/native-profile/riemann-source-view",
+      "cache_condition": "first open after renderer binding changed; cache miss confirmed by host",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_cache_validation_ms": 229966.40962700002
+      },
+      "confirmed_native_samples": 15962,
+      "raw_digests": {
+        "perf.data": "5608ccb56fd19147328db0962a24e651496d36ca12eedb40517a15d30a085323",
+        "perf-report.txt": "8b039236726a5c3808582a79f14ee8eb11577bce43cf6012a6c036e8f887bfc0",
+        "trace.json": "0a474671406e54008416946974bff2b8671fef2073c8af0cdd930d3a22b48aed",
+        "native-metrics.json": "8c4714fc6c2124898c61aae166cbcc300723dfeaeea9d9fc31d1332ee4635e2d",
+        "summary.json": "d94644ed6980c203f3ec0c10c0f58b05ec6f703ab2be68868c551850ef54446d",
+        "graph-hover.cpuprofile": "15c8694f627e9bdfc000830db754ab242cc1c8387e4a51bc19a1b7e71cc7585e",
+        "graph-idle-poll.cpuprofile": "9c835ad811a17bbd8c99eb7a88c258ee85d6d5dc068593212258a70205137ab9",
+        "graph-node-select.cpuprofile": "e4fd9be67425e3475e9016d3d0e48a9ffce26fc329251f4d4641f4772d87bdf7",
+        "graph-pan.cpuprofile": "ecbff92f0befb47d5e3f1d066d2e1bd9e35fc4d986a6496c84e8aa36a2b7fd0a",
+        "graph-resize.cpuprofile": "4192a0f52e8e95378f8379a079b0b1a24d743b2a1982d3e89b6ef114fa89a267",
+        "graph-wheel.cpuprofile": "2efc321297daec345686263073ab0d6e6ec92590826d6ca8a1fe1b28d0d4dd8d",
+        "project-map-wheel.cpuprofile": "dc576760446d9a6eb57fb621e721a3a43973cc56202581b7da5f551fcab61f07",
+        "tab-switch.cpuprofile": "8ecb352946761dad35f607b4771d2fcf00523cfc36a361e6eaa8edc423bef6ab"
+      },
+      "stages": {
+        "gui.enqueue": {
+          "count": 1,
+          "wall_us": 0,
+          "thread_cpu_us": 0
+        },
+        "gui.serialize_respond": {
+          "count": 1,
+          "wall_us": 70,
+          "thread_cpu_us": 56
+        },
+        "gui.command": {
+          "count": 1,
+          "wall_us": 158,
+          "thread_cpu_us": 140
+        },
+        "job.queue": {
+          "count": 1,
+          "wall_us": 131,
+          "thread_cpu_us": 0
+        },
+        "process.run": {
+          "count": 137,
+          "wall_us": 220206251,
+          "thread_cpu_us": 909028
+        },
+        "atlas.resources.select": {
+          "count": 20,
+          "wall_us": 247862,
+          "thread_cpu_us": 245172
+        },
+        "atlas.resources.validate": {
+          "count": 36,
+          "wall_us": 855705,
+          "thread_cpu_us": 846897
+        },
+        "analysis.capture_sources": {
+          "count": 3,
+          "wall_us": 146347,
+          "thread_cpu_us": 4495
+        },
+        "sandbox.public_tools": {
+          "count": 31,
+          "wall_us": 2642098,
+          "thread_cpu_us": 118585
+        },
+        "sandbox.libraries": {
+          "count": 31,
+          "wall_us": 1781377,
+          "thread_cpu_us": 130806
+        },
+        "sandbox.nix_closure": {
+          "count": 31,
+          "wall_us": 1551191,
+          "thread_cpu_us": 31128
+        },
+        "sandbox.prepare": {
+          "count": 31,
+          "wall_us": 17703918,
+          "thread_cpu_us": 1310589
+        },
+        "atlas.lake_configuration": {
+          "count": 12,
+          "wall_us": 19329852,
+          "thread_cpu_us": 490374
+        },
+        "analysis.discover_layout": {
+          "count": 1,
+          "wall_us": 21307092,
+          "thread_cpu_us": 1264300
+        },
+        "analysis.select_roots": {
+          "count": 1,
+          "wall_us": 21401086,
+          "thread_cpu_us": 1267009
+        },
+        "atlas.project.prepare": {
+          "count": 1,
+          "wall_us": 32199513,
+          "thread_cpu_us": 203794
+        },
+        "analysis.cache.validate": {
+          "count": 1,
+          "wall_us": 48230,
+          "thread_cpu_us": 45729
+        },
+        "atlas.project.extract": {
+          "count": 1,
+          "wall_us": 143158249,
+          "thread_cpu_us": 737589
+        },
+        "atlas.project.fingerprint": {
+          "count": 1,
+          "wall_us": 18728946,
+          "thread_cpu_us": 122802
+        },
+        "atlas.imports": {
+          "count": 1,
+          "wall_us": 832136,
+          "thread_cpu_us": 37460
+        },
+        "analysis.cache.store": {
+          "count": 1,
+          "wall_us": 20054,
+          "thread_cpu_us": 16463
+        },
+        "analysis.extract": {
+          "count": 1,
+          "wall_us": 229069143,
+          "thread_cpu_us": 3359505
+        },
+        "analysis.materialize_view": {
+          "count": 1,
+          "wall_us": 437,
+          "thread_cpu_us": 437
+        },
+        "gui.job": {
+          "count": 1,
+          "wall_us": 229267763,
+          "thread_cpu_us": 3461890
+        }
+      },
+      "interaction_p95_ms": {
+        "graph-idle-poll": {},
+        "graph-wheel": {
+          "pointermove": 0.044,
+          "wheel": 1.477
+        },
+        "graph-hover": {
+          "pointermove": 0.06
+        },
+        "graph-pan": {
+          "pointermove": 0.188,
+          "click": 0.031
+        },
+        "graph-resize": {
+          "resize": 0.809
+        },
+        "tab-switch": {
+          "pointermove": 0.088,
+          "click": 21.195
+        },
+        "graph-node-select": {
+          "pointermove": 0.074,
+          "click": 32.839
+        },
+        "project-map-wheel": {
+          "pointermove": 0.027,
+          "wheel": 10.79
+        }
+      },
+      "idle_long_tasks": {
+        "count": 2,
+        "p50_ms": 431,
+        "p95_ms": 431,
+        "max_ms": 431,
+        "total_ms": 568
+      }
+    },
+    {
+      "directory": "target/native-profile/riemann-source-view-warm",
+      "cache_condition": "new host session with valid persisted observations; cache hit confirmed by host",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 40093.608969,
+        "setup_cache_hit": true
+      },
+      "confirmed_native_samples": 3010,
+      "raw_digests": {
+        "perf.data": "d885b4c103de8e7a1b93221bb7974c2ce7db7fda8d5e108d3ffe88867813bffb",
+        "perf-report.txt": "3547e742b1a3f4dde1a0db152d484d04d2a718e177f26602b553e40e1ac44540",
+        "trace.json": "0c64cc3310eb6c0d307fb6f366ef3ad7d98492e7ad623dc227050e99cd9e407d",
+        "native-metrics.json": "3d9e5aff209a53b53d704b71c131b031762d42cd79786900e00946f34519e93e",
+        "summary.json": "e5db2ab0697a6a4803a39e01f41c3b7dceedc5b7e8a2ab30394b3530a39169b0",
+        "graph-hover.cpuprofile": "d4419479af806274c7459c94a1be67c6d77c91603201afb516cfebf467a256b8",
+        "graph-idle-poll.cpuprofile": "106464e7dcd877e95f4f678af36fd95b964495f7068734d331b5ce14a873589b",
+        "graph-node-select.cpuprofile": "64fac6c9d5259f21dcfa35afedd42675c15b41f925e2c4e48e1319c689e1c21c",
+        "graph-pan.cpuprofile": "9c0f78db2645c225658125b8ba21a2d6003366871cd4fb115dd781db1d764280",
+        "graph-resize.cpuprofile": "1cde1b93bd9aed1de202674c51566fb43b1f8c9a00f31f4c54e805196d7a6366",
+        "graph-wheel.cpuprofile": "1c5fc5bd48f3b54d6d8fc996a86baf09182a921361b12a775d8f12d97b5205df",
+        "project-map-wheel.cpuprofile": "ffc36edfbfcb00afd5714fd785b917305e21a72879f7a66013c0a2e84a9b08d7",
+        "tab-switch.cpuprofile": "4d4a79bf7b988c895b7be1df4b113a5ff988ccb833e5d300471ec677f46743f3"
+      },
+      "stages": {
+        "gui.enqueue": {
+          "count": 1,
+          "wall_us": 1,
+          "thread_cpu_us": 1
+        },
+        "job.queue": {
+          "count": 1,
+          "wall_us": 96,
+          "thread_cpu_us": 0
+        },
+        "gui.serialize_respond": {
+          "count": 1,
+          "wall_us": 126,
+          "thread_cpu_us": 106
+        },
+        "gui.command": {
+          "count": 1,
+          "wall_us": 245,
+          "thread_cpu_us": 219
+        },
+        "process.run": {
+          "count": 101,
+          "wall_us": 34718659,
+          "thread_cpu_us": 161125
+        },
+        "atlas.resources.select": {
+          "count": 16,
+          "wall_us": 207880,
+          "thread_cpu_us": 205771
+        },
+        "atlas.resources.validate": {
+          "count": 29,
+          "wall_us": 709833,
+          "thread_cpu_us": 704162
+        },
+        "analysis.capture_sources": {
+          "count": 3,
+          "wall_us": 148151,
+          "thread_cpu_us": 5960
+        },
+        "sandbox.public_tools": {
+          "count": 13,
+          "wall_us": 1174224,
+          "thread_cpu_us": 46238
+        },
+        "sandbox.libraries": {
+          "count": 13,
+          "wall_us": 790271,
+          "thread_cpu_us": 59348
+        },
+        "sandbox.nix_closure": {
+          "count": 13,
+          "wall_us": 668450,
+          "thread_cpu_us": 13380
+        },
+        "sandbox.prepare": {
+          "count": 13,
+          "wall_us": 7156870,
+          "thread_cpu_us": 482371
+        },
+        "atlas.lake_configuration": {
+          "count": 12,
+          "wall_us": 16938807,
+          "thread_cpu_us": 486018
+        },
+        "analysis.discover_layout": {
+          "count": 1,
+          "wall_us": 18963794,
+          "thread_cpu_us": 1287320
+        },
+        "analysis.select_roots": {
+          "count": 1,
+          "wall_us": 19058515,
+          "thread_cpu_us": 1290423
+        },
+        "atlas.project.prepare": {
+          "count": 1,
+          "wall_us": 17104981,
+          "thread_cpu_us": 114299
+        },
+        "analysis.cache.validate": {
+          "count": 1,
+          "wall_us": 1233526,
+          "thread_cpu_us": 65431
+        },
+        "analysis.extract": {
+          "count": 1,
+          "wall_us": 38616402,
+          "thread_cpu_us": 1575352
+        },
+        "analysis.materialize_view": {
+          "count": 1,
+          "wall_us": 1767,
+          "thread_cpu_us": 1752
+        },
+        "gui.job": {
+          "count": 1,
+          "wall_us": 38819989,
+          "thread_cpu_us": 1684341
+        }
+      },
+      "interaction_p95_ms": {
+        "graph-idle-poll": {},
+        "graph-wheel": {
+          "pointermove": 0.018,
+          "wheel": 1.008
+        },
+        "graph-hover": {
+          "pointermove": 0.065
+        },
+        "graph-pan": {
+          "pointermove": 0.169,
+          "click": 0.021
+        },
+        "graph-resize": {
+          "resize": 1.316
+        },
+        "tab-switch": {
+          "pointermove": 0.053,
+          "click": 19.267
+        },
+        "graph-node-select": {
+          "pointermove": 0.064,
+          "click": 28.274
+        },
+        "project-map-wheel": {
+          "pointermove": 0.02,
+          "wheel": 10.533
+        }
+      },
+      "idle_long_tasks": {
+        "count": 2,
+        "p50_ms": 394,
+        "p95_ms": 394,
+        "max_ms": 394,
+        "total_ms": 550
+      }
+    }
+  ],
+  "findings": {
+    "cold_cache": {
+      "preparation_ms": 229966.409627,
+      "cache_hit": false,
+      "saved_artifact_binding_difference": {
+        "differing_fields": [
+          "renderer"
+        ],
+        "same_source": true
+      },
+      "cause": "The renderer identity hashes its adapter source; the previous application extraction changed that source. Existing compiler resources, source revision and prepared input fingerprint matched, but the renderer binding differed. The cache rejects the combined artifact and reruns extraction/search/rendering.",
+      "search_scope": "Counterexample observation has a 120-second file wall budget and at most ten seconds per declaration. Timeout/budget observations are inconclusive, not verification receipts."
+    },
+    "warm_cache": {
+      "preparation_ms": 40093.608969,
+      "cache_hit": true,
+      "dominant_stages": "12 Lake configuration calls (16.939 s) within root/layout selection (19.059 s), then prepared build/input fingerprint (17.105 s). Nested intervals overlap.",
+      "materialize_view_wall_ms": 1.767
+    },
+    "idle_layout": {
+      "long_tasks_count": 2,
+      "maximum_ms": 394,
+      "sampled_project_map_self_ms": 230.928,
+      "attribution": "The production minified X_e function body matches projectMap in project-map-model.ts. No source maps were included in this follow-up capture. This is residual whole-inventory layout work during the initial idle/poll phase, not a slow wheel handler."
+    },
+    "priority": [
+      "Separate compiler/search observations from renderer cache identity; rerendering should not rerun unrelated searches.",
+      "Materialize/reuse project-map layout across inventory updates; retain evidence of the measured idle layout pause.",
+      "Deduplicate exact Lake configuration/layout preparation while retaining freshness and sandbox checks."
+    ]
+  },
+  "deployment": {
+    "binary_sha256": "1202cbeaa2270d7de1aa9756466a18e6d3ad718be9953493777c89f27ce13690",
+    "assets_sha256": "4de574e7507beb696c606b3ef64b011cdb3bd8516185416edc6a83b7cfdd20ec",
+    "services": [
+      "meden-ethlib-gui.service",
+      "meden-riemann-gui.service"
+    ],
+    "note": "Both assets and executable are copied to a digest-named runtime directory. Session URLs are intentionally omitted."
+  },
+  "limitations": [
+    "Raw first-open report uses the old setup_cache_validation_ms field name although that run missed the cache. The tool now records setup_preparation_ms plus explicit setup_cache_hit.",
+    "Diagnostic captures are one controlled desktop run per cache condition; they are not repeated confidence intervals, physical paint/INP or universal latency guarantees.",
+    "Host thread CPU excludes subprocess CPU; nested spans overlap. Native perf confirmed real worker/host samples, but installed Lean symbols can be incomplete.",
+    "Two intermediate validation parents were interrupted (exit 143), and a retry found the abandoned preview port. Those runs are not counted as passes. The final fixed-binary public gate and native journeys completed.",
+    "No new core transition/refinement change, live-model quality, cold installation, local large-model inference or complete renderer/I/O assurance is claimed."
+  ]
+}

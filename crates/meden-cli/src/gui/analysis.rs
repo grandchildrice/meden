@@ -23,8 +23,8 @@ pub(super) fn run(
                 snapshot.revision == input.source_revision
                     && snapshot.atlas.as_ref().map(|a| &a.revision) == input.graph_revision.as_ref()
             })
-            .map(|snapshot| snapshot.as_ref().clone())
-            .or_else(|| view.source_snapshot.clone())
+            .map(|snapshot| snapshot.snapshot().clone())
+            .or_else(|| view.source_snapshot.as_ref().map(|s| s.snapshot().clone()))
             .context("Read the source graph before meaning analysis")?
     };
     invalidate(&mut lock(view));
@@ -69,6 +69,7 @@ pub(super) fn apply_repair(
     });
     lock(view).analysis_history = session.analysis_history()?;
     let (snapshot, record) = result?;
+    let snapshot = meden_app::view::PreparedSource::new(snapshot)?;
     let mut view = lock(view);
     super::sources::remember(&mut view, &snapshot);
     view.source_snapshot = Some(snapshot);

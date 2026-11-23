@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { atlasGraphSchema, explanationSchema } from "@meden/workspace-schema";
+import { explanationSchema } from "@meden/workspace-schema";
 
 const sourceSymbolSchema = z
   .object({
@@ -22,60 +22,8 @@ export const nativeReferenceSchema = z
   })
   .strict();
 export type NativeReference = z.infer<typeof nativeReferenceSchema>;
-export const sourceSnapshotSchema = z
-  .object({
-    revision: z.string().regex(/^sha256:[a-f0-9]{64}$/),
-    files: z.record(z.string(), z.string().max(1_048_576)),
-    collection: z
-      .object({
-        roots: z.array(z.string()),
-        external_modules: z.array(z.string()),
-        prepared: z
-          .string()
-          .regex(/^[a-f0-9]{64}$/)
-          .optional(),
-        modules: z.array(
-          z
-            .object({ name: z.string(), file: z.string(), root: z.string() })
-            .strict(),
-        ),
-        packages: z.array(
-          z
-            .object({
-              name: z.string(),
-              directory: z.string(),
-              source_roots: z.array(z.string()),
-            })
-            .strict(),
-        ),
-        metadata: z
-          .object({
-            files: z.record(z.string(), z.string().nullable()),
-            directories: z.record(
-              z.string(),
-              z
-                .array(
-                  z.object({ name: z.string(), kind: z.string() }).strict(),
-                )
-                .nullable(),
-            ),
-          })
-          .strict(),
-      })
-      .strict()
-      .optional(),
-    atlas: z
-      .object({
-        revision: z.string().regex(/^sha256:[a-f0-9]{64}$/),
-        upstream: z.string(),
-        resources_sha256: z.string(),
-        graph: atlasGraphSchema,
-      })
-      .strict()
-      .optional(),
-  })
-  .strict();
-export type SourceSnapshot = z.infer<typeof sourceSnapshotSchema>;
+import { sourcePageSchema } from "./source.generated";
+export type { SourcePage as SourceSnapshot } from "./source.generated";
 export const meaningInputSchema = z
   .object({
     source_revision: z.string().regex(/^sha256:[a-f0-9]{64}$/),
@@ -434,7 +382,7 @@ export const nativeStateSchema = z.object({
       error: z.string().optional(),
     })
     .nullable(),
-  source_snapshot: sourceSnapshotSchema.nullable(),
+  source_snapshot: sourcePageSchema.nullable(),
   source_views: z.record(z.string(), z.string()),
   analysis: meaningRecordSchema.nullable(),
   analysis_history: z.array(meaningRecordSchema).max(1000),

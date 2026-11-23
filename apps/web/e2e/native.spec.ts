@@ -472,9 +472,9 @@ test.describe("native GUI with real offline workers", () => {
     expect(
       Object.keys((await nativeState(page)).source_snapshot.files),
     ).toEqual(["Beta.lean"]);
-    expect(
-      (await nativeState(page)).source_snapshot.collection.prepared,
-    ).toMatch(/^[a-f0-9]{64}$/);
+    expect((await nativeState(page)).source_snapshot.inputs_revision).toMatch(
+      /^[a-f0-9]{64}$/,
+    );
     await page.evaluate(() => {
       const samples: number[] = [];
       (window as any).__tabTimings = samples;
@@ -784,12 +784,12 @@ theorem slow : True := fast
     const state = await ready();
     expect(state.source_preparation["Entry.lean"].log_truncated).toBe(true);
     expect(
-      state.source_snapshot.atlas.graph.nodes.find(
+      state.source_snapshot.graph.declarations.find(
         (n: any) => n.id === "tracked",
       ).axioms,
     ).toEqual(["supplied"]);
     expect(
-      state.source_snapshot.atlas.graph.nodes.find(
+      state.source_snapshot.graph.declarations.find(
         (n: any) => n.id === "longSearch",
       ).semantic.checker.status,
     ).toBe("budget_exhausted");
@@ -873,12 +873,10 @@ theorem slow : True := fast
     await open();
     let state = await prepared();
     expect(Object.keys(state.source_snapshot.files)).toEqual(["Entry.lean"]);
-    expect(state.source_snapshot.collection.prepared).toMatch(/^[a-f0-9]{64}$/);
-    expect(state.source_snapshot.collection.external_modules).toContain(
-      "Part33",
-    );
+    expect(state.source_snapshot.inputs_revision).toMatch(/^[a-f0-9]{64}$/);
+    expect(state.source_snapshot.external).toContain("Part33");
     expect(
-      state.source_snapshot.atlas.graph.nodes
+      state.source_snapshot.graph.declarations
         .find((n: any) => n.id === "sampleCounterexample")
         .semantic.checker.candidates.join(" "),
     ).toContain("n := 0");
@@ -910,7 +908,7 @@ theorem slow : True := fast
     await reread();
     await expect
       .poll(
-        async () => (await nativeState(page)).source_snapshot?.atlas?.revision,
+        async () => (await nativeState(page)).source_snapshot?.graph?.revision,
         {
           timeout: 120000,
         },
@@ -918,13 +916,13 @@ theorem slow : True := fast
       .toBeTruthy();
     await expect
       .poll(
-        async () => (await nativeState(page)).source_snapshot?.atlas?.revision,
+        async () => (await nativeState(page)).source_snapshot?.graph?.revision,
         { timeout: 120000 },
       )
-      .not.toBe(first.atlas.revision);
+      .not.toBe(first.graph.revision);
     state = await prepared();
-    expect(state.source_snapshot.collection.prepared).not.toBe(
-      first.collection.prepared,
+    expect(state.source_snapshot.inputs_revision).not.toBe(
+      first.inputs_revision,
     );
     expect(state.source_preparation["Entry.lean"].cache_hit).toBe(false);
     await expect
@@ -1227,7 +1225,7 @@ theorem slow : True := fast
       .toBe(false);
     const first = await nativeState(page);
     expect(first.stopped).toBeNull();
-    const compiled = first.source_snapshot.atlas.graph.nodes;
+    const compiled = first.source_snapshot.graph.declarations;
     const observations = Object.fromEntries(
       compiled.map((n: any) => [n.id, n.semantic]),
     );
@@ -1265,8 +1263,8 @@ theorem slow : True := fast
     await expect
       .poll(async () => (await nativeState(page)).running, { timeout: 120000 })
       .toBe(false);
-    const repeated = (await nativeState(page)).source_snapshot.atlas.graph
-      .nodes;
+    const repeated = (await nativeState(page)).source_snapshot.graph
+      .declarations;
     expect(
       Object.fromEntries(repeated.map((n: any) => [n.id, n.semantic])),
     ).toEqual(observations);
@@ -1441,7 +1439,7 @@ theorem slow : True := fast
       "App.lean",
       "Domain.lean",
     ]);
-    expect(first.source_snapshot.atlas.graph.edges).toEqual(
+    expect(first.source_snapshot.graph.edges).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ source: "invoice", target: "price" }),
       ]),
@@ -1510,24 +1508,24 @@ theorem slow : True := fast
       "App.lean",
       "Domain.lean",
     ]);
-    expect(state.source_snapshot.collection.roots).toEqual(["App.lean"]);
-    const atlas = state.source_snapshot.atlas;
-    expect(atlas.graph.edges).toEqual(
+    expect(state.source_snapshot.roots).toEqual(["App.lean"]);
+    const graphData = state.source_snapshot.graph;
+    expect(graphData.edges).toEqual(
       expect.arrayContaining([
         {
           source: "Store.permitted",
           target: "eligibility",
-          kind: "theorem_type_to_definition",
+          site: "type",
         },
         {
           source: "Store.permitted",
           target: "support",
-          kind: "theorem_value_to_theorem",
+          site: "value",
         },
         {
           source: "Store.invoice",
           target: "Store.price",
-          kind: "definition_value_to_definition",
+          site: "value",
         },
       ]),
     );
@@ -2108,7 +2106,7 @@ theorem slow : True := fast
         "Networking/Multistream.lean"
       ],
     ).toBe(largeSource);
-    expect((await nativeState(page)).source_snapshot.atlas.graph.edges).toEqual(
+    expect((await nativeState(page)).source_snapshot.graph.edges).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ source: "invoice", target: "price" }),
       ]),
@@ -2264,7 +2262,7 @@ theorem slow : True := fast
       graph.getByRole("button", { name: /app.*: select/ }),
     ).toContainText("app");
     let state = await nativeState(page);
-    expect(state.source_snapshot.atlas).toBeUndefined();
+    expect(state.source_snapshot.compiled).toBe(false);
     expect(state.project.verified).toBe(false);
     await expect(
       readFile(resolve(project, "vendor/mathlib/lakefile.lean")),

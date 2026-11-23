@@ -11,8 +11,8 @@ import type { MapScene, Symbol } from "./project-map-model";
 import { NativeCode } from "./NativeExplorer";
 import { NativeMeaning } from "./NativeMeaning";
 import { declarationRole } from "./declaration-role";
-import { NativeGraph } from "./NativeGraph";
-import { importAtlas, reviewScope } from "@meden/atlas-adapter";
+import { NativeGraph, displayGraph } from "./NativeGraph";
+import { reviewScope } from "@meden/atlas-adapter";
 const GraphView = lazy(() =>
   import("../graph/GraphView").then((m) => ({ default: m.GraphView })),
 );
@@ -20,8 +20,7 @@ const GraphView = lazy(() =>
 function references(
   scene: MapScene,
   path: string,
-  revision: string,
-): Workspace {
+): Pick<Workspace, "declarations" | "edges"> {
   const local = scene.byPath.get(path)?.symbols || [];
   const ids = new Set(local.map((s) => s.id));
   const edges = scene.edges.filter(
@@ -29,13 +28,6 @@ function references(
   );
   const all = new Set([...ids, ...edges.flatMap((e) => [e.source, e.target])]);
   return {
-    schemaVersion: 1,
-    id: "file-references",
-    name: path,
-    sourceRevision: revision,
-    inputRevision: 0,
-    origin: "local",
-    updatedAt: new Date(0).toISOString(),
     declarations: [...all].map((id) => {
       const s = scene.symbols.get(id)!;
       return {
@@ -52,11 +44,6 @@ function references(
       };
     }),
     edges: edges.map((e) => ({ ...e, site: "unknown" })),
-    requirements: [],
-    analyses: [],
-    evidence: [],
-    conversations: [],
-    reviewDrafts: [],
   };
 }
 
@@ -84,7 +71,7 @@ export function NativeFileWorkspace({
   onSelect: (symbol: Symbol) => void;
 }) {
   const graph = useMemo(
-    () => (scene ? references(scene, path, revision) : undefined),
+    () => (scene ? references(scene, path) : undefined),
     [scene, path, revision],
   );
   const [failure, setFailure] = useState<string>();
@@ -106,17 +93,17 @@ export function NativeFileWorkspace({
   useEffect(() => {
     if (incoming) setRetained(incoming);
     else if (!retainedRevision) setRetained(undefined);
-  }, [incoming?.revision, incoming?.atlas?.revision, retainedRevision]);
+  }, [incoming?.revision, incoming?.graph?.revision, retainedRevision]);
   const snapshot =
     incoming ||
     (retained?.revision === retainedRevision ? retained : undefined);
   const displayed = snapshot ? { ...state, source_snapshot: snapshot } : state;
   const semanticGraph = useMemo(
-    () => (snapshot?.atlas ? importAtlas(snapshot.atlas.graph) : graph),
-    [snapshot?.atlas?.revision, graph],
+    () => (snapshot?.graph ? displayGraph(snapshot) : graph),
+    [snapshot?.graph?.revision, graph],
   );
   const explanations = useMemo(() => {
-    if (!semanticGraph || !snapshot?.atlas) return [];
+    if (!semanticGraph || !snapshot?.compiled) return [];
     const main = semanticGraph.declarations
       .filter((d) => d.isMainTheorem)
       .map((d) => d.id);
@@ -146,9 +133,12 @@ export function NativeFileWorkspace({
     if (symbol) onSelect(symbol);
   };
   if (
-    path.endsWith(".lean") &&
-    (preparation?.state === "preparing" ||
-      (!snapshot && preparation?.state !== "failed" && !failure))
+    preparation?.state === "preparing" ||
+    (!snapshot &&
+      running &&
+      state.operation === "inspection" &&
+      preparation?.state !== "failed" &&
+      !failure)
   )
     return (
       <NativePreparation
@@ -235,7 +225,7 @@ export function NativeFileWorkspace({
         {snapshot ? (
           <NativeGraph
             focusName={focused?.file === path ? focused.name : undefined}
-            key={snapshot.atlas?.revision || snapshot.revision}
+            key={snapshot.graph?.revision || snapshot.revision}
             snapshot={snapshot}
             analysis={state.analysis}
             history={state.analysis_history}

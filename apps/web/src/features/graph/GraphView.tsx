@@ -49,7 +49,7 @@ export function GraphView({
   onSelect,
   onHover,
 }: {
-  workspace: Workspace;
+  workspace: Pick<Workspace, "declarations" | "edges">;
   focusId?: string;
   selectedId?: string;
   onSelect: (declaration: Declaration) => void;

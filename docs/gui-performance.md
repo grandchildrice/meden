@@ -163,3 +163,66 @@ for raw-artifact references and completed checks. Shared CI hardware is not a
 fixed physical CPU: the algorithm gate uses paired relative timings and records
 its environment; the browser budget uses an explicit serialized workload and a
 broad scenario deadline. Neither is a universal performance claim.
+
+## Source projection follow-up (November 23)
+
+The native client now receives an application-owned prepared source/graph page,
+instead of raw Atlas/package records and a second browser lexical index. Original
+backend inputs remain retained for explicit analysis; the projection carries no
+accepted-contract proof receipt. Its `analysis.materialize_view` span took
+1.767 ms on the actual 15-declaration Riemann page. A separate 4,000-declaration
+lexical regression completed in 89.6 ms in an unoptimized development test;
+that single diagnostic is not a performance budget.
+
+The updated production binary and browser assets were pinned together. Two real
+native/browser captures distinguish the first open after an adapter update from
+a new host session reusing the resulting persisted cache:
+
+| Operation                                               | Observation |
+| ------------------------------------------------------- | ----------: |
+| First preparation after renderer cache identity changed |    229.97 s |
+| Preparation with a confirmed persisted-cache hit        |     40.09 s |
+| Project-map wheel handler p95                           |   10.533 ms |
+| Dependency-graph wheel handler p95                      |    1.008 ms |
+| Hover pointer movement p95                              |    0.065 ms |
+| Drag pointer movement p95                               |    0.169 ms |
+| Resize handler p95                                      |    1.316 ms |
+| Tab click handler p95                                   |   19.267 ms |
+| Node-selection click handler p95                        |   28.274 ms |
+
+These are single-run diagnostic observations on the same 175,187-file project,
+Chrome 149 at 1440 × 960, normal motion, without throttling. Handler durations
+exclude later rendering. The warm trace's input/two-rAF proxies were 16.9 ms for
+graph wheel, 39.2 ms for tabs and 58.0 ms for node selection. The separate final
+serialized native regression recorded warm-tab p95 of 29.2 ms against its 250 ms
+scenario budget. These are different controlled sequences, not interchangeable
+field percentiles.
+
+The retained artifacts explain the unusually slow first open: source revision,
+compiler resources and prepared input fingerprint were unchanged, while the
+renderer binding differed. The renderer hashes its adapter source, which changed
+in the preceding application extraction. The combined cache consequently reran
+graph extraction and counterexample observations before rendering. Search has a
+120-second file wall budget, with at most ten seconds per declaration; a timeout
+is explicitly inconclusive. Compiler/search artifacts should be cached separately
+from renderer output so a renderer update does not repeat unrelated search.
+
+Even a valid persisted cache still spends 19.059 s selecting roots/layout,
+including twelve Lake configuration calls totaling 16.939 s, followed by
+17.105 s preparing/fingerprinting compiled inputs. These intervals are nested.
+The exact input and sandbox checks remain in place. Deduplicating configuration
+preparation is still necessary; source-view materialization is not the bottleneck.
+
+The trace also retains a remaining UI pause: the initial idle/poll phase recorded
+two long tasks, the largest 394 ms. Its sampled project-map layout function used
+230.9 ms of self time. The production minified function body matches `projectMap`
+in `project-map-model.ts`; this follow-up did not include browser source maps.
+This is whole-inventory layout work outside a wheel handler and must not be hidden
+by reporting cheap pointer events. Layout materialization/reuse is still needed.
+State polling transferred about 89.7 KB per response in this capture.
+
+See [the source-projection record](../results/source-projection-20261123.json)
+for binary/artifact digests, both traces, residual costs and completed checks.
+The first raw report retains the old `setup_cache_validation_ms` name despite
+its cache miss; the profiler now emits `setup_preparation_ms` and an explicit
+`setup_cache_hit` value to prevent that ambiguity.

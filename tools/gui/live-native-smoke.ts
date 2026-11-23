@@ -424,7 +424,7 @@ try {
       values.atlas &&
       candidate?.input.graph_revision !==
         (report.sourceGraph as NonNullable<NativeState["source_snapshot"]>)
-          .atlas?.revision
+          .graph?.revision
     )
       throw new Error("Live analysis lost its elaborated graph binding");
     console.log(

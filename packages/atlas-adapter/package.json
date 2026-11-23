@@ -4,8 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./source-index": "./src/source-index.ts"
+    ".": "./src/index.ts"
   },
   "dependencies": {
     "zod": "4.6.7",

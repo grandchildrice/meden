@@ -156,7 +156,7 @@ try {
   let native = await state();
   const file =
     process.env.MEDEN_GUI_FILE ||
-    native.source_snapshot?.collection?.roots[0] ||
+    native.source_snapshot?.roots[0] ||
     Object.keys(native.source_snapshot?.files || {})[0];
   if (!file)
     throw new Error(
@@ -174,7 +174,7 @@ try {
   }
   console.log(
     JSON.stringify({
-      setup: "Validating the existing compiled file cache",
+      setup: "Preparing the selected file, including cache validation",
       file,
     }),
   );
@@ -417,9 +417,10 @@ try {
       reduced_motion: motion,
       gesture_tail_ms: 600,
       file,
-      declarations: native.source_snapshot.atlas.graph.nodes.length,
+      declarations: native.source_snapshot.graph.declarations.length,
       project_files: native.overview.total,
-      setup_cache_validation_ms: setupElapsed,
+      setup_preparation_ms: setupElapsed,
+      setup_cache_hit: native.source_preparation[file]?.cache_hit ?? null,
     },
     methodology:
       "Real GUI pointer/wheel/click events with CDP dispatch spans and sampled CPU profiles. Input-to-two-rAF is a presentation proxy, not measured physical presentation or INP. Nested trace spans overlap and must not be summed as exclusive CPU time. Profiling and automation add overhead; one controlled desktop run is not a field percentile.",

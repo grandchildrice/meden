@@ -118,8 +118,10 @@ JSON/format-tag round trip. Model calls still use their actual consuming process
 binding and retain the original preflight/postflight revocation checks.
 
 This is the first application extraction, not the complete multi-backend registry.
-Snapshot/graph data remain Lean-oriented; the second real verification backend,
-role-wide plugin/resource/schema bindings and generic read models remain required.
+Compiler snapshots remain Lean-oriented internally. Native source pages now use
+the generic application projection described below; the second real verification
+backend, role-wide plugin/resource/schema bindings and remaining read models are
+still required.
 A completed host registry must describe supported operations/formats,
 implementation versions, resource requirements and limits. Initially use ordinary
 Rust implementations and explicit host registration. External implementations
@@ -297,7 +299,24 @@ cold-analysis-store/prepared-tab browser budgets in both motion modes. See
 workloads; they are not universal latency guarantees or live-model validation.
 
 Step 3 now has a shared application crate and the first typed compiler, renderer
-and model ports. Its second-backend and full registration exits, plus steps 4–5,
-remain migration work. They retain the existing local/offline execution, accepted intent, exact evidence linkage and
+and model ports. Step 4 has its first source/graph projection in
+`meden-app::view`: a prepared immutable page retains the original snapshot for
+explicit analysis, and serializes only source text, declaration locations,
+reference edges and prepared semantic observations. Publication checks exact
+source revisions, ranges, unique IDs, complete edge targets and bounds; cycles
+remain valid. These observations cannot assert an admitted proof receipt.
+Rust's DTO derives the JSON Schema and the generated browser validator/type.
+Generation fails on unsupported constraints rather than guessing their meaning.
+The duplicate browser lexical index and its unused package entry were deleted;
+its namespace/comment/privacy cases now run against the application projection.
+The native renderer consumes the prepared graph without inventing a recorded
+workspace or recompiling to render it. Materialization has its own bounded local
+timing span, and clones retain shared immutable source/page values.
+
+This slice does not finish step 4: explicit unsupported/binary/oversized-source
+availability, generic inventory/job/evidence DTOs, generation of the rest of the
+native wire contract and all remaining navigation waits still need work.
+Step 3's second-backend/full-registration exits and step 5 remain open too.
+They retain the existing local/offline execution, accepted intent, exact evidence linkage and
 separate local-deployment/R1 obligations in [assurance.md](../assurance.md) and
 [verification.md](../verification.md).
