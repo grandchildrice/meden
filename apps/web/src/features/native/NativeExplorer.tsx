@@ -47,7 +47,7 @@ export function NativeExplorer({
   const [expanded, setExpanded] = useState(new Set(["."]));
   const loadedRevision = useRef<string | null>(null);
   const [refresh, setRefresh] = useState(0);
-  const directoryVersion = state.messages.length + ":" + refresh;
+  const directoryVersion = JSON.stringify(state.history) + ":" + refresh;
   const inspection = state.inspection;
   useEffect(() => {
     if (inspection?.directory && !inspection.error)

@@ -302,6 +302,16 @@ editor heading/title. Declaration selection prepares the same code tab at the
 recorded line while leaving the camera untouched. Native contract review and exact
 send review remain separate host-controlled operations in the conversation.
 
+Saved conversation, work and tool records have a separate immutable read model.
+`/api/state` returns their revision and native message count. The authenticated
+same-origin `/api/history?revision=…` query returns the complete cached original
+records for that exact revision; an obsolete reference receives HTTP 409.
+Status polling and file/map navigation do not repeatedly transfer history.
+The browser retains its projection, aborts superseded reads and exposes an
+inline **Retry history** action for a failed read. These presentation records
+cannot restore a model grant or proof evidence. The initial read still includes
+the complete bounded history, rather than paging it.
+
 The index reads through the pinned, policy-bound offline file worker. Read-only batches
 retain each original request and check both original/resolved paths under the same policy;
 partial/failed worker output is refused. These batches and the navigation parser are

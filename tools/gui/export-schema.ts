@@ -12,6 +12,13 @@ writeFileSync(
 for (const [key, rust, symbol, type] of [
   ["source", "SourcePage", "sourcePageSchema", "SourcePage"],
   ["file", "file::FileView", "fileViewSchema", "FileView"],
+  ["history", "history::Snapshot", "historySnapshotSchema", "HistorySnapshot"],
+  [
+    "history-reference",
+    "history::Reference",
+    "historyReferenceSchema",
+    "HistoryReference",
+  ],
 ]) {
   const source = JSON.parse(
     execFileSync(

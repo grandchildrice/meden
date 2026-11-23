@@ -154,74 +154,15 @@ export const previewSchema = z
   })
   .strict();
 export type NativePreviewSnapshot = z.infer<typeof previewSchema>;
-export const workItemSchema = z
-  .object({
-    id: z.string(),
-    title: z.string(),
-    requirement: z.string(),
-    module: z.string(),
-    theorems: z.array(z.string()),
-    next: z.string(),
-  })
-  .strict();
-export type WorkItem = z.infer<typeof workItemSchema>;
-export const portableWorkspaceSchema = z
-  .object({
-    document: z
-      .object({
-        version: z.literal(1),
-        name: z.string(),
-        tasks: z.array(workItemSchema),
-        events: z.array(
-          z
-            .object({
-              id: z.string(),
-              task: z.string(),
-              time: z.number().int().nonnegative(),
-              note: z.string(),
-              check: z
-                .object({
-                  engine_sha256: z.string(),
-                  requirement: z.string(),
-                  theorems: z.array(z.string()),
-                  inspection: z.string(),
-                  source_revision: z.string(),
-                  after_revision: z.string().nullable(),
-                  module: z.string(),
-                  success: z.boolean(),
-                  termination: z.string(),
-                  stdout: z.string(),
-                  stderr: z.string(),
-                })
-                .strict()
-                .nullable(),
-            })
-            .strict(),
-        ),
-        conversations: z.array(
-          z
-            .object({
-              id: z.string(),
-              messages: z.array(
-                z
-                  .object({
-                    speaker: z.enum(["user", "assistant"]),
-                    text: z.string(),
-                  })
-                  .strict(),
-              ),
-            })
-            .strict(),
-        ),
-      })
-      .strict()
-      .nullable(),
-    error: z.string().nullable(),
-    lean_available: z.boolean(),
-    lean: z.string(),
-  })
-  .strict();
-export type PortableWorkspace = z.infer<typeof portableWorkspaceSchema>;
+export { historySnapshotSchema } from "./history.generated";
+import type { HistorySnapshot } from "./history.generated";
+import { historyReferenceSchema } from "./history-reference.generated";
+export type { HistorySnapshot } from "./history.generated";
+export type HistoryData = HistorySnapshot["data"];
+export type PortableWorkspace = HistoryData["portable"];
+export type WorkItem = NonNullable<
+  PortableWorkspace["document"]
+>["tasks"][number];
 export const exportReferenceSchema = z
   .object({ session: z.string(), id: z.number().int().nonnegative() })
   .strict();
@@ -304,7 +245,7 @@ export const nativeStateSchema = z.object({
         .strict(),
     )
     .default({}),
-  portable: portableWorkspaceSchema,
+  history: historyReferenceSchema,
   workspace: z.string(),
   endpoint: z.string(),
   model: z.string(),
@@ -352,9 +293,6 @@ export const nativeStateSchema = z.object({
   partial: z.string(),
   reasoning: z.string(),
   stopped: z.string().nullable(),
-  messages: z.array(
-    z.object({ speaker: z.enum(["user", "assistant"]), text: z.string() }),
-  ),
   project: z
     .object({
       reference: nativeReferenceSchema,
@@ -370,18 +308,6 @@ export const nativeStateSchema = z.object({
       source_path: z.string(),
     })
     .passthrough(),
-  logs: z.array(
-    z.union([
-      z.object({ type: z.literal("notice"), text: z.string() }).strict(),
-      z.object({
-        type: z.enum(["call", "result"]),
-        id: z.string(),
-        tool: z.string(),
-        text: z.string(),
-        error: z.boolean().optional(),
-      }),
-    ]),
-  ),
   inspection: z
     .object({
       path: z.string(),

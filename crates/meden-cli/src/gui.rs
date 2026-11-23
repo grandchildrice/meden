@@ -42,7 +42,7 @@ impl Task {
 
 #[derive(Serialize)]
 struct View {
-    portable: crate::handoff::View,
+    history: meden_app::view::history::History,
     workspace: String,
     endpoint: String,
     model: String,
@@ -64,10 +64,8 @@ struct View {
     activity: String,
     partial: String,
     reasoning: String,
-    messages: Vec<history::Message>,
     project: crate::project::Summary,
     stopped: Option<String>,
-    logs: Vec<Value>,
     inspection: Option<Value>,
     reader: Option<meden_app::view::file::FileView>,
     source_snapshot: Option<sources::Snapshot>,
@@ -357,7 +355,14 @@ fn initial_view(
         Err(error) => (Vec::new(), Some(format!("Meaning-analysis checkpoint unavailable: {error:#}. The file was retained; reread sources and rerun analysis in the GUI."))),
     };
     let view = Arc::new(Mutex::new(View {
-        portable: crate::handoff::view(workspace, &Control::new(Arc::new(AtomicBool::new(false)))),
+        history: meden_app::view::history::History::new(meden_app::view::history::Data {
+            portable: crate::handoff::view(
+                workspace,
+                &Control::new(Arc::new(AtomicBool::new(false))),
+            ),
+            messages: saved.transcript,
+            logs: Vec::new(),
+        }),
         workspace: workspace.path().display().to_string(),
         endpoint: String::new(),
         model: String::new(),
@@ -378,10 +383,8 @@ fn initial_view(
         activity: "Ready".into(),
         partial: String::new(),
         reasoning: String::new(),
-        messages: saved.transcript,
         project: project.stored_status()?,
         stopped: analysis_error.or(saved.stopped),
-        logs: Vec::new(),
         inspection: None,
         reader: None,
         source_snapshot: None,
@@ -483,6 +486,16 @@ impl Http<'_> {
         if request.method() == &Method::Get && request.url() == "/api/metrics" {
             respond(request, 200, &json!(meden_runtime::metrics::snapshot()));
             return;
+        }
+        if request.method() == &Method::Get {
+            if let Some(revision) = request.url().strip_prefix("/api/history?revision=") {
+                let bytes = percent_encoding::percent_decode_str(revision)
+                    .decode_utf8()
+                    .ok()
+                    .and_then(|revision| lock(self.view).history.bytes(&revision));
+                respond_history(request, bytes);
+                return;
+            }
         }
         if request.method() == &Method::Get && request.url() == "/api/state" {
             let _timing = meden_runtime::metrics::Span::start("gui.state");
@@ -817,9 +830,14 @@ fn worker(
 fn checkpoint(view: &Mutex<View>, workspace: &Workspace) {
     let logging = Control::new(Arc::new(AtomicBool::new(false)));
     if let Err(error) = crate::handoff::checkpoint(workspace, &logging) {
-        lock(view).logs.push(json!({"type":"notice","text":format!("Portable history was retained but could not be saved: {error:#}")}));
+        lock(view).history.edit(|data| {
+            data.logs.push(meden_app::view::history::Log::Notice {
+                text: format!("Portable history was retained but could not be saved: {error:#}"),
+            });
+        });
     }
-    lock(view).portable = crate::handoff::view(workspace, &logging);
+    let portable = crate::handoff::view(workspace, &logging);
+    lock(view).history.edit(|data| data.portable = portable);
 }
 
 fn finish_operation(view: &Mutex<View>, delivery: &delivery::Delivery, result: Result<()>) {
@@ -859,6 +877,8 @@ fn run_instruction(
         current.stopped.get_or_insert(error);
     }
     let transcript = current
+        .history
+        .data()
         .messages
         .iter()
         .map(|message| history::Message {
@@ -929,14 +949,24 @@ fn observe(view: &Mutex<View>, event: &Event<'_>) {
         Event::Delta(Delta::Text(text)) => bounded_append(&mut view.partial, text),
         Event::Delta(Delta::Reasoning(text)) => bounded_append(&mut view.reasoning, text),
         Event::Assistant(reply) => {
-            if let Some(text) = reply.content.as_ref().filter(|t| !t.is_empty()) {
-                view.messages.push(history::Message {
-                    speaker: history::Speaker::Assistant,
-                    text: text.clone(),
+            if reply.content.as_ref().is_some_and(|text| !text.is_empty())
+                || !reply.tool_calls.is_empty()
+            {
+                view.history.edit(|data| {
+                    if let Some(text) = reply.content.as_ref().filter(|text| !text.is_empty()) {
+                        data.messages.push(history::Message {
+                            speaker: history::Speaker::Assistant,
+                            text: text.clone(),
+                        });
+                    }
+                    data.logs.extend(reply.tool_calls.iter().map(|call| {
+                        meden_app::view::history::Log::Call {
+                            id: call.id.clone(),
+                            tool: call.function.name.clone(),
+                            text: call.function.arguments.clone(),
+                        }
+                    }));
                 });
-            }
-            for call in &reply.tool_calls {
-                view.logs.push(json!({"type":"call","id":call.id,"tool":call.function.name,"text":call.function.arguments}));
             }
             view.partial.clear();
         }
@@ -966,7 +996,14 @@ fn observe(view: &Mutex<View>, event: &Event<'_>) {
             );
         }
         Event::ToolResult { call, text, error } => {
-            view.logs.push(json!({"type":"result","id":call.id,"tool":call.function.name,"text":text,"error":error}));
+            view.history.edit(|data| {
+                data.logs.push(meden_app::view::history::Log::Result {
+                    id: call.id.clone(),
+                    tool: call.function.name.clone(),
+                    text: (*text).into(),
+                    error: *error,
+                });
+            });
         }
         Event::ToolOutput { progress, .. } => {
             view.partial.clear();
@@ -976,8 +1013,6 @@ fn observe(view: &Mutex<View>, event: &Event<'_>) {
         Event::Notice(text) => view.activity = (*text).into(),
         Event::ModelFailed(error) => view.activity = error.to_string(),
     }
-    let excess = view.logs.len().saturating_sub(128);
-    view.logs.drain(..excess);
 }
 
 fn bounded_append(target: &mut String, text: &str) {
@@ -1008,6 +1043,28 @@ fn response_headers(content_type: &str, frame_source: &str) -> Vec<Header> {
     .filter_map(|(name, value)| Header::from_bytes(name, value).ok())
     .collect()
 }
+fn respond_history(request: Request, bytes: Option<Arc<[u8]>>) {
+    match bytes {
+        Some(bytes) => {
+            let _timing = meden_runtime::metrics::Span::start("gui.history_respond");
+            let length = bytes.len();
+            let response = Response::new(
+                StatusCode(200),
+                response_headers("application/json", "'none'"),
+                std::io::Cursor::new(bytes),
+                Some(length),
+                None,
+            );
+            let _ = request.respond(response);
+        }
+        None => respond(
+            request,
+            409,
+            &json!({"error":"History revision is no longer current; refresh its reference"}),
+        ),
+    }
+}
+
 fn respond(request: Request, status: u16, value: &Value) {
     let _timing = meden_runtime::metrics::Span::start("gui.serialize_respond");
     let mut response =
@@ -1108,9 +1165,11 @@ fn instruction(view: &Mutex<View>, text: String) -> String {
     view.source_snapshot = None;
     view.source_views.clear();
     analysis::invalidate(&mut view);
-    view.messages.push(history::Message {
-        speaker: history::Speaker::User,
-        text: text.clone(),
+    view.history.edit(|data| {
+        data.messages.push(history::Message {
+            speaker: history::Speaker::User,
+            text: text.clone(),
+        });
     });
     text
 }

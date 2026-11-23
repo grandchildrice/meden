@@ -1,4 +1,4 @@
-import { NativeClient } from "../adapters/native-client";
+import { NativeClient, NativeHttpError } from "../adapters/native-client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
@@ -19,6 +19,7 @@ import {
   type NativeCommand,
   type NativeReference,
   type NativeState,
+  type HistorySnapshot,
   type WorkspaceOverview,
 } from "@meden/agent-protocol/native";
 import { ChatView } from "../features/chat/ChatView";
@@ -47,6 +48,10 @@ import { NativeWorkspaceGraph } from "../features/native/NativeWorkspaceGraph";
 export function NativeApp({ token }: { token: string }) {
   const client = useMemo(() => new NativeClient(token), [token]);
   const [state, setState] = useState<NativeState>();
+  const [history, setHistory] = useState<HistorySnapshot>();
+  const [historyError, setHistoryError] = useState("");
+  const [historyAttempt, setHistoryAttempt] = useState(0);
+  const historyData = history?.data;
   const [error, setError] = useState("");
   const [connectionError, setConnectionError] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -76,12 +81,18 @@ export function NativeApp({ token }: { token: string }) {
   const [overviewError, setOverviewError] = useState("");
   const [overviewCycle, setOverviewCycle] = useState(0);
   const mapEpoch = useRef(0);
-  const trackedTargets = JSON.stringify(
-    [
-      ...new Set(
-        state?.portable.document?.tasks.flatMap((task) => task.theorems) || [],
+  const trackedTargets = useMemo(
+    () =>
+      JSON.stringify(
+        [
+          ...new Set(
+            historyData?.portable.document?.tasks.flatMap(
+              (task) => task.theorems,
+            ) || [],
+          ),
+        ].sort(),
       ),
-    ].sort(),
+    [historyData],
   );
   const scene = useMemo(
     () =>
@@ -162,7 +173,8 @@ export function NativeApp({ token }: { token: string }) {
           generation === stateGeneration.current
         ) {
           if (initialMessageCount.current === null) {
-            initialMessageCount.current = next.messages.length;
+            initialMessageCount.current =
+              next.history.state === "ready" ? next.history.messages : 0;
             if (next.stopped?.includes("checkpoint unavailable"))
               setStartupError(next.stopped);
           }
@@ -188,6 +200,28 @@ export function NativeApp({ token }: { token: string }) {
       clearTimeout(timer);
     };
   }, [client, reconnect]);
+  const historyRevision =
+    state?.history.state === "ready" ? state.history.revision : undefined;
+  useEffect(() => {
+    if (!historyRevision) return;
+    const abort = new AbortController();
+    setHistoryError("");
+    void client
+      .history(historyRevision, abort.signal)
+      .then((snapshot) => {
+        if (!abort.signal.aborted) setHistory(snapshot);
+      })
+      .catch((error) => {
+        // A mutation may supersede a reference between the status and body reads.
+        // The next status supplies its new revision; other failures remain visible.
+        if (
+          !abort.signal.aborted &&
+          !(error instanceof NativeHttpError && error.status === 409)
+        )
+          setHistoryError(String(error));
+      });
+    return () => abort.abort();
+  }, [client, historyRevision, historyAttempt, reconnect]);
   useEffect(() => {
     const abort = new AbortController();
     if (!state?.overview.revision || state.overview.state !== "ready") {
@@ -441,17 +475,16 @@ export function NativeApp({ token }: { token: string }) {
     },
     [selectSymbol],
   );
-  const messageKey = JSON.stringify(state ? visibleHistory(state) : []);
   const conversation = useMemo<Conversation | undefined>(
     () =>
-      state
+      historyData
         ? {
             id: "native",
-            title: state.workspace.split("/").at(-1) || "Workspace",
-            messages: visibleHistory(state),
+            title: state?.workspace.split("/").at(-1) || "Workspace",
+            messages: visibleHistory(historyData),
           }
         : undefined,
-    [messageKey, state?.workspace],
+    [historyData, state?.workspace],
   );
   const running = Boolean(state?.running || busy);
   const chatRunning = Boolean(
@@ -879,7 +912,11 @@ export function NativeApp({ token }: { token: string }) {
             className={"native-chat ide-chat " + (chatOpen ? "is-open" : "")}
             aria-label="Workspace chat"
           >
-            {(error || connectionError || state.portable.error) && (
+            {(error ||
+              connectionError ||
+              historyData?.portable.error ||
+              historyError ||
+              state.history.state === "unavailable") && (
               <Alert
                 severity="error"
                 action={
@@ -887,19 +924,26 @@ export function NativeApp({ token }: { token: string }) {
                     <Button onClick={() => setReconnect((n) => n + 1)}>
                       Reconnect
                     </Button>
+                  ) : historyError ? (
+                    <Button onClick={() => setHistoryAttempt((n) => n + 1)}>
+                      Retry history
+                    </Button>
                   ) : undefined
                 }
               >
                 {error ||
                   connectionError ||
-                  (state.portable.error &&
+                  historyError ||
+                  (state.history.state === "unavailable" &&
+                    state.history.message) ||
+                  (historyData?.portable.error &&
                     "Could not read saved conversations and work history. " +
-                      state.portable.error)}
+                      historyData.portable.error)}
               </Alert>
             )}
             <ChatView
               compact
-              projectName={conversation!.title}
+              projectName={state.workspace.split("/").at(-1) || "Workspace"}
               conversation={conversation}
               sessionLabels={sessionLabels}
               draftKey={"meden-native-input:" + state.workspace}
@@ -998,16 +1042,20 @@ export function NativeApp({ token }: { token: string }) {
           </DialogTitle>
           <DialogContent>
             {utility === "history" ? (
-              <NativeWork
-                workspace={state.portable}
-                running={running}
-                authorized={state.authorized}
-                onCommand={command}
-                onInspect={(file) => {
-                  setUtility(null);
-                  openFile(file);
-                }}
-              />
+              historyData ? (
+                <NativeWork
+                  workspace={historyData.portable}
+                  running={running}
+                  authorized={state.authorized}
+                  onCommand={command}
+                  onInspect={(file) => {
+                    setUtility(null);
+                    openFile(file);
+                  }}
+                />
+              ) : (
+                <CircularProgress aria-label="Loading work history" size={24} />
+              )
             ) : (
               <NativeDependencyGraph
                 state={state}
@@ -1018,23 +1066,25 @@ export function NativeApp({ token }: { token: string }) {
                 running={running}
               />
             )}
-            {utility === "history" && state.logs.length > 0 && (
-              <section aria-label="Tool records">
-                <h3>Tool records</h3>
-                {state.logs.map((entry, i) => (
-                  <details key={i}>
-                    <summary>
-                      {entry.type === "notice" ? "Save notice" : entry.tool}
-                    </summary>
-                    {entry.type === "notice" ? (
-                      <Alert severity="warning">{entry.text}</Alert>
-                    ) : (
-                      <pre>{entry.text}</pre>
-                    )}
-                  </details>
-                ))}
-              </section>
-            )}
+            {utility === "history" &&
+              historyData &&
+              historyData.logs.length > 0 && (
+                <section aria-label="Tool records">
+                  <h3>Tool records</h3>
+                  {historyData.logs.map((entry, i) => (
+                    <details key={i}>
+                      <summary>
+                        {entry.type === "notice" ? "Save notice" : entry.tool}
+                      </summary>
+                      {entry.type === "notice" ? (
+                        <Alert severity="warning">{entry.text}</Alert>
+                      ) : (
+                        <pre>{entry.text}</pre>
+                      )}
+                    </details>
+                  ))}
+                </section>
+              )}
           </DialogContent>
         </Dialog>
       )}

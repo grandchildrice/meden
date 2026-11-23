@@ -510,6 +510,9 @@ try {
     },
     methodology:
       "Real GUI pointer/wheel/click events with CDP dispatch spans and sampled CPU profiles. Input-to-two-rAF is a presentation proxy, not measured physical presentation or INP. Nested trace spans overlap and must not be summed as exclusive CPU time. Profiling and automation add overhead; one controlled desktop run is not a field percentile.",
+    // Include setup and between-phase traffic too: immutable history should be
+    // fetched once at startup, independently of subsequent status/navigation.
+    requests,
     samples,
     native_stages: {
       available: metricsAfter !== null,

@@ -6,19 +6,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-#[derive(Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum Speaker {
-    User,
-    Assistant,
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct Message {
-    pub speaker: Speaker,
-    pub text: String,
-}
+pub(crate) use meden_app::records::{Message, Speaker};
 
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

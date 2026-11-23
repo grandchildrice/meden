@@ -1,5 +1,73 @@
 # Graph interaction measurements
 
+## Revisioned history (November 24)
+
+The [implementation and measurement record](../results/revisioned-history-20261124.json)
+removes original history from frequent status responses. The application publishes
+complete immutable bytes by exact revision; the browser fetches them on revision
+changes or explicit retry. It memoizes chat projection by that data object.
+Superseded reads abort, mismatched envelopes fail, and original records remain
+available after a publication failure. No authority or proof admission changed.
+
+Twenty sequential raw-body probes per project, against the same selected files
+before and after deployment, recorded:
+
+| Measurement | Riemann before / after | EthLib before / after |
+| --- | ---: | ---: |
+| Status response bytes | 89,654 / 89,654 | 4,316,903 / 152,838 |
+| Native status computation p95 | 8.199 / 8.241 ms | 113.779 / 13.466 ms |
+| Node fetch/body-read p95 | 11.577 / 44.097 ms | 120.009 / 53.739 ms |
+
+EthLib's status bytes fell **96.46%**. Original portable work, transcript and tool
+records have identical decoded-content hashes across deployment. Riemann has
+nearly empty history; its bytes and native computation did not improve. Its
+Node transport result became slower, so native computation must not be reported
+as end-to-end latency. The separate actual browser's settled state-response p95
+was **10.802 ms for Riemann and 17.634 ms for EthLib**. These small within-run
+percentiles are diagnostic, and the clients/load conditions differ. Node counts
+decoded response bytes; Playwright's reported response-body size is retained
+separately rather than treated as an identical byte boundary.
+
+Two sequential actual Chrome captures, one per project, measured normal-motion
+1440 × 960 interactions with CDP tracing/CPU sampling and matching source maps:
+
+| Synchronous handler p95 | Riemann | EthLib |
+| --- | ---: | ---: |
+| Project-map wheel, 24 events | 3.644 ms | 5.767 ms |
+| Dependency-graph wheel, 24 events | 0.853 ms | 0.730 ms |
+| Hover pointer movement, 40 events | 0.105 ms | 0.083 ms |
+| Drag pointer movement, 31 events | 0.335 ms | 0.333 ms |
+| Resize, 7 / 2 delivered events | 1.119 ms | 1.057 ms |
+| File/map tab click, 24 events | 15.583 ms | 11.919 ms |
+| Alternating-node selection, 8 clicks | 15.667 ms | 9.284 ms |
+
+The input/two-rAF scheduling proxy was 43.8 / 31.0 ms for tabs and 45.6 / 34.6 ms
+for alternating node selection. It is not physical presentation or field INP;
+eight-event p95 is the maximum. This is not a controlled before/after comparison
+of rendering performance. Fit View and first/same-node selection remain separate
+in the record. Hover, resize, tabs and all selected nodes retained the graph
+camera and revealed their original source line. Each browser fetched history
+once during setup, with zero history requests/materialization or commands during
+gestures. Source maps match all seven deployed JavaScript bundles byte-for-byte.
+
+History publication/hash work remains synchronous at record mutation boundaries.
+Startup/host-refresh hashing took 90–188 ms per observed EthLib span; unchanged
+revisions reuse their bytes. Model-turn latency was not profiled. Complete cached graph preparation
+still took **19.065 / 5.926 seconds**, with cache hits and original exact-input
+checks. Prepared page queries still queue behind semantic work, and sizeable
+source/graph status fields still repeat. These remain separate migration work.
+
+The three-megabyte regression retains complete notes and conversations, recovers
+from a failed history read, rejects delayed older responses, preserves quiet
+file/map navigation and survives restart with fresh approval. Its 2.2–2.6 KB
+status fixture is smaller than actual EthLib's 153 KB response. Rust's 287 tests,
+35 TypeScript tests, 22 architecture checks and required public TUI 34-case gate
+passed. Ten distinct browser journeys passed across the retained reports; both
+motion-mode numeric gates (`MEDEN_GUI_PERFORMANCE=1`) passed at 31.1 / 29.7 ms
+against 250 ms. Earlier blank-screen
+and outdated-test failures remain recorded separately. Screens and decoded TUI
+failure/retry/restart history were inspected. No live inference was used.
+
 ## Independent source reader (November 24)
 
 The [implementation record](../results/file-reader-20261124.json) separates
@@ -25,11 +93,12 @@ scenario budget and without new inspections. The two-rAF proxy measures browser
 scheduling, not physical presentation. Actual screenshots and decoded public
 TUI failure/restart screens were reviewed.
 
-The multi-megabyte history transfer below is still present. The current host
-worker also serializes new page-read commands behind active semantic work;
-prepared reader queries, independent job read models and revisioned history
-transfer remain migration work. This change improves initial readability and
-does not claim that compilation or all remaining waits have disappeared.
+The multi-megabyte history transfer below was still present at this source-reader
+revision; the follow-up above removes it from status polling. The current host
+worker still serializes new page-read commands behind active semantic work;
+prepared reader queries and independent job read models remain migration work.
+Source-reader separation improves initial readability without eliminating
+compilation or all remaining waits.
 
 ## Current deployed event audit (November 24)
 

@@ -2,6 +2,8 @@
 import { chromium, expect, type Page } from "@playwright/test";
 import {
   nativeStateSchema,
+  historySnapshotSchema,
+  type HistoryData,
   type NativeState,
 } from "@meden/agent-protocol/native";
 import { createHash } from "node:crypto";
@@ -92,6 +94,31 @@ async function state(page: Page): Promise<NativeState> {
     return response.json();
   });
   return nativeStateSchema.parse(value);
+}
+async function history(page: Page): Promise<HistoryData> {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const reference = (await state(page)).history;
+    if (reference.state !== "ready") throw new Error(reference.message);
+    const response = await page.evaluate(async (revision) => {
+      const response = await fetch(
+        "/api/history?revision=" + encodeURIComponent(revision),
+        {
+          headers: {
+            Authorization:
+              "Bearer " + sessionStorage.getItem("meden-native-session"),
+          },
+        },
+      );
+      return { status: response.status, value: await response.json() };
+    }, reference.revision);
+    if (response.status === 409) continue;
+    if (response.status !== 200) throw new Error("Native history unavailable");
+    const snapshot = historySnapshotSchema.parse(response.value);
+    if (snapshot.revision !== reference.revision)
+      throw new Error("Native history revision mismatch");
+    return snapshot.data;
+  }
+  throw new Error("Native history kept changing during inspection");
 }
 async function launch(port = 0) {
   let stderr = "";
@@ -186,7 +213,7 @@ try {
   await expect
     .poll(
       async () =>
-        (await state(page)).messages.some(
+        (await history(page)).messages.some(
           (message) => message.text === instruction,
         ),
       { timeout: deadline },
@@ -196,7 +223,7 @@ try {
   const developed = await state(page);
   if (developed.stopped) throw new Error(developed.stopped);
   console.log("Native development turn completed");
-  report.developmentLogs = developed.logs;
+  report.developmentLogs = (await history(page)).logs;
   report.source = await readFile(resolve(project, "kernel.rs"), "utf8");
   report.originalTestsPreserved =
     (await readFile(resolve(project, "tests.rs"), "utf8")) === originalTests;
@@ -260,7 +287,7 @@ try {
   await expect
     .poll(
       async () =>
-        (await state(page)).messages.some(
+        (await history(page)).messages.some(
           (message) => message.text === deliveryInstruction,
         ),
       { timeout: deadline },
@@ -338,7 +365,7 @@ try {
     await expect
       .poll(
         async () =>
-          (await state(page)).messages.some(
+          (await history(page)).messages.some(
             (message) => message.text === formalInstruction,
           ),
         { timeout: deadline },

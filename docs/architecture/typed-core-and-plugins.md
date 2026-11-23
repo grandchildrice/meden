@@ -478,10 +478,23 @@ files, retry/restart, a held real compiler, delayed acknowledgements and stale
 preview pages. These are adapter/read-model checks, not new evidence authority
 or a filesystem/renderer refinement proof.
 
-This does not finish step 4: generic inventory/job/evidence DTOs, generation of the
-rest of the native wire contract, revisioned history transfer and remaining
-navigation waits still need work. Step 5's versioned layout/order and retirement
-requirements remain open too.
+History now has an application-owned read model too. Status reads contain only
+its revision and transcript count; complete original conversation/work/tool
+records are serialized and hashed at their mutation boundary. Exact-revision
+queries share the frozen bytes outside the state lock. A stale query receives a
+typed HTTP conflict, and a publication failure retains the records without
+admitting a partial response. The browser requests history on revision changes
+or explicit retry, rejects mismatched envelopes and aborts superseded requests.
+Its chat projection is memoized by the immutable history data rather than
+stringifying the complete transcript on each status render. The common record
+types and their existing validation moved out of CLI composition; portable
+storage, host observation and HTTP interpretation remain adapters. History
+cannot restore authority or evidence. The initial history read is still a
+complete bounded document; this slice does not introduce lazy history paging.
+
+This does not finish step 4: generic inventory/job/evidence DTOs, generation of
+the rest of the native wire contract and remaining navigation waits still need
+work. Step 5's versioned layout/order and retirement requirements remain open too.
 Step 3 now executes the second backend through public TUI/GUI, actual offline
 Z3, a real approved-model trial and a separate 256-input Python oracle. Its
 parser/disagreement rejection tests, actual solver-output faults, started-solver

@@ -90,6 +90,16 @@ def test_gui_to_tui_and_back_retains_context_but_requires_fresh_review(tmp_path,
         with urlopen(request, timeout=5) as response:
             return json.load(response)
 
+    def history_data(origin, token, state=None):
+        reference = (state or api(origin, token))["history"]
+        assert reference["state"] == "ready"
+        request = Request(origin + "/api/history?revision=" + reference["revision"],
+                          headers={"Authorization": f"Bearer {token}", "Origin": origin})
+        with urlopen(request, timeout=5) as response:
+            snapshot = json.load(response)
+        assert snapshot["revision"] == reference["revision"]
+        return snapshot["data"]
+
     def wait_for(predicate):
         deadline = time.monotonic() + 20
         while time.monotonic() < deadline:
@@ -117,7 +127,7 @@ def test_gui_to_tui_and_back_retains_context_but_requires_fresh_review(tmp_path,
         while api(origin, token)["running"]:
             assert time.monotonic() < deadline
             threading.Event().wait(.05)
-        assert api(origin, token)["messages"][-1]["text"] == "GUI-TURN-SAVED"
+        assert history_data(origin, token)["messages"][-1]["text"] == "GUI-TURN-SAVED"
         gui.terminate()
         assert gui.wait(timeout=5) == 0
         gui = None
@@ -140,7 +150,7 @@ def test_gui_to_tui_and_back_retains_context_but_requires_fresh_review(tmp_path,
         gui, origin, token = launch_gui()
         state = api(origin, token)
         assert not state["authorized"]
-        assert any(message["text"] == "TUI-CONTINUED" for message in state["messages"])
+        assert any(message["text"] == "TUI-CONTINUED" for message in history_data(origin, token, state)["messages"])
         assert len(requests) == 3
         for checkpoint in (tmp_path / "data/meden/projects").glob("*/*.json"):
             assert "GUI-TUI-KEY-NOT-SAVED" not in checkpoint.read_text()

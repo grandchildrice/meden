@@ -9,6 +9,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 /// Bounded file availability and reader pages, independent of compiler support.
 pub mod file;
+/// Revision-bound transcript/work data, separate from status polling.
+pub mod history;
 
 /// A retained UTF-8 input, byte-bounded before publication. The generated wire
 /// validator also limits string length; it does not replace this byte check.

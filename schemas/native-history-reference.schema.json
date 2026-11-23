@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Reference",
+  "description": "A host publication is available by exact revision or explicitly unavailable.",
+  "oneOf": [
+    {
+      "description": "Complete serialized original data is retained.",
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string",
+          "const": "ready"
+        },
+        "revision": {
+          "description": "Content identity, distinct from authority or a receipt.",
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "messages": {
+          "description": "Native transcript count for lightweight startup/navigation state.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "revision",
+        "messages"
+      ]
+    },
+    {
+      "description": "No incomplete or unbounded publication is admitted.",
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string",
+          "const": "unavailable"
+        },
+        "message": {
+          "description": "Host diagnostic, independent of any proof outcome.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "message"
+      ]
+    }
+  ]
+}

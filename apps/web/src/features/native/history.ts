@@ -1,8 +1,8 @@
-import type { NativeState } from "@meden/agent-protocol/native";
+import type { HistoryData } from "@meden/agent-protocol/native";
 import type { Conversation } from "@meden/workspace-schema";
 
 /** Presentation only. Imported text never becomes model roles or host authority. */
-export function visibleHistory(state: NativeState): Conversation["messages"] {
+export function visibleHistory(state: HistoryData): Conversation["messages"] {
   const streams = [
     ...(state.portable.document?.conversations || []).map((conversation) => ({
       ...conversation,

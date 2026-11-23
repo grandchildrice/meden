@@ -104,6 +104,13 @@ Native stage distributions include only newly completed span IDs since the
 initial snapshot and report eviction during the capture. Stages overlap, and
 zero CPU samples means unavailable measurement rather than zero CPU work.
 
+The report also retains the complete API request timeline, including setup and
+between-phase reads. Use it to distinguish one revisioned history fetch from
+repeated status traffic; do not infer that setup performed no transfer merely
+because it is outside a gesture phase. Response sizes are loopback body bytes,
+and response-end timing includes transport/browser scheduling. Native status
+computation and non-browser fetch/body-read probes measure different boundaries.
+
 Fit View has its own phase. Selection first clicks one declaration eight times,
 then alternates between two reachable declarations for eight more clicks. Each
 click must reveal its original source line; target IDs, per-selection camera

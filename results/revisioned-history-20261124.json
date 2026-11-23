@@ -1,0 +1,1416 @@
+{
+  "date": "2026-11-24",
+  "source_base_revision": "2c89d41",
+  "scope": "Application-owned revisioned history publications, lightweight status and memoized chat projection. No new authority, admission or inference effects.",
+  "host": {
+    "cpu": "13th Gen Intel(R) Core(TM) i7-13620H",
+    "kernel": "6.12.92"
+  },
+  "deployment": {
+    "binary_sha256": "d9ba3fa398e9815da70f8634eeca4672eb9094bc12b9a4409971b9e69433cd59",
+    "assets_sha256": "f626edf876ce995f9fb52df2cf822dea6c674199d424de29a9f3ae0c26730e71",
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/d9ba3fa398e9815da70f8634eeca4672eb9094bc12b9a4409971b9e69433cd59-f626edf876ce995f",
+    "files": [
+      [
+        "assets/AnalysisView-CH19r8zs.js",
+        "51de9e8eaf1bf408682006f52e4c58ee8e084317b5f7ffdd76a6e1e3db37ab18"
+      ],
+      [
+        "assets/ArtifactPanel-B3p797qA.js",
+        "e507ac3894b3ffb98aea3ff3f16b75b411fa6f3c4b3abe720cbe5038a23c6b58"
+      ],
+      [
+        "assets/GraphView-CH8lhgGO.js",
+        "a32d7360628a47f426c78bfe2c4c1228d575d7c96277f7b166c225036db3f26a"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-BQhdFMY1.woff2",
+        "0cdd387c9590a1a9f9794560022dbb59654a7d86f187aa0c81495ad42d3a7308"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-DMm9YOAa.woff",
+        "30da91e84c893f875e252689faebdc590b2871145e8adc7f9a9d4dbd8ce0b251"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-DRggAlZN.ttf",
+        "68534840bcfdd2bffb6f0e8deb48684dd01e7f04ea2813267577afb906de1d13"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-ATXxdsX0.ttf",
+        "07d8e303ce4fc12b4bb54f1004170dd190a1f3db45d400fe68060df3e0897268"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-BEiXGLvX.woff",
+        "1ae6bd7475590e97e7f145a89e09ccde322f7a6bc0b91607b1c8b8ee28290fed"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-Dq_IR9rO.woff2",
+        "de7701e42cf1f4cf0b766c03fb27977207eee2f4fd5d76fa82188406da43ea4c"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-CTRA-rTL.woff",
+        "3398dd02302557a793f2863f88e02d96ce10df2abffa07c8e9fa90775116e65c"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-Di6jR-x-.woff2",
+        "5d53e70ad607c2352162dec9e0923fb54ecdafaccbf604cd8dcf7d00facb989b"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-wX97UBjC.ttf",
+        "ed0b74372feefcbb9c0666b2e210da37b7e49fa7fbbf3eeb11db5f693dacfbb7"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-BdnERNNW.ttf",
+        "9163df9c7122432e6495b4229fa9071cf9ae86a758ae5efc4924ec2e1a6dbce1"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-BsDP51OF.woff",
+        "9be7ceb88004ab8ad124082246fbfcca4091e36385d4ec6ed1df67375dad50fb"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-CL6g_b3V.woff2",
+        "74444efd593c005e3f4573b44524704c0af0a937fe911cca9e94068d0d140d3f"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-CB_wures.ttf",
+        "1e6f9579e90e2cac37f8f60a597c436e075c114385652b7cbeb0dec0421291b3"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-CTYiF6lA.woff2",
+        "51814d270d06ff0255dba0799994fa4d8c84d11f09951d47595f4abb1f3602dc"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-Dxdc4cR9.woff",
+        "5e28753be717dac97f559f49bc10be9cf3c124ddcabda6659d11cb68febc6463"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-Cx986IdX.woff2",
+        "0f60d1b897938ec918c8ce073092411baf9438f6739465693ff18b0f9d20b021"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-Jm3AIy58.woff",
+        "c76c5d696297d51b9cb1639c7da4334f0e7dec81b42b11213b5e25ef671bb822"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-waoOVXN0.ttf",
+        "138ac28d1663b3037e9c5f52371fa5c63d8324f4a38d22cd573e6ea3a3fd0cf8"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-DxDJ3AOS.woff2",
+        "99cd42a3c072d918f2f44984a807cf7aa16e13545fd0875fc07c6c65f99e715b"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-DzxPMmG6.ttf",
+        "70ee1f64a20f2048c21940ef46d0144fd215baa953ca69afd1e31e98544f708f"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-SpSLRI95.woff",
+        "a6f7ec0d846ac7ad975adb8959c37ed49b94acbc4ae436db9ce9e20287e4a64c"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-3WenGoN9.ttf",
+        "0d85ae7cc30f23790a7f1a58c4a112fdca8aae769b6ba11429af1d98b1b6cb3a"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-BMLOBm91.woff",
+        "f1d6ef86f3b11a528bd5185199bd2443ecb2b0dead96d88674b5a2c12be24bdf"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-NWA7e6Wa.woff2",
+        "97479ca6cce906abc961ecac96faa5f9ca2e61b8e7670d475826bcdee9a7c267"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-B22Nviop.woff2",
+        "c2342cd8b869e01752a9321dc17213fc40d4d04c79688c1d43f2cf316abd7866"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-Dr94JaBh.woff",
+        "c6368d87e8a1a3a5d337623d83d8dc4b868f242a9ad476237d6f8d1e0f168cdc"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-ypZvNtVU.ttf",
+        "d0332f52868370fd83ae7fa46470f90c8f2eab2fcf12bc4f88080b340c95a830"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-B3XSjfu4.ttf",
+        "f9377ab0271cda59af24bcffbd46a4d0c8a3572ffafdbb38de2ad5ea7b0d5ee5"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-CZnvNsCZ.woff2",
+        "dc47344dbb6cb5b655c8460d561f4df5f501b90c804ad3c6cec65fe322351ab1"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-iY-2wyZ7.woff",
+        "850c0af5c2238497febaf5e461d880bf458c341f42f4f330f1b1ab5698b1998e"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-DA0__PXp.woff",
+        "8a8d244581371912b8f3f5a23e2437cb2a59cd9bcaebb0346e722c05737a2571"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-flOr_0UB.ttf",
+        "08ce98e51b04d58945a301e639e02b6998af29fdfd61a7b8afdd07bbfc479d4a"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-t53AETM-.woff2",
+        "7af58c5ec8f132a2ddde9027c6d7814decce4d3b822a11192a42a20e2e973264"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-CFMepnvq.ttf",
+        "1ece03f79f95277d57dc7f6b435a74e1379b0d46104a8530286b60ff49369ea0"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-D1sUS0GD.woff2",
+        "e99ae51144bf1232efcc1bfe5add36262c6866b0faab24fa75740e1b98577a62"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-DbIhKOiC.woff",
+        "ece03cfd83e22c212cdef66feb8442d25a083beb988db3f1883f3f9738d750ba"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-C3H0VqGB.woff2",
+        "00b26ac825e2095056396e0553b8ac26d3f8ad158c3826e28b4c45b385c4714a"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-DN2j7dab.woff",
+        "91ee67500cc0129aa0ace3ac5c61ff1692102f0f31d02b69347fba35dcb75bf2"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-YYjJ1zSn.ttf",
+        "3931dd81faed86ba021bb2bbdc36f5bed9a38d6b4f4077aca59b265aa1b02083"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-BNo7hRIc.ttf",
+        "f36ea897e19f4a2e571d1e900e4e3710e438deb05a842486045ba0a3e616a4ad"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-CS6fqUqJ.woff",
+        "11e4dc8a6471ff6d6ee561d53d10fde8f7489e798257ff449c5d37c197435605"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-DDBCnlJ7.woff2",
+        "68e8c73ef42afd3ccec58bf0fba302cce448938e7fc020a5e31f8a952eee1342"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-C5JkGWo-.ttf",
+        "1c67f068fea8bb09bf099c088b1cf64bd27516a6e07f4684344873564bb66a67"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-D3wIWfF6.woff2",
+        "036d4e95149b69ff9bcc0cd55771efeb25ffa3947293e69acd78d5ac328c684b"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-D5yQViql.woff",
+        "d96cdf2b3bdd4d64a8fd5f74a4c467f123a8a73931cd435889f08ffaf9bf947a"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-C195tn64.woff",
+        "c943cc986384f59e86bea5fd7dc50a9c4dfe567a7c05eb40d6790720dead97c9"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-Dbsnue_I.ttf",
+        "95b6d2f1a50173bfedb8c63e1d1c99b10427d0a4df4201cb44513b226951a22b"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-mCD8mA8B.woff2",
+        "6b47c40166b6dbe21a5dfca7718413f2147fd2399be1ba605d8ad39cedf25dfe"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-B7gKUWhC.ttf",
+        "a6b2099fb555c60e3a0db3a08842ebf1d732c6eb4e4bf44913613bed4fc4e39b"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-Dy4dx90m.woff2",
+        "d04c54219f9eaec6d4d4fd42dfb28785975a4794d6b2fc71e566b9cd6db842dd"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-oD1tc_U0.woff",
+        "2014c523c3210bcc166648c4d4cc57f05b747df07a24277bf71c51e67dc79e3d"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-CTq5MqoE.woff",
+        "6ab6b62e9b62dae2c00dd90f791bd10950be0ecc3490d7d6045f51c2e8fe0949"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-DgpXs0kz.ttf",
+        "500e04d54f0d51666332c9d2089aa803be22aa878eca539e59fa53c6e522b082"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-gV2CO0n9.woff2",
+        "73d591271b1604960cb10bb90fee021670af7297017e0e98480b332d11f51995"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-BF-4gkZK.woff",
+        "99f9c6750b489c9462bf04900bd3f939df9b829339daaaaa99ef5495cdddea58"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-DWFBv043.ttf",
+        "c647367d1dd4e162468717d020e1fc0f1dc5c26ebfdffbe55261713bf88c5877"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-Dl5lxZxV.woff2",
+        "a4af7d414440a1c1790825cfb700cf9cf43b0f2c4b04f0ebc523011ad9853ec0"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-C0xS9mPB.woff",
+        "e14fed02b1aba7ce9f5afd5844b5d0321b22351febc720e0de8b8723527609f7"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-CO6r4hn1.woff2",
+        "71d517d67827787cfabdf186914cc3358eda539e37931941f2b2fd4a21f68c0b"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-D3Ib7_Hf.ttf",
+        "f01f3e87d9c6a61c0c081ceb577abd864eb00a612f7ac1620dd6915fad2ef5aa"
+      ],
+      [
+        "assets/ProofWorkspace-CiPA69wN.js",
+        "fda7ff5c2aea125b0b8606d1fbf1ad1b2f805c9bff8c9d63f4874257169d7c16"
+      ],
+      [
+        "assets/ReviewView-Bcb0GoA1.js",
+        "be5f536b3bd8fe20f79625435b40bbf2e37e2b201fc053a0a64d16efd4cc0cd4"
+      ],
+      [
+        "assets/bend-DQWYak6m.png",
+        "9ba4741c87076a254bcee4ba0fb9ded366e6e7bacd6ae4727027e1aabd3a6bd5"
+      ],
+      [
+        "assets/certora-BGZUazkT.png",
+        "dd19f617a5463032f21785e5005c361bd753c0c32b6cd55e6e9f72149cb21242"
+      ],
+      [
+        "assets/cvc5-CKJsvvFK.png",
+        "d898a126bdae142e1ef6d2cf2f8b3b11bc7a3b50b48fa9e779d939070deb1354"
+      ],
+      [
+        "assets/dafny-Bqnbzobc.png",
+        "8e6e9042b348b551c7262a1153b83707ea32f59dd22a445f7d6ab6aa67f0903d"
+      ],
+      [
+        "assets/highlight-BdD3AzVO.js",
+        "e229782cfaeb85f23b73f4b3e9f7dd79e584aa5c9fb09fff39d9f8d76158e2fe"
+      ],
+      [
+        "assets/index-6nxVtb2x.js",
+        "659ba80a8f28b6088d014dfd5711920ee3b2eb08207d36a2bfc82ed61bbd490e"
+      ],
+      [
+        "assets/index-8nuQ6BYP.css",
+        "cc9bdfabadb34911ccb5b6be11daae242020bdd97803a8f7b27cf84113c78787"
+      ],
+      [
+        "assets/isabelle-RH45X7aW.png",
+        "01eb41b46ddab73dfa89ab8bd83a4dabcace733d295ea2bfd16662e6432768e2"
+      ],
+      [
+        "assets/lean-DS4hWoMA.png",
+        "b802cfa824bbe3c143fd54ba93661f6cd1e03d0bdb3a2fe6d498a9ba94cd54fa"
+      ],
+      [
+        "assets/roboto-cyrillic-ext-wght-normal-BCp_3N7R.woff2",
+        "01f94d674db55952c35898fa4da22c3e7065c3cc4dbbcc9cb7beb8b6b017fbc9"
+      ],
+      [
+        "assets/roboto-cyrillic-wght-normal-fOt7epNf.woff2",
+        "481dd0c01e6bbb129fd147eb5d8571016193cba141c4627ca60ceabdb5a46ea8"
+      ],
+      [
+        "assets/roboto-greek-ext-wght-normal-Bgw4czJT.woff2",
+        "ec7769b089813996276482bbe7017adfffdd6c7543fd1f76244e2ffc1138ed86"
+      ],
+      [
+        "assets/roboto-greek-wght-normal-DlT9XTxE.woff2",
+        "97fbf7bd0b4579e632392a4f483acdae73cbf59ad90c1e5d2c5ec4044c377fce"
+      ],
+      [
+        "assets/roboto-latin-ext-wght-normal-DYIxWhlt.woff2",
+        "cedb374b05a35034cf96db185db4eeb8f8ce49e1a56197673702ff11b5533d6e"
+      ],
+      [
+        "assets/roboto-latin-wght-normal-ccAYIvAh.woff2",
+        "1404ca348bd75ef836f4dd8b6f2cc719458642d1237c368296b2fc652dca47dc"
+      ],
+      [
+        "assets/roboto-math-wght-normal-4a3xuzGk.woff2",
+        "7cb4281a0ccc84cc18617842c639fc66541cbef94a9dd245c754700210b4fcec"
+      ],
+      [
+        "assets/roboto-symbols-wght-normal-B7iHSfaG.woff2",
+        "2addf2d86d7a5778653b36d551e97a39da52855f82fac7461cfc1bd86d460aed"
+      ],
+      [
+        "assets/roboto-vietnamese-wght-normal-_f1XEJpo.woff2",
+        "0b60bbe04e9c479444b31270a72179f53e400beee57b7dd176c08e5e2e716831"
+      ],
+      [
+        "assets/rocq-Dna-P5lQ.png",
+        "0667a5431bc0a795111e8a1b35aca4fa8ae34d433c8e1e07587ec5eb1c92f4a7"
+      ],
+      [
+        "assets/rust-DwAlVRKW.png",
+        "8cdc4b755c58d9055e772411ad6fb1159a4adab1a51c9c35801fe1ca9c94132f"
+      ],
+      [
+        "assets/tla-AewV2MIo.png",
+        "9ec39edd70f43f0186a706a95dc1def0a90708a9c1ceaa53b035441daf7874ab"
+      ],
+      [
+        "assets/z3-BfVdzy76.png",
+        "1c0f1378fe1b68aa44727659197ee0beecdaca57fd833a25e2074db3acdc1b19"
+      ],
+      [
+        "index.html",
+        "077440e12f335595b72ce13a51d77222842d3aa0e67dc68d7b8f0cb9f90834e7"
+      ]
+    ]
+  },
+  "methodology": [
+    "Before: immutable 2c89d41 file-reader services. After: pinned history binary/assets. Same selected files and unchanged original history; twenty sequential raw-body Node fetch probes per project per revision, 100 ms between reads, no browser/profiler/check process during probes. JSON parsing is outside each timed body read. These are small within-run empirical percentiles, not field statistics.",
+    "Two sequential actual Chrome captures after deployment: Riemann, then EthLib. Chrome 149, normal motion, 1440x960, no throttling, CDP tracing/CPU sampling, no simultaneous validation job. All seven served JS bundles match the hidden-map build byte-for-byte. No native perf sampler in these captures.",
+    "Browser EventDispatch measures synchronous handlers. Input/two-rAF is a scheduling proxy, not physical presentation or INP. Resize can coalesce; p95 of eight/one samples is the maximum. Initial/same-node and alternating-target selections are separate. Target source lines and per-selection camera are retained in raw captures.",
+    "Native completed spans overlap. Do not sum nested stages or interpret wall minus thread CPU as I/O wait. Startup/host-refresh history materialization is retained separately from status reads. No history fetch or materialization occurs during gesture phases.",
+    "Riemann had nearly empty history and unchanged state bytes/native computation. Its Node response p95 increased from 11.6 to 44.1 ms, while the actual settled browser response p95 is 10.8 ms. Transport/client timing remains an adapter measurement; this record does not claim a universal response-time improvement.",
+    "The original history hash sorts JSON object keys while preserving arrays and decoded strings. It is a measurement oracle, not an authority/cache identity. Raw traces contain local source context and remain under target/.",
+    "Inference remains unapproved in both actual services. Browser/TUI regression replies are scripted. These checks do not establish live-model quality, cold installation, local inference or confidentiality.",
+    "Node transfer probes count decoded arrayBuffer body bytes. Browser traffic retains Playwright-reported responseBodySize separately; these byte boundaries differ slightly and must not be treated as identical payload measurements."
+  ],
+  "status_transfer": [
+    {
+      "project": "riemann",
+      "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+      "original_history_sha256": {
+        "portable": "807bee91b9a30334d1bb9757eaf7049d10d37f2ca9d965116b6561f8a6a351c8",
+        "messages": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "logs": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "original_history_unchanged": true,
+      "original_history_json_bytes": 126,
+      "before": {
+        "state_bytes": 89654,
+        "response": {
+          "count": 20,
+          "p50_ms": 9.410736999999926,
+          "p95_ms": 11.576921999999996,
+          "max_ms": 11.576921999999996
+        },
+        "native_state": {
+          "count": 20,
+          "p50_ms": 6.857,
+          "p95_ms": 8.199,
+          "max_ms": 8.199
+        }
+      },
+      "after": {
+        "state_bytes": 89654,
+        "response": {
+          "count": 20,
+          "p50_ms": 9.409723000000213,
+          "p95_ms": 44.097442,
+          "max_ms": 44.097442
+        },
+        "native_state": {
+          "count": 20,
+          "p50_ms": 7.171,
+          "p95_ms": 8.241,
+          "max_ms": 8.241
+        }
+      },
+      "state_bytes_reduction_percent": 0,
+      "authorized_after": false
+    },
+    {
+      "project": "ethlib",
+      "file": "EthLib/Networking/Gossip/Parameters.lean",
+      "original_history_sha256": {
+        "portable": "6473fc02f26f0bd32120cff6e6590f93d938dfb1f5591220569852f0f663a792",
+        "messages": "c570eb4b7009c426feabd8d1b566fea51af23292517760200cb4359e3e038a3f",
+        "logs": "7c29d0d7ceafc90332f741227fd157f29b5bafd4806560f4bcd499d882523d50"
+      },
+      "original_history_unchanged": true,
+      "original_history_json_bytes": 4164193,
+      "before": {
+        "state_bytes": 4316903,
+        "response": {
+          "count": 20,
+          "p50_ms": 112.03610100000014,
+          "p95_ms": 120.00912399999925,
+          "max_ms": 120.00912399999925
+        },
+        "native_state": {
+          "count": 20,
+          "p50_ms": 107.805,
+          "p95_ms": 113.779,
+          "max_ms": 113.779
+        }
+      },
+      "after": {
+        "state_bytes": 152838,
+        "response": {
+          "count": 20,
+          "p50_ms": 13.31366000000071,
+          "p95_ms": 53.73881399999982,
+          "max_ms": 53.73881399999982
+        },
+        "native_state": {
+          "count": 20,
+          "p50_ms": 11.073,
+          "p95_ms": 13.466,
+          "max_ms": 13.466
+        }
+      },
+      "state_bytes_reduction_percent": 96.45954518783489,
+      "authorized_after": false
+    }
+  ],
+  "captures": [
+    {
+      "project": "riemann",
+      "directory": "target/native-profile/history-events-20261124-riemann",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 19065.030488999997,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/history-profile-assets",
+        "source_maps_sha256": {
+          "index-6nxVtb2x.js": "ca042ed2f643fc05a75d850ea8fbb654ac172dc2363e87de3d01f9bc97182caf"
+        }
+      },
+      "artifact_sha256": {
+        "summary.json": "610a8de59bf74e6ecce79df4bba762ecb60f890bf4842c8bcf6b6e45201d50e5",
+        "trace.json": "ea98935a11a79201013d05a81a41c1fbe44815cfb060eb59e03315417e6cb5a2",
+        "native-metrics.json": "6b82576359bad97220548c1ae39e175ad55b96d045531946647024e15162473a",
+        "preparation.json": "70925f2e5ea7eeacfa116112360813dac33b2b9b74c960afe2fe6a1bacb7a782",
+        "project-map.png": "e8753780a535ecdb601d4ff0dc470fc45b4f63186b9ec8d5c89ee855e3c14b25",
+        "graph-fit-view.cpuprofile": "ce759da5cd2b1f42fdde18c040f2139fd0b846379f0d249bc621ac6e9588636e",
+        "graph-hover.cpuprofile": "02323bbbddaafd7a4b17c3ad1e9e308fbce26555ff04307f49a7afefca2f4e0b",
+        "graph-idle-poll.cpuprofile": "07e58afe433858cfca3865dc61f91ded2254cffb5bea1cc91d55f25df1535d7d",
+        "graph-idle-settled.cpuprofile": "1c84443ff99e8aecdb1ab1dde84b0b580728b11cb309ca4ea4cfbd3358880954",
+        "graph-node-select-distinct.cpuprofile": "36d7a519172c09c2bb50827764f1f82d1e2dc770e3fbf86136feb25604bfae9a",
+        "graph-node-select.cpuprofile": "87805e43e9fd3db75b36c4fe2a8e5302cb1a8eb751776ef293136ec64118355d",
+        "graph-pan.cpuprofile": "21a13565547bfb5c42f1a0e9f21fc4b0bbfcf9323f013d5cc3a49ed6a99078a7",
+        "graph-resize.cpuprofile": "33fd276534e45a0d9c43baf645f45eba367f1bee1ca6ac4ce911290061daff3d",
+        "graph-wheel.cpuprofile": "74401479a048b8d02ff71189a79d087b7a248edcc5fbddfd1900106b6d667883",
+        "project-map-idle.cpuprofile": "5e85f4701eeda3a5687ba2f5b2f0cd18a0b48506fefc128aea79421debaabab0",
+        "project-map-wheel.cpuprofile": "1ba0689b4f3bdd9981dc11b63be4cd482fdba6e02548424260d82861df7ef480",
+        "tab-switch.cpuprofile": "3e3e61ec12d4c9c2f15d2354c21df2e457f5bcb8194cff85e006a1a626e5c3e7"
+      },
+      "verified_javascript_sha256": {
+        "AnalysisView-CH19r8zs.js": "51de9e8eaf1bf408682006f52e4c58ee8e084317b5f7ffdd76a6e1e3db37ab18",
+        "ArtifactPanel-B3p797qA.js": "e507ac3894b3ffb98aea3ff3f16b75b411fa6f3c4b3abe720cbe5038a23c6b58",
+        "GraphView-CH8lhgGO.js": "a32d7360628a47f426c78bfe2c4c1228d575d7c96277f7b166c225036db3f26a",
+        "ProofWorkspace-CiPA69wN.js": "fda7ff5c2aea125b0b8606d1fbf1ad1b2f805c9bff8c9d63f4874257169d7c16",
+        "ReviewView-Bcb0GoA1.js": "be5f536b3bd8fe20f79625435b40bbf2e37e2b201fc053a0a64d16efd4cc0cd4",
+        "highlight-BdD3AzVO.js": "e229782cfaeb85f23b73f4b3e9f7dd79e584aa5c9fb09fff39d9f8d76158e2fe",
+        "index-6nxVtb2x.js": "659ba80a8f28b6088d014dfd5711920ee3b2eb08207d36a2bfc82ed61bbd490e"
+      },
+      "events": {
+        "project-map-wheel": {
+          "type": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 2.495,
+            "p95_ms": 3.644,
+            "max_ms": 4.228,
+            "total_ms": 61.45700000000001
+          },
+          "input_two_raf": {
+            "count": 24,
+            "p50_ms": 17.19999998807907,
+            "p95_ms": 23.69999998807907,
+            "max_ms": 30.900000035762787,
+            "total_ms": 437.40000009536743
+          }
+        },
+        "graph-wheel": {
+          "type": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 0.514,
+            "p95_ms": 0.853,
+            "max_ms": 1.762,
+            "total_ms": 12.873000000000001
+          },
+          "input_two_raf": {
+            "count": 24,
+            "p50_ms": 16.5,
+            "p95_ms": 16.700000047683716,
+            "max_ms": 16.700000047683716,
+            "total_ms": 389.00000017881393
+          }
+        },
+        "graph-hover": {
+          "type": "pointermove",
+          "dispatch": {
+            "count": 40,
+            "p50_ms": 0.038,
+            "p95_ms": 0.105,
+            "max_ms": 0.146,
+            "total_ms": 1.8110000000000004
+          },
+          "input_two_raf": {
+            "count": 40,
+            "p50_ms": 18.69999998807907,
+            "p95_ms": 23.5,
+            "max_ms": 26.80000001192093,
+            "total_ms": 718.0999999046326
+          }
+        },
+        "graph-pan": {
+          "type": "pointermove",
+          "dispatch": {
+            "count": 31,
+            "p50_ms": 0.159,
+            "p95_ms": 0.335,
+            "max_ms": 0.381,
+            "total_ms": 5.609000000000001
+          },
+          "input_two_raf": {
+            "count": 31,
+            "p50_ms": 20.399999976158142,
+            "p95_ms": 22.700000047683716,
+            "max_ms": 27.5,
+            "total_ms": 630.1999999284744
+          }
+        },
+        "graph-resize": {
+          "type": "resize",
+          "dispatch": {
+            "count": 7,
+            "p50_ms": 1.064,
+            "p95_ms": 1.119,
+            "max_ms": 1.119,
+            "total_ms": 7.111999999999999
+          },
+          "input_two_raf": {
+            "count": 7,
+            "p50_ms": 17.5,
+            "p95_ms": 18.299999952316284,
+            "max_ms": 18.299999952316284,
+            "total_ms": 113.69999998807907
+          }
+        },
+        "tab-switch": {
+          "type": "click",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 12.612,
+            "p95_ms": 15.583,
+            "max_ms": 15.748,
+            "total_ms": 282.336
+          },
+          "input_two_raf": {
+            "count": 24,
+            "p50_ms": 29.5,
+            "p95_ms": 40.09999996423721,
+            "max_ms": 41,
+            "total_ms": 726.7999998927116
+          }
+        },
+        "graph-fit-view": {
+          "type": "click",
+          "dispatch": {
+            "count": 1,
+            "p50_ms": 0.533,
+            "p95_ms": 0.533,
+            "max_ms": 0.533,
+            "total_ms": 0.533
+          },
+          "input_two_raf": {
+            "count": 1,
+            "p50_ms": 23.899999976158142,
+            "p95_ms": 23.899999976158142,
+            "max_ms": 23.899999976158142,
+            "total_ms": 23.899999976158142
+          }
+        },
+        "graph-node-select": {
+          "type": "click",
+          "dispatch": {
+            "count": 8,
+            "p50_ms": 0.177,
+            "p95_ms": 30.031,
+            "max_ms": 30.031,
+            "total_ms": 31.224
+          },
+          "input_two_raf": {
+            "count": 8,
+            "p50_ms": 23.80000001192093,
+            "p95_ms": 38.30000001192093,
+            "max_ms": 38.30000001192093,
+            "total_ms": 200.0999999642372
+          }
+        },
+        "graph-node-select-distinct": {
+          "type": "click",
+          "dispatch": {
+            "count": 8,
+            "p50_ms": 13.43,
+            "p95_ms": 15.667,
+            "max_ms": 15.667,
+            "total_ms": 108.128
+          },
+          "input_two_raf": {
+            "count": 8,
+            "p50_ms": 21.30000001192093,
+            "p95_ms": 25.200000047683716,
+            "max_ms": 25.200000047683716,
+            "total_ms": 173.20000004768372
+          }
+        }
+      },
+      "settled_browser_state_traffic": {
+        "graph-idle-settled": {
+          "response": {
+            "count": 11,
+            "p50_ms": 10.049,
+            "p95_ms": 10.802,
+            "max_ms": 10.802
+          },
+          "body_bytes": [
+            89747
+          ]
+        },
+        "project-map-idle": {
+          "response": {
+            "count": 11,
+            "p50_ms": 9.797,
+            "p95_ms": 10.638,
+            "max_ms": 10.638
+          },
+          "body_bytes": [
+            89747
+          ]
+        }
+      },
+      "history_fetches": [
+        {
+          "phase": "setup",
+          "bytes": 220,
+          "response_ms": 1.443
+        }
+      ],
+      "gesture_commands": 0,
+      "camera_retained": {
+        "graph-hover": true,
+        "graph-resize": true,
+        "tab-switch": true,
+        "graph-node-select": true,
+        "graph-node-select-distinct": true
+      },
+      "all_selected_original_source_lines_verified": true,
+      "native_stages": {
+        "gui.state": {
+          "wall": {
+            "count": 167,
+            "p50_ms": 1.919,
+            "p95_ms": 8.068,
+            "max_ms": 39.214,
+            "total_ms": 597.6210000000001
+          },
+          "host_thread_cpu": {
+            "count": 167,
+            "p50_ms": 1.725,
+            "p95_ms": 7.765,
+            "max_ms": 39.028,
+            "total_ms": 574.1
+          }
+        },
+        "analysis.extract": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 17488.353,
+            "p95_ms": 17488.353,
+            "max_ms": 17488.353,
+            "total_ms": 17488.353
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 1154.16,
+            "p95_ms": 1154.16,
+            "max_ms": 1154.16,
+            "total_ms": 1154.16
+          }
+        },
+        "analysis.select_roots": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 1739.147,
+            "p95_ms": 1739.147,
+            "max_ms": 1739.147,
+            "total_ms": 1739.147
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 626.929,
+            "p95_ms": 626.929,
+            "max_ms": 626.929,
+            "total_ms": 626.929
+          }
+        },
+        "atlas.project.prepare": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 13132.018,
+            "p95_ms": 13132.018,
+            "max_ms": 13132.018,
+            "total_ms": 13132.018
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 82.56,
+            "p95_ms": 82.56,
+            "max_ms": 82.56,
+            "total_ms": 82.56
+          }
+        },
+        "analysis.cache.validate": {
+          "wall": {
+            "count": 2,
+            "p50_ms": 1273.06,
+            "p95_ms": 1273.06,
+            "max_ms": 1273.06,
+            "total_ms": 1273.1399999999999
+          },
+          "host_thread_cpu": {
+            "count": 2,
+            "p50_ms": 59.028,
+            "p95_ms": 59.028,
+            "max_ms": 59.028,
+            "total_ms": 59.107
+          }
+        },
+        "analysis.materialize_view": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 0.436,
+            "p95_ms": 0.436,
+            "max_ms": 0.436,
+            "total_ms": 0.436
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 0.436,
+            "p95_ms": 0.436,
+            "max_ms": 0.436,
+            "total_ms": 0.436
+          }
+        }
+      },
+      "startup_history_refreshes": [
+        {
+          "wall_ms": 0.045,
+          "thread_cpu_ms": 0.038
+        },
+        {
+          "wall_ms": 0.027,
+          "thread_cpu_ms": 0.026
+        }
+      ],
+      "history_refreshes_after_profiling_started": 0,
+      "evicted_native_records": 0
+    },
+    {
+      "project": "ethlib",
+      "directory": "target/native-profile/history-events-20261124-ethlib",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "EthLib/Networking/Gossip/Parameters.lean",
+        "declarations": 42,
+        "project_files": 2517,
+        "setup_preparation_ms": 5926.436989,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/history-profile-assets",
+        "source_maps_sha256": {
+          "index-6nxVtb2x.js": "ca042ed2f643fc05a75d850ea8fbb654ac172dc2363e87de3d01f9bc97182caf"
+        }
+      },
+      "artifact_sha256": {
+        "summary.json": "3ea931849cfac0f966749aaff282d782d2e076e6b43c84151fdc880387d7b3e5",
+        "trace.json": "53bcf8e659f2953437517a17aefb7d999b0e7c6e9c740af15b6db6c80ce4aedf",
+        "native-metrics.json": "4a0887ad73ddac1e1080dcefdad9ad02eadf91d4e3b31f8b0e063d3a693a666e",
+        "preparation.json": "6c2c195d1154cfa9d9eead46700405e0679de62bffc64d9b5eb3baa192e57956",
+        "project-map.png": "3f15c359566c06b709f4b77fa01ebbbaba759471dac1908777a74faa917a1381",
+        "graph-fit-view.cpuprofile": "c21740f361dda4ac0b2508734a519841f2dc49c7297221c15f919f4edf951bed",
+        "graph-hover.cpuprofile": "63047f3d775586d818b10844a3bdd73da22ed4ea4748e6543121539123bb650e",
+        "graph-idle-poll.cpuprofile": "27f395032e4937bbfc5f5fb5257d1bb44b15828fc8a711f5cb90b513ad8cd16b",
+        "graph-idle-settled.cpuprofile": "c928df995038a24146cc5b6dc362f93e4b7be27797dcef3ec2c7a4622162c623",
+        "graph-node-select-distinct.cpuprofile": "e26463c8a18d94b4be324633c1eb9a700924f4cd8774dcd0e6aa5473fe34299a",
+        "graph-node-select.cpuprofile": "5222850237da73164103c88177670713b06972f866a3942fea1b0e1ffa28862c",
+        "graph-pan.cpuprofile": "976a1935c377be26e53a722e0ad61a20cbc53b56ee74487ca659e5d9b6eb869a",
+        "graph-resize.cpuprofile": "c69da033f6c5a46b693d83d9ee889625f9401ba2f8d4fc94877cd60bc36e34cf",
+        "graph-wheel.cpuprofile": "42b06e2245d8fa337f388b4714c789e0b26289520ec6de49fdb895d53e110b5e",
+        "project-map-idle.cpuprofile": "704a896658b7e1f18380b90b5e77f99b34169b3204245b1d774305f586503834",
+        "project-map-wheel.cpuprofile": "7e6961a0a9d366dfb3c41b02d7a03d6db830ecb6f4b9190f20cab5a4acbd67ca",
+        "tab-switch.cpuprofile": "acbfe92a76c9fef60838fb823aae761ef6ee28dbcb6b3136d598562035470ee1"
+      },
+      "verified_javascript_sha256": {
+        "AnalysisView-CH19r8zs.js": "51de9e8eaf1bf408682006f52e4c58ee8e084317b5f7ffdd76a6e1e3db37ab18",
+        "ArtifactPanel-B3p797qA.js": "e507ac3894b3ffb98aea3ff3f16b75b411fa6f3c4b3abe720cbe5038a23c6b58",
+        "GraphView-CH8lhgGO.js": "a32d7360628a47f426c78bfe2c4c1228d575d7c96277f7b166c225036db3f26a",
+        "ProofWorkspace-CiPA69wN.js": "fda7ff5c2aea125b0b8606d1fbf1ad1b2f805c9bff8c9d63f4874257169d7c16",
+        "ReviewView-Bcb0GoA1.js": "be5f536b3bd8fe20f79625435b40bbf2e37e2b201fc053a0a64d16efd4cc0cd4",
+        "highlight-BdD3AzVO.js": "e229782cfaeb85f23b73f4b3e9f7dd79e584aa5c9fb09fff39d9f8d76158e2fe",
+        "index-6nxVtb2x.js": "659ba80a8f28b6088d014dfd5711920ee3b2eb08207d36a2bfc82ed61bbd490e"
+      },
+      "events": {
+        "project-map-wheel": {
+          "type": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 2.903,
+            "p95_ms": 5.767,
+            "max_ms": 5.83,
+            "total_ms": 74.095
+          },
+          "input_two_raf": {
+            "count": 24,
+            "p50_ms": 16.600000023841858,
+            "p95_ms": 17.100000023841858,
+            "max_ms": 19.600000023841858,
+            "total_ms": 401.30000001192093
+          }
+        },
+        "graph-wheel": {
+          "type": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 0.472,
+            "p95_ms": 0.73,
+            "max_ms": 2.188,
+            "total_ms": 11.721
+          },
+          "input_two_raf": {
+            "count": 24,
+            "p50_ms": 16.399999976158142,
+            "p95_ms": 16.600000023841858,
+            "max_ms": 17.899999976158142,
+            "total_ms": 393.1000000834465
+          }
+        },
+        "graph-hover": {
+          "type": "pointermove",
+          "dispatch": {
+            "count": 40,
+            "p50_ms": 0.033,
+            "p95_ms": 0.083,
+            "max_ms": 0.139,
+            "total_ms": 1.5700000000000005
+          },
+          "input_two_raf": {
+            "count": 40,
+            "p50_ms": 17.099999964237213,
+            "p95_ms": 18.5,
+            "max_ms": 20.399999976158142,
+            "total_ms": 677.6000000238419
+          }
+        },
+        "graph-pan": {
+          "type": "pointermove",
+          "dispatch": {
+            "count": 31,
+            "p50_ms": 0.194,
+            "p95_ms": 0.333,
+            "max_ms": 0.349,
+            "total_ms": 6.0680000000000005
+          },
+          "input_two_raf": {
+            "count": 31,
+            "p50_ms": 18.19999998807907,
+            "p95_ms": 19.19999998807907,
+            "max_ms": 22.299999952316284,
+            "total_ms": 565.1999999284744
+          }
+        },
+        "graph-resize": {
+          "type": "resize",
+          "dispatch": {
+            "count": 2,
+            "p50_ms": 1.057,
+            "p95_ms": 1.057,
+            "max_ms": 1.057,
+            "total_ms": 1.704
+          },
+          "input_two_raf": {
+            "count": 2,
+            "p50_ms": 17.600000023841858,
+            "p95_ms": 17.600000023841858,
+            "max_ms": 17.600000023841858,
+            "total_ms": 33.40000003576279
+          }
+        },
+        "tab-switch": {
+          "type": "click",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 9.608,
+            "p95_ms": 11.919,
+            "max_ms": 12.047,
+            "total_ms": 222.69400000000002
+          },
+          "input_two_raf": {
+            "count": 24,
+            "p50_ms": 26.30000001192093,
+            "p95_ms": 29.599999964237213,
+            "max_ms": 30.900000035762787,
+            "total_ms": 635.9999998807907
+          }
+        },
+        "graph-fit-view": {
+          "type": "click",
+          "dispatch": {
+            "count": 1,
+            "p50_ms": 0.953,
+            "p95_ms": 0.953,
+            "max_ms": 0.953,
+            "total_ms": 0.953
+          },
+          "input_two_raf": {
+            "count": 1,
+            "p50_ms": 25.19999998807907,
+            "p95_ms": 25.19999998807907,
+            "max_ms": 25.19999998807907,
+            "total_ms": 25.19999998807907
+          }
+        },
+        "graph-node-select": {
+          "type": "click",
+          "dispatch": {
+            "count": 8,
+            "p50_ms": 13.445,
+            "p95_ms": 17.941,
+            "max_ms": 17.941,
+            "total_ms": 103.55600000000001
+          },
+          "input_two_raf": {
+            "count": 8,
+            "p50_ms": 29.69999998807907,
+            "p95_ms": 35.40000003576279,
+            "max_ms": 35.40000003576279,
+            "total_ms": 209.20000004768372
+          }
+        },
+        "graph-node-select-distinct": {
+          "type": "click",
+          "dispatch": {
+            "count": 8,
+            "p50_ms": 8.482,
+            "p95_ms": 9.284,
+            "max_ms": 9.284,
+            "total_ms": 38.541
+          },
+          "input_two_raf": {
+            "count": 8,
+            "p50_ms": 13.600000023841858,
+            "p95_ms": 19,
+            "max_ms": 19,
+            "total_ms": 89.40000009536743
+          }
+        }
+      },
+      "settled_browser_state_traffic": {
+        "graph-idle-settled": {
+          "response": {
+            "count": 11,
+            "p50_ms": 12.662,
+            "p95_ms": 17.634,
+            "max_ms": 17.634
+          },
+          "body_bytes": [
+            152995
+          ]
+        },
+        "project-map-idle": {
+          "response": {
+            "count": 10,
+            "p50_ms": 13.641,
+            "p95_ms": 14.601,
+            "max_ms": 14.601
+          },
+          "body_bytes": [
+            152995
+          ]
+        }
+      },
+      "history_fetches": [
+        {
+          "phase": "setup",
+          "bytes": 4168363,
+          "response_ms": 17.782
+        }
+      ],
+      "gesture_commands": 0,
+      "camera_retained": {
+        "graph-hover": true,
+        "graph-resize": true,
+        "tab-switch": true,
+        "graph-node-select": true,
+        "graph-node-select-distinct": true
+      },
+      "all_selected_original_source_lines_verified": true,
+      "native_stages": {
+        "gui.state": {
+          "wall": {
+            "count": 106,
+            "p50_ms": 8.707,
+            "p95_ms": 12.524,
+            "max_ms": 15.182,
+            "total_ms": 798.855
+          },
+          "host_thread_cpu": {
+            "count": 106,
+            "p50_ms": 8.534,
+            "p95_ms": 12.091,
+            "max_ms": 14.871,
+            "total_ms": 781.6250000000001
+          }
+        },
+        "analysis.extract": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 2044.496,
+            "p95_ms": 2044.496,
+            "max_ms": 2044.496,
+            "total_ms": 2044.496
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 478.074,
+            "p95_ms": 478.074,
+            "max_ms": 478.074,
+            "total_ms": 478.074
+          }
+        },
+        "analysis.select_roots": null,
+        "atlas.project.prepare": null,
+        "analysis.cache.validate": {
+          "wall": {
+            "count": 2,
+            "p50_ms": 1624.971,
+            "p95_ms": 1624.971,
+            "max_ms": 1624.971,
+            "total_ms": 3194.589
+          },
+          "host_thread_cpu": {
+            "count": 2,
+            "p50_ms": 64.938,
+            "p95_ms": 64.938,
+            "max_ms": 64.938,
+            "total_ms": 126.607
+          }
+        },
+        "analysis.materialize_view": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 0.272,
+            "p95_ms": 0.272,
+            "max_ms": 0.272,
+            "total_ms": 0.272
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 0.266,
+            "p95_ms": 0.266,
+            "max_ms": 0.266,
+            "total_ms": 0.266
+          }
+        }
+      },
+      "startup_history_refreshes": [
+        {
+          "wall_ms": 181.044,
+          "thread_cpu_ms": 180.437
+        },
+        {
+          "wall_ms": 187.965,
+          "thread_cpu_ms": 187.461
+        },
+        {
+          "wall_ms": 90.239,
+          "thread_cpu_ms": 89.96
+        }
+      ],
+      "history_refreshes_after_profiling_started": 0,
+      "evicted_native_records": 0
+    }
+  ],
+  "regression_attachments": [
+    {
+      "report": "target/gui-history-regression-report",
+      "name": "history-transfer.json",
+      "data": {
+        "status_bytes": [
+          2243,
+          2243,
+          2243,
+          2243,
+          2243,
+          2243,
+          2243,
+          2244,
+          2237,
+          2310,
+          2310,
+          2309,
+          2588,
+          2588,
+          2587,
+          2588,
+          2588,
+          2616,
+          2616,
+          2616,
+          2616,
+          2616,
+          2616,
+          2616,
+          2616,
+          2617,
+          2619,
+          2619,
+          2640,
+          2618,
+          2618,
+          2618,
+          2618,
+          2618,
+          2618,
+          2618,
+          2618,
+          2618,
+          2618,
+          2618,
+          2618,
+          2619
+        ],
+        "initial_history_bytes": 3124513,
+        "initial_automatic_history_fetches": 2,
+        "scope": "One intentionally failed initial history response and one explicit retry; unchanged status/inspection does not refetch history."
+      }
+    },
+    {
+      "report": "target/gui-history-normal-report",
+      "name": "navigation-performance",
+      "data": {
+        "browser": "149.0.7827.53",
+        "motion": "no-preference",
+        "cold_analysis_store_preparation_ms": 31770.532333999996,
+        "warm_tab_two_raf_ms": [
+          25.80000001192093,
+          29.600000023841858,
+          19.600000023841858,
+          30.69999998807907,
+          27.30000001192093,
+          27.30000001192093,
+          24.100000023841858,
+          26.600000023841858,
+          28.5,
+          25
+        ],
+        "p95_ms": 30.69999998807907,
+        "maximum_p95_ms": 250,
+        "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+      }
+    },
+    {
+      "report": "target/gui-history-final-report",
+      "name": "history-transfer.json",
+      "data": {
+        "status_bytes": [
+          2243,
+          2243,
+          2243,
+          2243,
+          2243,
+          2243,
+          2243,
+          2244,
+          2237,
+          2310,
+          2310,
+          2309,
+          2588,
+          2588,
+          2587,
+          2588,
+          2588,
+          2616,
+          2616,
+          2616,
+          2616,
+          2616,
+          2616,
+          2616,
+          2616,
+          2617,
+          2619,
+          2619,
+          2640,
+          2618,
+          2618,
+          2618,
+          2618,
+          2618,
+          2618,
+          2618,
+          2618,
+          2618,
+          2618,
+          2618,
+          2618,
+          2619
+        ],
+        "initial_history_bytes": 3124513,
+        "initial_automatic_history_fetches": 2,
+        "scope": "One intentionally failed initial history response and one explicit retry; unchanged status/inspection does not refetch history."
+      }
+    },
+    {
+      "report": "target/gui-history-final-report",
+      "name": "navigation-performance",
+      "data": {
+        "browser": "149.0.7827.53",
+        "motion": "reduce",
+        "cold_analysis_store_preparation_ms": 31926.351470999998,
+        "warm_tab_two_raf_ms": [
+          27.30000001192093,
+          22.399999976158142,
+          26,
+          23.900000035762787,
+          19.600000023841858,
+          26.69999998807907,
+          28.100000023841858,
+          21.600000023841858,
+          25.899999976158142,
+          23.19999998807907
+        ],
+        "p95_ms": 28.100000023841858,
+        "maximum_p95_ms": 250,
+        "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+      }
+    },
+    {
+      "report": "target/gui-history-budget-normal-report",
+      "attachment": "navigation-performance",
+      "data": {
+        "browser": "149.0.7827.53",
+        "motion": "no-preference",
+        "cold_analysis_store_preparation_ms": 33029.168533000004,
+        "warm_tab_two_raf_ms": [
+          30.69999998807907,
+          28.600000023841858,
+          26.899999976158142,
+          31.100000023841858,
+          25.099999964237213,
+          27.400000035762787,
+          24.099999964237213,
+          27,
+          29.299999952316284,
+          24.700000047683716
+        ],
+        "p95_ms": 31.100000023841858,
+        "maximum_p95_ms": 250,
+        "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+      }
+    },
+    {
+      "report": "target/gui-history-budget-reduced-report",
+      "attachment": "navigation-performance",
+      "data": {
+        "browser": "149.0.7827.53",
+        "motion": "reduce",
+        "cold_analysis_store_preparation_ms": 31988.404846,
+        "warm_tab_two_raf_ms": [
+          23.900000035762787,
+          27.399999976158142,
+          28.100000023841858,
+          23,
+          24.80000001192093,
+          26.899999976158142,
+          22.900000035762787,
+          25.19999998807907,
+          29.69999998807907,
+          24.600000023841858
+        ],
+        "p95_ms": 29.69999998807907,
+        "maximum_p95_ms": 250,
+        "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+      }
+    }
+  ],
+  "validation": {
+    "rust_tests": 287,
+    "typescript_tests": 35,
+    "clippy": "clean with -D warnings",
+    "architecture_tests": 22,
+    "schema": "Rust-derived history/reference schemas and generated Zod types; deterministic export checked",
+    "required_public_tui": {
+      "passed": 34,
+      "skipped": 0,
+      "summary": "/tmp/meden-ux-history-20261124/summary.json",
+      "exit": "/tmp/meden-ux-history-20261124-exit.json",
+      "decoded_screens_reviewed": [
+        "GUI to TUI continuation and fresh approval",
+        "Lake inventory-change stop and historical meaning",
+        "provider-limit retained stop, explicit retry and restart"
+      ]
+    },
+    "browser": {
+      "regression_report": "target/gui-history-regression-report",
+      "regression_passed": 7,
+      "normal_report": "target/gui-history-normal-report",
+      "normal_passed": 2,
+      "normal_failed_before_test_update": 1,
+      "reduced_report": "target/gui-history-final-report",
+      "reduced_passed": 2,
+      "reduced_failed_before_test_update": 1,
+      "workspace_final_report": "target/gui-history-workspace-accepted-report",
+      "workspace_final_passed": 1,
+      "unique_final_journeys": 10,
+      "screens_reviewed": [
+        "target/gui-checks/revisioned-history.png",
+        "target/native-profile/history-events-20261124-riemann/project-map.png",
+        "target/native-profile/history-events-20261124-ethlib/project-map.png"
+      ],
+      "corrections": [
+        "Missing chat title while the first history fetch was pending caused an actual blank screen; fixed before final regressions.",
+        "New work-history test now selects work notes independently of saved-conversation details.",
+        "Shared workspace waits for the independent semantic operation instead of assuming readable source means compilation is complete.",
+        "Shared workspace now retains and inspects oversized content instead of expecting a whole-index failure; readiness and explorer selection are explicit. Earlier failure reports remain in separate target/gui-history-* directories."
+      ],
+      "serialized_performance_gates": {
+        "enabled": "MEDEN_GUI_PERFORMANCE=1",
+        "normal": {
+          "passed": 1,
+          "report": "target/gui-history-budget-normal-report",
+          "p95_ms": 31.100000023841858
+        },
+        "reduced": {
+          "passed": 1,
+          "report": "target/gui-history-budget-reduced-report",
+          "p95_ms": 29.69999998807907
+        },
+        "maximum_p95_ms": 250
+      }
+    }
+  },
+  "remaining": [
+    "Complete inventory/job/evidence read models and remaining native wire generation.",
+    "Prepared page queries still queue behind active semantic preparation; exact complete compiler-input checks remain.",
+    "History publication/hash work remains synchronous at record mutation boundaries. Startup/host-refresh hashing took 90–188 ms for this EthLib history, even when an unchanged revision reuses publication bytes. It is absent from frequent status reads; model-turn latency was not profiled.",
+    "Large source/graph status fields still repeat; actual EthLib settled browser status is about 153 KB, not the 2.2–2.6 KB regression fixture.",
+    "Full cached graph preparation still takes about 19.1 s for Riemann and 5.9 s for EthLib here; this slice does not eliminate compilation/preparation.",
+    "Step 5 versioned layouts/order and retirement work remain open."
+  ]
+}

@@ -429,6 +429,232 @@ test.describe("native GUI with real offline workers", () => {
     ).toBe(true);
   });
 
+  test("large history is revisioned outside status polling, retries visibly and rejects late snapshots across restart", async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(120000);
+    await mkdir(resolve(project, ".meden"));
+    const note = "LOG-SENTINEL:".repeat(4000);
+    const saved = [
+      { speaker: "user", text: "SAVED-REVISIONED-HISTORY" },
+      { speaker: "assistant", text: "SAVED-ANSWER" },
+    ];
+    await writeFile(resolve(project, "Spec.rs"), "fn saved_target() {}\n");
+    await writeFile(
+      resolve(project, ".meden/workspace.json"),
+      JSON.stringify({
+        version: 1,
+        name: "Large saved history",
+        tasks: [
+          {
+            id: "work",
+            title: "Saved work",
+            requirement: "Preserve the complete original records",
+            module: "Spec",
+            theorems: ["saved_target"],
+            next: "Continue from history",
+          },
+        ],
+        events: Array.from({ length: 60 }, (_, i) => ({
+          id: "event_" + i,
+          task: "work",
+          time: 1,
+          note,
+          check: null,
+        })),
+        conversations: [
+          { id: "prefix", messages: saved.slice(0, 1) },
+          { id: "saved", messages: saved },
+        ],
+      }),
+    );
+    const stateSizes: number[] = [],
+      historyUrls: string[] = [];
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname === "/api/history")
+        historyUrls.push(request.url());
+    });
+    page.on("requestfinished", async (request) => {
+      if (new URL(request.url()).pathname === "/api/state")
+        try {
+          stateSizes.push((await request.sizes()).responseBodySize);
+        } catch {}
+    });
+    let fail = true,
+      hold = false,
+      held = false,
+      releaseOld = () => {};
+    const oldReleased = new Promise<void>((resolve) => (releaseOld = resolve));
+    await page.route("**/api/history?*", async (route) => {
+      if (fail) {
+        fail = false;
+        return route.fulfill({
+          status: 500,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "History response interrupted" }),
+        });
+      }
+      const response = await route.fetch();
+      if (hold && !held && response.ok()) {
+        held = true;
+        await oldReleased;
+      }
+      await route.fulfill({ response }).catch(() => {});
+    });
+    await page.goto(await start());
+    const chat = page.getByRole("complementary", {
+      name: "Workspace chat",
+      exact: true,
+    });
+    await expect(chat.getByRole("alert")).toContainText(
+      "History response interrupted",
+    );
+    expect((await nativeState(page)).authorized).toBe(false);
+    await chat
+      .getByRole("button", { name: "Retry history", exact: true })
+      .click();
+    await expect(
+      chat.getByText("SAVED-REVISIONED-HISTORY", { exact: true }),
+    ).toHaveCount(1);
+    await expect(chat.getByText("SAVED-ANSWER", { exact: true })).toBeVisible();
+    await expect.poll(() => stateSizes.length).toBeGreaterThanOrEqual(6);
+    expect(Math.max(...stateSizes)).toBeLessThan(16384);
+    expect(historyUrls).toHaveLength(2);
+    const status = await nativeState(page);
+    expect(status).not.toHaveProperty("portable");
+    expect(status).not.toHaveProperty("messages");
+    expect(status).not.toHaveProperty("logs");
+    const origin = new URL(url).origin;
+    const historyPath =
+      "/api/history?revision=" + encodeURIComponent(status.history.revision);
+    expect((await fetch(origin + historyPath)).status).toBe(401);
+    expect(
+      (
+        await fetch(origin + historyPath, {
+          headers: {
+            Authorization: "Bearer " + new URL(url).hash.split("=")[1],
+            Origin: "https://evil.invalid",
+          },
+        })
+      ).status,
+    ).toBe(403);
+    const snapshot = await page.evaluate(
+      async (revision) =>
+        (
+          await fetch("/api/history?revision=" + encodeURIComponent(revision), {
+            headers: {
+              Authorization:
+                "Bearer " + sessionStorage.getItem("meden-native-session"),
+            },
+          })
+        ).json(),
+      status.history.revision,
+    );
+    expect(snapshot.revision).toBe(status.history.revision);
+    expect(snapshot.data.portable.document.events).toHaveLength(60);
+    expect(snapshot.data.portable.document.events[59].note).toBe(note);
+    expect(JSON.stringify(snapshot).length).toBeGreaterThan(3_000_000);
+    const historyCount = historyUrls.length;
+    const before = await chat.innerHTML();
+    await page
+      .getByRole("button", { name: "File: Spec.rs", exact: true })
+      .click();
+    await expect(
+      page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
+    ).toContainText("fn saved_target");
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    await page.getByRole("tab", { name: "Project map", exact: true }).click();
+    await page.getByRole("tab", { name: "Spec.rs", exact: true }).click();
+    expect(historyUrls).toHaveLength(historyCount);
+    expect(await chat.innerHTML()).toBe(before);
+    await page
+      .getByRole("button", { name: "Work history", exact: true })
+      .click();
+    const dialog = page.getByRole("dialog");
+    await expect(
+      dialog.getByRole("heading", {
+        name: "Work and shared history",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      dialog.locator("details").filter({ hasText: note }),
+    ).toHaveCount(60);
+    await dialog.getByRole("button", { name: "Close", exact: true }).click();
+    expect(requests).toHaveLength(0);
+    await page
+      .getByRole("button", { name: "Choose model", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Use this model", exact: true })
+      .click();
+    let model: ServerResponse | undefined;
+    responses.push((response) => {
+      model = response;
+    });
+    hold = true;
+    try {
+      await chat
+        .getByRole("textbox", { name: "Message", exact: true })
+        .fill("Continue the saved history");
+      await chat.getByRole("button", { name: "Send", exact: true }).click();
+      await expect.poll(() => held).toBe(true);
+      await expect.poll(() => Boolean(model)).toBe(true);
+      reply(model!, { role: "assistant", content: "LATEST-HISTORY-ANSWER" });
+      await expect(
+        chat.getByText("LATEST-HISTORY-ANSWER", { exact: true }),
+      ).toBeVisible({ timeout: 30000 });
+      releaseOld();
+      await page.waitForTimeout(500);
+      await expect(
+        chat.getByText("LATEST-HISTORY-ANSWER", { exact: true }),
+      ).toHaveCount(1);
+      await expect(chat.getByRole("alert")).toHaveCount(0);
+      expect(requests).toHaveLength(1);
+      await expect
+        .poll(async () => (await nativeState(page)).running)
+        .toBe(false);
+      expect(
+        await page.evaluate(async (revision) => {
+          const response = await fetch(
+            "/api/history?revision=" + encodeURIComponent(revision),
+            {
+              headers: {
+                Authorization:
+                  "Bearer " + sessionStorage.getItem("meden-native-session"),
+              },
+            },
+          );
+          return response.status;
+        }, status.history.revision),
+      ).toBe(409);
+      await page.screenshot({
+        path: "target/gui-checks/revisioned-history.png",
+      });
+      await testInfo.attach("history-transfer.json", {
+        body: JSON.stringify({
+          status_bytes: stateSizes,
+          initial_history_bytes: JSON.stringify(snapshot).length,
+          initial_automatic_history_fetches: 2,
+          scope:
+            "One intentionally failed initial history response and one explicit retry; unchanged status/inspection does not refetch history.",
+        }),
+        contentType: "application/json",
+      });
+      await stop();
+      await page.goto(await start());
+      await expect(
+        page.getByText("LATEST-HISTORY-ANSWER", { exact: true }),
+      ).toBeVisible();
+      expect((await nativeState(page)).authorized).toBe(false);
+      expect(requests).toHaveLength(1);
+    } finally {
+      releaseOld();
+    }
+  });
+
   test("open file tabs restore source, graph camera and explanations without another inspection", async ({
     page,
   }) => {

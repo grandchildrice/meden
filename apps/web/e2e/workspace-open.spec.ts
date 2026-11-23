@@ -238,7 +238,7 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
               .join("\n");
       const fault =
         instruction ===
-        "Create an oversized source to exercise index recovery.";
+        "Create an oversized source to inspect its availability.";
       const repair =
         instruction ===
         "Remove the oversized source and reread the whole graph.";
@@ -487,7 +487,11 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
     await page
       .getByRole("button", { name: "Choose model", exact: true })
       .click();
-    await expect.poll(async () => (await state(page)).running).toBe(false);
+    // Source is readable before compiler preparation finishes. Connection
+    // changes still wait for that real host operation's compiler deadline.
+    await expect
+      .poll(async () => (await state(page)).running, { timeout: 120000 })
+      .toBe(false);
     await page
       .getByLabel("provider", { exact: true })
       .selectOption("hermes:first");
@@ -571,15 +575,28 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
     await page.getByRole("tab", { name: "Project map", exact: true }).click();
     await page
       .getByRole("textbox", { name: "Message", exact: true })
-      .fill("Create an oversized source to exercise index recovery.");
+      .fill("Create an oversized source to inspect its availability.");
     await page.getByRole("button", { name: "Send", exact: true }).click();
-    await expect(
-      page.getByRole("alert").filter({ hasText: "Could not refresh the map." }),
-    ).toBeVisible();
-    expect((await state(page)).overview.state).toBe("failed");
     await expect(
       chat.getByText("OVERSIZED-SOURCE-CREATED", { exact: true }),
     ).toBeVisible();
+    // Unsupported content stays in a complete inventory instead of making the
+    // whole project unreadable. The file reader explains its actual limit.
+    await expect
+      .poll(async () => {
+        const overview = (await state(page)).overview;
+        return [overview.state, overview.scanned];
+      })
+      .toEqual(["ready", 42]);
+    await page
+      .getByRole("region", { name: "File explorer", exact: true })
+      .getByRole("button", { name: "File: Oversized.lean", exact: true })
+      .click();
+    await expect(page.locator(".ide-file-page:not([hidden])")).toContainText(
+      "exceeds",
+    );
+    await expect.poll(async () => (await state(page)).running).toBe(false);
+    await page.getByRole("tab", { name: "Project map", exact: true }).click();
     await page
       .getByRole("textbox", { name: "Message", exact: true })
       .fill("Remove the oversized source and reread the whole graph.");

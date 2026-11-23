@@ -1,0 +1,386 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Snapshot",
+  "description": "Wire envelope for a single immutable publication.",
+  "type": "object",
+  "properties": {
+    "revision": {
+      "description": "Exact original data identity requested by the viewer.",
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "data": {
+      "description": "Original application records, never current proof authority.",
+      "$ref": "#/$defs/Data"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "revision",
+    "data"
+  ],
+  "$defs": {
+    "Data": {
+      "description": "Conversation and portable-work context, excluded from frequent status reads.",
+      "type": "object",
+      "properties": {
+        "portable": {
+          "description": "Original portable document and its adapter diagnostics.",
+          "$ref": "#/$defs/View"
+        },
+        "messages": {
+          "description": "Current native transcript; it cannot restore kernel grants.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Message"
+          }
+        },
+        "logs": {
+          "description": "Bounded original tool record sequence.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Log"
+          },
+          "maxItems": 128
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "portable",
+        "messages",
+        "logs"
+      ]
+    },
+    "View": {
+      "type": "object",
+      "properties": {
+        "document": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Document"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "lean_available": {
+          "type": "boolean"
+        },
+        "lean": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "lean_available",
+        "lean"
+      ]
+    },
+    "Document": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 1,
+          "maximum": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Work"
+          }
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Event"
+          }
+        },
+        "conversations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Conversation"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "name",
+        "tasks",
+        "events",
+        "conversations"
+      ]
+    },
+    "Work": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "requirement": {
+          "type": "string"
+        },
+        "module": {
+          "type": "string"
+        },
+        "theorems": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "next": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "requirement",
+        "module",
+        "theorems",
+        "next"
+      ]
+    },
+    "Event": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "task": {
+          "type": "string"
+        },
+        "time": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "note": {
+          "type": "string"
+        },
+        "check": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Check"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "task",
+        "time",
+        "note"
+      ]
+    },
+    "Check": {
+      "type": "object",
+      "properties": {
+        "engine_sha256": {
+          "type": "string"
+        },
+        "requirement": {
+          "type": "string"
+        },
+        "theorems": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "inspection": {
+          "type": "string"
+        },
+        "source_revision": {
+          "type": "string"
+        },
+        "after_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "module": {
+          "type": "string"
+        },
+        "success": {
+          "type": "boolean"
+        },
+        "termination": {
+          "type": "string"
+        },
+        "stdout": {
+          "type": "string"
+        },
+        "stderr": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "engine_sha256",
+        "requirement",
+        "theorems",
+        "inspection",
+        "source_revision",
+        "module",
+        "success",
+        "termination",
+        "stdout",
+        "stderr"
+      ]
+    },
+    "Conversation": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "messages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Message"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "messages"
+      ]
+    },
+    "Message": {
+      "description": "Original transcript text. Interpretation and display remain adapters.",
+      "type": "object",
+      "properties": {
+        "speaker": {
+          "$ref": "#/$defs/Speaker"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "speaker",
+        "text"
+      ]
+    },
+    "Speaker": {
+      "description": "A presentation speaker, never a model instruction role.",
+      "type": "string",
+      "enum": [
+        "user",
+        "assistant"
+      ]
+    },
+    "Log": {
+      "description": "Original tool observations, without model roles or execution authority.",
+      "oneOf": [
+        {
+          "description": "Host persistence/operation notice.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "notice"
+            },
+            "text": {
+              "description": "Original diagnostic.",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "text"
+          ]
+        },
+        {
+          "description": "Original prepared tool call, for inspection only.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "call"
+            },
+            "id": {
+              "description": "Original call identity.",
+              "type": "string"
+            },
+            "tool": {
+              "description": "Model-facing tool label.",
+              "type": "string"
+            },
+            "text": {
+              "description": "Original serialized arguments.",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "id",
+            "tool",
+            "text"
+          ]
+        },
+        {
+          "description": "Original completed result, for inspection only.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "result"
+            },
+            "id": {
+              "description": "Original call identity.",
+              "type": "string"
+            },
+            "tool": {
+              "description": "Model-facing tool label.",
+              "type": "string"
+            },
+            "text": {
+              "description": "Original output.",
+              "type": "string"
+            },
+            "error": {
+              "description": "Observed failure, never an evidence verdict.",
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "id",
+            "tool",
+            "text",
+            "error"
+          ]
+        }
+      ]
+    }
+  }
+}
