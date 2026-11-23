@@ -17,7 +17,7 @@ serde_json = { workspace = true }
 schemars = "=1.2.3"
 sha2 = "0.10"
 anyhow = "1"
-base64 = "0.22"
+base64 = "0.23"
 tempfile = "3"
 
 [dev-dependencies]
