@@ -15,7 +15,7 @@ test("branch pruning preserves the visible areas and opacity of a full scan", ()
     (_, i) => ({
       path: `src/Group${i % 12}/Part${i % 7}/File${i}.lean`,
       sha256: "fixture",
-      bytes: 100,
+      bytes: "100",
       declarations: 1,
       theorems: 1,
       indexed: true,
@@ -35,7 +35,7 @@ test("branch pruning preserves the visible areas and opacity of a full scan", ()
     }),
   );
   const scene = projectMap({
-    revision: "fixture",
+    generation: "0",
     files,
     excluded: [],
     inventory_only: false,
@@ -79,13 +79,13 @@ test("branch pruning preserves the visible areas and opacity of a full scan", ()
 
 test("the legend follows visible declarations rather than distant or empty files", () => {
   const scene = projectMap({
-    revision: "legend",
+    generation: "0",
     inventory_only: false,
     excluded: [],
     files: ["Empty.lean", "Proof.lean"].map((path, i) => ({
       path,
       sha256: "fixture",
-      bytes: 100,
+      bytes: "100",
       declarations: i,
       theorems: i,
       imports: [],
@@ -126,14 +126,14 @@ test("the legend follows visible declarations rather than distant or empty files
 
 test("breadcrumbs enter a containing child only after its opacity exceeds one half", () => {
   const scene = projectMap({
-    revision: "breadcrumb",
+    generation: "0",
     inventory_only: false,
     excluded: [],
     files: ["A/Inner/First.lean", "A/Second.lean", "B/Third.lean"].map(
       (path) => ({
         path,
         sha256: "fixture",
-        bytes: 100,
+        bytes: "100",
         declarations: 0,
         theorems: 0,
         imports: [],

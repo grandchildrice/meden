@@ -234,6 +234,11 @@ export function NativeApp({ token }: { token: string }) {
   useEffect(() => {
     if (historyPublication) setHistory(historyPublication);
   }, [historyPublication]);
+  const readDirectory = useCallback(
+    (revision: string, signal: AbortSignal) =>
+      observePublication(client.directory(revision, signal)),
+    [client],
+  );
   const readSource = useCallback(
     (revision: string, signal: AbortSignal) =>
       observePublication(client.source(revision, signal)),
@@ -265,45 +270,34 @@ export function NativeApp({ token }: { token: string }) {
   );
   const source = preparedSources.get(state?.sources.current?.revision)
     ?.publication?.data;
+  const inventoryRevision = state?.overview.revision || undefined;
+  const inventoryEpoch = reconnect + overviewCycle;
+  const readInventory = useCallback(
+    (revision: string, signal: AbortSignal) =>
+      observePublication(client.inventory(revision, signal)),
+    [client],
+  );
+  const inventories = usePublications(
+    inventoryRevision ? [inventoryRevision] : [],
+    readInventory,
+    state?.overview,
+    inventoryEpoch,
+  );
+  const inventoryPublication = inventories.get(inventoryRevision)?.publication;
+  const inventoryError = inventories.get(inventoryRevision)?.error;
+  const observedInventory = useRef<string | undefined>(undefined);
+  const currentInventory = useRef(inventoryRevision);
+  currentInventory.current = inventoryRevision;
   useEffect(() => {
-    const abort = new AbortController();
-    if (!state?.overview.revision || state.overview.state !== "ready") {
+    if (
+      !inventoryPublication ||
+      inventoryPublication.revision === observedInventory.current
+    )
       return;
-    }
-    const epoch = mapEpoch.current;
-    void client
-      .overview(abort.signal)
-      .then((snapshot) => {
-        if (!abort.signal.aborted && mapEpoch.current === epoch) {
-          setOverview((previous) => {
-            if (!previous || previous.revision !== snapshot.revision)
-              return snapshot;
-            const loaded = new Map(
-              previous.files
-                .filter((file) => file.indexed)
-                .map((file) => [file.path, file]),
-            );
-            return {
-              ...snapshot,
-              files: snapshot.files.map((file) =>
-                file.indexed ? file : loaded.get(file.path) || file,
-              ),
-            };
-          });
-          setOverviewError("");
-        }
-      })
-      .catch((error) => {
-        if (!abort.signal.aborted) setOverviewError(String(error));
-      });
-    return () => abort.abort();
-  }, [
-    client,
-    state?.overview.revision,
-    state?.overview.state,
-    reconnect,
-    overviewCycle,
-  ]);
+    observedInventory.current = inventoryPublication.revision;
+    setOverview(inventoryPublication.data);
+    setOverviewError("");
+  }, [inventoryPublication]);
   useEffect(() => {
     if (approval) {
       const choice =
@@ -384,6 +378,7 @@ export function NativeApp({ token }: { token: string }) {
           next.sources = { current: null, files: {} };
           mapEpoch.current++;
           setOverview(undefined);
+          observedInventory.current = undefined;
           setOverviewError("");
           setOverviewCycle((value) => value + 1);
         }
@@ -457,11 +452,14 @@ export function NativeApp({ token }: { token: string }) {
   const indexMapFile = useCallback(
     async (path: string) => {
       const epoch = mapEpoch.current;
+      const parent = inventoryPublication?.revision;
+      if (!parent || currentInventory.current !== parent) return false;
       try {
-        const chunk = await client.map(path);
-        if (mapEpoch.current !== epoch) return false;
+        const chunk = await client.map(parent, path);
+        if (mapEpoch.current !== epoch || currentInventory.current !== parent)
+          return false;
         setOverview((previous) => {
-          if (!previous || previous.revision !== chunk.revision)
+          if (!previous || observedInventory.current !== parent)
             return previous;
           const files = new Map(chunk.files.map((file) => [file.path, file]));
           return {
@@ -476,7 +474,7 @@ export function NativeApp({ token }: { token: string }) {
         return true;
       }
     },
-    [client],
+    [client, inventoryPublication],
   );
   const selectSymbol = useCallback(
     (symbol: Symbol) => {
@@ -717,6 +715,8 @@ export function NativeApp({ token }: { token: string }) {
           >
             <NativeExplorer
               state={state}
+              readDirectory={readDirectory}
+              epoch={inventoryEpoch}
               active={activeFile}
               running={running}
               onCommand={command}
@@ -882,9 +882,23 @@ export function NativeApp({ token }: { token: string }) {
             <div className="ide-stage">
               <div className="project-map-page" hidden={Boolean(activeFile)}>
                 <NativeWorkspaceGraph
-                  error={overviewError}
+                  error={inventoryError || overviewError}
+                  loading={Boolean(
+                    inventoryRevision &&
+                    !inventoryPublication &&
+                    !inventoryError,
+                  )}
+                  onRetry={
+                    inventoryError && inventoryRevision
+                      ? () => inventories.retry(inventoryRevision)
+                      : undefined
+                  }
                   active={!activeFile}
-                  canIndex={!running && queue.length === 0}
+                  canIndex={
+                    !running &&
+                    queue.length === 0 &&
+                    inventoryPublication?.revision === currentInventory.current
+                  }
                   onIndex={indexMapFile}
                   scene={scene}
                   state={state}
@@ -926,7 +940,7 @@ export function NativeApp({ token }: { token: string }) {
                     }}
                     path={file}
                     scene={scene}
-                    revision={overview?.revision || ""}
+                    revision={inventoryPublication?.revision || ""}
                     selected={selectedSymbol}
                     focused={focusedSymbol}
                     running={running}

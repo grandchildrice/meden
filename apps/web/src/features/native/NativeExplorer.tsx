@@ -20,66 +20,114 @@ import type {
   NativeCommand,
   NativeState,
   FileView,
+  DirectoryPublication,
 } from "@meden/agent-protocol/native";
-const decoded = (text: string) => {
-  try {
-    const value: unknown = JSON.parse(text);
-    return typeof value === "string" ? value : JSON.stringify(value, null, 2);
-  } catch {
-    return text;
-  }
-};
-
+import { usePublications, type PublicationRead } from "./usePublications";
 export function NativeExplorer({
   state,
   running,
   onCommand,
   onOpen,
   active,
+  readDirectory,
+  epoch,
 }: {
   state: NativeState;
   running: boolean;
   onCommand: (command: NativeCommand) => Promise<boolean>;
   onOpen: (path: string) => void;
   active?: string;
+  readDirectory: (
+    revision: string,
+    signal: AbortSignal,
+  ) => Promise<PublicationRead<DirectoryPublication>>;
+  epoch: number;
 }) {
-  const [directories, setDirectories] = useState<Record<string, string[]>>({});
   const [expanded, setExpanded] = useState(new Set(["."]));
-  const loadedRevision = useRef<string | null>(null);
-  const [refresh, setRefresh] = useState(0);
-  const directoryVersion = JSON.stringify(state.history) + ":" + refresh;
-  const inspection = state.inspection;
+  const requested = useRef(new Set<string>());
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [attempt, retryRequest] = useState(0);
+  const reads = usePublications(
+    Object.values(state.directories.paths).map((ref) => ref.revision),
+    readDirectory,
+    state.directories,
+    epoch,
+  );
+  const resetKey = `${epoch}:${state.overview.state === "loading"}:${state.directories.paths["."]?.revision || ""}`;
+  const reset = useRef<string | undefined>(undefined);
   useEffect(() => {
-    if (inspection?.directory && !inspection.error)
-      setDirectories((previous) => ({
-        ...previous,
-        [inspection.path]: decoded(inspection.text || "")
-          .split("\n")
-          .filter(Boolean),
-      }));
-  }, [JSON.stringify(inspection)]);
+    if (reset.current === resetKey) return;
+    reset.current = resetKey;
+    requested.current.clear();
+    setErrors({});
+  }, [resetKey]);
+  const request = (path: string) => {
+    requested.current.add(path);
+    setErrors((old) => {
+      const next = { ...old };
+      delete next[path];
+      return next;
+    });
+    void onCommand({ type: "inspect", path, directory: true }).then((ok) => {
+      if (!ok)
+        setErrors((old) => ({
+          ...old,
+          [path]: "The folder could not be requested.",
+        }));
+    });
+  };
   useEffect(() => {
-    if (
-      !running &&
-      state.overview.revision &&
-      loadedRevision.current !== directoryVersion
-    ) {
-      loadedRevision.current = directoryVersion;
-      void onCommand({ type: "inspect", path: ".", directory: true });
-    }
-  }, [running, state.overview.revision, directoryVersion]);
-  const tree = (parent: string, depth: number): React.ReactNode =>
-    (directories[parent] || []).map((entry) => {
-      const directory = entry.endsWith("/"),
-        name = directory ? entry.slice(0, -1) : entry,
-        path = parent === "." ? name : parent + "/" + name,
-        open = expanded.has(path);
-      if (name === "[more entries omitted]")
-        return (
-          <li key={name}>
-            Some entries in this folder are outside the display limit.
-          </li>
-        );
+    if (running || state.overview.state === "loading") return;
+    const path = [...expanded].find(
+      (path) => !state.directories.paths[path] && !requested.current.has(path),
+    );
+    if (path) request(path);
+  }, [running, state.directories, state.overview.state, expanded, attempt]);
+  const tree = (parent: string, depth: number): React.ReactNode => {
+    const revision = state.directories.paths[parent]?.revision;
+    const loaded = reads.get(revision);
+    const data = loaded?.publication?.data;
+    const reading = data?.path === parent ? data.reading : undefined;
+    const error =
+      errors[parent] ||
+      loaded?.error ||
+      (data && data.path !== parent
+        ? "The directory response does not match its requested path."
+        : reading?.state === "unavailable"
+          ? reading.message
+          : undefined);
+    if (error)
+      return (
+        <li role="none">
+          <Alert severity="error">
+            Could not open the folder.
+            <details>
+              <summary>Details</summary>
+              {error}
+            </details>
+            <Button
+              disabled={running}
+              onClick={() => {
+                if (revision && loaded?.error) reads.retry(revision);
+                else request(parent);
+              }}
+            >
+              Retry folder
+            </Button>
+          </Alert>
+        </li>
+      );
+    if (reading?.state !== "ready")
+      return (
+        <li role="none">
+          <CircularProgress size={18} aria-label="Loading folder" />
+        </li>
+      );
+    return reading.entries.map((entry) => {
+      const directory = entry.kind === "directory",
+        name = entry.name;
+      const path = parent === "." ? name : parent + "/" + name;
+      const open = expanded.has(path);
       return (
         <li
           key={path}
@@ -90,22 +138,18 @@ export function NativeExplorer({
           <button
             className={`explorer-entry ${path === active ? "selected" : ""}`}
             style={{ paddingLeft: 8 + depth * 14 }}
-            disabled={running}
             title={path}
             aria-label={`${directory ? "Folder" : "File"}: ${path}`}
             onClick={() => {
-              if (!directory) {
-                onOpen(path);
-                return;
-              }
+              if (!directory) return onOpen(path);
+              if (!open && !state.directories.paths[path])
+                requested.current.delete(path);
               setExpanded((previous) => {
                 const next = new Set(previous);
                 if (open) next.delete(path);
                 else next.add(path);
                 return next;
               });
-              if (!open)
-                void onCommand({ type: "inspect", path, directory: true });
             }}
           >
             {directory ? (
@@ -122,6 +166,7 @@ export function NativeExplorer({
         </li>
       );
     });
+  };
   return (
     <section className="explorer-tree" aria-label="File explorer">
       <div className="explorer-title">
@@ -139,7 +184,8 @@ export function NativeExplorer({
               size="small"
               disabled={running}
               onClick={() => {
-                setRefresh((n) => n + 1);
+                requested.current.clear();
+                retryRequest((n) => n + 1);
                 void onCommand({ type: "refresh_workspace" });
               }}
             >

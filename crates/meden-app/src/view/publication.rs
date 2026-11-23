@@ -102,6 +102,51 @@ impl Serialize for Publication {
     }
 }
 
+/// One latest immutable body per key, shared by reader/directory owners.
+/// Retention is at most 64 entries / 64 MiB of serialized envelopes.
+#[derive(Default)]
+pub struct Table {
+    values: std::collections::BTreeMap<String, Publication>,
+    order: std::collections::VecDeque<String>,
+    bytes: usize,
+}
+impl Table {
+    /// Publish already-frozen complete data and retire the previous key value.
+    pub fn publish(&mut self, key: String, value: Publication) {
+        self.remove(&key);
+        self.bytes = self.bytes.saturating_add(value.size());
+        self.order.push_back(key.clone());
+        self.values.insert(key, value);
+        while self.values.len() > 64 || self.bytes > MAX_BYTES {
+            let Some(oldest) = self.order.front().cloned() else {
+                break;
+            };
+            self.remove(&oldest);
+        }
+    }
+    /// Exact retained bytes only, without materialization or I/O.
+    pub fn bytes(&self, revision: &str) -> Option<Arc<[u8]>> {
+        self.values.values().find_map(|value| value.bytes(revision))
+    }
+    /// Small immutable references; complete data stays out of status.
+    pub fn references(&self) -> std::collections::BTreeMap<String, Reference> {
+        self.values
+            .iter()
+            .map(|(key, value)| (key.clone(), value.reference().clone()))
+            .collect()
+    }
+    /// Explicit refresh retires all keys and publications.
+    pub fn clear(&mut self) {
+        *self = Self::default();
+    }
+    fn remove(&mut self, key: &str) {
+        if let Some(old) = self.values.remove(key) {
+            self.bytes = self.bytes.saturating_sub(old.size());
+        }
+        self.order.retain(|entry| entry != key);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

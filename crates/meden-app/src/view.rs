@@ -7,10 +7,14 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
+/// Complete typed directory observations, independent of inventory/compiler jobs.
+pub mod directory;
 /// Bounded complete file availability, independent of compiler support.
 pub mod file;
 /// Revision-bound transcript/work data, separate from status polling.
 pub mod history;
+/// Prepared generic navigation inventory and chunks, separate from source text.
+pub mod inventory;
 /// Bounded, immutable publication framing shared by read-model owners.
 pub mod publication;
 /// Immutable reader retention, separate from semantic graphs.

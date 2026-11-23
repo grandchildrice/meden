@@ -261,6 +261,8 @@ function WorkspaceMap({
   canIndex,
   onIndex,
   error,
+  loading,
+  onRetry,
 }: {
   scene?: MapScene;
   state: NativeState;
@@ -270,6 +272,8 @@ function WorkspaceMap({
   canIndex: boolean;
   onIndex: (path: string) => Promise<boolean>;
   error?: string;
+  loading?: boolean;
+  onRetry?: () => void;
 }) {
   const [canvas, setCanvas] = useState<HTMLDivElement | null>(null);
   const [flow, setFlow] = useState<ReactFlowInstance<SceneNode>>();
@@ -414,14 +418,17 @@ function WorkspaceMap({
               ))}
           </nav>
         )}
-        {(state.overview.state === "loading" ||
+        {(loading ||
+          state.overview.state === "loading" ||
           (active && state.running && state.operation === "inspection")) && (
           <LinearProgress
             className="map-load-progress"
             aria-label={
-              state.overview.state === "loading"
-                ? "Preparing map"
-                : "Loading declarations"
+              loading
+                ? "Loading prepared map"
+                : state.overview.state === "loading"
+                  ? "Preparing map"
+                  : "Loading declarations"
             }
           />
         )}
@@ -429,6 +436,7 @@ function WorkspaceMap({
           <Alert className="map-load-error" severity="error">
             {state.overview.state === "failed" && "Could not refresh the map. "}
             {error || state.overview.error}
+            {onRetry && <Button onClick={onRetry}>Retry map</Button>}
           </Alert>
         )}
         <ReactFlow

@@ -1,6 +1,10 @@
 import {
   nativeStateSchema,
-  workspaceOverviewSchema,
+  directoryPublicationSchema,
+  type DirectoryPublication,
+  inventoryPublicationSchema,
+  inventoryChunkSchema,
+  type InventoryPublication,
   historySnapshotSchema,
   sourcePublicationSchema,
   readerPublicationSchema,
@@ -9,7 +13,6 @@ import {
   type HistorySnapshot,
   type NativeState,
   type NativeCommand,
-  type WorkspaceOverview,
 } from "@meden/agent-protocol/native";
 
 /** Typed transport failure; diagnostic text never chooses recovery behavior. */
@@ -63,8 +66,19 @@ export class NativeClient {
       signal,
     );
   }
+  async directory(
+    revision: string,
+    signal?: AbortSignal,
+  ): Promise<DirectoryPublication> {
+    return this.publication(
+      "directory",
+      revision,
+      directoryPublicationSchema,
+      signal,
+    );
+  }
   private async publication<T extends { revision: string }>(
-    role: "history" | "source" | "reader",
+    role: "history" | "source" | "reader" | "inventory" | "directory",
     revision: string,
     schema: { parse(value: unknown): T },
     signal?: AbortSignal,
@@ -80,15 +94,34 @@ export class NativeClient {
       throw new Error("View response does not match its requested revision");
     return snapshot;
   }
-  async overview(signal?: AbortSignal): Promise<WorkspaceOverview> {
-    return workspaceOverviewSchema.parse(
-      await this.request("/api/overview", undefined, signal),
+  async inventory(
+    revision: string,
+    signal?: AbortSignal,
+  ): Promise<InventoryPublication> {
+    return this.publication(
+      "inventory",
+      revision,
+      inventoryPublicationSchema,
+      signal,
     );
   }
-  async map(path: string) {
-    return workspaceOverviewSchema
-      .pick({ revision: true, files: true })
-      .parse(await this.request("/api/map?path=" + encodeURIComponent(path)));
+  async map(revision: string, path: string) {
+    const chunk = inventoryChunkSchema.parse(
+      await this.request(
+        "/api/map?inventory=" +
+          encodeURIComponent(revision) +
+          "&path=" +
+          encodeURIComponent(path),
+      ),
+    );
+    if (
+      chunk.data.revision !== revision ||
+      !chunk.data.files.some((file) => file.path === path)
+    )
+      throw new Error(
+        "Navigation response does not match the requested inventory/file",
+      );
+    return chunk.data;
   }
   private async request(
     path: string,

@@ -171,6 +171,15 @@ impl FileView {
         )
     }
 }
+pub(crate) fn failure(error: &ToolError) -> FailureKind {
+    match error.parts() {
+        Ok(Ok(_)) => FailureKind::Operation,
+        Ok(Err(_)) => FailureKind::Refused,
+        Err(Some(Ok(_))) => FailureKind::Unavailable,
+        Err(Some(Err(_))) => FailureKind::Interrupted,
+        Err(None) => FailureKind::Cancelled,
+    }
+}
 /// Uses the original/resolved policy-bound offline file worker. Rendering and
 /// serializing the returned data performs no filesystem/compiler/model I/O.
 pub fn observe(workspace: &Workspace, control: &Control, path: &str) -> Result<FileView> {
@@ -207,13 +216,7 @@ pub fn observe(workspace: &Workspace, control: &Control, path: &str) -> Result<F
     let reading = match result {
         Ok(content) => Reading::Ready { content },
         Err(error) => {
-            let failure = match error.parts() {
-                Ok(Ok(_)) => FailureKind::Operation,
-                Ok(Err(_)) => FailureKind::Refused,
-                Err(Some(Ok(_))) => FailureKind::Unavailable,
-                Err(Some(Err(_))) => FailureKind::Interrupted,
-                Err(None) => FailureKind::Cancelled,
-            };
+            let failure = failure(&error);
             Reading::Unavailable {
                 failure,
                 message: error.to_string().chars().take(8000).collect(),

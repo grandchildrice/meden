@@ -1,0 +1,733 @@
+{
+  "date": "2026-11-24",
+  "source_base_revision": "b1f8d40",
+  "scope": "Application-owned generated inventory/directory/status/chunk DTOs, one-time immutable inventory serialization outside view locks, parent-bound bounded chunk memoization, complete typed directory listings and cached navigation; delete unversioned overview, duplicate TS wire schemas, GUI formatted listing/parser and duplicate metadata hashing.",
+  "deployment": {
+    "binary_sha256": "fc4dd8f3555a11cc0a7bb1e7fd3eed69e8a298eec53db5ade4182f93bcffd7dd",
+    "assets_sha256": "8babe9c29d5c0e077c954007e333f13f10888c00970a544da835e1664e4d70ba",
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/fc4dd8f3555a11cc0a7bb1e7fd3eed69e8a298eec53db5ade4182f93bcffd7dd-8babe9c29d5c0e07"
+  },
+  "bounds": {
+    "inventory_files": 250000,
+    "complete_envelope_bytes": 67108864,
+    "chunks_per_inventory": 64,
+    "chunk_retention_bytes": 67108864,
+    "files_per_chunk": 32,
+    "directory_entries": 100000,
+    "directory_and_reader_table_entries_per_owner": 64,
+    "directory_and_reader_table_bytes_per_owner": 67108864
+  },
+  "ownership": {
+    "core_authority_changes": false,
+    "query_source_worker_or_compiler_or_inference": false,
+    "first_chunk_lookup": "Prepared navigation artifacts only; exact parent scope checked before and after lookup.",
+    "chunk_cache_hit": "Existing immutable bytes; no artifact I/O.",
+    "metadata_sizes_and_cache_generation": "Canonical u64 decimal strings; no implicit browser-number conversion.",
+    "cache_identity": "One complete publication digest; removed a second full-metadata serialization/hash before freezing."
+  },
+  "checks": {
+    "rust_workspace_all_features": 298,
+    "typescript": 38,
+    "architecture": 22,
+    "architecture_owned_sources": 24,
+    "fuzz_generated_cases": 3000,
+    "types": "pass",
+    "clippy": "pass all targets/features, warnings denied",
+    "generated_determinism_files": 28,
+    "format": "pass",
+    "python_lint": "Exact CI cwd python/: uv run ruff check . ../tools ../crates/meden-runtime/src/pages/network_fixture.py; pass",
+    "tui": {
+      "required": 34,
+      "passed": 34,
+      "skips": 0,
+      "report": "/tmp/meden-ux-inventory-publications-final-20261124",
+      "binary": {
+        "sha256": "fc4dd8f3555a11cc0a7bb1e7fd3eed69e8a298eec53db5ade4182f93bcffd7dd",
+        "binary": "/home/gohan/workspace/meden/target/validation/fc4dd8f3555a11cc0a7bb1e7fd3eed69e8a298eec53db5ade4182f93bcffd7dd/meden"
+      },
+      "decoded_screens_inspected": [
+        "GUI/TUI continuation",
+        "Lake inventory-change failure and historical restart",
+        "finite evidence restart requiring fresh processor review"
+      ]
+    },
+    "gui": {
+      "full_report": "target/gui-inventory-publications-all-report",
+      "full_passed": 64,
+      "full_skips": 0,
+      "parallel_workers": 2,
+      "normal_report": "target/gui-inventory-publications-budget-normal-report",
+      "normal_passed": 2,
+      "reduced_report": "target/gui-inventory-publications-budget-reduced-report",
+      "reduced_passed": 2,
+      "performance_enabled": true,
+      "performance_workers": 1,
+      "performance_serialized": true
+    },
+    "screens_inspected": [
+      "target/gui-checks/typed-directory-complete.png",
+      "target/gui-checks/inventory-publication-latest.png",
+      "final actual deployed project map"
+    ],
+    "behavior": [
+      "1201-entry complete listing beyond old arbitrary first-500 cutoff",
+      "literal newline/Unicode path opens the original source",
+      "retained collapse/reopen has no command/body read",
+      "missing folder retries through actual worker; immutable references stay out of poll data",
+      "local inventory transfer retry without recapture, old inventory/chunk rejection, delayed body cannot replace refreshed declarations, actual restart",
+      "real Lean/Lake/compiler/search/renderer/failure/cancel/repair/delivery/preview and separate recorded-workspace routes retained"
+    ]
+  },
+  "transfer": [
+    {
+      "project": "riemann",
+      "files": 175187,
+      "before_bytes": 35887894,
+      "after_bytes": 36238294,
+      "before_response": {
+        "count": 10,
+        "p50_ms": 1862.115303999999,
+        "p95_ms": 1891.9397330000002,
+        "max_ms": 1891.9397330000002
+      },
+      "after_response": {
+        "count": 10,
+        "p50_ms": 61.839156,
+        "p95_ms": 77.211419,
+        "max_ms": 77.211419
+      },
+      "before_native": {
+        "count": 30,
+        "p50_ms": 0.109,
+        "p95_ms": 1081.839,
+        "max_ms": 1111.249
+      },
+      "after_native": {
+        "count": 10,
+        "p50_ms": 27.022,
+        "p95_ms": 39.442,
+        "max_ms": 39.442
+      },
+      "before_thread_cpu": {
+        "count": 30,
+        "p50_ms": 0.09,
+        "p95_ms": 1061.762,
+        "max_ms": 1068.39
+      },
+      "after_thread_cpu": {
+        "count": 10,
+        "p50_ms": 16.736,
+        "p95_ms": 21.869,
+        "max_ms": 21.869
+      },
+      "metadata_sha256": "5875c3c3432ddda379f8caf8ed411b77d30701443e5da912442935a296c3ae7a",
+      "metadata_unchanged": true,
+      "native_span_scope": "Before: untagged serialize_respond includes visible status/metrics polls; after: ten inventory_respond spans. Primary comparison is ten identified raw HTTP inventory responses."
+    },
+    {
+      "project": "ethlib",
+      "files": 2517,
+      "before_bytes": 24204275,
+      "after_bytes": 24209335,
+      "before_response": {
+        "count": 10,
+        "p50_ms": 1159.6866330000012,
+        "p95_ms": 1191.838972999998,
+        "max_ms": 1191.838972999998
+      },
+      "after_response": {
+        "count": 10,
+        "p50_ms": 45.40339600000016,
+        "p95_ms": 53.710215999999946,
+        "max_ms": 53.710215999999946
+      },
+      "before_native": {
+        "count": 11,
+        "p50_ms": 761.42,
+        "p95_ms": 768.037,
+        "max_ms": 768.037
+      },
+      "after_native": {
+        "count": 10,
+        "p50_ms": 20.532,
+        "p95_ms": 26.487,
+        "max_ms": 26.487
+      },
+      "before_thread_cpu": {
+        "count": 11,
+        "p50_ms": 753.555,
+        "p95_ms": 757.914,
+        "max_ms": 757.914
+      },
+      "after_thread_cpu": {
+        "count": 10,
+        "p50_ms": 13.559,
+        "p95_ms": 15.955,
+        "max_ms": 15.955
+      },
+      "metadata_sha256": "59b98c2e15f2f590463873351344a08a59e4aa3854a7dfb1779e635a680cb32f",
+      "metadata_unchanged": true,
+      "native_span_scope": "Before: untagged serialize_respond includes visible status/metrics polls; after: ten inventory_respond spans. Primary comparison is ten identified raw HTTP inventory responses."
+    }
+  ],
+  "profiles": [
+    {
+      "project": "riemann",
+      "directory": "target/native-profile/inventory-publications-events-20261124-riemann",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 22819.911805999996,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/inventory-publications-profile-assets",
+        "source_maps_sha256": {
+          "index-B970UeRl.js": "8501c565d6196fdee5a34dae7e65f623ff3a33ddedc533efba5f31af3b5d777e",
+          "GraphView-Cz-rEHqV.js": "e56cfdf9eb0aeeb72bd929fc878184a56e1fe29f03e159b6051ba5f62ed8b228"
+        }
+      },
+      "handlers": {
+        "project-map-wheel": {
+          "count": 24,
+          "p50_ms": 2.685,
+          "p95_ms": 4.086,
+          "max_ms": 4.966,
+          "total_ms": 65.86099999999999
+        },
+        "graph-wheel": {
+          "count": 24,
+          "p50_ms": 0.538,
+          "p95_ms": 1.066,
+          "max_ms": 2.028,
+          "total_ms": 14.764000000000001
+        },
+        "graph-hover": {
+          "count": 40,
+          "p50_ms": 0.044,
+          "p95_ms": 0.121,
+          "max_ms": 0.136,
+          "total_ms": 2.0650000000000004
+        },
+        "graph-pan": {
+          "count": 31,
+          "p50_ms": 0.173,
+          "p95_ms": 0.387,
+          "max_ms": 0.389,
+          "total_ms": 5.983
+        },
+        "graph-resize": {
+          "count": 4,
+          "p50_ms": 1.169,
+          "p95_ms": 1.452,
+          "max_ms": 1.452,
+          "total_ms": 4.495
+        },
+        "tab-switch": {
+          "count": 24,
+          "p50_ms": 12.847,
+          "p95_ms": 15.843,
+          "max_ms": 16.496,
+          "total_ms": 307.39200000000005
+        },
+        "graph-node-select-distinct": {
+          "count": 8,
+          "p50_ms": 13.229,
+          "p95_ms": 13.298,
+          "max_ms": 13.298,
+          "total_ms": 104.63100000000001
+        }
+      },
+      "tab_two_raf": {
+        "count": 24,
+        "p50_ms": 30.5,
+        "p95_ms": 39.5,
+        "max_ms": 40,
+        "total_ms": 723.5
+      },
+      "node_two_raf": {
+        "count": 8,
+        "p50_ms": 20.399999976158142,
+        "p95_ms": 24.80000001192093,
+        "max_ms": 24.80000001192093,
+        "total_ms": 166.99999994039536
+      },
+      "inventory_requests": [
+        {
+          "phase": "setup",
+          "bytes": 36260405,
+          "response_end_ms": 136.548
+        },
+        {
+          "phase": "setup",
+          "bytes": 36273691,
+          "response_end_ms": 102.824
+        }
+      ],
+      "inventory_materialization": {
+        "wall": {
+          "count": 1,
+          "p50_ms": 1146.126,
+          "p95_ms": 1146.126,
+          "max_ms": 1146.126,
+          "total_ms": 1146.126
+        },
+        "host_thread_cpu": {
+          "count": 1,
+          "p50_ms": 1142.795,
+          "p95_ms": 1142.795,
+          "max_ms": 1142.795,
+          "total_ms": 1142.795
+        }
+      },
+      "initial_poll_cpu_hotspots": [
+        {
+          "self_ms": 3139.8430000000053,
+          "location": "(idle)"
+        },
+        {
+          "self_ms": 715.6839999999997,
+          "location": "(program)"
+        },
+        {
+          "self_ms": 8.594000000000001,
+          "location": "../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 · (anonymous)"
+        },
+        {
+          "self_ms": 6.379,
+          "location": "../../../apps/web/src/features/native/NativeExplorer.tsx:126 · entry"
+        },
+        {
+          "self_ms": 5.425000000000001,
+          "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 · updateElement"
+        },
+        {
+          "self_ms": 5.42,
+          "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:6425 · updateForwardRef"
+        },
+        {
+          "self_ms": 5.372,
+          "location": "../../../apps/web/src/features/native/NativeExplorer.tsx:126 · entry"
+        },
+        {
+          "self_ms": 5.361000000000001,
+          "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 · propagateParentContextChanges"
+        }
+      ],
+      "initial_poll_long_tasks": {
+        "count": 0,
+        "p50_ms": 0,
+        "p95_ms": 0,
+        "max_ms": 0,
+        "total_ms": 0
+      },
+      "gesture_commands": 0,
+      "gesture_body_reads": 0,
+      "summary_sha256": "941c7a613c410c81d319efee171cb5275328ca3a1124fc9c56ae9b465fed80c1",
+      "trace_sha256": "4a70b706a49e96aacc10c74ff4d0f770e61bca3ebce7fa26db7c4bbcb27626b7",
+      "metrics_sha256": "194c1e77d40806d40158b0169fe591c89939148a77485c65cbaa48f18af931c5"
+    },
+    {
+      "project": "ethlib",
+      "directory": "target/native-profile/inventory-publications-events-20261124-ethlib",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "EthLib/Networking/Gossip/Parameters.lean",
+        "declarations": 42,
+        "project_files": 2517,
+        "setup_preparation_ms": 4230.551695,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/inventory-publications-profile-assets",
+        "source_maps_sha256": {
+          "index-B970UeRl.js": "8501c565d6196fdee5a34dae7e65f623ff3a33ddedc533efba5f31af3b5d777e"
+        }
+      },
+      "handlers": {
+        "project-map-wheel": {
+          "count": 24,
+          "p50_ms": 3.013,
+          "p95_ms": 5.764,
+          "max_ms": 6.572,
+          "total_ms": 82.76100000000001
+        },
+        "graph-wheel": {
+          "count": 24,
+          "p50_ms": 0.652,
+          "p95_ms": 0.893,
+          "max_ms": 2.12,
+          "total_ms": 15.953
+        },
+        "graph-hover": {
+          "count": 40,
+          "p50_ms": 0.036,
+          "p95_ms": 0.124,
+          "max_ms": 0.142,
+          "total_ms": 1.7950000000000004
+        },
+        "graph-pan": {
+          "count": 31,
+          "p50_ms": 0.22,
+          "p95_ms": 0.385,
+          "max_ms": 0.511,
+          "total_ms": 7.038000000000001
+        },
+        "graph-resize": {
+          "count": 3,
+          "p50_ms": 0.768,
+          "p95_ms": 1.022,
+          "max_ms": 1.022,
+          "total_ms": 2.318
+        },
+        "tab-switch": {
+          "count": 24,
+          "p50_ms": 8.698,
+          "p95_ms": 10.392,
+          "max_ms": 10.529,
+          "total_ms": 205.45399999999998
+        },
+        "graph-node-select-distinct": {
+          "count": 8,
+          "p50_ms": 8.666,
+          "p95_ms": 9.052,
+          "max_ms": 9.052,
+          "total_ms": 38.24
+        }
+      },
+      "tab_two_raf": {
+        "count": 24,
+        "p50_ms": 25.100000023841858,
+        "p95_ms": 26.80000001192093,
+        "max_ms": 28.400000035762787,
+        "total_ms": 592.9000001549721
+      },
+      "node_two_raf": {
+        "count": 8,
+        "p50_ms": 11.900000035762787,
+        "p95_ms": 14.899999976158142,
+        "max_ms": 14.899999976158142,
+        "total_ms": 87.59999996423721
+      },
+      "inventory_requests": [
+        {
+          "phase": "setup",
+          "bytes": 24232987,
+          "response_end_ms": 393.519
+        }
+      ],
+      "initial_poll_cpu_hotspots": [
+        {
+          "self_ms": 3104.444000000005,
+          "location": "(idle)"
+        },
+        {
+          "self_ms": 751.7139999999999,
+          "location": "(program)"
+        },
+        {
+          "self_ms": 44.75099999999999,
+          "location": "(garbage collector)"
+        },
+        {
+          "self_ms": 20.358999999999998,
+          "location": "../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 · (anonymous)"
+        },
+        {
+          "self_ms": 6.558,
+          "location": "fetch"
+        },
+        {
+          "self_ms": 5.460000000000001,
+          "location": "../../../node_modules/@mui/material/Tooltip/Tooltip.mjs:220 · (anonymous)"
+        },
+        {
+          "self_ms": 4.415,
+          "location": "../../../node_modules/@mui/material/ButtonBase/ButtonBase.mjs:97 · (anonymous)"
+        },
+        {
+          "self_ms": 2.754,
+          "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:6425 · updateForwardRef"
+        }
+      ],
+      "initial_poll_long_tasks": {
+        "count": 0,
+        "p50_ms": 0,
+        "p95_ms": 0,
+        "max_ms": 0,
+        "total_ms": 0
+      },
+      "gesture_commands": 0,
+      "gesture_body_reads": 0,
+      "summary_sha256": "ca7dbb216be356a146374fd116ee0bd78b7193d362363eb21b0634348e6a36b4",
+      "trace_sha256": "02b2bbe93ac9948ae75ba4300677ce06671d88f17f3225fcd77010e9af8a7c7b",
+      "metrics_sha256": "945d42a27130dc0aa6109827d7b230d97ffd7f0c4977062fafa2c46b95ef4a2e"
+    }
+  ],
+  "browser_budgets": [
+    {
+      "report": "target/gui-inventory-publications-budget-normal-report",
+      "attachment": "navigation-performance",
+      "data": {
+        "browser": "149.0.7827.53",
+        "motion": "no-preference",
+        "cold_analysis_store_preparation_ms": 31995.269485000004,
+        "warm_tab_two_raf_ms": [
+          24.400000035762787,
+          26,
+          22.19999998807907,
+          27.19999998807907,
+          27,
+          25.900000035762787,
+          20.900000035762787,
+          27.600000023841858,
+          23,
+          26.5
+        ],
+        "p95_ms": 27.600000023841858,
+        "maximum_p95_ms": 250,
+        "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+      }
+    },
+    {
+      "report": "target/gui-inventory-publications-budget-normal-report",
+      "attachment": "source-before-analysis.json",
+      "data": {
+        "source_visible_ms": 1166.4785610000035,
+        "budget_ms": 5000,
+        "methodology": "Real offline reader and a deliberately held installed Lean compiler; no complete semantic snapshot is available yet."
+      }
+    },
+    {
+      "report": "target/gui-inventory-publications-budget-normal-report",
+      "attachment": "paging-during-compilation.json",
+      "data": {
+        "page_to_two_raf_ms": [
+          28.19999998807907,
+          27.900000035762787,
+          29.399999976158142,
+          22.200000047683716
+        ],
+        "commands": [],
+        "body_reads": [],
+        "scope": "Actual held Lean compiler; DOM page and two animation callbacks, not physical presentation."
+      }
+    },
+    {
+      "report": "target/gui-inventory-publications-budget-reduced-report",
+      "attachment": "navigation-performance",
+      "data": {
+        "browser": "149.0.7827.53",
+        "motion": "reduce",
+        "cold_analysis_store_preparation_ms": 30835.361913,
+        "warm_tab_two_raf_ms": [
+          27.100000023841858,
+          27.100000023841858,
+          30,
+          32.40000003576279,
+          27.80000001192093,
+          26.400000035762787,
+          28.899999976158142,
+          28.100000023841858,
+          22.5,
+          25.69999998807907
+        ],
+        "p95_ms": 32.40000003576279,
+        "maximum_p95_ms": 250,
+        "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+      }
+    },
+    {
+      "report": "target/gui-inventory-publications-budget-reduced-report",
+      "attachment": "source-before-analysis.json",
+      "data": {
+        "source_visible_ms": 1169.6004459999967,
+        "budget_ms": 5000,
+        "methodology": "Real offline reader and a deliberately held installed Lean compiler; no complete semantic snapshot is available yet."
+      }
+    },
+    {
+      "report": "target/gui-inventory-publications-budget-reduced-report",
+      "attachment": "paging-during-compilation.json",
+      "data": {
+        "page_to_two_raf_ms": [
+          27,
+          28.399999976158142,
+          30.80000001192093,
+          32.19999998807907
+        ],
+        "commands": [],
+        "body_reads": [],
+        "scope": "Actual held Lean compiler; DOM page and two animation callbacks, not physical presentation."
+      }
+    }
+  ],
+  "matching_js_bundles": [
+    {
+      "file": "AnalysisView-BsvSRwT_.js",
+      "sha256": "2a6e0d7ee55c503596f45f82587c53a2d00394f6d52f19b999b35662a467935e"
+    },
+    {
+      "file": "ArtifactPanel-CHBscA8H.js",
+      "sha256": "17d4cd2042d84f5fcee12e942acd578d826fa3c313c4471986ef8895a800c260"
+    },
+    {
+      "file": "GraphView-Cz-rEHqV.js",
+      "sha256": "f6e1a2c72cf4927bb4a03b1015e6aaf1b46bc8969ced0f98e809df47a9e85d1f"
+    },
+    {
+      "file": "ProofWorkspace-CXvYzhH9.js",
+      "sha256": "303a74c35b2b98a3ab612e4aead8667e1eae90191403a014f0756ce5e8a70020"
+    },
+    {
+      "file": "ReviewView-DET6Kl_Z.js",
+      "sha256": "5c973ba6dbd282b735f299a0c5f364e4a9db6444006c7684ce4989af2353603d"
+    },
+    {
+      "file": "highlight-CaeQAS_c.js",
+      "sha256": "be15b3d3ce15a8064cfc138d75230688bb6edaf800416a8bfc12e5ee9f6bd07b"
+    },
+    {
+      "file": "index-B970UeRl.js",
+      "sha256": "615c79c7cc9065b05f11898df05cf8c4244ee53b971918e588f2152c89016e41"
+    }
+  ],
+  "ci_failures_fixed": [
+    {
+      "job": 137985392089,
+      "case": "Large history stale-read fixture",
+      "evidence": "Downloaded real CI trace: model metadata job held running for 5.3 s, while the test imposed its unrelated default 5 s before an admitted model request. It now observes actual admission within the turn budget, retains the held-old-body/latest-answer assertions, and drains intercepted HTTP reads before intentional host shutdown.",
+      "validation": "Full latest browser suite passes."
+    },
+    {
+      "job": 137985392089,
+      "case": "Large directory misses File3",
+      "evidence": "The GUI used formatted list_files, which takes an OS-order subset of 500 entries then sorts it. File3 can fall outside that subset. Replaced with complete typed policy-bound entries, no omitted sentinel or newline parser.",
+      "validation": "1201-entry/literal-name/missing-folder journey plus actual 10001-file map passes."
+    },
+    {
+      "job": 137985392089,
+      "case": "Resource corruption selector",
+      "evidence": "Fixture selected every non-hidden cache directory and mistook the separate compiled-modules cache for a prepared library. It now selects the actual 64-hex library identity.",
+      "validation": "Actual read-only/offline library corruption and recovery journey passes."
+    }
+  ],
+  "intermediate_failures": [
+    "Early generic inventory stages and directory stages have separate retained reports in target/gui-inventory-publications-*; final all/budget reports name the exact deployed candidate.",
+    "After successful history assertions an intercepted poll raced deliberate shutdown (ECONNREFUSED); explicit route draining fixes the fixture without changing the host lifecycle."
+  ],
+  "limits": [
+    "Serialized retention limits are not whole-process memory bounds.",
+    "Generated DTO validation and scope checks are application adapters, not new Lean/core refinement or whole-renderer proofs.",
+    "One actual Chrome capture per project has sampling/automation overhead; small p95 samples can equal the maximum.",
+    "Two-rAF/DOM gate is not physical presentation or field INP.",
+    "Raw metadata comparison normalizes only legacy numeric sizes to the new canonical decimal representation and excludes the retired standalone revision/new generation hint. All files, original names/counts/imports/symbols/descriptions match.",
+    "Inventory captures original lexical/navigation observations and prepared-cache generation, not current accepted proof evidence or filesystem watching.",
+    "Scripted model replies in regression gates; no new live-model, cold-install, local inference/confidentiality or whole-application assurance claim.",
+    "Job/log/evidence read models, remaining native wire generation, deterministic layout/order and recorded-path retirement remain open."
+  ],
+  "final_hosts": [
+    {
+      "project": "riemann",
+      "service": "meden-riemann-gui.service",
+      "pid": 372189,
+      "binary_sha256": "fc4dd8f3555a11cc0a7bb1e7fd3eed69e8a298eec53db5ade4182f93bcffd7dd",
+      "running": false,
+      "authorized": false,
+      "inventory_revision": "sha256:063cac2b6dc7a66d5571681301d43a6171404cecdf81a7fb76e5d21056564d80",
+      "files": 175187,
+      "generation": "1",
+      "retired_overview_status": 404,
+      "directories": [
+        {
+          "path": ".",
+          "revision": "sha256:fd68c9630181c04d4d2cce73acdd5dac4c872e80eb5cc2f0303a44309785c783",
+          "entries": 7
+        },
+        {
+          "path": "src",
+          "revision": "sha256:60911793e503351a1c6692c483316e4df2fe67bab2faf06efb73fc665df3c5a9",
+          "entries": 11
+        },
+        {
+          "path": "src/Formalism",
+          "revision": "sha256:30f9c5611069d0315e52e4cf9e63473e1ff87488a88cc335b0ef6856b5c62773",
+          "entries": 116
+        },
+        {
+          "path": "src/Formalism/PeriodIntegrals",
+          "revision": "sha256:86c21856ad6f988bb74b088f945f38d03567edf5601673b941184439b3b003e1",
+          "entries": 336
+        },
+        {
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula",
+          "revision": "sha256:b5261da5ffafe539a0101575f1a6209cfa255f34a654fedc9f09a1a819e81d05",
+          "entries": 502
+        },
+        {
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness",
+          "revision": "sha256:1caa27daa648b1456bfbc51a55073aaf648b178df309acf2a81f1e4d84a1377a",
+          "entries": 32
+        }
+      ],
+      "sources": [
+        {
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "source_revision": "sha256:cceea27ed96cca5edbc108e206c63b9d1d458dd4177154ad797f5b7d6f121014",
+          "reader_revision": "sha256:d3bca7c0ce21989bef612ac79475e72da33062b4140b13dfe87bbaf183a61be8",
+          "original_bytes": 10163,
+          "original_sha256": "sha256:766e359859e8f87ad084bb289af3f379a70b2cf0c753ba99bb20fd02079a55b1"
+        }
+      ]
+    },
+    {
+      "project": "ethlib",
+      "service": "meden-ethlib-gui.service",
+      "pid": 372368,
+      "binary_sha256": "fc4dd8f3555a11cc0a7bb1e7fd3eed69e8a298eec53db5ade4182f93bcffd7dd",
+      "running": false,
+      "authorized": false,
+      "inventory_revision": "sha256:0de136064dc167e529199a70865196ac6434d1f572bf704c9167659ff0449d9f",
+      "files": 2517,
+      "generation": "0",
+      "retired_overview_status": 404,
+      "directories": [
+        {
+          "path": ".",
+          "revision": "sha256:dd1b177d40ead17a6686c4b7d3da84c3f095f986e52b659ef29454370a970696",
+          "entries": 31
+        },
+        {
+          "path": "EthLib",
+          "revision": "sha256:29478b57e55996dca46c8f1e9149ff645b234a1994b62b2af1cc716dbf5ed5b0",
+          "entries": 16
+        },
+        {
+          "path": "EthLib/Networking",
+          "revision": "sha256:357f05fb7cddd1a0a9541d59ae6cae08faca0a8db9338a4bca9614946a187437",
+          "entries": 17
+        },
+        {
+          "path": "EthLib/Networking/Gossip",
+          "revision": "sha256:ebf6bcd4f6b67f1561b01cb5ef3a4f90df86ba28170573f76a07327b49405225",
+          "entries": 9
+        }
+      ],
+      "sources": [
+        {
+          "path": "EthLib/Networking/Gossip/Parameters.lean",
+          "source_revision": "sha256:2c341ffe5ab6931073adae9076148692002e8a718f8e182610b8b79cfa4b2506",
+          "reader_revision": "sha256:0b79b28ff3aa227731108c7cde50cf54fa06cc447922756668b1197473b0d3ac",
+          "original_bytes": 2626,
+          "original_sha256": "sha256:a0baa00d312b4b7b7d34024755369db56c91e9eca8f5905a74313b19fc96fc92"
+        }
+      ]
+    }
+  ]
+}

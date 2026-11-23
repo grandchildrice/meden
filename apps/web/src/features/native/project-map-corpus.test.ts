@@ -83,13 +83,13 @@ export function corpus(
   rows: Array<{ folders: number[]; count: number; main: boolean }>,
 ): WorkspaceOverview {
   return {
-    revision: "generated-corpus-v1",
+    generation: "0",
     excluded: [],
     inventory_only: false,
     files: rows.map((row, index) => ({
       path: [...row.folders.map((n) => `D${n}`), `F${index}.lean`].join("/"),
       sha256: "fixture",
-      bytes: 100,
+      bytes: "100",
       declarations: row.count,
       theorems: row.count,
       indexed: true,

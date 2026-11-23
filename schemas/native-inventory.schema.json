@@ -1,0 +1,316 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Snapshot",
+  "description": "Complete bounded inventory projection; individual prepared chunks may enrich it.",
+  "type": "object",
+  "properties": {
+    "generation": {
+      "description": "Prepared navigation-cache generation, as a lossless canonical decimal.\nThe complete envelope ID binds this hint and all original metadata.",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    },
+    "files": {
+      "description": "Complete source inventory, in canonical path order.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/File"
+      },
+      "maxItems": 250000
+    },
+    "excluded": {
+      "description": "Explicitly excluded directory names.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "inventory_only": {
+      "description": "Large inventories load already-prepared navigation in bounded chunks.",
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "generation",
+    "files",
+    "excluded",
+    "inventory_only"
+  ],
+  "$defs": {
+    "File": {
+      "description": "Bounded metadata and navigation; complete source text is a separate query.",
+      "type": "object",
+      "properties": {
+        "path": {
+          "description": "Original relative workspace path.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "sha256": {
+          "description": "Complete text digest when indexed; empty for unindexed navigation.",
+          "type": "string",
+          "pattern": "^(?:[a-f0-9]{64})?$"
+        },
+        "bytes": {
+          "description": "Canonical decimal avoids loss of large metadata sizes in JavaScript.",
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$"
+        },
+        "declarations": {
+          "description": "Lexical counts, never compiler results.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0,
+          "maximum": 1048576
+        },
+        "theorems": {
+          "description": "Lexical theorem count.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0,
+          "maximum": 1048576
+        },
+        "imports": {
+          "description": "Original import name candidates.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "symbols": {
+          "description": "Retained navigation declarations.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Symbol"
+          }
+        },
+        "indexed": {
+          "description": "False includes unread/unsupported inputs; it never asserts readability.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "bytes",
+        "declarations",
+        "theorems",
+        "imports",
+        "symbols",
+        "indexed"
+      ]
+    },
+    "Symbol": {
+      "description": "A source declaration's navigation data, independent of its source language.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Original observed formal name.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1048576
+        },
+        "line": {
+          "description": "One-based original line.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 1,
+          "maximum": 1048577
+        },
+        "kind": {
+          "description": "Generic presentation role, never proof strength.",
+          "$ref": "#/$defs/Kind"
+        },
+        "declaration": {
+          "description": "Original declaration spelling for a format-specific label.",
+          "type": "string"
+        },
+        "private": {
+          "description": "Lexically observed visibility.",
+          "type": "boolean"
+        },
+        "references": {
+          "description": "Lexical name candidates, not elaborated dependencies.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "semantic": {
+          "description": "A separately prepared description/search observation, when available.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Explanation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "main_theorem": {
+          "description": "Explicit target metadata, not a proof receipt.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "line",
+        "kind",
+        "declaration",
+        "private",
+        "references",
+        "main_theorem"
+      ]
+    },
+    "Kind": {
+      "description": "Presentation category, independent of the checker implementation.",
+      "oneOf": [
+        {
+          "description": "Formal claim, without an inferred proof receipt.",
+          "type": "string",
+          "const": "theorem"
+        },
+        {
+          "description": "Named definition or data declaration.",
+          "type": "string",
+          "const": "definition"
+        },
+        {
+          "description": "Declared assumption.",
+          "type": "string",
+          "const": "axiom"
+        }
+      ]
+    },
+    "Explanation": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "origin": {
+          "type": "string",
+          "const": "elaborated"
+        },
+        "sentence": {
+          "type": "string"
+        },
+        "refutation": {
+          "type": "string"
+        },
+        "checker": {
+          "$ref": "#/$defs/Check"
+        },
+        "intermediate": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "renderer": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rendering_error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "origin",
+        "sentence",
+        "refutation",
+        "checker"
+      ]
+    },
+    "Check": {
+      "type": "object",
+      "properties": {
+        "engine": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "counterexample",
+            "predicate_false_example",
+            "not_found",
+            "gave_up",
+            "budget_exhausted",
+            "unavailable",
+            "unsupported",
+            "not_proposition"
+          ]
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "diagnostic": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "seed": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "numInst": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "numRetries": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "maxSize": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "mode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "engine",
+        "status",
+        "candidates"
+      ]
+    }
+  }
+}

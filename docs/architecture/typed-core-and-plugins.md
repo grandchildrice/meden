@@ -464,8 +464,34 @@ identity before projecting 200-line pages with explicit EOF; it never labels a
 prefix as a complete source or graph. The viewer preserves literal source text
 instead of decoding numbered strings. Unsupported formats remain readable from
 the directory explorer; unreadable Lean/Rust entries remain in the map inventory
-without invented declarations or compiler evidence. The directory/inventory
-wire format is not yet the generic read model.
+without invented declarations or compiler evidence.
+
+Inventory and directory navigation now also have application-owned DTOs and
+generated validators. Inventory metadata freezes once outside the host status
+lock; its complete envelope binds canonical file order, original navigation data
+and the prepared cache generation. File sizes and that generation are canonical
+u64 decimals rather than lossy browser numbers. The envelope is the sole view
+identity; the former second serialization/hash of the whole metadata vector is
+removed. Exact-revision inventory queries share cached bytes, and the unversioned
+`/api/overview` route and duplicate browser schemas are deleted.
+
+Large-project chunks require their exact original inventory publication and
+requested file. The host checks that scope before/after reading prepared cache
+artifacts; a changed inventory is a conflict. Complete generated chunk envelopes
+are retained per immutable inventory, bounded by 64 chunks / 64 MiB. A cache hit
+performs no artifact/source read. First reads consult prepared navigation
+artifacts, never source workers, compilation or inference. The browser rejects
+wrong parent/file responses and late old-context callbacks.
+
+Directory reads use the original policy-bound offline worker directly and
+publish complete original UTF-8 names and filesystem types, with explicit typed
+failures. The GUI's 500-entry formatted tool listing, omitted-entry sentinel and
+newline parser are deleted. Up to 100,000 entries form a complete listing; a
+worker/envelope limit admits no prefix. File readers and directories share one
+64-entry / 64 MiB publication table per owner. Status contains only references;
+expanded/collapsed retained folders do not reread files or change chat, and warm
+folder navigation remains available during another operation. Source/tree views
+remain separate from compiler jobs and admitted evidence.
 
 Opening a file publishes its complete bounded reader observation before semantic
 preparation. Only the graph pane waits for compilation/search/rendering. The
@@ -516,10 +542,10 @@ after a fresh status observation, at most three times per availability context;
 a changed context or explicit retry can recover the same republished content
 ID. Persistent failures expose a local retry. File navigation does not populate
 chat, and no read query schedules a semantic job. Large input/compiler freshness
-checks remain in their original host operations. Complete reader observations now use the same query boundary. Job/evidence
-views still need their own revisioned queries.
+checks remain in their original host operations. Complete reader, inventory and directory observations now use the same query
+boundary. Job/evidence views still need their own revisioned queries.
 
-This does not finish step 4: generic inventory/job/evidence DTOs, generation of
+This does not finish step 4: generic job/evidence DTOs, generation of
 the rest of the native wire contract and remaining navigation waits still need
 work. Step 5's versioned layout/order and retirement requirements remain open too.
 Step 3 now executes the second backend through public TUI/GUI, actual offline

@@ -33,6 +33,8 @@ enum PublicationRole {
     History,
     Source,
     Reader,
+    Inventory,
+    Directory,
 }
 
 impl Task {
@@ -73,7 +75,7 @@ struct View {
     reasoning: String,
     project: crate::project::Summary,
     stopped: Option<String>,
-    inspection: Option<Value>,
+    directories: meden_app::view::directory::Directories,
     readers: meden_app::view::readers::Readers,
     sources: meden_app::view::sources::Sources,
     source_preparation: std::collections::BTreeMap<String, sources::Preparation>,
@@ -384,7 +386,7 @@ fn initial_view(
         reasoning: String::new(),
         project: project.stored_status()?,
         stopped: analysis_error.or(saved.stopped),
-        inspection: None,
+        directories: meden_app::view::directory::Directories::default(),
         readers: meden_app::view::readers::Readers::default(),
         sources: meden_app::view::sources::Sources::default(),
         source_preparation: std::collections::BTreeMap::new(),
@@ -510,28 +512,22 @@ impl Http<'_> {
             respond(request, 200, &snapshot);
             return;
         }
-        if request.method() == &Method::Get && request.url() == "/api/overview" {
-            let snapshot = lock(self.view).overview_snapshot.clone();
-            match snapshot {
-                Some(snapshot) => respond(request, 200, &json!(&*snapshot)),
-                None => respond(
-                    request,
-                    409,
-                    &json!({"error":"Workspace graph is not ready; inspect its status or refresh it"}),
-                ),
-            }
-            return;
-        }
         if request.method() == &Method::Get {
-            if let Some(encoded) = request.url().strip_prefix("/api/map?path=") {
+            if let Some(encoded) = request.url().strip_prefix("/api/map?inventory=") {
+                let (revision, encoded) = encoded.split_once("&path=").unwrap_or((encoded, ""));
+                let revision = percent_encoding::percent_decode_str(revision)
+                    .decode_utf8()
+                    .map(std::borrow::Cow::into_owned);
                 let path = percent_encoding::percent_decode_str(encoded)
                     .decode_utf8()
                     .map(std::borrow::Cow::into_owned);
-                match path
-                    .map_err(anyhow::Error::new)
-                    .and_then(|path| overview::cached(self.view, self.workspace, &path))
-                {
-                    Ok(chunk) => respond(request, 200, &json!(chunk)),
+                match path.map_err(anyhow::Error::new).and_then(|path| {
+                    let revision = revision?;
+                    overview::cached(self.view, self.workspace, &revision, &path)
+                }) {
+                    Ok(bytes) => {
+                        respond_publication(request, Some(bytes), "gui.inventory_chunk_respond");
+                    }
                     Err(error) => respond(request, 409, &json!({"error":format!("{error:#}")})),
                 }
                 return;
@@ -553,6 +549,10 @@ impl Http<'_> {
     fn publication(&self, url: &str) -> Option<(&'static str, Option<Arc<[u8]>>)> {
         let (role, encoded) = if let Some(revision) = url.strip_prefix("/api/history?revision=") {
             (PublicationRole::History, revision)
+        } else if let Some(revision) = url.strip_prefix("/api/directory?revision=") {
+            (PublicationRole::Directory, revision)
+        } else if let Some(revision) = url.strip_prefix("/api/inventory?revision=") {
+            (PublicationRole::Inventory, revision)
         } else if let Some(revision) = url.strip_prefix("/api/reader?revision=") {
             (PublicationRole::Reader, revision)
         } else {
@@ -570,6 +570,11 @@ impl Http<'_> {
                     PublicationRole::History => view.history.bytes(&revision),
                     PublicationRole::Source => view.sources.bytes(&revision),
                     PublicationRole::Reader => view.readers.bytes(&revision),
+                    PublicationRole::Directory => view.directories.bytes(&revision),
+                    PublicationRole::Inventory => view
+                        .overview_snapshot
+                        .as_ref()
+                        .and_then(|s| s.bytes(&revision)),
                 }
             });
         Some((
@@ -577,6 +582,8 @@ impl Http<'_> {
                 PublicationRole::History => "gui.history_respond",
                 PublicationRole::Source => "gui.source_respond",
                 PublicationRole::Reader => "gui.reader_respond",
+                PublicationRole::Directory => "gui.directory_respond",
+                PublicationRole::Inventory => "gui.inventory_respond",
             },
             bytes,
         ))
@@ -804,7 +811,9 @@ fn worker(
                 }
                 Command::Inspect { path, directory } => {
                     if directory {
-                        lock(view).inspection = Some(inspect(workspace, &processes, &path)?);
+                        let directory =
+                            meden_app::view::directory::observe(workspace, &processes, &path)?;
+                        lock(view).directories.publish(directory);
                     } else {
                         read_source(view, workspace, &processes, &path)?;
                     }
@@ -815,7 +824,7 @@ fn worker(
             if let Some(instruction) = instruction {
                 preview.clear();
                 run_instruction(&mut session()?, &instruction, view, workspace)?;
-                if lock(view).overview.state == "stale"
+                if lock(view).overview.state == overview::State::Stale
                     && !processes.flag().load(std::sync::atomic::Ordering::SeqCst)
                 {
                     // Read-only navigation refresh; it cannot admit native evidence.
@@ -927,29 +936,6 @@ fn read_source(
     Ok(())
 }
 
-fn inspect(workspace: &Arc<Workspace>, processes: &Arc<Control>, path: &str) -> Result<Value> {
-    let (registry, policy) = crate::workspace::environment(workspace, processes)?;
-    let call = meden_agent::conversation::ToolCall {
-        id: "gui-inspect".into(),
-        function: meden_agent::conversation::FunctionCall {
-            name: "list_files".into(),
-            arguments: serde_json::to_string(&json!({"path":path}))?,
-        },
-    };
-    let result = meden_agent::conversation::execute(
-        &call,
-        &registry,
-        &policy,
-        &|_| {},
-        processes.flag(),
-        &|| None,
-    );
-    Ok(match result {
-        Ok(text) => json!({"path":path,"directory":true,"text":text}),
-        Err(error) => json!({"path":path,"error":format!("{error:?}")}),
-    })
-}
-
 fn observe(view: &Mutex<View>, event: &Event<'_>) {
     let mut view = lock(view);
     match event {
@@ -989,7 +975,7 @@ fn observe(view: &Mutex<View>, event: &Event<'_>) {
                     "write_file" | "edit_file" | "bash" | "check_lean_work"
                 )
             {
-                view.overview.state = "stale";
+                view.overview.state = overview::State::Stale;
             }
             if refusal.is_none() && call.function.name == "check_lean_work" {
                 view.project.verified = false;

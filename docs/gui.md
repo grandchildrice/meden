@@ -45,6 +45,17 @@ button and is not required for source navigation;
 a failed extraction does not remove the cached project map. The explorer refresh icon rebuilds
 navigation after external edits; ordinary development turns also refresh the inventory.
 
+The complete inventory is an application-owned generated read model. Its exact
+content-ID query returns frozen bytes without repeating JSON serialization.
+Refreshing or replacing it retires older query references. Source counts and
+navigation observations cannot restore an inference approval or proof receipt.
+The explorer separately fetches immutable directory listings: literal names,
+including newlines/Unicode, are never decoded from formatted tool text. A folder
+contains all observed entries up to 100,000, or an explicit local failure with
+**Retry folder**; there is no silent 500-entry cutoff. Collapsing/reopening a
+retained folder issues no command or body query. Directory/reader retention is
+bounded independently at 64 entries / 64 MiB of serialized envelopes per owner.
+
 Markers distinguish main tracked targets (star), theorems (diamond), lemmas (circle),
 definitions (square) and axioms (triangle). Classes/structures have their own label.
 The declaration keyword comes from the source; main markers are explicitly named
@@ -397,8 +408,11 @@ before the map becomes ready. Reopening reuses the prepared inventory; explicit 
 and rereads changed sources. The initial browser inventory has unloaded declaration details; file-count
 weights keep coordinates stable. Zoom fetches small prepared chunks through a read-only
 API instead of starting a worker or refetching the whole inventory. It preserves the
-map camera, source tab and chat. Nearby import-only barrels are included, at most 32
-files per chunk. Cached navigation errors are file-local and refresh repairs changed
+map camera, source tab and chat. Each chunk binds the exact requested inventory
+and selected path; old-context queries are conflicts. Complete envelopes are
+cached up to 64 chunks / 64 MiB per immutable inventory. First chunk reads use
+prepared artifacts, while cache hits return existing bytes without artifact I/O.
+Nearby import-only barrels are included, at most 32 files per chunk. Cached navigation errors are file-local and refresh repairs changed
 sources; ambiguous module suffix matches are not chosen. This is lexical navigation,
 not a whole-project Lean/proof build. The actual Riemann corpus has 175,187 files.
 

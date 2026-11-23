@@ -10,6 +10,42 @@ writeFileSync(
   JSON.stringify(z.toJSONSchema(workspaceSchema), null, 2) + "\n",
 );
 for (const [key, rust, symbol, type] of [
+  [
+    "directory-index",
+    "directory::Index",
+    "directoryIndexSchema",
+    "DirectoryIndex",
+  ],
+  [
+    "directory-publication",
+    "publication::Envelope<directory::Directory>",
+    "directoryPublicationSchema",
+    "DirectoryPublication",
+  ],
+  [
+    "inventory",
+    "inventory::Snapshot",
+    "inventorySnapshotSchema",
+    "InventorySnapshot",
+  ],
+  [
+    "inventory-status",
+    "inventory::Status",
+    "inventoryStatusSchema",
+    "InventoryStatus",
+  ],
+  [
+    "inventory-publication",
+    "publication::Envelope<inventory::Snapshot>",
+    "inventoryPublicationSchema",
+    "InventoryPublication",
+  ],
+  [
+    "inventory-chunk",
+    "publication::Envelope<inventory::Chunk>",
+    "inventoryChunkSchema",
+    "InventoryChunk",
+  ],
   ["source", "SourcePage", "sourcePageSchema", "SourcePage"],
   ["file", "file::FileView", "fileViewSchema", "FileView"],
   ["reader-index", "readers::Index", "readerIndexSchema", "ReaderIndex"],

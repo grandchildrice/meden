@@ -1,5 +1,95 @@
 # Graph interaction measurements
 
+## Frozen inventory and complete typed directories (November 24)
+
+The [implementation and measurement record](../results/inventory-publications-20261124.json)
+moves inventory, directory, navigation chunk and status DTOs into the shared
+application and generates their runtime validators. A complete inventory freezes
+once outside the status lock. Its envelope is the sole content identity, binding
+original metadata and a lossless prepared-cache generation. The former separate
+whole-metadata serialization/hash is deleted. Exact queries return existing bytes;
+the unversioned `/api/overview` route and handwritten wire schemas are retired.
+
+Ten sequential raw-body requests per project compared immutable old/new services,
+with the same original metadata and no concurrent validation/profiling:
+
+| Inventory request | Riemann before / after | EthLib before / after |
+| --- | ---: | ---: |
+| Response body bytes | 35,887,894 / 36,238,294 | 24,204,275 / 24,209,335 |
+| Node complete response p50 | 1,862.115 / 61.839 ms | 1,159.687 / 45.403 ms |
+| Node complete response p95 | 1,891.940 / 77.211 ms | 1,191.839 / 53.710 ms |
+| New cached response host-thread CPU p95 | 21.869 ms | 15.955 ms |
+
+File sizes are now canonical decimal strings, so the body is slightly larger.
+Comparison normalizes only that representation and excludes the retired
+standalone revision/new cache-generation hint: every original file, name, count,
+import, symbol and description matches. The improvement removes per-query JSON
+work rather than omitting data. Native old `serialize_respond` spans are untagged
+and include visible status/metrics polls (30 / 11 records); their diagnostic p95
+is 1,081.839 / 768.037 ms. The primary comparison is the ten identified HTTP
+responses; new `inventory_respond` has exactly ten records per project. These are
+small within-run samples, not universal or field percentiles.
+
+One actual Chrome capture per deployed project used 1440 × 960, normal motion,
+CDP traces and sampled CPU profiles, with all seven served JS bundles matching
+the hidden-map build. Riemann's two distinct inventory revisions transferred in
+136.548 / 102.824 ms; EthLib's one in 393.519 ms. Initial one-time materialization
+remains work: Riemann's observed update span took 1,146.126 ms outside the status
+lock. It is not a zero-cost inventory or a universal startup-speedup claim.
+
+| Synchronous handler p95 | Riemann | EthLib |
+| --- | ---: | ---: |
+| Project-map wheel | 4.086 ms | 5.764 ms |
+| Graph wheel | 1.066 ms | 0.893 ms |
+| Hover | 0.121 ms | 0.124 ms |
+| Pan | 0.387 ms | 0.385 ms |
+| Resize | 1.452 ms | 1.022 ms |
+| Tabs | 15.843 ms | 10.392 ms |
+| Alternating-node selection | 13.298 ms | 9.052 ms |
+
+Gesture phases fetched no inventory/directory/source/history/reader body and
+issued no command. Tab input/two-rAF was 39.5 / 26.8 ms; distinct-node click proxy
+was 24.8 / 14.9 ms. Single captures do not establish a general rendering win.
+Complete cached graph readiness still took **22.820 / 4.231 seconds**, with cache
+hits and original input checks. Initial map layout and independent job/log/evidence
+read models remain work.
+
+The exact deployed binary also passed serialized numeric gates in both motion
+modes. Prepared-tab p95 was **27.6 / 32.4 ms**, and held-compiler paging maximum
+was **29.4 / 32.2 ms**, each under 250 ms. Initial source was visible in
+1,166.5 / 1,169.6 ms under its 5-second budget. These are DOM/two-animation-callback
+proxies, not physical presentation or field INP.
+
+The migration fixes a real CI-exposed directory bug: formatted `list_files`
+took an OS-order subset of 500 entries and sorted only that subset, making some
+files unreachable. The GUI now observes complete typed lists through the same
+original/resolved policy-bound worker, at most 100,000 entries, and publishes
+immutable envelopes. Limits/failures admit no prefix or omitted-entry sentinel;
+literal newline/Unicode names survive. Reader/directory retention shares one
+64-entry / 64 MiB table per owner. Retained folder folding/reopening performs no
+read; missing folders retry locally. A 1,201-entry actual browser journey reads
+the last file and a newline/Unicode filename. Inventory failure/retry does no
+recapture, stale inventory/chunk requests conflict, delayed original bodies cannot
+replace refreshed nodes, and restart reobserves actual files.
+
+Large-project chunks bind the exact parent publication and requested path, check
+scope before/after reading prepared artifacts, and memoize complete envelopes
+(up to 64 / 64 MiB per inventory). Cache hits do no artifact I/O; initial reads
+use prepared navigation artifacts without source workers, compilation or models.
+Canonical order/count/size, original parent/path and count/byte eviction are
+checked at the application boundary and through typed client tests.
+
+All **64 browser journeys**, Rust **298**, TypeScript **38**, **22 architecture
+checks**, the 3,000-case differential corpus and public TUI **34 required cases**
+passed, alongside Clippy, exact-CI Python lint, formatting and reproducible schema
+export. Both browser motion gates passed separately. Decoded TUI failure/restart/
+continuation screens and actual source/tree/map screens were reviewed. The record
+also retains the real CI trace identifying a metadata-job wait in the history
+fixture, proper draining before host restart, and selection of the actual frozen
+library instead of its separate compiled-module cache. Inference remains scripted
+in regression gates; no new live-model, cold-install, confidentiality or refinement
+claim is made.
+
 ## Reader publications and local paging (November 24)
 
 The [implementation and measurement record](../results/reader-publications-20261124.json)

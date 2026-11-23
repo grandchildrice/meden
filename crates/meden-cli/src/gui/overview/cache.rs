@@ -117,7 +117,7 @@ pub(super) fn prepare(
     let cursor = AtomicUsize::new(0);
     let completed = AtomicUsize::new(0);
     let changed = std::sync::atomic::AtomicBool::new(complete.is_none());
-    let preparing = lock(view).overview.state == "loading";
+    let preparing = lock(view).overview.state == super::State::Loading;
     if preparing {
         lock(view).activity = "Preparing cached project map".into();
     }

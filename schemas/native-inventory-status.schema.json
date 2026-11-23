@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Status",
+  "description": "Small generated progress/reference projection, never the inventory body.",
+  "type": "object",
+  "properties": {
+    "state": {
+      "description": "Host-observed state.",
+      "$ref": "#/$defs/State"
+    },
+    "scanned": {
+      "description": "Completed file observations.",
+      "type": "integer",
+      "format": "uint",
+      "minimum": 0,
+      "maximum": 250000
+    },
+    "total": {
+      "description": "Known source-file count.",
+      "type": "integer",
+      "format": "uint",
+      "minimum": 0,
+      "maximum": 250000
+    },
+    "revision": {
+      "description": "Exact complete publication, if available.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "error": {
+      "description": "Local bounded diagnostic, never an outcome classifier.",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "state",
+    "scanned",
+    "total"
+  ],
+  "$defs": {
+    "State": {
+      "description": "Inventory availability is separate from compiler jobs and source readability.",
+      "oneOf": [
+        {
+          "description": "Original host capture is active.",
+          "type": "string",
+          "const": "loading"
+        },
+        {
+          "description": "The complete prepared inventory is queryable.",
+          "type": "string",
+          "const": "ready"
+        },
+        {
+          "description": "An edit requires an explicit/new host observation.",
+          "type": "string",
+          "const": "stale"
+        },
+        {
+          "description": "No complete new inventory was published.",
+          "type": "string",
+          "const": "failed"
+        }
+      ]
+    }
+  }
+}

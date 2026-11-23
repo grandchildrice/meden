@@ -456,12 +456,28 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
       .click();
     const overview: WorkspaceOverview = await page.evaluate(async () =>
       (
-        await fetch("/api/overview", {
-          headers: {
-            Authorization: `Bearer ${sessionStorage.getItem("meden-native-session")}`,
+        await fetch(
+          "/api/inventory?revision=" +
+            encodeURIComponent(
+              (
+                await fetch("/api/state", {
+                  headers: {
+                    Authorization:
+                      "Bearer " +
+                      sessionStorage.getItem("meden-native-session"),
+                  },
+                }).then((r) => r.json())
+              ).overview.revision,
+            ),
+          {
+            headers: {
+              Authorization: `Bearer ${sessionStorage.getItem("meden-native-session")}`,
+            },
           },
-        })
-      ).json(),
+        )
+      )
+        .json()
+        .then((publication) => publication.data),
     );
     expect(overview.files).toHaveLength(41);
     expect(

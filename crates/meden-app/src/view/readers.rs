@@ -1,18 +1,12 @@
 //! Frozen complete file observations. Queries never start a worker or compiler.
 use super::{
     file::FileView,
-    publication::{Publication, Reference},
+    publication::{Publication, Reference, Table},
 };
 use anyhow::Result;
 use schemars::JsonSchema;
 use serde::Serialize;
-use std::{
-    collections::{BTreeMap, VecDeque},
-    sync::Arc,
-};
-
-const MAX_FILES: usize = 64;
-const MAX_BYTES: usize = 67_108_864;
+use std::{collections::BTreeMap, sync::Arc};
 
 /// Small status index; text and failure details live in their own publication.
 #[derive(Serialize, JsonSchema)]
@@ -52,50 +46,29 @@ impl Prepared {
 /// One latest immutable observation per path, with bounded serialized retention.
 #[derive(Default)]
 pub struct Readers {
-    files: BTreeMap<String, Publication>,
-    order: VecDeque<String>,
-    bytes: usize,
+    table: Table,
 }
 impl Readers {
     /// Replacement immediately makes the older file publication unqueryable.
     pub fn publish(&mut self, prepared: Prepared) {
-        let Prepared { path, publication } = prepared;
-        self.remove(&path);
-        self.bytes = self.bytes.saturating_add(publication.size());
-        self.order.push_back(path.clone());
-        self.files.insert(path, publication);
-        while self.files.len() > MAX_FILES || self.bytes > MAX_BYTES {
-            let Some(oldest) = self.order.front().cloned() else {
-                break;
-            };
-            self.remove(&oldest);
-        }
+        self.table.publish(prepared.path, prepared.publication);
     }
     /// Refresh/restart cannot revive an older browser read.
     pub fn clear(&mut self) {
-        *self = Self::default();
+        self.table.clear();
     }
     /// Query only already-frozen bytes. The returned Arc outlives the lock.
     pub fn bytes(&self, revision: &str) -> Option<Arc<[u8]>> {
-        self.files.values().find_map(|p| p.bytes(revision))
+        self.table.bytes(revision)
     }
     /// Small typed references, never copies of complete file text.
     pub fn index(&self) -> Index {
         Index {
-            files: self
-                .files
-                .iter()
-                .map(|(path, p)| (path.clone(), p.reference().clone()))
-                .collect(),
+            files: self.table.references(),
         }
-    }
-    fn remove(&mut self, path: &str) {
-        if let Some(old) = self.files.remove(path) {
-            self.bytes = self.bytes.saturating_sub(old.size());
-        }
-        self.order.retain(|p| p != path);
     }
 }
+
 impl Serialize for Readers {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         self.index().serialize(serializer)
@@ -192,7 +165,14 @@ mod tests {
             .clone();
         for i in 0..12 {
             readers.publish(prepared(&format!("L{i}.txt"), &text)?);
-            assert!(readers.bytes <= MAX_BYTES);
+            let total: usize = readers
+                .index()
+                .files
+                .values()
+                .filter_map(|r| readers.bytes(&r.revision))
+                .map(|b| b.len())
+                .sum();
+            assert!(total <= super::super::publication::MAX_BYTES);
         }
         assert!(readers.bytes(&first).is_none());
         assert!(readers.index().files.len() < 64);

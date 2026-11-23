@@ -609,8 +609,11 @@ test.describe("native GUI with real offline workers", () => {
         .getByRole("textbox", { name: "Message", exact: true })
         .fill("Continue the saved history");
       await chat.getByRole("button", { name: "Send", exact: true }).click();
+      // A real metadata/approval job may still be settling on a cold CI host.
+      // Observe the actual admitted model request; this is a stale-read test,
+      // not a five-second metadata/preparation performance budget.
+      await expect.poll(() => Boolean(model), { timeout: 30000 }).toBe(true);
       await expect.poll(() => held).toBe(true);
-      await expect.poll(() => Boolean(model)).toBe(true);
       reply(model!, { role: "assistant", content: "LATEST-HISTORY-ANSWER" });
       await expect(
         chat.getByText("LATEST-HISTORY-ANSWER", { exact: true }),
@@ -652,6 +655,9 @@ test.describe("native GUI with real offline workers", () => {
         }),
         contentType: "application/json",
       });
+      // Retire intercepted reads before the real host goes away. A poll that
+      // entered route.fetch must not race this intentional restart.
+      await page.unrouteAll({ behavior: "wait" });
       await stop();
       await page.goto(await start());
       await expect(
@@ -661,7 +667,241 @@ test.describe("native GUI with real offline workers", () => {
       expect(requests).toHaveLength(1);
     } finally {
       releaseOld();
+      await page.unrouteAll({ behavior: "wait" });
     }
+  });
+
+  test("typed folder listings retain every entry beyond 500, literal names and local retry without poll payloads", async ({
+    page,
+  }) => {
+    test.setTimeout(120000);
+    await mkdir(resolve(project, "Many"));
+    for (let batch = 0; batch < 1200; batch += 100)
+      await Promise.all(
+        Array.from({ length: 100 }, (_, i) =>
+          writeFile(
+            resolve(project, "Many", `File${batch + i}.txt`),
+            `literal row ${batch + i}\n`,
+          ),
+        ),
+      );
+    await writeFile(
+      resolve(project, "Many", "line\n日本語.txt"),
+      "literal newline filename",
+    );
+    await mkdir(resolve(project, "Missing"));
+    let reads = 0;
+    page.on("request", (r) => {
+      if (new URL(r.url()).pathname === "/api/directory") reads++;
+    });
+    await page.goto(await start());
+    const explorer = page.getByRole("region", {
+      name: "File explorer",
+      exact: true,
+    });
+    await explorer
+      .getByRole("button", { name: "Folder: Many", exact: true })
+      .click();
+    await expect(
+      explorer.getByRole("button", {
+        name: "File: Many/File1199.txt",
+        exact: true,
+      }),
+    ).toBeVisible();
+    const status = await nativeState(page);
+    expect(status).not.toHaveProperty("inspection");
+    expect(JSON.stringify(status).length).toBeLessThan(16384);
+    const listing = await page.evaluate(async (revision) => {
+      const response = await fetch(
+        "/api/directory?revision=" + encodeURIComponent(revision),
+        {
+          headers: {
+            Authorization:
+              "Bearer " + sessionStorage.getItem("meden-native-session"),
+          },
+        },
+      );
+      return response.json();
+    }, status.directories.paths.Many.revision);
+    expect(listing.data.reading.entries).toHaveLength(1201);
+    const before = reads;
+    await explorer
+      .getByRole("button", { name: "Folder: Many", exact: true })
+      .click();
+    await explorer
+      .getByRole("button", { name: "Folder: Many", exact: true })
+      .click();
+    await expect(
+      explorer.getByRole("button", {
+        name: "File: Many/File1199.txt",
+        exact: true,
+      }),
+    ).toBeVisible();
+    expect(reads).toBe(before);
+    await explorer
+      .getByRole("button", { name: "File: Many/File1199.txt", exact: true })
+      .click();
+    await expect(page.getByLabel("File contents")).toContainText(
+      "literal row 1199",
+    );
+    await explorer
+      .getByRole("button", { name: "File: Many/line\n日本語.txt", exact: true })
+      .click();
+    await expect(
+      page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
+    ).toContainText("literal newline filename");
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    await rm(resolve(project, "Missing"), { recursive: true });
+    await explorer
+      .getByRole("button", { name: "Folder: Missing", exact: true })
+      .click();
+    await expect(explorer.getByRole("alert")).toContainText(
+      "Could not open the folder.",
+    );
+    await mkdir(resolve(project, "Missing"));
+    await writeFile(resolve(project, "Missing", "Recovered.txt"), "recovered");
+    await explorer
+      .getByRole("button", { name: "Retry folder", exact: true })
+      .click();
+    await expect(
+      explorer.getByRole("button", {
+        name: "File: Missing/Recovered.txt",
+        exact: true,
+      }),
+    ).toBeVisible();
+    expect(requests).toHaveLength(0);
+    await page.screenshot({
+      path: "target/gui-checks/typed-directory-complete.png",
+    });
+  });
+
+  test("inventory publications retry without recapture and reject older bodies across refresh and restart", async ({
+    page,
+  }) => {
+    await writeFile(resolve(project, "Nav.rs"), "pub fn version_one() {}\n");
+    let fail = true,
+      hold = false,
+      held = false,
+      releaseOld = () => {};
+    const released = new Promise<void>((resolve) => (releaseOld = resolve));
+    let reads = 0;
+    const commands: string[] = [];
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname === "/api/inventory") reads++;
+      if (request.url().endsWith("/api/command"))
+        commands.push(request.postDataJSON().type);
+    });
+    await page.route("**/api/inventory?revision=*", async (route) => {
+      if (fail) {
+        fail = false;
+        return route.fulfill({
+          status: 503,
+          json: { error: "Prepared inventory unavailable" },
+        });
+      }
+      const response = await route.fetch();
+      if (hold && !held && response.ok()) {
+        held = true;
+        await released;
+      }
+      await route.fulfill({ response }).catch(() => {});
+    });
+    await page.goto(await start());
+    const map = page.getByRole("region", { name: "Project map", exact: true });
+    await expect(map.getByRole("alert")).toContainText(
+      "Prepared inventory unavailable",
+    );
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    const beforeRetry = commands.length;
+    await map.getByRole("button", { name: "Retry map", exact: true }).click();
+    await expect(
+      map.getByRole("button", { name: /Declaration: version_one/ }),
+    ).toBeVisible();
+    expect(commands).toHaveLength(beforeRetry);
+    const initial = (await nativeState(page)).overview.revision;
+    const beforeNavigation = reads;
+    await page
+      .getByRole("button", { name: "File: Nav.rs", exact: true })
+      .click();
+    await expect(page.getByLabel("File contents")).toContainText("version_one");
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    await page.getByRole("tab", { name: "Project map", exact: true }).click();
+    await page.getByRole("tab", { name: "Nav.rs", exact: true }).click();
+    await page.getByRole("tab", { name: "Project map", exact: true }).click();
+    await page.waitForTimeout(450);
+    expect(reads).toBe(beforeNavigation);
+    const chat = page.getByRole("complementary", {
+      name: "Workspace chat",
+      exact: true,
+    });
+    const oldChat = await chat.innerHTML();
+    hold = true;
+    try {
+      await page.reload();
+      await expect.poll(() => held).toBe(true);
+      await expect
+        .poll(async () => (await nativeState(page)).running)
+        .toBe(false);
+      await writeFile(resolve(project, "Nav.rs"), "pub fn version_two() {}\n");
+      await page
+        .getByRole("button", { name: "Refresh files and map", exact: true })
+        .click();
+      await expect(
+        map.getByRole("button", { name: /Declaration: version_two/ }),
+      ).toBeVisible();
+      releaseOld();
+      await page.waitForTimeout(500);
+      await expect(
+        map.getByRole("button", { name: /Declaration: version_one/ }),
+      ).toHaveCount(0);
+      await expect(
+        map.getByRole("button", { name: /Declaration: version_two/ }),
+      ).toBeVisible();
+      const result = await page.evaluate(async (revision) => {
+        const headers = {
+          Authorization:
+            "Bearer " + sessionStorage.getItem("meden-native-session"),
+        };
+        return {
+          original: (
+            await fetch(
+              "/api/inventory?revision=" + encodeURIComponent(revision),
+              { headers },
+            )
+          ).status,
+          retired: (await fetch("/api/overview", { headers })).status,
+          chunk: (
+            await fetch(
+              "/api/map?inventory=" +
+                encodeURIComponent(revision) +
+                "&path=Nav.rs",
+              { headers },
+            )
+          ).status,
+        };
+      }, initial);
+      expect(result).toEqual({ original: 409, retired: 404, chunk: 409 });
+      expect(await chat.innerHTML()).toBe(oldChat);
+      await page.screenshot({
+        path: "target/gui-checks/inventory-publication-latest.png",
+      });
+    } finally {
+      releaseOld();
+      await page.unrouteAll({ behavior: "wait" });
+    }
+    await stop();
+    await page.goto(await start());
+    await expect(
+      map.getByRole("button", { name: /Declaration: version_two/ }),
+    ).toBeVisible();
+    expect((await nativeState(page)).authorized).toBe(false);
+    expect(requests).toHaveLength(0);
   });
 
   test("prepared source publications retry locally, transfer once and refuse delayed older views across restart", async ({
@@ -1987,13 +2227,29 @@ theorem slow : True := fast
       .toBe("ready");
     const inventory = await page.evaluate(async () =>
       (
-        await fetch("/api/overview", {
-          headers: {
-            Authorization:
-              "Bearer " + sessionStorage.getItem("meden-native-session"),
+        await fetch(
+          "/api/inventory?revision=" +
+            encodeURIComponent(
+              (
+                await fetch("/api/state", {
+                  headers: {
+                    Authorization:
+                      "Bearer " +
+                      sessionStorage.getItem("meden-native-session"),
+                  },
+                }).then((r) => r.json())
+              ).overview.revision,
+            ),
+          {
+            headers: {
+              Authorization:
+                "Bearer " + sessionStorage.getItem("meden-native-session"),
+            },
           },
-        })
-      ).json(),
+        )
+      )
+        .json()
+        .then((publication) => publication.data),
     );
     expect(inventory.files).toHaveLength(10001);
     expect(inventory.inventory_only).toBe(true);
@@ -2016,7 +2272,7 @@ theorem slow : True := fast
       .poll(async () => (await nativeState(page)).running)
       .toBe(false);
     const beforeCommands = commands.length;
-    const beforeInspection = (await nativeState(page)).inspection;
+    const beforeInspection = (await nativeState(page)).directories;
     const originalCanvas = await map
       .locator(".workspace-overview-canvas")
       .boundingBox();
@@ -2074,7 +2330,7 @@ theorem slow : True := fast
     expect(mapReadTimes.length).toBeGreaterThan(0);
     expect(Math.max(...mapReadTimes)).toBeLessThan(2000);
     expect(new Set(indexedPaths).size).toBe(indexedPaths.length);
-    expect((await nativeState(page)).inspection).toEqual(beforeInspection);
+    expect((await nativeState(page)).directories).toEqual(beforeInspection);
     await page.screenshot({
       path: "target/gui-checks/large-project-map-declarations.png",
     });
@@ -3786,8 +4042,8 @@ theorem slow : True := fast
       ).toBe(source);
       await expect(readFile(resolve(project, "job-write"))).rejects.toThrow();
       const cache = resolve(root, "data/meden/atlas");
-      const prepared = (await readdir(cache)).filter(
-        (name) => !name.startsWith("."),
+      const prepared = (await readdir(cache)).filter((name) =>
+        /^[a-f0-9]{64}$/.test(name),
       );
       expect(prepared).toHaveLength(1);
       await writeFile(

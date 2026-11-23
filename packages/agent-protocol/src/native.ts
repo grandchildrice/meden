@@ -1,22 +1,17 @@
+import { directoryIndexSchema } from "./directory-index.generated";
+export { directoryPublicationSchema } from "./directory-publication.generated";
+export type { DirectoryPublication } from "./directory-publication.generated";
 import { z } from "zod";
-import { explanationSchema } from "@meden/workspace-schema";
 import { readerIndexSchema } from "./reader-index.generated";
 export { readerPublicationSchema } from "./reader-publication.generated";
 export type { ReaderPublication } from "./reader-publication.generated";
 export type { FileView } from "./file.generated";
 
-const sourceSymbolSchema = z
-  .object({
-    name: z.string(),
-    line: z.number().int().positive(),
-    kind: z.enum(["definition", "theorem", "axiom"]),
-    declaration: z.string(),
-    private: z.boolean(),
-    references: z.array(z.string()),
-    semantic: explanationSchema.nullable(),
-    main_theorem: z.boolean(),
-  })
-  .strict();
+import { inventoryStatusSchema } from "./inventory-status.generated";
+export { inventoryPublicationSchema } from "./inventory-publication.generated";
+export { inventoryChunkSchema } from "./inventory-chunk.generated";
+export type { InventoryPublication } from "./inventory-publication.generated";
+export type { InventorySnapshot as WorkspaceOverview } from "./inventory.generated";
 
 export const nativeReferenceSchema = z
   .object({
@@ -208,28 +203,6 @@ export const exportOutcomeSchema = z
   })
   .strict();
 export type ExportOutcome = z.infer<typeof exportOutcomeSchema>;
-export const workspaceOverviewSchema = z
-  .object({
-    revision: z.string(),
-    files: z.array(
-      z
-        .object({
-          path: z.string(),
-          sha256: z.string(),
-          bytes: z.number(),
-          declarations: z.number(),
-          theorems: z.number(),
-          indexed: z.boolean(),
-          imports: z.array(z.string()),
-          symbols: z.array(sourceSymbolSchema),
-        })
-        .strict(),
-    ),
-    excluded: z.array(z.string()),
-    inventory_only: z.boolean(),
-  })
-  .strict();
-export type WorkspaceOverview = z.infer<typeof workspaceOverviewSchema>;
 export const nativeStateSchema = z.object({
   source_preparation: z
     .record(
@@ -268,15 +241,7 @@ export const nativeStateSchema = z.object({
   models: z.array(z.string()),
   models_error: z.string().nullable(),
   models_provider: z.string().nullable(),
-  overview: z
-    .object({
-      state: z.enum(["loading", "ready", "failed", "stale"]),
-      scanned: z.number(),
-      total: z.number(),
-      revision: z.string().nullable(),
-      error: z.string().nullable(),
-    })
-    .strict(),
+  overview: inventoryStatusSchema,
   judge: z
     .object({ model: z.string(), endpoint: z.string() })
     .strict()
@@ -312,14 +277,7 @@ export const nativeStateSchema = z.object({
       source_path: z.string(),
     })
     .passthrough(),
-  inspection: z
-    .object({
-      path: z.string(),
-      directory: z.boolean().optional(),
-      text: z.string().optional(),
-      error: z.string().optional(),
-    })
-    .nullable(),
+  directories: directoryIndexSchema,
   readers: readerIndexSchema,
   sources: sourceIndexSchema,
   analysis: meaningRecordSchema.nullable(),

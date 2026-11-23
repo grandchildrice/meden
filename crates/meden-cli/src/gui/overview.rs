@@ -23,25 +23,8 @@ use std::{
 };
 mod cache;
 
-#[derive(Clone, Serialize)]
-pub(super) struct Status {
-    pub state: &'static str,
-    pub scanned: usize,
-    pub total: usize,
-    pub revision: Option<String>,
-    pub error: Option<String>,
-}
-impl Default for Status {
-    fn default() -> Self {
-        Self {
-            state: "loading",
-            scanned: 0,
-            total: 0,
-            revision: None,
-            error: None,
-        }
-    }
-}
+use meden_app::view::inventory;
+pub(super) use meden_app::view::inventory::{State, Status};
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub(super) struct File {
     path: String,
@@ -54,14 +37,68 @@ pub(super) struct File {
     indexed: bool,
 }
 
-#[derive(Clone, Serialize)]
-pub(super) struct Snapshot {
-    pub revision: String,
+#[derive(Clone)]
+pub(super) struct Captured {
     files: Vec<File>,
     excluded: Vec<&'static str>,
     inventory_only: bool,
-    #[serde(skip)]
     generation: u64,
+}
+
+pub(super) struct Snapshot {
+    captured: Arc<Captured>,
+    prepared: inventory::Prepared,
+    chunks: Mutex<inventory::Chunks>,
+}
+impl std::ops::Deref for Snapshot {
+    type Target = Captured;
+    fn deref(&self) -> &Captured {
+        &self.captured
+    }
+}
+impl Snapshot {
+    fn new(captured: Captured) -> Result<Self> {
+        let data = inventory::Snapshot {
+            generation: captured.generation.to_string(),
+            files: captured
+                .files
+                .iter()
+                .map(project_file)
+                .collect::<Result<_>>()?,
+            excluded: captured.excluded.iter().map(ToString::to_string).collect(),
+            inventory_only: captured.inventory_only,
+        };
+        let prepared = inventory::Prepared::new(&data)?;
+        let chunks = Mutex::new(inventory::Chunks::new(prepared.reference().clone())?);
+        Ok(Self {
+            captured: Arc::new(captured),
+            prepared,
+            chunks,
+        })
+    }
+    pub(super) fn revision(&self) -> &str {
+        &self.prepared.reference().revision
+    }
+    pub(super) fn bytes(&self, revision: &str) -> Option<Arc<[u8]>> {
+        self.prepared.bytes(revision)
+    }
+}
+fn project_file(file: &File) -> Result<inventory::File> {
+    Ok(inventory::File {
+        path: file.path.clone(),
+        sha256: file.sha256.clone(),
+        bytes: file.bytes.to_string(),
+        declarations: u32::try_from(file.declarations)?,
+        theorems: u32::try_from(file.theorems)?,
+        imports: file.imports.clone(),
+        symbols: file
+            .symbols
+            .iter()
+            .cloned()
+            .map(inventory::Symbol::try_from)
+            .collect::<Result<_>>()?,
+        indexed: file.indexed,
+    })
 }
 #[derive(Deserialize)]
 struct Entry {
@@ -77,7 +114,7 @@ pub(super) fn refresh(
 ) -> Result<()> {
     let fresh = {
         let view = lock(view);
-        view.overview_snapshot.is_some() || view.overview.state != "loading"
+        view.overview_snapshot.is_some() || view.overview.state != State::Loading
     };
     {
         let mut view = lock(view);
@@ -85,6 +122,7 @@ pub(super) fn refresh(
         view.overview_snapshot = None;
         view.sources.clear();
         view.readers.clear();
+        view.directories.clear();
         view.activity = "Reading workspace sources and proof declarations".into();
     }
     let result = capture(view, workspace, control, fresh).and_then(|mut snapshot| {
@@ -99,24 +137,20 @@ pub(super) fn refresh(
             super::sources::prepare(view, workspace, control, &path, false);
         }
         apply_compiled(workspace, control, &mut snapshot.files);
-        snapshot.revision = format!(
-            "sha256:{:x}",
-            Sha256::digest(serde_json::to_vec(&(&snapshot.files, snapshot.generation))?)
-        );
-        Ok(snapshot)
+        Snapshot::new(snapshot)
     });
     let mut view = lock(view);
     match result {
         Ok(snapshot) => {
-            view.overview.state = "ready";
+            view.overview.state = State::Ready;
             view.overview.scanned = snapshot.files.len();
-            view.overview.revision = Some(snapshot.revision.clone());
+            view.overview.revision = Some(snapshot.revision().to_owned());
             view.overview_snapshot = Some(Arc::new(snapshot));
             view.activity = "Workspace loaded".into();
             Ok(())
         }
         Err(error) => {
-            view.overview.state = "failed";
+            view.overview.state = State::Failed;
             view.overview.error = Some(format!("{error:#}"));
             Err(error)
         }
@@ -128,7 +162,7 @@ fn capture(
     workspace: &Workspace,
     control: &Control,
     fresh: bool,
-) -> Result<Snapshot> {
+) -> Result<Captured> {
     let started = Instant::now();
     let mut pending = vec![(String::new(), 0usize)];
     let mut paths = Vec::new();
@@ -207,12 +241,7 @@ fn capture(
     } else {
         0
     };
-    let revision = format!(
-        "sha256:{:x}",
-        Sha256::digest(serde_json::to_vec(&(&files, generation))?)
-    );
-    Ok(Snapshot {
-        revision,
+    Ok(Captured {
         files,
         excluded: EXCLUDED.to_vec(),
         inventory_only,
@@ -325,37 +354,41 @@ fn index_sources(
         source_files(view, workspace, control, &[path.into()], Instant::now())?
     };
     apply_compiled(workspace, control, &mut indexed);
-    let mut view = lock(view);
-    if let Some(snapshot) = view.overview_snapshot.as_mut() {
-        let snapshot = Arc::make_mut(snapshot);
-        let changed = indexed.iter().any(|file| {
-            snapshot
-                .files
-                .binary_search_by(|old| old.path.cmp(&file.path))
-                .ok()
-                .and_then(|i| snapshot.files.get(i))
-                .is_some_and(|old| old != file)
-        });
-        if !changed {
-            return Ok(());
-        }
-        let revision = format!(
-            "sha256:{:x}",
-            Sha256::digest(serde_json::to_vec(&(&snapshot.revision, &indexed))?)
-        );
-        for file in indexed {
-            if let Ok(index) = snapshot
-                .files
-                .binary_search_by(|old| old.path.cmp(&file.path))
-            {
-                if let Some(original) = snapshot.files.get_mut(index) {
-                    *original = file;
-                }
+    let changed = indexed.iter().any(|file| {
+        snapshot
+            .files
+            .binary_search_by(|old| old.path.cmp(&file.path))
+            .ok()
+            .and_then(|i| snapshot.files.get(i))
+            .is_some_and(|old| old != file)
+    });
+    if !changed {
+        return Ok(());
+    }
+    let mut captured = snapshot.captured.as_ref().clone();
+    for file in indexed {
+        if let Ok(index) = captured
+            .files
+            .binary_search_by(|old| old.path.cmp(&file.path))
+        {
+            if let Some(original) = captured.files.get_mut(index) {
+                *original = file;
             }
         }
-        snapshot.revision.clone_from(&revision);
-        view.overview.revision = Some(revision);
     }
+    // Projection/hash/serialization must not hold the status lock. Querying the
+    // original publication remains available throughout this preparation.
+    let next = Snapshot::new(captured)?;
+    let mut current = lock(view);
+    anyhow::ensure!(
+        current
+            .overview_snapshot
+            .as_ref()
+            .is_some_and(|s| Arc::ptr_eq(s, &snapshot)),
+        "Inventory changed during navigation preparation"
+    );
+    current.overview.revision = Some(next.revision().to_owned());
+    current.overview_snapshot = Some(Arc::new(next));
     Ok(())
 }
 
@@ -457,7 +490,7 @@ fn source_files(
                             );
                             lock(&files).insert(path.clone(), file);
                             let mut view = lock(view);
-                            if view.overview.state == "loading"
+                            if view.overview.state == State::Loading
                                 && view.activity != "Preparing cached project map"
                             {
                                 view.overview.scanned = view
@@ -532,17 +565,20 @@ fn observe_batch(
     .map_err(anyhow::Error::new)
 }
 
-#[derive(Serialize)]
-pub(super) struct Chunk {
-    revision: String,
-    files: Vec<File>,
-}
-
-pub(super) fn cached(view: &Mutex<View>, workspace: &Workspace, path: &str) -> Result<Chunk> {
+pub(super) fn cached(
+    view: &Mutex<View>,
+    workspace: &Workspace,
+    revision: &str,
+    path: &str,
+) -> Result<Arc<[u8]>> {
     let snapshot = lock(view)
         .overview_snapshot
         .clone()
         .context("Project map is still preparing")?;
+    anyhow::ensure!(
+        snapshot.revision() == revision,
+        "Project map inventory changed"
+    );
     anyhow::ensure!(
         snapshot
             .files
@@ -550,10 +586,31 @@ pub(super) fn cached(view: &Mutex<View>, workspace: &Workspace, path: &str) -> R
             .is_ok(),
         "Source is outside the prepared map inventory"
     );
-    Ok(Chunk {
-        revision: snapshot.revision.clone(),
-        files: cached_sources(&snapshot, workspace, path)?,
-    })
+    if let Some(bytes) = lock(&snapshot.chunks).bytes(path) {
+        return Ok(bytes);
+    }
+    let files = cached_sources(&snapshot, workspace, path)?
+        .iter()
+        .map(project_file)
+        .collect::<Result<Vec<_>>>()?;
+    for file in &files {
+        file.validate()?;
+    }
+    anyhow::ensure!(
+        lock(view)
+            .overview_snapshot
+            .as_ref()
+            .is_some_and(|s| Arc::ptr_eq(s, &snapshot)),
+        "Project map inventory changed during its read"
+    );
+    let bytes = lock(&snapshot.chunks).publish(
+        path,
+        &inventory::Chunk {
+            revision: revision.into(),
+            files,
+        },
+    )?;
+    Ok(bytes)
 }
 
 fn cached_sources(snapshot: &Snapshot, workspace: &Workspace, path: &str) -> Result<Vec<File>> {

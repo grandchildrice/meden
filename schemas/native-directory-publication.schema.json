@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Envelope",
+  "description": "Shared wire framing; each data role retains its own generated schema.",
+  "type": "object",
+  "properties": {
+    "revision": {
+      "description": "Exact publication requested by the viewer.",
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "data": {
+      "description": "Original complete projection, never an authority token.",
+      "$ref": "#/$defs/Directory"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "revision",
+    "data"
+  ],
+  "$defs": {
+    "Directory": {
+      "description": "Original requested directory and its complete outcome.",
+      "type": "object",
+      "properties": {
+        "path": {
+          "description": "Logical host-selected path; `.` denotes the workspace root.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "reading": {
+          "description": "Complete observed entries or explicit failure.",
+          "$ref": "#/$defs/Reading"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "reading"
+      ]
+    },
+    "Reading": {
+      "description": "Complete listing or typed host failure; no omitted-entry sentinel.",
+      "oneOf": [
+        {
+          "description": "A complete bounded directory observation.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "ready"
+            },
+            "entries": {
+              "description": "Canonically ordered original entries.",
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Entry"
+              },
+              "maxItems": 100000
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "entries"
+          ]
+        },
+        {
+          "description": "No partial listing was admitted.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "unavailable"
+            },
+            "failure": {
+              "description": "Typed failure, independent of message content.",
+              "$ref": "#/$defs/FailureKind"
+            },
+            "message": {
+              "description": "Bounded local diagnostic.",
+              "type": "string",
+              "maxLength": 8000
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "failure",
+            "message"
+          ]
+        }
+      ]
+    },
+    "Entry": {
+      "description": "Original UTF-8 name and filesystem type, never a formatted line.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "One literal path component, including spaces/Unicode/newlines.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "kind": {
+          "description": "Host-observed entry type.",
+          "$ref": "#/$defs/Kind"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "kind"
+      ]
+    },
+    "Kind": {
+      "description": "Only observed filesystem types; a symlink is not followed during listing.",
+      "oneOf": [
+        {
+          "description": "Regular file entry.",
+          "type": "string",
+          "const": "file"
+        },
+        {
+          "description": "Directory entry.",
+          "type": "string",
+          "const": "directory"
+        },
+        {
+          "description": "A separately resolved link, if explicitly opened later.",
+          "type": "string",
+          "const": "symlink"
+        },
+        {
+          "description": "Another filesystem type, without an invented source capability.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "FailureKind": {
+      "description": "Host-observed failure class; diagnostics do not determine it.",
+      "oneOf": [
+        {
+          "description": "A completed filesystem operation failed.",
+          "type": "string",
+          "const": "operation"
+        },
+        {
+          "description": "Original or resolved file authority was refused.",
+          "type": "string",
+          "const": "refused"
+        },
+        {
+          "description": "Required protocol/infrastructure is unavailable.",
+          "type": "string",
+          "const": "unavailable"
+        },
+        {
+          "description": "A host limit or incomplete process prevented a complete observation.",
+          "type": "string",
+          "const": "interrupted"
+        },
+        {
+          "description": "The host observed cancellation.",
+          "type": "string",
+          "const": "cancelled"
+        }
+      ]
+    }
+  }
+}
