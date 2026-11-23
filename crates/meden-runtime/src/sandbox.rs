@@ -96,6 +96,7 @@ fn host_command(program: &Path, name: &str) -> io::Result<Command> {
 }
 
 fn public_tools() -> (Vec<(String, PathBuf)>, Option<PathBuf>) {
+    let _timing = crate::metrics::Span::start("sandbox.public_tools");
     let mut tools: Vec<_> = TOOLS
         .iter()
         .filter_map(|name| {
@@ -218,6 +219,7 @@ fn resolve_libraries<'a>(
     assets: impl Iterator<Item = &'a Path>,
     roots: &mut BTreeSet<PathBuf>,
 ) -> io::Result<(Vec<PathBuf>, Option<PathBuf>)> {
+    let _timing = crate::metrics::Span::start("sandbox.libraries");
     let mut worker_libraries = Vec::new();
     let mut worker_loader = None;
     if !roots.is_empty() {
@@ -391,6 +393,7 @@ impl Sandbox {
         assets: &[&Path],
         mut tool_bindings: BTreeSet<PathBuf>,
     ) -> io::Result<Self> {
+        let _timing = crate::metrics::Span::start("sandbox.prepare");
         let root = root.canonicalize()?;
         if !root.is_dir() {
             return Err(io::Error::other("workspace must be a directory"));
@@ -438,6 +441,7 @@ impl Sandbox {
         )?;
         let mut store_paths = BTreeSet::new();
         if !roots.is_empty() {
+            let _timing = crate::metrics::Span::start("sandbox.nix_closure");
             // Bind only the toolchain closure, never the whole Nix store or
             // the system profile (which can include host configuration).
             let output = host_command(

@@ -293,3 +293,7 @@ Use `--judge-model MODEL` with the same HTTP connection to select a different mo
 for meaning comparison. The processor review shows both models before sending.
 For JSONL `run`, also provide `--approve-judge` with the exact inference URL;
 approval is session-scoped and is never restored or renewed automatically.
+
+Local stage timing, native perf capture and reproducible performance/fuzz gates
+are documented in [tools/perf/README.md](tools/perf/README.md). Measurements retain
+their workload and cache conditions; no remote telemetry is enabled.

@@ -92,7 +92,13 @@ passive review legend reaches the graph, hover/resize preserves the user's
 camera, reduced motion creates no graph transitions, and selecting a loaded
 source line keeps its page. Native browser coverage retains the real compiled
 graph and the 10,001-file map journey; visibility pruning is compared with a
-full-scan oracle. See [the event audit](gui-performance.md) for measured costs.
+full-scan oracle. The serialized native navigation budget runs the actual
+cold-analysis-store/prepared-tab journey in both motion modes, records a two-rAF
+proxy, and requires warm p95 below 250 ms plus no new inspections. Use a fixed
+executable throughout validation; concurrent Cargo integration builds can replace
+the ordinary CLI worker path. The paired algorithm budget and shrinkable corpus
+run via `npm run test:performance` / `npm run test:fuzz`; see
+[the profiling tools](../tools/perf/README.md). See [the event audit](gui-performance.md) for measured costs.
 
 1. Name the affected goal and observable outcome before editing. Use the README's
    public entry command and the intended starting state, including an empty

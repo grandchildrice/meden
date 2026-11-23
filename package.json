@@ -16,10 +16,12 @@
     "test": "vitest run",
     "test:gui": "playwright test --config apps/web/playwright.config.ts",
     "architecture:check": "node --test tools/architecture/boundaries.test.mjs && node tools/architecture/check.mjs",
-    "format:check": "prettier --check apps/web packages tools/gui tools/architecture docs/gui.md docs/architecture package.json tsconfig.json vitest.config.ts",
-    "format": "prettier --write apps/web packages tools/gui tools/architecture docs/gui.md docs/architecture package.json tsconfig.json vitest.config.ts",
+    "format:check": "prettier --check apps/web packages tools/gui tools/perf tools/architecture docs/gui.md docs/architecture package.json tsconfig.json vitest.config.ts",
+    "format": "prettier --write apps/web packages tools/gui tools/perf tools/architecture docs/gui.md docs/architecture package.json tsconfig.json vitest.config.ts",
     "schema:export": "node --experimental-strip-types tools/gui/export-schema.ts",
-    "schema:check": "npm run schema:export && git diff --exit-code -- schemas/"
+    "schema:check": "npm run schema:export && git diff --exit-code -- schemas/",
+    "test:fuzz": "MEDEN_FUZZ_RUNS=3000 vitest run apps/web/src/features/native/project-map-corpus.test.ts",
+    "test:performance": "MEDEN_PERFORMANCE=1 vitest run apps/web/src/features/native/project-map-corpus.test.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
@@ -30,6 +32,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "fast-check": "4.11.0",
     "prettier": "^3.6.2",
     "typescript": "^5.9.0",
     "vitest": "^3.1.4"

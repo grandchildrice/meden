@@ -50,6 +50,7 @@ impl Layout {
         control: &Control,
         selected: &[String],
     ) -> Result<Self> {
+        let _timing = meden_runtime::metrics::Span::start("analysis.discover_layout");
         let config = configuration(reader, "", None)?;
         let directory = if config.is_some() {
             String::new()

@@ -45,5 +45,15 @@ doc_markdown = "allow"
 lto = "thin"
 codegen-units = 1
 
+# Independent binary: profiling must not replace a user's running GUI worker.
+[profile.profiling]
+inherits = "dev"
+debug = 2
+
+# The GUI's exact-input validation hashes large compiler artifacts even in dev.
+# Keep all bytes/checks; avoid unoptimized SIMD wrappers in this dependency.
+[profile.dev.package.sha2]
+opt-level = 3
+
 [patch.crates-io]
 tiny_http = { path = "vendor/tiny_http" }

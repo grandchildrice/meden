@@ -2,6 +2,7 @@
 #![forbid(unsafe_code)]
 
 pub mod file;
+pub mod metrics;
 pub mod pages;
 pub mod process;
 pub mod release;

@@ -31,6 +31,7 @@ pub(crate) fn retain(
     workspace: &Workspace,
     snapshot: &crate::analysis::sources::Snapshot,
 ) -> Result<()> {
+    let _timing = meden_runtime::metrics::Span::start("analysis.cache.store");
     let graph = snapshot
         .atlas
         .as_ref()
@@ -189,6 +190,7 @@ pub(crate) fn compiled_prepared(
     paths: &[String],
     fingerprint: &str,
 ) -> Result<Option<crate::analysis::sources::Snapshot>> {
+    let _timing = meden_runtime::metrics::Span::start("analysis.cache.validate");
     Ok(artifacts(workspace, control, paths, Some(fingerprint))?
         .into_iter()
         .next()

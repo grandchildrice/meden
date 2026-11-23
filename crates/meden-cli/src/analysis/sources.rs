@@ -32,6 +32,7 @@ pub(crate) fn capture(
     control: &Control,
     paths: &[String],
 ) -> Result<Snapshot> {
+    let _timing = meden_runtime::metrics::Span::start("analysis.capture_sources");
     anyhow::ensure!(
         !paths.is_empty() && paths.len() <= 32,
         "Select between 1 and 32 Rust/Lean source files"

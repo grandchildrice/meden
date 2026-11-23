@@ -16,6 +16,9 @@ const browser = await chromium.launch({
     "/run/current-system/sw/bin/google-chrome-stable",
   args: ["--no-sandbox"],
 });
+const motion = process.env.MEDEN_GUI_MOTION || "reduce";
+if (!["reduce", "no-preference"].includes(motion))
+  throw new Error("MEDEN_GUI_MOTION must be reduce or no-preference");
 const samples = {};
 const maps = new Map();
 const quantiles = (values) => {
@@ -65,7 +68,7 @@ async function locate(frame) {
 try {
   const page = await browser.newPage({
     viewport: { width: 1440, height: 960 },
-    reducedMotion: "reduce",
+    reducedMotion: motion,
   });
   page.setDefaultTimeout(15000);
   await page.addInitScript(() => {
@@ -152,11 +155,12 @@ try {
     );
   let native = await state();
   const file =
+    process.env.MEDEN_GUI_FILE ||
     native.source_snapshot?.collection?.roots[0] ||
     Object.keys(native.source_snapshot?.files || {})[0];
-  if (!file || !native.source_snapshot?.atlas)
+  if (!file)
     throw new Error(
-      "Open and prepare a file in the GUI first; the profiler needs a real compiled graph.",
+      "Select MEDEN_GUI_FILE or open a file first; the profiler needs a real compiled graph.",
     );
   const map = page.getByRole("region", { name: "Project map", exact: true });
   const parts = file.split("/");
@@ -224,6 +228,9 @@ try {
     }, label);
     const before = performance.now();
     await action();
+    // Include D3 wheel-end (150 ms), delayed callbacks and their
+    // rendering tail; profiler start/stop stay outside the measured window.
+    await page.waitForTimeout(600);
     await waitFrames(8);
     const elapsed = performance.now() - before;
     await page.evaluate((label) => {
@@ -389,12 +396,26 @@ try {
       ]),
     );
   }
+  const nativeMetrics = await page.evaluate(async () => {
+    const response = await fetch("/api/metrics", {
+      headers: {
+        Authorization:
+          "Bearer " + sessionStorage.getItem("meden-native-session"),
+      },
+    });
+    return response.ok ? response.json() : null;
+  });
+  await writeFile(
+    resolve(destination, "native-metrics.json"),
+    JSON.stringify(nativeMetrics, null, 2),
+  );
   const report = {
     environment: {
       browser: browser.version(),
       viewport: "1440x960",
       throttling: "none",
-      reduced_motion: "reduce",
+      reduced_motion: motion,
+      gesture_tail_ms: 600,
       file,
       declarations: native.source_snapshot.atlas.graph.nodes.length,
       project_files: native.overview.total,

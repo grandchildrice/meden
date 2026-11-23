@@ -102,3 +102,64 @@ wheel routing through the legend, resizing, explicit fit, a 10,001-file map,
 retained views and selection without source-page replacement. Compiler/model
 fixtures do not establish cold installation, live-model quality or renderer
 refinement.
+
+## Native preparation and routine gates (November 23)
+
+`tools/perf/perf.sh` provides a pinned host-only perf tool. Same-user user-space
+CPU sampling succeeded with paranoid=2 and kptr_restrict=1, without changing
+kernel permissions. The production host now retains 4096 completed local spans
+and an eviction count, with static stage names, numeric correlation and parent
+IDs, monotonic offsets, wall time and current-thread CPU time. The authenticated
+`/api/metrics` query has the same session/loopback checks as state. There is no
+source/prompt/credential label or default remote export. Native samples include
+inherited worker CPU; host thread CPU does not. Wall minus thread CPU includes
+child execution and scheduling, not just I/O wait. Nested spans overlap.
+
+The same actual Riemann file/cache-validation journey took 64.98 s in the initial
+unoptimized development host, 46.40 s with SHA-256 dependency optimization, and
+39.33 s in a subsequent normal-motion capture. These are diagnostic observations,
+not repeated before/after confidence intervals: OS caches and concurrent test
+load can differ. The first capture collected 4765 native samples. Initial capture
+finalization exposed two tool bugs (SIGINT exit 130 and a not-yet-open report
+stream); both were fixed, the retained recordings decoded independently, and the
+final attach run completed with 2899 confirmed samples and an artifact manifest.
+Some installed Lean shared-library addresses have no usable symbol names; the
+profiles do not establish function attribution for those addresses.
+
+The first instrumented file trace exposes the remaining work:
+
+| Stage                                 | Wall time | Host thread CPU | Interpretation                                      |
+| ------------------------------------- | --------: | --------------: | --------------------------------------------------- |
+| Analysis extraction                   |  45.775 s |         1.521 s | Overall preparation interval                        |
+| Select roots/discover Lake layout     |  20.441 s |         1.181 s | Includes 12 Lake configuration executions           |
+| Lake configuration executions         |  18.575 s |         0.484 s | Includes their process/sandbox intervals            |
+| Prepared Lake build/input fingerprint |  23.391 s |         0.159 s | Worker checks 43477 compiled input files            |
+| Cached observation validation         |   0.988 s |         0.066 s | Exact resource, metadata and selected-source checks |
+
+These rows are nested, so their durations cannot be added. Resource selection
+and validation take 0.870 s across this host snapshot; 14 sandbox preparations
+total 7.136 s, including startup and nested compiler work. This identifies repeated
+Lake configuration and the compiled-input fingerprint as the next application
+optimization targets. No hash/freshness check was removed: only `sha2` is optimized
+in development builds. The separate profiling binary retains debug symbols and
+avoids replacing a user's running executable.
+
+CI now runs a 3000-case shrinkable differential inventory/camera corpus and nine
+paired visibility measurements on 175187 generated files. Optimized median cost
+must stay below 35% of an independent full scan in the same runner/process; a
+full-scan negative mutation must fail that budget. Absolute layout timings remain
+diagnostic. The native retained-tab journey records first preparation from an
+empty analysis store, then ten actual tab-click/two-rAF samples. Serialized runs
+in reduced/normal motion require warm p95 below 250 ms, no new inspection or
+preparation and stable retained graph/source/camera. This is a scenario target,
+not physical paint/INP, cold installation or model-quality evidence. Separate
+output directories preserve both motion-mode reports. The diagnostic CDP profiler
+also includes a 600 ms gesture tail plus eight frames, with profiler boundaries
+excluded consistently.
+
+See [tools/perf/README.md](../tools/perf/README.md) for reproduction and seed/path
+replay, and [the native result record](../results/native-profiling-20261123.json)
+for raw-artifact references and completed checks. Shared CI hardware is not a
+fixed physical CPU: the algorithm gate uses paired relative timings and records
+its environment; the browser budget uses an explicit serialized workload and a
+broad scenario deadline. Neither is a universal performance claim.

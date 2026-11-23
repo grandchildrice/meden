@@ -193,9 +193,11 @@ credentials in metric labels or enable remote telemetry by default.
 Use Linux `perf stat`/`perf record` for native CPU/stack attribution and CDP
 traces/profiles for browser event, layout and paint costs. Provision the native
 tool in the development/measurement environment, with suitable symbols and a
-documented kernel permission check. The audited workstation currently has no
-`perf` executable, with `perf_event_paranoid=2` and `kptr_restrict=1`; native
-profiling is an unimplemented prerequisite, not covered by the browser audit.
+documented kernel permission check. The host-only wrapper in `tools/perf/perf.sh` provisions a pinned Nix tool
+when perf is absent. Same-user `task-clock` and `cpu-clock:u` sampling ran on
+this workstation with `perf_event_paranoid=2` and `kptr_restrict=1`; no host
+permission settings were changed. Raw profiles and bounded correlated native
+spans now complement the browser audit.
 Do not silently lower host security settings or label an unavailable profile a
 pass. Follow the upstream [perf guide](https://perfwiki.github.io/main/tutorial/).
 
@@ -275,7 +277,14 @@ Perform the migration in reviewable vertical slices:
    negative tests have a replacement. Prototype Worker/WASM/Canvas only for a
    measured residual bottleneck, compare the same corpus, then keep one path.
 
-Steps 2–5 are migration work, not implemented by this design review. They retain
-the existing local/offline execution, accepted intent, exact evidence linkage and
+Step 2 now has bounded correlated native spans, an authenticated local query,
+real perf captures, a shrinkable differential camera/inventory corpus, a paired
+large-map performance budget with a rejected full-scan mutation, and serialized
+cold-analysis-store/prepared-tab browser budgets in both motion modes. See
+[the measurement tools](../../tools/perf/README.md) and
+[the native audit](../gui-performance.md). These budgets cover the named
+workloads; they are not universal latency guarantees or live-model validation.
+
+Steps 3–5 remain migration work. They retain the existing local/offline execution, accepted intent, exact evidence linkage and
 separate local-deployment/R1 obligations in [assurance.md](../assurance.md) and
 [verification.md](../verification.md).

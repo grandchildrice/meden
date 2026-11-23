@@ -148,6 +148,7 @@ pub(crate) fn roots(
     paths: &[String],
     atlas: crate::atlas::Configuration,
 ) -> Result<Snapshot> {
+    let _timing = meden_runtime::metrics::Span::start("analysis.select_roots");
     let Selection {
         reader,
         layout,

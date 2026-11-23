@@ -24,6 +24,20 @@ mod sources;
 struct Task {
     command: Command,
     processes: Arc<Control>,
+    timing: meden_runtime::metrics::Context,
+    queued: std::time::Instant,
+}
+
+impl Task {
+    fn new(command: Command, processes: Arc<Control>) -> Self {
+        let span = meden_runtime::metrics::Span::start("gui.enqueue");
+        Self {
+            command,
+            processes,
+            timing: span.context(),
+            queued: std::time::Instant::now(),
+        }
+    }
 }
 
 #[derive(Serialize)]
@@ -313,10 +327,7 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
         view.running = true;
         view.activity = "Reading workspace".into();
     }
-    sender.try_send(Task {
-        command: Command::RefreshWorkspace,
-        processes: startup,
-    })?;
+    sender.try_send(Task::new(Command::RefreshWorkspace, startup))?;
     http.listen(&server);
     project.cancel(&lock(&control));
     drop(sender);
@@ -462,7 +473,12 @@ impl Http<'_> {
             );
             return;
         }
+        if request.method() == &Method::Get && request.url() == "/api/metrics" {
+            respond(request, 200, &json!(meden_runtime::metrics::snapshot()));
+            return;
+        }
         if request.method() == &Method::Get && request.url() == "/api/state" {
+            let _timing = meden_runtime::metrics::Span::start("gui.state");
             let snapshot = {
                 let mut view = lock(self.view);
                 let connections = lock(self.connections);
@@ -521,6 +537,7 @@ impl Http<'_> {
     }
 
     fn submit(&self, mut request: Request) {
+        let _timing = meden_runtime::metrics::Span::start("gui.command");
         let result = (|| -> Result<()> {
             anyhow::ensure!(
                 !self.stopping.load(std::sync::atomic::Ordering::SeqCst),
@@ -589,7 +606,7 @@ impl Http<'_> {
                     let processes = Arc::new(Control::new(Arc::new(AtomicBool::new(false))));
                     *lock(self.control) = Arc::clone(&processes);
                     self.sender
-                        .try_send(Task { command, processes })
+                        .try_send(Task::new(command, processes))
                         .context("Native session unavailable")?;
                     view.running = true;
                     view.activity = "Preparing".into();
@@ -621,7 +638,15 @@ fn worker(
 ) {
     let mut delivery = delivery::Delivery::new(project);
     let mut repairs = crate::analysis::repair::Queue::default();
-    for Task { command, processes } in receiver {
+    for Task {
+        command,
+        processes,
+        timing,
+        queued,
+    } in receiver
+    {
+        meden_runtime::metrics::queue(timing, queued);
+        let _timing = meden_runtime::metrics::Span::linked("gui.job", Some(timing));
         let checkpoint_after = command.operation() != "inspection";
         delivery.begin(&command);
         let result = (|| -> Result<()> {
@@ -977,6 +1002,7 @@ fn response_headers(content_type: &str, frame_source: &str) -> Vec<Header> {
     .collect()
 }
 fn respond(request: Request, status: u16, value: &Value) {
+    let _timing = meden_runtime::metrics::Span::start("gui.serialize_respond");
     let mut response =
         Response::from_string(value.to_string()).with_status_code(StatusCode(status));
     for header in response_headers("application/json", "'none'") {

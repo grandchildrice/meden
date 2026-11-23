@@ -279,7 +279,7 @@ jobs:
   web:
     name: web (types, data contracts, browser journeys)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
@@ -310,12 +310,42 @@ jobs:
       - run: npm run typecheck
       - run: npm run architecture:check
       - run: npm test
+      - name: Shrinkable differential map corpus
+        run: npm run test:fuzz
+      - name: Repeated same-runner visibility budget
+        run: npm run test:performance
+      - name: Reject the whole-map-scan performance mutation
+        run: |
+          rm -f target/performance/mutant/map.json
+          if MEDEN_PERF_MUTANT=full-scan MEDEN_PERF_OUT=target/performance/mutant npm run test:performance; then
+            echo 'Performance gate accepted the retired full scan'
+            exit 1
+          fi
+          node --input-type=module -e 'import fs from "node:fs"; const r = JSON.parse(fs.readFileSync("target/performance/mutant/map.json")); if (!(r.median_ratio >= r.maximum_ratio)) process.exit(1)'
       - run: npm run schema:check
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:gui
+      - name: Serialized browser navigation budgets in both motion modes
+        run: |
+          for motion in reduce no-preference; do
+            MEDEN_GUI_MOTION="$motion" \
+              MEDEN_GUI_OUTPUT="target/gui-performance/$motion/results" \
+              MEDEN_GUI_REPORT="target/gui-performance/$motion/report" \
+              npm run test:gui -- --workers=1 --grep 'open file tabs restore'
+          done
+        env:
+          MEDEN_GUI_PERFORMANCE: '1'
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: meden-gui-evidence
-          path: target/gui-checks/
+          path: |
+            target/gui-checks/
+            target/gui-performance/
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: meden-performance
+          path: target/performance/
+          if-no-files-found: error

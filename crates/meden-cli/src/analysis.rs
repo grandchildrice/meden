@@ -127,6 +127,7 @@ pub(crate) fn extract_cached(
     observer: Option<crate::adapters::Observer>,
 ) -> Result<(sources::Snapshot, bool)> {
     use meden_core::adapter::{Adapter, Input};
+    let _timing = meden_runtime::metrics::Span::start("analysis.extract");
     let context = crate::adapters::Context {
         workspace,
         control,

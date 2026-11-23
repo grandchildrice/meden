@@ -384,6 +384,7 @@ test.describe("native GUI with real offline workers", () => {
         commands.push(r.postDataJSON().type);
     });
     await page.goto(await start(0, { MEDEN_ATLAS_BACKEND: "lake" }));
+    const coldStart = performance.now();
     await page
       .getByRole("button", { name: "File: Alpha.lean", exact: true })
       .click();
@@ -405,6 +406,7 @@ test.describe("native GUI with real offline workers", () => {
     await expect
       .poll(async () => (await nativeState(page)).running)
       .toBe(false);
+    const coldPreparation = performance.now() - coldStart;
     const button = alpha.locator(".root-node > button");
     const margins = await button.evaluate((b) => {
       const outer = b.getBoundingClientRect(),
@@ -473,6 +475,23 @@ test.describe("native GUI with real offline workers", () => {
     expect(
       (await nativeState(page)).source_snapshot.collection.prepared,
     ).toMatch(/^[a-f0-9]{64}$/);
+    await page.evaluate(() => {
+      const samples: number[] = [];
+      (window as any).__tabTimings = samples;
+      document.addEventListener(
+        "click",
+        (event) => {
+          if (!(event.target as Element)?.closest('[role="tab"]')) return;
+          const start = performance.now();
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() =>
+              samples.push(performance.now() - start),
+            ),
+          );
+        },
+        { capture: true },
+      );
+    });
     const before = commands.length;
     for (let i = 0; i < 3; i++) {
       await page.getByRole("tab", { name: "Project map", exact: true }).click();
@@ -501,6 +520,62 @@ test.describe("native GUI with real offline workers", () => {
     expect(await source.evaluate((e) => e.scrollTop)).toBe(scroll);
     expect(commands.slice(before)).toEqual([]);
     expect(requests).toHaveLength(0);
+    await page.waitForTimeout(600);
+    const tabTimings: number[] = await page.evaluate(
+      () => (window as any).__tabTimings,
+    );
+    expect(tabTimings.length).toBeGreaterThanOrEqual(9);
+    const p95 = [...tabTimings].sort((a, b) => a - b)[
+      Math.floor(tabTimings.length * 0.95)
+    ]!;
+    await test.info().attach("navigation-performance", {
+      body: Buffer.from(
+        JSON.stringify(
+          {
+            browser: page.context().browser()?.version(),
+            motion: process.env.MEDEN_GUI_MOTION || "reduce",
+            cold_analysis_store_preparation_ms: coldPreparation,
+            warm_tab_two_raf_ms: tabTimings,
+            p95_ms: p95,
+            maximum_p95_ms: 250,
+            scope:
+              "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation.",
+          },
+          null,
+          2,
+        ),
+      ),
+      contentType: "application/json",
+    });
+    if (process.env.MEDEN_GUI_PERFORMANCE === "1")
+      expect(p95).toBeLessThan(250);
+    const timings = await page.evaluate(async () => {
+      const denied = await fetch("/api/metrics");
+      const response = await fetch("/api/metrics", {
+        headers: {
+          Authorization:
+            "Bearer " + sessionStorage.getItem("meden-native-session"),
+        },
+      });
+      return { denied: denied.status, data: await response.json() };
+    });
+    expect(timings.denied).toBe(401);
+    expect(timings.data.capacity).toBe(4096);
+    expect(timings.data.records.length).toBeLessThanOrEqual(4096);
+    const extraction = timings.data.records.find(
+      (row: { name: string }) => row.name === "analysis.extract",
+    );
+    expect(extraction).toBeDefined();
+    expect(extraction.thread_cpu_us).toBeGreaterThanOrEqual(0);
+    expect(
+      timings.data.records.some(
+        (row: { name: string; context: { trace: number } }) =>
+          row.name === "atlas.project.prepare" &&
+          row.context.trace === extraction.context.trace,
+      ),
+    ).toBe(true);
+    expect(JSON.stringify(timings)).not.toContain("Alpha.lean");
+    expect(JSON.stringify(timings)).not.toContain("NATIVE-FIXTURE-NOT-SAVED");
     await source.evaluate((e) => {
       e.scrollTop = 0;
     });

@@ -312,6 +312,7 @@ fn run_inner(
     control: &Control,
     notify: Option<&dyn Fn(&OutputProgress)>,
 ) -> io::Result<Output> {
+    let _timing = crate::metrics::Span::start("process.run");
     let directory = tempfile::tempdir()?;
     let mut stdout = File::options()
         .create_new(true)

@@ -13,6 +13,13 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Native GUI and Atlas with Ollama Cloud
 
+The [native profiling and regression record](native-profiling-20261123.json)
+extends that review with real user-space perf samples, bounded correlated stage
+spans, SHA-256 development-build optimization, a shrinkable differential map
+corpus and mutation-sensitive paired/serialized browser budgets. It separates
+observed Riemann preparation times from scenario gates and retains failed
+measurement/validation attempts separately from the final passing checks.
+
 The [interaction profile](gui-interactions-20261122.json) and
 [analysis](../docs/gui-performance.md) record event costs on the 175,187-file
 Riemann map, camera continuity, branch pruning, source-page reuse and reduced-

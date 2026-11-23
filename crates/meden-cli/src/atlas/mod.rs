@@ -80,6 +80,7 @@ impl Configuration {
         )?)?))
     }
     fn selected(&self) -> Result<(PathBuf, PathBuf)> {
+        let _timing = meden_runtime::metrics::Span::start("atlas.resources.select");
         anyhow::ensure!(
             cfg!(target_os = "linux"),
             "Offline Lean Atlas requires Linux and Bubblewrap"
@@ -153,6 +154,7 @@ impl Configuration {
         }
     }
     fn validate(lean: &Path, library: &Path) -> Result<Manifest> {
+        let _timing = meden_runtime::metrics::Span::start("atlas.resources.validate");
         let manifest: Manifest = crate::storage::read(&library.join("manifest.json"))?
             .context("Lean Atlas is not prepared")?;
         anyhow::ensure!(
@@ -336,6 +338,17 @@ impl Execution<'_> {
         control: &Control,
         timeout: Duration,
     ) -> Result<process::Output> {
+        let _timing = meden_runtime::metrics::Span::start(match script {
+            "lake.sh" => "atlas.lake_configuration",
+            "imports.sh" => "atlas.imports",
+            "project-atlas-prepare.sh" if args.first().is_some_and(|a| a == "prepare") => {
+                "atlas.project.prepare"
+            }
+            "project-atlas-prepare.sh" => "atlas.project.fingerprint",
+            "project-atlas-extract.sh" => "atlas.project.extract",
+            "compile.sh" => "atlas.compile",
+            _ => "atlas.execute",
+        });
         let mut command = analysis_command(self, script, args)?;
         let notify = |output: &process::OutputProgress| {
             if let Some(observer) = self.observer {

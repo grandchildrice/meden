@@ -1,0 +1,705 @@
+{
+  "date": "2026-11-23",
+  "scope": "Migration step 2: local profiling, adversarial presentation corpus and repeated regression budgets. Application/plugin ownership and generated generic read models remain future migration work.",
+  "base_commit": "610ab7348b25af68377b9025fc72707a1f779969",
+  "production_changes": [
+    "Bounded runtime span ring, static labels, numeric parent/trace correlation, wall and current-thread CPU intervals; no authority or remote telemetry.",
+    "Same-origin/session authenticated metrics query; GUI queue/job, source selection/capture/cache, Atlas stages, sandbox/resource setup and process timings.",
+    "Optimize sha2 in development builds without dropping any input hashing or freshness checks."
+  ],
+  "native": {
+    "event": "cpu-clock:u",
+    "frequency_hz": 99,
+    "stack": "dwarf,8192",
+    "perf_event_paranoid": 2,
+    "kptr_restrict": 1,
+    "settings_changed": false,
+    "captures": [
+      {
+        "directory": "target/native-profile/riemann-before-spans",
+        "environment": {
+          "browser": "149.0.7827.53",
+          "viewport": "1440x960",
+          "throttling": "none",
+          "reduced_motion": "reduce",
+          "gesture_tail_ms": 600,
+          "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "declarations": 15,
+          "project_files": 175187,
+          "setup_cache_validation_ms": 64977.016444
+        },
+        "confirmed_native_samples": 4765,
+        "raw_sha256": {
+          "summary.json": "950723003f7b259ba3d98032d7e0266b97094f548a9216e34dcf225f01b5294d",
+          "project-map-wheel.cpuprofile": "09be83896bfdd106324132976716d95c7c4f0783e13d70240d3b8ce7bee1c130",
+          "trace.json": "f595a33097a4b8bdc36697e94d600e94fb66ea63df82d8c9d92c8185aa5b46ca",
+          "perf.data": "5be01f8f7429c435aa06d27045c6dd099dd40e9474a1feb411922fa6ef432c2f",
+          "graph-resize.cpuprofile": "6dfc0a7c9564fe561a3b14f880603db48034a469f217916c8c586f37dad7850c",
+          "graph-idle-poll.cpuprofile": "dc0cce5d124c44a47360fa5baffdbd872177c9c17f2dec6da2a406889b7552a3",
+          "graph-pan.cpuprofile": "c91dc80fbaf47ff3b75828167568d056b27d747c2f07ac250da432e28931fed3",
+          "graph-hover.cpuprofile": "d8e248f8fa3465d45c00326333bcd3b877fd25faa87da1810c0f52b18c600da8",
+          "perf-report.txt": "baf16940566a4822a1b2949060c6bca6e87ed85718fcdb98f7cca0eaa7b9d1b4",
+          "graph-node-select.cpuprofile": "c18256a42dbd54982ad98744afa9870595ccf0e1520cb449e6a5a706035e2d64",
+          "native-metrics.json": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "tab-switch.cpuprofile": "abe2d7907262476dbb4db1f4c6839a1b802c33ad6c0132ef2efa3f6c57af09f1",
+          "graph-wheel.cpuprofile": "26c4d70271284892d70c76d52c716d93c7e581ad5e7308554fa37a09da64fdbe"
+        },
+        "event_p95_ms": {
+          "graph-idle-poll": {},
+          "graph-wheel": {
+            "pointerout": 0.165,
+            "pointerover": 0.049,
+            "mouseout": 0.065,
+            "mouseover": 0.019,
+            "pointermove": 0.032,
+            "mousemove": 0.079,
+            "wheel": 1.009
+          },
+          "graph-hover": {
+            "pointerout": 0.398,
+            "pointerover": 0.095,
+            "mouseout": 0.282,
+            "mouseover": 0.085,
+            "pointermove": 0.054,
+            "mousemove": 0.083,
+            "load": 0.003,
+            "transitionrun": 0.096,
+            "transitioncancel": 0.134,
+            "transitionstart": 0.134,
+            "transitionend": 0.055
+          },
+          "graph-pan": {
+            "pointermove": 0.235,
+            "mousemove": 0.305,
+            "pointerdown": 0.08,
+            "mousedown": 0.283,
+            "selectstart": 0.054,
+            "pointerup": 0.247,
+            "mouseup": 0.434,
+            "click": 0.014
+          },
+          "graph-resize": {
+            "resize": 1.087,
+            "selectionchange": 0.048
+          },
+          "tab-switch": {
+            "__playwright_reset_targets__": 0.01,
+            "__playwright_mark_target__": 0.003,
+            "pointerout": 0.284,
+            "pointerover": 0.131,
+            "mouseout": 0.152,
+            "mouseover": 0.079,
+            "pointermove": 0.065,
+            "mousemove": 0.107,
+            "pointerdown": 2.063,
+            "mousedown": 0.124,
+            "focus": 0.004,
+            "focusin": 0.082,
+            "DOMFocusIn": 0.003,
+            "pointerup": 0.133,
+            "mouseup": 0.165,
+            "click": 21.876,
+            "DOMActivate": 0.007,
+            "blur": 0.012,
+            "focusout": 0.085,
+            "DOMFocusOut": 0.003
+          },
+          "graph-node-select": {
+            "__playwright_reset_targets__": 0.006,
+            "__playwright_mark_target__": 0.003,
+            "pointerout": 0.249,
+            "pointerover": 0.106,
+            "mouseout": 0.096,
+            "mouseover": 0.064,
+            "pointermove": 0.095,
+            "mousemove": 0.115,
+            "pointerdown": 1.224,
+            "mousedown": 0.143,
+            "blur": 0.004,
+            "focusout": 0.047,
+            "DOMFocusOut": 0.003,
+            "focus": 0.004,
+            "focusin": 9.464,
+            "DOMFocusIn": 0.003,
+            "pointerup": 0.438,
+            "mouseup": 0.068,
+            "click": 30.033,
+            "DOMActivate": 0.007,
+            "selectstart": 0.011,
+            "scroll": 0.695,
+            "scrollend": 0.041,
+            "animationstart": 0.191,
+            "animationend": 0.034,
+            "load": 0.002,
+            "selectionchange": 0.011
+          },
+          "project-map-wheel": {
+            "pointerout": 0.291,
+            "pointerover": 0.071,
+            "mouseout": 0.104,
+            "mouseover": 0.062,
+            "pointermove": 0.029,
+            "mousemove": 0.047,
+            "wheel": 11.063
+          }
+        }
+      },
+      {
+        "directory": "target/native-profile/riemann-spans-sha",
+        "environment": {
+          "browser": "149.0.7827.53",
+          "viewport": "1440x960",
+          "throttling": "none",
+          "reduced_motion": "reduce",
+          "gesture_tail_ms": 600,
+          "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "declarations": 15,
+          "project_files": 175187,
+          "setup_cache_validation_ms": 46399.956653
+        },
+        "confirmed_native_samples": 3177,
+        "raw_sha256": {
+          "summary.json": "335f6447ba96671371edf0c4d35ba9798e8575f16fb9de6f904133f8c730434d",
+          "project-map-wheel.cpuprofile": "f512322c79c8a041eb66914c0a2f5ca4b9c2e8500a085a246e674f6a8af95079",
+          "trace.json": "10c78036272a4e63854773b304482d07b7ca0cba1bcc04999c8fdbed46c17817",
+          "perf.data": "25caea51b9732fbc199a5e83417db54e9baff5cff0d83c2a89f6c91e002f228c",
+          "graph-resize.cpuprofile": "a47dc06b217d8a774edfd5df1d3f96965f07cb844e1f4e1f599d5ea82bd227cb",
+          "graph-idle-poll.cpuprofile": "77d538797d1e1b83a9dd0a4cf7e6f2b8cf18bba47749b7e006c7aee38df95ac7",
+          "graph-pan.cpuprofile": "c0ebe194b8f65dd1b3e26b3720e51e14c62be62100d8f5e2dbccf9712fcdf955",
+          "graph-hover.cpuprofile": "f293d3476ebb5e8b484e2110e23cf8304e78971f2e065eda6f48a3a8d8180ae2",
+          "perf-report.txt": "838900622c145dacf5bac90deae6a90e238434d30697c79d1b989a140f3d3bab",
+          "graph-node-select.cpuprofile": "12982d9be3b5f876623f480c94a15d2b975b26cfb40678a7d88673e540dd9a31",
+          "native-metrics.json": "8428f04c61d1b9b8247c231443bbab1c8d3eb98f8b38aff646ef8c7d8e3d2f54",
+          "tab-switch.cpuprofile": "0164b2b56daa5491e583afce3e43823428731cdffdf74339c54546ba92eb73ba",
+          "graph-wheel.cpuprofile": "e4aaa815a6a10b792785386cb5c55614b2139a5c7519e9c088d4a52b846e7e0c"
+        },
+        "event_p95_ms": {
+          "graph-idle-poll": {},
+          "graph-wheel": {
+            "pointerout": 0.153,
+            "pointerover": 0.055,
+            "mouseout": 0.073,
+            "mouseover": 0.018,
+            "pointermove": 0.016,
+            "mousemove": 0.096,
+            "wheel": 0.442
+          },
+          "graph-hover": {
+            "pointerout": 0.27,
+            "pointerover": 0.111,
+            "mouseout": 0.213,
+            "mouseover": 0.067,
+            "pointermove": 0.063,
+            "mousemove": 0.096,
+            "load": 0.004,
+            "transitionrun": 0.142,
+            "transitioncancel": 0.116,
+            "transitionstart": 0.094,
+            "transitionend": 0.023
+          },
+          "graph-pan": {
+            "pointermove": 0.156,
+            "mousemove": 0.184,
+            "pointerdown": 0.079,
+            "mousedown": 0.353,
+            "selectstart": 0.048,
+            "pointerup": 0.303,
+            "mouseup": 0.459,
+            "click": 0.018
+          },
+          "graph-resize": {
+            "resize": 1.572,
+            "selectionchange": 0.093
+          },
+          "tab-switch": {
+            "__playwright_reset_targets__": 0.014,
+            "__playwright_mark_target__": 0.004,
+            "pointerout": 0.327,
+            "pointerover": 0.101,
+            "mouseout": 0.143,
+            "mouseover": 0.072,
+            "pointermove": 0.07,
+            "mousemove": 0.102,
+            "pointerdown": 1.24,
+            "mousedown": 0.089,
+            "focus": 0.009,
+            "focusin": 0.092,
+            "DOMFocusIn": 0.004,
+            "pointerup": 0.143,
+            "mouseup": 0.11,
+            "click": 21.581,
+            "DOMActivate": 0.011,
+            "blur": 0.006,
+            "focusout": 0.064,
+            "DOMFocusOut": 0.003
+          },
+          "graph-node-select": {
+            "__playwright_reset_targets__": 0.005,
+            "__playwright_mark_target__": 0.002,
+            "pointerout": 0.197,
+            "pointerover": 0.061,
+            "mouseout": 0.108,
+            "mouseover": 0.043,
+            "pointermove": 0.097,
+            "mousemove": 0.066,
+            "pointerdown": 0.934,
+            "mousedown": 0.123,
+            "blur": 0.007,
+            "focusout": 0.093,
+            "DOMFocusOut": 0.003,
+            "focus": 0.004,
+            "focusin": 15.663,
+            "DOMFocusIn": 0.005,
+            "pointerup": 0.231,
+            "mouseup": 0.089,
+            "click": 35.238,
+            "DOMActivate": 0.006,
+            "scroll": 0.666,
+            "scrollend": 0.02,
+            "animationstart": 0.155,
+            "animationend": 0.027,
+            "load": 0.002,
+            "selectionchange": 0.012
+          },
+          "project-map-wheel": {
+            "pointerout": 0.237,
+            "pointerover": 0.1,
+            "mouseout": 0.109,
+            "mouseover": 0.072,
+            "pointermove": 0.028,
+            "mousemove": 0.049,
+            "wheel": 7.089
+          }
+        },
+        "file_trace_stages": {
+          "analysis.cache.validate": {
+            "count": 1,
+            "wall_us": 987967,
+            "thread_cpu_us": 66041
+          },
+          "analysis.capture_sources": {
+            "count": 3,
+            "wall_us": 105853,
+            "thread_cpu_us": 4519
+          },
+          "analysis.discover_layout": {
+            "count": 1,
+            "wall_us": 20366776,
+            "thread_cpu_us": 1177770
+          },
+          "analysis.extract": {
+            "count": 1,
+            "wall_us": 45774829,
+            "thread_cpu_us": 1520735
+          },
+          "analysis.select_roots": {
+            "count": 1,
+            "wall_us": 20441151,
+            "thread_cpu_us": 1181196
+          },
+          "atlas.lake_configuration": {
+            "count": 12,
+            "wall_us": 18574572,
+            "thread_cpu_us": 484232
+          },
+          "atlas.project.prepare": {
+            "count": 1,
+            "wall_us": 23390802,
+            "thread_cpu_us": 159395
+          },
+          "atlas.resources.select": {
+            "count": 16,
+            "wall_us": 175968,
+            "thread_cpu_us": 174649
+          },
+          "atlas.resources.validate": {
+            "count": 29,
+            "wall_us": 634377,
+            "thread_cpu_us": 629166
+          },
+          "gui.command": {
+            "count": 1,
+            "wall_us": 233,
+            "thread_cpu_us": 197
+          },
+          "gui.enqueue": {
+            "count": 1,
+            "wall_us": 0,
+            "thread_cpu_us": 0
+          },
+          "gui.job": {
+            "count": 1,
+            "wall_us": 45956641,
+            "thread_cpu_us": 1628912
+          },
+          "gui.serialize_respond": {
+            "count": 1,
+            "wall_us": 130,
+            "thread_cpu_us": 96
+          },
+          "job.queue": {
+            "count": 1,
+            "wall_us": 38,
+            "thread_cpu_us": 0
+          },
+          "process.run": {
+            "count": 101,
+            "wall_us": 42573485,
+            "thread_cpu_us": 215652
+          },
+          "sandbox.libraries": {
+            "count": 13,
+            "wall_us": 519878,
+            "thread_cpu_us": 41922
+          },
+          "sandbox.nix_closure": {
+            "count": 13,
+            "wall_us": 581604,
+            "thread_cpu_us": 10175
+          },
+          "sandbox.prepare": {
+            "count": 13,
+            "wall_us": 6692941,
+            "thread_cpu_us": 474163
+          },
+          "sandbox.public_tools": {
+            "count": 13,
+            "wall_us": 929351,
+            "thread_cpu_us": 52329
+          }
+        },
+        "nested_stage_note": "These totals overlap; do not sum parent and child rows."
+      },
+      {
+        "directory": "target/native-profile/riemann-spans-normal",
+        "environment": {
+          "browser": "149.0.7827.53",
+          "viewport": "1440x960",
+          "throttling": "none",
+          "reduced_motion": "no-preference",
+          "gesture_tail_ms": 600,
+          "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "declarations": 15,
+          "project_files": 175187,
+          "setup_cache_validation_ms": 39332.645288
+        },
+        "confirmed_native_samples": 2899,
+        "raw_sha256": {
+          "summary.json": "0beaee38e1889e0b2811810d3e5c2275e1b2e3df1775a4f3f3a85fc476727106",
+          "project-map-wheel.cpuprofile": "7b85eba026c668774130b5b22031877de8035cf1c9e710c9282ecbb0e58b9d1a",
+          "trace.json": "d6d69543ed80a881e7a93d63047d2dc48de0388d431c41ad1c826f00afff724b",
+          "perf.data": "5c753708b3c271bd9640419b8b89b6f49dda2f81de0c47b8ad7e5c20d8d52c36",
+          "graph-resize.cpuprofile": "1085513d421dabb69fc50dad9c08904e7578aa64cd7f5b8a8bad924aa4df32a2",
+          "graph-idle-poll.cpuprofile": "5f5b42e44486db6e793006b2b55df898bafb05465bbeda202ed9559a887ab05d",
+          "graph-pan.cpuprofile": "fd8f4e0b3af7a469ee69f0d72380e49ca0e2b2521f9dfbc4fe7f1c1fef4d40a1",
+          "graph-hover.cpuprofile": "6d05a9e796e3b7236eb8048de9a6aa6c08b52755073672cc7ad1e7e7fc0d9714",
+          "perf-report.txt": "1fa81a3bc358fda567352268153adfd848e0b065e74dfd6eaed90cbf712fd37d",
+          "graph-node-select.cpuprofile": "8063890c34e683c2573c9c90415b4c6256acfa5fc76d5ae09d5a943f2dc182ee",
+          "native-metrics.json": "bd835e9004433a9a6e2f1ee88e1dd7f49063d18613fc63435766ae7281bc718c",
+          "tab-switch.cpuprofile": "8dfffe631a842f4e64ce6ad3c8fb852267a1ab9c0f8f358545c8d095d2792af0",
+          "manifest.json": "e05bbeb7c9685809a1e2acc87e68bb95859155a0fb8b4dee78c3881c4a3dc533",
+          "graph-wheel.cpuprofile": "49000da91768e8c93e5502fd99409f895e296db6b29ab30c2327c761fa89fe48"
+        },
+        "event_p95_ms": {
+          "graph-idle-poll": {},
+          "graph-wheel": {
+            "pointerout": 0.19,
+            "pointerover": 0.033,
+            "mouseout": 0.076,
+            "mouseover": 0.017,
+            "pointermove": 0.017,
+            "mousemove": 0.079,
+            "wheel": 0.432
+          },
+          "graph-hover": {
+            "pointerout": 0.575,
+            "pointerover": 0.083,
+            "mouseout": 0.182,
+            "mouseover": 0.068,
+            "pointermove": 0.054,
+            "mousemove": 0.089,
+            "load": 0.004
+          },
+          "graph-pan": {
+            "pointermove": 0.157,
+            "mousemove": 0.176,
+            "pointerdown": 0.08,
+            "mousedown": 0.307,
+            "selectstart": 0.042,
+            "pointerup": 0.271,
+            "mouseup": 0.395,
+            "click": 0.018
+          },
+          "graph-resize": {
+            "resize": 0.873,
+            "selectionchange": 0.046
+          },
+          "tab-switch": {
+            "__playwright_reset_targets__": 0.012,
+            "__playwright_mark_target__": 0.003,
+            "pointerout": 0.211,
+            "pointerover": 0.079,
+            "mouseout": 0.074,
+            "mouseover": 0.037,
+            "pointermove": 0.04,
+            "mousemove": 0.066,
+            "pointerdown": 1.285,
+            "mousedown": 0.072,
+            "focus": 0.004,
+            "focusin": 0.068,
+            "DOMFocusIn": 0.003,
+            "pointerup": 0.109,
+            "mouseup": 0.067,
+            "click": 14.234,
+            "DOMActivate": 0.011,
+            "blur": 0.006,
+            "focusout": 0.059,
+            "DOMFocusOut": 0.003
+          },
+          "graph-node-select": {
+            "__playwright_reset_targets__": 0.013,
+            "__playwright_mark_target__": 0.005,
+            "pointerout": 0.21,
+            "pointerover": 0.046,
+            "mouseout": 0.081,
+            "mouseover": 0.031,
+            "pointermove": 0.122,
+            "mousemove": 0.068,
+            "pointerdown": 0.681,
+            "mousedown": 0.069,
+            "blur": 0.003,
+            "focusout": 0.081,
+            "DOMFocusOut": 0.002,
+            "focus": 0.003,
+            "focusin": 9.105,
+            "DOMFocusIn": 0.004,
+            "pointerup": 0.43,
+            "mouseup": 0.209,
+            "click": 32.728,
+            "DOMActivate": 0.007,
+            "scroll": 0.809,
+            "scrollend": 0.02,
+            "load": 0.003,
+            "selectionchange": 0.033,
+            "transitionrun": 0.113,
+            "transitionstart": 0.017,
+            "animationstart": 0.214,
+            "animationend": 0.048,
+            "transitionend": 0.084
+          },
+          "project-map-wheel": {
+            "pointerout": 0.238,
+            "pointerover": 0.09,
+            "mouseout": 0.075,
+            "mouseover": 0.044,
+            "pointermove": 0.166,
+            "mousemove": 0.037,
+            "transitioncancel": 0.004,
+            "wheel": 6.118
+          }
+        }
+      }
+    ]
+  },
+  "checks": {
+    "rust": {
+      "passed": 222,
+      "failed": 0,
+      "log": "/tmp/meden-perf-rust-tests.log",
+      "command": "nix shell nixpkgs#python3 nixpkgs#bubblewrap --command cargo test --workspace --all-features",
+      "scope": "Existing Rust unit, real isolation/network and existing Lean-oracle conformance checks. No new extraction/refinement proof claim; kernel sources are unchanged."
+    },
+    "typescript": {
+      "passed": 34,
+      "files": 10,
+      "log": "/tmp/meden-perf-unit-final.log"
+    },
+    "differential_fuzz": {
+      "generated_cases": 3000,
+      "seed": 20261123,
+      "command": "npm run test:fuzz",
+      "log": "/tmp/meden-perf-fuzz-final.log"
+    },
+    "paired_map_budget": {
+      "workload": {
+        "version": 1,
+        "files": 175187,
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 0.08
+        },
+        "size": {
+          "width": 900,
+          "height": 700
+        },
+        "repetitions": 9,
+        "calls_per_sample": 10
+      },
+      "environment": {
+        "node": "v22.22.2",
+        "os": "linux",
+        "kernel": "6.12.92",
+        "cpu": "13th Gen Intel(R) Core(TM) i7-13620H"
+      },
+      "layout_ms": 369.034186,
+      "optimized_ms": [
+        0.08779900000013185,
+        0.06796899999994821,
+        0.07614300000000185,
+        0.10386799999992036,
+        0.07658100000026025,
+        0.0713570000002619,
+        0.13424799999984316,
+        0.06519499999967593,
+        0.06987800000024436
+      ],
+      "full_scan_ms": [
+        381.8003580000001,
+        295.5726850000001,
+        287.4898089999999,
+        375.73775799999976,
+        289.17395099999976,
+        288.4034150000002,
+        339.441198,
+        308.646659,
+        298.2727920000002
+      ],
+      "median_ratio": 0.0002552797373486275,
+      "maximum_ratio": 0.35,
+      "scope": "Same-process comparative algorithm gate, not browser paint/INP or a native compilation budget. OS caches are warm; nine alternating paired measurements. Absolute timings are diagnostic only."
+    },
+    "rejected_map_mutation": {
+      "workload": {
+        "version": 1,
+        "files": 175187,
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 0.08
+        },
+        "size": {
+          "width": 900,
+          "height": 700
+        },
+        "repetitions": 9,
+        "calls_per_sample": 10
+      },
+      "environment": {
+        "node": "v22.22.2",
+        "os": "linux",
+        "kernel": "6.12.92",
+        "cpu": "13th Gen Intel(R) Core(TM) i7-13620H"
+      },
+      "layout_ms": 379.9215740000001,
+      "optimized_ms": [
+        303.16353000000004,
+        315.422595,
+        313.07624499999974,
+        351.99489200000016,
+        353.79116699999986,
+        305.1526880000001,
+        306.6670329999997,
+        301.83779400000003,
+        305.2472340000004
+      ],
+      "full_scan_ms": [
+        335.00178700000004,
+        408.0140120000001,
+        296.445604,
+        288.30451500000026,
+        292.84987500000034,
+        306.55402799999956,
+        416.4761589999998,
+        343.1398819999995,
+        293.41773899999953
+      ],
+      "median_ratio": 1.0003686299630032,
+      "maximum_ratio": 0.35,
+      "scope": "Same-process comparative algorithm gate, not browser paint/INP or a native compilation budget. OS caches are warm; nine alternating paired measurements. Absolute timings are diagnostic only."
+    },
+    "browser_motion_budgets": [
+      {
+        "browser": "149.0.7827.53",
+        "motion": "reduce",
+        "cold_analysis_store_preparation_ms": 34793.036169,
+        "warm_tab_two_raf_ms": [
+          27.900000005960464,
+          33.39999997615814,
+          25.599999994039536,
+          28.099999994039536,
+          29.100000023841858,
+          26.899999976158142,
+          26.299999982118607,
+          27.600000023841858,
+          27.69999998807907,
+          26.5
+        ],
+        "p95_ms": 33.39999997615814,
+        "maximum_p95_ms": 250,
+        "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+      },
+      {
+        "browser": "149.0.7827.53",
+        "motion": "no-preference",
+        "cold_analysis_store_preparation_ms": 33969.869033,
+        "warm_tab_two_raf_ms": [
+          30.700000017881393,
+          30.5,
+          29.200000017881393,
+          28.100000023841858,
+          29.80000001192093,
+          28.80000001192093,
+          27.700000017881393,
+          27.19999998807907,
+          24.900000005960464,
+          32.599999994039536
+        ],
+        "p95_ms": 32.599999994039536,
+        "maximum_p95_ms": 250,
+        "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+      }
+    ],
+    "other_native_gui": {
+      "passed": 3,
+      "journeys": [
+        "retained real compiled tabs/camera/source",
+        "streamed actual compiler timeout/cancellation/retry",
+        "six warm-asset host restarts with fresh review"
+      ],
+      "log": "/tmp/meden-profiling-gui.log"
+    },
+    "required_tui": {
+      "success": true,
+      "selected": 33,
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/validation/6c97a4e1dd3f8eaa5f96beae1f162dbad30ef55e38fb7192a15435632b015c73/meden",
+        "sha256": "6c97a4e1dd3f8eaa5f96beae1f162dbad30ef55e38fb7192a15435632b015c73"
+      },
+      "evidence": "/tmp/meden-ux-profile-pinned-20261123",
+      "decoded_screens_reviewed": [
+        "GUI-to-TUI continuation",
+        "Lake inventory change historical refusal/restart",
+        "provider 429 stop, retained explanation and explicit retry"
+      ],
+      "log": "/tmp/meden-ux-profile-pinned.log"
+    },
+    "static": {
+      "typecheck": true,
+      "architecture_tests": 16,
+      "architecture_rust_crates": 5,
+      "architecture_owned_data_port_sources": 11,
+      "format": true,
+      "clippy": true,
+      "schema_check_passed": true
+    }
+  },
+  "limitations": [
+    "Before/after observations are diagnostic, not repeated confidence intervals; cache/load and motion mode vary.",
+    "Host thread CPU excludes subprocess CPU; nested spans overlap. Installed Lean shared-library frames can lack usable symbol names.",
+    "The initial captures hit tool finalization errors; retained perf data were decoded independently. The final normal-motion attach run completed and wrote its manifest.",
+    "A concurrent Cargo integration build replaced a running executable and invalidated one GUI and one TUI validation. Those failed records are retained and are not counted as passes. Fixed digest-named executables were used for the passing final gates.",
+    "No live-model quality, cold installation, local large-model inference or complete I/O/renderer refinement is established.",
+    "Shared CI hardware is variable. The algorithm budget uses same-process paired relative timing; browser measurements use a serialized named scenario and a two-rAF proxy, not physical paint/INP."
+  ]
+}
