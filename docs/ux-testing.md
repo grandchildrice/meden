@@ -31,6 +31,11 @@ Lean/Lake package loader and compiler. These are installed prerequisites, not
 paid-model or cold-install validation. CI downloads the same pinned public Lean
 distribution used by the native GUI journeys.
 
+Run the Python lint check from `python/`, matching CI:
+`uv run --group dev ruff check . ../tools ../crates/meden-runtime/src/pages/network_fixture.py`.
+The working directory affects Ruff's fallback configuration and import discovery;
+checking the same paths from the repository root is not the same check.
+
 CI runs these same marked cases once within the existing Python adapter job.
 The public runner starts its test process in a fresh session so each journey
 uses its configured PTY size instead of inheriting the launching terminal.

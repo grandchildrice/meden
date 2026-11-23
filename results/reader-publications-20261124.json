@@ -622,7 +622,8 @@
   "intermediate_failures": [
     "A reused unit-test Response was consumed twice; changed the mock to return a fresh response per call.",
     "All-feature namespace test lacked the canonical Bubblewrap PATH in one chained command; reran the full suite with the public prerequisite and all 293 tests passed.",
-    "Clippy caught private arithmetic/indexing/default/binding style violations before final validation."
+    "Clippy caught private arithmetic/indexing/default/binding style violations before final validation.",
+    "Follow-up CI cb8c9a2 retained one 101-column tool line. The earlier root-level Ruff invocation did not match CI fallback configuration. Split that expression and reran the exact CI command from python/: all scopes passed; future validation uses that working directory."
   ],
   "limits": [
     "One actual Chrome capture per project with profiling overhead; sample p95 may be the maximum, not a field percentile.",
