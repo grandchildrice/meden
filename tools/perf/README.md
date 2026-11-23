@@ -60,6 +60,10 @@ For browser motion/cache coverage run the real retained-tab journey under both
 empty analysis store and revisits prepared tabs repeatedly without another
 inspection. The full diagnostic browser profiler uses a fresh page, 600 ms
 post-gesture tail and eight further frames, excluding CPU-profiler boundaries.
+The diagnostic browser tool permits up to ten minutes for initial file
+preparation before measuring gestures; worker budgets remain separate. Its
+environment records preparation time and the host's actual cache-hit flag, so
+an uncached compiler/search run is not labelled cache validation alone.
 Repeat captures per motion mode and cache condition before comparing browser
 latency; do not treat a single diagnostic percentile as a continuous browser
 performance budget. See `docs/gui-performance.md` for the current measurements.

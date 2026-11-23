@@ -63,23 +63,13 @@ pub(super) fn prepare(
         .source_preparation
         .insert(path.into(), Preparation::new());
     super::lock(view).source_views.remove(path);
-    let result = (|| -> Result<(Snapshot, bool)> {
-        if !crate::adapters::lake::enabled()? {
-            if let Some(snapshot) = crate::explanation::cache::compiled(workspace, control, path)
-                .ok()
-                .flatten()
-            {
-                return Ok((Snapshot::new(snapshot)?, true));
-            }
-        }
-        crate::analysis::extract_cached(
-            workspace,
-            control,
-            &[path.into()],
-            Some(preparation::observer(view, &[path.into()])),
-        )
-        .and_then(|(snapshot, cached)| Ok((Snapshot::new(snapshot)?, cached)))
-    })();
+    let result = crate::analysis::extract_cached(
+        workspace,
+        control,
+        &[path.into()],
+        Some(preparation::observer(view, &[path.into()])),
+    )
+    .and_then(|(snapshot, cached)| Ok((Snapshot::new(snapshot)?, cached)));
     let mut view = super::lock(view);
     match result {
         Ok((snapshot, cache_hit)) => {

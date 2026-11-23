@@ -16,6 +16,11 @@ impl Request {
             paths.len() <= 32
                 && paths
                     .iter()
+                    .collect::<std::collections::BTreeSet<_>>()
+                    .len()
+                    == paths.len()
+                && paths
+                    .iter()
                     .all(|p| !p.is_empty() && p.len() <= 4096 && !p.contains('\0')),
             "Invalid compiler source selection"
         );
@@ -27,28 +32,11 @@ impl Request {
     }
 }
 
-/// Complete compiler observation, with disjoint cache dispositions.
-pub enum Compiled {
-    /// Previously prepared observation whose exact inputs have been checked.
-    Cached(Snapshot),
-    /// New complete observation, ready for application enrichment/persistence.
-    Created(Snapshot),
-}
-impl Compiled {
-    /// Consume the result. The cache tag is diagnostic, never proof authority.
-    pub fn into_parts(self) -> (Snapshot, bool) {
-        match self {
-            Self::Cached(snapshot) => (snapshot, true),
-            Self::Created(snapshot) => (snapshot, false),
-        }
-    }
-}
-
 /// Host-selected typed compiler implementation. The role never receives shell
 /// commands, a model-selected executable or an evidence-admission callback.
 pub trait Compiler: Send + Sync {
     /// Consume the original source request and return a complete decoded result.
-    fn compile(&self, context: &Context<'_>, request: Request) -> Result<Compiled>;
+    fn compile(&self, context: &Context<'_>, request: Request) -> Result<Snapshot>;
 }
 
 /// Immutable selected registration, distinct from model/workspace configuration.
@@ -62,7 +50,7 @@ impl Registration<'_> {
         self.id
     }
     /// Dispatch the originally selected implementation without a replacement key.
-    pub fn compile(self, context: &Context<'_>, request: Request) -> Result<Compiled> {
+    pub fn compile(self, context: &Context<'_>, request: Request) -> Result<Snapshot> {
         self.compiler.compile(context, request)
     }
 }
@@ -123,7 +111,7 @@ mod tests {
     use super::*;
     struct Unsupported;
     impl Compiler for Unsupported {
-        fn compile(&self, _: &Context<'_>, _: Request) -> Result<Compiled> {
+        fn compile(&self, _: &Context<'_>, _: Request) -> Result<Snapshot> {
             anyhow::bail!("unsupported fixture")
         }
     }
@@ -153,6 +141,7 @@ mod tests {
         assert!(Request::new(vec!["bad\0path".into()]).is_err());
         assert!(Request::new(vec!["x".repeat(4097)]).is_err());
         assert!(Request::new(vec!["Source.lean".into(); 33]).is_err());
+        assert!(Request::new(vec!["Source.lean".into(); 2]).is_err());
         Ok(())
     }
 }

@@ -6,7 +6,7 @@ use std::sync::atomic::Ordering;
 
 use crate::model::Model;
 use crate::semantic::{self, Assessment, Input, Prepared, Stage};
-use anyhow::Result;
+use anyhow::{Context as _, Result};
 use meden_runtime::{process::Control, workspace::Workspace};
 use serde::{Deserialize, Serialize};
 
@@ -136,18 +136,34 @@ pub fn extract_cached(
         .with_observer(context.observer.clone());
     atlas.ensure_prepared(control)?;
     let (registry, selected) = crate::adapters::compilers(atlas)?;
-    let (mut snapshot, cached) = registry
+    let snapshot = registry
         .select(selected)?
-        .compile(&context, crate::compiler::Request::new(paths.to_vec())?)?
-        .into_parts();
-    if !cached {
-        if let Some(graph) = snapshot.atlas.as_mut() {
-            crate::adapters::informath::enrich(graph, control)?;
-        }
-        control.with_active(|| Ok(()))?;
-        crate::explanation::cache::retain(workspace, &snapshot)?;
+        .compile(&context, crate::compiler::Request::new(paths.to_vec())?)?;
+    let original = control.with_active(|| {
+        crate::explanation::cache::retain_observation(workspace, snapshot)
+            .map_err(std::io::Error::other)
+    })?;
+    if let Some(observer) = &context.observer {
+        observer("Preparing explanations", std::time::Duration::ZERO, None);
     }
-    Ok((snapshot, cached))
+    let renderer = crate::adapters::informath::fingerprint()?;
+    if let Some(snapshot) = crate::explanation::cache::rendering(workspace, &original, &renderer)? {
+        return Ok((control.with_active(|| Ok(snapshot))?, true));
+    }
+    let mut snapshot = original.snapshot().clone();
+    let actual = crate::adapters::informath::enrich(
+        snapshot.atlas.as_mut().context("Missing compiled graph")?,
+        control,
+    )?;
+    anyhow::ensure!(
+        actual == renderer,
+        "Meaning renderer binding changed during preparation"
+    );
+    control.with_active(|| {
+        crate::explanation::cache::retain_rendering(workspace, original, renderer, &mut snapshot)
+            .map_err(std::io::Error::other)
+    })?;
+    Ok((snapshot, false))
 }
 
 pub fn run(

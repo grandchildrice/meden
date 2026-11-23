@@ -226,3 +226,57 @@ for binary/artifact digests, both traces, residual costs and completed checks.
 The first raw report retains the old `setup_cache_validation_ms` name despite
 its cache miss; the profiler now emits `setup_preparation_ms` and an explicit
 `setup_cache_hit` value to prevent that ambiguity.
+
+## Independent compiler and renderer caches
+
+The combined cache identified above has been replaced. Compiler ports return raw
+compiler/search observations; the application retains them before selecting the
+renderer. The raw artifact includes original source text, module/configuration
+observations, any prepared Lake input fingerprint, compiler resources, structural
+English and search outcomes. Existing exact source, metadata and resource checks
+still run before reuse. Lake still prepares and fingerprints its compiled inputs;
+this change does not remove its roughly forty-second validation cost.
+
+Renderer readings are a separate artifact keyed by the immutable raw artifact
+and selected renderer fingerprint. They contain only declaration IDs, sentences,
+renderer attribution and rendering errors. Publication refuses missing, duplicate
+or foreign declarations and changes to any compiler/search field. The completed
+graph revision also binds the reading artifact, so returning a new reading for
+the same source cannot leave an old browser memoized view. A failed renderer
+starts from retained structural English, rather than attributing a previous
+renderer's sentence to a different implementation.
+
+Compiler/search data are persisted before rendering, and the original is held in
+an immutable consuming application value. A rendering interruption therefore
+does not require repeating successful compiler/search work. Cancellation gates
+raw retention and final rendering-cache admission. These cache observations neither
+accept a contract nor carry an admitted verification receipt. Filesystem and
+physical stop correspondence remain adapter obligations.
+
+The new cache is under host-owned `compiled-views`, with separate bounded indices
+and checksummed objects for observations and renderings. The obsolete combined
+cache loader was removed. An old combined artifact cannot reconstruct its lost
+structural reading, so first use prepares the new raw artifact once; no legacy
+compatibility path is retained.
+
+The public renderer-update regression copies actual prepared Informath resources,
+changes a host resource with a matching manifest, and opens the same source after
+restart. It checks preserved counterexamples and formal inputs, a different view
+revision, renderer execution, and no compiler/search scripts in authenticated
+native spans. Another restart reuses the complete view without inference approval.
+An actual malformed source then fails, and the public retry succeeds after a
+source correction. The attached `renderer-cache-preparation` timings are
+diagnostic installed-tool measurements, not cold installation, live inference or
+physical presentation. Unit checks also reject changes to checker results,
+source, refutation and expressions, corrupted/misbound overlays and partial or
+unbounded readings. A compile-fail example checks that the original observation
+cannot be mutated through its public accessor.
+
+On the actual one-theorem installed-Lean/GF fixture, the final run recorded
+30.43 s for initial preparation, 2.30 s after the renderer resource update, and
+1.77 s for a complete-cache reopen. These are single diagnostic file-request to
+prepared-DOM intervals, with concurrent functional validation and no hardware
+budget claim. The no-recompilation claim comes from the independent native spans
+and preserved observations, not a timing threshold. They do not predict Riemann's
+larger Lake input-validation cost. See
+[the cache split record](../results/renderer-cache-20261123.json).

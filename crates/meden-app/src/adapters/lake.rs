@@ -1,6 +1,9 @@
 //! Prepared Lake builds keep installed imports outside the selected-source graph.
 use super::Context;
-use crate::compiler::{Compiled, Compiler, Request};
+use crate::{
+    analysis::sources::Snapshot,
+    compiler::{Compiler, Request},
+};
 use anyhow::{Context as _, Result};
 use serde::Deserialize;
 
@@ -28,7 +31,7 @@ pub fn enabled() -> Result<bool> {
 }
 
 impl Compiler for Lake {
-    fn compile(&self, context: &Context<'_>, request: Request) -> Result<Compiled> {
+    fn compile(&self, context: &Context<'_>, request: Request) -> Result<Snapshot> {
         let atlas = &self.atlas;
         let mut snapshot = crate::analysis::collect::roots(
             context.workspace,
@@ -64,7 +67,7 @@ impl Compiler for Lake {
             &collection.roots,
             &prepared.fingerprint,
         )? {
-            return Ok(Compiled::Cached(cached));
+            return Ok(cached);
         }
         let modules = collection
             .modules
@@ -109,7 +112,7 @@ impl Compiler for Lake {
         collection.external_modules =
             external_modules(atlas, &snapshot.files, &collection.modules, context.control)?;
         snapshot.atlas = Some(graph);
-        Ok(Compiled::Created(snapshot))
+        Ok(snapshot)
     }
 }
 

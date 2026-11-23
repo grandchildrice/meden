@@ -197,7 +197,7 @@ try {
           s.source_snapshot?.files[file] !== undefined
         );
       },
-      { timeout: 240000 },
+      { timeout: 600000 },
     )
     .toBe(true);
   const setupElapsed = performance.now() - setupStart;

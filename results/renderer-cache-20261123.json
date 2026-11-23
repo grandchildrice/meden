@@ -1,0 +1,560 @@
+{
+  "date": "2026-11-23",
+  "parent_commit": "4b0f498",
+  "scope": "Separate raw compiler/search observations from external renderer projections in the shared application. This does not complete the second-verifier/plugin/read-model migration.",
+  "behavior": [
+    "Compiler ports return raw observations and do not select/load Informath. Removed the redundant compiler result/cache enum and GUI-specific frozen-cache shortcut.",
+    "Retain original structural readings, formal expressions and checker observations before renderer selection; immutable consuming Observation owns the exact original snapshot.",
+    "Content-addressed reading overlays may change only sentence, renderer attribution and rendering error. Exact declaration coverage, bounds and all original non-reading fields are checked.",
+    "Complete graph identity binds the reading artifact as well as the original graph. Renderer changes invalidate only that projection; source, metadata, compiler resources or prepared Lake input changes still invalidate raw reuse.",
+    "Old combined-cache reader removed. New observations are prepared once under host-owned compiled-views; no compatibility fallback or weaker freshness check."
+  ],
+  "checks": {
+    "rust": {
+      "unit_integration_passes": 237,
+      "log": "/tmp/meden-cache-rust-final.log",
+      "command": "nix shell nixpkgs#python3 nixpkgs#bubblewrap --command cargo test --workspace --all-features",
+      "new_cache_cases": 6,
+      "scope": "Existing native isolation/Lean-oracle conformance checks plus raw/reading identity, corruption, completeness, original-field preservation and interrupted-render persistence."
+    },
+    "rust_doc": {
+      "passed": 2,
+      "log": "/tmp/meden-cache-doc-tests.log",
+      "command": "cargo test -p meden-app --doc",
+      "scope": "Registration borrowing and immutable original-observation accessor compile-fail examples. The latter documentation-only case was added after the fixed runtime binary was built."
+    },
+    "native_gui": {
+      "passed": 5,
+      "binary_sha256": "d770ade482bb3f66fb44d16d672889ac6ccc4ce37566833ab7565384c5256ace",
+      "log": "/tmp/meden-cache-gui-roles.log",
+      "report": "target/gui-cache-roles/report/index.html",
+      "journeys": [
+        "real GF resource update without compiler/search dispatch, exact counterexample preservation, warm restart, actual source failure/public retry",
+        "retained file tabs/camera/source/explanations",
+        "actual compiler log streaming, timeout, cancellation/retry",
+        "real 35-module Lake preparation, input/source changes and restart",
+        "10002-file map plus real Lean/GF/Plausible observations, import changes and restart"
+      ],
+      "screens_reviewed": [
+        "target/gui-checks/renderer-update-reused-observation.png",
+        "target/gui-checks/renderer-cache-source-failure.png"
+      ],
+      "timings": {
+        "browser": "149.0.7827.53",
+        "cold_ms": 30430.456328,
+        "renderer_update_ms": 2296.7710090000037,
+        "complete_cache_ms": 1774.1242800000036,
+        "scope": "File request to prepared DOM in a real installed-Lean/GF fixture. Diagnostic timing; cache reuse is established independently by native spans and preserved observations. Not cold installation, live inference or physical paint."
+      }
+    },
+    "required_tui": {
+      "success": true,
+      "selected": 33,
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/validation/d770ade482bb3f66fb44d16d672889ac6ccc4ce37566833ab7565384c5256ace/meden",
+        "sha256": "d770ade482bb3f66fb44d16d672889ac6ccc4ce37566833ab7565384c5256ace"
+      },
+      "evidence": "/tmp/meden-ux-cache-roles-20261123",
+      "log": "/tmp/meden-ux-cache-roles.log",
+      "decoded_screens_reviewed": [
+        "GUI/TUI continuation after restart",
+        "Lake inventory refusal retained as historical",
+        "HTTP 429 stop retained and explicit retry completed"
+      ]
+    },
+    "typescript": {
+      "passed": 30,
+      "log": "/tmp/meden-cache-web-tests.log"
+    },
+    "architecture": {
+      "passed": 20,
+      "rust_crates": 6,
+      "owned_data_port_sources": 11,
+      "log": "/tmp/meden-cache-architecture-final.log"
+    },
+    "static": {
+      "clippy": true,
+      "typecheck": true,
+      "format": true,
+      "schema_check": true
+    }
+  },
+  "actual_riemann": {
+    "source_audit": {
+      "files": 175187,
+      "declarations": 15,
+      "ready": true,
+      "raw_readings_structural": true,
+      "checkers_preserved": true,
+      "source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+      "stages": {
+        "gui.enqueue": [
+          1,
+          2,
+          1
+        ],
+        "job.queue": [
+          1,
+          23,
+          0
+        ],
+        "gui.serialize_respond": [
+          1,
+          119,
+          95
+        ],
+        "gui.command": [
+          1,
+          225,
+          198
+        ],
+        "process.run": [
+          137,
+          209742796,
+          764288
+        ],
+        "atlas.resources.select": [
+          18,
+          221735,
+          219237
+        ],
+        "atlas.resources.validate": [
+          34,
+          830934,
+          823724
+        ],
+        "analysis.capture_sources": [
+          3,
+          135437,
+          3920
+        ],
+        "sandbox.public_tools": [
+          31,
+          1711130,
+          109614
+        ],
+        "sandbox.libraries": [
+          31,
+          1504719,
+          123865
+        ],
+        "sandbox.nix_closure": [
+          31,
+          1456341,
+          30840
+        ],
+        "sandbox.prepare": [
+          31,
+          15988001,
+          1186891
+        ],
+        "atlas.lake_configuration": [
+          12,
+          17241963,
+          488465
+        ],
+        "analysis.discover_layout": [
+          1,
+          19242680,
+          1283542
+        ],
+        "analysis.select_roots": [
+          1,
+          19326083,
+          1285962
+        ],
+        "atlas.project.prepare": [
+          1,
+          27139347,
+          152973
+        ],
+        "analysis.cache.validate": [
+          2,
+          117,
+          115
+        ],
+        "atlas.project.extract": [
+          1,
+          140521494,
+          527178
+        ],
+        "atlas.project.fingerprint": [
+          1,
+          16087784,
+          96704
+        ],
+        "atlas.imports": [
+          1,
+          817141,
+          43837
+        ],
+        "analysis.cache.retain_observation": [
+          1,
+          13958,
+          10944
+        ],
+        "analysis.cache.load_rendering": [
+          1,
+          19,
+          19
+        ],
+        "analysis.render": [
+          1,
+          9927599,
+          599981
+        ],
+        "analysis.cache.store_rendering": [
+          1,
+          13335,
+          10727
+        ],
+        "analysis.extract": [
+          1,
+          216441235,
+          3068616
+        ],
+        "analysis.materialize_view": [
+          1,
+          460,
+          454
+        ],
+        "gui.job": [
+          1,
+          216598971,
+          3132393
+        ]
+      }
+    },
+    "captures": [
+      {
+        "directory": "target/gui-profile/riemann-cache-split",
+        "environment": {
+          "browser": "149.0.7827.53",
+          "viewport": "1440x960",
+          "throttling": "none",
+          "reduced_motion": "no-preference",
+          "gesture_tail_ms": 600,
+          "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "declarations": 15,
+          "project_files": 175187,
+          "setup_preparation_ms": 217858.669175,
+          "setup_cache_hit": false
+        },
+        "file_trace_stages": {
+          "gui.enqueue": {
+            "count": 1,
+            "wall_us": 2,
+            "thread_cpu_us": 1
+          },
+          "job.queue": {
+            "count": 1,
+            "wall_us": 23,
+            "thread_cpu_us": 0
+          },
+          "gui.serialize_respond": {
+            "count": 1,
+            "wall_us": 119,
+            "thread_cpu_us": 95
+          },
+          "gui.command": {
+            "count": 1,
+            "wall_us": 225,
+            "thread_cpu_us": 198
+          },
+          "process.run": {
+            "count": 137,
+            "wall_us": 209742796,
+            "thread_cpu_us": 764288
+          },
+          "atlas.resources.select": {
+            "count": 18,
+            "wall_us": 221735,
+            "thread_cpu_us": 219237
+          },
+          "atlas.resources.validate": {
+            "count": 34,
+            "wall_us": 830934,
+            "thread_cpu_us": 823724
+          },
+          "analysis.capture_sources": {
+            "count": 3,
+            "wall_us": 135437,
+            "thread_cpu_us": 3920
+          },
+          "sandbox.public_tools": {
+            "count": 31,
+            "wall_us": 1711130,
+            "thread_cpu_us": 109614
+          },
+          "sandbox.libraries": {
+            "count": 31,
+            "wall_us": 1504719,
+            "thread_cpu_us": 123865
+          },
+          "sandbox.nix_closure": {
+            "count": 31,
+            "wall_us": 1456341,
+            "thread_cpu_us": 30840
+          },
+          "sandbox.prepare": {
+            "count": 31,
+            "wall_us": 15988001,
+            "thread_cpu_us": 1186891
+          },
+          "atlas.lake_configuration": {
+            "count": 12,
+            "wall_us": 17241963,
+            "thread_cpu_us": 488465
+          },
+          "analysis.discover_layout": {
+            "count": 1,
+            "wall_us": 19242680,
+            "thread_cpu_us": 1283542
+          },
+          "analysis.select_roots": {
+            "count": 1,
+            "wall_us": 19326083,
+            "thread_cpu_us": 1285962
+          },
+          "atlas.project.prepare": {
+            "count": 1,
+            "wall_us": 27139347,
+            "thread_cpu_us": 152973
+          },
+          "analysis.cache.validate": {
+            "count": 2,
+            "wall_us": 117,
+            "thread_cpu_us": 115
+          },
+          "atlas.project.extract": {
+            "count": 1,
+            "wall_us": 140521494,
+            "thread_cpu_us": 527178
+          },
+          "atlas.project.fingerprint": {
+            "count": 1,
+            "wall_us": 16087784,
+            "thread_cpu_us": 96704
+          },
+          "atlas.imports": {
+            "count": 1,
+            "wall_us": 817141,
+            "thread_cpu_us": 43837
+          },
+          "analysis.cache.retain_observation": {
+            "count": 1,
+            "wall_us": 13958,
+            "thread_cpu_us": 10944
+          },
+          "analysis.cache.load_rendering": {
+            "count": 1,
+            "wall_us": 19,
+            "thread_cpu_us": 19
+          },
+          "analysis.render": {
+            "count": 1,
+            "wall_us": 9927599,
+            "thread_cpu_us": 599981
+          },
+          "analysis.cache.store_rendering": {
+            "count": 1,
+            "wall_us": 13335,
+            "thread_cpu_us": 10727
+          },
+          "analysis.extract": {
+            "count": 1,
+            "wall_us": 216441235,
+            "thread_cpu_us": 3068616
+          },
+          "analysis.materialize_view": {
+            "count": 1,
+            "wall_us": 460,
+            "thread_cpu_us": 454
+          },
+          "gui.job": {
+            "count": 1,
+            "wall_us": 216598971,
+            "thread_cpu_us": 3132393
+          }
+        },
+        "raw_sha256": {
+          "summary.json": "733cf897867b249cbf304ec13924fbeba815d5d6d440ee1f38df40f49d1af0d2",
+          "project-map-wheel.cpuprofile": "4f1f316740b5360810c8ab1fed0394b469b1a8d81b7a89364352d34e70666169",
+          "trace.json": "1eddfaf69f99750151fc52b988fafa04ba50442595a196352c029d412e607947",
+          "graph-resize.cpuprofile": "30df8c393f6199a530783e8cf9bc7970b5f98a613923d2a141bddce6685b57b9",
+          "graph-idle-poll.cpuprofile": "c02beb38160b124de514d2a9f72f736e858c911b1abf431afa2982bd5423ed9a",
+          "graph-pan.cpuprofile": "630cd670d3d36baecb226cc1cc9590a3982d7a8e240f2b4dd43b1e7f77b86870",
+          "graph-hover.cpuprofile": "bf41abe9fc059fb35ea8583033f7fd330f75726f64acfd171e55994ce4145abb",
+          "graph-node-select.cpuprofile": "3ea7e185f70b7e42094619d28077819272d76ba628e471441124fff710caa8ec",
+          "native-metrics.json": "24f163cb054fd805f8d658b9c4200b03c075304362ed8a8275b8b070e90cbfc0",
+          "tab-switch.cpuprofile": "799c8833487bf1bdd5485ea38677885d6bbfc09e879de7c6ee98e929f5f53ab7",
+          "graph-wheel.cpuprofile": "cab233018ec1c0879b5f67bdf364ef0691b2061f85b99a8ef53840a8ff396c2d"
+        }
+      },
+      {
+        "directory": "target/gui-profile/riemann-cache-split-warm",
+        "environment": {
+          "browser": "149.0.7827.53",
+          "viewport": "1440x960",
+          "throttling": "none",
+          "reduced_motion": "no-preference",
+          "gesture_tail_ms": 600,
+          "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "declarations": 15,
+          "project_files": 175187,
+          "setup_preparation_ms": 39650.469824,
+          "setup_cache_hit": true
+        },
+        "file_trace_stages": {
+          "gui.enqueue": {
+            "count": 1,
+            "wall_us": 0,
+            "thread_cpu_us": 0
+          },
+          "job.queue": {
+            "count": 1,
+            "wall_us": 21,
+            "thread_cpu_us": 0
+          },
+          "gui.serialize_respond": {
+            "count": 1,
+            "wall_us": 84,
+            "thread_cpu_us": 69
+          },
+          "gui.command": {
+            "count": 1,
+            "wall_us": 178,
+            "thread_cpu_us": 157
+          },
+          "process.run": {
+            "count": 101,
+            "wall_us": 34325899,
+            "thread_cpu_us": 148584
+          },
+          "atlas.resources.select": {
+            "count": 15,
+            "wall_us": 197045,
+            "thread_cpu_us": 195352
+          },
+          "atlas.resources.validate": {
+            "count": 28,
+            "wall_us": 708066,
+            "thread_cpu_us": 702337
+          },
+          "analysis.capture_sources": {
+            "count": 3,
+            "wall_us": 135039,
+            "thread_cpu_us": 3313
+          },
+          "sandbox.public_tools": {
+            "count": 13,
+            "wall_us": 684419,
+            "thread_cpu_us": 43912
+          },
+          "sandbox.libraries": {
+            "count": 13,
+            "wall_us": 648823,
+            "thread_cpu_us": 54147
+          },
+          "sandbox.nix_closure": {
+            "count": 13,
+            "wall_us": 573828,
+            "thread_cpu_us": 12018
+          },
+          "sandbox.prepare": {
+            "count": 13,
+            "wall_us": 6290204,
+            "thread_cpu_us": 493463
+          },
+          "atlas.lake_configuration": {
+            "count": 12,
+            "wall_us": 16114306,
+            "thread_cpu_us": 492013
+          },
+          "analysis.discover_layout": {
+            "count": 1,
+            "wall_us": 18117920,
+            "thread_cpu_us": 1302915
+          },
+          "analysis.select_roots": {
+            "count": 1,
+            "wall_us": 18201346,
+            "thread_cpu_us": 1305213
+          },
+          "atlas.project.prepare": {
+            "count": 1,
+            "wall_us": 16917272,
+            "thread_cpu_us": 110333
+          },
+          "analysis.cache.validate": {
+            "count": 2,
+            "wall_us": 1224724,
+            "thread_cpu_us": 57213
+          },
+          "analysis.cache.retain_observation": {
+            "count": 1,
+            "wall_us": 15029,
+            "thread_cpu_us": 14608
+          },
+          "analysis.cache.load_rendering": {
+            "count": 1,
+            "wall_us": 892,
+            "thread_cpu_us": 888
+          },
+          "analysis.extract": {
+            "count": 1,
+            "wall_us": 37550494,
+            "thread_cpu_us": 1605869
+          },
+          "analysis.materialize_view": {
+            "count": 1,
+            "wall_us": 400,
+            "thread_cpu_us": 400
+          },
+          "gui.job": {
+            "count": 1,
+            "wall_us": 37690979,
+            "thread_cpu_us": 1664015
+          }
+        },
+        "raw_sha256": {
+          "summary.json": "a768ac050052940a5a4af721bf5d19db6df6cd9a13e1149aa8e67877af38973f",
+          "project-map-wheel.cpuprofile": "5f2b184302406921c0bfeee64b0bfa1d966aeab8bc2de39b2aefb248680f973a",
+          "trace.json": "71ae06352997f3cae86b2daada257c0ad730c721d6783a922ac8475578b2a862",
+          "graph-resize.cpuprofile": "77bcb85a58a33eed45b148e4f77e833bc78fd006c5967092177d749ff20403e7",
+          "graph-idle-poll.cpuprofile": "f9e5757b44225eaa68afc31726e40030928e8677d99417f80d5c98e7174fdd5b",
+          "graph-pan.cpuprofile": "3c72103841fc6359d07f193ae80c1e1ec89b25a16164eaddd34448d5e7745e5c",
+          "graph-hover.cpuprofile": "3a4802320dc7120ebaf42c2c70c7f763c934a00da49ad551545cbcb03d35235b",
+          "graph-node-select.cpuprofile": "047d92e638fc7f0649165a9a900ffff4cf385d8464281868eafc045b8f7f01b2",
+          "native-metrics.json": "2e041fd57ac5b44a742f2eb9504bd2163e143efeb18f1b46909e36ffe3c60a7b",
+          "tab-switch.cpuprofile": "841596ffcdd32d28578b60786879fd8b9e58ceeaaa35b0228a1a3d594a5c93e8",
+          "graph-wheel.cpuprofile": "9bd82e0424eb2796ec0a0f7ed891e1c94ee5bd59657aa06a82ce2e64d2ab6c2b"
+        }
+      }
+    ],
+    "scope": "Public explorer and real compiled 15-declaration source/graph on the existing 175187-file project; fresh host and persisted-cache runs. Browser CDP and bounded host spans only in these captures; no new native CPU sampler capture."
+  },
+  "deployment": {
+    "binary_sha256": "d770ade482bb3f66fb44d16d672889ac6ccc4ce37566833ab7565384c5256ace",
+    "assets_sha256": "4de574e7507beb696c606b3ef64b011cdb3bd8516185416edc6a83b7cfdd20ec",
+    "services": [
+      "meden-ethlib-gui.service",
+      "meden-riemann-gui.service"
+    ],
+    "note": "Both executable and assets pinned. Riemann selected file prepared before handoff; no claim that every source file was enriched. Session URLs omitted."
+  },
+  "remaining": [
+    "Actual second verifier backend through the same core jobs/admission/viewer, with the required negative cases.",
+    "Full typed plugin configuration/resource/schema registrations and remaining generic inventory/source-availability/job/evidence projections.",
+    "Lake configuration/input-validation deduplication and expensive project-map layout reuse.",
+    "Recorded/demo retirement only after equivalent entry/capture/negative coverage."
+  ],
+  "limitations": [
+    "Single diagnostic preparation timings on installed tools; not repeated confidence intervals, physical presentation, cold installation, live-model quality or local large-model validation.",
+    "Lake preparation/input validation remains about forty seconds in the measured warm Riemann scenario; this change does not remove those checks.",
+    "First Riemann preparation regenerates the new raw format once and took about 218 seconds; the old combined format cannot restore its overwritten structural reading.",
+    "Native span intervals are nested and overlap; host thread CPU excludes child-process CPU. Raw follow-up browser bundles lacked source maps.",
+    "No core transition or extraction/refinement change. Cache/filesystem/resource/physical cancellation correspondence remains an adapter obligation.",
+    "Previous main commit push CI was still pending when inspected; no remote CI success is claimed for this change."
+  ]
+}

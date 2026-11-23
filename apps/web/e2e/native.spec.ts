@@ -7,6 +7,7 @@ import {
 } from "node:http";
 import { spawn, type ChildProcess } from "node:child_process";
 import {
+  cp,
   mkdtemp,
   mkdir,
   readFile,
@@ -1150,6 +1151,180 @@ theorem slow : True := fast
       failedCamera!,
     );
     expect((await nativeState(page)).authorized).toBe(false);
+    expect(requests).toHaveLength(0);
+  });
+
+  test("renderer updates reuse compiled observations, preserve counterexamples and reject changed sources", async ({
+    page,
+  }) => {
+    test.setTimeout(300000);
+    const rendererRoot = resolve(root, "renderer");
+    await cp(
+      process.env.MEDEN_INFORMATH_ROOT ||
+        resolve(homedir(), ".local/share/meden/informath/0.4"),
+      rendererRoot,
+      { recursive: true },
+    );
+    const env = { MEDEN_INFORMATH_ROOT: rendererRoot };
+    const original = "theorem bad (n : Nat) : n + 1 ≤ n := by sorry\n";
+    await writeFile(resolve(project, "Claim.lean"), original);
+    const preparationMs: number[] = [];
+    const open = async () => {
+      await page.goto(await start(0, env));
+      const requestedAt = performance.now();
+      await page
+        .getByRole("button", { name: "File: Claim.lean", exact: true })
+        .click();
+      await expect
+        .poll(
+          async () =>
+            (await nativeState(page)).source_preparation["Claim.lean"]?.state,
+          { timeout: 120000 },
+        )
+        .toBe("ready");
+      await expect
+        .poll(async () => (await nativeState(page)).running)
+        .toBe(false);
+      await expect(page.getByLabel("File contents")).toContainText(
+        "theorem bad",
+      );
+      await expect(
+        page.locator(".ide-file-page:not([hidden]) .cone-graph"),
+      ).toBeVisible();
+      preparationMs.push(performance.now() - requestedAt);
+      return nativeState(page);
+    };
+    const first = await open();
+    const firstNode = first.source_snapshot.graph.declarations.find(
+      (n: any) => n.id === "bad",
+    );
+    expect(firstNode.semantic.checker.status).toBe("counterexample");
+    expect(firstNode.semantic.renderer).toContain("Informath 0.4");
+    await stop();
+
+    // This is a host resource update, outside the model-writable project. The
+    // actual pinned GF binary/grammar still run; no scripted renderer is used.
+    const resource = resolve(rendererRoot, "share/baseconstants.dk");
+    const bytes = Buffer.concat([await readFile(resource), Buffer.from("\n")]);
+    await writeFile(resource, bytes);
+    const manifestPath = resolve(rendererRoot, "manifest.json");
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    manifest.files["share/baseconstants.dk"] = createHash("sha256")
+      .update(bytes)
+      .digest("hex");
+    await writeFile(manifestPath, JSON.stringify(manifest));
+
+    const rerendered = await open();
+    const node = rerendered.source_snapshot.graph.declarations.find(
+      (n: any) => n.id === "bad",
+    );
+    expect(rerendered.source_snapshot.revision).toBe(
+      first.source_snapshot.revision,
+    );
+    expect(rerendered.source_snapshot.graph.revision).not.toBe(
+      first.source_snapshot.graph.revision,
+    );
+    expect(node.semantic.renderer).not.toBe(firstNode.semantic.renderer);
+    expect(node.semantic.checker).toEqual(firstNode.semantic.checker);
+    expect(node.semantic.intermediate).toBe(firstNode.semantic.intermediate);
+    expect(rerendered.source_preparation["Claim.lean"].cache_hit).toBe(false);
+    const metrics = await page.evaluate(async () =>
+      (
+        await fetch("/api/metrics", {
+          headers: {
+            Authorization:
+              "Bearer " + sessionStorage.getItem("meden-native-session"),
+          },
+        })
+      ).json(),
+    );
+    const stages = metrics.records.map((r: any) => r.name);
+    expect(stages).toContain("analysis.render");
+    expect(stages).not.toContain("atlas.compile");
+    expect(stages).not.toContain("atlas.project.extract");
+    expect(stages).not.toContain("atlas.execute");
+    await page
+      .getByRole("button", { name: "Explain bad", exact: true })
+      .hover();
+    await expect(
+      page.getByRole("region", { name: "Meaning: bad", exact: true }),
+    ).toContainText("Counterexample candidate");
+    await page.screenshot({
+      path: "target/gui-checks/renderer-update-reused-observation.png",
+    });
+    await page.mouse.move(20, 20);
+    expect(rerendered.authorized).toBe(false);
+    expect(requests).toHaveLength(0);
+    await stop();
+
+    // A complete reading cache also survives a new host without inference approval.
+    const warm = await open();
+    expect(warm.source_preparation["Claim.lean"].cache_hit).toBe(true);
+    expect(warm.source_snapshot.graph.revision).toBe(
+      rerendered.source_snapshot.graph.revision,
+    );
+    expect(warm.authorized).toBe(false);
+    await test.info().attach("renderer-cache-preparation", {
+      body: Buffer.from(
+        JSON.stringify(
+          {
+            browser: page.context().browser()?.version(),
+            cold_ms: preparationMs[0],
+            renderer_update_ms: preparationMs[1],
+            complete_cache_ms: preparationMs[2],
+            scope:
+              "File request to prepared DOM in a real installed-Lean/GF fixture. Diagnostic timing; cache reuse is established independently by native spans and preserved observations. Not cold installation, live inference or physical paint.",
+          },
+          null,
+          2,
+        ),
+      ),
+      contentType: "application/json",
+    });
+    // An actual edit cannot use that old compiler/search result to hide a failure.
+    await writeFile(
+      resolve(project, "Claim.lean"),
+      original + "invalid Lean syntax }\n",
+    );
+    await setPaths(page, "Claim.lean");
+    await compileDependencies(page);
+    await expect
+      .poll(
+        async () =>
+          (await nativeState(page)).source_preparation["Claim.lean"]?.state,
+        { timeout: 120000 },
+      )
+      .toBe("failed");
+    await expect(
+      page.getByRole("button", { name: "Retry preparation", exact: true }),
+    ).toBeVisible();
+    expect((await nativeState(page)).source_snapshot).toBeNull();
+    await page.screenshot({
+      path: "target/gui-checks/renderer-cache-source-failure.png",
+    });
+    await writeFile(
+      resolve(project, "Claim.lean"),
+      "theorem bad (n : Nat) : n ≤ n := by omega\n",
+    );
+    await page
+      .getByRole("button", { name: "Retry preparation", exact: true })
+      .click();
+    await expect
+      .poll(
+        async () =>
+          (await nativeState(page)).source_preparation["Claim.lean"]?.state,
+        { timeout: 120000 },
+      )
+      .toBe("ready");
+    const repaired = await nativeState(page);
+    expect(repaired.source_snapshot.revision).not.toBe(
+      first.source_snapshot.revision,
+    );
+    expect(
+      repaired.source_snapshot.graph.declarations.find(
+        (n: any) => n.id === "bad",
+      ).semantic.checker.status,
+    ).toBe("not_found");
     expect(requests).toHaveLength(0);
   });
 

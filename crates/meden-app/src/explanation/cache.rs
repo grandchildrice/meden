@@ -1,9 +1,14 @@
-//! Source- and resource-bound observations retained outside the model workspace.
+//! Independent immutable compiler/search observations and renderer projections.
+//! Neither layer carries accepted-contract evidence or restores an approval.
 use super::Explanation;
+use crate::analysis::sources::Snapshot;
 use anyhow::{Context, Result};
 use meden_runtime::{process::Control, workspace::Workspace};
-use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    path::PathBuf,
+};
 
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -15,130 +20,354 @@ pub struct Note {
     pub main_theorem: bool,
 }
 
+/// Consuming reference to the exact retained pre-rendering observation.
+/// Renderers cannot mutate the original inputs through this reference.
+///
+/// ```compile_fail,E0596
+/// fn rewrite_original(original: &meden_app::explanation::cache::Observation) {
+///     original.snapshot().files.clear();
+/// }
+/// ```
+pub struct Observation {
+    id: String,
+    snapshot: Snapshot,
+}
+impl Observation {
+    /// The exact retained compiler/search result, before renderer changes.
+    pub fn snapshot(&self) -> &Snapshot {
+        &self.snapshot
+    }
+}
+
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct Artifact {
     version: u8,
-    resources: String,
-    renderer: String,
-    source_revision: String,
-    paths: Vec<String>,
-    metadata: crate::analysis::observe::Metadata,
-    snapshot: crate::analysis::sources::Snapshot,
+    snapshot: Snapshot,
 }
 
-pub fn retain(workspace: &Workspace, snapshot: &crate::analysis::sources::Snapshot) -> Result<()> {
-    let _timing = meden_runtime::metrics::Span::start("analysis.cache.store");
-    let graph = snapshot
-        .atlas
-        .as_ref()
-        .context("Missing compiled observations")?;
-    let artifact = Artifact {
-        version: 1,
-        resources: graph.resources_sha256.clone(),
-        renderer: crate::adapters::informath::fingerprint()?,
-        source_revision: snapshot.revision.clone(),
-        paths: snapshot.files.keys().cloned().collect(),
-        metadata: snapshot
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+struct Rendering {
+    observation: String,
+    renderer: String,
+    readings: Vec<Reading>,
+}
+
+// Deliberately exclude the checker, refutation, expression, source and graph.
+// A renderer cache can replace only these presentation fields.
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+struct Reading {
+    node: String,
+    sentence: String,
+    renderer: Option<String>,
+    error: Option<String>,
+}
+
+struct Store(PathBuf);
+impl Store {
+    fn host(workspace: &Workspace) -> Result<Self> {
+        Ok(Self(
+            crate::storage::directory(workspace.path())?.join("compiled-views"),
+        ))
+    }
+    fn index(&self, role: &str) -> Result<BTreeMap<String, String>> {
+        let index: BTreeMap<String, String> =
+            crate::storage::read(&self.0.join(format!("{role}-index.json")))?.unwrap_or_default();
+        anyhow::ensure!(
+            index.len() <= 10_000,
+            "Compiled view index exceeds 10000 entries"
+        );
+        Ok(index)
+    }
+    fn read<T: DeserializeOwned + Serialize>(&self, role: &str, id: &str) -> Result<T> {
+        anyhow::ensure!(
+            id.len() == 64 && id.bytes().all(|c| c.is_ascii_hexdigit()),
+            "Invalid compiled view artifact ID"
+        );
+        let artifact: T = crate::storage::read(&self.0.join(role).join(format!("{id}.json")))?
+            .context("Missing compiled view artifact")?;
+        anyhow::ensure!(
+            hash(&artifact)? == id,
+            "Compiled view artifact binding changed"
+        );
+        Ok(artifact)
+    }
+    fn write(&self, role: &str, key: String, artifact: &impl Serialize) -> Result<String> {
+        let id = hash(artifact)?;
+        let mut index = self.index(role)?;
+        index.insert(key, id.clone());
+        anyhow::ensure!(
+            index.len() <= 10_000,
+            "Compiled view index exceeds 10000 entries"
+        );
+        crate::storage::write(&self.0.join(role).join(format!("{id}.json")), artifact)?;
+        crate::storage::write(&self.0.join(format!("{role}-index.json")), &index)?;
+        Ok(id)
+    }
+    fn observe(&self, snapshot: Snapshot) -> Result<Observation> {
+        let _timing = meden_runtime::metrics::Span::start("analysis.cache.retain_observation");
+        let artifact = Artifact {
+            version: 1,
+            snapshot,
+        };
+        artifact.check()?;
+        let collection = artifact
+            .snapshot
             .collection
             .as_ref()
-            .context("Missing compilation bindings")?
-            .metadata
-            .clone(),
-        snapshot: snapshot.clone(),
-    };
-    let directory = crate::storage::directory(workspace.path())?.join("explanations");
-    let id = crate::atlas::digest(&serde_json::to_vec(&artifact)?);
-    crate::storage::write(&directory.join(format!("{id}.json")), &artifact)?;
-    let index_path = directory.join("index.json");
-    let mut index: BTreeMap<String, String> =
-        crate::storage::read(&index_path)?.unwrap_or_default();
-    for path in &artifact.paths {
-        index.insert(path.clone(), id.clone());
+            .context("Missing compilation bindings")?;
+        let key = scope(&collection.roots, collection.prepared.is_some())?;
+        let id = hash(&artifact)?;
+        if self.index("observations")?.get(&key) == Some(&id) {
+            self.read::<Artifact>("observations", &id)?.check()?;
+        } else {
+            self.write("observations", key, &artifact)?;
+        }
+        Ok(Observation {
+            id,
+            snapshot: artifact.snapshot,
+        })
     }
-    anyhow::ensure!(
-        index.len() <= 10_000,
-        "Compiled explanation index exceeds 10000 files"
-    );
-    crate::storage::write(&index_path, &index)
+    fn rendered(&self, id: &str, snapshot: &Snapshot, renderer: &str) -> Result<Option<Snapshot>> {
+        let _timing = meden_runtime::metrics::Span::start("analysis.cache.load_rendering");
+        let Some(rendering_id) = self
+            .index("renderings")?
+            .get(&hash(&(id, renderer))?)
+            .cloned()
+        else {
+            return Ok(None);
+        };
+        let rendering: Rendering = self.read("renderings", &rendering_id)?;
+        anyhow::ensure!(
+            rendering.observation == id && rendering.renderer == renderer,
+            "Rendering input binding changed"
+        );
+        let mut result = rendering.project(snapshot.clone())?;
+        bind_revision(&mut result, &rendering_id)?;
+        Ok(Some(result))
+    }
+    fn render(
+        &self,
+        original: Observation,
+        renderer: String,
+        snapshot: &mut Snapshot,
+    ) -> Result<()> {
+        let _timing = meden_runtime::metrics::Span::start("analysis.cache.store_rendering");
+        anyhow::ensure!(
+            !renderer.is_empty() && renderer.len() <= 256,
+            "Invalid renderer identity"
+        );
+        let graph = snapshot.atlas.as_ref().context("Missing rendered graph")?;
+        let rendering = Rendering {
+            observation: original.id,
+            renderer,
+            readings: graph
+                .graph
+                .nodes
+                .iter()
+                .filter_map(|node| {
+                    node.semantic.as_ref().map(|semantic| Reading {
+                        node: node.id.clone(),
+                        sentence: semantic.sentence.clone(),
+                        renderer: semantic.renderer.clone(),
+                        error: semantic.rendering_error.clone(),
+                    })
+                })
+                .collect(),
+        };
+        let mut expected = rendering.project(original.snapshot)?;
+        anyhow::ensure!(
+            serde_json::to_vec(&expected)? == serde_json::to_vec(snapshot)?,
+            "Rendering changed a compiler/search observation"
+        );
+        let key = hash(&(&rendering.observation, &rendering.renderer))?;
+        let id = self.write("renderings", key, &rendering)?;
+        bind_revision(&mut expected, &id)?;
+        *snapshot = expected;
+        Ok(())
+    }
+}
+
+impl Artifact {
+    fn check(&self) -> Result<()> {
+        let snapshot = &self.snapshot;
+        let collection = snapshot
+            .collection
+            .as_ref()
+            .context("Missing compilation bindings")?;
+        let graph = snapshot
+            .atlas
+            .as_ref()
+            .context("Missing compiled observations")?;
+        anyhow::ensure!(
+            self.version == 1
+                && !snapshot.files.is_empty()
+                && snapshot.files.len() <= 32
+                && snapshot.revision == format!("sha256:{}", hash(&snapshot.files)?)
+                && !collection.roots.is_empty()
+                && collection
+                    .roots
+                    .iter()
+                    .all(|p| snapshot.files.contains_key(p))
+                && graph.graph.nodes.len() <= 5000,
+            "Invalid compiler observation binding"
+        );
+        Ok(())
+    }
+}
+impl Rendering {
+    fn project(&self, mut snapshot: Snapshot) -> Result<Snapshot> {
+        anyhow::ensure!(
+            self.readings.len() <= 5000,
+            "Rendering exceeds declaration bounds"
+        );
+        let mut readings = BTreeMap::new();
+        for reading in &self.readings {
+            anyhow::ensure!(
+                readings.insert(&reading.node, reading).is_none(),
+                "Duplicate rendered declaration"
+            );
+        }
+        for node in &mut snapshot
+            .atlas
+            .as_mut()
+            .context("Missing compiled graph")?
+            .graph
+            .nodes
+        {
+            if let Some(semantic) = &mut node.semantic {
+                let reading = readings
+                    .remove(&node.id)
+                    .context("Rendered declaration is missing")?;
+                semantic.sentence.clone_from(&reading.sentence);
+                semantic.renderer.clone_from(&reading.renderer);
+                semantic.rendering_error.clone_from(&reading.error);
+                anyhow::ensure!(semantic.valid(), "Invalid rendered explanation");
+            }
+        }
+        anyhow::ensure!(
+            readings.is_empty(),
+            "Rendering is outside the observed graph"
+        );
+        Ok(snapshot)
+    }
+}
+
+fn hash(value: &impl Serialize) -> Result<String> {
+    Ok(crate::atlas::digest(&serde_json::to_vec(value)?))
+}
+fn scope(paths: &[String], prepared: bool) -> Result<String> {
+    let paths = paths.iter().collect::<BTreeSet<_>>();
+    hash(&(paths, prepared))
+}
+fn bind_revision(snapshot: &mut Snapshot, rendering: &str) -> Result<()> {
+    let graph = snapshot.atlas.as_mut().context("Missing compiled graph")?;
+    graph.revision = format!("sha256:{}", hash(&(&graph.revision, rendering))?);
+    Ok(())
+}
+
+pub fn retain_observation(workspace: &Workspace, snapshot: Snapshot) -> Result<Observation> {
+    Store::host(workspace)?.observe(snapshot)
+}
+/// Reuse only readings bound to this immutable observation and selected renderer.
+pub fn rendering(
+    workspace: &Workspace,
+    original: &Observation,
+    renderer: &str,
+) -> Result<Option<Snapshot>> {
+    Store::host(workspace)?.rendered(&original.id, &original.snapshot, renderer)
+}
+pub fn retain_rendering(
+    workspace: &Workspace,
+    original: Observation,
+    renderer: String,
+    snapshot: &mut Snapshot,
+) -> Result<()> {
+    Store::host(workspace)?.render(original, renderer, snapshot)
 }
 
 fn artifacts(
     workspace: &Workspace,
     control: &Control,
-    paths: &[String],
+    selections: impl IntoIterator<Item = Vec<String>>,
     prepared: Option<&str>,
-) -> Result<Vec<Artifact>> {
-    let directory = crate::storage::directory(workspace.path())?.join("explanations");
-    let index: BTreeMap<String, String> =
-        crate::storage::read(&directory.join("index.json"))?.unwrap_or_default();
-    anyhow::ensure!(
-        index.len() <= 10_000,
-        "Compiled explanation index exceeds bounds"
-    );
-    let ids = paths
-        .iter()
-        .filter_map(|path| index.get(path))
-        .collect::<BTreeSet<_>>();
+) -> Result<Vec<(String, Artifact)>> {
+    let _timing = meden_runtime::metrics::Span::start("analysis.cache.validate");
+    let store = Store::host(workspace)?;
+    let index = store.index("observations")?;
+    let mut ids: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for paths in selections {
+        let key = scope(&paths, prepared.is_some())?;
+        if let Some(id) = index.get(&key) {
+            ids.entry(id.clone()).or_default().insert(key);
+        }
+    }
     if ids.is_empty() {
         return Ok(Vec::new());
     }
     let resources = crate::atlas::Configuration::host(workspace.path()).current_resources()?;
-    let renderer = crate::adapters::informath::fingerprint()?;
     let mut observations = Vec::new();
-    for id in ids {
-        anyhow::ensure!(
-            id.len() == 64 && id.bytes().all(|c| c.is_ascii_hexdigit()),
-            "Invalid explanation artifact ID"
-        );
-        let artifact: Artifact = crate::storage::read(&directory.join(format!("{id}.json")))?
-            .context("Missing explanation artifact")?;
-        anyhow::ensure!(
-            artifact.version == 1
-                && artifact.snapshot.revision == artifact.source_revision
-                && artifact.snapshot.files.keys().cloned().collect::<Vec<_>>() == artifact.paths
-                && artifact.paths.len() <= 32
-                && artifact
-                    .snapshot
-                    .atlas
-                    .as_ref()
-                    .is_some_and(|a| a.graph.nodes.len() <= 5000)
-                && crate::atlas::digest(&serde_json::to_vec(&artifact)?) == *id,
-            "Invalid explanation artifact binding"
-        );
-        if artifact
+    for (id, keys) in ids {
+        let artifact: Artifact = store.read("observations", &id)?;
+        artifact.check()?;
+        let collection = artifact
             .snapshot
             .collection
             .as_ref()
-            .and_then(|c| c.prepared.as_deref())
-            != prepared
+            .context("Missing compilation bindings")?;
+        anyhow::ensure!(
+            keys.contains(&scope(&collection.roots, collection.prepared.is_some())?),
+            "Compiler observation selection changed"
+        );
+        if collection.prepared.as_deref() != prepared
+            || artifact
+                .snapshot
+                .atlas
+                .as_ref()
+                .context("Missing compiled graph")?
+                .resources_sha256
+                != resources
         {
             continue;
         }
-        if artifact.resources != resources || artifact.renderer != renderer {
-            continue;
-        }
-        // Only exact current compiler inputs admit a cached observation.
-        if crate::analysis::collect::check_metadata(workspace, control, &artifact.metadata).is_err()
+        if crate::analysis::collect::check_metadata(workspace, control, &collection.metadata)
+            .is_err()
         {
             continue;
         }
-        let Ok(current) = crate::analysis::sources::capture(workspace, control, &artifact.paths)
-        else {
+        let paths = artifact.snapshot.files.keys().cloned().collect::<Vec<_>>();
+        let Ok(current) = crate::analysis::sources::capture(workspace, control, &paths) else {
             continue;
         };
-        if current.revision != artifact.source_revision {
+        if current.revision != artifact.snapshot.revision {
             continue;
         }
-        observations.push(artifact);
+        observations.push((id, artifact));
     }
     Ok(observations)
 }
 
 pub fn load(workspace: &Workspace, control: &Control, paths: &[String]) -> Result<Vec<Note>> {
+    let artifacts = artifacts(
+        workspace,
+        control,
+        paths.iter().map(|p| vec![p.clone()]),
+        None,
+    )?;
+    if artifacts.is_empty() {
+        return Ok(Vec::new());
+    }
+    let store = Store::host(workspace)?;
+    let renderer = crate::adapters::informath::fingerprint()?;
     let mut notes = Vec::new();
-    for artifact in artifacts(workspace, control, paths, None)? {
-        let graph = artifact.snapshot.atlas.context("Missing compiled graph")?;
+    for (id, artifact) in artifacts {
+        // Index projection never executes a renderer, compiler or search.
+        let Some(snapshot) = store.rendered(&id, &artifact.snapshot, &renderer)? else {
+            continue;
+        };
+        let graph = snapshot.atlas.context("Missing compiled graph")?;
         for node in graph.graph.nodes {
             if !paths.contains(&node.file_path) {
                 continue;
@@ -146,13 +375,7 @@ pub fn load(workspace: &Workspace, control: &Control, paths: &[String]) -> Resul
             let (Some(line), Some(semantic)) = (node.line_start, node.semantic) else {
                 continue;
             };
-            anyhow::ensure!(
-                artifact.paths.contains(&node.file_path)
-                    && line > 0
-                    && semantic.origin == "elaborated"
-                    && semantic.valid(),
-                "Invalid compiled observation"
-            );
+            anyhow::ensure!(line > 0 && semantic.valid(), "Invalid compiled observation");
             notes.push(Note {
                 file: node.file_path,
                 name: node.id,
@@ -168,24 +391,37 @@ pub fn load(workspace: &Workspace, control: &Control, paths: &[String]) -> Resul
 pub fn compiled(
     workspace: &Workspace,
     control: &Control,
-    path: &str,
-) -> Result<Option<crate::analysis::sources::Snapshot>> {
-    Ok(artifacts(workspace, control, &[path.into()], None)?
-        .into_iter()
-        .next()
-        .map(|a| a.snapshot))
+    paths: &[String],
+) -> Result<Option<Snapshot>> {
+    compiled_for(workspace, control, paths, None)
 }
-
-/// Only a freshly prepared, exact compiled-input fingerprint may reuse these observations.
+/// Only a freshly prepared exact compiler-input fingerprint may reuse Lake observations.
 pub fn compiled_prepared(
     workspace: &Workspace,
     control: &Control,
     paths: &[String],
     fingerprint: &str,
-) -> Result<Option<crate::analysis::sources::Snapshot>> {
-    let _timing = meden_runtime::metrics::Span::start("analysis.cache.validate");
-    Ok(artifacts(workspace, control, paths, Some(fingerprint))?
-        .into_iter()
-        .next()
-        .map(|a| a.snapshot))
+) -> Result<Option<Snapshot>> {
+    compiled_for(workspace, control, paths, Some(fingerprint))
 }
+fn compiled_for(
+    workspace: &Workspace,
+    control: &Control,
+    paths: &[String],
+    prepared: Option<&str>,
+) -> Result<Option<Snapshot>> {
+    let Some((_, artifact)) = artifacts(
+        workspace,
+        control,
+        std::iter::once(paths.to_vec()),
+        prepared,
+    )?
+    .into_iter()
+    .next() else {
+        return Ok(None);
+    };
+    Ok(Some(artifact.snapshot))
+}
+
+#[cfg(test)]
+mod tests;

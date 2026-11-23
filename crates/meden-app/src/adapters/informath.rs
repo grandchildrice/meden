@@ -128,9 +128,14 @@ pub fn fingerprint() -> Result<String> {
     Ok(Informath::discover()?.map_or_else(|| "structural-english".into(), |i| i.fingerprint))
 }
 
-pub fn enrich(graph: &mut crate::atlas::Extraction, control: &Control) -> Result<()> {
+pub fn enrich(graph: &mut crate::atlas::Extraction, control: &Control) -> Result<String> {
+    let _timing = meden_runtime::metrics::Span::start("analysis.render");
     let Some(renderer) = Informath::discover()? else {
-        return Ok(());
+        anyhow::ensure!(
+            fingerprint()? == "structural-english",
+            "Meaning renderer resources changed during preparation"
+        );
+        return Ok("structural-english".into());
     };
     let started = std::time::Instant::now();
     // Each declaration is an independent observation, so an unsupported domain
@@ -171,5 +176,5 @@ pub fn enrich(graph: &mut crate::atlas::Extraction, control: &Control) -> Result
         fingerprint()? == renderer.fingerprint,
         "Meaning renderer resources changed during preparation"
     );
-    Ok(())
+    Ok(renderer.fingerprint)
 }

@@ -117,6 +117,18 @@ and prepared-Lake implementations return typed snapshots directly, without a
 JSON/format-tag round trip. Model calls still use their actual consuming processor
 binding and retain the original preflight/postflight revocation checks.
 
+Compiler ports now return only compiler/search observations. They do not select
+or load the external renderer. The shared application owns the next preparation
+step: immutable raw observations and renderer-specific readings have separate
+content-addressed caches. A renderer change can reuse an exactly validated raw
+observation without rerunning the compiler/search. Its overlay can replace only
+the sentence, renderer attribution and rendering error; it cannot replace the
+checker, formal expression, refutation, source or graph. The complete view's
+revision binds the reading artifact as well as the original graph. These are
+application/cache checks and ownership constraints, not new evidence authority
+or extracted refinement claims. See the renderer-update journey in
+[ux-testing.md](../ux-testing.md).
+
 This is the first application extraction, not the complete multi-backend registry.
 Compiler snapshots remain Lean-oriented internally. Native source pages now use
 the generic application projection described below; the second real verification

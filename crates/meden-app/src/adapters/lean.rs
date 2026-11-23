@@ -1,6 +1,9 @@
 //! Lean-specific compilation adapter; no compiler syntax belongs to the core.
 use super::Context;
-use crate::compiler::{Compiled, Compiler, Request};
+use crate::{
+    analysis::sources::Snapshot,
+    compiler::{Compiler, Request},
+};
 use anyhow::{Context as _, Result};
 pub struct Lean {
     atlas: crate::atlas::Configuration,
@@ -12,12 +15,15 @@ impl Lean {
 }
 
 impl Compiler for Lean {
-    fn compile(&self, context: &Context<'_>, request: Request) -> Result<Compiled> {
+    fn compile(&self, context: &Context<'_>, request: Request) -> Result<Snapshot> {
         let paths = request.paths();
         let workspace = context.workspace;
         let control = context.control;
         let atlas = &self.atlas;
         atlas.ensure_prepared(control)?;
+        if let Some(cached) = crate::explanation::cache::compiled(workspace, control, paths)? {
+            return Ok(cached);
+        }
         let mut snapshot =
             crate::analysis::collect::capture(workspace, control, paths, atlas.clone())?;
         let observed = snapshot.files.keys().cloned().collect::<Vec<_>>();
@@ -25,6 +31,13 @@ impl Compiler for Lean {
             .collection
             .as_ref()
             .context("Missing collected module bindings")?;
+        if paths.is_empty() {
+            if let Some(cached) =
+                crate::explanation::cache::compiled(workspace, control, &collection.roots)?
+            {
+                return Ok(cached);
+            }
+        }
         crate::analysis::collect::check_metadata(workspace, control, &collection.metadata)?;
         let mut graph = atlas.extract(&snapshot.files, &collection.modules, control)?;
         graph.revision = format!(
@@ -39,6 +52,6 @@ impl Compiler for Lean {
         );
         snapshot.atlas = Some(graph);
         control.with_active(|| Ok(()))?;
-        Ok(Compiled::Created(snapshot))
+        Ok(snapshot)
     }
 }
