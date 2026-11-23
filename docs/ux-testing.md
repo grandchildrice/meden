@@ -81,6 +81,12 @@ in [verification.md](verification.md) and [project-verification.md](project-veri
 
 ## Completion criteria for changes
 
+When changing data/application boundaries, also run `npm run architecture:check`.
+Its negative cases check the structural guard, not live backend quality. The
+native startup/retained-tab journeys and recorded-workspace import/edit/restart
+journeys exercise the actual browser adapter and evidence invalidation. Pure
+workspace transitions receive explicit identity/time so replay is reproducible.
+
 Graph interaction regression coverage also requires that wheel input over the
 passive review legend reaches the graph, hover/resize preserves the user's
 camera, reduced motion creates no graph transitions, and selecting a loaded

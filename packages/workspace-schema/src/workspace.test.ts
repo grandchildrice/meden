@@ -4,6 +4,7 @@ import {
   analysisFor,
   importWorkspace,
   updateRequirement,
+  createWorkspace,
   workspaceSchema,
 } from "./index";
 import { sampleWorkspace } from "../../../apps/web/src/fixtures/ledger";
@@ -22,7 +23,20 @@ describe("workspace data and freshness", () => {
   });
   it("invalidates retained proof and analysis when a requirement changes, including after JSON roundtrip", () => {
     const original = sampleWorkspace();
-    const edited = updateRequirement(original, "REQ-001", "変更した要件");
+    const edited = updateRequirement(
+      original,
+      "REQ-001",
+      "Changed requirement",
+      "2026-11-23T00:00:00.000Z",
+    );
+    expect(edited).toEqual(
+      updateRequirement(
+        original,
+        "REQ-001",
+        "Changed requirement",
+        "2026-11-23T00:00:00.000Z",
+      ),
+    );
     expect(edited.inputRevision).toBe(2);
     expect(
       edited.declarations.find((node) => node.id === "Ledger.accepted_transfer")
@@ -35,14 +49,31 @@ describe("workspace data and freshness", () => {
     expect(
       restored.analyses.every((analysis) => analysis.status === "stale"),
     ).toBe(true);
-    expect(original.requirements[0].text).not.toBe("変更した要件");
+    expect(original.requirements[0].text).not.toBe("Changed requirement");
+  });
+  it("creates a reproducible draft from explicit identity and time", () => {
+    const metadata = {
+      id: "same-input",
+      updatedAt: "2026-11-23T00:00:00.000Z",
+    };
+    const created = createWorkspace("Review", metadata);
+    expect(createWorkspace("Review", metadata)).toEqual(created);
+    expect(created.id).toBe(metadata.id);
+    expect(created.updatedAt).toBe(metadata.updatedAt);
   });
   it("does not invalidate unchanged text or accept an unknown claim edit", () => {
     const workspace = sampleWorkspace();
     expect(
-      updateRequirement(workspace, "REQ-001", workspace.requirements[0].text),
+      updateRequirement(
+        workspace,
+        "REQ-001",
+        workspace.requirements[0].text,
+        workspace.updatedAt,
+      ),
     ).toBe(workspace);
-    expect(() => updateRequirement(workspace, "missing", "text")).toThrow();
+    expect(() =>
+      updateRequirement(workspace, "missing", "text", workspace.updatedAt),
+    ).toThrow();
   });
   it("refuses dangling graph, analysis and evidence references and duplicate IDs", () => {
     const workspace = sampleWorkspace();

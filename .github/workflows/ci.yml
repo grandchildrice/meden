@@ -308,6 +308,7 @@ jobs:
       - run: npm ci
       - run: npm run format:check
       - run: npm run typecheck
+      - run: npm run architecture:check
       - run: npm test
       - run: npm run schema:check
       - run: npm run build

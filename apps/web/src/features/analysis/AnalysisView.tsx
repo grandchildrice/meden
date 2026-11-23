@@ -282,7 +282,16 @@ export function AnalysisView({
             variant="contained"
             disabled={!body.trim() || body.length > 100_000}
             onClick={async () => {
-              if (await onChange(updateRequirement(workspace, claim.id, body)))
+              if (
+                await onChange(
+                  updateRequirement(
+                    workspace,
+                    claim.id,
+                    body,
+                    new Date().toISOString(),
+                  ),
+                )
+              )
                 setEditing(false);
             }}
           >

@@ -1,5 +1,10 @@
 # Measured
 
+The [2026-11-23 design review](design-review-20261123.json) audits the small-kernel,
+typed-plugin and reproducible-view principles against current code. It records
+the first boundary cleanup and public UX checks separately from the remaining
+plugin registration, read-model, native perf and adversarial-testing migration.
+
 The isolated planner and its benchmark flags were removed after commit
 `e9a3e92`. Historical records/commands below describe those older binaries.
 The old AgentDojo host-tool bridge and benchmark adapter have also been

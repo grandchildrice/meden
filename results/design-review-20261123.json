@@ -1,0 +1,110 @@
+{
+  "date": "2026-11-23",
+  "baseline": "de0965f",
+  "task": "Review design principles and make the first enforced boundary cleanup",
+  "decision": "docs/architecture/typed-core-and-plugins.md",
+  "review_coverage": [
+    {
+      "requirement": "Small core",
+      "decision": "Preserve the pure consuming authority kernel; extract application use cases outward rather than enlarging meden-core.",
+      "evidence": [
+        "crates/meden-core/Cargo.toml",
+        "crates/meden-core/src/lib.rs",
+        "tools/architecture/check.mjs"
+      ]
+    },
+    {
+      "requirement": "Small typed grammar and extensibility",
+      "decision": "Closed control vocabulary; new implementation types/configuration/registration/conformance for existing effects. New authority requires renewed specifications/refinement.",
+      "implementation": "Role-specific wrappers and registry are migration work."
+    },
+    {
+      "requirement": "Selectable prover, meaning and model plugins",
+      "decision": "Separate compiler/indexer, verifier, meaning, search and model ports; freeze plugin/resource/schema identities. No universal backend language or provider branches in the kernel.",
+      "evidence": [
+        "crates/meden-core/src/adapter.rs",
+        "crates/meden-cli/src/adapters.rs",
+        "crates/meden-agent/src/conversation.rs",
+        "crates/meden-llm/src/provider.rs"
+      ],
+      "implementation": "Existing neutral adapter and model trait are partial foundations, not a complete registry."
+    },
+    {
+      "requirement": "Type-driven bug prevention",
+      "decision": "Private validated constructors, owned bindings, consuming transitions and disjoint failures; runtime decoding and I/O correspondence remain separate obligations."
+    },
+    {
+      "requirement": "DDD and loose coupling",
+      "decision": "Named logical contexts, inward dependencies, one shared application owner per operation. Crates/services require a real boundary.",
+      "implementation": "HTTP adapter removed from protocol package; Cargo/TS boundary checks added to CI."
+    },
+    {
+      "requirement": "Reproducible, fast UI and justified stack",
+      "decision": "Keep TS/React presentation initially; immutable prepared projections and deterministic state. Worker/Rust/WASM/renderer changes require comparable end-to-end profiles.",
+      "implementation": "Identity/time are explicit inputs to shared workspace transitions; native cache/authority behavior unchanged."
+    },
+    {
+      "requirement": "Uniform file/folder/proof display and understandable waits",
+      "decision": "Generic inventory/source/graph projections, explicit unsupported/binary/limited states, complete enriched artifacts, typed resource/job progress with queue reason/phase/limits.",
+      "implementation": "General read models and generated native DTOs are migration work."
+    },
+    {
+      "requirement": "Delete unnecessary code",
+      "implementation": "Removed unused AgentClient/job/event declarations and generated agent-event schema. Retained the used repository port and recorded-demo entry point."
+    },
+    {
+      "requirement": "Routine perf and layered adversarial verification",
+      "decision": "Lightweight local spans, provisioned perf/CDP diagnostics and repeated CI budgets; generated properties/traces, actual-source refinement, differential fuzzing, real-tool integration and public E2E.",
+      "implementation": "Existing core proptest/conformance/formal checks and browser profiler were audited. Native perf and continuous performance/fuzz gates remain explicit migration requirements, prioritized before application extraction."
+    }
+  ],
+  "native_profiling_readiness": {
+    "perf_on_path": false,
+    "perf_event_paranoid": 2,
+    "kptr_restrict": 1,
+    "native_profile_collected": false
+  },
+  "cleanup": {
+    "moved": "NativeClient to apps/web/src/adapters/native-client.ts",
+    "determinism": "createWorkspace requires identity/time; updateRequirement requires a validated timestamp from its caller.",
+    "removed": [
+      "unused AgentClient/Job/AgentEvent/ConnectionState declarations",
+      "schemas/agent-event-v1.schema.json"
+    ],
+    "security_scope": "No Rust kernel, authorization or evidence-admission changes. Structural guard is not an I/O or refinement proof."
+  },
+  "checks": {
+    "architecture_counterexamples_and_positive_cases": 16,
+    "cargo_crates_checked": 5,
+    "owned_data_port_sources_checked": 11,
+    "typescript_unit": 33,
+    "typecheck": "passed",
+    "format": "passed",
+    "schema_generation_drift": "passed",
+    "public_gui_cases": 4,
+    "gui_log": "/tmp/meden-design-gui.log",
+    "gui_journeys": [
+      "Missing/built assets and fresh review",
+      "Invalid imports and unconfirmed Atlas metadata",
+      "Requirement edits invalidate evidence across restart",
+      "Real prepared retained file tabs and explicit analysis"
+    ],
+    "required_public_tui": 33,
+    "tui_success": true,
+    "tui_evidence": "/tmp/meden-ux-design-boundaries-20261123",
+    "binary": {
+      "path": "/home/gohan/workspace/meden/target/debug/meden",
+      "sha256": "5fda9cd8a9355e72f4be65ae65ce949b0e25d4d9423e8cf7ce712ff7c4064aeb"
+    },
+    "decoded_screen_review": [
+      "GUI/TUI continuation",
+      "Lake source-inventory failure and historical result",
+      "Provider stop/restart and explicit retry"
+    ]
+  },
+  "limitations": [
+    "This completes a design review and initial boundary cleanup, not migration steps 2\u20135.",
+    "Installed Lean/Lake and scripted model fixtures establish integration coverage, not live-model quality, cold installation, local deployment or complete R1.",
+    "The architecture guard checks owned sources/manifests; it is not a proof of dependencies, arbitrary aliasing, effects or every current module."
+  ]
+}

@@ -19,7 +19,14 @@ export async function readWorkspaceFile(file: File): Promise<Workspace> {
     if (typeof data === "object" && data !== null && "schemaVersion" in data)
       return importWorkspace(data);
     const graph = importAtlas(data);
-    return { ...createWorkspace(graph.name), ...graph, origin: "imported" };
+    return {
+      ...createWorkspace(graph.name, {
+        id: crypto.randomUUID(),
+        updatedAt: new Date().toISOString(),
+      }),
+      ...graph,
+      origin: "imported",
+    };
   } catch {
     throw new Error(
       "Check the Meden workspace or Lean Atlas graph format, including requirement, declaration and evidence references.",

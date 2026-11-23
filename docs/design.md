@@ -1,6 +1,6 @@
 # Meden: proof-driven development, with ease
 
-Status: target architecture, revised 2026-11-09. This describes the product
+Status: target architecture, revised 2026-11-23. This describes the product
 we are building, not functionality already shipped. Current checks and
 implementation limits are in [verification.md](verification.md) and
 [SECURITY.md](../SECURITY.md).
@@ -73,6 +73,34 @@ packages separated from rendering. The native `meden gui` gateway now uses the s
 source/Atlas analysis, reviewed repairs and local journals as the public TUI.
 The standalone demo still uses sample data. [Implementation map](architecture/semantic-workspace.md)
 and [GUI usage](gui.md) distinguish these paths and their remaining adapter gaps.
+
+## Design rules for refactoring
+
+The [typed-core and plugin decision](architecture/typed-core-and-plugins.md)
+is the current refactoring policy. Keep the trusted Rust kernel pure and small;
+extend backends, meaning tools and models through typed application ports and
+host registration. Ordinary integrations add implementation types and conformance
+tests, not prover/provider branches in the authority kernel. New authority
+semantics still require explicit specification and refinement.
+
+Use owned values, private validated constructors and consuming transitions to
+exclude invalid states. Application contexts own requirements/evidence,
+materialization, verification, agents and presentation; the CLI composes them.
+Backend observations never grant proof or delivery authority. Source, prepared
+analysis and current evidence are separate types and read models.
+
+UI reproducibility and latency are requirements. Retain revision-bound prepared
+views, explicit camera state and deterministic ordering/layout. Keep ordinary
+navigation independent of compilation; enriched semantic views require prepared
+artifacts. Report the actual job, wait reason, phase, elapsed time and limits.
+Choose TS/React, workers, Rust/WASM or a different renderer by end-to-end profiles,
+including transfer/startup cost, rather than assuming a language change is faster.
+
+Measure with bounded local spans and native/browser profiles. Combine generated
+properties, formal methods, independent differential fuzzing, real integration
+checks and public E2E failure/restart journeys. Delete unused or superseded paths
+as part of replacement. Current gaps and migration exits are explicit in the
+decision; a plan or structural boundary check is not evidence of implementation.
 
 ## User experience
 

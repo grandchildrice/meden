@@ -1,7 +1,10 @@
 # Semantic workspace architecture
 
-Status: GUI/native local gateway, source-reference graphs, selected-module Lean Atlas extraction and two-pass native meaning analysis implemented. Full-project dependency discovery and independent-model judging remain open.
-Decision date: 2026-11-18. This applies the Semantic Assurance strategy's local-first
+Status: native gateway, cached project inventory/navigation, selected-module Lean
+Atlas extraction and two-pass meaning analysis with optional separate judging
+implemented. General backend registration and full-project compiled dependency
+coverage remain open. Refactoring policy: [typed core and plugins](typed-core-and-plugins.md).
+Decision date: 2026-11-18, reviewed 2026-11-23. This applies the Semantic Assurance strategy's local-first
 boundaries while using TypeScript/Vite, as requested, in place of its Next.js SPA.
 
 ## Repository structure
@@ -16,11 +19,12 @@ apps/
     e2e/                      public browser journeys + accessibility
 packages/
   workspace-schema/           Zod workspace, evidence, revisions and statuses
-  agent-protocol/             versionable events, jobs and client/repository ports
+  agent-protocol/             native wire schemas and repository port
   atlas-adapter/              Atlas import, dependency scope, radial coordinates
   expert-review/              target binding and minimal review package
 schemas/                      generated JSON Schema for non-TypeScript adapters
-tools/gui/                    schema generation + whitelisted demo capture
+tools/gui/                    schema generation, local profiling and demo capture
+tools/architecture/           dependency/data-boundary regression checks
 crates/                       existing Rust controller, workers, TUI and protocol
 verification/                 existing Lean specifications/refinement tooling
 python/                       existing adapter/UX checks
@@ -49,19 +53,21 @@ match does not turn an unproved theorem into a proof. Editing a requirement
 invalidates old proof and analysis without changing their historical bindings.
 Recorded workspace edits/imports never accept a native contract or issue an export grant. Native contract-review actions call the Rust controller with an exact frozen reference.
 
-`agent-protocol` defines typed jobs/events and the `AgentClient` and
-`WorkspaceRepository` ports. `NativeClient` additionally implements the same-origin native state/command
-adapter with a validated wire schema. The original versioned jobs/events port
-is still an interface; native progress currently uses bounded state polling. Existing `crates/meden-cli/src/protocol.rs` is
+`agent-protocol` defines validated native state/command schemas and the
+`WorkspaceRepository` port. The same-origin `NativeClient` implementation lives
+in `apps/web/src/adapters/native-client.ts`, so HTTP I/O does not enter the data
+package. Native progress currently uses bounded state polling. The unused
+proposed `AgentClient`/job-event interface and its generated schema were removed;
+future job progress must implement the actual shared application lifecycle.
+Existing `crates/meden-cli/src/protocol.rs` is
 JSON Lines over standard I/O; it is not an authenticated browser gateway and
 cannot simply be exposed as one. No browser-managed keys or grants are added.
 
 `atlas-adapter` consumes Lean Atlas' node/edge JSON. It retains unknown edges
 conservatively and prunes a theorem's value-dependency edges only for the
 meaning-related view. Definitions' value dependencies remain. It computes
-cycle-safe graph scope and deterministic breadth-first radial rings. This is a
-viewer implementation informed by Compass; it is not an execution of Lean
-Compass or a new proof of semantic sufficiency. Large graph visualization,
+cycle-safe graph scope and the vendored MIT Lean4SemanticBench cone geometry.
+This is a viewer integration, not a new proof of semantic sufficiency. Broader graph rendering,
 standard-library trust configuration and analyzer correspondence remain work.
 
 `expert-review` freezes source and input versions, exports selected requirements,
@@ -72,6 +78,14 @@ sharing and a reviewer service are not implemented.
 Generated JSON Schema describes structural fields; the Zod reference/freshness
 checks also run in TypeScript. Future Rust/Python adapters must implement those
 cross-reference checks too. Generated schemas do not establish authorization.
+
+`npm run architecture:check` guards the current Rust dependency direction and
+keeps shared data/port packages free of owned browser I/O, UI imports and direct
+ambient clocks/randomness. Workspace creation/editing receives explicit identity
+and timestamp values from its caller. The guard uses Cargo metadata and the
+TypeScript syntax/symbol model; it does not prove third-party behavior, arbitrary
+aliasing, determinism or host I/O enforcement. The future native DTO generation
+and remaining application/context splits are specified in the refactoring policy.
 
 ## Replaceable compiler and meaning integrations
 

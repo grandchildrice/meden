@@ -1,0 +1,281 @@
+# Small typed kernel, replaceable integrations, reproducible views
+
+Decision date: 2026-11-23. This is the design review and migration policy for
+[design.md](../design.md). The current implementation is audited below; the
+migration exits are requirements, not claims that every backend, profiler or
+proof is already implemented. No backward-compatibility layer is required.
+
+## Principles
+
+1. Keep the trusted kernel small, pure and closed over authority decisions.
+   It owns contracts, grants, jobs, evidence admission and consuming effects.
+   Filesystems, clocks, transports, model SDKs, prover syntax and rendering stay
+   outside it. Fewer lines are useful only when their obligations disappear too.
+2. Represent permitted states and transitions with a small algebra of owned
+   values. Use private constructors, disjoint result variants, immutable
+   bindings and consuming transitions. Avoid independent booleans that admit
+   impossible combinations. Decode and validate external data once at a port.
+3. Extend supported behavior by adding an implementation type, its typed
+   configuration, a host registration and conformance tests. An existing effect
+   must not require another prover/provider branch in the kernel or renderer.
+   A genuinely new authority/effect is different: extend its specification,
+   extraction/refinement and tests before permitting it.
+4. Plugins produce observations and candidates. Only the existing kernel can
+   admit evidence or authorize effects. A semantic match, exit code or cache hit
+   cannot substitute for an admitted receipt bound to the accepted requirement.
+5. Give every domain operation one owner. TUI, GUI and automation call shared
+   application services; they do not maintain separate acceptance/repair rules.
+6. Make the viewer a projection of prepared, revision-bound data. Rendering,
+   hover and returning to a prepared tab cannot start compilation, inference or
+   evidence admission. An explicit request for an unprepared semantic view can
+   schedule one deduplicated application job; a read model reports its progress.
+7. Reproducibility is a data contract: identical inputs, versions, configuration
+   and seed produce the same identities, ordering and world coordinates.
+   Clocks, randomness, locale ordering and font-dependent measurements must be
+   explicit inputs where they affect an artifact. React memoization is a
+   performance optimization, not the source of truth for retained state.
+8. Minimize latency end to end. First reuse valid prepared artifacts, reduce work
+   to the visible/requested region, deduplicate jobs and bound transfer sizes.
+   Choose a language or rendering engine from comparable measurements, including
+   boundary-copy and startup costs.
+9. Keep lightweight local timing observable throughout the pipeline. Use native
+   `perf` and browser traces for sampled diagnosis and repeated regressions;
+   continuously collecting full stacks is not the default. Measurements name
+   the workload, environment, revision, cache condition and observation limits.
+10. Delete superseded implementations, unused ports and dependencies in the
+    migration that replaces them. Generate repetitive wire definitions instead
+    of maintaining parallel versions. Keep functions small for reasoning, and
+    test their composition as seriously as their individual behavior.
+
+Types rule out represented invalid states. They do not establish truthful I/O,
+correct requirements, valid plugin implementations or physical input provenance.
+Those obligations still need runtime validation, tests and scoped proofs.
+
+## Domain ownership and dependencies
+
+These are logical boundaries first. A new crate/service is justified by a real
+independent dependency or execution boundary, not by each noun in this table.
+
+| Context                               | Owns                                                                                  | Must not own                                               |
+| ------------------------------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Trusted kernel                        | Accepted revisions, policy, consuming calls/tickets, evidence eligibility             | Tool syntax, I/O, UI, provider discovery                   |
+| Requirements and evidence application | Reviewed intent, snapshot linkage, validation/admission workflow, history             | A second authority bit outside the kernel                  |
+| Workspace and materialization         | File inventory, immutable inputs, indices, graph/layout artifacts, cache invalidation | Model-selected filesystem/network authority                |
+| Analysis and verification application | Job preparation, cancellation, plugin binding, candidate interpretation               | Frontend-specific state or a hardcoded prover dispatcher   |
+| Agent application                     | Conversation/repair proposals and bounded iteration through existing controllers      | Accepting its own contracts or results                     |
+| Plugin ports and implementations      | Compiler, verifier, meaning, search and model capabilities                            | Grant renewal, unchecked receipts or kernel state mutation |
+| Host runtime                          | Prepared workers, actual I/O, locks, clocks and storage                               | Prover-specific product policy                             |
+| Presentation                          | Typed commands, read-model projection, selection/camera and accessibility             | Compiling to render, inferring current proof status        |
+
+The kernel provides the minimal common vocabulary and neutral adapter boundary.
+Role-specific ports belong to the shared application domain, inward of their
+implementations. The CLI executable is a composition root. Extracting application
+services from it must not move the same orchestration into `meden-core`.
+
+```mermaid
+flowchart LR
+  UI[GUI / TUI / CLI] --> APP[Shared application services and ports]
+  APP --> K[Pure consuming control kernel]
+  APP --> RUN[Host effect interpreter]
+  PLUG[Registered backend / model implementations] --> APP
+  RUN --> WORK[Prepared confined workers]
+  WORK --> OBS[Candidate observations and artifacts]
+  OBS --> APP
+  APP --> VIEW[Revision-bound read models]
+  VIEW --> UI
+```
+
+## Typed extensibility
+
+Keep the control vocabulary closed; keep implementation selection open. The
+common job lifecycle is preparation, dispatch, execution, validated observation
+and completion/admission, with typed refusal, cancellation, operational failure,
+unsupported capability and refutation. Do not add `RunLean`, `RunTlc` or
+`RunProviderX` to that lifecycle for ordinary integrations.
+
+Use distinct `SessionId`, `SnapshotId`, `RequirementRevision`, `JobId`,
+`PluginBinding` and `ArtifactRef` domains instead of interchangeable strings.
+The binding freezes implementation/resource digests, configuration and schema
+identities with the original inputs and policy. A serialized/branded ID is not
+itself an authorization token. Host constructors and consuming checks remain
+authoritative after decoding.
+
+Define separate compiler/indexer, verifier, meaning renderer, counterexample
+search and model ports. They share a job envelope and observation protocol,
+not one untyped `run(anything)` service with optional fields for every tool.
+Backend-specific ASTs and configurations are validated at their adapter boundary;
+the kernel does not interpret a universal Lean/TLA+/SMT/RTL language. Existing
+accepted-contract syntax checks must not be weakened into acceptance of opaque
+executable payloads during this separation.
+
+The current `Adapter<Context>` is a neutral observation primitive, not a complete
+plugin system. A host registry must describe supported operations/formats,
+implementation versions, resource requirements and limits. Initially use ordinary
+Rust implementations and explicit host registration. External implementations
+can later use the same validated protocol through prepared isolated workers;
+do not introduce a native dynamic-library ABI or a marketplace first.
+
+For an additional verifier, the exit is a real pinned example through unchanged
+job, admission and viewer paths, plus malformed-output, timeout, cancellation,
+stale-input and incorrect-result cases. For an additional provider, discovery
+and inference selection remain separate from the existing frozen processor
+approval. A model, workspace manifest or plugin cannot nominate an unrestricted
+executable/network destination.
+
+Lean checked theorems, TLC bounded/model results, SMT results, empirical searches
+and model assessments retain their logic, scope, assumptions and evidence kind.
+Meden's own Rust-to-Lean refinement is a separate assurance chain from selecting
+a project's verification plugin.
+
+## Reproducible and fast presentation
+
+The common projection is a project/resource inventory, source spans, stable
+symbol/node/edge identities, presentation roles, artifact provenance and job
+state. Unsupported rich analysis still has a file/metadata view. Binary or
+undecodable input, inaccessible paths, resource limits and incomplete analysis
+are explicit states; they are not silently dropped or represented as complete
+graphs. Arbitrary inputs do not imply unbounded resource consumption.
+
+Prepared semantic/proof content is published only after its required checks.
+The project shell and source inventory need not wait for that content. This
+preserves prepare-before-display for enriched analysis without making basic
+navigation depend on a compiler or model. A component mounting or pointer moving
+cannot itself queue compilation or inference. The application owns preparation
+triggered by an explicit view/work request and keeps basic source browsing usable.
+
+Persist layout as a versioned artifact when expensive: source/index and selected
+observation/label content digests, plugin configuration, algorithm/label policy versions and explicit seed/order
+rules form its key. Avoid ambient `localeCompare` for canonical ordering. Keep
+world coordinates independent of camera/viewport; view state is separate from
+evidence state. Retain source pages/tokens and only invalidate affected artifacts.
+Caches of presentation data never restore current verification or an approval.
+
+Use small revisioned read models and bounded log/chunk streams rather than
+resending full source, graph and history on each status tick. Progress names
+the job/resource, current step, queue/wait reason, elapsed time, applicable limit
+and local log reference. Distinguish queued, preparing inputs/dependencies,
+executing, validating and persisting. Do not route file preparation into chat.
+Monotonic revisions/generations reject late responses; cancellation remains a
+host-observed result, not a message-string heuristic.
+
+| Component                                                        | Decision                                                                                | Condition for changing it                                                                                       |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Trusted control and host execution                               | Rust; retain existing extraction/refinement boundary                                    | New supported semantics with renewed evidence                                                                   |
+| File discovery, dependency preparation and large materialization | Host/application service near the actual inputs, with immutable artifact outputs        | Measure native preparation, cache and serialization before changing runtime                                     |
+| Shell, source readers, interaction and accessibility             | Keep TypeScript/React initially; typed validated read models and deterministic reducers | A comparable prototype improves end-to-end latency and retains UX/authority boundaries                          |
+| Heavy browser computation                                        | A Worker behind a typed job/result port when main-thread profiling justifies it         | Include copies/transfers, cancellation, warm/cold and memory costs                                              |
+| Rust/WASM kernel                                                 | Optional compute implementation behind that same port                                   | Differential agreement and a measured end-to-end win; batch data across the boundary                            |
+| SVG/DOM versus Canvas/WebGL                                      | Keep the current renderer while reducing work to visible data                           | Migrate only when measured paint/DOM cost dominates; retain hit testing, source linkage and accessible controls |
+
+Browser WASM remains a computation/presentation implementation; it does not
+become a second authoritative contract, job or evidence controller.
+
+The [existing Riemann audit](../gui-performance.md) found full-map traversal,
+hidden map work, source retokenization and CSS/hit-test problems. Changing the
+language would not itself remove those operations. Workers have separate
+execution contexts and message-copy/transfer costs; WASM complements JavaScript
+and does not directly replace DOM/CSS work. See the primary
+[Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers)
+and [WebAssembly](https://developer.mozilla.org/en-US/docs/WebAssembly/Guides/Concepts)
+documentation. React documents `useMemo` as a
+[performance optimization](https://react.dev/reference/react/useMemo); durable
+view state and correctness must have an explicit owner.
+
+## Profiling and verification policy
+
+Record cheap, bounded, local spans/counters for request queueing, input capture,
+sandbox/resource preparation, dependency/build work, decoding, indexing, layout,
+storage, serialization/transport and UI commit/paint. Correlate job and revision
+identities across boundaries. Record wait and CPU time separately; a timer for
+the entire request is not a function profile. Do not put source, prompts or
+credentials in metric labels or enable remote telemetry by default.
+
+Use Linux `perf stat`/`perf record` for native CPU/stack attribution and CDP
+traces/profiles for browser event, layout and paint costs. Provision the native
+tool in the development/measurement environment, with suitable symbols and a
+documented kernel permission check. The audited workstation currently has no
+`perf` executable, with `perf_event_paranoid=2` and `kptr_restrict=1`; native
+profiling is an unimplemented prerequisite, not covered by the browser audit.
+Do not silently lower host security settings or label an unavailable profile a
+pass. Follow the upstream [perf guide](https://perfwiki.github.io/main/tutorial/).
+
+Performance CI must use a pinned workload/runner, consistent instrumentation,
+multiple runs, normal/reduced motion and cold/warm cache states. Capture complete
+gesture/debounce tails and separate instrumentation overhead. Retain raw profiles
+with digests and a compact summary. The existing browser tool is a diagnostic
+baseline; its one-run percentiles and probe-boundary limitations are not yet a
+continuous performance gate. Prioritize the roughly 56-second preparation path
+and residual whole-map legend/breadcrumb scans before an unmeasured framework
+rewrite. Set budgets from repeated baseline data; a 60 Hz frame budget may be a
+scenario target, not a portable theorem about every machine.
+
+| Layer                            | Required checks                                                                                                                                             |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pure types and functions         | Generated valid/adversarial data; invariants, round trips, determinism and bounded/resource-limit cases; retain seeds and shrunk failures                   |
+| State machines                   | Generated command traces against a reference model, including stale revisions, cancellation/restart, duplicate completion and refusal                       |
+| Trusted kernel                   | Actual-source extraction/refinement, arbitrary finite compositions where claimed, conformance and mutation sensitivity; update proof links when moving code |
+| Parsers and optimized paths      | Differential fuzzing against independent specifications/reference implementations; preserve explicit unknown/unsupported outcomes                           |
+| TS/worker/Rust/WASM alternatives | The same corpus and comparison rules; exact identities/results, with declared numeric tolerance only for geometry                                           |
+| Plugin boundary                  | Real-tool positive/negative fixtures, complete-output admission, configuration/resource binding, isolation and failures                                     |
+| Integration and E2E              | Public TUI/GUI journeys, cold/setup and failure/retry/restart paths, rendered screens, view/evidence linkage, and original independent checks               |
+
+Property-based tests do not prove universality; formal results do not prove the
+adapters they exclude. For models and semantic translation, strict framing and
+reproducible fixtures check integration; evaluate quality separately with actual
+models and independent judgments. Proptest's
+[state-machine testing](https://proptest-rs.github.io/proptest/proptest/state-machine.html)
+describes the generated-trace/reference-model approach. Every new invariant
+must name its owner and its proof/test evidence, not merely increase test count.
+
+## Current audit and migration exits
+
+Baseline: `de0965f`. Counts include tests/comments; the approximate kernel count
+before the first `cfg(test)` block is 2,488 of 4,278 Rust lines. The larger
+concentration is `meden-cli/src` at 20,268 lines and `NativeApp.tsx` at 1,154.
+Line counts identify inspection targets, not automatic deletion candidates.
+
+| Finding                                                                                              | Evidence                                                                  | Action / exit                                                                                                                |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Kernel has no backend I/O dependency and already owns consuming authority                            | `meden-core`, policy/processor/invocation/evidence modules                | Preserve these boundaries and proof linkage; no wholesale rewrite                                                            |
+| Neutral artifact interface exists, but formats/payloads are strings/bytes                            | `meden-core/src/adapter.rs`                                               | Typed role wrappers/validated schemas and host registry; do not call the existing interface a complete plugin system         |
+| Compiler/meaning selection and preparation live under CLI; runtime verification is still specialized | `meden-cli/src/adapters`, `analysis.rs`, `meden-runtime/src/verification` | Move use cases behind shared application ports; exercise a second real backend through them                                  |
+| Model abstraction exists; discovery/transport selection uses built-in matches                        | `meden-agent::ChatModel`, `meden-llm::provider/gateway`                   | Registered provider implementations with the same consuming processor binding                                                |
+| GUI state mixes many contexts and is polled as one document                                          | `gui.rs::View`, `NativeApp.tsx`, `agent-protocol/native.ts`               | Small generated read models and role-specific application services; generation-aware queries, one authoritative command path |
+| Data package contained browser fetch, ambient time and UUID creation                                 | `NativeClient`, workspace constructors                                    | Moved HTTP to the browser adapter; require explicit identity/time for pure transitions                                       |
+| Unused proposed job/event port and generated schema were retained                                    | Former `AgentClient`/event schemas                                        | Deleted; `WorkspaceRepository` remains because it has a real implementation/caller                                           |
+| General file/index presentation still has Lean/Rust branches                                         | Source adapter, native file workspace and source index                    | Registry-selected analysis with a generic inventory/source view; no render-triggered compilation                             |
+| Verification is strong in selected kernels but PBT/fuzz/perf coverage is uneven                      | Core proptest, Rust/Lean conformance, GUI oracle, browser profile         | Extend by risk/owner; add native profiling and a repeated performance CI gate                                                |
+
+Perform the migration in reviewable vertical slices:
+
+1. **Enforce boundaries and remove dead abstractions.** The current change moves
+   HTTP I/O out of the protocol package, makes data transitions deterministic,
+   deletes the unused event port/schema and adds `npm run architecture:check` to
+   CI. The guard checks Cargo dependency direction plus owned TypeScript imports,
+   browser globals and direct ambient clock/random reads. It is a structural
+   regression check, not an I/O/refinement proof or an alias-proof security tool.
+2. **Make profiling and adversarial validation routine.** Provision native perf,
+   correlate lightweight spans, add shrinkable trace/corpus tests and differential
+   fuzz targets, and establish repeated performance budgets. Exit: benchmark
+   workloads expose their dominant stages and regressions fail meaningful gates;
+   unavailable platforms are explicit, not counted as completed coverage.
+3. **Separate application ownership.** Extract source/materialization and
+   analysis/verification use cases from CLI composition. Introduce typed plugin
+   registration and decoded role requests/results. Exit: existing Lean/model
+   journeys work through those ports and a second real backend requires no
+   kernel/prover-specific viewer branch.
+4. **Materialize generic read models.** Separate inventory/source availability,
+   prepared semantic graphs, job progress and admitted evidence. Generate native
+   wire types from one application-owned DTO definition, with runtime validation
+   and cross-reference/freshness tests. Keep recorded workspace interchange in
+   its own context. Exit: unsupported/large/binary/cyclic inputs have bounded,
+   explicit views; navigation is fast and side-effect free.
+5. **Delete replaced paths and reconsider compute/render engines.** Retire a demo
+   or duplicate implementation only after its current entry point, capture and
+   negative tests have a replacement. Prototype Worker/WASM/Canvas only for a
+   measured residual bottleneck, compare the same corpus, then keep one path.
+
+Steps 2–5 are migration work, not implemented by this design review. They retain
+the existing local/offline execution, accepted intent, exact evidence linkage and
+separate local-deployment/R1 obligations in [assurance.md](../assurance.md) and
+[verification.md](../verification.md).

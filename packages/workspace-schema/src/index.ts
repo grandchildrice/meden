@@ -298,6 +298,7 @@ export function updateRequirement(
   workspace: Workspace,
   claimId: string,
   body: string,
+  updatedAt: string,
 ): Workspace {
   if (!workspace.requirements.some((claim) => claim.id === claimId))
     throw new Error("No requirements");
@@ -308,7 +309,7 @@ export function updateRequirement(
   return {
     ...workspace,
     inputRevision: workspace.inputRevision + 1,
-    updatedAt: new Date().toISOString(),
+    updatedAt: workspaceSchema.shape.updatedAt.parse(updatedAt),
     requirements: workspace.requirements.map((claim) =>
       claim.id === claimId ? { ...claim, text: body } : claim,
     ),
@@ -328,15 +329,18 @@ export function updateRequirement(
   };
 }
 
-export function createWorkspace(name: string): Workspace {
+export function createWorkspace(
+  name: string,
+  metadata: Pick<Workspace, "id" | "updatedAt">,
+): Workspace {
   return workspaceSchema.parse({
     schemaVersion: 1,
-    id: crypto.randomUUID(),
+    id: metadata.id,
     name,
     sourceRevision: "unversioned",
     inputRevision: 0,
     origin: "local",
-    updatedAt: new Date().toISOString(),
+    updatedAt: metadata.updatedAt,
     requirements: [],
     declarations: [],
     edges: [],

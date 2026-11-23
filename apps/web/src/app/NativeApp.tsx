@@ -1,3 +1,4 @@
+import { NativeClient } from "../adapters/native-client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
@@ -15,7 +16,6 @@ import {
   Typography,
 } from "@mui/material";
 import {
-  NativeClient,
   type NativeCommand,
   type NativeReference,
   type NativeState,
