@@ -2,6 +2,8 @@ import {
   nativeStateSchema,
   workspaceOverviewSchema,
   historySnapshotSchema,
+  sourcePublicationSchema,
+  type SourcePublication,
   type HistorySnapshot,
   type NativeState,
   type NativeCommand,
@@ -35,15 +37,34 @@ export class NativeClient {
     revision: string,
     signal?: AbortSignal,
   ): Promise<HistorySnapshot> {
-    const snapshot = historySnapshotSchema.parse(
+    return this.publication("history", revision, historySnapshotSchema, signal);
+  }
+  async source(
+    revision: string,
+    signal?: AbortSignal,
+  ): Promise<SourcePublication> {
+    return this.publication(
+      "source",
+      revision,
+      sourcePublicationSchema,
+      signal,
+    );
+  }
+  private async publication<T extends { revision: string }>(
+    role: "history" | "source",
+    revision: string,
+    schema: { parse(value: unknown): T },
+    signal?: AbortSignal,
+  ): Promise<T> {
+    const snapshot = schema.parse(
       await this.request(
-        "/api/history?revision=" + encodeURIComponent(revision),
+        "/api/" + role + "?revision=" + encodeURIComponent(revision),
         undefined,
         signal,
       ),
     );
     if (snapshot.revision !== revision)
-      throw new Error("History response does not match its requested revision");
+      throw new Error("View response does not match its requested revision");
     return snapshot;
   }
   async overview(signal?: AbortSignal): Promise<WorkspaceOverview> {

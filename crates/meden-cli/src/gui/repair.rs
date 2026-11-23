@@ -16,8 +16,9 @@ pub(super) fn perform(
             let (snapshot, record) = {
                 let view = lock(view);
                 (
-                    view.source_snapshot
-                        .clone()
+                    view.sources
+                        .current()
+                        .cloned()
                         .context("Read sources before requesting a repair")?,
                     view.analysis
                         .clone()

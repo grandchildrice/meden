@@ -59,7 +59,7 @@ export function NativeGraph({
     } catch (error) {
       return { error: String(error) };
     }
-  }, [snapshot.revision, snapshot.graph?.revision]);
+  }, [snapshot]);
   const focused = result.workspace?.declarations.find(
     (d) => d.name === focusName,
   );

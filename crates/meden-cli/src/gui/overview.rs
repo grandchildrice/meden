@@ -83,8 +83,7 @@ pub(super) fn refresh(
         let mut view = lock(view);
         view.overview = Status::default();
         view.overview_snapshot = None;
-        view.source_snapshot = None;
-        view.source_views.clear();
+        view.sources.clear();
         view.activity = "Reading workspace sources and proof declarations".into();
     }
     let result = capture(view, workspace, control, fresh).and_then(|mut snapshot| {

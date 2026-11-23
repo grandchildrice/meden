@@ -156,7 +156,7 @@ export function NativeExplorer({
 }
 
 export function NativeCode({
-  state,
+  source: snapshot,
   observation,
   path,
   line,
@@ -165,7 +165,7 @@ export function NativeCode({
   explanations = [],
   hoveredLine,
 }: {
-  state: NativeState;
+  source?: import("@meden/agent-protocol/native").SourceSnapshot;
   observation?: FileView;
   path?: string;
   line?: number;
@@ -186,7 +186,7 @@ export function NativeCode({
   // A fresh unavailable/non-text observation wins over any older prepared page.
   const source =
     !unavailable && (!content || content.kind === "text") && path
-      ? state.source_snapshot?.files[path]
+      ? snapshot?.files[path]
       : undefined;
   const [offset, setOffset] = useState(1);
   useEffect(() => setOffset(1), [path]);

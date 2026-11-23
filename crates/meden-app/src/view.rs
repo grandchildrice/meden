@@ -11,6 +11,10 @@ use std::collections::{BTreeMap, BTreeSet};
 pub mod file;
 /// Revision-bound transcript/work data, separate from status polling.
 pub mod history;
+/// Bounded, immutable publication framing shared by read-model owners.
+pub mod publication;
+/// Retention and exact-revision queries for prepared source/graph views.
+pub mod sources;
 
 /// A retained UTF-8 input, byte-bounded before publication. The generated wire
 /// validator also limits string length; it does not replace this byte check.
@@ -116,21 +120,26 @@ pub enum Site {
 #[derive(Clone)]
 pub struct PreparedSource {
     snapshot: std::sync::Arc<Snapshot>,
-    page: std::sync::Arc<SourcePage>,
+    publication: publication::Publication,
 }
 impl PreparedSource {
     /// Materialize and validate once before the GUI publishes a source view.
     pub fn new(snapshot: Snapshot) -> Result<Self> {
         let _timing = meden_runtime::metrics::Span::start("analysis.materialize_view");
-        let page = std::sync::Arc::new(SourcePage::from_snapshot(&snapshot)?);
+        let page = SourcePage::from_snapshot(&snapshot)?;
+        let publication = publication::Publication::new(b"meden.source.view.v1\0", &page)?;
         Ok(Self {
             snapshot: std::sync::Arc::new(snapshot),
-            page,
+            publication,
         })
     }
     /// Borrow the exact original backend inputs; view data cannot replace them.
     pub fn snapshot(&self) -> &Snapshot {
         &self.snapshot
+    }
+    /// Complete frozen presentation, separately identified from input sources.
+    pub fn publication(&self) -> &publication::Publication {
+        &self.publication
     }
 }
 impl std::ops::Deref for PreparedSource {
@@ -141,7 +150,7 @@ impl std::ops::Deref for PreparedSource {
 }
 impl Serialize for PreparedSource {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        self.page.as_ref().serialize(serializer)
+        self.publication.serialize(serializer)
     }
 }
 /// Validated cross-reference within this graph.

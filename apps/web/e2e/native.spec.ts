@@ -481,6 +481,7 @@ test.describe("native GUI with real offline workers", () => {
         } catch {}
     });
     let fail = true,
+      conflict = true,
       hold = false,
       held = false,
       releaseOld = () => {};
@@ -492,6 +493,14 @@ test.describe("native GUI with real offline workers", () => {
           status: 500,
           contentType: "application/json",
           body: JSON.stringify({ error: "History response interrupted" }),
+        });
+      }
+      if (conflict) {
+        conflict = false;
+        return route.fulfill({
+          status: 409,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "Reference temporarily superseded" }),
         });
       }
       const response = await route.fetch();
@@ -519,7 +528,7 @@ test.describe("native GUI with real offline workers", () => {
     await expect(chat.getByText("SAVED-ANSWER", { exact: true })).toBeVisible();
     await expect.poll(() => stateSizes.length).toBeGreaterThanOrEqual(6);
     expect(Math.max(...stateSizes)).toBeLessThan(16384);
-    expect(historyUrls).toHaveLength(2);
+    expect(historyUrls).toHaveLength(3);
     const status = await nativeState(page);
     expect(status).not.toHaveProperty("portable");
     expect(status).not.toHaveProperty("messages");
@@ -637,9 +646,9 @@ test.describe("native GUI with real offline workers", () => {
         body: JSON.stringify({
           status_bytes: stateSizes,
           initial_history_bytes: JSON.stringify(snapshot).length,
-          initial_automatic_history_fetches: 2,
+          initial_history_fetches: 3,
           scope:
-            "One intentionally failed initial history response and one explicit retry; unchanged status/inspection does not refetch history.",
+            "One intentionally failed initial response, explicit retry, a transient conflict under the same ID and automatic recovery after fresh status; unchanged navigation does not refetch history.",
         }),
         contentType: "application/json",
       });
@@ -650,6 +659,214 @@ test.describe("native GUI with real offline workers", () => {
       ).toBeVisible();
       expect((await nativeState(page)).authorized).toBe(false);
       expect(requests).toHaveLength(1);
+    } finally {
+      releaseOld();
+    }
+  });
+
+  test("prepared source publications retry locally, transfer once and refuse delayed older views across restart", async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(120000);
+    const text = (name: string) =>
+      `pub fn ${name}() {}\n// ${"original content ".repeat(24000)}\n`;
+    await writeFile(resolve(project, "Large.rs"), text("version_one"));
+    await writeFile(resolve(project, "Tiny.txt"), "Independent reader\n");
+    let fail = true,
+      conflicts = 3,
+      hold = false,
+      held: string | undefined,
+      releaseOld = () => {};
+    const released = new Promise<void>((resolve) => (releaseOld = resolve));
+    let reads = 0;
+    page.on("request", (r) => {
+      if (new URL(r.url()).pathname === "/api/source") reads++;
+    });
+    await page.route("**/api/source?*", async (route) => {
+      if (fail) {
+        fail = false;
+        return route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "Prepared view unavailable" }),
+        });
+      }
+      if (conflicts) {
+        conflicts--;
+        return route.fulfill({
+          status: 409,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "Reference temporarily superseded" }),
+        });
+      }
+      const response = await route.fetch();
+      if (hold && !held && response.ok()) {
+        held = new URL(route.request().url()).searchParams.get("revision")!;
+        await released;
+      }
+      await route.fulfill({ response }).catch(() => {});
+    });
+    await page.goto(await start());
+    const explorer = page.getByRole("region", {
+      name: "File explorer",
+      exact: true,
+    });
+    const chat = page.getByRole("complementary", {
+      name: "Workspace chat",
+      exact: true,
+    });
+    await explorer
+      .getByRole("button", { name: "File: Tiny.txt", exact: true })
+      .click();
+    await expect(page.getByLabel("File contents")).toContainText(
+      "Independent reader",
+    );
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    const before = await chat.innerHTML();
+    await setPaths(page, "Large.rs");
+    await refreshReferences(page);
+    const pane = page.locator(".ide-file-page:not([hidden])");
+    await expect(pane.getByRole("alert")).toContainText(
+      "Could not load the prepared graph.",
+    );
+    await expect(pane.getByRole("progressbar")).toHaveCount(0);
+    await expect(pane.getByRole("status")).toHaveText(
+      "Source could not be loaded.",
+    );
+    await expect(chat.getByRole("alert")).toHaveCount(0);
+    await page.screenshot({
+      path: "target/gui-checks/source-publication-failure.png",
+    });
+    await pane
+      .getByRole("button", { name: "Retry graph", exact: true })
+      .click();
+    await expect(pane.getByRole("alert")).toContainText(
+      "The view changed while loading.",
+    );
+    expect(reads).toBe(4);
+    await page.waitForTimeout(700);
+    expect(reads).toBe(4);
+    await pane
+      .getByRole("button", { name: "Retry graph", exact: true })
+      .click();
+    await expect(pane.getByLabel("File contents")).toContainText("version_one");
+    const first = await nativeState(page);
+    const firstId = first.sources.current.revision;
+    expect(first).not.toHaveProperty("source_snapshot");
+    expect(first).not.toHaveProperty("source_views");
+    expect(JSON.stringify(first).length).toBeLessThan(16384);
+    expect(reads).toBe(5);
+    const sourceQuery = await page.evaluate(async (revision) => {
+      const response = await fetch(
+        "/api/source?revision=" + encodeURIComponent(revision),
+        {
+          headers: {
+            Authorization:
+              "Bearer " + sessionStorage.getItem("meden-native-session"),
+          },
+        },
+      );
+      const body = await response.text();
+      return {
+        status: response.status,
+        bytes: new TextEncoder().encode(body).length,
+        body: JSON.parse(body),
+      };
+    }, firstId);
+    expect(sourceQuery.status).toBe(200);
+    expect(sourceQuery.bytes).toBeGreaterThan(350000);
+    expect(sourceQuery.body.revision).toBe(firstId);
+    expect(sourceQuery.body.data.files["Large.rs"]).toBe(text("version_one"));
+    expect(sourceQuery.body.data).not.toHaveProperty("atlas");
+    const origin = new URL(url).origin;
+    const query = "/api/source?revision=" + encodeURIComponent(firstId);
+    expect((await fetch(origin + query)).status).toBe(401);
+    expect(
+      (
+        await fetch(origin + query, {
+          headers: {
+            Authorization: "Bearer " + new URL(url).hash.split("=")[1],
+            Origin: "https://evil.invalid",
+          },
+        })
+      ).status,
+    ).toBe(403);
+    const unchangedReads = reads;
+    for (let i = 0; i < 3; i++) {
+      await page.getByRole("tab", { name: "Project map", exact: true }).click();
+      await page.getByRole("tab", { name: "Large.rs", exact: true }).click();
+    }
+    await page.waitForTimeout(1200);
+    expect(reads).toBe(unchangedReads);
+    expect(await chat.innerHTML()).toBe(before);
+    await writeFile(resolve(project, "Large.rs"), text("version_two"));
+    hold = true;
+    try {
+      await refreshReferences(page);
+      await expect.poll(() => Boolean(held)).toBe(true);
+      expect(held).not.toBe(firstId);
+      await writeFile(resolve(project, "Large.rs"), text("version_three"));
+      await refreshReferences(page);
+      await expect(pane.getByLabel("File contents")).toContainText(
+        "version_three",
+      );
+      const newest = await nativeState(page);
+      expect(newest.sources.current.revision).not.toBe(held);
+      releaseOld();
+      await page.waitForTimeout(700);
+      await expect(pane.getByLabel("File contents")).toContainText(
+        "version_three",
+      );
+      await expect(pane.getByLabel("File contents")).not.toContainText(
+        "version_two",
+      );
+      expect(await chat.innerHTML()).toBe(before);
+      const stale = await page.evaluate(
+        async (revision) =>
+          (
+            await fetch(
+              "/api/source?revision=" + encodeURIComponent(revision),
+              {
+                headers: {
+                  Authorization:
+                    "Bearer " + sessionStorage.getItem("meden-native-session"),
+                },
+              },
+            )
+          ).status,
+        held!,
+      );
+      expect(stale).toBe(409);
+      expect(requests).toHaveLength(0);
+      await page.screenshot({
+        path: "target/gui-checks/source-publication-latest.png",
+      });
+      await testInfo.attach("source-transfer.json", {
+        body: JSON.stringify({
+          status_bytes: JSON.stringify(newest).length,
+          source_bytes: sourceQuery.bytes,
+          initial_reads_before_manual_probe: 5,
+          unchanged_navigation_reads: 0,
+          stale_response_status: stale,
+          chat_dom_unchanged: true,
+        }),
+        contentType: "application/json",
+      });
+      await stop();
+      await page.goto(await start());
+      const reopened = await nativeState(page);
+      expect(reopened.authorized).toBe(false);
+      expect(reopened.sources).toEqual({ current: null, files: {} });
+      await setPaths(page, "Large.rs");
+      await refreshReferences(page);
+      await expect(
+        page
+          .locator(".ide-file-page:not([hidden])")
+          .getByLabel("File contents"),
+      ).toContainText("version_three");
+      expect(requests).toHaveLength(0);
     } finally {
       releaseOld();
     }
@@ -795,10 +1012,10 @@ test.describe("native GUI with real offline workers", () => {
     await expect
       .poll(async () => (await nativeState(page)).running)
       .toBe(false);
-    expect(
-      Object.keys((await nativeState(page)).source_snapshot.files),
-    ).toEqual(["Beta.lean"]);
-    expect((await nativeState(page)).source_snapshot.inputs_revision).toMatch(
+    expect(Object.keys((await nativeSource(page)).files)).toEqual([
+      "Beta.lean",
+    ]);
+    expect((await nativeSource(page)).inputs_revision).toMatch(
       /^[a-f0-9]{64}$/,
     );
     await page.evaluate(() => {
@@ -1086,7 +1303,7 @@ test.describe("native GUI with real offline workers", () => {
     ).toHaveText("1: λ日本語");
     expect(commands.filter((c) => c === "read_file_page")).toHaveLength(2);
     expect((await nativeState(page)).source_preparation).toEqual({});
-    expect((await nativeState(page)).source_snapshot).toBeNull();
+    expect(await nativeSource(page)).toBeNull();
     expect(await chat.innerHTML()).toBe(before);
     expect(requests).toHaveLength(0);
     await page.screenshot({
@@ -1188,6 +1405,9 @@ test.describe("native GUI with real offline workers", () => {
     } finally {
       forward();
       releaseOld();
+      // Complete the held HTTP adapters before afterEach terminates the real
+      // host. Otherwise a final poll can race shutdown after assertions passed.
+      await page.unrouteAll({ behavior: "wait" });
     }
   });
 
@@ -1269,7 +1489,7 @@ theorem slow : True := fast
     expect(
       (await nativeState(page)).source_preparation["Entry.lean"].state,
     ).toBe("preparing");
-    expect((await nativeState(page)).source_snapshot).toBeNull();
+    expect(await nativeSource(page)).toBeNull();
     expect(await chat.innerHTML()).toBe(before);
     await page.screenshot({
       path: "target/gui-checks/build-log-streaming.png",
@@ -1334,16 +1554,15 @@ theorem slow : True := fast
       return nativeState(page);
     };
     const state = await ready();
+    const stateSource = await nativeSource(page, state);
     expect(state.source_preparation["Entry.lean"].log_truncated).toBe(true);
     expect(
-      state.source_snapshot.graph.declarations.find(
-        (n: any) => n.id === "tracked",
-      ).axioms,
+      stateSource.graph.declarations.find((n: any) => n.id === "tracked")
+        .axioms,
     ).toEqual(["supplied"]);
     expect(
-      state.source_snapshot.graph.declarations.find(
-        (n: any) => n.id === "longSearch",
-      ).semantic.checker.status,
+      stateSource.graph.declarations.find((n: any) => n.id === "longSearch")
+        .semantic.checker.status,
     ).toBe("budget_exhausted");
     expect(await chat.innerHTML()).toBe(before);
     expect(requests).toHaveLength(0);
@@ -1444,17 +1663,18 @@ theorem slow : True := fast
     };
     await open();
     let state = await prepared();
+    let stateSource = await nativeSource(page, state);
     expect(await extractionStages()).toContain("atlas.lake_configuration");
-    expect(Object.keys(state.source_snapshot.files)).toEqual(["Entry.lean"]);
-    expect(state.source_snapshot.inputs_revision).toMatch(/^[a-f0-9]{64}$/);
-    expect(state.source_snapshot.external).toContain("Part33");
+    expect(Object.keys(stateSource.files)).toEqual(["Entry.lean"]);
+    expect(stateSource.inputs_revision).toMatch(/^[a-f0-9]{64}$/);
+    expect(stateSource.external).toContain("Part33");
     expect(
-      state.source_snapshot.graph.declarations
+      stateSource.graph.declarations
         .find((n: any) => n.id === "sampleCounterexample")
         .semantic.checker.candidates.join(" "),
     ).toContain("n := 0");
-    const first = state.source_snapshot;
-    const firstViews = state.source_views;
+    const first = stateSource;
+    const firstViews = state.sources.files;
     let inspections = 0;
     page.on("request", (request) => {
       if (
@@ -1487,7 +1707,7 @@ theorem slow : True := fast
       const status = await response.json();
       await route.fulfill({
         response,
-        json: { ...status, source_views: firstViews },
+        json: { ...status, sources: { ...status.sources, files: firstViews } },
       });
     });
     await reread();
@@ -1503,6 +1723,12 @@ theorem slow : True := fast
     await expect
       .poll(async () => (await nativeState(page)).running)
       .toBe(false);
+    await expect(
+      page.locator(".ide-file-page:not([hidden]) .native-source-graph"),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Retry graph", exact: true }),
+    ).toHaveCount(0);
     let stages = await extractionStages();
     expect(stages).toContain("atlas.lake_configuration.reuse");
     expect(stages).not.toContain("atlas.lake_configuration");
@@ -1536,7 +1762,7 @@ theorem slow : True := fast
       await expect
         .poll(async () => (await nativeState(page)).running)
         .toBe(false);
-      expect((await nativeState(page)).source_snapshot).toBeNull();
+      expect(await nativeSource(page)).toBeNull();
       expect(await extractionStages()).toContain("atlas.lake_configuration");
       await expect(pane.getByRole("alert")).toContainText(
         "Offline Lake configuration failed",
@@ -1547,29 +1773,25 @@ theorem slow : True := fast
       .getByRole("button", { name: "Retry preparation", exact: true })
       .click();
     state = await prepared();
+    stateSource = await nativeSource(page, state);
     expect(state.source_preparation["Entry.lean"].cache_hit).toBe(true);
     expect(await extractionStages()).not.toContain("atlas.lake_configuration");
 
     await writeFile(resolve(project, "Part0.lean"), "def part0 : Nat := 2\n");
     await reread();
     await expect
-      .poll(
-        async () => (await nativeState(page)).source_snapshot?.graph?.revision,
-        {
-          timeout: 120000,
-        },
-      )
+      .poll(async () => (await nativeSource(page))?.graph?.revision, {
+        timeout: 120000,
+      })
       .toBeTruthy();
     await expect
-      .poll(
-        async () => (await nativeState(page)).source_snapshot?.graph?.revision,
-        { timeout: 120000 },
-      )
+      .poll(async () => (await nativeSource(page))?.graph?.revision, {
+        timeout: 120000,
+      })
       .not.toBe(first.graph.revision);
     state = await prepared();
-    expect(state.source_snapshot.inputs_revision).not.toBe(
-      first.inputs_revision,
-    );
+    stateSource = await nativeSource(page, state);
+    expect(stateSource.inputs_revision).not.toBe(first.inputs_revision);
     expect(state.source_preparation["Entry.lean"].cache_hit).toBe(false);
     stages = await extractionStages();
     expect(stages).not.toContain("atlas.lake_configuration");
@@ -1587,7 +1809,7 @@ theorem slow : True := fast
         { timeout: 120000 },
       )
       .toBe("failed");
-    expect((await nativeState(page)).source_snapshot).toBeNull();
+    expect(await nativeSource(page)).toBeNull();
     await expect(pane.getByRole("alert")).toContainText(
       "Prepared Lake compilation failed",
     );
@@ -1611,6 +1833,7 @@ theorem slow : True := fast
     await page.goto(await start(0, { MEDEN_ATLAS_BACKEND: "lake" }));
     await open();
     state = await prepared();
+    stateSource = await nativeSource(page, state);
     expect(state.source_preparation["Entry.lean"].cache_hit).toBe(true);
     stages = await extractionStages();
     expect(stages).toContain("atlas.lake_configuration.reuse");
@@ -1932,36 +2155,33 @@ theorem slow : True := fast
         ).json(),
       );
     const first = await open("0");
+    const firstSource = await nativeSource(page, first);
     const compilation = await index("observations");
     const originalSearch = await index("searches");
     expect(Object.values(compilation)).toHaveLength(1);
     expect(Object.values(originalSearch)).toHaveLength(1);
     const bad = (s: any) =>
-      s.source_snapshot.graph.declarations.find((n: any) => n.id === "bad");
-    expect(bad(first).semantic.checker).toMatchObject({
+      s.graph.declarations.find((n: any) => n.id === "bad");
+    expect(bad(firstSource).semantic.checker).toMatchObject({
       status: "counterexample",
       seed: 0,
     });
     expect(
-      first.source_snapshot.graph.declarations.find(
-        (n: any) => n.id === "twice",
-      ).semantic.checker.status,
+      firstSource.graph.declarations.find((n: any) => n.id === "twice").semantic
+        .checker.status,
     ).toBe("not_proposition");
     await stop();
     const changed = await open("19");
+    const changedSource = await nativeSource(page, changed);
     expect(changed.source_preparation["Claim.lean"].cache_hit).toBe(false);
     expect(await index("observations")).toEqual(compilation);
     expect(Object.values(await index("searches"))).toHaveLength(2);
-    expect(bad(changed).semantic.checker).toMatchObject({
+    expect(bad(changedSource).semantic.checker).toMatchObject({
       status: "counterexample",
       seed: 19,
     });
-    expect(changed.source_snapshot.revision).toBe(
-      first.source_snapshot.revision,
-    );
-    expect(changed.source_snapshot.graph.revision).not.toBe(
-      first.source_snapshot.graph.revision,
-    );
+    expect(changedSource.revision).toBe(firstSource.revision);
+    expect(changedSource.graph.revision).not.toBe(firstSource.graph.revision);
     const stages = (await metrics()).records.map((r: any) => r.name);
     expect(stages).toContain("atlas.search");
     expect(stages).not.toContain("atlas.compile");
@@ -1979,8 +2199,11 @@ theorem slow : True := fast
     expect(requests).toHaveLength(0);
     await stop();
     const warm = await open("19");
+    const warmSource = await nativeSource(page, warm);
     expect(warm.source_preparation["Claim.lean"].cache_hit).toBe(true);
-    expect(bad(warm).semantic.checker).toEqual(bad(changed).semantic.checker);
+    expect(bad(warmSource).semantic.checker).toEqual(
+      bad(changedSource).semantic.checker,
+    );
     expect((await metrics()).records.map((r: any) => r.name)).not.toContain(
       "atlas.search",
     );
@@ -2016,16 +2239,15 @@ theorem slow : True := fast
       "corrupt host cache",
     );
     const repaired = await open("20");
-    expect(bad(repaired).semantic.checker).toMatchObject({
+    const repairedSource = await nativeSource(page, repaired);
+    expect(bad(repairedSource).semantic.checker).toMatchObject({
       status: "counterexample",
       seed: 20,
     });
     expect((await metrics()).records.map((r: any) => r.name)).toContain(
       "atlas.compile",
     );
-    expect(repaired.source_snapshot.revision).toBe(
-      first.source_snapshot.revision,
-    );
+    expect(repairedSource.revision).toBe(firstSource.revision);
     expect(requests).toHaveLength(0);
   });
 
@@ -2070,7 +2292,8 @@ theorem slow : True := fast
       return nativeState(page);
     };
     const first = await open();
-    const firstNode = first.source_snapshot.graph.declarations.find(
+    const firstSource = await nativeSource(page, first);
+    const firstNode = firstSource.graph.declarations.find(
       (n: any) => n.id === "bad",
     );
     expect(firstNode.semantic.checker.status).toBe("counterexample");
@@ -2156,14 +2379,16 @@ theorem slow : True := fast
     await writeFile(manifestPath, JSON.stringify(manifest));
 
     const rerendered = await open();
-    const node = rerendered.source_snapshot.graph.declarations.find(
+    const rerenderedSource = await nativeSource(page, rerendered);
+    expect(rerendered.sources.current.revision).not.toBe(
+      first.sources.current.revision,
+    );
+    const node = rerenderedSource.graph.declarations.find(
       (n: any) => n.id === "bad",
     );
-    expect(rerendered.source_snapshot.revision).toBe(
-      first.source_snapshot.revision,
-    );
-    expect(rerendered.source_snapshot.graph.revision).not.toBe(
-      first.source_snapshot.graph.revision,
+    expect(rerenderedSource.revision).toBe(firstSource.revision);
+    expect(rerenderedSource.graph.revision).not.toBe(
+      firstSource.graph.revision,
     );
     expect(node.semantic.renderer).not.toBe(firstNode.semantic.renderer);
     expect(node.semantic.checker).toEqual(firstNode.semantic.checker);
@@ -2222,10 +2447,12 @@ theorem slow : True := fast
 
     // A complete reading cache also survives a new host without inference approval.
     const warm = await open();
-    expect(warm.source_preparation["Claim.lean"].cache_hit).toBe(true);
-    expect(warm.source_snapshot.graph.revision).toBe(
-      rerendered.source_snapshot.graph.revision,
+    const warmSource = await nativeSource(page, warm);
+    expect(warm.sources.current.revision).toBe(
+      rerendered.sources.current.revision,
     );
+    expect(warm.source_preparation["Claim.lean"].cache_hit).toBe(true);
+    expect(warmSource.graph.revision).toBe(rerenderedSource.graph.revision);
     expect(warm.authorized).toBe(false);
     await test.info().attach("renderer-cache-preparation", {
       body: Buffer.from(
@@ -2261,7 +2488,7 @@ theorem slow : True := fast
     await expect(
       page.getByRole("button", { name: "Retry preparation", exact: true }),
     ).toBeVisible();
-    expect((await nativeState(page)).source_snapshot).toBeNull();
+    expect(await nativeSource(page)).toBeNull();
     await page.screenshot({
       path: "target/gui-checks/renderer-cache-source-failure.png",
     });
@@ -2280,13 +2507,11 @@ theorem slow : True := fast
       )
       .toBe("ready");
     const repaired = await nativeState(page);
-    expect(repaired.source_snapshot.revision).not.toBe(
-      first.source_snapshot.revision,
-    );
+    const repairedSource = await nativeSource(page, repaired);
+    expect(repairedSource.revision).not.toBe(firstSource.revision);
     expect(
-      repaired.source_snapshot.graph.declarations.find(
-        (n: any) => n.id === "bad",
-      ).semantic.checker.status,
+      repairedSource.graph.declarations.find((n: any) => n.id === "bad")
+        .semantic.checker.status,
     ).toBe("not_found");
     expect(requests).toHaveLength(0);
   });
@@ -2362,8 +2587,9 @@ theorem slow : True := fast
       .poll(async () => (await nativeState(page)).running, { timeout: 120000 })
       .toBe(false);
     const first = await nativeState(page);
+    const firstSource = await nativeSource(page, first);
     expect(first.stopped).toBeNull();
-    const compiled = first.source_snapshot.graph.declarations;
+    const compiled = firstSource.graph.declarations;
     const observations = Object.fromEntries(
       compiled.map((n: any) => [n.id, n.semantic]),
     );
@@ -2401,8 +2627,7 @@ theorem slow : True := fast
     await expect
       .poll(async () => (await nativeState(page)).running, { timeout: 120000 })
       .toBe(false);
-    const repeated = (await nativeState(page)).source_snapshot.graph
-      .declarations;
+    const repeated = (await nativeSource(page)).graph.declarations;
     expect(
       Object.fromEntries(repeated.map((n: any) => [n.id, n.semantic])),
     ).toEqual(observations);
@@ -2438,9 +2663,7 @@ theorem slow : True := fast
       .getByRole("button", { name: "Explain aa_bad", exact: true })
       .hover({ timeout: 15000 });
     await expect(meaning).toContainText("Compiled expression");
-    expect((await nativeState(page)).source_snapshot.revision).not.toBe(
-      first.source_snapshot.revision,
-    );
+    expect((await nativeSource(page)).revision).not.toBe(firstSource.revision);
     await expect(
       meaning.getByRole("row", { name: "n 0", exact: true }),
     ).toBeVisible();
@@ -2572,12 +2795,13 @@ theorem slow : True := fast
       timeout: 120_000,
     });
     const first = await nativeState(page);
+    const firstSource = await nativeSource(page, first);
     expect(first.atlas.prepared).toBe(true);
-    expect(Object.keys(first.source_snapshot.files).sort()).toEqual([
+    expect(Object.keys(firstSource.files).sort()).toEqual([
       "App.lean",
       "Domain.lean",
     ]);
-    expect(first.source_snapshot.graph.edges).toEqual(
+    expect(firstSource.graph.edges).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ source: "invoice", target: "price" }),
       ]),
@@ -2642,12 +2866,13 @@ theorem slow : True := fast
       timeout: 60_000,
     });
     const state = await nativeState(page);
-    expect(Object.keys(state.source_snapshot.files).sort()).toEqual([
+    const stateSource = await nativeSource(page, state);
+    expect(Object.keys(stateSource.files).sort()).toEqual([
       "App.lean",
       "Domain.lean",
     ]);
-    expect(state.source_snapshot.roots).toEqual(["App.lean"]);
-    const graphData = state.source_snapshot.graph;
+    expect(stateSource.roots).toEqual(["App.lean"]);
+    const graphData = stateSource.graph;
     expect(graphData.edges).toEqual(
       expect.arrayContaining([
         {
@@ -2874,11 +3099,12 @@ theorem slow : True := fast
       timeout: 60_000,
     });
     const state = await nativeState(page);
-    expect(Object.keys(state.source_snapshot.files).sort()).toEqual([
+    const stateSource = await nativeSource(page, state);
+    expect(Object.keys(stateSource.files).sort()).toEqual([
       "src/App.lean",
       "vendor/dep/source/Domain.lean",
     ]);
-    expect(state.source_snapshot.roots).toEqual(["src/App.lean"]);
+    expect(stateSource.roots).toEqual(["src/App.lean"]);
     await graph
       .getByRole("button", { name: /Domain.answer.*: select/ })
       .click();
@@ -2895,7 +3121,7 @@ theorem slow : True := fast
     await expect(
       page.getByRole("alert").filter({ hasText: "Source observation failed" }),
     ).toBeVisible({ timeout: 60_000 });
-    expect((await nativeState(page)).source_snapshot).toBeNull();
+    expect(await nativeSource(page)).toBeNull();
     await setPaths(page, "");
     await compileDependencies(page);
     await expect(graph).toContainText("Compiled dependencies from Lean Atlas", {
@@ -3170,7 +3396,7 @@ theorem slow : True := fast
     });
     await expect(invoice).toBeVisible();
     expect(commands.slice(beforeCommands)).toEqual([]);
-    expect((await nativeState(page)).source_snapshot).toBeNull();
+    expect(await nativeSource(page)).toBeNull();
     await page.screenshot({
       path: "target/gui-checks/ide-continuous-graph.png",
     });
@@ -3244,11 +3470,9 @@ theorem slow : True := fast
     });
     await expect(compiled).toBeVisible({ timeout: 120000 });
     expect(
-      (await nativeState(page)).source_snapshot.files[
-        "Networking/Multistream.lean"
-      ],
+      (await nativeSource(page)).files["Networking/Multistream.lean"],
     ).toBe(largeSource);
-    expect((await nativeState(page)).source_snapshot.graph.edges).toEqual(
+    expect((await nativeSource(page)).graph.edges).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ source: "invoice", target: "price" }),
       ]),
@@ -3322,7 +3546,7 @@ theorem slow : True := fast
     await expect(
       page.getByRole("region", { name: "File reference graph", exact: true }),
     ).toBeVisible();
-    expect((await nativeState(page)).source_snapshot).toBeNull();
+    expect(await nativeSource(page)).toBeNull();
     await expect(chat.getByRole("status")).toHaveCount(0);
     await compileDependencies(page);
     const pane = page.getByRole("region", {
@@ -3338,7 +3562,7 @@ theorem slow : True := fast
     ).toContainText("def original", { timeout: 60000 });
     await expect(chat.getByRole("alert")).toHaveCount(0);
     await expect(chat.getByRole("status")).toHaveCount(0);
-    expect((await nativeState(page)).source_snapshot).toBeNull();
+    expect(await nativeSource(page)).toBeNull();
     await page.screenshot({
       path: "target/gui-checks/file-split-analysis-failure.png",
     });
@@ -3377,7 +3601,7 @@ theorem slow : True := fast
     await expect(missing).toHaveCount(1);
     await expect(missing).toContainText("vendor/mathlib");
     await expect(missing).toContainText("lake exe cache get");
-    expect((await nativeState(page)).source_snapshot).toBeNull();
+    expect(await nativeSource(page)).toBeNull();
 
     await missing.locator("summary").click();
     await missing.scrollIntoViewIfNeeded();
@@ -3404,7 +3628,8 @@ theorem slow : True := fast
       graph.getByRole("button", { name: /app.*: select/ }),
     ).toContainText("app");
     let state = await nativeState(page);
-    expect(state.source_snapshot.compiled).toBe(false);
+    let stateSource = await nativeSource(page, state);
+    expect(stateSource.compiled).toBe(false);
     expect(state.project.verified).toBe(false);
     await expect(
       readFile(resolve(project, "vendor/mathlib/lakefile.lean")),
@@ -3414,8 +3639,9 @@ theorem slow : True := fast
     await page.goto(await start());
     await openDependencyControls(page);
     state = await nativeState(page);
+    stateSource = await nativeSource(page, state);
     expect(state.authorized).toBe(false);
-    expect(state.source_snapshot).toBeNull();
+    expect(stateSource).toBeNull();
     await openDependencyControls(page);
     await picker.fill("App.lean");
     await page.getByRole("option", { name: "App.lean", exact: true }).click();
@@ -3524,6 +3750,27 @@ theorem slow : True := fast
       await new Promise<void>((resolve) => sink.close(() => resolve()));
     }
   });
+
+  async function nativeSource(page: Page, status?: any) {
+    const reference = (status || (await nativeState(page))).sources.current;
+    if (!reference) return null;
+    const response = await page.evaluate(async (revision) => {
+      const response = await fetch(
+        "/api/source?revision=" + encodeURIComponent(revision),
+        {
+          headers: {
+            Authorization:
+              "Bearer " + sessionStorage.getItem("meden-native-session"),
+          },
+        },
+      );
+      return { status: response.status, body: await response.json() };
+    }, reference.revision);
+    if (response.status === 409) return null;
+    expect(response.status).toBe(200);
+    expect(response.body.revision).toBe(reference.revision);
+    return response.body.data;
+  }
 
   async function nativeState(page: Page) {
     return page.evaluate(async () => {
@@ -4246,10 +4493,32 @@ theorem slow : True := fast
         })
       ).status,
     ).toBe(409);
+    // A background model-list response must not swallow the explicit approval
+    // click. The native binding and complete visible heading are still checked.
+    let modelListPending = false,
+      releaseModels = () => {};
+    const modelsReleased = new Promise<void>(
+      (resolve) => (releaseModels = resolve),
+    );
+    await page.route("**/api/command", async (route) => {
+      if (route.request().postDataJSON()?.type !== "list_models")
+        return route.continue();
+      const response = await route.fetch();
+      modelListPending = true;
+      await modelsReleased;
+      await route.fulfill({ response }).catch(() => {});
+    });
     await page
       .getByRole("button", { name: "Choose model", exact: true })
       .click();
-    await page.getByRole("button", { name: "Use this model" }).click();
+    try {
+      await expect.poll(() => modelListPending).toBe(true);
+      await page.getByRole("button", { name: "Use this model" }).click();
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+      expect((await nativeState(page)).authorized).toBe(true);
+    } finally {
+      releaseModels();
+    }
     await page
       .getByRole("textbox", { name: "Message", exact: true })
       .fill("Wait for cancellation");

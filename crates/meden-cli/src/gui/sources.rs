@@ -11,67 +11,23 @@ use std::sync::{Arc, Mutex};
 /// A fresh read invalidates every retained graph containing a changed or
 /// unavailable input. Other tabs keep their immutable, still-matching pages.
 pub(super) fn observe(view: &Mutex<super::View>, observation: &meden_app::view::file::FileView) {
-    use meden_app::view::file::Reading;
-    use sha2::{Digest, Sha256};
-    let revision = match &observation.reading {
-        Reading::Ready { content } => content.revision(),
-        Reading::Unavailable { .. } => None,
-    };
-    let matches = |snapshot: &Snapshot| {
-        snapshot.files.get(&observation.path).is_none_or(|source| {
-            revision.is_some_and(|expected| {
-                expected == format!("sha256:{:x}", Sha256::digest(source.as_bytes()))
-            })
-        })
-    };
     let mut view = super::lock(view);
-    let invalidated = view
-        .source_views
-        .iter()
-        .filter(|(_, snapshot)| !matches(snapshot))
-        .map(|(path, _)| path.clone())
-        .collect::<Vec<_>>();
-    for path in invalidated {
+    for path in view.sources.observe(observation) {
         view.source_preparation.remove(&path);
-    }
-    view.source_views.retain(|_, snapshot| matches(snapshot));
-    if view.source_snapshot.as_ref().is_some_and(|s| !matches(s)) {
-        view.source_snapshot = None;
     }
     if !observation.is_text() {
         view.source_preparation.remove(&observation.path);
     }
 }
 
-pub(super) fn serialize_views<S: serde::Serializer>(
-    views: &std::collections::BTreeMap<String, Arc<Snapshot>>,
-    serializer: S,
-) -> Result<S::Ok, S::Error> {
-    use serde::Serialize;
-    views
-        .iter()
-        .map(|(path, snapshot)| (path, &snapshot.revision))
-        .collect::<std::collections::BTreeMap<_, _>>()
-        .serialize(serializer)
-}
-
-/// Retain host-observed inputs for explicit analysis from any open file tab.
-/// These presentation snapshots confer no authority; analysis rechecks freshness.
-pub(super) fn remember(view: &mut super::View, snapshot: &Snapshot) {
-    let saved = Arc::new(snapshot.clone());
-    for path in snapshot.files.keys() {
-        view.source_views.insert(path.clone(), Arc::clone(&saved));
-    }
-}
-
 pub(super) fn unavailable(view: &Mutex<super::View>, path: &str, error: String) {
     let mut view = super::lock(view);
-    view.source_views.remove(path);
+    view.sources.forget_file(path);
     view.source_preparation
         .entry(path.into())
         .or_insert_with(Preparation::new)
         .finish(Some(error), false);
-    view.source_snapshot = None;
+    view.sources.clear_current();
 }
 
 /// Finish compiler, meaning and search preparation before publishing the page.
@@ -97,7 +53,7 @@ pub(super) fn prepare(
     super::lock(view)
         .source_preparation
         .insert(path.into(), Preparation::new());
-    super::lock(view).source_views.remove(path);
+    super::lock(view).sources.forget_file(path);
     let result = crate::analysis::extract_cached(
         workspace,
         control,
@@ -109,8 +65,7 @@ pub(super) fn prepare(
     match result {
         Ok((snapshot, cache_hit)) => {
             if publish {
-                remember(&mut view, &snapshot);
-                view.source_snapshot = Some(snapshot);
+                view.sources.publish(snapshot);
             }
             if let Some(preparation) = view.source_preparation.get_mut(path) {
                 preparation.finish(None, cache_hit);
@@ -118,7 +73,7 @@ pub(super) fn prepare(
         }
         Err(error) => {
             if publish {
-                view.source_snapshot = None;
+                view.sources.clear_current();
             }
             if let Some(preparation) = view.source_preparation.get_mut(path) {
                 preparation.finish(Some(format!("{error:#}")), false);
@@ -133,7 +88,7 @@ pub(super) fn refresh(
     control: &Control,
     paths: &[String],
 ) -> Result<()> {
-    super::lock(view).source_snapshot = None;
+    super::lock(view).sources.clear_current();
     let snapshot = match capture(workspace, control, paths).and_then(Snapshot::new) {
         Ok(snapshot) => snapshot,
         Err(error) => {
@@ -149,8 +104,7 @@ pub(super) fn refresh(
     }) {
         super::analysis::invalidate(&mut view);
     }
-    remember(&mut view, &snapshot);
-    view.source_snapshot = Some(snapshot);
+    view.sources.publish(snapshot);
     Ok(())
 }
 
@@ -163,7 +117,7 @@ pub(super) fn extract_atlas(
     let atlas = crate::atlas::Configuration::host(workspace.path());
     {
         let mut view = super::lock(view);
-        view.source_snapshot = None;
+        view.sources.clear_current();
         super::analysis::invalidate(&mut view);
         view.activity = "Compiling Lean and extracting Atlas dependencies".into();
         for path in paths {
@@ -196,8 +150,7 @@ pub(super) fn extract_atlas(
                 .or_insert_with(Preparation::new)
                 .finish(None, false);
         }
-        remember(&mut view, &snapshot);
-        view.source_snapshot = Some(snapshot);
+        view.sources.publish(snapshot);
         view.atlas = atlas.status();
         Ok(())
     })?;

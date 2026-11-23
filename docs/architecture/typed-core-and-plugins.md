@@ -492,6 +492,29 @@ storage, host observation and HTTP interpretation remain adapters. History
 cannot restore authority or evidence. The initial history read is still a
 complete bounded document; this slice does not introduce lazy history paging.
 
+Prepared source/graph bodies now have their own application-owned retention
+store and generated index/envelope schemas. Status contains only the current
+publication and per-file references. An exact-revision query shares already
+serialized bytes outside the view lock; it performs no compiler, model or file
+operation. The publication identity covers the complete projected body, so a
+changed explanation/scope receives a new identity even when the input-source
+and graph identities remain unchanged. Original backend snapshots remain
+private to the store for explicit analysis. A fresh changed/unavailable input
+invalidates every related retained graph. Oldest eviction bounds retention to
+64 artifacts and 128 MiB of serialized bodies; this is not a total process-memory
+bound. A single complete publication is limited to 64 MiB and serialization
+stops at that bound instead of producing a prefix.
+
+Source and history share that framing primitive and a browser read cache. The
+cache owns wanted IDs, aborts released requests, rejects superseded callbacks
+and retains object identity across status ticks. Transient conflicts retry only
+after a fresh status observation, at most three times per availability context;
+a changed context or explicit retry can recover the same republished content
+ID. Persistent failures expose a local retry. File navigation does not populate
+chat, and no read query schedules a semantic job. Large input/compiler freshness
+checks remain in their original host operations. Independent file-reader pages
+and job/evidence views still need their own revisioned query boundaries.
+
 This does not finish step 4: generic inventory/job/evidence DTOs, generation of
 the rest of the native wire contract and remaining navigation waits still need
 work. Step 5's versioned layout/order and retirement requirements remain open too.

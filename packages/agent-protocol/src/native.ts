@@ -24,8 +24,10 @@ export const nativeReferenceSchema = z
   })
   .strict();
 export type NativeReference = z.infer<typeof nativeReferenceSchema>;
-import { sourcePageSchema } from "./source.generated";
 export type { SourcePage as SourceSnapshot } from "./source.generated";
+export { sourcePublicationSchema } from "./source-publication.generated";
+export type { SourcePublication } from "./source-publication.generated";
+import { sourceIndexSchema } from "./source-index.generated";
 export const meaningInputSchema = z
   .object({
     source_revision: z.string().regex(/^sha256:[a-f0-9]{64}$/),
@@ -317,8 +319,7 @@ export const nativeStateSchema = z.object({
     })
     .nullable(),
   reader: fileViewSchema.nullable(),
-  source_snapshot: sourcePageSchema.nullable(),
-  source_views: z.record(z.string(), z.string()),
+  sources: sourceIndexSchema,
   analysis: meaningRecordSchema.nullable(),
   analysis_history: z.array(meaningRecordSchema).max(1000),
   repair_review: repairReviewSchema.nullable(),

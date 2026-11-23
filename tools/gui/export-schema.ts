@@ -12,6 +12,13 @@ writeFileSync(
 for (const [key, rust, symbol, type] of [
   ["source", "SourcePage", "sourcePageSchema", "SourcePage"],
   ["file", "file::FileView", "fileViewSchema", "FileView"],
+  ["source-index", "sources::Index", "sourceIndexSchema", "SourceIndex"],
+  [
+    "source-publication",
+    "publication::Envelope<SourcePage>",
+    "sourcePublicationSchema",
+    "SourcePublication",
+  ],
   ["history", "history::Snapshot", "historySnapshotSchema", "HistorySnapshot"],
   [
     "history-reference",

@@ -50,6 +50,9 @@ function references(
 
 export function NativeFileWorkspace({
   state,
+  snapshot,
+  sourceError,
+  onRetrySource,
   path,
   scene,
   revision,
@@ -61,6 +64,9 @@ export function NativeFileWorkspace({
   onSelect,
 }: {
   state: NativeState;
+  snapshot?: SourceSnapshot;
+  sourceError?: string;
+  onRetrySource: () => void;
   path: string;
   scene?: MapScene;
   revision: string;
@@ -84,10 +90,6 @@ export function NativeFileWorkspace({
     if (state.running) setFailure(undefined);
     else if (state.stopped) setFailure(state.stopped);
   }, [state.running, state.operation, state.stopped, analysisFile, path]);
-  const incoming =
-    state.source_snapshot?.files[path] !== undefined
-      ? state.source_snapshot
-      : undefined;
   const preparation = state.source_preparation[path];
   const incomingFile = state.reader?.path === path ? state.reader : undefined;
   const [retainedFile, setRetainedFile] = useState<FileView>();
@@ -98,20 +100,13 @@ export function NativeFileWorkspace({
   const unavailable =
     file &&
     (file.reading.state !== "ready" || file.reading.content.kind !== "text");
-  const [retained, setRetained] = useState<SourceSnapshot>();
-  const retainedRevision = state.source_views[path];
-  useEffect(() => {
-    if (incoming) setRetained(incoming);
-    else if (!retainedRevision) setRetained(undefined);
-  }, [incoming?.revision, incoming?.graph?.revision, retainedRevision]);
-  const snapshot =
-    incoming ||
-    (retained?.revision === retainedRevision ? retained : undefined);
   const sourceOnly = file?.navigation === "source_only" && !snapshot;
-  const displayed = snapshot ? { ...state, source_snapshot: snapshot } : state;
+  const loading = Boolean(
+    state.sources.files[path] && !snapshot && !sourceError,
+  );
   const semanticGraph = useMemo(
     () => (snapshot?.graph ? displayGraph(snapshot) : graph),
-    [snapshot?.graph?.revision, graph],
+    [snapshot, graph],
   );
   const explanations = useMemo(() => {
     if (!semanticGraph || !snapshot?.compiled) return [];
@@ -148,24 +143,43 @@ export function NativeFileWorkspace({
   return (
     <section className="file-split" aria-label={"File: " + path}>
       <div className="file-source-pane">
-        <NativeCode
-          state={displayed}
-          observation={file}
-          path={path}
-          line={selected?.file === path ? selected.line : undefined}
-          running={running}
-          onCommand={onCommand}
-          explanations={preparing ? [] : explanations}
-          hoveredLine={
-            hovered?.source?.file === path ? hovered.source.line : undefined
-          }
-        />
+        {sourceError && !file && !snapshot ? (
+          <p className="file-empty" role="status">
+            Source could not be loaded.
+          </p>
+        ) : (
+          <NativeCode
+            source={snapshot}
+            observation={file}
+            path={path}
+            line={selected?.file === path ? selected.line : undefined}
+            running={running}
+            onCommand={onCommand}
+            explanations={preparing ? [] : explanations}
+            hoveredLine={
+              hovered?.source?.file === path ? hovered.source.line : undefined
+            }
+          />
+        )}
       </div>
       <div
         className="file-graph-pane"
         role="region"
         aria-label="File reference graph"
       >
+        {sourceError && (
+          <Alert severity="error">
+            Could not load the prepared graph.
+            <details>
+              <summary>Details</summary>
+              {sourceError}
+            </details>
+            <Button onClick={onRetrySource}>Retry graph</Button>
+          </Alert>
+        )}
+        {loading && !preparing && !sourceError && (
+          <LinearProgress aria-label="Loading prepared graph" />
+        )}
         {preparing ? (
           <NativePreparation
             preparation={preparation}
@@ -178,7 +192,7 @@ export function NativeFileWorkspace({
                 : undefined
             }
           />
-        ) : unavailable || sourceOnly ? (
+        ) : loading || sourceError ? null : unavailable || sourceOnly ? (
           <p className="file-empty">
             No dependency analysis is available for this file.
           </p>

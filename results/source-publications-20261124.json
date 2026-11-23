@@ -1,0 +1,1516 @@
+{
+  "date": "2026-11-24",
+  "source_base_revision": "d7aaf6b",
+  "scope": "Prepared source/graph publication ownership, generated small status index and exact cached queries; shared bounded framing and browser read recovery for source/history; fix explicit model approval being swallowed by background metadata.",
+  "host": {
+    "cpu": "13th Gen Intel(R) Core(TM) i7-13620H",
+    "kernel": "6.12.92"
+  },
+  "deployment": {
+    "binary_sha256": "29319c09fb72afba5979a86226bda0264bccdf389c1d036670692aa0ca69ef89",
+    "assets_sha256": "915da0ff01e1c378e246de93c00ad5de9d285e451d65fd1d7d9af138fce2654e",
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/29319c09fb72afba5979a86226bda0264bccdf389c1d036670692aa0ca69ef89-915da0ff01e1c378",
+    "files": [
+      [
+        "assets/AnalysisView-Buz3Aqyj.js",
+        "c7cff934174667cf91db5fcaaf9258ca22518e38c2ae83140b2cfa44eb7a5819"
+      ],
+      [
+        "assets/ArtifactPanel-BOm7mDO1.js",
+        "1abc95b5d8fff6e6b28d05cfdb3e9a9e5c111366eb780e1c19e840c8e7c99452"
+      ],
+      [
+        "assets/GraphView-Cm-HIwq2.js",
+        "4d0fc6f3e68e3abaaf0584ba75c5236f6747618a438d5576650470f6ff8820e4"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-BQhdFMY1.woff2",
+        "0cdd387c9590a1a9f9794560022dbb59654a7d86f187aa0c81495ad42d3a7308"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-DMm9YOAa.woff",
+        "30da91e84c893f875e252689faebdc590b2871145e8adc7f9a9d4dbd8ce0b251"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-DRggAlZN.ttf",
+        "68534840bcfdd2bffb6f0e8deb48684dd01e7f04ea2813267577afb906de1d13"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-ATXxdsX0.ttf",
+        "07d8e303ce4fc12b4bb54f1004170dd190a1f3db45d400fe68060df3e0897268"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-BEiXGLvX.woff",
+        "1ae6bd7475590e97e7f145a89e09ccde322f7a6bc0b91607b1c8b8ee28290fed"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-Dq_IR9rO.woff2",
+        "de7701e42cf1f4cf0b766c03fb27977207eee2f4fd5d76fa82188406da43ea4c"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-CTRA-rTL.woff",
+        "3398dd02302557a793f2863f88e02d96ce10df2abffa07c8e9fa90775116e65c"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-Di6jR-x-.woff2",
+        "5d53e70ad607c2352162dec9e0923fb54ecdafaccbf604cd8dcf7d00facb989b"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-wX97UBjC.ttf",
+        "ed0b74372feefcbb9c0666b2e210da37b7e49fa7fbbf3eeb11db5f693dacfbb7"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-BdnERNNW.ttf",
+        "9163df9c7122432e6495b4229fa9071cf9ae86a758ae5efc4924ec2e1a6dbce1"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-BsDP51OF.woff",
+        "9be7ceb88004ab8ad124082246fbfcca4091e36385d4ec6ed1df67375dad50fb"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-CL6g_b3V.woff2",
+        "74444efd593c005e3f4573b44524704c0af0a937fe911cca9e94068d0d140d3f"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-CB_wures.ttf",
+        "1e6f9579e90e2cac37f8f60a597c436e075c114385652b7cbeb0dec0421291b3"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-CTYiF6lA.woff2",
+        "51814d270d06ff0255dba0799994fa4d8c84d11f09951d47595f4abb1f3602dc"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-Dxdc4cR9.woff",
+        "5e28753be717dac97f559f49bc10be9cf3c124ddcabda6659d11cb68febc6463"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-Cx986IdX.woff2",
+        "0f60d1b897938ec918c8ce073092411baf9438f6739465693ff18b0f9d20b021"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-Jm3AIy58.woff",
+        "c76c5d696297d51b9cb1639c7da4334f0e7dec81b42b11213b5e25ef671bb822"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-waoOVXN0.ttf",
+        "138ac28d1663b3037e9c5f52371fa5c63d8324f4a38d22cd573e6ea3a3fd0cf8"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-DxDJ3AOS.woff2",
+        "99cd42a3c072d918f2f44984a807cf7aa16e13545fd0875fc07c6c65f99e715b"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-DzxPMmG6.ttf",
+        "70ee1f64a20f2048c21940ef46d0144fd215baa953ca69afd1e31e98544f708f"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-SpSLRI95.woff",
+        "a6f7ec0d846ac7ad975adb8959c37ed49b94acbc4ae436db9ce9e20287e4a64c"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-3WenGoN9.ttf",
+        "0d85ae7cc30f23790a7f1a58c4a112fdca8aae769b6ba11429af1d98b1b6cb3a"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-BMLOBm91.woff",
+        "f1d6ef86f3b11a528bd5185199bd2443ecb2b0dead96d88674b5a2c12be24bdf"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-NWA7e6Wa.woff2",
+        "97479ca6cce906abc961ecac96faa5f9ca2e61b8e7670d475826bcdee9a7c267"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-B22Nviop.woff2",
+        "c2342cd8b869e01752a9321dc17213fc40d4d04c79688c1d43f2cf316abd7866"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-Dr94JaBh.woff",
+        "c6368d87e8a1a3a5d337623d83d8dc4b868f242a9ad476237d6f8d1e0f168cdc"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-ypZvNtVU.ttf",
+        "d0332f52868370fd83ae7fa46470f90c8f2eab2fcf12bc4f88080b340c95a830"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-B3XSjfu4.ttf",
+        "f9377ab0271cda59af24bcffbd46a4d0c8a3572ffafdbb38de2ad5ea7b0d5ee5"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-CZnvNsCZ.woff2",
+        "dc47344dbb6cb5b655c8460d561f4df5f501b90c804ad3c6cec65fe322351ab1"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-iY-2wyZ7.woff",
+        "850c0af5c2238497febaf5e461d880bf458c341f42f4f330f1b1ab5698b1998e"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-DA0__PXp.woff",
+        "8a8d244581371912b8f3f5a23e2437cb2a59cd9bcaebb0346e722c05737a2571"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-flOr_0UB.ttf",
+        "08ce98e51b04d58945a301e639e02b6998af29fdfd61a7b8afdd07bbfc479d4a"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-t53AETM-.woff2",
+        "7af58c5ec8f132a2ddde9027c6d7814decce4d3b822a11192a42a20e2e973264"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-CFMepnvq.ttf",
+        "1ece03f79f95277d57dc7f6b435a74e1379b0d46104a8530286b60ff49369ea0"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-D1sUS0GD.woff2",
+        "e99ae51144bf1232efcc1bfe5add36262c6866b0faab24fa75740e1b98577a62"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-DbIhKOiC.woff",
+        "ece03cfd83e22c212cdef66feb8442d25a083beb988db3f1883f3f9738d750ba"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-C3H0VqGB.woff2",
+        "00b26ac825e2095056396e0553b8ac26d3f8ad158c3826e28b4c45b385c4714a"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-DN2j7dab.woff",
+        "91ee67500cc0129aa0ace3ac5c61ff1692102f0f31d02b69347fba35dcb75bf2"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-YYjJ1zSn.ttf",
+        "3931dd81faed86ba021bb2bbdc36f5bed9a38d6b4f4077aca59b265aa1b02083"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-BNo7hRIc.ttf",
+        "f36ea897e19f4a2e571d1e900e4e3710e438deb05a842486045ba0a3e616a4ad"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-CS6fqUqJ.woff",
+        "11e4dc8a6471ff6d6ee561d53d10fde8f7489e798257ff449c5d37c197435605"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-DDBCnlJ7.woff2",
+        "68e8c73ef42afd3ccec58bf0fba302cce448938e7fc020a5e31f8a952eee1342"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-C5JkGWo-.ttf",
+        "1c67f068fea8bb09bf099c088b1cf64bd27516a6e07f4684344873564bb66a67"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-D3wIWfF6.woff2",
+        "036d4e95149b69ff9bcc0cd55771efeb25ffa3947293e69acd78d5ac328c684b"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-D5yQViql.woff",
+        "d96cdf2b3bdd4d64a8fd5f74a4c467f123a8a73931cd435889f08ffaf9bf947a"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-C195tn64.woff",
+        "c943cc986384f59e86bea5fd7dc50a9c4dfe567a7c05eb40d6790720dead97c9"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-Dbsnue_I.ttf",
+        "95b6d2f1a50173bfedb8c63e1d1c99b10427d0a4df4201cb44513b226951a22b"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-mCD8mA8B.woff2",
+        "6b47c40166b6dbe21a5dfca7718413f2147fd2399be1ba605d8ad39cedf25dfe"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-B7gKUWhC.ttf",
+        "a6b2099fb555c60e3a0db3a08842ebf1d732c6eb4e4bf44913613bed4fc4e39b"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-Dy4dx90m.woff2",
+        "d04c54219f9eaec6d4d4fd42dfb28785975a4794d6b2fc71e566b9cd6db842dd"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-oD1tc_U0.woff",
+        "2014c523c3210bcc166648c4d4cc57f05b747df07a24277bf71c51e67dc79e3d"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-CTq5MqoE.woff",
+        "6ab6b62e9b62dae2c00dd90f791bd10950be0ecc3490d7d6045f51c2e8fe0949"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-DgpXs0kz.ttf",
+        "500e04d54f0d51666332c9d2089aa803be22aa878eca539e59fa53c6e522b082"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-gV2CO0n9.woff2",
+        "73d591271b1604960cb10bb90fee021670af7297017e0e98480b332d11f51995"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-BF-4gkZK.woff",
+        "99f9c6750b489c9462bf04900bd3f939df9b829339daaaaa99ef5495cdddea58"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-DWFBv043.ttf",
+        "c647367d1dd4e162468717d020e1fc0f1dc5c26ebfdffbe55261713bf88c5877"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-Dl5lxZxV.woff2",
+        "a4af7d414440a1c1790825cfb700cf9cf43b0f2c4b04f0ebc523011ad9853ec0"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-C0xS9mPB.woff",
+        "e14fed02b1aba7ce9f5afd5844b5d0321b22351febc720e0de8b8723527609f7"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-CO6r4hn1.woff2",
+        "71d517d67827787cfabdf186914cc3358eda539e37931941f2b2fd4a21f68c0b"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-D3Ib7_Hf.ttf",
+        "f01f3e87d9c6a61c0c081ceb577abd864eb00a612f7ac1620dd6915fad2ef5aa"
+      ],
+      [
+        "assets/ProofWorkspace-CtYb9ZTi.js",
+        "885064f0c9c681c58883894e443e8ad9481a9d0da99b4e9e981f3d335535fe70"
+      ],
+      [
+        "assets/ReviewView-BjZgddDy.js",
+        "c2ef00006e97889b465115c55bfa87f9b36c2a882736ed58a63ffff0a8e6b404"
+      ],
+      [
+        "assets/bend-DQWYak6m.png",
+        "9ba4741c87076a254bcee4ba0fb9ded366e6e7bacd6ae4727027e1aabd3a6bd5"
+      ],
+      [
+        "assets/certora-BGZUazkT.png",
+        "dd19f617a5463032f21785e5005c361bd753c0c32b6cd55e6e9f72149cb21242"
+      ],
+      [
+        "assets/cvc5-CKJsvvFK.png",
+        "d898a126bdae142e1ef6d2cf2f8b3b11bc7a3b50b48fa9e779d939070deb1354"
+      ],
+      [
+        "assets/dafny-Bqnbzobc.png",
+        "8e6e9042b348b551c7262a1153b83707ea32f59dd22a445f7d6ab6aa67f0903d"
+      ],
+      [
+        "assets/highlight-DZ4LIqsU.js",
+        "a274ca12834f9cec983fe7f2540379b751933bde313f745bc028808ae87ad7b8"
+      ],
+      [
+        "assets/index-8nuQ6BYP.css",
+        "cc9bdfabadb34911ccb5b6be11daae242020bdd97803a8f7b27cf84113c78787"
+      ],
+      [
+        "assets/index-CFElA1UU.js",
+        "87f455c3e8625a380ff0263691834d688c8eebea0c2cf4f2bbbf77b8c5131e8f"
+      ],
+      [
+        "assets/isabelle-RH45X7aW.png",
+        "01eb41b46ddab73dfa89ab8bd83a4dabcace733d295ea2bfd16662e6432768e2"
+      ],
+      [
+        "assets/lean-DS4hWoMA.png",
+        "b802cfa824bbe3c143fd54ba93661f6cd1e03d0bdb3a2fe6d498a9ba94cd54fa"
+      ],
+      [
+        "assets/roboto-cyrillic-ext-wght-normal-BCp_3N7R.woff2",
+        "01f94d674db55952c35898fa4da22c3e7065c3cc4dbbcc9cb7beb8b6b017fbc9"
+      ],
+      [
+        "assets/roboto-cyrillic-wght-normal-fOt7epNf.woff2",
+        "481dd0c01e6bbb129fd147eb5d8571016193cba141c4627ca60ceabdb5a46ea8"
+      ],
+      [
+        "assets/roboto-greek-ext-wght-normal-Bgw4czJT.woff2",
+        "ec7769b089813996276482bbe7017adfffdd6c7543fd1f76244e2ffc1138ed86"
+      ],
+      [
+        "assets/roboto-greek-wght-normal-DlT9XTxE.woff2",
+        "97fbf7bd0b4579e632392a4f483acdae73cbf59ad90c1e5d2c5ec4044c377fce"
+      ],
+      [
+        "assets/roboto-latin-ext-wght-normal-DYIxWhlt.woff2",
+        "cedb374b05a35034cf96db185db4eeb8f8ce49e1a56197673702ff11b5533d6e"
+      ],
+      [
+        "assets/roboto-latin-wght-normal-ccAYIvAh.woff2",
+        "1404ca348bd75ef836f4dd8b6f2cc719458642d1237c368296b2fc652dca47dc"
+      ],
+      [
+        "assets/roboto-math-wght-normal-4a3xuzGk.woff2",
+        "7cb4281a0ccc84cc18617842c639fc66541cbef94a9dd245c754700210b4fcec"
+      ],
+      [
+        "assets/roboto-symbols-wght-normal-B7iHSfaG.woff2",
+        "2addf2d86d7a5778653b36d551e97a39da52855f82fac7461cfc1bd86d460aed"
+      ],
+      [
+        "assets/roboto-vietnamese-wght-normal-_f1XEJpo.woff2",
+        "0b60bbe04e9c479444b31270a72179f53e400beee57b7dd176c08e5e2e716831"
+      ],
+      [
+        "assets/rocq-Dna-P5lQ.png",
+        "0667a5431bc0a795111e8a1b35aca4fa8ae34d433c8e1e07587ec5eb1c92f4a7"
+      ],
+      [
+        "assets/rust-DwAlVRKW.png",
+        "8cdc4b755c58d9055e772411ad6fb1159a4adab1a51c9c35801fe1ca9c94132f"
+      ],
+      [
+        "assets/tla-AewV2MIo.png",
+        "9ec39edd70f43f0186a706a95dc1def0a90708a9c1ceaa53b035441daf7874ab"
+      ],
+      [
+        "assets/z3-BfVdzy76.png",
+        "1c0f1378fe1b68aa44727659197ee0beecdaca57fd833a25e2074db3acdc1b19"
+      ],
+      [
+        "index.html",
+        "9236a11169340f1378e59aae1e19ffa9bf4edfe2af28f6a1752d19ed1a8cb6da"
+      ]
+    ]
+  },
+  "methodology": [
+    "Before is the immutable d7aaf6b history deployment; after uses the pinned source-publication binary/assets. Same selected files and byte-identical decoded source/graph/history values. Twenty sequential Node fetch/body-read probes per project per deployment, 100ms apart, with no browser/profiler/build/test process during the probes. JSON parsing is outside timed body reads. These small empirical p95 values are not field statistics.",
+    "Two sequential actual Chrome captures after deployment: Riemann then EthLib, normal motion, 1440x960, no throttling, CDP tracing/CPU sampling. All seven served bundles match the hidden-map build byte-for-byte. No native perf sampler or concurrent validation process in these captures. Profiling/automation adds overhead.",
+    "Source is fetched once by the application and once by the profiler for its declaration/source-line oracle. Both requests occur in setup, not gesture phases. The initial host has no source publication, so no initial source fallback body is queried.",
+    "Synchronous EventDispatch excludes subsequent rendering. Input/two-rAF is a scheduling proxy, not physical presentation or field INP. Resize events can coalesce; p95 of eight/one samples is the maximum. Fit View and initial/same-node selection are separate from alternating-node clicks.",
+    "Native intervals overlap and must not be summed. Thread CPU excludes child workers; wall minus CPU is not an I/O-wait counter. Node counts decoded arrayBuffer body bytes; Playwright-reported responseBodySize is retained separately. Zero observations are unavailable, not measured zero work.",
+    "Node response p95 increased to about 42 ms for both projects despite lower native computation. Actual browser settled response p95 is 6.45 ms Riemann / 4.85 ms EthLib. Transport/client differences remain unattributed adapter measurements; this does not claim a universal HTTP response or rendering speedup.",
+    "Measurement hashes sort object keys, preserving arrays and decoded strings. They are comparison oracles, not authority or runtime cache identities. Raw original-source JSON, traces and source context remain under target/. No model/inference request is issued by the actual-project captures; both hosts remain unapproved."
+  ],
+  "status_transfer": [
+    {
+      "project": "riemann",
+      "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+      "source_json_bytes": 69107,
+      "original_sha256": {
+        "source": "677d86407ee60af0098d2e8fa1c6af65cb508112e092d9550695e6bb43101760",
+        "files": "6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+        "graph": "ed870880b8b20560c5fb81dbbf80fbadaad7ef1e9188303086ee5b9ca6b3a2c3",
+        "history": "62f1c23898e925d004495e981a0bf7ba9cf4b73dd107c037823c5a72a7ce42bc"
+      },
+      "source_graph_history_unchanged": true,
+      "before": {
+        "state_bytes": 89654,
+        "response": {
+          "count": 20,
+          "p50_ms": 9.677899999999909,
+          "p95_ms": 11.349896000000058,
+          "max_ms": 11.349896000000058
+        },
+        "native_state": {
+          "count": 20,
+          "p50_ms": 7.101,
+          "p95_ms": 7.865,
+          "max_ms": 7.865
+        }
+      },
+      "after": {
+        "state_bytes": 20644,
+        "response": {
+          "count": 20,
+          "p50_ms": 2.102482000000009,
+          "p95_ms": 42.166473,
+          "max_ms": 42.166473
+        },
+        "native_state": {
+          "count": 20,
+          "p50_ms": 0.763,
+          "p95_ms": 1.529,
+          "max_ms": 1.529
+        }
+      },
+      "state_bytes_reduction_percent": 76.9736988868316,
+      "authorized_after": false
+    },
+    {
+      "project": "ethlib",
+      "file": "EthLib/Networking/Gossip/Parameters.lean",
+      "source_json_bytes": 146891,
+      "original_sha256": {
+        "source": "3a5313ea28b6aa71236dee5da6b64bad92532f8d46d9509d67994d4658108ed4",
+        "files": "8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+        "graph": "c51eff84be17f1bc826a58d534a49168f040286108ac31bd24d5992abf54f777",
+        "history": "6e1c3f86d6bd4ce2b77bda5bb423ada629618dfb7cf40c5b215ba228579653c8"
+      },
+      "source_graph_history_unchanged": true,
+      "before": {
+        "state_bytes": 152838,
+        "response": {
+          "count": 20,
+          "p50_ms": 13.338455000000067,
+          "p95_ms": 18.940149999999903,
+          "max_ms": 18.940149999999903
+        },
+        "native_state": {
+          "count": 20,
+          "p50_ms": 11.503,
+          "p95_ms": 17.261,
+          "max_ms": 17.261
+        }
+      },
+      "after": {
+        "state_bytes": 6043,
+        "response": {
+          "count": 20,
+          "p50_ms": 1.5767909999999574,
+          "p95_ms": 41.801470999999765,
+          "max_ms": 41.801470999999765
+        },
+        "native_state": {
+          "count": 20,
+          "p50_ms": 0.44,
+          "p95_ms": 0.753,
+          "max_ms": 0.753
+        }
+      },
+      "state_bytes_reduction_percent": 96.04614035776443,
+      "authorized_after": false
+    }
+  ],
+  "captures": [
+    {
+      "project": "riemann",
+      "directory": "target/native-profile/source-publications-events-20261124-riemann",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 22656.282516,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/source-publications-profile-assets",
+        "source_maps_sha256": {
+          "index-CFElA1UU.js": "2517bb7fd1f566b18d9dceee24153176ff043f3ccd99366ce580012e43873c14"
+        }
+      },
+      "artifact_sha256": {
+        "summary.json": "90f6c433900ea93099add3e24cc01882ed3e8d6549b8eb3ab6c85c59e643ec94",
+        "trace.json": "afd0e07633f691de81ebffa10f2534aa6eb1f778adfde6d7e55b75b93c2a0c01",
+        "preparation.json": "cfd04d78c04f8861a626cfb5980c94792a380ff68b0774f94befd8474aadfad0",
+        "native-metrics.json": "c8e6d42bfd67922482a5746bd49a0455576cb26de3ed2d4c366fa9a3cc1e4182",
+        "project-map.png": "e8753780a535ecdb601d4ff0dc470fc45b4f63186b9ec8d5c89ee855e3c14b25",
+        "graph-fit-view.cpuprofile": "a1bedbb3f1deea2a3c91b3e3411573c60b68790781cda86db66ae7f6f1ad3014",
+        "graph-hover.cpuprofile": "e24321c6fa30de4909e836b2bd9b3b460c0e3d0061f396dd84b6fe5cc7bff93d",
+        "graph-idle-poll.cpuprofile": "83450d41933abf9a116f826ee198ccaf605a6af4d088d1955c5dadd99e460fc2",
+        "graph-idle-settled.cpuprofile": "3baeedb4c05ebbdf830c8dac391097942deac9cd8442baba95eb83aaad6deedc",
+        "graph-node-select-distinct.cpuprofile": "11a5b227f4bab20fa7041738609269960bc134d46d56f44d2fd2779dfebd3748",
+        "graph-node-select.cpuprofile": "2436db3a94086ebdd53e19d119c0525d3cd283683753b17599aae92d0a4a83db",
+        "graph-pan.cpuprofile": "7271f0660d7ea71ae4c5d53a5864da0b13d67a17deb933989e11a3d2a32f9867",
+        "graph-resize.cpuprofile": "3f2e1cb889afd64e87c8dcbd8bfc24aca47b360e0e7471022d4dee34eef98aa1",
+        "graph-wheel.cpuprofile": "b41a680621795b091e26117f4492a9f3f9bb61ea7bd217eabd1e2349c46763e8",
+        "project-map-idle.cpuprofile": "5874532b12e89c8ad26fa89148a3498c1277eb7fa1b4dc5a458c4162c4002a73",
+        "project-map-wheel.cpuprofile": "0d4a1797130aa09b8bc9ae794bb86214185a3f0f71252e72b3ad112ca0dfeec1",
+        "tab-switch.cpuprofile": "3bd42084c6fb85460c3afc4243dcde3339eea8b5d24f87f1a60e8292d4a1ed2e"
+      },
+      "verified_javascript_sha256": {
+        "AnalysisView-Buz3Aqyj.js": "c7cff934174667cf91db5fcaaf9258ca22518e38c2ae83140b2cfa44eb7a5819",
+        "ArtifactPanel-BOm7mDO1.js": "1abc95b5d8fff6e6b28d05cfdb3e9a9e5c111366eb780e1c19e840c8e7c99452",
+        "GraphView-Cm-HIwq2.js": "4d0fc6f3e68e3abaaf0584ba75c5236f6747618a438d5576650470f6ff8820e4",
+        "ProofWorkspace-CtYb9ZTi.js": "885064f0c9c681c58883894e443e8ad9481a9d0da99b4e9e981f3d335535fe70",
+        "ReviewView-BjZgddDy.js": "c2ef00006e97889b465115c55bfa87f9b36c2a882736ed58a63ffff0a8e6b404",
+        "highlight-DZ4LIqsU.js": "a274ca12834f9cec983fe7f2540379b751933bde313f745bc028808ae87ad7b8",
+        "index-CFElA1UU.js": "87f455c3e8625a380ff0263691834d688c8eebea0c2cf4f2bbbf77b8c5131e8f"
+      },
+      "events": {
+        "project-map-wheel": {
+          "type": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 3.118,
+            "p95_ms": 4.878,
+            "max_ms": 5.634,
+            "total_ms": 69.34899999999999
+          },
+          "input_two_raf": {
+            "count": 24,
+            "p50_ms": 16.69999998807907,
+            "p95_ms": 17.80000001192093,
+            "max_ms": 18.5,
+            "total_ms": 402.4000000357628
+          }
+        },
+        "graph-wheel": {
+          "type": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 0.456,
+            "p95_ms": 1.083,
+            "max_ms": 1.177,
+            "total_ms": 12.253000000000002
+          },
+          "input_two_raf": {
+            "count": 24,
+            "p50_ms": 16.5,
+            "p95_ms": 16.900000035762787,
+            "max_ms": 26.30000001192093,
+            "total_ms": 403.60000014305115
+          }
+        },
+        "graph-hover": {
+          "type": "pointermove",
+          "dispatch": {
+            "count": 40,
+            "p50_ms": 0.038,
+            "p95_ms": 0.109,
+            "max_ms": 0.166,
+            "total_ms": 1.9820000000000004
+          },
+          "input_two_raf": {
+            "count": 40,
+            "p50_ms": 18.600000023841858,
+            "p95_ms": 33.5,
+            "max_ms": 35.80000001192093,
+            "total_ms": 759.4000001549721
+          }
+        },
+        "graph-pan": {
+          "type": "pointermove",
+          "dispatch": {
+            "count": 31,
+            "p50_ms": 0.149,
+            "p95_ms": 0.189,
+            "max_ms": 0.318,
+            "total_ms": 4.4559999999999995
+          },
+          "input_two_raf": {
+            "count": 31,
+            "p50_ms": 19.899999976158142,
+            "p95_ms": 22.899999976158142,
+            "max_ms": 26.30000001192093,
+            "total_ms": 606.1999999880791
+          }
+        },
+        "graph-resize": {
+          "type": "resize",
+          "dispatch": {
+            "count": 3,
+            "p50_ms": 0.891,
+            "p95_ms": 1.107,
+            "max_ms": 1.107,
+            "total_ms": 2.832
+          },
+          "input_two_raf": {
+            "count": 3,
+            "p50_ms": 18.600000023841858,
+            "p95_ms": 26.69999998807907,
+            "max_ms": 26.69999998807907,
+            "total_ms": 62.60000002384186
+          }
+        },
+        "tab-switch": {
+          "type": "click",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 12.592,
+            "p95_ms": 15.181,
+            "max_ms": 15.798,
+            "total_ms": 289.601
+          },
+          "input_two_raf": {
+            "count": 24,
+            "p50_ms": 31.899999976158142,
+            "p95_ms": 37.299999952316284,
+            "max_ms": 42.19999998807907,
+            "total_ms": 703.7000000476837
+          }
+        },
+        "graph-fit-view": {
+          "type": "click",
+          "dispatch": {
+            "count": 1,
+            "p50_ms": 0.814,
+            "p95_ms": 0.814,
+            "max_ms": 0.814,
+            "total_ms": 0.814
+          },
+          "input_two_raf": {
+            "count": 1,
+            "p50_ms": 25.399999976158142,
+            "p95_ms": 25.399999976158142,
+            "max_ms": 25.399999976158142,
+            "total_ms": 25.399999976158142
+          }
+        },
+        "graph-node-select": {
+          "type": "click",
+          "dispatch": {
+            "count": 8,
+            "p50_ms": 0.16,
+            "p95_ms": 30.625,
+            "max_ms": 30.625,
+            "total_ms": 31.704
+          },
+          "input_two_raf": {
+            "count": 8,
+            "p50_ms": 27.600000023841858,
+            "p95_ms": 42.40000003576279,
+            "max_ms": 42.40000003576279,
+            "total_ms": 217.5
+          }
+        },
+        "graph-node-select-distinct": {
+          "type": "click",
+          "dispatch": {
+            "count": 8,
+            "p50_ms": 12.979,
+            "p95_ms": 17.514,
+            "max_ms": 17.514,
+            "total_ms": 107.676
+          },
+          "input_two_raf": {
+            "count": 8,
+            "p50_ms": 20.599999964237213,
+            "p95_ms": 25.30000001192093,
+            "max_ms": 25.30000001192093,
+            "total_ms": 166.70000004768372
+          }
+        }
+      },
+      "settled_browser_state_traffic": {
+        "graph-idle-settled": {
+          "response": {
+            "count": 11,
+            "p50_ms": 5.013,
+            "p95_ms": 6.446,
+            "max_ms": 6.446
+          },
+          "reported_body_bytes": [
+            20644
+          ]
+        },
+        "project-map-idle": {
+          "response": {
+            "count": 11,
+            "p50_ms": 5.243,
+            "p95_ms": 6.474,
+            "max_ms": 6.474
+          },
+          "reported_body_bytes": [
+            20644
+          ]
+        }
+      },
+      "source_fetches": [
+        {
+          "phase": "setup",
+          "reported_body_bytes": 69277,
+          "response_ms": 1.744
+        },
+        {
+          "phase": "setup",
+          "reported_body_bytes": 69277,
+          "response_ms": 41.792
+        }
+      ],
+      "history_fetches": [
+        {
+          "phase": "setup",
+          "reported_body_bytes": 220,
+          "response_ms": 1.668
+        }
+      ],
+      "gesture_commands": 0,
+      "camera_retained": {
+        "graph-hover": true,
+        "graph-resize": true,
+        "tab-switch": true,
+        "graph-node-select": true,
+        "graph-node-select-distinct": true
+      },
+      "source_line_oracles": {
+        "selections": 16,
+        "applicable": 16,
+        "method": "Original retained source line is asserted for every selected declaration with a reported line."
+      },
+      "native_stages": {
+        "gui.state": {
+          "wall": {
+            "count": 181,
+            "p50_ms": 1.364,
+            "p95_ms": 2.947,
+            "max_ms": 40.227,
+            "total_ms": 304.8100000000002
+          },
+          "host_thread_cpu": {
+            "count": 181,
+            "p50_ms": 1.272,
+            "p95_ms": 2.796,
+            "max_ms": 39.911,
+            "total_ms": 291.1429999999999
+          }
+        },
+        "gui.source_respond": {
+          "wall": {
+            "count": 2,
+            "p50_ms": 0.214,
+            "p95_ms": 0.214,
+            "max_ms": 0.214,
+            "total_ms": 0.385
+          },
+          "host_thread_cpu": {
+            "count": 2,
+            "p50_ms": 0.181,
+            "p95_ms": 0.181,
+            "max_ms": 0.181,
+            "total_ms": 0.305
+          }
+        },
+        "analysis.extract": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 21853.362,
+            "p95_ms": 21853.362,
+            "max_ms": 21853.362,
+            "total_ms": 21853.362
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 1255.399,
+            "p95_ms": 1255.399,
+            "max_ms": 1255.399,
+            "total_ms": 1255.399
+          }
+        },
+        "analysis.select_roots": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 1945.957,
+            "p95_ms": 1945.957,
+            "max_ms": 1945.957,
+            "total_ms": 1945.957
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 692.093,
+            "p95_ms": 692.093,
+            "max_ms": 692.093,
+            "total_ms": 692.093
+          }
+        },
+        "atlas.project.prepare": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 17126.373,
+            "p95_ms": 17126.373,
+            "max_ms": 17126.373,
+            "total_ms": 17126.373
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 107.322,
+            "p95_ms": 107.322,
+            "max_ms": 107.322,
+            "total_ms": 107.322
+          }
+        },
+        "analysis.cache.validate": {
+          "wall": {
+            "count": 2,
+            "p50_ms": 1254.599,
+            "p95_ms": 1254.599,
+            "max_ms": 1254.599,
+            "total_ms": 1254.685
+          },
+          "host_thread_cpu": {
+            "count": 2,
+            "p50_ms": 58.144,
+            "p95_ms": 58.144,
+            "max_ms": 58.144,
+            "total_ms": 58.23
+          }
+        },
+        "analysis.materialize_view": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 2.109,
+            "p95_ms": 2.109,
+            "max_ms": 2.109,
+            "total_ms": 2.109
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 2.1,
+            "p95_ms": 2.1,
+            "max_ms": 2.1,
+            "total_ms": 2.1
+          }
+        }
+      },
+      "startup_history_materialization_ms": [
+        0.033,
+        0.029
+      ],
+      "evicted_native_records": 0
+    },
+    {
+      "project": "ethlib",
+      "directory": "target/native-profile/source-publications-events-20261124-ethlib",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "EthLib/Networking/Gossip/Parameters.lean",
+        "declarations": 42,
+        "project_files": 2517,
+        "setup_preparation_ms": 5396.784879999999,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/source-publications-profile-assets",
+        "source_maps_sha256": {
+          "index-CFElA1UU.js": "2517bb7fd1f566b18d9dceee24153176ff043f3ccd99366ce580012e43873c14"
+        }
+      },
+      "artifact_sha256": {
+        "summary.json": "ed354a90a999f918bbcbe7a6e28cb42304f52f72a5d06ab7827b8780781765ce",
+        "trace.json": "fb48e5d935fcf2a75a54dc99e6db7db367462d6297bdce76e0dc40e8f1918288",
+        "preparation.json": "9175ee2464ed4859df5ac11b0fb34b027ee241beaa5fcab346a4bbf7bb49be33",
+        "native-metrics.json": "f90513fbc01d39c3b73a7df491f699322273faf489bc2c3b885ff21bfc1afd7c",
+        "project-map.png": "3f15c359566c06b709f4b77fa01ebbbaba759471dac1908777a74faa917a1381",
+        "graph-fit-view.cpuprofile": "c4f2679c1888ebf4f752fcec299f1edd85e65282ccf40844b18a64aa249688b5",
+        "graph-hover.cpuprofile": "8c557a8196d923fc362c667e55ad122a7d3973460877a8cb4b57f8fd3a33d66d",
+        "graph-idle-poll.cpuprofile": "a0a86322eefa8d5ff29714a227dd1063fa85f7f5fb30b5e0f72ce7f189481aca",
+        "graph-idle-settled.cpuprofile": "9899940edace8130c4eaf1dda85f58d907afbd0891edd8c366ad2e74c89bdfbd",
+        "graph-node-select-distinct.cpuprofile": "1e69000d0b12e29074dfdc456e65a2ac5edd16eae7f21f28bcccb0a7fb958634",
+        "graph-node-select.cpuprofile": "f90a6c4db61f7004809320a53f6c3ffefe4dcead9c3c391c6db20b204337abc8",
+        "graph-pan.cpuprofile": "a429a393ec49475e280d255c877fe2732847ee62c40a3a3a9ff3912bc1538e96",
+        "graph-resize.cpuprofile": "b6539de44591eb68d29567a3a53ecacda20cfca4e5a316c6ec44d605e58dde9b",
+        "graph-wheel.cpuprofile": "27dbab4226e3f889a28ee050ff28262fb34c31226e54b78bfdb6119509f27906",
+        "project-map-idle.cpuprofile": "c7b4fd54bb2af22ad9c7ef26c980731995838e292bc52548e9328be26b119da6",
+        "project-map-wheel.cpuprofile": "1f1507e6dfe9ef123873584be8227d95fe85126d2bd86cceb9227ecca8ab5eba",
+        "tab-switch.cpuprofile": "390d8054b9f6f3bc32ecc2dc7951207afb0b0a5f425d4b57e6cfc72ab88702d2"
+      },
+      "verified_javascript_sha256": {
+        "AnalysisView-Buz3Aqyj.js": "c7cff934174667cf91db5fcaaf9258ca22518e38c2ae83140b2cfa44eb7a5819",
+        "ArtifactPanel-BOm7mDO1.js": "1abc95b5d8fff6e6b28d05cfdb3e9a9e5c111366eb780e1c19e840c8e7c99452",
+        "GraphView-Cm-HIwq2.js": "4d0fc6f3e68e3abaaf0584ba75c5236f6747618a438d5576650470f6ff8820e4",
+        "ProofWorkspace-CtYb9ZTi.js": "885064f0c9c681c58883894e443e8ad9481a9d0da99b4e9e981f3d335535fe70",
+        "ReviewView-BjZgddDy.js": "c2ef00006e97889b465115c55bfa87f9b36c2a882736ed58a63ffff0a8e6b404",
+        "highlight-DZ4LIqsU.js": "a274ca12834f9cec983fe7f2540379b751933bde313f745bc028808ae87ad7b8",
+        "index-CFElA1UU.js": "87f455c3e8625a380ff0263691834d688c8eebea0c2cf4f2bbbf77b8c5131e8f"
+      },
+      "events": {
+        "project-map-wheel": {
+          "type": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 2.82,
+            "p95_ms": 6.585,
+            "max_ms": 8.47,
+            "total_ms": 77.98899999999999
+          },
+          "input_two_raf": {
+            "count": 24,
+            "p50_ms": 16.600000023841858,
+            "p95_ms": 17.100000023841858,
+            "max_ms": 28.100000023841858,
+            "total_ms": 403.8999999165535
+          }
+        },
+        "graph-wheel": {
+          "type": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 0.551,
+            "p95_ms": 1.339,
+            "max_ms": 2.082,
+            "total_ms": 15.105
+          },
+          "input_two_raf": {
+            "count": 24,
+            "p50_ms": 16.399999976158142,
+            "p95_ms": 17.200000047683716,
+            "max_ms": 21.900000035762787,
+            "total_ms": 396.0999999642372
+          }
+        },
+        "graph-hover": {
+          "type": "pointermove",
+          "dispatch": {
+            "count": 40,
+            "p50_ms": 0.035,
+            "p95_ms": 0.089,
+            "max_ms": 0.242,
+            "total_ms": 1.8470000000000009
+          },
+          "input_two_raf": {
+            "count": 40,
+            "p50_ms": 16.899999976158142,
+            "p95_ms": 20.899999976158142,
+            "max_ms": 28.600000023841858,
+            "total_ms": 680.9999999403954
+          }
+        },
+        "graph-pan": {
+          "type": "pointermove",
+          "dispatch": {
+            "count": 31,
+            "p50_ms": 0.238,
+            "p95_ms": 0.359,
+            "max_ms": 0.362,
+            "total_ms": 6.909000000000001
+          },
+          "input_two_raf": {
+            "count": 31,
+            "p50_ms": 18.69999998807907,
+            "p95_ms": 20.399999976158142,
+            "max_ms": 20.799999952316284,
+            "total_ms": 571.8000000119209
+          }
+        },
+        "graph-resize": {
+          "type": "resize",
+          "dispatch": {
+            "count": 2,
+            "p50_ms": 0.873,
+            "p95_ms": 0.873,
+            "max_ms": 0.873,
+            "total_ms": 1.643
+          },
+          "input_two_raf": {
+            "count": 2,
+            "p50_ms": 17.69999998807907,
+            "p95_ms": 17.69999998807907,
+            "max_ms": 17.69999998807907,
+            "total_ms": 33.5
+          }
+        },
+        "tab-switch": {
+          "type": "click",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 9.27,
+            "p95_ms": 10.486,
+            "max_ms": 12.002,
+            "total_ms": 205.37699999999998
+          },
+          "input_two_raf": {
+            "count": 24,
+            "p50_ms": 25,
+            "p95_ms": 29.399999976158142,
+            "max_ms": 30.30000001192093,
+            "total_ms": 598.4999999403954
+          }
+        },
+        "graph-fit-view": {
+          "type": "click",
+          "dispatch": {
+            "count": 1,
+            "p50_ms": 1.032,
+            "p95_ms": 1.032,
+            "max_ms": 1.032,
+            "total_ms": 1.032
+          },
+          "input_two_raf": {
+            "count": 1,
+            "p50_ms": 25.600000023841858,
+            "p95_ms": 25.600000023841858,
+            "max_ms": 25.600000023841858,
+            "total_ms": 25.600000023841858
+          }
+        },
+        "graph-node-select": {
+          "type": "click",
+          "dispatch": {
+            "count": 8,
+            "p50_ms": 15.353,
+            "p95_ms": 17.854,
+            "max_ms": 17.854,
+            "total_ms": 114.13600000000001
+          },
+          "input_two_raf": {
+            "count": 8,
+            "p50_ms": 30.30000001192093,
+            "p95_ms": 35.39999997615814,
+            "max_ms": 35.39999997615814,
+            "total_ms": 233.0999999642372
+          }
+        },
+        "graph-node-select-distinct": {
+          "type": "click",
+          "dispatch": {
+            "count": 8,
+            "p50_ms": 8.93,
+            "p95_ms": 11.635,
+            "max_ms": 11.635,
+            "total_ms": 42.016
+          },
+          "input_two_raf": {
+            "count": 8,
+            "p50_ms": 13.400000035762787,
+            "p95_ms": 17.69999998807907,
+            "max_ms": 17.69999998807907,
+            "total_ms": 100.90000003576279
+          }
+        }
+      },
+      "settled_browser_state_traffic": {
+        "graph-idle-settled": {
+          "response": {
+            "count": 11,
+            "p50_ms": 3.726,
+            "p95_ms": 4.853,
+            "max_ms": 4.853
+          },
+          "reported_body_bytes": [
+            6043
+          ]
+        },
+        "project-map-idle": {
+          "response": {
+            "count": 11,
+            "p50_ms": 1.669,
+            "p95_ms": 2.108,
+            "max_ms": 2.108
+          },
+          "reported_body_bytes": [
+            6043
+          ]
+        }
+      },
+      "source_fetches": [
+        {
+          "phase": "setup",
+          "reported_body_bytes": 147134,
+          "response_ms": 41.315
+        },
+        {
+          "phase": "setup",
+          "reported_body_bytes": 147134,
+          "response_ms": 2.105
+        }
+      ],
+      "history_fetches": [
+        {
+          "phase": "setup",
+          "reported_body_bytes": 4168363,
+          "response_ms": 16.369
+        }
+      ],
+      "gesture_commands": 0,
+      "camera_retained": {
+        "graph-hover": true,
+        "graph-resize": true,
+        "tab-switch": true,
+        "graph-node-select": true,
+        "graph-node-select-distinct": true
+      },
+      "source_line_oracles": {
+        "selections": 16,
+        "applicable": 12,
+        "method": "Original retained source line is asserted for every selected declaration with a reported line."
+      },
+      "native_stages": {
+        "gui.state": {
+          "wall": {
+            "count": 107,
+            "p50_ms": 0.858,
+            "p95_ms": 1.44,
+            "max_ms": 58.422,
+            "total_ms": 150.715
+          },
+          "host_thread_cpu": {
+            "count": 107,
+            "p50_ms": 0.8,
+            "p95_ms": 1.321,
+            "max_ms": 1.951,
+            "total_ms": 87.482
+          }
+        },
+        "gui.source_respond": {
+          "wall": {
+            "count": 2,
+            "p50_ms": 0.284,
+            "p95_ms": 0.284,
+            "max_ms": 0.284,
+            "total_ms": 0.42799999999999994
+          },
+          "host_thread_cpu": {
+            "count": 2,
+            "p50_ms": 0.247,
+            "p95_ms": 0.247,
+            "max_ms": 0.247,
+            "total_ms": 0.371
+          }
+        },
+        "analysis.extract": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 2061.647,
+            "p95_ms": 2061.647,
+            "max_ms": 2061.647,
+            "total_ms": 2061.647
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 473.184,
+            "p95_ms": 473.184,
+            "max_ms": 473.184,
+            "total_ms": 473.184
+          }
+        },
+        "analysis.select_roots": null,
+        "atlas.project.prepare": null,
+        "analysis.cache.validate": {
+          "wall": {
+            "count": 2,
+            "p50_ms": 1632.672,
+            "p95_ms": 1632.672,
+            "max_ms": 1632.672,
+            "total_ms": 3218.59
+          },
+          "host_thread_cpu": {
+            "count": 2,
+            "p50_ms": 63.867,
+            "p95_ms": 63.867,
+            "max_ms": 63.867,
+            "total_ms": 126.336
+          }
+        },
+        "analysis.materialize_view": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 3.83,
+            "p95_ms": 3.83,
+            "max_ms": 3.83,
+            "total_ms": 3.83
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 3.818,
+            "p95_ms": 3.818,
+            "max_ms": 3.818,
+            "total_ms": 3.818
+          }
+        }
+      },
+      "startup_history_materialization_ms": [
+        94.586,
+        91.482,
+        89.099
+      ],
+      "evicted_native_records": 0
+    }
+  ],
+  "regression_attachments": [
+    {
+      "report": "target/gui-source-publications-normal-report",
+      "name": "history-transfer.json",
+      "data": {
+        "status_bytes": [
+          2240,
+          2240,
+          2240,
+          2240,
+          2240,
+          2240,
+          2240,
+          2240,
+          2241,
+          2241,
+          2234,
+          2307,
+          2307,
+          2306,
+          2585,
+          2585,
+          2584,
+          2585,
+          2585,
+          2613,
+          2613,
+          2613,
+          2613,
+          2613,
+          2613,
+          2613,
+          2613,
+          2614,
+          2616,
+          2616,
+          2637,
+          2615,
+          2615,
+          2615,
+          2615,
+          2615,
+          2615,
+          2615,
+          2615,
+          2615,
+          2615,
+          2615,
+          2615,
+          2616
+        ],
+        "initial_history_bytes": 3124513,
+        "initial_history_fetches": 3,
+        "scope": "One intentionally failed initial response, explicit retry, a transient conflict under the same ID and automatic recovery after fresh status; unchanged navigation does not refetch history."
+      }
+    },
+    {
+      "report": "target/gui-source-publications-normal-report",
+      "name": "source-transfer.json",
+      "data": {
+        "status_bytes": 2762,
+        "source_bytes": 408776,
+        "initial_reads_before_manual_probe": 5,
+        "unchanged_navigation_reads": 0,
+        "stale_response_status": 409,
+        "chat_dom_unchanged": true
+      }
+    },
+    {
+      "report": "target/gui-source-publications-normal-report",
+      "name": "navigation-performance",
+      "data": {
+        "browser": "149.0.7827.53",
+        "motion": "no-preference",
+        "cold_analysis_store_preparation_ms": 31658.603512,
+        "warm_tab_two_raf_ms": [
+          25.799999952316284,
+          28.69999998807907,
+          24.5,
+          22.5,
+          22.599999964237213,
+          28.69999998807907,
+          21.80000001192093,
+          27.5,
+          24.400000035762787,
+          26.599999964237213
+        ],
+        "p95_ms": 28.69999998807907,
+        "maximum_p95_ms": 250,
+        "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+      }
+    },
+    {
+      "report": "target/gui-source-publications-budget-normal-report",
+      "name": "source-transfer.json",
+      "data": {
+        "status_bytes": 2762,
+        "source_bytes": 408776,
+        "initial_reads_before_manual_probe": 5,
+        "unchanged_navigation_reads": 0,
+        "stale_response_status": 409,
+        "chat_dom_unchanged": true
+      }
+    },
+    {
+      "report": "target/gui-source-publications-budget-normal-report",
+      "name": "navigation-performance",
+      "data": {
+        "browser": "149.0.7827.53",
+        "motion": "no-preference",
+        "cold_analysis_store_preparation_ms": 32385.542459999997,
+        "warm_tab_two_raf_ms": [
+          24.200000047683716,
+          28.80000001192093,
+          27.099999964237213,
+          25.399999976158142,
+          30.600000023841858,
+          27.69999998807907,
+          22.80000001192093,
+          39.30000001192093,
+          29.5,
+          26.5
+        ],
+        "p95_ms": 39.30000001192093,
+        "maximum_p95_ms": 250,
+        "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+      }
+    },
+    {
+      "report": "target/gui-source-publications-budget-reduced-report",
+      "name": "navigation-performance",
+      "data": {
+        "browser": "149.0.7827.53",
+        "motion": "reduce",
+        "cold_analysis_store_preparation_ms": 31991.905121,
+        "warm_tab_two_raf_ms": [
+          27,
+          36.5,
+          27.099999964237213,
+          25.30000001192093,
+          39.69999998807907,
+          26,
+          29.100000023841858,
+          21.5,
+          33,
+          31.899999976158142
+        ],
+        "p95_ms": 39.69999998807907,
+        "maximum_p95_ms": 250,
+        "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+      }
+    },
+    {
+      "report": "target/gui-source-publications-approval-report",
+      "name": "history-transfer.json",
+      "data": {
+        "status_bytes": [
+          2240,
+          2240,
+          2240,
+          2240,
+          2240,
+          2240,
+          2240,
+          2241,
+          2234,
+          2307,
+          2307,
+          2306,
+          2585,
+          2585,
+          2584,
+          2585,
+          2585,
+          2613,
+          2613,
+          2613,
+          2613,
+          2613,
+          2613,
+          2613,
+          2613,
+          2614,
+          2616,
+          2616,
+          2637,
+          2615,
+          2615,
+          2615,
+          2615,
+          2615,
+          2615,
+          2615,
+          2615,
+          2615,
+          2615,
+          2615,
+          2615,
+          2616
+        ],
+        "initial_history_bytes": 3124513,
+        "initial_history_fetches": 3,
+        "scope": "One intentionally failed initial response, explicit retry, a transient conflict under the same ID and automatic recovery after fresh status; unchanged navigation does not refetch history."
+      }
+    },
+    {
+      "report": "target/gui-source-publications-approval-report",
+      "name": "source-transfer.json",
+      "data": {
+        "status_bytes": 2762,
+        "source_bytes": 408776,
+        "initial_reads_before_manual_probe": 5,
+        "unchanged_navigation_reads": 0,
+        "stale_response_status": 409,
+        "chat_dom_unchanged": true
+      }
+    }
+  ],
+  "validation": {
+    "rust_tests": 292,
+    "typescript_tests": 36,
+    "clippy": "clean with -D warnings",
+    "architecture_tests": 22,
+    "schema": "Generated source index/envelope and shared history envelope from Rust-owned DTOs; deterministic export checked.",
+    "retention": {
+      "maximum_artifacts": 64,
+      "maximum_serialized_bytes": 134217728,
+      "maximum_single_envelope_bytes": 67108864,
+      "tests": [
+        "Real 16MiB scopes fill the serialized retention budget and evict oldest complete artifacts.",
+        "A deterministic 65-artifact small-view prelude exercises count eviction before each of 64 generated finite traces; retained paths and query availability match an independent model.",
+        "Changed input invalidates all related artifacts; independent views and frozen held bodies remain unchanged.",
+        "Presentation/scope changes get different view identities even with unchanged source/graph revisions."
+      ],
+      "final_targeted_check": "/tmp/meden-source-publications-count-guard.log"
+    },
+    "public_tui": {
+      "passed": 34,
+      "skipped": 0,
+      "summary": "/tmp/meden-ux-source-publications-20261124/summary.json",
+      "exit": "/tmp/meden-ux-source-publications-20261124-exit.json",
+      "decoded_screens_reviewed": [
+        "GUI/TUI continuation and fresh approval",
+        "Lake input-inventory stop and retained historical meaning",
+        "provider limit, explicit retry and restart"
+      ]
+    },
+    "browser_reports": [
+      {
+        "report": "target/gui-source-publications-regression-report",
+        "passed": 7,
+        "scope": "Actual compiler logs/timeout/cancel/retry, search/renderer reuse, quiet kinds/source, IDE map, development-source freshness and reviewed repair. Before the subsequent generic conflict-recovery and approval pending fixes."
+      },
+      {
+        "report": "target/gui-source-publications-final-report",
+        "passed": 7,
+        "failed": 1,
+        "scope": "Generic recovery, late reader acknowledgements, actual renderer, quiet source, development and repair passed. Model approval was swallowed by background list-models; corrected in later held-metadata regression."
+      },
+      {
+        "report": "target/gui-source-publications-approval-report",
+        "passed": 5,
+        "scope": "Finite verifier, source/history recovery, held-metadata approval/cancellation and cloned workspace/provider switching passed."
+      },
+      {
+        "report": "target/gui-source-publications-normal-report",
+        "passed": 5,
+        "scope": "Same-ID conflicts, persistent conflict limit/explicit retry, actual retained tabs, real 35-module Lake failure/retry/dependency edits and held-metadata approval/cancellation."
+      },
+      {
+        "report": "target/gui-source-publications-reduced-report",
+        "passed": 2,
+        "failed": 1,
+        "scope": "Tabs and unreadable input passed. A final routed state poll raced fixture shutdown after assertions; fixed by draining routes before host termination."
+      },
+      {
+        "report": "target/gui-source-publications-reduced-final-report",
+        "passed": 2,
+        "scope": "Retained tabs and delayed reader acknowledgements with drained adapters passed."
+      },
+      {
+        "report": "target/gui-source-publications-budget-normal-report",
+        "passed": 2,
+        "scope": "Final source failure pane has no endless source spinner; complete cache/retry/stale/restart journey and serialized normal-motion numeric gate."
+      },
+      {
+        "report": "target/gui-source-publications-budget-reduced-report",
+        "passed": 1,
+        "scope": "Final serialized reduced-motion numeric gate."
+      }
+    ],
+    "serialized_performance_gates": {
+      "enabled": "MEDEN_GUI_PERFORMANCE=1",
+      "maximum_p95_ms": 250,
+      "runs": [
+        {
+          "report": "target/gui-source-publications-budget-normal-report",
+          "motion": "no-preference",
+          "p95_ms": 39.30000001192093
+        },
+        {
+          "report": "target/gui-source-publications-budget-reduced-report",
+          "motion": "reduce",
+          "p95_ms": 39.69999998807907
+        }
+      ]
+    },
+    "screens_reviewed": [
+      "target/gui-checks/source-publication-failure.png",
+      "target/gui-checks/source-publication-latest.png"
+    ],
+    "inference": "Browser/TUI regression model replies are scripted; actual compiler/GF/search/Z3 operations are separate real tools. No live-model/cold-install/local-confidentiality validation is claimed."
+  },
+  "remaining": [
+    "Inventory, independent job/log/evidence DTOs and the rest of native wire generation are still migration work.",
+    "Reader pages still travel in status and new page-read commands queue behind active semantic preparation.",
+    "Original complete compiler-input/freshness checks remain; cached graph readiness here is 22.7 s for Riemann / 5.4 s for EthLib, despite immediate retained navigation.",
+    "History hashing still runs at record mutation boundaries; observed startup/host-refresh spans are 89–95 ms for this EthLib history. Model-turn latency was not profiled.",
+    "Step 5 layout/order identities and retirement requirements remain open."
+  ]
+}

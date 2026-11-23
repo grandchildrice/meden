@@ -5,6 +5,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some("file") => schemars::schema_for!(meden_app::view::file::FileView),
         Some("history") => schemars::schema_for!(meden_app::view::history::Snapshot<'static>),
         Some("history-reference") => schemars::schema_for!(meden_app::view::history::Reference),
+        Some("source-index") => schemars::schema_for!(meden_app::view::sources::Index),
+        Some("source-publication") => schemars::schema_for!(
+            meden_app::view::publication::Envelope<meden_app::view::SourcePage>
+        ),
         Some(_) => return Err("Unknown read model".into()),
     };
     println!("{}", serde_json::to_string_pretty(&schema)?);

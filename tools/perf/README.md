@@ -121,6 +121,13 @@ arbitrary rapid clicking. `preparation.json` retains the actual file-local build
 log, elapsed preparation time and cache-hit flag alongside the profiles; it is
 included in the native capture's digest manifest.
 
+Prepared sources are queried through the exact revision advertised by the small
+status index. The profiler performs one additional source-body read after
+preparation for its declaration/source-line oracle; distinguish that read from
+the application's one cached read when counting setup traffic. A declaration
+without a reported source line has no line-jump assertion. These diagnostic
+queries never become inference or compiler commands.
+
 Set `MEDEN_GUI_ASSETS` to the asset root containing the source maps for the
 served bundles (default `apps/web/dist`). The report retains the map digests.
 For a pinned deployment without maps, build separately with `--sourcemap hidden`

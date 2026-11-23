@@ -59,3 +59,36 @@ test("stale recovery uses the HTTP status independently of diagnostic text", asy
   expect(error).toBeInstanceOf(NativeHttpError);
   expect(error.status).toBe(409);
 });
+
+test("source publication identity includes presentation independently of its input revision", async () => {
+  const source = {
+    revision,
+    data: {
+      revision: "sha256:" + "b".repeat(64),
+      files: { "Spec.rs": "fn original() {}\n" },
+      roots: ["Spec.rs"],
+      graph: null,
+      description: "Original prepared scope",
+      external: [],
+      compiled: false,
+      inputs_revision: null,
+    },
+  };
+  const fetch = vi.fn().mockResolvedValue(Response.json(source));
+  vi.stubGlobal("fetch", fetch);
+  expect(await new NativeClient("session").source(revision)).toEqual(source);
+  expect(fetch).toHaveBeenCalledWith(
+    "/api/source?revision=" + encodeURIComponent(revision),
+    expect.anything(),
+  );
+  fetch.mockResolvedValue(
+    Response.json({ ...source, revision: source.data.revision }),
+  );
+  await expect(new NativeClient("session").source(revision)).rejects.toThrow(
+    "does not match",
+  );
+  fetch.mockResolvedValue(
+    Response.json({ ...source, data: { ...source.data, atlas: {} } }),
+  );
+  await expect(new NativeClient("session").source(revision)).rejects.toThrow();
+});

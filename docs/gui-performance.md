@@ -1,5 +1,80 @@
 # Graph interaction measurements
 
+## Prepared source publications (November 24)
+
+The [implementation record](../results/source-publications-20261124.json) separates
+prepared source/graph bodies from status. The shared application owns original
+snapshots, complete frozen envelopes, a generated reference index and bounded
+retention. Queries return exact retained bytes without file/compiler/model I/O.
+Publication IDs cover all presentation data, independently of input-source and
+graph IDs. Changed/unavailable input invalidates every related retained graph.
+Source and history now share bounded serialization/framing and browser recovery.
+
+Twenty sequential raw-body probes per project, against the same selected files,
+compared the immutable `d7aaf6b` service with the new pinned deployment:
+
+| Measurement | Riemann before / after | EthLib before / after |
+| --- | ---: | ---: |
+| Status response bytes | 89,654 / 20,644 | 152,838 / 6,043 |
+| Native status processing p95 | 7.865 / 1.529 ms | 17.261 / 0.753 ms |
+| Node fetch/body-read p95 | 11.350 / 42.166 ms | 18.940 / 41.801 ms |
+
+Status bytes fell **76.97% / 96.05%**. Complete decoded source, graph and history
+values have identical comparison hashes across deployment. Node's end-to-end
+probe became slower despite lower native computation; transport/client timing
+remains unattributed. The actual browser's settled state-response p95 was
+**6.446 / 4.853 ms**. These are different measurement boundaries and small
+within-run percentiles, rather than a universal HTTP latency claim.
+
+Two sequential actual Chrome captures used normal motion, 1440 × 960, CDP
+tracing/CPU sampling, matching source maps and no concurrent validation job:
+
+| Synchronous handler p95 | Riemann | EthLib |
+| --- | ---: | ---: |
+| Project-map wheel, 24 events | 4.878 ms | 6.585 ms |
+| Dependency-graph wheel, 24 events | 1.083 ms | 1.339 ms |
+| Hover pointer movement, 40 events | 0.109 ms | 0.089 ms |
+| Drag pointer movement, 31 events | 0.189 ms | 0.359 ms |
+| Resize, coalesced events | 1.107 ms | 0.873 ms |
+| File/map tab click, 24 events | 15.181 ms | 10.486 ms |
+| Alternating-node selection, 8 clicks | 17.514 ms | 11.635 ms |
+
+The input/two-rAF scheduling proxy was 41.3 / 30.4 ms for tabs and 53.9 / 35.1 ms
+for alternating-node selection. It is not physical presentation or field INP;
+small-sample p95 can be the maximum. Rendering did not improve consistently
+across historical diagnostic captures. The graph camera stayed fixed across
+hover, resize, tabs and selections. Source-line assertions applied to all 16
+Riemann selections and 12 of 16 EthLib selections; generated declarations without
+reported lines do not receive an invented position. Fit View and initial/same-node
+clicks are recorded separately.
+
+Each application fetched history once and source once during setup. The profiler
+adds a separate source-body read for its declaration/line oracle. Neither body
+was fetched during gestures, and gestures issued no host command. All seven
+served JavaScript bundles match the hidden-map build byte-for-byte. Original
+compiler/input checks remain: complete cached graph readiness still took
+**22.656 / 5.397 seconds**, with cache hits. Actual EthLib startup/host-refresh
+history materialization was 89–95 ms per observed span after removing duplicate
+serialization; these were not controlled model-turn measurements.
+
+The source regression retains a 408,776-byte complete body behind a 2,762-byte
+status fixture. It covers local failure, same-ID conflict recovery, the
+three-attempt limit, explicit retry, quiet cached navigation, delayed older
+responses and restart. A real 35-module Lake journey covers fresh dependency
+inputs, actual compiler/configuration failures and late index views. A held
+model-list acknowledgement also reproduces and fixes a swallowed approval click;
+only approval itself disables its button, while the current binding/visible
+heading checks remain. Source failure no longer leaves a lone source spinner.
+
+Rust 292 tests, TypeScript 36 tests, 22 architecture checks and the required public
+TUI 34-case gate passed. Serialized numeric gates in both motion modes passed at
+39.3 / 39.7 ms against 250 ms. Separate reports retain the intermediate approval
+failure and a routed-poll teardown race, with their later passing regressions.
+Screens and decoded TUI failure/retry/restart history were reviewed. Browser/TUI
+model replies remain scripted; no new live-model or cold-install claim is made.
+Reader pages still travel in status and queue behind active semantic work.
+Generic inventory/job/log/evidence read models and layout/retirement work remain.
+
 ## Revisioned history (November 24)
 
 The [implementation and measurement record](../results/revisioned-history-20261124.json)

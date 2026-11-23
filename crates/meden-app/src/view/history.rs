@@ -1,13 +1,13 @@
 //! Immutable history publications. Imported records remain presentation data.
+use super::publication::{Envelope, Publication};
 use crate::records::{Message, View};
 use anyhow::Result;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 use std::sync::Arc;
 
 /// Publication byte budget, independent of parser/checker/evidence authority.
-pub const MAX_BYTES: usize = 67_108_864;
+pub use super::publication::MAX_BYTES;
 
 /// Original tool observations, without model roles or execution authority.
 #[derive(Clone, Serialize, Deserialize, JsonSchema)]
@@ -73,22 +73,14 @@ pub enum Reference {
 }
 
 /// Wire envelope for a single immutable publication.
-#[derive(Serialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub struct Snapshot<'a> {
-    /// Exact original data identity requested by the viewer.
-    #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
-    pub revision: String,
-    /// Original application records, never current proof authority.
-    pub data: &'a Data,
-}
+pub type Snapshot<'a> = Envelope<&'a Data>;
 
 /// Sole mutable owner. Only original data mutations rematerialize its bytes.
 /// Serialization of this owner emits its lightweight reference, never its data.
 pub struct History {
     data: Data,
     reference: Reference,
-    bytes: Option<Arc<[u8]>>,
+    publication: Option<Publication>,
 }
 impl History {
     /// Freeze the initial projection without restoring authority.
@@ -98,7 +90,7 @@ impl History {
             reference: Reference::Unavailable {
                 message: "History has not been prepared".into(),
             },
-            bytes: None,
+            publication: None,
         };
         result.edit(|_| {});
         result
@@ -119,52 +111,36 @@ impl History {
         match &self.reference {
             Reference::Ready {
                 revision: current, ..
-            } if current == revision => self.bytes.clone(),
+            } if current == revision => self.publication.as_ref()?.bytes(revision),
             _ => None,
         }
     }
     fn refresh(&mut self) {
         let _timing = meden_runtime::metrics::Span::start("view.history.materialize");
         let result = (|| -> Result<_> {
-            let payload = serde_json::to_vec(&self.data)?;
-            anyhow::ensure!(
-                payload.len() <= MAX_BYTES,
-                "History view exceeds 64 MiB; original records are retained"
-            );
-            let mut hash = Sha256::new();
-            hash.update(b"meden.history.view.v1\0");
-            hash.update(&payload);
-            let revision = format!("sha256:{hash:x}", hash = hash.finalize());
             let messages = u32::try_from(self.data.messages.len())?;
-            if matches!(&self.reference,Reference::Ready {revision:current,..} if current==&revision)
-            {
-                if let Some(bytes) = &self.bytes {
-                    return Ok((self.reference.clone(), Arc::clone(bytes)));
-                }
-            }
-            let bytes = serde_json::to_vec(&Snapshot {
-                revision: revision.clone(),
-                data: &self.data,
-            })?;
-            anyhow::ensure!(
-                bytes.len() <= MAX_BYTES,
-                "History envelope exceeds 64 MiB; original records are retained"
-            );
+            let publication = match &self.publication {
+                Some(previous) => previous.update(b"meden.history.view.v1\0", &self.data)?,
+                None => Publication::new(b"meden.history.view.v1\0", &self.data)?,
+            };
             Ok((
-                Reference::Ready { revision, messages },
-                Arc::<[u8]>::from(bytes),
+                Reference::Ready {
+                    revision: publication.reference().revision.clone(),
+                    messages,
+                },
+                publication,
             ))
         })();
         match result {
-            Ok((reference, bytes)) => {
+            Ok((reference, publication)) => {
                 self.reference = reference;
-                self.bytes = Some(bytes);
+                self.publication = Some(publication);
             }
             Err(error) => {
                 self.reference = Reference::Unavailable {
                     message: error.to_string(),
                 };
-                self.bytes = None;
+                self.publication = None;
             }
         }
     }
@@ -180,6 +156,7 @@ mod tests {
     use super::*;
     use crate::records::Speaker;
     use anyhow::Context as _;
+    use sha2::{Digest, Sha256};
 
     fn data() -> Data {
         Data {

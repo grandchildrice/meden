@@ -170,10 +170,31 @@ try {
   const previousSpans = new Set(
     (metricsBefore?.records || []).map((r) => r.context.span),
   );
+  const source = async (status) => {
+    const revision = status.sources.current?.revision;
+    if (!revision) return null;
+    const publication = await page.evaluate(async (revision) => {
+      const response = await fetch(
+        "/api/source?revision=" + encodeURIComponent(revision),
+        {
+          headers: {
+            Authorization:
+              "Bearer " + sessionStorage.getItem("meden-native-session"),
+          },
+        },
+      );
+      if (!response.ok) throw new Error("Source publication unavailable");
+      return response.json();
+    }, revision);
+    if (publication.revision !== revision)
+      throw new Error("Source publication mismatch");
+    return publication.data;
+  };
+  const initialSource = await source(native);
   const file =
     process.env.MEDEN_GUI_FILE ||
-    native.source_snapshot?.roots[0] ||
-    Object.keys(native.source_snapshot?.files || {})[0];
+    initialSource?.roots[0] ||
+    Object.keys(initialSource?.files || {})[0];
   if (!file)
     throw new Error(
       "Select MEDEN_GUI_FILE or open a file first; the profiler needs a real compiled graph.",
@@ -210,7 +231,7 @@ try {
         return (
           !s.running &&
           s.source_preparation[file]?.state === "ready" &&
-          s.source_snapshot?.files[file] !== undefined
+          s.sources.files[file] !== undefined
         );
       },
       { timeout: 600000 },
@@ -218,6 +239,7 @@ try {
     .toBe(true);
   const setupElapsed = performance.now() - setupStart;
   native = await state();
+  const preparedSource = await source(native);
   await writeFile(
     resolve(destination, "preparation.json"),
     JSON.stringify(native.source_preparation[file], null, 2),
@@ -366,7 +388,7 @@ try {
   const selectNode = async (target) => {
     const before = await graphCamera();
     await page.mouse.click(target.x, target.y);
-    const declaration = native.source_snapshot.graph.declarations.find(
+    const declaration = preparedSource.graph.declarations.find(
       (d) => d.id === target.id,
     );
     if (declaration?.source?.line)
@@ -501,7 +523,7 @@ try {
       reduced_motion: motion,
       gesture_tail_ms: 600,
       file,
-      declarations: native.source_snapshot.graph.declarations.length,
+      declarations: preparedSource.graph.declarations.length,
       project_files: native.overview.total,
       setup_preparation_ms: setupElapsed,
       setup_cache_hit: native.source_preparation[file]?.cache_hit ?? null,

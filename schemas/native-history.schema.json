@@ -1,16 +1,16 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Snapshot",
-  "description": "Wire envelope for a single immutable publication.",
+  "title": "Envelope",
+  "description": "Shared wire framing; each data role retains its own generated schema.",
   "type": "object",
   "properties": {
     "revision": {
-      "description": "Exact original data identity requested by the viewer.",
+      "description": "Exact publication requested by the viewer.",
       "type": "string",
       "pattern": "^sha256:[a-f0-9]{64}$"
     },
     "data": {
-      "description": "Original application records, never current proof authority.",
+      "description": "Original complete projection, never an authority token.",
       "$ref": "#/$defs/Data"
     }
   },

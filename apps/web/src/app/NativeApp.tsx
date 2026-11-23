@@ -45,12 +45,27 @@ import { NativeExplorer } from "../features/native/NativeExplorer";
 import { NativeWorkspaceGraph } from "../features/native/NativeWorkspaceGraph";
 
 /** A single host workspace is attached; choosing another requires a new host launch. */
+import {
+  usePublications,
+  type PublicationRead,
+} from "../features/native/usePublications";
+
+async function observePublication<T>(
+  request: Promise<T>,
+): Promise<PublicationRead<T>> {
+  try {
+    return { state: "ready", publication: await request };
+  } catch (error) {
+    if (error instanceof NativeHttpError && error.status === 409)
+      return { state: "obsolete" };
+    throw error;
+  }
+}
+
 export function NativeApp({ token }: { token: string }) {
   const client = useMemo(() => new NativeClient(token), [token]);
   const [state, setState] = useState<NativeState>();
   const [history, setHistory] = useState<HistorySnapshot>();
-  const [historyError, setHistoryError] = useState("");
-  const [historyAttempt, setHistoryAttempt] = useState(0);
   const historyData = history?.data;
   const [error, setError] = useState("");
   const [connectionError, setConnectionError] = useState("");
@@ -111,6 +126,8 @@ export function NativeApp({ token }: { token: string }) {
   }>();
   const [reviewing, setReviewing] = useState(false);
   const [approval, setApproval] = useState(false);
+  const approving = useRef(false);
+  const [approvalPending, setApprovalPending] = useState(false);
   const [processorHeading, setProcessorHeading] =
     useState<HTMLDivElement | null>(null);
   const [approvalVisible, setApprovalVisible] = useState(false);
@@ -202,26 +219,40 @@ export function NativeApp({ token }: { token: string }) {
   }, [client, reconnect]);
   const historyRevision =
     state?.history.state === "ready" ? state.history.revision : undefined;
+  const readHistory = useCallback(
+    (revision: string, signal: AbortSignal) =>
+      observePublication(client.history(revision, signal)),
+    [client],
+  );
+  const historyReads = usePublications(
+    historyRevision ? [historyRevision] : [],
+    readHistory,
+    state?.history,
+    reconnect,
+  );
+  const historyPublication = historyReads.get(historyRevision)?.publication;
+  const historyError = historyReads.get(historyRevision)?.error || "";
   useEffect(() => {
-    if (!historyRevision) return;
-    const abort = new AbortController();
-    setHistoryError("");
-    void client
-      .history(historyRevision, abort.signal)
-      .then((snapshot) => {
-        if (!abort.signal.aborted) setHistory(snapshot);
-      })
-      .catch((error) => {
-        // A mutation may supersede a reference between the status and body reads.
-        // The next status supplies its new revision; other failures remain visible.
-        if (
-          !abort.signal.aborted &&
-          !(error instanceof NativeHttpError && error.status === 409)
-        )
-          setHistoryError(String(error));
-      });
-    return () => abort.abort();
-  }, [client, historyRevision, historyAttempt, reconnect]);
+    if (historyPublication) setHistory(historyPublication);
+  }, [historyPublication]);
+  const readSource = useCallback(
+    (revision: string, signal: AbortSignal) =>
+      observePublication(client.source(revision, signal)),
+    [client],
+  );
+  const preparedSources = usePublications(
+    [
+      ...(state?.sources.current ? [state.sources.current.revision] : []),
+      ...files.flatMap((path) =>
+        state?.sources.files[path] ? [state.sources.files[path]!.revision] : [],
+      ),
+    ],
+    readSource,
+    state?.sources,
+    reconnect,
+  );
+  const source = preparedSources.get(state?.sources.current?.revision)
+    ?.publication?.data;
   useEffect(() => {
     const abort = new AbortController();
     if (!state?.overview.revision || state.overview.state !== "ready") {
@@ -305,15 +336,10 @@ export function NativeApp({ token }: { token: string }) {
     }
   }, [reviewing, state]);
   useEffect(() => {
-    if (graphPaths === undefined && state?.source_snapshot) {
-      setGraphPaths(
-        (
-          state.source_snapshot.roots ??
-          Object.keys(state.source_snapshot.files)
-        ).join("\n"),
-      );
+    if (graphPaths === undefined && source) {
+      setGraphPaths((source.roots ?? Object.keys(source.files)).join("\n"));
     }
-  }, [state?.source_snapshot?.revision, graphPaths]);
+  }, [source?.revision, graphPaths]);
   const command = useCallback(
     async (command: NativeCommand) => {
       // These host operations are admitted independently of a running worker.
@@ -344,8 +370,7 @@ export function NativeApp({ token }: { token: string }) {
         }
         const next = await client.state();
         if (command.type === "refresh_workspace") {
-          next.source_snapshot = null;
-          next.source_views = {};
+          next.sources = { current: null, files: {} };
           mapEpoch.current++;
           setOverview(undefined);
           setOverviewError("");
@@ -451,22 +476,24 @@ export function NativeApp({ token }: { token: string }) {
     (symbol: Symbol) => {
       setSelectedSymbol(symbol);
       if (activeFile !== symbol.file) setFocusedSymbol(symbol);
-      if (
-        activeFile !== symbol.file ||
-        state?.source_snapshot?.files[symbol.file] === undefined
-      )
+      const prepared = Boolean(
+        state?.sources.current &&
+        state.sources.files[symbol.file]?.revision ===
+          state.sources.current.revision,
+      );
+      if (activeFile !== symbol.file || !prepared)
         openFile(
           symbol.file,
           symbol.line,
-          state?.source_snapshot?.files[symbol.file] !== undefined
+          prepared
             ? "prepared"
             : !files.includes(symbol.file) ||
-                state?.source_views[symbol.file] === undefined
+                state?.sources.files[symbol.file] === undefined
               ? "read"
               : "retained",
         );
     },
-    [openFile, activeFile, files, state?.source_views, state?.source_snapshot],
+    [openFile, activeFile, files, state?.sources],
   );
   const selectMapSymbol = useCallback(
     (symbol: Symbol) => {
@@ -581,22 +608,16 @@ export function NativeApp({ token }: { token: string }) {
     return command(input);
   };
   useEffect(() => {
-    if (state?.source_snapshot) setStartupError("");
-    if (
-      openRequestedSnapshot.current &&
-      state?.source_snapshot &&
-      !state.running
-    ) {
+    if (source) setStartupError("");
+    if (openRequestedSnapshot.current && source && !state?.running) {
       openRequestedSnapshot.current = false;
-      const path =
-        state.source_snapshot.roots[0] ||
-        Object.keys(state.source_snapshot.files)[0];
+      const path = source.roots[0] || Object.keys(source.files)[0];
       if (path) {
         setAnalysisFile(path);
         openFile(path, undefined, "prepared");
       }
     }
-  }, [state?.source_snapshot?.revision, state?.running]);
+  }, [source?.revision, state?.running]);
   useEffect(() => {
     if (
       readTarget &&
@@ -699,7 +720,7 @@ export function NativeApp({ token }: { token: string }) {
                   path,
                   undefined,
                   !files.includes(path) ||
-                    state.source_views[path] === undefined
+                    state.sources.files[path] === undefined
                     ? "read"
                     : "retained",
                 )
@@ -743,7 +764,7 @@ export function NativeApp({ token }: { token: string }) {
                         openFile(
                           file,
                           undefined,
-                          state.source_views[file] === undefined
+                          state.sources.files[file] === undefined
                             ? "read"
                             : "retained",
                         )
@@ -825,7 +846,7 @@ export function NativeApp({ token }: { token: string }) {
                         openFile(
                           path,
                           undefined,
-                          state.source_views[path] === undefined
+                          state.sources.files[path] === undefined
                             ? "read"
                             : "retained",
                         );
@@ -874,6 +895,18 @@ export function NativeApp({ token }: { token: string }) {
                 >
                   <NativeFileWorkspace
                     state={state}
+                    snapshot={
+                      preparedSources.get(state.sources.files[file]?.revision)
+                        ?.publication?.data
+                    }
+                    sourceError={
+                      preparedSources.get(state.sources.files[file]?.revision)
+                        ?.error
+                    }
+                    onRetrySource={() => {
+                      const revision = state.sources.files[file]?.revision;
+                      if (revision) preparedSources.retry(revision);
+                    }}
                     path={file}
                     scene={scene}
                     revision={overview?.revision || ""}
@@ -925,7 +958,12 @@ export function NativeApp({ token }: { token: string }) {
                       Reconnect
                     </Button>
                   ) : historyError ? (
-                    <Button onClick={() => setHistoryAttempt((n) => n + 1)}>
+                    <Button
+                      onClick={() => {
+                        if (historyRevision)
+                          historyReads.retry(historyRevision);
+                      }}
+                    >
                       Retry history
                     </Button>
                   ) : undefined
@@ -1193,21 +1231,28 @@ export function NativeApp({ token }: { token: string }) {
               provider !== state.provider ||
               model !== state.model ||
               state.authorized ||
-              busy ||
+              approvalPending ||
               !approvalVisible
             }
             onClick={async () => {
-              if (
-                state &&
-                (await command({
-                  type: "approve_processor",
-                  connection_revision: state.connection_revision,
-                  endpoint: state.endpoint,
-                  model: state.model,
-                  judge: state.judge,
-                }))
-              )
-                setApproval(false);
+              if (!state || approving.current) return;
+              approving.current = true;
+              setApprovalPending(true);
+              try {
+                if (
+                  await command({
+                    type: "approve_processor",
+                    connection_revision: state.connection_revision,
+                    endpoint: state.endpoint,
+                    model: state.model,
+                    judge: state.judge,
+                  })
+                )
+                  setApproval(false);
+              } finally {
+                approving.current = false;
+                setApprovalPending(false);
+              }
             }}
           >
             Use this model

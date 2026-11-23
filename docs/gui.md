@@ -312,6 +312,17 @@ inline **Retry history** action for a failed read. These presentation records
 cannot restore a model grant or proof evidence. The initial read still includes
 the complete bounded history, rather than paging it.
 
+Prepared source/graph data is separate too: `sources` in `/api/state` contains
+only a current publication reference and references by file. Authenticated
+`/api/source?revision=…` returns that complete frozen body when it is still
+retained, otherwise HTTP 409. Its content identity includes explanations and
+scope, independently of the original source/graph IDs used for explicit
+analysis. Returning to an open file reuses its immutable browser data; a failed
+body read has **Retry graph** beside the file. History and source share bounded
+conflict recovery, including clear/republish under the same content ID. A query
+does not read files or run compilation. Restart requires a new host observation;
+view caches do not restore approval or native evidence.
+
 The index reads through the pinned, policy-bound offline file worker. Read-only batches
 retain each original request and check both original/resolved paths under the same policy;
 partial/failed worker output is refused. These batches and the navigation parser are
@@ -339,8 +350,8 @@ new development turn also requires rereading sources. A snapshot lasts for this
 host process, and reload can redisplay it; restarting the host requires rereading.
 It is an observation, not a filesystem watch or an atomic concurrent-host snapshot.
 
-`@meden/atlas-adapter/source-index` builds lexical declarations and unambiguous
-local references from those files. Nested comments/literals are masked, Lean
+`meden-app::view::SourcePage` projects lexical declarations and unambiguous
+local references from the shared source index. Nested comments/literals are masked, Lean
 namespaces and private declarations are tracked, and unknown edge kinds remain
 conservative. Imported modules, elaboration, type-class resolution, macros and
 full dependency completeness are outside this index. Every indexed declaration

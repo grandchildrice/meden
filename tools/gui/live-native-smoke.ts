@@ -2,6 +2,8 @@
 import { chromium, expect, type Page } from "@playwright/test";
 import {
   nativeStateSchema,
+  sourcePublicationSchema,
+  type SourceSnapshot,
   historySnapshotSchema,
   type HistoryData,
   type NativeState,
@@ -119,6 +121,28 @@ async function history(page: Page): Promise<HistoryData> {
     return snapshot.data;
   }
   throw new Error("Native history kept changing during inspection");
+}
+async function source(page: Page): Promise<SourceSnapshot | null> {
+  const reference = (await state(page)).sources.current;
+  if (!reference) return null;
+  const response = await page.evaluate(async (revision) => {
+    const response = await fetch(
+      "/api/source?revision=" + encodeURIComponent(revision),
+      {
+        headers: {
+          Authorization:
+            "Bearer " + sessionStorage.getItem("meden-native-session"),
+        },
+      },
+    );
+    return { status: response.status, body: await response.json() };
+  }, reference.revision);
+  if (response.status !== 200)
+    throw new Error("Native source publication unavailable");
+  const publication = sourcePublicationSchema.parse(response.body);
+  if (publication.revision !== reference.revision)
+    throw new Error("Native source revision mismatch");
+  return publication.data;
 }
 async function launch(port = 0) {
   let stderr = "";
@@ -405,7 +429,7 @@ try {
         : /can_purchase.*: select/,
     })
     .click();
-  report.sourceGraph = (await state(page)).source_snapshot;
+  report.sourceGraph = await source(page);
   for (const [name, requirement, expected] of [
     [
       "missing-threshold",
@@ -450,8 +474,7 @@ try {
     if (
       values.atlas &&
       candidate?.input.graph_revision !==
-        (report.sourceGraph as NonNullable<NativeState["source_snapshot"]>)
-          .graph?.revision
+        (report.sourceGraph as SourceSnapshot).graph?.revision
     )
       throw new Error("Live analysis lost its elaborated graph binding");
     console.log(

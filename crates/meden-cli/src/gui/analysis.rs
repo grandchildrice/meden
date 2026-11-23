@@ -17,14 +17,14 @@ pub(super) fn run(
 ) -> Result<()> {
     let snapshot = {
         let view = lock(view);
-        view.source_views
-            .get(&input.target.file)
+        view.sources
+            .file(&input.target.file)
             .filter(|snapshot| {
                 snapshot.revision == input.source_revision
                     && snapshot.atlas.as_ref().map(|a| &a.revision) == input.graph_revision.as_ref()
             })
             .map(|snapshot| snapshot.snapshot().clone())
-            .or_else(|| view.source_snapshot.as_ref().map(|s| s.snapshot().clone()))
+            .or_else(|| view.sources.current().map(|s| s.snapshot().clone()))
             .context("Read the source graph before meaning analysis")?
     };
     invalidate(&mut lock(view));
@@ -59,8 +59,7 @@ pub(super) fn apply_repair(
             "Repair review selection changed"
         );
         view.repair_review = None;
-        view.source_snapshot = None;
-        view.source_views.clear();
+        view.sources.clear();
         view.project.verified = false;
         invalidate(&mut view);
     }
@@ -71,8 +70,7 @@ pub(super) fn apply_repair(
     let (snapshot, record) = result?;
     let snapshot = meden_app::view::PreparedSource::new(snapshot)?;
     let mut view = lock(view);
-    super::sources::remember(&mut view, &snapshot);
-    view.source_snapshot = Some(snapshot);
+    view.sources.publish(snapshot);
     view.analysis = Some(record);
     view.activity =
         "Patch applied and original requirement reanalyzed (candidate model assessment)".into();

@@ -28,6 +28,12 @@ struct Task {
     queued: std::time::Instant,
 }
 
+#[derive(Clone, Copy)]
+enum PublicationRole {
+    History,
+    Source,
+}
+
 impl Task {
     fn new(command: Command, processes: Arc<Control>) -> Self {
         let span = meden_runtime::metrics::Span::start("gui.enqueue");
@@ -68,9 +74,7 @@ struct View {
     stopped: Option<String>,
     inspection: Option<Value>,
     reader: Option<meden_app::view::file::FileView>,
-    source_snapshot: Option<sources::Snapshot>,
-    #[serde(serialize_with = "sources::serialize_views")]
-    source_views: std::collections::BTreeMap<String, Arc<sources::Snapshot>>,
+    sources: meden_app::view::sources::Sources,
     source_preparation: std::collections::BTreeMap<String, sources::Preparation>,
     analysis: Option<analysis::Record>,
     analysis_history: Vec<analysis::Record>,
@@ -387,8 +391,7 @@ fn initial_view(
         stopped: analysis_error.or(saved.stopped),
         inspection: None,
         reader: None,
-        source_snapshot: None,
-        source_views: std::collections::BTreeMap::new(),
+        sources: meden_app::view::sources::Sources::default(),
         source_preparation: std::collections::BTreeMap::new(),
         analysis: analysis_history.last().cloned(),
         analysis_history,
@@ -488,12 +491,8 @@ impl Http<'_> {
             return;
         }
         if request.method() == &Method::Get {
-            if let Some(revision) = request.url().strip_prefix("/api/history?revision=") {
-                let bytes = percent_encoding::percent_decode_str(revision)
-                    .decode_utf8()
-                    .ok()
-                    .and_then(|revision| lock(self.view).history.bytes(&revision));
-                respond_history(request, bytes);
+            if let Some((span, bytes)) = self.publication(request.url()) {
+                respond_publication(request, bytes, span);
                 return;
             }
         }
@@ -554,6 +553,34 @@ impl Http<'_> {
             return;
         }
         self.submit(request);
+    }
+
+    fn publication(&self, url: &str) -> Option<(&'static str, Option<Arc<[u8]>>)> {
+        let (role, encoded) = if let Some(revision) = url.strip_prefix("/api/history?revision=") {
+            (PublicationRole::History, revision)
+        } else {
+            (
+                PublicationRole::Source,
+                url.strip_prefix("/api/source?revision=")?,
+            )
+        };
+        let bytes = percent_encoding::percent_decode_str(encoded)
+            .decode_utf8()
+            .ok()
+            .and_then(|revision| {
+                let view = lock(self.view);
+                match role {
+                    PublicationRole::History => view.history.bytes(&revision),
+                    PublicationRole::Source => view.sources.bytes(&revision),
+                }
+            });
+        Some((
+            match role {
+                PublicationRole::History => "gui.history_respond",
+                PublicationRole::Source => "gui.source_respond",
+            },
+            bytes,
+        ))
     }
 
     fn submit(&self, mut request: Request) {
@@ -981,8 +1008,7 @@ fn observe(view: &Mutex<View>, event: &Event<'_>) {
             }
             if refusal.is_none() && call.function.name == "check_lean_work" {
                 view.project.verified = false;
-                view.source_snapshot = None;
-                view.source_views.clear();
+                view.sources.clear();
                 analysis::invalidate(&mut view);
             }
             view.activity = format!(
@@ -1043,10 +1069,10 @@ fn response_headers(content_type: &str, frame_source: &str) -> Vec<Header> {
     .filter_map(|(name, value)| Header::from_bytes(name, value).ok())
     .collect()
 }
-fn respond_history(request: Request, bytes: Option<Arc<[u8]>>) {
+fn respond_publication(request: Request, bytes: Option<Arc<[u8]>>, span: &'static str) {
     match bytes {
         Some(bytes) => {
-            let _timing = meden_runtime::metrics::Span::start("gui.history_respond");
+            let _timing = meden_runtime::metrics::Span::start(span);
             let length = bytes.len();
             let response = Response::new(
                 StatusCode(200),
@@ -1060,7 +1086,7 @@ fn respond_history(request: Request, bytes: Option<Arc<[u8]>>) {
         None => respond(
             request,
             409,
-            &json!({"error":"History revision is no longer current; refresh its reference"}),
+            &json!({"error":"View revision is no longer retained; refresh its reference"}),
         ),
     }
 }
@@ -1144,8 +1170,7 @@ fn perform_work(
         Command::CheckWork { id } => {
             project.mark_dirty();
             lock(view).project.verified = false;
-            lock(view).source_snapshot = None;
-            lock(view).source_views.clear();
+            lock(view).sources.clear();
             analysis::invalidate(&mut lock(view));
             lock(view).activity = format!("Checking Lean work {id}");
             crate::handoff::check(workspace, processes, &id)?;
@@ -1162,8 +1187,7 @@ fn perform_work(
 
 fn instruction(view: &Mutex<View>, text: String) -> String {
     let mut view = lock(view);
-    view.source_snapshot = None;
-    view.source_views.clear();
+    view.sources.clear();
     analysis::invalidate(&mut view);
     view.history.edit(|data| {
         data.messages.push(history::Message {
