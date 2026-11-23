@@ -1,5 +1,75 @@
 # Graph interaction measurements
 
+## Current event audit (November 23)
+
+Two sequential captures of the pinned running Riemann GUI cover 175,187 files
+and the prepared 15-declaration `DictGen.lean` graph. Chrome 149 used normal
+motion at 1440 × 960, without throttling. Both opens reported a persisted-cache
+hit. The [complete event record](../results/event-measurements-20261123.json)
+retains event counts, distributions, rendering costs, native spans and raw
+artifact digests. No application runtime or user source was changed for this
+audit; the profiler now separates initial and settled idle windows.
+
+| Operation                                             | Handler p95, capture 1 | Handler p95, capture 2 |
+| ----------------------------------------------------- | ---------------------: | ---------------------: |
+| Project-map wheel, 24 events                          |              10.324 ms |              10.857 ms |
+| Dependency-graph wheel, 24 events                     |               1.000 ms |               1.048 ms |
+| Hover mouse movement, 40 events                       |               0.108 ms |               0.103 ms |
+| Drag mouse movement, 31 events                        |               0.253 ms |               0.276 ms |
+| Resize, 4 / 3 delivered events                        |               0.942 ms |               0.960 ms |
+| File/map tab click, 24 events                         |              21.808 ms |              20.696 ms |
+| Node selection, including explicit Fit View, 9 clicks |              33.120 ms |              32.079 ms |
+
+Handler time excludes subsequent rendering. The tab phase's input/two-rAF p95
+was 44.5 / 46.3 ms; the node-selection phase's was 77.4 / 63.8 ms. Those phase
+proxies combine instrumented pointer/click events and are not physical paint or
+field INP. The node sequence repeatedly selects a reachable node and includes
+one explicit Fit View; it is not a percentile across arbitrary declarations.
+One selection phase contained a 53 ms long task. Resize events were coalesced.
+No measured gesture or tab phase issued a non-state API request.
+
+The largest delay remains opening a prepared file: **40.04 / 41.20 seconds**.
+Within those intervals, twelve Lake configuration executions totaled
+17.23 / 17.12 seconds, and prepared build/input resolution and fingerprinting
+took 17.87 / 19.03 seconds. Exact cache-validation spans totaled
+1.14 / 1.20 seconds; source-view materialization took 0.418 / 0.397 ms.
+These are nested native stages and must not be added as exclusive costs.
+The prepare interval includes real Lake commands and sandbox work as well as
+hashing; it cannot all be attributed to file hashing. Native CPU sampling
+confirmed 2,922 / 2,956 samples, with hashing in Python/OpenSSL and actual Lake
+execution visible. Some Lean-library addresses remain unresolved.
+
+The map-wheel CPU call tree identifies another concrete cost:
+`WorkspaceMap` calls `declarationDetail` through its full `scene.areas.some`
+scan to decide whether to show the legend. That decision runs during camera
+updates even though viewport visibility already has a branch-pruning index.
+The declaration-detail function alone accounted for 150.8 ms of sampled self
+time across the first wheel sequence. The breadcrumb's `onMoveEnd` also scans
+all areas; it should reuse an indexed viewport query, with its own regression.
+
+Optimize in this order:
+
+1. Reuse evaluated Lake configuration and prepared immutable input observations,
+   with explicit source/configuration/resource invalidation. Preserve exact
+   freshness checks; a cache hit must remain bound to its original inputs.
+2. Derive legend and breadcrumb decisions from indexed visible areas, avoiding
+   whole-inventory work during navigation.
+3. Reduce retained-tab reactivation and source/popover layout work, measuring
+   the rendering tail separately from the click handler.
+
+Neither capture reproduced the historical roughly 384 ms map materialization
+in its initial idle window. The additional settled graph and map idle windows
+contained no long tasks. A new inventory/revision can still require expensive
+layout; these observations do **not** establish that every 350 ms state poll
+rebuilds it. Initial overview arrival and revision changes need their own
+capture before making that attribution.
+
+Raw recordings are local under
+`target/native-profile/riemann-events-{current,settled}`. Use the existing
+reproduction commands below; the second capture adds `graph-idle-settled` and
+`project-map-idle` phases. These are diagnostic observations on one desktop,
+not confidence intervals, cold-install results or live-model measurements.
+
 The November 22, 2026 audit uses the actual Riemann workspace: 175,187 indexed
 files and the compiled 15-declaration `DictGen.lean` graph. Chrome 149 ran at
 1440 × 960 without CPU or network throttling, with reduced motion enabled.

@@ -286,6 +286,9 @@ try {
       throw new Error("No graph node can be reached by the pointer");
     });
   await measure("graph-idle-poll", () => waitFrames(180));
+  // Separate late setup/layout work from steady status polling. The first idle
+  // window can include an overview response begun during file preparation.
+  await measure("graph-idle-settled", () => waitFrames(180));
   await measure("graph-wheel", async () => {
     await page.mouse.move(
       graphBox.x + graphBox.width / 2,
@@ -339,6 +342,7 @@ try {
     );
     for (let i = 0; i < 24; i++) await page.mouse.wheel(0, i < 12 ? -35 : 35);
   });
+  await measure("project-map-idle", () => waitFrames(180));
   const done = new Promise((resolve) =>
     cdp.once("Tracing.tracingComplete", resolve),
   );

@@ -1,0 +1,3267 @@
+{
+  "version": 1,
+  "date": "2026-11-23",
+  "host": {
+    "cpu": "13th Gen Intel(R) Core(TM) i7-13620H",
+    "kernel": "6.12.92",
+    "node": "v22.22.2"
+  },
+  "scope": "Two sequential diagnostic captures of the pinned running Riemann GUI. No source edits, chat/inference, restart or runtime deployment. Real offline Lake tools and existing persisted caches. The second capture separates settled graph and map idle windows.",
+  "runs": [
+    {
+      "directory": "target/native-profile/riemann-events-current",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 40035.12495,
+        "setup_cache_hit": true
+      },
+      "native_preparation_trace": 813,
+      "native_stages": {
+        "gui.enqueue": {
+          "count": 1,
+          "wall_ms": 0.002,
+          "host_thread_cpu_ms": 0.001
+        },
+        "job.queue": {
+          "count": 1,
+          "wall_ms": 0.027,
+          "host_thread_cpu_ms": 0
+        },
+        "gui.serialize_respond": {
+          "count": 1,
+          "wall_ms": 0.1,
+          "host_thread_cpu_ms": 0.086
+        },
+        "gui.command": {
+          "count": 1,
+          "wall_ms": 0.216,
+          "host_thread_cpu_ms": 0.194
+        },
+        "process.run": {
+          "count": 101,
+          "wall_ms": 35624.043000000005,
+          "host_thread_cpu_ms": 169.98799999999994
+        },
+        "atlas.resources.select": {
+          "count": 15,
+          "wall_ms": 199.56799999999998,
+          "host_thread_cpu_ms": 196.618
+        },
+        "atlas.resources.validate": {
+          "count": 28,
+          "wall_ms": 658.4830000000001,
+          "host_thread_cpu_ms": 652.579
+        },
+        "analysis.capture_sources": {
+          "count": 3,
+          "wall_ms": 124.83300000000001,
+          "host_thread_cpu_ms": 3.316
+        },
+        "sandbox.public_tools": {
+          "count": 13,
+          "wall_ms": 1087.7610000000002,
+          "host_thread_cpu_ms": 49.628
+        },
+        "sandbox.libraries": {
+          "count": 13,
+          "wall_ms": 746.4629999999999,
+          "host_thread_cpu_ms": 52.762
+        },
+        "sandbox.nix_closure": {
+          "count": 13,
+          "wall_ms": 637.083,
+          "host_thread_cpu_ms": 13.247
+        },
+        "sandbox.prepare": {
+          "count": 13,
+          "wall_ms": 7263.736999999999,
+          "host_thread_cpu_ms": 481.30500000000006
+        },
+        "atlas.lake_configuration": {
+          "count": 12,
+          "wall_ms": 17232.28,
+          "host_thread_cpu_ms": 485.743
+        },
+        "analysis.discover_layout": {
+          "count": 1,
+          "wall_ms": 19153.231,
+          "host_thread_cpu_ms": 1262.09
+        },
+        "analysis.select_roots": {
+          "count": 1,
+          "wall_ms": 19236.53,
+          "host_thread_cpu_ms": 1264.39
+        },
+        "atlas.project.prepare": {
+          "count": 1,
+          "wall_ms": 17869.459,
+          "host_thread_cpu_ms": 121.375
+        },
+        "analysis.cache.validate": {
+          "count": 2,
+          "wall_ms": 1135.3210000000001,
+          "host_thread_cpu_ms": 56.604
+        },
+        "analysis.cache.retain_observation": {
+          "count": 1,
+          "wall_ms": 14.289,
+          "host_thread_cpu_ms": 14.199
+        },
+        "analysis.cache.load_rendering": {
+          "count": 1,
+          "wall_ms": 1.077,
+          "host_thread_cpu_ms": 1.07
+        },
+        "analysis.extract": {
+          "count": 1,
+          "wall_ms": 39347.798,
+          "host_thread_cpu_ms": 1566.331
+        },
+        "analysis.materialize_view": {
+          "count": 1,
+          "wall_ms": 0.418,
+          "host_thread_cpu_ms": 0.414
+        },
+        "gui.job": {
+          "count": 1,
+          "wall_ms": 39478.186,
+          "host_thread_cpu_ms": 1624.033
+        }
+      },
+      "phases": {
+        "graph-idle-poll": {
+          "event_type": null,
+          "event_dispatch": null,
+          "phase_input_to_two_raf": null,
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "Layout": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "PrePaint": {
+              "count": 224,
+              "p50_ms": 0.009,
+              "p95_ms": 0.027,
+              "max_ms": 0.083,
+              "total_ms": 2.554999999999997
+            },
+            "Paint": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "FunctionCall": {
+              "count": 488,
+              "p50_ms": 0.02,
+              "p95_ms": 0.584,
+              "max_ms": 18.508,
+              "total_ms": 181.979
+            },
+            "FireAnimationFrame": {
+              "count": 412,
+              "p50_ms": 0.041,
+              "p95_ms": 0.143,
+              "max_ms": 1.6,
+              "total_ms": 25.695999999999994
+            },
+            "TimerFire": {
+              "count": 10,
+              "p50_ms": 0.728,
+              "p95_ms": 1.14,
+              "max_ms": 1.14,
+              "total_ms": 7.369
+            }
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 3073.7719999999986,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 595.1019999999991,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 54.634000000000015,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 7.566,
+              "location": "index-DhYsAvyM.js:48 · ft"
+            },
+            {
+              "self_ms": 6.457,
+              "location": "index-DhYsAvyM.js:56 · (anonymous)"
+            },
+            {
+              "self_ms": 6.424,
+              "location": "index-DhYsAvyM.js:48 · fu"
+            },
+            {
+              "self_ms": 5.379,
+              "location": "index-DhYsAvyM.js:48 · lV"
+            },
+            {
+              "self_ms": 4.303999999999999,
+              "location": "index-DhYsAvyM.js:48 · h9"
+            },
+            {
+              "self_ms": 4.276000000000001,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            },
+            {
+              "self_ms": 4.1899999999999995,
+              "location": "fetch"
+            },
+            {
+              "self_ms": 3.7220000000000004,
+              "location": "index-DhYsAvyM.js:56 · Tp"
+            },
+            {
+              "self_ms": 3.35,
+              "location": "index-DhYsAvyM.js:48 · ln"
+            },
+            {
+              "self_ms": 3.266,
+              "location": "index-DhYsAvyM.js:48 · Oe"
+            },
+            {
+              "self_ms": 3.2430000000000003,
+              "location": "index-DhYsAvyM.js:48 · T9"
+            },
+            {
+              "self_ms": 3.237,
+              "location": "index-DhYsAvyM.js:198 · (anonymous)"
+            },
+            {
+              "self_ms": 3.229,
+              "location": "index-DhYsAvyM.js:48 · ce"
+            },
+            {
+              "self_ms": 3.228,
+              "location": "index-DhYsAvyM.js:49 · Yn"
+            },
+            {
+              "self_ms": 3.226,
+              "location": "index-DhYsAvyM.js:694 · (anonymous)"
+            },
+            {
+              "self_ms": 3.205,
+              "location": "index-DhYsAvyM.js:698 · (anonymous)"
+            },
+            {
+              "self_ms": 2.8840000000000003,
+              "location": "index-DhYsAvyM.js:48 · fu"
+            }
+          ],
+          "requests": {
+            "state_count": 11,
+            "state_response_p95_ms": 11.827,
+            "state_body_bytes": [
+              89687, 89687, 89687, 89687, 89687, 89687, 89687, 89687, 89687,
+              89687, 89687
+            ],
+            "non_state": []
+          }
+        },
+        "graph-wheel": {
+          "event_type": "wheel",
+          "event_dispatch": {
+            "count": 24,
+            "p50_ms": 0.58,
+            "p95_ms": 1,
+            "max_ms": 1.406,
+            "total_ms": 14.315000000000001
+          },
+          "phase_input_to_two_raf": {
+            "count": 26,
+            "p50_ms": 16.5,
+            "p95_ms": 25.900000005960464,
+            "max_ms": 29.400000005960464,
+            "total_ms": 449.40000000596046
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 25,
+              "p50_ms": 0.999,
+              "p95_ms": 1.141,
+              "max_ms": 1.187,
+              "total_ms": 22.511999999999997
+            },
+            "Layout": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "PrePaint": {
+              "count": 118,
+              "p50_ms": 0.01,
+              "p95_ms": 2.819,
+              "max_ms": 3.445,
+              "total_ms": 60.86399999999999
+            },
+            "Paint": {
+              "count": 48,
+              "p50_ms": 2.116,
+              "p95_ms": 4.162,
+              "max_ms": 4.267,
+              "total_ms": 91.583
+            },
+            "FunctionCall": {
+              "count": 271,
+              "p50_ms": 0.034,
+              "p95_ms": 0.468,
+              "max_ms": 16.534,
+              "total_ms": 85.66399999999999
+            },
+            "FireAnimationFrame": {
+              "count": 153,
+              "p50_ms": 0.039,
+              "p95_ms": 0.122,
+              "max_ms": 1.256,
+              "total_ms": 8.732000000000001
+            },
+            "TimerFire": {
+              "count": 6,
+              "p50_ms": 0.797,
+              "p95_ms": 1.094,
+              "max_ms": 1.094,
+              "total_ms": 3.734
+            }
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 1079.6780000000017,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 522.7599999999999,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 5.379,
+              "location": "index-DhYsAvyM.js:48 · lV"
+            },
+            {
+              "self_ms": 3.292,
+              "location": "index-DhYsAvyM.js:694 · (anonymous)"
+            },
+            {
+              "self_ms": 3.222,
+              "location": "index-DhYsAvyM.js:48 · fu"
+            },
+            {
+              "self_ms": 3.215,
+              "location": "index-DhYsAvyM.js:48 · ft"
+            },
+            {
+              "self_ms": 2.542,
+              "location": "fetch"
+            },
+            {
+              "self_ms": 2.227,
+              "location": "frame"
+            },
+            {
+              "self_ms": 2.188,
+              "location": "index-DhYsAvyM.js:56 · (anonymous)"
+            },
+            {
+              "self_ms": 2.167,
+              "location": "index-DhYsAvyM.js:276 · (anonymous)"
+            },
+            {
+              "self_ms": 2.158,
+              "location": "mark"
+            },
+            {
+              "self_ms": 2.153,
+              "location": "index-DhYsAvyM.js:48 · Zb"
+            },
+            {
+              "self_ms": 2.145,
+              "location": "index-DhYsAvyM.js:48 · T9"
+            },
+            {
+              "self_ms": 2.1159999999999997,
+              "location": "index-DhYsAvyM.js:694 · (anonymous)"
+            },
+            {
+              "self_ms": 1.114,
+              "location": "index-DhYsAvyM.js:64 · $g"
+            },
+            {
+              "self_ms": 1.099,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            },
+            {
+              "self_ms": 1.096,
+              "location": "index-DhYsAvyM.js:713 · (anonymous)"
+            },
+            {
+              "self_ms": 1.095,
+              "location": "index-DhYsAvyM.js:225 · (anonymous)"
+            },
+            {
+              "self_ms": 1.093,
+              "location": "index-DhYsAvyM.js:48 · cr"
+            },
+            {
+              "self_ms": 1.092,
+              "location": "index-DhYsAvyM.js:225 · qc"
+            }
+          ],
+          "requests": {
+            "state_count": 4,
+            "state_response_p95_ms": 9.908999999999999,
+            "state_body_bytes": [89687, 89687, 89687, 89687],
+            "non_state": []
+          }
+        },
+        "graph-hover": {
+          "event_type": "mousemove",
+          "event_dispatch": {
+            "count": 40,
+            "p50_ms": 0.048,
+            "p95_ms": 0.108,
+            "max_ms": 0.193,
+            "total_ms": 2.2580000000000005
+          },
+          "phase_input_to_two_raf": {
+            "count": 80,
+            "p50_ms": 18.30000001192093,
+            "p95_ms": 26.600000023841858,
+            "max_ms": 30.80000001192093,
+            "total_ms": 1443.7000002861023
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 170,
+              "p50_ms": 0.322,
+              "p95_ms": 0.751,
+              "max_ms": 2.666,
+              "total_ms": 58.41100000000001
+            },
+            "Layout": {
+              "count": 107,
+              "p50_ms": 0.293,
+              "p95_ms": 0.503,
+              "max_ms": 8.04,
+              "total_ms": 40.957
+            },
+            "PrePaint": {
+              "count": 209,
+              "p50_ms": 0.006,
+              "p95_ms": 1.499,
+              "max_ms": 2.502,
+              "total_ms": 58.492000000000004
+            },
+            "Paint": {
+              "count": 280,
+              "p50_ms": 0.012,
+              "p95_ms": 3.095,
+              "max_ms": 5.624,
+              "total_ms": 163.074
+            },
+            "FunctionCall": {
+              "count": 1571,
+              "p50_ms": 0.007,
+              "p95_ms": 0.084,
+              "max_ms": 25.936,
+              "total_ms": 391.02199999999993
+            },
+            "FireAnimationFrame": {
+              "count": 273,
+              "p50_ms": 0.01,
+              "p95_ms": 0.088,
+              "max_ms": 0.383,
+              "total_ms": 6.500999999999997
+            },
+            "TimerFire": {
+              "count": 5,
+              "p50_ms": 0.345,
+              "p95_ms": 1.032,
+              "max_ms": 1.032,
+              "total_ms": 2.582
+            }
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 868.8179999999998,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 598.1439999999958,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 20.159,
+              "location": "get scrollTop"
+            },
+            {
+              "self_ms": 18.823999999999998,
+              "location": "index-DhYsAvyM.js:56 · (anonymous)"
+            },
+            {
+              "self_ms": 13.997,
+              "location": "index-DhYsAvyM.js:225 · jT"
+            },
+            {
+              "self_ms": 13.947,
+              "location": "index-DhYsAvyM.js:225 · jT"
+            },
+            {
+              "self_ms": 11.77,
+              "location": "index-DhYsAvyM.js:225 · X7"
+            },
+            {
+              "self_ms": 10.859000000000002,
+              "location": "index-DhYsAvyM.js:48 · h9"
+            },
+            {
+              "self_ms": 10.66,
+              "location": "get scrollTop"
+            },
+            {
+              "self_ms": 9.343,
+              "location": "index-DhYsAvyM.js:48 · fu"
+            },
+            {
+              "self_ms": 5.589999999999999,
+              "location": "query"
+            },
+            {
+              "self_ms": 5.217,
+              "location": "index-DhYsAvyM.js:56 · pK"
+            },
+            {
+              "self_ms": 5.186,
+              "location": "querySelectorAll"
+            },
+            {
+              "self_ms": 5.042,
+              "location": "index-DhYsAvyM.js:694 · h_e"
+            },
+            {
+              "self_ms": 4.970999999999999,
+              "location": "elementFromPoint"
+            },
+            {
+              "self_ms": 4.292,
+              "location": "index-DhYsAvyM.js:56 · am"
+            },
+            {
+              "self_ms": 4.275,
+              "location": "index-DhYsAvyM.js:48 · lV"
+            },
+            {
+              "self_ms": 4.271,
+              "location": "index-DhYsAvyM.js:48 · bb"
+            },
+            {
+              "self_ms": 4.2589999999999995,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            },
+            {
+              "self_ms": 4.239,
+              "location": "index-DhYsAvyM.js:48 · Zb"
+            }
+          ],
+          "requests": {
+            "state_count": 4,
+            "state_response_p95_ms": 9.135,
+            "state_body_bytes": [89687, 89687, 89687, 89687],
+            "non_state": []
+          }
+        },
+        "graph-pan": {
+          "event_type": "mousemove",
+          "event_dispatch": {
+            "count": 31,
+            "p50_ms": 0.18,
+            "p95_ms": 0.253,
+            "max_ms": 0.558,
+            "total_ms": 5.739000000000001
+          },
+          "phase_input_to_two_raf": {
+            "count": 2,
+            "p50_ms": 34.69999998807907,
+            "p95_ms": 34.69999998807907,
+            "max_ms": 34.69999998807907,
+            "total_ms": 55.599999994039536
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 31,
+              "p50_ms": 0.641,
+              "p95_ms": 1.193,
+              "max_ms": 1.25,
+              "total_ms": 20.718
+            },
+            "Layout": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "PrePaint": {
+              "count": 173,
+              "p50_ms": 0.008,
+              "p95_ms": 1.935,
+              "max_ms": 2.51,
+              "total_ms": 58.439
+            },
+            "Paint": {
+              "count": 60,
+              "p50_ms": 1.981,
+              "p95_ms": 4.23,
+              "max_ms": 4.316,
+              "total_ms": 107.52699999999999
+            },
+            "FunctionCall": {
+              "count": 368,
+              "p50_ms": 0.021,
+              "p95_ms": 0.196,
+              "max_ms": 13.892,
+              "total_ms": 56.468999999999994
+            },
+            "FireAnimationFrame": {
+              "count": 87,
+              "p50_ms": 0.042,
+              "p95_ms": 0.134,
+              "max_ms": 0.233,
+              "total_ms": 4.969
+            },
+            "TimerFire": {
+              "count": 5,
+              "p50_ms": 0.396,
+              "p95_ms": 0.501,
+              "max_ms": 0.501,
+              "total_ms": 1.448
+            }
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 797.488,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 539.7369999999996,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 3.218,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            },
+            {
+              "self_ms": 3.194,
+              "location": "index-DhYsAvyM.js:48 · T9"
+            },
+            {
+              "self_ms": 2.157,
+              "location": "index-DhYsAvyM.js:718 · v"
+            },
+            {
+              "self_ms": 2.153,
+              "location": "index-DhYsAvyM.js:48 · ce"
+            },
+            {
+              "self_ms": 2.151,
+              "location": "index-DhYsAvyM.js:713 · (anonymous)"
+            },
+            {
+              "self_ms": 2.1479999999999997,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            },
+            {
+              "self_ms": 2.142,
+              "location": "(anonymous)"
+            },
+            {
+              "self_ms": 2.0309999999999997,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 1.476,
+              "location": "mark"
+            },
+            {
+              "self_ms": 1.12,
+              "location": "(anonymous)"
+            },
+            {
+              "self_ms": 1.102,
+              "location": "requestAnimationFrame"
+            },
+            {
+              "self_ms": 1.094,
+              "location": "index-DhYsAvyM.js:64 · generate"
+            },
+            {
+              "self_ms": 1.086,
+              "location": "window.__cleanupDrag"
+            },
+            {
+              "self_ms": 1.084,
+              "location": "index-DhYsAvyM.js:693 · f_e"
+            },
+            {
+              "self_ms": 1.084,
+              "location": "index-DhYsAvyM.js:698 · (anonymous)"
+            },
+            {
+              "self_ms": 1.082,
+              "location": "index-DhYsAvyM.js:694 · y"
+            },
+            {
+              "self_ms": 1.081,
+              "location": "index-DhYsAvyM.js:48 · L8"
+            },
+            {
+              "self_ms": 1.078,
+              "location": "index-DhYsAvyM.js:48 · ol"
+            }
+          ],
+          "requests": {
+            "state_count": 4,
+            "state_response_p95_ms": 8.136999999999999,
+            "state_body_bytes": [89687, 89687, 89687, 89687],
+            "non_state": []
+          }
+        },
+        "graph-resize": {
+          "event_type": "resize",
+          "event_dispatch": {
+            "count": 4,
+            "p50_ms": 0.893,
+            "p95_ms": 0.942,
+            "max_ms": 0.942,
+            "total_ms": 3.141
+          },
+          "phase_input_to_two_raf": null,
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 16,
+              "p50_ms": 0.684,
+              "p95_ms": 0.862,
+              "max_ms": 0.862,
+              "total_ms": 6.292
+            },
+            "Layout": {
+              "count": 16,
+              "p50_ms": 0.886,
+              "p95_ms": 1.254,
+              "max_ms": 1.254,
+              "total_ms": 9.938
+            },
+            "PrePaint": {
+              "count": 55,
+              "p50_ms": 0.009,
+              "p95_ms": 1.402,
+              "max_ms": 1.819,
+              "total_ms": 6.7299999999999995
+            },
+            "Paint": {
+              "count": 6,
+              "p50_ms": 2.469,
+              "p95_ms": 2.944,
+              "max_ms": 2.944,
+              "total_ms": 15.393
+            },
+            "FunctionCall": {
+              "count": 112,
+              "p50_ms": 0.028,
+              "p95_ms": 0.726,
+              "max_ms": 14.298,
+              "total_ms": 44.031
+            },
+            "FireAnimationFrame": {
+              "count": 56,
+              "p50_ms": 0.055,
+              "p95_ms": 0.163,
+              "max_ms": 0.234,
+              "total_ms": 3.7630000000000003
+            },
+            "TimerFire": {
+              "count": 3,
+              "p50_ms": 0.753,
+              "p95_ms": 0.766,
+              "max_ms": 0.766,
+              "total_ms": 1.744
+            }
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 623.0289999999998,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 271.0999999999999,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 4.307,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            },
+            {
+              "self_ms": 3.261,
+              "location": "fetch"
+            },
+            {
+              "self_ms": 3.1799999999999997,
+              "location": "index-DhYsAvyM.js:694 · (anonymous)"
+            },
+            {
+              "self_ms": 3.149,
+              "location": "index-DhYsAvyM.js:48 · lV"
+            },
+            {
+              "self_ms": 2.146,
+              "location": "index-DhYsAvyM.js:56 · am"
+            },
+            {
+              "self_ms": 2.144,
+              "location": "index-DhYsAvyM.js:276 · (anonymous)"
+            },
+            {
+              "self_ms": 1.098,
+              "location": "mark"
+            },
+            {
+              "self_ms": 1.095,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            },
+            {
+              "self_ms": 1.089,
+              "location": "index-DhYsAvyM.js:48 · da"
+            },
+            {
+              "self_ms": 1.085,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            },
+            {
+              "self_ms": 1.083,
+              "location": "index-DhYsAvyM.js:56 · (anonymous)"
+            },
+            {
+              "self_ms": 1.08,
+              "location": "index-DhYsAvyM.js:48 · G9"
+            },
+            {
+              "self_ms": 1.075,
+              "location": "index-DhYsAvyM.js:56 · pK"
+            },
+            {
+              "self_ms": 1.075,
+              "location": "index-DhYsAvyM.js:48 · Nd"
+            },
+            {
+              "self_ms": 1.072,
+              "location": "get scrollHeight"
+            },
+            {
+              "self_ms": 1.072,
+              "location": "index-DhYsAvyM.js:48 · o8"
+            },
+            {
+              "self_ms": 1.07,
+              "location": "index-DhYsAvyM.js:9 · n"
+            },
+            {
+              "self_ms": 1.067,
+              "location": "index-DhYsAvyM.js:48 · h"
+            }
+          ],
+          "requests": {
+            "state_count": 3,
+            "state_response_p95_ms": 10.011000000000001,
+            "state_body_bytes": [89687, 89687, 89687],
+            "non_state": []
+          }
+        },
+        "tab-switch": {
+          "event_type": "click",
+          "event_dispatch": {
+            "count": 24,
+            "p50_ms": 16.203,
+            "p95_ms": 21.808,
+            "max_ms": 22.007,
+            "total_ms": 385.33899999999994
+          },
+          "phase_input_to_two_raf": {
+            "count": 120,
+            "p50_ms": 33.400000005960464,
+            "p95_ms": 44.5,
+            "max_ms": 48.60000002384186,
+            "total_ms": 4008.2000001966953
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 119,
+              "p50_ms": 0.448,
+              "p95_ms": 4.57,
+              "max_ms": 6.742,
+              "total_ms": 123.94300000000001
+            },
+            "Layout": {
+              "count": 24,
+              "p50_ms": 7.103,
+              "p95_ms": 7.489,
+              "max_ms": 7.532,
+              "total_ms": 92.268
+            },
+            "PrePaint": {
+              "count": 482,
+              "p50_ms": 0.004,
+              "p95_ms": 0.05,
+              "max_ms": 2.579,
+              "total_ms": 45.907
+            },
+            "Paint": {
+              "count": 48,
+              "p50_ms": 3.037,
+              "p95_ms": 3.408,
+              "max_ms": 3.475,
+              "total_ms": 120.83099999999999
+            },
+            "FunctionCall": {
+              "count": 2661,
+              "p50_ms": 0.008,
+              "p95_ms": 0.187,
+              "max_ms": 21.803,
+              "total_ms": 601.1129999999997
+            },
+            "FireAnimationFrame": {
+              "count": 454,
+              "p50_ms": 0.015,
+              "p95_ms": 0.191,
+              "max_ms": 0.615,
+              "total_ms": 16.519000000000002
+            },
+            "TimerFire": {
+              "count": 7,
+              "p50_ms": 0.404,
+              "p95_ms": 0.71,
+              "max_ms": 0.71,
+              "total_ms": 2.902
+            }
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 1227.9680000000003,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 904.7599999999926,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 49.11799999999998,
+              "location": "index-DhYsAvyM.js:702 · Y2"
+            },
+            {
+              "self_ms": 38.811,
+              "location": "query"
+            },
+            {
+              "self_ms": 37.45,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 26.764,
+              "location": "index-DhYsAvyM.js:719 · dMe"
+            },
+            {
+              "self_ms": 25.718999999999998,
+              "location": "index-DhYsAvyM.js:719 · (anonymous)"
+            },
+            {
+              "self_ms": 17.222,
+              "location": "getAttribute"
+            },
+            {
+              "self_ms": 17.145,
+              "location": "elementSafeTagName"
+            },
+            {
+              "self_ms": 15.018000000000002,
+              "location": "index-DhYsAvyM.js:702 · Y2"
+            },
+            {
+              "self_ms": 13.841999999999999,
+              "location": "index-DhYsAvyM.js:719 · (anonymous)"
+            },
+            {
+              "self_ms": 13.191,
+              "location": "index-DhYsAvyM.js:48 · lV"
+            },
+            {
+              "self_ms": 12.873,
+              "location": "index-DhYsAvyM.js:702 · qp"
+            },
+            {
+              "self_ms": 12.843,
+              "location": "index-DhYsAvyM.js:693 · a_e"
+            },
+            {
+              "self_ms": 12.75,
+              "location": "elementsFromPoint"
+            },
+            {
+              "self_ms": 12.648,
+              "location": "index-DhYsAvyM.js:713 · pCe"
+            },
+            {
+              "self_ms": 12.183,
+              "location": "(anonymous)"
+            },
+            {
+              "self_ms": 10.732000000000001,
+              "location": "index-DhYsAvyM.js:48 · ft"
+            },
+            {
+              "self_ms": 10.656999999999998,
+              "location": "index-DhYsAvyM.js:48 · ce"
+            },
+            {
+              "self_ms": 10.619,
+              "location": "match"
+            }
+          ],
+          "requests": {
+            "state_count": 7,
+            "state_response_p95_ms": 9.309999999999999,
+            "state_body_bytes": [
+              89687, 89687, 89687, 89687, 89687, 89687, 89687
+            ],
+            "non_state": []
+          }
+        },
+        "graph-node-select": {
+          "event_type": "click",
+          "event_dispatch": {
+            "count": 9,
+            "p50_ms": 0.101,
+            "p95_ms": 33.12,
+            "max_ms": 33.12,
+            "total_ms": 34.759
+          },
+          "phase_input_to_two_raf": {
+            "count": 31,
+            "p50_ms": 27.5,
+            "p95_ms": 77.40000000596046,
+            "max_ms": 77.80000001192093,
+            "total_ms": 1121.6000000536442
+          },
+          "long_tasks": {
+            "count": 1,
+            "p50_ms": 53,
+            "p95_ms": 53,
+            "max_ms": 53,
+            "total_ms": 53
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 58,
+              "p50_ms": 0.201,
+              "p95_ms": 0.796,
+              "max_ms": 8.028,
+              "total_ms": 22.044
+            },
+            "Layout": {
+              "count": 13,
+              "p50_ms": 0.323,
+              "p95_ms": 1.493,
+              "max_ms": 1.493,
+              "total_ms": 6.5
+            },
+            "PrePaint": {
+              "count": 133,
+              "p50_ms": 0.006,
+              "p95_ms": 0.106,
+              "max_ms": 1.84,
+              "total_ms": 7.120000000000001
+            },
+            "Paint": {
+              "count": 20,
+              "p50_ms": 0.339,
+              "p95_ms": 6.268,
+              "max_ms": 6.268,
+              "total_ms": 35.626000000000005
+            },
+            "FunctionCall": {
+              "count": 681,
+              "p50_ms": 0.007,
+              "p95_ms": 0.069,
+              "max_ms": 31.223,
+              "total_ms": 98.41999999999999
+            },
+            "FireAnimationFrame": {
+              "count": 125,
+              "p50_ms": 0.017,
+              "p95_ms": 0.117,
+              "max_ms": 0.628,
+              "total_ms": 4.893000000000001
+            },
+            "TimerFire": {
+              "count": 4,
+              "p50_ms": 0.692,
+              "p95_ms": 0.748,
+              "max_ms": 0.748,
+              "total_ms": 1.629
+            }
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 588.4370000000002,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 310.68299999999863,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 7.791,
+              "location": "index-DhYsAvyM.js:225 · X7"
+            },
+            {
+              "self_ms": 5.162000000000001,
+              "location": "query"
+            },
+            {
+              "self_ms": 4.361,
+              "location": "get scrollTop"
+            },
+            {
+              "self_ms": 3.21,
+              "location": "index-DhYsAvyM.js:48 · ce"
+            },
+            {
+              "self_ms": 3.162,
+              "location": "querySelectorAll"
+            },
+            {
+              "self_ms": 2.176,
+              "location": "index-DhYsAvyM.js:48 · G9"
+            },
+            {
+              "self_ms": 2.144,
+              "location": "index-DhYsAvyM.js:225 · jT"
+            },
+            {
+              "self_ms": 2.1390000000000002,
+              "location": "fetch"
+            },
+            {
+              "self_ms": 2.135,
+              "location": "index-DhYsAvyM.js:48 · bb"
+            },
+            {
+              "self_ms": 2.13,
+              "location": "index-DhYsAvyM.js:694 · y"
+            },
+            {
+              "self_ms": 2.125,
+              "location": "index-DhYsAvyM.js:100 · (anonymous)"
+            },
+            {
+              "self_ms": 1.754,
+              "location": "mark"
+            },
+            {
+              "self_ms": 1.57,
+              "location": "index-DhYsAvyM.js:48 · G9"
+            },
+            {
+              "self_ms": 1.2810000000000001,
+              "location": "index-DhYsAvyM.js:225 · jT"
+            },
+            {
+              "self_ms": 1.158,
+              "location": "index-DhYsAvyM.js:17 · Eq.Jt.createElement"
+            },
+            {
+              "self_ms": 1.139,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            },
+            {
+              "self_ms": 1.111,
+              "location": "index-DhYsAvyM.js:48 · L8"
+            },
+            {
+              "self_ms": 1.108,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            }
+          ],
+          "requests": {
+            "state_count": 3,
+            "state_response_p95_ms": 11.172,
+            "state_body_bytes": [89687, 89687, 89687],
+            "non_state": []
+          }
+        },
+        "project-map-wheel": {
+          "event_type": "wheel",
+          "event_dispatch": {
+            "count": 24,
+            "p50_ms": 9.355,
+            "p95_ms": 10.324,
+            "max_ms": 10.465,
+            "total_ms": 203.66100000000006
+          },
+          "phase_input_to_two_raf": {
+            "count": 34,
+            "p50_ms": 17,
+            "p95_ms": 26.80000001192093,
+            "max_ms": 26.80000001192093,
+            "total_ms": 635.6999999582767
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 30,
+              "p50_ms": 0.781,
+              "p95_ms": 1.118,
+              "max_ms": 1.146,
+              "total_ms": 19.93
+            },
+            "Layout": {
+              "count": 27,
+              "p50_ms": 0.294,
+              "p95_ms": 0.528,
+              "max_ms": 6.813,
+              "total_ms": 14.645
+            },
+            "PrePaint": {
+              "count": 149,
+              "p50_ms": 0.01,
+              "p95_ms": 1.411,
+              "max_ms": 3.17,
+              "total_ms": 38.346
+            },
+            "Paint": {
+              "count": 75,
+              "p50_ms": 0.084,
+              "p95_ms": 3.391,
+              "max_ms": 3.909,
+              "total_ms": 68.65
+            },
+            "FunctionCall": {
+              "count": 490,
+              "p50_ms": 0.017,
+              "p95_ms": 7.515,
+              "max_ms": 20.45,
+              "total_ms": 297.831
+            },
+            "FireAnimationFrame": {
+              "count": 169,
+              "p50_ms": 0.019,
+              "p95_ms": 0.094,
+              "max_ms": 1.054,
+              "total_ms": 6.246999999999998
+            },
+            "TimerFire": {
+              "count": 7,
+              "p50_ms": 0.258,
+              "p95_ms": 1.157,
+              "max_ms": 1.157,
+              "total_ms": 3.013
+            }
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 939.6159999999998,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 498.411999999999,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 132.45600000000002,
+              "location": "index-DhYsAvyM.js:702 · qp"
+            },
+            {
+              "self_ms": 21.909,
+              "location": "index-DhYsAvyM.js:719 · dMe"
+            },
+            {
+              "self_ms": 18.352,
+              "location": "index-DhYsAvyM.js:702 · qp"
+            },
+            {
+              "self_ms": 7.526000000000001,
+              "location": "index-DhYsAvyM.js:719 · dMe"
+            },
+            {
+              "self_ms": 4.3229999999999995,
+              "location": "index-DhYsAvyM.js:694 · (anonymous)"
+            },
+            {
+              "self_ms": 3.238,
+              "location": "index-DhYsAvyM.js:48 · p9"
+            },
+            {
+              "self_ms": 3.2139999999999995,
+              "location": "index-DhYsAvyM.js:48 · lV"
+            },
+            {
+              "self_ms": 2.165,
+              "location": "index-DhYsAvyM.js:48 · sb"
+            },
+            {
+              "self_ms": 2.1630000000000003,
+              "location": "index-DhYsAvyM.js:694 · (anonymous)"
+            },
+            {
+              "self_ms": 2.138,
+              "location": "index-DhYsAvyM.js:48 · T9"
+            },
+            {
+              "self_ms": 2.125,
+              "location": "index-DhYsAvyM.js:56 · Tp"
+            },
+            {
+              "self_ms": 1.512,
+              "location": "mark"
+            },
+            {
+              "self_ms": 1.198,
+              "location": "index-DhYsAvyM.js:48 · eV"
+            },
+            {
+              "self_ms": 1.154,
+              "location": "index-DhYsAvyM.js:48 · ce"
+            },
+            {
+              "self_ms": 1.126,
+              "location": "index-DhYsAvyM.js:49 · Yn"
+            },
+            {
+              "self_ms": 1.1,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            },
+            {
+              "self_ms": 1.097,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            },
+            {
+              "self_ms": 1.096,
+              "location": "index-DhYsAvyM.js:48 · M4"
+            }
+          ],
+          "requests": {
+            "state_count": 5,
+            "state_response_p95_ms": 9.763000000000002,
+            "state_body_bytes": [89687, 89687, 89687, 89687, 89687],
+            "non_state": []
+          }
+        }
+      },
+      "artifact_manifest": {
+        "binary_sha256": "d770ade482bb3f66fb44d16d672889ac6ccc4ce37566833ab7565384c5256ace",
+        "samples": 2922,
+        "perf_event_paranoid": "2",
+        "kptr_restrict": "1",
+        "event": "cpu-clock:u",
+        "frequency_hz": 99,
+        "stack": "dwarf,8192",
+        "digests": {
+          "perf.data": "5488f2f5f4a56ec6d0fcdde5c6cd6fd0deae541e1f400105531ddae67d064276",
+          "perf-report.txt": "43ba412613d1d2968fb24a6980f0327a420efc302dc1c052744c2c4d4c765356",
+          "trace.json": "f93cec0cb63d22161fdfce2be0af674d77e20bc3470639554c0cbb798f4137bb",
+          "native-metrics.json": "1b42e78fbfa15108d80661f1acce9350ecb8b9fce3edcb68821ce9df12c197fa",
+          "summary.json": "880181a70877b6ae8db7ba51983da869bf0094beea3d0477d5ffbbddc29f716b",
+          "graph-hover.cpuprofile": "721078188b6907701ef1caf66aa272f6c2140153af4c13d5ec075d8281b63dcf",
+          "graph-idle-poll.cpuprofile": "1fc1cab5e64219165e4843340d98ed3cc8709f36f0048c517275a301b25147b6",
+          "graph-node-select.cpuprofile": "847b7d06af7da192178457be9f8a3f4c9bd5f484c32e3e621b7533d1d39f9efe",
+          "graph-pan.cpuprofile": "5eec1a2fa85ca5d59288b139628791fc0fe061f2ca5adb3903882e67c6a2c890",
+          "graph-resize.cpuprofile": "9d54e852d4dff80c554a85d10c26e75fcb5968c09974df758cbd2eb7725c8a4c",
+          "graph-wheel.cpuprofile": "af41ab2125960031ceca0f82b55948ae45d396c901daafc7e552db754ea9823c",
+          "project-map-wheel.cpuprofile": "1da9a0455b1dac685f780910504baea04f172654e8f98066d592afbeb8751cc2",
+          "tab-switch.cpuprofile": "05533c4b5e09093c2fd6fa9a607b6ca5f26894d1c6af850b887e1f9ee45347ba"
+        },
+        "limits": "Current-user native host and inherited workers only; no kernel stacks. Thread CPU spans exclude worker CPU. File preparation reuses project/OS caches, not a cold installation. Sampling changes timing; browser profiles have their own overhead."
+      }
+    },
+    {
+      "directory": "target/native-profile/riemann-events-settled",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 41201.388657999996,
+        "setup_cache_hit": true
+      },
+      "native_preparation_trace": 1509,
+      "native_stages": {
+        "gui.enqueue": {
+          "count": 1,
+          "wall_ms": 0.001,
+          "host_thread_cpu_ms": 0.001
+        },
+        "job.queue": {
+          "count": 1,
+          "wall_ms": 0.065,
+          "host_thread_cpu_ms": 0
+        },
+        "gui.serialize_respond": {
+          "count": 1,
+          "wall_ms": 0.106,
+          "host_thread_cpu_ms": 0.087
+        },
+        "gui.command": {
+          "count": 1,
+          "wall_ms": 0.225,
+          "host_thread_cpu_ms": 0.204
+        },
+        "process.run": {
+          "count": 101,
+          "wall_ms": 36621.293999999994,
+          "host_thread_cpu_ms": 175.816
+        },
+        "atlas.resources.select": {
+          "count": 15,
+          "wall_ms": 198.713,
+          "host_thread_cpu_ms": 196.13600000000002
+        },
+        "atlas.resources.validate": {
+          "count": 28,
+          "wall_ms": 670.292,
+          "host_thread_cpu_ms": 663.3890000000001
+        },
+        "analysis.capture_sources": {
+          "count": 3,
+          "wall_ms": 146.91899999999998,
+          "host_thread_cpu_ms": 4.916
+        },
+        "sandbox.public_tools": {
+          "count": 13,
+          "wall_ms": 1166.1640000000002,
+          "host_thread_cpu_ms": 45.955999999999996
+        },
+        "sandbox.libraries": {
+          "count": 13,
+          "wall_ms": 774.51,
+          "host_thread_cpu_ms": 58.76199999999999
+        },
+        "sandbox.nix_closure": {
+          "count": 13,
+          "wall_ms": 711.679,
+          "host_thread_cpu_ms": 13.305999999999997
+        },
+        "sandbox.prepare": {
+          "count": 13,
+          "wall_ms": 7176.190999999999,
+          "host_thread_cpu_ms": 484.447
+        },
+        "atlas.lake_configuration": {
+          "count": 12,
+          "wall_ms": 17120.907,
+          "host_thread_cpu_ms": 480.59900000000005
+        },
+        "analysis.discover_layout": {
+          "count": 1,
+          "wall_ms": 19028.139,
+          "host_thread_cpu_ms": 1263.199
+        },
+        "analysis.select_roots": {
+          "count": 1,
+          "wall_ms": 19122.726,
+          "host_thread_cpu_ms": 1266.408
+        },
+        "atlas.project.prepare": {
+          "count": 1,
+          "wall_ms": 19025.441,
+          "host_thread_cpu_ms": 137.638
+        },
+        "analysis.cache.validate": {
+          "count": 2,
+          "wall_ms": 1199.008,
+          "host_thread_cpu_ms": 55.433
+        },
+        "analysis.cache.retain_observation": {
+          "count": 1,
+          "wall_ms": 18.431,
+          "host_thread_cpu_ms": 18.269
+        },
+        "analysis.cache.load_rendering": {
+          "count": 1,
+          "wall_ms": 1.842,
+          "host_thread_cpu_ms": 0.929
+        },
+        "analysis.extract": {
+          "count": 1,
+          "wall_ms": 40538.729,
+          "host_thread_cpu_ms": 1586.094
+        },
+        "analysis.materialize_view": {
+          "count": 1,
+          "wall_ms": 0.397,
+          "host_thread_cpu_ms": 0.397
+        },
+        "gui.job": {
+          "count": 1,
+          "wall_ms": 40675.402,
+          "host_thread_cpu_ms": 1639.538
+        }
+      },
+      "phases": {
+        "graph-idle-poll": {
+          "event_type": null,
+          "event_dispatch": null,
+          "phase_input_to_two_raf": null,
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "Layout": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "PrePaint": {
+              "count": 225,
+              "p50_ms": 0.008,
+              "p95_ms": 0.017,
+              "max_ms": 0.172,
+              "total_ms": 2.380999999999998
+            },
+            "Paint": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "FunctionCall": {
+              "count": 489,
+              "p50_ms": 0.02,
+              "p95_ms": 0.504,
+              "max_ms": 14.801,
+              "total_ms": 167.68099999999998
+            },
+            "FireAnimationFrame": {
+              "count": 413,
+              "p50_ms": 0.037,
+              "p95_ms": 0.133,
+              "max_ms": 1.208,
+              "total_ms": 24.241999999999987
+            },
+            "TimerFire": {
+              "count": 10,
+              "p50_ms": 0.704,
+              "p95_ms": 0.926,
+              "max_ms": 0.926,
+              "total_ms": 6.686999999999999
+            }
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 3176.7490000000157,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 583.3070000000004,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 6.545999999999999,
+              "location": "index-DhYsAvyM.js:48 · fu"
+            },
+            {
+              "self_ms": 5.452,
+              "location": "index-DhYsAvyM.js:694 · (anonymous)"
+            },
+            {
+              "self_ms": 5.387999999999999,
+              "location": "index-DhYsAvyM.js:48 · h9"
+            },
+            {
+              "self_ms": 5.291,
+              "location": "index-DhYsAvyM.js:49 · Yn"
+            },
+            {
+              "self_ms": 4.895,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            },
+            {
+              "self_ms": 4.5,
+              "location": "index-DhYsAvyM.js:48 · ce"
+            },
+            {
+              "self_ms": 4.353,
+              "location": "index-DhYsAvyM.js:48 · T9"
+            },
+            {
+              "self_ms": 4.2909999999999995,
+              "location": "frame"
+            },
+            {
+              "self_ms": 4.281000000000001,
+              "location": "index-DhYsAvyM.js:48 · ln"
+            },
+            {
+              "self_ms": 4.266,
+              "location": "index-DhYsAvyM.js:48 · lV"
+            },
+            {
+              "self_ms": 4.247,
+              "location": "index-DhYsAvyM.js:56 · (anonymous)"
+            },
+            {
+              "self_ms": 4.1899999999999995,
+              "location": "fetch"
+            },
+            {
+              "self_ms": 3.912,
+              "location": "index-DhYsAvyM.js:694 · (anonymous)"
+            },
+            {
+              "self_ms": 3.3920000000000003,
+              "location": "index-DhYsAvyM.js:48 · bb"
+            },
+            {
+              "self_ms": 3.316,
+              "location": "index-DhYsAvyM.js:56 · am"
+            },
+            {
+              "self_ms": 3.238,
+              "location": "index-DhYsAvyM.js:17 · Eq.Jt.createElement"
+            },
+            {
+              "self_ms": 3.224,
+              "location": "index-DhYsAvyM.js:428 · request"
+            },
+            {
+              "self_ms": 3.221,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            }
+          ],
+          "requests": {
+            "state_count": 11,
+            "state_response_p95_ms": 10.877,
+            "state_body_bytes": [
+              89686, 89686, 89686, 89686, 89686, 89686, 89686, 89686, 89686,
+              89686, 89686
+            ],
+            "non_state": []
+          }
+        },
+        "graph-idle-settled": {
+          "event_type": null,
+          "event_dispatch": null,
+          "phase_input_to_two_raf": null,
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "Layout": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "PrePaint": {
+              "count": 224,
+              "p50_ms": 0.008,
+              "p95_ms": 0.023,
+              "max_ms": 0.084,
+              "total_ms": 2.4289999999999976
+            },
+            "Paint": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "FunctionCall": {
+              "count": 483,
+              "p50_ms": 0.023,
+              "p95_ms": 0.491,
+              "max_ms": 20.118,
+              "total_ms": 168.512
+            },
+            "FireAnimationFrame": {
+              "count": 412,
+              "p50_ms": 0.04,
+              "p95_ms": 0.119,
+              "max_ms": 1.398,
+              "total_ms": 24.20100000000001
+            },
+            "TimerFire": {
+              "count": 11,
+              "p50_ms": 0.729,
+              "p95_ms": 0.967,
+              "max_ms": 0.967,
+              "total_ms": 7.808
+            }
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 3124.3350000000096,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 571.9540000000001,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 13.982999999999999,
+              "location": "index-DhYsAvyM.js:48 · h9"
+            },
+            {
+              "self_ms": 7.466,
+              "location": "index-DhYsAvyM.js:694 · y"
+            },
+            {
+              "self_ms": 6.0969999999999995,
+              "location": "frame"
+            },
+            {
+              "self_ms": 5.3950000000000005,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            },
+            {
+              "self_ms": 4.304,
+              "location": "index-DhYsAvyM.js:56 · pK"
+            },
+            {
+              "self_ms": 4.274,
+              "location": "index-DhYsAvyM.js:48 · fu"
+            },
+            {
+              "self_ms": 4.26,
+              "location": "index-DhYsAvyM.js:56 · (anonymous)"
+            },
+            {
+              "self_ms": 4.247,
+              "location": "fetch"
+            },
+            {
+              "self_ms": 3.215,
+              "location": "index-DhYsAvyM.js:48 · cr"
+            },
+            {
+              "self_ms": 3.199,
+              "location": "index-DhYsAvyM.js:48 · lV"
+            },
+            {
+              "self_ms": 3.197,
+              "location": "index-DhYsAvyM.js:48 · ft"
+            },
+            {
+              "self_ms": 3.1940000000000004,
+              "location": "index-DhYsAvyM.js:225 · (anonymous)"
+            },
+            {
+              "self_ms": 3.188,
+              "location": "index-DhYsAvyM.js:276 · (anonymous)"
+            },
+            {
+              "self_ms": 3.1750000000000003,
+              "location": "index-DhYsAvyM.js:48 · ce"
+            },
+            {
+              "self_ms": 3.071,
+              "location": "index-DhYsAvyM.js:198 · (anonymous)"
+            },
+            {
+              "self_ms": 2.261,
+              "location": "index-DhYsAvyM.js:48 · ft"
+            },
+            {
+              "self_ms": 2.252,
+              "location": "index-DhYsAvyM.js:48 · ln"
+            },
+            {
+              "self_ms": 2.247,
+              "location": "index-DhYsAvyM.js:48 · G9"
+            }
+          ],
+          "requests": {
+            "state_count": 11,
+            "state_response_p95_ms": 10.328,
+            "state_body_bytes": [
+              89686, 89686, 89686, 89686, 89686, 89686, 89686, 89686, 89686,
+              89686, 89686
+            ],
+            "non_state": []
+          }
+        },
+        "graph-wheel": {
+          "event_type": "wheel",
+          "event_dispatch": {
+            "count": 24,
+            "p50_ms": 0.603,
+            "p95_ms": 1.048,
+            "max_ms": 2.317,
+            "total_ms": 16.199999999999996
+          },
+          "phase_input_to_two_raf": {
+            "count": 26,
+            "p50_ms": 16.400000005960464,
+            "p95_ms": 20.30000001192093,
+            "max_ms": 25.80000001192093,
+            "total_ms": 440.00000008940697
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 25,
+              "p50_ms": 1.019,
+              "p95_ms": 1.081,
+              "max_ms": 1.146,
+              "total_ms": 23.685000000000006
+            },
+            "Layout": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "PrePaint": {
+              "count": 118,
+              "p50_ms": 0.012,
+              "p95_ms": 2.965,
+              "max_ms": 3.149,
+              "total_ms": 66.357
+            },
+            "Paint": {
+              "count": 48,
+              "p50_ms": 3.002,
+              "p95_ms": 4.223,
+              "max_ms": 4.63,
+              "total_ms": 97.55600000000001
+            },
+            "FunctionCall": {
+              "count": 271,
+              "p50_ms": 0.034,
+              "p95_ms": 0.465,
+              "max_ms": 14.544,
+              "total_ms": 70.92800000000001
+            },
+            "FireAnimationFrame": {
+              "count": 153,
+              "p50_ms": 0.038,
+              "p95_ms": 0.106,
+              "max_ms": 0.193,
+              "total_ms": 6.922999999999997
+            },
+            "TimerFire": {
+              "count": 6,
+              "p50_ms": 0.731,
+              "p95_ms": 0.973,
+              "max_ms": 0.973,
+              "total_ms": 3.1679999999999997
+            }
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 1045.2340000000017,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 527.9440000000004,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 29.641,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 3.178,
+              "location": "index-DhYsAvyM.js:48 · lV"
+            },
+            {
+              "self_ms": 2.156,
+              "location": "index-DhYsAvyM.js:56 · (anonymous)"
+            },
+            {
+              "self_ms": 2.1310000000000002,
+              "location": "index-DhYsAvyM.js:48 · Zb"
+            },
+            {
+              "self_ms": 2.127,
+              "location": "index-DhYsAvyM.js:713 · z"
+            },
+            {
+              "self_ms": 2.1260000000000003,
+              "location": "index-DhYsAvyM.js:48 · ft"
+            },
+            {
+              "self_ms": 2.112,
+              "location": "index-DhYsAvyM.js:693 · a_e"
+            },
+            {
+              "self_ms": 1.17,
+              "location": "mark"
+            },
+            {
+              "self_ms": 1.102,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            },
+            {
+              "self_ms": 1.099,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            },
+            {
+              "self_ms": 1.095,
+              "location": "index-DhYsAvyM.js:64 · Lt"
+            },
+            {
+              "self_ms": 1.094,
+              "location": "index-DhYsAvyM.js:49 · O4"
+            },
+            {
+              "self_ms": 1.093,
+              "location": "fetch"
+            },
+            {
+              "self_ms": 1.089,
+              "location": "index-DhYsAvyM.js:102 · Kt"
+            },
+            {
+              "self_ms": 1.084,
+              "location": "index-DhYsAvyM.js:56 · HO"
+            },
+            {
+              "self_ms": 1.082,
+              "location": "index-DhYsAvyM.js:41 · Ye"
+            },
+            {
+              "self_ms": 1.082,
+              "location": "index-DhYsAvyM.js:17 · Eq.Jt.createElement"
+            },
+            {
+              "self_ms": 1.081,
+              "location": "index-DhYsAvyM.js:694 · (anonymous)"
+            }
+          ],
+          "requests": {
+            "state_count": 4,
+            "state_response_p95_ms": 11.176,
+            "state_body_bytes": [89686, 89686, 89686, 89686],
+            "non_state": []
+          }
+        },
+        "graph-hover": {
+          "event_type": "mousemove",
+          "event_dispatch": {
+            "count": 40,
+            "p50_ms": 0.047,
+            "p95_ms": 0.103,
+            "max_ms": 0.131,
+            "total_ms": 2.0760000000000005
+          },
+          "phase_input_to_two_raf": {
+            "count": 80,
+            "p50_ms": 18.700000017881393,
+            "p95_ms": 23.30000001192093,
+            "max_ms": 26.099999994039536,
+            "total_ms": 1474.300000011921
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 173,
+              "p50_ms": 0.306,
+              "p95_ms": 0.658,
+              "max_ms": 2.747,
+              "total_ms": 54.19100000000001
+            },
+            "Layout": {
+              "count": 109,
+              "p50_ms": 0.271,
+              "p95_ms": 0.442,
+              "max_ms": 6.991,
+              "total_ms": 39.044999999999995
+            },
+            "PrePaint": {
+              "count": 210,
+              "p50_ms": 0.006,
+              "p95_ms": 1.607,
+              "max_ms": 3.379,
+              "total_ms": 65.87600000000002
+            },
+            "Paint": {
+              "count": 284,
+              "p50_ms": 0.013,
+              "p95_ms": 2.993,
+              "max_ms": 5.496,
+              "total_ms": 182.51599999999996
+            },
+            "FunctionCall": {
+              "count": 1573,
+              "p50_ms": 0.007,
+              "p95_ms": 0.093,
+              "max_ms": 21.226,
+              "total_ms": 358.06
+            },
+            "FireAnimationFrame": {
+              "count": 272,
+              "p50_ms": 0.01,
+              "p95_ms": 0.083,
+              "max_ms": 0.361,
+              "total_ms": 6.130999999999997
+            },
+            "TimerFire": {
+              "count": 6,
+              "p50_ms": 0.328,
+              "p95_ms": 0.979,
+              "max_ms": 0.979,
+              "total_ms": 2.718
+            }
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 858.8770000000006,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 630.2029999999972,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 15.910000000000002,
+              "location": "get scrollTop"
+            },
+            {
+              "self_ms": 15.424000000000001,
+              "location": "query"
+            },
+            {
+              "self_ms": 15.075000000000001,
+              "location": "index-DhYsAvyM.js:225 · X7"
+            },
+            {
+              "self_ms": 12.353000000000002,
+              "location": "index-DhYsAvyM.js:56 · (anonymous)"
+            },
+            {
+              "self_ms": 11.044999999999996,
+              "location": "index-DhYsAvyM.js:225 · jT"
+            },
+            {
+              "self_ms": 9.742999999999999,
+              "location": "index-DhYsAvyM.js:225 · jT"
+            },
+            {
+              "self_ms": 9.062000000000001,
+              "location": "get scrollTop"
+            },
+            {
+              "self_ms": 8.179,
+              "location": "index-DhYsAvyM.js:17 · Eq.Jt.createElement"
+            },
+            {
+              "self_ms": 6.571,
+              "location": "index-DhYsAvyM.js:48 · lV"
+            },
+            {
+              "self_ms": 5.77,
+              "location": "index-DhYsAvyM.js:48 · fu"
+            },
+            {
+              "self_ms": 5.36,
+              "location": "index-DhYsAvyM.js:48 · Zb"
+            },
+            {
+              "self_ms": 5.195,
+              "location": "elementFromPoint"
+            },
+            {
+              "self_ms": 5.173,
+              "location": "index-DhYsAvyM.js:694 · h_e"
+            },
+            {
+              "self_ms": 4.94,
+              "location": "index-DhYsAvyM.js:48 · h9"
+            },
+            {
+              "self_ms": 4.815,
+              "location": "index-DhYsAvyM.js:56 · am"
+            },
+            {
+              "self_ms": 4.571,
+              "location": "index-DhYsAvyM.js:48 · ft"
+            },
+            {
+              "self_ms": 4.343999999999999,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            },
+            {
+              "self_ms": 4.2860000000000005,
+              "location": "index-DhYsAvyM.js:48 · bb"
+            }
+          ],
+          "requests": {
+            "state_count": 5,
+            "state_response_p95_ms": 10.004000000000001,
+            "state_body_bytes": [89686, 89686, 89686, 89686, 89686],
+            "non_state": []
+          }
+        },
+        "graph-pan": {
+          "event_type": "mousemove",
+          "event_dispatch": {
+            "count": 31,
+            "p50_ms": 0.157,
+            "p95_ms": 0.276,
+            "max_ms": 0.383,
+            "total_ms": 5.191
+          },
+          "phase_input_to_two_raf": {
+            "count": 2,
+            "p50_ms": 33.900000005960464,
+            "p95_ms": 33.900000005960464,
+            "max_ms": 33.900000005960464,
+            "total_ms": 57.900000005960464
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 31,
+              "p50_ms": 0.571,
+              "p95_ms": 0.917,
+              "max_ms": 0.925,
+              "total_ms": 17.883000000000003
+            },
+            "Layout": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "PrePaint": {
+              "count": 173,
+              "p50_ms": 0.009,
+              "p95_ms": 1.842,
+              "max_ms": 2.789,
+              "total_ms": 53.421000000000014
+            },
+            "Paint": {
+              "count": 60,
+              "p50_ms": 1.782,
+              "p95_ms": 3.999,
+              "max_ms": 4.303,
+              "total_ms": 97.383
+            },
+            "FunctionCall": {
+              "count": 368,
+              "p50_ms": 0.02,
+              "p95_ms": 0.163,
+              "max_ms": 12.877,
+              "total_ms": 56.019
+            },
+            "FireAnimationFrame": {
+              "count": 87,
+              "p50_ms": 0.042,
+              "p95_ms": 0.098,
+              "max_ms": 0.144,
+              "total_ms": 4.259000000000002
+            },
+            "TimerFire": {
+              "count": 5,
+              "p50_ms": 0.316,
+              "p95_ms": 0.747,
+              "max_ms": 0.747,
+              "total_ms": 1.7610000000000001
+            }
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 829.717,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 511.06299999999965,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 3.247,
+              "location": "index-DhYsAvyM.js:48 · fu"
+            },
+            {
+              "self_ms": 2.1159999999999997,
+              "location": "index-DhYsAvyM.js:56 · (anonymous)"
+            },
+            {
+              "self_ms": 2.109,
+              "location": "index-DhYsAvyM.js:48 · ce"
+            },
+            {
+              "self_ms": 1.473,
+              "location": "mark"
+            },
+            {
+              "self_ms": 1.092,
+              "location": "index-DhYsAvyM.js:48 · Kb"
+            },
+            {
+              "self_ms": 1.084,
+              "location": "index-DhYsAvyM.js:428 · request"
+            },
+            {
+              "self_ms": 1.081,
+              "location": "index-DhYsAvyM.js:713 · emit"
+            },
+            {
+              "self_ms": 1.08,
+              "location": "index-DhYsAvyM.js:48 · ln"
+            },
+            {
+              "self_ms": 1.079,
+              "location": "index-DhYsAvyM.js:713 · Qp"
+            },
+            {
+              "self_ms": 1.079,
+              "location": "index-DhYsAvyM.js:694 · (anonymous)"
+            },
+            {
+              "self_ms": 1.079,
+              "location": "index-DhYsAvyM.js:9 · n"
+            },
+            {
+              "self_ms": 1.079,
+              "location": "index-DhYsAvyM.js:48 · G9"
+            },
+            {
+              "self_ms": 1.078,
+              "location": "index-DhYsAvyM.js:48 · Zb"
+            },
+            {
+              "self_ms": 1.076,
+              "location": "index-DhYsAvyM.js:56 · Tp"
+            },
+            {
+              "self_ms": 1.075,
+              "location": "index-DhYsAvyM.js:225 · (anonymous)"
+            },
+            {
+              "self_ms": 1.075,
+              "location": "index-DhYsAvyM.js:48 · Zb"
+            },
+            {
+              "self_ms": 1.075,
+              "location": "index-DhYsAvyM.js:276 · pne"
+            },
+            {
+              "self_ms": 1.075,
+              "location": "index-DhYsAvyM.js:198 · (anonymous)"
+            }
+          ],
+          "requests": {
+            "state_count": 4,
+            "state_response_p95_ms": 9.469999999999999,
+            "state_body_bytes": [89686, 89686, 89686, 89686],
+            "non_state": []
+          }
+        },
+        "graph-resize": {
+          "event_type": "resize",
+          "event_dispatch": {
+            "count": 3,
+            "p50_ms": 0.944,
+            "p95_ms": 0.96,
+            "max_ms": 0.96,
+            "total_ms": 2.581
+          },
+          "phase_input_to_two_raf": null,
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 14,
+              "p50_ms": 0.618,
+              "p95_ms": 0.982,
+              "max_ms": 0.982,
+              "total_ms": 6.031000000000001
+            },
+            "Layout": {
+              "count": 14,
+              "p50_ms": 0.895,
+              "p95_ms": 1.193,
+              "max_ms": 1.193,
+              "total_ms": 9.302999999999999
+            },
+            "PrePaint": {
+              "count": 53,
+              "p50_ms": 0.008,
+              "p95_ms": 1.45,
+              "max_ms": 2.176,
+              "total_ms": 5.788
+            },
+            "Paint": {
+              "count": 4,
+              "p50_ms": 2.907,
+              "p95_ms": 2.995,
+              "max_ms": 2.995,
+              "total_ms": 10.646
+            },
+            "FunctionCall": {
+              "count": 106,
+              "p50_ms": 0.028,
+              "p95_ms": 0.893,
+              "max_ms": 12.657,
+              "total_ms": 43.16
+            },
+            "FireAnimationFrame": {
+              "count": 55,
+              "p50_ms": 0.045,
+              "p95_ms": 0.168,
+              "max_ms": 0.916,
+              "total_ms": 3.858000000000001
+            },
+            "TimerFire": {
+              "count": 3,
+              "p50_ms": 0.744,
+              "p95_ms": 0.944,
+              "max_ms": 0.944,
+              "total_ms": 1.89
+            }
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 622.2079999999999,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 241.8269999999998,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 2.176,
+              "location": "index-DhYsAvyM.js:48 · lV"
+            },
+            {
+              "self_ms": 2.175,
+              "location": "index-DhYsAvyM.js:48 · ft"
+            },
+            {
+              "self_ms": 1.784,
+              "location": "index-DhYsAvyM.js:694 · y"
+            },
+            {
+              "self_ms": 1.463,
+              "location": "mark"
+            },
+            {
+              "self_ms": 1.176,
+              "location": "index-DhYsAvyM.js:48 · Zb"
+            },
+            {
+              "self_ms": 1.16,
+              "location": "index-DhYsAvyM.js:49 · Yn"
+            },
+            {
+              "self_ms": 1.156,
+              "location": "index-DhYsAvyM.js:276 · (anonymous)"
+            },
+            {
+              "self_ms": 1.115,
+              "location": "index-DhYsAvyM.js:698 · (anonymous)"
+            },
+            {
+              "self_ms": 1.113,
+              "location": "index-DhYsAvyM.js:694 · y"
+            },
+            {
+              "self_ms": 1.112,
+              "location": "index-DhYsAvyM.js:406 · O2e"
+            },
+            {
+              "self_ms": 1.088,
+              "location": "index-DhYsAvyM.js:102 · Kt"
+            },
+            {
+              "self_ms": 1.088,
+              "location": "index-DhYsAvyM.js:49 · Yn"
+            },
+            {
+              "self_ms": 1.085,
+              "location": "index-DhYsAvyM.js:48 · Nd"
+            },
+            {
+              "self_ms": 1.08,
+              "location": "index-DhYsAvyM.js:56 · AK"
+            },
+            {
+              "self_ms": 1.078,
+              "location": "index-DhYsAvyM.js:48 · ce"
+            },
+            {
+              "self_ms": 1.074,
+              "location": "index-DhYsAvyM.js:225 · (anonymous)"
+            },
+            {
+              "self_ms": 1.074,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            },
+            {
+              "self_ms": 1.073,
+              "location": "index-DhYsAvyM.js:56 · (anonymous)"
+            }
+          ],
+          "requests": {
+            "state_count": 3,
+            "state_response_p95_ms": 9.494,
+            "state_body_bytes": [89686, 89686, 89686],
+            "non_state": []
+          }
+        },
+        "tab-switch": {
+          "event_type": "click",
+          "event_dispatch": {
+            "count": 24,
+            "p50_ms": 17.052,
+            "p95_ms": 20.696,
+            "max_ms": 21.053,
+            "total_ms": 389.75200000000007
+          },
+          "phase_input_to_two_raf": {
+            "count": 120,
+            "p50_ms": 33.79999998211861,
+            "p95_ms": 46.30000001192093,
+            "max_ms": 48.5,
+            "total_ms": 4129.800000041723
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 119,
+              "p50_ms": 0.473,
+              "p95_ms": 4.776,
+              "max_ms": 8.001,
+              "total_ms": 131.69400000000002
+            },
+            "Layout": {
+              "count": 24,
+              "p50_ms": 7.208,
+              "p95_ms": 8.033,
+              "max_ms": 8.772,
+              "total_ms": 95.88400000000001
+            },
+            "PrePaint": {
+              "count": 481,
+              "p50_ms": 0.004,
+              "p95_ms": 0.059,
+              "max_ms": 3.159,
+              "total_ms": 48.51499999999999
+            },
+            "Paint": {
+              "count": 48,
+              "p50_ms": 3.075,
+              "p95_ms": 3.41,
+              "max_ms": 3.473,
+              "total_ms": 124.464
+            },
+            "FunctionCall": {
+              "count": 2667,
+              "p50_ms": 0.008,
+              "p95_ms": 0.19,
+              "max_ms": 20.854,
+              "total_ms": 605.8429999999998
+            },
+            "FireAnimationFrame": {
+              "count": 452,
+              "p50_ms": 0.017,
+              "p95_ms": 0.173,
+              "max_ms": 0.328,
+              "total_ms": 15.873999999999992
+            },
+            "TimerFire": {
+              "count": 7,
+              "p50_ms": 0.216,
+              "p95_ms": 0.794,
+              "max_ms": 0.794,
+              "total_ms": 2.7319999999999998
+            }
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 1256.4779999999976,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 900.7969999999942,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 58.036000000000016,
+              "location": "index-DhYsAvyM.js:702 · Y2"
+            },
+            {
+              "self_ms": 37.11300000000001,
+              "location": "query"
+            },
+            {
+              "self_ms": 27.017000000000003,
+              "location": "index-DhYsAvyM.js:719 · (anonymous)"
+            },
+            {
+              "self_ms": 18.293000000000003,
+              "location": "index-DhYsAvyM.js:702 · qp"
+            },
+            {
+              "self_ms": 17.579,
+              "location": "index-DhYsAvyM.js:702 · Y2"
+            },
+            {
+              "self_ms": 17.066999999999997,
+              "location": "(anonymous)"
+            },
+            {
+              "self_ms": 16.132,
+              "location": "index-DhYsAvyM.js:719 · dMe"
+            },
+            {
+              "self_ms": 16.107000000000003,
+              "location": "elementSafeTagName"
+            },
+            {
+              "self_ms": 13.863000000000003,
+              "location": "getAttribute"
+            },
+            {
+              "self_ms": 12.663,
+              "location": "elementFromPoint"
+            },
+            {
+              "self_ms": 11.887,
+              "location": "index-DhYsAvyM.js:48 · ft"
+            },
+            {
+              "self_ms": 11.698,
+              "location": "match"
+            },
+            {
+              "self_ms": 11.445,
+              "location": "elementsFromPoint"
+            },
+            {
+              "self_ms": 10.482000000000001,
+              "location": "index-DhYsAvyM.js:713 · pCe"
+            },
+            {
+              "self_ms": 9.583,
+              "location": "index-DhYsAvyM.js:48 · lV"
+            },
+            {
+              "self_ms": 8.854,
+              "location": "getAriaRole"
+            },
+            {
+              "self_ms": 6.629999999999999,
+              "location": "index-DhYsAvyM.js:694 · (anonymous)"
+            },
+            {
+              "self_ms": 6.4799999999999995,
+              "location": "index-DhYsAvyM.js:56 · (anonymous)"
+            }
+          ],
+          "requests": {
+            "state_count": 7,
+            "state_response_p95_ms": 12.296,
+            "state_body_bytes": [
+              89686, 89686, 89686, 89686, 89686, 89686, 89686
+            ],
+            "non_state": []
+          }
+        },
+        "graph-node-select": {
+          "event_type": "click",
+          "event_dispatch": {
+            "count": 9,
+            "p50_ms": 0.078,
+            "p95_ms": 32.079,
+            "max_ms": 32.079,
+            "total_ms": 33.242
+          },
+          "phase_input_to_two_raf": {
+            "count": 35,
+            "p50_ms": 28.400000005960464,
+            "p95_ms": 63.80000001192093,
+            "max_ms": 63.900000005960464,
+            "total_ms": 1193.4000000953674
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 63,
+              "p50_ms": 0.16,
+              "p95_ms": 0.402,
+              "max_ms": 7.898,
+              "total_ms": 18.817999999999998
+            },
+            "Layout": {
+              "count": 15,
+              "p50_ms": 0.371,
+              "p95_ms": 1.532,
+              "max_ms": 1.532,
+              "total_ms": 6.643
+            },
+            "PrePaint": {
+              "count": 133,
+              "p50_ms": 0.003,
+              "p95_ms": 0.094,
+              "max_ms": 2.241,
+              "total_ms": 6.9780000000000015
+            },
+            "Paint": {
+              "count": 18,
+              "p50_ms": 2.046,
+              "p95_ms": 6.454,
+              "max_ms": 6.454,
+              "total_ms": 32.211
+            },
+            "FunctionCall": {
+              "count": 723,
+              "p50_ms": 0.006,
+              "p95_ms": 0.061,
+              "max_ms": 29.936,
+              "total_ms": 97.90899999999999
+            },
+            "FireAnimationFrame": {
+              "count": 132,
+              "p50_ms": 0.01,
+              "p95_ms": 0.113,
+              "max_ms": 0.345,
+              "total_ms": 4.268000000000001
+            },
+            "TimerFire": {
+              "count": 5,
+              "p50_ms": 0.241,
+              "p95_ms": 0.802,
+              "max_ms": 0.802,
+              "total_ms": 1.838
+            }
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 587.5170000000002,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 313.41899999999816,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 7.562000000000001,
+              "location": "index-DhYsAvyM.js:225 · X7"
+            },
+            {
+              "self_ms": 3.7570000000000006,
+              "location": "(anonymous)"
+            },
+            {
+              "self_ms": 3.1790000000000003,
+              "location": "querySelectorAll"
+            },
+            {
+              "self_ms": 2.207,
+              "location": "index-DhYsAvyM.js:48 · ft"
+            },
+            {
+              "self_ms": 2.2030000000000003,
+              "location": "index-DhYsAvyM.js:100 · (anonymous)"
+            },
+            {
+              "self_ms": 2.184,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            },
+            {
+              "self_ms": 2.178,
+              "location": "get scrollTop"
+            },
+            {
+              "self_ms": 2.159,
+              "location": "(anonymous)"
+            },
+            {
+              "self_ms": 2.129,
+              "location": "index-DhYsAvyM.js:56 · (anonymous)"
+            },
+            {
+              "self_ms": 2.126,
+              "location": "index-DhYsAvyM.js:48 · cr"
+            },
+            {
+              "self_ms": 2.12,
+              "location": "elementFromPoint"
+            },
+            {
+              "self_ms": 2.1159999999999997,
+              "location": "index-DhYsAvyM.js:225 · jT"
+            },
+            {
+              "self_ms": 2.093,
+              "location": "index-DhYsAvyM.js:56 · (anonymous)"
+            },
+            {
+              "self_ms": 1.806,
+              "location": "mark"
+            },
+            {
+              "self_ms": 1.107,
+              "location": "index-DhYsAvyM.js:225 · jT"
+            },
+            {
+              "self_ms": 1.099,
+              "location": "query"
+            },
+            {
+              "self_ms": 1.092,
+              "location": "index-DhYsAvyM.js:225 · ux"
+            },
+            {
+              "self_ms": 1.089,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            }
+          ],
+          "requests": {
+            "state_count": 3,
+            "state_response_p95_ms": 9.965,
+            "state_body_bytes": [89686, 89686, 89686],
+            "non_state": []
+          }
+        },
+        "project-map-wheel": {
+          "event_type": "wheel",
+          "event_dispatch": {
+            "count": 24,
+            "p50_ms": 9.123,
+            "p95_ms": 10.857,
+            "max_ms": 10.959,
+            "total_ms": 199.364
+          },
+          "phase_input_to_two_raf": {
+            "count": 34,
+            "p50_ms": 17.80000001192093,
+            "p95_ms": 25,
+            "max_ms": 25.200000017881393,
+            "total_ms": 639.6000000238419
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 27,
+              "p50_ms": 0.821,
+              "p95_ms": 1.193,
+              "max_ms": 1.2,
+              "total_ms": 19.97
+            },
+            "Layout": {
+              "count": 25,
+              "p50_ms": 0.317,
+              "p95_ms": 0.529,
+              "max_ms": 4.111,
+              "total_ms": 11.963999999999999
+            },
+            "PrePaint": {
+              "count": 148,
+              "p50_ms": 0.008,
+              "p95_ms": 1.694,
+              "max_ms": 2.064,
+              "total_ms": 39.474000000000004
+            },
+            "Paint": {
+              "count": 72,
+              "p50_ms": 0.088,
+              "p95_ms": 3.843,
+              "max_ms": 3.961,
+              "total_ms": 72.918
+            },
+            "FunctionCall": {
+              "count": 491,
+              "p50_ms": 0.018,
+              "p95_ms": 6.935,
+              "max_ms": 20.129,
+              "total_ms": 280.69700000000006
+            },
+            "FireAnimationFrame": {
+              "count": 169,
+              "p50_ms": 0.019,
+              "p95_ms": 0.096,
+              "max_ms": 0.329,
+              "total_ms": 5.682999999999998
+            },
+            "TimerFire": {
+              "count": 8,
+              "p50_ms": 0.434,
+              "p95_ms": 0.758,
+              "max_ms": 0.758,
+              "total_ms": 2.997
+            }
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 938.1090000000003,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 498.2489999999996,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 71.30300000000003,
+              "location": "index-DhYsAvyM.js:702 · Y2"
+            },
+            {
+              "self_ms": 39.041000000000004,
+              "location": "index-DhYsAvyM.js:719 · (anonymous)"
+            },
+            {
+              "self_ms": 19.967000000000002,
+              "location": "index-DhYsAvyM.js:702 · qp"
+            },
+            {
+              "self_ms": 17.746999999999996,
+              "location": "index-DhYsAvyM.js:719 · dMe"
+            },
+            {
+              "self_ms": 8.620000000000001,
+              "location": "index-DhYsAvyM.js:702 · Y2"
+            },
+            {
+              "self_ms": 4.309,
+              "location": "index-DhYsAvyM.js:702 · qp"
+            },
+            {
+              "self_ms": 4.270999999999999,
+              "location": "index-DhYsAvyM.js:64 · aN"
+            },
+            {
+              "self_ms": 3.256,
+              "location": "index-DhYsAvyM.js:719 · (anonymous)"
+            },
+            {
+              "self_ms": 2.182,
+              "location": "index-DhYsAvyM.js:56 · HO"
+            },
+            {
+              "self_ms": 2.175,
+              "location": "index-DhYsAvyM.js:713 · (anonymous)"
+            },
+            {
+              "self_ms": 2.172,
+              "location": "index-DhYsAvyM.js:48 · fu"
+            },
+            {
+              "self_ms": 2.143,
+              "location": "index-DhYsAvyM.js:693 · f_e"
+            },
+            {
+              "self_ms": 2.1310000000000002,
+              "location": "index-DhYsAvyM.js:719 · dMe"
+            },
+            {
+              "self_ms": 2.129,
+              "location": "index-DhYsAvyM.js:719 · (anonymous)"
+            },
+            {
+              "self_ms": 2.129,
+              "location": "index-DhYsAvyM.js:9 · n"
+            },
+            {
+              "self_ms": 2.125,
+              "location": "closest"
+            },
+            {
+              "self_ms": 2.121,
+              "location": "index-DhYsAvyM.js:48 · G9"
+            },
+            {
+              "self_ms": 2.116,
+              "location": "index-DhYsAvyM.js:48 · lV"
+            }
+          ],
+          "requests": {
+            "state_count": 5,
+            "state_response_p95_ms": 8.554,
+            "state_body_bytes": [89686, 89686, 89686, 89686, 89686],
+            "non_state": []
+          }
+        },
+        "project-map-idle": {
+          "event_type": null,
+          "event_dispatch": null,
+          "phase_input_to_two_raf": null,
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "Layout": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "PrePaint": {
+              "count": 234,
+              "p50_ms": 0.008,
+              "p95_ms": 0.024,
+              "max_ms": 0.156,
+              "total_ms": 2.5869999999999966
+            },
+            "Paint": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "FunctionCall": {
+              "count": 519,
+              "p50_ms": 0.021,
+              "p95_ms": 0.589,
+              "max_ms": 23.436,
+              "total_ms": 227.644
+            },
+            "FireAnimationFrame": {
+              "count": 412,
+              "p50_ms": 0.04,
+              "p95_ms": 0.11,
+              "max_ms": 1.106,
+              "total_ms": 21.765999999999995
+            },
+            "TimerFire": {
+              "count": 10,
+              "p50_ms": 0.718,
+              "p95_ms": 0.901,
+              "max_ms": 0.901,
+              "total_ms": 6.99
+            }
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 3021.759000000001,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 621.161999999999,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 54.71500000000002,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 10.681000000000003,
+              "location": "index-DhYsAvyM.js:702 · Y2"
+            },
+            {
+              "self_ms": 8.588000000000001,
+              "location": "index-DhYsAvyM.js:702 · Y2"
+            },
+            {
+              "self_ms": 8.522,
+              "location": "index-DhYsAvyM.js:719 · dMe"
+            },
+            {
+              "self_ms": 7.5,
+              "location": "index-DhYsAvyM.js:719 · (anonymous)"
+            },
+            {
+              "self_ms": 7.4910000000000005,
+              "location": "index-DhYsAvyM.js:719 · dMe"
+            },
+            {
+              "self_ms": 6.4479999999999995,
+              "location": "index-DhYsAvyM.js:702 · qp"
+            },
+            {
+              "self_ms": 6.423000000000001,
+              "location": "index-DhYsAvyM.js:719 · (anonymous)"
+            },
+            {
+              "self_ms": 5.402,
+              "location": "index-DhYsAvyM.js:56 · pK"
+            },
+            {
+              "self_ms": 5.3839999999999995,
+              "location": "index-DhYsAvyM.js:48 · lV"
+            },
+            {
+              "self_ms": 3.255,
+              "location": "fetch"
+            },
+            {
+              "self_ms": 3.2199999999999998,
+              "location": "index-DhYsAvyM.js:694 · (anonymous)"
+            },
+            {
+              "self_ms": 3.215,
+              "location": "index-DhYsAvyM.js:56 · (anonymous)"
+            },
+            {
+              "self_ms": 3.207,
+              "location": "index-DhYsAvyM.js:694 · (anonymous)"
+            },
+            {
+              "self_ms": 3.2040000000000006,
+              "location": "index-DhYsAvyM.js:48 · ft"
+            },
+            {
+              "self_ms": 3.186,
+              "location": "index-DhYsAvyM.js:428 · request"
+            },
+            {
+              "self_ms": 3.183,
+              "location": "index-DhYsAvyM.js:49 · MV"
+            },
+            {
+              "self_ms": 2.1630000000000003,
+              "location": "index-DhYsAvyM.js:48 · T9"
+            }
+          ],
+          "requests": {
+            "state_count": 10,
+            "state_response_p95_ms": 10.609,
+            "state_body_bytes": [
+              89686, 89686, 89686, 89686, 89686, 89686, 89686, 89686, 89686,
+              89686
+            ],
+            "non_state": []
+          }
+        }
+      },
+      "artifact_manifest": {
+        "binary_sha256": "d770ade482bb3f66fb44d16d672889ac6ccc4ce37566833ab7565384c5256ace",
+        "samples": 2956,
+        "perf_event_paranoid": "2",
+        "kptr_restrict": "1",
+        "event": "cpu-clock:u",
+        "frequency_hz": 99,
+        "stack": "dwarf,8192",
+        "digests": {
+          "perf.data": "49724fabdbf73a612f7cb6e71bec4e46355713f3d3c2e2ae731aa042edb9418c",
+          "perf-report.txt": "8501ded3fabd5736d223a3f6bf33331e5b577aa8cc44f83bc4899da77947d570",
+          "trace.json": "c94bb56a7b20e5d2a90e9f363c319432f586db0728b99c79288ea07aa3d4d67e",
+          "native-metrics.json": "30f4f2dc25ccfb01797bd6aa24bea3eb4326bf8f36fb4b33caf854bec4c8e9fb",
+          "summary.json": "55f077c660504dd15f5390011507c9f52e01f9754718924d22b5cb97b5f18088",
+          "graph-hover.cpuprofile": "be8397492e5e3cac564ab8fc80c6feb5583ca8ecaa53e939344215f561553736",
+          "graph-idle-poll.cpuprofile": "98dd42e97454327461e74bd3024e410c2c6eb47148dec9413f36d69886924b9a",
+          "graph-idle-settled.cpuprofile": "34d59b557706c711aed0bdf3074442fd7ef1051ed77eacc523caba6c60b06c46",
+          "graph-node-select.cpuprofile": "325ac4c496c105828a80b7f3516a7a8a0da115d85108f6fe54e05a934a87114e",
+          "graph-pan.cpuprofile": "66bf949cd98e84793c44eab2e797204269fcfe68980252db6b04c4a0c5e4921f",
+          "graph-resize.cpuprofile": "6897a833f8ffe4e4e898759026fbfb8ceaa416e3e05376ce13dd463627455755",
+          "graph-wheel.cpuprofile": "f6f83878e68cd2277ee14aa287c9fdee458ebb097339c3eb5d57160e65995b71",
+          "project-map-idle.cpuprofile": "7adcb23b064cc3838a95aeba5a558d0fdc93b5cddc8fd99893ab48795af84897",
+          "project-map-wheel.cpuprofile": "ffe61f920dfd641def99f611fe9b113bde1580f4fdddb0e95ef059c38b1ce4b8",
+          "tab-switch.cpuprofile": "7d147a9b115072952c661911e86dd6b5f28b39fc9e02aeb703162d0cd17ce917"
+        },
+        "limits": "Current-user native host and inherited workers only; no kernel stacks. Thread CPU spans exclude worker CPU. File preparation reuses project/OS caches, not a cold installation. Sampling changes timing; browser profiles have their own overhead."
+      }
+    }
+  ],
+  "findings": [
+    {
+      "priority": 1,
+      "finding": "A complete persisted-cache open still takes 40.04–41.20 seconds. Twelve Lake configuration executions total 17.12–17.23 seconds; prepared build/input resolution and fingerprinting takes 17.87–19.03 seconds.",
+      "action": "Reuse evaluated package configuration and prepared immutable input observations with explicit freshness/invalidation. Preserve exact input and resource checks; do not treat the entire prepare stage as hashing alone."
+    },
+    {
+      "priority": 2,
+      "finding": "Map wheel handler p95 is 10.32–10.86 ms versus 1.00–1.05 ms for the dependency graph. NativeWorkspaceGraph render uses scene.areas.some(declarationDetail) over the full inventory to decide legend visibility. The sampled declarationDetail/fade call path passes through WorkspaceMap.",
+      "action": "Derive legend visibility from the existing viewport index; use the same visible-area set for rendering, loading and legend decisions. Breadcrumb onMoveEnd also retains a whole-area scan and needs separate treatment."
+    },
+    {
+      "priority": 3,
+      "finding": "Retained tab click handlers take 20.70–21.81 ms p95. The node-selection sequence including explicit Fit View takes 32.08–33.12 ms p95 and one run has a 53 ms long task. No measured gesture/tab phase issued non-state API requests.",
+      "action": "Reduce map reactivation scans and source/popover layout work. Keep prepared tabs alive; investigate selection tail separately from handler time."
+    },
+    {
+      "priority": 4,
+      "finding": "Neither current capture reproduces the historical approximately 384 ms map materialization in its initial idle window. The second capture has no long tasks in settled graph/map idle windows. This is not evidence that every state poll rebuilds the map.",
+      "action": "Capture whole-inventory materialization during initial overview arrival or revision changes separately; avoid attributing a one-time initialization pause to periodic polling."
+    }
+  ],
+  "limitations": [
+    "EventDispatch is handler wall time, not complete user latency. Phase input-to-two-rAF combines the instrumented event types; it is a presentation proxy, not physical presentation or field INP.",
+    "Two sequential captures on one unthrottled desktop are diagnostic observations, not population percentiles or confidence intervals. Resize events may be coalesced. The nine-click node sequence includes one Fit View and repeated selection of a reachable node.",
+    "Nested native stages overlap and must not be added. Host thread CPU excludes subprocess CPU; wall minus thread CPU is not an I/O-wait measurement.",
+    "The production minified bundle has no matching local source map. Function attribution was checked against its actual function body and call tree; unresolved Lean-library symbols are not assigned speculative names.",
+    "No cold installation, uncached compilation/search latency, model latency, arbitrary large per-file graph performance or new refinement assurance is established."
+  ],
+  "checks": {
+    "profiler_syntax": "passed",
+    "profiler_format": "passed",
+    "actual_browser_runs": 2,
+    "required_tui": {
+      "success": true,
+      "passed": 33,
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/gui-runtime/d770ade482bb3f66fb44d16d672889ac6ccc4ce37566833ab7565384c5256ace-4de574e7507beb69/meden",
+        "sha256": "d770ade482bb3f66fb44d16d672889ac6ccc4ce37566833ab7565384c5256ace"
+      },
+      "evidence": "/tmp/meden-ux-event-measurements-20261123",
+      "summary_sha256": "c6cad0b25c59992151545ce917fe5d92a76d8e0a426ebbcdb6f0973110005bf1",
+      "decoded_screens_reviewed": [
+        "Lake inventory-change refusal and historical restart",
+        "Provider HTTP 429 retained stop and explicit retry",
+        "GUI to TUI conversation continuation with fresh review"
+      ],
+      "scope": "Pinned production binary, installed Lean/Lake, scripted inference fixtures. No cold-install or live-model claim."
+    },
+    "actual_browser_screens_reviewed": [
+      "target/native-profile/riemann-events-current/project-map.png"
+    ]
+  }
+}
