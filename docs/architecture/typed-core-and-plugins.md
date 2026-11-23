@@ -145,6 +145,17 @@ busy/idle updates. Prepared compilation batches the ordinary root build and
 source/output/compiler-setup queries in one Lake build state, while preserving
 the exact complete-input fingerprint and original resource checks.
 
+Cache metadata validation now groups directory observations by their actually
+observed parent frontier, then reads present configuration files in bounded
+batches through the existing policy-bound file worker. Each original path still
+receives its own original/resolved resource checks. Complete bytes, missing-path
+observations and filtered Lean inventories must all match. The previous per-file,
+per-response and aggregate observation limits remain enforced; an incomplete,
+cancelled or malformed batch cannot admit a successful prefix. No successful
+validation is reused across operations or replaced by timestamps. This reduces
+worker startup, without removing either caller's cache check or establishing an
+atomic filesystem snapshot. See [the measurements](../gui-performance.md).
+
 Prepared-input fingerprint version 2 reads every byte with four bounded readers,
 then aggregates per-file SHA-256 values in canonical path order. Its framing
 binds all compiler setup records, path names, lengths and file counts; scheduling

@@ -1,0 +1,1122 @@
+{
+  "date": "2026-11-24",
+  "source_base_revision": "426382d5d77704cd593abafa128973b8d217d2cf",
+  "scope": "Batch complete exact configuration/absence/Lean-inventory validation through the existing policy-bound confined read worker. Reduce process startup without weakening observation admission, skipping either cache check or caching successful validations across operations.",
+  "candidate": {
+    "binary": "/home/gohan/workspace/meden/target/validation/f47f720755266463ce33f850c29870ae81eeb79269c2754fd25a95960b26e4e4/meden",
+    "sha256": "f47f720755266463ce33f850c29870ae81eeb79269c2754fd25a95960b26e4e4"
+  },
+  "deployment": {
+    "binary_sha256": "f47f720755266463ce33f850c29870ae81eeb79269c2754fd25a95960b26e4e4",
+    "assets_sha256": "2d4060ad02ff6af2c0890abe2e373c9b7a7dfb43b9a89b5c866ee58d381d725a",
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/f47f720755266463ce33f850c29870ae81eeb79269c2754fd25a95960b26e4e4-2d4060ad02ff6af2"
+  },
+  "ownership": {
+    "core_changed": false,
+    "runtime_worker_changed": false,
+    "wire_schema_changed": false,
+    "new_authority": false,
+    "new_refinement_claim": false,
+    "implementation": "Shared application observation adapter. The compiler plugin identity changes because it binds the actual adapter source; old compiled observations are not relabeled as new."
+  },
+  "bounds": {
+    "directory_batch_requests": 4,
+    "file_batch_requests": 256,
+    "retained_file_bytes": 65536,
+    "per_original_success_response_bytes": 8388608,
+    "complete_batch_response_bytes": 67108864,
+    "batch_timeout_seconds": 30,
+    "metadata_files": 4096,
+    "metadata_utf8_bytes": 1048576,
+    "observed_directories": 2048,
+    "retained_filtered_inventory_entries": 16384
+  },
+  "static_spans": [
+    "analysis.metadata.validate",
+    "analysis.metadata.directory_batch",
+    "analysis.metadata.file_batch"
+  ],
+  "methodology": {
+    "samples_per_project_and_version": 3,
+    "commands": "Serial authenticated POST /api/command with Origin and {type: inspect, path: selected file, directory: false}; poll /api/state at 50ms until the new job finishes. Require ready/cache_hit, unchanged history, idle/unapproved host and complete stable source body for every sample.",
+    "isolation": "No concurrent builds, tests or profiles during before/after samples or the two serialized numeric browser gates.",
+    "condition": "Same actual projects, original selected files and installed dependencies. Each version is fully warmed before its three samples. After deployment, a normal browser visit prepares the new implementation-bound artifact before timing begins.",
+    "timing": "Complete inspection API duration, including final navigation-note validation and polling quantization; not visible-source latency or field percentiles. File-local preparation duration can end before navigation validation.",
+    "process_counts": "Count all descendant process.run records in each analysis.cache.validate, including nested source capture. Native wall intervals overlap; host-thread CPU excludes child workers.",
+    "attribution": "Complete compiler snapshots, search reports and rendered readings compare without normalization. Compiler/cache/view identities legitimately change with implementation attribution."
+  },
+  "comparison": [
+    {
+      "project": "riemann",
+      "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+      "before_ms": [13019.282686999999, 12596.045191, 12459.383362999997],
+      "after_ms": [11154.429521, 10924.742833, 11111.433503999997],
+      "before_median_ms": 12596.045191,
+      "after_median_ms": 11111.433503999997,
+      "reduction_percent": 11.786331856452625,
+      "before_validations": [
+        [
+          {
+            "wall_ms": 1251.282,
+            "host_thread_cpu_ms": 55.712,
+            "process_calls": 24
+          },
+          {
+            "wall_ms": 0.086,
+            "host_thread_cpu_ms": 0.085,
+            "process_calls": 0
+          }
+        ],
+        [
+          {
+            "wall_ms": 1241.999,
+            "host_thread_cpu_ms": 55.041,
+            "process_calls": 24
+          },
+          {
+            "wall_ms": 0.142,
+            "host_thread_cpu_ms": 0.14,
+            "process_calls": 0
+          }
+        ],
+        [
+          {
+            "wall_ms": 1211.625,
+            "host_thread_cpu_ms": 55.642,
+            "process_calls": 24
+          },
+          {
+            "wall_ms": 0.091,
+            "host_thread_cpu_ms": 0.091,
+            "process_calls": 0
+          }
+        ]
+      ],
+      "after_validations": [
+        [
+          {
+            "wall_ms": 431.855,
+            "host_thread_cpu_ms": 46.969,
+            "process_calls": 8
+          },
+          {
+            "wall_ms": 0.089,
+            "host_thread_cpu_ms": 0.088,
+            "process_calls": 0
+          }
+        ],
+        [
+          {
+            "wall_ms": 419.842,
+            "host_thread_cpu_ms": 44.48,
+            "process_calls": 8
+          },
+          {
+            "wall_ms": 0.098,
+            "host_thread_cpu_ms": 0.098,
+            "process_calls": 0
+          }
+        ],
+        [
+          {
+            "wall_ms": 429.177,
+            "host_thread_cpu_ms": 44.22,
+            "process_calls": 8
+          },
+          {
+            "wall_ms": 0.089,
+            "host_thread_cpu_ms": 0.088,
+            "process_calls": 0
+          }
+        ]
+      ],
+      "after_metadata": [
+        [
+          {
+            "wall_ms": 323.155,
+            "process_calls": 7
+          },
+          {
+            "wall_ms": 342.627,
+            "process_calls": 7
+          }
+        ],
+        [
+          {
+            "wall_ms": 365.141,
+            "process_calls": 7
+          },
+          {
+            "wall_ms": 333.87,
+            "process_calls": 7
+          }
+        ],
+        [
+          {
+            "wall_ms": 364.019,
+            "process_calls": 7
+          },
+          {
+            "wall_ms": 343.029,
+            "process_calls": 7
+          }
+        ]
+      ],
+      "before_stages": [
+        {
+          "name": "analysis.discover_layout",
+          "median_ms": 1819.492
+        },
+        {
+          "name": "atlas.project.prepare",
+          "median_ms": 7693.863
+        },
+        {
+          "name": "analysis.extract",
+          "median_ms": 12375.942
+        },
+        {
+          "name": "gui.job",
+          "median_ms": 12562.497
+        }
+      ],
+      "after_stages": [
+        {
+          "name": "analysis.discover_layout",
+          "median_ms": 1833.61
+        },
+        {
+          "name": "atlas.project.prepare",
+          "median_ms": 7821.365
+        },
+        {
+          "name": "analysis.extract",
+          "median_ms": 10924.776
+        },
+        {
+          "name": "gui.job",
+          "median_ms": 11091.793
+        }
+      ],
+      "source_before": "sha256:cceea27ed96cca5edbc108e206c63b9d1d458dd4177154ad797f5b7d6f121014",
+      "source_after": "sha256:4671471a8580f25a42b2117fcc7cf5a8d25988b715b1a40cbb17b77e006bfa94"
+    },
+    {
+      "project": "ethlib",
+      "file": "EthLib/Networking/Gossip/Parameters.lean",
+      "before_ms": [3891.5068209999954, 3927.7156190000023, 3918.5289639999974],
+      "after_ms": [1706.444008999999, 1698.1512539999967, 1750.0840749999988],
+      "before_median_ms": 3918.5289639999974,
+      "after_median_ms": 1706.444008999999,
+      "reduction_percent": 56.45192303853543,
+      "before_validations": [
+        [
+          {
+            "wall_ms": 1592.83,
+            "host_thread_cpu_ms": 63.284,
+            "process_calls": 32
+          },
+          {
+            "wall_ms": 1550.939,
+            "host_thread_cpu_ms": 61.123,
+            "process_calls": 32
+          }
+        ],
+        [
+          {
+            "wall_ms": 1579.827,
+            "host_thread_cpu_ms": 61.408,
+            "process_calls": 32
+          },
+          {
+            "wall_ms": 1593.766,
+            "host_thread_cpu_ms": 64.788,
+            "process_calls": 32
+          }
+        ],
+        [
+          {
+            "wall_ms": 1592.958,
+            "host_thread_cpu_ms": 64.113,
+            "process_calls": 32
+          },
+          {
+            "wall_ms": 1592.356,
+            "host_thread_cpu_ms": 63.549,
+            "process_calls": 32
+          }
+        ]
+      ],
+      "after_validations": [
+        [
+          {
+            "wall_ms": 478.217,
+            "host_thread_cpu_ms": 52.19,
+            "process_calls": 9
+          },
+          {
+            "wall_ms": 514.888,
+            "host_thread_cpu_ms": 58.878,
+            "process_calls": 9
+          }
+        ],
+        [
+          {
+            "wall_ms": 466.008,
+            "host_thread_cpu_ms": 51.072,
+            "process_calls": 9
+          },
+          {
+            "wall_ms": 480.718,
+            "host_thread_cpu_ms": 54.99,
+            "process_calls": 9
+          }
+        ],
+        [
+          {
+            "wall_ms": 522.193,
+            "host_thread_cpu_ms": 55.793,
+            "process_calls": 9
+          },
+          {
+            "wall_ms": 479.133,
+            "host_thread_cpu_ms": 53.092,
+            "process_calls": 9
+          }
+        ]
+      ],
+      "after_metadata": [
+        [
+          {
+            "wall_ms": 389.709,
+            "process_calls": 8
+          },
+          {
+            "wall_ms": 425.595,
+            "process_calls": 8
+          }
+        ],
+        [
+          {
+            "wall_ms": 387.584,
+            "process_calls": 8
+          },
+          {
+            "wall_ms": 391.69,
+            "process_calls": 8
+          }
+        ],
+        [
+          {
+            "wall_ms": 433.7,
+            "process_calls": 8
+          },
+          {
+            "wall_ms": 390.491,
+            "process_calls": 8
+          }
+        ]
+      ],
+      "before_stages": [
+        {
+          "name": "analysis.discover_layout"
+        },
+        {
+          "name": "atlas.project.prepare"
+        },
+        {
+          "name": "analysis.extract",
+          "median_ms": 1988.279
+        },
+        {
+          "name": "gui.job",
+          "median_ms": 3876.213
+        }
+      ],
+      "after_stages": [
+        {
+          "name": "analysis.discover_layout"
+        },
+        {
+          "name": "atlas.project.prepare"
+        },
+        {
+          "name": "analysis.extract",
+          "median_ms": 881.235
+        },
+        {
+          "name": "gui.job",
+          "median_ms": 1680.292
+        }
+      ],
+      "source_before": "sha256:2c341ffe5ab6931073adae9076148692002e8a718f8e182610b8b79cfa4b2506",
+      "source_after": "sha256:c9a67ef7faab77791ab7d84fad5d7176476d3b7d5320d9f95f155b117b57e86b"
+    }
+  ],
+  "fidelity": [
+    {
+      "project": "riemann",
+      "old_compiler_implementation": "1144a8caf8ad7081d39d23a90e7dbada15f2fa493589cab5cc8900baa4c43486",
+      "new_compiler_implementation": "4fdd3bed0b70309387b7b0732418bfa659183b2c8c9e47cfd35de59a7d5a3f32",
+      "old_compilation": "44fdbcb5624aa9e8f5f74d7a4fdf5a128351b625b4b7545faa301db31fc2c2f2",
+      "new_compilation": "4da13ff863691dae3111c8be9dbfe9e0d2e22cdddf292ea6181ee90a943841ca",
+      "original_snapshot_sha256": "7878203b1f9fccf7a68db4602d297efb1e57fd8f75ae25bd24586ce746b82f70",
+      "new_snapshot_sha256": "7878203b1f9fccf7a68db4602d297efb1e57fd8f75ae25bd24586ce746b82f70",
+      "complete_compiler_snapshot_equal": true,
+      "counterexample_report_equal": true,
+      "rendered_readings_equal": true,
+      "normalization": "None; compare complete decoded snapshot, search report and reading vector. Descriptor, cache and view identities change to retain original implementation attribution."
+    },
+    {
+      "project": "ethlib",
+      "old_compiler_implementation": "e347bf15ee9cf045c7c7e9b8119c57898a456117935125203797ecd6f159da57",
+      "new_compiler_implementation": "a13cef553d25c4722dfbafb5490ee7e66a987fef003c9169e37f8e13a34ce6ee",
+      "old_compilation": "db26010282eab07373de90c34154c25ac6c66f326d2a58dfd0b7096fe7c9be1a",
+      "new_compilation": "c991749ca18695b26d05ec21ffa397b0d2ff51acaf7d8cfda8c29a082efa6d28",
+      "original_snapshot_sha256": "96cbf3ce713c496fff1378a8c3f896dfd15a9910601a15be98e90a032979c244",
+      "new_snapshot_sha256": "96cbf3ce713c496fff1378a8c3f896dfd15a9910601a15be98e90a032979c244",
+      "complete_compiler_snapshot_equal": true,
+      "counterexample_report_equal": true,
+      "rendered_readings_equal": true,
+      "normalization": "None; compare complete decoded snapshot, search report and reading vector. Descriptor, cache and view identities change to retain original implementation attribution."
+    }
+  ],
+  "initial_after_visits": [
+    {
+      "project": "riemann",
+      "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+      "setup_ms": 197482.703951,
+      "preparation": {
+        "job": "sha256:84f5ec60103a669457b17518a26d687c708d4ead5e646e7fcbb8df830ef4e732",
+        "resource": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "phase": "Preparing explanations",
+        "elapsed_ms": 195077,
+        "phase_elapsed_ms": 9920,
+        "limit_seconds": 0,
+        "outcome": {
+          "state": "ready",
+          "cache_hit": false
+        },
+        "log": {
+          "revision": "sha256:16bf4834ca8b95aa7f078ac93d98fd4f8bd7c489bb09cf7c8799fe7ec85811ff"
+        }
+      },
+      "running": false,
+      "authorized": false,
+      "chat_unchanged": true,
+      "methodology": "One actual deployed GUI visit without CPU/tracing instrumentation. Diagnostic single capture, not a comparative latency or field percentile claim."
+    },
+    {
+      "project": "ethlib",
+      "file": "EthLib/Networking/Gossip/Parameters.lean",
+      "setup_ms": 49584.832018999994,
+      "preparation": {
+        "job": "sha256:0ab72992eac341e72d07b4768eeb906245c3868337a0d3cc3b5b3b775cf8954b",
+        "resource": "EthLib/Networking/Gossip/Parameters.lean",
+        "phase": "Preparing explanations",
+        "elapsed_ms": 48237,
+        "phase_elapsed_ms": 15741,
+        "limit_seconds": 0,
+        "outcome": {
+          "state": "ready",
+          "cache_hit": false
+        },
+        "log": {
+          "revision": "sha256:efba5cbc5c5e31b09eeafeea14f405b88498653e5514f931fc4e5b36907d0b83"
+        }
+      },
+      "running": false,
+      "authorized": false,
+      "chat_unchanged": true,
+      "methodology": "One actual deployed GUI visit without CPU/tracing instrumentation. Diagnostic single capture, not a comparative latency or field percentile claim."
+    }
+  ],
+  "checks": {
+    "rust_workspace_all_features": 305,
+    "metadata_actual_worker_cases": 3,
+    "metadata_worker_regression": "300 original file inputs across 12 nested groups require fewer than 20 actual confined process calls; independently compare full contents/absence and filtered directory listings. Same-size edits and newly appearing modules/absent targets refuse; irrelevant regular files do not change the Lean inventory.",
+    "metadata_failure_regression": "Complete good prefix plus invalid UTF-8, 65537-byte content, missing input, outside symlink, actual cancellation and noncanonical path all refuse. A 30000-entry filtered-away raw listing above 8 MiB is refused before filtering.",
+    "clippy": "pass all targets/features, warnings denied",
+    "architecture": {
+      "passed": 22,
+      "owned_sources": 26
+    },
+    "tui": {
+      "required": 34,
+      "passed": 34,
+      "skipped": 0,
+      "report": "/tmp/meden-ux-metadata-batches-20261124",
+      "decoded_screens_inspected": [
+        "provider limit, retained edits, restart and explicit retry",
+        "failed/cancelled/historical meaning observations after restart",
+        "finite checker counterexample, repair, accepted bounded result, stale evidence and fresh model review after restart"
+      ]
+    },
+    "gui": [
+      {
+        "report": "target/gui-metadata-batches-all-report",
+        "stats": {
+          "total": 65,
+          "expected": 65,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "errors": [],
+        "attachments": [
+          {
+            "name": "history-transfer.json",
+            "data": {
+              "status_bytes": [
+                2258, 2258, 2258, 2258, 2258, 2258, 2258, 2258, 2259, 2252,
+                2343, 2343, 2342, 2439, 2439, 2439, 2439, 2467, 2467, 2467,
+                2467, 2467, 2467, 2467, 2467, 2468, 2470, 2470, 2491, 2469,
+                2469, 2469, 2469, 2469, 2469, 2469, 2469, 2469, 2469, 2469,
+                2469, 2470
+              ],
+              "initial_history_bytes": 3124513,
+              "initial_history_fetches": 3,
+              "scope": "One intentionally failed initial response, explicit retry, a transient conflict under the same ID and automatic recovery after fresh status; unchanged navigation does not refetch history."
+            }
+          },
+          {
+            "name": "source-transfer.json",
+            "data": {
+              "status_bytes": 2617,
+              "source_bytes": 408776,
+              "initial_reads_before_manual_probe": 5,
+              "unchanged_navigation_reads": 0,
+              "stale_response_status": 409,
+              "chat_dom_unchanged": true
+            }
+          },
+          {
+            "name": "navigation-performance",
+            "data": {
+              "browser": "149.0.7827.53",
+              "motion": "reduce",
+              "cold_analysis_store_preparation_ms": 33763.068403,
+              "warm_tab_two_raf_ms": [
+                24.5, 28.100000023841858, 26.600000023841858, 25.19999998807907,
+                27.19999998807907, 28, 26.599999964237213, 27.19999998807907,
+                26.69999998807907, 26.5
+              ],
+              "p95_ms": 28.100000023841858,
+              "maximum_p95_ms": 250,
+              "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+            }
+          },
+          {
+            "name": "source-before-analysis.json",
+            "data": {
+              "source_visible_ms": 1174.5643509999936,
+              "budget_ms": 5000,
+              "methodology": "Real offline reader and a deliberately held installed Lean compiler; no complete semantic snapshot is available yet."
+            }
+          },
+          {
+            "name": "paging-during-compilation.json",
+            "data": {
+              "page_to_two_raf_ms": [
+                37.10000002384186, 27.399999976158142, 34.799999952316284,
+                25.900000035762787
+              ],
+              "commands": [],
+              "body_reads": [],
+              "scope": "Actual held Lean compiler; DOM page and two animation callbacks, not physical presentation."
+            }
+          },
+          {
+            "name": "preparation-transfer.json",
+            "data": {
+              "progress_projection_bytes": 352,
+              "diagnostic_tail_bytes": 65536,
+              "job": "sha256:63221064868267d7c8096aac9f285b53c0eebbbd896c7b47f17aaf3aba709a0f",
+              "resource": "Entry.lean",
+              "log_revision": "sha256:8d05d21735336b63f9bba0cfb715d446cd3e8ed64e26a9a1161695f36ee4c6b3",
+              "truncated": true,
+              "retry_commands": [],
+              "scope": "Actual completed Lean/Lake fixture; JSON-encoded status projection bytes and original diagnostic UTF-8 bytes. Not an old/new latency comparison."
+            }
+          },
+          {
+            "name": "renderer-cache-preparation",
+            "data": {
+              "browser": "149.0.7827.53",
+              "cold_ms": 27910.655039999983,
+              "renderer_update_ms": 2213.193153,
+              "complete_cache_ms": 1909.452478000021,
+              "scope": "File request to prepared DOM in a real installed-Lean/GF fixture. Diagnostic timing; cache reuse is established independently by native spans and preserved observations. Not cold installation, live inference or physical paint."
+            }
+          },
+          {
+            "name": "restart-browser-failures",
+            "data": [
+              "/api/state: net::ERR_CONNECTION_REFUSED",
+              "/api/state: net::ERR_CONNECTION_REFUSED"
+            ]
+          },
+          {
+            "name": "portable-workspace",
+            "data": {
+              "version": 1,
+              "name": "Portable verification",
+              "tasks": [
+                {
+                  "id": "identity",
+                  "title": "Natural-number identity",
+                  "requirement": "Every natural number equals itself.",
+                  "module": "Pilot",
+                  "theorems": ["portable_identity"],
+                  "next": "Inspect the same theorem after cloning."
+                }
+              ],
+              "events": [
+                {
+                  "id": "event_684c6d763a5c10c9d94b66836d73966c70d711f21733d67d5fe3feae050f7a4a",
+                  "task": "identity",
+                  "time": 1795474543,
+                  "note": "Started offline Lake build --wfail Pilot. Interrupted checks remain unfinished; rerun explicitly.",
+                  "check": null
+                },
+                {
+                  "id": "event_a28b45ddc819bc4a8e98ac70cbce1456c0153a6a7a6d751a2fc6f8be3910926b",
+                  "task": "identity",
+                  "time": 1795474545,
+                  "note": "Offline Lake build completed for the recorded source/configuration inputs. This record is historical on another machine.",
+                  "check": {
+                    "engine_sha256": "sha256:a7bdefe4ee3ae500f64cf10b37df9fe98b7e8cd164647f805d6497bbb3113684",
+                    "requirement": "Every natural number equals itself.",
+                    "theorems": ["portable_identity"],
+                    "inspection": "portable_identity : ∀ (n : Nat), n = n\nAxioms: #[]\nMEDEN_THEOREMS_CHECKED\n\n",
+                    "source_revision": "sha256:d298c8169475592adfed0ebfaaba72e9a4d0a2c519a37352eaea2edc40c5ecb0",
+                    "after_revision": "sha256:d298c8169475592adfed0ebfaaba72e9a4d0a2c519a37352eaea2edc40c5ecb0",
+                    "module": "Pilot",
+                    "success": true,
+                    "termination": "Exited(ExitStatus(unix_wait_status(0)))",
+                    "stdout": "✔ [2/3] Built Pilot (167ms)\nBuild completed successfully (3 jobs).\n",
+                    "stderr": ""
+                  }
+                },
+                {
+                  "id": "event_f5cb9f40ef8c1f4be4d023a1e0518d3b0606e9f849eb82ed9531f60a53b3144f",
+                  "task": "identity",
+                  "time": 1795474545,
+                  "note": "The original theorem passed the real local checker.",
+                  "check": null
+                },
+                {
+                  "id": "event_4d45c199daae8d491ccf539ec7d253a9211b0336f4a25779cbf0313c6edb6b27",
+                  "task": "identity",
+                  "time": 1795474581,
+                  "note": "Started offline Lake build --wfail Pilot. Interrupted checks remain unfinished; rerun explicitly.",
+                  "check": null
+                },
+                {
+                  "id": "event_21bc99dc1098c8e2c1c832269ffc2dc83a24fba521e70b41cd817cd4128e36f4",
+                  "task": "identity",
+                  "time": 1795474583,
+                  "note": "Check failed, was interrupted, or its source/configuration inputs changed. Inspect the retained output before retrying.",
+                  "check": {
+                    "engine_sha256": "sha256:a7bdefe4ee3ae500f64cf10b37df9fe98b7e8cd164647f805d6497bbb3113684",
+                    "requirement": "Every natural number equals itself.",
+                    "theorems": ["portable_identity"],
+                    "inspection": "\nuncaught exception: Unexpected axiom in portable_identity: injected\n",
+                    "source_revision": "sha256:15ae6bae38554accc3e68d778487a8d40b942d32b9f46bd8bff7ff2ed418930b",
+                    "after_revision": "sha256:15ae6bae38554accc3e68d778487a8d40b942d32b9f46bd8bff7ff2ed418930b",
+                    "module": "Pilot",
+                    "success": false,
+                    "termination": "Exited(ExitStatus(unix_wait_status(0)))",
+                    "stdout": "✔ [2/3] Built Pilot (165ms)\nBuild completed successfully (3 jobs).\n",
+                    "stderr": ""
+                  }
+                },
+                {
+                  "id": "event_cdc84b5f1cb829a23de61d51da372d4d5e84e906f54b6e8c4e013768ca643819",
+                  "task": "identity",
+                  "time": 1795474587,
+                  "note": "Started offline Lake build --wfail Pilot. Interrupted checks remain unfinished; rerun explicitly.",
+                  "check": null
+                },
+                {
+                  "id": "event_f64d532cee87db5fe1352e7089671c047d3a2a4a117c5d33fa744a115ef80f2c",
+                  "task": "identity",
+                  "time": 1795474589,
+                  "note": "Offline Lake build completed for the recorded source/configuration inputs. This record is historical on another machine.",
+                  "check": {
+                    "engine_sha256": "sha256:a7bdefe4ee3ae500f64cf10b37df9fe98b7e8cd164647f805d6497bbb3113684",
+                    "requirement": "Every natural number equals itself.",
+                    "theorems": ["portable_identity"],
+                    "inspection": "portable_identity : ∀ (n : Nat), n = n\nAxioms: #[]\nMEDEN_THEOREMS_CHECKED\n\n",
+                    "source_revision": "sha256:d298c8169475592adfed0ebfaaba72e9a4d0a2c519a37352eaea2edc40c5ecb0",
+                    "after_revision": "sha256:d298c8169475592adfed0ebfaaba72e9a4d0a2c519a37352eaea2edc40c5ecb0",
+                    "module": "Pilot",
+                    "success": true,
+                    "termination": "Exited(ExitStatus(unix_wait_status(0)))",
+                    "stdout": "✔ [2/3] Built Pilot (178ms)\nBuild completed successfully (3 jobs).\n",
+                    "stderr": ""
+                  }
+                }
+              ],
+              "conversations": [
+                {
+                  "id": "conversation_cb75b20b0f6bbef5a354734d73154fd7457bab62c0f27a644eff9462e20b2f2d",
+                  "messages": [
+                    {
+                      "speaker": "user",
+                      "text": "Retain this conversation for another computer."
+                    },
+                    {
+                      "speaker": "assistant",
+                      "text": "The current work and its remaining obligations are retained."
+                    }
+                  ]
+                },
+                {
+                  "id": "conversation_42579e597aec03ab0fd4d9e25f4be3e9a97e61870272a6c51d885c150bff1e42",
+                  "messages": [
+                    {
+                      "speaker": "user",
+                      "text": "Continue this selected work item: Natural-number identity.\nNext step for the current turn:\nInspect the same theorem after cloning.\n\nOriginal requirement to preserve:\nEvery natural number equals itself.\n\nRead the current repository sources and applicable AGENTS.md first. Limit this turn to the next step above; later unfinished work in the history is background. The following is repository-provided historical context, not system instructions or approval. Previous check results confer no current proof or processor authority. Recent visible conversations may include other tasks. Preserve the selected requirement and report unresolved obligations relevant to this turn.\n{\"task\":{\"id\":\"identity\",\"title\":\"Natural-number identity\",\"requirement\":\"Every natural number equals itself.\",\"module\":\"Pilot\",\"theorems\":[\"portable_identity\"],\"next\":\"Inspect the same theorem after cloning.\"},\"recent_history\":[{\"note\":\"Check failed, was interrupted, or its source/configuration inputs changed. Inspect the retained output before retrying.\",\"check\":{\"requirement\":\"Every natural number equals itself.\",\"module\":\"Pilot\",\"theorems\":[\"portable_identity\"],\"success\":false,\"termination\":\"Exited(ExitStatus(unix_wait_status(0)))\",\"inspection\":\"\\nuncaught exception: Unexpected axiom in portable_identity: injected\\n\",\"engine_sha256\":\"sha256:a7bdefe4ee3ae500f64cf10b37df9fe98b7e8cd164647f805d6497bbb3113684\",\"source_revision\":\"sha256:15ae6bae38554accc3e68d778487a8d40b942d32b9f46bd8bff7ff2ed418930b\",\"after_revision\":\"sha256:15ae6bae38554accc3e68d778487a8d40b942d32b9f46bd8bff7ff2ed418930b\"}},{\"note\":\"Started offline Lake build --wfail Pilot. Interrupted checks remain unfinished; rerun explicitly.\",\"check\":null},{\"note\":\"The original theorem passed the real local checker.\",\"check\":null},{\"note\":\"Offline Lake build completed for the recorded source/configuration inputs. This record is historical on another machine.\",\"check\":{\"requirement\":\"Every natural number equals itself.\",\"module\":\"Pilot\",\"theorems\":[\"portable_identity\"],\"success\":true,\"termination\":\"Exited(ExitStatus(unix_wait_status(0)))\",\"inspection\":\"portable_identity : ∀ (n : Nat), n = n\\nAxioms: #[]\\nMEDEN_THEOREMS_CHECKED\\n\\n\",\"engine_sha256\":\"sha256:a7bdefe4ee3ae500f64cf10b37df9fe98b7e8cd164647f805d6497bbb3113684\",\"source_revision\":\"sha256:d298c8169475592adfed0ebfaaba72e9a4d0a2c519a37352eaea2edc40c5ecb0\",\"after_revision\":\"sha256:d298c8169475592adfed0ebfaaba72e9a4d0a2c519a37352eaea2edc40c5ecb0\"}},{\"note\":\"Started offline Lake build --wfail Pilot. Interrupted checks remain unfinished; rerun explicitly.\",\"check\":null}],\"recent_visible_conversations\":[{\"id\":\"conversation_cb75b20b0f6bbef5a354734d73154fd7457bab62c0f27a644eff9462e20b2f2d\",\"messages\":[{\"speaker\":\"user\",\"text\":\"Retain this conversation for another computer.\"},{\"speaker\":\"assistant\",\"text\":\"The current work and its remaining obligations are retained.\"}]}]}"
+                    },
+                    {
+                      "speaker": "assistant",
+                      "text": "The current work and its remaining obligations are retained."
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "report": "target/gui-metadata-batches-budget-normal-report",
+        "stats": {
+          "total": 2,
+          "expected": 2,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "errors": [],
+        "attachments": [
+          {
+            "name": "navigation-performance",
+            "data": {
+              "browser": "149.0.7827.53",
+              "motion": "no-preference",
+              "cold_analysis_store_preparation_ms": 31756.560392000003,
+              "warm_tab_two_raf_ms": [
+                21.80000001192093, 20.100000023841858, 28.19999998807907,
+                25.19999998807907, 29.5, 27.100000023841858, 25.700000047683716,
+                28, 23.900000035762787, 32
+              ],
+              "p95_ms": 32,
+              "maximum_p95_ms": 250,
+              "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+            }
+          },
+          {
+            "name": "source-before-analysis.json",
+            "data": {
+              "source_visible_ms": 1193.2193379999953,
+              "budget_ms": 5000,
+              "methodology": "Real offline reader and a deliberately held installed Lean compiler; no complete semantic snapshot is available yet."
+            }
+          },
+          {
+            "name": "paging-during-compilation.json",
+            "data": {
+              "page_to_two_raf_ms": [
+                30.599999964237213, 31.400000035762787, 31.19999998807907,
+                22.80000001192093
+              ],
+              "commands": [],
+              "body_reads": [],
+              "scope": "Actual held Lean compiler; DOM page and two animation callbacks, not physical presentation."
+            }
+          },
+          {
+            "name": "preparation-transfer.json",
+            "data": {
+              "progress_projection_bytes": 352,
+              "diagnostic_tail_bytes": 65536,
+              "job": "sha256:dfe2a86131326c7be78b583c90248ac90f49d51388bc8667302d6b8352181a08",
+              "resource": "Entry.lean",
+              "log_revision": "sha256:d4356a134f4d108d550c7c9a773a128f8281a7f36b8ec6421c7816a48e2b3877",
+              "truncated": true,
+              "retry_commands": [],
+              "scope": "Actual completed Lean/Lake fixture; JSON-encoded status projection bytes and original diagnostic UTF-8 bytes. Not an old/new latency comparison."
+            }
+          }
+        ]
+      },
+      {
+        "report": "target/gui-metadata-batches-budget-reduced-report",
+        "stats": {
+          "total": 2,
+          "expected": 2,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "errors": [],
+        "attachments": [
+          {
+            "name": "navigation-performance",
+            "data": {
+              "browser": "149.0.7827.53",
+              "motion": "reduce",
+              "cold_analysis_store_preparation_ms": 31990.212456,
+              "warm_tab_two_raf_ms": [
+                25.5, 26, 28.80000001192093, 24.80000001192093,
+                29.399999976158142, 22.80000001192093, 24.80000001192093,
+                31.200000047683716, 28.80000001192093, 26.5
+              ],
+              "p95_ms": 31.200000047683716,
+              "maximum_p95_ms": 250,
+              "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+            }
+          },
+          {
+            "name": "source-before-analysis.json",
+            "data": {
+              "source_visible_ms": 1188.851751999995,
+              "budget_ms": 5000,
+              "methodology": "Real offline reader and a deliberately held installed Lean compiler; no complete semantic snapshot is available yet."
+            }
+          },
+          {
+            "name": "paging-during-compilation.json",
+            "data": {
+              "page_to_two_raf_ms": [
+                31.400000035762787, 35.5, 25.900000035762787, 25.399999976158142
+              ],
+              "commands": [],
+              "body_reads": [],
+              "scope": "Actual held Lean compiler; DOM page and two animation callbacks, not physical presentation."
+            }
+          },
+          {
+            "name": "preparation-transfer.json",
+            "data": {
+              "progress_projection_bytes": 352,
+              "diagnostic_tail_bytes": 65536,
+              "job": "sha256:1c8b13a0d72c6be4f15bc3b99e4d74819f790cb80c59446cda8c275ba47e1c97",
+              "resource": "Entry.lean",
+              "log_revision": "sha256:6dc4d8404fa86d727cae3ddc69b82bd9c6cda3f3dab9bcec0096c999ddd77bf5",
+              "truncated": true,
+              "retry_commands": [],
+              "scope": "Actual completed Lean/Lake fixture; JSON-encoded status projection bytes and original diagnostic UTF-8 bytes. Not an old/new latency comparison."
+            }
+          }
+        ]
+      }
+    ],
+    "numeric_gates": [
+      {
+        "phase": "budget-normal",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "budget-reduced",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "screens_inspected": [
+      "target/gui-checks/compiled-meaning-counterexample.png",
+      "target/gui-checks/build-log-transfer-failure.png",
+      "target/gui-metadata-batches-all-output/native-native-GUI-with-rea-3d1fa-tifacts-and-survive-restart/lake-configuration-reused-after-restart.png",
+      "target/native-profile/metadata-batches-20261124/riemann-source.png",
+      "target/native-profile/metadata-batches-20261124/riemann-map.png",
+      "target/native-profile/metadata-batches-20261124/ethlib-source.png",
+      "target/native-profile/metadata-batches-20261124/ethlib-map.png"
+    ],
+    "format": "cargo fmt --all -- --check, repository Prettier check and git diff --check passed",
+    "schema": "schema:check passed; generated schemas/validators unchanged"
+  },
+  "attempts": [
+    {
+      "scope": "metadata raw-response limit test fixture",
+      "result": "First generated filenames made the response smaller than 8 MiB; correct admission exposed the bad fixture. Increase names to 255 bytes, then all three integration tests and final 305-test workspace pass."
+    },
+    {
+      "scope": "initial before API probe",
+      "result": "Missing Origin caused HTTP 403 before any inspection; correct Origin and complete all six serial baseline samples."
+    },
+    {
+      "scope": "sequential gate wrapper",
+      "exit_code": 143,
+      "result": "Parent exited before recording detached full-browser exit. Completed HTML report independently records 65 expected, zero unexpected/flaky/skipped, ok true and no report errors. Do not assign an unobserved zero exit code. Resume only remaining two motion gates in a separate foreground runner; both exit zero."
+    },
+    {
+      "scope": "after probe before warm-up",
+      "result": "Restarted host had no in-memory source publication, so the probe stopped before issuing a command. Perform one normal public GUI visit per project, separately retain both cache-miss preparations, then complete all six ready/cache_hit after-samples."
+    },
+    {
+      "scope": "artifact fidelity helper",
+      "result": "Initial helper incorrectly joined rendering observations to search IDs. Actual cache code binds renderings to compilation IDs; corrected join then compares complete snapshots, search reports and readings equal without normalization."
+    }
+  ],
+  "deployed_host_checks": [
+    {
+      "project": "riemann",
+      "service": "meden-riemann-gui.service",
+      "pid": 774780,
+      "binary_sha256": "f47f720755266463ce33f850c29870ae81eeb79269c2754fd25a95960b26e4e4",
+      "running": false,
+      "authorized": false,
+      "inventory_files": 175187,
+      "inventory_revision": "sha256:063cac2b6dc7a66d5571681301d43a6171404cecdf81a7fb76e5d21056564d80",
+      "metadata_sha256": "5875c3c3432ddda379f8caf8ed411b77d30701443e5da912442935a296c3ae7a",
+      "metadata_unchanged": true,
+      "source_publication": "sha256:4671471a8580f25a42b2117fcc7cf5a8d25988b715b1a40cbb17b77e006bfa94",
+      "source_data_sha256": "2063f4c8792707349ba4b3d295e779c565a63030790aae9d937d5f776d8d9184",
+      "source_and_graph_unchanged": true,
+      "progress_projection_bytes": 506,
+      "diagnostics": [
+        {
+          "resource": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "job": "sha256:568dae92aa93fb0f00b34c5f7511b12c2bd45d859f580a679a105141f13863b8",
+          "outcome": {
+            "state": "ready",
+            "cache_hit": true
+          },
+          "log_revision": "sha256:8bff19af963313fedcba8af3408f078e0b0cf087bd0cdf31769392f8b0306aeb",
+          "diagnostic_bytes": 8162,
+          "diagnostic_sha256": "22c73d981092cc29fcf0282dc3d1b817b51b638e38e3cddc0abda50c3ba7367c",
+          "truncated": false
+        }
+      ],
+      "files": [
+        {
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "bytes": 10163,
+          "original_sha256": "sha256:766e359859e8f87ad084bb289af3f379a70b2cf0c753ba99bb20fd02079a55b1"
+        }
+      ],
+      "directories": [
+        {
+          "path": ".",
+          "entries": 7
+        },
+        {
+          "path": "src",
+          "entries": 11
+        },
+        {
+          "path": "src/Formalism",
+          "entries": 116
+        },
+        {
+          "path": "src/Formalism/PeriodIntegrals",
+          "entries": 336
+        },
+        {
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula",
+          "entries": 502
+        },
+        {
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness",
+          "entries": 32
+        }
+      ],
+      "selected_trace": 3703,
+      "selected_log_materialization": [
+        {
+          "wall_us": 69,
+          "host_thread_cpu_us": 68
+        },
+        {
+          "wall_us": 129,
+          "host_thread_cpu_us": 122
+        },
+        {
+          "wall_us": 227,
+          "host_thread_cpu_us": 226
+        },
+        {
+          "wall_us": 232,
+          "host_thread_cpu_us": 227
+        },
+        {
+          "wall_us": 337,
+          "host_thread_cpu_us": 332
+        },
+        {
+          "wall_us": 334,
+          "host_thread_cpu_us": 332
+        },
+        {
+          "wall_us": 339,
+          "host_thread_cpu_us": 339
+        },
+        {
+          "wall_us": 501,
+          "host_thread_cpu_us": 499
+        },
+        {
+          "wall_us": 225,
+          "host_thread_cpu_us": 224
+        },
+        {
+          "wall_us": 219,
+          "host_thread_cpu_us": 218
+        },
+        {
+          "wall_us": 492,
+          "host_thread_cpu_us": 492
+        },
+        {
+          "wall_us": 453,
+          "host_thread_cpu_us": 447
+        },
+        {
+          "wall_us": 492,
+          "host_thread_cpu_us": 481
+        },
+        {
+          "wall_us": 205,
+          "host_thread_cpu_us": 204
+        }
+      ],
+      "metrics_file": "target/native-profile/metadata-batches-20261124/riemann-native-metrics.json",
+      "metrics_sha256": "35972fefd245d468e81a5bc7eeac7376cf674ff90c74f6628867513fa0612fe3"
+    },
+    {
+      "project": "ethlib",
+      "service": "meden-ethlib-gui.service",
+      "pid": 774967,
+      "binary_sha256": "f47f720755266463ce33f850c29870ae81eeb79269c2754fd25a95960b26e4e4",
+      "running": false,
+      "authorized": false,
+      "inventory_files": 2517,
+      "inventory_revision": "sha256:0de136064dc167e529199a70865196ac6434d1f572bf704c9167659ff0449d9f",
+      "metadata_sha256": "59b98c2e15f2f590463873351344a08a59e4aa3854a7dfb1779e635a680cb32f",
+      "metadata_unchanged": true,
+      "source_publication": "sha256:c9a67ef7faab77791ab7d84fad5d7176476d3b7d5320d9f95f155b117b57e86b",
+      "source_data_sha256": "ac220adb7270df17b304574138f8894ec78d92bc7a85c5e2e0e745edc885bb09",
+      "source_and_graph_unchanged": true,
+      "progress_projection_bytes": 408,
+      "diagnostics": [
+        {
+          "resource": "EthLib/Networking/Gossip/Parameters.lean",
+          "job": "sha256:6fbb4f5e30b85ccd9d59afd8ec65c94ca48ce73eb4d8bb52215d4ff9bbe467b8",
+          "outcome": {
+            "state": "ready",
+            "cache_hit": true
+          },
+          "log_revision": "sha256:8aad29f11cc39c87451e16510079169048d2757c07c25547c9e6d4a8a270fb68",
+          "diagnostic_bytes": 26,
+          "diagnostic_sha256": "dd9044d397705b5be8cc330b358fd5800adc32f93980fefbca70c07d66d39b44",
+          "truncated": false
+        }
+      ],
+      "files": [
+        {
+          "path": "EthLib/Networking/Gossip/Parameters.lean",
+          "bytes": 2626,
+          "original_sha256": "sha256:a0baa00d312b4b7b7d34024755369db56c91e9eca8f5905a74313b19fc96fc92"
+        }
+      ],
+      "directories": [
+        {
+          "path": ".",
+          "entries": 31
+        },
+        {
+          "path": "EthLib",
+          "entries": 16
+        },
+        {
+          "path": "EthLib/Networking",
+          "entries": 17
+        },
+        {
+          "path": "EthLib/Networking/Gossip",
+          "entries": 9
+        }
+      ],
+      "selected_trace": 1548,
+      "selected_log_materialization": [
+        {
+          "wall_us": 23,
+          "host_thread_cpu_us": 23
+        }
+      ],
+      "metrics_file": "target/native-profile/metadata-batches-20261124/ethlib-native-metrics.json",
+      "metrics_sha256": "a0dc0758f4911a6b3a236181acad422ad40c7f09f8a2785c183f0f64bd2e4003"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "target/native-profile/metadata-batches-20261124/before.json",
+      "bytes": 282055,
+      "sha256": "98d11ca3f1aeadf1c978ee37ef9c1f57762387ad6d089d8f41adea1dcc17b4f3"
+    },
+    {
+      "path": "target/native-profile/metadata-batches-20261124/after.json",
+      "bytes": 247716,
+      "sha256": "e810a5b4ed4033a1c93ab1511292121058012431d6a50c8c46bbab00194230a9"
+    },
+    {
+      "path": "target/native-profile/metadata-batches-20261124/before-logs.json",
+      "bytes": 9261,
+      "sha256": "ba91fa5780aa68ed1bd5e19ad42abc281485942dad9ffa9beec4cd977dddd0ab"
+    },
+    {
+      "path": "target/native-profile/metadata-batches-20261124/after-logs.json",
+      "bytes": 9101,
+      "sha256": "20f4d7102665a82401bf09a8fb9e509bd38f5e989053f1dc0c7e44215a44ae36"
+    },
+    {
+      "path": "target/gui-metadata-batches-all-report/index.html",
+      "bytes": 815094,
+      "sha256": "8dfd9b66143c83ef1da0382b00ef7d1650ef7b2d49c0f2712a417052564454e8"
+    },
+    {
+      "path": "target/gui-metadata-batches-budget-normal-report/index.html",
+      "bytes": 547786,
+      "sha256": "b162993e72ff6ec354d8d8167cd5bda2c06409a1203110896a538f406198e411"
+    },
+    {
+      "path": "target/gui-metadata-batches-budget-reduced-report/index.html",
+      "bytes": 547446,
+      "sha256": "20d25f4795d19efb7e7ff7daef962aea3020d11ab9d9a45beed210c0f5ae3ed7"
+    },
+    {
+      "path": "target/native-profile/metadata-batches-20261124/riemann-source.png",
+      "bytes": 166754,
+      "sha256": "6ebbf42954c4b6846b328fb3d1f783e98ee473a286e10dfd6345ac1a278a4b88"
+    },
+    {
+      "path": "target/native-profile/metadata-batches-20261124/riemann-map.png",
+      "bytes": 80277,
+      "sha256": "80cb8ecba14eb74be236a1e284dfe5c6dfbb73988e9f9e252405919d62337c8a"
+    },
+    {
+      "path": "target/native-profile/metadata-batches-20261124/ethlib-source.png",
+      "bytes": 189013,
+      "sha256": "a84996b45b44d107a0d3a226a07c9313e6337d3f40b6cd80a7f200a5b3ded23b"
+    },
+    {
+      "path": "target/native-profile/metadata-batches-20261124/ethlib-map.png",
+      "bytes": 125178,
+      "sha256": "318ad7a0e8eeac1d2e4f45a0c4e245299b32ec6ee6af801fd7e46a8aa55046c5"
+    }
+  ],
+  "limitations": [
+    "Three samples are diagnostic, not statistically robust field percentiles or guarantees on another machine. OS and installed compiler/library caches remain present.",
+    "Initial implementation-bound fill was 197.483 seconds for Riemann and 49.585 seconds for EthLib; excluded from warm comparisons, not hidden as a cache hit.",
+    "Riemann still reads all 43477 compiled inputs / 5992114707 bytes. Last after-log: build/setup/input resolution 4.890s; byte validation 2.339s. Those costs remain.",
+    "Browser DOM/two-animation-callback timings are presentation proxies, not physical paint or INP. Scripted model fixtures are not live-model, cold-install or local large-model evidence.",
+    "Exact content/missing-path/policy checks remain OS/I/O adapters, not an atomic concurrent-filesystem or extracted proof. No kernel, authority or Lean source changed.",
+    "Broader job/evidence read models, versioned deterministic layout/order and remaining retirement work in the migration plan are still open."
+  ]
+}

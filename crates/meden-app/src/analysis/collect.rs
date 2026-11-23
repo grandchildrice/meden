@@ -194,16 +194,5 @@ fn insert(modules: &mut BTreeMap<String, Module>, module: &Module) -> Result<()>
     Ok(())
 }
 pub fn check_metadata(workspace: &Workspace, control: &Control, expected: &Metadata) -> Result<()> {
-    let mut reader = Reader::new(workspace, control);
-    for (path, value) in &expected.files {
-        anyhow::ensure!(reader.read(path, true)? == *value, "Lake configuration/import resolution changed at {path}; reread the graph and explicitly rerun");
-    }
-    for (directory, entries) in &expected.directories {
-        reader.glob_entries(directory)?;
-        anyhow::ensure!(
-            reader.metadata.directories.get(directory) == Some(entries),
-            "Lake source inventory changed at {directory}; reread the graph"
-        );
-    }
-    Ok(())
+    Reader::new(workspace, control).check(expected)
 }

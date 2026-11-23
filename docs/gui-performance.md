@@ -1,5 +1,68 @@
 # Graph interaction measurements
 
+## Batched exact metadata validation (November 24)
+
+The [implementation and measurement record](../results/metadata-batches-20261124.json)
+reduces confined worker startup during complete cache revalidation. Directory
+requests follow actually observed parent frontiers, in groups of four; present
+configuration files use the existing read-only worker's batches of at most 256.
+Every original/resolved path check, complete-output admission, exact file byte
+comparison, missing-path observation and filtered Lean inventory check remains.
+The original 8 MiB response limit is checked before filtering, in addition to a
+64 MiB aggregate frame. No successful validation is reused between operations,
+and neither caller's cache check is removed.
+
+Three serial explicit public inspection requests per project, before and after,
+used an idle, unapproved host, the same selected file and fully warmed artifacts.
+No tests or profiles ran concurrently with these samples. These are diagnostic
+medians with 50 ms completion polling, not field percentiles or file-render times.
+
+| Cached inspection | Before median | After median | Reduction | Worker calls per cache validation |
+| --- | ---: | ---: | ---: | ---: |
+| EthLib `Networking/Gossip/Parameters.lean` | 3,918.529 ms | 1,706.444 ms | 56.45% | 32 → 9, on both checks |
+| Riemann `AdelicClassFiniteness/DictGen.lean` | 12,596.045 ms | 11,111.434 ms | 11.79% | 24 → 8; the separate empty check stays empty |
+
+Process counts include nested source capture. EthLib's first/second cache
+validation medians fell from **1,592.830 / 1,592.356 ms** to
+**478.217 / 480.718 ms**; Riemann's first fell from **1,241.999** to
+**429.177 ms**. File-local preparation duration excludes the navigation-note
+validation that follows it, so it must not substitute for whole-request timing.
+New static `analysis.metadata.validate`, `analysis.metadata.directory_batch` and
+`analysis.metadata.file_batch` spans separate these observations from source
+capture and Lake work. Nested spans overlap, and host-thread CPU excludes child
+execution.
+
+Riemann still validates **43,477 compiled inputs / 5,992,114,707 bytes** on a
+prepared open. Its last measured after-log records **4.890 s** for build/setup
+and input resolution, then **2.339 s** for complete byte fingerprinting. These
+remaining costs explain why batching metadata alone gives a smaller total gain.
+They are single logged phases, not additive estimates from overlapping spans.
+
+The changed observation implementation deliberately changes the compiler plugin
+identity. Initial graph/explanation preparation was **197.483 s / 49.585 s** for
+Riemann/EthLib and is retained separately, before all three cached after-samples.
+Installed dependencies remained present; this is not cold-install validation.
+Complete original compiler snapshots, counterexample reports and rendered
+readings compare equal across the old/new implementations, without field
+normalization. Content-addressed compilation and view IDs change to preserve
+their actual implementation attribution. Inventory metadata, original reader
+references and conversation revisions remain unchanged; both deployed hosts
+finish idle and unapproved.
+
+The exact binary passed Rust **305**, **22 architecture checks**, public TUI
+**34 required cases** and all **65 browser cases**, without skips. The full
+browser report records 65 expected, zero unexpected/flaky/skipped and no errors;
+the outer sequential runner ended with code 143 after those detached cases
+completed, so its missing exit receipt is retained rather than reported as zero.
+Both remaining serialized motion gates were run separately and exited zero.
+Prepared-tab p95 was **32.0 / 31.2 ms**, and compiler-held paging maximum was
+**31.4 / 35.5 ms**, under 250 ms; readable source appeared in
+**1,193 / 1,189 ms**, under 5 seconds. These are DOM/two-animation-callback
+proxies, not physical presentation or field INP. Decoded TUI recovery/restart
+screens, real prepared-Lake and compiler-failure screens, and both deployed
+source/map views were inspected. No kernel, authority or Lean proof changed;
+filesystem concurrency and physical I/O remain adapter obligations.
+
 ## Resource-local preparation and diagnostic publications (November 24)
 
 The [implementation and validation record](../results/preparation-views-20261124.json)
@@ -42,7 +105,7 @@ records **10.148 seconds** for Lake build/setup and input resolution, followed b
 **4.575 seconds** validating **43,477 files / 5,992,114,707 bytes**. EthLib's
 4.231-second setup contains two separate cache-validation spans of **1.549 /
 1.604 seconds**, each with **31 direct process calls**, mostly 41–51 ms each.
-`collect::check_metadata` performs these policy-bound observations individually;
+At that revision `collect::check_metadata` performed these observations individually;
 `overview::apply_compiled` invokes cache validation again for navigation notes.
 The existing confined `file::read_batch` provides a concrete batching boundary
 without removing original/resolved policy checks or complete-output admission.

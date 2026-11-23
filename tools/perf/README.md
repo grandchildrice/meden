@@ -44,6 +44,16 @@ execution). Warm configuration reuse still requires `atlas.project.prepare` and
 the exact compiled-input fingerprint. Compare these stages separately from
 source-view materialization and retained-tab navigation.
 
+`analysis.metadata.validate` measures complete configuration/absence/inventory
+revalidation. Its `analysis.metadata.directory_batch` and
+`analysis.metadata.file_batch` children expose the bounded policy-bound worker
+batches. Count descendant `process.run` spans within each cache validation;
+direct children alone omit nested source capture. Compare complete public
+inspection duration separately from `source_preparation.elapsed_ms`: navigation
+notes may perform a second validation after the file-local preparation completes.
+Batching reduces worker startup; it does not remove either check, reuse a prior
+successful validation, or avoid Lake's complete compiled-input fingerprint.
+
 Prepared roots now use one batched Lake query for their normal build and
 source/output/compiler-setup results. The file's streamed diagnostic log separates
 build/setup/input resolution from the exact file/byte validation duration.
