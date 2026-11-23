@@ -1,24 +1,25 @@
 //! Lean-specific compilation adapter; no compiler syntax belongs to the core.
 use super::Context;
+use crate::compiler::{Compiled, Compiler, Request};
 use anyhow::{Context as _, Result};
-use meden_core::adapter::{Adapter, Artifact, Input};
-pub(crate) struct Lean;
+pub struct Lean {
+    atlas: crate::atlas::Configuration,
+}
+impl Lean {
+    pub fn new(atlas: crate::atlas::Configuration) -> Self {
+        Self { atlas }
+    }
+}
 
-impl Adapter<Context<'_>> for Lean {
-    type Error = anyhow::Error;
-    fn run(&self, context: &Context<'_>, input: Input) -> Result<Artifact> {
-        anyhow::ensure!(
-            input.format == "meden/source-paths+json",
-            "Unsupported Lean adapter input"
-        );
-        let paths: Vec<String> = serde_json::from_slice(&input.bytes)?;
+impl Compiler for Lean {
+    fn compile(&self, context: &Context<'_>, request: Request) -> Result<Compiled> {
+        let paths = request.paths();
         let workspace = context.workspace;
         let control = context.control;
-        let atlas = crate::atlas::Configuration::host(context.workspace.path())
-            .with_observer(context.observer.clone());
+        let atlas = &self.atlas;
         atlas.ensure_prepared(control)?;
         let mut snapshot =
-            crate::analysis::collect::capture(workspace, control, &paths, atlas.clone())?;
+            crate::analysis::collect::capture(workspace, control, paths, atlas.clone())?;
         let observed = snapshot.files.keys().cloned().collect::<Vec<_>>();
         let collection = snapshot
             .collection
@@ -38,10 +39,6 @@ impl Adapter<Context<'_>> for Lean {
         );
         snapshot.atlas = Some(graph);
         control.with_active(|| Ok(()))?;
-        Ok(Artifact {
-            producer: "lean-atlas+plausible".into(),
-            format: "meden/compiled-snapshot+json".into(),
-            bytes: serde_json::to_vec(&snapshot)?,
-        })
+        Ok(Compiled::Created(snapshot))
     }
 }

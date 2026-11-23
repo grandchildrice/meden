@@ -13,7 +13,7 @@ use std::{
 };
 
 #[derive(Clone, Serialize, Deserialize)]
-pub(crate) struct Collection {
+pub struct Collection {
     pub roots: Vec<String>,
     pub external_modules: Vec<String>,
     pub modules: Vec<Module>,
@@ -22,7 +22,7 @@ pub(crate) struct Collection {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prepared: Option<String>,
 }
-pub(crate) fn capture(
+pub fn capture(
     workspace: &Workspace,
     control: &Control,
     paths: &[String],
@@ -142,7 +142,7 @@ fn select<'a>(
 
 /// Select observed roots without recursively copying installed dependency sources.
 /// Prepared Lake imports remain explicitly unexpanded library boundaries.
-pub(crate) fn roots(
+pub fn roots(
     workspace: &Workspace,
     control: &Control,
     paths: &[String],
@@ -193,11 +193,7 @@ fn insert(modules: &mut BTreeMap<String, Module>, module: &Module) -> Result<()>
     }
     Ok(())
 }
-pub(crate) fn check_metadata(
-    workspace: &Workspace,
-    control: &Control,
-    expected: &Metadata,
-) -> Result<()> {
+pub fn check_metadata(workspace: &Workspace, control: &Control, expected: &Metadata) -> Result<()> {
     let mut reader = Reader::new(workspace, control);
     for (path, value) in &expected.files {
         anyhow::ensure!(reader.read(path, true)? == *value, "Lake configuration/import resolution changed at {path}; reread the graph and explicitly rerun");

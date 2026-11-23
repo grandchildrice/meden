@@ -86,6 +86,11 @@ semantics still require explicit specification and refinement.
 Use owned values, private validated constructors and consuming transitions to
 exclude invalid states. Application contexts own requirements/evidence,
 materialization, verification, agents and presentation; the CLI composes them.
+`meden-app` now owns shared workspace/source, compilation/cache, meaning/repair
+and accepted-contract verification use cases. The model transport implements its
+session-bound model port; the application cannot depend on a model SDK or TUI/GUI.
+Role results remain observations, and the existing consuming kernel alone admits
+accepted-contract evidence.
 Backend observations never grant proof or delivery authority. Source, prepared
 analysis and current evidence are separate types and read models.
 

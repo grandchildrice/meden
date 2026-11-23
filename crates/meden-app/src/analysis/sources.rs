@@ -18,7 +18,7 @@ const FILE_LIMIT: usize = 1_048_576;
 const TOTAL_LIMIT: usize = 16_777_216;
 
 #[derive(Clone, Serialize, Deserialize)]
-pub(crate) struct Snapshot {
+pub struct Snapshot {
     pub revision: String,
     pub files: BTreeMap<String, String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -27,11 +27,7 @@ pub(crate) struct Snapshot {
     pub collection: Option<super::collect::Collection>,
 }
 
-pub(crate) fn capture(
-    workspace: &Workspace,
-    control: &Control,
-    paths: &[String],
-) -> Result<Snapshot> {
+pub fn capture(workspace: &Workspace, control: &Control, paths: &[String]) -> Result<Snapshot> {
     let _timing = meden_runtime::metrics::Span::start("analysis.capture_sources");
     anyhow::ensure!(
         !paths.is_empty() && paths.len() <= 32,

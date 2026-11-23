@@ -109,7 +109,7 @@ impl Session {
     ) -> Result<crate::analysis::repair::Review> {
         let pending = crate::analysis::repair::prepare(
             &self.workspace,
-            &self.gateway,
+            self.gateway.as_ref(),
             &self.processes,
             &self.policy,
             snapshot,
@@ -201,8 +201,10 @@ impl Session {
     ) -> Result<crate::analysis::Record> {
         crate::analysis::run(
             &self.workspace,
-            &self.gateway,
-            self.judge.as_deref(),
+            self.gateway.as_ref(),
+            self.judge
+                .as_deref()
+                .map(|model| model as &dyn meden_app::model::Model),
             &self.processes,
             snapshot,
             input,

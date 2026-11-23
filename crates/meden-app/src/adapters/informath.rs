@@ -1,7 +1,7 @@
 //! Pinned external GF/Informath renderer over its documented Dedukti interchange.
 //! The binary/grammar run offline, separately from Lean and native proof admission.
+use crate::meaning::{Reading, Renderer};
 use anyhow::{Context as _, Result};
-use meden_core::adapter::{Adapter, Artifact, Input};
 use meden_runtime::process::{self, Control, Limits, Termination};
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, path::PathBuf, time::Duration};
@@ -12,7 +12,7 @@ struct Manifest {
     files: BTreeMap<String, String>,
 }
 
-pub(crate) struct Informath {
+pub struct Informath {
     root: PathBuf,
     fingerprint: String,
 }
@@ -59,13 +59,20 @@ impl Informath {
     }
 }
 
-impl Adapter<Control> for Informath {
-    type Error = anyhow::Error;
-    fn run(&self, control: &Control, input: Input) -> Result<Artifact> {
+/// Validated input for the pinned GF/Informath Dedukti interchange.
+pub struct Dedukti(String);
+impl Dedukti {
+    pub fn new(term: &str) -> Result<Self> {
         anyhow::ensure!(
-            input.format == "application/dedukti" && input.bytes.len() <= 1_048_576,
+            !term.is_empty() && term.len() <= 1_048_576,
             "Unsupported meaning renderer input"
         );
+        Ok(Self(term.into()))
+    }
+}
+impl Renderer for Informath {
+    type Expression = Dedukti;
+    fn render(&self, control: &Control, input: Dedukti) -> Result<Reading> {
         let scratch = tempfile::tempdir()?;
         let executable = self.root.join("RunInformath");
         let mut command = meden_runtime::sandbox::Sandbox::adapter_command(
@@ -84,7 +91,7 @@ impl Adapter<Control> for Informath {
         )?;
         let output = process::run_with_input(
             &mut command,
-            &input.bytes,
+            input.0.as_bytes(),
             &Limits {
                 timeout: Duration::from_secs(30),
                 capture_bytes: 8_388_608,
@@ -99,19 +106,29 @@ impl Adapter<Control> for Informath {
             output.termination,
             output.stderr
         );
-        Ok(Artifact {
-            producer: self.identity(),
-            format: "informath/parallel-data+jsonl".into(),
-            bytes: output.stdout.into_bytes(),
+        let value: serde_json::Value = serde_json::from_str(&output.stdout)?;
+        let sentence = value
+            .get("InformathEng")
+            .and_then(|v| v.as_array())
+            .and_then(|v| v.first())
+            .and_then(|v| v.as_str())
+            .filter(|s| !s.is_empty() && s.len() <= 60_000)
+            .context("Informath did not realize this expression")?;
+        Ok(Reading {
+            sentence: sentence
+                .strip_prefix("Statement. ")
+                .unwrap_or(sentence)
+                .into(),
+            renderer: self.identity(),
         })
     }
 }
 
-pub(crate) fn fingerprint() -> Result<String> {
+pub fn fingerprint() -> Result<String> {
     Ok(Informath::discover()?.map_or_else(|| "structural-english".into(), |i| i.fingerprint))
 }
 
-pub(crate) fn enrich(graph: &mut crate::atlas::Extraction, control: &Control) -> Result<()> {
+pub fn enrich(graph: &mut crate::atlas::Extraction, control: &Control) -> Result<()> {
     let Some(renderer) = Informath::discover()? else {
         return Ok(());
     };
@@ -132,34 +149,11 @@ pub(crate) fn enrich(graph: &mut crate::atlas::Extraction, control: &Control) ->
             );
             continue;
         }
-        let result = renderer.run(
-            control,
-            Input {
-                format: "application/dedukti".into(),
-                bytes: intermediate.as_bytes().to_vec(),
-            },
-        );
-        let result = result.and_then(|artifact| -> Result<(String, String)> {
-            let value: serde_json::Value = serde_json::from_slice(&artifact.bytes)?;
-            let sentence = value
-                .get("InformathEng")
-                .and_then(|v| v.as_array())
-                .and_then(|v| v.first())
-                .and_then(|v| v.as_str())
-                .filter(|s| !s.is_empty() && s.len() <= 60_000)
-                .context("Informath did not realize this expression")?;
-            Ok((
-                sentence
-                    .strip_prefix("Statement. ")
-                    .unwrap_or(sentence)
-                    .into(),
-                artifact.producer,
-            ))
-        });
+        let result = Dedukti::new(intermediate).and_then(|term| renderer.render(control, term));
         match result {
-            Ok((sentence, producer)) => {
-                semantic.sentence = sentence;
-                semantic.renderer = Some(producer);
+            Ok(reading) => {
+                semantic.sentence = reading.sentence;
+                semantic.renderer = Some(reading.renderer);
             }
             Err(error) => {
                 control.with_active(|| Ok(()))?;

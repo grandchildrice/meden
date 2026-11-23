@@ -5,7 +5,7 @@ use meden_runtime::process::Control;
 use std::{collections::BTreeMap, path::Path, time::Duration};
 
 impl Configuration {
-    pub(crate) fn project(
+    pub fn project(
         &self,
         workspace: &Path,
         script: &str,
@@ -41,7 +41,7 @@ impl Configuration {
         );
         Ok(output)
     }
-    pub(crate) fn admit_project(
+    pub fn admit_project(
         &self,
         graph: serde_json::Value,
         files: &BTreeMap<String, String>,

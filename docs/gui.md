@@ -459,7 +459,7 @@ executable analysis input, rather than Meden's restricted contract-data language
 The prepared library and fixed scripts are separate read-only resources. There is
 no unconfined fallback. Import/compile/metadata/OS attribution remains an adapter.
 
-The [MIT-licensed extraction core](../crates/meden-cli/src/atlas/vendor/README.md)
+The [MIT-licensed extraction core](../crates/meden-app/src/atlas/vendor/README.md)
 is pinned to Lean Atlas `06be1eb76fb926b8cf8bd42a4a51208d128c327d`. Its actual
 constant classifier and type/value dependency functions run on the imported
 environment. Meden selects the observed modules, retains cross-module edges,
@@ -512,7 +512,7 @@ both requests. They are separate contexts, not independent-model evidence.
 
 This uses a Rust adapter of claimcheck's two-pass prompt/output approach, pinned
 at `8eb37fedc0acb5bc5f89efc3933cb3955268a4bd`. Source attribution and the MIT
-license are in `crates/meden-cli/src/semantic/`. It does not run the upstream SDK,
+license are in `crates/meden-app/src/semantic/`. It does not run the upstream SDK,
 CLI or Dafny verifier. No extra credential discovery, network client or
 model-selected execution is added. Only the two structured result functions are
 decoded as data; unexpected tool calls/fields/targets are refused, never executed.

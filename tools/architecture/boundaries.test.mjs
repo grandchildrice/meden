@@ -96,3 +96,32 @@ test("workspace dependencies point inward", () => {
     /outward dependency/,
   );
 });
+
+test("shared application ports reject model implementations and presentation dependencies", () => {
+  const app = { name: "meden-app", id: "app", targets: [], dependencies: [] };
+  const transport = {
+    name: "meden-llm",
+    id: "transport",
+    targets: [],
+    dependencies: [{ name: "meden-app", kind: null }],
+  };
+  assert.deepEqual(
+    cargoViolations([app, transport], [app.id, transport.id]),
+    [],
+  );
+  const violations = cargoViolations(
+    [
+      {
+        ...app,
+        dependencies: [
+          { name: "meden-llm", kind: null },
+          { name: "ratatui", kind: null },
+        ],
+      },
+      transport,
+    ],
+    [app.id, transport.id],
+  ).join();
+  assert.match(violations, /outward dependency/);
+  assert.match(violations, /presentation implementation/);
+});

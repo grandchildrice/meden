@@ -9,6 +9,7 @@ repository.workspace = true
 authors.workspace = true
 
 [dependencies]
+meden-app = { path = "../meden-app", version = "0.1.0" }
 meden-core = { path = "../meden-core", version = "0.1.0" }
 meden-agent = { path = "../meden-agent", version = "0.1.0" }
 meden-runtime = { path = "../meden-runtime", version = "0.1.0" }

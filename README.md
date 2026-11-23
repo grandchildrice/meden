@@ -145,7 +145,11 @@ archived/demo data. Native preview and meaning analysis use the selected local p
 [GUI development and checks](docs/gui.md) ·
 [Shared contracts and strategy implementation map](docs/architecture/semantic-workspace.md)
 and [typed-core/plugin refactoring policy](docs/architecture/typed-core-and-plugins.md)
-describe the module boundaries. Run `npm run architecture:check` to check inward
+describe the module boundaries. `meden-app` owns shared workspace, analysis and
+verification use cases; compiler/renderer/model ports keep transports and
+presentation outside their ownership. See the
+[application extraction record](results/shared-application-20261123.json).
+Run `npm run architecture:check` to check inward
 Rust dependencies and pure TypeScript data/port packages, including negative
 regression cases. Browser HTTP and clock/identity inputs belong to adapters.
 

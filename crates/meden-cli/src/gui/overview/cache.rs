@@ -38,7 +38,7 @@ pub(super) fn generation(workspace: &Workspace) -> Result<u64> {
 }
 
 fn directory(workspace: &Workspace) -> Result<std::path::PathBuf> {
-    let parser = crate::atlas::digest(include_bytes!("../../adapters/source.rs"));
+    let parser = crate::adapters::source::identity();
     Ok(crate::storage::directory(workspace.path())?
         .join("map")
         .join(parser))

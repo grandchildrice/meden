@@ -4,22 +4,22 @@ use std::fmt::Write as _;
 use std::path::Path;
 use std::sync::atomic::Ordering;
 
+use crate::model::Model;
 use crate::semantic::{self, Assessment, Input, Prepared, Stage};
 use anyhow::Result;
-use meden_llm::Gateway;
 use meden_runtime::{process::Control, workspace::Workspace};
 use serde::{Deserialize, Serialize};
 
-pub(crate) mod collect;
-pub(crate) mod journal;
-pub(crate) mod layout;
-pub(crate) mod observe;
-pub(crate) mod repair;
-pub(crate) mod sources;
+pub mod collect;
+pub mod journal;
+pub mod layout;
+pub mod observe;
+pub mod repair;
+pub mod sources;
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
-pub(crate) enum State {
+pub enum State {
     Observing,
     Translating,
     Comparing,
@@ -31,7 +31,7 @@ pub(crate) enum State {
 }
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct Record {
+pub struct Record {
     pub version: u8,
     pub sequence: u64,
     pub id: String,
@@ -41,7 +41,7 @@ pub(crate) struct Record {
     pub engine: String,
     pub model: String,
     pub processor: String,
-    pub judge: Option<crate::judge::Binding>,
+    pub judge: Option<crate::model::Binding>,
     pub input: Input,
     pub state: State,
     pub assessment: Option<Assessment>,
@@ -49,7 +49,7 @@ pub(crate) struct Record {
     pub error: Option<String>,
 }
 impl Record {
-    pub(crate) fn summary(&self) -> String {
+    pub fn summary(&self) -> String {
         let mut text = format!(
             "Meaning analysis · {:?} (candidate, not proof)\nRun: {}\nRequirement ID: {}\nFinding ID: {}\nTarget: {} · {}:{}\nRequirement: {}",
             self.state,
@@ -108,11 +108,11 @@ impl Record {
         journal::save(root, self)
     }
 }
-pub(crate) fn load(root: &Path) -> Result<Option<Record>> {
+pub fn load(root: &Path) -> Result<Option<Record>> {
     Ok(journal::list(root)?.pop())
 }
 
-pub(crate) fn extract(
+pub fn extract(
     workspace: &Workspace,
     control: &Control,
     paths: &[String],
@@ -120,13 +120,12 @@ pub(crate) fn extract(
     Ok(extract_cached(workspace, control, paths, None)?.0)
 }
 
-pub(crate) fn extract_cached(
+pub fn extract_cached(
     workspace: &Workspace,
     control: &Control,
     paths: &[String],
     observer: Option<crate::adapters::Observer>,
 ) -> Result<(sources::Snapshot, bool)> {
-    use meden_core::adapter::{Adapter, Input};
     let _timing = meden_runtime::metrics::Span::start("analysis.extract");
     let context = crate::adapters::Context {
         workspace,
@@ -136,30 +135,11 @@ pub(crate) fn extract_cached(
     let atlas = crate::atlas::Configuration::host(context.workspace.path())
         .with_observer(context.observer.clone());
     atlas.ensure_prepared(control)?;
-    let artifact = if crate::adapters::lake::enabled()? {
-        let selected = collect::roots(workspace, control, paths, atlas)?;
-        crate::adapters::lake::Lake.run(
-            &context,
-            Input {
-                format: "meden/selected-snapshot+json".into(),
-                bytes: serde_json::to_vec(&selected)?,
-            },
-        )?
-    } else {
-        crate::adapters::lean::Lean.run(
-            &context,
-            Input {
-                format: "meden/source-paths+json".into(),
-                bytes: serde_json::to_vec(paths)?,
-            },
-        )?
-    };
-    let cached = artifact.format == "meden/cached-snapshot+json";
-    anyhow::ensure!(
-        cached || artifact.format == "meden/compiled-snapshot+json",
-        "Unexpected compiler output format"
-    );
-    let mut snapshot: sources::Snapshot = serde_json::from_slice(&artifact.bytes)?;
+    let (registry, selected) = crate::adapters::compilers(atlas)?;
+    let (mut snapshot, cached) = registry
+        .select(selected)?
+        .compile(&context, crate::compiler::Request::new(paths.to_vec())?)?
+        .into_parts();
     if !cached {
         if let Some(graph) = snapshot.atlas.as_mut() {
             crate::adapters::informath::enrich(graph, control)?;
@@ -170,10 +150,10 @@ pub(crate) fn extract_cached(
     Ok((snapshot, cached))
 }
 
-pub(crate) fn run(
+pub fn run(
     workspace: &Workspace,
-    gateway: &Gateway,
-    judge: Option<&Gateway>,
+    gateway: &dyn Model,
+    judge: Option<&dyn Model>,
     control: &Control,
     snapshot: &sources::Snapshot,
     input: Input,
@@ -188,23 +168,23 @@ pub(crate) fn run(
     let record = RefCell::new(journal::begin(
         workspace.path(),
         gateway.endpoint(),
-        &gateway.provider().model,
+        gateway.model(),
         input,
         source_artifact,
-        judge.map(crate::judge::binding),
+        judge.map(crate::model::binding),
     )?);
     notify(&record.borrow());
 
     let result = (|| -> Result<()> {
         anyhow::ensure!(
             gateway.is_authorized(workspace.session_id())
-                && crate::judge::authorized(judge, workspace.session_id()),
+                && crate::model::authorized(judge, workspace.session_id()),
             "Review both configured processors before meaning analysis"
         );
         observe(workspace, control, snapshot, &record)?;
         let assessment = semantic::analyze(
-            &gateway.for_session(workspace.session_id()),
-            &judge.unwrap_or(gateway).for_session(workspace.session_id()),
+            &*gateway.for_session(workspace.session_id()),
+            &*judge.unwrap_or(gateway).for_session(workspace.session_id()),
             &prepared,
             control.flag(),
             &|stage| {
@@ -222,7 +202,7 @@ pub(crate) fn run(
         )?;
         anyhow::ensure!(
             gateway.is_authorized(workspace.session_id())
-                && crate::judge::authorized(judge, workspace.session_id()),
+                && crate::model::authorized(judge, workspace.session_id()),
             "Processor permission ended; no meaning-analysis result admitted"
         );
         observe(workspace, control, snapshot, &record)?;

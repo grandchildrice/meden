@@ -9,18 +9,18 @@ use std::time::Duration;
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct Imports {
+pub struct Imports {
     pub file: String,
     pub modules: Vec<Module>,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct Module {
+pub struct Module {
     pub name: String,
     pub external: bool,
 }
 impl Configuration {
-    pub(crate) fn imports(
+    pub fn imports(
         &self,
         files: &BTreeMap<String, String>,
         control: &Control,

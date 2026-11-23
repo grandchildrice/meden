@@ -12,22 +12,22 @@ use sha2::{Digest, Sha256};
 
 mod graph;
 mod imports;
-pub(crate) mod lake;
-pub(crate) mod progress;
+pub mod lake;
+pub mod progress;
 mod project;
 mod resources;
 mod toolchain;
-pub(crate) use graph::Extraction;
-pub(crate) const UPSTREAM: &str = "06be1eb76fb926b8cf8bd42a4a51208d128c327d";
+pub use graph::Extraction;
+pub const UPSTREAM: &str = "06be1eb76fb926b8cf8bd42a4a51208d128c327d";
 
 #[derive(Clone)]
-pub(crate) struct Configuration {
+pub struct Configuration {
     lean: std::result::Result<PathBuf, String>,
     cache: Option<PathBuf>,
     observer: Option<crate::adapters::Observer>,
 }
 #[derive(Serialize)]
-pub(crate) struct Status {
+pub struct Status {
     pub available: bool,
     pub prepared: bool,
     pub detail: String,
@@ -56,7 +56,8 @@ impl Configuration {
             observer: None,
         }
     }
-    pub(crate) fn with_observer(mut self, observer: Option<crate::adapters::Observer>) -> Self {
+    #[must_use]
+    pub fn with_observer(mut self, observer: Option<crate::adapters::Observer>) -> Self {
         self.observer = observer;
         self
     }
@@ -247,7 +248,7 @@ fn compiled_files(root: &Path) -> Result<BTreeMap<String, String>> {
     }
     Ok(files)
 }
-pub(crate) fn module_path(path: &str) -> Result<String> {
+pub fn module_path(path: &str) -> Result<String> {
     let name = path
         .strip_suffix(".lean")
         .context("Atlas requires .lean source files")?;
@@ -458,6 +459,6 @@ fn file_hash(path: &Path) -> Result<String> {
     );
     Ok(digest(&fs::read(path)?))
 }
-pub(crate) fn digest(bytes: &[u8]) -> String {
+pub fn digest(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }

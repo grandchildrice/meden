@@ -1,20 +1,11 @@
 //! Host-only second-model selection. Each processor keeps its own immutable grant.
 use anyhow::Result;
 use meden_llm::Gateway;
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct Binding {
-    pub model: String,
-    pub endpoint: String,
-}
+pub(crate) use meden_app::model::Binding;
 pub(crate) fn binding(gateway: &Gateway) -> Binding {
-    Binding {
-        model: gateway.provider().model.clone(),
-        endpoint: gateway.endpoint().into(),
-    }
+    meden_app::model::binding(gateway)
 }
 pub(crate) fn prepare(
     session: &[u8],

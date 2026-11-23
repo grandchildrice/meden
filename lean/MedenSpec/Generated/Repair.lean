@@ -133,7 +133,7 @@ inductive process.Termination where
 | OutputLimit : process.Termination
 
 /-- [meden_runtime::file::complete]:
-    Source: 'crates/meden-runtime/src/file.rs', lines 53:0-98:1
+    Source: 'crates/meden-runtime/src/file.rs', lines 81:0-126:1
     Visibility: public -/
 def file.complete
   {T : Type _} (termination : process.Termination) (truncated : Bool)
@@ -238,7 +238,7 @@ inductive verification.failure.FailureKind where
 | Inconclusive : verification.failure.FailureKind
 
 /-- [meden_runtime::file::verification_kind]:
-    Source: 'crates/meden-runtime/src/file.rs', lines 102:0-108:1
+    Source: 'crates/meden-runtime/src/file.rs', lines 130:0-136:1
     Visibility: public -/
 def file.verification_kind
   (error : meden_agent.tool.ToolError) :

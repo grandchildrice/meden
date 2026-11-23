@@ -491,7 +491,7 @@ inductive tui.approval.Choice where
 | Repair : tui.approval.Choice
 
 /-- [meden::tui::Screen]
-    Source: 'crates/meden-cli/src/tui.rs', lines 109:0-117:1 -/
+    Source: 'crates/meden-cli/src/tui.rs', lines 110:0-118:1 -/
 @[discriminant isize]
 inductive tui.Screen where
 | Picking : tui.Screen

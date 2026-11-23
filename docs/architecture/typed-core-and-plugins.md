@@ -67,10 +67,11 @@ independent dependency or execution boundary, not by each noun in this table.
 | Host runtime                          | Prepared workers, actual I/O, locks, clocks and storage                               | Prover-specific product policy                             |
 | Presentation                          | Typed commands, read-model projection, selection/camera and accessibility             | Compiling to render, inferring current proof status        |
 
-The kernel provides the minimal common vocabulary and neutral adapter boundary.
-Role-specific ports belong to the shared application domain, inward of their
-implementations. The CLI executable is a composition root. Extracting application
-services from it must not move the same orchestration into `meden-core`.
+The kernel provides the minimal common control vocabulary. Role-specific ports
+and shared use cases now live in `meden-app`, inward of model transports and
+presentation. The CLI executable composes these services. Workspace tools,
+source capture/compilation/cache, meaning assessment/repair and accepted-contract
+verification have moved out of the binary; they were not moved into `meden-core`.
 
 ```mermaid
 flowchart LR
@@ -108,8 +109,18 @@ the kernel does not interpret a universal Lean/TLA+/SMT/RTL language. Existing
 accepted-contract syntax checks must not be weakened into acceptance of opaque
 executable payloads during this separation.
 
-The current `Adapter<Context>` is a neutral observation primitive, not a complete
-plugin system. A host registry must describe supported operations/formats,
+The unused byte/format `Adapter<Context>` primitive has been removed from the
+kernel. The application has a consuming compiler request/result port and explicit
+host compiler registry, a renderer role with backend-owned decoded expressions,
+and a session-bound model port implemented by the existing gateway. Lean's frozen
+and prepared-Lake implementations return typed snapshots directly, without a
+JSON/format-tag round trip. Model calls still use their actual consuming processor
+binding and retain the original preflight/postflight revocation checks.
+
+This is the first application extraction, not the complete multi-backend registry.
+Snapshot/graph data remain Lean-oriented; the second real verification backend,
+role-wide plugin/resource/schema bindings and generic read models remain required.
+A completed host registry must describe supported operations/formats,
 implementation versions, resource requirements and limits. Initially use ordinary
 Rust implementations and explicit host registration. External implementations
 can later use the same validated protocol through prepared isolated workers;
@@ -285,6 +296,8 @@ cold-analysis-store/prepared-tab browser budgets in both motion modes. See
 [the native audit](../gui-performance.md). These budgets cover the named
 workloads; they are not universal latency guarantees or live-model validation.
 
-Steps 3–5 remain migration work. They retain the existing local/offline execution, accepted intent, exact evidence linkage and
+Step 3 now has a shared application crate and the first typed compiler, renderer
+and model ports. Its second-backend and full registration exits, plus steps 4–5,
+remain migration work. They retain the existing local/offline execution, accepted intent, exact evidence linkage and
 separate local-deployment/R1 obligations in [assurance.md](../assurance.md) and
 [verification.md](../verification.md).

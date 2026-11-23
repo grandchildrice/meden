@@ -18,7 +18,7 @@ def test_compiler_budget_failure_retains_english_and_next_observation(tmp_path):
     )
     if not (lean / "bin/lean").is_file():
         pytest.skip("actual installed Lean is required")
-    source = Path(__file__).resolve().parents[2] / "crates/meden-cli/src/atlas"
+    source = Path(__file__).resolve().parents[2] / "crates/meden-app/src/atlas"
     env = {**os.environ, "LEAN_SYSROOT": str(lean), "LEAN_PATH": str(tmp_path)}
 
     def run(*args):

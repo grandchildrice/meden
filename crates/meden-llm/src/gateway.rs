@@ -24,6 +24,21 @@ pub struct Gateway {
     local: Option<crate::local::Local>,
 }
 
+impl meden_app::model::Model for Gateway {
+    fn model(&self) -> &str {
+        &self.provider().model
+    }
+    fn endpoint(&self) -> &str {
+        Self::endpoint(self)
+    }
+    fn is_authorized(&self, session: &[u8]) -> bool {
+        Self::is_authorized(self, session)
+    }
+    fn for_session<'a>(&'a self, session: &'a [u8]) -> Box<dyn ChatModel + 'a> {
+        Box::new(Self::for_session(self, session))
+    }
+}
+
 impl Gateway {
     /// Prepare without I/O. The host session identifies the workspace/data
     /// scope; endpoint, model and exact credential are frozen together.
@@ -282,6 +297,9 @@ mod tests {
         gateway.revoke_from_host().expect("revoke pending");
         assert!(gateway.approve_from_host().is_err());
         assert!(gateway.for_session(b"session-a").reply(&[], &[]).is_err());
+        let port: &dyn meden_app::model::Model = &gateway;
+        assert!(!port.is_authorized(b"session-a"));
+        assert!(port.for_session(b"session-a").reply(&[], &[]).is_err());
         assert!(receiver.accept().is_err());
     }
 

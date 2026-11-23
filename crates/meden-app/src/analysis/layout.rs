@@ -15,7 +15,7 @@ use std::{
 
 #[derive(Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct Module {
+pub struct Module {
     pub name: String,
     pub file: String,
     pub root: String,
@@ -32,7 +32,7 @@ impl Module {
     }
 }
 #[derive(Clone, Serialize, Deserialize)]
-pub(crate) struct PackageView {
+pub struct PackageView {
     pub name: String,
     pub directory: String,
     pub source_roots: Vec<String>,

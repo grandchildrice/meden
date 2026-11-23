@@ -8,20 +8,20 @@ use std::{collections::BTreeMap, fs, time::Duration};
 
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct Glob {
+pub struct Glob {
     pub directory: String,
     pub name: String,
     pub kind: String,
 }
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct LibrarySource {
+pub struct LibrarySource {
     pub directory: String,
     pub selectors: Vec<Glob>,
 }
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct Dependency {
+pub struct Dependency {
     pub name: String,
     pub kind: String,
     pub path: String,
@@ -32,7 +32,7 @@ pub(crate) struct Dependency {
 }
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct Package {
+pub struct Package {
     pub name: String,
     pub src_dir: String,
     pub library_sources: Vec<LibrarySource>,
@@ -43,7 +43,7 @@ pub(crate) struct Package {
     pub manifest: String,
 }
 impl Configuration {
-    pub(crate) fn lake_package(
+    pub fn lake_package(
         &self,
         metadata: &Metadata,
         directory: &str,
@@ -72,7 +72,7 @@ impl Configuration {
         );
         Ok(package)
     }
-    pub(crate) fn lake_manifest(
+    pub fn lake_manifest(
         &self,
         metadata: &Metadata,
         path: &str,

@@ -13,6 +13,12 @@ as the TUI; commands below describe historical interfaces, not current ones.
 
 ## Native GUI and Atlas with Ollama Cloud
 
+The [shared application extraction](shared-application-20261123.json) moves actual
+workspace/source, compilation/cache, meaning/repair and accepted-contract
+verification services from the binary to `meden-app`. It records typed compiler,
+renderer and model ports, direct decoded snapshots, actual extraction/proof/UX
+checks and the explicit second-backend/read-model work still outstanding.
+
 The [native profiling and regression record](native-profiling-20261123.json)
 extends that review with real user-space perf samples, bounded correlated stage
 spans, SHA-256 development-build optimization, a shrinkable differential map

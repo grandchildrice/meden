@@ -1,0 +1,117 @@
+{
+  "date": "2026-11-23",
+  "base_commit": "94332e6001dac29af7861847eba1946bb27ddaa4",
+  "scope": "Migration step 3 first vertical slice: real shared application ownership and typed compiler/renderer/model ports, not the completed multi-backend exit.",
+  "ownership": {
+    "meden-core": "Consuming authority kernels. The unused byte/format adapter primitive was removed. No authority transition changed.",
+    "meden-app": "Shared source capture, Lake discovery/import binding, compilation/cache, deterministic rendering, meaning assessment/repair, accepted-contract verification, file/shell use cases and host preparation. No model SDK or presentation dependency.",
+    "meden-llm": "Actual frozen processor grant and model transports; implements the application model port.",
+    "meden-cli": "Composition and public CLI/TUI/GUI adapters; imports the shared use cases."
+  },
+  "ports": {
+    "compiler": "Owned bounded request, disjoint Created/Cached result, explicit unique host registrations; frozen and prepared-Lake implementations return decoded snapshots directly. Registration borrows prevent replacement after selection.",
+    "meaning": "Renderer role with backend-owned validated expression type and decoded Reading; existing actual Informath executes offline.",
+    "model": "Borrowed session-bound ChatModel calls and diagnostic/status methods. Actual Gateway still consumes the original core call and checks exact session, expiry and revocation; the port cannot approve or renew."
+  },
+  "counts": {
+    "meden-core": {
+      "rust_files": 12,
+      "lines_including_tests_comments": 4248
+    },
+    "meden-app": {
+      "rust_files": 33,
+      "lines_including_tests_comments": 7179
+    },
+    "meden-cli": {
+      "rust_files": 37,
+      "lines_including_tests_comments": 13342
+    }
+  },
+  "checks": {
+    "rust": {
+      "reported_passes": 224,
+      "failed": 0,
+      "log": "/tmp/meden-app-rust-tests.log"
+    },
+    "clippy": {
+      "success": true,
+      "log": "/tmp/meden-app-clippy.log"
+    },
+    "actual_extraction": {
+      "success": true,
+      "log": "/tmp/meden-app-extraction-write.log",
+      "changes": "Only three generated source-location comments changed in Approval.lean and Repair.lean. Generated files were emitted by the actual pinned extraction tools, not edited manually."
+    },
+    "lean_build": {
+      "success": true,
+      "reported_jobs": 1877,
+      "log": "/tmp/meden-app-lean-build.log"
+    },
+    "deterministic_lean_expression": {
+      "passed": 1,
+      "log": "/tmp/meden-app-explanation-tests.log"
+    },
+    "architecture": {
+      "passed": 17,
+      "rust_crates": 6,
+      "data_port_sources": 11,
+      "log": "/tmp/meden-app-architecture-final.log"
+    },
+    "typescript": {
+      "passed": 34,
+      "log": "/tmp/meden-app-web-unit.log"
+    },
+    "static": [
+      "cargo fmt --all --check",
+      "npm run typecheck",
+      "npm run format:check",
+      "npm run schema:check"
+    ],
+    "native_gui": {
+      "passed": 4,
+      "log": "/tmp/meden-app-gui.log",
+      "journeys": [
+        "real compiled retained tabs and source/camera/explanations",
+        "streamed real compiler cancellation/timeout/retry",
+        "prepared Lake source/resource refresh and restart",
+        "actual offline Atlas scope, meaning and failed-compilation recovery"
+      ],
+      "screen_inspected": "target/gui-checks/native-atlas-meaning.png"
+    },
+    "required_tui": {
+      "success": true,
+      "selected": 33,
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/validation/eb5eeb31e14fefc8dc1713c4c23e84ad87a955ba0b77534c370e3f5e623fd928/meden",
+        "sha256": "eb5eeb31e14fefc8dc1713c4c23e84ad87a955ba0b77534c370e3f5e623fd928"
+      },
+      "evidence": "/tmp/meden-ux-app-extraction-20261123",
+      "screens_inspected": [
+        "GUI/TUI continuation",
+        "Lake inventory change historical refusal",
+        "provider 429 retained stop and explicit retry",
+        "repair source revision changed, retained Finding and restart"
+      ]
+    },
+    "compiler_registration_borrow_doc_test": {
+      "passed": 1,
+      "log": "/tmp/meden-app-doc-tests.log"
+    },
+    "rustdoc": {
+      "success": true,
+      "log": "/tmp/meden-app-doc.log"
+    }
+  },
+  "deployment": "User GUI services were pinned to immutable digest-named validated executables; ordinary Cargo rebuilds no longer replace their worker path. The application candidate is separately pinned for validation.",
+  "remaining": [
+    "A second real verification backend through unchanged generic jobs, admission and viewer paths with required negative cases. Lean frozen/Lake are two configurations, not two verifier kinds.",
+    "Complete role-wide plugin/configuration/resource/schema binding and typed failure outcomes.",
+    "Backend-neutral bounded inventory/source/graph/job/evidence read models, generated wire definitions and freshness/cross-reference coverage.",
+    "Replace/remove legacy demo/duplicate paths only with entry-point, capture and negative-test replacements. Rendering-engine changes remain measurement-driven."
+  ],
+  "limits": [
+    "Moving services is not whole-application refinement. Existing authority transitions and proof obligations retain their adapter gaps.",
+    "Typed compiler snapshots are still Lean-oriented; this is not yet a universal prover AST or a complete plugin platform.",
+    "Scripted model replies validate transport/control integration, not model quality, cold installation or local large-model inference."
+  ]
+}

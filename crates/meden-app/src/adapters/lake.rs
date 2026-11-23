@@ -1,10 +1,17 @@
 //! Prepared Lake builds keep installed imports outside the selected-source graph.
 use super::Context;
+use crate::compiler::{Compiled, Compiler, Request};
 use anyhow::{Context as _, Result};
-use meden_core::adapter::{Adapter, Artifact, Input};
 use serde::Deserialize;
 
-pub(crate) struct Lake;
+pub struct Lake {
+    atlas: crate::atlas::Configuration,
+}
+impl Lake {
+    pub fn new(atlas: crate::atlas::Configuration) -> Self {
+        Self { atlas }
+    }
+}
 #[derive(Deserialize)]
 struct Prepared {
     fingerprint: String,
@@ -12,7 +19,7 @@ struct Prepared {
 
 /// Trusted host choice: Lake preparation may execute project code with writable
 /// workspace access. It never becomes a model-selected network executor.
-pub(crate) fn enabled() -> Result<bool> {
+pub fn enabled() -> Result<bool> {
     match std::env::var("MEDEN_ATLAS_BACKEND").ok().as_deref() {
         None | Some("frozen") => Ok(false),
         Some("lake") => Ok(true),
@@ -20,15 +27,15 @@ pub(crate) fn enabled() -> Result<bool> {
     }
 }
 
-impl Adapter<Context<'_>> for Lake {
-    type Error = anyhow::Error;
-    fn run(&self, context: &Context<'_>, input: Input) -> Result<Artifact> {
-        anyhow::ensure!(
-            input.format == "meden/selected-snapshot+json",
-            "Unsupported prepared Lake input"
-        );
-        let mut snapshot: crate::analysis::sources::Snapshot =
-            serde_json::from_slice(&input.bytes)?;
+impl Compiler for Lake {
+    fn compile(&self, context: &Context<'_>, request: Request) -> Result<Compiled> {
+        let atlas = &self.atlas;
+        let mut snapshot = crate::analysis::collect::roots(
+            context.workspace,
+            context.control,
+            request.paths(),
+            atlas.clone(),
+        )?;
         let collection = snapshot
             .collection
             .as_mut()
@@ -38,8 +45,6 @@ impl Adapter<Context<'_>> for Lake {
             context.control,
             &collection.metadata,
         )?;
-        let atlas = crate::atlas::Configuration::host(context.workspace.path())
-            .with_observer(context.observer.clone());
         let bindings = serde_json::to_string(&collection.modules)?;
         let prepared: Prepared = serde_json::from_str(&atlas.project(
             context.workspace.path(),
@@ -59,11 +64,7 @@ impl Adapter<Context<'_>> for Lake {
             &collection.roots,
             &prepared.fingerprint,
         )? {
-            return Ok(Artifact {
-                producer: "lean-lake-atlas".into(),
-                format: "meden/cached-snapshot+json".into(),
-                bytes: serde_json::to_vec(&cached)?,
-            });
+            return Ok(Compiled::Cached(cached));
         }
         let modules = collection
             .modules
@@ -105,18 +106,10 @@ impl Adapter<Context<'_>> for Lake {
             "sha256:{}",
             crate::atlas::digest(&serde_json::to_vec(&(&graph.revision, &collection))?)
         );
-        collection.external_modules = external_modules(
-            &atlas,
-            &snapshot.files,
-            &collection.modules,
-            context.control,
-        )?;
+        collection.external_modules =
+            external_modules(atlas, &snapshot.files, &collection.modules, context.control)?;
         snapshot.atlas = Some(graph);
-        Ok(Artifact {
-            producer: "lean-lake-atlas".into(),
-            format: "meden/compiled-snapshot+json".into(),
-            bytes: serde_json::to_vec(&snapshot)?,
-        })
+        Ok(Compiled::Created(snapshot))
     }
 }
 

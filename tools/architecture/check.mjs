@@ -15,8 +15,15 @@ const layers = {
   "meden-core": [],
   "meden-agent": ["meden-core"],
   "meden-runtime": ["meden-core", "meden-agent"],
-  "meden-llm": ["meden-core", "meden-agent", "meden-runtime"],
-  "meden-cli": ["meden-core", "meden-agent", "meden-runtime", "meden-llm"],
+  "meden-app": ["meden-core", "meden-agent", "meden-runtime"],
+  "meden-llm": ["meden-core", "meden-agent", "meden-runtime", "meden-app"],
+  "meden-cli": [
+    "meden-core",
+    "meden-agent",
+    "meden-runtime",
+    "meden-app",
+    "meden-llm",
+  ],
 };
 
 export function cargoViolations(packages, members) {
@@ -34,6 +41,13 @@ export function cargoViolations(packages, members) {
         errors.push(`${p.name}: outward dependency on ${d.name}`);
       if (p.name === "meden-core" && !["serde", "thiserror"].includes(d.name))
         errors.push(`${p.name}: unreviewed kernel dependency ${d.name}`);
+      if (
+        p.name === "meden-app" &&
+        ["ratatui", "crossterm", "clap", "tiny_http"].includes(d.name)
+      )
+        errors.push(
+          `${p.name}: presentation implementation dependency ${d.name}`,
+        );
     }
     if (
       p.name === "meden-core" &&

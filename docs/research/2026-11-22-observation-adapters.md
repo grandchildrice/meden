@@ -1,18 +1,20 @@
 # Prepared observations and replaceable backends
 
-The core exposes `adapter::{Input, Artifact, Adapter<Context>}` only. Input/output
-formats and producer identities are explicit strings over owned bytes. No Lean,
-SMT, Verilog, GF, process launcher or serialization dependency enters this interface.
-An artifact is an untrusted observation, not an evidence receipt or authority bit.
+The November 23 application extraction replaces the original byte/format
+`Adapter<Context>` primitive with role-specific ports in `meden-app`. The core
+retains control/evidence vocabulary and no longer contains that unused primitive.
+Compiler requests and complete snapshots are passed directly as typed values;
+meaning renderers own their decoded formal-expression type. Observations remain
+separate from an evidence receipt or authority bit.
 
-The actual Lean compiler and external Informath integrations implement that same
-interface in `meden-cli/src/adapters`. The host supplies workspace/cancellation
-context and chooses the integration. Future Z3 or Yosys adapters can implement
-the interface without adding their syntax or tool configuration to the kernel.
-Those additional backends are not implemented by this change. The host composes
-compilation, optional realization and cache retention; the compiler adapter has
-no Informath or cache dependency. Native evidence admission remains a
-separate contract/job operation; displaying an adapter artifact does not invoke it.
+Lean's frozen and prepared-Lake compilers are registered by trusted host code in
+`meden-app/src/adapters`; the application owns enrichment and retention. Informath
+implements the deterministic renderer role over its validated Dedukti input.
+The model transport implements a session-bound application port while preserving
+its actual consuming grant and refusal/expiry/revocation checks. Ordinary
+integrations do not put Lean, SMT, Verilog, GF or process-launching logic in the
+kernel. The complete multi-backend registry and second real verifier remain
+migration work; these existing Lean modes are not counted as two verifier kinds.
 
 ## Adopted research implementation
 

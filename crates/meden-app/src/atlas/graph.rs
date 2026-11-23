@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 #[derive(Clone, Deserialize, Serialize)]
-pub(crate) struct Extraction {
+pub struct Extraction {
     pub revision: String,
     pub upstream: String,
     pub graph: Graph,
@@ -66,7 +66,7 @@ mod tests {
 }
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct Graph {
+pub struct Graph {
     pub metadata: Metadata,
     pub nodes: Vec<Node>,
     pub edges: Vec<Edge>,
@@ -74,13 +74,13 @@ pub(crate) struct Graph {
 }
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct Metadata {
+pub struct Metadata {
     pub project_name: String,
     pub lean_version: String,
 }
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct Node {
+pub struct Node {
     pub id: String,
     pub short_name: String,
     pub kind: String,
@@ -100,12 +100,12 @@ pub(crate) struct Node {
 }
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct NodeMeta {
+pub struct NodeMeta {
     #[serde(default)]
     pub is_main_theorem: bool,
 }
 #[derive(Clone, Deserialize, Serialize)]
-pub(crate) struct Edge {
+pub struct Edge {
     pub source: String,
     pub target: String,
     pub kind: String,

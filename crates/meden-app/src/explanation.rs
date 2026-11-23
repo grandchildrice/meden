@@ -1,10 +1,10 @@
 //! Versioned compiled presentation observations; no source-only surrogate.
 use serde::{Deserialize, Serialize};
-pub(crate) mod cache;
+pub mod cache;
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct Explanation {
+pub struct Explanation {
     pub version: u8,
     pub origin: String,
     pub sentence: String,
@@ -20,7 +20,7 @@ pub(crate) struct Explanation {
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(crate) struct Check {
+pub struct Check {
     pub engine: String,
     pub status: String,
     pub candidates: Vec<String>,

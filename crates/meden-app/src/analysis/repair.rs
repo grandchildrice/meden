@@ -5,15 +5,15 @@ use std::path::Path;
 use std::sync::atomic::Ordering;
 use std::time::{Duration, Instant};
 
+use crate::model::Model;
 use anyhow::{Context, Result};
-use meden_agent::{conversation::ChatModel, tool::Args};
+use meden_agent::tool::Args;
 use meden_core::{
     export_control::{ExportEvent, Origin, State},
     file::{Operation, Request},
     invocation::{Attempt, Notice},
     Policy,
 };
-use meden_llm::Gateway;
 use meden_runtime::{
     process::{Control, Limits},
     workspace::Workspace,
@@ -27,12 +27,12 @@ use crate::semantic::{self, Input};
 
 #[derive(Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct Reference {
+pub struct Reference {
     pub id: String,
     pub sha256: String,
 }
 #[derive(Clone, Serialize)]
-pub(crate) struct Review {
+pub struct Review {
     pub reference: Reference,
     pub model: String,
     pub processor: String,
@@ -78,15 +78,15 @@ struct Log<'a> {
     error: Option<&'a str>,
     analysis_id: Option<&'a str>,
 }
-pub(crate) struct Pending {
+pub struct Pending {
     state: State,
     created: Instant,
 }
 #[derive(Default)]
-pub(crate) struct Queue {
+pub struct Queue {
     pending: Option<Pending>,
 }
-pub(crate) struct Applied {
+pub struct Applied {
     pub input: Input,
     pub paths: Vec<String>,
     pub review: Review,
@@ -162,9 +162,9 @@ fn observe_sources(
     Ok(())
 }
 
-pub(crate) fn prepare(
+pub fn prepare(
     workspace: &Workspace,
-    gateway: &Gateway,
+    gateway: &dyn Model,
     control: &Control,
     policy: &Policy,
     snapshot: &sources::Snapshot,
@@ -233,7 +233,7 @@ pub(crate) fn prepare(
     );
     let frozen = Frozen {
         id: id()?,
-        model: gateway.provider().model.clone(),
+        model: gateway.model().to_owned(),
         processor: gateway.endpoint().into(),
         finding_id: finding.clone(),
         requirement_id: record.requirement_id.clone(),
@@ -362,11 +362,7 @@ impl Pending {
     }
 }
 impl Queue {
-    pub(crate) fn install(
-        &mut self,
-        workspace: &Workspace,
-        mut pending: Pending,
-    ) -> Result<Review> {
+    pub fn install(&mut self, workspace: &Workspace, mut pending: Pending) -> Result<Review> {
         if let Some(old) = self.pending.take() {
             log(workspace.path(), &old.review()?, "superseded", None, None)?;
         }
@@ -388,7 +384,7 @@ impl Queue {
         self.pending = Some(pending);
         Ok(review)
     }
-    pub(crate) fn abandon(&mut self, workspace: &Workspace) -> Result<()> {
+    pub fn abandon(&mut self, workspace: &Workspace) -> Result<()> {
         if let Some(pending) = self.pending.take() {
             log(
                 workspace.path(),
@@ -400,7 +396,7 @@ impl Queue {
         }
         Ok(())
     }
-    pub(crate) fn reject(&mut self, workspace: &Workspace, reference: &Reference) -> Result<()> {
+    pub fn reject(&mut self, workspace: &Workspace, reference: &Reference) -> Result<()> {
         let mut pending = self.pending.take().context("No repair awaits review")?;
         let review = pending.review()?;
         anyhow::ensure!(
@@ -416,7 +412,7 @@ impl Queue {
         );
         log(workspace.path(), &review, "rejected", None, None)
     }
-    pub(crate) fn apply(
+    pub fn apply(
         &mut self,
         workspace: &Workspace,
         control: &Control,
@@ -504,11 +500,7 @@ impl Queue {
         result
     }
 }
-pub(crate) fn record_reanalysis(
-    root: &Path,
-    applied: &Applied,
-    result: &Result<Record>,
-) -> Result<()> {
+pub fn record_reanalysis(root: &Path, applied: &Applied, result: &Result<Record>) -> Result<()> {
     match result {
         Ok(record) => log(root, &applied.review, "reanalyzed", None, Some(&record.id)),
         Err(error) => log(

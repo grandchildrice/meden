@@ -3,16 +3,15 @@
 use anyhow::{Context, Result};
 use clap::{Args, Parser, Subcommand};
 use connection::ModelArgs;
+use meden_app::{
+    adapters, analysis, atlas, explanation, project, semantic, storage, verifier, workspace,
+};
 use meden_runtime::{process::Control, workspace::Workspace};
 use std::io::{self, Read, Write};
 use std::path::PathBuf;
 use std::process::ExitCode;
 use std::sync::{atomic::AtomicBool, Arc};
-mod adapters;
-mod analysis;
-mod atlas;
 mod connection;
-mod explanation;
 mod exports;
 mod gui;
 mod handoff;
@@ -20,17 +19,11 @@ mod judge;
 mod lean_project;
 mod lean_work;
 mod pages;
-mod project;
 mod protocol;
-mod semantic;
 mod session;
-mod shell;
-mod storage;
 mod text;
 mod tui;
-mod verifier;
 mod worker_file;
-mod workspace;
 
 #[derive(Parser)]
 #[command(name = "meden", version, about = "Conversational coding agent")]
@@ -257,9 +250,9 @@ fn run() -> Result<()> {
         Command::SetupAtlas { workspace } => setup_atlas(&workspace)?,
         Command::SourceNotices => println!(
             "Lean Atlas (bundled extraction core)\n{}\nPlausible (fixed-seed checker)\n{}\nclaimcheck (prompt/output adaptation)\n{}",
-            include_str!("atlas/vendor/LICENSE"),
-            include_str!("atlas/vendor/MedenPlausible/LICENSE"),
-            include_str!("semantic/CLAIMCHECK-LICENSE")
+            meden_app::SOURCE_NOTICES.0,
+            meden_app::SOURCE_NOTICES.1,
+            meden_app::SOURCE_NOTICES.2
         ),
         Command::Setup => {
             verifier::prepare()?;

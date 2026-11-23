@@ -115,7 +115,7 @@ pub(super) fn begin(
     model: &str,
     input: Input,
     source_artifact: String,
-    judge: Option<crate::judge::Binding>,
+    judge: Option<crate::model::Binding>,
 ) -> Result<Record> {
     let store = Store::open(root)?;
     let mut journal = if let Ok(journal) = store.read() {
@@ -186,7 +186,7 @@ pub(super) fn save(root: &Path, record: &Record) -> Result<()> {
     *saved = next;
     crate::storage::write(&store.path, &journal)
 }
-pub(crate) fn list(root: &Path) -> Result<Vec<Record>> {
+pub fn list(root: &Path) -> Result<Vec<Record>> {
     let store = Store::open(root)?;
     let mut entries = store.read()?.entries;
     for record in &mut entries {
@@ -201,7 +201,7 @@ pub(crate) fn list(root: &Path) -> Result<Vec<Record>> {
     }
     Ok(entries)
 }
-pub(crate) fn select(root: &Path, id: &str) -> Result<Record> {
+pub fn select(root: &Path, id: &str) -> Result<Record> {
     list(root)?
         .into_iter()
         .find(|record| record.id == id || record.finding_id.as_deref() == Some(id))

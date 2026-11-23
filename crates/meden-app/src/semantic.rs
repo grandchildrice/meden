@@ -9,18 +9,18 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 
-pub(crate) const ENGINE: &str = "meden-claimcheck-roundtrip-v1";
+pub const ENGINE: &str = "meden-claimcheck-roundtrip-v1";
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct Target {
+pub struct Target {
     pub file: String,
     pub line: usize,
     pub name: String,
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct Input {
+pub struct Input {
     pub source_revision: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub graph_revision: Option<String>,
@@ -28,7 +28,7 @@ pub(crate) struct Input {
     pub requirement: String,
 }
 /// Frozen data only. This value carries no approval or verification authority.
-pub(crate) struct Prepared {
+pub struct Prepared {
     input: Input,
     files: BTreeMap<String, String>,
     elaborated: Option<Value>,
@@ -117,7 +117,7 @@ impl Input {
 }
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(crate) struct Translation {
+pub struct Translation {
     pub lemma_name: String,
     pub natural_language: String,
     pub preconditions: String,
@@ -128,7 +128,7 @@ pub(crate) struct Translation {
 }
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
-pub(crate) enum Strength {
+pub enum Strength {
     Trivial,
     Weak,
     Moderate,
@@ -136,7 +136,7 @@ pub(crate) enum Strength {
 }
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(crate) struct Comparison {
+pub struct Comparison {
     pub lemma_name: String,
     #[serde(rename = "match")]
     pub matches: bool,
@@ -146,7 +146,7 @@ pub(crate) struct Comparison {
 }
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
-pub(crate) enum Weakening {
+pub enum Weakening {
     None,
     Tautology,
     WeakenedPostcondition,
@@ -156,27 +156,27 @@ pub(crate) enum Weakening {
 }
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
-pub(crate) enum Verdict {
+pub enum Verdict {
     Match,
     Mismatch,
     Unclear,
 }
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct Assessment {
+pub struct Assessment {
     pub translation: Translation,
     pub comparison: Comparison,
     pub verdict: Verdict,
 }
 #[derive(Clone)]
-pub(crate) enum Stage {
+pub enum Stage {
     Translating,
     Comparing(Translation),
 }
 
-pub(crate) fn analyze(
-    translator: &impl ChatModel,
-    judge: &impl ChatModel,
+pub fn analyze(
+    translator: &dyn ChatModel,
+    judge: &dyn ChatModel,
     prepared: &Prepared,
     cancelled: &AtomicBool,
     progress: &dyn Fn(Stage),
@@ -269,7 +269,7 @@ fn validate_text(values: &[&String]) -> Result<()> {
     );
     Ok(())
 }
-pub(crate) fn decode<T: DeserializeOwned>(reply: Reply, expected: &str) -> Result<T> {
+pub fn decode<T: DeserializeOwned>(reply: Reply, expected: &str) -> Result<T> {
     let mut calls = reply.tool_calls.into_iter();
     let call = calls
         .next()

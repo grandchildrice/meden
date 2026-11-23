@@ -1,8 +1,13 @@
 //! Shared pure source navigation and explanation preview; no elaboration or proof.
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
+
+/// Cache identity of the actual lexical implementation, independent of its crate path.
+pub fn identity() -> String {
+    crate::atlas::digest(include_bytes!("source.rs"))
+}
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub(crate) struct Symbol {
+pub struct Symbol {
     pub name: String,
     pub line: usize,
     pub kind: String,
@@ -14,7 +19,7 @@ pub(crate) struct Symbol {
 }
 // Mask nested comments and string literals before counting declarations or
 // reading Lean import lines. Names and dependencies are lexical candidates.
-pub(crate) fn headers(source: &str, lean: bool) -> (usize, usize, Vec<String>) {
+pub fn headers(source: &str, lean: bool) -> (usize, usize, Vec<String>) {
     let text = mask(source, lean);
     let mut declarations = 0usize;
     let mut theorems = 0usize;
@@ -90,7 +95,7 @@ fn is_declaration(kind: &str) -> bool {
 }
 
 // Precomputed lexical navigation only. No elaboration or proof status is inferred.
-pub(crate) fn symbols(source: &str, lean: bool) -> Vec<Symbol> {
+pub fn symbols(source: &str, lean: bool) -> Vec<Symbol> {
     let clean = mask(source, lean);
     let mut result = Vec::new();
     let mut current: Option<Symbol> = None;

@@ -82,7 +82,12 @@ in [verification.md](verification.md) and [project-verification.md](project-veri
 ## Completion criteria for changes
 
 When changing data/application boundaries, also run `npm run architecture:check`.
-Its negative cases check the structural guard, not live backend quality. The
+Its negative cases check the structural guard, not live backend quality.
+The shared `meden-app` layer cannot depend on presentation or concrete model
+transports. Public Atlas/Lake, meaning with a separate judge, repair and native
+verification journeys exercise the application extraction; compiler registration
+must reject unknown/duplicate keys, and the model port must preserve terminal
+revocation without sending. The
 native startup/retained-tab journeys and recorded-workspace import/edit/restart
 journeys exercise the actual browser adapter and evidence invalidation. Pure
 workspace transitions receive explicit identity/time so replay is reproducible.

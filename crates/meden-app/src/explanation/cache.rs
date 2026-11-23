@@ -7,7 +7,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct Note {
+pub struct Note {
     pub file: String,
     pub name: String,
     pub line: usize,
@@ -27,10 +27,7 @@ struct Artifact {
     snapshot: crate::analysis::sources::Snapshot,
 }
 
-pub(crate) fn retain(
-    workspace: &Workspace,
-    snapshot: &crate::analysis::sources::Snapshot,
-) -> Result<()> {
+pub fn retain(workspace: &Workspace, snapshot: &crate::analysis::sources::Snapshot) -> Result<()> {
     let _timing = meden_runtime::metrics::Span::start("analysis.cache.store");
     let graph = snapshot
         .atlas
@@ -138,11 +135,7 @@ fn artifacts(
     Ok(observations)
 }
 
-pub(crate) fn load(
-    workspace: &Workspace,
-    control: &Control,
-    paths: &[String],
-) -> Result<Vec<Note>> {
+pub fn load(workspace: &Workspace, control: &Control, paths: &[String]) -> Result<Vec<Note>> {
     let mut notes = Vec::new();
     for artifact in artifacts(workspace, control, paths, None)? {
         let graph = artifact.snapshot.atlas.context("Missing compiled graph")?;
@@ -172,7 +165,7 @@ pub(crate) fn load(
     Ok(notes)
 }
 
-pub(crate) fn compiled(
+pub fn compiled(
     workspace: &Workspace,
     control: &Control,
     path: &str,
@@ -184,7 +177,7 @@ pub(crate) fn compiled(
 }
 
 /// Only a freshly prepared, exact compiled-input fingerprint may reuse these observations.
-pub(crate) fn compiled_prepared(
+pub fn compiled_prepared(
     workspace: &Workspace,
     control: &Control,
     paths: &[String],

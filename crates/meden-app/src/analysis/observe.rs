@@ -16,14 +16,14 @@ use std::{
 
 #[derive(Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct Entry {
+pub struct Entry {
     pub name: String,
     pub kind: String,
 }
 
 #[derive(Clone, Default, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct Metadata {
+pub struct Metadata {
     pub files: BTreeMap<String, Option<String>>,
     pub directories: BTreeMap<String, Option<Vec<Entry>>>,
 }
@@ -159,7 +159,7 @@ impl<'a> Reader<'a> {
 }
 /// Normalize declared relative paths before constructing the original worker request.
 /// Parent components are allowed only when they stay within the host workspace.
-pub(crate) fn relative(base: &str, child: &str) -> Result<String> {
+pub fn relative(base: &str, child: &str) -> Result<String> {
     let mut components = Vec::new();
     let joined = if Path::new(child).is_absolute() {
         Path::new(child)
