@@ -268,6 +268,21 @@ export function NativeApp({ token }: { token: string }) {
     state?.readers,
     reconnect,
   );
+  const readPreparationLog = useCallback(
+    (revision: string, signal: AbortSignal) =>
+      observePublication(client.preparationLog(revision, signal)),
+    [client],
+  );
+  const preparationLogs = usePublications(
+    files.flatMap((path) =>
+      state?.source_preparation[path]?.log
+        ? [state.source_preparation[path]!.log!.revision]
+        : [],
+    ),
+    readPreparationLog,
+    state?.source_preparation,
+    reconnect,
+  );
   const source = preparedSources.get(state?.sources.current?.revision)
     ?.publication?.data;
   const inventoryRevision = state?.overview.revision || undefined;
@@ -937,6 +952,21 @@ export function NativeApp({ token }: { token: string }) {
                     onRetrySource={() => {
                       const revision = state.sources.files[file]?.revision;
                       if (revision) preparedSources.retry(revision);
+                    }}
+                    preparationLog={
+                      preparationLogs.get(
+                        state.source_preparation[file]?.log?.revision,
+                      )?.publication?.data
+                    }
+                    preparationLogError={
+                      preparationLogs.get(
+                        state.source_preparation[file]?.log?.revision,
+                      )?.error
+                    }
+                    onRetryLog={() => {
+                      const revision =
+                        state.source_preparation[file]?.log?.revision;
+                      if (revision) preparationLogs.retry(revision);
                     }}
                     path={file}
                     scene={scene}

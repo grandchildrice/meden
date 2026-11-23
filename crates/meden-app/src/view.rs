@@ -15,6 +15,8 @@ pub mod file;
 pub mod history;
 /// Prepared generic navigation inventory and chunks, separate from source text.
 pub mod inventory;
+/// Bounded preparation observations and exact diagnostic queries.
+pub mod jobs;
 /// Bounded, immutable publication framing shared by read-model owners.
 pub mod publication;
 /// Immutable reader retention, separate from semantic graphs.

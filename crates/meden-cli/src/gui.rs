@@ -35,6 +35,7 @@ enum PublicationRole {
     Reader,
     Inventory,
     Directory,
+    PreparationLog,
 }
 
 impl Task {
@@ -78,7 +79,7 @@ struct View {
     directories: meden_app::view::directory::Directories,
     readers: meden_app::view::readers::Readers,
     sources: meden_app::view::sources::Sources,
-    source_preparation: std::collections::BTreeMap<String, sources::Preparation>,
+    source_preparation: meden_app::view::jobs::Jobs,
     analysis: Option<analysis::Record>,
     analysis_history: Vec<analysis::Record>,
     repair_review: Option<crate::analysis::repair::Review>,
@@ -389,7 +390,7 @@ fn initial_view(
         directories: meden_app::view::directory::Directories::default(),
         readers: meden_app::view::readers::Readers::default(),
         sources: meden_app::view::sources::Sources::default(),
-        source_preparation: std::collections::BTreeMap::new(),
+        source_preparation: meden_app::view::jobs::Jobs::new(workspace.session_id()),
         analysis: analysis_history.last().cloned(),
         analysis_history,
         repair_review: None,
@@ -549,6 +550,8 @@ impl Http<'_> {
     fn publication(&self, url: &str) -> Option<(&'static str, Option<Arc<[u8]>>)> {
         let (role, encoded) = if let Some(revision) = url.strip_prefix("/api/history?revision=") {
             (PublicationRole::History, revision)
+        } else if let Some(revision) = url.strip_prefix("/api/preparation-log?revision=") {
+            (PublicationRole::PreparationLog, revision)
         } else if let Some(revision) = url.strip_prefix("/api/directory?revision=") {
             (PublicationRole::Directory, revision)
         } else if let Some(revision) = url.strip_prefix("/api/inventory?revision=") {
@@ -571,6 +574,7 @@ impl Http<'_> {
                     PublicationRole::Source => view.sources.bytes(&revision),
                     PublicationRole::Reader => view.readers.bytes(&revision),
                     PublicationRole::Directory => view.directories.bytes(&revision),
+                    PublicationRole::PreparationLog => view.source_preparation.bytes(&revision),
                     PublicationRole::Inventory => view
                         .overview_snapshot
                         .as_ref()
@@ -583,6 +587,7 @@ impl Http<'_> {
                 PublicationRole::Source => "gui.source_respond",
                 PublicationRole::Reader => "gui.reader_respond",
                 PublicationRole::Directory => "gui.directory_respond",
+                PublicationRole::PreparationLog => "gui.preparation_log_respond",
                 PublicationRole::Inventory => "gui.inventory_respond",
             },
             bytes,
@@ -928,7 +933,7 @@ fn read_source(
     lock(view).readers.publish(reader);
     drop(timing);
     if readable {
-        sources::prepare(view, workspace, processes, path, true);
+        sources::prepare(view, workspace, processes, path, true)?;
     }
     if available {
         overview::observe_file(view, workspace, processes, path);

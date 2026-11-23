@@ -1,3 +1,6 @@
+import { preparationIndexSchema } from "./preparation-index.generated";
+export { preparationLogSchema } from "./preparation-log.generated";
+export type { PreparationLogPublication } from "./preparation-log.generated";
 import { directoryIndexSchema } from "./directory-index.generated";
 export { directoryPublicationSchema } from "./directory-publication.generated";
 export type { DirectoryPublication } from "./directory-publication.generated";
@@ -204,24 +207,7 @@ export const exportOutcomeSchema = z
   .strict();
 export type ExportOutcome = z.infer<typeof exportOutcomeSchema>;
 export const nativeStateSchema = z.object({
-  source_preparation: z
-    .record(
-      z.string(),
-      z
-        .object({
-          state: z.enum(["preparing", "ready", "failed"]),
-          cache_hit: z.boolean(),
-          error: z.string().nullable(),
-          phase: z.string(),
-          elapsed_ms: z.number().nonnegative(),
-          phase_elapsed_ms: z.number().nonnegative(),
-          limit_seconds: z.number().nonnegative(),
-          log: z.string(),
-          log_truncated: z.boolean(),
-        })
-        .strict(),
-    )
-    .default({}),
+  source_preparation: preparationIndexSchema,
   history: historyReferenceSchema,
   workspace: z.string(),
   endpoint: z.string(),

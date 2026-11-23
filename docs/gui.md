@@ -470,8 +470,16 @@ compiled-artifact checks precede cache reuse, including after restart.
 File preparation streams actual compiler output into the file pane, with the
 current step, elapsed time and **Stop preparation**. Logs remain visible after a
 timeout or cancellation, and **Retry preparation** reuses completed Lake outputs.
-Successful pages retain a collapsed **Build log**. Diagnostic history keeps the
-latest 64 KiB; it does not appear in the conversation or grant proof status.
+Successful pages retain a collapsed **Build log**. Preparation status is a generated,
+resource-local application view. Polls carry the step, bounded durations, typed
+outcome and a log reference; the retained diagnostic tail is fetched on a changed
+reference or an explicit local retry. **Retry log** retries the read without restarting compilation.
+Logs are bound to the original preparation and resource, so a superseded response
+cannot populate a newer job. At most 64 preparation observations are retained;
+replacement, workspace refresh and restart retire old log queries. This is display
+state, independent of the kernel's consuming jobs and admitted evidence. Diagnostic history keeps the
+latest 64 KiB; failure summaries are capped at 8000 UTF-8 bytes and explicitly
+marked when shortened. These diagnostics do not appear in the conversation or grant proof status.
 Open file tabs retain their observed source, graph and explanations in memory.
 Graph hover, wheel gestures and resizing preserve the camera; the passive legend
 passes pointer events through. Fit View remains an explicit reset. Selecting a

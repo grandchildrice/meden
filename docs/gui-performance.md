@@ -1,5 +1,56 @@
 # Graph interaction measurements
 
+## Resource-local preparation and diagnostic publications (November 24)
+
+The [implementation and validation record](../results/preparation-views-20261124.json)
+moves preparation outcomes, durations and diagnostic framing into the application.
+The old CLI DTO and handwritten browser schema are deleted. The host supplies
+clocks and normalized output; immutable observer handles bind the original host
+session, sequence and resource. Replacement, completion, backwards time, refresh
+and eviction cannot revive an older observer. These display observations carry
+no kernel job ticket, approval or evidence authority.
+
+Status contains only a small generated progress record and exact log reference.
+Changed output freezes a bounded UTF-8 tail; queries clone its existing bytes.
+The actual installed Lean/Lake fixture retained **65,536 diagnostic bytes** while
+its JSON-encoded progress projection was **352 bytes**. Local **Retry log**
+recovered an injected HTTP 503 with **zero host commands**, while compilation
+remained held. This measures avoided diagnostic retransmission, not faster
+compilation. Retention is 64 resources, with 64 KiB of diagnostic text per resource.
+Long non-BMP compiler failures remain readable after restart: step labels and
+failure summaries are byte-bounded, and shortened diagnostics are explicit.
+
+The exact final binary passed all **65 browser journeys**, Rust **302**,
+TypeScript **39**, **22 architecture checks**, reproducible export of **32**
+generated files and public TUI **34 required cases**, without skips. Decoded
+failure/restart screens and streaming, transfer-failure and Unicode diagnostic
+screens were inspected. The record retains the earlier route-drain fixture race,
+a missed multiline fixture field, and the corrected full-suite rerun.
+
+Serialized browser gates also passed in both motion modes, without concurrent
+checks or profiles. Prepared-tab p95 was **36.1 / 36.6 ms**; paging while the real
+compiler was held had maximum **26.1 / 36.6 ms**, under the 250 ms budgets.
+Initial readable source appeared in **1,192 / 1,203 ms**, under 5 seconds. These
+are DOM/two-animation-callback proxies, not physical presentation or field INP.
+The prior CI run passed all 64 then-current journeys and one complete motion
+gate, but its 20-minute whole-job deadline interrupted the second gate. The
+workflow now allows 30 minutes; individual test and numeric limits are unchanged.
+
+Further analysis of the existing actual-project capture identifies the remaining
+preparation targets. Riemann's cached setup took 22.820 seconds: the worker log
+records **10.148 seconds** for Lake build/setup and input resolution, followed by
+**4.575 seconds** validating **43,477 files / 5,992,114,707 bytes**. EthLib's
+4.231-second setup contains two separate cache-validation spans of **1.549 /
+1.604 seconds**, each with **31 direct process calls**, mostly 41–51 ms each.
+`collect::check_metadata` performs these policy-bound observations individually;
+`overview::apply_compiled` invokes cache validation again for navigation notes.
+The existing confined `file::read_batch` provides a concrete batching boundary
+without removing original/resolved policy checks or complete-output admission.
+These are observations from the preceding inventory-publication capture, not a
+new rendering comparison. Host-thread CPU excludes child workers, and nested
+spans must not be added as exclusive CPU time. Lake/input validation, broader
+job/evidence read models and versioned layout/retirement remain work.
+
 ## Frozen inventory and complete typed directories (November 24)
 
 The [implementation and measurement record](../results/inventory-publications-20261124.json)

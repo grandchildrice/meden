@@ -1,5 +1,7 @@
 import {
   nativeStateSchema,
+  preparationLogSchema,
+  type PreparationLogPublication,
   directoryPublicationSchema,
   type DirectoryPublication,
   inventoryPublicationSchema,
@@ -77,8 +79,25 @@ export class NativeClient {
       signal,
     );
   }
+  async preparationLog(
+    revision: string,
+    signal?: AbortSignal,
+  ): Promise<PreparationLogPublication> {
+    return this.publication(
+      "preparation-log",
+      revision,
+      preparationLogSchema,
+      signal,
+    );
+  }
   private async publication<T extends { revision: string }>(
-    role: "history" | "source" | "reader" | "inventory" | "directory",
+    role:
+      | "history"
+      | "source"
+      | "reader"
+      | "inventory"
+      | "directory"
+      | "preparation-log",
     revision: string,
     schema: { parse(value: unknown): T },
     signal?: AbortSignal,

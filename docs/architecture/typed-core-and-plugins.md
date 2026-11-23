@@ -543,7 +543,17 @@ a changed context or explicit retry can recover the same republished content
 ID. Persistent failures expose a local retry. File navigation does not populate
 chat, and no read query schedules a semantic job. Large input/compiler freshness
 checks remain in their original host operations. Complete reader, inventory and directory observations now use the same query
-boundary. Job/evidence views still need their own revisioned queries.
+boundary. Resource-local preparation status and logs now have application-owned generated
+DTOs too. A fresh host-session/sequence/resource identity binds a non-deserializable
+observer handle. Replacement, completion, backwards time, clear and oldest eviction
+prevent stale notifications from changing current progress. Disjoint outcomes retain
+cache observation only for success and separately typed host cancellation, operation
+or invalid-observation failure. Host clocks and diagnostic normalization remain
+adapters. At most 64 resources retain UTF-8 diagnostic tails of 64 KiB each; status
+contains only exact log references. Logs freeze when output changes and immutable
+queries never start work. These observation handles are not kernel job tickets or
+evidence. General analysis/verification job and evidence views still need their own
+revisioned queries.
 
 This does not finish step 4: generic job/evidence DTOs, generation of
 the rest of the native wire contract and remaining navigation waits still need

@@ -5,8 +5,10 @@ pub(super) use meden_app::view::PreparedSource as Snapshot;
 use meden_runtime::{process::Control, workspace::Workspace};
 
 mod preparation;
-pub(super) use preparation::Preparation;
-use std::sync::{Arc, Mutex};
+use std::{
+    sync::{Arc, Mutex},
+    time::Instant,
+};
 
 /// A fresh read invalidates every retained graph containing a changed or
 /// unavailable input. Other tabs keep their immutable, still-matching pages.
@@ -20,14 +22,14 @@ pub(super) fn observe(view: &Mutex<super::View>, observation: &meden_app::view::
     }
 }
 
-pub(super) fn unavailable(view: &Mutex<super::View>, path: &str, error: String) {
+pub(super) fn unavailable(view: &Mutex<super::View>, path: &str, error: String) -> Result<()> {
     let mut view = super::lock(view);
     view.sources.forget_file(path);
+    let original = view.source_preparation.begin(path, "Reading source")?;
     view.source_preparation
-        .entry(path.into())
-        .or_insert_with(Preparation::new)
-        .finish(Some(error), false);
+        .finish(&original, 0, Err(error.into()));
     view.sources.clear_current();
+    Ok(())
 }
 
 /// Finish compiler, meaning and search preparation before publishing the page.
@@ -38,48 +40,73 @@ pub(super) fn prepare(
     control: &Control,
     path: &str,
     publish: bool,
-) {
+) -> Result<()> {
     if std::path::Path::new(path)
         .extension()
         .is_none_or(|ext| ext != "lean")
     {
-        return;
+        return Ok(());
     }
     // A Lake project can span hundreds of thousands of modules. Its host
     // preparation is explicit; do not start a whole-project build on map startup.
     if !publish && crate::adapters::lake::enabled().unwrap_or(false) {
-        return;
+        return Ok(());
     }
-    super::lock(view)
+    let started = Instant::now();
+    let original = super::lock(view)
         .source_preparation
-        .insert(path.into(), Preparation::new());
+        .begin(path, "Resolving modules")?;
     super::lock(view).sources.forget_file(path);
     let result = crate::analysis::extract_cached(
         workspace,
         control,
         &[path.into()],
-        Some(preparation::observer(view, &[path.into()])),
+        Some(preparation::observer(
+            view,
+            std::slice::from_ref(&original),
+            started,
+        )),
     )
     .and_then(|(snapshot, cached)| Ok((Snapshot::new(snapshot)?, cached)));
-    let mut view = super::lock(view);
     match result {
         Ok((snapshot, cache_hit)) => {
-            if publish {
-                view.sources.publish(snapshot);
-            }
-            if let Some(preparation) = view.source_preparation.get_mut(path) {
-                preparation.finish(None, cache_hit);
+            let completion = control.with_active(|| {
+                let mut view = super::lock(view);
+                if publish {
+                    view.sources.publish(snapshot);
+                }
+                view.source_preparation.finish(
+                    &original,
+                    preparation::millis(started),
+                    Ok(cache_hit),
+                );
+                Ok(())
+            });
+            if let Err(error) = completion {
+                let mut view = super::lock(view);
+                if publish {
+                    view.sources.clear_current();
+                }
+                view.source_preparation.finish(
+                    &original,
+                    preparation::millis(started),
+                    Err(preparation::failure(control, error.to_string())),
+                );
             }
         }
         Err(error) => {
+            let mut view = super::lock(view);
             if publish {
                 view.sources.clear_current();
             }
-            if let Some(preparation) = view.source_preparation.get_mut(path) {
-                preparation.finish(Some(format!("{error:#}")), false);
-            }
+            view.source_preparation.finish(
+                &original,
+                preparation::millis(started),
+                Err(preparation::failure(control, format!("{error:#}"))),
+            );
         }
     }
+    Ok(())
 }
 
 pub(super) fn refresh(
@@ -93,7 +120,7 @@ pub(super) fn refresh(
         Ok(snapshot) => snapshot,
         Err(error) => {
             for path in paths {
-                unavailable(view, path, format!("{error:#}"));
+                unavailable(view, path, format!("{error:#}"))?;
             }
             return Err(error);
         }
@@ -115,44 +142,65 @@ pub(super) fn extract_atlas(
     paths: &[String],
 ) -> Result<()> {
     let atlas = crate::atlas::Configuration::host(workspace.path());
-    {
+    let started = Instant::now();
+    let originals = {
         let mut view = super::lock(view);
         view.sources.clear_current();
         super::analysis::invalidate(&mut view);
         view.activity = "Compiling Lean and extracting Atlas dependencies".into();
-        for path in paths {
-            view.source_preparation
-                .insert(path.clone(), Preparation::new());
-        }
-    }
+        paths
+            .iter()
+            .map(|path| view.source_preparation.begin(path, "Resolving modules"))
+            .collect::<Result<Vec<_>>>()?
+    };
     let extraction = crate::analysis::extract_cached(
         workspace,
         control,
         paths,
-        Some(preparation::observer(view, paths)),
+        Some(preparation::observer(view, &originals, started)),
     )
     .and_then(|(snapshot, _)| Snapshot::new(snapshot));
     super::lock(view).atlas = atlas.status();
     let snapshot = match extraction {
         Ok(snapshot) => snapshot,
         Err(error) => {
+            let mut view = super::lock(view);
             for path in paths {
-                unavailable(view, path, format!("{error:#}"));
+                view.sources.forget_file(path);
+            }
+            for original in &originals {
+                view.source_preparation.finish(
+                    original,
+                    preparation::millis(started),
+                    Err(preparation::failure(control, format!("{error:#}"))),
+                );
             }
             return Err(error);
         }
     };
-    control.with_active(|| {
+    let completion = control.with_active(|| {
         let mut view = super::lock(view);
-        for path in snapshot.files.keys() {
+        for original in &originals {
             view.source_preparation
-                .entry(path.clone())
-                .or_insert_with(Preparation::new)
-                .finish(None, false);
+                .finish(original, preparation::millis(started), Ok(false));
         }
         view.sources.publish(snapshot);
         view.atlas = atlas.status();
         Ok(())
-    })?;
+    });
+    if let Err(error) = completion {
+        let mut view = super::lock(view);
+        for path in paths {
+            view.sources.forget_file(path);
+        }
+        for original in &originals {
+            view.source_preparation.finish(
+                original,
+                preparation::millis(started),
+                Err(preparation::failure(control, error.to_string())),
+            );
+        }
+        return Err(error.into());
+    }
     Ok(())
 }

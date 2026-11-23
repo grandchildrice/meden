@@ -1,4 +1,5 @@
 import { afterEach, expect, test, vi } from "vitest";
+import { nativeStateSchema } from "@meden/agent-protocol/native";
 import { NativeClient, NativeHttpError } from "./native-client";
 
 const revision = "sha256:" + "a".repeat(64);
@@ -168,4 +169,75 @@ test("source publication identity includes presentation independently of its inp
     Response.json({ ...source, data: { ...source.data, atlas: {} } }),
   );
   await expect(new NativeClient("session").source(revision)).rejects.toThrow();
+});
+
+test("preparation logs bind exact publications and outcome variants reject invented success", async () => {
+  const job = "sha256:" + "b".repeat(64);
+  const body = {
+    revision,
+    data: {
+      job,
+      resource: "A.lean",
+      text: "λ日本語\ncompile",
+      truncated: false,
+    },
+  };
+  const fetch = vi
+    .fn()
+    .mockImplementation(() => Promise.resolve(Response.json(body)));
+  vi.stubGlobal("fetch", fetch);
+  expect(await new NativeClient("session").preparationLog(revision)).toEqual(
+    body,
+  );
+  expect(fetch.mock.calls[0][0]).toBe(
+    "/api/preparation-log?revision=" + encodeURIComponent(revision),
+  );
+  await expect(new NativeClient("session").preparationLog(job)).rejects.toThrow(
+    "does not match",
+  );
+  const status = {
+    job,
+    resource: "A.lean",
+    phase: "Compile",
+    elapsed_ms: 9,
+    phase_elapsed_ms: 4,
+    limit_seconds: 10,
+    log: { revision },
+    outcome: { state: "preparing" },
+  };
+  expect(
+    nativeStateSchema.shape.source_preparation.parse({ "A.lean": status }),
+  ).toEqual({
+    "A.lean": status,
+  });
+  expect(
+    nativeStateSchema.shape.source_preparation.parse({
+      "A.lean": {
+        ...status,
+        outcome: {
+          state: "failed",
+          kind: "operation",
+          error: "𝕏".repeat(2000),
+        },
+      },
+    }),
+  ).toBeTruthy();
+  expect(
+    nativeStateSchema.shape.source_preparation.safeParse({
+      "A.lean": { ...status, outcome: { state: "preparing", cache_hit: true } },
+    }).success,
+  ).toBe(false);
+  expect(
+    nativeStateSchema.shape.source_preparation.safeParse({
+      "A.lean": {
+        ...status,
+        outcome: {
+          state: "failed",
+          kind: "cancelled",
+          error: "host stop",
+          cache_hit: true,
+        },
+      },
+    }).success,
+  ).toBe(false);
 });

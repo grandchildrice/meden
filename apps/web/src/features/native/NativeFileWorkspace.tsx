@@ -7,6 +7,7 @@ import type {
   NativeCommand,
   SourceSnapshot,
   FileView,
+  PreparationLogPublication,
 } from "@meden/agent-protocol/native";
 import type { MapScene, Symbol } from "./project-map-model";
 import { NativeCode } from "./NativeExplorer";
@@ -52,6 +53,9 @@ export function NativeFileWorkspace({
   state,
   snapshot,
   sourceError,
+  preparationLog,
+  preparationLogError,
+  onRetryLog,
   file,
   readerError,
   onRetryReader,
@@ -69,6 +73,9 @@ export function NativeFileWorkspace({
   state: NativeState;
   snapshot?: SourceSnapshot;
   sourceError?: string;
+  preparationLog?: PreparationLogPublication["data"];
+  preparationLogError?: string;
+  onRetryLog: () => void;
   file?: FileView;
   readerError?: string;
   onRetryReader: () => void;
@@ -97,6 +104,28 @@ export function NativeFileWorkspace({
     else if (state.stopped) setFailure(state.stopped);
   }, [state.running, state.operation, state.stopped, analysisFile, path]);
   const preparation = state.source_preparation[path];
+  const logMatches =
+    preparationLog?.job === preparation?.job &&
+    preparationLog?.resource === path;
+  const [lastLog, setLastLog] = useState<PreparationLogPublication["data"]>();
+  useEffect(() => {
+    if (logMatches && preparationLog) setLastLog(preparationLog);
+    else if (lastLog?.job !== preparation?.job) setLastLog(undefined);
+  }, [logMatches, preparationLog, preparation?.job, lastLog?.job]);
+  const logProps = {
+    log: logMatches
+      ? preparationLog
+      : lastLog?.job === preparation?.job
+        ? lastLog
+        : undefined,
+    error:
+      preparationLogError ||
+      (preparationLog && !logMatches
+        ? "The build log does not match this preparation."
+        : undefined),
+    onRetry: onRetryLog,
+  };
+
   const unavailable =
     file &&
     (file.reading.state !== "ready" || file.reading.content.kind !== "text");
@@ -139,7 +168,7 @@ export function NativeFileWorkspace({
     if (symbol) onSelect(symbol);
   };
   const preparing =
-    !unavailable && !sourceOnly && preparation?.state === "preparing";
+    !unavailable && !sourceOnly && preparation?.outcome.state === "preparing";
   return (
     <section className="file-split" aria-label={"File: " + path}>
       <div className="file-source-pane">
@@ -192,6 +221,7 @@ export function NativeFileWorkspace({
         {preparing ? (
           <NativePreparation
             preparation={preparation}
+            {...logProps}
             path={path}
             onCancel={
               state.running && state.operation === "inspection"
@@ -207,13 +237,13 @@ export function NativeFileWorkspace({
           </p>
         ) : (
           <>
-            {preparation?.state === "failed" && (
+            {preparation?.outcome.state === "failed" && (
               <Alert severity="warning">
                 <p>{preparation.phase} stopped.</p>
-                <p>{preparation.error?.split("\n")[0]}</p>
+                <p>{preparation.outcome.error.split("\n")[0]}</p>
                 <details>
                   <summary>Details</summary>
-                  <p>{preparation.error}</p>
+                  <p>{preparation.outcome.error}</p>
                 </details>
                 <Button
                   onClick={() =>
@@ -228,16 +258,16 @@ export function NativeFileWorkspace({
                 </Button>
               </Alert>
             )}
-            {preparation?.state === "failed" && (
-              <PreparationLog preparation={preparation} />
+            {preparation?.outcome.state === "failed" && (
+              <PreparationLog {...logProps} />
             )}
-            {preparation?.state === "ready" && preparation.log && (
+            {preparation?.outcome.state === "ready" && preparation.log && (
               <details className="preparation-history">
                 <summary>Build log</summary>
-                <PreparationLog preparation={preparation} />
+                <PreparationLog {...logProps} />
               </details>
             )}
-            {failure && preparation?.state !== "failed" && (
+            {failure && preparation?.outcome.state !== "failed" && (
               <Alert severity="warning">
                 <p>Analysis stopped.</p>
                 <details>

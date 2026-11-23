@@ -1174,7 +1174,8 @@ test.describe("native GUI with real offline workers", () => {
     await expect
       .poll(
         async () =>
-          (await nativeState(page)).source_preparation["Alpha.lean"]?.state,
+          (await nativeState(page)).source_preparation["Alpha.lean"]?.outcome
+            .state,
         { timeout: 120000 },
       )
       .toBe("ready");
@@ -1245,7 +1246,8 @@ test.describe("native GUI with real offline workers", () => {
     await expect
       .poll(
         async () =>
-          (await nativeState(page)).source_preparation["Beta.lean"]?.state,
+          (await nativeState(page)).source_preparation["Beta.lean"]?.outcome
+            .state,
         { timeout: 120000 },
       )
       .toBe("ready");
@@ -1675,6 +1677,67 @@ test.describe("native GUI with real offline workers", () => {
     });
   });
 
+  test("long Unicode compiler failures stay file-local and status remains readable across restart", async ({
+    page,
+  }) => {
+    test.setTimeout(180000);
+    const path = "LongDiagnostic.lean";
+    const source =
+      'import Lean\n#eval (throw (IO.userError (String.join (List.replicate 6000 "𝕏"))) : IO Unit)\ntheorem readable : True := True.intro\n';
+    await writeFile(resolve(project, path), source);
+    await page.goto(await start());
+    const chat = page.getByRole("complementary", {
+      name: "Workspace chat",
+      exact: true,
+    });
+    const before = await chat.innerHTML();
+    const inspect = async () => {
+      await page
+        .getByRole("button", { name: "File: " + path, exact: true })
+        .click();
+      await expect(
+        page
+          .locator(".ide-file-page:not([hidden])")
+          .getByLabel("File contents"),
+      ).toContainText("theorem readable");
+      await expect
+        .poll(
+          async () =>
+            (await nativeState(page)).source_preparation[path]?.outcome.state,
+          { timeout: 120000 },
+        )
+        .toBe("failed");
+      const state = await nativeState(page);
+      const progress = state.source_preparation[path];
+      expect(progress.outcome.kind).toBe("operation");
+      expect(progress.outcome.error).toContain("𝕏");
+      expect(progress.outcome.error).toContain("diagnostic shortened");
+      expect(Buffer.byteLength(progress.outcome.error)).toBeLessThanOrEqual(
+        8000,
+      );
+      expect(progress.outcome.error.length).toBeLessThanOrEqual(8000);
+      await expect(
+        page
+          .getByRole("region", { name: "File reference graph", exact: true })
+          .getByRole("alert"),
+      ).toContainText("stopped");
+      await expect(page.getByText(/Connection unavailable\./)).toHaveCount(0);
+      expect(state.authorized).toBe(false);
+      expect(await chat.innerHTML()).toBe(before);
+      expect(requests).toHaveLength(0);
+      return progress;
+    };
+    const original = await inspect();
+    expect(await readFile(resolve(project, path), "utf8")).toBe(source);
+    await page.screenshot({
+      path: "target/gui-checks/unicode-compiler-failure.png",
+    });
+    await stop();
+    await page.goto(await start());
+    const reopened = await inspect();
+    expect(reopened.job).not.toBe(original.job);
+  });
+
   test("build logs stream before completion, retain timeout and cancellation output, and retry the real compiler", async ({
     page,
   }, testInfo) => {
@@ -1711,6 +1774,19 @@ theorem slow : True := fast
       MEDEN_ATLAS_BACKEND: "lake",
       MEDEN_ATLAS_BUILD_TIMEOUT_SECONDS: "10",
     };
+    let failLogTransfer = true;
+    await page.route("**/api/preparation-log?revision=**", async (route) => {
+      const response = await route.fetch();
+      const body = await response.json();
+      if (failLogTransfer && body.data?.text.includes("Built Fast")) {
+        failLogTransfer = false;
+        await route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "diagnostic transfer fixture" }),
+        });
+      } else await route.fulfill({ response });
+    });
     await page.goto(await start(0, environment));
     const chat = page.getByRole("complementary", {
       name: "Workspace chat",
@@ -1747,15 +1823,45 @@ theorem slow : True := fast
       name: "Preparing Entry.lean",
       exact: true,
     });
+    await expect(
+      loading.getByRole("button", { name: "Retry log", exact: true }),
+    ).toBeVisible();
+    await page.screenshot({
+      path: "target/gui-checks/build-log-transfer-failure.png",
+    });
+    const logRetryCommands: string[] = [];
+    const observeLogRetry = (request: import("@playwright/test").Request) => {
+      if (request.url().endsWith("/api/command"))
+        logRetryCommands.push(request.postDataJSON().type);
+    };
+    page.on("request", observeLogRetry);
+    await loading
+      .getByRole("button", { name: "Retry log", exact: true })
+      .click();
     await expect(loading.getByRole("log", { name: "Build log" })).toContainText(
       "Built Fast",
     );
+    page.off("request", observeLogRetry);
+    expect(logRetryCommands).toEqual([]);
+    const preparingStatus = await nativeState(page);
+    expect(typeof preparingStatus.source_preparation["Entry.lean"].log).toBe(
+      "object",
+    );
+    expect(preparingStatus.source_preparation["Entry.lean"]).not.toHaveProperty(
+      "log_truncated",
+    );
+    expect(JSON.stringify(preparingStatus.source_preparation)).not.toContain(
+      "Built Fast",
+    );
+    const retiredLog =
+      preparingStatus.source_preparation["Entry.lean"].log.revision;
+    const originalJob = preparingStatus.source_preparation["Entry.lean"].job;
     // Reading the original source must not wait for the held compiler or search.
     await expect(
       page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
     ).toContainText("theorem tracked");
     expect(
-      (await nativeState(page)).source_preparation["Entry.lean"].state,
+      (await nativeState(page)).source_preparation["Entry.lean"].outcome.state,
     ).toBe("preparing");
     expect(await nativeSource(page)).toBeNull();
     const pageCommands: string[] = [];
@@ -1803,7 +1909,7 @@ theorem slow : True := fast
     expect(pageCommands).toEqual([]);
     expect(pageBodies).toEqual([]);
     expect(
-      (await nativeState(page)).source_preparation["Entry.lean"].state,
+      (await nativeState(page)).source_preparation["Entry.lean"].outcome.state,
     ).toBe("preparing");
     await testInfo.attach("paging-during-compilation.json", {
       body: JSON.stringify({
@@ -1823,7 +1929,8 @@ theorem slow : True := fast
       await expect
         .poll(
           async () =>
-            (await nativeState(page)).source_preparation["Entry.lean"]?.state,
+            (await nativeState(page)).source_preparation["Entry.lean"]?.outcome
+              .state,
           { timeout: 30000 },
         )
         .toBe("failed");
@@ -1832,6 +1939,9 @@ theorem slow : True := fast
         .toBe(false);
     };
     await failed();
+    expect(
+      (await nativeState(page)).source_preparation["Entry.lean"].outcome.kind,
+    ).toBe("operation");
     const pane = page.getByRole("region", {
       name: "File reference graph",
       exact: true,
@@ -1854,10 +1964,34 @@ theorem slow : True := fast
       "$ lake --json query +Entry +Entry:lean +Entry:olean +Entry:setup",
       { timeout: 120000 },
     );
+    const replacement = await nativeState(page);
+    expect(replacement.source_preparation["Entry.lean"].job).not.toBe(
+      originalJob,
+    );
+    expect(
+      await page.evaluate(
+        async (id) =>
+          (
+            await fetch(
+              "/api/preparation-log?revision=" + encodeURIComponent(id),
+              {
+                headers: {
+                  Authorization:
+                    "Bearer " + sessionStorage.getItem("meden-native-session"),
+                },
+              },
+            )
+          ).status,
+        retiredLog,
+      ),
+    ).toBe(409);
     await loading
       .getByRole("button", { name: "Stop preparation", exact: true })
       .click();
     await failed();
+    expect(
+      (await nativeState(page)).source_preparation["Entry.lean"].outcome.kind,
+    ).toBe("cancelled");
     await expect(pane.getByRole("alert")).toContainText("was cancelled");
     expect(await chat.innerHTML()).toBe(before);
     // Release the explicit compiler gate; no source/configuration repair is needed.
@@ -1869,7 +2003,8 @@ theorem slow : True := fast
       await expect
         .poll(
           async () =>
-            (await nativeState(page)).source_preparation["Entry.lean"]?.state,
+            (await nativeState(page)).source_preparation["Entry.lean"]?.outcome
+              .state,
           { timeout: 120000 },
         )
         .toBe("ready");
@@ -1880,7 +2015,31 @@ theorem slow : True := fast
     };
     const state = await ready();
     const stateSource = await nativeSource(page, state);
-    expect(state.source_preparation["Entry.lean"].log_truncated).toBe(true);
+    const diagnostic = await nativePreparationLog(page, state, "Entry.lean");
+    const statusBytes = Buffer.byteLength(
+      JSON.stringify(state.source_preparation),
+    );
+    expect(statusBytes).toBeLessThan(2000);
+    expect(Buffer.byteLength(diagnostic.text)).toBeLessThanOrEqual(65536);
+    expect(Buffer.byteLength(diagnostic.text)).toBeGreaterThan(60000);
+    await testInfo.attach("preparation-transfer.json", {
+      body: JSON.stringify({
+        progress_projection_bytes: statusBytes,
+        diagnostic_tail_bytes: Buffer.byteLength(diagnostic.text),
+        job: state.source_preparation["Entry.lean"].job,
+        resource: diagnostic.resource,
+        log_revision: state.source_preparation["Entry.lean"].log.revision,
+        truncated: diagnostic.truncated,
+        retry_commands: logRetryCommands,
+        scope:
+          "Actual completed Lean/Lake fixture; JSON-encoded status projection bytes and original diagnostic UTF-8 bytes. Not an old/new latency comparison.",
+      }),
+      contentType: "application/json",
+    });
+
+    expect(
+      (await nativePreparationLog(page, state, "Entry.lean")).truncated,
+    ).toBe(true);
     expect(
       stateSource.graph.declarations.find((n: any) => n.id === "tracked")
         .axioms,
@@ -1891,13 +2050,16 @@ theorem slow : True := fast
     ).toBe("budget_exhausted");
     expect(await chat.innerHTML()).toBe(before);
     expect(requests).toHaveLength(0);
+    await page.unrouteAll({ behavior: "wait" });
     await stop();
     await page.goto(await start(0, environment));
     await page
       .getByRole("button", { name: "File: Entry.lean", exact: true })
       .click();
     const reopened = await ready();
-    expect(reopened.source_preparation["Entry.lean"].cache_hit).toBe(true);
+    expect(reopened.source_preparation["Entry.lean"].outcome.cache_hit).toBe(
+      true,
+    );
     expect(reopened.authorized).toBe(false);
   });
 
@@ -1959,7 +2121,8 @@ theorem slow : True := fast
       await expect
         .poll(
           async () =>
-            (await nativeState(page)).source_preparation["Entry.lean"]?.state,
+            (await nativeState(page)).source_preparation["Entry.lean"]?.outcome
+              .state,
           { timeout: 120000 },
         )
         .toBe("ready");
@@ -2040,11 +2203,12 @@ theorem slow : True := fast
     await expect
       .poll(
         async () =>
-          (await nativeState(page)).source_preparation["Entry.lean"]?.cache_hit,
+          (await nativeState(page)).source_preparation["Entry.lean"]?.outcome
+            .cache_hit,
         { timeout: 120000 },
       )
       .toBe(true);
-    await page.unroute("**/api/state");
+    await page.unrouteAll({ behavior: "wait" });
     await expect
       .poll(async () => (await nativeState(page)).running)
       .toBe(false);
@@ -2058,8 +2222,9 @@ theorem slow : True := fast
     expect(stages).toContain("atlas.lake_configuration.reuse");
     expect(stages).not.toContain("atlas.lake_configuration");
     expect(stages).toContain("atlas.project.prepare");
-    const cachedLog = (await nativeState(page)).source_preparation["Entry.lean"]
-      .log;
+    const cachedLog = (
+      await nativePreparationLog(page, await nativeState(page), "Entry.lean")
+    ).text;
     expect(cachedLog.match(/\$ lake --json query /g)).toHaveLength(1);
     expect(cachedLog).toContain("Build/setup and input resolution completed");
     expect(cachedLog).toMatch(/Validated \d+ files \/ \d+ bytes in /);
@@ -2080,7 +2245,8 @@ theorem slow : True := fast
       await expect
         .poll(
           async () =>
-            (await nativeState(page)).source_preparation["Entry.lean"]?.state,
+            (await nativeState(page)).source_preparation["Entry.lean"]?.outcome
+              .state,
           { timeout: 120000 },
         )
         .toBe("failed");
@@ -2099,7 +2265,7 @@ theorem slow : True := fast
       .click();
     state = await prepared();
     stateSource = await nativeSource(page, state);
-    expect(state.source_preparation["Entry.lean"].cache_hit).toBe(true);
+    expect(state.source_preparation["Entry.lean"].outcome.cache_hit).toBe(true);
     expect(await extractionStages()).not.toContain("atlas.lake_configuration");
 
     await writeFile(resolve(project, "Part0.lean"), "def part0 : Nat := 2\n");
@@ -2117,7 +2283,9 @@ theorem slow : True := fast
     state = await prepared();
     stateSource = await nativeSource(page, state);
     expect(stateSource.inputs_revision).not.toBe(first.inputs_revision);
-    expect(state.source_preparation["Entry.lean"].cache_hit).toBe(false);
+    expect(state.source_preparation["Entry.lean"].outcome.cache_hit).toBe(
+      false,
+    );
     stages = await extractionStages();
     expect(stages).not.toContain("atlas.lake_configuration");
     expect(stages).toContain("atlas.project.prepare");
@@ -2130,7 +2298,8 @@ theorem slow : True := fast
     await expect
       .poll(
         async () =>
-          (await nativeState(page)).source_preparation["Entry.lean"]?.state,
+          (await nativeState(page)).source_preparation["Entry.lean"]?.outcome
+            .state,
         { timeout: 120000 },
       )
       .toBe("failed");
@@ -2159,7 +2328,7 @@ theorem slow : True := fast
     await open();
     state = await prepared();
     stateSource = await nativeSource(page, state);
-    expect(state.source_preparation["Entry.lean"].cache_hit).toBe(true);
+    expect(state.source_preparation["Entry.lean"].outcome.cache_hit).toBe(true);
     stages = await extractionStages();
     expect(stages).toContain("atlas.lake_configuration.reuse");
     expect(stages).not.toContain("atlas.lake_configuration");
@@ -2342,7 +2511,7 @@ theorem slow : True := fast
       .poll(
         async () =>
           (await nativeState(page)).source_preparation["Many/Group0/File0.lean"]
-            ?.state,
+            ?.outcome.state,
         { timeout: 120000 },
       )
       .toBe("ready");
@@ -2359,7 +2528,7 @@ theorem slow : True := fast
     ).toHaveCount(2);
     expect(
       (await nativeState(page)).source_preparation["Many/Group0/File0.lean"]
-        .state,
+        .outcome.state,
     ).toBe("ready");
     expect(requests).toHaveLength(0);
     await page.getByRole("tab", { name: "Project map", exact: true }).click();
@@ -2462,7 +2631,8 @@ theorem slow : True := fast
       await expect
         .poll(
           async () =>
-            (await nativeState(page)).source_preparation["Claim.lean"]?.state,
+            (await nativeState(page)).source_preparation["Claim.lean"]?.outcome
+              .state,
           { timeout: 120000 },
         )
         .toBe("ready");
@@ -2514,7 +2684,9 @@ theorem slow : True := fast
     await stop();
     const changed = await open("19");
     const changedSource = await nativeSource(page, changed);
-    expect(changed.source_preparation["Claim.lean"].cache_hit).toBe(false);
+    expect(changed.source_preparation["Claim.lean"].outcome.cache_hit).toBe(
+      false,
+    );
     expect(await index("observations")).toEqual(compilation);
     expect(Object.values(await index("searches"))).toHaveLength(2);
     expect(bad(changedSource).semantic.checker).toMatchObject({
@@ -2541,7 +2713,7 @@ theorem slow : True := fast
     await stop();
     const warm = await open("19");
     const warmSource = await nativeSource(page, warm);
-    expect(warm.source_preparation["Claim.lean"].cache_hit).toBe(true);
+    expect(warm.source_preparation["Claim.lean"].outcome.cache_hit).toBe(true);
     expect(bad(warmSource).semantic.checker).toEqual(
       bad(changedSource).semantic.checker,
     );
@@ -2616,7 +2788,8 @@ theorem slow : True := fast
       await expect
         .poll(
           async () =>
-            (await nativeState(page)).source_preparation["Claim.lean"]?.state,
+            (await nativeState(page)).source_preparation["Claim.lean"]?.outcome
+              .state,
           { timeout: 120000 },
         )
         .toBe("ready");
@@ -2734,7 +2907,9 @@ theorem slow : True := fast
     expect(node.semantic.renderer).not.toBe(firstNode.semantic.renderer);
     expect(node.semantic.checker).toEqual(firstNode.semantic.checker);
     expect(node.semantic.intermediate).toBe(firstNode.semantic.intermediate);
-    expect(rerendered.source_preparation["Claim.lean"].cache_hit).toBe(false);
+    expect(rerendered.source_preparation["Claim.lean"].outcome.cache_hit).toBe(
+      false,
+    );
     expect(await index("observations")).toEqual(originalIndex);
     expect(await index("searches")).toEqual(originalSearches);
     const updatedReadings = await index("renderings");
@@ -2792,7 +2967,7 @@ theorem slow : True := fast
     expect(warm.sources.current.revision).toBe(
       rerendered.sources.current.revision,
     );
-    expect(warm.source_preparation["Claim.lean"].cache_hit).toBe(true);
+    expect(warm.source_preparation["Claim.lean"].outcome.cache_hit).toBe(true);
     expect(warmSource.graph.revision).toBe(rerenderedSource.graph.revision);
     expect(warm.authorized).toBe(false);
     await test.info().attach("renderer-cache-preparation", {
@@ -2822,7 +2997,8 @@ theorem slow : True := fast
     await expect
       .poll(
         async () =>
-          (await nativeState(page)).source_preparation["Claim.lean"]?.state,
+          (await nativeState(page)).source_preparation["Claim.lean"]?.outcome
+            .state,
         { timeout: 120000 },
       )
       .toBe("failed");
@@ -2843,7 +3019,8 @@ theorem slow : True := fast
     await expect
       .poll(
         async () =>
-          (await nativeState(page)).source_preparation["Claim.lean"]?.state,
+          (await nativeState(page)).source_preparation["Claim.lean"]?.outcome
+            .state,
         { timeout: 120000 },
       )
       .toBe("ready");
@@ -2987,7 +3164,8 @@ theorem slow : True := fast
     ).toBeVisible();
     expect(commands).not.toContain("atlas_snapshot");
     expect(
-      (await nativeState(page)).source_preparation["Main.lean"].cache_hit,
+      (await nativeState(page)).source_preparation["Main.lean"].outcome
+        .cache_hit,
     ).toBe(true);
     expect((await nativeState(page)).authorized).toBe(false);
     await page.mouse.move(20, 20);
@@ -4130,6 +4308,33 @@ theorem slow : True := fast
       if (!response.ok) throw Error("Reader query failed");
       return (await response.json()).data;
     }, revision);
+  }
+  async function nativePreparationLog(page: Page, status: any, path: string) {
+    const ref = status.source_preparation[path].log.revision;
+    return page.evaluate(
+      async ({ ref, job, resource }) => {
+        const response = await fetch(
+          "/api/preparation-log?revision=" + encodeURIComponent(ref),
+          {
+            headers: {
+              Authorization:
+                "Bearer " + sessionStorage.getItem("meden-native-session"),
+            },
+          },
+        );
+        if (!response.ok)
+          throw new Error("Log unavailable: " + response.status);
+        const body = await response.json();
+        if (
+          body.revision !== ref ||
+          body.data.job !== job ||
+          body.data.resource !== resource
+        )
+          throw new Error("Wrong log binding");
+        return body.data;
+      },
+      { ref, job: status.source_preparation[path].job, resource: path },
+    );
   }
   async function nativeState(page: Page) {
     return page.evaluate(async () => {

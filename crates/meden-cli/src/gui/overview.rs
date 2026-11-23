@@ -123,6 +123,7 @@ pub(super) fn refresh(
         view.sources.clear();
         view.readers.clear();
         view.directories.clear();
+        view.source_preparation.clear();
         view.activity = "Reading workspace sources and proof declarations".into();
     }
     let result = capture(view, workspace, control, fresh).and_then(|mut snapshot| {
@@ -134,7 +135,7 @@ pub(super) fn refresh(
             .map(|f| f.path.clone())
             .collect::<Vec<_>>()
         {
-            super::sources::prepare(view, workspace, control, &path, false);
+            super::sources::prepare(view, workspace, control, &path, false)?;
         }
         apply_compiled(workspace, control, &mut snapshot.files);
         Snapshot::new(snapshot)

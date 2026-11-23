@@ -11,6 +11,18 @@ writeFileSync(
 );
 for (const [key, rust, symbol, type] of [
   [
+    "preparation-index",
+    "jobs::Index",
+    "preparationIndexSchema",
+    "PreparationIndex",
+  ],
+  [
+    "preparation-log",
+    "publication::Envelope<jobs::Log>",
+    "preparationLogSchema",
+    "PreparationLogPublication",
+  ],
+  [
     "directory-index",
     "directory::Index",
     "directoryIndexSchema",

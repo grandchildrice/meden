@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Envelope",
+  "description": "Shared wire framing; each data role retains its own generated schema.",
+  "type": "object",
+  "properties": {
+    "revision": {
+      "description": "Exact publication requested by the viewer.",
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "data": {
+      "description": "Original complete projection, never an authority token.",
+      "$ref": "#/$defs/Log"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "revision",
+    "data"
+  ],
+  "$defs": {
+    "Log": {
+      "description": "Bounded latest output, explicitly marked when earlier text was dropped.",
+      "type": "object",
+      "properties": {
+        "job": {
+          "description": "Original preparation identity, independent of publication identity.",
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "resource": {
+          "description": "Original resource; the viewer checks this as well as the job.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "text": {
+          "description": "Literal host-normalized diagnostic tail, not source or evidence.",
+          "type": "string",
+          "maxLength": 65536
+        },
+        "truncated": {
+          "description": "Some earlier output was not retained, including worker truncation.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "job",
+        "resource",
+        "text",
+        "truncated"
+      ]
+    }
+  }
+}

@@ -230,7 +230,7 @@ try {
         const s = await state();
         return (
           !s.running &&
-          s.source_preparation[file]?.state === "ready" &&
+          s.source_preparation[file]?.outcome.state === "ready" &&
           s.sources.files[file] !== undefined
         );
       },
@@ -526,7 +526,8 @@ try {
       declarations: preparedSource.graph.declarations.length,
       project_files: native.overview.total,
       setup_preparation_ms: setupElapsed,
-      setup_cache_hit: native.source_preparation[file]?.cache_hit ?? null,
+      setup_cache_hit:
+        native.source_preparation[file]?.outcome.cache_hit ?? null,
       source_map_directory: assets,
       source_maps_sha256: sourceMaps,
     },

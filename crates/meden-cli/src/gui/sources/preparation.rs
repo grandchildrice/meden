@@ -1,95 +1,67 @@
-//! File-local build diagnostics, independent of the chat transcript.
+//! Host clock/output attribution for application-owned preparation observations.
 use crate::{
     adapters::Observer,
     gui::{lock, View},
 };
+use meden_app::view::jobs::Observation;
 use std::{
     sync::{Arc, Mutex},
     time::Instant,
 };
 
-#[derive(Clone, serde::Serialize)]
-pub(in crate::gui) struct Preparation {
-    pub state: &'static str,
-    pub cache_hit: bool,
-    pub error: Option<String>,
-    phase: String,
-    elapsed_ms: u64,
-    phase_elapsed_ms: u64,
-    limit_seconds: u64,
-    log: String,
-    log_truncated: bool,
-    #[serde(skip)]
+pub(super) fn millis(started: Instant) -> u32 {
+    u32::try_from(started.elapsed().as_millis()).unwrap_or(u32::MAX)
+}
+pub(super) fn observer(
+    view: &Arc<Mutex<View>>,
+    originals: &[Observation],
     started: Instant,
-    #[serde(skip)]
-    phase_started: Instant,
-    #[serde(skip)]
-    prefix: String,
-}
-
-impl Preparation {
-    pub fn new() -> Self {
-        Self {
-            state: "preparing",
-            cache_hit: false,
-            error: None,
-            phase: "Resolving Lean modules".into(),
-            elapsed_ms: 0,
-            phase_elapsed_ms: 0,
-            limit_seconds: 0,
-            log: String::new(),
-            log_truncated: false,
-            started: Instant::now(),
-            phase_started: Instant::now(),
-            prefix: String::new(),
-        }
-    }
-    pub fn finish(&mut self, error: Option<String>, cache_hit: bool) {
-        self.state = if error.is_some() { "failed" } else { "ready" };
-        self.error = error;
-        self.cache_hit = cache_hit;
-        self.elapsed_ms = millis(self.started);
-        self.phase_elapsed_ms = millis(self.phase_started);
-    }
-}
-
-fn millis(started: Instant) -> u64 {
-    u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX)
-}
-fn tail(text: &str) -> (String, bool) {
-    let mut start = text.len().saturating_sub(65_536);
-    while !text.is_char_boundary(start) {
-        start = start.saturating_add(1);
-    }
-    (text[start..].into(), start > 0)
-}
-
-pub(super) fn observer(view: &Arc<Mutex<View>>, paths: &[String]) -> Observer {
+) -> Observer {
     let view = Arc::clone(view);
-    let paths = paths.to_vec();
+    let originals = originals.to_vec();
     Arc::new(move |phase, limit, output| {
+        // Host-only normalization, once per callback rather than once per file.
+        let output = output.map(|p| {
+            (
+                crate::text::visible(&format!("{}{}", p.stdout, p.stderr)),
+                p.truncated,
+            )
+        });
         let mut view = lock(&view);
-        for path in &paths {
-            let Some(preparation) = view.source_preparation.get_mut(path) else {
-                continue;
-            };
-            if preparation.state != "preparing" {
-                continue;
+        for original in &originals {
+            if let Err(error) = view.source_preparation.update(
+                original,
+                millis(started),
+                phase,
+                u32::try_from(limit.as_secs()).unwrap_or(u32::MAX),
+                output
+                    .as_ref()
+                    .map(|(text, clipped)| (text.as_str(), *clipped)),
+            ) {
+                view.source_preparation.finish(
+                    original,
+                    millis(started),
+                    Err(meden_app::view::jobs::Failure {
+                        kind: meden_app::view::jobs::FailureKind::Observation,
+                        message: format!("Preparation progress unavailable: {error:#}"),
+                    }),
+                );
             }
-            if output.is_none() {
-                preparation.phase = phase.into();
-                preparation.phase_started = Instant::now();
-                preparation.limit_seconds = limit.as_secs();
-                preparation.prefix = format!("{}\n[{phase}]\n", preparation.log);
-            }
-            let text = output.map_or_else(String::new, |p| {
-                crate::text::visible(&format!("{}{}", p.stdout, p.stderr))
-            });
-            let (log, truncated) = tail(&format!("{}{text}", preparation.prefix));
-            preparation.log = log;
-            preparation.log_truncated |= truncated || output.is_some_and(|p| p.truncated);
-            preparation.elapsed_ms = millis(preparation.started);
-            preparation.phase_elapsed_ms = millis(preparation.phase_started);
         }
     })
+}
+
+pub(super) fn failure(
+    control: &meden_runtime::process::Control,
+    message: String,
+) -> meden_app::view::jobs::Failure {
+    use meden_app::view::jobs::{Failure, FailureKind};
+    Failure {
+        kind: if control.flag().load(std::sync::atomic::Ordering::SeqCst) {
+            FailureKind::Cancelled
+        } else {
+            FailureKind::Operation
+        },
+        message,
+    }
 }
