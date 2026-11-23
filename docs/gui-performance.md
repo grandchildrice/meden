@@ -1,5 +1,103 @@
 # Graph interaction measurements
 
+## Current deployed event audit (November 24)
+
+The [measurement record](../results/current-event-audit-20261124.json) covers
+four sequential fresh-browser captures of the immutable `1f50834` deployments:
+two Riemann runs, then two EthLib runs. Each used Chrome 149, normal motion,
+1440 × 960 and no throttling. The executable digest and all seven served
+JavaScript bundles were verified; source maps match those exact bundles.
+No application update, server restart or model request was performed. Unfinished
+generic-reader worktree changes are excluded. Raw traces, CPU samples and
+screenshots remain in `target/native-profile/current-events-20261124-*`.
+
+| Operation                          | Riemann dispatch p95, runs 1 / 2 | EthLib dispatch p95, runs 1 / 2 |
+| ---------------------------------- | -------------------------------: | ------------------------------: |
+| Project-map wheel, 24 events       |                 4.317 / 3.980 ms |                6.706 / 5.977 ms |
+| Dependency-graph wheel, 24 events  |                 1.097 / 0.810 ms |                0.687 / 0.712 ms |
+| Hover pointer movement, 40 events  |                 0.089 / 0.143 ms |                0.083 / 0.106 ms |
+| Drag pointer movement, 31 events   |                 0.236 / 0.263 ms |                0.332 / 0.266 ms |
+| Resize, 2–4 delivered events       |                 0.966 / 0.921 ms |                0.852 / 1.662 ms |
+| File/map tab click, 24 events      |               15.816 / 12.487 ms |              12.978 / 15.070 ms |
+| Different-node selection, 8 clicks |               16.841 / 15.666 ms |              11.833 / 13.668 ms |
+
+The input/two-animation-frame proxy is 17.4–18.3 ms for project-map zoom,
+16.5–22.7 ms for graph zoom, 34.0–38.4 ms for tab clicks and 14.8–25.9 ms for
+different-node selection across these captures. It includes browser scheduling;
+it is not physical presentation or field INP. These are small within-capture
+percentiles: eight-event p95 is the maximum. Fit View and initial/same-node
+selection are separate phases in the record. For example, Riemann's initial
+same-node clicks cost 40.416 / 28.098 ms; their seven repeats cost 0.089–0.255 ms.
+Those repeats must not substitute for measuring a change of declaration.
+
+The long waits occur before these interactions:
+
+| File opening                         | Browser wait | Observed preparation                                                                           |
+| ------------------------------------ | -----------: | ---------------------------------------------------------------------------------------------- |
+| Riemann, prepared cache, run 1       |     21.493 s | Lake build/setup/input resolution 10.666 s; complete-byte validation 4.581 s                   |
+| Riemann, prepared cache, run 2       |     23.832 s | Lake build/setup/input resolution 11.853 s; complete-byte validation 5.035 s                   |
+| EthLib, initial artifact preparation |     87.386 s | Layout discovery 38.594 s; compiler 0.881 s; search worker 17.668 s; English renderer 15.220 s |
+| EthLib, prepared cache               |      4.970 s | Analysis controller 1.786 s; compilation, search worker and renderer are reused                |
+
+Riemann still validates all **43,477 files / 5,992,114,707 bytes** on a prepared
+open; no compiler, search worker or English renderer executes. EthLib's initial
+layout discovery contains 19 Lake configuration evaluator executions totalling
+35.585 seconds. Cached configuration avoids those executions on the second run.
+These native intervals nest and overlap; they must not be added as exclusive
+costs or subtracted from the browser wait to invent an unmeasured stage.
+Installed dependencies remain present, so initial artifact preparation is not
+cold installation. Different host/cache conditions also prevent interpreting the
+higher Riemann waits as a controlled regression against earlier captures.
+
+EthLib exposes a separate, persistent cost: idle polling repeatedly transfers
+**4,320,881–4,334,772 bytes** per response, roughly every **493–501 ms**. Idle
+request response p95 is **123.7–129.9 ms**; the native `gui.state` interval p95
+is **113.0–114.5 ms**. Its nested serialization/response interval alone has
+p95 **106.3 ms**, so queueing is not the principal cause. A separate read-only
+payload observation attributes about **4.09 MB / 94.8%** of the decoded state
+to the saved portable document. Field sizes use UTF-8 JSON re-serialization;
+the captured response sizes remain authoritative for network comparisons.
+Riemann, which has no saved conversation, transfers 89,696 bytes about every
+361 ms, with response p95 around 12 ms.
+
+The current host serializes the whole view for every `/api/state` request.
+The browser polls 350 ms after completing the previous request and assigns a
+new top-level React state. `NativeApp` also computes
+`JSON.stringify(visibleHistory(state))` on every render; the conversation memo
+does not avoid that traversal. Profiles sample history processing and the chat
+`TextareaAutosize` during graph selection. Popper offset/scroll-parent traversal
+appears during hover/selection, and XYFlow node remeasurement appears during tab
+switching. Automation queries/hit tests contribute their own CPU samples and
+must not all be attributed to the application.
+
+The first Riemann post-preparation window also contains 187 / 398 ms long tasks,
+with 233 ms of sampled self time in `projectMap` and additional Zod parsing.
+The next settled idle window has no long tasks. That is a distinct late
+preparation/layout burst, not a measured cost on every wheel event. Another
+60 ms long task appears in each selection phase of that first capture; none
+appears in the other captures' measured interaction windows. Hover, resize,
+tab round trips and every selection preserve the graph camera, and no measured
+interaction sends a command, compilation request or model request. The reported
+camera snap-back was not reproduced by this workload.
+
+The measurements set the next implementation priorities:
+
+1. Split revisioned chat/history, file, map and job read models so unchanged
+   multi-megabyte documents are not repeatedly serialized, transferred and
+   traversed. Preserve cancellation/command generation fencing and fresh review.
+2. Let bounded source reading display independently while richer compiler,
+   search and English observations are prepared; keep their provenance and
+   freshness explicit. Continue reducing exact-input preparation work without
+   replacing complete-byte admission with a timestamp-only shortcut.
+3. Narrow React updates to the affected graph/source pane and retain deterministic
+   map layouts instead of rebuilding them on the main thread after a revision.
+
+Those are measured target costs, not claimed savings from unimplemented changes.
+The existing profiler records synchronous events, the two-rAF proxy, native
+wall/current-thread CPU spans, idle transfer sizes and raw-artifact digests.
+Zero-count CPU/event percentiles are `null` in the review record. No chat was
+sent, so model response/streaming latency is outside this audit.
+
 ## Bounded parallel input validation (November 24)
 
 The deployed worker now validates complete compiler inputs with four readers
