@@ -67,6 +67,8 @@ export function NativeApp({ token }: { token: string }) {
   }>();
   const dispatchedRead = useRef<number | undefined>(undefined);
   const readSequence = useRef(0);
+  const refreshEpoch = useRef(0);
+  const fileEpochs = useRef(new Map<string, number>());
   const [utility, setUtility] = useState<
     "history" | "delivery" | "analysis" | null
   >(null);
@@ -279,6 +281,7 @@ export function NativeApp({ token }: { token: string }) {
         "cancel",
       ].includes(command.type);
       if (inFlight.current && !immediate) return false;
+      if (command.type === "refresh_workspace") refreshEpoch.current++;
       const generation = ++stateGeneration.current;
       inFlight.current++;
       setBusy(true);
@@ -324,22 +327,37 @@ export function NativeApp({ token }: { token: string }) {
     },
     [client],
   );
-  const openFile = useCallback((path: string, line?: number, read = true) => {
-    setFiles((previous) =>
-      previous.includes(path) ? previous : [...previous, path],
-    );
-    setActiveFile(path);
-    setReadTarget(
-      read
-        ? {
-            path,
-            offset: line ? Math.max(1, line - 5) : 1,
-            sequence: ++readSequence.current,
-          }
-        : undefined,
-    );
-    setFilesOpen(false);
-  }, []);
+  const openFile = useCallback(
+    (
+      path: string,
+      line?: number,
+      mode: "read" | "retained" | "prepared" = "read",
+    ) => {
+      // A refresh invalidates retained navigation even when the last rendered
+      // status still contains the previous host view. Ordinary tab returns reuse it.
+      const needsRead =
+        mode === "read" ||
+        (mode === "retained" &&
+          fileEpochs.current.has(path) &&
+          fileEpochs.current.get(path) !== refreshEpoch.current);
+      fileEpochs.current.set(path, refreshEpoch.current);
+      setFiles((previous) =>
+        previous.includes(path) ? previous : [...previous, path],
+      );
+      setActiveFile(path);
+      setReadTarget(
+        needsRead
+          ? {
+              path,
+              offset: line ? Math.max(1, line - 5) : 1,
+              sequence: ++readSequence.current,
+            }
+          : undefined,
+      );
+      setFilesOpen(false);
+    },
+    [],
+  );
   const indexMapFile = useCallback(
     async (path: string) => {
       const epoch = mapEpoch.current;
@@ -375,9 +393,12 @@ export function NativeApp({ token }: { token: string }) {
         openFile(
           symbol.file,
           symbol.line,
-          (!files.includes(symbol.file) ||
-            state?.source_views[symbol.file] === undefined) &&
-            state?.source_snapshot?.files[symbol.file] === undefined,
+          state?.source_snapshot?.files[symbol.file] !== undefined
+            ? "prepared"
+            : !files.includes(symbol.file) ||
+                state?.source_views[symbol.file] === undefined
+              ? "read"
+              : "retained",
         );
     },
     [openFile, activeFile, files, state?.source_views, state?.source_snapshot],
@@ -490,7 +511,7 @@ export function NativeApp({ token }: { token: string }) {
       const path = input.paths[0];
       openRequestedSnapshot.current = !path;
       setAnalysisFile(path);
-      if (path) openFile(path, undefined, false);
+      if (path) openFile(path, undefined, "prepared");
       setUtility(null);
     }
     return command(input);
@@ -508,7 +529,7 @@ export function NativeApp({ token }: { token: string }) {
         Object.keys(state.source_snapshot.files)[0];
       if (path) {
         setAnalysisFile(path);
-        openFile(path, undefined, false);
+        openFile(path, undefined, "prepared");
       }
     }
   }, [state?.source_snapshot?.revision, state?.running]);
@@ -612,7 +633,9 @@ export function NativeApp({ token }: { token: string }) {
                   path,
                   undefined,
                   !files.includes(path) ||
-                    state.source_views[path] === undefined,
+                    state.source_views[path] === undefined
+                    ? "read"
+                    : "retained",
                 )
               }
             />
@@ -654,7 +677,9 @@ export function NativeApp({ token }: { token: string }) {
                         openFile(
                           file,
                           undefined,
-                          state.source_views[file] === undefined,
+                          state.source_views[file] === undefined
+                            ? "read"
+                            : "retained",
                         )
                       }
                       onKeyDown={(e) => {
@@ -731,7 +756,13 @@ export function NativeApp({ token }: { token: string }) {
                             state.project.source_path;
                       setGraphPaths(path);
                       if (overview?.files.some((f) => f.path === path))
-                        openFile(path);
+                        openFile(
+                          path,
+                          undefined,
+                          state.source_views[path] === undefined
+                            ? "read"
+                            : "retained",
+                        );
                       setUtility("analysis");
                     }}
                   >

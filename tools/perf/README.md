@@ -37,6 +37,13 @@ I/O and child execution; it is not a measured I/O-wait counter. Instrumentation
 is diagnostic and cannot change result admission. No source, prompt, token,
 endpoint or filename is a metric label. No remote export is enabled.
 
+Lake configuration now distinguishes `atlas.lake_configuration.resolve` (resource
+validation and exact frozen-input lookup), `atlas.lake_configuration.reuse` (a
+validated retained result) and `atlas.lake_configuration` (actual evaluator
+execution). Warm configuration reuse still requires `atlas.project.prepare` and
+the exact compiled-input fingerprint. Compare these stages separately from
+source-view materialization and retained-tab navigation.
+
 `npm run test:fuzz` generates 3000 bounded inventories and camera traces, including
 empty maps, deep categories, tiny panes, extreme zooms and cyclic references.
 It compares optimized visibility to a full-scan specification, checks world

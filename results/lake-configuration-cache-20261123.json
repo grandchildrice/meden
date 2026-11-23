@@ -1,0 +1,338 @@
+{
+  "date": "2026-11-23",
+  "change": "Reuse deterministic frozen Lake configuration; keep actual build/input validation and explicit refresh navigation",
+  "native_binary_sha256": "00c06f0989b556a9121ede3d38f996463db5c9403f9c45421d895e4112e06df4",
+  "deployed_assets_sha256": "914feb57b4c63a0a532a08b8efbcc75072b66e6294bcee83fb326e0641ee81dc",
+  "captures": [
+    {
+      "condition": "Unpopulated configuration cache; existing compiled analysis cache",
+      "directory": "target/native-profile/riemann-config-cache-cold",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 59747.98462,
+        "setup_cache_hit": true
+      },
+      "assets_sha256": "6b53f3d907c681793df53600d4e8399bc59ac5ae6c7dc133a50482023449e6a1",
+      "latest_trace": 120,
+      "native_stages": {
+        "atlas.lake_configuration": {
+          "count": 12,
+          "wall_ms": 18769.543,
+          "host_thread_cpu_ms": 538.507
+        },
+        "atlas.lake_configuration.resolve": {
+          "count": 12,
+          "wall_ms": 19585.167,
+          "host_thread_cpu_ms": 1326.043
+        },
+        "atlas.lake_configuration.reuse": {
+          "count": 0,
+          "wall_ms": 0,
+          "host_thread_cpu_ms": 0
+        },
+        "analysis.discover_layout": {
+          "count": 1,
+          "wall_ms": 20782.561,
+          "host_thread_cpu_ms": 1349.519
+        },
+        "atlas.project.prepare": {
+          "count": 1,
+          "wall_ms": 35046.055,
+          "host_thread_cpu_ms": 271.615
+        },
+        "analysis.cache.validate": {
+          "count": 2,
+          "wall_ms": 1090.113,
+          "host_thread_cpu_ms": 57.811
+        },
+        "analysis.extract": {
+          "count": 1,
+          "wall_ms": 58284.904,
+          "host_thread_cpu_ms": 1818.978
+        },
+        "analysis.materialize_view": {
+          "count": 1,
+          "wall_ms": 0.539,
+          "host_thread_cpu_ms": 0.539
+        }
+      },
+      "artifact_manifest": {
+        "binary_sha256": "00c06f0989b556a9121ede3d38f996463db5c9403f9c45421d895e4112e06df4",
+        "samples": 3832,
+        "perf_event_paranoid": "2",
+        "kptr_restrict": "1",
+        "event": "cpu-clock:u",
+        "frequency_hz": 99,
+        "stack": "dwarf,8192",
+        "digests": {
+          "perf.data": "2efd3ec730a59f28c2b23430e586eee24a97add56c53f5b8562de0d40693652b",
+          "perf-report.txt": "c8510ce06e078c3078023b1dbed96dfbcd5ea95c1b11bde2a4eecc1abcb84d0c",
+          "trace.json": "db5f9d9baa61ea013da87336b7babe49cb0fa62b3505eee8e2d434e8893ef5b1",
+          "native-metrics.json": "5166891b7cc5a8b3ffde46da7e80573e7e043c219783c1226bd869c3fed8ecc8",
+          "summary.json": "a5b4336681ec9d8039dff9baf0de06782183d304bef68feb3b7968ef012591cc",
+          "graph-hover.cpuprofile": "fb38f63d789400926ef5f8e934e7c200cd7f062de8523f4891ae30ce38c63431",
+          "graph-idle-poll.cpuprofile": "2eb7cce3e7da3c113452099fbcf6209024f2f7c14ab11128c72044fc76b4e795",
+          "graph-idle-settled.cpuprofile": "10d22ea7f6468a1a49be669617a29e2856f376cb2ca64ac2e7ebcb8012131393",
+          "graph-node-select.cpuprofile": "ba05fbb564f195de32457c63006c480664c1196e01a4ac9b3678589d09c5f56c",
+          "graph-pan.cpuprofile": "7afd661cbdd0070736f9696cb8267c05305011405229892c5543388b005f9634",
+          "graph-resize.cpuprofile": "f3c4aab0ebfa9ad7a24dce445434f0465d5b2b8a9ecbae4af47a13b0eca331df",
+          "graph-wheel.cpuprofile": "862c2146945619a8049c9d282bbdaf4f8c271077be951d222193922c7b231d37",
+          "project-map-idle.cpuprofile": "5a8e135b9fa4e791cec0196c42b267af55ab3c38c0df405efbc637a70f375cac",
+          "project-map-wheel.cpuprofile": "7fd40adc415aa60c941367bc05ea7f6329d7764f3995df2630e51a65a486e411",
+          "tab-switch.cpuprofile": "dc01fb413e21fa8d0af940f583c46aa7e50cc0f1720702f867dec92f2aa3a02a"
+        },
+        "limits": "Current-user native host and inherited workers only; no kernel stacks. Thread CPU spans exclude worker CPU. File preparation reuses project/OS caches, not a cold installation. Sampling changes timing; browser profiles have their own overhead."
+      }
+    },
+    {
+      "condition": "warm-1",
+      "directory": "target/native-profile/riemann-config-cache-warm-1",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 35657.69004,
+        "setup_cache_hit": true
+      },
+      "assets_sha256": "914feb57b4c63a0a532a08b8efbcc75072b66e6294bcee83fb326e0641ee81dc",
+      "latest_trace": 120,
+      "native_stages": {
+        "atlas.lake_configuration": {
+          "count": 0,
+          "wall_ms": 0,
+          "host_thread_cpu_ms": 0
+        },
+        "atlas.lake_configuration.resolve": {
+          "count": 12,
+          "wall_ms": 772.055,
+          "host_thread_cpu_ms": 736.8280000000001
+        },
+        "atlas.lake_configuration.reuse": {
+          "count": 12,
+          "wall_ms": 266.649,
+          "host_thread_cpu_ms": 264.491
+        },
+        "analysis.discover_layout": {
+          "count": 1,
+          "wall_ms": 2042.447,
+          "host_thread_cpu_ms": 761.293
+        },
+        "atlas.project.prepare": {
+          "count": 1,
+          "wall_ms": 29896.266,
+          "host_thread_cpu_ms": 245.621
+        },
+        "analysis.cache.validate": {
+          "count": 2,
+          "wall_ms": 1031.0780000000002,
+          "host_thread_cpu_ms": 59.049
+        },
+        "analysis.extract": {
+          "count": 1,
+          "wall_ms": 34430.974,
+          "host_thread_cpu_ms": 1208.887
+        },
+        "analysis.materialize_view": {
+          "count": 1,
+          "wall_ms": 0.464,
+          "host_thread_cpu_ms": 0.464
+        }
+      },
+      "artifact_manifest": {
+        "binary_sha256": "00c06f0989b556a9121ede3d38f996463db5c9403f9c45421d895e4112e06df4",
+        "samples": 2870,
+        "perf_event_paranoid": "2",
+        "kptr_restrict": "1",
+        "event": "cpu-clock:u",
+        "frequency_hz": 99,
+        "stack": "dwarf,8192",
+        "digests": {
+          "perf.data": "4706d0c9e9432dd58fbd54d732e849b7f33d8553fe616245fa69fc44e0791b06",
+          "perf-report.txt": "e234f5c3ecdd1fd739169fa138b1b73fac2fd3e95bc659d47c40e1b6274b4264",
+          "trace.json": "110d448e93d3ffdabc5c859303aa4b7062e32a9a7588feb6fbd7b9e066f1d807",
+          "native-metrics.json": "cdd182ba66377b75d6e5d7adb2055de8c6fb468ae636938b6434ca81efec104a",
+          "summary.json": "1738fe1bfb5fedd077828983cf72a12ae9a88fc2e1909f47578030adae69c6e4",
+          "graph-hover.cpuprofile": "09ea257bd44e15a923386e54a0312943255f2ee002f24fdd81ab7d6744a099bf",
+          "graph-idle-poll.cpuprofile": "bc438e1a85d4f3059cbac687da87717deb849860962f535078c6bb913d2a6e9c",
+          "graph-idle-settled.cpuprofile": "01359539574ab7e46d7484a3a437c419252818f85bb9b5c599fc6c7f6bfa2db8",
+          "graph-node-select.cpuprofile": "cc95ccf1370b87c73ac3cc57fd5b13de22f81bd64d985b61a1ace9abbfc12ae8",
+          "graph-pan.cpuprofile": "5587c53ece04635b61018cd2b482267bb24165bf5ee8ed6bbefd431f2fa5a549",
+          "graph-resize.cpuprofile": "6c47587b48736e7441977add1ec33e6444d651fa9b62b05d5de194844c8b1054",
+          "graph-wheel.cpuprofile": "35281ec6cd6eb001c2672a3e69195a7cda493b8c2bb448f3800f36a203df8cd4",
+          "project-map-idle.cpuprofile": "eed71e42d6978b35c4497d31d769c575134675d5713bb8a67ddd046645f89a58",
+          "project-map-wheel.cpuprofile": "12ecfb51be9c33af2efea9ac4380ed76760091b7737b105302ffd433036f86a3",
+          "tab-switch.cpuprofile": "d88af64149f46a19746c1443d47d23e9f6d19858cd01662c7a1dc4be47496bf3"
+        },
+        "limits": "Current-user native host and inherited workers only; no kernel stacks. Thread CPU spans exclude worker CPU. File preparation reuses project/OS caches, not a cold installation. Sampling changes timing; browser profiles have their own overhead."
+      }
+    },
+    {
+      "condition": "warm-2",
+      "directory": "target/native-profile/riemann-config-cache-warm-2",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 24817.235569,
+        "setup_cache_hit": true
+      },
+      "assets_sha256": "914feb57b4c63a0a532a08b8efbcc75072b66e6294bcee83fb326e0641ee81dc",
+      "latest_trace": 774,
+      "native_stages": {
+        "atlas.lake_configuration": {
+          "count": 0,
+          "wall_ms": 0,
+          "host_thread_cpu_ms": 0
+        },
+        "atlas.lake_configuration.resolve": {
+          "count": 12,
+          "wall_ms": 702.912,
+          "host_thread_cpu_ms": 696.6329999999999
+        },
+        "atlas.lake_configuration.reuse": {
+          "count": 12,
+          "wall_ms": 256.33,
+          "host_thread_cpu_ms": 254.632
+        },
+        "analysis.discover_layout": {
+          "count": 1,
+          "wall_ms": 1932.874,
+          "host_thread_cpu_ms": 721.296
+        },
+        "atlas.project.prepare": {
+          "count": 1,
+          "wall_ms": 19276.506,
+          "host_thread_cpu_ms": 143.343
+        },
+        "analysis.cache.validate": {
+          "count": 2,
+          "wall_ms": 1379.7549999999999,
+          "host_thread_cpu_ms": 70.288
+        },
+        "analysis.extract": {
+          "count": 1,
+          "wall_ms": 24135.899,
+          "host_thread_cpu_ms": 1121.601
+        },
+        "analysis.materialize_view": {
+          "count": 1,
+          "wall_ms": 0.414,
+          "host_thread_cpu_ms": 0.41
+        }
+      },
+      "artifact_manifest": {
+        "binary_sha256": "00c06f0989b556a9121ede3d38f996463db5c9403f9c45421d895e4112e06df4",
+        "samples": 2246,
+        "perf_event_paranoid": "2",
+        "kptr_restrict": "1",
+        "event": "cpu-clock:u",
+        "frequency_hz": 99,
+        "stack": "dwarf,8192",
+        "digests": {
+          "perf.data": "4ac8b1213464d14979695c9f9dc1b9a60b33a012aef577fb876059ff362b52e7",
+          "perf-report.txt": "a891e24e052816ad1d95aaa1cb38d99497a4a4800f56ab79f64e52949326e957",
+          "trace.json": "e78062d6a787fabba916b6b626e9d02e383e80f3588500c43c9b5a9dc99b0b90",
+          "native-metrics.json": "e22a1304723dca80e4090ab887896c75b879c5c4f7df06be51402f8111f2b99c",
+          "summary.json": "c8ee03e5c9f87d38a91b57b9d11d359e713b639361f6d0cd17190e7650aef42e",
+          "graph-hover.cpuprofile": "fe9b28930ed7173cf49efef2feb707a420e04d3dfed15e7d21fad7500b2d9298",
+          "graph-idle-poll.cpuprofile": "558997b7a6615ed506bb01b9ae3450c008c3aee928680f63e537d6a11076c9ea",
+          "graph-idle-settled.cpuprofile": "7c9d704a5661c05e8c23529a2b7d42bd0786254522a05a1c28587353ca7129ac",
+          "graph-node-select.cpuprofile": "7340f55fad8a8cdee3fa275bc1ef085e13ac7e18ec9f73732ebfe3b4130ce47f",
+          "graph-pan.cpuprofile": "36a236b66944ee5111af796268bbd1db94cb37e33b108eb1c7de6858a770f7b6",
+          "graph-resize.cpuprofile": "9f883ad25e6625b6cbfe5685ac176cf2cf0faac11a8a275bf3a25436921d3e60",
+          "graph-wheel.cpuprofile": "af54b5fa69a0a8747d82d0cb1a75605c7d23d12fd4868868f68550c994d4f728",
+          "project-map-idle.cpuprofile": "a5f9e2afe15cc376131e39d192892d5b2132c81ad1c19fb3b6af257f1ec7cf55",
+          "project-map-wheel.cpuprofile": "32dd4f7e5bad4774b02790b8db0e7dcd315880a59f43a2a8e993ae85c119714a",
+          "tab-switch.cpuprofile": "be6feb93187b1b765fd7bdb40ce844ec21622641a592d6f21550334fe00d89d8"
+        },
+        "limits": "Current-user native host and inherited workers only; no kernel stacks. Thread CPU spans exclude worker CPU. File preparation reuses project/OS caches, not a cold installation. Sampling changes timing; browser profiles have their own overhead."
+      }
+    }
+  ],
+  "findings": [
+    "Initial configuration evaluation ran twelve times; both repeated opens used twelve retained results and zero evaluator executions. Layout discovery fell from 20.783 seconds to 2.042 / 1.933 seconds.",
+    "Observed file-open time was 59.748 seconds initially and 35.658 / 24.817 seconds on repeated opens. All three were complete compiler/renderer-cache hits and still executed prepared Lake build/input validation.",
+    "The remaining prepared build/input-resolution/fingerprint stage took 29.896 / 19.277 seconds on repeated opens. Additional timing changes cannot all be attributed to the configuration cache; project and OS caches continue to warm.",
+    "A retained-view generation advances on explicit refresh. The GUI regression holds an older view map while real compilation continues, and requires a new file inspection. Prepared graph requests and ordinary retained tab returns have distinct navigation intents."
+  ],
+  "checks": {
+    "raw_profile_digests": "passed",
+    "app_tests": {
+      "unit": 45,
+      "doc": 2
+    },
+    "web_tests": 30,
+    "clippy": "passed",
+    "typecheck": "passed",
+    "architecture": "passed",
+    "browser": {
+      "passed": 3,
+      "scope": "Actual installed Lean/Lake and public GUI, 35-module build, stale-view delivery, broken configuration twice, changed dependency, compiler failure/retry, restart, retained tabs and zero inference requests.",
+      "screenshot_reviewed": "target/gui-checks/lake-config-typed-results/native-native-GUI-with-rea-3d1fa-tifacts-and-survive-restart/lake-configuration-reused-after-restart.png"
+    },
+    "required_tui": {
+      "success": true,
+      "selected": 34,
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/validation/00c06f0989b556a9121ede3d38f996463db5c9403f9c45421d895e4112e06df4/meden",
+        "sha256": "00c06f0989b556a9121ede3d38f996463db5c9403f9c45421d895e4112e06df4"
+      },
+      "evidence": "/tmp/meden-ux-lake-config-final-20261123",
+      "summary_sha256": "adbc49e918de9e0b8adac99e6b8db32b524170002b65ca93ecf51ff5fc6f411b",
+      "decoded_screens_reviewed": [
+        "Lake source-inventory refusal and historical restart",
+        "Provider HTTP 429 stop and explicit retry recovery",
+        "GUI-to-TUI fresh processor review"
+      ]
+    },
+    "logs": {
+      "app_tests": {
+        "path": "/tmp/meden-lake-config-final-app-tests.log",
+        "sha256": "51a41b64d1a93ce240421a71190b05547ef64fbef20dd8bc5199be353f26953c"
+      },
+      "clippy": {
+        "path": "/tmp/meden-lake-config-clippy.log",
+        "sha256": "57863856e0c87b2e21a7dc9cc254fb4c263da7f478eade293e6839839e175c36"
+      },
+      "typecheck": {
+        "path": "/tmp/meden-lake-config-typecheck.log",
+        "sha256": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f"
+      },
+      "architecture": {
+        "path": "/tmp/meden-lake-config-architecture.log",
+        "sha256": "64b03c4c07b9e2582f45a2a78266f4e7d49e906d7cc0a84092684afd3ba37e64"
+      },
+      "browser": {
+        "path": "/tmp/meden-lake-config-typed-gui.log",
+        "sha256": "dea330092af95cf42342c0eb9111103def60110095c7511c03b5d188dbb6c644"
+      },
+      "web_tests": {
+        "path": "/tmp/meden-lake-config-web-tests.log",
+        "sha256": "0b5719a71f568996ef842cfb735be62dffe83d06344c4b23963e1a328b4605a0"
+      }
+    }
+  },
+  "limits": [
+    "One unthrottled desktop; fresh browser pages and existing project/OS/compiler caches. These are diagnostic samples, not field percentiles, cold installation or an isolated causal estimate of total speedup.",
+    "The same native executable was used throughout. The initial capture used the preceding navigation asset build; the repeated captures used the final typed navigation build. Exact asset digests are retained. No graph-engine performance improvement is claimed.",
+    "Nested spans overlap and must not be added as exclusive costs. Host-thread CPU excludes subprocess CPU. Full native profiles sampled the host and inherited workers.",
+    "Configuration cache checks do not prove deterministic or truthful arbitrary Lean code, restore proof evidence or replace fresh compiler-input validation. No inference or new refinement proof was involved."
+  ]
+}

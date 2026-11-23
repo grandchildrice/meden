@@ -904,15 +904,14 @@ theorem slow : True := fast
     const lean =
       process.env.MEDEN_ATLAS_LEAN ||
       resolve(homedir(), ".elan/toolchains/leanprover--lean4---v4.35.0");
-    await writeFile(
-      resolve(project, "lakefile.toml"),
+    const configuration =
       'name = "prepared"\n[[lean_lib]]\nname = "App"\nroots = ' +
-        JSON.stringify([
-          "Entry",
-          ...Array.from({ length: 34 }, (_, i) => `Part${i}`),
-        ]) +
-        "\n",
-    );
+      JSON.stringify([
+        "Entry",
+        ...Array.from({ length: 34 }, (_, i) => `Part${i}`),
+      ]) +
+      "\n";
+    await writeFile(resolve(project, "lakefile.toml"), configuration);
     for (let i = 0; i < 34; i++)
       await writeFile(
         resolve(project, `Part${i}.lean`),
@@ -960,10 +959,32 @@ theorem slow : True := fast
           { timeout: 120000 },
         )
         .toBe("ready");
+      await expect
+        .poll(async () => (await nativeState(page)).running)
+        .toBe(false);
       return nativeState(page);
+    };
+    const extractionStages = async () => {
+      const metrics = await page.evaluate(async () =>
+        (
+          await fetch("/api/metrics", {
+            headers: {
+              Authorization:
+                "Bearer " + sessionStorage.getItem("meden-native-session"),
+            },
+          })
+        ).json(),
+      );
+      const trace = metrics.records.findLast(
+        (r: any) => r.name === "analysis.extract",
+      ).context.trace;
+      return metrics.records
+        .filter((r: any) => r.context.trace === trace)
+        .map((r: any) => r.name) as string[];
     };
     await open();
     let state = await prepared();
+    expect(await extractionStages()).toContain("atlas.lake_configuration");
     expect(Object.keys(state.source_snapshot.files)).toEqual(["Entry.lean"]);
     expect(state.source_snapshot.inputs_revision).toMatch(/^[a-f0-9]{64}$/);
     expect(state.source_snapshot.external).toContain("Part33");
@@ -973,6 +994,18 @@ theorem slow : True := fast
         .semantic.checker.candidates.join(" "),
     ).toContain("n := 0");
     const first = state.source_snapshot;
+    const firstViews = state.source_views;
+    let inspections = 0;
+    page.on("request", (request) => {
+      if (
+        !request.url().endsWith("/api/command") ||
+        request.method() !== "POST"
+      )
+        return;
+      const input = request.postDataJSON();
+      if (input.type === "inspect" && input.path === "Entry.lean")
+        inspections++;
+    });
     await expect
       .poll(async () => (await nativeState(page)).running)
       .toBe(false);
@@ -985,7 +1018,18 @@ theorem slow : True := fast
         .toBe(false);
       await open();
     };
+    // Reproduce a late status view after an explicit refresh. The backend,
+    // compilation, source contents and input fingerprints remain real.
+    await page.route("**/api/state", async (route) => {
+      const response = await route.fetch();
+      const status = await response.json();
+      await route.fulfill({
+        response,
+        json: { ...status, source_views: firstViews },
+      });
+    });
     await reread();
+    await expect.poll(() => inspections).toBe(1);
     await expect
       .poll(
         async () =>
@@ -993,9 +1037,52 @@ theorem slow : True := fast
         { timeout: 120000 },
       )
       .toBe(true);
+    await page.unroute("**/api/state");
     await expect
       .poll(async () => (await nativeState(page)).running)
       .toBe(false);
+    let stages = await extractionStages();
+    expect(stages).toContain("atlas.lake_configuration.reuse");
+    expect(stages).not.toContain("atlas.lake_configuration");
+    expect(stages).toContain("atlas.project.prepare");
+
+    // A cached successful configuration cannot hide a new parser failure.
+    // Failed evaluations must not become reusable cache entries on retry.
+    await writeFile(resolve(project, "lakefile.toml"), "name =\n");
+    await reread();
+    const pane = page.getByRole("region", {
+      name: "File reference graph",
+      exact: true,
+    });
+    for (let attempt = 0; attempt < 2; attempt++) {
+      if (attempt)
+        await pane
+          .getByRole("button", { name: "Retry preparation", exact: true })
+          .click();
+      await expect
+        .poll(
+          async () =>
+            (await nativeState(page)).source_preparation["Entry.lean"]?.state,
+          { timeout: 120000 },
+        )
+        .toBe("failed");
+      await expect
+        .poll(async () => (await nativeState(page)).running)
+        .toBe(false);
+      expect((await nativeState(page)).source_snapshot).toBeNull();
+      expect(await extractionStages()).toContain("atlas.lake_configuration");
+      await expect(pane.getByRole("alert")).toContainText(
+        "Offline Lake configuration failed",
+      );
+    }
+    await writeFile(resolve(project, "lakefile.toml"), configuration);
+    await pane
+      .getByRole("button", { name: "Retry preparation", exact: true })
+      .click();
+    state = await prepared();
+    expect(state.source_preparation["Entry.lean"].cache_hit).toBe(true);
+    expect(await extractionStages()).not.toContain("atlas.lake_configuration");
+
     await writeFile(resolve(project, "Part0.lean"), "def part0 : Nat := 2\n");
     await reread();
     await expect
@@ -1017,6 +1104,10 @@ theorem slow : True := fast
       first.inputs_revision,
     );
     expect(state.source_preparation["Entry.lean"].cache_hit).toBe(false);
+    stages = await extractionStages();
+    expect(stages).not.toContain("atlas.lake_configuration");
+    expect(stages).toContain("atlas.project.prepare");
+    expect(stages).toContain("atlas.project.extract");
     await expect
       .poll(async () => (await nativeState(page)).running)
       .toBe(false);
@@ -1030,10 +1121,6 @@ theorem slow : True := fast
       )
       .toBe("failed");
     expect((await nativeState(page)).source_snapshot).toBeNull();
-    const pane = page.getByRole("region", {
-      name: "File reference graph",
-      exact: true,
-    });
     await expect(pane.getByRole("alert")).toContainText(
       "Prepared Lake compilation failed",
     );
@@ -1058,6 +1145,15 @@ theorem slow : True := fast
     await open();
     state = await prepared();
     expect(state.source_preparation["Entry.lean"].cache_hit).toBe(true);
+    stages = await extractionStages();
+    expect(stages).toContain("atlas.lake_configuration.reuse");
+    expect(stages).not.toContain("atlas.lake_configuration");
+    expect(stages).toContain("atlas.project.prepare");
+    await page.screenshot({
+      path: test
+        .info()
+        .outputPath("lake-configuration-reused-after-restart.png"),
+    });
     expect(requests).toHaveLength(0);
     expect((await nativeState(page)).authorized).toBe(false);
   });
@@ -1998,13 +2094,15 @@ theorem slow : True := fast
     await expect(extract).toBeEnabled();
     await compileDependencies(page);
     const graph = page.getByRole("region", { name: "Local source graph" });
-    await expect(graph).toContainText("Lake: app", { timeout: 60_000 });
-    await expect(graph).toContainText("Lake: dep");
+    await expect(graph).toContainText("Compiled dependencies from Lean Atlas", {
+      timeout: 60_000,
+    });
     const state = await nativeState(page);
     expect(Object.keys(state.source_snapshot.files).sort()).toEqual([
       "src/App.lean",
       "vendor/dep/source/Domain.lean",
     ]);
+    expect(state.source_snapshot.roots).toEqual(["src/App.lean"]);
     await graph
       .getByRole("button", { name: /Domain.answer.*: select/ })
       .click();
@@ -2024,7 +2122,9 @@ theorem slow : True := fast
     expect((await nativeState(page)).source_snapshot).toBeNull();
     await setPaths(page, "");
     await compileDependencies(page);
-    await expect(graph).toContainText("Lake: dep", { timeout: 60_000 });
+    await expect(graph).toContainText("Compiled dependencies from Lean Atlas", {
+      timeout: 60_000,
+    });
     expect(requests).toHaveLength(0);
     await page.screenshot({
       path: "target/gui-checks/native-lake-project.png",

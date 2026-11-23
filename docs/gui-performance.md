@@ -1,5 +1,46 @@
 # Graph interaction measurements
 
+## Frozen Lake configuration reuse (November 23)
+
+The host now retains deterministic configuration evaluation separately from
+compiler/search observations. Keys bind the complete frozen input map and
+absences, command/options, validated Lean/library manifest and implementation.
+Reads check the full identity and output hash and use the same result parser.
+Failed evaluations are not saved; the 4096 replacement slots retain outputs up
+to 1 MiB. A collision or larger output requires fresh evaluation. The actual
+Lake build and compiled-input fingerprint remain mandatory on a reopened file.
+
+Three sequential Riemann captures use the same native executable, 175,187-file
+inventory and 15-declaration file. All three hit the existing complete analysis
+cache. The [measurement record](../results/lake-configuration-cache-20261123.json)
+retains native/browser artifacts, checked digests and validation evidence.
+
+| Stage | Initial configuration cache fill | Repeated open 1 | Repeated open 2 |
+| --- | ---: | ---: | ---: |
+| File request to prepared view | 59.748 s | 35.658 s | 24.817 s |
+| Actual configuration evaluations | 12 | 0 | 0 |
+| Reused configuration observations | 0 | 12 | 12 |
+| Layout discovery | 20.783 s | 2.042 s | 1.933 s |
+| Build/input resolution and fingerprinting | 35.046 s | 29.896 s | 19.277 s |
+
+These are nested diagnostic spans, not additive exclusive costs. Project/OS
+caches also warm, so the entire elapsed-time change cannot be attributed to
+configuration reuse. The initial capture used the preceding navigation asset
+build; repeated captures used the final typed navigation build. Asset digests
+are retained. No graph-engine improvement or cold-install result is claimed.
+The remaining build/input validation is still the largest measured wait.
+
+The public GUI regression checks real configuration failure on two attempts,
+dependency edits, compiler rejection/retry and restart. A delayed-status fixture
+also reproduces an older retained-view map after refresh: the next requested
+file must still dispatch. Navigation distinguishes an explicit read, a retained
+tab and an already prepared/requested graph, avoiding both a lost refresh and
+a second inspection after explicit preparation. Existing tab returns retain
+source/graph/camera without inspections. The three real-Lean browser journeys,
+34 required TUI journeys, 45 application unit tests, two doc tests and 30 TypeScript
+tests passed; decoded failure/restart screens and the browser screenshot
+were inspected. These checks add no new proof authority or live-model claim.
+
 ## Production recheck (November 23)
 
 A third capture of the same pinned Riemann host confirms that preparation,

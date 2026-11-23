@@ -2570,8 +2570,24 @@ Imported declarations are recorded as unexpanded boundaries, not silently copied
 or presented as an analyzed whole-project closure. Map startup never builds all
 Lake roots in this profile.
 
+The adapter caches deterministic evaluation of the exact frozen Lake
+configuration separately from compiler/search observations. The key includes
+all frozen input files and absences, command/options, the validated Lean/library
+manifest and the evaluator/cache implementation. Each read checks the complete
+key and output hash and runs the original result parser. The cache has 4096
+replacement slots and retains outputs up to 1 MiB; collisions and larger outputs
+cause fresh evaluation. A failed evaluation is never saved. Resource validation,
+the actual prepared Lake build and exact compiled-input fingerprinting remain
+required. This is observation reuse, not a proof that arbitrary Lean configuration
+is deterministic or truthful and not new evidence authority.
+
 The native browser regression uses a real 35-module Lake build, imported edits,
-compiler rejection, visible retry and restart without inference. The separate Rust
+compiler rejection, visible retry and restart without inference. It also checks
+no evaluator process on a valid configuration hit, two real rejections of a
+broken configuration, continued dependency checking and reuse after restart.
+A delayed-status fixture keeps an older retained-view map while all compilation
+and files remain real; explicit refresh must still dispatch the requested file.
+Ordinary prepared-tab returns require no additional inspection. The separate Rust
 mount probe checks writable preparation followed by read-only workspace/resources
 and writable private scratch; its dependency-discovery ELF is not a compiler fixture
 or live-model validation. The vendored axiom collector now uses Lean's

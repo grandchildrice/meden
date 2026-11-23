@@ -6,6 +6,8 @@ use meden_runtime::process::Control;
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, fs, time::Duration};
 
+mod cache;
+
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Glob {
@@ -51,7 +53,7 @@ impl Configuration {
         options: &BTreeMap<String, String>,
         control: &Control,
     ) -> Result<Package> {
-        let output = self.lake_output(
+        self.lake_output(
             metadata,
             &[
                 "package".into(),
@@ -60,17 +62,19 @@ impl Configuration {
                 serde_json::to_string(options)?,
             ],
             control,
-        )?;
-        let package: Package = serde_json::from_str(&output)
-            .context("Lake did not return one complete configuration result")?;
-        anyhow::ensure!(
-            package.dependencies.len() <= 256
-                && package.library_sources.len() <= 64
-                && package.executable_dirs.len() <= 64
-                && package.globs.len() <= 128,
-            "Lake package configuration exceeds bounds"
-        );
-        Ok(package)
+            |output| {
+                let package: Package = serde_json::from_str(output)
+                    .context("Lake did not return one complete configuration result")?;
+                anyhow::ensure!(
+                    package.dependencies.len() <= 256
+                        && package.library_sources.len() <= 64
+                        && package.executable_dirs.len() <= 64
+                        && package.globs.len() <= 128,
+                    "Lake package configuration exceeds bounds"
+                );
+                Ok(package)
+            },
+        )
     }
     pub fn lake_manifest(
         &self,
@@ -78,17 +82,46 @@ impl Configuration {
         path: &str,
         control: &Control,
     ) -> Result<serde_json::Value> {
-        let output = self.lake_output(metadata, &["manifest".into(), path.into()], control)?;
-        serde_json::from_str(&output).context("Invalid normalized Lake manifest result")
+        self.lake_output(
+            metadata,
+            &["manifest".into(), path.into()],
+            control,
+            |output| {
+                let value: serde_json::Value = serde_json::from_str(output)
+                    .context("Invalid normalized Lake manifest result")?;
+                anyhow::ensure!(value.is_object(), "Lake manifest must be an object");
+                Ok(value)
+            },
+        )
     }
-    fn lake_output(
+    fn lake_output<T>(
         &self,
         metadata: &Metadata,
         args: &[String],
         control: &Control,
-    ) -> Result<String> {
+        decode: impl Fn(&str) -> Result<T>,
+    ) -> Result<T> {
+        let _timing = meden_runtime::metrics::Span::start("atlas.lake_configuration.resolve");
+        control.with_active(|| Ok(()))?;
         let (lean, library) = self.selected()?;
         let before = Self::validate(&lean, &library)?;
+        let key = cache::key(metadata, args, &before)?;
+        let cache = self
+            .cache
+            .as_ref()
+            .context("Atlas host cache unavailable")?
+            .join("lake-configurations");
+        if let Some(output) = cache::read(&cache, &key)? {
+            let _reuse = meden_runtime::metrics::Span::start("atlas.lake_configuration.reuse");
+            let decoded = decode(&output)?;
+            anyhow::ensure!(
+                serde_json::to_vec(&before)?
+                    == serde_json::to_vec(&Self::validate(&lean, &library)?)?,
+                "Atlas resources changed during Lake configuration reuse"
+            );
+            control.with_active(|| Ok(()))?;
+            return Ok(decoded);
+        }
         let job = tempfile::tempdir()?;
         let frozen = tempfile::tempdir()?;
         for (path, value) in &metadata.files {
@@ -109,10 +142,13 @@ impl Configuration {
         let output = execution
             .execute("lake.sh", args, control, Duration::from_secs(60))
             .context("Offline Lake configuration failed; no project graph admitted")?;
+        let decoded = decode(&output)?;
         anyhow::ensure!(
             serde_json::to_vec(&before)? == serde_json::to_vec(&Self::validate(&lean, &library)?)?,
             "Atlas resources changed during Lake configuration"
         );
-        Ok(output)
+        control.with_active(|| Ok(()))?;
+        cache::write(&cache, &key, &output)?;
+        Ok(decoded)
     }
 }

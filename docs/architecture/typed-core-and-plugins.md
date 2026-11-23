@@ -129,6 +129,17 @@ application/cache checks and ownership constraints, not new evidence authority
 or extracted refinement claims. See the renderer-update journey in
 [ux-testing.md](../ux-testing.md).
 
+The Lean adapter also retains deterministic evaluation of frozen Lake
+configuration. Its identity binds the complete disposable input-file map,
+command/options, selected validated Lean/library manifest and evaluator/cache
+implementation. A bounded replacement cache rechecks the full identity and
+output digest, then decodes the result through the original role parser.
+Failed evaluations are not retained. The prepared compiler still executes the
+actual build and exact compiled-input fingerprinting; this removes repeated
+configuration evaluation rather than substituting a cached verification result.
+Explicit workspace refresh advances the browser's retained-file generation,
+so a late status response cannot suppress the next requested file read.
+
 This is the first application extraction, not the complete multi-backend registry.
 Compiler snapshots remain Lean-oriented internally. Native source pages now use
 the generic application projection described below. Complete role-wide
