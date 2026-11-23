@@ -334,7 +334,7 @@ jobs:
             MEDEN_GUI_MOTION="$motion" \
               MEDEN_GUI_OUTPUT="target/gui-performance/$motion/results" \
               MEDEN_GUI_REPORT="target/gui-performance/$motion/report" \
-              npm run test:gui -- --workers=1 --grep 'open file tabs restore'
+              npm run test:gui -- --workers=1 --grep 'open file tabs restore|build logs stream'
           done
         env:
           MEDEN_GUI_PERFORMANCE: "1"

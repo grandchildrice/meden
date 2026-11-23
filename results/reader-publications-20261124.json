@@ -77,7 +77,8 @@
       "actual held compiler, streamed logs, timeout/cancel/retry/restart",
       "local reader failure/retry and late original body after refresh",
       "whole-file identity refusal, count eviction and escaped-JSON byte eviction"
-    ]
+    ],
+    "ci_performance_gate": "The serialized normal/reduced-motion CI selection now includes held-compiler paging as well as prepared-tab return; these exact cases passed locally in both modes."
   },
   "transfer": [
     {
