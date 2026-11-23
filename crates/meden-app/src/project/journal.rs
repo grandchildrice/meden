@@ -3,11 +3,12 @@
 
 use std::path::Path;
 
-use crate::verification::Contract;
+use crate::verification::{Binding, Contract};
 use anyhow::{Context, Result};
 use meden_core::evidence::Contracts;
 use meden_runtime::verification::artifact::Class;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use super::{hash, obligation, Obligation, Origin, Reference, State};
 
@@ -34,8 +35,10 @@ impl Required {
 #[serde(tag = "op", rename_all = "snake_case", deny_unknown_fields)]
 pub(super) enum Event {
     Propose {
-        contract: Box<Contract>,
+        contract: Box<Value>,
         required: Required,
+        #[serde(default)]
+        binding: Option<Box<Binding>>,
     },
     Review {
         revision: u64,
@@ -56,6 +59,8 @@ pub(super) enum Event {
 struct Saved {
     version: u32,
     workspace: Vec<u8>,
+    #[serde(default)]
+    selected: Option<String>,
     events: Vec<Event>,
 }
 
@@ -63,7 +68,8 @@ impl Event {
     pub(super) fn propose(contract: &Contract) -> Result<Self> {
         let original = obligation(contract)?;
         Ok(Self::Propose {
-            contract: Box::new(contract.clone()),
+            contract: Box::new(serde_json::to_value(contract)?),
+            binding: contract.binding().cloned().map(Box::new),
             required: Required {
                 statement: original.statement,
                 class: contract.description().class,
@@ -92,17 +98,27 @@ impl Event {
 
     fn apply(&self, controller: &mut Contracts, session: &[u8]) -> Result<()> {
         let (revision, identity) = match self {
-            Self::Propose { contract, required } => {
+            Self::Propose {
+                contract,
+                required,
+                binding,
+            } => {
                 anyhow::ensure!(
-                    required.statement == contract.canonical()?
+                    serde_json::from_slice::<Value>(&required.statement)? == **contract
                         && !required.checker.is_empty()
                         && required.checker.len() <= 256,
                     "saved verification obligation is malformed"
                 );
+                Contract::recorded(
+                    &required.statement,
+                    required.class,
+                    &required.checker,
+                    binding.as_deref().cloned(),
+                )?;
                 anyhow::ensure!(
                     controller.propose(
                         Origin::Controller,
-                        contract.canonical()?,
+                        required.statement.clone(),
                         vec![required.obligation()]
                     ),
                     "saved proposal refused"
@@ -139,21 +155,76 @@ pub(super) fn replay(events: &[Event], session: &str) -> Result<Contracts> {
     Ok(controller)
 }
 
-pub(super) fn load(path: &Path, root: &Path, session: &str) -> Result<(Contracts, Vec<Event>)> {
+pub(super) fn load(
+    path: &Path,
+    root: &Path,
+    session: &str,
+) -> Result<(Contracts, Vec<Event>, Option<String>)> {
     let Some(saved) = crate::storage::read::<Saved>(path)? else {
-        return Ok((Contracts::new(session.as_bytes().to_vec()), Vec::new()));
+        return Ok((
+            Contracts::new(session.as_bytes().to_vec()),
+            Vec::new(),
+            None,
+        ));
     };
     anyhow::ensure!(
         saved.version == 2 && saved.workspace == root.as_os_str().as_encoded_bytes(),
         "saved contract journal belongs to another repository or version"
     );
-    Ok((replay(&saved.events, session)?, saved.events))
+    Ok((
+        replay(&saved.events, session)?,
+        saved.events,
+        saved.selected,
+    ))
+}
+
+/// Recover the exact original proposal observation, never parse by format again.
+pub(super) fn contract(
+    view: &meden_core::evidence::ContractView,
+    events: &[Event],
+) -> Result<Contract> {
+    for event in events.iter().rev() {
+        if let Event::Propose {
+            required, binding, ..
+        } = event
+        {
+            if required.statement == view.subject.contract
+                && view.obligations == vec![required.obligation()]
+            {
+                return Ok(Contract::recorded(
+                    &required.statement,
+                    required.class,
+                    &required.checker,
+                    binding.as_deref().cloned(),
+                )?);
+            }
+        }
+    }
+    anyhow::bail!("Original contract proposal is missing from its journal")
+}
+
+pub(super) fn save(
+    path: &Path,
+    root: &Path,
+    selected: Option<&str>,
+    events: &[Event],
+) -> Result<()> {
+    crate::storage::write(
+        path,
+        &Saved {
+            version: 2,
+            workspace: root.as_os_str().as_encoded_bytes().to_vec(),
+            selected: selected.map(str::to_owned),
+            events: events.to_vec(),
+        },
+    )
 }
 
 pub(super) fn record(
     path: &Path,
     root: &Path,
     session: &str,
+    selected: Option<&str>,
     state: &mut State,
     event: Event,
 ) -> Result<()> {
@@ -162,14 +233,7 @@ pub(super) fn record(
     // Validate and persist the decision before the live controller commits it.
     // Jobs/edits do not alter proposal generations or host review/accept phases.
     replay(&events, session)?;
-    crate::storage::write(
-        path,
-        &Saved {
-            version: 2,
-            workspace: root.as_os_str().as_encoded_bytes().to_vec(),
-            events: events.clone(),
-        },
-    )?;
+    save(path, root, selected, &events)?;
     state.events = events;
     Ok(())
 }
@@ -199,9 +263,13 @@ mod tests {
     #[test]
     fn replay_preserves_the_reviewed_method_instead_of_recomputing_it() -> Result<()> {
         let mut events = accepted_events()?;
-        if let Some(Event::Propose { required, .. }) = events.first_mut() {
+        if let Some(Event::Propose {
+            required, binding, ..
+        }) = events.first_mut()
+        {
             required.checker = b"original reviewed implementation".to_vec();
             required.class = Class::Bounded;
+            *binding = None;
         }
         let restored = replay(&events, "new-session")?;
         let accepted = restored.accepted().context("retained meaning")?;
@@ -231,10 +299,11 @@ mod tests {
             &Saved {
                 version: 2,
                 workspace: root.path().as_os_str().as_encoded_bytes().to_vec(),
+                selected: None,
                 events,
             },
         )?;
-        let (mut restored, _) = load(&path, root.path(), "new-session")?;
+        let (mut restored, _, _) = load(&path, root.path(), "new-session")?;
         let accepted = restored.accepted().context("accepted meaning")?;
         assert_eq!(accepted.revision, 1);
         assert_eq!(
@@ -283,6 +352,7 @@ mod tests {
             &blocked.join("contracts.json"),
             root.path(),
             &project.session,
+            None,
             &mut state,
             Event::propose(&contract)?
         )
@@ -293,6 +363,7 @@ mod tests {
             &path,
             root.path(),
             &project.session,
+            None,
             &mut state,
             Event::propose(&contract)?,
         )?;
@@ -301,6 +372,7 @@ mod tests {
             &path,
             root.path(),
             &project.session,
+            None,
             &mut state,
             Event::Accept {
                 revision: 1,

@@ -8,7 +8,7 @@ use meden_runtime::{
         Failure,
     },
 };
-use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{de::DeserializeOwned, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 use std::{
     collections::BTreeMap,
@@ -23,8 +23,21 @@ mod schema;
 /// Default host preparation, preserving the existing Rust-to-Lean workflow.
 pub const DEFAULT_BACKEND: &str = "lean.refinement.v1";
 
+/// Bind both the exact registered method and its actual recipe into the
+/// existing kernel's opaque checker vocabulary. Completion uses the observed
+/// validated report, rather than copying a claimed success from the contract.
+pub(crate) fn checker_identity(method: &Descriptor, recipe: &str) -> io::Result<String> {
+    Ok(format!(
+        "verifier:{}",
+        meden_runtime::plugin::fingerprint(&serde_json::json!({
+            "definition":method.identity(), "recipe":recipe
+        }))?
+    ))
+}
+
 /// Read-only metadata for every verifier; no prover-specific viewer is required.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Description {
     /// Reviewed contract title.
     pub name: String,
@@ -167,29 +180,36 @@ impl PreparedCheck for RegisteredCheck {
     }
 }
 
-/// Immutable decoded contract, canonical bytes and prepared viewer projection.
-/// Only registered typed decoders construct it; serialization contains data only.
+/// Retained method observations, never an executable or proof receipt.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Binding {
+    method: Value,
+    description: Description,
+    checker: String,
+}
+
+/// Original contract data and viewer projection. Execution always rebinds the
+/// exact recorded method through the host registry; deserialization cannot do it.
 #[derive(Clone)]
 pub struct Contract {
-    id: &'static str,
     bytes: Arc<[u8]>,
     value: Value,
     description: Description,
-    descriptor: Descriptor,
     checker: String,
-    decoded: Arc<dyn Decoded>,
+    binding: Option<Binding>,
 }
 impl std::fmt::Debug for Contract {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Contract")
-            .field("backend", &self.id)
+            .field("backend", &self.backend())
             .field("description", &self.description)
             .finish_non_exhaustive()
     }
 }
 impl PartialEq for Contract {
     fn eq(&self, other: &Self) -> bool {
-        self.id == other.id && self.bytes == other.bytes && self.descriptor == other.descriptor
+        self.bytes == other.bytes && self.binding == other.binding && self.checker == other.checker
     }
 }
 impl Eq for Contract {}
@@ -198,13 +218,60 @@ impl Serialize for Contract {
         self.value.serialize(s)
     }
 }
-impl<'de> Deserialize<'de> for Contract {
-    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        let value = Value::deserialize(d)?;
-        Self::parse(&value.to_string()).map_err(serde::de::Error::custom)
-    }
-}
 impl Contract {
+    pub(crate) fn binding(&self) -> Option<&Binding> {
+        self.binding.as_ref()
+    }
+    pub(crate) fn recorded(
+        bytes: &[u8],
+        class: Class,
+        checker: &[u8],
+        binding: Option<Binding>,
+    ) -> io::Result<Self> {
+        if bytes.len() > 65_536 || checker.is_empty() || checker.len() > 256 {
+            return Err(io::Error::other("Invalid retained contract bounds"));
+        }
+        let value = serde_json::from_slice(bytes)?;
+        let checker = std::str::from_utf8(checker)
+            .map_err(io::Error::other)?
+            .to_owned();
+        let description = if let Some(original) = &binding {
+            if original.checker != checker
+                || original.description.class != class
+                || original.method.get("role").and_then(Value::as_str) != Some("verifier")
+                || original
+                    .method
+                    .get("id")
+                    .and_then(Value::as_str)
+                    .is_none_or(str::is_empty)
+            {
+                return Err(io::Error::other(
+                    "Retained verifier binding differs from its obligation",
+                ));
+            }
+            meden_runtime::plugin::fingerprint(&original.method)?;
+            original.description.clone()
+        } else {
+            if checker.starts_with("verifier:") {
+                return Err(io::Error::other(
+                    "Retained verifier binding is missing; the journal was preserved",
+                ));
+            }
+            Description {
+                name: "Previously accepted contract".into(), source: String::new(),
+                interface: String::new(), properties: Vec::new(),
+                review: format!("The original verifier was not recorded. Propose and review a replacement before checking.\n\nRetained contract data:\n{}", serde_json::to_string_pretty(&value)?),
+                class, scope: "Original method unknown; no current evidence restored.".into(),
+            }
+        };
+        Ok(Self {
+            bytes: bytes.into(),
+            value,
+            description,
+            checker,
+            binding,
+        })
+    }
     /// Parse against the installed host registrations. Drafts grant no authority.
     pub fn parse(text: &str) -> io::Result<Self> {
         Registry::host().parse(text)
@@ -220,15 +287,19 @@ impl Contract {
     }
     /// Original backend registration.
     pub fn backend(&self) -> &str {
-        self.id
+        self.binding
+            .as_ref()
+            .and_then(|b| b.method.get("id"))
+            .and_then(Value::as_str)
+            .unwrap_or("")
     }
     /// Fixed obligation checker identity.
     pub fn checker_id(&self) -> io::Result<String> {
         Ok(self.checker.clone())
     }
     /// Frozen installed method; decoded metadata alone grants no authority.
-    pub fn descriptor(&self) -> &Descriptor {
-        &self.descriptor
+    pub fn descriptor(&self) -> Option<&Value> {
+        self.binding.as_ref().map(|b| &b.method)
     }
     /// Generic immutable viewer projection.
     pub fn description(&self) -> &Description {
@@ -255,27 +326,22 @@ impl Contract {
     }
     /// Full review and explicit evidence scope.
     pub fn review_text(&self) -> String {
+        let Some(binding) = &self.binding else {
+            return self.description.review.clone();
+        };
         format!(
-            "{}\n\nInstalled verification method: {} @ {}\nDefinition SHA-256: {}\nScope: {}\n",
+            "{}\n\nOriginal verification method: {} @ {}\nDefinition SHA-256: {}\nScope: {}\n",
             self.description.review,
-            self.descriptor.id(),
-            self.descriptor.version(),
-            self.descriptor.identity(),
+            self.backend(),
+            binding
+                .method
+                .get("version")
+                .and_then(Value::as_str)
+                .unwrap_or("unknown"),
+            meden_runtime::plugin::fingerprint(&binding.method)
+                .unwrap_or_else(|_| "unavailable".into()),
             self.description.scope
         )
-    }
-    /// Validate through the originally registered implementation.
-    pub fn check_draft(&self, worker: &Path, control: &Control) -> Result<(), Failure> {
-        self.decoded.check_draft(worker, control)
-    }
-    /// Prepare exactly the original typed contract and source.
-    pub fn prepare(
-        &self,
-        source: &str,
-        worker: &Path,
-        control: &Control,
-    ) -> Result<Box<dyn PreparedCheck>, Failure> {
-        self.decoded.prepare(source, worker, control)
     }
 }
 
@@ -295,8 +361,12 @@ struct Definition {
 }
 trait Registered: Send + Sync {
     fn definition(&self) -> io::Result<&Definition>;
-    fn decode(&self, text: &str) -> io::Result<Contract>;
+    fn decode(&self, text: &str) -> io::Result<DecodedContract>;
     fn setup(&self) -> anyhow::Result<()>;
+}
+struct DecodedContract {
+    contract: Contract,
+    decoded: Arc<dyn Decoded>,
 }
 struct Registration<B: Backend> {
     id: &'static str,
@@ -336,7 +406,7 @@ impl<B: Backend> Registered for Registration<B> {
             .as_ref()
             .map_err(|error| io::Error::other(error.clone()))
     }
-    fn decode(&self, text: &str) -> io::Result<Contract> {
+    fn decode(&self, text: &str) -> io::Result<DecodedContract> {
         let definition = self.definition()?;
         if self.backend.id() != self.id
             || self.backend.descriptor()? != definition.descriptor
@@ -353,13 +423,23 @@ impl<B: Backend> Registered for Registration<B> {
             .decode(text)
             .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
         let bytes = serde_json::to_vec(&specification)?;
-        Ok(Contract {
-            id: self.id,
-            value: serde_json::from_slice(&bytes)?,
-            bytes: bytes.into(),
-            description: self.backend.describe(&specification),
-            descriptor: definition.descriptor.clone(),
-            checker: self.backend.checker_id(&specification)?,
+        let checker = checker_identity(
+            &definition.descriptor,
+            &self.backend.checker_id(&specification)?,
+        )?;
+        let description = self.backend.describe(&specification);
+        Ok(DecodedContract {
+            contract: Contract {
+                value: serde_json::from_slice(&bytes)?,
+                bytes: bytes.into(),
+                description: description.clone(),
+                binding: Some(Binding {
+                    method: serde_json::to_value(&definition.descriptor)?,
+                    description,
+                    checker: checker.clone(),
+                }),
+                checker,
+            },
             decoded: Arc::new(Typed {
                 backend: Arc::clone(&self.backend),
                 specification,
@@ -374,11 +454,12 @@ impl<B: Backend> Registered for Registration<B> {
 }
 
 #[cfg(test)]
-mod binding_tests {
+pub(crate) mod binding_tests {
     use super::*;
     use meden_runtime::verification::{artifact::Report, finite::Contract as Specification};
     use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
     struct Changing {
+        id: &'static str,
         phase: Arc<AtomicU8>,
         entered: Arc<AtomicBool>,
     }
@@ -388,7 +469,7 @@ mod binding_tests {
             if self.phase.load(Ordering::SeqCst) == 4 {
                 "changed.host.id"
             } else {
-                "z3.finite.v1"
+                self.id
             }
         }
         fn schema(&self) -> io::Result<Value> {
@@ -400,7 +481,7 @@ mod binding_tests {
         }
         fn descriptor(&self) -> io::Result<Descriptor> {
             let phase = self.phase.load(Ordering::SeqCst);
-            if phase == 1 || phase == 3 {
+            if phase == 1 || phase == 3 || self.id != "z3.finite.v1" {
                 Descriptor::new(meden_runtime::plugin::Definition {
                     id: self.id(),
                     role: if phase == 3 {
@@ -408,10 +489,14 @@ mod binding_tests {
                     } else {
                         Role::Verifier
                     },
-                    version: "2",
+                    version: if phase == 1 { "2" } else { "1" },
                     formats: vec!["finite-bitvectors-v1".into()],
-                    implementation: b"changed host method",
-                    configuration: serde_json::json!({"seed":1}),
+                    implementation: if phase == 1 {
+                        b"changed host method"
+                    } else {
+                        b"original fixture method"
+                    },
+                    configuration: serde_json::json!({"seed":u8::from(phase == 1)}),
                     input: Specification::schema()?,
                     output: serde_json::to_value(schemars::schema_for!(Report))?,
                 })
@@ -431,7 +516,13 @@ mod binding_tests {
         fn setup(&self) -> anyhow::Result<()> {
             Ok(())
         }
-        fn check_draft(&self, _: &Specification, _: &Path, _: &Control) -> Result<(), Failure> {
+        fn check_draft(
+            &self,
+            spec: &Specification,
+            worker: &Path,
+            control: &Control,
+        ) -> Result<(), Failure> {
+            finite::Finite.check_draft(spec, worker, control)?;
             self.entered.store(true, Ordering::SeqCst);
             Ok(())
         }
@@ -448,12 +539,21 @@ mod binding_tests {
             ))
         }
     }
+    pub(crate) fn register(
+        registry: &mut Registry,
+        id: &'static str,
+        phase: Arc<AtomicU8>,
+        entered: Arc<AtomicBool>,
+    ) -> io::Result<()> {
+        registry.register(Changing { id, phase, entered })
+    }
     #[test]
     fn changed_method_or_schema_cannot_enter_the_frozen_implementation() -> io::Result<()> {
         let phase = Arc::new(AtomicU8::new(0));
         let entered = Arc::new(AtomicBool::new(false));
         let mut registry = Registry::default();
         registry.register(Changing {
+            id: "z3.finite.v1",
             phase: Arc::clone(&phase),
             entered: Arc::clone(&entered),
         })?;
@@ -470,17 +570,23 @@ mod binding_tests {
                     "../../../verification/examples/finite-counter.contract.json"
                 ))
                 .is_err());
-            assert!(contract
-                .check_draft(Path::new("/missing/worker"), &control)
+            assert!(registry
+                .check_draft(&contract, Path::new("/missing/worker"), &control)
                 .is_err());
-            assert!(contract
-                .prepare("{}", Path::new("/missing/worker"), &control)
+            assert!(registry
+                .prepare(&contract, "{}", Path::new("/missing/worker"), &control)
                 .is_err());
             assert!(!entered.load(Ordering::SeqCst));
         }
         phase.store(3, Ordering::SeqCst);
         let mut fresh = Registry::default();
-        assert!(fresh.register(Changing { phase, entered }).is_err());
+        assert!(fresh
+            .register(Changing {
+                id: "z3.finite.v1",
+                phase,
+                entered
+            })
+            .is_err());
         Ok(())
     }
 }
@@ -540,11 +646,23 @@ impl Registry {
     }
     /// Decode one unambiguous bounded backend schema; preserve original values.
     pub fn parse(&self, text: &str) -> io::Result<Contract> {
+        self.parse_selected(text, None)
+    }
+    /// Host selection chooses a decoder before parsing; never try another one.
+    pub fn parse_selected(&self, text: &str, selected: Option<&str>) -> io::Result<Contract> {
         if text.len() > 65_536 {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 "Contract exceeds 64 KiB",
             ));
+        }
+        if let Some(id) = selected {
+            return self
+                .registrations
+                .get(id)
+                .ok_or_else(|| io::Error::other("Unknown verification backend selection"))?
+                .decode(text)
+                .map(|value| value.contract);
         }
         let mut decoded = None;
         let mut diagnostics = Vec::new();
@@ -556,7 +674,7 @@ impl Registry {
                             "Ambiguous contract format; no backend selected",
                         ));
                     }
-                    decoded = Some(value);
+                    decoded = Some(value.contract);
                 }
                 Err(error) if error.kind() == io::ErrorKind::InvalidData => {
                     diagnostics.push(format!("{id}: {error}"));
@@ -573,6 +691,43 @@ impl Registry {
                 ),
             )
         })
+    }
+    fn bind(&self, original: &Contract) -> io::Result<Arc<dyn Decoded>> {
+        let registration = self.registrations.get(original.backend()).ok_or_else(|| io::Error::other(
+            "Original verifier is unavailable or was not recorded; propose and review a replacement contract"))?;
+        let current =
+            registration.decode(std::str::from_utf8(&original.bytes).map_err(io::Error::other)?)?;
+        if current.contract != *original {
+            return Err(io::Error::other("The registered checker changed since host review; propose and review the current method before checking"));
+        }
+        Ok(current.decoded)
+    }
+    /// Confirm original metadata before deriving source authority or effects.
+    pub fn check_binding(&self, contract: &Contract) -> io::Result<()> {
+        self.bind(contract).map(|_| ())
+    }
+    /// Validate only through the exact recorded host method.
+    pub fn check_draft(
+        &self,
+        contract: &Contract,
+        worker: &Path,
+        control: &Control,
+    ) -> Result<(), Failure> {
+        self.bind(contract)
+            .map_err(Failure::unavailable)?
+            .check_draft(worker, control)
+    }
+    /// Bind original data/definition before preparing a consuming check.
+    pub fn prepare(
+        &self,
+        contract: &Contract,
+        source: &str,
+        worker: &Path,
+        control: &Control,
+    ) -> Result<Box<dyn PreparedCheck>, Failure> {
+        self.bind(contract)
+            .map_err(Failure::unavailable)?
+            .prepare(source, worker, control)
     }
     /// Full function-argument schema. Each backend keeps its own namespace;
     /// local recursive references never collide with another backend's types.
@@ -626,10 +781,7 @@ mod tests {
             finite.canonical()?,
             meden_runtime::verification::finite::Contract::parse(FINITE)?.canonical()?
         );
-        assert_eq!(
-            finite,
-            serde_json::from_value(serde_json::to_value(&finite)?)?
-        );
+        assert_eq!(finite, registry.parse(&serde_json::to_string(&finite)?)?);
         assert_ne!(finite.checker_id()?, rust.checker_id()?);
         Ok(())
     }

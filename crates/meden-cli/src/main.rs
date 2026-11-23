@@ -175,7 +175,7 @@ struct WorkspaceArgs {
     /// Host-supplied documentation JSON, loaded once before the session.
     #[arg(long, value_name = "FILE")]
     pages: Option<PathBuf>,
-    /// Restrict project contracts to this host-registered verification backend.
+    /// Select and remember this workspace's host-registered verification backend.
     #[arg(long, value_name = "BACKEND")]
     verifier: Option<String>,
 }

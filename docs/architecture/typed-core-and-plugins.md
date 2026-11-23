@@ -231,7 +231,24 @@ file preparation. The full-cache diagnostic flag requires every stage to reuse
 its result. Fixed-seed observations, unsupported inputs and exhausted budgets
 remain candidates/inconclusive data, never proof receipts. See the
 [search validation record](../../results/independent-search-20261124.json).
-Persistent selection among verifiers sharing a format remains incomplete.
+Verifier selection now persists in the host journal. The selected decoder is
+chosen before parsing; an unknown selection or ambiguous unselected format has
+no fallback. Proposals retain their original method observation, description and
+checker binding. Contract data no longer retains an executable implementation,
+and replay never infers one from a format. Execution rebinds the exact original
+data/definition through the installed registry before source authority is derived.
+The existing kernel's opaque checker value binds both the method and recipe;
+completion derives the same value from the actual validated report. Switching
+methods therefore requires a new host review even for identical contract bytes.
+
+Historical entries without method metadata retain their original meaning and
+obligations, with an unknown method and no execution. A newly reviewed proposal
+can replace them; old history is not relabeled. Same-format conformance fixtures
+exercise routing/replay without claiming another production solver. Real Z3,
+public TUI/GUI, an approved cloud-model repair and the independent 256-case oracle
+cover the installed finite backend; a real Lean refinement journey covers the
+shared evidence path. See the
+[selection validation record](../../results/verifier-selection-20261124.json).
 
 ```mermaid
 flowchart LR
@@ -450,8 +467,9 @@ configuration through those existing jobs. Compiler and meaning-renderer
 definitions now also bind dispatch and independent cache artifacts. Model/provider
 bindings and a registered HTTP extension use the unchanged consuming processor.
 Counterexample-search bindings and independent caches now use the same original
-compiler observation. Persistent selection among backends
-sharing a format and step 5 remain open.
+compiler observation. Persistent same-format selection and original-method
+replay are now covered by the host journal and registry. Remaining generic
+read models in step 4 and retirement work in step 5 remain open.
 They retain the existing local/offline execution, accepted intent, exact evidence linkage and
 separate local-deployment/R1 obligations in [assurance.md](../assurance.md) and
 [verification.md](../verification.md).

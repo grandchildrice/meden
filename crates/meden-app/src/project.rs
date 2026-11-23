@@ -33,6 +33,8 @@ use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 
 mod journal;
+#[cfg(test)]
+mod selection_tests;
 use crate::verification::{Contract, PreparedCheck, Registry as Verifiers};
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -92,8 +94,8 @@ impl Access {
 }
 
 impl Agreement {
-    fn parse(view: ContractView) -> Result<Self> {
-        let contract = Contract::parse(std::str::from_utf8(&view.subject.contract)?)?;
+    fn parse(view: ContractView, events: &[journal::Event]) -> Result<Self> {
+        let contract = journal::contract(&view, events)?;
         anyhow::ensure!(
             contract.canonical()? == view.subject.contract,
             "stored meaning is not canonical"
@@ -147,6 +149,20 @@ pub struct Project {
 }
 
 impl Project {
+    /// Read only host-owned selection data before importing a workspace or
+    /// preparing public tools. The opener rechecks this choice after setup.
+    pub fn saved_verifier(
+        root: &Path,
+        requested: Option<&str>,
+        verifiers: &Verifiers,
+    ) -> Result<Option<String>> {
+        let root = root.canonicalize()?;
+        let path = crate::storage::directory(&root)?.join("contracts.json");
+        let (_, _, saved) = journal::load(&path, &root, "tool-preparation")?;
+        let selected = requested.or(saved.as_deref());
+        anyhow::ensure!(selected.is_none_or(|id| verifiers.contains(id)), "Unknown verification backend selection; choose an installed backend explicitly. The saved journal was retained");
+        Ok(selected.map(str::to_owned))
+    }
     pub fn new(root: &Path) -> Self {
         let session =
             root.as_os_str()
@@ -179,19 +195,44 @@ impl Project {
         }
     }
     pub fn open(root: &Path, session: &[u8], selected: Option<&str>) -> Result<Self> {
+        Self::open_with_registry(root, session, selected, Verifiers::host())
+    }
+    /// Compose installed implementations at the host boundary, with the same journal/controller.
+    pub fn open_with_registry(
+        root: &Path,
+        session: &[u8],
+        selected: Option<&str>,
+        verifiers: Verifiers,
+    ) -> Result<Self> {
+        Self::open_stored(
+            root,
+            session,
+            selected,
+            verifiers,
+            &crate::storage::directory(root)?,
+        )
+    }
+    fn open_stored(
+        root: &Path,
+        session: &[u8],
+        selected: Option<&str>,
+        verifiers: Verifiers,
+        directory: &Path,
+    ) -> Result<Self> {
         let mut project = Self::new(root);
-        anyhow::ensure!(
-            selected.is_none_or(|id| project.verifiers.contains(id)),
-            "Unknown verification backend selection"
-        );
-        project.selected = selected.map(str::to_owned);
+        project.verifiers = verifiers;
         project.session = session.iter().fold(String::new(), |mut out, byte| {
             let _ = write!(out, "{byte:02x}");
             out
         });
-        let directory = crate::storage::directory(root)?;
         let path = directory.join("contracts.json");
-        let (contracts, events) = journal::load(&path, root, &project.session)?;
+        let (contracts, events, saved_selection) = journal::load(&path, root, &project.session)?;
+        let choice = selected.or(saved_selection.as_deref());
+        anyhow::ensure!(choice.is_none_or(|id| project.verifiers.contains(id)), "Unknown verification backend selection; choose an installed backend explicitly. The saved journal was retained");
+        project.selected = choice.map(str::to_owned);
+        if selected.is_some() && project.selected != saved_selection {
+            journal::save(&path, root, project.selected.as_deref(), &events)?;
+        }
         project.storage = directory.join("artifacts");
         project.journal = Some(path);
         project.state = Mutex::new(State {
@@ -207,10 +248,26 @@ impl Project {
     pub fn session_id(&self) -> &str {
         &self.session
     }
+    /// Fixed host preference, including a retained choice when no flag was supplied.
+    pub fn selected_verifier(&self) -> Option<&str> {
+        self.selected.as_deref()
+    }
 
     fn record(&self, state: &mut State, event: journal::Event) -> Result<()> {
         if let Some(path) = &self.journal {
-            journal::record(path, &self.root, &self.session, state, event)?;
+            journal::record(
+                path,
+                &self.root,
+                &self.session,
+                self.selected.as_deref(),
+                state,
+                event,
+            )?;
+        } else {
+            let mut events = state.events.clone();
+            events.push(event);
+            journal::replay(&events, &self.session)?;
+            state.events = events;
         }
         Ok(())
     }
@@ -222,14 +279,16 @@ impl Project {
         Ok(())
     }
     fn parse_contract(&self, text: &str) -> Result<Contract> {
-        self.verifiers.parse(text).map_err(|error| {
-            if error.kind() == io::ErrorKind::InvalidData {
-                return error.into();
-            }
-            let failure = Failure::unavailable(error);
-            self.record_failure(failure.clone());
-            failure.into()
-        })
+        self.verifiers
+            .parse_selected(text, self.selected.as_deref())
+            .map_err(|error| {
+                if error.kind() == io::ErrorKind::InvalidData {
+                    return error.into();
+                }
+                let failure = Failure::unavailable(error);
+                self.record_failure(failure.clone());
+                failure.into()
+            })
     }
     fn binding(agreement: &Agreement, report: &Report, source: &str) -> Result<Subject> {
         anyhow::ensure!(
@@ -238,7 +297,7 @@ impl Project {
             "artifact belongs to a different contract"
         );
         anyhow::ensure!(
-            report.registration == *agreement.contract.descriptor()
+            agreement.contract.descriptor() == Some(&serde_json::to_value(&report.registration)?)
                 && agreement
                     .view
                     .obligations
@@ -250,10 +309,12 @@ impl Project {
             "bundle":report.bundle_sha256,"checker":report.checker_sha256,"worker":report.worker_sha256}))?))
     }
     pub fn propose(&self, contract: &Contract, control: &Control) -> Result<Summary> {
-        let contract = self.parse_contract(std::str::from_utf8(&contract.canonical()?)?)?;
-        self.selection(&contract)?;
+        self.selection(contract)?;
+        self.verifiers
+            .check_binding(contract)
+            .map_err(|error| self.status_failure(error.into()))?;
         let bytes = contract.canonical()?;
-        let required = obligation(&contract)?;
+        let required = obligation(contract)?;
         {
             let state = self
                 .state
@@ -265,7 +326,8 @@ impl Project {
                 return self.summary(&state, false);
             }
         }
-        let result = contract.check_draft(
+        let result = self.verifiers.check_draft(
+            contract,
             &std::env::current_exe().map_err(Failure::unavailable)?,
             control,
         );
@@ -281,7 +343,7 @@ impl Project {
             .with_active(|| {
                 self.record(
                     &mut state,
-                    journal::Event::propose(&contract).map_err(io::Error::other)?,
+                    journal::Event::propose(contract).map_err(io::Error::other)?,
                 )
                 .map_err(io::Error::other)?;
                 if !state
@@ -317,6 +379,7 @@ impl Project {
                 .contracts
                 .displayed()
                 .context("no contract proposal")?,
+            &state.events,
         )?;
         self.reference(&agreement, reference)?;
         self.record(&mut state, journal::Event::review(reference))?;
@@ -340,6 +403,7 @@ impl Project {
                 .contracts
                 .displayed()
                 .context("no contract proposal")?,
+            &state.events,
         )?;
         self.reference(&agreement, reference)?;
         self.record(&mut state, journal::Event::accept(reference))?;
@@ -367,6 +431,7 @@ impl Project {
                 .contracts
                 .displayed()
                 .context("no contract proposal")?,
+            &state.events,
         )?;
         self.reference(&agreement, reference)?;
         self.record(&mut state, journal::Event::reject(reference))?;
@@ -403,8 +468,10 @@ impl Project {
             state.contracts.is_accepted(),
             "host acceptance of the current contract is required"
         );
-        let agreement =
-            Agreement::parse(state.contracts.accepted().context("no accepted contract")?)?;
+        let agreement = Agreement::parse(
+            state.contracts.accepted().context("no accepted contract")?,
+            &state.events,
+        )?;
         Ok(format!("Proceed under the host-accepted contract. Implement {} and use verify_project. Repair failures; report unknown if verification cannot finish. Do not change the contract or checker. Accepted meaning (host-owned):\n{}",agreement.contract.source(),agreement.contract.review_text()))
     }
     pub fn mark_dirty(&self) {
@@ -487,7 +554,7 @@ impl Project {
                 state.dirty = true;
                 return Err(Failure::unavailable(error).into());
             }
-            let agreement = Agreement::parse(view)?;
+            let agreement = Agreement::parse(view, &state.events)?;
             let current = Self::binding(
                 &agreement,
                 &artifact.report,
@@ -522,8 +589,13 @@ impl Project {
         let agreement = inspection
             .accepted()
             .cloned()
-            .map(Agreement::parse)
+            .map(|view| Agreement::parse(view, &state.events))
             .transpose()?;
+        if let Some(agreement) = &agreement {
+            self.verifiers
+                .check_binding(&agreement.contract)
+                .map_err(Failure::unavailable)?;
+        }
         Ok(Access {
             inspection,
             agreement,
@@ -660,12 +732,12 @@ impl Project {
         let displayed = state
             .contracts
             .displayed()
-            .map(Agreement::parse)
+            .map(|view| Agreement::parse(view, &state.events))
             .transpose()?;
         let accepted = state
             .contracts
             .accepted()
-            .map(Agreement::parse)
+            .map(|view| Agreement::parse(view, &state.events))
             .transpose()?;
         let reference = displayed.as_ref().map_or_else(
             || Reference {
@@ -760,7 +832,8 @@ impl Project {
             control,
             rules,
         )?;
-        let prepared = preparation.data().contract.prepare(
+        let prepared = self.verifiers.prepare(
+            &preparation.data().contract,
             &source,
             &std::env::current_exe().map_err(Failure::unavailable)?,
             control,
@@ -807,7 +880,11 @@ impl Project {
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
         control
             .with_active(|| {
-                let observed_checker = checked.report().checker_sha256.as_bytes().to_vec();
+                let observed_checker = crate::verification::checker_identity(
+                    &checked.report().registration,
+                    &checked.report().checker_sha256,
+                )?
+                .into_bytes();
                 let staged = checked.stage(&self.storage)?;
                 let staged = running
                     .complete(
@@ -909,11 +986,16 @@ impl Tool for ProjectTool {
         let access = if matches!(self.operation, Operation::Propose) {
             None
         } else {
-            Some(
-                self.project
-                    .prepare_access()
-                    .map_err(|error| ToolError::failed(error.to_string()))?,
-            )
+            Some(self.project.prepare_access().map_err(|error| {
+                if error
+                    .downcast_ref::<Failure>()
+                    .is_some_and(|f| f.kind == FailureKind::Unavailable)
+                {
+                    ToolError::unavailable(error.to_string())
+                } else {
+                    ToolError::failed(error.to_string())
+                }
+            })?)
         };
         let mut requirements = access.as_ref().map_or_else(Vec::new, Access::requirements);
         if matches!(self.operation, Operation::Propose | Operation::Verify) {
@@ -1061,12 +1143,16 @@ mod tests {
             .state
             .lock()
             .map_err(|_| anyhow::anyhow!("project unavailable"))?;
+        project.record(&mut state, journal::Event::propose(contract)?)?;
         anyhow::ensure!(state.contracts.propose(
             Origin::Controller,
             contract.canonical()?,
             vec![obligation(contract)?]
         ));
-        let agreement = Agreement::parse(state.contracts.displayed().context("no draft")?)?;
+        let agreement = Agreement::parse(
+            state.contracts.displayed().context("no draft")?,
+            &state.events,
+        )?;
         Ok(agreement.reference(&project.session))
     }
     fn accepted(project: &Project) -> Result<Reference> {
@@ -1170,7 +1256,10 @@ mod tests {
                 .state
                 .lock()
                 .map_err(|_| anyhow::anyhow!("project unavailable"))?;
-            let agreement = Agreement::parse(state.contracts.accepted().context("no contract")?)?;
+            let agreement = Agreement::parse(
+                state.contracts.accepted().context("no contract")?,
+                &state.events,
+            )?;
             let subject = agreement.subject(b"checked inputs".to_vec());
             let ticket = state
                 .contracts
@@ -1245,7 +1334,10 @@ mod tests {
                 .state
                 .lock()
                 .map_err(|_| anyhow::anyhow!("project unavailable"))?;
-            let agreement = Agreement::parse(state.contracts.accepted().context("no contract")?)?;
+            let agreement = Agreement::parse(
+                state.contracts.accepted().context("no contract")?,
+                &state.events,
+            )?;
             let subject = agreement.subject(b"same restored inputs".to_vec());
             let ticket = state
                 .contracts

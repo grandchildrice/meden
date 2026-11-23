@@ -1,0 +1,173 @@
+{
+  "date": "2026-11-24",
+  "base_revision": "b487c06",
+  "binary": {
+    "path": "/home/gohan/workspace/meden/target/validation/f2068d2f3047853559db0b9978a5b843d6a02dc29a01aeb36af453d3f70bc466/meden",
+    "sha256": "f2068d2f3047853559db0b9978a5b843d6a02dc29a01aeb36af453d3f70bc466"
+  },
+  "change": [
+    "Host verifier selection is saved in the protected contract journal and chosen before decoding. Unknown keys and ambiguous unselected formats fail without fallback.",
+    "Contract values retain original canonical data and method observations, not executable implementations. Journal replay uses original proposals rather than inferring a registration from the contract format.",
+    "Dispatch rebinds exact canonical data, description, method/configuration/schema and checker identity through the installed host registry. File authority is not derived from changed binding metadata.",
+    "The existing kernel checker field binds definition identity plus native recipe. Completion derives that value from the actual validated report, retaining the unchanged consuming controller and input-bound evidence path.",
+    "Same-byte method switches/upgrades create a new obligation and host-review revision. Rejection preserves accepted meaning; no grant/job/evidence is restored on restart.",
+    "Old journal entries without original method metadata retain exact accepted data and obligations as unknown history. A fresh reviewed proposal recovers checking; missing new-format binding metadata is refused. No current method is stamped onto old records.",
+    "TUI resolves only host-owned selection before preparing tools, opens the workspace afterward, and rechecks the selection before starting. Flagless finite resume does not prepare Lean."
+  ],
+  "source_sha256": {
+    "crates/meden-app/src/verification.rs": "9723d252af9a0feb00d767f627438c28ae2c585ee656081b00864eeb366d2519",
+    "crates/meden-app/src/project.rs": "b089b42b35d2951a9d3d92c3d6db2ab2fec775f4061909f1e81e442a997895f0",
+    "crates/meden-app/src/project/journal.rs": "d8633ea229d8afd1e3453f29c816ac91cd4e360cf96c6acc6fef51952d3d806f",
+    "crates/meden-app/src/project/selection_tests.rs": "54d0a86ba289b36e27ac1aa7d634d17bcd656a4c182aafc7c1b98d4eea9f7d97",
+    "crates/meden-cli/src/tui.rs": "7971c124aa0e1539fedf7c5e4aeffc6160ac1e6509f6475248d746837825eacc",
+    "python/tests/test_tui_finite.py": "f42b7dc1f191478f16fc50a78e87a28a95dc4075dc53fe2b2af4b8eafc007b56",
+    "python/meden_checks/finite_smoke.py": "7d9399d94be4a1af244bdff16a21ca3a03bda95667abff7405ebbbc6293dbffc",
+    "apps/web/e2e/native.spec.ts": "f90bb560aadaf2a229db214d32f4e09cd8395271ed8038b9bbfc6b14d3ec7a10"
+  },
+  "checks": {
+    "rust_workspace": {
+      "passed": 280,
+      "failed": 0,
+      "ignored": 0
+    },
+    "clippy": "--workspace --all-targets -- -D warnings",
+    "same_format_conformance": {
+      "cases": 4,
+      "source": "crates/meden-app/src/project/selection_tests.rs",
+      "coverage": [
+        "Two finite-data validating registrations accepting the same format; explicit selection persists through real journal writes/reopen",
+        "Switch and reject/repropose with identical canonical bytes require fresh review revisions and distinct method-bound checker identities",
+        "Unknown saved/explicit selection preserves the journal; unavailable and upgraded original methods retain old metadata without execution",
+        "Missing historical method data stays unknown and recovers through a new review; stripped bindings and changed source metadata cannot supply file authority"
+      ],
+      "scope": "These are typed registry/replay/validation fixtures, not two new production solvers or live-model quality evidence."
+    },
+    "public_tui": {
+      "directory": "/tmp/meden-ux-verifier-selection-final-20261124",
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/validation/f2068d2f3047853559db0b9978a5b843d6a02dc29a01aeb36af453d3f70bc466/meden",
+        "sha256": "f2068d2f3047853559db0b9978a5b843d6a02dc29a01aeb36af453d3f70bc466"
+      },
+      "passed": 34,
+      "summary_sha256": "0fb2b32390553c62f70ea33fa7a6161f113095476b333a15b224988f88884fee",
+      "decoded_screens_inspected": [
+        "Exact finite-domain review and fresh flagless restart without restored coverage",
+        "Lake inventory refusal and historical restart",
+        "Meaning cancellation and historical restart",
+        "Provider limit, retained stop and explicit retry completion"
+      ]
+    },
+    "public_gui": {
+      "passed": 1,
+      "report": "target/gui-checks/verifier-selection-final-report",
+      "scope": "Actual offline Z3 counterexample/repair, bounded evidence and flagless restart with fresh model approval. Inference is scripted.",
+      "screenshot": "target/gui-checks/verifier-selection-final-results/native-native-GUI-with-rea-a4c95-opens-with-bounded-evidence/finite-bounded-evidence.png",
+      "screenshot_sha256": "b0c7b9164f70fe2a747ceaaab46be33619550117529dda1998afd8ccafc8a90d",
+      "screenshot_inspected": true
+    },
+    "actual_lean": {
+      "passed": 1,
+      "test": "python/tests/test_project_verification.py::test_generic_counter_acceptance_repair_and_rejected_replacement_preserve_evidence",
+      "bundle": "/home/gohan/.local/share/meden/verifier/lean-4.35.0-aeneas-c5eb4a2-rust-2026-09-17/bundle.json",
+      "bundle_sha256": "f1dd122c6613efe1be13f207159e4fa157af1f86f5dcdb9f93f73b24c930f00a",
+      "scope": "Installed real Rust/Charon/Aeneas/Lean, public protocol review, source rejection/repair and retained evidence after a rejected replacement; scripted inference, not a cold installation."
+    },
+    "live_finite": {
+      "path": "/tmp/meden-verifier-selection-final-live-20261124.json",
+      "sha256": "0d8a2ee3f0928bdcfab32fd9a69302264cb5161af75aaf9ea7a912ed803807e4",
+      "success": true,
+      "provider": "hermes:ollama-cloud",
+      "model": "minimax-m3",
+      "elapsed_seconds": 20.885888333024923,
+      "independent_cases": 256,
+      "restart_without_verifier_flag": true,
+      "steps": [
+        "processor reviewed",
+        "exact finite contract reviewed",
+        "real bounded check completed",
+        "restart requires fresh review and check"
+      ],
+      "scope": "Live cloud inference, synthetic counter, installed offline Z3 and 256 independent Python cases. No local inference, cold installation or unbounded/Rust proof claim.",
+      "original_method": {
+        "id": "z3.finite.v1",
+        "role": "verifier",
+        "version": "1",
+        "formats": [
+          "finite-bitvectors-v1"
+        ],
+        "implementation_sha256": "1342db8be8514afb062cf7319749335f82b8d4b1e1c34004228fa7bcd090a831",
+        "configuration_sha256": "e8c43acf3d7e866ef82898641847a36f1a51ddbbc80813a4ee73afe9e321bf97",
+        "input_schema_sha256": "16c3b0baf282646f1fda4b2716421d5ea6254c68998fb528a7dd9f1f19a37fc6",
+        "output_schema_sha256": "c29945c93c59ac02d937b556b3a9e949330abb979f5dc1209b167214fedb5983"
+      }
+    },
+    "typescript": {
+      "passed": 32
+    },
+    "architecture": "Passed; no kernel or concrete-provider dependency was added",
+    "schema": "Generated source wire schema unchanged",
+    "format": "Rust fmt, repository Prettier and Ruff for both changed Python files passed",
+    "logs_sha256": {
+      "/tmp/meden-verifier-selection-final-workspace.log": "4c44958f25b3abd67c1669b288b7093146e48d6db66052bd659f0b1d69150852",
+      "/tmp/meden-verifier-selection-final-clippy.log": "0c75821a10718029ee9f928408d8369aed2db67d86f54615d06a053d458c8496",
+      "/tmp/meden-ux-verifier-selection-final-20261124.log": "d402efb6961c0a6b19441e48a16d60d8de96e470c7695d7c503c13e746cf15a0",
+      "/tmp/meden-verifier-selection-final-gui.log": "70e78b24fb5b1c3d32928c15dbba539e6277964e64ba048713e4a73a0a048a54",
+      "/tmp/meden-verifier-selection-final-real-lean.log": "2a85c8d0bc2d8097098509c66056320cb6877d21a97b85eeb3788fd3a4206bc6",
+      "/tmp/meden-verifier-selection-architecture.log": "f47dd9347850aa80a07de1a204c6ab74c14fa873925e3e940395b85b6627e60a",
+      "/tmp/meden-verifier-selection-schema.log": "e06c327ea9e36bf111930bbe9c5469991ae97ba3016e333154ebcfb79cec6f3c",
+      "/tmp/meden-verifier-selection-ts.log": "0708d7b6a7b6b6a7538fc594d14020f4e3c6f7282668cc4795cf3cf027d231d0",
+      "/tmp/meden-verifier-selection-final-format.log": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c",
+      "/tmp/meden-verifier-selection-final-rust-format.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "/tmp/meden-verifier-selection-final-python-lint.log": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    }
+  },
+  "limits": [
+    "Production registrations remain lean.refinement.v1 and z3.finite.v1; same-format conformance does not claim another solver implementation.",
+    "Actual cloud inference is not local inference or confidentiality evidence. Installed native tools are not a cold-install validation.",
+    "No kernel extraction/refinement claim was added; serialization, resource/method truth, I/O attribution and physical UI input remain adapters.",
+    "The overall architecture plan remains active: generic inventory/job/evidence read models, explicit source availability, versioned layouts and retirement work remain."
+  ],
+  "deployment": {
+    "binary_sha256": "f2068d2f3047853559db0b9978a5b843d6a02dc29a01aeb36af453d3f70bc466",
+    "assets_sha256": "27d32ec1ba05a78d4ddacfeb7aab9410b7cfbaf0f9848deafe6be3e3b1049aa0",
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/f2068d2f3047853559db0b9978a5b843d6a02dc29a01aeb36af453d3f70bc466-27d32ec1ba05a78d"
+  },
+  "deployed_verification": {
+    "riemann": {
+      "pid": "3872509",
+      "binary_sha256": "f2068d2f3047853559db0b9978a5b843d6a02dc29a01aeb36af453d3f70bc466",
+      "project_files": 175187,
+      "visible_map_areas": 7,
+      "processor_authorized": false,
+      "running": false,
+      "preparation": {},
+      "commands_from_opening_page": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        }
+      ]
+    },
+    "ethlib": {
+      "pid": "3872698",
+      "binary_sha256": "f2068d2f3047853559db0b9978a5b843d6a02dc29a01aeb36af453d3f70bc466",
+      "project_files": 2517,
+      "visible_map_areas": 20,
+      "processor_authorized": false,
+      "running": false,
+      "preparation": {},
+      "commands_from_opening_page": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        }
+      ]
+    }
+  },
+  "deployed_screenshots_sha256": {
+    "target/native-profile/verifier-selection-deployed-riemann.png": "dd914b51a3ec77c4bf7016a7bd29bce4191c2bba6af9885540a90d7bd05bb67c",
+    "target/native-profile/verifier-selection-deployed-ethlib.png": "9acca3552a089dcf972f6550cee0c41e68562f36ccf46a0b3afccdbf99030fcc"
+  }
+}

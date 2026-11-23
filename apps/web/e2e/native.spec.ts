@@ -288,7 +288,8 @@ test.describe("native GUI with real offline workers", () => {
     });
     await stop();
     responses.length = 0;
-    await page.goto(await start(0, {}, ["--verifier", "z3.finite.v1"]));
+    // The host's original finite choice survives without another selector.
+    await page.goto(await start());
     await expect(page.locator(".chat-contract .MuiChip-label")).toHaveText(
       "Contract accepted",
     );

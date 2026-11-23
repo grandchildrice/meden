@@ -21,9 +21,24 @@ Select the host-installed finite verifier with
 `meden tui --workspace PATH --verifier z3.finite.v1` (or the same option on
 `meden gui` / `meden run`). `meden setup --verifier z3.finite.v1` checks public
 Z3 and its native dependencies; it does not download a tool or prepare Lean.
-The default TUI preparation remains `lean.refinement.v1`. An explicit verifier
-selection restricts proposals and checks to that backend; it never converts an
-accepted contract into another format.
+The first unselected TUI preparation remains `lean.refinement.v1`. An explicit
+choice is saved outside the model-writable repository; subsequent TUI/GUI/run
+sessions reuse it without another `--verifier` flag. TUI prerequisite setup also
+uses that retained choice, so a saved finite workspace does not bootstrap Lean.
+Only host-owned selection data is read before tool preparation; the workspace
+is opened afterward, and the choice is rechecked before the session starts.
+The choice restricts decoding, proposals and checks to that backend. Unknown
+installed keys and ambiguous unselected formats fail without trying another
+implementation.
+
+Each proposal records its original method, configuration/schema fingerprints,
+description and checker binding. Changing the host choice never changes accepted
+meaning or restores evidence. A different or upgraded implementation requires a
+new proposal and host review, even if its contract data has the same hash.
+Unavailable original methods remain visible in history but cannot execute.
+Older entries without method metadata keep their exact contract and obligations
+with an unknown method; propose and review a replacement to check them again.
+No current implementation is inferred from those old data alone.
 
 The pinned [contract](../verification/examples/finite-counter.contract.json)
 and [source model](../verification/examples/finite-counter.model.json) describe

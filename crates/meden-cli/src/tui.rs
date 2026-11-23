@@ -1240,8 +1240,14 @@ pub fn run(
     local: Option<meden_llm::LocalConfig>,
     interactive: bool,
 ) -> Result<()> {
-    meden_app::verification::Registry::host().setup(
-        args.verifier
+    let verifiers = meden_app::verification::Registry::host();
+    let selected = crate::project::Project::saved_verifier(
+        &args.workspace,
+        args.verifier.as_deref(),
+        &verifiers,
+    )?;
+    verifiers.setup(
+        selected
             .as_deref()
             .unwrap_or(meden_app::verification::DEFAULT_BACKEND),
     )?;
@@ -1249,11 +1255,13 @@ pub fn run(
     let judge_config = (&args.model.judge_model, args.model.approve_judge.as_deref());
     let workspace = Arc::new(Workspace::open(&args.workspace, &std::env::current_exe()?)?);
     let mut app = App::new(providers, workspace.path().to_owned());
-    app.project = Arc::new(crate::project::Project::open(
+    app.project = Arc::new(crate::project::Project::open_with_registry(
         workspace.path(),
         workspace.session_id(),
         args.verifier.as_deref(),
+        verifiers,
     )?);
+    anyhow::ensure!(app.project.selected_verifier() == selected.as_deref(), "Saved verifier selection changed while preparing tools; restart to review the current choice");
     app.exports = Arc::new(Exports::new(Arc::clone(&app.project)));
     app.project_status = Some(app.project.stored_status()?);
     app.restore_history()?;
