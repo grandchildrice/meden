@@ -187,12 +187,7 @@ mod tests {
                 content: file::Content::Text {
                     revision: format!("sha256:{:x}", Sha256::digest(text.as_bytes())),
                     bytes: u32::try_from(text.len())?,
-                    text: file::Page {
-                        offset: 1,
-                        line_count: 1,
-                        next_offset: None,
-                        text: super::super::SourceText::new(text.into())?,
-                    },
+                    text: super::super::SourceText::new(text.into())?,
                 },
             },
         })

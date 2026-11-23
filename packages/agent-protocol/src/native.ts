@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { explanationSchema } from "@meden/workspace-schema";
-import { fileViewSchema } from "./file.generated";
+import { readerIndexSchema } from "./reader-index.generated";
+export { readerPublicationSchema } from "./reader-publication.generated";
+export type { ReaderPublication } from "./reader-publication.generated";
 export type { FileView } from "./file.generated";
 
 const sourceSymbolSchema = z
@@ -318,7 +320,7 @@ export const nativeStateSchema = z.object({
       error: z.string().optional(),
     })
     .nullable(),
-  reader: fileViewSchema.nullable(),
+  readers: readerIndexSchema,
   sources: sourceIndexSchema,
   analysis: meaningRecordSchema.nullable(),
   analysis_history: z.array(meaningRecordSchema).max(1000),
@@ -337,7 +339,6 @@ export const nativeStateSchema = z.object({
 });
 export type NativeState = z.infer<typeof nativeStateSchema>;
 export type NativeCommand =
-  | { type: "read_file_page"; path: string; offset: number }
   | { type: "initialize_work"; name: string }
   | { type: "put_work"; work: WorkItem }
   | { type: "note_work"; id: string; text: string; next: string | null }
@@ -374,4 +375,4 @@ export type NativeCommand =
       type: "review_contract" | "accept_contract" | "reject_contract";
       reference: NativeReference;
     }
-  | { type: "inspect"; path: string; directory: boolean; offset?: number };
+  | { type: "inspect"; path: string; directory: boolean };

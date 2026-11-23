@@ -1,5 +1,86 @@
 # Graph interaction measurements
 
+## Reader publications and local paging (November 24)
+
+The [implementation and measurement record](../results/reader-publications-20261124.json)
+removes complete reader data from status polling and deletes the queued paging
+command, server page DTO and unused generic mapping. The application freezes
+complete policy-bound observations before compiler preparation, retains at most
+64 files / 64 MiB of serialized envelopes, and serves exact cached bytes outside
+the status lock. The browser fetches each wanted observation once and derives
+200-line pages locally. Paging requires no file/compiler/model I/O, including
+while the actual Lean compiler is held. Reader failures retry within the file;
+replacement/refresh/eviction retires old query references, and late bodies cannot
+replace newer input. Original source/graph/history comparison hashes are unchanged.
+
+Twenty sequential raw-body probes per project used the same selected files and
+immutable deployments, without concurrent validation or profiling:
+
+| Measurement | Riemann before / after | EthLib before / after |
+| --- | ---: | ---: |
+| Status bytes | 20,644 / 11,758 | 6,043 / 3,190 |
+| Native status processing p95 | 2.587 / 1.971 ms | 2.069 / 1.727 ms |
+| Node fetch/body-read p95 | 6.552 / 42.053 ms | 42.559 / 41.613 ms |
+
+Status bytes fell **43.04% / 47.21%**. End-to-end Node timing did not improve
+consistently; approximately 42 ms response-body tails remain. Native timing and
+payload reduction do not establish a general HTTP speedup. Transport buffering /
+ACK behavior needs a separate controlled experiment before attribution. Settled
+actual Chrome status response p95 was **5.841 / 4.131 ms**.
+
+Serialized browser gates used the final pinned binary and actual installed
+Lean/Lake, with numeric checks enabled in both motion modes:
+
+| User-visible scheduling proxy | Normal motion | Reduced motion |
+| --- | ---: | ---: |
+| Page change during held compilation, maximum of four | 33.6 ms | 40.8 ms |
+| Prepared tab return, p95 of ten | 37.8 ms | 36.2 ms |
+| Initial readable source, before compilation completes | 1,136.6 ms | 441.7 ms |
+
+The first two measure DOM outcome plus two animation callbacks, not physical
+presentation or field INP. Their gates are 250 ms; initial source has a 5-second
+budget. Paging and retained source-only tab return issue no host command or
+body query. Regressions cover literal Unicode/JSON, empty text, CRLF/final empty
+line, EOF, missing/binary/oversized inputs, failure/retry, delayed old bodies and
+restart. The real compiler journey retains streamed logs through timeout,
+cancellation and retry. Four other journeys retain actual 35-module Lake
+freshness/failure/restart, source-line selection, IDE camera and missing Mathlib.
+
+One fresh actual Chrome capture per deployed project used normal motion,
+1440 × 960, CDP traces, sampled CPU profiles and matching source maps. All seven
+served JS bundles match the hidden-map build:
+
+| Synchronous handler p95 | Riemann | EthLib |
+| --- | ---: | ---: |
+| Project-map wheel, 24 events | 4.185 ms | 5.578 ms |
+| Graph wheel, 24 events | 0.912 ms | 1.393 ms |
+| Hover, 40 pointer events | 0.076 ms | 0.127 ms |
+| Pan, 31 pointer events | 0.190 ms | 0.320 ms |
+| Resize, coalesced events | 1.147 ms | 0.782 ms |
+| File/map tabs, 24 clicks | 12.184 ms | 10.959 ms |
+| Alternating-node selection, 8 clicks | 14.917 ms | 9.964 ms |
+
+The tab input/two-rAF proxy was 33.5 / 29.1 ms; alternating-node click proxy was
+23.4 / 17.6 ms. Gesture phases issued no commands and fetched no reader/source/
+history body. Camera observations remained stable for hover, resize, tabs and
+node selection. These single runs include profiling overhead, and small-sample
+p95 can be the maximum; historical runs are not a controlled rendering comparison.
+
+The remaining waits are distinct. Complete cached graph preparation still takes
+**21.447 / 5.981 seconds**, with real cache hits and original input checks. The
+initial Riemann polling phase contains **232.103 ms sampled self time in
+`projectMap`** and a **396 ms long task**. This is evidence of initial map work,
+not an exclusive attribution of that entire long task. Versioned/incremental
+layouts and separate job/log/evidence read models remain migration work.
+
+Rust 293 tests, TypeScript 37, 22 architecture checks, Clippy, generated-schema
+reproduction and Ruff passed. The exact deployed binary passed the public TUI
+34-case required gate with no skips; decoded restart/failure/continuation screens
+and browser source/error/build screens were inspected. Intermediate fixture and
+missing-PATH failures, with their corrected reruns, are retained in the record.
+Inference remains scripted in these regression gates; no new live-model,
+cold-install, confidentiality or whole-application refinement claim is made.
+
 ## Prepared source publications (November 24)
 
 The [implementation record](../results/source-publications-20261124.json) separates
@@ -72,7 +153,8 @@ TUI 34-case gate passed. Serialized numeric gates in both motion modes passed at
 failure and a routed-poll teardown race, with their later passing regressions.
 Screens and decoded TUI failure/retry/restart history were reviewed. Browser/TUI
 model replies remain scripted; no new live-model or cold-install claim is made.
-Reader pages still travel in status and queue behind active semantic work.
+At this checkpoint reader pages still traveled in status and queued behind active
+semantic work; the reader publication section above replaces that path.
 Generic inventory/job/log/evidence read models and layout/retirement work remain.
 
 ## Revisioned history (November 24)

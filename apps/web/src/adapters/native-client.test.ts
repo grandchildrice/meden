@@ -17,6 +17,37 @@ const snapshot = {
 };
 afterEach(() => vi.unstubAllGlobals());
 
+test("reader queries bind complete literal text to an exact publication", async () => {
+  const body = {
+    revision,
+    data: {
+      path: "notes.txt",
+      navigation: "source_only",
+      reading: {
+        state: "ready",
+        content: {
+          kind: "text",
+          revision: "sha256:" + "b".repeat(64),
+          bytes: 21,
+          text: 'λ日本語\n"literal"',
+        },
+      },
+    },
+  };
+  const fetch = vi
+    .fn()
+    .mockImplementation(() => Promise.resolve(Response.json(body)));
+  vi.stubGlobal("fetch", fetch);
+  const client = new NativeClient("session");
+  expect(await client.reader(revision)).toEqual(body);
+  expect(fetch.mock.calls[0][0]).toBe(
+    "/api/reader?revision=" + encodeURIComponent(revision),
+  );
+  await expect(client.reader("sha256:" + "c".repeat(64))).rejects.toThrow(
+    "does not match its requested revision",
+  );
+});
+
 test("history requests bind the exact revision and retain original text", async () => {
   const fetch = vi.fn().mockResolvedValue(Response.json(snapshot));
   vi.stubGlobal("fetch", fetch);

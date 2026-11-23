@@ -7,12 +7,14 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
-/// Bounded file availability and reader pages, independent of compiler support.
+/// Bounded complete file availability, independent of compiler support.
 pub mod file;
 /// Revision-bound transcript/work data, separate from status polling.
 pub mod history;
 /// Bounded, immutable publication framing shared by read-model owners.
 pub mod publication;
+/// Immutable reader retention, separate from semantic graphs.
+pub mod readers;
 /// Retention and exact-revision queries for prepared source/graph views.
 pub mod sources;
 

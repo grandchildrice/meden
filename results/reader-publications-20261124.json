@@ -1,0 +1,660 @@
+{
+  "date": "2026-11-24",
+  "source_base_revision": "fafbb58a7865bc5ddd5dd8d0e6d910c53b4fbb37",
+  "scope": "Publish complete bounded reader observations separately from status; make pagination local during compilation; delete queued paging, server page DTO and unused generic mapping.",
+  "deployment": {
+    "binary_sha256": "3a78d517d41399f8dcc29def6cc25d84e1dbe19c04a1faada23f78a2b3931c38",
+    "assets_sha256": "7e652a13bbdb89fc301f8032e8288c2b3091161cdd0596e8939cfaa7071c4cad",
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/3a78d517d41399f8dcc29def6cc25d84e1dbe19c04a1faada23f78a2b3931c38-7e652a13bbdb89fc"
+  },
+  "implementation": {
+    "input_bytes": 1048576,
+    "retained_files": 64,
+    "retained_serialized_bytes": 67108864,
+    "page_lines": 200,
+    "query": "/api/reader?revision=...",
+    "domain": "meden.reader.view.v1 (NUL terminated)",
+    "core_authority_changes": false
+  },
+  "checks": {
+    "rust_workspace_all_features": 293,
+    "typescript_tests": 37,
+    "architecture_checks": 22,
+    "clippy": "pass, all targets/features, warnings denied",
+    "types": "pass",
+    "generated_determinism_files": 16,
+    "ruff": "pass; fixes four existing line-length failures in previous CI",
+    "public_tui": {
+      "required": 34,
+      "passed": 34,
+      "skipped": 0,
+      "report": "/tmp/meden-ux-reader-publications-release-20261124",
+      "binary": {
+        "sha256": "3a78d517d41399f8dcc29def6cc25d84e1dbe19c04a1faada23f78a2b3931c38",
+        "binary": "/home/gohan/workspace/meden/target/validation/3a78d517d41399f8dcc29def6cc25d84e1dbe19c04a1faada23f78a2b3931c38/meden"
+      },
+      "screens_reviewed": [
+        "GUI/TUI continuation",
+        "Lake inventory failure and historical restart",
+        "finite evidence restart requiring fresh review"
+      ]
+    },
+    "gui_reports": [
+      {
+        "directory": "target/gui-reader-publications-basic-report",
+        "passed": 3
+      },
+      {
+        "directory": "target/gui-reader-publications-compiler-report",
+        "passed": 4,
+        "scope": "Earlier final arithmetic variant; functional compiler/failure tests. Numeric observations overlapped public TUI and are excluded."
+      },
+      {
+        "directory": "target/gui-reader-publications-regression-report",
+        "passed": 4,
+        "scope": "35-module actual Lake preparation/failure/restart, declaration/source selection, IDE camera and missing Mathlib; before unused generic erasure, same wire behavior."
+      },
+      {
+        "directory": "target/gui-reader-publications-normal-report",
+        "passed": 4,
+        "performance_enabled": true
+      },
+      {
+        "directory": "target/gui-reader-publications-reduced-report",
+        "passed": 2,
+        "performance_enabled": true
+      }
+    ],
+    "screens_reviewed": [
+      "target/gui-checks/reader-publication-failure.png",
+      "target/gui-checks/reader-publication-latest.png",
+      "target/gui-checks/build-log-streaming.png",
+      "actual deployed project map"
+    ],
+    "regressions": [
+      "literal Unicode/JSON, empty file, CRLF and final empty line, EOF",
+      "no command or body query during paging and retained source-only tab return",
+      "actual held compiler, streamed logs, timeout/cancel/retry/restart",
+      "local reader failure/retry and late original body after refresh",
+      "whole-file identity refusal, count eviction and escaped-JSON byte eviction"
+    ]
+  },
+  "transfer": [
+    {
+      "project": "riemann",
+      "selected_file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+      "before_bytes": 20644,
+      "after_bytes": 11758,
+      "reduction_percent": 43.04398372408448,
+      "before_native": {
+        "count": 20,
+        "p50_ms": 2.119,
+        "p95_ms": 2.587,
+        "max_ms": 2.587
+      },
+      "after_native": {
+        "count": 20,
+        "p50_ms": 1.79,
+        "p95_ms": 1.971,
+        "max_ms": 1.971
+      },
+      "before_fetch": {
+        "count": 20,
+        "p50_ms": 4.404551000000083,
+        "p95_ms": 6.552397999999982,
+        "max_ms": 6.552397999999982
+      },
+      "after_fetch": {
+        "count": 20,
+        "p50_ms": 4.685214999999971,
+        "p95_ms": 42.053478,
+        "max_ms": 42.053478
+      },
+      "original_sha256": {
+        "source": "677d86407ee60af0098d2e8fa1c6af65cb508112e092d9550695e6bb43101760",
+        "files": "6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+        "graph": "ed870880b8b20560c5fb81dbbf80fbadaad7ef1e9188303086ee5b9ca6b3a2c3",
+        "history": "62f1c23898e925d004495e981a0bf7ba9cf4b73dd107c037823c5a72a7ce42bc"
+      },
+      "original_data_unchanged": true
+    },
+    {
+      "project": "ethlib",
+      "selected_file": "EthLib/Networking/Gossip/Parameters.lean",
+      "before_bytes": 6043,
+      "after_bytes": 3190,
+      "reduction_percent": 47.211649842793314,
+      "before_native": {
+        "count": 20,
+        "p50_ms": 1.378,
+        "p95_ms": 2.069,
+        "max_ms": 2.069
+      },
+      "after_native": {
+        "count": 20,
+        "p50_ms": 1.201,
+        "p95_ms": 1.727,
+        "max_ms": 1.727
+      },
+      "before_fetch": {
+        "count": 20,
+        "p50_ms": 3.7548249999999825,
+        "p95_ms": 42.55931099999998,
+        "max_ms": 42.55931099999998
+      },
+      "after_fetch": {
+        "count": 20,
+        "p50_ms": 3.5187729999997828,
+        "p95_ms": 41.612975000000006,
+        "max_ms": 41.612975000000006
+      },
+      "original_sha256": {
+        "source": "3a5313ea28b6aa71236dee5da6b64bad92532f8d46d9509d67994d4658108ed4",
+        "files": "8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+        "graph": "c51eff84be17f1bc826a58d534a49168f040286108ac31bd24d5992abf54f777",
+        "history": "6e1c3f86d6bd4ce2b77bda5bb423ada629618dfb7cf40c5b215ba228579653c8"
+      },
+      "original_data_unchanged": true
+    }
+  ],
+  "profiles": [
+    {
+      "project": "riemann",
+      "directory": "target/native-profile/reader-publications-events-20261124-riemann",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 21447.326235,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/reader-publications-profile-assets",
+        "source_maps_sha256": {
+          "index-BSRMIViJ.js": "7aaa198a22908e50cd4365c27cd593c1433c1da3f9444196ba918fb77a7b6eaa"
+        }
+      },
+      "handlers": {
+        "project-map-wheel": {
+          "count": 24,
+          "p50_ms": 2.923,
+          "p95_ms": 4.185,
+          "max_ms": 5.195,
+          "total_ms": 66.65
+        },
+        "graph-wheel": {
+          "count": 24,
+          "p50_ms": 0.607,
+          "p95_ms": 0.912,
+          "max_ms": 2.295,
+          "total_ms": 15.818000000000001
+        },
+        "graph-hover": {
+          "count": 40,
+          "p50_ms": 0.036,
+          "p95_ms": 0.076,
+          "max_ms": 0.121,
+          "total_ms": 1.5800000000000005
+        },
+        "graph-pan": {
+          "count": 31,
+          "p50_ms": 0.141,
+          "p95_ms": 0.19,
+          "max_ms": 0.24,
+          "total_ms": 4.464
+        },
+        "tab-switch": {
+          "count": 24,
+          "p50_ms": 11.208,
+          "p95_ms": 12.184,
+          "max_ms": 12.374,
+          "total_ms": 259.6050000000001
+        },
+        "graph-node-select-distinct": {
+          "count": 8,
+          "p50_ms": 13.506,
+          "p95_ms": 14.917,
+          "max_ms": 14.917,
+          "total_ms": 107.72800000000001
+        },
+        "graph-resize": {
+          "count": 4,
+          "p50_ms": 0.941,
+          "p95_ms": 1.147,
+          "max_ms": 1.147,
+          "total_ms": 3.7809999999999997
+        }
+      },
+      "tab_two_raf": {
+        "count": 24,
+        "p50_ms": 31.5,
+        "p95_ms": 33.5,
+        "max_ms": 33.5,
+        "total_ms": 706.5000000596046
+      },
+      "node_two_raf": {
+        "count": 8,
+        "p50_ms": 21.5,
+        "p95_ms": 23.399999976158142,
+        "max_ms": 23.399999976158142,
+        "total_ms": 172.60000002384186
+      },
+      "settled_status_response": {
+        "count": 11,
+        "p50_ms": 4.378,
+        "p95_ms": 5.841,
+        "max_ms": 5.841
+      },
+      "gesture_commands": 0,
+      "gesture_body_reads": 0,
+      "reader_prepare": {
+        "wall": {
+          "count": 1,
+          "p50_ms": 42.392,
+          "p95_ms": 42.392,
+          "max_ms": 42.392,
+          "total_ms": 42.392
+        },
+        "host_thread_cpu": {
+          "count": 1,
+          "p50_ms": 1.834,
+          "p95_ms": 1.834,
+          "max_ms": 1.834,
+          "total_ms": 1.834
+        }
+      },
+      "digests": {
+        "summary": "326753568a6f3ba54b7d4780e9eeff659723f578031c8acaf251f523cef61951",
+        "trace": "5a040ee5e3ec6b9a201b285ec70fc1e4ddda2dc32e75834830fcc036adafb71f",
+        "metrics": "0352a1180af489bde70a93da9f744517a142f4b2f4ec046b92c844acbbfc6c4a"
+      },
+      "initial_poll_long_tasks": {
+        "count": 2,
+        "p50_ms": 396,
+        "p95_ms": 396,
+        "max_ms": 396,
+        "total_ms": 579
+      },
+      "initial_poll_cpu_hotspots": [
+        {
+          "self_ms": 232.10300000000004,
+          "location": "../../../apps/web/src/features/native/project-map-model.ts:47 · projectMap"
+        },
+        {
+          "self_ms": 60.48999999999998,
+          "location": "../../../node_modules/zod/v4/core/schemas.js:1044 · t._zod.parse"
+        },
+        {
+          "self_ms": 53.56099999999999,
+          "location": "../../../node_modules/zod/v4/core/schemas.js:1199 · t._zod.parse"
+        },
+        {
+          "self_ms": 25.631999999999994,
+          "location": "../../../node_modules/d3-hierarchy/src/hierarchy/sort.js:2 · (anonymous)"
+        },
+        {
+          "self_ms": 23.715000000000003,
+          "location": "../../../apps/web/src/features/native/project-map-model.ts:110 · d"
+        },
+        {
+          "self_ms": 8.615,
+          "location": "../../../node_modules/zod/v4/core/schemas.js:951 · handleCatchall"
+        }
+      ],
+      "camera_observations": {
+        "graph-hover": {
+          "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+          "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+        },
+        "graph-resize": {
+          "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+          "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+        },
+        "tab-switch": {
+          "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+          "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+        },
+        "graph-node-select-distinct": {
+          "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+          "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+        }
+      }
+    },
+    {
+      "project": "ethlib",
+      "directory": "target/native-profile/reader-publications-events-20261124-ethlib",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "EthLib/Networking/Gossip/Parameters.lean",
+        "declarations": 42,
+        "project_files": 2517,
+        "setup_preparation_ms": 5980.703822,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/reader-publications-profile-assets",
+        "source_maps_sha256": {
+          "index-BSRMIViJ.js": "7aaa198a22908e50cd4365c27cd593c1433c1da3f9444196ba918fb77a7b6eaa",
+          "GraphView-Dv4COjy5.js": "4ddd5c3de1f5a1db72cc2d20bc650b7e42aa839c017029f1bbea04c0691d9738"
+        }
+      },
+      "handlers": {
+        "project-map-wheel": {
+          "count": 24,
+          "p50_ms": 3.001,
+          "p95_ms": 5.578,
+          "max_ms": 5.91,
+          "total_ms": 81.447
+        },
+        "graph-wheel": {
+          "count": 24,
+          "p50_ms": 0.546,
+          "p95_ms": 1.393,
+          "max_ms": 2.024,
+          "total_ms": 15.657000000000004
+        },
+        "graph-hover": {
+          "count": 40,
+          "p50_ms": 0.038,
+          "p95_ms": 0.127,
+          "max_ms": 0.145,
+          "total_ms": 1.983000000000001
+        },
+        "graph-pan": {
+          "count": 31,
+          "p50_ms": 0.197,
+          "p95_ms": 0.32,
+          "max_ms": 0.413,
+          "total_ms": 6.397
+        },
+        "tab-switch": {
+          "count": 24,
+          "p50_ms": 9.474,
+          "p95_ms": 10.959,
+          "max_ms": 11.502,
+          "total_ms": 224.026
+        },
+        "graph-node-select-distinct": {
+          "count": 8,
+          "p50_ms": 8.766,
+          "p95_ms": 9.964,
+          "max_ms": 9.964,
+          "total_ms": 40.884
+        },
+        "graph-resize": {
+          "count": 3,
+          "p50_ms": 0.679,
+          "p95_ms": 0.782,
+          "max_ms": 0.782,
+          "total_ms": 2.048
+        }
+      },
+      "tab_two_raf": {
+        "count": 24,
+        "p50_ms": 25.69999998807907,
+        "p95_ms": 29.099999964237213,
+        "max_ms": 29.19999998807907,
+        "total_ms": 612.799999833107
+      },
+      "node_two_raf": {
+        "count": 8,
+        "p50_ms": 12.399999976158142,
+        "p95_ms": 17.599999964237213,
+        "max_ms": 17.599999964237213,
+        "total_ms": 91.3999999165535
+      },
+      "settled_status_response": {
+        "count": 11,
+        "p50_ms": 3.175,
+        "p95_ms": 4.131,
+        "max_ms": 4.131
+      },
+      "gesture_commands": 0,
+      "gesture_body_reads": 0,
+      "reader_prepare": {
+        "wall": {
+          "count": 1,
+          "p50_ms": 52.117,
+          "p95_ms": 52.117,
+          "max_ms": 52.117,
+          "total_ms": 52.117
+        },
+        "host_thread_cpu": {
+          "count": 1,
+          "p50_ms": 1.397,
+          "p95_ms": 1.397,
+          "max_ms": 1.397,
+          "total_ms": 1.397
+        }
+      },
+      "digests": {
+        "summary": "7a09b1dd5137a49d288e85e9becbd5382d167dfe70f05d163757fdf693a77e77",
+        "trace": "02bad869bd5be2c33293929cf974e22e54d40aeafefb6c8d15f77f0e0a04e01d",
+        "metrics": "b3d7544a60bc360db8043ea6fc2ec01453c692ea2e195648a146b663d9617d59"
+      },
+      "initial_poll_long_tasks": {
+        "count": 0,
+        "p50_ms": 0,
+        "p95_ms": 0,
+        "max_ms": 0,
+        "total_ms": 0
+      },
+      "initial_poll_cpu_hotspots": [
+        {
+          "self_ms": 22.466,
+          "location": "../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 · (anonymous)"
+        },
+        {
+          "self_ms": 13.02,
+          "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 · renderWithHooks"
+        },
+        {
+          "self_ms": 6.483,
+          "location": "../../../node_modules/@mui/material/ButtonBase/ButtonBase.mjs:97 · (anonymous)"
+        },
+        {
+          "self_ms": 5.0920000000000005,
+          "location": "frame"
+        },
+        {
+          "self_ms": 4.29,
+          "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:6425 · updateForwardRef"
+        },
+        {
+          "self_ms": 4.263,
+          "location": "../../../node_modules/react/cjs/react.production.js:453 · Mq.Qt.createElement"
+        }
+      ],
+      "camera_observations": {
+        "graph-hover": {
+          "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+          "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+        },
+        "graph-resize": {
+          "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+          "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+        },
+        "tab-switch": {
+          "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+          "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+        },
+        "graph-node-select-distinct": {
+          "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+          "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+        }
+      }
+    }
+  ],
+  "browser_budgets": [
+    {
+      "report": "target/gui-reader-publications-normal-report",
+      "attachment": "navigation-performance",
+      "data": {
+        "browser": "149.0.7827.53",
+        "motion": "no-preference",
+        "cold_analysis_store_preparation_ms": 31791.725101,
+        "warm_tab_two_raf_ms": [
+          22.69999998807907,
+          21.19999998807907,
+          24,
+          21.299999952316284,
+          37.80000001192093,
+          31.700000047683716,
+          30.299999952316284,
+          26.900000035762787,
+          24.700000047683716,
+          26.200000047683716
+        ],
+        "p95_ms": 37.80000001192093,
+        "maximum_p95_ms": 250,
+        "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+      }
+    },
+    {
+      "report": "target/gui-reader-publications-normal-report",
+      "attachment": "source-before-analysis.json",
+      "data": {
+        "source_visible_ms": 1136.5697230000005,
+        "budget_ms": 5000,
+        "methodology": "Real offline reader and a deliberately held installed Lean compiler; no complete semantic snapshot is available yet."
+      }
+    },
+    {
+      "report": "target/gui-reader-publications-normal-report",
+      "attachment": "paging-during-compilation.json",
+      "data": {
+        "page_to_two_raf_ms": [
+          33.59999996423721,
+          23.700000047683716,
+          29.600000023841858,
+          28.69999998807907
+        ],
+        "commands": [],
+        "body_reads": [],
+        "scope": "Actual held Lean compiler; DOM page and two animation callbacks, not physical presentation."
+      }
+    },
+    {
+      "report": "target/gui-reader-publications-reduced-report",
+      "attachment": "navigation-performance",
+      "data": {
+        "browser": "149.0.7827.53",
+        "motion": "reduce",
+        "cold_analysis_store_preparation_ms": 31998.935202,
+        "warm_tab_two_raf_ms": [
+          26.600000023841858,
+          29.5,
+          21.5,
+          28.5,
+          36.19999998807907,
+          28.299999952316284,
+          22.69999998807907,
+          33.30000001192093,
+          22.600000023841858,
+          20
+        ],
+        "p95_ms": 36.19999998807907,
+        "maximum_p95_ms": 250,
+        "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+      }
+    },
+    {
+      "report": "target/gui-reader-publications-reduced-report",
+      "attachment": "source-before-analysis.json",
+      "data": {
+        "source_visible_ms": 441.71720500000083,
+        "budget_ms": 5000,
+        "methodology": "Real offline reader and a deliberately held installed Lean compiler; no complete semantic snapshot is available yet."
+      }
+    },
+    {
+      "report": "target/gui-reader-publications-reduced-report",
+      "attachment": "paging-during-compilation.json",
+      "data": {
+        "page_to_two_raf_ms": [
+          28.899999976158142,
+          40.80000001192093,
+          26.799999952316284,
+          30.600000023841858
+        ],
+        "commands": [],
+        "body_reads": [],
+        "scope": "Actual held Lean compiler; DOM page and two animation callbacks, not physical presentation."
+      }
+    }
+  ],
+  "source_map_bundles": [
+    {
+      "file": "AnalysisView-DKV85LJ7.js",
+      "sha256": "8a3c94d3ee191783dc5bff6af91a78b9a71897b1ad2e27de3ffd3f141cb3a46b"
+    },
+    {
+      "file": "ArtifactPanel-BlBvW_aR.js",
+      "sha256": "f8ad968a3b83bbac950ae7cc7cc659bf6f71bd5fc9af08afae80437dfa652e89"
+    },
+    {
+      "file": "GraphView-Dv4COjy5.js",
+      "sha256": "7deda1a27b7854214ba121c49abfa6d26f17a261c23983e0cefdae76d03c1e50"
+    },
+    {
+      "file": "ProofWorkspace-DF94FZ7u.js",
+      "sha256": "8d49a0ae25948adbe1c850b5650b696fc49a706dbac893eddd9933dac6699aab"
+    },
+    {
+      "file": "ReviewView-DTrlihS9.js",
+      "sha256": "68e13370188b458a38835a2a7addfb0c7a0d528b4859b879528139f729740e51"
+    },
+    {
+      "file": "highlight-COnwt-Wp.js",
+      "sha256": "5e8f169c2bb4a6f30055e8d74da2850cf838b4c8cd63cf941a4fad9a1db16234"
+    },
+    {
+      "file": "index-BSRMIViJ.js",
+      "sha256": "17d4526a37e6384a574d41e6ed589bbcacb280d9ffe4f1a418d0aa774c7a2aeb"
+    }
+  ],
+  "intermediate_failures": [
+    "A reused unit-test Response was consumed twice; changed the mock to return a fresh response per call.",
+    "All-feature namespace test lacked the canonical Bubblewrap PATH in one chained command; reran the full suite with the public prerequisite and all 293 tests passed.",
+    "Clippy caught private arithmetic/indexing/default/binding style violations before final validation."
+  ],
+  "limits": [
+    "One actual Chrome capture per project with profiling overhead; sample p95 may be the maximum, not a field percentile.",
+    "Numeric gates serialized in both motion modes; two-rAF/DOM proxy is not physical paint or INP.",
+    "Source, graph and history comparison hashes unchanged; status transfer shrinks but HTTP end-to-end improvement must be assessed separately.",
+    "Reader observations are bounded saved views, not current evidence or a filesystem watcher. Queries cannot execute compiler/model/file I/O.",
+    "Actual compiler/input freshness remains in explicit preparation; generic inventory/job/log/evidence DTOs and layout retirement are still open.",
+    "Scripted inference in regression gates; no new live-model, cold-install, local confidentiality or refinement claim.",
+    "Actual Riemann initial polling includes projectMap sampled self time of 232.103 ms and a 396 ms long task. This is not a proven exclusive attribution of the complete long task; versioned/incremental layout remains work.",
+    "Node response-body p95 retains about 42 ms tails despite lower native processing; transport buffering/ACK attribution requires a separate experiment."
+  ],
+  "final_hosts": [
+    {
+      "project": "riemann",
+      "pid": "185980",
+      "overview": "ready",
+      "files": 175187,
+      "compiled": true,
+      "reader": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+      "text_bytes": 10163,
+      "authorized": false,
+      "running": false
+    },
+    {
+      "project": "ethlib",
+      "pid": "186159",
+      "overview": "ready",
+      "files": 2517,
+      "compiled": true,
+      "reader": "EthLib/Networking/Gossip/Parameters.lean",
+      "text_bytes": 2626,
+      "authorized": false,
+      "running": false
+    }
+  ]
+}

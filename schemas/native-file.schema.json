@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "FileView",
-  "description": "Shared generated read model for an explicitly requested source page.",
+  "description": "Shared generated read model for a complete explicitly observed file.",
   "type": "object",
   "properties": {
     "path": {
@@ -15,7 +15,7 @@
       "$ref": "#/$defs/Navigation"
     },
     "reading": {
-      "description": "Complete projected content or an explicit host failure.",
+      "description": "Complete content or an explicit host failure.",
       "$ref": "#/$defs/Reading"
     }
   },
@@ -45,7 +45,7 @@
       "description": "A reader outcome has content or a host failure, never both.",
       "oneOf": [
         {
-          "description": "Successful complete input, projected for display.",
+          "description": "Successful complete input, retained for display.",
           "type": "object",
           "properties": {
             "state": {
@@ -53,7 +53,7 @@
               "const": "ready"
             },
             "content": {
-              "description": "Original data facts and the requested page.",
+              "description": "Original data facts and complete text, when readable.",
               "$ref": "#/$defs/Content"
             }
           },
@@ -94,7 +94,7 @@
       "description": "Worker-owned content facts. Host stops and failures are separate outcomes.",
       "oneOf": [
         {
-          "description": "Complete UTF-8 text, or a pure projection of that complete input.",
+          "description": "Complete UTF-8 text.",
           "type": "object",
           "properties": {
             "kind": {
@@ -102,7 +102,7 @@
               "const": "text"
             },
             "revision": {
-              "description": "Identity of every original input byte, not just a page.",
+              "description": "Identity of every original input byte.",
               "type": "string",
               "pattern": "^sha256:[a-f0-9]{64}$"
             },
@@ -114,8 +114,8 @@
               "maximum": 1048576
             },
             "text": {
-              "description": "Complete input or its bounded presentation page.",
-              "$ref": "#/$defs/Page"
+              "description": "Complete original UTF-8 input.",
+              "$ref": "#/$defs/SourceText"
             }
           },
           "additionalProperties": false,
@@ -190,46 +190,6 @@
             "bytes"
           ]
         }
-      ]
-    },
-    "Page": {
-      "description": "Bounded page derived from a complete UTF-8 input; EOF is explicit.",
-      "type": "object",
-      "properties": {
-        "offset": {
-          "description": "Actual first line, clamped when a requested line no longer exists.",
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 1,
-          "maximum": 1048577
-        },
-        "line_count": {
-          "description": "Includes the empty last editor line after a trailing newline.",
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 1,
-          "maximum": 1048577
-        },
-        "next_offset": {
-          "description": "Absent at EOF; an empty extra page is never offered.",
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "uint32",
-          "minimum": 1,
-          "maximum": 1048577
-        },
-        "text": {
-          "description": "Original text only; line numbers are presentation, not parsed strings.",
-          "$ref": "#/$defs/SourceText"
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "offset",
-        "line_count",
-        "text"
       ]
     },
     "SourceText": {

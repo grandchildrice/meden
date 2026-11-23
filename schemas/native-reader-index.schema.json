@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Index",
+  "description": "Small status index; text and failure details live in their own publication.",
+  "type": "object",
+  "properties": {
+    "files": {
+      "description": "Latest complete observation of each retained logical path.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/Reference"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "files"
+  ],
+  "$defs": {
+    "Reference": {
+      "description": "Exact immutable presentation identity, independent of evidence/source IDs.",
+      "type": "object",
+      "properties": {
+        "revision": {
+          "description": "Domain-separated identity of every serialized data byte.",
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "revision"
+      ]
+    }
+  }
+}

@@ -82,7 +82,6 @@ export function NativeApp({ token }: { token: string }) {
   const [chatOpen, setChatOpen] = useState(false);
   const [readTarget, setReadTarget] = useState<{
     path: string;
-    offset: number;
     sequence: number;
   }>();
   const dispatchedRead = useRef<number | undefined>(undefined);
@@ -251,6 +250,19 @@ export function NativeApp({ token }: { token: string }) {
     state?.sources,
     reconnect,
   );
+  const readReader = useCallback(
+    (revision: string, signal: AbortSignal) =>
+      observePublication(client.reader(revision, signal)),
+    [client],
+  );
+  const preparedReaders = usePublications(
+    files.flatMap((path) =>
+      state?.readers.files[path] ? [state.readers.files[path]!.revision] : [],
+    ),
+    readReader,
+    state?.readers,
+    reconnect,
+  );
   const source = preparedSources.get(state?.sources.current?.revision)
     ?.publication?.data;
   useEffect(() => {
@@ -353,8 +365,7 @@ export function NativeApp({ token }: { token: string }) {
       if (command.type === "refresh_workspace") refreshEpoch.current++;
       let generation = ++stateGeneration.current;
       inFlight.current++;
-      let inspecting =
-        command.type === "inspect" || command.type === "read_file_page";
+      let inspecting = command.type === "inspect";
       if (inspecting) pendingInspections.current++;
       if (command.type === "cancel") pendingCancellations.current++;
       setCommandActivity({ generation, pending: inFlight.current });
@@ -418,11 +429,7 @@ export function NativeApp({ token }: { token: string }) {
     [client],
   );
   const openFile = useCallback(
-    (
-      path: string,
-      line?: number,
-      mode: "read" | "retained" | "prepared" = "read",
-    ) => {
+    (path: string, mode: "read" | "retained" | "prepared" = "read") => {
       // A refresh invalidates retained navigation even when the last rendered
       // status still contains the previous host view. Ordinary tab returns reuse it.
       const needsRead =
@@ -439,7 +446,6 @@ export function NativeApp({ token }: { token: string }) {
         needsRead
           ? {
               path,
-              offset: line ? Math.max(1, line - 5) : 1,
               sequence: ++readSequence.current,
             }
           : undefined,
@@ -484,11 +490,11 @@ export function NativeApp({ token }: { token: string }) {
       if (activeFile !== symbol.file || !prepared)
         openFile(
           symbol.file,
-          symbol.line,
           prepared
             ? "prepared"
             : !files.includes(symbol.file) ||
-                state?.sources.files[symbol.file] === undefined
+                (state?.sources.files[symbol.file] === undefined &&
+                  state?.readers.files[symbol.file] === undefined)
               ? "read"
               : "retained",
         );
@@ -602,7 +608,7 @@ export function NativeApp({ token }: { token: string }) {
       const path = input.paths[0];
       openRequestedSnapshot.current = !path;
       setAnalysisFile(path);
-      if (path) openFile(path, undefined, "prepared");
+      if (path) openFile(path, "prepared");
       setUtility(null);
     }
     return command(input);
@@ -614,7 +620,7 @@ export function NativeApp({ token }: { token: string }) {
       const path = source.roots[0] || Object.keys(source.files)[0];
       if (path) {
         setAnalysisFile(path);
-        openFile(path, undefined, "prepared");
+        openFile(path, "prepared");
       }
     }
   }, [source?.revision, state?.running]);
@@ -630,7 +636,6 @@ export function NativeApp({ token }: { token: string }) {
         type: "inspect",
         path: readTarget.path,
         directory: false,
-        offset: readTarget.offset,
       });
     }
     // A fast background read can start and finish inside one React batch.
@@ -718,9 +723,9 @@ export function NativeApp({ token }: { token: string }) {
               onOpen={(path) =>
                 openFile(
                   path,
-                  undefined,
                   !files.includes(path) ||
-                    state.sources.files[path] === undefined
+                    (state.sources.files[path] === undefined &&
+                      state.readers.files[path] === undefined)
                     ? "read"
                     : "retained",
                 )
@@ -763,8 +768,8 @@ export function NativeApp({ token }: { token: string }) {
                       onClick={() =>
                         openFile(
                           file,
-                          undefined,
-                          state.sources.files[file] === undefined
+                          state.sources.files[file] === undefined &&
+                            state.readers.files[file] === undefined
                             ? "read"
                             : "retained",
                         )
@@ -845,8 +850,8 @@ export function NativeApp({ token }: { token: string }) {
                       if (overview?.files.some((f) => f.path === path))
                         openFile(
                           path,
-                          undefined,
-                          state.sources.files[path] === undefined
+                          state.sources.files[path] === undefined &&
+                            state.readers.files[path] === undefined
                             ? "read"
                             : "retained",
                         );
@@ -895,6 +900,18 @@ export function NativeApp({ token }: { token: string }) {
                 >
                   <NativeFileWorkspace
                     state={state}
+                    file={
+                      preparedReaders.get(state.readers.files[file]?.revision)
+                        ?.publication?.data
+                    }
+                    readerError={
+                      preparedReaders.get(state.readers.files[file]?.revision)
+                        ?.error
+                    }
+                    onRetryReader={() => {
+                      const revision = state.readers.files[file]?.revision;
+                      if (revision) preparedReaders.retry(revision);
+                    }}
                     snapshot={
                       preparedSources.get(state.sources.files[file]?.revision)
                         ?.publication?.data

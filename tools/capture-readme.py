@@ -153,7 +153,10 @@ def main():
                  and "esc / ctrl-c cancel" in text() and "y: Accept specification" not in text())
             assert "VERIFIED · implementation refinement" not in text()
             capture("evidence-unproven.png")
-            pump(lambda: "VERIFIED · implementation refinement" in text() and "shift+enter" in text(), 360)
+            pump(
+                lambda: "VERIFIED · implementation refinement" in text() and "shift+enter" in text(),
+                360,
+            )
             pump(lambda: "sending still needs your approval." in text())
             assert "✓ proved" in text() and "Checked package available" in text()
             storage = root / "data/meden/projects"

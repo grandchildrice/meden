@@ -186,7 +186,8 @@ export function NativeCode({
   // A fresh unavailable/non-text observation wins over any older prepared page.
   const source =
     !unavailable && (!content || content.kind === "text") && path
-      ? snapshot?.files[path]
+      ? (snapshot?.files[path] ??
+        (content?.kind === "text" ? content.text : undefined))
       : undefined;
   const [offset, setOffset] = useState(1);
   useEffect(() => setOffset(1), [path]);
@@ -198,10 +199,9 @@ export function NativeCode({
           : Math.max(1, line - 5),
       );
   }, [path, line]);
+  const lines = useMemo(() => source?.split("\n"), [source]);
   const current = useMemo(() => {
-    if (source === undefined)
-      return content?.kind === "text" ? content.text : undefined;
-    const lines = source.split("\n");
+    if (!lines) return undefined;
     const start = Math.max(1, Math.min(offset, lines.length));
     return {
       offset: start,
@@ -209,7 +209,7 @@ export function NativeCode({
       next_offset: start + 200 <= lines.length ? start + 200 : null,
       text: lines.slice(start - 1, start + 199).join("\n"),
     };
-  }, [source, offset, content]);
+  }, [lines, offset]);
   const rows = useMemo(
     () =>
       (current?.text || "")
@@ -260,7 +260,6 @@ export function NativeCode({
               type: "inspect",
               path,
               directory: false,
-              offset: line ? Math.max(1, line - 5) : 1,
             })
           }
         >
@@ -332,34 +331,14 @@ export function NativeCode({
           </pre>
           <div className="explorer-pages">
             <Button
-              disabled={
-                (running && source === undefined) || (current.offset || 1) <= 1
-              }
-              onClick={() =>
-                source !== undefined
-                  ? setOffset(Math.max(1, offset - 200))
-                  : void onCommand({
-                      type: "read_file_page",
-                      path,
-                      offset: Math.max(1, (current.offset || 1) - 200),
-                    })
-              }
+              disabled={current.offset <= 1}
+              onClick={() => setOffset(Math.max(1, current.offset - 200))}
             >
               Previous page
             </Button>
             <Button
-              disabled={
-                (running && source === undefined) || !current.next_offset
-              }
-              onClick={() =>
-                source !== undefined
-                  ? setOffset(current.next_offset!)
-                  : void onCommand({
-                      type: "read_file_page",
-                      path,
-                      offset: current.next_offset!,
-                    })
-              }
+              disabled={!current.next_offset}
+              onClick={() => setOffset(current.next_offset!)}
             >
               Next page
             </Button>

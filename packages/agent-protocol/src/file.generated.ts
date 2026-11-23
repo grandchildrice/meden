@@ -14,16 +14,7 @@ export const fileViewSchema = z
                 kind: z.literal("text"),
                 revision: z.string().regex(new RegExp("^sha256:[a-f0-9]{64}$")),
                 bytes: z.number().int().min(0).max(1048576),
-                text: z
-                  .object({
-                    offset: z.number().int().min(1).max(1048577),
-                    line_count: z.number().int().min(1).max(1048577),
-                    next_offset: z
-                      .union([z.number().int().min(1).max(1048577), z.null()])
-                      .optional(),
-                    text: z.string().max(1048576),
-                  })
-                  .strict(),
+                text: z.string().max(1048576),
               })
               .strict(),
             z

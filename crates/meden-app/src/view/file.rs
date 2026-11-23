@@ -1,6 +1,6 @@
-//! Bounded file inputs and paged presentation, independent of compilation.
+//! Complete bounded file observations, independent of compilation.
 use super::SourceText;
-use anyhow::{Context, Result};
+use anyhow::Result;
 use meden_agent::tool::{Args, ToolError};
 use meden_core::file::{Operation, Request};
 use meden_runtime::{
@@ -14,23 +14,21 @@ use std::{path::Path, time::Duration};
 
 /// Every admitted text input is complete within this byte budget.
 pub const MAX_BYTES: usize = 1_048_576;
-/// Presentation page size, independent of a compiler's graph scope.
-pub const PAGE_LINES: u32 = 200;
 
 /// Worker-owned content facts. Host stops and failures are separate outcomes.
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
-pub enum Content<T = SourceText> {
-    /// Complete UTF-8 text, or a pure projection of that complete input.
+pub enum Content {
+    /// Complete UTF-8 text.
     Text {
-        /// Identity of every original input byte, not just a page.
+        /// Identity of every original input byte.
         #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
         revision: String,
         /// Original byte count, bounded before publication.
         #[schemars(range(max = 1_048_576))]
         bytes: u32,
-        /// Complete input or its bounded presentation page.
-        text: T,
+        /// Complete original UTF-8 input.
+        text: SourceText,
     },
     /// NUL-containing input, excluding recognized unsupported text BOMs.
     Binary {
@@ -51,7 +49,7 @@ pub enum Content<T = SourceText> {
         bytes: String,
     },
 }
-impl<T> Content<T> {
+impl Content {
     /// Readable text retains its full input identity after projection.
     pub fn revision(&self) -> Option<&str> {
         match self {
@@ -59,28 +57,6 @@ impl<T> Content<T> {
             _ => None,
         }
     }
-    /// Preserve metadata and non-text states while deriving a view.
-    pub fn try_map_text<U, E>(
-        self,
-        project: impl FnOnce(T) -> Result<U, E>,
-    ) -> Result<Content<U>, E> {
-        Ok(match self {
-            Self::Text {
-                revision,
-                bytes,
-                text,
-            } => Content::Text {
-                revision,
-                bytes,
-                text: project(text)?,
-            },
-            Self::Binary { bytes } => Content::Binary { bytes },
-            Self::UnsupportedEncoding { bytes } => Content::UnsupportedEncoding { bytes },
-            Self::SizeLimit { bytes } => Content::SizeLimit { bytes },
-        })
-    }
-}
-impl Content {
     /// Display classification is a bounded policy, not a general MIME detector.
     pub fn from_bytes(bytes: Vec<u8>) -> Result<Self> {
         anyhow::ensure!(bytes.len() <= MAX_BYTES, "Incomplete file observation");
@@ -109,7 +85,8 @@ impl Content {
                 bytes,
                 text,
             } => anyhow::ensure!(
-                usize::try_from(*bytes)? == text.len()
+                text.len() <= MAX_BYTES
+                    && usize::try_from(*bytes)? == text.len()
                     && !text.as_bytes().contains(&0)
                     && *revision == format!("sha256:{:x}", Sha256::digest(text.as_bytes())),
                 "Invalid complete text observation"
@@ -127,44 +104,6 @@ impl Content {
             }
         }
         Ok(())
-    }
-}
-/// Bounded page derived from a complete UTF-8 input; EOF is explicit.
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub struct Page {
-    /// Actual first line, clamped when a requested line no longer exists.
-    #[schemars(range(min = 1, max = 1_048_577))]
-    pub offset: u32,
-    /// Includes the empty last editor line after a trailing newline.
-    #[schemars(range(min = 1, max = 1_048_577))]
-    pub line_count: u32,
-    /// Absent at EOF; an empty extra page is never offered.
-    #[schemars(range(min = 1, max = 1_048_577))]
-    pub next_offset: Option<u32>,
-    /// Original text only; line numbers are presentation, not parsed strings.
-    pub text: SourceText,
-}
-impl Page {
-    fn new(source: &SourceText, requested: u32) -> Result<Self> {
-        // A complete SourceText is at most 1 MiB, so these conversions and
-        // source slices remain bounded independently of the requested offset.
-        let line_count = u32::try_from(source.split('\n').count())?;
-        let offset = requested.max(1).min(line_count);
-        let rows: Vec<_> = source
-            .split('\n')
-            .skip(usize::try_from(offset.saturating_sub(1))?)
-            .take(usize::try_from(PAGE_LINES)?)
-            .collect();
-        let end = offset
-            .checked_add(u32::try_from(rows.len())?)
-            .context("Source page overflow")?;
-        Ok(Self {
-            offset,
-            line_count,
-            next_offset: (end <= line_count).then_some(end),
-            text: SourceText(rows.join("\n")),
-        })
     }
 }
 /// Host-observed failure class; diagnostics do not determine it.
@@ -186,10 +125,10 @@ pub enum FailureKind {
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "state", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Reading {
-    /// Successful complete input, projected for display.
+    /// Successful complete input, retained for display.
     Ready {
-        /// Original data facts and the requested page.
-        content: Content<Page>,
+        /// Original data facts and complete text, when readable.
+        content: Content,
     },
     /// No incomplete or failed bytes were admitted.
     Unavailable {
@@ -209,7 +148,7 @@ pub enum Navigation {
     /// Text is readable, but rich navigation is unsupported.
     SourceOnly,
 }
-/// Shared generated read model for an explicitly requested source page.
+/// Shared generated read model for a complete explicitly observed file.
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct FileView {
@@ -218,7 +157,7 @@ pub struct FileView {
     pub path: String,
     /// Capability only; not a proof or compilation result.
     pub navigation: Navigation,
-    /// Complete projected content or an explicit host failure.
+    /// Complete content or an explicit host failure.
     pub reading: Reading,
 }
 impl FileView {
@@ -234,12 +173,7 @@ impl FileView {
 }
 /// Uses the original/resolved policy-bound offline file worker. Rendering and
 /// serializing the returned data performs no filesystem/compiler/model I/O.
-pub fn observe(
-    workspace: &Workspace,
-    control: &Control,
-    path: &str,
-    offset: u32,
-) -> Result<FileView> {
+pub fn observe(workspace: &Workspace, control: &Control, path: &str) -> Result<FileView> {
     anyhow::ensure!(
         !path.is_empty() && path.len() <= 4096 && !path.contains('\0'),
         "Invalid source view path"
@@ -270,11 +204,6 @@ pub fn observe(
             .map_err(|e| ToolError::unavailable(e.to_string()))?;
         Ok(content)
     })();
-    let result = result.and_then(|content| {
-        content.try_map_text(|source| {
-            Page::new(&source, offset).map_err(|e| ToolError::unavailable(e.to_string()))
-        })
-    });
     let reading = match result {
         Ok(content) => Reading::Ready { content },
         Err(error) => {
@@ -305,6 +234,7 @@ pub fn observe(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use anyhow::Context as _;
 
     #[test]
     fn complete_bytes_classify_without_publishing_partial_or_invalid_text() -> Result<()> {
@@ -354,34 +284,6 @@ mod tests {
             bytes: "18446744073709551615".into(),
         }
         .validate()?;
-        Ok(())
-    }
-
-    #[test]
-    fn pages_keep_literal_unicode_lines_and_stop_at_the_actual_end() -> Result<()> {
-        let source = SourceText::new(
-            (1..=400)
-                .map(|i| format!("{i}: λ日本語"))
-                .collect::<Vec<_>>()
-                .join("\n"),
-        )?;
-        let first = Page::new(&source, 0)?;
-        assert_eq!(
-            (first.offset, first.line_count, first.next_offset),
-            (1, 400, Some(201))
-        );
-        assert!(first.text.starts_with("1: λ日本語\n2: λ日本語"));
-        let last = Page::new(&source, 201)?;
-        assert_eq!((last.offset, last.next_offset), (201, None));
-        assert_eq!(last.text.split('\n').count(), 200);
-        let clamped = Page::new(&source, u32::MAX)?;
-        assert_eq!((clamped.offset, clamped.next_offset), (400, None));
-        assert_eq!(&*clamped.text, "400: λ日本語");
-        let empty = Page::new(&SourceText::new(String::new())?, 1)?;
-        assert_eq!((empty.line_count, empty.next_offset), (1, None));
-        let crlf = Page::new(&SourceText::new("λ\r\n".into())?, 1)?;
-        assert_eq!((crlf.line_count, crlf.next_offset), (2, None));
-        assert_eq!(&*crlf.text, "λ\r\n");
         Ok(())
     }
 }

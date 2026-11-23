@@ -3,6 +3,8 @@ import {
   workspaceOverviewSchema,
   historySnapshotSchema,
   sourcePublicationSchema,
+  readerPublicationSchema,
+  type ReaderPublication,
   type SourcePublication,
   type HistorySnapshot,
   type NativeState,
@@ -50,8 +52,19 @@ export class NativeClient {
       signal,
     );
   }
+  async reader(
+    revision: string,
+    signal?: AbortSignal,
+  ): Promise<ReaderPublication> {
+    return this.publication(
+      "reader",
+      revision,
+      readerPublicationSchema,
+      signal,
+    );
+  }
   private async publication<T extends { revision: string }>(
-    role: "history" | "source",
+    role: "history" | "source" | "reader",
     revision: string,
     schema: { parse(value: unknown): T },
     signal?: AbortSignal,

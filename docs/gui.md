@@ -68,13 +68,15 @@ queued until an existing host operation settles, with waiting shown only after a
 chat send. Compiler progress, failures and cancellation stay with the file graph.
 Opening a file displays its original UTF-8 source independently of semantic
 preparation; only the graph pane waits for compilation, counterexample search
-and English readings. The reader admits a complete input up to 1 MiB and derives
-200-line pages with explicit EOF. Binary, unsupported-encoding, oversized and
+and English readings. The reader admits a complete input up to 1 MiB, publishes
+it once by content ID, and derives 200-line pages locally with explicit EOF. Binary, unsupported-encoding, oversized and
 failed reads have file-local outcomes, with Retry for failures. Other formats
 can be read from the explorer without requiring an analysis backend. Paging
-does not schedule compilation or search, and pending read acknowledgements can
-stream source/progress without changing chat. Older responses are fenced before
-the acknowledgement's final snapshot. Cached semantic observations remain bound
+requires no host command or file/compiler/model I/O, even during compilation.
+Status carries only reader references. Replaced, evicted or refreshed references
+are unavailable; late responses cannot replace newer contents. Reader transfer
+failures expose a file-local **Retry source** action. Explicit inspection still
+observes complete files through the original policy-bound worker. Cached semantic observations remain bound
 to their original inputs; they do not assert current proof authority.
 Retained conversation streams have
 session dividers. Work items, saved checks and tool records open through the composer’s
@@ -128,9 +130,11 @@ provider failures are not silently retried. Unsent input remains tab/browser dat
 **Check current evidence** rechecks the accepted source/evidence binding. File inspection
 and completed turns also refresh status; polling alone is not a filesystem watcher.
 Logs/partial reasoning in this initial adapter last for the host process, while
-conversation text and admitted model history persist. The file reader uses the
-native tool's bounded 200-line pages. **Previous page** / **Next page** navigate
-long proof files; source line numbers identify the current range.
+conversation text and admitted model history persist. **Previous page** /
+**Next page** navigate the retained complete text without waiting for native
+work; source line numbers identify the current range. Reader retention is bounded
+by 64 files and 64 MiB of serialized envelopes. Retained text is an observation,
+not a filesystem watcher or current evidence.
 Native preview, selected-module Lean Atlas
 extraction, delivery, Lake dependency discovery and separate-model meaning
 judgment are described below with their current bounds.

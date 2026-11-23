@@ -32,6 +32,7 @@ struct Task {
 enum PublicationRole {
     History,
     Source,
+    Reader,
 }
 
 impl Task {
@@ -73,7 +74,7 @@ struct View {
     project: crate::project::Summary,
     stopped: Option<String>,
     inspection: Option<Value>,
-    reader: Option<meden_app::view::file::FileView>,
+    readers: meden_app::view::readers::Readers,
     sources: meden_app::view::sources::Sources,
     source_preparation: std::collections::BTreeMap<String, sources::Preparation>,
     analysis: Option<analysis::Record>,
@@ -182,12 +183,6 @@ enum Command {
     Inspect {
         path: String,
         directory: bool,
-        #[serde(default)]
-        offset: Option<usize>,
-    },
-    ReadFilePage {
-        path: String,
-        offset: u32,
     },
 }
 
@@ -197,7 +192,7 @@ impl Command {
             Self::Instruction { .. } | Self::ResumeWork { .. } | Self::AcceptContract { .. } => {
                 "conversation"
             }
-            Self::Inspect { .. } | Self::ReadFilePage { .. } => "inspection",
+            Self::Inspect { .. } => "inspection",
             Self::CapturePreview { .. } => "preview",
             Self::AtlasSnapshot { .. }
             | Self::SourceSnapshot { .. }
@@ -390,7 +385,7 @@ fn initial_view(
         project: project.stored_status()?,
         stopped: analysis_error.or(saved.stopped),
         inspection: None,
-        reader: None,
+        readers: meden_app::view::readers::Readers::default(),
         sources: meden_app::view::sources::Sources::default(),
         source_preparation: std::collections::BTreeMap::new(),
         analysis: analysis_history.last().cloned(),
@@ -558,6 +553,8 @@ impl Http<'_> {
     fn publication(&self, url: &str) -> Option<(&'static str, Option<Arc<[u8]>>)> {
         let (role, encoded) = if let Some(revision) = url.strip_prefix("/api/history?revision=") {
             (PublicationRole::History, revision)
+        } else if let Some(revision) = url.strip_prefix("/api/reader?revision=") {
+            (PublicationRole::Reader, revision)
         } else {
             (
                 PublicationRole::Source,
@@ -572,12 +569,14 @@ impl Http<'_> {
                 match role {
                     PublicationRole::History => view.history.bytes(&revision),
                     PublicationRole::Source => view.sources.bytes(&revision),
+                    PublicationRole::Reader => view.readers.bytes(&revision),
                 }
             });
         Some((
             match role {
                 PublicationRole::History => "gui.history_respond",
                 PublicationRole::Source => "gui.source_respond",
+                PublicationRole::Reader => "gui.reader_respond",
             },
             bytes,
         ))
@@ -803,27 +802,12 @@ fn worker(
                     lock(view).project = project.reject(&reference)?;
                     None
                 }
-                Command::Inspect {
-                    path,
-                    directory,
-                    offset,
-                } => {
+                Command::Inspect { path, directory } => {
                     if directory {
                         lock(view).inspection = Some(inspect(workspace, &processes, &path)?);
                     } else {
-                        read_source(
-                            view,
-                            workspace,
-                            &processes,
-                            &path,
-                            u32::try_from(offset.unwrap_or(1))?,
-                            true,
-                        )?;
+                        read_source(view, workspace, &processes, &path)?;
                     }
-                    None
-                }
-                Command::ReadFilePage { path, offset } => {
-                    read_source(view, workspace, &processes, &path, offset, false)?;
                     None
                 }
                 _ => anyhow::bail!("Unexpected worker command"),
@@ -922,21 +906,22 @@ fn read_source(
     workspace: &Workspace,
     processes: &Control,
     path: &str,
-    offset: u32,
-    prepare: bool,
 ) -> Result<()> {
-    let observation = meden_app::view::file::observe(workspace, processes, path, offset)?;
+    let timing = meden_runtime::metrics::Span::start("gui.reader_prepare");
+    let observation = meden_app::view::file::observe(workspace, processes, path)?;
     sources::observe(view, &observation);
     let readable = observation.is_text();
     let available = matches!(
         &observation.reading,
         meden_app::view::file::Reading::Ready { .. }
     );
-    lock(view).reader = Some(observation);
-    if prepare && readable {
+    let reader = meden_app::view::readers::Prepared::new(observation)?;
+    lock(view).readers.publish(reader);
+    drop(timing);
+    if readable {
         sources::prepare(view, workspace, processes, path, true);
     }
-    if prepare && available {
+    if available {
         overview::observe_file(view, workspace, processes, path);
     }
     Ok(())

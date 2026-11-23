@@ -252,7 +252,7 @@ fn snapshot_file(file: &fs::File, args: &Args) -> Result<Value, ToolError> {
         }
         let before = file.metadata().map_err(failed)?;
         if before.len() > u64::try_from(MAX_BYTES).map_err(failed)? {
-            return serde_json::to_value(Content::<meden_app::view::SourceText>::SizeLimit {
+            return serde_json::to_value(Content::SizeLimit {
                 bytes: before.len().to_string(),
             })
             .map_err(failed);

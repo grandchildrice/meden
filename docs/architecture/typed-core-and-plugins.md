@@ -467,16 +467,20 @@ the directory explorer; unreadable Lean/Rust entries remain in the map inventory
 without invented declarations or compiler evidence. The directory/inventory
 wire format is not yet the generic read model.
 
-Opening a file publishes its reader page before semantic preparation. Only the
-graph pane waits for compilation/search/rendering. Page navigation has a separate
-read command and cannot schedule semantic preparation; retained tabs still reuse
-prepared graphs. A fresh failed or changed input invalidates affected retained
-graphs. Pending inspection acknowledgements permit streamed read updates, then
-advance the browser generation before their final snapshot so earlier reads
-cannot overwrite it. Public browser journeys cover literal text, EOF, unreadable
-files, retry/restart, a held real compiler, delayed acknowledgements and stale
-preview pages. These are adapter/read-model checks, not new evidence authority
-or a filesystem/renderer refinement proof.
+Opening a file publishes its complete bounded reader observation before semantic
+preparation. Only the graph pane waits for compilation/search/rendering. The
+shared application freezes reader envelopes outside the status lock and retains
+at most 64 files / 64 MiB of serialized data. Status contains only generated
+references; exact reader queries return already-frozen bytes without host I/O.
+The browser fetches each wanted observation once and derives 200-line pages
+locally, including EOF and selected-line navigation. Page changes work during an
+active compiler and issue no command, filesystem read or inference. The former
+page-read command and server paging DTO are deleted. Refresh, replacement and
+eviction make old references unavailable; delayed bodies cannot replace newer
+observations. Fresh changed/failed inputs still invalidate affected graphs.
+Public browser journeys cover literal text, unreadable files, retry/restart,
+delayed publications and paging while a real compiler is held. These are
+adapter/read-model checks, not new evidence authority or filesystem refinement.
 
 History now has an application-owned read model too. Status reads contain only
 its revision and transcript count; complete original conversation/work/tool
@@ -512,8 +516,8 @@ after a fresh status observation, at most three times per availability context;
 a changed context or explicit retry can recover the same republished content
 ID. Persistent failures expose a local retry. File navigation does not populate
 chat, and no read query schedules a semantic job. Large input/compiler freshness
-checks remain in their original host operations. Independent file-reader pages
-and job/evidence views still need their own revisioned query boundaries.
+checks remain in their original host operations. Complete reader observations now use the same query boundary. Job/evidence
+views still need their own revisioned queries.
 
 This does not finish step 4: generic inventory/job/evidence DTOs, generation of
 the rest of the native wire contract and remaining navigation waits still need

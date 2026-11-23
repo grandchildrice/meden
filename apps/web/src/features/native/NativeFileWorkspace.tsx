@@ -52,6 +52,9 @@ export function NativeFileWorkspace({
   state,
   snapshot,
   sourceError,
+  file,
+  readerError,
+  onRetryReader,
   onRetrySource,
   path,
   scene,
@@ -66,6 +69,9 @@ export function NativeFileWorkspace({
   state: NativeState;
   snapshot?: SourceSnapshot;
   sourceError?: string;
+  file?: FileView;
+  readerError?: string;
+  onRetryReader: () => void;
   onRetrySource: () => void;
   path: string;
   scene?: MapScene;
@@ -91,12 +97,6 @@ export function NativeFileWorkspace({
     else if (state.stopped) setFailure(state.stopped);
   }, [state.running, state.operation, state.stopped, analysisFile, path]);
   const preparation = state.source_preparation[path];
-  const incomingFile = state.reader?.path === path ? state.reader : undefined;
-  const [retainedFile, setRetainedFile] = useState<FileView>();
-  useEffect(() => {
-    if (incomingFile) setRetainedFile(incomingFile);
-  }, [incomingFile]);
-  const file = incomingFile || retainedFile;
   const unavailable =
     file &&
     (file.reading.state !== "ready" || file.reading.content.kind !== "text");
@@ -143,7 +143,16 @@ export function NativeFileWorkspace({
   return (
     <section className="file-split" aria-label={"File: " + path}>
       <div className="file-source-pane">
-        {sourceError && !file && !snapshot ? (
+        {readerError && !file && !snapshot ? (
+          <Alert severity="error">
+            Could not load the source.
+            <details>
+              <summary>Details</summary>
+              {readerError}
+            </details>
+            <Button onClick={onRetryReader}>Retry source</Button>
+          </Alert>
+        ) : sourceError && !file && !snapshot ? (
           <p className="file-empty" role="status">
             Source could not be loaded.
           </p>
@@ -212,7 +221,6 @@ export function NativeFileWorkspace({
                       type: "inspect",
                       path,
                       directory: false,
-                      offset: selected?.line || 1,
                     })
                   }
                 >

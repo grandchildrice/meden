@@ -2,6 +2,10 @@
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let schema = match std::env::args().nth(1).as_deref() {
         None | Some("source") => schemars::schema_for!(meden_app::view::SourcePage),
+        Some("reader-index") => schemars::schema_for!(meden_app::view::readers::Index),
+        Some("reader-publication") => schemars::schema_for!(
+            meden_app::view::publication::Envelope<meden_app::view::file::FileView>
+        ),
         Some("file") => schemars::schema_for!(meden_app::view::file::FileView),
         Some("history") => schemars::schema_for!(meden_app::view::history::Snapshot<'static>),
         Some("history-reference") => schemars::schema_for!(meden_app::view::history::Reference),

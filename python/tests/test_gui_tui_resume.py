@@ -150,7 +150,10 @@ def test_gui_to_tui_and_back_retains_context_but_requires_fresh_review(tmp_path,
         gui, origin, token = launch_gui()
         state = api(origin, token)
         assert not state["authorized"]
-        assert any(message["text"] == "TUI-CONTINUED" for message in history_data(origin, token, state)["messages"])
+        assert any(
+            message["text"] == "TUI-CONTINUED"
+            for message in history_data(origin, token, state)["messages"]
+        )
         assert len(requests) == 3
         for checkpoint in (tmp_path / "data/meden/projects").glob("*/*.json"):
             assert "GUI-TUI-KEY-NOT-SAVED" not in checkpoint.read_text()

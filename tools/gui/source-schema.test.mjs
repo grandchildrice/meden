@@ -23,12 +23,7 @@ test("actual generated file DTO keeps availability disjoint and bounded", () => 
         kind: "text",
         revision: "sha256:" + "a".repeat(64),
         bytes: 8,
-        text: {
-          offset: 1,
-          line_count: 1,
-          next_offset: null,
-          text: '"literal"',
-        },
+        text: '"literal"',
       },
     },
   };
@@ -55,12 +50,7 @@ test("actual generated file DTO keeps availability disjoint and bounded", () => 
         state: "ready",
         content: {
           ...file.reading.content,
-          text: {
-            offset: 0,
-            line_count: 1,
-            next_offset: null,
-            text: "invalid",
-          },
+          text: "invalid".repeat(1_048_577),
         },
       },
     },

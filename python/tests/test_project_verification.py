@@ -507,7 +507,9 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
         assert "Project kernel needs verification" in rendered()
         assert "Proceed under the host-accepted contract" not in rendered()
         wait_for(
-            lambda: "VERIFIED · implementation refinement" in rendered() and "shift+enter" in rendered(), 360
+            lambda: "VERIFIED · implementation refinement" in rendered()
+            and "shift+enter" in rendered(),
+            360,
         )
         assert "Specification r1 · accepted" in rendered()
         assert "Checked package available" in rendered()
@@ -565,7 +567,8 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
         wait_for(lambda: "shift+enter" in rendered()
                  and "Specification r1 · accepted" in rendered())
         assert "Implementation check pending" in rendered()
-        assert "VERIFIED · implementation refinement" not in rendered() and "✓ proved" not in rendered()
+        assert "VERIFIED · implementation refinement" not in rendered()
+        assert "✓ proved" not in rendered()
         os.write(master, b"\x03")
         deadline = time.monotonic() + 5
         while process.poll() is None and time.monotonic() < deadline:

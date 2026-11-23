@@ -1210,6 +1210,8 @@ test.describe("native GUI with real offline workers", () => {
     ).join("\n");
     for (const [file, content] of [
       ["notes.txt", text],
+      ["Empty.txt", ""],
+      ["Trailing.txt", "line\r\n".repeat(200)],
       ["literal.json", '"literal JSON string"'],
       ["Missing.txt", "original"],
       ["Valid.rs", "fn indexed() {}\n"],
@@ -1242,7 +1244,7 @@ test.describe("native GUI with real offline workers", () => {
       await expect
         .poll(async () => {
           const s = await nativeState(page);
-          return !s.running && s.reader?.path === file;
+          return !s.running && Boolean(s.readers.files[file]);
         })
         .toBe(true);
     };
@@ -1254,6 +1256,7 @@ test.describe("native GUI with real offline workers", () => {
     await expect(
       source.getByRole("button", { name: "Previous page", exact: true }),
     ).toBeDisabled();
+    const beforePaging = commands.length;
     await source
       .getByRole("button", { name: "Next page", exact: true })
       .click();
@@ -1269,6 +1272,30 @@ test.describe("native GUI with real offline workers", () => {
     await expect(
       source.getByLabel("File contents").locator("code").first(),
     ).toHaveText("1: λ日本語");
+    expect(commands).toHaveLength(beforePaging);
+    await open("Empty.txt");
+    await expect(source.getByLabel("File contents").locator("code")).toHaveText(
+      "",
+    );
+    await expect(
+      source.getByRole("button", { name: "Next page", exact: true }),
+    ).toBeDisabled();
+    await open("Trailing.txt");
+    await source
+      .getByRole("button", { name: "Next page", exact: true })
+      .click();
+    await expect(
+      source.getByLabel("File contents").locator(".editor-line"),
+    ).toHaveCount(1);
+    await expect(
+      source.getByLabel("File contents").locator(".editor-line"),
+    ).toContainText("201:");
+    await expect(source.getByLabel("File contents").locator("code")).toHaveText(
+      "",
+    );
+    await expect(
+      source.getByRole("button", { name: "Next page", exact: true }),
+    ).toBeDisabled();
     await open("literal.json");
     await expect(source.getByLabel("File contents").locator("code")).toHaveText(
       '"literal JSON string"',
@@ -1288,7 +1315,9 @@ test.describe("native GUI with real offline workers", () => {
     await expect(source.getByRole("alert")).toContainText(
       "This file could not be read.",
     );
-    expect((await nativeState(page)).reader.reading.state).toBe("unavailable");
+    expect((await nativeReader(page, "Missing.txt")).reading.state).toBe(
+      "unavailable",
+    );
     await writeFile(resolve(project, "Missing.txt"), "recovered source");
     await source.getByRole("button", { name: "Retry", exact: true }).click();
     await expect(source.getByLabel("File contents")).toContainText(
@@ -1297,11 +1326,12 @@ test.describe("native GUI with real offline workers", () => {
     await expect
       .poll(async () => (await nativeState(page)).running)
       .toBe(false);
+    const beforeReturn = commands.length;
     await page.getByRole("tab", { name: "notes.txt", exact: true }).click();
     await expect(
       source.getByLabel("File contents").locator("code").first(),
     ).toHaveText("1: λ日本語");
-    expect(commands.filter((c) => c === "read_file_page")).toHaveLength(2);
+    expect(commands).toHaveLength(beforeReturn);
     expect((await nativeState(page)).source_preparation).toEqual({});
     expect(await nativeSource(page)).toBeNull();
     expect(await chat.innerHTML()).toBe(before);
@@ -1319,96 +1349,90 @@ test.describe("native GUI with real offline workers", () => {
     expect(requests).toHaveLength(0);
   });
 
-  test("reader acknowledgement fences older preview pages after a new page is visible", async ({
+  test("reader publications recover locally and delayed old bodies cannot replace a refreshed file", async ({
     page,
   }) => {
-    await writeFile(
-      resolve(project, "pages.txt"),
-      Array.from({ length: 300 }, (_, i) => `source line ${i + 1}`).join("\n"),
-    );
+    await writeFile(resolve(project, "pages.txt"), "original source");
     await page.goto(await start());
-    await page
-      .getByRole("button", { name: "File: pages.txt", exact: true })
-      .click();
-    const source = page
-      .locator(".ide-file-page:not([hidden])")
-      .getByLabel("File contents");
-    await expect(source.locator("code").first()).toHaveText("source line 1");
-    await expect
-      .poll(async () => (await nativeState(page)).running)
-      .toBe(false);
-    let pending = false,
-      held = false,
-      forward = () => {},
+    let held = false,
       releaseOld = () => {};
-    const forwarded = new Promise<void>((resolve) => (forward = resolve));
-    const released = new Promise<void>((resolve) => (releaseOld = resolve));
-    await page.route("**/api/command", async (route) => {
-      if (route.request().postDataJSON()?.type !== "read_file_page")
-        return route.continue();
-      pending = true;
-      await forwarded;
+    const release = new Promise<void>((resolve) => (releaseOld = resolve));
+    await page.route("**/api/reader?revision=*", async (route) => {
       const response = await route.fetch();
-      // The acknowledgement is held until the actual worker has finished.
-      // The earlier poll remains held independently, ready to arrive last.
-      await expect
-        .poll(
-          async () =>
-            (await nativeState(page)).reader?.reading.content?.text?.offset,
-        )
-        .toBe(201);
-      await route.fulfill({ response });
-    });
-    await page.route("**/api/state", async (route) => {
-      const preview = pending && !held;
-      const response = await route.fetch();
-      if (
-        preview &&
-        !held &&
-        (await response.json()).reader?.reading.content?.text?.offset === 1
-      ) {
+      if (!held) {
         held = true;
-        await released;
+        await release;
       }
       await route.fulfill({ response });
     });
-    try {
-      await page
-        .getByRole("button", { name: "Next page", exact: true })
+    const open = () =>
+      page
+        .getByRole("button", { name: "File: pages.txt", exact: true })
         .click();
+    const source = page.locator(".ide-file-page:not([hidden])");
+    try {
+      await open();
       await expect.poll(() => held).toBe(true);
-      forward();
-      await expect(source.locator("code").first()).toHaveText(
-        "source line 201",
+      const old = (await nativeState(page)).readers.files["pages.txt"].revision;
+      await writeFile(resolve(project, "pages.txt"), "changed source");
+      await page
+        .getByRole("button", { name: "Refresh files and map", exact: true })
+        .click();
+      await expect
+        .poll(async () => (await nativeState(page)).running)
+        .toBe(false);
+      await open();
+      await expect(source.getByLabel("File contents")).toContainText(
+        "changed source",
       );
-      await source.evaluate((element) => {
-        (window as any).__readerPages = [];
-        new MutationObserver(() =>
-          (window as any).__readerPages.push(
-            element.querySelector("code")?.textContent,
-          ),
-        ).observe(element, {
-          subtree: true,
-          childList: true,
-          characterData: true,
-        });
-      });
       releaseOld();
       await page.waitForTimeout(500);
-      await expect(source.locator("code").first()).toHaveText(
-        "source line 201",
+      await expect(source.getByLabel("File contents")).toContainText(
+        "changed source",
       );
-      expect(
-        await page.evaluate(() => (window as any).__readerPages),
-      ).not.toContain("source line 1");
+      const obsolete = await page.request.get(
+        new URL("/api/reader?revision=" + encodeURIComponent(old), url).href,
+        {
+          headers: {
+            Authorization: "Bearer " + new URL(url).hash.split("=")[1],
+          },
+        },
+      );
+      expect(obsolete.status()).toBe(409);
       expect(requests).toHaveLength(0);
     } finally {
-      forward();
       releaseOld();
-      // Complete the held HTTP adapters before afterEach terminates the real
-      // host. Otherwise a final poll can race shutdown after assertions passed.
       await page.unrouteAll({ behavior: "wait" });
     }
+    await stop();
+    await page.goto(await start());
+    let failures = 0;
+    await page.route("**/api/reader?revision=*", async (route) => {
+      if (failures++ === 0)
+        return route.fulfill({
+          status: 503,
+          json: { error: "Reader temporarily unavailable" },
+        });
+      return route.continue();
+    });
+    await open();
+    await expect(source.getByRole("alert")).toContainText(
+      "Could not load the source.",
+    );
+    await page.screenshot({
+      path: "target/gui-checks/reader-publication-failure.png",
+    });
+    await source
+      .getByRole("button", { name: "Retry source", exact: true })
+      .click();
+    await expect(source.getByLabel("File contents")).toContainText(
+      "changed source",
+    );
+    expect((await nativeState(page)).authorized).toBe(false);
+    expect(requests).toHaveLength(0);
+    await page.screenshot({
+      path: "target/gui-checks/reader-publication-latest.png",
+    });
   });
 
   test("build logs stream before completion, retain timeout and cancellation output, and retry the real compiler", async ({
@@ -1437,7 +1461,11 @@ theorem slow : True := fast
     );
     await writeFile(
       resolve(project, "Entry.lean"),
-      "import Slow\npartial def forever (n : Nat) : Nat := forever (n + 1)\naxiom longSearch : ∀ n : Nat, forever n = 0\naxiom supplied : False\ntheorem tracked : False := supplied\n#print axioms tracked\n",
+      "import Slow\npartial def forever (n : Nat) : Nat := forever (n + 1)\naxiom longSearch : ∀ n : Nat, forever n = 0\naxiom supplied : False\ntheorem tracked : False := supplied\n#print axioms tracked\n" +
+        Array.from(
+          { length: 400 },
+          (_, i) => `-- reader row ${i} λ日本語`,
+        ).join("\n"),
     );
     const environment = {
       MEDEN_ATLAS_BACKEND: "lake",
@@ -1490,6 +1518,63 @@ theorem slow : True := fast
       (await nativeState(page)).source_preparation["Entry.lean"].state,
     ).toBe("preparing");
     expect(await nativeSource(page)).toBeNull();
+    const pageCommands: string[] = [];
+    const pageBodies: string[] = [];
+    const observePage = (request: import("@playwright/test").Request) => {
+      if (request.url().endsWith("/api/command"))
+        pageCommands.push(request.postDataJSON().type);
+      if (/\/api\/(reader|source)\?/.test(request.url()))
+        pageBodies.push(request.url());
+    };
+    page.on("request", observePage);
+    const pageTimes: number[] = [];
+    for (const direction of [
+      "Next page",
+      "Previous page",
+      "Next page",
+      "Previous page",
+    ]) {
+      const observation = await page.evaluate(async (direction) => {
+        const section = document.querySelector(".ide-file-page:not([hidden])")!;
+        const button = [...section.querySelectorAll("button")].find(
+          (b) => b.textContent?.trim() === direction,
+        )!;
+        const start = performance.now();
+        button.click();
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+        );
+        return {
+          elapsed_ms: performance.now() - start,
+          first_line: section.querySelector(".editor-line")?.textContent,
+        };
+      }, direction);
+      expect(observation.first_line).toContain(
+        direction === "Next page" ? "201:" : "1:",
+      );
+      pageTimes.push(observation.elapsed_ms);
+      await expect(
+        page.locator(".ide-file-page:not([hidden]) .editor-line").first(),
+      ).toContainText(direction === "Next page" ? "201:" : "1:");
+    }
+    page.off("request", observePage);
+    if (process.env.MEDEN_GUI_PERFORMANCE === "1")
+      expect(Math.max(...pageTimes)).toBeLessThan(250);
+    expect(pageCommands).toEqual([]);
+    expect(pageBodies).toEqual([]);
+    expect(
+      (await nativeState(page)).source_preparation["Entry.lean"].state,
+    ).toBe("preparing");
+    await testInfo.attach("paging-during-compilation.json", {
+      body: JSON.stringify({
+        page_to_two_raf_ms: pageTimes,
+        commands: pageCommands,
+        body_reads: pageBodies,
+        scope:
+          "Actual held Lean compiler; DOM page and two animation callbacks, not physical presentation.",
+      }),
+      contentType: "application/json",
+    });
     expect(await chat.innerHTML()).toBe(before);
     await page.screenshot({
       path: "target/gui-checks/build-log-streaming.png",
@@ -3772,6 +3857,24 @@ theorem slow : True := fast
     return response.body.data;
   }
 
+  async function nativeReader(page: Page, path: string) {
+    const state = await nativeState(page);
+    const revision = state.readers.files[path]?.revision;
+    if (!revision) return null;
+    return page.evaluate(async (revision) => {
+      const response = await fetch(
+        "/api/reader?revision=" + encodeURIComponent(revision),
+        {
+          headers: {
+            Authorization:
+              "Bearer " + sessionStorage.getItem("meden-native-session"),
+          },
+        },
+      );
+      if (!response.ok) throw Error("Reader query failed");
+      return (await response.json()).data;
+    }, revision);
+  }
   async function nativeState(page: Page) {
     return page.evaluate(async () => {
       const response = await fetch("/api/state", {
