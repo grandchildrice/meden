@@ -19,7 +19,7 @@ fn observed() -> Result<Snapshot> {
             }],"edges":[],"externalReferences":[]}}
     }))?)
 }
-fn semantic(snapshot: &mut Snapshot) -> Result<&mut Explanation> {
+fn semantic(snapshot: &mut Snapshot) -> Result<&mut crate::explanation::Description> {
     snapshot
         .atlas
         .as_mut()
@@ -280,6 +280,92 @@ fn renderer(id: &str) -> Result<meden_runtime::plugin::Descriptor> {
             output: serde_json::to_value(schemars::schema_for!(crate::meaning::Reading))?,
         },
     )?)
+}
+
+fn searcher(seed: u64) -> Result<meden_runtime::plugin::Descriptor> {
+    Ok(meden_runtime::plugin::Descriptor::new(
+        meden_runtime::plugin::Definition {
+            id: "fixture.search",
+            role: meden_runtime::plugin::Role::CounterexampleSearch,
+            version: "1",
+            formats: vec!["fixture".into()],
+            implementation: b"search recipe",
+            configuration: json!({"seed":seed}),
+            input: crate::search::input_schema()?,
+            output: crate::search::output_schema()?,
+        },
+    )?)
+}
+#[test]
+fn search_changes_reuse_compilation_but_never_relabel_a_retained_observation() -> Result<()> {
+    let directory = tempfile::tempdir()?;
+    let store = Store(directory.path().into());
+    let mut raw = observed()?;
+    let check = semantic(&mut raw)?.checker.take().context("check")?;
+    assert!(crate::view::SourcePage::from_snapshot(&raw).is_err());
+    let original = store.observe(raw.clone(), &definition()?)?;
+    let id = original.id.clone();
+    assert!(store.searched(&original, &searcher(0)?)?.is_none());
+    let report = crate::search::Report {
+        checks: BTreeMap::from([("claim".into(), check)]),
+    };
+    let searched = store.retain_search(original, &searcher(0)?, report.clone())?;
+    let searched_id = searched.id.clone();
+    let mut rendered = searched.snapshot.clone();
+    store.render(searched, &renderer("reading")?, &mut rendered)?;
+    let original = store.observe(raw.clone(), &definition()?)?;
+    assert_eq!(id, original.id);
+    assert_eq!(store.index("observations")?.len(), 1);
+    assert!(store.searched(&original, &searcher(1)?)?.is_none());
+    let mut changed_report = report;
+    let changed = changed_report.checks.get_mut("claim").context("claim")?;
+    changed.seed = Some(1);
+    changed.candidates = vec!["new witness".into()];
+    let replacement = store.retain_search(original, &searcher(1)?, changed_report)?;
+    assert_ne!(replacement.id, searched_id);
+    assert_eq!(store.index("observations")?.len(), 1);
+    assert_eq!(store.index("searches")?.len(), 2);
+    let mut reading = store
+        .rendered(
+            &replacement.compilation,
+            &replacement.snapshot,
+            &renderer("reading")?,
+        )?
+        .context("independent reading reuse")?;
+    assert_eq!(
+        semantic(&mut reading)?
+            .checker
+            .as_ref()
+            .context("new check")?
+            .seed,
+        Some(1)
+    );
+    assert_eq!(
+        semantic(&mut reading)?
+            .checker
+            .as_ref()
+            .context("new check")?
+            .candidates,
+        vec!["new witness"]
+    );
+    let original = store.observe(raw.clone(), &definition()?)?;
+    let hit = store
+        .searched(&original, &searcher(0)?)?
+        .context("retained search")?;
+    assert_eq!(hit.id, searched_id);
+    let mut index = store.index("searches")?;
+    index.insert(hash(&(&id, searcher(2)?.identity()))?, searched_id.clone());
+    crate::storage::write(&store.0.join("searches-index.json"), &index)?;
+    assert!(store.searched(&original, &searcher(2)?).is_err());
+    let path = store.0.join("searches").join(format!("{searched_id}.json"));
+    let mut json: serde_json::Value = crate::storage::read(&path)?.context("search")?;
+    *json
+        .pointer_mut("/report/checks/claim/status")
+        .context("status")? = json!("not_found");
+    crate::storage::write(&path, &json)?;
+    assert!(store.searched(&original, &searcher(0)?).is_err());
+    assert!(semantic(&mut raw)?.checker.is_none());
+    Ok(())
 }
 
 #[test]

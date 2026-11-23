@@ -4,13 +4,13 @@ pub mod cache;
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
-pub struct Explanation {
+pub struct Explanation<C = Check> {
     pub version: u8,
     #[schemars(schema_with = "elaborated_schema")]
     pub origin: String,
     pub sentence: String,
     pub refutation: String,
-    pub checker: Check,
+    pub checker: C,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub intermediate: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -47,8 +47,12 @@ fn status_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
     schemars::json_schema!({"type":"string", "enum":["counterexample","predicate_false_example","not_found","gave_up","budget_exhausted","unavailable","unsupported","not_proposition"]})
 }
 
-impl Explanation {
-    pub fn valid(&self) -> bool {
+/// Compiler description without a search observation. Publication requires a
+/// separately completed check; `None` is never a negative search verdict.
+pub type Description = Explanation<Option<Check>>;
+
+impl<C> Explanation<C> {
+    fn valid_description(&self) -> bool {
         self.version == 1
             && self.origin == "elaborated"
             && !self.sentence.is_empty()
@@ -60,10 +64,26 @@ impl Explanation {
                 .rendering_error
                 .as_ref()
                 .is_none_or(|s| s.len() <= 65_536)
-            && !self.checker.engine.is_empty()
-            && self.checker.engine.len() <= 128
+    }
+    fn with_checker<D>(self, checker: D) -> Explanation<D> {
+        Explanation {
+            version: self.version,
+            origin: self.origin,
+            sentence: self.sentence,
+            refutation: self.refutation,
+            checker,
+            intermediate: self.intermediate,
+            renderer: self.renderer,
+            rendering_error: self.rendering_error,
+        }
+    }
+}
+impl Check {
+    pub fn valid(&self) -> bool {
+        !self.engine.is_empty()
+            && self.engine.len() <= 128
             && matches!(
-                self.checker.status.as_str(),
+                self.status.as_str(),
                 "counterexample"
                     | "predicate_false_example"
                     | "not_found"
@@ -73,12 +93,30 @@ impl Explanation {
                     | "unsupported"
                     | "not_proposition"
             )
-            && self.checker.candidates.len() <= 64
-            && self.checker.candidates.iter().all(|s| s.len() <= 8192)
-            && self
-                .checker
-                .diagnostic
-                .as_ref()
-                .is_none_or(|s| s.len() <= 65_536)
+            && self.candidates.len() <= 64
+            && self.candidates.iter().all(|s| s.len() <= 8192)
+            && self.diagnostic.as_ref().is_none_or(|s| s.len() <= 65_536)
+    }
+}
+impl Explanation {
+    pub fn valid(&self) -> bool {
+        self.valid_description() && self.checker.valid()
+    }
+}
+impl Description {
+    pub fn valid(&self) -> bool {
+        self.valid_description() && self.checker.as_ref().is_none_or(Check::valid)
+    }
+    pub fn complete(mut self) -> anyhow::Result<Explanation> {
+        use anyhow::Context as _;
+        let checker = self
+            .checker
+            .take()
+            .context("Search observation has not been prepared")?;
+        anyhow::ensure!(
+            self.valid_description() && checker.valid(),
+            "Invalid prepared explanation"
+        );
+        Ok(self.with_checker(checker))
     }
 }

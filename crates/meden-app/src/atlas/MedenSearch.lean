@@ -3,15 +3,15 @@ import MedenPlausible.Testable
 open Lean Meta
 namespace MedenSearch
 private def field (key value : String) := (key, Json.str value)
-def sampleResult (p : Prop) [MedenPlausible.Testable p] : IO String := do
+def sampleResult (seed : Nat) (p : Prop) [MedenPlausible.Testable p] : IO String := do
   let result ← MedenPlausible.Testable.checkIO p {
-    numInst := 64, maxSize := 32, numRetries := 10, randomSeed := some 0, quiet := true }
+    numInst := 64, maxSize := 32, numRetries := 10, randomSeed := some seed, quiet := true }
   let (status, candidates) := match result with
     | .failure _ values _ => ("counterexample", values)
     | .success _ => ("not_found", [])
     | .gaveUp _ => ("gave_up", [])
   return (Json.mkObj [field "engine" "Plausible", field "status" status,
-    ("seed", toJson (0 : Nat)), ("numInst", toJson (64 : Nat)), ("numRetries", toJson (10 : Nat)),
+    ("seed", toJson seed), ("numInst", toJson (64 : Nat)), ("numRetries", toJson (10 : Nat)),
     ("maxSize", toJson (32 : Nat)), ("candidates", toJson candidates)]).compress
 
 /-- Delta-expand only observed project predicates, preserving all binders. -/
@@ -42,7 +42,7 @@ def expandPredicates : Nat → Array Name → Expr → MetaM Expr
     | .app fn arg => return .app (← expandPredicates fuel modules fn) (← expandPredicates fuel modules arg)
     | _ => return e
 
-private unsafe def checkCore (type : Expr) (modules : Array Name) : MetaM Json := do
+private unsafe def checkCore (type : Expr) (modules : Array Name) (seed : Nat) : MetaM Json := do
   if !(← isProp type) then
     return Json.mkObj [field "engine" "Plausible", field "status" "not_proposition",
       ("candidates", toJson ([] : List String))]
@@ -53,7 +53,7 @@ private unsafe def checkCore (type : Expr) (modules : Array Name) : MetaM Json :
     let decorated ← MedenPlausible.Decorations.addDecorations normalized
     IO.eprintln "  Preparing a bounded testable instance"
     let testable ← synthInstance (mkApp (mkConst ``MedenPlausible.Testable) decorated)
-    let expression := mkApp2 (mkConst ``sampleResult) decorated testable
+    let expression := mkApp3 (mkConst ``sampleResult) (mkNatLit seed) decorated testable
     IO.eprintln "  Compiling the counterexample observation"
     let action ← evalExpr (IO String) (mkApp (mkConst ``IO) (mkConst ``String)) expression
     IO.eprintln "  Running fixed-seed samples"
@@ -73,35 +73,35 @@ private unsafe def checkCore (type : Expr) (modules : Array Name) : MetaM Json :
 
 /-- Compiler tasks may surface an IO failure instead of a Meta exception. Keep
 their state and failure inside a separate context, preserving the explanation. -/
-private unsafe def observe (ctx : PPContext) (type : Expr) (modules : Array Name) : IO Json := do
+private unsafe def observe (ctx : PPContext) (type : Expr) (modules : Array Name) (seed : Nat) : IO Json := do
   -- Compiler defaults allow expensive proof elaboration. Interactive search is
   -- optional observation: bound each declaration and retain an explicit outcome.
   let supplied := maxHeartbeats.get ctx.opts
   let budget := if supplied == 0 then 10000 else min supplied 10000
   let ctx := { ctx with opts := ctx.opts.set `maxHeartbeats budget |>.set `synthInstance.maxHeartbeats (2000 : Nat) }
-  try ctx.runMetaM <| checkCore type modules
+  try ctx.runMetaM <| checkCore type modules seed
   catch error =>
     let detail := error.toString
     return Json.mkObj [field "engine" "Plausible", field "status" "unavailable",
       field "diagnostic" (if detail.utf8ByteSize <= 65536 then detail else "Plausible evaluation failed; its diagnostic exceeds 64 KiB."),
       ("candidates", toJson ([] : List String))]
 
-unsafe def check (type : Expr) (modules : Array Name) : MetaM Json := do
-  observe (← getPPContext) type modules
+unsafe def check (type : Expr) (modules : Array Name) (seed : Nat) : MetaM Json := do
+  observe (← getPPContext) type modules seed
 
 
-unsafe def analyze (ci : ConstantInfo) (modules : Array Name) : MetaM Json := do
-  if ← isProp ci.type then check ci.type modules else
+unsafe def analyze (ci : ConstantInfo) (modules : Array Name) (seed : Nat) : MetaM Json := do
+  if ← isProp ci.type then check ci.type modules seed else
     forallTelescope ci.type fun args result => do
       if result.isSort && result.sortLevel!.isZero then
         let value := match ci with
           | .defnInfo info => info.value.beta args
           | _ => mkAppN (mkConst ci.name (ci.levelParams.map Level.param)) args
         let proposition ← mkForallFVars args value
-        let observation ← check proposition modules
+        let observation ← check proposition modules seed
         let observation := observation.setObjVal! "mode" (.str "predicate")
         if (observation.getObjValAs? String "status").toOption == some "counterexample" then
           pure <| observation.setObjVal! "status" (.str "predicate_false_example")
         else pure observation
-      else check ci.type modules
+      else check ci.type modules seed
 end MedenSearch

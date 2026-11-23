@@ -9,6 +9,6 @@ cd /workspace
 if [ "${1-}" = "--worker" ]; then
   shift
   export LEAN_PATH="/analysis/library:${LEAN_PATH-}"
-  exec /tools/python3 /analysis/library/observe-atlas.py "$@"
+  exec /analysis/lean/bin/lean --run /analysis/library/MedenAtlas.lean "$@"
 fi
 exec /analysis/lean/bin/lake env /tools/bash --noprofile --norc /analysis/library/project-atlas-extract.sh --worker "$@"

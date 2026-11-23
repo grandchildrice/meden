@@ -1375,6 +1375,153 @@ theorem slow : True := fast
     expect(requests).toHaveLength(0);
   });
 
+  test("search settings reuse compiled modules and keep separately bound results across restart", async ({
+    page,
+  }) => {
+    test.setTimeout(240000);
+    await writeFile(
+      resolve(project, "Claim.lean"),
+      "theorem bad (n : Nat) : n + 1 ≤ n := by sorry\ndef twice (n : Nat) : Nat := n + n\n",
+    );
+    const open = async (seed: string) => {
+      await page.goto(await start(0, { MEDEN_SEARCH_SEED: seed }));
+      await page
+        .getByRole("button", { name: "File: Claim.lean", exact: true })
+        .click();
+      await expect
+        .poll(
+          async () =>
+            (await nativeState(page)).source_preparation["Claim.lean"]?.state,
+          { timeout: 120000 },
+        )
+        .toBe("ready");
+      await expect(page.getByLabel("File contents")).toContainText(
+        "theorem bad",
+      );
+      return nativeState(page);
+    };
+    const index = async (role: string) =>
+      JSON.parse(
+        await readFile(
+          resolve(
+            root,
+            "data/meden/projects",
+            createHash("sha256").update(project).digest("hex"),
+            "compiled-views",
+            `${role}-index.json`,
+          ),
+          "utf8",
+        ),
+      );
+    const metrics = () =>
+      page.evaluate(async () =>
+        (
+          await fetch("/api/metrics", {
+            headers: {
+              Authorization:
+                "Bearer " + sessionStorage.getItem("meden-native-session"),
+            },
+          })
+        ).json(),
+      );
+    const first = await open("0");
+    const compilation = await index("observations");
+    const originalSearch = await index("searches");
+    expect(Object.values(compilation)).toHaveLength(1);
+    expect(Object.values(originalSearch)).toHaveLength(1);
+    const bad = (s: any) =>
+      s.source_snapshot.graph.declarations.find((n: any) => n.id === "bad");
+    expect(bad(first).semantic.checker).toMatchObject({
+      status: "counterexample",
+      seed: 0,
+    });
+    expect(
+      first.source_snapshot.graph.declarations.find(
+        (n: any) => n.id === "twice",
+      ).semantic.checker.status,
+    ).toBe("not_proposition");
+    await stop();
+    const changed = await open("19");
+    expect(changed.source_preparation["Claim.lean"].cache_hit).toBe(false);
+    expect(await index("observations")).toEqual(compilation);
+    expect(Object.values(await index("searches"))).toHaveLength(2);
+    expect(bad(changed).semantic.checker).toMatchObject({
+      status: "counterexample",
+      seed: 19,
+    });
+    expect(changed.source_snapshot.revision).toBe(
+      first.source_snapshot.revision,
+    );
+    expect(changed.source_snapshot.graph.revision).not.toBe(
+      first.source_snapshot.graph.revision,
+    );
+    const stages = (await metrics()).records.map((r: any) => r.name);
+    expect(stages).toContain("atlas.search");
+    expect(stages).not.toContain("atlas.compile");
+    expect(stages).not.toContain("atlas.project.extract");
+    expect(stages).not.toContain("atlas.execute");
+    expect(stages).not.toContain("analysis.render");
+    await page
+      .getByRole("button", { name: "Explain bad", exact: true })
+      .hover();
+    await expect(
+      page.getByRole("region", { name: "Meaning: bad", exact: true }),
+    ).toContainText("Counterexample candidate");
+    await page.screenshot({ path: "target/gui-checks/search-seed-update.png" });
+    expect(changed.authorized).toBe(false);
+    expect(requests).toHaveLength(0);
+    await stop();
+    const warm = await open("19");
+    expect(warm.source_preparation["Claim.lean"].cache_hit).toBe(true);
+    expect(bad(warm).semantic.checker).toEqual(bad(changed).semantic.checker);
+    expect((await metrics()).records.map((r: any) => r.name)).not.toContain(
+      "atlas.search",
+    );
+    expect(warm.authorized).toBe(false);
+    expect(requests).toHaveLength(0);
+    await stop();
+    // Corrupt host cache bytes, then use the ordinary file-open journey. The
+    // compiler must repair its retained modules before a new search can use them.
+    const raw = JSON.parse(
+      await readFile(
+        resolve(
+          root,
+          "data/meden/projects",
+          createHash("sha256").update(project).digest("hex"),
+          "compiled-views/observations",
+          `${Object.values(compilation)[0]}.json`,
+        ),
+        "utf8",
+      ),
+    );
+    const retained = raw.snapshot.atlas.compiled_modules;
+    const module = Object.keys(retained.files).find((name) =>
+      name.endsWith(".olean"),
+    )!;
+    await writeFile(
+      resolve(
+        root,
+        "data/meden/atlas/compiled-modules",
+        retained.id,
+        "modules",
+        module,
+      ),
+      "corrupt host cache",
+    );
+    const repaired = await open("20");
+    expect(bad(repaired).semantic.checker).toMatchObject({
+      status: "counterexample",
+      seed: 20,
+    });
+    expect((await metrics()).records.map((r: any) => r.name)).toContain(
+      "atlas.compile",
+    );
+    expect(repaired.source_snapshot.revision).toBe(
+      first.source_snapshot.revision,
+    );
+    expect(requests).toHaveLength(0);
+  });
+
   test("renderer updates reuse compiled observations, preserve counterexamples and reject changed sources", async ({
     page,
   }) => {
@@ -1448,6 +1595,27 @@ theorem slow : True := fast
     expect(originalArtifact.compiler.output_schema_sha256).toMatch(
       /^[a-f0-9]{64}$/,
     );
+    expect(
+      originalArtifact.snapshot.atlas.graph.nodes[0].semantic.checker,
+    ).toBeNull();
+    const originalSearches = await index("searches");
+    expect(Object.values(originalSearches)).toHaveLength(1);
+    const searchId = Object.values(originalSearches)[0];
+    const originalSearch = JSON.parse(
+      await readFile(
+        resolve(cacheRoot, "searches", `${searchId}.json`),
+        "utf8",
+      ),
+    );
+    expect(originalSearch.observation).toBe(originalId);
+    expect(originalSearch.searcher).toMatchObject({
+      id: "lean.plausible",
+      role: "counterexample_search",
+      version: "1",
+    });
+    expect(originalSearch.report.checks.bad).toEqual(
+      firstNode.semantic.checker,
+    );
     const firstReadings = await index("renderings");
     expect(Object.values(firstReadings)).toHaveLength(1);
     const firstReading = JSON.parse(
@@ -1495,6 +1663,7 @@ theorem slow : True := fast
     expect(node.semantic.intermediate).toBe(firstNode.semantic.intermediate);
     expect(rerendered.source_preparation["Claim.lean"].cache_hit).toBe(false);
     expect(await index("observations")).toEqual(originalIndex);
+    expect(await index("searches")).toEqual(originalSearches);
     const updatedReadings = await index("renderings");
     expect(Object.values(updatedReadings)).toHaveLength(2);
     const updated = await Promise.all(
@@ -1529,6 +1698,7 @@ theorem slow : True := fast
     expect(stages).not.toContain("atlas.compile");
     expect(stages).not.toContain("atlas.project.extract");
     expect(stages).not.toContain("atlas.execute");
+    expect(stages).not.toContain("atlas.search");
     await page
       .getByRole("button", { name: "Explain bad", exact: true })
       .hover();

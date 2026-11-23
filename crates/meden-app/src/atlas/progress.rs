@@ -10,6 +10,7 @@ pub(super) fn stage(script: &str, args: &[String]) -> &'static str {
         }
         "project-atlas-prepare.sh" => "Validating compiled inputs",
         "extract.sh" | "project-atlas-extract.sh" => "Extracting graph and explanations",
+        "search.sh" | "project-search.sh" => "Searching for counterexamples",
         _ => "Resolving Lean modules",
     }
 }

@@ -29,6 +29,7 @@ impl Invocation {
     /// use the checked restoration path instead of being relabelled here.
     pub fn observe(self, snapshot: Snapshot) -> Compiled {
         Compiled {
+            reused: false,
             definition: self.definition,
             request: self.request,
             snapshot,
@@ -44,6 +45,7 @@ impl Invocation {
             "Cached compiler definition differs from its invocation"
         );
         Ok(Compiled {
+            reused: true,
             definition: self.definition.clone(),
             request: self.request.clone(),
             snapshot,
@@ -54,11 +56,15 @@ impl Invocation {
 /// Completed observation attributed only to the originally selected compiler.
 /// Neither its binding nor its snapshot can be replaced by a consumer.
 pub struct Compiled {
+    reused: bool,
     definition: Descriptor,
     request: Request,
     snapshot: Snapshot,
 }
 impl Compiled {
+    pub(crate) fn reused(&self) -> bool {
+        self.reused
+    }
     pub(crate) fn into_parts(self) -> (Descriptor, Snapshot) {
         (self.definition, self.snapshot)
     }
@@ -171,7 +177,15 @@ impl Registration<'_> {
             snapshot.atlas.is_some(),
             "Compiler did not produce a compiled observation"
         );
-        crate::view::SourcePage::from_snapshot(snapshot)?;
+        anyhow::ensure!(
+            snapshot.atlas.as_ref().is_some_and(|g| g
+                .graph
+                .nodes
+                .iter()
+                .all(|n| n.semantic.as_ref().is_none_or(|s| s.checker.is_none()))),
+            "Compiler returned a search observation"
+        );
+        crate::view::SourcePage::validate_compilation(snapshot)?;
         Ok(output)
     }
 }

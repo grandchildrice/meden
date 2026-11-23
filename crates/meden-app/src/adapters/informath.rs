@@ -174,7 +174,7 @@ struct Structural {
     definition: Descriptor,
 }
 impl Renderer for Structural {
-    type Expression = crate::explanation::Explanation;
+    type Expression = crate::explanation::Description;
     fn descriptor(&self) -> Result<Descriptor> {
         Ok(self.definition.clone())
     }
@@ -182,7 +182,10 @@ impl Renderer for Structural {
         Ok(())
     }
     fn render(&self, _: &Control, expression: Self::Expression) -> Result<Reading> {
-        anyhow::ensure!(expression.valid(), "Invalid structural explanation");
+        anyhow::ensure!(
+            expression.valid() && expression.checker.is_none(),
+            "Invalid structural explanation"
+        );
         Ok(Reading {
             sentence: expression.sentence,
             renderer: expression
@@ -203,7 +206,7 @@ impl Prepared {
         match Informath::discover()? {
             Some(renderer) => Ok(Self(Selected::Informath(Bound::new(renderer)?))),
             None => Ok(Self(Selected::Structural(Bound::new(Structural {
-                definition: descriptor::<crate::explanation::Explanation>(
+                definition: descriptor::<<Structural as Renderer>::Expression>(
                     "structural.english",
                     serde_json::json!({"method":"retain-original-compiler-reading"}),
                 )?,
@@ -228,7 +231,9 @@ impl Prepared {
             Selected::Structural(renderer) => renderer.batch(control, |batch| {
                 for node in &mut graph.graph.nodes {
                     if let Some(semantic) = node.semantic.as_mut() {
-                        let reading = batch.render(semantic.clone())?;
+                        let mut expression = semantic.clone();
+                        expression.checker = None;
+                        let reading = batch.render(expression)?;
                         semantic.sentence = reading.sentence;
                         semantic.renderer = Some(reading.renderer);
                     }

@@ -141,14 +141,15 @@ def falsify : Nat → Expr → MetaM String
           " (" ++ (← english fuel args[args.size - 1]!) ++ ")"
     return "make this false: " ++ (← english fuel e)
 
-def describe (ci : ConstantInfo) (checker : Json) : MetaM Json := do
+def describe (ci : ConstantInfo) : MetaM Json := do
   let isProposition ← isProp ci.type
   let sentence ← if isProposition then english 64 ci.type else
     match ci with
     | .defnInfo info => pure <| "Defined as " ++ (← english 64 info.value)
     | _ => pure <| "An object whose type is " ++ (← english 64 ci.type)
   let sentence := if sentence.utf8ByteSize <= 60000 then sentence else "The elaborated meaning exceeds the explanation size bound."
-  let predicate := (checker.getObjValAs? String "mode").toOption == some "predicate"
+  let predicate ← if isProposition then pure false else
+    forallTelescope ci.type fun _ result => pure (result.isSort && result.sortLevel!.isZero)
   let counterfactual ← if isProposition then falsify 64 ci.type else pure ""
   let counterfactual := if counterfactual.utf8ByteSize <= 60000 then counterfactual else "make the complete proposition false; its explanation exceeds the size bound"
   let refutation := if isProposition then
@@ -158,6 +159,6 @@ def describe (ci : ConstantInfo) (checker : Json) : MetaM Json := do
     else "A definition specifies an object rather than asserting a universal theorem. Review its inputs, output and defining expression."
   return Json.mkObj [("version", toJson (1 : Nat)), field "origin" "elaborated",
     field "sentence" sentence, field "renderer" "Structural English", field "refutation" refutation,
-    ("checker", checker)]
+    ("checker", Json.null)]
 
 end MedenSemantic

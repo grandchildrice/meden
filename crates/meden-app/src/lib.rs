@@ -18,6 +18,8 @@ pub mod model;
 #[allow(missing_docs)]
 pub mod project;
 #[allow(missing_docs)]
+pub mod search;
+#[allow(missing_docs)]
 pub mod semantic;
 #[allow(missing_docs)]
 pub mod shell;

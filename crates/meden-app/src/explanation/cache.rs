@@ -30,9 +30,17 @@ pub struct Note {
 /// ```
 pub struct Observation {
     id: String,
+    compilation: String,
+    reused: bool,
     snapshot: Snapshot,
 }
 impl Observation {
+    pub fn reused(&self) -> bool {
+        self.reused
+    }
+    pub fn id(&self) -> &str {
+        &self.id
+    }
     /// The exact retained compiler/search result, before renderer changes.
     pub fn snapshot(&self) -> &Snapshot {
         &self.snapshot
@@ -53,6 +61,95 @@ struct Rendering {
     observation: String,
     renderer: serde_json::Value,
     readings: Vec<Reading>,
+}
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+struct Search {
+    observation: String,
+    searcher: serde_json::Value,
+    report: crate::search::Report,
+}
+impl Store {
+    fn searched(
+        &self,
+        original: &Observation,
+        definition: &meden_runtime::plugin::Descriptor,
+    ) -> Result<Option<Observation>> {
+        let Some(id) = self
+            .index("searches")?
+            .get(&hash(&(&original.id, definition.identity()))?)
+            .cloned()
+        else {
+            return Ok(None);
+        };
+        let search: Search = self.read("searches", &id)?;
+        anyhow::ensure!(
+            search.observation == original.id
+                && search.searcher == serde_json::to_value(definition)?,
+            "Search input binding changed"
+        );
+        let mut snapshot = search.report.project(original.snapshot.clone())?;
+        bind_revision(&mut snapshot, &id)?;
+        Ok(Some(Observation {
+            reused: original.reused,
+            id,
+            compilation: original.compilation.clone(),
+            snapshot,
+        }))
+    }
+    fn retain_search(
+        &self,
+        original: Observation,
+        definition: &meden_runtime::plugin::Descriptor,
+        report: crate::search::Report,
+    ) -> Result<Observation> {
+        anyhow::ensure!(
+            definition.role() == meden_runtime::plugin::Role::CounterexampleSearch,
+            "Invalid search identity"
+        );
+        let mut snapshot = report.project(original.snapshot)?;
+        let compilation = original.compilation;
+        let search = Search {
+            observation: original.id,
+            searcher: serde_json::to_value(definition)?,
+            report,
+        };
+        let key = hash(&(&search.observation, definition.identity()))?;
+        let id = self.write("searches", key, &search)?;
+        bind_revision(&mut snapshot, &id)?;
+        Ok(Observation {
+            reused: false,
+            id,
+            compilation,
+            snapshot,
+        })
+    }
+}
+pub fn search(
+    context: &crate::adapters::Context<'_>,
+    original: Observation,
+    selected: &crate::search::Registration<'_>,
+) -> Result<Observation> {
+    let _timing = meden_runtime::metrics::Span::start("analysis.search");
+    let store = Store::host(context.workspace)?;
+    selected.validate()?;
+    if let Some(hit) = store.searched(&original, selected.definition())? {
+        context.control.with_active(|| Ok(()))?;
+        selected.validate()?;
+        return Ok(hit);
+    }
+    let report = selected
+        .search(context, crate::search::Request::new(&original))?
+        .into_report();
+    selected.validate()?;
+    context
+        .control
+        .with_active(|| {
+            store
+                .retain_search(original, selected.definition(), report)
+                .map_err(std::io::Error::other)
+        })
+        .map_err(Into::into)
 }
 
 // Deliberately exclude the checker, refutation, expression, source and graph.
@@ -133,6 +230,8 @@ impl Store {
             self.write("observations", key, &artifact)?;
         }
         Ok(Observation {
+            reused: false,
+            compilation: id.clone(),
             id,
             snapshot: artifact.snapshot,
         })
@@ -166,6 +265,7 @@ impl Store {
         renderer: &meden_runtime::plugin::Descriptor,
         snapshot: &mut Snapshot,
     ) -> Result<()> {
+        crate::view::SourcePage::from_snapshot(&original.snapshot)?;
         let _timing = meden_runtime::metrics::Span::start("analysis.cache.store_rendering");
         anyhow::ensure!(
             renderer.role() == meden_runtime::plugin::Role::MeaningRenderer,
@@ -173,7 +273,7 @@ impl Store {
         );
         let graph = snapshot.atlas.as_ref().context("Missing rendered graph")?;
         let rendering = Rendering {
-            observation: original.id,
+            observation: original.compilation,
             renderer: serde_json::to_value(renderer)?,
             readings: graph
                 .graph
@@ -296,8 +396,11 @@ pub fn retain_observation(
     workspace: &Workspace,
     compiled: crate::compiler::Compiled,
 ) -> Result<Observation> {
+    let reused = compiled.reused();
     let (definition, snapshot) = compiled.into_parts();
-    Store::host(workspace)?.observe(snapshot, &definition)
+    let mut observation = Store::host(workspace)?.observe(snapshot, &definition)?;
+    observation.reused = reused;
+    Ok(observation)
 }
 /// Reuse only readings bound to this immutable observation and selected renderer.
 pub fn rendering(
@@ -305,7 +408,7 @@ pub fn rendering(
     original: &Observation,
     renderer: &meden_runtime::plugin::Descriptor,
 ) -> Result<Option<Snapshot>> {
-    Store::host(workspace)?.rendered(&original.id, &original.snapshot, renderer)
+    Store::host(workspace)?.rendered(&original.compilation, &original.snapshot, renderer)
 }
 pub fn retain_rendering(
     workspace: &Workspace,
@@ -399,10 +502,31 @@ pub fn load(workspace: &Workspace, control: &Control, paths: &[String]) -> Resul
     }
     let store = Store::host(workspace)?;
     let renderer = crate::adapters::informath::Prepared::discover()?;
+    let (searchers, selected) =
+        crate::adapters::searchers(crate::atlas::Configuration::host(workspace.path()))?;
+    let selected = searchers.select(selected)?;
     let mut notes = Vec::new();
     for (id, artifact) in artifacts {
+        let Some(searched) = store.searched(
+            &Observation {
+                reused: true,
+                compilation: id.clone(),
+                id,
+                snapshot: artifact.snapshot,
+            },
+            selected.definition(),
+        )?
+        else {
+            continue;
+        };
+        selected.validate()?;
         // Index projection never executes a renderer, compiler or search.
-        let Some(snapshot) = store.rendered(&id, &artifact.snapshot, renderer.definition())? else {
+        let Some(snapshot) = store.rendered(
+            &searched.compilation,
+            &searched.snapshot,
+            renderer.definition(),
+        )?
+        else {
             continue;
         };
         renderer.validate()?;
@@ -419,7 +543,7 @@ pub fn load(workspace: &Workspace, control: &Control, paths: &[String]) -> Resul
                 file: node.file_path,
                 name: node.id,
                 line,
-                semantic,
+                semantic: semantic.complete()?,
                 main_theorem: node.meta.is_some_and(|m| m.is_main_theorem),
             });
         }
@@ -463,6 +587,13 @@ fn compiled_for(
     .next() else {
         return Ok(None);
     };
+    if prepared.is_none()
+        && crate::atlas::Configuration::host(workspace.path())
+            .frozen_modules(&artifact.snapshot)
+            .is_err()
+    {
+        return Ok(None);
+    }
     Ok(Some(
         invocation.restore(artifact.snapshot, &artifact.compiler)?,
     ))

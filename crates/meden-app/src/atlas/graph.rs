@@ -11,6 +11,8 @@ pub struct Extraction {
     pub upstream: String,
     pub graph: Graph,
     pub resources_sha256: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub compiled_modules: Option<super::Modules>,
 }
 
 #[cfg(test)]
@@ -94,9 +96,18 @@ pub struct Node {
     pub standard_axioms: Vec<String>,
     pub external_dependencies: Vec<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub semantic: Option<crate::explanation::Explanation>,
+    pub semantic: Option<crate::explanation::Description>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub search_kind: Option<SearchKind>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub meta: Option<NodeMeta>,
+}
+#[derive(Clone, Copy, PartialEq, Eq, Deserialize, Serialize, schemars::JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum SearchKind {
+    Proposition,
+    Predicate,
+    Value,
 }
 #[derive(Clone, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -141,7 +152,7 @@ impl Extraction {
             anyhow::ensure!(
                 node.semantic
                     .as_ref()
-                    .is_none_or(crate::explanation::Explanation::valid),
+                    .is_none_or(crate::explanation::Description::valid),
                 "Invalid semantic observation"
             );
             if let Some(line) = node.line_start {
@@ -163,14 +174,15 @@ impl Extraction {
                 super::UPSTREAM,
                 files,
                 &graph,
-                resources
+                super::compiler_resources(resources)?
             ))?)
         );
         Ok(Self {
             revision,
             upstream: super::UPSTREAM.into(),
             graph,
-            resources_sha256: super::digest(&serde_json::to_vec(resources)?),
+            resources_sha256: super::compiler_resources(resources)?,
+            compiled_modules: None,
         })
     }
 

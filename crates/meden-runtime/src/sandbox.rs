@@ -548,6 +548,8 @@ impl Sandbox {
                     | "project.sh"
                     | "project-atlas-prepare.sh"
                     | "project-atlas-extract.sh"
+                    | "search.sh"
+                    | "project-search.sh"
             )
         {
             return Err(io::Error::other(
@@ -573,7 +575,10 @@ impl Sandbox {
         ];
         // Extraction observes prepared project artifacts through a read-only
         // overlay; only the separate preparation profile may run Lake builds.
-        if script == "project-atlas-extract.sh" {
+        if matches!(
+            script,
+            "project-atlas-extract.sh" | "project-search.sh" | "search.sh"
+        ) {
             bindings.push((sandbox.root.as_path(), "/workspace"));
         }
         if let Some(path) = sources.as_deref() {

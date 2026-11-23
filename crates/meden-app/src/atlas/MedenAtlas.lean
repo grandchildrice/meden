@@ -50,16 +50,13 @@ unsafe def main (args : List String) : IO UInt32 := do
     let row := row.setObjVal! "statement" (.str statement)
     let row := row.setObjVal! "value" value
     let ctx : PPContext := { env := env, opts := {} }
-    -- The host driver replaces this private pending value after independently
-    -- bounded checker execution. It is never published as a completed graph.
-    let checker ← ctx.runMetaM do
-      let proposition ← Lean.Meta.isProp ci.type
-      let predicate ← if proposition then pure false else
-        Lean.Meta.forallTelescope ci.type fun _ result => pure (result.isSort && result.sortLevel!.isZero)
-      let pending := Json.mkObj [("status", .str (if proposition || predicate then "pending" else "not_proposition")), ("candidates", .arr #[])]
-      pure <| if predicate then pending.setObjVal! "mode" (.str "predicate") else pending
+    let searchKind ← ctx.runMetaM do
+      if ← Lean.Meta.isProp ci.type then pure "proposition" else
+        Lean.Meta.forallTelescope ci.type fun _ result =>
+          pure (if result.isSort && result.sortLevel!.isZero then "predicate" else "value")
+    let row := row.setObjVal! "searchKind" (.str searchKind)
     IO.eprintln s!"Explaining {node.id}"
-    let semantic ← ctx.runMetaM <| MedenSemantic.describe ci checker
+    let semantic ← ctx.runMetaM <| MedenSemantic.describe ci
     IO.eprintln s!"Realizing English: {node.id}"
     let intermediate ← try
       let text ← ctx.runMetaM <| MedenInterchange.declaration ci

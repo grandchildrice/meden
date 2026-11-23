@@ -1,6 +1,6 @@
 //! Host-prepared Lake inputs; compilation and read-only extraction are distinct profiles.
 use super::{Configuration, Execution, Extraction};
-use anyhow::Result;
+use anyhow::{Context as _, Result};
 use meden_runtime::process::Control;
 use std::{collections::BTreeMap, path::Path, time::Duration};
 
@@ -15,6 +15,54 @@ pub(super) fn build_timeout() -> Result<Duration> {
 }
 
 impl Configuration {
+    pub fn run_search(
+        &self,
+        workspace: &Path,
+        snapshot: &crate::analysis::sources::Snapshot,
+        input: &[u8],
+        control: &Control,
+        timeout: Duration,
+    ) -> Result<String> {
+        let (lean, library) = self.selected()?;
+        let before = Self::validate(&lean, &library)?;
+        let prepared = snapshot
+            .collection
+            .as_ref()
+            .context("Missing original compilation bindings")?
+            .prepared
+            .as_ref();
+        let root = if prepared.is_some() {
+            workspace.to_path_buf()
+        } else {
+            self.frozen_modules(snapshot)?
+        };
+        let script = if prepared.is_some() {
+            "project-search.sh"
+        } else {
+            "search.sh"
+        };
+        let execution = Execution {
+            root: &root,
+            lean: &lean,
+            library: &library,
+            sources: None,
+            observer: self.observer.as_ref(),
+        };
+        let output = execution.observe_input(script, &[], control, timeout, input)?;
+        anyhow::ensure!(
+            matches!(output.termination,meden_runtime::process::Termination::Exited(status) if status.success()),
+            "Counterexample worker failed: {}",
+            output.stderr
+        );
+        anyhow::ensure!(
+            serde_json::to_vec(&before)? == serde_json::to_vec(&Self::validate(&lean, &library)?)?,
+            "Search resources changed during execution"
+        );
+        if prepared.is_none() {
+            self.frozen_modules(snapshot)?;
+        }
+        Ok(output.stdout)
+    }
     pub fn project(
         &self,
         workspace: &Path,

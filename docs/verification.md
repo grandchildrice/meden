@@ -2541,6 +2541,35 @@ The cloud trial is retained in
 
 ## Deterministic declaration explanations
 
+Compilation, bounded search and English realization now retain separate method
+and artifact identities. The compiler returns descriptions with no checker;
+the public source projection requires complete typed check observations for
+those descriptions. The search registration freezes its original schemas,
+configuration and compiled input, and rejects missing/foreign declarations,
+method drift, cancellation and observations from another invocation. Its
+result cannot construct a verification receipt.
+
+The actual Plausible worker receives a frozen seed (default 0), a per-declaration
+wall budget (10 seconds) and a file budget (120 seconds). Host settings are
+`MEDEN_SEARCH_SEED` (u32), `MEDEN_SEARCH_DECLARATION_SECONDS` (1–30) and
+`MEDEN_SEARCH_FILE_SECONDS` (1–600). These are trusted host settings, not model
+tools. Existing 64-instance, ten-retry, size-32 and Lean heartbeat limits remain.
+The host records exhausted/unavailable observations explicitly rather than
+converting them to a successful negative search.
+
+Frozen compiled modules retain exact file-byte and original source/resource
+bindings. The independently invoked search profile mounts them read-only and
+offline; changed bytes cannot enter search. Ordinary preparation rebuilds a
+corrupted retained artifact. Lake search checks the original compiled-input
+fingerprint again after execution. English readings depend only on the original
+compilation, and their overlay cannot replace the selected search report. Thus
+changing search settings does not rerun either compilation or GF, while a GF
+update does not rerun compilation or search. Public graphs bind both artifacts.
+The [validation record](../results/independent-search-20261124.json) retains
+installed-tool browser journeys, cache/port faults and the public TUI gate.
+These remain tested adapters and candidate observations, not new refinement,
+live-model or cold-install evidence.
+
 The compiler, structural English renderer, Informath interchange and Plausible
 search are application adapters/modules. Typed integration ports live in
 `meden-app`; the unused byte/format adapter primitive was removed from the core.

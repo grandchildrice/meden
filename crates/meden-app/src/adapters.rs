@@ -4,6 +4,7 @@ use meden_runtime::{process::Control, workspace::Workspace};
 pub mod informath;
 pub mod lake;
 pub mod lean;
+pub mod plausible;
 pub mod source;
 
 pub type Observer = std::sync::Arc<
@@ -36,6 +37,13 @@ pub fn compilers(
     }
     Ok((registry, selected))
 }
+pub fn searchers(
+    atlas: crate::atlas::Configuration,
+) -> anyhow::Result<(crate::search::Registry, &'static str)> {
+    let mut registry = crate::search::Registry::default();
+    registry.register(plausible::Plausible::new(atlas)?)?;
+    Ok((registry, "lean.plausible"))
+}
 
 fn compiler_definition(
     id: &str,
@@ -55,6 +63,7 @@ fn compiler_definition(
         include_bytes!("atlas/project.rs"),
         include_bytes!("atlas/lake.rs"),
         include_bytes!("atlas/graph.rs"),
+        include_bytes!("atlas/frozen.rs"),
     ]
     .concat();
     Ok(meden_runtime::plugin::Descriptor::new(

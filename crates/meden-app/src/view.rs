@@ -192,6 +192,12 @@ pub struct SourcePage {
 impl SourcePage {
     /// Project exact immutable inputs. This performs no compiler/model/file I/O.
     pub fn from_snapshot(snapshot: &Snapshot) -> Result<Self> {
+        Self::project(snapshot, true)
+    }
+    pub(crate) fn validate_compilation(snapshot: &Snapshot) -> Result<()> {
+        Self::project(snapshot, false).map(|_| ())
+    }
+    fn project(snapshot: &Snapshot, searched: bool) -> Result<Self> {
         let (graph, description) = if let Some(extraction) = &snapshot.atlas {
             let nodes = extraction
                 .graph
@@ -220,7 +226,14 @@ impl SourcePage {
                             .chain(&node.standard_axioms)
                             .cloned()
                             .collect(),
-                        semantic: node.semantic.clone(),
+                        semantic: if searched {
+                            node.semantic
+                                .clone()
+                                .map(crate::explanation::Description::complete)
+                                .transpose()?
+                        } else {
+                            None
+                        },
                     })
                 })
                 .collect::<Result<Vec<_>>>()?;
@@ -323,7 +336,10 @@ impl SourcePage {
                 anyhow::ensure!(
                     node.source.line.is_none_or(|line| line > 0
                         && usize::try_from(line).is_ok_and(|line| line <= *line_count))
-                        && node.semantic.as_ref().is_none_or(Explanation::valid),
+                        && node
+                            .semantic
+                            .as_ref()
+                            .is_none_or(Explanation::<crate::explanation::Check>::valid),
                     "Invalid graph source or explanation"
                 );
             }

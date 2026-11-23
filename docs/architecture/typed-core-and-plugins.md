@@ -117,7 +117,7 @@ and prepared-Lake implementations return typed snapshots directly, without a
 JSON/format-tag round trip. Model calls still use their actual consuming processor
 binding and retain the original preflight/postflight revocation checks.
 
-Compiler ports now return only compiler/search observations. They do not select
+Compiler ports now return only compiler observations. They do not select
 or load the external renderer. The shared application owns the next preparation
 step: immutable raw observations and renderer-specific readings have separate
 content-addressed caches. A renderer change can reuse an exactly validated raw
@@ -204,8 +204,33 @@ These are host adapter and application checks, not new extracted refinement or
 a sandbox for arbitrary native plugin code. The
 [model-port validation record](../../results/model-transport-bindings-20261123.json)
 records actual HTTP extension, public TUI/GUI and approved cloud-model checks.
-Separately dispatched counterexample-search bindings remain incomplete, as does
-persistent selection among verifiers sharing a format.
+Counterexample search now has its own typed request/result port and host registry.
+The original compiler artifact, search descriptor and complete per-declaration
+report are bound independently. A compiler result cannot supply a search verdict,
+and an incomplete description cannot become a published source explanation.
+Lean/Plausible retains compiled frozen modules by complete content/input identity;
+prepared Lake search uses the original selected inputs and checks their exact
+fingerprint again. Search workers see read-only compiled inputs and stay offline.
+
+Search and English readings are separate projections of the same compilation.
+A seed change executes search without recompiling or rerendering English; a
+renderer update executes neither compilation nor search. The resulting graph
+revision binds both artifacts. Missing, foreign, stale-method and changed-cache
+outputs are refused; corrupted retained modules are rebuilt through ordinary
+file preparation. The full-cache diagnostic flag requires every stage to reuse
+its result. Fixed-seed observations, unsupported inputs and exhausted budgets
+remain candidates/inconclusive data, never proof receipts. See the
+[search validation record](../../results/independent-search-20261124.json).
+Persistent selection among verifiers sharing a format remains incomplete.
+
+```mermaid
+flowchart LR
+  C[Compiled observation] --> S[Bound search report]
+  C --> R[Bound English readings]
+  S --> V[Prepared source view]
+  R --> V
+```
+
 The [binding validation record](../../results/compiler-renderer-bindings-20261123.json)
 names the actual installed-tool journeys and their limits.
 A completed host registry must describe supported operations/formats,
@@ -414,7 +439,8 @@ composition are covered. Verifier descriptors bind original method and schema
 configuration through those existing jobs. Compiler and meaning-renderer
 definitions now also bind dispatch and independent cache artifacts. Model/provider
 bindings and a registered HTTP extension use the unchanged consuming processor.
-Separate counterexample-search bindings, persistent selection among backends
+Counterexample-search bindings and independent caches now use the same original
+compiler observation. Persistent selection among backends
 sharing a format and step 5 remain open.
 They retain the existing local/offline execution, accepted intent, exact evidence linkage and
 separate local-deployment/R1 obligations in [assurance.md](../assurance.md) and

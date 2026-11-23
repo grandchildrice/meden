@@ -10,14 +10,16 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
+mod frozen;
 mod graph;
+pub use frozen::Modules;
 mod imports;
 pub mod lake;
 pub mod progress;
 mod project;
 mod resources;
 mod toolchain;
-pub use graph::Extraction;
+pub use graph::{Extraction, SearchKind};
 pub const UPSTREAM: &str = "06be1eb76fb926b8cf8bd42a4a51208d128c327d";
 
 #[derive(Clone)]
@@ -78,9 +80,14 @@ impl Configuration {
     }
     pub fn current_resources(&self) -> Result<String> {
         let (lean, library) = self.selected()?;
-        Ok(digest(&serde_json::to_vec(&Self::validate(
-            &lean, &library,
-        )?)?))
+        compiler_resources(&Self::validate(&lean, &library)?)
+    }
+    pub fn search_resources(&self) -> Result<String> {
+        let (lean, library) = self.selected()?;
+        Ok(digest(&serde_json::to_vec(&(
+            Self::validate(&lean, &library)?,
+            resources::identity(),
+        ))?))
     }
     pub fn build_timeout(&self) -> Result<Duration> {
         self.build_timeout.clone().map_err(anyhow::Error::msg)
@@ -182,7 +189,13 @@ impl Configuration {
     ) -> Result<Extraction> {
         let (lean, library) = self.selected()?;
         let before = Self::validate(&lean, &library)?;
-        let job = tempfile::tempdir()?;
+        let cache = self
+            .cache
+            .as_ref()
+            .context("Atlas host cache unavailable")?
+            .join("compiled-modules");
+        fs::create_dir_all(&cache)?;
+        let job = tempfile::tempdir_in(&cache)?;
         let frozen = tempfile::tempdir()?;
         let started = Instant::now();
         anyhow::ensure!(
@@ -230,8 +243,25 @@ impl Configuration {
                 .context("Atlas module is outside the frozen binding")?;
             node["filePath"] = binding.file.clone().into();
         }
-        Extraction::new(graph, files, &before)
+        let mut extraction = Extraction::new(graph, files, &before)?;
+        extraction.compiled_modules = Some(self.retain_modules(&job, files, bindings)?);
+        Ok(extraction)
     }
+}
+
+fn compiler_resources(manifest: &Manifest) -> Result<String> {
+    let files = manifest
+        .files
+        .iter()
+        .filter(|(name, _)| {
+            !name.starts_with("MedenSearch") && !name.starts_with("MedenPlausible/")
+        })
+        .collect::<BTreeMap<_, _>>();
+    Ok(digest(&serde_json::to_vec(&(
+        &manifest.engine_sha256,
+        files,
+        resources::compiler_identity(),
+    ))?))
 }
 
 fn compiled_files(root: &Path) -> Result<BTreeMap<String, String>> {
@@ -344,6 +374,16 @@ impl Execution<'_> {
         control: &Control,
         timeout: Duration,
     ) -> Result<process::Output> {
+        self.observe_input(script, args, control, timeout, b"")
+    }
+    fn observe_input(
+        &self,
+        script: &str,
+        args: &[String],
+        control: &Control,
+        timeout: Duration,
+        input: &[u8],
+    ) -> Result<process::Output> {
         let _timing = meden_runtime::metrics::Span::start(match script {
             "lake.sh" => "atlas.lake_configuration",
             "imports.sh" => "atlas.imports",
@@ -353,6 +393,7 @@ impl Execution<'_> {
             "project-atlas-prepare.sh" => "atlas.project.fingerprint",
             "project-atlas-extract.sh" => "atlas.project.extract",
             "compile.sh" => "atlas.compile",
+            "search.sh" | "project-search.sh" => "atlas.search",
             _ => "atlas.execute",
         });
         let mut command = analysis_command(self, script, args)?;
@@ -370,10 +411,13 @@ impl Execution<'_> {
         }
         let output = process::run_with_input_observed(
             &mut command,
-            b"",
+            input,
             &Limits {
                 timeout,
-                capture_bytes: if matches!(script, "extract.sh" | "project-atlas-extract.sh") {
+                capture_bytes: if matches!(
+                    script,
+                    "extract.sh" | "project-atlas-extract.sh" | "search.sh" | "project-search.sh"
+                ) {
                     8_388_608
                 } else {
                     32768

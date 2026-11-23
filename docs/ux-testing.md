@@ -135,6 +135,16 @@ late tool call and keep sending disabled until that response is released.
 Polling during that pending cancellation is allowed, while the completed
 command fences older reads so they cannot replace its final snapshot.
 
+The native search-settings journey changes a host-selected seed across restart:
+the actual Plausible result must carry the new seed while compilation and English
+rendering do not execute. Returning with the same seed reuses all three artifacts.
+Corrupting retained module bytes must recover through ordinary file opening and
+real recompilation before another search. The renderer-update journey checks the
+opposite direction: preserve the independent search artifact, run the real GF
+renderer and execute no compiler/search worker. Both preserve zero model requests
+and restart without restoring inference approval. These are installed-tool and
+adapter checks, not live-model, cold-install or new refinement evidence.
+
 1. Name the affected goal and observable outcome before editing. Use the README's
    public entry command and the intended starting state, including an empty
    configuration when changing onboarding.

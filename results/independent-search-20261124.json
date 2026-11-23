@@ -1,0 +1,192 @@
+{
+  "date": "2026-11-24",
+  "kind": "Independent consuming search registration, retained compiled modules and compiler/search/reading artifact DAG",
+  "source_base": "8a4d7b4",
+  "selected_source_changes": {
+    "apps/web/e2e/native.spec.ts": "764c87db29df2b1df0c941690ebdacd097a76f9f38204f96bc669100eac25414",
+    "crates/meden-app/src/adapters.rs": "ab5b5f082cb99f9321bab7f49e322a1b97177340964b6ea7c9acd3c28e3cd713",
+    "crates/meden-app/src/adapters/informath.rs": "7df00d629ec088753bd28819d2739ddbe22910323a0d23a0eddfb06bfaaa92eb",
+    "crates/meden-app/src/analysis.rs": "2d44ac8690115ab970c4f4376a9ed81a684545178dbca62cca2ec849eb8e77e1",
+    "crates/meden-app/src/atlas/MedenAtlas.lean": "baf7bbfc535aa6eb488e0d4e080c07283bbf8bf6c1a531e4bb38fc23fa51bf21",
+    "crates/meden-app/src/atlas/MedenSearch.lean": "baccaee823eb09358ae10be697ebbc43a083cc8c0c94f3565247028183df46bd",
+    "crates/meden-app/src/atlas/MedenSearchMain.lean": "4c6429947594b73e27c509e29de5b48ddaa340442c9935bfac27b66247cd40ed",
+    "crates/meden-app/src/atlas/MedenSemantic.lean": "c85767c7c2226929d4818107348ea06089f4ff820c0f0a78d684026a970a7b5f",
+    "crates/meden-app/src/atlas/extract.sh": "59daf5fe8a128a916b1e48b5b2e4d08255ec17896c5670a43002088a55b86d4e",
+    "crates/meden-app/src/atlas/graph.rs": "1efb44197f9762f7db65995eec0003c704b559efc3829c1455ed73300e288c40",
+    "crates/meden-app/src/atlas/mod.rs": "c0f2f0d9612e0181b01aa45f06f23f4e8c04361b5381d39d1c9d40e9672b0a74",
+    "crates/meden-app/src/atlas/observe-atlas.py": null,
+    "crates/meden-app/src/atlas/progress.rs": "5b51dd6d3df23d36d01c0f888120a5ec9d99cd1394c4715167b260ef1d4c7c47",
+    "crates/meden-app/src/atlas/project-atlas-extract.sh": "d2b83ec9efaf4b3802a40d2801f5efad9452293112f12f4d05e50daae954b782",
+    "crates/meden-app/src/atlas/project.rs": "13a22dcf4deb352b9076ba8f287cd440b94fae4bb87cec33576b121bbca4288c",
+    "crates/meden-app/src/atlas/resources.rs": "3afca1bed7ff364f83ff617a8a2d4135d0b452fd0083e975907baae3426fc355",
+    "crates/meden-app/src/compiler.rs": "c2efc23d024921aa5bb5fcfa120f1e672438f09d25d7f4a309de19469483dbc4",
+    "crates/meden-app/src/explanation.rs": "66b0eefd70a84afd2b1e343e9e63023f251fc2077be3ac1c448930d3f5e0399d",
+    "crates/meden-app/src/explanation/cache.rs": "65f8219274dac735f1c25967ab9ee3e7157ede01050d469234b9c02e21f0d01f",
+    "crates/meden-app/src/explanation/cache/tests.rs": "3ccb7dcd6f35cd5982622f6901c37237e8b5cb7a21f012d2c59ea0efcedd712f",
+    "crates/meden-app/src/lib.rs": "f602e2ca3731e8508f234d16b7b8c1358c7c84641148b7006291a6a0ef589395",
+    "crates/meden-app/src/view.rs": "7daa2cacc95bb72d8f90f845a7441207e460cb0990cef3d0dc11fbbbc4a5e216",
+    "crates/meden-runtime/src/sandbox.rs": "9f8937de2cf227f23f2212a61ae5764996dd035dc2424123213d4ace99764fb4",
+    "python/tests/test_deterministic_explanation.py": "b1b4c1dd30a41066aafb8db44c365dfb8396ff0c6b9a7771ae566c0d610cfed0",
+    "crates/meden-app/src/adapters/plausible.rs": "93da5409de5109ef1b24ef5b728dcc36da16a45be7d6608e799bb92df27d5b2a",
+    "crates/meden-app/src/atlas/frozen.rs": "37609bb326f5ab5d061be31c8ddac907949bb435b374750dc8d1a108f49e5b10",
+    "crates/meden-app/src/atlas/project-search.sh": "5bc38f3b4eb6298a0bd6ca426e641f8060b18ddfded3dc491a0b3694bd4c91ef",
+    "crates/meden-app/src/atlas/search-atlas.py": "5a6081ada474929dcdbb6eb401501aeebc7a9199b274036c271f36dc7b66a689",
+    "crates/meden-app/src/atlas/search.sh": "47d4a59377c5ccb38df2ad3e53489ab671747a74d0449c7ee1505cec70f163e0",
+    "crates/meden-app/src/search.rs": "a55e68d5a4d559ecfebb0a8df472a23df816ce7af28df5ce26bdea8204359ef4"
+  },
+  "binary": {
+    "path": "/home/gohan/workspace/meden/target/validation/8acd6ace9b2a4ed35eebea21e360d626f92441283650cab12b93307e62d0b72f/meden",
+    "sha256": "8acd6ace9b2a4ed35eebea21e360d626f92441283650cab12b93307e62d0b72f"
+  },
+  "removed": "The combined observe-atlas.py compiler/search driver is deleted. Compiler extraction no longer executes candidate search.",
+  "implementation": {
+    "port": "Search Registry freezes CounterexampleSearch role, both typed schemas and complete method configuration. Invocation owns the original compiler observation and source snapshot; postflight requires the original method/request, complete valid declaration coverage and active host control before returning an opaque completion.",
+    "raw_compilation": "Raw compiled descriptions carry no check. The compiler port refuses search results; a public source explanation requires a complete check. Frozen modules are retained by complete source/binding/resource/file-byte identity with bounded regular-file-only traversal. Missing/changed retained bytes force real recompilation through ordinary preparation; invalid cached modules are replaced from that fresh result. Traversal is iterative and bounded to 8192 total entries, 256 files and 512 MiB; root/internal links are refused.",
+    "artifacts": {
+      "compiler": "Original descriptor and immutable unsearched snapshot, including retained frozen module identity or original prepared-Lake fingerprint.",
+      "search": "Original compiler observation ID, original search descriptor and complete typed per-declaration checks.",
+      "reading": "Original compiler observation ID, original renderer descriptor and only sentence/renderer/error overlays. Search results are not renderer inputs.",
+      "publication": "The graph revision binds the selected search and reading artifacts. A reading overlay cannot replace the newly selected check. Cache hit diagnostics require compilation, search and reading reuse."
+    },
+    "execution": "Frozen search and prepared-Lake search use separate fixed read-only offline profiles. Declared sources/metadata and original resources are rechecked. Prepared Lake inputs are fingerprinted again after search. The actual Plausible algorithm retains fixed sampling/heartbeat parameters; seed and wall limits are captured once from trusted host settings.",
+    "settings": {
+      "seed": {
+        "default": 0,
+        "max": 4294967295,
+        "environment": "MEDEN_SEARCH_SEED"
+      },
+      "declaration_seconds": {
+        "default": 10,
+        "min": 1,
+        "max": 30,
+        "environment": "MEDEN_SEARCH_DECLARATION_SECONDS"
+      },
+      "file_seconds": {
+        "default": 120,
+        "min": 1,
+        "max": 600,
+        "environment": "MEDEN_SEARCH_FILE_SECONDS"
+      },
+      "instances": 64,
+      "retries": 10,
+      "max_size": 32,
+      "heartbeats": 10000,
+      "instance_heartbeats": 2000
+    }
+  },
+  "checks": {
+    "rust": {
+      "passed": 276,
+      "failed": 0,
+      "ignored": 0,
+      "warning_free_clippy": true
+    },
+    "typescript": {
+      "tests": 32,
+      "typecheck": true,
+      "source_schema": true,
+      "architecture": true,
+      "format": true
+    },
+    "required_tui": {
+      "passed": 34,
+      "skipped": 0,
+      "summary_sha256": "9bb0dbcc0c981de4cf10df50a2df7251d1aa91f27a465f09dbadfd1440c33e14",
+      "screens_inspected": [
+        "Actual Lake source-inventory failure and historical restart",
+        "Meaning cancellation/provider failure with preserved historical assessment",
+        "HTTP 429 stop, restart review and explicit retry"
+      ]
+    },
+    "actual_lean_failure_isolation": {
+      "passed": 1,
+      "path": "python/tests/test_deterministic_explanation.py",
+      "scope": "Actual Lean/Plausible compiler-budget failure preserves English and permits a later normal observation; direct installed-tool test, not a confinement or proof claim."
+    },
+    "actual_browser": {
+      "passed": 5,
+      "report": "target/gui-checks/search-complete-report",
+      "scenarios": [
+        "Seed 0 to 19 reuses compilation and English; only actual search executes, then a complete same-seed cache survives restart",
+        "Corrupted retained module bytes recover through ordinary file opening, real recompilation and seed-20 search",
+        "Actual GF resource update preserves the search artifact and executes no compiler/search worker; actual invalid source fails and Retry recovers",
+        "Real prepared 35-module Lake build, exact dependency/source/configuration changes, failure/retry and restart",
+        "Actual compiled English/Plausible candidates, assumptions, predicates, non-propositions and unsupported/budget outcomes in a large inventory",
+        "Prepared file/map tabs retain source, graph and camera without more inspections"
+      ]
+    },
+    "faults": [
+      "Unknown/duplicate search registration and wrong role/input schema refused",
+      "Original input and method cannot be substituted after dispatch",
+      "Cancellation before or after a call refuses completion",
+      "Missing/foreign checks and raw unsearched publication refused",
+      "Search and rendering cache partitioning, changed report bytes and colliding indices refused",
+      "Reading reuse preserves the newly selected search seed and witness",
+      "Changed compiled bytes, root/internal symlinks and excessive empty-directory inventories are refused"
+    ],
+    "initial_failure": "The structural renderer fallback initially advertised its old input schema. The actual no-GF public Lake TUI journey rejected it; its descriptor now derives the implementation associated type, and the unchanged public journey passes.",
+    "actual_toolchain_preparation": {
+      "riemann": {
+        "version": "4.33.1",
+        "prepared": true,
+        "log": "/tmp/meden-search-lean433.log"
+      },
+      "ethlib": {
+        "version": "4.36.0",
+        "prepared": true,
+        "log": "/tmp/meden-search-lean436.log"
+      },
+      "scope": "Public setup-atlas against both installed project toolchains. Actual library preparation only, not a complete fresh project analysis or cold installation."
+    }
+  },
+  "deployment": {
+    "binary_sha256": "8acd6ace9b2a4ed35eebea21e360d626f92441283650cab12b93307e62d0b72f",
+    "assets_sha256": "27d32ec1ba05a78d4ddacfeb7aab9410b7cfbaf0f9848deafe6be3e3b1049aa0",
+    "workspaces": {
+      "riemann": {
+        "authorized": false,
+        "running": false,
+        "files": 175187,
+        "areas": 7
+      },
+      "ethlib": {
+        "authorized": false,
+        "running": false,
+        "files": 2517,
+        "areas": 20
+      }
+    },
+    "scope": "Idle unapproved existing hosts only; actual rendered map areas checked after startup, no inference grant restored. Frontend assets are unchanged."
+  },
+  "artifacts": {
+    "/tmp/meden-ux-search-complete-20261124/summary.json": "9bb0dbcc0c981de4cf10df50a2df7251d1aa91f27a465f09dbadfd1440c33e14",
+    "/tmp/meden-search-complete-workspace.log": "e33d770728f33e5cce23de710c45c8c009fa0bafbcb6ea7e9984a9c630634938",
+    "/tmp/meden-search-tree-clippy-final.log": "c4c2e3615e9cbf0cac62b314b69778c209b0318011f8654061ca5cd934e083de",
+    "/tmp/meden-search-complete-gui.log": "1964dc818fa239d7539c258851454a0231ae14bd04d9477f1466085e8d9fe844",
+    "/tmp/meden-search-failure-isolation.log": "94bc99ed9eaf257f88143061b725619fa49eecc49e87e3f7e286013a5587a20e",
+    "/tmp/meden-search-final-typecheck.log": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f",
+    "/tmp/meden-search-final-schema.log": "e06c327ea9e36bf111930bbe9c5469991ae97ba3016e333154ebcfb79cec6f3c",
+    "/tmp/meden-search-final-architecture.log": "cd20160a0538ae0f09011db38b56f222a1eb46cd23af995d108c49f35266aebc",
+    "/tmp/meden-search-final-ts-tests.log": "ffed74bcd4f804fafb39cd840a5eac865d8f23dc0e7a4ba5dc1dbe6890fb824c",
+    "/tmp/meden-search-complete-format.log": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c",
+    "/tmp/meden-search-lean433.log": "e305d2754a1dd3f8195b1832960a526bbb4c71be1cb1fd1db917b92c9cc5473b",
+    "/tmp/meden-search-lean436.log": "e305d2754a1dd3f8195b1832960a526bbb4c71be1cb1fd1db917b92c9cc5473b",
+    "target/gui-checks/search-seed-update.png": "41aa5108eca60458c26be03b28b997e44f49513c17e7c63bb70235689de1d708",
+    "target/gui-checks/renderer-update-reused-observation.png": "bf1845d9d43161c5b48339d5bbfc33e47085e971349aa9ae5666add8cda6925f",
+    "target/gui-checks/renderer-cache-source-failure.png": "bbcb06ef80cd4d04047aa935fc8da6298fa0e48df18be905b2e927031cb35a3b",
+    "target/gui-checks/search-deployed-riemann.png": "c976dd4866c0c61c7b45fc6c88a4c657cba2fb888fce7ab7a54426fe31d8baad",
+    "target/gui-checks/search-deployed-ethlib.png": "dcfd394dfd871f6b7e7f871240d06208acc06864aa04d6db69a5f24d9224a143"
+  },
+  "limits": [
+    "No authority-kernel transition or new extracted refinement; registry/cache/resource checks remain tested host adapters.",
+    "Search outcomes are candidates or explicitly inconclusive data, never accepted-contract evidence or a proof of no counterexample.",
+    "Frozen input and resource checks do not prove arbitrary host/filesystem mutation semantics. Native registrations are trusted host code.",
+    "These journeys execute installed Lean/Lake/Plausible/GF; model replies in the required gate are scripted. This turn makes no new live-model, cold-install, local-large-model or complete R1 claim."
+  ],
+  "remaining": [
+    "Persistent selection among verifiers sharing a format",
+    "Generic inventory/job/evidence DTOs, remaining generated native wire definitions and explicit unsupported/binary source states",
+    "Persisted versioned deterministic layout and remaining legacy/demo retirement",
+    "Further measured reduction of exact-input preparation and first-selection latency"
+  ]
+}

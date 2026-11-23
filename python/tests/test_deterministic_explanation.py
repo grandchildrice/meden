@@ -66,8 +66,9 @@ unsafe def main : IO Unit := do
   for options in [({} : Options).set `maxHeartbeats (1 : Nat), {}] do
     let context : PPContext := {env, opts := options}
     let ci := (env.find? `broken).get!
-    let checker ← context.runMetaM <| MedenSearch.analyze ci #[`Fixture]
-    let result ← context.runMetaM <| MedenSemantic.describe ci checker
+    let checker ← context.runMetaM <| MedenSearch.analyze ci #[`Fixture] 0
+    let description ← context.runMetaM <| MedenSemantic.describe ci
+    let result := description.setObjVal! "checker" checker
     IO.println result.compress
 """)
     failed, next_node = map(json.loads, run("--run", "Run.lean").splitlines())

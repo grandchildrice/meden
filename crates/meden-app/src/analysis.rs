@@ -147,6 +147,11 @@ pub fn extract_cached(
         crate::explanation::cache::retain_observation(workspace, snapshot)
             .map_err(std::io::Error::other)
     })?;
+    let (searchers, selected) = crate::adapters::searchers(
+        crate::atlas::Configuration::host(workspace.path()).with_observer(context.observer.clone()),
+    )?;
+    let original =
+        crate::explanation::cache::search(&context, original, &searchers.select(selected)?)?;
     if let Some(observer) = &context.observer {
         observer("Preparing explanations", std::time::Duration::ZERO, None);
     }
@@ -155,7 +160,7 @@ pub fn extract_cached(
         crate::explanation::cache::rendering(workspace, &original, renderer.definition())?
     {
         renderer.validate()?;
-        return Ok((control.with_active(|| Ok(snapshot))?, true));
+        return Ok((control.with_active(|| Ok(snapshot))?, original.reused()));
     }
     let mut snapshot = original.snapshot().clone();
     renderer.enrich(

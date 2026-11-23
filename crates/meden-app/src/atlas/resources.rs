@@ -99,7 +99,9 @@ const SCRIPTS: &[(&str, &str)] = &[
     ),
     ("LEAN-ATLAS-LICENSE", include_str!("vendor/LICENSE")),
     ("project-atlas.py", include_str!("project-atlas.py")),
-    ("observe-atlas.py", include_str!("observe-atlas.py")),
+    ("search-atlas.py", include_str!("search-atlas.py")),
+    ("search.sh", include_str!("search.sh")),
+    ("project-search.sh", include_str!("project-search.sh")),
     (
         "project-atlas-prepare.sh",
         include_str!("project-atlas-prepare.sh"),
@@ -120,6 +122,18 @@ pub(super) fn modules() -> Vec<String> {
 pub(super) fn identity() -> String {
     let mut hash = Sha256::new();
     for (name, source) in SOURCES.iter().chain(SCRIPTS) {
+        hash.update(name);
+        hash.update(source);
+    }
+    format!("{:x}", hash.finalize())
+}
+pub(super) fn compiler_identity() -> String {
+    let mut hash = Sha256::new();
+    for (name, source) in SOURCES.iter().chain(SCRIPTS).filter(|(name, _)| {
+        !name.starts_with("MedenSearch")
+            && !name.starts_with("MedenPlausible/")
+            && !name.contains("search")
+    }) {
         hash.update(name);
         hash.update(source);
     }
