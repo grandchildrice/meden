@@ -145,6 +145,16 @@ busy/idle updates. Prepared compilation batches the ordinary root build and
 source/output/compiler-setup queries in one Lake build state, while preserving
 the exact complete-input fingerprint and original resource checks.
 
+Prepared-input fingerprint version 2 reads every byte with four bounded readers,
+then aggregates per-file SHA-256 values in canonical path order. Its framing
+binds all compiler setup records, path names, lengths and file counts; scheduling
+and filesystem timestamps do not enter the identity. At most 256 read jobs are
+queued, with 1 MiB chunks per reader. Descriptor checks reject observed file
+replacement, mutation and short reads. The host resource identity includes this
+implementation, so old fingerprints are not relabeled as new observations.
+This is tested I/O behavior under the existing worker limits, not an extracted
+filesystem or concurrent-snapshot proof.
+
 This is the first application extraction, not the complete multi-backend registry.
 Compiler snapshots remain Lean-oriented internally. Native source pages now use
 the generic application projection described below. Complete role-wide

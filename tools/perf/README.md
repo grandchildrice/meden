@@ -50,6 +50,16 @@ build/setup/input resolution from the exact file/byte validation duration.
 A cached open must still validate all bytes; compare a new compiler/resource
 artifact's initial extraction/search fill separately from subsequent cache hits.
 
+Fingerprint version 2 hashes each complete file with four readers and at most
+256 queued jobs, then combines the content digests in sorted path order with the
+original setup records and exact names/lengths/counts. It retains the same file
+and byte limits. Metadata checks detect ordinary concurrent changes; they do not
+replace byte reads or provide a concurrent-snapshot proof. Worker conformance
+tests cover reordered completion, multiple batches, empty/multi-chunk files,
+same-size edits with restored timestamps, replacement, symlinks and byte limits.
+Changing the fingerprint implementation invalidates old compiler/search cache
+identities; measure the initial fill separately from subsequent prepared opens.
+
 `npm run test:fuzz` generates 3000 bounded inventories and camera traces, including
 empty maps, deep categories, tiny panes, extreme zooms and cyclic references.
 It compares visibility and center breadcrumbs to independent full-scan

@@ -2,16 +2,88 @@
 
 import hashlib
 import json
+import os
 import pathlib
 import stat
 import subprocess
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing
 
 # Lake prints one JSON result per requested facet, in request order. Bound each
 # record before decoding; a protocol error or nonzero exit admits no fingerprint.
 RESULT_BYTES = 64 * 1024**2
+MAX_INPUT_BYTES = 512 * 1024**3
+HASH_WORKERS = 4
+HASH_BATCH = 256
+FINGERPRINT_DOMAIN = b"meden.prepared-inputs.v2\0"
+
+
+def stamp(status):
+    # Metadata detects ordinary concurrent replacement/mutation; it never
+    # substitutes for reading and hashing every byte or enters the identity.
+    return (
+        status.st_dev,
+        status.st_ino,
+        status.st_size,
+        status.st_mtime_ns,
+        status.st_ctime_ns,
+    )
+
+
+def file_hash(record):
+    path, expected = record
+    flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK
+    with os.fdopen(os.open(path, flags), "rb") as source:
+        before = os.fstat(source.fileno())
+        if not stat.S_ISREG(before.st_mode) or stamp(before) != stamp(expected):
+            raise RuntimeError("Prepared compiler input changed before validation")
+        digest = hashlib.sha256()
+        size = 0
+        while data := source.read(1024 * 1024):
+            size += len(data)
+            if size > before.st_size:
+                raise RuntimeError("Prepared compiler input grew during validation")
+            digest.update(data)
+        if size != before.st_size or stamp(os.fstat(source.fileno())) != stamp(before):
+            raise RuntimeError("Prepared compiler input changed during validation")
+    return path, size, digest.digest()
+
+
+def hash_inputs(root, paths, digest):
+    ordered = sorted(paths)
+    digest.update(len(ordered).to_bytes(8, "big"))
+    size = 0
+    # map preserves input order. Bound queued jobs too: Python 3.11 map would
+    # otherwise eagerly submit up to 1,250,000 futures. Only four readers and
+    # their 1 MiB chunks run at once; results retain just one SHA-256 per file.
+    with ThreadPoolExecutor(max_workers=HASH_WORKERS) as pool:
+        for start in range(0, len(ordered), HASH_BATCH):
+            records = []
+            for path in ordered[start : start + HASH_BATCH]:
+                status = path.lstat()
+                if not stat.S_ISREG(status.st_mode):
+                    raise RuntimeError("Prepared compiler input is not a regular file")
+                size += status.st_size
+                if size > MAX_INPUT_BYTES:
+                    raise RuntimeError("Prepared compiler inputs exceed 512 GiB")
+                records.append((path, status))
+            for index, (path, length, content) in enumerate(
+                pool.map(file_hash, records), start
+            ):
+                if index and index % 5000 == 0:
+                    print(
+                        f"Validated {index}/{len(ordered)} files",
+                        file=sys.stderr,
+                        flush=True,
+                    )
+                name = str(path.relative_to(root)).encode()
+                digest.update(len(name).to_bytes(8, "big"))
+                digest.update(name)
+                digest.update(length.to_bytes(8, "big"))
+                digest.update(content)
+    return size
 
 
 def query(lake, bindings):
@@ -72,7 +144,7 @@ def fingerprint(root, lake, bindings, mode):
 
     started = time.monotonic()
     paths = set()
-    digest = hashlib.sha256()
+    digest = hashlib.sha256(FINGERPRINT_DOMAIN + len(bindings).to_bytes(8, "big"))
     # The anonymous target preserves `lake build +Module`. Lake's one shared
     # build state also resolves sources and the actual compiler setup;
     # no separate build, setup-file or per-root query repeats dependency work.
@@ -123,21 +195,7 @@ def fingerprint(root, lake, bindings, mode):
         raise RuntimeError("Prepared compiler inputs exceed 1250000 files")
     print(f"Validating {len(paths)} compiled input files…", file=sys.stderr, flush=True)
     started = time.monotonic()
-    size = 0
-    for index, path in enumerate(sorted(paths)):
-        if index and index % 5000 == 0:
-            print(f"Validated {index}/{len(paths)} files", file=sys.stderr, flush=True)
-        name = str(path.relative_to(root)).encode()
-        digest.update(len(name).to_bytes(8, "big"))
-        digest.update(name)
-        length = path.stat().st_size
-        size += length
-        if size > 512 * 1024**3:
-            raise RuntimeError("Prepared compiler inputs exceed 512 GiB")
-        digest.update(length.to_bytes(8, "big"))
-        with path.open("rb") as source:
-            while data := source.read(1024 * 1024):
-                digest.update(data)
+    size = hash_inputs(root, paths, digest)
     print(
         f"Validated {len(paths)} files / {size} bytes in {time.monotonic() - started:.3f}s.",
         file=sys.stderr,

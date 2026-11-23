@@ -5,6 +5,8 @@ import importlib.util
 import json
 import os
 import sys
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import pytest
@@ -76,7 +78,7 @@ def test_one_shared_query_builds_roots_and_hashes_all_bytes_and_setup(worker, in
     bindings.append({"name": "C", "file": "C.lean"})
     executable, calls = lake(tmp_path, encode(rows))
     result = worker.fingerprint(root, executable, bindings, "prepare")
-    expected = hashlib.sha256()
+    expected = hashlib.sha256(b"meden.prepared-inputs.v2\0" + (2).to_bytes(8, "big"))
     for setup in [rows[2], setup_c]:
         data = json.dumps(setup, sort_keys=True, separators=(",", ":")).encode()
         expected.update(len(data).to_bytes(8, "big"))
@@ -92,13 +94,14 @@ def test_one_shared_query_builds_roots_and_hashes_all_bytes_and_setup(worker, in
             "output/C.olean",
         ]
     ]
+    expected.update(len(files).to_bytes(8, "big"))
     size = 0
     for path in sorted(files):
         name, data = str(path.relative_to(root)).encode(), path.read_bytes()
         expected.update(len(name).to_bytes(8, "big"))
         expected.update(name)
         expected.update(len(data).to_bytes(8, "big"))
-        expected.update(data)
+        expected.update(hashlib.sha256(data).digest())
         size += len(data)
     assert result == {"fingerprint": expected.hexdigest(), "files": 6, "bytes": size}
     assert [json.loads(line) for line in calls.read_text().splitlines()] == [
@@ -190,4 +193,123 @@ def test_original_identity_and_complete_canonical_inputs_remain_required(
             rows[2]["importArts"]["B"] = [[str(outside)]]
     executable, _ = lake(tmp_path, encode(rows))
     with pytest.raises((RuntimeError, FileNotFoundError)):
+        worker.fingerprint(root, executable, bindings, "prepare")
+
+
+def test_parallel_completion_and_batch_boundaries_preserve_exact_order(
+    worker, tmp_path, monkeypatch
+):
+    # More than one bounded batch, Unicode names, empty files and a multi-chunk
+    # file. Build the reference from original bytes, independently of worker I/O.
+    originals = {}
+    for index in range(260):
+        path = tmp_path / f"input-{index:04d}-λ.olean"
+        content = bytes([index % 256]) * (index * 257 % 8193)
+        if index == 0:
+            content = b"\0\xff" * (1024**2 + 17)
+        path.write_bytes(content)
+        originals[path] = content
+    expected = hashlib.sha256(len(originals).to_bytes(8, "big"))
+    for path, content in sorted(originals.items()):
+        name = path.name.encode()
+        expected.update(len(name).to_bytes(8, "big") + name)
+        expected.update(len(content).to_bytes(8, "big") + hashlib.sha256(content).digest())
+
+    def observe():
+        digest = hashlib.sha256()
+        size = worker.hash_inputs(tmp_path, reversed(originals), digest)
+        assert size == sum(map(len, originals.values()))
+        assert digest.digest() == expected.digest()
+
+    monkeypatch.setattr(worker, "HASH_WORKERS", 1)
+    observe()
+    monkeypatch.setattr(worker, "HASH_WORKERS", 4)
+    original_hash = worker.file_hash
+    second_finished = threading.Event()
+    first, second, *_ = sorted(originals)
+
+    def reordered(record):
+        if record[0] == first:
+            assert second_finished.wait(5), "Independent reads did not run concurrently"
+        result = original_hash(record)
+        if record[0] == second:
+            second_finished.set()
+        return result
+
+    monkeypatch.setattr(worker, "file_hash", reordered)
+    observe()
+
+
+@pytest.mark.parametrize("change", ["edit", "truncate", "grow"])
+def test_concurrent_file_changes_are_refused_even_if_timestamp_is_restored(
+    worker, tmp_path, monkeypatch, change
+):
+    path = tmp_path / "input.olean"
+    path.write_bytes(b"A" * (2 * 1024**2 + 1))
+    before = path.stat()
+    started, resume = threading.Event(), threading.Event()
+    original_hash = hashlib.sha256
+
+    class HeldHash:
+        def __init__(self):
+            self.digestor = original_hash()
+
+        def update(self, data):
+            self.digestor.update(data)
+            if not started.is_set():
+                started.set()
+                assert resume.wait(5)
+
+        def digest(self):
+            return self.digestor.digest()
+
+    monkeypatch.setattr(worker.hashlib, "sha256", HeldHash)
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        result = pool.submit(worker.file_hash, (path, before))
+        try:
+            assert started.wait(5)
+            with path.open("r+b") as source:
+                if change == "edit":
+                    source.seek(1024**2)
+                    source.write(b"B")
+                elif change == "truncate":
+                    source.truncate(1024**2)
+                else:
+                    source.seek(0, os.SEEK_END)
+                    source.write(b"B")
+            os.utime(path, ns=(before.st_atime_ns, before.st_mtime_ns))
+        finally:
+            resume.set()
+        with pytest.raises(RuntimeError, match="during validation"):
+            result.result(timeout=5)
+
+
+@pytest.mark.parametrize("change", ["replace", "symlink", "directory"])
+def test_changed_prepared_path_cannot_be_admitted(worker, tmp_path, change):
+    path = tmp_path / "input.olean"
+    path.write_bytes(b"INPUT")
+    original = path.stat()
+    if change == "replace":
+        replacement = tmp_path / "replacement.olean"
+        replacement.write_bytes(b"OTHER")
+        os.utime(replacement, ns=(original.st_atime_ns, original.st_mtime_ns))
+        replacement.replace(path)
+    elif change == "symlink":
+        path.unlink()
+        target = tmp_path / "target.olean"
+        target.write_bytes(b"INPUT")
+        path.symlink_to(target)
+    else:
+        path.unlink()
+        path.mkdir()
+    with pytest.raises((OSError, RuntimeError)):
+        worker.file_hash((path, original))
+
+
+def test_byte_limit_is_checked_before_scheduling_reads(worker, inputs, tmp_path, monkeypatch):
+    root, bindings, rows = inputs
+    executable, _ = lake(tmp_path, encode(rows))
+    monkeypatch.setattr(worker, "MAX_INPUT_BYTES", 1)
+    monkeypatch.setattr(worker, "file_hash", lambda _: pytest.fail("Read past the byte budget"))
+    with pytest.raises(RuntimeError, match="exceed 512 GiB"):
         worker.fingerprint(root, executable, bindings, "prepare")

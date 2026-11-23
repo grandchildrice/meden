@@ -1,8 +1,60 @@
 # Graph interaction measurements
 
-## Latest deployed event measurements (November 24)
+## Bounded parallel input validation (November 24)
 
-Two sequential captures of the current pinned Riemann GUI separate Fit View,
+The deployed worker now validates complete compiler inputs with four readers
+and at most 256 queued jobs. It hashes every file's bytes, then combines those
+digests in canonical path order with exact names, lengths, file counts and the
+original compiler setup records. Version 2 has an explicit domain and is part of
+the compiler resource identity; old fingerprints are not reused under a new
+method. The previous serial aggregate loop is removed. No file/timestamp-only
+shortcut replaces byte validation, and the actual Lake build/query still runs.
+
+The [validation record](../results/parallel-input-validation-20261124.json)
+compares two prepared-cache captures before and after deployment on the same
+175,187-file Riemann workspace and 15-declaration file. Chrome 149 used normal
+motion at 1440 × 960 without throttling. All seven served JavaScript bundles
+remain byte-identical; only the native executable changed. Validation finished
+before the repeated warm captures.
+
+| Stage                                 | Before, runs 1 / 2 | After, runs 1 / 2 |
+| ------------------------------------- | -----------------: | ----------------: |
+| Explorer open to prepared view        |  15.764 / 15.792 s | 13.428 / 14.596 s |
+| Prepared-input build/query/validation |  10.040 / 10.005 s |   7.810 / 8.420 s |
+| Complete-byte validation              |    4.514 / 4.509 s |   2.428 / 2.536 s |
+
+Both new captures read exactly **43,477 files / 5,992,114,707 bytes** and reuse
+compilation, search and English readings. No compiler, search worker or renderer
+executes on these warm opens. Lake resolution still takes 4.725 / 5.243 seconds.
+Nested native intervals overlap and cannot be added. The observed complete-byte
+stage is 44–46% shorter, while file opening improves by 1.2–2.3 seconds. OS cache
+and scheduling conditions vary; these repeated diagnostics do not establish a
+universal improvement or change the meaning of the two-rAF proxy.
+
+A separate host-only comparison uses the same actual offline Lake setup and
+all input bytes, excluding the Lake query/build. Three alternating repetitions
+measure a median 8.720 seconds for the old implementation and 6.621 seconds for
+the new one. The new implementation with one reader takes 9.997 seconds; one
+and four readers produce the same v2 identity. This is separate from the actual
+confined-worker and browser measurements. The new resource/fingerprint identity
+also requires an initial cache fill, observed separately at 178.744 seconds;
+installed dependencies remain present, so this is not a cold-install comparison.
+The bounded initial search still takes about 121 seconds.
+
+Twenty-three worker tests cover independent framing/content expectations,
+forced out-of-order completion, multiple batches, empty/multi-chunk inputs,
+timestamp-restored edits, observed mid-read changes, replacements, links and
+limits. The actual 35-module Lake journey covers dependency edits, build failure,
+retry and restart. All 34 required public TUI journeys and 276 Rust tests passed,
+as did warning-free Clippy and architecture checks. Normal/reduced-motion
+retained-tab p95 is 33.0 / 29.7 ms against the 250 ms scenario budget, with no new
+inspection. Actual browser screenshots and decoded TUI failure/restart screens
+were inspected. These checks concern adapters and named workloads; they add no
+new refinement, inference-quality or confidentiality claim.
+
+## Event baseline before parallel validation (November 24)
+
+Two sequential captures of the preceding pinned Riemann GUI separate Fit View,
 initial/repeated selection, and switching between two different declarations.
 The [measurement record](../results/event-latency-20261124.json) contains
 per-event distributions, native stages and raw-artifact digests. Chrome 149 used

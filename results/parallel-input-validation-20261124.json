@@ -1,0 +1,1037 @@
+{
+  "date": "2026-11-24",
+  "base_revision": "18827e0",
+  "change": "Bounded four-reader complete-input validation with deterministic v2 framing; old serial aggregate implementation removed.",
+  "fingerprint": {
+    "domain": "meden.prepared-inputs.v2",
+    "workers": 4,
+    "maximum_queued_jobs": 256,
+    "chunk_bytes": 1048576,
+    "maximum_files": 1250000,
+    "maximum_bytes": 549755813888,
+    "bindings": "Original compiler setup records in binding order, followed by file count and canonical path/length/per-file SHA-256 records. File digests always read complete contents; timestamps and scheduling do not determine identity.",
+    "mutation_checks": "Original lstat/opened-descriptor metadata, regular-file and NOFOLLOW checks, exact read length and final descriptor metadata; ordinary observed changes fail without a fingerprint. This is not a concurrent-snapshot or extracted filesystem proof."
+  },
+  "source_sha256": "82657e055cc6f37e1b0bfd4f38a755ab318d238018d0d313f76b77516b3d6361",
+  "baseline": {
+    "record": "results/event-latency-20261124.json",
+    "sha256": "309260ba3e8cd3c89f7b44a5fb38213283720f70fcdd4b3c44dce578f98ff4da",
+    "binary_sha256": "8acd6ace9b2a4ed35eebea21e360d626f92441283650cab12b93307e62d0b72f",
+    "prepared_opens_ms": [
+      15764.283882999998,
+      15792.250700999999
+    ],
+    "validation": [
+      [
+        {
+          "files": 43477,
+          "bytes": 5992114707,
+          "seconds": 4.514
+        }
+      ],
+      [
+        {
+          "files": 43477,
+          "bytes": 5992114707,
+          "seconds": 4.509
+        }
+      ]
+    ],
+    "prepared_stage_ms": [
+      10040.289,
+      10004.706
+    ],
+    "assets_sha256": "27d32ec1ba05a78d4ddacfeb7aab9410b7cfbaf0f9848deafe6be3e3b1049aa0"
+  },
+  "deployment": {
+    "binary_sha256": "5a63c58b857ef096585d6b5a80098611da96c7a83404be4195306a2ead169d4f",
+    "assets_sha256": "27d32ec1ba05a78d4ddacfeb7aab9410b7cfbaf0f9848deafe6be3e3b1049aa0",
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/5a63c58b857ef096585d6b5a80098611da96c7a83404be4195306a2ead169d4f-27d32ec1ba05a78d"
+  },
+  "host_diagnostic": {
+    "scope": "Host-only hash/resolve diagnostic using actual offline Lake setup output and all exact input bytes; query/build is not timed. Different fingerprint formats are expected between original and new implementations.",
+    "results": [
+      {
+        "iteration": 0,
+        "variant": "old",
+        "seconds": 8.711078355030622,
+        "fingerprint": "066a25b98f2d024f7ab5f7f044b22b4c1f1c52231246b174348991d861485ac8",
+        "files": 43477,
+        "bytes": 5992114707
+      },
+      {
+        "iteration": 0,
+        "variant": "new1",
+        "seconds": 9.824714577000123,
+        "fingerprint": "4de50aa26a6c9fb6c2d599f859b2bcfbe35fd0df4c5a4cd92d9745bd8d1fbbff",
+        "files": 43477,
+        "bytes": 5992114707
+      },
+      {
+        "iteration": 0,
+        "variant": "new4",
+        "seconds": 6.613783516979311,
+        "fingerprint": "4de50aa26a6c9fb6c2d599f859b2bcfbe35fd0df4c5a4cd92d9745bd8d1fbbff",
+        "files": 43477,
+        "bytes": 5992114707
+      },
+      {
+        "iteration": 1,
+        "variant": "new4",
+        "seconds": 6.620943768008146,
+        "fingerprint": "4de50aa26a6c9fb6c2d599f859b2bcfbe35fd0df4c5a4cd92d9745bd8d1fbbff",
+        "files": 43477,
+        "bytes": 5992114707
+      },
+      {
+        "iteration": 1,
+        "variant": "new1",
+        "seconds": 9.99662193300901,
+        "fingerprint": "4de50aa26a6c9fb6c2d599f859b2bcfbe35fd0df4c5a4cd92d9745bd8d1fbbff",
+        "files": 43477,
+        "bytes": 5992114707
+      },
+      {
+        "iteration": 1,
+        "variant": "old",
+        "seconds": 8.739171337976586,
+        "fingerprint": "066a25b98f2d024f7ab5f7f044b22b4c1f1c52231246b174348991d861485ac8",
+        "files": 43477,
+        "bytes": 5992114707
+      },
+      {
+        "iteration": 2,
+        "variant": "old",
+        "seconds": 8.720482298987918,
+        "fingerprint": "066a25b98f2d024f7ab5f7f044b22b4c1f1c52231246b174348991d861485ac8",
+        "files": 43477,
+        "bytes": 5992114707
+      },
+      {
+        "iteration": 2,
+        "variant": "new1",
+        "seconds": 10.076028102950659,
+        "fingerprint": "4de50aa26a6c9fb6c2d599f859b2bcfbe35fd0df4c5a4cd92d9745bd8d1fbbff",
+        "files": 43477,
+        "bytes": 5992114707
+      },
+      {
+        "iteration": 2,
+        "variant": "new4",
+        "seconds": 6.628179538005497,
+        "fingerprint": "4de50aa26a6c9fb6c2d599f859b2bcfbe35fd0df4c5a4cd92d9745bd8d1fbbff",
+        "files": 43477,
+        "bytes": 5992114707
+      }
+    ],
+    "medians": {
+      "old": 8.720482298987918,
+      "new1": 9.99662193300901,
+      "new4": 6.620943768008146
+    },
+    "setup_sha256": "cb94b9713aa24cbe3e2618c4229b073b1880a6decd76cce61c33a5fff55e5133",
+    "driver_sha256": "d0311835efa9605f1a79c81798c8aec270f3dd71962f77d4e8e5655de9aba4ad",
+    "old_implementation_sha256": "ff08a7cb05fc523d401b4af1c791508d4692e25e2f8f866e483bef49001286d2",
+    "result_sha256": "e1cb3724694b8dba504188d1445b4a6a89e67b1b75f68a23a4c61a78db8d6a9b"
+  },
+  "initial_fill": {
+    "directory": "target/native-profile/parallel-inputs-20261124-riemann-1",
+    "environment": {
+      "browser": "149.0.7827.53",
+      "viewport": "1440x960",
+      "throttling": "none",
+      "reduced_motion": "no-preference",
+      "gesture_tail_ms": 600,
+      "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+      "declarations": 15,
+      "project_files": 175187,
+      "setup_preparation_ms": 178744.06752799999,
+      "setup_cache_hit": false,
+      "source_map_directory": "/home/gohan/workspace/meden/target/event-profile-assets-20261124",
+      "source_maps_sha256": {
+        "index-C6Z3Cj8H.js": "9fc2df98cfc3041dc352dabd103b68e0c4fcfdb96306a7398c9ebdb2b7a3e924"
+      }
+    },
+    "manifest_sha256": "9c221e9cfc3c54d4245f90e751aa93a23cb613550508e71545396aa1bbbed0c5",
+    "stages": {
+      "atlas.project.prepare": {
+        "wall": {
+          "count": 1,
+          "p50_ms": 8381.992,
+          "p95_ms": 8381.992,
+          "max_ms": 8381.992,
+          "total_ms": 8381.992
+        },
+        "host_thread_cpu": {
+          "count": 1,
+          "p50_ms": 90.926,
+          "p95_ms": 90.926,
+          "max_ms": 90.926,
+          "total_ms": 90.926
+        }
+      },
+      "atlas.project.extract": {
+        "wall": {
+          "count": 1,
+          "p50_ms": 14730.826,
+          "p95_ms": 14730.826,
+          "max_ms": 14730.826,
+          "total_ms": 14730.826
+        },
+        "host_thread_cpu": {
+          "count": 1,
+          "p50_ms": 71.592,
+          "p95_ms": 71.592,
+          "max_ms": 71.592,
+          "total_ms": 71.592
+        }
+      },
+      "atlas.project.fingerprint": {
+        "wall": {
+          "count": 2,
+          "p50_ms": 8028.08,
+          "p95_ms": 8028.08,
+          "max_ms": 8028.08,
+          "total_ms": 15817.631000000001
+        },
+        "host_thread_cpu": {
+          "count": 2,
+          "p50_ms": 73.651,
+          "p95_ms": 73.651,
+          "max_ms": 73.651,
+          "total_ms": 143.184
+        }
+      },
+      "atlas.search": {
+        "wall": {
+          "count": 1,
+          "p50_ms": 121375.942,
+          "p95_ms": 121375.942,
+          "max_ms": 121375.942,
+          "total_ms": 121375.942
+        },
+        "host_thread_cpu": {
+          "count": 1,
+          "p50_ms": 442.977,
+          "p95_ms": 442.977,
+          "max_ms": 442.977,
+          "total_ms": 442.977
+        }
+      },
+      "analysis.render": {
+        "wall": {
+          "count": 1,
+          "p50_ms": 10190.312,
+          "p95_ms": 10190.312,
+          "max_ms": 10190.312,
+          "total_ms": 10190.312
+        },
+        "host_thread_cpu": {
+          "count": 1,
+          "p50_ms": 584.447,
+          "p95_ms": 584.447,
+          "max_ms": 584.447,
+          "total_ms": 584.447
+        }
+      },
+      "analysis.extract": {
+        "wall": {
+          "count": 1,
+          "p50_ms": 177469.116,
+          "p95_ms": 177469.116,
+          "max_ms": 177469.116,
+          "total_ms": 177469.116
+        },
+        "host_thread_cpu": {
+          "count": 1,
+          "p50_ms": 2835.718,
+          "p95_ms": 2835.718,
+          "max_ms": 2835.718,
+          "total_ms": 2835.718
+        }
+      }
+    },
+    "scope": "New implementation and fingerprint identities require initial compiler/search/reading cache fill. Installed Lean/project dependencies remain present; this is not cold installation. The short architecture check overlapped the start of this setup-only capture; repeated warm captures ran after validation finished."
+  },
+  "captures": [
+    {
+      "directory": "target/native-profile/parallel-inputs-20261124-riemann-2",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 13428.071039,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/event-profile-assets-20261124",
+        "source_maps_sha256": {
+          "index-C6Z3Cj8H.js": "9fc2df98cfc3041dc352dabd103b68e0c4fcfdb96306a7398c9ebdb2b7a3e924"
+        }
+      },
+      "manifest_sha256": "d3965cb1efea512f14de5aab217d7e6cab8fbcf61989a72e392e93eb0d4a9091",
+      "artifact_digests": {
+        "perf.data": "cc2db38e2d6e1de6bb2bbda08003883b5318cbcceb403a9cbcd86f4544064a33",
+        "perf-report.txt": "3b565b81243de585e2213a1556c73cb2ef4e7277f437c4996cbb7b8731f6dd86",
+        "trace.json": "066c69fb0c2b00db730113fa03bc824249224b43b7e3c4fe0c35c6c6dfab1567",
+        "native-metrics.json": "6e8a8c8535dac82ff49f897ba3143849629d7b0fd4632b6c225a78ee6768b82e",
+        "preparation.json": "0aab81ee806175514620a7b05a72aa3a4f7fd5481f4b65d19e9582d3beb8eb15",
+        "summary.json": "1ee2cd6fe6faba3d954af46cd3576bfe438b2d4dbe2ed67f3e08337543308cee",
+        "graph-fit-view.cpuprofile": "23ac304a7c6633f8e1e3a9ca3ecc07b139b8e61846828bba8913b625c704710d",
+        "graph-hover.cpuprofile": "4120ed2642593e6d1392200d70a2227f18e52e43a8d060134293547d5f3b0342",
+        "graph-idle-poll.cpuprofile": "0fb7787bf75c3bd6deb5914365c7ef8ea985d19518ae20982b7045d6d02a66f2",
+        "graph-idle-settled.cpuprofile": "8f4ade28f8850322221bcc9684100d1315e79ec790273caa06d12de81dda016f",
+        "graph-node-select-distinct.cpuprofile": "cad62534a86f4e7eb79ba34a0ca49a675e2b230970b263e346573b2515e29f16",
+        "graph-node-select.cpuprofile": "714b82b7e78393580837d0142816b2f6dda79bcf45a46242f34887f959825bdb",
+        "graph-pan.cpuprofile": "45018d99a75fe3f49e1efb3129056492d8b2e643111f505fbf8710e7a8d9653e",
+        "graph-resize.cpuprofile": "9e16725309eb98e7aee9de56f082f76a7a7a28c27ab9f68f2cf3caf6cb2fd4c9",
+        "graph-wheel.cpuprofile": "4981c8c4bacc347d10c85399672a73d94fa83225fc443314bcb9e0f624e08451",
+        "project-map-idle.cpuprofile": "8298eebabb42b51caf11059d02974368853338df75510322fb7bcb643e0fb4ee",
+        "project-map-wheel.cpuprofile": "982f028adfa8e2ecd8c2a31eb0c570822412496c9bf5dc7d20d3335abae767bf",
+        "tab-switch.cpuprofile": "66ce4d5185cdfa4cb3905fdca9ca11eda7b1558d892809f5af4281a4caf1a845"
+      },
+      "screenshot_sha256": "e8753780a535ecdb601d4ff0dc470fc45b4f63186b9ec8d5c89ee855e3c14b25",
+      "native_stages": {
+        "gui.state": {
+          "wall": {
+            "count": 144,
+            "p50_ms": 5.452,
+            "p95_ms": 7.656,
+            "max_ms": 9.838,
+            "total_ms": 743.3179999999999
+          },
+          "host_thread_cpu": {
+            "count": 144,
+            "p50_ms": 5.359,
+            "p95_ms": 7.462,
+            "max_ms": 9.617,
+            "total_ms": 724.8910000000001
+          }
+        },
+        "analysis.select_roots": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 1995.03,
+            "p95_ms": 1995.03,
+            "max_ms": 1995.03,
+            "total_ms": 1995.03
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 720.811,
+            "p95_ms": 720.811,
+            "max_ms": 720.811,
+            "total_ms": 720.811
+          }
+        },
+        "atlas.project.prepare": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 7810.349,
+            "p95_ms": 7810.349,
+            "max_ms": 7810.349,
+            "total_ms": 7810.349
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 81.954,
+            "p95_ms": 81.954,
+            "max_ms": 81.954,
+            "total_ms": 81.954
+          }
+        },
+        "analysis.cache.validate": {
+          "wall": {
+            "count": 2,
+            "p50_ms": 1233.219,
+            "p95_ms": 1233.219,
+            "max_ms": 1233.219,
+            "total_ms": 1233.305
+          },
+          "host_thread_cpu": {
+            "count": 2,
+            "p50_ms": 56.571,
+            "p95_ms": 56.571,
+            "max_ms": 56.571,
+            "total_ms": 56.657
+          }
+        },
+        "analysis.search": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 62.216,
+            "p95_ms": 62.216,
+            "max_ms": 62.216,
+            "total_ms": 62.216
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 61.916,
+            "p95_ms": 61.916,
+            "max_ms": 61.916,
+            "total_ms": 61.916
+          }
+        },
+        "analysis.extract": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 12669.793,
+            "p95_ms": 12669.793,
+            "max_ms": 12669.793,
+            "total_ms": 12669.793
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 1271.309,
+            "p95_ms": 1271.309,
+            "max_ms": 1271.309,
+            "total_ms": 1271.309
+          }
+        }
+      },
+      "validation": [
+        {
+          "files": 43477,
+          "bytes": 5992114707,
+          "seconds": 2.428
+        }
+      ],
+      "resolution_seconds": [
+        4.725
+      ],
+      "events": {
+        "project-map-wheel": {
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 2.802,
+            "p95_ms": 4.269,
+            "max_ms": 4.804,
+            "total_ms": 62.145999999999994
+          },
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 16.69999998807907,
+            "p95_ms": 17.19999998807907,
+            "max_ms": 17.299999952316284,
+            "total_ms": 395.30000001192093
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          }
+        },
+        "graph-wheel": {
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 0.672,
+            "p95_ms": 0.913,
+            "max_ms": 1.672,
+            "total_ms": 15.081000000000001
+          },
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 16.400000035762787,
+            "p95_ms": 16.600000023841858,
+            "max_ms": 16.80000001192093,
+            "total_ms": 394.00000005960464
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          }
+        },
+        "graph-hover": {
+          "dispatch": {
+            "count": 40,
+            "p50_ms": 0.039,
+            "p95_ms": 0.069,
+            "max_ms": 0.351,
+            "total_ms": 1.8920000000000003
+          },
+          "input_to_two_raf": {
+            "count": 40,
+            "p50_ms": 18.30000001192093,
+            "p95_ms": 21.100000023841858,
+            "max_ms": 25.299999952316284,
+            "total_ms": 701.8999999761581
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          }
+        },
+        "graph-pan": {
+          "dispatch": {
+            "count": 31,
+            "p50_ms": 0.137,
+            "p95_ms": 0.183,
+            "max_ms": 0.189,
+            "total_ms": 4.25
+          },
+          "input_to_two_raf": {
+            "count": 31,
+            "p50_ms": 19.399999976158142,
+            "p95_ms": 19.80000001192093,
+            "max_ms": 19.899999976158142,
+            "total_ms": 592.6999999284744
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          }
+        },
+        "graph-resize": {
+          "dispatch": {
+            "count": 4,
+            "p50_ms": 0.861,
+            "p95_ms": 1.211,
+            "max_ms": 1.211,
+            "total_ms": 3.6790000000000003
+          },
+          "input_to_two_raf": {
+            "count": 4,
+            "p50_ms": 19.099999964237213,
+            "p95_ms": 19.19999998807907,
+            "max_ms": 19.19999998807907,
+            "total_ms": 66.69999992847443
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          }
+        },
+        "tab-switch": {
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 13.724,
+            "p95_ms": 16.067,
+            "max_ms": 16.43,
+            "total_ms": 319.291
+          },
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 31,
+            "p95_ms": 41.90000003576279,
+            "max_ms": 49.10000002384186,
+            "total_ms": 787.4000000357628
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          }
+        },
+        "graph-node-select-distinct": {
+          "dispatch": {
+            "count": 8,
+            "p50_ms": 12.692,
+            "p95_ms": 13.381,
+            "max_ms": 13.381,
+            "total_ms": 102.112
+          },
+          "input_to_two_raf": {
+            "count": 8,
+            "p50_ms": 21.600000023841858,
+            "p95_ms": 25.399999976158142,
+            "max_ms": 25.399999976158142,
+            "total_ms": 173.50000005960464
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          }
+        }
+      },
+      "camera_preserved": true,
+      "non_state_interaction_requests": 0,
+      "native_ring_evicted": 0
+    },
+    {
+      "directory": "target/native-profile/parallel-inputs-20261124-riemann-3",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 14596.23686,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/event-profile-assets-20261124",
+        "source_maps_sha256": {
+          "index-C6Z3Cj8H.js": "9fc2df98cfc3041dc352dabd103b68e0c4fcfdb96306a7398c9ebdb2b7a3e924"
+        }
+      },
+      "manifest_sha256": "3371c45cf9ccb1336ef404dedba08d565cc0f1e4c1ed513943bc7663b66ce0e3",
+      "artifact_digests": {
+        "perf.data": "254bb80d720d693fe7ee46b19fd08c2d4d25c4ac24600bb5a66dd5aa958d8927",
+        "perf-report.txt": "2035b34cffe9f8210fbdb7997c66945806454fb755de8792f980fd3feff8255c",
+        "trace.json": "1fe42eb8556c57c889ccaf97f7fbbf17adf0b8af65753ae6215e3aea8fe1b102",
+        "native-metrics.json": "258a58dccf09374296ada8303ee2fb91d5914e500921f9e9d446f3a750b9085b",
+        "preparation.json": "a3dfc1ec7f621100f49518aa8480f9cd8a76133d19e379a7a611d1d419770242",
+        "summary.json": "cefcb4f128feab319f9dbca1a5ca30c0d3f8654f5898420d7e14faeb5a231b71",
+        "graph-fit-view.cpuprofile": "54eb575c409493969daece46a11cff3bc056003fa8010b71e7719b974ab9c76b",
+        "graph-hover.cpuprofile": "6a41e77dab979ff7b79924ed33c0cd79d5e5e9614651a0799e5f9e0df85c5110",
+        "graph-idle-poll.cpuprofile": "aa5879ae31e6c7090b1d52b425b37fe94e15b017a5a6f2ea199bbedb8e748cae",
+        "graph-idle-settled.cpuprofile": "71e4c3612a56c9343680ac8ac1df238d2ecef87eb4fde56c5f156b081cd0e9e5",
+        "graph-node-select-distinct.cpuprofile": "1942ce81a0fe71051c493b3379f7d268511cc95a4abc13676ea8d0ad2f33ccca",
+        "graph-node-select.cpuprofile": "c91e19f8941d44003fab141ab345c5e44e48e273e498e18aa8c733182398f728",
+        "graph-pan.cpuprofile": "2519f299c6e5ac22e03d76fd19ce2cdd613ecac28c15abe0843f0884e7de4e3f",
+        "graph-resize.cpuprofile": "2dea8f28685d874d57e652a5acddca77c76d33ad1459576478994765071c140b",
+        "graph-wheel.cpuprofile": "4f2b4cc7e0db68427355518eec52b5473f70f91670ad6e4db2749b7042d9b825",
+        "project-map-idle.cpuprofile": "49e7def7e586b9ba0474e2dc27e99e1af4687ea43a87397c8d6a0634a2d812b6",
+        "project-map-wheel.cpuprofile": "d88ae2f1b59b037e242570085c10c21d0c8875cc1e6c741f51154f1e3500df66",
+        "tab-switch.cpuprofile": "fb0c0c449935b53db1c3f3d33a80aa41af61fc35bca2dcdbd53cedc5afb18782"
+      },
+      "screenshot_sha256": "e8753780a535ecdb601d4ff0dc470fc45b4f63186b9ec8d5c89ee855e3c14b25",
+      "native_stages": {
+        "gui.state": {
+          "wall": {
+            "count": 147,
+            "p50_ms": 5.654,
+            "p95_ms": 8.131,
+            "max_ms": 11.191,
+            "total_ms": 773.0629999999996
+          },
+          "host_thread_cpu": {
+            "count": 147,
+            "p50_ms": 5.493,
+            "p95_ms": 7.975,
+            "max_ms": 10.858,
+            "total_ms": 752.212
+          }
+        },
+        "analysis.select_roots": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 1901.445,
+            "p95_ms": 1901.445,
+            "max_ms": 1901.445,
+            "total_ms": 1901.445
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 671.176,
+            "p95_ms": 671.176,
+            "max_ms": 671.176,
+            "total_ms": 671.176
+          }
+        },
+        "atlas.project.prepare": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 8419.717,
+            "p95_ms": 8419.717,
+            "max_ms": 8419.717,
+            "total_ms": 8419.717
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 77.705,
+            "p95_ms": 77.705,
+            "max_ms": 77.705,
+            "total_ms": 77.705
+          }
+        },
+        "analysis.cache.validate": {
+          "wall": {
+            "count": 2,
+            "p50_ms": 1182.403,
+            "p95_ms": 1182.403,
+            "max_ms": 1182.403,
+            "total_ms": 1182.497
+          },
+          "host_thread_cpu": {
+            "count": 2,
+            "p50_ms": 68.502,
+            "p95_ms": 68.502,
+            "max_ms": 68.502,
+            "total_ms": 68.595
+          }
+        },
+        "analysis.search": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 61.646,
+            "p95_ms": 61.646,
+            "max_ms": 61.646,
+            "total_ms": 61.646
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 61.368,
+            "p95_ms": 61.368,
+            "max_ms": 61.368,
+            "total_ms": 61.368
+          }
+        },
+        "analysis.extract": {
+          "wall": {
+            "count": 1,
+            "p50_ms": 13164.765,
+            "p95_ms": 13164.765,
+            "max_ms": 13164.765,
+            "total_ms": 13164.765
+          },
+          "host_thread_cpu": {
+            "count": 1,
+            "p50_ms": 1238.762,
+            "p95_ms": 1238.762,
+            "max_ms": 1238.762,
+            "total_ms": 1238.762
+          }
+        }
+      },
+      "validation": [
+        {
+          "files": 43477,
+          "bytes": 5992114707,
+          "seconds": 2.536
+        }
+      ],
+      "resolution_seconds": [
+        5.243
+      ],
+      "events": {
+        "project-map-wheel": {
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 2.458,
+            "p95_ms": 4.331,
+            "max_ms": 4.987,
+            "total_ms": 63.99500000000001
+          },
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 16.69999998807907,
+            "p95_ms": 18.400000035762787,
+            "max_ms": 18.5,
+            "total_ms": 398.50000017881393
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          }
+        },
+        "graph-wheel": {
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 0.615,
+            "p95_ms": 1.05,
+            "max_ms": 2.206,
+            "total_ms": 15.65
+          },
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 16.400000035762787,
+            "p95_ms": 20.600000023841858,
+            "max_ms": 22.5,
+            "total_ms": 407.70000010728836
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          }
+        },
+        "graph-hover": {
+          "dispatch": {
+            "count": 40,
+            "p50_ms": 0.04,
+            "p95_ms": 0.068,
+            "max_ms": 0.086,
+            "total_ms": 1.703
+          },
+          "input_to_two_raf": {
+            "count": 40,
+            "p50_ms": 17.900000035762787,
+            "p95_ms": 25.400000035762787,
+            "max_ms": 26.899999976158142,
+            "total_ms": 715.7000002264977
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          }
+        },
+        "graph-pan": {
+          "dispatch": {
+            "count": 31,
+            "p50_ms": 0.162,
+            "p95_ms": 0.238,
+            "max_ms": 0.257,
+            "total_ms": 4.976000000000001
+          },
+          "input_to_two_raf": {
+            "count": 31,
+            "p50_ms": 19.80000001192093,
+            "p95_ms": 21.5,
+            "max_ms": 22.600000023841858,
+            "total_ms": 610.5999999642372
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          }
+        },
+        "graph-resize": {
+          "dispatch": {
+            "count": 3,
+            "p50_ms": 1.079,
+            "p95_ms": 1.388,
+            "max_ms": 1.388,
+            "total_ms": 3.322
+          },
+          "input_to_two_raf": {
+            "count": 3,
+            "p50_ms": 18,
+            "p95_ms": 23.200000047683716,
+            "max_ms": 23.200000047683716,
+            "total_ms": 54.30000001192093
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          }
+        },
+        "tab-switch": {
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 11.833,
+            "p95_ms": 15.547,
+            "max_ms": 15.937,
+            "total_ms": 291.207
+          },
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 32.10000002384186,
+            "p95_ms": 41.30000001192093,
+            "max_ms": 41.80000001192093,
+            "total_ms": 721.3999999761581
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          }
+        },
+        "graph-node-select-distinct": {
+          "dispatch": {
+            "count": 8,
+            "p50_ms": 13.583,
+            "p95_ms": 14.07,
+            "max_ms": 14.07,
+            "total_ms": 107.768
+          },
+          "input_to_two_raf": {
+            "count": 8,
+            "p50_ms": 21.399999976158142,
+            "p95_ms": 24.69999998807907,
+            "max_ms": 24.69999998807907,
+            "total_ms": 172.3999999165535
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          }
+        }
+      },
+      "camera_preserved": true,
+      "non_state_interaction_requests": 0,
+      "native_ring_evicted": 0
+    }
+  ],
+  "checks": {
+    "worker_protocol": {
+      "passed": 23,
+      "command": "uv run --offline --project python --group dev python -m pytest python/tests/test_lake_inputs.py -q",
+      "coverage": [
+        "Independent complete-byte/framed reference",
+        "Forced out-of-order four-thread completion across 260 files and two batches",
+        "Empty, Unicode-named and multi-chunk inputs",
+        "Same-size timestamp-restored content edit and setup changes",
+        "Held real reads with same-size edit, truncation and growth",
+        "Prepared path replacement, symlink and nonregular refusal",
+        "Preflight total-byte bound and existing partial/nonzero/oversized Lake protocol failures"
+      ]
+    },
+    "rust_workspace": {
+      "passed": 276,
+      "failed": 0,
+      "ignored": 0
+    },
+    "clippy": "All targets, -D warnings",
+    "required_public_tui": {
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/validation/5a63c58b857ef096585d6b5a80098611da96c7a83404be4195306a2ead169d4f/meden",
+        "sha256": "5a63c58b857ef096585d6b5a80098611da96c7a83404be4195306a2ead169d4f"
+      },
+      "passed": 34,
+      "success": true,
+      "summary_sha256": "806c6723be3e1482dc6a0f64ab20a3d9401753f9c68e9ee45f7ed4e18eacc986",
+      "decoded_screens_inspected": [
+        "Actual Lake inventory change, recovery and historical restart",
+        "Meaning cancellation and historical restart",
+        "Provider limit, retained stop and explicit retry completion"
+      ]
+    },
+    "browser": {
+      "passed": 4,
+      "normal": "Prepared 35-module Lake dependency edits/build failure/retry/restart, streamed compiler timeout/cancel/retry, retained tabs",
+      "reduced": "Retained tabs and warm latency budget",
+      "budgets": [
+        {
+          "motion": "normal",
+          "attachment": {
+            "browser": "149.0.7827.53",
+            "motion": "no-preference",
+            "cold_analysis_store_preparation_ms": 32936.311591000005,
+            "warm_tab_two_raf_ms": [
+              23,
+              26.80000001192093,
+              25.299999952316284,
+              25.19999998807907,
+              33,
+              28.69999998807907,
+              21.700000047683716,
+              24.899999976158142,
+              26.30000001192093,
+              23.099999964237213
+            ],
+            "p95_ms": 33,
+            "maximum_p95_ms": 250,
+            "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+          }
+        },
+        {
+          "motion": "reduced",
+          "attachment": {
+            "browser": "149.0.7827.53",
+            "motion": "reduce",
+            "cold_analysis_store_preparation_ms": 31895.000594999998,
+            "warm_tab_two_raf_ms": [
+              25.200000047683716,
+              29.69999998807907,
+              29,
+              28.900000035762787,
+              28.599999964237213,
+              24.5,
+              21.69999998807907,
+              25.5,
+              23.899999976158142,
+              20.899999976158142
+            ],
+            "p95_ms": 29.69999998807907,
+            "maximum_p95_ms": 250,
+            "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+          }
+        }
+      ],
+      "screenshot_inspected": "target/gui-checks/parallel-inputs-normal-results/native-native-GUI-with-rea-3d1fa-tifacts-and-survive-restart/lake-configuration-reused-after-restart.png",
+      "screenshot_sha256": "aad032926c28f514d2c52678b5775d663a30aa5c19b7531758223835cbc57d2b",
+      "deployed_scope": "Both actual workspace maps rendered and their screenshots were inspected. Opening each page sent only the existing inspect(directory=true, path=.) root listing; it sent no file preparation, compilation or inference request. Both hosts remained idle and unapproved."
+    },
+    "architecture": "Passed; 6 Rust crates and 11 data/port sources",
+    "logs_sha256": {
+      "/tmp/meden-parallel-inputs-workspace-20261124.log": "4788b562904e70e743f68b5a4770a0efb992654ee53d94f5dae6cafc96fce46d",
+      "/tmp/meden-parallel-inputs-clippy-20261124.log": "2ab41b7bad2ab10e82a2d9b90372c66a9e678d2b3268ec238c76c88a518fcdcf",
+      "/tmp/meden-ux-parallel-inputs-20261124.log": "5034073498b1fc2baba31d33cd36704d2ce12d90231bb2c7d0f2163179c4ff8f",
+      "/tmp/meden-parallel-inputs-gui-normal-20261124.log": "ad31e6771d33b9568deee268dd0b5f7c2dd58ce20681bf45174fc5a3e3dc690a",
+      "/tmp/meden-parallel-inputs-gui-reduced-20261124.log": "4d3dd2c36220e6d3c7c73a17bd2994623c16bb647e732fd09da20f47e14823d2",
+      "/tmp/meden-input-benchmark-20261124.log": "908c3c8ffe19ead81edad03bb9222fbf92d81b322114d366139b001dab27cc81"
+    }
+  },
+  "limits": [
+    "Only the complete-input fingerprint implementation changed; original Lake build/query and freshness/resource checks remain.",
+    "Baseline and after captures use identical served frontend assets, workload and normal-motion instrumentation. OS cache and host scheduling can differ; repeated diagnostic runs are not a universal speedup or field percentile.",
+    "First compilation/search fill remains a separate wait. No proof-authority, live-model, cold-install, local-inference or confidentiality claim is added.",
+    "Remaining architecture migrations, including persistent same-format verifier selection and generic read models, remain open."
+  ],
+  "deployed_verification": {
+    "riemann": {
+      "pid": "3790425",
+      "binary_sha256": "5a63c58b857ef096585d6b5a80098611da96c7a83404be4195306a2ead169d4f",
+      "project_files": 175187,
+      "visible_map_areas": 7,
+      "processor_authorized": false,
+      "running": false,
+      "preparation": {
+        "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean": {
+          "state": "ready",
+          "cache_hit": true
+        }
+      },
+      "commands_from_opening_page": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        }
+      ]
+    },
+    "ethlib": {
+      "pid": "3790610",
+      "binary_sha256": "5a63c58b857ef096585d6b5a80098611da96c7a83404be4195306a2ead169d4f",
+      "project_files": 2517,
+      "visible_map_areas": 20,
+      "processor_authorized": false,
+      "running": false,
+      "preparation": {},
+      "commands_from_opening_page": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        }
+      ]
+    }
+  },
+  "deployed_screenshots_sha256": {
+    "target/native-profile/parallel-inputs-deployed-riemann.png": "89ac0367e2e5c30f00ffafd8e8d630b8c77569d70feb6a29e22a0af6852a7cbd",
+    "target/native-profile/parallel-inputs-deployed-ethlib.png": "9acca3552a089dcf972f6550cee0c41e68562f36ccf46a0b3afccdbf99030fcc"
+  }
+}
