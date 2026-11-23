@@ -20,7 +20,7 @@ tempfile = "3"
 ureq = { version = "3", default-features = false, features = ["rustls"] }
 
 [target.'cfg(unix)'.dependencies]
-nix = { version = "0.31", features = ["signal", "process", "fs", "time"] }
+nix = { version = "0.32", features = ["signal", "process", "fs", "time"] }
 
 [lints]
 workspace = true

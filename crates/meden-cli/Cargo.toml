@@ -37,7 +37,7 @@ percent-encoding = "2"
 rustix = { version = "1", features = ["fs"] }
 
 [target.'cfg(target_os = "linux")'.dev-dependencies]
-nix = { version = "0.31", features = ["fs"] }
+nix = { version = "0.32", features = ["fs"] }
 
 [lints]
 workspace = true

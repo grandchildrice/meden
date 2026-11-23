@@ -22,7 +22,7 @@ yaml-rust2 = { version = "0.13", default-features = false }
 base64 = "0.22"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-nix = { version = "0.31", features = ["socket"] }
+nix = { version = "0.32", features = ["socket"] }
 
 [lints]
 workspace = true
