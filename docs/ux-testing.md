@@ -108,7 +108,11 @@ passive review legend reaches the graph, hover/resize preserves the user's
 camera, reduced motion creates no graph transitions, and selecting a loaded
 source line keeps its page. Native browser coverage retains the real compiled
 graph and the 10,001-file map journey; visibility pruning is compared with a
-full-scan oracle. The serialized native navigation budget runs the actual
+full-scan oracle. The large-map journey requires a declaration legend only when
+symbols are visible, a center breadcrumb that follows the settled camera, and
+unchanged canvas height when the breadcrumb appears. Generated inventories also
+compare breadcrumb paths at area centers/corners and preserve the strict opacity
+threshold. The serialized native navigation budget runs the actual
 cold-analysis-store/prepared-tab journey in both motion modes, records a two-rAF
 proxy, and requires warm p95 below 250 ms plus no new inspections. Use a fixed
 executable throughout validation; concurrent Cargo integration builds can replace

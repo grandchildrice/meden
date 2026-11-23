@@ -3016,11 +3016,19 @@ pre {
   padding: 0 8px;
 }
 .continuous-map .map-breadcrumbs {
+  position: absolute;
+  z-index: 4;
+  top: 8px;
+  left: 8px;
+  max-width: calc(100% - 16px);
+  border-radius: 5px;
+  background: #101c25eb;
   min-height: 30px;
   flex-wrap: nowrap;
   overflow: auto;
 }
 .continuous-map .map-breadcrumbs .MuiButton-root {
+  color: #e6eef5;
   font-size: 11px;
   white-space: nowrap;
   flex: none;

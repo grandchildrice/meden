@@ -1232,6 +1232,9 @@ theorem slow : True := fast
     });
     const chatBefore = await chat.innerHTML();
     await expect(
+      map.getByLabel("Declaration types", { exact: true }),
+    ).toHaveCount(0);
+    await expect(
       page.getByRole("button", { name: "Folder: Many", exact: true }),
     ).toBeVisible();
     await expect
@@ -1239,6 +1242,9 @@ theorem slow : True := fast
       .toBe(false);
     const beforeCommands = commands.length;
     const beforeInspection = (await nativeState(page)).inspection;
+    const originalCanvas = await map
+      .locator(".workspace-overview-canvas")
+      .boundingBox();
     const zoomFile = async (name: string) => {
       await map
         .getByRole("button", { name: "Category: Many/Group0", exact: true })
@@ -1251,13 +1257,34 @@ theorem slow : True := fast
       await file.click();
     };
     await zoomFile("File0");
-    const camera = await map
-      .locator(".react-flow__viewport")
-      .getAttribute("style");
     const declaration = map.getByRole("button", {
       name: /Declaration: identity0 · Many\/Group0\/File0.lean:/,
     });
     await expect(declaration).toBeVisible({ timeout: 30000 });
+    await expect(
+      map.getByLabel("Declaration types", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      map.getByRole("navigation", { name: "Map location" }),
+    ).toContainText("File0.lean");
+    // Normal-motion focus animates deliberately; retain the settled camera,
+    // rather than treating an intermediate animation frame as the final view.
+    const camera = await map
+      .locator(".react-flow__viewport")
+      .evaluate(async (element) => {
+        let previous = element.getAttribute("style"),
+          stable = 0;
+        while (stable < 4) {
+          await new Promise(requestAnimationFrame);
+          const current = element.getAttribute("style");
+          stable = current === previous ? stable + 1 : 0;
+          previous = current;
+        }
+        return previous;
+      });
+    expect(
+      (await map.locator(".workspace-overview-canvas").boundingBox())!.height,
+    ).toBe(originalCanvas!.height);
     await expect(
       page.getByRole("tab", { name: "Project map", exact: true }),
     ).toHaveAttribute("aria-selected", "true");

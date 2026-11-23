@@ -6,6 +6,10 @@ import type { WorkspaceOverview } from "@meden/agent-protocol/native";
 import {
   declarationDetail,
   fade,
+  MAP_HEIGHT,
+  MAP_WIDTH,
+  mapHasDeclarations,
+  mapLocation,
   projectMap,
   visibleMapAreas,
   type MapScene,
@@ -39,6 +43,40 @@ export function scan(
       return [];
     return [{ area, opacity: alpha }];
   });
+}
+
+// Original breadcrumb rules, independently walking the complete flat inventory.
+export function scanLocation(
+  scene: MapScene,
+  view: { x: number; y: number; zoom: number },
+  size: { width: number; height: number },
+) {
+  if (
+    view.zoom <=
+    Math.min(size.width / MAP_WIDTH, size.height / MAP_HEIGHT) * 1.2
+  )
+    return "";
+  const x = (size.width / 2 - view.x) / view.zoom,
+    y = (size.height / 2 - view.y) / view.zoom;
+  const opacity = new Map([["", 1]]);
+  let location = "";
+  for (const area of scene.areas) {
+    const parent = scene.byPath.get(area.parent);
+    const alpha = parent
+      ? opacity.get(parent.path)! *
+        fade(Math.min(parent.width, parent.height) * view.zoom)
+      : 1;
+    opacity.set(area.path, alpha);
+    if (
+      alpha > 0.5 &&
+      x >= area.x &&
+      x <= area.x + area.width &&
+      y >= area.y &&
+      y <= area.y + area.height
+    )
+      location = area.path;
+  }
+  return location;
 }
 
 export function corpus(
@@ -108,9 +146,36 @@ test("generated camera traces agree with a full scan and never change world coor
           width,
           height,
         }));
-        for (const { view, size } of moves) {
-          expect(visibleMapAreas(scene, view, size)).toEqual(
-            scan(scene, view, size),
+        const focused = scene.areas.length
+          ? [
+              scene.areas[0]!,
+              scene.areas[Math.floor(scene.areas.length / 2)]!,
+              scene.areas.at(-1)!,
+            ]
+              .flatMap((area) => [
+                { x: area.x + area.width / 2, y: area.y + area.height / 2 },
+                { x: area.x, y: area.y },
+                { x: area.x + area.width, y: area.y + area.height },
+              ])
+              .map(({ x, y }) => ({
+                view: { x: 450 - x * 500, y: 350 - y * 500, zoom: 500 },
+                size: { width: 900, height: 700 },
+              }))
+          : [];
+        for (const { view, size } of [...moves, ...focused]) {
+          const expected = scan(scene, view, size);
+          const visible = visibleMapAreas(scene, view, size);
+          expect(visible).toEqual(expected);
+          const declarations = expected.flatMap(({ area, opacity }) =>
+            opacity * declarationDetail(area, view.zoom, size) < 0.01
+              ? []
+              : area.symbols,
+          );
+          expect(mapHasDeclarations(visible, view.zoom, size)).toBe(
+            declarations.length > 0,
+          );
+          expect(mapLocation(scene, view, size)).toBe(
+            scanLocation(scene, view, size),
           );
           expect(
             scene.areas.map(({ x, y, width, height }) => ({
@@ -129,7 +194,7 @@ test("generated camera traces agree with a full scan and never change world coor
 });
 
 if (process.env.MEDEN_PERFORMANCE === "1") {
-  test("large-map visibility stays below 35% of the full-scan baseline", async () => {
+  test("large-map visibility, legend and breadcrumb stay below 35% of the full-scan baseline", async () => {
     const input = corpus(
       Array.from({ length: 175187 }, (_, i) => ({
         folders: [i % 24, Math.floor(i / 24) % 12],
@@ -140,27 +205,56 @@ if (process.env.MEDEN_PERFORMANCE === "1") {
     const start = performance.now();
     const scene = projectMap(input);
     const layout = performance.now() - start;
-    const camera = { x: 0, y: 0, zoom: 0.08 },
-      size = { width: 900, height: 700 };
+    const size = { width: 900, height: 700 };
+    const file = scene.byPath.get(
+      input.files[Math.floor(input.files.length / 2)]!.path,
+    )!;
+    const zoom =
+      0.65 * Math.min(size.width / file.width, size.height / file.height);
+    const cameras = [
+      { x: 0, y: 0, zoom: 0.08 },
+      { x: -4000, y: -2400, zoom: 2 },
+      {
+        x: size.width / 2 - (file.x + file.width / 2) * zoom,
+        y: size.height / 2 - (file.y + file.height / 2) * zoom,
+        zoom,
+      },
+    ];
     const optimized: number[] = [],
       reference: number[] = [];
     // Negative control: verify that the budget rejects the retired algorithm.
+    const referenceOperation = () =>
+      cameras.map((camera) => {
+        const visible = scan(scene, camera, size);
+        return {
+          visible,
+          location: scanLocation(scene, camera, size),
+          legend: mapHasDeclarations(visible, camera.zoom, size),
+        };
+      });
+    const optimizedOperation = () =>
+      cameras.map((camera) => {
+        const visible = visibleMapAreas(scene, camera, size);
+        return {
+          visible,
+          location: mapLocation(scene, camera, size),
+          legend: mapHasDeclarations(visible, camera.zoom, size),
+        };
+      });
     const candidate =
-      process.env.MEDEN_PERF_MUTANT === "full-scan" ? scan : visibleMapAreas;
+      process.env.MEDEN_PERF_MUTANT === "full-scan"
+        ? referenceOperation
+        : optimizedOperation;
     const measure = (operation: () => unknown) => {
       const start = performance.now();
       for (let n = 0; n < 10; n++) operation();
       return performance.now() - start;
     };
     // Warm both implementations, then alternate their order to reduce bias.
-    expect(visibleMapAreas(scene, camera, size)).toEqual(
-      scan(scene, camera, size),
-    );
+    expect(optimizedOperation()).toEqual(referenceOperation());
     for (let i = 0; i < 9; i++) {
-      const fast = () =>
-        optimized.push(measure(() => candidate(scene, camera, size)));
-      const slow = () =>
-        reference.push(measure(() => scan(scene, camera, size)));
+      const fast = () => optimized.push(measure(candidate));
+      const slow = () => reference.push(measure(referenceOperation));
       if (i % 2) {
         fast();
         slow();
@@ -179,9 +273,14 @@ if (process.env.MEDEN_PERFORMANCE === "1") {
       JSON.stringify(
         {
           workload: {
-            version: 1,
+            version: 2,
             files: input.files.length,
-            camera,
+            cameras,
+            operations: [
+              "visible areas",
+              "visible declaration legend",
+              "center breadcrumb",
+            ],
             size,
             repetitions: 9,
             calls_per_sample: 10,

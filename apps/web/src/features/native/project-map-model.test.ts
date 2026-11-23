@@ -3,6 +3,8 @@ import type { WorkspaceOverview } from "@meden/agent-protocol/native";
 import {
   declarationDetail,
   fade,
+  mapHasDeclarations,
+  mapLocation,
   projectMap,
   visibleMapAreas,
 } from "./project-map-model";
@@ -73,4 +75,83 @@ test("branch pruning preserves the visible areas and opacity of a full scan", ()
         expected,
       );
     }
+});
+
+test("the legend follows visible declarations rather than distant or empty files", () => {
+  const scene = projectMap({
+    revision: "legend",
+    inventory_only: false,
+    excluded: [],
+    files: ["Empty.lean", "Proof.lean"].map((path, i) => ({
+      path,
+      sha256: "fixture",
+      bytes: 100,
+      declarations: i,
+      theorems: i,
+      imports: [],
+      indexed: true,
+      symbols: i
+        ? [
+            {
+              name: "result",
+              line: 1,
+              kind: "theorem",
+              declaration: "theorem",
+              private: false,
+              references: [],
+              semantic: null,
+              main_theorem: false,
+            },
+          ]
+        : [],
+    })),
+  });
+  const size = { width: 400, height: 300 };
+  for (const path of ["Empty.lean", "Proof.lean"]) {
+    const area = scene.byPath.get(path)!;
+    const camera = {
+      x: size.width / 2 - area.x - area.width / 2,
+      y: size.height / 2 - area.y - area.height / 2,
+      zoom: 1,
+    };
+    expect(
+      mapHasDeclarations(visibleMapAreas(scene, camera, size), 1, size),
+    ).toBe(path === "Proof.lean");
+  }
+  const outside = { x: 200000, y: 200000, zoom: 1 };
+  expect(
+    mapHasDeclarations(visibleMapAreas(scene, outside, size), 1, size),
+  ).toBe(false);
+});
+
+test("breadcrumbs enter a containing child only after its opacity exceeds one half", () => {
+  const scene = projectMap({
+    revision: "breadcrumb",
+    inventory_only: false,
+    excluded: [],
+    files: ["A/Inner/First.lean", "A/Second.lean", "B/Third.lean"].map(
+      (path) => ({
+        path,
+        sha256: "fixture",
+        bytes: 100,
+        declarations: 0,
+        theorems: 0,
+        imports: [],
+        indexed: true,
+        symbols: [],
+      }),
+    ),
+  });
+  const parent = scene.byPath.get("A")!,
+    child = scene.byPath.get("A/Inner")!;
+  const size = { width: 400, height: 300 };
+  for (const pixels of [749.999, 750, 750.001]) {
+    const zoom = pixels / Math.min(parent.width, parent.height);
+    const view = {
+      x: size.width / 2 - (child.x + child.width / 2) * zoom,
+      y: size.height / 2 - (child.y + child.height / 2) * zoom,
+      zoom,
+    };
+    expect(mapLocation(scene, view, size)).toBe(pixels > 750 ? "A/Inner" : "A");
+  }
 });

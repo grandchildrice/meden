@@ -283,9 +283,13 @@ multiple runs, normal/reduced motion and cold/warm cache states. Capture complet
 gesture/debounce tails and separate instrumentation overhead. Retain raw profiles
 with digests and a compact summary. The existing browser tool is a diagnostic
 baseline; its one-run percentiles and probe-boundary limitations are not yet a
-continuous performance gate. Prioritize the roughly 56-second preparation path
-and residual whole-map legend/breadcrumb scans before an unmeasured framework
-rewrite. Set budgets from repeated baseline data; a 60 Hz frame budget may be a
+continuous performance gate. Prepared-cache captures still spend tens of seconds
+in build/input resolution and fingerprinting; this is the next
+preparation target. Map legend decisions now use visible areas and actual
+rendered symbols; center breadcrumbs traverse only containing branches.
+Differential camera traces and the paired navigation budget cover these queries
+before considering a framework rewrite. Set budgets from repeated baseline data;
+a 60 Hz frame budget may be a
 scenario target, not a portable theorem about every machine.
 
 | Layer                            | Required checks                                                                                                                                             |

@@ -46,15 +46,20 @@ source-view materialization and retained-tab navigation.
 
 `npm run test:fuzz` generates 3000 bounded inventories and camera traces, including
 empty maps, deep categories, tiny panes, extreme zooms and cyclic references.
-It compares optimized visibility to a full-scan specification, checks world
-coordinates are unchanged and layout replay is identical. Fast-check shrinks
+It compares visibility and center breadcrumbs to independent full-scan
+specifications, checks the declaration legend against the rendered visible
+symbols, and verifies unchanged world coordinates and identical layout replay.
+Every generated inventory also targets area centers and corners at deep zoom.
+Fast-check shrinks
 failures and prints a seed/path; replay with `MEDEN_FUZZ_SEED`,
 `MEDEN_FUZZ_PATH`, and `MEDEN_FUZZ_RUNS` using the direct Vitest file command.
 Retain that counterexample in the corpus before fixing a discovered fault.
 These are presentation properties, not verification or renderer proofs.
 
 `npm run test:performance` uses the pinned 175187-file corpus and nine alternating
-paired measurements (ten calls each) after warming both implementations. The
+paired measurements (ten calls each) after warming both implementations. Workload
+version 2 checks visible areas, the visible declaration legend and the center
+breadcrumb at overview, category and fitted-file cameras. The
 optimized/full-scan median ratio must remain below 0.35. This relative budget
 runs on the same process/runner and detects reverting to a whole-map scan without
 pretending shared CI provides stable absolute hardware timings. Absolute layout

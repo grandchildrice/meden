@@ -1,5 +1,65 @@
 # Graph interaction measurements
 
+## Indexed map navigation (November 23)
+
+The deployed map now reuses its branch-pruned visible areas for declaration
+legend and chunk-selection decisions. The legend appears only for rendered,
+nonempty symbol sets. The center breadcrumb traverses containing branches and
+derives directly from the current camera; its separate location state and
+whole-inventory move-end scan are deleted. A canvas overlay keeps the breadcrumb
+from resizing the viewport during normal-motion focus.
+
+Two post-deployment Riemann captures use the same 175,187 files, 15-declaration
+file, native executable digest, Chrome 149, 1440 × 960 viewport and normal motion
+as the preceding two captures. The
+[comparison record](../results/map-navigation-pruning-20261123.json) retains
+raw-artifact digests, per-event distributions and unchanged-backend attribution.
+
+| Operation                                  | Dispatch p95 before, runs 1 / 2 | Dispatch p95 after, runs 1 / 2 |
+| ------------------------------------------ | ------------------------------: | -----------------------------: |
+| Project-map wheel, 24 events               |               10.900 / 9.050 ms |               2.697 / 2.519 ms |
+| File/map tab click, 24 events              |              16.800 / 23.225 ms |             10.803 / 19.297 ms |
+| Node sequence including Fit View, 9 clicks |              34.064 / 29.695 ms |             35.499 / 30.836 ms |
+
+The wheel handler reduction is about 72–75% in these captures. The input/two-rAF
+proxy did **not** improve consistently: map-wheel p95 was 20.3 / 17.3 ms before
+and 24.6 / 24.6 ms after. These are diagnostic event dispatch and scheduling
+observations, not physical paint or field INP; do not claim a 75% end-to-end
+rendering improvement. Tab click/two-rAF p95 was 32.9 / 42.9 ms after, versus
+37.7 / 47.0 ms before. CPU samples no longer show the legend's whole-area scan
+among the map-wheel hotspots.
+
+Hover, resize and retained-tab round trips preserve the graph transform in both
+captures; no interaction phase issues a non-state request. Neither settled
+graph idle nor map idle contains a long task. The first post-restart graph-idle
+window contains 174 / 434 ms tasks, with `projectMap` and Zod parsing sampled;
+the second capture does not reproduce them. This supports a remaining initial
+materialization cost, not a claim that every state poll rebuilds the map. One
+tab phase contains an 86 ms task and one selection phase a 53 ms task. Selection
+and initial materialization remain follow-up work.
+
+Prepared-file opens took 35.529 / 40.231 seconds after deployment, with nested
+build/input resolution and fingerprinting taking 30.500 / 34.855 seconds.
+Both analysis caches hit, twelve configuration observations were reused and
+no Lake configuration evaluator ran. This dominant native wait remains variable;
+the frontend change does not optimize or explain its variation. Hosts restarted
+for the new immutable assets, so the before/after cache/OS conditions are not a
+controlled cold-start comparison. The actual native executable bytes did not
+change. Riemann and EthLib now serve the same pinned frontend build.
+
+The new browser regression caught a stale `File15.lean` breadcrumb while
+`File0.lean` occupied the center. It now requires the correct settled breadcrumb,
+visible legend and unchanged canvas height, along with the existing real
+10,001-file declaration/selection, invalid-source, public-refresh and restart
+journey. The actual screenshot and decoded TUI failure/retry/restart screens
+were inspected. Three normal-motion browser journeys and the reduced-motion
+retained-tab budget passed, as did 32 TypeScript tests, 3,000 generated
+inventory/camera cases, schema/type/architecture checks and all 34 required TUI
+journeys. The expanded algorithm budget covers visibility, legend and breadcrumb
+at overview, category and fitted-file cameras; the full-scan mutation fails its
+ratio assertion. These are presentation/runtime checks, not refinement,
+live-model or cold-install evidence.
+
 ## Per-event and native-stage audit (November 23, evening)
 
 Two sequential captures of the pinned Riemann GUI cover 175,187 indexed files

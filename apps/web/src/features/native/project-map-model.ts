@@ -309,3 +309,54 @@ export function visibleMapAreas(
   }
   return visible;
 }
+
+/** The legend describes declarations actually rendered in the current viewport. */
+export function mapHasDeclarations(
+  visible: ReturnType<typeof visibleMapAreas>,
+  zoom: number,
+  size: { width: number; height: number },
+) {
+  return visible.some(
+    ({ area, opacity }) =>
+      area.symbols.length > 0 &&
+      opacity * declarationDetail(area, zoom, size) >= 0.01,
+  );
+}
+
+/** Resolve the center breadcrumb through containing branches, not the inventory. */
+export function mapLocation(
+  scene: MapScene,
+  view: { x: number; y: number; zoom: number },
+  size: { width: number; height: number },
+) {
+  if (
+    view.zoom <=
+    Math.min(size.width / MAP_WIDTH, size.height / MAP_HEIGHT) * 1.2
+  )
+    return "";
+  const x = (size.width / 2 - view.x) / view.zoom,
+    y = (size.height / 2 - view.y) / view.zoom;
+  const queue = (scene.children.get("") || []).map((area) => ({
+    area,
+    opacity: 1,
+  }));
+  let location = "";
+  for (let i = 0; i < queue.length; i++) {
+    const { area, opacity } = queue[i]!;
+    if (
+      opacity <= 0.5 ||
+      x < area.x ||
+      x > area.x + area.width ||
+      y < area.y ||
+      y > area.y + area.height
+    )
+      continue;
+    location = area.path;
+    const childOpacity =
+      opacity * fade(Math.min(area.width, area.height) * view.zoom);
+    if (childOpacity > 0.5)
+      for (const child of scene.children.get(area.path) || [])
+        queue.push({ area: child, opacity: childOpacity });
+  }
+  return location;
+}

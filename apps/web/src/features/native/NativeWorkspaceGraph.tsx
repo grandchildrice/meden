@@ -10,13 +10,13 @@ import {
 } from "@xyflow/react";
 import type { NativeState } from "@meden/agent-protocol/native";
 import {
-  fade,
   declarationDetail,
+  mapHasDeclarations,
+  mapLocation,
   visibleMapAreas,
   MAP_WIDTH,
   MAP_HEIGHT,
   type MapScene,
-  type MapArea,
   type Symbol,
 } from "./project-map-model";
 
@@ -274,8 +274,15 @@ function WorkspaceMap({
   const [canvas, setCanvas] = useState<HTMLDivElement | null>(null);
   const [flow, setFlow] = useState<ReactFlowInstance<SceneNode>>();
   const [size, setSize] = useState({ width: 1, height: 1 });
-  const [location, setLocation] = useState("");
   const [camera, setCamera] = useState({ x: 0, y: 0, zoom: 0.08 });
+  const visible = useMemo(
+    () => (scene ? visibleMapAreas(scene, camera, size) : []),
+    [scene, camera, size],
+  );
+  const location = useMemo(
+    () => (scene ? mapLocation(scene, camera, size) : ""),
+    [scene, camera, size],
+  );
   const initial = useRef(false);
   const requested = useRef(new Set<string>());
   const indexing = useRef(false);
@@ -286,7 +293,7 @@ function WorkspaceMap({
   useEffect(() => {
     if (!active || !canIndex || !scene?.inventoryOnly || indexing.current)
       return;
-    const file = visibleMapAreas(scene, camera, size).find(
+    const file = visible.find(
       ({ area, opacity }) =>
         area.file &&
         !area.file.indexed &&
@@ -307,7 +314,16 @@ function WorkspaceMap({
         });
     }, 0);
     return () => clearTimeout(timer);
-  }, [active, canIndex, scene, camera, size, onIndex, state.overview.error]);
+  }, [
+    active,
+    canIndex,
+    scene,
+    camera,
+    size,
+    visible,
+    onIndex,
+    state.overview.error,
+  ]);
   const focus = (path: string) => {
     const a = scene?.byPath.get(path);
     if (flow)
@@ -382,22 +398,22 @@ function WorkspaceMap({
       aria-label="Project map"
       className="workspace-overview continuous-map"
     >
-      {location && (
-        <nav className="map-breadcrumbs" aria-label="Map location">
-          {location
-            .split("/")
-            .filter(Boolean)
-            .map((part, i, parts) => (
-              <Button
-                key={i}
-                onClick={() => focus(parts.slice(0, i + 1).join("/"))}
-              >
-                / {part}
-              </Button>
-            ))}
-        </nav>
-      )}
       <div className="workspace-overview-canvas" ref={setCanvas}>
+        {location && (
+          <nav className="map-breadcrumbs" aria-label="Map location">
+            {location
+              .split("/")
+              .filter(Boolean)
+              .map((part, i, parts) => (
+                <Button
+                  key={i}
+                  onClick={() => focus(parts.slice(0, i + 1).join("/"))}
+                >
+                  / {part}
+                </Button>
+              ))}
+          </nav>
+        )}
         {(state.overview.state === "loading" ||
           (active && state.running && state.operation === "inspection")) && (
           <LinearProgress
@@ -426,37 +442,6 @@ function WorkspaceMap({
           nodesConnectable={false}
           zoomOnDoubleClick={false}
           onMove={(_, v) => setCamera(v)}
-          onMoveEnd={(_, v) => {
-            if (!scene) return;
-            const x = (size.width / 2 - v.x) / v.zoom,
-              y = (size.height / 2 - v.y) / v.zoom;
-            if (
-              v.zoom <=
-              Math.min(size.width / MAP_WIDTH, size.height / MAP_HEIGHT) * 1.2
-            ) {
-              setLocation("");
-              return;
-            }
-            const visibility = new Map<string, number>([["", 1]]);
-            let a: MapArea | undefined;
-            for (const area of scene.areas) {
-              const parent = scene.byPath.get(area.parent);
-              const alpha = parent
-                ? (visibility.get(parent.path) || 0) *
-                  fade(Math.min(parent.width, parent.height) * v.zoom)
-                : 1;
-              visibility.set(area.path, alpha);
-              if (
-                alpha > 0.5 &&
-                x >= area.x &&
-                x <= area.x + area.width &&
-                y >= area.y &&
-                y <= area.y + area.height
-              )
-                a = area;
-            }
-            setLocation(a?.path || "");
-          }}
           aria-label="Continuous project map"
         >
           <Controls
@@ -464,9 +449,7 @@ function WorkspaceMap({
             fitViewOptions={{ padding: "32px" }}
           />
         </ReactFlow>
-        {scene?.areas.some(
-          (a) => a.file && declarationDetail(a, camera.zoom, size) > 0.01,
-        ) && (
+        {mapHasDeclarations(visible, camera.zoom, size) && (
           <div
             className="map-declaration-legend"
             aria-label="Declaration types"

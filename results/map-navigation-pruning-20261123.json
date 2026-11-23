@@ -1,0 +1,3653 @@
+{
+  "date": "2026-11-23",
+  "kind": "Indexed map legend and camera-derived center breadcrumbs, deployed and remeasured",
+  "changes": [
+    "Legend uses branch-pruned visible areas and actual nonempty rendered symbols, sharing the cached visible set with map chunk selection.",
+    "Center breadcrumb follows the current camera through a containing-branch query, preserving the original strict opacity threshold and fixed world coordinates. The old independent location state and onMoveEnd scan are deleted.",
+    "Breadcrumb is an absolute canvas overlay. Its appearance does not resize the canvas or interrupt normal-motion focus."
+  ],
+  "baseline": {
+    "path": "results/event-stage-audit-20261123.json",
+    "sha256": "d0b2dc978157350395faf65bd403574c78bbdca99f02f8104efe247b4555979d",
+    "events": [
+      {
+        "environment": {
+          "browser": "149.0.7827.53",
+          "viewport": "1440x960",
+          "throttling": "none",
+          "reduced_motion": "no-preference",
+          "gesture_tail_ms": 600,
+          "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "declarations": 15,
+          "project_files": 175187,
+          "setup_preparation_ms": 29040.322751,
+          "setup_cache_hit": true,
+          "source_map_directory": "/home/gohan/workspace/meden/target/event-audit-assets",
+          "source_maps_sha256": {
+            "index-CjVN-X59.js": "ff0395525879d7cb6cd638aa53d0c523516e9b4ba1d87b4b3bdf8ea536c3aa2d"
+          }
+        },
+        "events": {
+          "project-map-wheel": {
+            "event": "wheel",
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 9.426,
+              "p95_ms": 10.9,
+              "max_ms": 10.939,
+              "total_ms": 202.61
+            },
+            "proxy_event": "wheel",
+            "input_to_two_raf": {
+              "count": 24,
+              "p50_ms": 17,
+              "p95_ms": 20.30000001192093,
+              "max_ms": 20.5,
+              "total_ms": 408.79999989271164
+            },
+            "rendering": {
+              "UpdateLayoutTree": {
+                "count": 26,
+                "p50_ms": 0.839,
+                "p95_ms": 1.121,
+                "max_ms": 1.19,
+                "total_ms": 20.248
+              },
+              "Layout": {
+                "count": 25,
+                "p50_ms": 0.314,
+                "p95_ms": 0.485,
+                "max_ms": 3.156,
+                "total_ms": 10.764
+              },
+              "PrePaint": {
+                "count": 147,
+                "p50_ms": 0.009,
+                "p95_ms": 1.87,
+                "max_ms": 2.02,
+                "total_ms": 40.52300000000001
+              },
+              "Paint": {
+                "count": 73,
+                "p50_ms": 0.092,
+                "p95_ms": 3.956,
+                "max_ms": 4.107,
+                "total_ms": 76.814
+              },
+              "FunctionCall": {
+                "count": 482,
+                "p50_ms": 0.017,
+                "p95_ms": 4.246,
+                "max_ms": 21.115,
+                "total_ms": 284.63900000000007
+              },
+              "FireAnimationFrame": {
+                "count": 171,
+                "p50_ms": 0.021,
+                "p95_ms": 0.102,
+                "max_ms": 0.343,
+                "total_ms": 5.824999999999999
+              },
+              "TimerFire": {
+                "count": 8,
+                "p50_ms": 0.277,
+                "p95_ms": 0.937,
+                "max_ms": 0.937,
+                "total_ms": 2.9770000000000003
+              }
+            },
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "non_state_requests": [],
+            "graph_camera": {
+              "before": null,
+              "after": null
+            }
+          },
+          "graph-wheel": {
+            "event": "wheel",
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 0.524,
+              "p95_ms": 0.904,
+              "max_ms": 1.495,
+              "total_ms": 13.620000000000001
+            },
+            "proxy_event": "wheel",
+            "input_to_two_raf": {
+              "count": 24,
+              "p50_ms": 16.399999976158142,
+              "p95_ms": 25.80000001192093,
+              "max_ms": 27.100000023841858,
+              "total_ms": 416.89999973773956
+            },
+            "rendering": {
+              "UpdateLayoutTree": {
+                "count": 25,
+                "p50_ms": 0.943,
+                "p95_ms": 1.1,
+                "max_ms": 1.273,
+                "total_ms": 21.738
+              },
+              "Layout": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "PrePaint": {
+                "count": 118,
+                "p50_ms": 0.011,
+                "p95_ms": 2.939,
+                "max_ms": 3.166,
+                "total_ms": 62.707
+              },
+              "Paint": {
+                "count": 48,
+                "p50_ms": 2.343,
+                "p95_ms": 4.305,
+                "max_ms": 4.978,
+                "total_ms": 97.73800000000001
+              },
+              "FunctionCall": {
+                "count": 275,
+                "p50_ms": 0.034,
+                "p95_ms": 0.446,
+                "max_ms": 14.813,
+                "total_ms": 74.03
+              },
+              "FireAnimationFrame": {
+                "count": 155,
+                "p50_ms": 0.037,
+                "p95_ms": 0.117,
+                "max_ms": 0.245,
+                "total_ms": 7.288000000000001
+              },
+              "TimerFire": {
+                "count": 7,
+                "p50_ms": 0.513,
+                "p95_ms": 0.848,
+                "max_ms": 0.848,
+                "total_ms": 3.489
+              }
+            },
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "non_state_requests": [],
+            "graph_camera": {
+              "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+              "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+            }
+          },
+          "graph-hover": {
+            "event": "mousemove",
+            "dispatch": {
+              "count": 40,
+              "p50_ms": 0.046,
+              "p95_ms": 0.08,
+              "max_ms": 0.084,
+              "total_ms": 1.9310000000000003
+            },
+            "proxy_event": "pointermove",
+            "input_to_two_raf": {
+              "count": 40,
+              "p50_ms": 18.400000035762787,
+              "p95_ms": 25.900000035762787,
+              "max_ms": 27.600000023841858,
+              "total_ms": 727.7000001072884
+            },
+            "rendering": {
+              "UpdateLayoutTree": {
+                "count": 170,
+                "p50_ms": 0.312,
+                "p95_ms": 0.828,
+                "max_ms": 2.587,
+                "total_ms": 57.355000000000004
+              },
+              "Layout": {
+                "count": 107,
+                "p50_ms": 0.269,
+                "p95_ms": 0.611,
+                "max_ms": 5.513,
+                "total_ms": 37.99300000000001
+              },
+              "PrePaint": {
+                "count": 207,
+                "p50_ms": 0.006,
+                "p95_ms": 1.573,
+                "max_ms": 2.439,
+                "total_ms": 61.738000000000014
+              },
+              "Paint": {
+                "count": 280,
+                "p50_ms": 0.013,
+                "p95_ms": 3.134,
+                "max_ms": 5.42,
+                "total_ms": 170.701
+              },
+              "FunctionCall": {
+                "count": 1693,
+                "p50_ms": 0.006,
+                "p95_ms": 0.076,
+                "max_ms": 19.245,
+                "total_ms": 364.9369999999998
+              },
+              "FireAnimationFrame": {
+                "count": 352,
+                "p50_ms": 0.007,
+                "p95_ms": 0.092,
+                "max_ms": 0.414,
+                "total_ms": 7.331999999999995
+              },
+              "TimerFire": {
+                "count": 6,
+                "p50_ms": 0.458,
+                "p95_ms": 0.753,
+                "max_ms": 0.753,
+                "total_ms": 2.301
+              }
+            },
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "non_state_requests": [],
+            "graph_camera": {
+              "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+              "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+            }
+          },
+          "graph-pan": {
+            "event": "mousemove",
+            "dispatch": {
+              "count": 31,
+              "p50_ms": 0.166,
+              "p95_ms": 0.312,
+              "max_ms": 1.096,
+              "total_ms": 6.295
+            },
+            "proxy_event": "pointermove",
+            "input_to_two_raf": {
+              "count": 31,
+              "p50_ms": 20,
+              "p95_ms": 21.19999998807907,
+              "max_ms": 27.899999976158142,
+              "total_ms": 611.3000000119209
+            },
+            "rendering": {
+              "UpdateLayoutTree": {
+                "count": 31,
+                "p50_ms": 0.677,
+                "p95_ms": 0.861,
+                "max_ms": 1.027,
+                "total_ms": 20.994
+              },
+              "Layout": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "PrePaint": {
+                "count": 176,
+                "p50_ms": 0.008,
+                "p95_ms": 2.261,
+                "max_ms": 2.783,
+                "total_ms": 63.742000000000004
+              },
+              "Paint": {
+                "count": 60,
+                "p50_ms": 2.419,
+                "p95_ms": 4.186,
+                "max_ms": 4.261,
+                "total_ms": 112.15899999999998
+              },
+              "FunctionCall": {
+                "count": 465,
+                "p50_ms": 0.019,
+                "p95_ms": 0.156,
+                "max_ms": 14.019,
+                "total_ms": 64.345
+              },
+              "FireAnimationFrame": {
+                "count": 152,
+                "p50_ms": 0.028,
+                "p95_ms": 0.115,
+                "max_ms": 0.426,
+                "total_ms": 6.079
+              },
+              "TimerFire": {
+                "count": 6,
+                "p50_ms": 0.455,
+                "p95_ms": 1.199,
+                "max_ms": 1.199,
+                "total_ms": 2.8070000000000004
+              }
+            },
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "non_state_requests": [],
+            "graph_camera": {
+              "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+              "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+            }
+          },
+          "graph-resize": {
+            "event": "resize",
+            "dispatch": {
+              "count": 5,
+              "p50_ms": 1.118,
+              "p95_ms": 1.867,
+              "max_ms": 1.867,
+              "total_ms": 6.222
+            },
+            "proxy_event": "resize",
+            "input_to_two_raf": {
+              "count": 5,
+              "p50_ms": 18.19999998807907,
+              "p95_ms": 23.100000023841858,
+              "max_ms": 23.100000023841858,
+              "total_ms": 88.5
+            },
+            "rendering": {
+              "UpdateLayoutTree": {
+                "count": 18,
+                "p50_ms": 0.071,
+                "p95_ms": 1.431,
+                "max_ms": 1.431,
+                "total_ms": 8.205000000000002
+              },
+              "Layout": {
+                "count": 18,
+                "p50_ms": 0.616,
+                "p95_ms": 1.951,
+                "max_ms": 1.951,
+                "total_ms": 14.112
+              },
+              "PrePaint": {
+                "count": 57,
+                "p50_ms": 0.01,
+                "p95_ms": 2.16,
+                "max_ms": 3.975,
+                "total_ms": 13.28
+              },
+              "Paint": {
+                "count": 8,
+                "p50_ms": 3.384,
+                "p95_ms": 5.547,
+                "max_ms": 5.547,
+                "total_ms": 29.643
+              },
+              "FunctionCall": {
+                "count": 130,
+                "p50_ms": 0.03,
+                "p95_ms": 0.874,
+                "max_ms": 13.231,
+                "total_ms": 53.105000000000004
+              },
+              "FireAnimationFrame": {
+                "count": 67,
+                "p50_ms": 0.045,
+                "p95_ms": 0.163,
+                "max_ms": 0.761,
+                "total_ms": 4.471
+              },
+              "TimerFire": {
+                "count": 2,
+                "p50_ms": 0.765,
+                "p95_ms": 0.765,
+                "max_ms": 0.765,
+                "total_ms": 1.514
+              }
+            },
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "non_state_requests": [],
+            "graph_camera": {
+              "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+              "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+            }
+          },
+          "tab-switch": {
+            "event": "click",
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 12.981,
+              "p95_ms": 16.8,
+              "max_ms": 18.669,
+              "total_ms": 316.8
+            },
+            "proxy_event": "click",
+            "input_to_two_raf": {
+              "count": 24,
+              "p50_ms": 30.600000023841858,
+              "p95_ms": 37.69999998807907,
+              "max_ms": 40.80000001192093,
+              "total_ms": 702.2999997735023
+            },
+            "rendering": {
+              "UpdateLayoutTree": {
+                "count": 119,
+                "p50_ms": 0.443,
+                "p95_ms": 4.552,
+                "max_ms": 4.959,
+                "total_ms": 116.82099999999998
+              },
+              "Layout": {
+                "count": 24,
+                "p50_ms": 7.093,
+                "p95_ms": 7.377,
+                "max_ms": 7.705,
+                "total_ms": 92.46099999999998
+              },
+              "PrePaint": {
+                "count": 478,
+                "p50_ms": 0.004,
+                "p95_ms": 1.106,
+                "max_ms": 2.673,
+                "total_ms": 47.3
+              },
+              "Paint": {
+                "count": 48,
+                "p50_ms": 3.095,
+                "p95_ms": 3.34,
+                "max_ms": 3.361,
+                "total_ms": 122.20900000000002
+              },
+              "FunctionCall": {
+                "count": 2729,
+                "p50_ms": 0.008,
+                "p95_ms": 0.166,
+                "max_ms": 18.424,
+                "total_ms": 513.553
+              },
+              "FireAnimationFrame": {
+                "count": 498,
+                "p50_ms": 0.01,
+                "p95_ms": 0.13,
+                "max_ms": 0.36,
+                "total_ms": 14.581000000000001
+              },
+              "TimerFire": {
+                "count": 7,
+                "p50_ms": 0.265,
+                "p95_ms": 0.73,
+                "max_ms": 0.73,
+                "total_ms": 2.859
+              }
+            },
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "non_state_requests": [],
+            "graph_camera": {
+              "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+              "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+            }
+          },
+          "graph-node-select": {
+            "event": "click",
+            "dispatch": {
+              "count": 9,
+              "p50_ms": 0.115,
+              "p95_ms": 34.064,
+              "max_ms": 34.064,
+              "total_ms": 36.16
+            },
+            "proxy_event": "click",
+            "input_to_two_raf": {
+              "count": 9,
+              "p50_ms": 24.599999964237213,
+              "p95_ms": 74.19999998807907,
+              "max_ms": 74.19999998807907,
+              "total_ms": 271.6999999284744
+            },
+            "rendering": {
+              "UpdateLayoutTree": {
+                "count": 58,
+                "p50_ms": 0.234,
+                "p95_ms": 0.944,
+                "max_ms": 9.177,
+                "total_ms": 24.263
+              },
+              "Layout": {
+                "count": 13,
+                "p50_ms": 0.399,
+                "p95_ms": 1.755,
+                "max_ms": 1.755,
+                "total_ms": 7.631
+              },
+              "PrePaint": {
+                "count": 133,
+                "p50_ms": 0.006,
+                "p95_ms": 0.096,
+                "max_ms": 2.163,
+                "total_ms": 7.497000000000002
+              },
+              "Paint": {
+                "count": 20,
+                "p50_ms": 0.348,
+                "p95_ms": 6.945,
+                "max_ms": 6.945,
+                "total_ms": 39.466
+              },
+              "FunctionCall": {
+                "count": 702,
+                "p50_ms": 0.009,
+                "p95_ms": 0.067,
+                "max_ms": 31.289,
+                "total_ms": 96.716
+              },
+              "FireAnimationFrame": {
+                "count": 143,
+                "p50_ms": 0.011,
+                "p95_ms": 0.112,
+                "max_ms": 0.65,
+                "total_ms": 5.125000000000001
+              },
+              "TimerFire": {
+                "count": 4,
+                "p50_ms": 0.401,
+                "p95_ms": 0.48,
+                "max_ms": 0.48,
+                "total_ms": 1.068
+              }
+            },
+            "long_tasks": {
+              "count": 1,
+              "p50_ms": 52,
+              "p95_ms": 52,
+              "max_ms": 52,
+              "total_ms": 52
+            },
+            "non_state_requests": [],
+            "graph_camera": {
+              "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+              "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+            }
+          }
+        }
+      },
+      {
+        "environment": {
+          "browser": "149.0.7827.53",
+          "viewport": "1440x960",
+          "throttling": "none",
+          "reduced_motion": "no-preference",
+          "gesture_tail_ms": 600,
+          "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "declarations": 15,
+          "project_files": 175187,
+          "setup_preparation_ms": 24896.823077,
+          "setup_cache_hit": true,
+          "source_map_directory": "/home/gohan/workspace/meden/target/event-audit-assets",
+          "source_maps_sha256": {
+            "index-CjVN-X59.js": "ff0395525879d7cb6cd638aa53d0c523516e9b4ba1d87b4b3bdf8ea536c3aa2d"
+          }
+        },
+        "events": {
+          "project-map-wheel": {
+            "event": "wheel",
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 8.047,
+              "p95_ms": 9.05,
+              "max_ms": 9.721,
+              "total_ms": 182.61800000000002
+            },
+            "proxy_event": "wheel",
+            "input_to_two_raf": {
+              "count": 24,
+              "p50_ms": 16.700000047683716,
+              "p95_ms": 17.30000001192093,
+              "max_ms": 17.399999976158142,
+              "total_ms": 403.09999990463257
+            },
+            "rendering": {
+              "UpdateLayoutTree": {
+                "count": 31,
+                "p50_ms": 0.745,
+                "p95_ms": 1.047,
+                "max_ms": 1.1,
+                "total_ms": 19.677000000000003
+              },
+              "Layout": {
+                "count": 27,
+                "p50_ms": 0.318,
+                "p95_ms": 0.505,
+                "max_ms": 3.386,
+                "total_ms": 11.593999999999998
+              },
+              "PrePaint": {
+                "count": 149,
+                "p50_ms": 0.01,
+                "p95_ms": 1.608,
+                "max_ms": 1.959,
+                "total_ms": 38.611000000000004
+              },
+              "Paint": {
+                "count": 74,
+                "p50_ms": 0.079,
+                "p95_ms": 2.808,
+                "max_ms": 2.978,
+                "total_ms": 64.99399999999999
+              },
+              "FunctionCall": {
+                "count": 497,
+                "p50_ms": 0.02,
+                "p95_ms": 6.699,
+                "max_ms": 18.098,
+                "total_ms": 264.052
+              },
+              "FireAnimationFrame": {
+                "count": 171,
+                "p50_ms": 0.02,
+                "p95_ms": 0.098,
+                "max_ms": 0.241,
+                "total_ms": 5.670000000000001
+              },
+              "TimerFire": {
+                "count": 7,
+                "p50_ms": 0.288,
+                "p95_ms": 0.514,
+                "max_ms": 0.514,
+                "total_ms": 2.104
+              }
+            },
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "non_state_requests": [],
+            "graph_camera": {
+              "before": null,
+              "after": null
+            }
+          },
+          "graph-wheel": {
+            "event": "wheel",
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 0.513,
+              "p95_ms": 1.051,
+              "max_ms": 2.249,
+              "total_ms": 14.297
+            },
+            "proxy_event": "wheel",
+            "input_to_two_raf": {
+              "count": 24,
+              "p50_ms": 16.599999964237213,
+              "p95_ms": 17.80000001192093,
+              "max_ms": 18.19999998807907,
+              "total_ms": 375.19999969005585
+            },
+            "rendering": {
+              "UpdateLayoutTree": {
+                "count": 25,
+                "p50_ms": 0.956,
+                "p95_ms": 1.472,
+                "max_ms": 1.792,
+                "total_ms": 23.450000000000003
+              },
+              "Layout": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "PrePaint": {
+                "count": 118,
+                "p50_ms": 0.012,
+                "p95_ms": 3.083,
+                "max_ms": 4.311,
+                "total_ms": 67.305
+              },
+              "Paint": {
+                "count": 48,
+                "p50_ms": 1.932,
+                "p95_ms": 7.073,
+                "max_ms": 8.349,
+                "total_ms": 126.11699999999999
+              },
+              "FunctionCall": {
+                "count": 281,
+                "p50_ms": 0.041,
+                "p95_ms": 0.49,
+                "max_ms": 18.525,
+                "total_ms": 101.96000000000001
+              },
+              "FireAnimationFrame": {
+                "count": 155,
+                "p50_ms": 0.043,
+                "p95_ms": 0.109,
+                "max_ms": 0.247,
+                "total_ms": 7.866999999999998
+              },
+              "TimerFire": {
+                "count": 7,
+                "p50_ms": 0.455,
+                "p95_ms": 1.136,
+                "max_ms": 1.136,
+                "total_ms": 3.4459999999999997
+              }
+            },
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "non_state_requests": [],
+            "graph_camera": {
+              "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+              "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+            }
+          },
+          "graph-hover": {
+            "event": "mousemove",
+            "dispatch": {
+              "count": 40,
+              "p50_ms": 0.05,
+              "p95_ms": 0.1,
+              "max_ms": 1.761,
+              "total_ms": 3.8440000000000003
+            },
+            "proxy_event": "pointermove",
+            "input_to_two_raf": {
+              "count": 40,
+              "p50_ms": 18.69999998807907,
+              "p95_ms": 24.099999964237213,
+              "max_ms": 26.19999998807907,
+              "total_ms": 728.1000002026558
+            },
+            "rendering": {
+              "UpdateLayoutTree": {
+                "count": 170,
+                "p50_ms": 0.339,
+                "p95_ms": 0.735,
+                "max_ms": 2.96,
+                "total_ms": 60.163000000000004
+              },
+              "Layout": {
+                "count": 107,
+                "p50_ms": 0.301,
+                "p95_ms": 0.55,
+                "max_ms": 4.888,
+                "total_ms": 38.31800000000001
+              },
+              "PrePaint": {
+                "count": 205,
+                "p50_ms": 0.007,
+                "p95_ms": 1.743,
+                "max_ms": 3.103,
+                "total_ms": 65.56099999999999
+              },
+              "Paint": {
+                "count": 278,
+                "p50_ms": 0.013,
+                "p95_ms": 3.339,
+                "max_ms": 5.716,
+                "total_ms": 173.511
+              },
+              "FunctionCall": {
+                "count": 1688,
+                "p50_ms": 0.007,
+                "p95_ms": 0.076,
+                "max_ms": 19.753,
+                "total_ms": 364.3519999999999
+              },
+              "FireAnimationFrame": {
+                "count": 351,
+                "p50_ms": 0.008,
+                "p95_ms": 0.092,
+                "max_ms": 0.8,
+                "total_ms": 8.228999999999996
+              },
+              "TimerFire": {
+                "count": 6,
+                "p50_ms": 0.346,
+                "p95_ms": 0.794,
+                "max_ms": 0.794,
+                "total_ms": 2.591
+              }
+            },
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "non_state_requests": [],
+            "graph_camera": {
+              "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+              "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+            }
+          },
+          "graph-pan": {
+            "event": "mousemove",
+            "dispatch": {
+              "count": 31,
+              "p50_ms": 0.18,
+              "p95_ms": 0.279,
+              "max_ms": 0.653,
+              "total_ms": 6.128
+            },
+            "proxy_event": "pointermove",
+            "input_to_two_raf": {
+              "count": 31,
+              "p50_ms": 20.100000023841858,
+              "p95_ms": 21.600000023841858,
+              "max_ms": 22.399999976158142,
+              "total_ms": 620.2999998927116
+            },
+            "rendering": {
+              "UpdateLayoutTree": {
+                "count": 31,
+                "p50_ms": 0.648,
+                "p95_ms": 1.074,
+                "max_ms": 1.125,
+                "total_ms": 21.588
+              },
+              "Layout": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              },
+              "PrePaint": {
+                "count": 176,
+                "p50_ms": 0.009,
+                "p95_ms": 2.295,
+                "max_ms": 3.818,
+                "total_ms": 68.72
+              },
+              "Paint": {
+                "count": 60,
+                "p50_ms": 2.397,
+                "p95_ms": 4.585,
+                "max_ms": 5.849,
+                "total_ms": 120.86099999999999
+              },
+              "FunctionCall": {
+                "count": 465,
+                "p50_ms": 0.019,
+                "p95_ms": 0.177,
+                "max_ms": 15.467,
+                "total_ms": 63.57799999999999
+              },
+              "FireAnimationFrame": {
+                "count": 152,
+                "p50_ms": 0.029,
+                "p95_ms": 0.099,
+                "max_ms": 0.156,
+                "total_ms": 5.981000000000001
+              },
+              "TimerFire": {
+                "count": 6,
+                "p50_ms": 0.349,
+                "p95_ms": 0.446,
+                "max_ms": 0.446,
+                "total_ms": 1.6729999999999998
+              }
+            },
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "non_state_requests": [],
+            "graph_camera": {
+              "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+              "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+            }
+          },
+          "graph-resize": {
+            "event": "resize",
+            "dispatch": {
+              "count": 3,
+              "p50_ms": 1.335,
+              "p95_ms": 1.918,
+              "max_ms": 1.918,
+              "total_ms": 4.051
+            },
+            "proxy_event": "resize",
+            "input_to_two_raf": {
+              "count": 3,
+              "p50_ms": 19.299999952316284,
+              "p95_ms": 20.30000001192093,
+              "max_ms": 20.30000001192093,
+              "total_ms": 51.19999998807907
+            },
+            "rendering": {
+              "UpdateLayoutTree": {
+                "count": 14,
+                "p50_ms": 0.771,
+                "p95_ms": 1.248,
+                "max_ms": 1.248,
+                "total_ms": 7.699999999999999
+              },
+              "Layout": {
+                "count": 14,
+                "p50_ms": 0.981,
+                "p95_ms": 1.811,
+                "max_ms": 1.811,
+                "total_ms": 12.218
+              },
+              "PrePaint": {
+                "count": 51,
+                "p50_ms": 0.011,
+                "p95_ms": 1.448,
+                "max_ms": 3.619,
+                "total_ms": 8.154
+              },
+              "Paint": {
+                "count": 6,
+                "p50_ms": 4.58,
+                "p95_ms": 6.12,
+                "max_ms": 6.12,
+                "total_ms": 27.329
+              },
+              "FunctionCall": {
+                "count": 90,
+                "p50_ms": 0.041,
+                "p95_ms": 0.752,
+                "max_ms": 18.927,
+                "total_ms": 45.363
+              },
+              "FireAnimationFrame": {
+                "count": 61,
+                "p50_ms": 0.065,
+                "p95_ms": 0.131,
+                "max_ms": 0.242,
+                "total_ms": 4.16
+              },
+              "TimerFire": {
+                "count": 2,
+                "p50_ms": 0.805,
+                "p95_ms": 0.805,
+                "max_ms": 0.805,
+                "total_ms": 1.342
+              }
+            },
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "non_state_requests": [],
+            "graph_camera": {
+              "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+              "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+            }
+          },
+          "tab-switch": {
+            "event": "click",
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 18.47,
+              "p95_ms": 23.225,
+              "max_ms": 24.626,
+              "total_ms": 428.4910000000001
+            },
+            "proxy_event": "click",
+            "input_to_two_raf": {
+              "count": 24,
+              "p50_ms": 35.09999996423721,
+              "p95_ms": 47,
+              "max_ms": 48,
+              "total_ms": 857.0000000596046
+            },
+            "rendering": {
+              "UpdateLayoutTree": {
+                "count": 119,
+                "p50_ms": 0.556,
+                "p95_ms": 5,
+                "max_ms": 7.847,
+                "total_ms": 143.53799999999998
+              },
+              "Layout": {
+                "count": 24,
+                "p50_ms": 7.374,
+                "p95_ms": 8.099,
+                "max_ms": 9.709,
+                "total_ms": 100.409
+              },
+              "PrePaint": {
+                "count": 487,
+                "p50_ms": 0.006,
+                "p95_ms": 0.067,
+                "max_ms": 3.14,
+                "total_ms": 55.038999999999994
+              },
+              "Paint": {
+                "count": 48,
+                "p50_ms": 3.253,
+                "p95_ms": 3.6,
+                "max_ms": 3.819,
+                "total_ms": 131.56199999999995
+              },
+              "FunctionCall": {
+                "count": 2757,
+                "p50_ms": 0.01,
+                "p95_ms": 0.222,
+                "max_ms": 24.344,
+                "total_ms": 675.614
+              },
+              "FireAnimationFrame": {
+                "count": 506,
+                "p50_ms": 0.012,
+                "p95_ms": 0.168,
+                "max_ms": 0.548,
+                "total_ms": 20.358000000000004
+              },
+              "TimerFire": {
+                "count": 7,
+                "p50_ms": 0.454,
+                "p95_ms": 0.604,
+                "max_ms": 0.604,
+                "total_ms": 2.8120000000000003
+              }
+            },
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "non_state_requests": [],
+            "graph_camera": {
+              "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+              "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+            }
+          },
+          "graph-node-select": {
+            "event": "click",
+            "dispatch": {
+              "count": 9,
+              "p50_ms": 0.08,
+              "p95_ms": 29.695,
+              "max_ms": 29.695,
+              "total_ms": 31.629
+            },
+            "proxy_event": "click",
+            "input_to_two_raf": {
+              "count": 9,
+              "p50_ms": 25.099999964237213,
+              "p95_ms": 37.40000003576279,
+              "max_ms": 37.40000003576279,
+              "total_ms": 234.9999998807907
+            },
+            "rendering": {
+              "UpdateLayoutTree": {
+                "count": 58,
+                "p50_ms": 0.201,
+                "p95_ms": 0.834,
+                "max_ms": 8.466,
+                "total_ms": 22.317999999999998
+              },
+              "Layout": {
+                "count": 13,
+                "p50_ms": 0.34,
+                "p95_ms": 1.582,
+                "max_ms": 1.582,
+                "total_ms": 6.056
+              },
+              "PrePaint": {
+                "count": 134,
+                "p50_ms": 0.005,
+                "p95_ms": 0.129,
+                "max_ms": 2.545,
+                "total_ms": 8.379
+              },
+              "Paint": {
+                "count": 20,
+                "p50_ms": 0.396,
+                "p95_ms": 6.667,
+                "max_ms": 6.667,
+                "total_ms": 41.327000000000005
+              },
+              "FunctionCall": {
+                "count": 708,
+                "p50_ms": 0.007,
+                "p95_ms": 0.065,
+                "max_ms": 27.567,
+                "total_ms": 92.84599999999998
+              },
+              "FireAnimationFrame": {
+                "count": 144,
+                "p50_ms": 0.014,
+                "p95_ms": 0.108,
+                "max_ms": 2.444,
+                "total_ms": 7.575000000000002
+              },
+              "TimerFire": {
+                "count": 4,
+                "p50_ms": 0.546,
+                "p95_ms": 0.662,
+                "max_ms": 0.662,
+                "total_ms": 1.4540000000000002
+              }
+            },
+            "long_tasks": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "non_state_requests": [],
+            "graph_camera": {
+              "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+              "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "after": [
+    {
+      "directory": "target/native-profile/event-audit-riemann-map-pruned-1",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 35529.063539,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/map-pruning-profile-assets",
+        "source_maps_sha256": {
+          "index-CotkGies.js": "eaa4e0d23196cc9129983cc79219c689abeee1b77a7fc5600aecbc48a2e06f29",
+          "GraphView-AktdVjVR.js": "c3c2fd201908f7aee3ccb007ef435c95723b06a3823607d0553ce8489ab0a937"
+        }
+      },
+      "manifest": {
+        "binary_sha256": "00c06f0989b556a9121ede3d38f996463db5c9403f9c45421d895e4112e06df4",
+        "samples": 2414,
+        "perf_event_paranoid": "2",
+        "kptr_restrict": "1",
+        "event": "cpu-clock:u",
+        "frequency_hz": 99,
+        "stack": "dwarf,8192",
+        "digests": {
+          "perf.data": "16f8ee852338136aac6ca5888e5cc0115c708c15e6fe6784ada8271812b0cb0d",
+          "perf-report.txt": "414e59bc417ab303e6d013d265aa884c53c1148ce50fb4aff147a21b31a2b186",
+          "trace.json": "8bc98099e5dac458698a702b912801a900175197cc53b4892ad961da9f8e15cf",
+          "native-metrics.json": "22cbb37e82af32d469511095b82974a7233f6e194c3b94e6d2f011ed88e178d3",
+          "summary.json": "99fd8ff9e4c11e1b1c149c9da40bee5794971c3a675c59a75355f9e1e79b5a3b",
+          "graph-hover.cpuprofile": "8851f7da0568656cbbbd7b5122b581506e9bf36b0fb2b587c22931edf0f913be",
+          "graph-idle-poll.cpuprofile": "e8026de4073b660f6ed17f1a359ce4cdaaa9a78b5626d6649988b117531c86b7",
+          "graph-idle-settled.cpuprofile": "d10acc2765ca986b8c19c72611863d41e5902bd30d76fabe9c1fdec4468819cd",
+          "graph-node-select.cpuprofile": "0daac554039301ed76c6418c72517a33130e0881fa6e327f84ce2a397c7e0d01",
+          "graph-pan.cpuprofile": "10fc52e8c43c20dca5d6e3504b331bef7925e4b030bb8e231a3c345f187b64b6",
+          "graph-resize.cpuprofile": "cb707085cce8a82e9b75fa699ee804e207f0f4860bcab93f999727d59ab5ffa9",
+          "graph-wheel.cpuprofile": "2a3bed24c84978c2cfcf519f77a529ec8d4d17f13e613bb5371233dea2df4dd5",
+          "project-map-idle.cpuprofile": "fe2f60ac0476b7122252cea49ac091adff5f444f0b352957866a8b0bd69fae43",
+          "project-map-wheel.cpuprofile": "456130e9d1d4843a8b259fd68f46a6580f55554dc195e9ec1d92b8dc2b313137",
+          "tab-switch.cpuprofile": "beb1f47474f0edfeeb517bd3263d0a579a0ec78cb19cf5835aaa6c6837b03600"
+        },
+        "limits": "Current-user native host and inherited workers only; no kernel stacks. Thread CPU spans exclude worker CPU. File preparation reuses project/OS caches, not a cold installation. Sampling changes timing; browser profiles have their own overhead."
+      },
+      "events": {
+        "project-map-wheel": {
+          "event": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 1.739,
+            "p95_ms": 2.697,
+            "max_ms": 3.119,
+            "total_ms": 44.033
+          },
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 16.899999976158142,
+            "p95_ms": 24.599999964237213,
+            "max_ms": 32.89999997615814,
+            "total_ms": 434.0999999642372
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 25,
+              "p50_ms": 1.084,
+              "p95_ms": 2.401,
+              "max_ms": 3.052,
+              "total_ms": 29.871
+            },
+            "Layout": {
+              "count": 25,
+              "p50_ms": 0.472,
+              "p95_ms": 2.029,
+              "max_ms": 3.244,
+              "total_ms": 18.812
+            },
+            "PrePaint": {
+              "count": 150,
+              "p50_ms": 0.012,
+              "p95_ms": 2.48,
+              "max_ms": 4.342,
+              "total_ms": 60.300999999999995
+            },
+            "Paint": {
+              "count": 78,
+              "p50_ms": 0.14,
+              "p95_ms": 5.176,
+              "max_ms": 7.223,
+              "total_ms": 116.348
+            },
+            "FunctionCall": {
+              "count": 494,
+              "p50_ms": 0.026,
+              "p95_ms": 1.065,
+              "max_ms": 19.359,
+              "total_ms": 141.15499999999997
+            },
+            "FireAnimationFrame": {
+              "count": 173,
+              "p50_ms": 0.026,
+              "p95_ms": 0.085,
+              "max_ms": 0.395,
+              "total_ms": 6.82
+            },
+            "TimerFire": {
+              "count": 7,
+              "p50_ms": 0.429,
+              "p95_ms": 0.556,
+              "max_ms": 0.556,
+              "total_ms": 2.485
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": null,
+            "after": null
+          }
+        },
+        "graph-wheel": {
+          "event": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 0.367,
+            "p95_ms": 0.74,
+            "max_ms": 0.74,
+            "total_ms": 10.11
+          },
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 16.69999998807907,
+            "p95_ms": 25.5,
+            "max_ms": 45.30000001192093,
+            "total_ms": 442.19999998807907
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 25,
+              "p50_ms": 0.661,
+              "p95_ms": 1.669,
+              "max_ms": 1.936,
+              "total_ms": 18.958
+            },
+            "Layout": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "PrePaint": {
+              "count": 120,
+              "p50_ms": 0.013,
+              "p95_ms": 3.016,
+              "max_ms": 6.14,
+              "total_ms": 62.66899999999999
+            },
+            "Paint": {
+              "count": 48,
+              "p50_ms": 2.102,
+              "p95_ms": 9.524,
+              "max_ms": 11.651,
+              "total_ms": 112.374
+            },
+            "FunctionCall": {
+              "count": 283,
+              "p50_ms": 0.029,
+              "p95_ms": 0.396,
+              "max_ms": 30.275,
+              "total_ms": 83.574
+            },
+            "FireAnimationFrame": {
+              "count": 157,
+              "p50_ms": 0.032,
+              "p95_ms": 0.108,
+              "max_ms": 0.163,
+              "total_ms": 6.263000000000002
+            },
+            "TimerFire": {
+              "count": 7,
+              "p50_ms": 0.326,
+              "p95_ms": 0.657,
+              "max_ms": 0.657,
+              "total_ms": 2.2439999999999998
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-hover": {
+          "event": "mousemove",
+          "dispatch": {
+            "count": 40,
+            "p50_ms": 0.044,
+            "p95_ms": 0.074,
+            "max_ms": 0.088,
+            "total_ms": 1.8980000000000004
+          },
+          "input_to_two_raf": {
+            "count": 40,
+            "p50_ms": 18.200000047683716,
+            "p95_ms": 26.5,
+            "max_ms": 29.19999998807907,
+            "total_ms": 729.7000001072884
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 170,
+              "p50_ms": 0.36,
+              "p95_ms": 0.715,
+              "max_ms": 2.855,
+              "total_ms": 62.01199999999999
+            },
+            "Layout": {
+              "count": 107,
+              "p50_ms": 0.326,
+              "p95_ms": 0.502,
+              "max_ms": 6.889,
+              "total_ms": 42.055
+            },
+            "PrePaint": {
+              "count": 208,
+              "p50_ms": 0.006,
+              "p95_ms": 1.767,
+              "max_ms": 3.78,
+              "total_ms": 68.286
+            },
+            "Paint": {
+              "count": 280,
+              "p50_ms": 0.015,
+              "p95_ms": 3.391,
+              "max_ms": 5.697,
+              "total_ms": 180.75699999999998
+            },
+            "FunctionCall": {
+              "count": 1688,
+              "p50_ms": 0.006,
+              "p95_ms": 0.064,
+              "max_ms": 23.656,
+              "total_ms": 365.1559999999999
+            },
+            "FireAnimationFrame": {
+              "count": 353,
+              "p50_ms": 0.008,
+              "p95_ms": 0.084,
+              "max_ms": 0.449,
+              "total_ms": 6.831999999999996
+            },
+            "TimerFire": {
+              "count": 6,
+              "p50_ms": 0.335,
+              "p95_ms": 0.421,
+              "max_ms": 0.421,
+              "total_ms": 1.821
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-pan": {
+          "event": "mousemove",
+          "dispatch": {
+            "count": 31,
+            "p50_ms": 0.141,
+            "p95_ms": 0.286,
+            "max_ms": 0.335,
+            "total_ms": 4.83
+          },
+          "input_to_two_raf": {
+            "count": 31,
+            "p50_ms": 19.799999952316284,
+            "p95_ms": 21.30000001192093,
+            "max_ms": 21.899999976158142,
+            "total_ms": 601.2999999523163
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 31,
+              "p50_ms": 0.619,
+              "p95_ms": 0.943,
+              "max_ms": 1.117,
+              "total_ms": 18.820000000000004
+            },
+            "Layout": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "PrePaint": {
+              "count": 174,
+              "p50_ms": 0.01,
+              "p95_ms": 2.331,
+              "max_ms": 3.198,
+              "total_ms": 61.57199999999999
+            },
+            "Paint": {
+              "count": 60,
+              "p50_ms": 2.064,
+              "p95_ms": 5.491,
+              "max_ms": 7.219,
+              "total_ms": 110.19900000000001
+            },
+            "FunctionCall": {
+              "count": 462,
+              "p50_ms": 0.017,
+              "p95_ms": 0.143,
+              "max_ms": 16.193,
+              "total_ms": 60.736999999999995
+            },
+            "FireAnimationFrame": {
+              "count": 150,
+              "p50_ms": 0.026,
+              "p95_ms": 0.095,
+              "max_ms": 0.95,
+              "total_ms": 6.5470000000000015
+            },
+            "TimerFire": {
+              "count": 5,
+              "p50_ms": 0.346,
+              "p95_ms": 0.958,
+              "max_ms": 0.958,
+              "total_ms": 2.0039999999999996
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "graph-resize": {
+          "event": "resize",
+          "dispatch": {
+            "count": 4,
+            "p50_ms": 0.951,
+            "p95_ms": 1.187,
+            "max_ms": 1.187,
+            "total_ms": 3.7830000000000004
+          },
+          "input_to_two_raf": {
+            "count": 4,
+            "p50_ms": 17.5,
+            "p95_ms": 21.399999976158142,
+            "max_ms": 21.399999976158142,
+            "total_ms": 66.29999995231628
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 16,
+              "p50_ms": 0.734,
+              "p95_ms": 1.108,
+              "max_ms": 1.108,
+              "total_ms": 7.4670000000000005
+            },
+            "Layout": {
+              "count": 16,
+              "p50_ms": 0.993,
+              "p95_ms": 1.366,
+              "max_ms": 1.366,
+              "total_ms": 11.299999999999999
+            },
+            "PrePaint": {
+              "count": 54,
+              "p50_ms": 0.007,
+              "p95_ms": 1.799,
+              "max_ms": 1.989,
+              "total_ms": 7.624
+            },
+            "Paint": {
+              "count": 6,
+              "p50_ms": 2.975,
+              "p95_ms": 3.367,
+              "max_ms": 3.367,
+              "total_ms": 17.93
+            },
+            "FunctionCall": {
+              "count": 127,
+              "p50_ms": 0.024,
+              "p95_ms": 0.762,
+              "max_ms": 8.207,
+              "total_ms": 47.833999999999996
+            },
+            "FireAnimationFrame": {
+              "count": 63,
+              "p50_ms": 0.038,
+              "p95_ms": 0.071,
+              "max_ms": 0.328,
+              "total_ms": 2.571
+            },
+            "TimerFire": {
+              "count": 2,
+              "p50_ms": 0.351,
+              "p95_ms": 0.351,
+              "max_ms": 0.351,
+              "total_ms": 0.626
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "tab-switch": {
+          "event": "click",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 8.177,
+            "p95_ms": 10.803,
+            "max_ms": 15.825,
+            "total_ms": 206.92699999999996
+          },
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 30.600000023841858,
+            "p95_ms": 32.90000003576279,
+            "max_ms": 35.90000003576279,
+            "total_ms": 722.3000000715256
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 119,
+              "p50_ms": 0.302,
+              "p95_ms": 4.818,
+              "max_ms": 5.331,
+              "total_ms": 116.65399999999998
+            },
+            "Layout": {
+              "count": 24,
+              "p50_ms": 7.357,
+              "p95_ms": 8.075,
+              "max_ms": 11.347,
+              "total_ms": 101.994
+            },
+            "PrePaint": {
+              "count": 470,
+              "p50_ms": 0.004,
+              "p95_ms": 1.222,
+              "max_ms": 3.685,
+              "total_ms": 53.594
+            },
+            "Paint": {
+              "count": 48,
+              "p50_ms": 3.33,
+              "p95_ms": 3.926,
+              "max_ms": 4.014,
+              "total_ms": 137.17100000000002
+            },
+            "FunctionCall": {
+              "count": 2735,
+              "p50_ms": 0.006,
+              "p95_ms": 0.212,
+              "max_ms": 55.658,
+              "total_ms": 417.14099999999996
+            },
+            "FireAnimationFrame": {
+              "count": 487,
+              "p50_ms": 0.009,
+              "p95_ms": 0.116,
+              "max_ms": 0.274,
+              "total_ms": 13.352999999999998
+            },
+            "TimerFire": {
+              "count": 7,
+              "p50_ms": 0.304,
+              "p95_ms": 0.533,
+              "max_ms": 0.533,
+              "total_ms": 2.302
+            }
+          },
+          "long_tasks": {
+            "count": 1,
+            "p50_ms": 86,
+            "p95_ms": 86,
+            "max_ms": 86,
+            "total_ms": 86
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "graph-node-select": {
+          "event": "click",
+          "dispatch": {
+            "count": 9,
+            "p50_ms": 0.087,
+            "p95_ms": 35.499,
+            "max_ms": 35.499,
+            "total_ms": 37.118
+          },
+          "input_to_two_raf": {
+            "count": 9,
+            "p50_ms": 27.100000023841858,
+            "p95_ms": 68,
+            "max_ms": 68,
+            "total_ms": 286.10000002384186
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 58,
+              "p50_ms": 0.149,
+              "p95_ms": 0.682,
+              "max_ms": 11.448,
+              "total_ms": 24.205000000000002
+            },
+            "Layout": {
+              "count": 13,
+              "p50_ms": 0.389,
+              "p95_ms": 1.474,
+              "max_ms": 1.474,
+              "total_ms": 6.140000000000001
+            },
+            "PrePaint": {
+              "count": 133,
+              "p50_ms": 0.005,
+              "p95_ms": 0.069,
+              "max_ms": 1.905,
+              "total_ms": 7.086000000000001
+            },
+            "Paint": {
+              "count": 14,
+              "p50_ms": 2.363,
+              "p95_ms": 3.596,
+              "max_ms": 3.596,
+              "total_ms": 20.326
+            },
+            "FunctionCall": {
+              "count": 708,
+              "p50_ms": 0.007,
+              "p95_ms": 0.055,
+              "max_ms": 33.34,
+              "total_ms": 87.576
+            },
+            "FireAnimationFrame": {
+              "count": 144,
+              "p50_ms": 0.012,
+              "p95_ms": 0.065,
+              "max_ms": 0.518,
+              "total_ms": 3.742000000000001
+            },
+            "TimerFire": {
+              "count": 4,
+              "p50_ms": 0.247,
+              "p95_ms": 0.324,
+              "max_ms": 0.324,
+              "total_ms": 0.6839999999999999
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        }
+      },
+      "idle": {
+        "graph-idle-poll": {
+          "long_tasks": {
+            "count": 2,
+            "p50_ms": 434,
+            "p95_ms": 434,
+            "max_ms": 434,
+            "total_ms": 608
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 260.189,
+              "location": "../../../apps/web/src/features/native/project-map-model.ts:47 · projectMap"
+            },
+            {
+              "self_ms": 70.385,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 56.083999999999996,
+              "location": "../../../node_modules/zod/v4/core/schemas.js:1199 · t._zod.parse"
+            },
+            {
+              "self_ms": 31.682999999999996,
+              "location": "../../../node_modules/zod/v4/core/schemas.js:1044 · t._zod.parse"
+            },
+            {
+              "self_ms": 30.622000000000003,
+              "location": "../../../node_modules/zod/v4/core/schemas.js:893 · handlePropertyResult"
+            },
+            {
+              "self_ms": 25.916,
+              "location": "../../../apps/web/src/features/native/project-map-model.ts:110 · d"
+            },
+            {
+              "self_ms": 25.733999999999998,
+              "location": "../../../node_modules/d3-hierarchy/src/hierarchy/sort.js:2 · (anonymous)"
+            },
+            {
+              "self_ms": 6.511,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+            }
+          ]
+        },
+        "graph-idle-settled": {
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 8.569999999999999,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 · workLoopSync"
+            },
+            {
+              "self_ms": 5.639,
+              "location": "../../../node_modules/@mui/material/ButtonBase/ButtonBase.mjs:97 · (anonymous)"
+            },
+            {
+              "self_ms": 5.465999999999999,
+              "location": "../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 · (anonymous)"
+            },
+            {
+              "self_ms": 5.306,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 · updateElement"
+            },
+            {
+              "self_ms": 5.292,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 · propagateParentContextChanges"
+            },
+            {
+              "self_ms": 4.406000000000001,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 · commitHostUpdate"
+            },
+            {
+              "self_ms": 4.3100000000000005,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+            },
+            {
+              "self_ms": 4.2780000000000005,
+              "location": "../../../node_modules/react/cjs/react.production.js:453 · Eq.Jt.createElement"
+            }
+          ]
+        },
+        "project-map-idle": {
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 111.95700000000005,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 11.056,
+              "location": "../../../apps/web/src/features/native/NativeExplorer.tsx:68 · entry"
+            },
+            {
+              "self_ms": 9.158,
+              "location": "../../../apps/web/src/features/source/ExplanationHint.tsx:26 · ExplanationHint"
+            },
+            {
+              "self_ms": 8.473999999999998,
+              "location": "../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 · (anonymous)"
+            },
+            {
+              "self_ms": 7.603,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:7768 · beginWork"
+            },
+            {
+              "self_ms": 7.393000000000001,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+            },
+            {
+              "self_ms": 6.795,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 · propagateParentContextChanges"
+            },
+            {
+              "self_ms": 6.229,
+              "location": "../../../node_modules/@emotion/hash/dist/emotion-hash.esm.js:4 · murmur2"
+            }
+          ]
+        }
+      },
+      "native_stages": {
+        "available": true,
+        "evicted_during_capture": 0,
+        "stages": {
+          "gui.serialize_respond": {
+            "wall": {
+              "count": 232,
+              "p50_ms": 0.75,
+              "p95_ms": 6.892,
+              "max_ms": 1167.972,
+              "total_ms": 2729.759
+            },
+            "host_thread_cpu": {
+              "count": 232,
+              "p50_ms": 0.695,
+              "p95_ms": 5.09,
+              "max_ms": 1096.727,
+              "total_ms": 2538.043
+            }
+          },
+          "process.run": {
+            "wall": {
+              "count": 84,
+              "p50_ms": 40.975,
+              "p95_ms": 63.381,
+              "max_ms": 29893.059,
+              "total_ms": 33941.377
+            },
+            "host_thread_cpu": {
+              "count": 84,
+              "p50_ms": 0.383,
+              "p95_ms": 0.652,
+              "max_ms": 190.164,
+              "total_ms": 225.766
+            }
+          },
+          "gui.job": {
+            "wall": {
+              "count": 7,
+              "p50_ms": 41.527,
+              "p95_ms": 34806.62,
+              "max_ms": 34806.62,
+              "total_ms": 35085.855
+            },
+            "host_thread_cpu": {
+              "count": 7,
+              "p50_ms": 1.104,
+              "p95_ms": 1154.273,
+              "max_ms": 1154.273,
+              "total_ms": 1160.704
+            }
+          },
+          "gui.state": {
+            "wall": {
+              "count": 223,
+              "p50_ms": 0.993,
+              "p95_ms": 7.939,
+              "max_ms": 44.513,
+              "total_ms": 610.0070000000001
+            },
+            "host_thread_cpu": {
+              "count": 223,
+              "p50_ms": 0.927,
+              "p95_ms": 6.039,
+              "max_ms": 44.025,
+              "total_ms": 507.6370000000001
+            }
+          },
+          "gui.enqueue": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.001,
+              "p95_ms": 0.002,
+              "max_ms": 0.002,
+              "total_ms": 0.007
+            },
+            "host_thread_cpu": {
+              "count": 6,
+              "p50_ms": 0.001,
+              "p95_ms": 0.002,
+              "max_ms": 0.002,
+              "total_ms": 0.006
+            }
+          },
+          "job.queue": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.063,
+              "p95_ms": 0.086,
+              "max_ms": 0.086,
+              "total_ms": 0.32
+            },
+            "host_thread_cpu": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            }
+          },
+          "gui.command": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.238,
+              "p95_ms": 0.356,
+              "max_ms": 0.356,
+              "total_ms": 1.456
+            },
+            "host_thread_cpu": {
+              "count": 6,
+              "p50_ms": 0.206,
+              "p95_ms": 0.317,
+              "max_ms": 0.317,
+              "total_ms": 1.294
+            }
+          },
+          "atlas.resources.select": {
+            "wall": {
+              "count": 15,
+              "p50_ms": 10.079,
+              "p95_ms": 18.332,
+              "max_ms": 18.332,
+              "total_ms": 173.192
+            },
+            "host_thread_cpu": {
+              "count": 15,
+              "p50_ms": 10.007,
+              "p95_ms": 18.124,
+              "max_ms": 18.124,
+              "total_ms": 171.331
+            }
+          },
+          "atlas.resources.validate": {
+            "wall": {
+              "count": 28,
+              "p50_ms": 19.874,
+              "p95_ms": 26.778,
+              "max_ms": 40.763,
+              "total_ms": 586.817
+            },
+            "host_thread_cpu": {
+              "count": 28,
+              "p50_ms": 19.625,
+              "p95_ms": 25.658,
+              "max_ms": 26.595,
+              "total_ms": 568.135
+            }
+          },
+          "analysis.capture_sources": {
+            "wall": {
+              "count": 3,
+              "p50_ms": 52.279,
+              "p95_ms": 73.984,
+              "max_ms": 73.984,
+              "total_ms": 168.656
+            },
+            "host_thread_cpu": {
+              "count": 3,
+              "p50_ms": 1.8,
+              "p95_ms": 1.838,
+              "max_ms": 1.838,
+              "total_ms": 5.421
+            }
+          },
+          "atlas.lake_configuration.reuse": {
+            "wall": {
+              "count": 12,
+              "p50_ms": 19.746,
+              "p95_ms": 21.041,
+              "max_ms": 21.041,
+              "total_ms": 238.447
+            },
+            "host_thread_cpu": {
+              "count": 12,
+              "p50_ms": 19.671,
+              "p95_ms": 20.906,
+              "max_ms": 20.906,
+              "total_ms": 237.26500000000001
+            }
+          },
+          "atlas.lake_configuration.resolve": {
+            "wall": {
+              "count": 12,
+              "p50_ms": 53.599,
+              "p95_ms": 61.599,
+              "max_ms": 61.599,
+              "total_ms": 643.631
+            },
+            "host_thread_cpu": {
+              "count": 12,
+              "p50_ms": 52.561,
+              "p95_ms": 60.039,
+              "max_ms": 60.039,
+              "total_ms": 630.9249999999998
+            }
+          },
+          "analysis.discover_layout": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1750.527,
+              "p95_ms": 1750.527,
+              "max_ms": 1750.527,
+              "total_ms": 1750.527
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 653.479,
+              "p95_ms": 653.479,
+              "max_ms": 653.479,
+              "total_ms": 653.479
+            }
+          },
+          "analysis.select_roots": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1845.401,
+              "p95_ms": 1845.401,
+              "max_ms": 1845.401,
+              "total_ms": 1845.401
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 657.259,
+              "p95_ms": 657.259,
+              "max_ms": 657.259,
+              "total_ms": 657.259
+            }
+          },
+          "sandbox.public_tools": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 71.088,
+              "p95_ms": 71.088,
+              "max_ms": 71.088,
+              "total_ms": 71.088
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 3.262,
+              "p95_ms": 3.262,
+              "max_ms": 3.262,
+              "total_ms": 3.262
+            }
+          },
+          "sandbox.libraries": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 57.328,
+              "p95_ms": 57.328,
+              "max_ms": 57.328,
+              "total_ms": 57.328
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 4.083,
+              "p95_ms": 4.083,
+              "max_ms": 4.083,
+              "total_ms": 4.083
+            }
+          },
+          "sandbox.nix_closure": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 47.504,
+              "p95_ms": 47.504,
+              "max_ms": 47.504,
+              "total_ms": 47.504
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 1.037,
+              "p95_ms": 1.037,
+              "max_ms": 1.037,
+              "total_ms": 1.037
+            }
+          },
+          "sandbox.prepare": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 606.723,
+              "p95_ms": 606.723,
+              "max_ms": 606.723,
+              "total_ms": 606.723
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 35.951,
+              "p95_ms": 35.951,
+              "max_ms": 35.951,
+              "total_ms": 35.951
+            }
+          },
+          "atlas.project.prepare": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 30500.144,
+              "p95_ms": 30500.144,
+              "max_ms": 30500.144,
+              "total_ms": 30500.144
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 226.476,
+              "p95_ms": 226.476,
+              "max_ms": 226.476,
+              "total_ms": 226.476
+            }
+          },
+          "analysis.cache.validate": {
+            "wall": {
+              "count": 2,
+              "p50_ms": 1156.207,
+              "p95_ms": 1156.207,
+              "max_ms": 1156.207,
+              "total_ms": 1156.334
+            },
+            "host_thread_cpu": {
+              "count": 2,
+              "p50_ms": 57.811,
+              "p95_ms": 57.811,
+              "max_ms": 57.811,
+              "total_ms": 57.936
+            }
+          },
+          "analysis.cache.retain_observation": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 21.26,
+              "p95_ms": 21.26,
+              "max_ms": 21.26,
+              "total_ms": 21.26
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 15.03,
+              "p95_ms": 15.03,
+              "max_ms": 15.03,
+              "total_ms": 15.03
+            }
+          },
+          "analysis.cache.load_rendering": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1.862,
+              "p95_ms": 1.862,
+              "max_ms": 1.862,
+              "total_ms": 1.862
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 1.594,
+              "p95_ms": 1.594,
+              "max_ms": 1.594,
+              "total_ms": 1.594
+            }
+          },
+          "analysis.extract": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 34611.514,
+              "p95_ms": 34611.514,
+              "max_ms": 34611.514,
+              "total_ms": 34611.514
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 1076.044,
+              "p95_ms": 1076.044,
+              "max_ms": 1076.044,
+              "total_ms": 1076.044
+            }
+          },
+          "analysis.materialize_view": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 0.64,
+              "p95_ms": 0.64,
+              "max_ms": 0.64,
+              "total_ms": 0.64
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 0.64,
+              "p95_ms": 0.64,
+              "max_ms": 0.64,
+              "total_ms": 0.64
+            }
+          }
+        }
+      }
+    },
+    {
+      "directory": "target/native-profile/event-audit-riemann-map-pruned-2",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 40231.294472,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/map-pruning-profile-assets",
+        "source_maps_sha256": {
+          "index-CotkGies.js": "eaa4e0d23196cc9129983cc79219c689abeee1b77a7fc5600aecbc48a2e06f29"
+        }
+      },
+      "manifest": {
+        "binary_sha256": "00c06f0989b556a9121ede3d38f996463db5c9403f9c45421d895e4112e06df4",
+        "samples": 2610,
+        "perf_event_paranoid": "2",
+        "kptr_restrict": "1",
+        "event": "cpu-clock:u",
+        "frequency_hz": 99,
+        "stack": "dwarf,8192",
+        "digests": {
+          "perf.data": "75e5471fbfbec687852c5086cfc57297d674cbe6a30bd5220781ec2c211db1d0",
+          "perf-report.txt": "ed0a053e42c8f5ed0df0fb2a54f48849633e66cf96f0779cd57696bb1cdfc630",
+          "trace.json": "2341b61f93cb8e28a864b945114a8b7a97cd1d139dcab7c1c56079e63afd06a9",
+          "native-metrics.json": "b0696da6209dc8f9bd0a71d06f995e1e86f058de1da959b54f7a1d12051e9ff9",
+          "summary.json": "a6e2ed1b4773214cd58a8a07dfcf369d84ec3057cf1f81c3022debea51ab006a",
+          "graph-hover.cpuprofile": "e86cd312abaaf95982c858ccb94dd1f584c3cf0f78055fb264e1911b1e7cc198",
+          "graph-idle-poll.cpuprofile": "6bbebcbe4a66ccf998b316b6c8e2cca92c8fc88db5366c65fefb6faf633dc640",
+          "graph-idle-settled.cpuprofile": "7dfefdf1bd6401df0788b6a8163318987ecbcfb2fb0abe2634498b32c5de1aae",
+          "graph-node-select.cpuprofile": "4b1907ec854b1bbbf696dd11e2263a84517c5325a84b26e1cf7f40abf33f1e54",
+          "graph-pan.cpuprofile": "f634c91fae48adc00a1efd597b0f4b6a1115889f590a7b32c44abb69c5c12cda",
+          "graph-resize.cpuprofile": "0c238a029ec5476db57ec4a786e8505d8da1fae373379cfb5a0f3940eb9402e9",
+          "graph-wheel.cpuprofile": "75c17e772334e637331e6dff27fa0a323e8341f152df536735b09353a5864ad8",
+          "project-map-idle.cpuprofile": "ed37b4ae9322cb14841c918d69e75d0657cfef2f6f2306c055d0908a0cb7afa1",
+          "project-map-wheel.cpuprofile": "60593ebe844435e4dc4b597c15c5dd30cbeeb535b750d55cb294a62dff3f1b04",
+          "tab-switch.cpuprofile": "c2e7086bc39031a81b4b29cc3cc951596714e340025f4efd213ba0d6302f3a24"
+        },
+        "limits": "Current-user native host and inherited workers only; no kernel stacks. Thread CPU spans exclude worker CPU. File preparation reuses project/OS caches, not a cold installation. Sampling changes timing; browser profiles have their own overhead."
+      },
+      "events": {
+        "project-map-wheel": {
+          "event": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 1.7,
+            "p95_ms": 2.519,
+            "max_ms": 4.857,
+            "total_ms": 42.635999999999996
+          },
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 16.899999976158142,
+            "p95_ms": 24.599999964237213,
+            "max_ms": 26.5,
+            "total_ms": 439.1999999284744
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 26,
+              "p50_ms": 0.945,
+              "p95_ms": 1.408,
+              "max_ms": 2.226,
+              "total_ms": 24.288000000000004
+            },
+            "Layout": {
+              "count": 25,
+              "p50_ms": 0.36,
+              "p95_ms": 1.285,
+              "max_ms": 4.418,
+              "total_ms": 16.735
+            },
+            "PrePaint": {
+              "count": 148,
+              "p50_ms": 0.011,
+              "p95_ms": 2.042,
+              "max_ms": 3.668,
+              "total_ms": 47.419
+            },
+            "Paint": {
+              "count": 78,
+              "p50_ms": 0.11,
+              "p95_ms": 4.539,
+              "max_ms": 10.618,
+              "total_ms": 100.554
+            },
+            "FunctionCall": {
+              "count": 499,
+              "p50_ms": 0.023,
+              "p95_ms": 0.801,
+              "max_ms": 11.994,
+              "total_ms": 104.22299999999998
+            },
+            "FireAnimationFrame": {
+              "count": 171,
+              "p50_ms": 0.023,
+              "p95_ms": 0.095,
+              "max_ms": 0.329,
+              "total_ms": 5.8889999999999985
+            },
+            "TimerFire": {
+              "count": 8,
+              "p50_ms": 0.301,
+              "p95_ms": 0.477,
+              "max_ms": 0.477,
+              "total_ms": 2.105
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": null,
+            "after": null
+          }
+        },
+        "graph-wheel": {
+          "event": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 0.643,
+            "p95_ms": 1.064,
+            "max_ms": 1.29,
+            "total_ms": 15.394000000000002
+          },
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 16.5,
+            "p95_ms": 16.80000001192093,
+            "max_ms": 16.80000001192093,
+            "total_ms": 388.9000000357628
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 25,
+              "p50_ms": 1.097,
+              "p95_ms": 1.466,
+              "max_ms": 1.765,
+              "total_ms": 25.501000000000005
+            },
+            "Layout": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "PrePaint": {
+              "count": 119,
+              "p50_ms": 0.011,
+              "p95_ms": 2.895,
+              "max_ms": 4.269,
+              "total_ms": 62.943999999999996
+            },
+            "Paint": {
+              "count": 48,
+              "p50_ms": 1.961,
+              "p95_ms": 4.761,
+              "max_ms": 4.903,
+              "total_ms": 100.391
+            },
+            "FunctionCall": {
+              "count": 275,
+              "p50_ms": 0.038,
+              "p95_ms": 0.5,
+              "max_ms": 18.942,
+              "total_ms": 86.85
+            },
+            "FireAnimationFrame": {
+              "count": 156,
+              "p50_ms": 0.041,
+              "p95_ms": 0.107,
+              "max_ms": 0.381,
+              "total_ms": 7.457999999999998
+            },
+            "TimerFire": {
+              "count": 6,
+              "p50_ms": 0.458,
+              "p95_ms": 0.828,
+              "max_ms": 0.828,
+              "total_ms": 2.582
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-hover": {
+          "event": "mousemove",
+          "dispatch": {
+            "count": 40,
+            "p50_ms": 0.056,
+            "p95_ms": 0.092,
+            "max_ms": 0.134,
+            "total_ms": 2.2790000000000004
+          },
+          "input_to_two_raf": {
+            "count": 40,
+            "p50_ms": 18.80000001192093,
+            "p95_ms": 23.099999964237213,
+            "max_ms": 25.5,
+            "total_ms": 746.200000166893
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 167,
+              "p50_ms": 0.354,
+              "p95_ms": 0.922,
+              "max_ms": 2.721,
+              "total_ms": 65.647
+            },
+            "Layout": {
+              "count": 105,
+              "p50_ms": 0.323,
+              "p95_ms": 0.552,
+              "max_ms": 6.039,
+              "total_ms": 42.46
+            },
+            "PrePaint": {
+              "count": 209,
+              "p50_ms": 0.007,
+              "p95_ms": 1.701,
+              "max_ms": 2.934,
+              "total_ms": 64.274
+            },
+            "Paint": {
+              "count": 280,
+              "p50_ms": 0.012,
+              "p95_ms": 3.575,
+              "max_ms": 6.03,
+              "total_ms": 179.96399999999994
+            },
+            "FunctionCall": {
+              "count": 1689,
+              "p50_ms": 0.007,
+              "p95_ms": 0.083,
+              "max_ms": 20.628,
+              "total_ms": 399.65500000000003
+            },
+            "FireAnimationFrame": {
+              "count": 353,
+              "p50_ms": 0.009,
+              "p95_ms": 0.09,
+              "max_ms": 0.199,
+              "total_ms": 7.195999999999997
+            },
+            "TimerFire": {
+              "count": 5,
+              "p50_ms": 0.402,
+              "p95_ms": 0.655,
+              "max_ms": 0.655,
+              "total_ms": 2.123
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-pan": {
+          "event": "mousemove",
+          "dispatch": {
+            "count": 31,
+            "p50_ms": 0.149,
+            "p95_ms": 0.221,
+            "max_ms": 0.461,
+            "total_ms": 4.86
+          },
+          "input_to_two_raf": {
+            "count": 31,
+            "p50_ms": 19.600000023841858,
+            "p95_ms": 20.599999964237213,
+            "max_ms": 25.5,
+            "total_ms": 600.2999999523163
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 31,
+              "p50_ms": 0.568,
+              "p95_ms": 0.819,
+              "max_ms": 0.829,
+              "total_ms": 17.537
+            },
+            "Layout": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "PrePaint": {
+              "count": 173,
+              "p50_ms": 0.007,
+              "p95_ms": 1.851,
+              "max_ms": 2.381,
+              "total_ms": 51.922999999999995
+            },
+            "Paint": {
+              "count": 60,
+              "p50_ms": 1.902,
+              "p95_ms": 3.652,
+              "max_ms": 4.029,
+              "total_ms": 93.08500000000001
+            },
+            "FunctionCall": {
+              "count": 461,
+              "p50_ms": 0.016,
+              "p95_ms": 0.149,
+              "max_ms": 7.939,
+              "total_ms": 45.22699999999998
+            },
+            "FireAnimationFrame": {
+              "count": 149,
+              "p50_ms": 0.022,
+              "p95_ms": 0.082,
+              "max_ms": 0.214,
+              "total_ms": 5.011000000000002
+            },
+            "TimerFire": {
+              "count": 5,
+              "p50_ms": 0.273,
+              "p95_ms": 0.562,
+              "max_ms": 0.562,
+              "total_ms": 1.276
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "graph-resize": {
+          "event": "resize",
+          "dispatch": {
+            "count": 3,
+            "p50_ms": 0.986,
+            "p95_ms": 1.023,
+            "max_ms": 1.023,
+            "total_ms": 2.766
+          },
+          "input_to_two_raf": {
+            "count": 3,
+            "p50_ms": 17.899999976158142,
+            "p95_ms": 20.399999976158142,
+            "max_ms": 20.399999976158142,
+            "total_ms": 55.19999998807907
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 14,
+              "p50_ms": 0.695,
+              "p95_ms": 1.093,
+              "max_ms": 1.093,
+              "total_ms": 6.327
+            },
+            "Layout": {
+              "count": 14,
+              "p50_ms": 0.963,
+              "p95_ms": 1.271,
+              "max_ms": 1.271,
+              "total_ms": 9.818999999999999
+            },
+            "PrePaint": {
+              "count": 52,
+              "p50_ms": 0.011,
+              "p95_ms": 1.697,
+              "max_ms": 1.893,
+              "total_ms": 5.955000000000001
+            },
+            "Paint": {
+              "count": 4,
+              "p50_ms": 2.982,
+              "p95_ms": 2.997,
+              "max_ms": 2.997,
+              "total_ms": 11.251999999999999
+            },
+            "FunctionCall": {
+              "count": 112,
+              "p50_ms": 0.038,
+              "p95_ms": 0.759,
+              "max_ms": 14.26,
+              "total_ms": 42.897
+            },
+            "FireAnimationFrame": {
+              "count": 60,
+              "p50_ms": 0.068,
+              "p95_ms": 0.158,
+              "max_ms": 0.541,
+              "total_ms": 4.423000000000002
+            },
+            "TimerFire": {
+              "count": 2,
+              "p50_ms": 0.951,
+              "p95_ms": 0.951,
+              "max_ms": 0.951,
+              "total_ms": 1.165
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "tab-switch": {
+          "event": "click",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 12.297,
+            "p95_ms": 19.297,
+            "max_ms": 19.456,
+            "total_ms": 299.02200000000005
+          },
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 31.100000023841858,
+            "p95_ms": 42.89999997615814,
+            "max_ms": 50.700000047683716,
+            "total_ms": 759.0000002384186
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 119,
+              "p50_ms": 0.464,
+              "p95_ms": 5.282,
+              "max_ms": 7.954,
+              "total_ms": 140.378
+            },
+            "Layout": {
+              "count": 24,
+              "p50_ms": 7.26,
+              "p95_ms": 8.869,
+              "max_ms": 12.949,
+              "total_ms": 104.582
+            },
+            "PrePaint": {
+              "count": 477,
+              "p50_ms": 0.005,
+              "p95_ms": 1.174,
+              "max_ms": 3.235,
+              "total_ms": 52.96499999999999
+            },
+            "Paint": {
+              "count": 48,
+              "p50_ms": 3.298,
+              "p95_ms": 3.961,
+              "max_ms": 4.684,
+              "total_ms": 133.588
+            },
+            "FunctionCall": {
+              "count": 2735,
+              "p50_ms": 0.008,
+              "p95_ms": 0.224,
+              "max_ms": 19.111,
+              "total_ms": 471.69999999999976
+            },
+            "FireAnimationFrame": {
+              "count": 496,
+              "p50_ms": 0.01,
+              "p95_ms": 0.157,
+              "max_ms": 0.541,
+              "total_ms": 17.510999999999996
+            },
+            "TimerFire": {
+              "count": 7,
+              "p50_ms": 0.218,
+              "p95_ms": 0.716,
+              "max_ms": 0.716,
+              "total_ms": 2.258
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "graph-node-select": {
+          "event": "click",
+          "dispatch": {
+            "count": 9,
+            "p50_ms": 0.102,
+            "p95_ms": 30.836,
+            "max_ms": 30.836,
+            "total_ms": 32.129
+          },
+          "input_to_two_raf": {
+            "count": 9,
+            "p50_ms": 23.099999964237213,
+            "p95_ms": 69.19999998807907,
+            "max_ms": 69.19999998807907,
+            "total_ms": 257.09999990463257
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 62,
+              "p50_ms": 0.191,
+              "p95_ms": 0.464,
+              "max_ms": 8.423,
+              "total_ms": 22.508000000000003
+            },
+            "Layout": {
+              "count": 15,
+              "p50_ms": 0.38,
+              "p95_ms": 1.957,
+              "max_ms": 1.957,
+              "total_ms": 8.334000000000001
+            },
+            "PrePaint": {
+              "count": 134,
+              "p50_ms": 0.006,
+              "p95_ms": 0.119,
+              "max_ms": 1.87,
+              "total_ms": 7.138000000000001
+            },
+            "Paint": {
+              "count": 18,
+              "p50_ms": 1.955,
+              "p95_ms": 5.585,
+              "max_ms": 5.585,
+              "total_ms": 30.244000000000003
+            },
+            "FunctionCall": {
+              "count": 707,
+              "p50_ms": 0.006,
+              "p95_ms": 0.077,
+              "max_ms": 28.223,
+              "total_ms": 105.88799999999999
+            },
+            "FireAnimationFrame": {
+              "count": 143,
+              "p50_ms": 0.01,
+              "p95_ms": 0.114,
+              "max_ms": 0.363,
+              "total_ms": 4.878
+            },
+            "TimerFire": {
+              "count": 5,
+              "p50_ms": 0.213,
+              "p95_ms": 0.595,
+              "max_ms": 0.595,
+              "total_ms": 1.6019999999999999
+            }
+          },
+          "long_tasks": {
+            "count": 1,
+            "p50_ms": 53,
+            "p95_ms": 53,
+            "max_ms": 53,
+            "total_ms": 53
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        }
+      },
+      "idle": {
+        "graph-idle-poll": {
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 7.472999999999999,
+              "location": "../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 · (anonymous)"
+            },
+            {
+              "self_ms": 6.948,
+              "location": "fetch"
+            },
+            {
+              "self_ms": 6.418,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 · workLoopSync"
+            },
+            {
+              "self_ms": 5.346,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:6425 · updateForwardRef"
+            },
+            {
+              "self_ms": 5.341,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 · propagateParentContextChanges"
+            },
+            {
+              "self_ms": 4.275,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:15482 · shouldSetTextContent"
+            },
+            {
+              "self_ms": 3.25,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:7768 · beginWork"
+            },
+            {
+              "self_ms": 3.245,
+              "location": "../../../apps/web/src/features/native/NativeExplorer.tsx:68 · entry"
+            }
+          ]
+        },
+        "graph-idle-settled": {
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 6.458,
+              "location": "../../../node_modules/react/cjs/react.production.js:453 · Eq.Jt.createElement"
+            },
+            {
+              "self_ms": 5.404999999999999,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 · reconcileChildrenArray"
+            },
+            {
+              "self_ms": 5.325,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 · updateElement"
+            },
+            {
+              "self_ms": 5.304,
+              "location": "../../../node_modules/@emotion/react/dist/emotion-element-f0de968e.browser.esm.js:29 · (anonymous)"
+            },
+            {
+              "self_ms": 4.307,
+              "location": "requestAnimationFrame"
+            },
+            {
+              "self_ms": 4.3020000000000005,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 · workLoopSync"
+            },
+            {
+              "self_ms": 4.297,
+              "location": "../../../apps/web/src/features/native/NativeExplorer.tsx:68 · entry"
+            },
+            {
+              "self_ms": 3.2720000000000002,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+            }
+          ]
+        },
+        "project-map-idle": {
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 55.81099999999999,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 5.439,
+              "location": "../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 · (anonymous)"
+            },
+            {
+              "self_ms": 4.394,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 · reconcileChildrenArray"
+            },
+            {
+              "self_ms": 4.293,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+            },
+            {
+              "self_ms": 4.2829999999999995,
+              "location": "frame"
+            },
+            {
+              "self_ms": 4.276,
+              "location": "fetch"
+            },
+            {
+              "self_ms": 4.059,
+              "location": "requestAnimationFrame"
+            },
+            {
+              "self_ms": 3.2040000000000006,
+              "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 · workLoopSync"
+            }
+          ]
+        }
+      },
+      "native_stages": {
+        "available": true,
+        "evicted_during_capture": 0,
+        "stages": {
+          "gui.serialize_respond": {
+            "wall": {
+              "count": 241,
+              "p50_ms": 3.548,
+              "p95_ms": 6.088,
+              "max_ms": 1118.5,
+              "total_ms": 2002.658
+            },
+            "host_thread_cpu": {
+              "count": 241,
+              "p50_ms": 3.456,
+              "p95_ms": 5.931,
+              "max_ms": 1059.992,
+              "total_ms": 1916.556
+            }
+          },
+          "process.run": {
+            "wall": {
+              "count": 84,
+              "p50_ms": 41.459,
+              "p95_ms": 61.866,
+              "max_ms": 33866.556,
+              "total_ms": 38106.236999999994
+            },
+            "host_thread_cpu": {
+              "count": 84,
+              "p50_ms": 0.466,
+              "p95_ms": 0.724,
+              "max_ms": 188.669,
+              "total_ms": 229.32600000000002
+            }
+          },
+          "gui.job": {
+            "wall": {
+              "count": 7,
+              "p50_ms": 42.023,
+              "p95_ms": 39450.799,
+              "max_ms": 39450.799,
+              "total_ms": 39746.609
+            },
+            "host_thread_cpu": {
+              "count": 7,
+              "p50_ms": 1.608,
+              "p95_ms": 1246.938,
+              "max_ms": 1246.938,
+              "total_ms": 1259.316
+            }
+          },
+          "gui.state": {
+            "wall": {
+              "count": 233,
+              "p50_ms": 4.472,
+              "p95_ms": 7.666,
+              "max_ms": 9.767,
+              "total_ms": 1082.6669999999992
+            },
+            "host_thread_cpu": {
+              "count": 233,
+              "p50_ms": 4.344,
+              "p95_ms": 7.483,
+              "max_ms": 9.345,
+              "total_ms": 1052.6339999999993
+            }
+          },
+          "gui.enqueue": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0,
+              "p95_ms": 0.001,
+              "max_ms": 0.001,
+              "total_ms": 0.002
+            },
+            "host_thread_cpu": {
+              "count": 6,
+              "p50_ms": 0,
+              "p95_ms": 0.001,
+              "max_ms": 0.001,
+              "total_ms": 0.002
+            }
+          },
+          "job.queue": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.028,
+              "p95_ms": 0.087,
+              "max_ms": 0.087,
+              "total_ms": 0.268
+            },
+            "host_thread_cpu": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            }
+          },
+          "gui.command": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.218,
+              "p95_ms": 0.302,
+              "max_ms": 0.302,
+              "total_ms": 1.349
+            },
+            "host_thread_cpu": {
+              "count": 6,
+              "p50_ms": 0.198,
+              "p95_ms": 0.272,
+              "max_ms": 0.272,
+              "total_ms": 1.1989999999999998
+            }
+          },
+          "atlas.resources.select": {
+            "wall": {
+              "count": 15,
+              "p50_ms": 11.383,
+              "p95_ms": 18.106,
+              "max_ms": 18.106,
+              "total_ms": 175.82799999999997
+            },
+            "host_thread_cpu": {
+              "count": 15,
+              "p50_ms": 11.289,
+              "p95_ms": 17.916,
+              "max_ms": 17.916,
+              "total_ms": 172.92
+            }
+          },
+          "atlas.resources.validate": {
+            "wall": {
+              "count": 28,
+              "p50_ms": 20.259,
+              "p95_ms": 25.759,
+              "max_ms": 32.669,
+              "total_ms": 597.4920000000001
+            },
+            "host_thread_cpu": {
+              "count": 28,
+              "p50_ms": 20.136,
+              "p95_ms": 23.94,
+              "max_ms": 32.421,
+              "total_ms": 588.6200000000002
+            }
+          },
+          "analysis.capture_sources": {
+            "wall": {
+              "count": 3,
+              "p50_ms": 51.861,
+              "p95_ms": 53.338,
+              "max_ms": 53.338,
+              "total_ms": 147.055
+            },
+            "host_thread_cpu": {
+              "count": 3,
+              "p50_ms": 1.328,
+              "p95_ms": 2.771,
+              "max_ms": 2.771,
+              "total_ms": 5.282
+            }
+          },
+          "atlas.lake_configuration.reuse": {
+            "wall": {
+              "count": 12,
+              "p50_ms": 20.044,
+              "p95_ms": 34.044,
+              "max_ms": 34.044,
+              "total_ms": 260.77500000000003
+            },
+            "host_thread_cpu": {
+              "count": 12,
+              "p50_ms": 19.956,
+              "p95_ms": 33.725,
+              "max_ms": 33.725,
+              "total_ms": 259.439
+            }
+          },
+          "atlas.lake_configuration.resolve": {
+            "wall": {
+              "count": 12,
+              "p50_ms": 57.91,
+              "p95_ms": 101.247,
+              "max_ms": 101.247,
+              "total_ms": 711.3720000000001
+            },
+            "host_thread_cpu": {
+              "count": 12,
+              "p50_ms": 52.879,
+              "p95_ms": 68.282,
+              "max_ms": 68.282,
+              "total_ms": 660.171
+            }
+          },
+          "analysis.discover_layout": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1863.753,
+              "p95_ms": 1863.753,
+              "max_ms": 1863.753,
+              "total_ms": 1863.753
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 684.674,
+              "p95_ms": 684.674,
+              "max_ms": 684.674,
+              "total_ms": 684.674
+            }
+          },
+          "analysis.select_roots": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1957.669,
+              "p95_ms": 1957.669,
+              "max_ms": 1957.669,
+              "total_ms": 1957.669
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 687.382,
+              "p95_ms": 687.382,
+              "max_ms": 687.382,
+              "total_ms": 687.382
+            }
+          },
+          "sandbox.public_tools": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 115.071,
+              "p95_ms": 115.071,
+              "max_ms": 115.071,
+              "total_ms": 115.071
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 5.755,
+              "p95_ms": 5.755,
+              "max_ms": 5.755,
+              "total_ms": 5.755
+            }
+          },
+          "sandbox.libraries": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 54.202,
+              "p95_ms": 54.202,
+              "max_ms": 54.202,
+              "total_ms": 54.202
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 4.337,
+              "p95_ms": 4.337,
+              "max_ms": 4.337,
+              "total_ms": 4.337
+            }
+          },
+          "sandbox.nix_closure": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 53.611,
+              "p95_ms": 53.611,
+              "max_ms": 53.611,
+              "total_ms": 53.611
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 0.863,
+              "p95_ms": 0.863,
+              "max_ms": 0.863,
+              "total_ms": 0.863
+            }
+          },
+          "sandbox.prepare": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 988.458,
+              "p95_ms": 988.458,
+              "max_ms": 988.458,
+              "total_ms": 988.458
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 118.929,
+              "p95_ms": 118.929,
+              "max_ms": 118.929,
+              "total_ms": 118.929
+            }
+          },
+          "atlas.project.prepare": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 34855.346,
+              "p95_ms": 34855.346,
+              "max_ms": 34855.346,
+              "total_ms": 34855.346
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 307.925,
+              "p95_ms": 307.925,
+              "max_ms": 307.925,
+              "total_ms": 307.925
+            }
+          },
+          "analysis.cache.validate": {
+            "wall": {
+              "count": 2,
+              "p50_ms": 1215.73,
+              "p95_ms": 1215.73,
+              "max_ms": 1215.73,
+              "total_ms": 1215.814
+            },
+            "host_thread_cpu": {
+              "count": 2,
+              "p50_ms": 61.774,
+              "p95_ms": 61.774,
+              "max_ms": 61.774,
+              "total_ms": 61.856
+            }
+          },
+          "analysis.cache.retain_observation": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 14.604,
+              "p95_ms": 14.604,
+              "max_ms": 14.604,
+              "total_ms": 14.604
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 14.209,
+              "p95_ms": 14.209,
+              "max_ms": 14.209,
+              "total_ms": 14.209
+            }
+          },
+          "analysis.cache.load_rendering": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1.249,
+              "p95_ms": 1.249,
+              "max_ms": 1.249,
+              "total_ms": 1.249
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 0.929,
+              "p95_ms": 0.929,
+              "max_ms": 0.929,
+              "total_ms": 0.929
+            }
+          },
+          "analysis.extract": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 39311.376,
+              "p95_ms": 39311.376,
+              "max_ms": 39311.376,
+              "total_ms": 39311.376
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 1191.135,
+              "p95_ms": 1191.135,
+              "max_ms": 1191.135,
+              "total_ms": 1191.135
+            }
+          },
+          "analysis.materialize_view": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 0.385,
+              "p95_ms": 0.385,
+              "max_ms": 0.385,
+              "total_ms": 0.385
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 0.385,
+              "p95_ms": 0.385,
+              "max_ms": 0.385,
+              "total_ms": 0.385
+            }
+          }
+        }
+      }
+    }
+  ],
+  "comparison_limits": "Two diagnostic runs per revision, same actual Riemann file/counts, browser, viewport, motion and native executable digest. Frontend assets changed and hosts restarted before the after captures; project/OS state is not a controlled cold install. Dispatch work is smaller; the two-rAF proxy did not improve consistently and is not physical presentation or field INP. Do not claim an overall 75% rendering or preparation speedup. Node sequence includes explicit Fit View. Nested native spans overlap; host thread CPU excludes child work.",
+  "algorithm": {
+    "positive": {
+      "workload": {
+        "version": 2,
+        "files": 175187,
+        "cameras": [
+          {
+            "x": 0,
+            "y": 0,
+            "zoom": 0.08
+          },
+          {
+            "x": -4000,
+            "y": -2400,
+            "zoom": 2
+          },
+          {
+            "x": -208779.04264229693,
+            "y": -75709.97926065039,
+            "zoom": 26.103700501766767
+          }
+        ],
+        "operations": [
+          "visible areas",
+          "visible declaration legend",
+          "center breadcrumb"
+        ],
+        "size": {
+          "width": 900,
+          "height": 700
+        },
+        "repetitions": 9,
+        "calls_per_sample": 10
+      },
+      "environment": {
+        "node": "v22.22.2",
+        "os": "linux",
+        "kernel": "6.12.92",
+        "cpu": "13th Gen Intel(R) Core(TM) i7-13620H"
+      },
+      "layout_ms": 427.3890190000001,
+      "optimized_ms": [
+        1.331380000000081, 1.2587109999999484, 0.4672739999996338,
+        0.42354299999988143, 0.4718700000012177, 0.4299750000009226,
+        0.4639500000012049, 0.4285630000013043, 0.4621839999999793
+      ],
+      "full_scan_ms": [
+        1843.735696, 1852.5929489999994, 2016.444531, 2003.1011799999997,
+        1923.5570319999988, 1849.9509580000013, 2006.059204000001,
+        1748.0048670000015, 1888.7237969999987
+      ],
+      "median_ratio": 0.0002456420577419162,
+      "maximum_ratio": 0.35,
+      "scope": "Same-process comparative algorithm gate, not browser paint/INP or a native compilation budget. OS caches are warm; nine alternating paired measurements. Absolute timings are diagnostic only."
+    },
+    "negative": {
+      "workload": {
+        "version": 2,
+        "files": 175187,
+        "cameras": [
+          {
+            "x": 0,
+            "y": 0,
+            "zoom": 0.08
+          },
+          {
+            "x": -4000,
+            "y": -2400,
+            "zoom": 2
+          },
+          {
+            "x": -208779.04264229693,
+            "y": -75709.97926065039,
+            "zoom": 26.103700501766767
+          }
+        ],
+        "operations": [
+          "visible areas",
+          "visible declaration legend",
+          "center breadcrumb"
+        ],
+        "size": {
+          "width": 900,
+          "height": 700
+        },
+        "repetitions": 9,
+        "calls_per_sample": 10
+      },
+      "environment": {
+        "node": "v22.22.2",
+        "os": "linux",
+        "kernel": "6.12.92",
+        "cpu": "13th Gen Intel(R) Core(TM) i7-13620H"
+      },
+      "layout_ms": 412.6767050000001,
+      "optimized_ms": [
+        1944.6966940000007, 2156.144673, 1842.527701000001, 2787.1369030000005,
+        1939.7877369999987, 2321.725033999999, 1809.1019290000004,
+        2085.4245010000013, 1858.1811489999964
+      ],
+      "full_scan_ms": [
+        1903.3328399999998, 1875.9003600000005, 1765.9791780000014,
+        3240.1971809999995, 2131.7491900000023, 1968.9036730000007,
+        2090.259042999998, 1938.5936829999991, 1825.6011790000048
+      ],
+      "median_ratio": 1.0031481640807562,
+      "maximum_ratio": 0.35,
+      "scope": "Same-process comparative algorithm gate, not browser paint/INP or a native compilation budget. OS caches are warm; nine alternating paired measurements. Absolute timings are diagnostic only."
+    },
+    "scope": "Version 2 compares the complete visible-area/legend/breadcrumb query at three cameras. The full-scan mutation fails its actual ratio assertion. This is an algorithm budget, not a browser paint guarantee."
+  },
+  "validation": {
+    "typescript_tests": 32,
+    "fuzz": {
+      "seed": 20261123,
+      "inventories": 3000,
+      "checks": [
+        "visible areas and opacity",
+        "rendered declaration legend",
+        "center breadcrumb against independent full scan",
+        "focused centers/corners and strict half-opacity boundary",
+        "unchanged world coordinates and layout replay"
+      ]
+    },
+    "browser": {
+      "normal_motion": [
+        "retained tabs, real compilation and no new inspection",
+        "10001-file map, visible legend, correct settled breadcrumb, constant canvas height, file selection, restart, real invalid-source failure and public refresh recovery",
+        "IDE semantic zoom, large source, original graph camera, model composer and mobile layout"
+      ],
+      "reduced_motion": ["serialized retained-tab performance gate"],
+      "warm_p95_budget_ms": 250,
+      "reports": [
+        "target/gui-checks/map-pruning-overlay-normal-report",
+        "target/gui-checks/map-pruning-reduced-report"
+      ]
+    },
+    "required_tui": {
+      "directory": "/tmp/meden-ux-map-pruning-final-20261123",
+      "success": true,
+      "selected": 34,
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/gui-runtime/00c06f0989b556a9121ede3d38f996463db5c9403f9c45421d895e4112e06df4-914feb57b4c63a0a/meden",
+        "sha256": "00c06f0989b556a9121ede3d38f996463db5c9403f9c45421d895e4112e06df4"
+      },
+      "decoded_screens_reviewed": [
+        "Lake source-inventory refusal and historical restart",
+        "complete fresh processor review",
+        "provider HTTP 429, retained edits and /retry after restart",
+        "GUI/TUI conversation continuation"
+      ]
+    },
+    "screenshots_reviewed": [
+      "large-project-map-declarations.png",
+      "large-project-map-index-failure.png"
+    ],
+    "architecture": "passed",
+    "schema": "passed; no generated changes",
+    "typecheck": "passed",
+    "format_command": "npm run format:check (passed)",
+    "scripted_and_installed_tool_limits": "TUI fixtures and installed Lean/Lake prerequisites are not live-model or cold-install validation.",
+    "artifacts": {
+      "/tmp/meden-map-pruning-browser-overlay-normal.log": "64b9313f804554449014c4ccd4ac2fdc2e086630a957689c283c6c94baadfa2c",
+      "/tmp/meden-map-pruning-browser-reduced.log": "cf0038aded993cd735e0543dfe0953311f1669d6047c744650df41b0d2c115e0",
+      "target/gui-checks/map-pruning-overlay-normal-report/index.html": "7225ffd3dbec7c79f0f8805cdd4482d36a428edaf28c80d669952dd04c1b7ecc",
+      "target/gui-checks/map-pruning-reduced-report/index.html": "87e2f981482c17994041d54e0b3c7edd50a2eb75a046767c1c9b1b4d23748b62",
+      "target/gui-checks/large-project-map-declarations.png": "bc88220d8b76c594be8a04c9fc8d295b35eeb30a2964f6396d6b400dfba18a89",
+      "target/gui-checks/large-project-map-index-failure.png": "5946c08e73b325a3c72ae2df8ee585360b13d76476e4a8fd5f12766dc3b87347",
+      "/tmp/meden-ux-map-pruning-final-20261123/summary.json": "e168102dab30e9f48cae53ba7552caf7ea77ed7e130fbf0b333f86baadbe8277"
+    }
+  },
+  "regression_observation": "The new actual-browser assertion first caught File15.lean in the breadcrumb while File0.lean occupied the center. Deriving the path continuously exposed layout feedback from the old in-flow breadcrumb; the final overlay and constant-height regression remove that feedback without shortening the normal focus animation.",
+  "deployment": {
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/00c06f0989b556a9121ede3d38f996463db5c9403f9c45421d895e4112e06df4-f780248764a4f18e",
+    "binary_sha256": "00c06f0989b556a9121ede3d38f996463db5c9403f9c45421d895e4112e06df4",
+    "assets_sha256": "f780248764a4f18e02ceff133cc6b006cac31f4780afc41b9d9c5c1ebdc0137d",
+    "javascript_sha256": {
+      "assets/AnalysisView-DWaATrpR.js": "a1649e498e3ce9244d4e600248389a537d1c6133a9f781d5df036b54932d8b82",
+      "assets/ArtifactPanel-Xv1msatq.js": "1baecd58675bcf8b44fb956cfd44ace3ab4799ea9c0419d777fea24bb8fde797",
+      "assets/GraphView-AktdVjVR.js": "426b86e24471db3d8eaafe9f6138223a5d2dcd53df7ba4ee73fddf7a2fd517ae",
+      "assets/ProofWorkspace-Dk61ey9N.js": "abce126021e4a9c70cda8c2719cd91954afa861176ed417ebe6f3f291c207ae1",
+      "assets/ReviewView-COSnUF4c.js": "2833d8001bc4875949749dea3da52f4e1d46caa17ef502b3291dd5e06bf5f957",
+      "assets/highlight-DrFqIAIB.js": "f336a434ac50ba728a9b3576d4b9752ab0662a72d3cfe226ddb8acfc19c5c47e",
+      "assets/index-CotkGies.js": "eb0bd10ef2aba42f1a1ec6c1d119c4e72a9f62b49b620fd4cd1d15f3e1ba4198"
+    },
+    "projects": {
+      "riemann": {
+        "port": 4323,
+        "files": 175187
+      },
+      "ethlib": {
+        "port": 4322,
+        "files": 2517
+      }
+    },
+    "scope": "New immutable frontend deployment with unchanged native executable; hosts were idle and unapproved before restart. Session URLs remain in private local deployment metadata."
+  },
+  "remaining": [
+    "Prepared-file opens in the after captures take 35.529 / 40.231 seconds; native build/input resolution and fingerprinting takes 30.500 / 34.855 seconds. It remains the dominant and variable wait; this change does not optimize that work. Twelve Lake configuration results are reused with zero evaluator executions.",
+    "The first post-restart graph-idle window has 174 / 434 ms tasks, with projectMap and Zod parsing sampled. Settled graph/map idle and the second initial idle have no long tasks. This does not establish a rebuild on each poll.",
+    "Selection including Fit View remains about 31–35 ms p95. One tab phase has an 86 ms long task and one selection phase a 53 ms task; universal smoothness is not established."
+  ]
+}

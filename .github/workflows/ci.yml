@@ -314,7 +314,7 @@ jobs:
       - run: npm test
       - name: Shrinkable differential map corpus
         run: npm run test:fuzz
-      - name: Repeated same-runner visibility budget
+      - name: Repeated same-runner map navigation budget
         run: npm run test:performance
       - name: Reject the whole-map-scan performance mutation
         run: |
@@ -337,7 +337,7 @@ jobs:
               npm run test:gui -- --workers=1 --grep 'open file tabs restore'
           done
         env:
-          MEDEN_GUI_PERFORMANCE: '1'
+          MEDEN_GUI_PERFORMANCE: "1"
       - uses: actions/upload-artifact@v7
         if: always()
         with:
