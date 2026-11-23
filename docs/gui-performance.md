@@ -1,5 +1,68 @@
 # Graph interaction measurements
 
+## Latest deployed event measurements (November 23)
+
+Two fresh sequential captures of the current pinned Riemann GUI reproduce the
+same prepared-file wait and separate first selection from repeat selection.
+The [complete measurement record](../results/event-latency-final-20261123.json)
+retains both distributions, native stages, sampled source locations and verified
+digests for 30 raw artifacts. The executable and all seven served JavaScript
+bundles match the immutable deployment; unfinished model-transport worktree
+changes are excluded. No application update, restart or inference was needed.
+Chrome 149 used normal motion, 1440 × 960, no throttling, 175,187 indexed files
+and a prepared 15-declaration file. Validation ran after profiling.
+
+| Operation | Dispatch p95, runs 1 / 2 | Input/two-rAF p95, runs 1 / 2 |
+| --- | ---: | ---: |
+| Project-map wheel, 24 events | 4.210 / 4.275 ms | 18.6 / 18.2 ms |
+| Dependency-graph wheel, 24 events | 0.777 / 0.952 ms | 16.6 / 23.3 ms |
+| Hover mouse movement, 40 events | 0.104 / 0.067 ms | 24.1 / 20.5 ms |
+| Drag mouse movement, 31 events | 0.193 / 0.281 ms | 20.3 / 21.5 ms |
+| Resize, 3 / 4 delivered events | 1.794 / 0.974 ms | 24.9 / 20.9 ms |
+| File/map tab click, 24 events | 15.463 / 14.175 ms | 40.0 / 36.5 ms |
+| Fit View and node selection, 9 clicks | 34.114 / 29.549 ms | 71.9 / 59.7 ms |
+
+Dispatch is synchronous browser event processing. The two-animation-frame
+measurement also includes scheduling; it is neither physical presentation nor
+field INP. Resize events are coalesced. There are no observed 50 ms long tasks
+in these measured gesture or idle windows. This does not establish smoothness
+for other workloads or exclude work outside those windows.
+
+Chronological click traces resolve the selection tail more precisely: the
+explicit Fit View costs 0.991 / 1.038 ms, the first node selection costs
+34.114 / 29.549 ms, and the seven following selections of that same node cost
+0.066–0.126 ms. Repeating a selected node is a different workload from changing
+between declarations. Popper scroll-parent traversal, React rendering and
+XYFlow node remeasurement appear in profiles. Automated selector/hit-testing
+queries appear too; their sampled time must not all be attributed to the app.
+Distinct-node selection remains a separate follow-up measurement.
+
+Opening the file takes **15.730 / 15.714 seconds**, with a full analysis-cache
+hit in both runs. The nested `atlas.project.prepare` stage takes
+**10.214 / 9.941 seconds**; source-view materialization takes only
+0.430 / 0.433 milliseconds. The last completed build log separates 4.844 seconds
+of build/setup/input resolution from 4.499 seconds validating every byte in
+43,477 files / 5,992,114,707 bytes. Python's SHA-256 routine accounts for
+26.39 / 26.72 percent of sampled native host/worker self CPU, which is not a
+wall-time fraction. These observations make exact-input preparation the first
+wait-time optimization target. Layout discovery and cache admission also cost
+time; nested spans overlap and cannot be added as exclusive costs.
+
+Hover, resizing and retained-tab round trips preserve the exact graph transform.
+Every gesture phase issues only state requests, with no new inspection, build
+or inference. Idle polling still transfers 89,688 bytes roughly three times a
+second, and native state projection p95 is 8.605 / 8.323 ms. Revision-aware
+updates merit measurement, though these idle windows contain no long task.
+The native ring evicts 539 / 541 older records during capture; the newly retained
+record counts equal those deltas. Raw traces and profiles remain local under
+`target/native-profile/event-latency-final-{1,2}`. These warm-cache diagnostic
+captures are not cold-install or live-model validation.
+
+The same pinned executable passed all 34 required public TUI journeys after
+profiling. Decoded Lake failure/restart, meaning-history, provider-limit/retry
+and GUI/TUI continuation screens, plus the captured browser screenshot, were
+inspected. The gate's binary and summary digest are retained in the record.
+
 ## Batched Lake preparation (November 23)
 
 Prepared analysis now requests the ordinary root build and the source, compiled
