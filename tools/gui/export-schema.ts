@@ -5,37 +5,40 @@ import { format } from "prettier";
 import { z } from "zod";
 import { workspaceSchema } from "@meden/workspace-schema";
 
-for (const [name, schema] of [["workspace-v1", workspaceSchema]] as const) {
-  const json = z.toJSONSchema(schema);
+writeFileSync(
+  "schemas/workspace-v1.schema.json",
+  JSON.stringify(z.toJSONSchema(workspaceSchema), null, 2) + "\n",
+);
+for (const [key, rust, symbol, type] of [
+  ["source", "SourcePage", "sourcePageSchema", "SourcePage"],
+  ["file", "file::FileView", "fileViewSchema", "FileView"],
+]) {
+  const source = JSON.parse(
+    execFileSync(
+      "cargo",
+      [
+        "run",
+        "--quiet",
+        "--locked",
+        "-p",
+        "meden-app",
+        "--example",
+        "export-source-schema",
+        "--",
+        key!,
+      ],
+      { encoding: "utf8" },
+    ),
+  );
   writeFileSync(
-    "schemas/" + name + ".schema.json",
-    JSON.stringify(json, null, 2) + "\n",
+    `schemas/native-${key}.schema.json`,
+    JSON.stringify(source, null, 2) + "\n",
+  );
+  writeFileSync(
+    `packages/agent-protocol/src/${key}.generated.ts`,
+    await format(
+      `// Generated from meden_app::view::${rust}. Do not edit.\nimport { z } from "zod";\nexport const ${symbol} = ${validator(source)};\nexport type ${type} = z.infer<typeof ${symbol}>;\n`,
+      { parser: "typescript" },
+    ),
   );
 }
-
-const source = JSON.parse(
-  execFileSync(
-    "cargo",
-    [
-      "run",
-      "--quiet",
-      "--locked",
-      "-p",
-      "meden-app",
-      "--example",
-      "export-source-schema",
-    ],
-    { encoding: "utf8" },
-  ),
-);
-writeFileSync(
-  "schemas/native-source.schema.json",
-  JSON.stringify(source, null, 2) + "\n",
-);
-writeFileSync(
-  "packages/agent-protocol/src/source.generated.ts",
-  await format(
-    `// Generated from meden_app::view::SourcePage. Do not edit.\nimport { z } from "zod";\nexport const sourcePageSchema = ${validator(source)};\nexport type SourcePage = z.infer<typeof sourcePageSchema>;\n`,
-    { parser: "typescript" },
-  ),
-);

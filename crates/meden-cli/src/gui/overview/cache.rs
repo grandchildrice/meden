@@ -208,16 +208,6 @@ impl Builder<'_> {
                 continue;
             }
             self.changed.store(true, Ordering::SeqCst);
-            if stamp
-                .get("bytes")
-                .and_then(Value::as_u64)
-                .unwrap_or(u64::MAX)
-                > 1_048_576
-            {
-                store(&self.directory.join(key(path)), &Entry { path: path.clone(), stamp, file: None,
-            error: Some(format!("{path} exceeds the 1 MiB source-index bound; no truncated graph was prepared")) })?;
-                continue;
-            }
             pending.insert(path.clone(), stamp);
         }
         if !pending.is_empty() {

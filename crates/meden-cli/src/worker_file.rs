@@ -242,6 +242,40 @@ impl FileOperation {
 #[cfg(target_os = "linux")]
 fn snapshot_file(file: &fs::File, args: &Args) -> Result<Value, ToolError> {
     use base64::Engine as _;
+    if args.get("observation") == Some(&Value::Bool(true)) {
+        use meden_app::view::file::{Content, MAX_BYTES};
+        use std::os::unix::fs::MetadataExt as _;
+        if args.keys().any(|key| key != "observation") {
+            return Err(ToolError::failed(
+                "File observations use the fixed complete-input budget".into(),
+            ));
+        }
+        let before = file.metadata().map_err(failed)?;
+        if before.len() > u64::try_from(MAX_BYTES).map_err(failed)? {
+            return serde_json::to_value(Content::<meden_app::view::SourceText>::SizeLimit {
+                bytes: before.len().to_string(),
+            })
+            .map_err(failed);
+        }
+        let mut bytes = Vec::new();
+        pinned::readable(file)?
+            .take(u64::try_from(MAX_BYTES.saturating_add(1)).map_err(failed)?)
+            .read_to_end(&mut bytes)
+            .map_err(failed)?;
+        let after = file.metadata().map_err(failed)?;
+        if u64::try_from(bytes.len()).map_err(failed)? != before.len()
+            || before.len() != after.len()
+            || before.mtime() != after.mtime()
+            || before.mtime_nsec() != after.mtime_nsec()
+            || before.ctime() != after.ctime()
+            || before.ctime_nsec() != after.ctime_nsec()
+        {
+            return Err(ToolError::failed(
+                "File changed while preparing its source view; retry the read".into(),
+            ));
+        }
+        return serde_json::to_value(Content::from_bytes(bytes).map_err(failed)?).map_err(failed);
+    }
     if args.get("metadata") == Some(&Value::Bool(true)) {
         use std::os::unix::fs::MetadataExt as _;
         let metadata = file.metadata().map_err(failed)?;
@@ -423,6 +457,45 @@ mod tests {
             &meden_core::Policy::from_labels("native worker", &["fs.read", "fs.write"], &[])
                 .expect("test policy"),
         )
+    }
+
+    #[test]
+    fn reader_observations_return_complete_text_or_explicit_unreadable_states() {
+        let root = tempfile::tempdir().expect("workspace");
+        for (name, input, kind) in [
+            ("quoted.txt", b"\"literal\"".as_slice(), "text"),
+            ("binary.lean", b"prefix\0suffix".as_slice(), "binary"),
+            ("encoding.rs", &[0xff], "unsupported_encoding"),
+        ] {
+            fs::write(root.path().join(name), input).expect("input");
+            let value = execute(
+                root.path(),
+                Operation::Snapshot,
+                json!({"path":name,"observation":true}),
+            )
+            .expect("observation");
+            assert_eq!(value.get("kind"), Some(&json!(kind)));
+            let content: meden_app::view::file::Content =
+                serde_json::from_value(value).expect("typed observation");
+            content.validate().expect("complete");
+        }
+        let large = fs::File::create(root.path().join("large.lean")).expect("file");
+        large.set_len(1_048_577).expect("size");
+        assert_eq!(
+            execute(
+                root.path(),
+                Operation::Snapshot,
+                json!({"path":"large.lean","observation":true})
+            )
+            .expect("size observation"),
+            json!({"kind":"size_limit","bytes":"1048577"})
+        );
+        assert!(execute(
+            root.path(),
+            Operation::Snapshot,
+            json!({"path":"quoted.txt","observation":true,"max_bytes":1})
+        )
+        .is_err());
     }
 
     #[test]

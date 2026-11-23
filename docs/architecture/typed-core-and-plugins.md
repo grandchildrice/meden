@@ -455,9 +455,33 @@ The native renderer consumes the prepared graph without inventing a recorded
 workspace or recompiling to render it. Materialization has its own bounded local
 timing span, and clones retain shared immutable source/page values.
 
-This slice does not finish step 4: explicit unsupported/binary/oversized-source
-availability, generic inventory/job/evidence DTOs, generation of the rest of the
-native wire contract and all remaining navigation waits still need work.
+File availability now has its own application-owned `FileView` and generated
+schema/validator, separate from prepared semantic graphs. The ordinary pinned,
+policy-bound snapshot worker returns complete bounded UTF-8 text or explicit
+binary, unsupported-encoding and size-limit observations. Host-derived typed
+failures remain separate from worker content. The application checks full byte
+identity before projecting 200-line pages with explicit EOF; it never labels a
+prefix as a complete source or graph. The viewer preserves literal source text
+instead of decoding numbered strings. Unsupported formats remain readable from
+the directory explorer; unreadable Lean/Rust entries remain in the map inventory
+without invented declarations or compiler evidence. The directory/inventory
+wire format is not yet the generic read model.
+
+Opening a file publishes its reader page before semantic preparation. Only the
+graph pane waits for compilation/search/rendering. Page navigation has a separate
+read command and cannot schedule semantic preparation; retained tabs still reuse
+prepared graphs. A fresh failed or changed input invalidates affected retained
+graphs. Pending inspection acknowledgements permit streamed read updates, then
+advance the browser generation before their final snapshot so earlier reads
+cannot overwrite it. Public browser journeys cover literal text, EOF, unreadable
+files, retry/restart, a held real compiler, delayed acknowledgements and stale
+preview pages. These are adapter/read-model checks, not new evidence authority
+or a filesystem/renderer refinement proof.
+
+This does not finish step 4: generic inventory/job/evidence DTOs, generation of the
+rest of the native wire contract, revisioned history transfer and remaining
+navigation waits still need work. Step 5's versioned layout/order and retirement
+requirements remain open too.
 Step 3 now executes the second backend through public TUI/GUI, actual offline
 Z3, a real approved-model trial and a separate 256-input Python oracle. Its
 parser/disagreement rejection tests, actual solver-output faults, started-solver

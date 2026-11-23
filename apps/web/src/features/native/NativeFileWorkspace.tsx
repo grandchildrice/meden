@@ -6,6 +6,7 @@ import type {
   NativeState,
   NativeCommand,
   SourceSnapshot,
+  FileView,
 } from "@meden/agent-protocol/native";
 import type { MapScene, Symbol } from "./project-map-model";
 import { NativeCode } from "./NativeExplorer";
@@ -88,6 +89,15 @@ export function NativeFileWorkspace({
       ? state.source_snapshot
       : undefined;
   const preparation = state.source_preparation[path];
+  const incomingFile = state.reader?.path === path ? state.reader : undefined;
+  const [retainedFile, setRetainedFile] = useState<FileView>();
+  useEffect(() => {
+    if (incomingFile) setRetainedFile(incomingFile);
+  }, [incomingFile]);
+  const file = incomingFile || retainedFile;
+  const unavailable =
+    file &&
+    (file.reading.state !== "ready" || file.reading.content.kind !== "text");
   const [retained, setRetained] = useState<SourceSnapshot>();
   const retainedRevision = state.source_views[path];
   useEffect(() => {
@@ -97,6 +107,7 @@ export function NativeFileWorkspace({
   const snapshot =
     incoming ||
     (retained?.revision === retainedRevision ? retained : undefined);
+  const sourceOnly = file?.navigation === "source_only" && !snapshot;
   const displayed = snapshot ? { ...state, source_snapshot: snapshot } : state;
   const semanticGraph = useMemo(
     () => (snapshot?.graph ? displayGraph(snapshot) : graph),
@@ -132,37 +143,19 @@ export function NativeFileWorkspace({
     const symbol = scene?.symbols.get(declaration.id);
     if (symbol) onSelect(symbol);
   };
-  if (
-    preparation?.state === "preparing" ||
-    (!snapshot &&
-      running &&
-      state.operation === "inspection" &&
-      preparation?.state !== "failed" &&
-      !failure)
-  )
-    return (
-      <NativePreparation
-        preparation={preparation}
-        path={path}
-        onCancel={
-          state.running && state.operation === "inspection"
-            ? () => {
-                void onCommand({ type: "cancel" });
-              }
-            : undefined
-        }
-      />
-    );
+  const preparing =
+    !unavailable && !sourceOnly && preparation?.state === "preparing";
   return (
     <section className="file-split" aria-label={"File: " + path}>
       <div className="file-source-pane">
         <NativeCode
           state={displayed}
+          observation={file}
           path={path}
           line={selected?.file === path ? selected.line : undefined}
           running={running}
           onCommand={onCommand}
-          explanations={explanations}
+          explanations={preparing ? [] : explanations}
           hoveredLine={
             hovered?.source?.file === path ? hovered.source.line : undefined
           }
@@ -173,125 +166,147 @@ export function NativeFileWorkspace({
         role="region"
         aria-label="File reference graph"
       >
-        {preparation?.state === "failed" && (
-          <Alert severity="warning">
-            <p>{preparation.phase} stopped.</p>
-            <p>{preparation.error?.split("\n")[0]}</p>
-            <details>
-              <summary>Details</summary>
-              <p>{preparation.error}</p>
-            </details>
-            <Button
-              onClick={() =>
-                void onCommand({
-                  type: "inspect",
-                  path,
-                  directory: false,
-                  offset: selected?.line || 1,
-                })
-              }
-            >
-              Retry preparation
-            </Button>
-          </Alert>
-        )}
-        {preparation?.state === "failed" && (
-          <PreparationLog preparation={preparation} />
-        )}
-        {preparation?.state === "ready" && preparation.log && (
-          <details className="preparation-history">
-            <summary>Build log</summary>
-            <PreparationLog preparation={preparation} />
-          </details>
-        )}
-        {failure && preparation?.state !== "failed" && (
-          <Alert severity="warning">
-            <p>Analysis stopped.</p>
-            <details>
-              <summary>Details</summary>
-              <p>{failure}</p>
-            </details>
-          </Alert>
-        )}
-        {analyzing && (
-          <div className="file-analysis-progress" role="status">
-            <LinearProgress />
-            <span>Analyzing…</span>
-            <Button onClick={() => void onCommand({ type: "cancel" })}>
-              Cancel
-            </Button>
-          </div>
-        )}
-        {snapshot ? (
-          <NativeGraph
-            focusName={focused?.file === path ? focused.name : undefined}
-            key={snapshot.graph?.revision || snapshot.revision}
-            snapshot={snapshot}
-            analysis={state.analysis}
-            history={state.analysis_history}
-            onRepair={(finding_id) =>
-              onCommand({ type: "prepare_repair", finding_id })
+        {preparing ? (
+          <NativePreparation
+            preparation={preparation}
+            path={path}
+            onCancel={
+              state.running && state.operation === "inspection"
+                ? () => {
+                    void onCommand({ type: "cancel" });
+                  }
+                : undefined
             }
-            onSelectAnalysis={(id) =>
-              onCommand({ type: "select_analysis", id })
-            }
-            authorized={state.authorized}
-            running={running}
-            onHover={setHovered}
-            onAnalyze={(input) => onCommand({ type: "analyze_meaning", input })}
-            onSource={(file, line, name) => {
-              const found =
-                scene &&
-                [...scene.symbols.values()].find(
-                  (s) => s.file === file && s.line === line,
-                );
-              if (found) onSelect(found);
-              else if (file === path)
-                onSelect({
-                  id: name,
-                  file,
-                  name,
-                  line,
-                  kind: "definition",
-                  declaration: "def",
-                  role: declarationRole("def"),
-                  private: false,
-                  references: [],
-                  semantic: null,
-                  main_theorem: false,
-                  x: 0,
-                  y: 0,
-                  cellWidth: 0,
-                });
-            }}
           />
-        ) : graph?.declarations.length ? (
-          <Suspense fallback={<LinearProgress />}>
-            <GraphView
-              workspace={graph}
-              selectedId={selected?.id}
-              focusId={focused?.file === path ? focused.id : undefined}
-              onSelect={pick}
-              onHover={setHovered}
-            />
-          </Suspense>
-        ) : (
+        ) : unavailable || sourceOnly ? (
           <p className="file-empty">
-            This file has no declarations supported by the reference graph.
+            No dependency analysis is available for this file.
           </p>
-        )}
-        {!snapshot && state.analysis?.input.target.file === path && (
-          <NativeMeaning
-            record={state.analysis}
-            history={state.analysis_history}
-            onSelect={(id) => onCommand({ type: "select_analysis", id })}
-            onRepair={(finding_id) =>
-              onCommand({ type: "prepare_repair", finding_id })
-            }
-            authorized={state.authorized}
-            running={running}
-            onRun={(input) => onCommand({ type: "analyze_meaning", input })}
-          />
+        ) : (
+          <>
+            {preparation?.state === "failed" && (
+              <Alert severity="warning">
+                <p>{preparation.phase} stopped.</p>
+                <p>{preparation.error?.split("\n")[0]}</p>
+                <details>
+                  <summary>Details</summary>
+                  <p>{preparation.error}</p>
+                </details>
+                <Button
+                  onClick={() =>
+                    void onCommand({
+                      type: "inspect",
+                      path,
+                      directory: false,
+                      offset: selected?.line || 1,
+                    })
+                  }
+                >
+                  Retry preparation
+                </Button>
+              </Alert>
+            )}
+            {preparation?.state === "failed" && (
+              <PreparationLog preparation={preparation} />
+            )}
+            {preparation?.state === "ready" && preparation.log && (
+              <details className="preparation-history">
+                <summary>Build log</summary>
+                <PreparationLog preparation={preparation} />
+              </details>
+            )}
+            {failure && preparation?.state !== "failed" && (
+              <Alert severity="warning">
+                <p>Analysis stopped.</p>
+                <details>
+                  <summary>Details</summary>
+                  <p>{failure}</p>
+                </details>
+              </Alert>
+            )}
+            {analyzing && (
+              <div className="file-analysis-progress" role="status">
+                <LinearProgress />
+                <span>Analyzing…</span>
+                <Button onClick={() => void onCommand({ type: "cancel" })}>
+                  Cancel
+                </Button>
+              </div>
+            )}
+            {snapshot ? (
+              <NativeGraph
+                focusName={focused?.file === path ? focused.name : undefined}
+                key={snapshot.graph?.revision || snapshot.revision}
+                snapshot={snapshot}
+                analysis={state.analysis}
+                history={state.analysis_history}
+                onRepair={(finding_id) =>
+                  onCommand({ type: "prepare_repair", finding_id })
+                }
+                onSelectAnalysis={(id) =>
+                  onCommand({ type: "select_analysis", id })
+                }
+                authorized={state.authorized}
+                running={running}
+                onHover={setHovered}
+                onAnalyze={(input) =>
+                  onCommand({ type: "analyze_meaning", input })
+                }
+                onSource={(file, line, name) => {
+                  const found =
+                    scene &&
+                    [...scene.symbols.values()].find(
+                      (s) => s.file === file && s.line === line,
+                    );
+                  if (found) onSelect(found);
+                  else if (file === path)
+                    onSelect({
+                      id: name,
+                      file,
+                      name,
+                      line,
+                      kind: "definition",
+                      declaration: "def",
+                      role: declarationRole("def"),
+                      private: false,
+                      references: [],
+                      semantic: null,
+                      main_theorem: false,
+                      x: 0,
+                      y: 0,
+                      cellWidth: 0,
+                    });
+                }}
+              />
+            ) : graph?.declarations.length ? (
+              <Suspense fallback={<LinearProgress />}>
+                <GraphView
+                  workspace={graph}
+                  selectedId={selected?.id}
+                  focusId={focused?.file === path ? focused.id : undefined}
+                  onSelect={pick}
+                  onHover={setHovered}
+                />
+              </Suspense>
+            ) : (
+              <p className="file-empty">
+                This file has no declarations supported by the reference graph.
+              </p>
+            )}
+            {!snapshot && state.analysis?.input.target.file === path && (
+              <NativeMeaning
+                record={state.analysis}
+                history={state.analysis_history}
+                onSelect={(id) => onCommand({ type: "select_analysis", id })}
+                onRepair={(finding_id) =>
+                  onCommand({ type: "prepare_repair", finding_id })
+                }
+                authorized={state.authorized}
+                running={running}
+                onRun={(input) => onCommand({ type: "analyze_meaning", input })}
+              />
+            )}
+          </>
         )}
       </div>
     </section>

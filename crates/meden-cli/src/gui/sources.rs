@@ -8,6 +8,41 @@ mod preparation;
 pub(super) use preparation::Preparation;
 use std::sync::{Arc, Mutex};
 
+/// A fresh read invalidates every retained graph containing a changed or
+/// unavailable input. Other tabs keep their immutable, still-matching pages.
+pub(super) fn observe(view: &Mutex<super::View>, observation: &meden_app::view::file::FileView) {
+    use meden_app::view::file::Reading;
+    use sha2::{Digest, Sha256};
+    let revision = match &observation.reading {
+        Reading::Ready { content } => content.revision(),
+        Reading::Unavailable { .. } => None,
+    };
+    let matches = |snapshot: &Snapshot| {
+        snapshot.files.get(&observation.path).is_none_or(|source| {
+            revision.is_some_and(|expected| {
+                expected == format!("sha256:{:x}", Sha256::digest(source.as_bytes()))
+            })
+        })
+    };
+    let mut view = super::lock(view);
+    let invalidated = view
+        .source_views
+        .iter()
+        .filter(|(_, snapshot)| !matches(snapshot))
+        .map(|(path, _)| path.clone())
+        .collect::<Vec<_>>();
+    for path in invalidated {
+        view.source_preparation.remove(&path);
+    }
+    view.source_views.retain(|_, snapshot| matches(snapshot));
+    if view.source_snapshot.as_ref().is_some_and(|s| !matches(s)) {
+        view.source_snapshot = None;
+    }
+    if !observation.is_text() {
+        view.source_preparation.remove(&observation.path);
+    }
+}
+
 pub(super) fn serialize_views<S: serde::Serializer>(
     views: &std::collections::BTreeMap<String, Arc<Snapshot>>,
     serializer: S,

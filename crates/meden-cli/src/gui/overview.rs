@@ -3,7 +3,6 @@
 use super::{lock, View};
 use crate::adapters::source::{headers, symbols, Symbol};
 use anyhow::{Context, Result};
-use base64::Engine as _;
 use meden_agent::tool::Args;
 use meden_core::file::{Operation, Request};
 use meden_runtime::{
@@ -182,10 +181,7 @@ fn capture(
                 if entry.kind == "directory" {
                     pending.push((path, depth.saturating_add(1)));
                 } else if entry.kind == "file"
-                    && matches!(
-                        Path::new(&path).extension().and_then(|x| x.to_str()),
-                        Some("lean" | "rs")
-                    )
+                    && crate::adapters::source::supports(Path::new(&path))
                 {
                     paths.push(path);
                     anyhow::ensure!(
@@ -385,6 +381,41 @@ fn apply_compiled(workspace: &Workspace, control: &Control, files: &mut [File]) 
     }
 }
 
+fn source_file(path: &str, value: Value) -> Result<(File, usize)> {
+    use meden_app::view::file::Content;
+    let content: Content = serde_json::from_value(value)?;
+    content.validate()?;
+    let (size, observed) = match &content {
+        Content::Text { bytes, .. }
+        | Content::Binary { bytes }
+        | Content::UnsupportedEncoding { bytes } => {
+            (usize::try_from(*bytes)?, usize::try_from(*bytes)?)
+        }
+        Content::SizeLimit { bytes } => (bytes.parse::<usize>()?, 0),
+    };
+    let mut file = File {
+        path: path.into(),
+        sha256: String::new(),
+        bytes: size,
+        declarations: 0,
+        theorems: 0,
+        imports: Vec::new(),
+        symbols: Vec::new(),
+        indexed: false,
+    };
+    if let Content::Text { text, .. } = content {
+        let lean = Path::new(path).extension().is_some_and(|ext| ext == "lean");
+        let (declarations, theorems, imports) = headers(&text, lean);
+        file.sha256 = format!("{:x}", Sha256::digest(text.as_bytes()));
+        file.declarations = declarations;
+        file.theorems = theorems;
+        file.imports = imports;
+        file.symbols = symbols(&text, lean);
+        file.indexed = true;
+    }
+    Ok((file, observed))
+}
+
 fn source_files(
     view: &Mutex<View>,
     workspace: &Workspace,
@@ -412,46 +443,19 @@ fn source_files(
                             control,
                             Operation::Snapshot,
                             batch,
-                            &json!({"encoding":"base64","max_bytes":1_048_576}),
+                            &json!({"observation":true}),
                             started,
                         )?;
                         for (path, value) in batch.iter().zip(values) {
-                            let source = base64::engine::general_purpose::STANDARD.decode(
-                                value
-                                    .as_str()
-                                    .context("Invalid workspace source response")?,
-                            )?;
+                            let (file, observed_bytes) = source_file(path, value)?;
                             anyhow::ensure!(
                                 bytes
-                                    .fetch_add(source.len(), Ordering::SeqCst)
-                                    .saturating_add(source.len())
+                                    .fetch_add(observed_bytes, Ordering::SeqCst)
+                                    .saturating_add(observed_bytes)
                                     <= 134_217_728,
                                 "Workspace sources exceed 128 MiB"
                             );
-                            let text = std::str::from_utf8(&source)
-                                .context("Workspace source is not UTF-8")?;
-                            let (declarations, theorems, imports) = headers(
-                                text,
-                                Path::new(path).extension().is_some_and(|ext| ext == "lean"),
-                            );
-                            lock(&files).insert(
-                                path.clone(),
-                                File {
-                                    path: path.clone(),
-                                    sha256: format!("{:x}", Sha256::digest(&source)),
-                                    bytes: source.len(),
-                                    declarations,
-                                    theorems,
-                                    imports,
-                                    symbols: symbols(
-                                        text,
-                                        Path::new(path)
-                                            .extension()
-                                            .is_some_and(|ext| ext == "lean"),
-                                    ),
-                                    indexed: true,
-                                },
-                            );
+                            lock(&files).insert(path.clone(), file);
                             let mut view = lock(view);
                             if view.overview.state == "loading"
                                 && view.activity != "Preparing cached project map"

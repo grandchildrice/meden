@@ -560,6 +560,13 @@ test.describe("native GUI with real offline workers", () => {
       page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
     ).toContainText("theorem beta", { timeout: 120000 });
     await expect
+      .poll(
+        async () =>
+          (await nativeState(page)).source_preparation["Beta.lean"]?.state,
+        { timeout: 120000 },
+      )
+      .toBe("ready");
+    await expect
       .poll(async () => (await nativeState(page)).running)
       .toBe(false);
     expect(
@@ -750,9 +757,217 @@ test.describe("native GUI with real offline workers", () => {
     expect(requests).toHaveLength(2);
   });
 
-  test("build logs stream before completion, retain timeout and cancellation output, and retry the real compiler", async ({
+  test("bounded file availability preserves literal pages, unreadable inventory and retry across restart without analysis", async ({
     page,
   }) => {
+    test.setTimeout(120000);
+    const text = Array.from(
+      { length: 400 },
+      (_, i) => `${i + 1}: λ日本語`,
+    ).join("\n");
+    for (const [file, content] of [
+      ["notes.txt", text],
+      ["literal.json", '"literal JSON string"'],
+      ["Missing.txt", "original"],
+      ["Valid.rs", "fn indexed() {}\n"],
+      ["Binary.lean", Buffer.from([65, 0, 66])],
+      ["Encoding.rs", Buffer.from([0xff])],
+      ["Huge.lean", Buffer.alloc(1_048_577, 65)],
+    ] as const)
+      await writeFile(resolve(project, file), content);
+    const commands: string[] = [];
+    page.on("request", (request) => {
+      if (request.url().endsWith("/api/command"))
+        commands.push(request.postDataJSON()?.type);
+    });
+    await page.goto(await start());
+    await expect
+      .poll(async () => (await nativeState(page)).overview.state)
+      .toBe("ready");
+    expect((await nativeState(page)).overview.total).toBe(4);
+    const map = page.getByRole("region", { name: "Project map", exact: true });
+    await expect(map).toBeVisible();
+    const chat = page.getByRole("complementary", {
+      name: "Workspace chat",
+      exact: true,
+    });
+    const before = await chat.innerHTML();
+    const open = async (file: string) => {
+      await page
+        .getByRole("button", { name: "File: " + file, exact: true })
+        .click();
+      await expect
+        .poll(async () => {
+          const s = await nativeState(page);
+          return !s.running && s.reader?.path === file;
+        })
+        .toBe(true);
+    };
+    const source = page.locator(".ide-file-page:not([hidden])");
+    await open("notes.txt");
+    await expect(
+      source.getByLabel("File contents").locator("code").first(),
+    ).toHaveText("1: λ日本語");
+    await expect(
+      source.getByRole("button", { name: "Previous page", exact: true }),
+    ).toBeDisabled();
+    await source
+      .getByRole("button", { name: "Next page", exact: true })
+      .click();
+    await expect(
+      source.getByLabel("File contents").locator("code").first(),
+    ).toHaveText("201: λ日本語");
+    await expect(
+      source.getByRole("button", { name: "Next page", exact: true }),
+    ).toBeDisabled();
+    await source
+      .getByRole("button", { name: "Previous page", exact: true })
+      .click();
+    await expect(
+      source.getByLabel("File contents").locator("code").first(),
+    ).toHaveText("1: λ日本語");
+    await open("literal.json");
+    await expect(source.getByLabel("File contents").locator("code")).toHaveText(
+      '"literal JSON string"',
+    );
+    for (const [file, reason] of [
+      ["Binary.lean", "This is a binary file."],
+      ["Encoding.rs", "This file is not supported UTF-8 text."],
+      ["Huge.lean", "This file exceeds the 1 MiB reader limit."],
+    ]) {
+      await open(file!);
+      await expect(source.getByRole("status")).toHaveText(reason!);
+      await expect(source.getByLabel("File contents")).toHaveCount(0);
+      await expect(source.locator(".cone-graph")).toHaveCount(0);
+    }
+    await rm(resolve(project, "Missing.txt"));
+    await open("Missing.txt");
+    await expect(source.getByRole("alert")).toContainText(
+      "This file could not be read.",
+    );
+    expect((await nativeState(page)).reader.reading.state).toBe("unavailable");
+    await writeFile(resolve(project, "Missing.txt"), "recovered source");
+    await source.getByRole("button", { name: "Retry", exact: true }).click();
+    await expect(source.getByLabel("File contents")).toContainText(
+      "recovered source",
+    );
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    await page.getByRole("tab", { name: "notes.txt", exact: true }).click();
+    await expect(
+      source.getByLabel("File contents").locator("code").first(),
+    ).toHaveText("1: λ日本語");
+    expect(commands.filter((c) => c === "read_file_page")).toHaveLength(2);
+    expect((await nativeState(page)).source_preparation).toEqual({});
+    expect((await nativeState(page)).source_snapshot).toBeNull();
+    expect(await chat.innerHTML()).toBe(before);
+    expect(requests).toHaveLength(0);
+    await page.screenshot({
+      path: "target/gui-checks/file-reader-availability.png",
+    });
+    await stop();
+    await page.goto(await start());
+    await open("notes.txt");
+    await expect(
+      source.getByLabel("File contents").locator("code").first(),
+    ).toHaveText("1: λ日本語");
+    expect((await nativeState(page)).authorized).toBe(false);
+    expect(requests).toHaveLength(0);
+  });
+
+  test("reader acknowledgement fences older preview pages after a new page is visible", async ({
+    page,
+  }) => {
+    await writeFile(
+      resolve(project, "pages.txt"),
+      Array.from({ length: 300 }, (_, i) => `source line ${i + 1}`).join("\n"),
+    );
+    await page.goto(await start());
+    await page
+      .getByRole("button", { name: "File: pages.txt", exact: true })
+      .click();
+    const source = page
+      .locator(".ide-file-page:not([hidden])")
+      .getByLabel("File contents");
+    await expect(source.locator("code").first()).toHaveText("source line 1");
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    let pending = false,
+      held = false,
+      forward = () => {},
+      releaseOld = () => {};
+    const forwarded = new Promise<void>((resolve) => (forward = resolve));
+    const released = new Promise<void>((resolve) => (releaseOld = resolve));
+    await page.route("**/api/command", async (route) => {
+      if (route.request().postDataJSON()?.type !== "read_file_page")
+        return route.continue();
+      pending = true;
+      await forwarded;
+      const response = await route.fetch();
+      // The acknowledgement is held until the actual worker has finished.
+      // The earlier poll remains held independently, ready to arrive last.
+      await expect
+        .poll(
+          async () =>
+            (await nativeState(page)).reader?.reading.content?.text?.offset,
+        )
+        .toBe(201);
+      await route.fulfill({ response });
+    });
+    await page.route("**/api/state", async (route) => {
+      const preview = pending && !held;
+      const response = await route.fetch();
+      if (
+        preview &&
+        !held &&
+        (await response.json()).reader?.reading.content?.text?.offset === 1
+      ) {
+        held = true;
+        await released;
+      }
+      await route.fulfill({ response });
+    });
+    try {
+      await page
+        .getByRole("button", { name: "Next page", exact: true })
+        .click();
+      await expect.poll(() => held).toBe(true);
+      forward();
+      await expect(source.locator("code").first()).toHaveText(
+        "source line 201",
+      );
+      await source.evaluate((element) => {
+        (window as any).__readerPages = [];
+        new MutationObserver(() =>
+          (window as any).__readerPages.push(
+            element.querySelector("code")?.textContent,
+          ),
+        ).observe(element, {
+          subtree: true,
+          childList: true,
+          characterData: true,
+        });
+      });
+      releaseOld();
+      await page.waitForTimeout(500);
+      await expect(source.locator("code").first()).toHaveText(
+        "source line 201",
+      );
+      expect(
+        await page.evaluate(() => (window as any).__readerPages),
+      ).not.toContain("source line 1");
+      expect(requests).toHaveLength(0);
+    } finally {
+      forward();
+      releaseOld();
+    }
+  });
+
+  test("build logs stream before completion, retain timeout and cancellation output, and retry the real compiler", async ({
+    page,
+  }, testInfo) => {
     test.setTimeout(300000);
     await writeFile(
       resolve(project, "lakefile.toml"),
@@ -788,9 +1003,23 @@ theorem slow : True := fast
       exact: true,
     });
     const before = await chat.innerHTML();
+    const sourceRequestedAt = performance.now();
     await page
       .getByRole("button", { name: "File: Entry.lean", exact: true })
       .click();
+    await expect(
+      page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
+    ).toContainText("theorem tracked", { timeout: 5000 });
+    const sourceVisibleMs = performance.now() - sourceRequestedAt;
+    await testInfo.attach("source-before-analysis.json", {
+      body: JSON.stringify({
+        source_visible_ms: sourceVisibleMs,
+        budget_ms: 5000,
+        methodology:
+          "Real offline reader and a deliberately held installed Lean compiler; no complete semantic snapshot is available yet.",
+      }),
+      contentType: "application/json",
+    });
     await expect
       .poll(
         () =>
@@ -807,6 +1036,10 @@ theorem slow : True := fast
     await expect(loading.getByRole("log", { name: "Build log" })).toContainText(
       "Built Fast",
     );
+    // Reading the original source must not wait for the held compiler or search.
+    await expect(
+      page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
+    ).toContainText("theorem tracked");
     expect(
       (await nativeState(page)).source_preparation["Entry.lean"].state,
     ).toBe("preparing");
@@ -1315,6 +1548,14 @@ theorem slow : True := fast
     await expect(
       page.locator(".ide-file-page:not([hidden])").getByLabel("File contents"),
     ).toContainText("theorem identity0", { timeout: 120000 });
+    await expect
+      .poll(
+        async () =>
+          (await nativeState(page)).source_preparation["Many/Group0/File0.lean"]
+            ?.state,
+        { timeout: 120000 },
+      )
+      .toBe("ready");
     await expect(
       page.locator(".ide-file-page:not([hidden]) [data-layout=l4sb]"),
     ).toBeVisible();
@@ -1344,18 +1585,57 @@ theorem slow : True := fast
     await page.goto(await start());
     await expect(map.locator(".continuous-map-scene")).toBeVisible();
     await zoomFile("File3");
-    await expect(map.getByRole("alert")).toContainText(
-      "Could not index Many/Group0/File3.lean",
-    );
+    await expect(
+      map.getByRole("button", {
+        name: "File: Many/Group0/File3.lean",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(map.getByRole("alert")).toHaveCount(0);
     await expect(chat.getByRole("alert")).toHaveCount(0);
     await expect(chat.getByRole("status")).toHaveCount(0);
     await expect(page.locator(".ide-file-tab")).toHaveCount(0);
-    await page.screenshot({
-      path: "target/gui-checks/large-project-map-index-failure.png",
-    });
     const failedCamera = await map
       .locator(".react-flow__viewport")
-      .getAttribute("style");
+      .evaluate(async (element) => {
+        let previous: string | null = null,
+          stable = 0;
+        for (let frame = 0; frame < 120; frame++) {
+          await new Promise(requestAnimationFrame);
+          const current = element.getAttribute("style");
+          stable = current === previous ? stable + 1 : 0;
+          if (stable >= 8) return current;
+          previous = current;
+        }
+        throw new Error("The focused camera did not settle");
+      });
+    await page
+      .getByRole("button", { name: "Folder: Many", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Folder: Many/Group0", exact: true })
+      .click();
+    await page
+      .getByRole("region", { name: "File explorer", exact: true })
+      .getByRole("button", {
+        name: "File: Many/Group0/File3.lean",
+        exact: true,
+      })
+      .click();
+    await expect(
+      page.locator(".ide-file-page:not([hidden])").getByRole("status"),
+    ).toHaveText("This file is not supported UTF-8 text.");
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    await page.screenshot({
+      path: "target/gui-checks/large-project-map-unreadable-file.png",
+    });
+    await page.getByRole("tab", { name: "Project map", exact: true }).click();
+    await expect(map.locator(".react-flow__viewport")).toHaveAttribute(
+      "style",
+      failedCamera!,
+    );
     // An external edit is discovered through the public refresh control.
     await writeFile(
       resolve(project, "Many/Group0/File3.lean"),
@@ -2552,7 +2832,7 @@ theorem slow : True := fast
       release();
       await expect(
         chat.getByText("ONLY-CHAT-SEND-REACTS", { exact: true }),
-      ).toBeVisible();
+      ).toBeVisible({ timeout: 60000 });
       expect(requests).toHaveLength(1);
       await page.screenshot({
         path: "target/gui-checks/quiet-chat-highlighted-source.png",

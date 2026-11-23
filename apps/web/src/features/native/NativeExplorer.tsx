@@ -16,7 +16,11 @@ import FolderOutlined from "@mui/icons-material/FolderOutlined";
 import DescriptionOutlined from "@mui/icons-material/DescriptionOutlined";
 import ChevronRight from "@mui/icons-material/ChevronRight";
 import ExpandMore from "@mui/icons-material/ExpandMore";
-import type { NativeCommand, NativeState } from "@meden/agent-protocol/native";
+import type {
+  NativeCommand,
+  NativeState,
+  FileView,
+} from "@meden/agent-protocol/native";
 const decoded = (text: string) => {
   try {
     const value: unknown = JSON.parse(text);
@@ -153,6 +157,7 @@ export function NativeExplorer({
 
 export function NativeCode({
   state,
+  observation,
   path,
   line,
   running,
@@ -161,6 +166,7 @@ export function NativeCode({
   hoveredLine,
 }: {
   state: NativeState;
+  observation?: FileView;
   path?: string;
   line?: number;
   running: boolean;
@@ -168,23 +174,20 @@ export function NativeCode({
   explanations?: SourceExplanation[];
   hoveredLine?: number;
 }) {
-  const [files, setFiles] = useState<
-    Record<string, NonNullable<NativeState["inspection"]>>
-  >({});
   const selected = useRef<HTMLSpanElement>(null);
-  const inspection = state.inspection;
-  useEffect(() => {
-    if (!inspection || inspection.directory || inspection.path !== path) return;
-    setFiles((previous) => {
-      const next = { ...previous };
-      if (inspection.error) delete next[inspection.path];
-      else next[inspection.path] = inspection;
-      return next;
-    });
-  }, [JSON.stringify(inspection)]);
-  // A prepared snapshot already owns the source. Explicit graph requests must
-  // not queue another inspection/compilation merely to populate the reader.
-  const source = path ? state.source_snapshot?.files[path] : undefined;
+  const content =
+    observation?.reading.state === "ready"
+      ? observation.reading.content
+      : undefined;
+  const unavailable =
+    observation?.reading.state === "unavailable"
+      ? observation.reading
+      : undefined;
+  // A fresh unavailable/non-text observation wins over any older prepared page.
+  const source =
+    !unavailable && (!content || content.kind === "text") && path
+      ? state.source_snapshot?.files[path]
+      : undefined;
   const [offset, setOffset] = useState(1);
   useEffect(() => setOffset(1), [path]);
   useEffect(() => {
@@ -196,31 +199,23 @@ export function NativeCode({
       );
   }, [path, line]);
   const current = useMemo(() => {
-    if (source === undefined || !path) return path ? files[path] : undefined;
+    if (source === undefined)
+      return content?.kind === "text" ? content.text : undefined;
     const lines = source.split("\n");
+    const start = Math.max(1, Math.min(offset, lines.length));
     return {
-      path,
-      directory: false,
-      offset,
-      next_offset: offset + 200 <= lines.length ? offset + 200 : null,
-      text: lines
-        .slice(offset - 1, offset + 199)
-        .map((text, i) => `${offset + i}: ${text}`)
-        .join("\n"),
+      offset: start,
+      line_count: lines.length,
+      next_offset: start + 200 <= lines.length ? start + 200 : null,
+      text: lines.slice(start - 1, start + 199).join("\n"),
     };
-  }, [source, path, offset, files]);
+  }, [source, offset, content]);
   const rows = useMemo(
     () =>
-      decoded(current?.text || "")
+      (current?.text || "")
         .split("\n")
-        .map((text) => {
-          const match = text.match(/^(\d+): (.*)$/);
-          return {
-            number: match ? Number(match[1]) : undefined,
-            content: match ? match[2]! : text,
-          };
-        }),
-    [current?.text],
+        .map((content, i) => ({ number: (current?.offset || 1) + i, content })),
+    [current?.offset, current?.text],
   );
   const [tokens, setTokens] =
     useState<Array<Array<{ content: string; color?: string }>>>();
@@ -250,10 +245,14 @@ export function NativeCode({
         Choose a file on the left to open its source.
       </p>
     );
-  if (inspection?.path === path && inspection.error)
+  if (unavailable)
     return (
       <Alert severity="error">
-        {inspection.error}
+        <p>This file could not be read.</p>
+        <details>
+          <summary>Details</summary>
+          {unavailable.message}
+        </details>
         <Button
           disabled={running}
           onClick={() =>
@@ -268,6 +267,16 @@ export function NativeCode({
           Retry
         </Button>
       </Alert>
+    );
+  if (content && content.kind !== "text")
+    return (
+      <p className="file-empty" role="status">
+        {content.kind === "binary"
+          ? "This is a binary file."
+          : content.kind === "unsupported_encoding"
+            ? "This file is not supported UTF-8 text."
+            : "This file exceeds the 1 MiB reader limit."}
+      </p>
     );
   return (
     <section className="native-code-editor" aria-label="Source code">
@@ -330,9 +339,8 @@ export function NativeCode({
                 source !== undefined
                   ? setOffset(Math.max(1, offset - 200))
                   : void onCommand({
-                      type: "inspect",
+                      type: "read_file_page",
                       path,
-                      directory: false,
                       offset: Math.max(1, (current.offset || 1) - 200),
                     })
               }
@@ -347,9 +355,8 @@ export function NativeCode({
                 source !== undefined
                   ? setOffset(current.next_offset!)
                   : void onCommand({
-                      type: "inspect",
+                      type: "read_file_page",
                       path,
-                      directory: false,
                       offset: current.next_offset!,
                     })
               }

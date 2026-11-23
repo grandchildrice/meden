@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { explanationSchema } from "@meden/workspace-schema";
+import { fileViewSchema } from "./file.generated";
+export type { FileView } from "./file.generated";
 
 const sourceSymbolSchema = z
   .object({
@@ -384,12 +386,11 @@ export const nativeStateSchema = z.object({
     .object({
       path: z.string(),
       directory: z.boolean().optional(),
-      offset: z.number().int().positive().optional(),
-      next_offset: z.number().int().positive().nullable().optional(),
       text: z.string().optional(),
       error: z.string().optional(),
     })
     .nullable(),
+  reader: fileViewSchema.nullable(),
   source_snapshot: sourcePageSchema.nullable(),
   source_views: z.record(z.string(), z.string()),
   analysis: meaningRecordSchema.nullable(),
@@ -409,6 +410,7 @@ export const nativeStateSchema = z.object({
 });
 export type NativeState = z.infer<typeof nativeStateSchema>;
 export type NativeCommand =
+  | { type: "read_file_page"; path: string; offset: number }
   | { type: "initialize_work"; name: string }
   | { type: "put_work"; work: WorkItem }
   | { type: "note_work"; id: string; text: string; next: string | null }

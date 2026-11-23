@@ -66,7 +66,17 @@ history and composer state are memoized from their actual presentation inputs;
 inspection does not checkpoint conversation/portable history. Chat submissions are
 queued until an existing host operation settles, with waiting shown only after a
 chat send. Compiler progress, failures and cancellation stay with the file graph.
-Cached references remain visible during compilation and after failure. Retained conversation streams have
+Opening a file displays its original UTF-8 source independently of semantic
+preparation; only the graph pane waits for compilation, counterexample search
+and English readings. The reader admits a complete input up to 1 MiB and derives
+200-line pages with explicit EOF. Binary, unsupported-encoding, oversized and
+failed reads have file-local outcomes, with Retry for failures. Other formats
+can be read from the explorer without requiring an analysis backend. Paging
+does not schedule compilation or search, and pending read acknowledgements can
+stream source/progress without changing chat. Older responses are fenced before
+the acknowledgement's final snapshot. Cached semantic observations remain bound
+to their original inputs; they do not assert current proof authority.
+Retained conversation streams have
 session dividers. Work items, saved checks and tool records open through the composer’s
 **Work history** icon; they no longer form task trees above the conversation.
 Stopped responses use a compact inline disclosure at the end of the transcript.

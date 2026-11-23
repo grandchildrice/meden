@@ -23,21 +23,47 @@ export function validator(schema, root = schema) {
   }
   if (schema.const !== undefined) {
     only(schema, ["const", "type"]);
+    if (
+      typeof schema.const !== "string" ||
+      (schema.type !== undefined && schema.type !== "string")
+    )
+      throw new Error("Only string DTO constants are supported");
     return `z.literal(${JSON.stringify(schema.const)})`;
   }
   if (schema.enum) {
     only(schema, ["enum", "type"]);
+    if (
+      !schema.enum.length ||
+      !schema.enum.every((x) => typeof x === "string") ||
+      (schema.type !== undefined && schema.type !== "string")
+    )
+      throw new Error("Only string DTO enums are supported");
     return `z.enum(${JSON.stringify(schema.enum)})`;
   }
   const variants = schema.anyOf || schema.oneOf;
   if (variants) {
     only(schema, [schema.anyOf ? "anyOf" : "oneOf"]);
-    if (
-      schema.oneOf &&
-      (!variants.every((s) => typeof s.const === "string") ||
-        new Set(variants.map((s) => s.const)).size !== variants.length)
-    )
-      throw new Error("Only disjoint string literals support exclusive unions");
+    if (!variants.length) throw new Error("Empty DTO union");
+    if (schema.oneOf) {
+      const literals =
+        variants.every((s) => typeof s.const === "string") &&
+        new Set(variants.map((s) => s.const)).size === variants.length;
+      const discriminator = Object.keys(variants[0]?.properties || {}).find(
+        (key) =>
+          variants.every(
+            (s) =>
+              s.type === "object" &&
+              s.required?.includes(key) &&
+              typeof s.properties?.[key]?.const === "string",
+          ) &&
+          new Set(variants.map((s) => s.properties[key].const)).size ===
+            variants.length,
+      );
+      if (!literals && !discriminator)
+        throw new Error(
+          "Exclusive unions require disjoint required string tags",
+        );
+    }
     return `z.union([${variants.map((s) => validator(s, root)).join(",")}])`;
   }
   if (Array.isArray(schema.type))

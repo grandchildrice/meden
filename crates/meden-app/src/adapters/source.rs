@@ -2,6 +2,14 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 
+/// Lexical navigation formats; source readability is independent of support.
+pub fn supports(path: &std::path::Path) -> bool {
+    matches!(
+        path.extension().and_then(|s| s.to_str()),
+        Some("lean" | "rs")
+    )
+}
+
 /// Cache identity of the actual lexical implementation, independent of its crate path.
 pub fn identity() -> String {
     crate::atlas::digest(include_bytes!("source.rs"))

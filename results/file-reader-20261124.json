@@ -1,0 +1,247 @@
+{
+  "date": "2026-11-24",
+  "base_revision": "9586490",
+  "change": "Typed bounded file availability and literal reader pages, published before semantic preparation. Separate page reads never schedule compilation/search. Read-only inspection previews are generation-fenced after acknowledgement.",
+  "implementation": {
+    "authority": "No kernel/effect/policy changes. Uses the existing original/resolved policy-bound Snapshot operation and complete host worker admission.",
+    "content": "Complete UTF-8 or explicit NUL-binary / UTF-16-BOM-or-invalid-UTF-8 / size-limit observations. Display classification is a bounded policy, not general MIME detection.",
+    "limits": {
+      "complete_input_bytes": 1048576,
+      "page_lines": 200,
+      "diagnostic_characters": 8000
+    },
+    "bindings": "Complete original-byte SHA-256 and byte count validated before projecting a page; canonical decimal strings retain large size-limit counts. Host-derived refusal/infrastructure/interruption/cancellation is separate from worker content.",
+    "removed": [
+      "Numbered-string/JSON parsing of GUI source content",
+      "File inspection next-page inference from model-tool output",
+      "Whole-file-pane preparation loading",
+      "Oversize map-cache special-case error path"
+    ],
+    "schema": "Rust-owned FileView -> JSON Schema -> generated strict browser validator/type. Exclusive object unions require disjoint required string tags. Unknown constraints fail generation."
+  },
+  "source_sha256": {
+    "crates/meden-app/src/view/file.rs": "69e564acf077b308ce8ab86d7759f1e468cbf76f719a90862673ea13e7a7b111",
+    "crates/meden-app/src/view.rs": "e3e6787c4442ce2f5e8a3d0c56444701473ef1e08734ba70817fcd53882428c5",
+    "crates/meden-app/src/adapters/source.rs": "36faafbca4d79c6b3553eb90d97ccbc8d2a68efd34bcae1e8826c45ddf9722fa",
+    "crates/meden-cli/src/gui.rs": "59933e6394eea2550c8a77d78fa948325672826da173aecad8856fe1843e067f",
+    "crates/meden-cli/src/gui/overview.rs": "c00ac6f6078f8b81759ca7ad3118f78f036d548ac9feeb24b3fa413d50ee0169",
+    "crates/meden-cli/src/gui/overview/cache.rs": "7621d8c57fd01f434f1ad1d7e287607d090874a3011580f02a2decefc7890ae7",
+    "crates/meden-cli/src/gui/sources.rs": "14cf0acfafbbc26a8970f52b47c6e6596f8fad3f871ecebaf05e9f21b9a35912",
+    "crates/meden-cli/src/worker_file.rs": "a9b341f468de79fa7b7ce0d280a05f18570985390a204acc4ea147edea28a1de",
+    "apps/web/src/app/NativeApp.tsx": "3cf24bbdd5ff9f230e5d602a6e6764d52de07bf1b0e20cc8b05e4e53d4f2b316",
+    "apps/web/src/features/native/NativeExplorer.tsx": "8059f6e0e2cc4cd4b32778a884cdd2f0ba5c83addf4e31b89a65920e962c4bd0",
+    "apps/web/src/features/native/NativeFileWorkspace.tsx": "90753f9c890b08632de369bcae4951a7bd36bb415e69de108ec8c13be8f0c7f5",
+    "apps/web/e2e/native.spec.ts": "c8dcd01e3eb4205ee2f011921ccd2af34b6378c0d4404b3decc42e96f53ef4b6",
+    "tools/gui/source-schema.mjs": "d2c96b3c4934eeac78df395406753da3dd8aed5874c1c25e950112c296e594fb",
+    "tools/gui/source-schema.test.mjs": "4637a25b2eb103ccf74e1ab6afaf832be728f19feb716f7006e46651e2b8182a",
+    "tools/gui/export-schema.ts": "56e8d8fd66a5b4771fc95fd254a8d8492f7589ebac32dacdd6943ed8e0fb9cab",
+    "schemas/native-file.schema.json": "3c88ba4fea74088f0a54eb06e7e07a8d710573f66d889a85a56a9519f28ab639",
+    "packages/agent-protocol/src/file.generated.ts": "2ecd396d64e3d6513b97d9c987ba8b5ae01fd79f27b92e2225d48f5150c7755e",
+    "packages/agent-protocol/src/native.ts": "52b8babd194372b0e4daeff6cc346ff19b40a1bf8da9a35dbf4a4841352676b5"
+  },
+  "deployment": {
+    "binary_sha256": "399ec3c04e4ecbd9efa603ce357feab54ffd4836c310c3038c11b5d11523703c",
+    "assets_sha256": "775a767773584cb2269fd1ebb1b0eba7901864c27d70cdad3fdaffbfb64f2333",
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/399ec3c04e4ecbd9efa603ce357feab54ffd4836c310c3038c11b5d11523703c-775a767773584cb2"
+  },
+  "deployed_observations": [
+    {
+      "project": "riemann",
+      "pid": "4056338",
+      "binary_sha256": "399ec3c04e4ecbd9efa603ce357feab54ffd4836c310c3038c11b5d11523703c",
+      "source_visible_ms": 165.482665,
+      "ready_ms": 21514.068977,
+      "cache_hit": true,
+      "phase_when_source_visible": "Resolving Lean modules",
+      "semantic_state_when_source_visible": "preparing",
+      "overview": {
+        "state": "ready",
+        "scanned": 175187,
+        "total": 175187,
+        "revision": "sha256:b90dc32774543b9f9cafad033dd918d951116c79232e80c1f58267ac409b1464",
+        "error": null
+      },
+      "graph_declarations": 15,
+      "authorized": false,
+      "chat_dom_unchanged": true
+    },
+    {
+      "project": "ethlib",
+      "pid": "4056533",
+      "binary_sha256": "399ec3c04e4ecbd9efa603ce357feab54ffd4836c310c3038c11b5d11523703c",
+      "source_visible_ms": 798.1924279999985,
+      "ready_ms": 5134.279158000001,
+      "cache_hit": true,
+      "phase_when_source_visible": "Resolving Lean modules",
+      "semantic_state_when_source_visible": "preparing",
+      "overview": {
+        "state": "ready",
+        "scanned": 2517,
+        "total": 2517,
+        "revision": "sha256:492558d1eadc0d2a9e469a8c33f1dee15503fe4efbec0a3798229fbb1d399792",
+        "error": null
+      },
+      "graph_declarations": 42,
+      "authorized": false,
+      "chat_dom_unchanged": true
+    }
+  ],
+  "checks": {
+    "rust_workspace_all_targets": {
+      "passed": 268,
+      "failed": 0,
+      "ignored": 0,
+      "log_sha256": "1e680cd55bb36914b1ec6651697322521b1512e78c42d951f6602859dff67c52"
+    },
+    "rust_doc_tests": {
+      "passed": 16,
+      "failed": 0,
+      "ignored": 0,
+      "log_sha256": "fcdde9f0d3b2ce6726bdc427e0d36d014b5cf51cd240f6e4b134b003772e1740"
+    },
+    "clippy": "Workspace/all targets with -D warnings passed",
+    "typescript": "Typecheck and 32 Vitest tests passed",
+    "architecture": "22 structural/schema tests and 6 Rust crates / 12 data/port sources passed",
+    "schema": "Export is idempotent against the staged generated files",
+    "required_public_tui": {
+      "directory": "/tmp/meden-ux-file-reader-20261124",
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/validation/399ec3c04e4ecbd9efa603ce357feab54ffd4836c310c3038c11b5d11523703c/meden",
+        "sha256": "399ec3c04e4ecbd9efa603ce357feab54ffd4836c310c3038c11b5d11523703c"
+      },
+      "success": true,
+      "passed": 34,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "summary_sha256": "9413a02d3ea3cbacb964f883cd03f33e6d0f46d676a872f338b2fa82d8d6ed93",
+      "decoded_screens_reviewed": [
+        "Lake metadata/inventory rejection and historical restart",
+        "Provider HTTP 429 stop, retained edits, explicit retry/restart recovery",
+        "Cancelled meaning comparison and retained historical assessment"
+      ]
+    },
+    "browser": {
+      "broad_run": {
+        "report": "target/gui-checks/file-reader-verified-normal-report",
+        "passed": 10,
+        "failed": 3,
+        "description": "Actual offline Atlas/Lake, dependency edits/build failure/retry/restart, lexical graph, large source, reader availability, provider restart and held cancellation. Three remaining test failures were corrected and all rerun in the final serialized group."
+      },
+      "final_normal": {
+        "report": "target/gui-checks/file-reader-final-serialized-report",
+        "passed": 5,
+        "failed": 0,
+        "journeys": [
+          "Retained tabs and normal-motion latency budget",
+          "Stale reader preview arriving after acknowledged next-page completion",
+          "Source within 5s while real compiler is held; timeout/cancel/retry",
+          "10001-file map with an unreadable retained entry and refresh recovery",
+          "Held inspection acknowledgement, unchanged chat DOM and exactly one queued explicit send"
+        ]
+      },
+      "final_reduced": {
+        "report": "target/gui-checks/file-reader-final-reduced-report",
+        "passed": 1,
+        "failed": 0,
+        "journey": "Retained tabs and reduced-motion latency budget"
+      },
+      "metrics": [
+        {
+          "report": "target/gui-checks/file-reader-final-serialized-report",
+          "attachment": "navigation-performance",
+          "data": {
+            "browser": "149.0.7827.53",
+            "motion": "no-preference",
+            "cold_analysis_store_preparation_ms": 31963.916671000003,
+            "warm_tab_two_raf_ms": [
+              23.80000001192093,
+              23.399999976158142,
+              28.700000047683716,
+              21.19999998807907,
+              22.600000023841858,
+              25.899999976158142,
+              25.19999998807907,
+              23.299999952316284,
+              29.799999952316284,
+              26.400000035762787
+            ],
+            "p95_ms": 29.799999952316284,
+            "maximum_p95_ms": 250,
+            "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+          }
+        },
+        {
+          "report": "target/gui-checks/file-reader-final-serialized-report",
+          "attachment": "source-before-analysis.json",
+          "data": {
+            "source_visible_ms": 679.4929159999956,
+            "budget_ms": 5000,
+            "methodology": "Real offline reader and a deliberately held installed Lean compiler; no complete semantic snapshot is available yet."
+          }
+        },
+        {
+          "report": "target/gui-checks/file-reader-final-reduced-report",
+          "attachment": "navigation-performance",
+          "data": {
+            "browser": "149.0.7827.53",
+            "motion": "reduce",
+            "cold_analysis_store_preparation_ms": 31738.860436999996,
+            "warm_tab_two_raf_ms": [
+              21.80000001192093,
+              31,
+              28,
+              21.899999976158142,
+              25.599999964237213,
+              22.5,
+              28,
+              27.30000001192093,
+              24.399999976158142,
+              25.100000023841858
+            ],
+            "p95_ms": 31,
+            "maximum_p95_ms": 250,
+            "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+          }
+        }
+      ],
+      "regression_notes": [
+        "Earlier reader-visible assertions assumed semantic preparation had already completed; they now assert source and semantic readiness separately.",
+        "The unreadable file is selected specifically from the explorer, not an identically labelled map box. Camera comparisons begin after the deliberate focus animation settles.",
+        "The stale-page test holds acknowledgement until actual next-page completion, then releases the earlier captured preview. No state/configuration is edited to rescue the outcome.",
+        "After source becomes visible early, explicit chat submissions still wait for the shared host worker; the completion assertion observes that real queue rather than assuming a completed preparation."
+      ]
+    },
+    "screenshot_sha256": {
+      "target/gui-checks/build-log-streaming.png": "61195c942fe259abc369adfbb42f1cab3f3ddf1b0419fb0fc255920c5a13497b",
+      "target/gui-checks/file-reader-availability.png": "1db971e2a25ea2923ffdbea003e8e90dcfd8795dac1159aea0b5f61d4e6a4084",
+      "target/gui-checks/large-project-map-unreadable-file.png": "dfb491f5ef75b51460a91cfe6b57eb0530ba1f3f7829899c113cb22d9903be5b",
+      "target/native-profile/file-reader-deployed-riemann-source.png": "8c2022032217403a9b9a01fcbb9a0266bef09888f4e505ebd4657811f9f8a3b1",
+      "target/native-profile/file-reader-deployed-riemann-ready.png": "6ebbf42954c4b6846b328fb3d1f783e98ee473a286e10dfd6345ac1a278a4b88",
+      "target/native-profile/file-reader-deployed-ethlib-source.png": "73e854070fc4c7ea88ef76ee274b5041a0f2e7b45fb3526e015f49c8c8c4f6d5",
+      "target/native-profile/file-reader-deployed-ethlib-ready.png": "a84996b45b44d107a0d3a226a07c9313e6337d3f40b6cd80a7f200a5b3ded23b",
+      "target/native-profile/file-reader-ux-provider.png": "dfa9ff3190f318f447bd4d82695408ea3a9728b3f5ab14c7e9291001e93da4d4",
+      "target/native-profile/file-reader-ux-lake.png": "83353ead33ec677b256533b7243faad1bfcf2e9c8dda1530c08d1f184c0f079b"
+    },
+    "logs_sha256": {
+      "/tmp/meden-file-reader-clippy.log": "d628671443022c2ba1c1cee94e66403072c2be9151ebe4a42039e72e8e535ed8",
+      "/tmp/meden-file-reader-architecture.log": "7966f84f982bb042923487ebc544eea70780977d364ae7982a5880dac132f539",
+      "/tmp/meden-file-reader-ts.log": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f",
+      "/tmp/meden-file-reader-js-tests.log": "ca3c61ba30eed0a5b8b83c3eda35eaa7db68a587e8c51a39903defa95b239c0c",
+      "/tmp/meden-file-reader-schema-check.log": "734d89596387b1f55d1fb6ae3f61a01814ee19fc96332b8305203f8a563e9f5e",
+      "/tmp/meden-file-reader-format-check.log": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c",
+      "/tmp/meden-file-reader-gui-verified-normal.log": "3fad718b4ae8db83624b0bebddf0a9e1f67389ece249724781639408fd473357",
+      "/tmp/meden-file-reader-gui-final-serialized.log": "820acb04b4e5bcfe00e93b771ca548766f04761d4162988fa3f1c4e0d1e85aa8",
+      "/tmp/meden-file-reader-gui-final-reduced.log": "0f66c111000d02dcbf7b918e86dd5f46d7bd00740ed5322be1ab5705a9d603ee",
+      "/tmp/meden-ux-file-reader-20261124.log": "602a010440332fe782577c6fe6e16291ac0026cd31c68e9b85fd3d1d0f05b024"
+    }
+  },
+  "limits": [
+    "One unprofiled deployed source-display observation per project, with installed dependencies and prepared caches; not a universal latency budget, controlled speedup comparison or cold installation. Complete semantic readiness still requires exact-input validation.",
+    "Reader-only and deployed observation journeys make no model requests. Broader GUI/TUI model interactions use scripted providers; no new live-model/local-inference/confidentiality/refinement claim.",
+    "The directory/source inventory wire contract remains legacy outside the new FileView; generic inventory/job/evidence DTOs and the rest of native schema generation remain open.",
+    "New page-read commands still share the host worker with active semantic preparation. Prepared reader queries and independent job/status materialization remain work.",
+    "Multi-megabyte history polling, deterministic versioned layout/order artifacts and duplicate/demo retirement remain part of the active migration goal."
+  ]
+}

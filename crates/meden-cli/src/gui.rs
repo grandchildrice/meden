@@ -69,6 +69,7 @@ struct View {
     stopped: Option<String>,
     logs: Vec<Value>,
     inspection: Option<Value>,
+    reader: Option<meden_app::view::file::FileView>,
     source_snapshot: Option<sources::Snapshot>,
     #[serde(serialize_with = "sources::serialize_views")]
     source_views: std::collections::BTreeMap<String, Arc<sources::Snapshot>>,
@@ -182,6 +183,10 @@ enum Command {
         #[serde(default)]
         offset: Option<usize>,
     },
+    ReadFilePage {
+        path: String,
+        offset: u32,
+    },
 }
 
 impl Command {
@@ -190,7 +195,7 @@ impl Command {
             Self::Instruction { .. } | Self::ResumeWork { .. } | Self::AcceptContract { .. } => {
                 "conversation"
             }
-            Self::Inspect { .. } => "inspection",
+            Self::Inspect { .. } | Self::ReadFilePage { .. } => "inspection",
             Self::CapturePreview { .. } => "preview",
             Self::AtlasSnapshot { .. }
             | Self::SourceSnapshot { .. }
@@ -378,6 +383,7 @@ fn initial_view(
         stopped: analysis_error.or(saved.stopped),
         logs: Vec::new(),
         inspection: None,
+        reader: None,
         source_snapshot: None,
         source_views: std::collections::BTreeMap::new(),
         source_preparation: std::collections::BTreeMap::new(),
@@ -762,26 +768,22 @@ fn worker(
                     directory,
                     offset,
                 } => {
-                    let observation =
-                        inspect(workspace, &processes, &path, directory, offset.unwrap_or(1))?;
-                    let index = !directory && observation.get("error").is_none();
-                    if index {
-                        sources::prepare(view, workspace, &processes, &path, true);
-                    } else if !directory {
-                        sources::unavailable(
+                    if directory {
+                        lock(view).inspection = Some(inspect(workspace, &processes, &path)?);
+                    } else {
+                        read_source(
                             view,
+                            workspace,
+                            &processes,
                             &path,
-                            observation
-                                .get("error")
-                                .and_then(Value::as_str)
-                                .unwrap_or("Source observation failed")
-                                .into(),
-                        );
+                            u32::try_from(offset.unwrap_or(1))?,
+                            true,
+                        )?;
                     }
-                    lock(view).inspection = Some(observation);
-                    if index {
-                        overview::observe_file(view, workspace, &processes, &path);
-                    }
+                    None
+                }
+                Command::ReadFilePage { path, offset } => {
+                    read_source(view, workspace, &processes, &path, offset, false)?;
                     None
                 }
                 _ => anyhow::bail!("Unexpected worker command"),
@@ -868,23 +870,38 @@ fn run_instruction(
     Ok(())
 }
 
-fn inspect(
-    workspace: &Arc<Workspace>,
-    processes: &Arc<Control>,
+fn read_source(
+    view: &Arc<Mutex<View>>,
+    workspace: &Workspace,
+    processes: &Control,
     path: &str,
-    directory: bool,
-    offset: usize,
-) -> Result<Value> {
+    offset: u32,
+    prepare: bool,
+) -> Result<()> {
+    let observation = meden_app::view::file::observe(workspace, processes, path, offset)?;
+    sources::observe(view, &observation);
+    let readable = observation.is_text();
+    let available = matches!(
+        &observation.reading,
+        meden_app::view::file::Reading::Ready { .. }
+    );
+    lock(view).reader = Some(observation);
+    if prepare && readable {
+        sources::prepare(view, workspace, processes, path, true);
+    }
+    if prepare && available {
+        overview::observe_file(view, workspace, processes, path);
+    }
+    Ok(())
+}
+
+fn inspect(workspace: &Arc<Workspace>, processes: &Arc<Control>, path: &str) -> Result<Value> {
     let (registry, policy) = crate::workspace::environment(workspace, processes)?;
     let call = meden_agent::conversation::ToolCall {
         id: "gui-inspect".into(),
         function: meden_agent::conversation::FunctionCall {
-            name: if directory { "list_files" } else { "read_file" }.into(),
-            arguments: serde_json::to_string(&if directory {
-                json!({"path":path})
-            } else {
-                json!({"path":path,"offset":offset,"limit":200})
-            })?,
+            name: "list_files".into(),
+            arguments: serde_json::to_string(&json!({"path":path}))?,
         },
     };
     let result = meden_agent::conversation::execute(
@@ -896,18 +913,7 @@ fn inspect(
         &|| None,
     );
     Ok(match result {
-        Ok(text) => {
-            let next = (!directory)
-                .then(|| {
-                    text.lines().rev().find_map(|line| {
-                        line.split_once(": ")
-                            .and_then(|(number, _)| number.parse::<usize>().ok())
-                    })
-                })
-                .flatten()
-                .and_then(|last| last.checked_add(1));
-            json!({"path":path,"directory":directory,"offset":offset,"next_offset":next,"text":text})
-        }
+        Ok(text) => json!({"path":path,"directory":true,"text":text}),
         Err(error) => json!({"path":path,"error":format!("{error:?}")}),
     })
 }

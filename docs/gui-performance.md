@@ -1,5 +1,36 @@
 # Graph interaction measurements
 
+## Independent source reader (November 24)
+
+The [implementation record](../results/file-reader-20261124.json) separates
+source display from semantic preparation. The shared application checks complete
+bounded file bytes and publishes a typed reader page before compiler/search/
+English preparation. Only the graph pane waits. Unreadable files report their
+availability locally instead of failing the whole source inventory. Returning
+to retained tabs preserves their graphs; paging does not request compilation.
+
+One actual deployed observation per project, after preparing the new map cache,
+showed the original first source line in **165 ms for Riemann** and **798 ms for
+EthLib**. Both were still resolving Lean modules at that point. Complete graph
+readiness remained **21.514 / 5.134 seconds**, respectively, with cache hits and
+the original exact-input checks. The captures used Chrome 149, normal motion,
+1440 × 960, no CPU profiler or inference. They are not controlled comparisons
+against the earlier instrumented captures or guarantees for every file/device.
+Chat DOM and message counts stayed unchanged; inference remained unapproved.
+
+The real held-compiler journey displayed source in 679 ms, before compilation
+could finish, against its 5-second scenario bound. Serialized retained-tab p95
+was 29.8 ms with normal motion and 31.0 ms with reduced motion, below the 250 ms
+scenario budget and without new inspections. The two-rAF proxy measures browser
+scheduling, not physical presentation. Actual screenshots and decoded public
+TUI failure/restart screens were reviewed.
+
+The multi-megabyte history transfer below is still present. The current host
+worker also serializes new page-read commands behind active semantic work;
+prepared reader queries, independent job read models and revisioned history
+transfer remain migration work. This change improves initial readability and
+does not claim that compilation or all remaining waits have disappeared.
+
 ## Current deployed event audit (November 24)
 
 The [measurement record](../results/current-event-audit-20261124.json) covers

@@ -7,6 +7,9 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
+/// Bounded file availability and reader pages, independent of compiler support.
+pub mod file;
+
 /// A retained UTF-8 input, byte-bounded before publication. The generated wire
 /// validator also limits string length; it does not replace this byte check.
 #[derive(Clone, Debug, Serialize, JsonSchema)]

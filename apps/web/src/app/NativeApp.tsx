@@ -136,6 +136,7 @@ export function NativeApp({ token }: { token: string }) {
   const busy = commandActivity.pending > 0;
   const [chatPending, setChatPending] = useState(false);
   const pendingCancellations = useRef(0);
+  const pendingInspections = useRef(0);
   const [queue, setQueue] = useState<
     Array<{
       input: NativeCommand;
@@ -149,12 +150,15 @@ export function NativeApp({ token }: { token: string }) {
     const poll = async () => {
       try {
         const generation = stateGeneration.current;
-        const readable = inFlight.current === pendingCancellations.current;
+        const readable =
+          inFlight.current ===
+          pendingCancellations.current + pendingInspections.current;
         const next = await client.state(abort.signal);
         if (
           !abort.signal.aborted &&
           readable &&
-          inFlight.current === pendingCancellations.current &&
+          inFlight.current ===
+            pendingCancellations.current + pendingInspections.current &&
           generation === stateGeneration.current
         ) {
           if (initialMessageCount.current === null) {
@@ -287,12 +291,23 @@ export function NativeApp({ token }: { token: string }) {
       ].includes(command.type);
       if (inFlight.current && !immediate) return false;
       if (command.type === "refresh_workspace") refreshEpoch.current++;
-      const generation = ++stateGeneration.current;
+      let generation = ++stateGeneration.current;
       inFlight.current++;
+      let inspecting =
+        command.type === "inspect" || command.type === "read_file_page";
+      if (inspecting) pendingInspections.current++;
       if (command.type === "cancel") pendingCancellations.current++;
       setCommandActivity({ generation, pending: inFlight.current });
       try {
         await client.command(command);
+        if (inspecting) {
+          pendingInspections.current--;
+          inspecting = false;
+          // Publish one final read after acknowledgement. Earlier streaming
+          // reads cannot arrive later and replace this command's snapshot.
+          if (generation === stateGeneration.current)
+            generation = ++stateGeneration.current;
+        }
         const next = await client.state();
         if (command.type === "refresh_workspace") {
           next.source_snapshot = null;
@@ -327,6 +342,7 @@ export function NativeApp({ token }: { token: string }) {
         else setWorkspaceError(String(error));
         return false;
       } finally {
+        if (inspecting) pendingInspections.current--;
         if (command.type === "cancel") {
           pendingCancellations.current--;
           // Polls may observe a completed stop before its command response.

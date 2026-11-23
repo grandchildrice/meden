@@ -1,0 +1,271 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FileView",
+  "description": "Shared generated read model for an explicitly requested source page.",
+  "type": "object",
+  "properties": {
+    "path": {
+      "description": "Original logical workspace path, not a worker-selected filename.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "navigation": {
+      "description": "Capability only; not a proof or compilation result.",
+      "$ref": "#/$defs/Navigation"
+    },
+    "reading": {
+      "description": "Complete projected content or an explicit host failure.",
+      "$ref": "#/$defs/Reading"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "path",
+    "navigation",
+    "reading"
+  ],
+  "$defs": {
+    "Navigation": {
+      "description": "Source readability and lexical navigation support are independent.",
+      "oneOf": [
+        {
+          "description": "A registered lexical format can provide declaration navigation.",
+          "type": "string",
+          "const": "declarations"
+        },
+        {
+          "description": "Text is readable, but rich navigation is unsupported.",
+          "type": "string",
+          "const": "source_only"
+        }
+      ]
+    },
+    "Reading": {
+      "description": "A reader outcome has content or a host failure, never both.",
+      "oneOf": [
+        {
+          "description": "Successful complete input, projected for display.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "ready"
+            },
+            "content": {
+              "description": "Original data facts and the requested page.",
+              "$ref": "#/$defs/Content"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "content"
+          ]
+        },
+        {
+          "description": "No incomplete or failed bytes were admitted.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "unavailable"
+            },
+            "failure": {
+              "description": "Host class, independent of diagnostic text.",
+              "$ref": "#/$defs/FailureKind"
+            },
+            "message": {
+              "description": "Bounded diagnostic; not a verdict or authority.",
+              "type": "string",
+              "maxLength": 8000
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "failure",
+            "message"
+          ]
+        }
+      ]
+    },
+    "Content": {
+      "description": "Worker-owned content facts. Host stops and failures are separate outcomes.",
+      "oneOf": [
+        {
+          "description": "Complete UTF-8 text, or a pure projection of that complete input.",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "text"
+            },
+            "revision": {
+              "description": "Identity of every original input byte, not just a page.",
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            },
+            "bytes": {
+              "description": "Original byte count, bounded before publication.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0,
+              "maximum": 1048576
+            },
+            "text": {
+              "description": "Complete input or its bounded presentation page.",
+              "$ref": "#/$defs/Page"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "revision",
+            "bytes",
+            "text"
+          ]
+        },
+        {
+          "description": "NUL-containing input, excluding recognized unsupported text BOMs.",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "binary"
+            },
+            "bytes": {
+              "description": "Complete observed byte count.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0,
+              "maximum": 1048576
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "bytes"
+          ]
+        },
+        {
+          "description": "Invalid UTF-8 or a recognized unsupported UTF-16 BOM.",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "unsupported_encoding"
+            },
+            "bytes": {
+              "description": "Complete observed byte count.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0,
+              "maximum": 1048576
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "bytes"
+          ]
+        },
+        {
+          "description": "A pinned file exceeds the reader budget; no prefix is published.",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "size_limit"
+            },
+            "bytes": {
+              "description": "Canonical decimal preserves large sizes across JSON/JavaScript.",
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,19})$"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "bytes"
+          ]
+        }
+      ]
+    },
+    "Page": {
+      "description": "Bounded page derived from a complete UTF-8 input; EOF is explicit.",
+      "type": "object",
+      "properties": {
+        "offset": {
+          "description": "Actual first line, clamped when a requested line no longer exists.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 1,
+          "maximum": 1048577
+        },
+        "line_count": {
+          "description": "Includes the empty last editor line after a trailing newline.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 1,
+          "maximum": 1048577
+        },
+        "next_offset": {
+          "description": "Absent at EOF; an empty extra page is never offered.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 1,
+          "maximum": 1048577
+        },
+        "text": {
+          "description": "Original text only; line numbers are presentation, not parsed strings.",
+          "$ref": "#/$defs/SourceText"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "offset",
+        "line_count",
+        "text"
+      ]
+    },
+    "SourceText": {
+      "description": "A retained UTF-8 input, byte-bounded before publication. The generated wire\nvalidator also limits string length; it does not replace this byte check.",
+      "type": "string",
+      "maxLength": 1048576
+    },
+    "FailureKind": {
+      "description": "Host-observed failure class; diagnostics do not determine it.",
+      "oneOf": [
+        {
+          "description": "A completed filesystem operation failed.",
+          "type": "string",
+          "const": "operation"
+        },
+        {
+          "description": "Original or resolved file authority was refused.",
+          "type": "string",
+          "const": "refused"
+        },
+        {
+          "description": "Required protocol/infrastructure is unavailable.",
+          "type": "string",
+          "const": "unavailable"
+        },
+        {
+          "description": "A host limit or incomplete process prevented a complete observation.",
+          "type": "string",
+          "const": "interrupted"
+        },
+        {
+          "description": "The host observed cancellation.",
+          "type": "string",
+          "const": "cancelled"
+        }
+      ]
+    }
+  }
+}
