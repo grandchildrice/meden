@@ -115,6 +115,11 @@ fn send(output: &mut impl Write, message: &Out<'_>) -> Result<()> {
     Ok(())
 }
 
+#[derive(Clone, Copy)]
+pub struct Resources<'a> {
+    pub pages: &'a Arc<meden_runtime::pages::Pages>,
+    pub verifier: Option<&'a str>,
+}
 pub fn run(
     first: Command,
     input: &mut impl BufRead,
@@ -122,7 +127,7 @@ pub fn run(
     workspace: &Arc<Workspace>,
     processors: (Arc<Gateway>, Option<Arc<Gateway>>),
     processes: &Arc<Control>,
-    pages: &Arc<meden_runtime::pages::Pages>,
+    resources: Resources<'_>,
 ) -> Result<()> {
     let (gateway, judge) = processors;
     send(
@@ -135,6 +140,7 @@ pub fn run(
     let project = Arc::new(crate::project::Project::open(
         workspace.path(),
         workspace.session_id(),
+        resources.verifier,
     )?);
     let exports = Arc::new(Exports::new(Arc::clone(&project)));
     let mut session = Session::new(
@@ -142,7 +148,7 @@ pub fn run(
         gateway,
         Arc::clone(processes),
         &exports,
-        pages,
+        resources.pages,
         &project,
     )?
     .with_judge(judge);

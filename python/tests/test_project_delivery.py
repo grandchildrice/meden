@@ -163,7 +163,7 @@ def test_project_delivery_requires_current_evidence_and_frozen_checked_bytes(tmp
         frozen = review(1)
         assert frozen["summary"]["contract"] == summary()["reference"]["contract"]
         package = json.loads(bytes.fromhex(frozen["body_hex"]))
-        assert package["format"] == "meden-verified-kernel"
+        assert package["format"] == "meden-checked-artifact"
         files = {name: bytes(data) for name, data in package["files"].items()}
         report = json.loads(files["report.json"])
         assert set(files) == set(report["files"]) | {"report.json"}

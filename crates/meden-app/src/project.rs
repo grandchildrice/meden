@@ -15,8 +15,7 @@ use meden_agent::{
 use meden_core::{
     check::{Preparation, Running},
     evidence::{
-        ContractView, Contracts, EvidenceKind, EvidenceOrigin as Origin, Inspection, Obligation,
-        Subject,
+        ContractView, Contracts, EvidenceOrigin as Origin, Inspection, Obligation, Subject,
     },
     Capability, Grant, Policy, Requirement,
 };
@@ -24,8 +23,8 @@ use meden_runtime::{
     process::{Control, Limits},
     transfer::Export,
     verification::{
-        kernel::{self, Artifact, Report},
-        Bundle, Contract, Failure, FailureKind,
+        artifact::{Artifact, Class, Report},
+        Failure, FailureKind,
     },
     workspace::Workspace,
 };
@@ -34,6 +33,7 @@ use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 
 mod journal;
+use crate::verification::{Contract, PreparedCheck, Registry as Verifiers};
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -51,6 +51,9 @@ pub struct Summary {
     /// Acceptance of the displayed contract, never of a pending replacement.
     pub accepted: bool,
     pub verified: bool,
+    pub evidence_class: Option<Class>,
+    pub completion_label: &'static str,
+    pub scope: String,
     pub verification_failure: Option<FailureKind>,
     pub verification_diagnostic: Option<String>,
     pub contract: Option<Contract>,
@@ -119,8 +122,8 @@ impl Agreement {
 fn obligation(contract: &Contract) -> Result<Obligation> {
     Ok(Obligation {
         statement: contract.canonical()?,
-        kind: EvidenceKind::Refinement,
-        checker: kernel::checker_id(contract)?.into_bytes(),
+        kind: contract.description().class.core(),
+        checker: contract.checker_id()?.into_bytes(),
     })
 }
 
@@ -136,7 +139,8 @@ struct State {
 pub struct Project {
     root: PathBuf,
     session: String,
-    bundle: Option<PathBuf>,
+    verifiers: Verifiers,
+    selected: Option<String>,
     storage: PathBuf,
     state: Mutex<State>,
     journal: Option<PathBuf>,
@@ -156,7 +160,8 @@ impl Project {
         Self {
             root: root.to_owned(),
             session,
-            bundle: crate::verifier::manifest(),
+            verifiers: Verifiers::host(),
+            selected: None,
             storage: root
                 .parent()
                 .and_then(Path::parent)
@@ -173,8 +178,13 @@ impl Project {
             journal: None,
         }
     }
-    pub fn open(root: &Path, session: &[u8]) -> Result<Self> {
+    pub fn open(root: &Path, session: &[u8], selected: Option<&str>) -> Result<Self> {
         let mut project = Self::new(root);
+        anyhow::ensure!(
+            selected.is_none_or(|id| project.verifiers.contains(id)),
+            "Unknown verification backend selection"
+        );
+        project.selected = selected.map(str::to_owned);
         project.session = session.iter().fold(String::new(), |mut out, byte| {
             let _ = write!(out, "{byte:02x}");
             out
@@ -207,25 +217,35 @@ impl Project {
     pub fn matches(&self, root: &Path) -> bool {
         self.root == root
     }
-    fn bundle(&self) -> std::result::Result<Bundle, Failure> {
-        let path = self.bundle.as_deref().ok_or_else(|| {
-            Failure::unavailable(
-                "Local verification tools are not prepared. Restart the TUI for automatic setup, or run `meden setup` before a CLI session.",
-            )
-        })?;
-        Bundle::load(path).map_err(Failure::unavailable)
+    fn selection(&self, contract: &Contract) -> Result<()> {
+        anyhow::ensure!(self.selected.as_deref().is_none_or(|id| id == contract.backend()), "The contract's backend differs from the host-selected verifier; review a replacement contract before checking");
+        Ok(())
     }
     fn binding(agreement: &Agreement, report: &Report, source: &str) -> Result<Subject> {
         anyhow::ensure!(
-            agreement.contract == report.contract,
+            serde_json::to_value(&agreement.contract)? == report.contract
+                && hash(&agreement.view.subject.contract) == report.contract_sha256,
             "artifact belongs to a different contract"
+        );
+        anyhow::ensure!(
+            report.backend == agreement.contract.backend()
+                && agreement
+                    .view
+                    .obligations
+                    .first()
+                    .is_some_and(|o| o.kind == report.class.core()),
+            "artifact backend or evidence strength differs from the reviewed obligation"
         );
         Ok(agreement.subject(serde_json::to_vec(&json!({"source":hash(source.as_bytes()),"artifact":report.artifact_sha256,
             "bundle":report.bundle_sha256,"checker":report.checker_sha256,"worker":report.worker_sha256}))?))
     }
     pub fn propose(&self, contract: &Contract, control: &Control) -> Result<Summary> {
+        let contract = self
+            .verifiers
+            .parse(std::str::from_utf8(&contract.canonical()?)?)?;
+        self.selection(&contract)?;
         let bytes = contract.canonical()?;
-        let required = obligation(contract)?;
+        let required = obligation(&contract)?;
         {
             let state = self
                 .state
@@ -237,14 +257,10 @@ impl Project {
                 return self.summary(&state, false);
             }
         }
-        let result = self.bundle().and_then(|bundle| {
-            kernel::check_contract(
-                contract,
-                &bundle,
-                &std::env::current_exe().map_err(Failure::unavailable)?,
-                control,
-            )
-        });
+        let result = contract.check_draft(
+            &std::env::current_exe().map_err(Failure::unavailable)?,
+            control,
+        );
         if let Err(failure) = result {
             self.record_failure(failure.clone());
             return Err(failure.into());
@@ -257,9 +273,7 @@ impl Project {
             .with_active(|| {
                 self.record(
                     &mut state,
-                    journal::Event::Propose {
-                        contract: Box::new(contract.clone()),
-                    },
+                    journal::Event::propose(&contract).map_err(io::Error::other)?,
                 )
                 .map_err(io::Error::other)?;
                 if !state
@@ -672,6 +686,13 @@ impl Project {
             proposed: displayed.is_some(),
             accepted: state.contracts.is_accepted(),
             verified: verified && !state.dirty && !state.contracts.pending(),
+            evidence_class: displayed.as_ref().map(|a| a.contract.description().class),
+            completion_label: displayed.as_ref().map_or("Check complete", |a| {
+                crate::verification::completed_label(a.contract.description().class)
+            }),
+            scope: displayed
+                .as_ref()
+                .map_or_else(String::new, |a| a.contract.description().scope.clone()),
             verification_failure: state.failure.as_ref().map(|f| f.kind),
             verification_diagnostic: state
                 .failure
@@ -716,6 +737,8 @@ impl Project {
     ) -> Result<Summary> {
         let preparation = self.with_access(access, |state, agreement| {
             let agreement = agreement.context("no prepared accepted contract")?;
+            self.selection(&agreement.contract)?;
+            anyhow::ensure!(agreement.view.obligations == vec![obligation(&agreement.contract)?], "The registered checker changed since host review; propose and review the current method before checking");
             let preparation =
                 Preparation::begin(&mut state.contracts, agreement.view.clone(), agreement)
                     .context("host acceptance of the exact prepared contract is required")?;
@@ -729,11 +752,8 @@ impl Project {
             control,
             rules,
         )?;
-        let bundle = self.bundle()?;
-        let prepared = kernel::prepare_kernel(
+        let prepared = preparation.data().contract.prepare(
             &source,
-            &preparation.data().contract,
-            &bundle,
             &std::env::current_exe().map_err(Failure::unavailable)?,
             control,
         )?;
@@ -761,7 +781,7 @@ impl Project {
     }
     fn run_job(
         &self,
-        prepared: kernel::PreparedKernel<'_>,
+        prepared: Box<dyn PreparedCheck>,
         running: Running<Agreement>,
         workspace: &Workspace,
         control: &Control,
@@ -860,12 +880,12 @@ pub fn register(
         "project belongs to another workspace"
     );
     for (name,operation,description) in [
-        ("propose_contract",Operation::Propose,"Propose a pure Rust transition's mathematical contract for host review. Only metadata and restricted mathematical terms are accepted, never Lean commands, proof scripts or checker paths. State has one to eight u64 fields and at most eight u64 parameters; specification uses mathematical Nat values and must return the next state. Each property is a Prop in s, parameters and out. Descriptions/assumptions are reviewed meaning, not proved equivalence to natural language. After a successful proposal pause for host review. Rust contains only the declared public struct/function: finite pure arithmetic, branches and checked/saturating operations; no imports, attributes, other calls, macros or loops."),
-        ("verify_project",Operation::Verify,"Independently check the accepted contract's exact Rust source using the fixed offline Rust-to-Lean backend. No model-supplied checker/path/receipt/result. Tests alone do not suffice. Success retains source, proof and native library outside the writable coding copy; changed source needs fresh evidence."),
+        ("propose_contract",Operation::Propose,"Propose a mathematical contract in a registered typed format for host review. Use only the supplied schema: restricted pure Rust/u64 refinement data or finite-bitvectors-v1 transition data. No executable commands, checker paths, scripts or claimed results. Descriptions/assumptions require host review; they are not a proof of equivalence to natural language. A finite transition checks every input within the explicit word width for one step; it does not verify arbitrary Rust or unbounded execution. After a successful proposal pause for host review."),
+        ("verify_project",Operation::Verify,"Independently check the accepted contract's exact source using its originally registered offline verifier and declared evidence scope. No model-supplied checker/path/receipt/result. Tests alone do not suffice. Complete admitted output is retained outside the writable coding copy; changed source needs fresh evidence. Bounded results never become refinement proofs."),
         ("project_status",Operation::Status,"Read the current host-derived proposal, accepted meaning and evidence freshness. Model prose or project-local proof/report files never make this status verified.")
     ] {
         let parameters = if matches!(operation,Operation::Propose) {
-            json!({"type":"object","properties":{"contract":Contract::schema()},"required":["contract"],"additionalProperties":false})
+            project.verifiers.parameters(project.selected.as_deref())?
         } else {json!({"type":"object","properties":{},"additionalProperties":false})};
         registry.register(Box::new(ProjectTool{project:Arc::clone(project),workspace:Arc::clone(workspace),control:Arc::clone(control),sig:ToolSig::new(name,description,parameters),operation}));
     }
@@ -909,7 +929,7 @@ impl ProjectTool {
             match self.operation {
                 Operation::Propose => {
                     anyhow::ensure!(args.len() == 1, "proposal accepts only contract data");
-                    let contract = Contract::parse(&serde_json::to_string(
+                    let contract = self.project.verifiers.parse(&serde_json::to_string(
                         args.get("contract").context("contract is required")?,
                     )?)?;
                     self.project.propose(&contract, &self.control)

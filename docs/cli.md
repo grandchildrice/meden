@@ -139,9 +139,11 @@ Model tool calls named `approve_export` or `review_export` are unsupported.
 
 Project proposals contain a `contract` SHA-256 in their host summary; ordinary
 files have `contract: null`. A project payload is JSON with
-`format: "meden-verified-kernel"` and a `files` map from names to byte arrays.
-It preserves the exact retained `report.json`, native library, source,
-extraction and proof inputs. Raw retained content is limited to 4 MiB and the
+`format: "meden-checked-artifact"` and a `files` map from names to byte arrays.
+It preserves the exact retained `report.json`, source and backend outputs
+(including the native library and proof inputs for Rust refinement, or the
+finite model/query/solver result for bounded checking). The report retains
+the original evidence kind and scope. Raw retained content is limited to 4 MiB and the
 encoded package to 16 MiB. The model supplies only the destination; it cannot
 choose another file, report, checker or proof context for this operation.
 

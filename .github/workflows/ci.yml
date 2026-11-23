@@ -25,7 +25,7 @@ jobs:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
       - name: Install Linux isolation backend
-        run: sudo apt-get update && sudo apt-get install -y bubblewrap iproute2 python3 apparmor
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap iproute2 python3 apparmor z3
       - name: Prepare the trusted DNS/TLS network lab
         run: |
           sudo install -D -m 755 /usr/bin/bwrap /usr/local/libexec/meden-netlab-bwrap
@@ -205,7 +205,7 @@ jobs:
           toolchain: 1.98.1
       - uses: Swatinem/rust-cache@v2
       - name: Install Linux isolation backend
-        run: sudo apt-get update && sudo apt-get install -y bubblewrap zstd
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap zstd z3
       - name: Prepare pinned Lean for required Lake TUI journey
         env:
           GH_TOKEN: ${{ github.token }}
@@ -287,7 +287,7 @@ jobs:
           toolchain: 1.98.1
       - uses: Swatinem/rust-cache@v2
       - name: Install native GUI worker prerequisites
-        run: sudo apt-get update && sudo apt-get install -y bubblewrap zstd python3 libgmp10 libtinfo6
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap zstd python3 libgmp10 libtinfo6 z3
       - name: Prepare pinned symbolic meaning renderer
         run: python3 tools/prepare-informath.py
       - name: Prepare pinned Lean for real GUI Atlas journeys

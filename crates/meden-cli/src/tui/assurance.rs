@@ -3,7 +3,7 @@
 
 use std::fmt::Write as _;
 
-use meden_runtime::verification::FailureKind;
+use meden_runtime::verification::{artifact::Class, FailureKind};
 use ratatui::prelude::*;
 
 use super::{visible, App, TranscriptLine};
@@ -52,13 +52,13 @@ impl State {
         }
     }
 
-    fn label(self) -> &'static str {
+    fn label(self, summary: &Summary) -> &'static str {
         match self {
             Self::Review => "Awaiting your specification review",
             Self::Checking => "Checking the implementation against your specification",
-            Self::Verified => "VERIFIED · Lean refinement of the pure transition",
+            Self::Verified => summary.completion_label,
             Self::Recheck => "Evidence not current · recheck required",
-            Self::Pending => "Implementation proof pending",
+            Self::Pending => "Implementation check pending",
             Self::Unverified => "Check completed · proof not established",
             Self::Unavailable => "Checker unavailable · proof not established",
             Self::Inconclusive => "Check interrupted or inconclusive · proof not established",
@@ -77,9 +77,16 @@ impl State {
         }
     }
 
-    fn property(self) -> &'static str {
+    fn property(self, summary: &Summary) -> &'static str {
         if self == Self::Verified {
-            "✓ proved"
+            if matches!(
+                summary.evidence_class,
+                Some(Class::Bounded | Class::Empirical)
+            ) {
+                "✓ checked within stated scope"
+            } else {
+                "✓ proved"
+            }
         } else {
             "○ unproved"
         }
@@ -141,7 +148,7 @@ pub(super) fn panel(app: &App) -> Vec<Line<'static>> {
             ),
             Style::new().bold(),
         ),
-        Line::styled(state.label(), Style::new().fg(state.color())),
+        Line::styled(state.label(summary), Style::new().fg(state.color())),
         Line::styled(state.delivery(), Style::new().fg(state.color())),
     ];
     if summary.accepted_reference.is_some() && !summary.accepted {
@@ -158,7 +165,7 @@ pub(super) fn panel(app: &App) -> Vec<Line<'static>> {
             lines.push(Line::styled(
                 format!(
                     "{} · {}",
-                    state.property(),
+                    state.property(summary),
                     single_line(if description.is_empty() {
                         name
                     } else {
@@ -187,7 +194,7 @@ pub(super) fn details(app: &App) -> Vec<Line<'static>> {
         .filter(|s| s.proposed || s.accepted_contract.is_some() || s.verification_failure.is_some())
     {
         let state = current(app, summary);
-        text.push_str(state.label());
+        text.push_str(state.label(summary));
         text.push('\n');
         text.push_str(state.delivery());
         text.push_str("\n\nHost-observed status. Source and retained files are checked again before delivery.\n");
@@ -206,17 +213,17 @@ pub(super) fn details(app: &App) -> Vec<Line<'static>> {
             text.push_str("\nProperties of the implementation\n");
             let _ = writeln!(
                 text,
-                "{} · implementation refines the mathematical transition",
-                state.property()
+                "{} · the accepted implementation and formal properties",
+                state.property(summary)
             );
             for (name, description, statement) in contract.properties() {
                 let _ = writeln!(
                     text,
                     "{} · {name}: {description}\n  {statement}",
-                    state.property()
+                    state.property(summary)
                 );
             }
-            text.push_str("\nEvidence kind: Rust-to-Lean functional refinement and Lean kernel checks.\nScope: this pure u64 transition and the listed formal statements.\nDescriptions and environmental assumptions require your review.\nApplication I/O, persistence, concurrency and caller authentication are outside this proof.\n");
+            let _ = writeln!(text, "\nEvidence: {}\nScope: {}\nDescriptions and environmental assumptions require your review.", summary.completion_label, summary.scope);
             text.push_str("\nReviewed specification, examples and assumptions\n\n");
             text.push_str(&contract.review_text());
         }
@@ -296,7 +303,7 @@ mod tests {
     use crate::project::{Project, Reference};
     use crate::tui::{editor::Overlay, Screen};
     use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-    use meden_runtime::verification::Contract;
+    use meden_app::verification::Contract;
     use std::path::PathBuf;
 
     fn app() -> anyhow::Result<App> {

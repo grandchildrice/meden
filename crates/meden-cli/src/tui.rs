@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 #[cfg(test)]
 use std::fmt::Write as _;
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{self, Receiver, Sender, TryRecvError};
 use std::sync::Arc;
@@ -932,7 +932,8 @@ impl App {
             if let Some(path) = &summary.artifact {
                 self.say(
                     format!(
-                        "Host: verified project kernel. Artifact: {}",
+                        "Host: {}. Artifact: {}",
+                        summary.completion_label,
                         path.display()
                     ),
                     Style::new().fg(Color::Green),
@@ -1233,20 +1234,25 @@ impl Drop for TerminalGuard {
 
 /// Open a native-tool-calling interface for the selected workspace.
 pub fn run(
+    args: &crate::WorkspaceArgs,
     providers: Vec<Provider>,
-    root: &Path,
-    approved: Option<&str>,
     pages: Arc<meden_runtime::pages::Pages>,
     local: Option<meden_llm::LocalConfig>,
     interactive: bool,
-    judge_config: (&Option<String>, Option<&str>),
 ) -> Result<()> {
-    crate::verifier::prepare()?;
-    let workspace = Arc::new(Workspace::open(root, &std::env::current_exe()?)?);
+    meden_app::verification::Registry::host().setup(
+        args.verifier
+            .as_deref()
+            .unwrap_or(meden_app::verification::DEFAULT_BACKEND),
+    )?;
+    let approved = args.model.approve_processor.as_deref();
+    let judge_config = (&args.model.judge_model, args.model.approve_judge.as_deref());
+    let workspace = Arc::new(Workspace::open(&args.workspace, &std::env::current_exe()?)?);
     let mut app = App::new(providers, workspace.path().to_owned());
     app.project = Arc::new(crate::project::Project::open(
         workspace.path(),
         workspace.session_id(),
+        args.verifier.as_deref(),
     )?);
     app.exports = Arc::new(Exports::new(Arc::clone(&app.project)));
     app.project_status = Some(app.project.stored_status()?);

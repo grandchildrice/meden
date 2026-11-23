@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "date": "2026-11-23",
+  "goal_status": "active; shared typed-core/plugin migration remains incomplete",
+  "implementation": {
+    "backends": ["lean.refinement.v1", "z3.finite.v1"],
+    "new_contract_format": "finite-bitvectors-v1",
+    "shared_paths": [
+      "Project host review and original contract",
+      "core Preparation/Running/Contracts",
+      "common artifact staging and exact input completion",
+      "source/storage freshness and project export",
+      "native TUI/GUI evidence kind and scope"
+    ],
+    "core_changes": false,
+    "limits": "Finite 1–8-bit words, at most 16 total input bits, all inputs for one simultaneous JSON transition. This is bounded evidence, never a Rust/RTL refinement or whole-application proof."
+  },
+  "candidate": {
+    "path": "/home/gohan/workspace/meden/target/validation/d7fbccf6b5761850a9818d3c7570a2b44ca98750196ac451818777e9807fd76e/meden",
+    "sha256": "d7fbccf6b5761850a9818d3c7570a2b44ca98750196ac451818777e9807fd76e"
+  },
+  "checks": {
+    "rust": {
+      "total_passed": 245,
+      "includes_doc_tests": 12,
+      "ignored": 0,
+      "log": "/tmp/meden-finite-workspace-tests.log",
+      "scope": "Full workspace/all-features after shared artifact/port integration; final changes after this run were export tool descriptions, validated by final native delivery and live tests."
+    },
+    "clippy": {
+      "passed": true,
+      "log": "/tmp/meden-finite-final-clippy.log"
+    },
+    "documentation": {
+      "passed": true,
+      "log": "/tmp/meden-finite-final-doc.log"
+    },
+    "typescript": {
+      "passed": 30,
+      "log": "/tmp/meden-finite-ts-tests.log"
+    },
+    "architecture": {
+      "passed": true,
+      "log": "/tmp/meden-finite-architecture.log"
+    },
+    "required_tui": {
+      "passed": 34,
+      "evidence": "/tmp/meden-ux-finite-final-20261123",
+      "summary_sha256": "b4bdd694a0e3bfd658160672956682c00ed322c7cd0be8c37e14661500dffa02",
+      "decoded_screens_reviewed": [
+        "Exact bounded scope fixed in contract heading",
+        "Real overflow rejection and repaired bounded result",
+        "Source edit invalidates coverage",
+        "Unapproved restart retains accepted meaning"
+      ]
+    },
+    "native_gui": {
+      "passed": 2,
+      "log": "/tmp/meden-finite-final-gui.log",
+      "additional_visible_evidence_capture": {
+        "passed": 1,
+        "log": "/tmp/meden-finite-visible-gui.log",
+        "screenshot": "target/gui-checks/finite-visible-results/native-native-GUI-with-rea-a4c95-opens-with-bounded-evidence/finite-bounded-evidence.png",
+        "screenshot_sha256": "08198ef8620dafb7d1b26f564b43bd439b5f40709dfa404c461c8e6bac54dc96"
+      }
+    },
+    "original_lean_workflow": {
+      "passed": 3,
+      "scope": "Actual pinned Rust/Charon/Aeneas/Lean checker: public TUI proof/stale/restart; failed persistence cannot revive coverage; checked native package and delivery freshness.",
+      "logs": [
+        "/tmp/meden-finite-native-proof.log",
+        "/tmp/meden-finite-native-proof-corrected.log"
+      ],
+      "initial_failures": "The first native run passed persistence/delivery but failed two test expectations: old pending copy and an assumed counterexample ordering in the independent Python oracle. Both corrected expectations passed on rerun; no implementation bypass was added."
+    },
+    "independent_oracle": {
+      "passed": true,
+      "cases": 256,
+      "rejects_broken_model": true,
+      "log": "/tmp/meden-finite-native-proof-corrected.log"
+    },
+    "live": {
+      "record": "results/finite-live-20261123.json",
+      "final_trial": "/tmp/meden-live-finite-reviewed.json",
+      "success": true,
+      "provider": "hermes:ollama-cloud",
+      "model": "minimax-m3",
+      "binary_sha256": "d7fbccf6b5761850a9818d3c7570a2b44ca98750196ac451818777e9807fd76e",
+      "independent_cases": 256,
+      "original_contract_preserved": true,
+      "restart_requires_fresh_review": true
+    }
+  },
+  "remaining": [
+    "Real malformed/incorrect solver-output and timeout fault injection through the finite adapter, beyond strict pure admission cases and real cancellation/refutation.",
+    "Complete role-wide version/resource/configuration/schema plugin bindings and conformance.",
+    "Generic inventory, availability, job and evidence read models and generation of the remaining native wire protocol.",
+    "Replace remaining proof-specific pending/failure copy in common viewers with strength-aware evidence language.",
+    "Prepared layout/cache and remaining navigation waits; legacy demo/facade/dependency retirement and all remaining migration exits."
+  ],
+  "assurance_limits": [
+    "No new core extraction/refinement theorem is claimed: the core source is unchanged. Host preparation, interpretation, resources, JSON, filesystem and physical execution remain adapters.",
+    "Real Z3 and Lean are installed prerequisites; cloud trials do not establish cold installation, local inference, model quality percentiles or confidentiality.",
+    "The real finite example checks a JSON transition; it is not correspondence to arbitrary Rust, Lean, RTL or unbounded-time behavior."
+  ]
+}

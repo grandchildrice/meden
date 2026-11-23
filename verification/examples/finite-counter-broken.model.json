@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "transition": {
+    "value": {
+      "op": "add",
+      "left": {
+        "op": "state",
+        "field": "value"
+      },
+      "right": {
+        "op": "parameter",
+        "name": "amount"
+      }
+    }
+  }
+}

@@ -3,20 +3,52 @@
 
 use std::path::Path;
 
+use crate::verification::Contract;
 use anyhow::{Context, Result};
 use meden_core::evidence::Contracts;
-use meden_runtime::verification::Contract;
+use meden_runtime::verification::artifact::Class;
 use serde::{Deserialize, Serialize};
 
-use super::{hash, obligation, Origin, Reference, State};
+use super::{hash, obligation, Obligation, Origin, Reference, State};
+
+/// Keep the originally reviewed checker and strength across plugin upgrades.
+/// Replaying meaning must not silently adopt a new verification method.
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct Required {
+    statement: Vec<u8>,
+    class: Class,
+    checker: Vec<u8>,
+}
+impl Required {
+    fn obligation(&self) -> Obligation {
+        Obligation {
+            statement: self.statement.clone(),
+            kind: self.class.core(),
+            checker: self.checker.clone(),
+        }
+    }
+}
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(tag = "op", rename_all = "snake_case", deny_unknown_fields)]
 pub(super) enum Event {
-    Propose { contract: Box<Contract> },
-    Review { revision: u64, contract: String },
-    Accept { revision: u64, contract: String },
-    Reject { revision: u64, contract: String },
+    Propose {
+        contract: Box<Contract>,
+        required: Required,
+    },
+    Review {
+        revision: u64,
+        contract: String,
+    },
+    Accept {
+        revision: u64,
+        contract: String,
+    },
+    Reject {
+        revision: u64,
+        contract: String,
+    },
 }
 
 #[derive(Serialize, Deserialize)]
@@ -28,6 +60,17 @@ struct Saved {
 }
 
 impl Event {
+    pub(super) fn propose(contract: &Contract) -> Result<Self> {
+        let original = obligation(contract)?;
+        Ok(Self::Propose {
+            contract: Box::new(contract.clone()),
+            required: Required {
+                statement: original.statement,
+                class: contract.description().class,
+                checker: original.checker,
+            },
+        })
+    }
     pub(super) fn review(reference: &Reference) -> Self {
         Self::Review {
             revision: reference.revision,
@@ -49,13 +92,18 @@ impl Event {
 
     fn apply(&self, controller: &mut Contracts, session: &[u8]) -> Result<()> {
         let (revision, identity) = match self {
-            Self::Propose { contract } => {
-                contract.validate()?;
+            Self::Propose { contract, required } => {
+                anyhow::ensure!(
+                    required.statement == contract.canonical()?
+                        && !required.checker.is_empty()
+                        && required.checker.len() <= 256,
+                    "saved verification obligation is malformed"
+                );
                 anyhow::ensure!(
                     controller.propose(
                         Origin::Controller,
                         contract.canonical()?,
-                        vec![obligation(contract)?]
+                        vec![required.obligation()]
                     ),
                     "saved proposal refused"
                 );
@@ -96,7 +144,7 @@ pub(super) fn load(path: &Path, root: &Path, session: &str) -> Result<(Contracts
         return Ok((Contracts::new(session.as_bytes().to_vec()), Vec::new()));
     };
     anyhow::ensure!(
-        saved.version == 1 && saved.workspace == root.as_os_str().as_encoded_bytes(),
+        saved.version == 2 && saved.workspace == root.as_os_str().as_encoded_bytes(),
         "saved contract journal belongs to another repository or version"
     );
     Ok((replay(&saved.events, session)?, saved.events))
@@ -117,7 +165,7 @@ pub(super) fn record(
     crate::storage::write(
         path,
         &Saved {
-            version: 1,
+            version: 2,
             workspace: root.as_os_str().as_encoded_bytes().to_vec(),
             events: events.clone(),
         },
@@ -136,9 +184,7 @@ mod tests {
         ))?;
         let identity = contract.identity()?;
         Ok(vec![
-            Event::Propose {
-                contract: Box::new(contract),
-            },
+            Event::propose(&contract)?,
             Event::Review {
                 revision: 1,
                 contract: identity.clone(),
@@ -148,6 +194,27 @@ mod tests {
                 contract: identity,
             },
         ])
+    }
+
+    #[test]
+    fn replay_preserves_the_reviewed_method_instead_of_recomputing_it() -> Result<()> {
+        let mut events = accepted_events()?;
+        if let Some(Event::Propose { required, .. }) = events.first_mut() {
+            required.checker = b"original reviewed implementation".to_vec();
+            required.class = Class::Bounded;
+        }
+        let restored = replay(&events, "new-session")?;
+        let accepted = restored.accepted().context("retained meaning")?;
+        assert_eq!(
+            accepted.obligations.first().map(|o| o.checker.as_slice()),
+            Some(b"original reviewed implementation".as_slice())
+        );
+        assert_eq!(
+            accepted.obligations.first().map(|o| o.kind),
+            Some(Class::Bounded.core())
+        );
+        assert!(!restored.is_active());
+        Ok(())
     }
 
     #[test]
@@ -162,7 +229,7 @@ mod tests {
         crate::storage::write(
             &path,
             &Saved {
-                version: 1,
+                version: 2,
                 workspace: root.path().as_os_str().as_encoded_bytes().to_vec(),
                 events,
             },
@@ -189,16 +256,12 @@ mod tests {
         *replacement.get_mut("description").context("description")? =
             "Changed reviewed meaning".into();
         let replacement = Contract::parse(&serde_json::to_string(&replacement)?)?;
-        events.push(Event::Propose {
-            contract: Box::new(replacement.clone()),
-        });
+        events.push(Event::propose(&replacement)?);
         events.push(Event::Reject {
             revision: 2,
             contract: replacement.identity()?,
         });
-        events.push(Event::Propose {
-            contract: Box::new(replacement),
-        });
+        events.push(Event::propose(&replacement)?);
         let restored = replay(&events, "new-session")?;
         assert_eq!(restored.accepted().context("retained")?.revision, 1);
         assert_eq!(restored.displayed().context("proposal")?.revision, 3);
@@ -221,9 +284,7 @@ mod tests {
             root.path(),
             &project.session,
             &mut state,
-            Event::Propose {
-                contract: Box::new(contract.clone())
-            }
+            Event::propose(&contract)?
         )
         .is_err());
         assert!(state.events.is_empty() && state.contracts.displayed().is_none());
@@ -233,9 +294,7 @@ mod tests {
             root.path(),
             &project.session,
             &mut state,
-            Event::Propose {
-                contract: Box::new(contract.clone()),
-            },
+            Event::propose(&contract)?,
         )?;
         let bytes = std::fs::read(&path)?;
         assert!(record(

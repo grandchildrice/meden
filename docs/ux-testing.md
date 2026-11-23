@@ -43,6 +43,7 @@ Other platform-dependent tests may still skip; required `ux` cases must pass.
 
 | Developer goal | Observable acceptance | Executable coverage in `python/tests/` |
 | --- | --- | --- |
+| Use another verifier without another approval/job/evidence controller | Select `--verifier z3.finite.v1` without a Lean bundle, review all finite bounds, observe a real overflow counterexample, repair through model tools, display bounded evidence, invalidate after an edit and reopen with fresh review and no restored coverage | `test_tui_finite.py`, native finite browser journey; separate `meden_checks.finite_smoke` uses an explicitly approved actual model and a separate exhaustive Python oracle |
 | Start without connection flags | Run `meden` or `meden tui --workspace …`, configure in the TUI, see inline errors, keep the key masked and choose whether to save it | `test_tui_setup.py` |
 | Work in the chosen repository | Files change in that repository; commands run there; original tests remain intact | `test_tui_integration.py`, `test_tui_smoke.py` |
 | Continue across GUI/TUI | A native GUI turn, a public TUI continuation and a reopened GUI retain the same files/conversation, with fresh processor review | `test_gui_tui_resume.py` |

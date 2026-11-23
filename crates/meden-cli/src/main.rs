@@ -3,9 +3,7 @@
 use anyhow::{Context, Result};
 use clap::{Args, Parser, Subcommand};
 use connection::ModelArgs;
-use meden_app::{
-    adapters, analysis, atlas, explanation, project, semantic, storage, verifier, workspace,
-};
+use meden_app::{adapters, analysis, atlas, explanation, project, semantic, storage, workspace};
 use meden_runtime::{process::Control, workspace::Workspace};
 use std::io::{self, Read, Write};
 use std::path::PathBuf;
@@ -54,7 +52,11 @@ enum Command {
     /// List available HTTP model connections.
     Providers,
     /// Prepare and remember the local verification tools (also automatic in TUI).
-    Setup,
+    Setup {
+        /// Prepare the explicitly selected host verifier.
+        #[arg(long, default_value = meden_app::verification::DEFAULT_BACKEND)]
+        verifier: String,
+    },
     /// Prepare the pinned Lean Atlas library using an installed Lean distribution.
     SetupAtlas {
         #[arg(long, default_value = ".")]
@@ -173,6 +175,9 @@ struct WorkspaceArgs {
     /// Host-supplied documentation JSON, loaded once before the session.
     #[arg(long, value_name = "FILE")]
     pages: Option<PathBuf>,
+    /// Restrict project contracts to this host-registered verification backend.
+    #[arg(long, value_name = "BACKEND")]
+    verifier: Option<String>,
 }
 impl Default for WorkspaceArgs {
     fn default() -> Self {
@@ -180,6 +185,7 @@ impl Default for WorkspaceArgs {
             model: ModelArgs::default(),
             workspace: PathBuf::from("."),
             pages: None,
+            verifier: None,
         }
     }
 }
@@ -254,8 +260,8 @@ fn run() -> Result<()> {
             meden_app::SOURCE_NOTICES.1,
             meden_app::SOURCE_NOTICES.2
         ),
-        Command::Setup => {
-            verifier::prepare()?;
+        Command::Setup {verifier} => {
+            meden_app::verification::Registry::host().setup(&verifier)?;
         }
         Command::Tui(args) => {
             let pages = load_pages(args.pages.as_deref())?;
@@ -267,13 +273,11 @@ fn run() -> Result<()> {
                 args.model.connections()?
             };
             tui::run(
+                &args,
                 providers,
-                &args.workspace,
-                args.model.approve_processor.as_deref(),
                 pages,
                 local,
                 interactive,
-                (&args.model.judge_model, args.model.approve_judge.as_deref()),
             )?;
         }
         Command::Run(args) => run_protocol(&args)?,
@@ -326,7 +330,10 @@ fn run_protocol(args: &WorkspaceArgs) -> Result<()> {
         &workspace,
         (gateway, judge),
         &processes,
-        &pages,
+        protocol::Resources {
+            pages: &pages,
+            verifier: args.verifier.as_deref(),
+        },
     )?;
     Ok(())
 }

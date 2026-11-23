@@ -151,13 +151,13 @@ def main():
             os.write(master, b"y")
             pump(lambda: "Implementation proof pending" in text() and "○ unproved" in text()
                  and "esc / ctrl-c cancel" in text() and "y: Accept specification" not in text())
-            assert "VERIFIED project kernel" not in text()
+            assert "VERIFIED · implementation refinement" not in text()
             capture("evidence-unproven.png")
-            pump(lambda: "VERIFIED project kernel" in text() and "shift+enter" in text(), 360)
+            pump(lambda: "VERIFIED · implementation refinement" in text() and "shift+enter" in text(), 360)
             pump(lambda: "sending still needs your approval." in text())
             assert "✓ proved" in text() and "Checked package available" in text()
             storage = root / "data/meden/projects"
-            artifacts = list(storage.glob("*/artifacts/kernel-*/report.json"))
+            artifacts = list(storage.glob("*/artifacts/checked-*/report.json"))
             assert len(artifacts) == 1
             report = json.loads(artifacts[0].read_text())
             assert report["contract"] == contract
@@ -171,7 +171,7 @@ def main():
             scope = "Scope: counter.rs / increment. CLI and I/O are outside this proof."
             pump(lambda: scope in text()
                  and "shift+enter" in text())
-            assert "VERIFIED project kernel" in text() and "✓ proved" in text()
+            assert "VERIFIED · implementation refinement" in text() and "✓ proved" in text()
             capture("evidence-verified.png")
             os.write(master, b"/quit\r")
             deadline = time.monotonic() + 5

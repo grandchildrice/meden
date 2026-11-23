@@ -11,7 +11,7 @@ use sha2::{Digest, Sha256};
 /// Host-prepared public checker resources. Never load this from a model tool
 /// argument or a candidate's configuration. The worker mounts only these
 /// selected tool/library paths, not the surrounding home/cache directories.
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Bundle {
     pub(crate) version: u32,

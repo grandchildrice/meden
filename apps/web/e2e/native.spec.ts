@@ -208,6 +208,97 @@ test.describe("native GUI with real offline workers", () => {
     await rm(root, { recursive: true, force: true });
   });
 
+  test("registered finite verifier reviews, refutes, repairs and reopens with bounded evidence", async ({
+    page,
+  }) => {
+    test.setTimeout(60000);
+    const contract = JSON.parse(
+      await readFile(
+        "verification/examples/finite-counter.contract.json",
+        "utf8",
+      ),
+    );
+    const correct = await readFile(
+      "verification/examples/finite-counter.model.json",
+      "utf8",
+    );
+    const broken = await readFile(
+      "verification/examples/finite-counter-broken.model.json",
+      "utf8",
+    );
+    for (const [name, args] of [
+      ["propose_contract", { contract }],
+      ["write_file", { path: contract.source_path, content: broken }],
+      ["verify_project", {}],
+      ["write_file", { path: contract.source_path, content: correct }],
+      ["verify_project", {}],
+    ] as const)
+      responses.push((response) => reply(response, tool(name, args)));
+    responses.push((response) =>
+      reply(response, { role: "assistant", content: "FINITE-GUI-COMPLETE" }),
+    );
+    await page.goto(
+      await start(0, { MEDEN_VERIFIER_BUNDLE: undefined }, [
+        "--verifier",
+        "z3.finite.v1",
+      ]),
+    );
+    await page
+      .getByRole("button", { name: "Choose model", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Use this model", exact: true })
+      .click();
+    await page
+      .getByRole("textbox", { name: "Message", exact: true })
+      .fill("Check every four-bit counter input; retain state on overflow.");
+    await page.getByRole("button", { name: "Send", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Review proposed contract", exact: true })
+      .click();
+    const review = page.getByRole("dialog", {
+      name: "Review contract meaning",
+    });
+    await expect(review).toContainText("256 assignments");
+    await expect(review).toContainText(
+      "No reachability, unbounded time, Rust correspondence",
+    );
+    await review
+      .getByRole("button", {
+        name: "Accept this contract and continue",
+        exact: true,
+      })
+      .click();
+    await expect(
+      page.getByText("FINITE-GUI-COMPLETE", { exact: true }),
+    ).toBeVisible();
+    const evidence = page.locator(".chat-contract");
+    await expect(evidence.locator(".MuiChip-label")).toHaveText(
+      "CHECKED · complete within finite bounds",
+    );
+    await evidence.hover();
+    await page.mouse.wheel(0, -2000);
+    await expect(evidence.locator(".MuiChip-label")).toBeInViewport();
+    expect(JSON.stringify(requests)).toContain("Finite property failed");
+    expect(await readFile(resolve(project, contract.source_path), "utf8")).toBe(
+      correct,
+    );
+    await page.screenshot({
+      path: test.info().outputPath("finite-bounded-evidence.png"),
+    });
+    await stop();
+    responses.length = 0;
+    await page.goto(await start(0, {}, ["--verifier", "z3.finite.v1"]));
+    await expect(page.locator(".chat-contract .MuiChip-label")).toHaveText(
+      "Contract accepted",
+    );
+    const before = requests.length;
+    await expect(
+      page.getByRole("button", { name: "Choose model", exact: true }),
+    ).toBeVisible();
+    expect(requests.length).toBe(before);
+  });
+
   test("chat stays flat, folds long messages and remembers draggable sidebar widths", async ({
     page,
   }) => {

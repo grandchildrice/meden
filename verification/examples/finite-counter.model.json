@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "transition": {
+    "value": {
+      "op": "if",
+      "condition": {
+        "op": "less_equal",
+        "left": {
+          "op": "state",
+          "field": "value"
+        },
+        "right": {
+          "op": "add",
+          "left": {
+            "op": "state",
+            "field": "value"
+          },
+          "right": {
+            "op": "parameter",
+            "name": "amount"
+          }
+        }
+      },
+      "then": {
+        "op": "add",
+        "left": {
+          "op": "state",
+          "field": "value"
+        },
+        "right": {
+          "op": "parameter",
+          "name": "amount"
+        }
+      },
+      "else": {
+        "op": "state",
+        "field": "value"
+      }
+    }
+  }
+}

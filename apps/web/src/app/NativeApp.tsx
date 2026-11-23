@@ -887,7 +887,7 @@ export function NativeApp({ token }: { token: string }) {
                   size="small"
                   label={
                     state.project.verified
-                      ? "Verified"
+                      ? state.project.completion_label
                       : state.project.accepted
                         ? "Contract accepted"
                         : "Proposal"

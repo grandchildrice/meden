@@ -320,6 +320,44 @@ fn model_bindings(model: &Path) -> io::Result<Vec<(PathBuf, String)>> {
 }
 
 impl Sandbox {
+    /// Resolve one host-selected canonical public tool, excluding repository PATH entries.
+    pub fn public_tool(name: &str) -> Option<PathBuf> {
+        find_public(name)
+    }
+    /// Exact public ELF objects selected by the host linker for a public tool.
+    /// Metadata executes from / with the same public-only helper selection.
+    pub fn tool_objects(executable: &Path) -> io::Result<Vec<PathBuf>> {
+        let executable = executable.canonicalize()?;
+        if !public_path(&executable) || !executable.is_file() {
+            return Err(io::Error::other(
+                "tool is not a canonical public executable",
+            ));
+        }
+        let output = host_command(
+            &find_public("ldd").ok_or_else(|| io::Error::other("public ldd required"))?,
+            "ldd",
+        )?
+        .arg(&executable)
+        .output()?;
+        if !output.status.success() {
+            return Err(io::Error::other("cannot resolve public tool dependencies"));
+        }
+        let mut objects = BTreeSet::from([executable]);
+        for word in String::from_utf8(output.stdout)
+            .map_err(io::Error::other)?
+            .split_whitespace()
+            .filter(|w| w.starts_with('/'))
+        {
+            let path = Path::new(word).canonicalize()?;
+            if !public_path(&path) || !path.is_file() {
+                return Err(io::Error::other(
+                    "tool dependency is not a public regular file",
+                ));
+            }
+            objects.insert(path);
+        }
+        Ok(objects.into_iter().collect())
+    }
     /// Prepare an offline execution configuration. Missing isolation support
     /// is an error; there is no unrestricted host fallback.
     pub fn with_worker(root: &Path, worker: &Path) -> io::Result<Self> {

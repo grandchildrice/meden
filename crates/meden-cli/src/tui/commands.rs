@@ -160,7 +160,7 @@ impl App {
                 .as_ref()
                 .map_or("No accepted project specification", |s| {
                     if s.verified {
-                        "Last observed check: VERIFIED project kernel"
+                        s.completion_label
                     } else if s.accepted {
                         "Accepted specification; verification required"
                     } else {

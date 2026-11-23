@@ -131,9 +131,16 @@ or extracted refinement claims. See the renderer-update journey in
 
 This is the first application extraction, not the complete multi-backend registry.
 Compiler snapshots remain Lean-oriented internally. Native source pages now use
-the generic application projection described below; the second real verification
-backend, role-wide plugin/resource/schema bindings and remaining read models are
-still required.
+the generic application projection described below. Complete role-wide
+plugin/resource/schema bindings and remaining read models are still required.
+The verifier role now has two real host registrations:
+`lean.refinement.v1` and `z3.finite.v1`. Their backend-owned typed contract
+formats feed the same application service and unchanged pure job/admission
+kernel. Common artifact retention and viewer strength/scope distinguish
+bounded checking from refinement. The finite contract is a one-step JSON
+model, not a general SMT frontend or a Rust/RTL correctness claim. See
+[project verification](../project-verification.md) for the public entry points,
+real-tool journeys and remaining conformance work.
 A completed host registry must describe supported operations/formats,
 implementation versions, resource requirements and limits. Initially use ordinary
 Rust implementations and explicit host registration. External implementations
@@ -328,7 +335,11 @@ timing span, and clones retain shared immutable source/page values.
 This slice does not finish step 4: explicit unsupported/binary/oversized-source
 availability, generic inventory/job/evidence DTOs, generation of the rest of the
 native wire contract and all remaining navigation waits still need work.
-Step 3's second-backend/full-registration exits and step 5 remain open too.
+Step 3 now executes the second backend through public TUI/GUI, actual offline
+Z3, a real approved-model trial and a separate 256-input Python oracle. Its
+parser/disagreement rejection tests and actual cancellation/refutation are
+covered, while real solver-output/timeout fault injection and complete role-wide
+resource/schema registration are still open. Step 5 remains open too.
 They retain the existing local/offline execution, accepted intent, exact evidence linkage and
 separate local-deployment/R1 obligations in [assurance.md](../assurance.md) and
 [verification.md](../verification.md).

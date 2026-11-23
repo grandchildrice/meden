@@ -103,7 +103,7 @@ fn draw_header(frame: &mut Frame<'_>, app: &App, area: Rect) {
         .selected()
         .map_or("Choose a connection", |provider| provider.model.as_str());
     let status = match &app.project_status {
-        Some(summary) if summary.verified => ("VERIFIED project kernel", Color::Green),
+        Some(summary) if summary.verified => (summary.completion_label, Color::Green),
         Some(summary) if summary.accepted => ("Project kernel needs verification", Color::Yellow),
         Some(summary) if summary.proposed => ("Specification awaits your review", Color::Yellow),
         _ => ("Repository changes saved in place · offline tools", MUTED),
@@ -1020,8 +1020,8 @@ fn draw_contract_review(frame: &mut Frame<'_>, app: &mut App, area: Rect) {
         return;
     };
     let heading = format!(
-        "Contract revision: {}\nContract SHA-256: {}",
-        review.reference.revision, review.reference.contract
+        "Contract revision: {}\nContract SHA-256: {}\nRequested evidence scope: {}",
+        review.reference.revision, review.reference.contract, review.scope
     );
     let details = format!(
         "\n{}{}\n\nAccepting continues development under this exact contract.",

@@ -507,7 +507,7 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
         assert "Project kernel needs verification" in rendered()
         assert "Proceed under the host-accepted contract" not in rendered()
         wait_for(
-            lambda: "VERIFIED project kernel" in rendered() and "shift+enter" in rendered(), 360
+            lambda: "VERIFIED · implementation refinement" in rendered() and "shift+enter" in rendered(), 360
         )
         assert "Specification r1 · accepted" in rendered()
         assert "Checked package available" in rendered()
@@ -515,14 +515,14 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
         (tmp_path / "verified-screen.txt").write_text(rendered())
         (tmp_path / "verified-screen.ansi").write_bytes(output)
         artifacts = list(
-            (Path(env["XDG_DATA_HOME"]) / "meden/projects").glob("*/artifacts/kernel-*")
+            (Path(env["XDG_DATA_HOME"]) / "meden/projects").glob("*/artifacts/checked-*")
         )
         assert len(artifacts) == 1
         assert_artifact(artifacts[0])
         os.write(master, b"/proofs\r")
         wait_for(lambda: "Properties of the implementation" in rendered()
                  and "shift+enter" not in rendered())
-        assert "Lean refinement of the pure transition" in rendered()
+        assert "implementation refinement" in rendered()
         assert "Contract SHA-256:" in rendered()
         os.write(master, b"\x1b")
         wait_for(lambda: "shift+enter" in rendered()
@@ -564,8 +564,8 @@ def test_tui_contract_review_cannot_be_accepted_by_paste_and_checks_real_source(
         screen.reset()
         wait_for(lambda: "shift+enter" in rendered()
                  and "Specification r1 · accepted" in rendered())
-        assert "Implementation proof pending" in rendered()
-        assert "VERIFIED project kernel" not in rendered() and "✓ proved" not in rendered()
+        assert "Implementation check pending" in rendered()
+        assert "VERIFIED · implementation refinement" not in rendered() and "✓ proved" not in rendered()
         os.write(master, b"\x03")
         deadline = time.monotonic() + 5
         while process.poll() is None and time.monotonic() < deadline:

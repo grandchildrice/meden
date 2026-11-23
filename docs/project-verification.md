@@ -1,6 +1,7 @@
 # Project verification
 
-Meden's experimental project backend checks a pure Rust state transition
+Meden's registered project verifiers share the same host review, consuming job,
+artifact admission, freshness and delivery path. The original backend checks a pure Rust state transition
 against a host-reviewed mathematical contract. The contract declares its
 own state fields, function, parameters, specification and properties. The
 [counter](../verification/examples/counter.contract.json) and
@@ -10,7 +11,73 @@ neither is a built-in contract profile.
 The current subset has one to eight `u64` state fields and zero to eight
 `u64` parameters. It does not cover arbitrary Rust programs, whole
 applications, persistent/concurrent transactions or certification. Other
-languages and verification backends remain design targets.
+languages and broader verification backends remain design targets. A second
+finite bit-vector backend is available as described below; its bounded results
+are not Rust refinement proofs.
+
+## Registered finite verification
+
+Select the host-installed finite verifier with
+`meden tui --workspace PATH --verifier z3.finite.v1` (or the same option on
+`meden gui` / `meden run`). `meden setup --verifier z3.finite.v1` checks public
+Z3 and its native dependencies; it does not download a tool or prepare Lean.
+The default TUI preparation remains `lean.refinement.v1`. An explicit verifier
+selection restricts proposals and checks to that backend; it never converts an
+accepted contract into another format.
+
+The pinned [contract](../verification/examples/finite-counter.contract.json)
+and [source model](../verification/examples/finite-counter.model.json) describe
+a four-bit counter over all 256 original state/argument pairs. The
+[broken model](../verification/examples/finite-counter-broken.model.json)
+wraps on overflow. A real rejection reports state 15, argument 1 and output 0.
+The corrected transition retains state on overflow.
+
+`finite-bitvectors-v1` accepts bounded JSON data with a 1–8-bit word width,
+one to four state fields, zero to four parameters and at most sixteen total
+input bits. Properties are a restricted typed Boolean/word AST, with no SMT
+commands, arbitrary scripts or checker paths. Source models contain version 1
+and simultaneous output assignments. The backend emits a fixed unsigned QF_BV
+query for the negation of all original properties and executes the selected
+public Z3 ELF in the existing offline worker profile. Complete zero-exit output
+must agree with a separate exhaustive finite evaluator before a successful
+artifact can reach the shared kernel. The resource binding hashes the engine,
+resolved native libraries, checker recipe, original source and worker binary,
+with resources checked again after execution. This is adapter validation, not
+a new extraction/refinement theorem or an attestation of a host installation.
+
+The evidence kind is `bounded`, and the viewer says
+`CHECKED · complete within finite bounds`. The claim covers every input in the
+accepted finite domain for **one transition**. It excludes reachability,
+unbounded execution, correspondence to Rust/RTL and whole-application behavior.
+Counterexamples are checked candidates, not proof that the user's natural-language
+requirement is correct. Unknown, malformed, incomplete or disagreeing solver
+results cannot create a successful artifact.
+
+The application registry owns backend-specific decoders, schemas and immutable
+contract projections. The trusted core has no Z3 branch. Both implementations
+use the existing `Preparation` / `Running` / `Contracts` path. Host journal
+version 2 retains the originally reviewed obligation, checker identity and kind;
+replay does not silently recompute them from a newer plugin. A changed method
+requires a fresh proposal and review, and restart never restores jobs, evidence
+coverage or processor grants. Older journal versions fail explicitly rather
+than being silently rewritten. No compatibility migration is provided.
+
+The public TUI and native GUI regressions use real Z3 with scripted inference
+for review, refutation, repair, stale-source invalidation and fresh restart.
+The separate live trial is reproducible with an explicitly approved provider:
+
+```sh
+uv run --project python --group dev python -m meden_checks.finite_smoke \
+  --binary target/debug/meden --provider YOUR_APPROVED_PROVIDER --model YOUR_MODEL \
+  --out /tmp/meden-live-finite.json
+```
+
+That trial compares the exact proposed contract before host acceptance, retains
+the real counterexample in history, checks the repaired source against a separate
+Python oracle for all 256 inputs, validates every retained result and reopens
+with fresh review. Installed tools and cloud success are not cold-install,
+local-inference or confidentiality evidence. Broader registry/resource/schema
+bindings and real solver-output/timeout fault injection remain migration work.
 
 ## Conversation and host review
 
@@ -88,9 +155,13 @@ Its essential entries are:
   "function": "increment",
   "specification": "if s.value + amount ≤ 18446744073709551615 then { value := s.value + amount } else s",
   "properties": [
-    {"name": "monotone", "description": "The counter never decreases.", "statement": "s.value ≤ out.value"}
+    {
+      "name": "monotone",
+      "description": "The counter never decreases.",
+      "statement": "s.value ≤ out.value"
+    }
   ],
-  "examples": [{"before": ["0"], "arguments": ["1"], "after": ["1"]}],
+  "examples": [{ "before": ["0"], "arguments": ["1"], "after": ["1"] }],
   "assumptions": ["The caller uses this transition for counter updates."]
 }
 ```
@@ -225,6 +296,7 @@ separate job directory, the fixed [recipe](../verification/kernel/check.sh):
    `KernelProof.law_NAME` proves that the actual call succeeds and its output
    satisfies the accepted formula. These native corollaries depend on both
    implementation refinement and the mathematical laws.
+
 5. Audits the exact ordered specification roots (output bounds, listed laws,
    examples), followed by the native roots (`actual_refines` and one
    `law_NAME` per listed property). Only `propext`, `Classical.choice` and

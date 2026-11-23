@@ -1,0 +1,80 @@
+{
+  "format": "finite-bitvectors-v1",
+  "name": "Finite counter",
+  "description": "Increment a four-bit counter unless it would wrap; reject an overflowing increment without changing state.",
+  "source_path": "counter.model.json",
+  "width": 4,
+  "fields": [
+    "value"
+  ],
+  "parameters": [
+    "amount"
+  ],
+  "properties": [
+    {
+      "name": "step",
+      "description": "Return the incremented value exactly when it fits; otherwise retain the original state.",
+      "statement": {
+        "op": "equal",
+        "left": {
+          "op": "output",
+          "field": "value"
+        },
+        "right": {
+          "op": "if",
+          "condition": {
+            "op": "less_equal",
+            "left": {
+              "op": "state",
+              "field": "value"
+            },
+            "right": {
+              "op": "add",
+              "left": {
+                "op": "state",
+                "field": "value"
+              },
+              "right": {
+                "op": "parameter",
+                "name": "amount"
+              }
+            }
+          },
+          "then": {
+            "op": "add",
+            "left": {
+              "op": "state",
+              "field": "value"
+            },
+            "right": {
+              "op": "parameter",
+              "name": "amount"
+            }
+          },
+          "else": {
+            "op": "state",
+            "field": "value"
+          }
+        }
+      }
+    },
+    {
+      "name": "monotone",
+      "description": "The counter never decreases.",
+      "statement": {
+        "op": "less_equal",
+        "left": {
+          "op": "state",
+          "field": "value"
+        },
+        "right": {
+          "op": "output",
+          "field": "value"
+        }
+      }
+    }
+  ],
+  "assumptions": [
+    "The caller uses this transition for counter updates."
+  ]
+}

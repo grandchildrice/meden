@@ -219,7 +219,7 @@ pub fn register(
     }));
     registry.register(Box::new(Propose {
         workspace: Arc::clone(workspace), control: Arc::clone(control), queue: Arc::clone(queue),
-        sig: ToolSig::new("propose_artifact_export", "Prepare the current verified project kernel package for exact host review as an HTTP POST. Includes the checked native library, source, proof inputs and report. Requires accepted meaning and current complete evidence; arbitrary workspace files cannot replace the artifact. Edits, pending replacements and damaged evidence prevent delivery. This never approves or sends.", json!({"type":"object","properties":{"target":{"type":"string"}},"required":["target"],"additionalProperties":false})),
+        sig: ToolSig::new("propose_artifact_export", "Prepare the current checked project artifact for exact host review as an HTTP POST. Includes the original checked source, backend outputs and report with its explicit evidence kind and scope. Requires accepted meaning and current complete evidence; arbitrary workspace files cannot replace the artifact. Edits, pending replacements and damaged evidence prevent delivery. This never approves or sends.", json!({"type":"object","properties":{"target":{"type":"string"}},"required":["target"],"additionalProperties":false})),
         artifact: true,
     }));
 }
@@ -262,7 +262,7 @@ impl Tool for Propose {
                         )
                         .and_then(|export| {
                             self.queue
-                                .propose("verified project kernel package", export)
+                                .propose("checked project artifact package", export)
                         });
                     result
                         .and_then(|summary| Ok(serde_json::to_value(summary)?))

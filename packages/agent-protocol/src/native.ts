@@ -356,6 +356,11 @@ export const nativeStateSchema = z.object({
       accepted: z.boolean(),
       proposed: z.boolean(),
       verified: z.boolean(),
+      evidence_class: z
+        .enum(["empirical", "bounded", "theorem", "refinement"])
+        .nullable(),
+      completion_label: z.string(),
+      scope: z.string(),
       review: z.string(),
       source_path: z.string(),
     })

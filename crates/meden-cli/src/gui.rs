@@ -263,6 +263,7 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
     let project = Arc::new(crate::project::Project::open(
         workspace.path(),
         workspace.session_id(),
+        args.verifier.as_deref(),
     )?);
     let view = initial_view(&workspace, &project)?;
     lock(&connections).display(&mut lock(&view));
