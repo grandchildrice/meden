@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "date": "2026-11-23",
+  "migration_status": "active; full typed-core/plugin migration remains incomplete",
+  "binary": {
+    "path": "/home/gohan/workspace/meden/target/validation/b6878ba4504e33641b2a2556e77f2bdd5871db90c9f3240f470b83e745fdfae1/meden",
+    "sha256": "b6878ba4504e33641b2a2556e77f2bdd5871db90c9f3240f470b83e745fdfae1"
+  },
+  "changes": [
+    "Verifier ID/role/version/format/implementation/configuration/schema descriptors are frozen at registration/decoding.",
+    "Descriptor identities enter the actual method checker and prepared input/output bindings; resource hashes remain separately bound.",
+    "Backend-local schema references are namespaced with schema-position traversal; literal JSON values are preserved and unsupported remote/anchor references fail explicitly.",
+    "Metadata drift fails before the implementation callback; typed infrastructure errors stop automatic source repair.",
+    "Finite checks re-resolve and hash original engine/library/worker objects before and after execution.",
+    "Finite pending properties and delivery copy no longer require an implementation proof."
+  ],
+  "conformance": {
+    "actual_solver_cases": [
+      "Real successful bounded output through the actual Meden worker",
+      "Malformed zero-exit output from deliberately corrupted private queries",
+      "Unknown output",
+      "Incorrect successful verdicts for a query inconsistent with the original model, in both directions",
+      "Output limits",
+      "Started-solver timeout, with retained SOLVER-ENTERED marker",
+      "Cancellation triggered by the real solver marker",
+      "Changed private prepared worker refused before dispatch",
+      "Actual successful Z3 check followed by a real source edit, rejected by the original core job with dropped staging"
+    ],
+    "test_mutation_scope": "Only private test-module prepared query/limit fields are corrupted. No production fault flags, arbitrary executables, model-selected queries, fallback grants or unchecked success constructors were added.",
+    "real_solver_test_log": "/tmp/meden-binding-solver-final-tests.log"
+  },
+  "checks": {
+    "rust": {
+      "passed": 252,
+      "includes_doc_tests": 12,
+      "failed": 0,
+      "ignored": 0,
+      "log": "/tmp/meden-bindings-final-workspace-tests.log"
+    },
+    "required_tui": {
+      "passed": 34,
+      "summary_sha256": "45209b54f19d35db912b206fbe2b57f2a3a0a9ae5a65fae95bdbb64518f0758d",
+      "evidence": "/tmp/meden-ux-bindings-final-20261123",
+      "decoded_screens_reviewed": [
+        "Original contract and bounded scope approval",
+        "Real refutation/repair and bounded completed evidence",
+        "Source edit with unchecked properties and delivery held",
+        "Restart requires fresh processor review with no current evidence"
+      ]
+    },
+    "native_gui": {
+      "final_finite_case_passed": 1,
+      "log": "/tmp/meden-bindings-final-gui.log",
+      "screenshot": "target/gui-checks/bindings-final-results/native-native-GUI-with-rea-a4c95-opens-with-bounded-evidence/finite-bounded-evidence.png",
+      "screenshot_sha256": "a1a54c2f30dffc99310bc8c117ad0e1a54daeca133f7fabd032dc2cc14cf8550",
+      "previous_metadata_candidate_cases_passed": 2,
+      "previous_log": "/tmp/meden-bindings-gui.log"
+    },
+    "native_lean": {
+      "final_public_tui_passed": 1,
+      "log": "/tmp/meden-bindings-final-native-tui.log",
+      "previous_metadata_candidate_native_tui_and_delivery_passed": 2,
+      "previous_log": "/tmp/meden-bindings-native-proof.log",
+      "scope": "Actual pinned Rust/Charon/Aeneas/Lean proof, stale source and restart; unchanged fixed checker scripts and core. Report provenance now has a descriptor."
+    },
+    "typescript": {
+      "passed": 30,
+      "log": "/tmp/meden-binding-ts-tests.log"
+    },
+    "architecture": {
+      "passed": true,
+      "log": "/tmp/meden-binding-architecture.log"
+    },
+    "clippy": {
+      "passed": true,
+      "log": "/tmp/meden-binding-final-clippy.log"
+    },
+    "schema_generation": {
+      "passed": true,
+      "log": "/tmp/meden-bindings-schema.log"
+    },
+    "documentation": {
+      "passed": true,
+      "log": "/tmp/meden-bindings-doc.log"
+    },
+    "live": {
+      "success": true,
+      "record": "results/verifier-bindings-live-20261123.json",
+      "provider": "hermes:ollama-cloud",
+      "model": "minimax-m3",
+      "independent_cases": 256,
+      "exact_contract_preserved": true,
+      "restart_review_required": true
+    }
+  },
+  "remaining": [
+    "Complete descriptor/resource/schema bindings for compiler, meaning-renderer, search and model roles.",
+    "Persistent host selection among implementations sharing one input format; generic role-wide capability/resource catalog.",
+    "Generic inventory/availability/job/evidence read models and the rest of native wire-schema generation.",
+    "Prepared layout reuse, reduced navigation/preparation waits and remaining demo/facade/dependency retirement."
+  ],
+  "limits": [
+    "No core source or extracted theorem changed; metadata hashes and tests do not prove arbitrary plugin implementations.",
+    "JSON/config decoding, hash/resource attribution, clocks, host mutation during loading, OS/loader semantics and physical input/dispatch remain adapters.",
+    "Finite evidence is a complete one-step bounded JSON-model check, not arbitrary Rust/RTL correspondence, unbounded-time verification or whole-application assurance.",
+    "Native solver timeout probes use a generated hard query and verify a real start marker; this is fault conformance, not a solver benchmark."
+  ]
+}

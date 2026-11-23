@@ -86,7 +86,8 @@ def test_finite_contract_real_refutation_repair_staleness_and_restart(tmp_path):
         assert len(artifacts) == 1
         artifact = artifacts[0]
         report = json.loads((artifact / "report.json").read_text())
-        assert report["class"] == "bounded" and report["backend"] == "z3.finite.v1"
+        assert report["class"] == "bounded" and report["registration"]["id"] == "z3.finite.v1"
+        assert report["registration"]["role"] == "verifier"
         assert report["contract"] == contract and report["source_sha256"] == hashlib.sha256(correct.encode()).hexdigest()
         assert (artifact / "solver.txt").read_text().strip() == "unsat"
         assert "256" in " ".join(report["audit"])

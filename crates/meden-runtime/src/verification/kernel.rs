@@ -21,6 +21,7 @@ const SCRIPT: &str = include_str!("../../../../verification/kernel/check.sh");
 
 /// Immutable source and resources prepared before issuing a controller job.
 pub struct PreparedKernel {
+    registration: crate::plugin::Descriptor,
     source: String,
     contract: Contract,
     bundle: Bundle,
@@ -51,11 +52,7 @@ pub fn prepare_kernel(
     }
     let job = tempfile::tempdir()?;
     let sandbox = crate::sandbox::Sandbox::for_verification(job.path(), worker, bundle)?;
-    let limits = Limits {
-        timeout: Duration::from_secs(240),
-        capture_bytes: 65_536,
-        output_bytes: 16_777_216,
-    };
+    let limits = limits();
     let syntax = process::run_with_input(
         &mut sandbox.verification_source_command()?,
         &serde_json::to_vec(&serde_json::json!({"contract":contract,"source":source}))
@@ -66,12 +63,15 @@ pub fn prepare_kernel(
     successful(&syntax, "source syntax")?;
     let worker_hash = hash(&read(worker, 268_435_456)?);
     let fingerprint = bundle.fingerprint(control)?;
+    let registration = descriptor()?;
     Ok(PreparedKernel {
+        registration: registration.clone(),
         source: source.to_owned(),
         contract: contract.clone(),
         bundle: bundle.clone(),
         worker: worker.to_owned(),
         inputs: Inputs {
+            registration_sha256: registration.identity().into(),
             source_sha256: hash(source.as_bytes()),
             bundle_sha256: fingerprint,
             checker_sha256: checker_id(contract).map_err(Failure::unavailable)?,
@@ -92,6 +92,7 @@ impl PreparedKernel {
     /// content binding before producing a successful result.
     pub fn check(self, control: &Control) -> Result<Checked, Failure> {
         let Self {
+            registration,
             source,
             contract,
             bundle,
@@ -100,11 +101,7 @@ impl PreparedKernel {
             job,
             sandbox,
         } = self;
-        let limits = Limits {
-            timeout: Duration::from_secs(240),
-            capture_bytes: 65_536,
-            output_bytes: 16_777_216,
-        };
+        let limits = limits();
         let mut files = checker_files(&contract).map_err(Failure::unavailable)?;
         files.insert("kernel.rs".into(), source.as_bytes().to_vec());
         for (name, bytes) in &files {
@@ -152,7 +149,7 @@ impl PreparedKernel {
             .iter()
             .map(|(name, bytes)| (name.clone(), hash(bytes)))
             .collect();
-        let report = Report { contract:serde_json::to_value(&contract).map_err(Failure::unavailable)?, contract_sha256:contract.identity().map_err(Failure::unavailable)?, backend:"lean.refinement.v1".into(), class:Class::Refinement, source_sha256:inputs.source_sha256, source_file:"kernel.rs".into(),
+        let report = Report { contract:serde_json::to_value(&contract).map_err(Failure::unavailable)?, contract_sha256:contract.identity().map_err(Failure::unavailable)?, registration, class:Class::Refinement, source_sha256:inputs.source_sha256, source_file:"kernel.rs".into(),
         bundle_sha256:inputs.bundle_sha256,checker_sha256:inputs.checker_sha256, worker_sha256:inputs.worker_sha256,
         artifact_sha256:hash(&serde_json::to_vec(&hashes).map_err(Failure::unavailable)?), files:hashes, audit,
         scope:"Full functional refinement of the accepted pure u64 transition and the listed contract properties, conditional on the reviewed contract, trusted preparer/checker libraries, Charon/Aeneas models, Lean kernel, compiler/native libraries, OS confinement and SHA-256. Not persistence, concurrent transactions, whole-application correctness or certification.".into() };
@@ -169,6 +166,10 @@ pub fn checker_id(contract: &Contract) -> io::Result<String> {
     let mut digest = Sha256::new();
     let mut files = checker_files(contract)?;
     files.insert("recipe".into(), SCRIPT.as_bytes().to_vec());
+    files.insert(
+        "registration".into(),
+        descriptor()?.identity().as_bytes().to_vec(),
+    );
     for (name, bytes) in files {
         for part in [name.as_bytes(), bytes.as_slice()] {
             digest.update(u64::try_from(part.len()).unwrap_or(u64::MAX).to_le_bytes());
@@ -176,6 +177,31 @@ pub fn checker_id(contract: &Contract) -> io::Result<String> {
         }
     }
     Ok(format!("{:x}", digest.finalize()))
+}
+
+/// Exact original typed Rust/refinement interface and fixed checker settings.
+pub fn descriptor() -> io::Result<crate::plugin::Descriptor> {
+    use crate::plugin::{Definition, Descriptor, Role};
+    let implementation =
+        serde_json::to_vec(&(include_str!("kernel.rs"), SCRIPT, TERMS, MANIFEST, LOCK))?;
+    let limits = limits();
+    Descriptor::new(Definition {
+        id: "lean.refinement.v1",
+        role: Role::Verifier,
+        version: "1",
+        formats: vec!["rust-u64-transition-v1".into()],
+        implementation: &implementation,
+        configuration: serde_json::json!({"timeout_ms":limits.timeout.as_millis(),"capture_bytes":limits.capture_bytes,"output_bytes":limits.output_bytes,"syntax":"restricted-mathematical-terms","actual_source_extraction":true}),
+        input: Contract::schema(),
+        output: serde_json::to_value(schemars::schema_for!(Report))?,
+    })
+}
+fn limits() -> Limits {
+    Limits {
+        timeout: Duration::from_secs(240),
+        capture_bytes: 65_536,
+        output_bytes: 16_777_216,
+    }
 }
 
 fn checker_files(contract: &Contract) -> io::Result<BTreeMap<String, Vec<u8>>> {
@@ -224,11 +250,7 @@ pub fn check_contract(
     for (name, bytes) in checker_files(contract).map_err(Failure::unavailable)? {
         fs::write(job.path().join(name), bytes)?;
     }
-    let limits = Limits {
-        timeout: Duration::from_secs(240),
-        capture_bytes: 65_536,
-        output_bytes: 16_777_216,
-    };
+    let limits = limits();
     let output = process::run_with_input(
         &mut sandbox.verification_command(bundle),
         script(contract, bundle, true).as_bytes(),

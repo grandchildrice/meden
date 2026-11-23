@@ -4,6 +4,7 @@
 pub mod file;
 pub mod metrics;
 pub mod pages;
+pub mod plugin;
 pub mod process;
 pub mod release;
 #[cfg(target_os = "linux")]

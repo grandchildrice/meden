@@ -9,7 +9,7 @@ use std::{
     path::{Path, PathBuf},
 };
 /// Evidence strength carried by the application wire format.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum Class {
     /// Observations of named executions.
@@ -35,14 +35,14 @@ impl Class {
 }
 /// Exact checked source, checker inputs and produced file hashes. No model or
 /// project-file deserialization constructs a successful report.
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, schemars::JsonSchema)]
 pub struct Report {
     /// Supported accepted contract, not an assertion about the whole project.
     pub contract: serde_json::Value,
     /// Exact canonical accepted bytes, independently of JSON object ordering.
     pub contract_sha256: String,
-    /// Host registered implementation identity.
-    pub backend: String,
+    /// Frozen host method, configuration and input/output schema identity.
+    pub registration: crate::plugin::Descriptor,
     /// Logical strength, never promoted by the viewer.
     pub class: Class,
     /// Exact candidate source actually checked.
@@ -76,6 +76,8 @@ pub struct Checked {
 /// identity includes the accepted specification, examples and invocation recipe.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct Inputs {
+    /// Original registered method/schema/configuration snapshot.
+    pub registration_sha256: String,
     /// Frozen candidate source.
     pub source_sha256: String,
     /// Selected engine and prepared resource content binding.
@@ -202,6 +204,7 @@ impl Checked {
     /// Bind a completed check back to the exact prepared request.
     pub fn inputs(&self) -> Inputs {
         Inputs {
+            registration_sha256: self.report.registration.identity().into(),
             source_sha256: self.report.source_sha256.clone(),
             bundle_sha256: self.report.bundle_sha256.clone(),
             checker_sha256: self.report.checker_sha256.clone(),
@@ -297,7 +300,7 @@ mod tests {
                 report: Report {
                     contract: serde_json::json!({}),
                     contract_sha256: hash(b"{}"),
-                    backend: "storage fixture".into(),
+                    registration: super::super::finite::descriptor()?,
                     class: Class::Bounded,
                     source_sha256: hash(b"staged bytes"),
                     source_file: "kernel.rs".into(),

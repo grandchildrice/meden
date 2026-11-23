@@ -143,6 +143,7 @@ def main(argv=None):
             for artifact in artifacts:
                 checked = json.loads((artifact / "report.json").read_text())
                 assert checked["class"] == "bounded" and checked["contract"] == expected_contract
+                assert checked["registration"]["id"] == "z3.finite.v1" and checked["registration"]["role"] == "verifier"
                 assert checked["source_sha256"] == hashlib.sha256(source.read_bytes()).hexdigest()
                 assert (artifact / "source.json").read_bytes() == source.read_bytes()
                 for name, digest in checked["files"].items():

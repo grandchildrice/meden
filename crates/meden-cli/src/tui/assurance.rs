@@ -71,22 +71,27 @@ impl State {
             Self::Review => "Delivery held · accept the exact specification first",
             Self::Checking => "Delivery held · waiting for the checker",
             Self::Recheck => "Delivery held · current inputs need verification",
-            Self::Pending | Self::Unverified => "Delivery held · implementation proof required",
+            Self::Pending | Self::Unverified => {
+                "Delivery held · complete implementation check required"
+            }
             Self::Unavailable => "Delivery held · verification tools need attention",
             Self::Inconclusive => "Delivery held · a complete new check is required",
         }
     }
 
     fn property(self, summary: &Summary) -> &'static str {
-        if self == Self::Verified {
-            if matches!(
-                summary.evidence_class,
-                Some(Class::Bounded | Class::Empirical)
-            ) {
+        if matches!(
+            summary.evidence_class,
+            Some(Class::Bounded | Class::Empirical)
+        ) {
+            return if self == Self::Verified {
                 "✓ checked within stated scope"
             } else {
-                "✓ proved"
-            }
+                "○ unchecked within stated scope"
+            };
+        }
+        if self == Self::Verified {
+            "✓ proved"
         } else {
             "○ unproved"
         }

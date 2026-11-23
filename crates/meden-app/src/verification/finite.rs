@@ -11,6 +11,9 @@ impl Backend for Finite {
     fn schema(&self) -> io::Result<Value> {
         solver::Contract::schema()
     }
+    fn descriptor(&self) -> io::Result<meden_runtime::plugin::Descriptor> {
+        solver::descriptor()
+    }
     fn decode(&self, text: &str) -> io::Result<Self::Specification> {
         solver::Contract::parse(text)
     }

@@ -193,9 +193,7 @@ impl Contract {
     pub fn checker_id(&self) -> io::Result<String> {
         Ok(hash(&serde_json::to_vec(&(
             self,
-            include_str!("mod.rs"),
-            include_str!("terms.rs"),
-            "QF_BV/unsigned/one-step/seed=0/timeout=10s",
+            descriptor()?.identity(),
         ))?))
     }
     /// Exact finite claim; it is not an unbounded-time or native-code proof.
@@ -249,7 +247,7 @@ impl Contract {
     }
     fn program(&self, model: &Model) -> io::Result<String> {
         let width = self.width;
-        let mut text=String::from("(set-option :print-success false)\n(set-option :timeout 10000)\n(set-option :smt.random_seed 0)\n(set-logic QF_BV)\n");
+        let mut text=format!("(set-option :print-success false)\n(set-option :timeout {SOLVER_TIMEOUT_MS})\n(set-option :smt.random_seed {SEED})\n(set-logic QF_BV)\n");
         for (prefix, names) in [("s", &self.fields), ("p", &self.parameters)] {
             for i in 0..names.len() {
                 let _ = writeln!(text, "(declare-fun {prefix}{i} () (_ BitVec {width}))");
@@ -367,6 +365,7 @@ fn enumerate(
 
 /// Frozen one-use Z3 request over an original source and selected executable.
 pub struct Prepared {
+    registration: crate::plugin::Descriptor,
     contract: Contract,
     source: String,
     model: Model,
@@ -375,6 +374,7 @@ pub struct Prepared {
     executable: PathBuf,
     objects: Vec<PathBuf>,
     worker: PathBuf,
+    limits: Limits,
     scratch: tempfile::TempDir,
     resources: tempfile::TempDir,
 }
@@ -398,6 +398,7 @@ pub fn prepare(
     worker: &Path,
     control: &Control,
 ) -> Result<Prepared, Failure> {
+    active(control)?;
     contract
         .validate()
         .map_err(|e| Failure::new(FailureKind::Unverified, e))?;
@@ -419,13 +420,16 @@ pub fn prepare(
     let objects = crate::sandbox::Sandbox::tool_objects(&executable)?;
     let resources_hash = resources(&objects)?;
     let worker = worker.canonicalize()?;
+    let registration = descriptor()?;
     let inputs = Inputs {
+        registration_sha256: registration.identity().into(),
         source_sha256: hash(source.as_bytes()),
         bundle_sha256: resources_hash,
         checker_sha256: contract.checker_id()?,
         worker_sha256: hash(&std::fs::read(&worker)?),
     };
     Ok(Prepared {
+        registration,
         contract: contract.clone(),
         source: source.into(),
         model,
@@ -434,6 +438,7 @@ pub fn prepare(
         executable,
         objects,
         worker,
+        limits: limits(),
         scratch: tempfile::tempdir()?,
         resources: tempfile::tempdir()?,
     })
@@ -445,7 +450,16 @@ impl Prepared {
     }
     /// Dispatch once; raw-zero complete output and independent agreement are mandatory.
     pub fn check(self, control: &Control) -> Result<Checked, Failure> {
+        self.check_observed(control, None)
+    }
+    fn check_observed(
+        self,
+        control: &Control,
+        observer: Option<&dyn Fn(&process::OutputProgress)>,
+    ) -> Result<Checked, Failure> {
         let _timing = crate::metrics::Span::start("verification.z3");
+        active(control)?;
+        self.current_resources()?;
         let mut command = crate::sandbox::Sandbox::adapter_command(
             self.scratch.path(),
             &self.worker,
@@ -454,15 +468,12 @@ impl Prepared {
             &[],
             &["-in", "-smt2"],
         )?;
-        let output = process::run_with_input(
+        let output = process::run_with_input_observed(
             &mut command,
             self.program.as_bytes(),
-            &Limits {
-                timeout: Duration::from_secs(15),
-                capture_bytes: 65_536,
-                output_bytes: 131_072,
-            },
+            &self.limits,
             control,
+            observer,
         )?;
         if !matches!(output.termination,Termination::Exited(code) if code.success())
             || output.truncated
@@ -474,8 +485,10 @@ impl Prepared {
                     FailureKind::Unavailable
                 },
                 format!(
-                    "Z3 did not complete: {:?}: {}",
-                    output.termination, output.stderr
+                    "Z3 did not complete: {:?}\nstdout: {}\nstderr: {}",
+                    output.termination,
+                    output.stdout.chars().take(4096).collect::<String>(),
+                    output.stderr.chars().take(4096).collect::<String>()
                 ),
             ));
         }
@@ -491,13 +504,7 @@ impl Prepared {
             )
         })?;
         admit(verdict, counterexample.as_ref())?;
-        if resources(&self.objects)? != self.inputs.bundle_sha256
-            || hash(&std::fs::read(&self.worker)?) != self.inputs.worker_sha256
-        {
-            return Err(Failure::unavailable(
-                "Z3 or worker resources changed while checking",
-            ));
-        }
+        self.current_resources()?;
         active(control)?;
         let files: BTreeMap<String, Vec<u8>> = BTreeMap::from([
             ("source.json".into(), self.source.into_bytes()),
@@ -506,11 +513,48 @@ impl Prepared {
             ("solver.txt".into(), output.stdout.into_bytes()),
         ]);
         let hashes: BTreeMap<_, _> = files.iter().map(|(n, b)| (n.clone(), hash(b))).collect();
-        let report=Report{contract:serde_json::to_value(&self.contract).map_err(Failure::unavailable)?,contract_sha256:hash(&self.contract.canonical()?),backend:"z3.finite.v1".into(),class:Class::Bounded,
+        let report=Report{contract:serde_json::to_value(&self.contract).map_err(Failure::unavailable)?,contract_sha256:hash(&self.contract.canonical()?),registration:self.registration,class:Class::Bounded,
             source_sha256:self.inputs.source_sha256,source_file:"source.json".into(),bundle_sha256:self.inputs.bundle_sha256,checker_sha256:self.inputs.checker_sha256,worker_sha256:self.inputs.worker_sha256,
             artifact_sha256:hash(&serde_json::to_vec(&hashes).map_err(Failure::unavailable)?),files:hashes,audit:vec![format!("Z3 QF_BV: unsat; independent complete enumeration: {} assignments; all {} properties hold",self.contract.cases()?,self.contract.properties.len())],scope:self.contract.scope()};
         Ok(Checked { report, files })
     }
+    fn current_resources(&self) -> Result<(), Failure> {
+        let current = crate::sandbox::Sandbox::tool_objects(&self.executable)?;
+        if current != self.objects
+            || resources(&current)? != self.inputs.bundle_sha256
+            || hash(&std::fs::read(&self.worker)?) != self.inputs.worker_sha256
+        {
+            return Err(Failure::unavailable(
+                "Z3 or worker resource resolution/content changed after preparation",
+            ));
+        }
+        Ok(())
+    }
+}
+const SOLVER_TIMEOUT_MS: u64 = 10_000;
+const SEED: u32 = 0;
+fn limits() -> Limits {
+    Limits {
+        timeout: Duration::from_secs(15),
+        capture_bytes: 65_536,
+        output_bytes: 131_072,
+    }
+}
+/// Exact host-selected finite method; resource bytes are frozen at preparation.
+pub fn descriptor() -> io::Result<crate::plugin::Descriptor> {
+    use crate::plugin::{Definition, Descriptor, Role};
+    let implementation = serde_json::to_vec(&(include_str!("mod.rs"), include_str!("terms.rs")))?;
+    let limits = limits();
+    Descriptor::new(Definition {
+        id: "z3.finite.v1",
+        role: Role::Verifier,
+        version: "1",
+        formats: vec!["finite-bitvectors-v1".into()],
+        implementation: &implementation,
+        configuration: serde_json::json!({"logic":"QF_BV","unsigned":true,"steps":1,"seed":SEED,"solver_timeout_ms":SOLVER_TIMEOUT_MS,"process_timeout_ms":limits.timeout.as_millis(),"capture_bytes":limits.capture_bytes,"output_bytes":limits.output_bytes,"maximum_input_bits":16,"independent_complete_enumeration":true}),
+        input: Contract::schema()?,
+        output: serde_json::to_value(schemars::schema_for!(Report))?,
+    })
 }
 fn resources(objects: &[PathBuf]) -> io::Result<String> {
     let digests = objects

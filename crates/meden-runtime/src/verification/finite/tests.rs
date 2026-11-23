@@ -74,3 +74,243 @@ fn finite_contract_and_source_are_bounded_typed_data_not_commands() -> io::Resul
     assert!(!program.contains("counter.model.json"));
     Ok(())
 }
+
+// Real-tool prerequisites, never an inert worker or a successful skip. Workspace
+// tests build the CLI integration executable; a focused runtime run can select
+// its installed/pinned CLI explicitly through this host-only test variable.
+#[cfg(target_os = "linux")]
+fn worker() -> io::Result<PathBuf> {
+    let path = if let Some(path) = std::env::var_os("MEDEN_TEST_WORKER") {
+        PathBuf::from(path)
+    } else {
+        std::env::current_exe()?
+            .parent()
+            .and_then(Path::parent)
+            .ok_or_else(|| invalid("Test executable has no target profile directory"))?
+            .join("meden")
+    };
+    if !path.is_file() {
+        return Err(invalid(
+            "Build meden-cli first or set MEDEN_TEST_WORKER to the real CLI executable",
+        ));
+    }
+    path.canonicalize()
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn real_solver_output_faults_cannot_create_checked_output() -> Result<(), Failure> {
+    let worker = worker()?;
+    let c = Contract::parse(CONTRACT)?;
+    let control = control();
+    // Establish that this exact worker/profile actually runs the real solver.
+    let checked = prepare(MODEL, &c, &worker, &control)?.check(&control)?;
+    assert_eq!(checked.report().class, Class::Bounded);
+    for (source, query, expected) in [
+        (
+            MODEL,
+            "(echo \"unsat\")\n(echo \"sat\")\n(exit)\n",
+            FailureKind::Unavailable,
+        ),
+        (
+            MODEL,
+            "(set-logic QF_BV)\n(not-a-command)\n(exit)\n",
+            FailureKind::Unavailable,
+        ),
+        (
+            MODEL,
+            "(echo \"unknown\")\n(exit)\n",
+            FailureKind::Inconclusive,
+        ),
+        // A successful real solver verdict for a wrong query must not validate
+        // the original candidate. Both disagreement directions are exercised.
+        (
+            BROKEN,
+            "(set-logic QF_BV)\n(assert false)\n(check-sat)\n(exit)\n",
+            FailureKind::Unavailable,
+        ),
+        (
+            MODEL,
+            "(set-logic QF_BV)\n(check-sat)\n(exit)\n",
+            FailureKind::Unavailable,
+        ),
+    ] {
+        let mut prepared = prepare(source, &c, &worker, &control)?;
+        // Deliberate internal adapter corruption. No public mutation API or
+        // model/workspace configuration can supply or select these queries.
+        prepared.program = query.into();
+        assert_eq!(
+            prepared.check(&control).err().map(|e| e.kind),
+            Some(expected)
+        );
+    }
+    let mut prepared = prepare(MODEL, &c, &worker, &control)?;
+    prepared.program = format!("(echo \"{}\")\n(exit)\n", "x".repeat(200_000));
+    assert_eq!(
+        prepared.check(&control).err().map(|e| e.kind),
+        Some(FailureKind::Inconclusive)
+    );
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+fn timeout_probe() -> String {
+    use std::fmt::Write as _;
+    // Unsatisfiable pigeonhole instance; the marker proves Z3 has entered the
+    // query before timeout/cancellation. Generated names carry no user data.
+    let mut query = String::from("(set-logic QF_BV)\n(echo \"SOLVER-ENTERED\")\n");
+    for pigeon in 0..30 {
+        for hole in 0..29 {
+            let _ = writeln!(query, "(declare-const p{pigeon}_{hole} Bool)");
+        }
+        let _ = write!(query, "(assert (or");
+        for hole in 0..29 {
+            let _ = write!(query, " p{pigeon}_{hole}");
+        }
+        query.push_str("))\n");
+    }
+    for hole in 0..29 {
+        for left in 0_u32..30 {
+            for right in left.saturating_add(1)..30 {
+                let _ = writeln!(
+                    query,
+                    "(assert (or (not p{left}_{hole}) (not p{right}_{hole})))"
+                );
+            }
+        }
+    }
+    query.push_str("(check-sat)\n(exit)\n");
+    query
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn real_started_solver_timeout_and_cancellation_are_inconclusive() -> Result<(), Failure> {
+    let worker = worker()?;
+    let c = Contract::parse(CONTRACT)?;
+    let control = control();
+    let mut prepared = prepare(MODEL, &c, &worker, &control)?;
+    prepared.program = timeout_probe();
+    prepared.limits.timeout = Duration::from_secs(1);
+    let failure = prepared
+        .check(&control)
+        .err()
+        .ok_or_else(|| Failure::unavailable("Timeout probe unexpectedly completed"))?;
+    assert_eq!(failure.kind, FailureKind::Inconclusive);
+    assert!(failure.to_string().contains("TimedOut"));
+    assert!(
+        failure.to_string().contains("SOLVER-ENTERED"),
+        "Z3 must actually start before the timeout"
+    );
+
+    let mut prepared = prepare(MODEL, &c, &worker, &control)?;
+    prepared.program = timeout_probe();
+    let observed = AtomicBool::new(false);
+    let stop = |output: &process::OutputProgress| {
+        if output.stdout.contains("SOLVER-ENTERED") {
+            observed.store(true, std::sync::atomic::Ordering::SeqCst);
+            control.cancel();
+        }
+    };
+    let failure = prepared
+        .check_observed(&control, Some(&stop))
+        .err()
+        .ok_or_else(|| Failure::unavailable("Cancellation probe unexpectedly completed"))?;
+    assert!(observed.load(std::sync::atomic::Ordering::SeqCst));
+    assert_eq!(failure.kind, FailureKind::Inconclusive);
+    assert!(failure.to_string().contains("Cancelled"));
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn changed_prepared_worker_is_refused_before_solver_dispatch() -> Result<(), Failure> {
+    use std::io::Write as _;
+    let original = worker()?;
+    let directory = tempfile::tempdir()?;
+    let worker = directory.path().join("meden-worker");
+    std::fs::copy(original, &worker)?;
+    let c = Contract::parse(CONTRACT)?;
+    let control = control();
+    let prepared = prepare(MODEL, &c, &worker, &control)?;
+    std::fs::OpenOptions::new()
+        .append(true)
+        .open(&worker)?
+        .write_all(b"changed host object")?;
+    let dispatched = AtomicBool::new(false);
+    let observe = |_: &process::OutputProgress| {
+        dispatched.store(true, std::sync::atomic::Ordering::SeqCst);
+    };
+    let failure = prepared
+        .check_observed(&control, Some(&observe))
+        .err()
+        .ok_or_else(|| Failure::unavailable("Changed worker admitted"))?;
+    assert_eq!(failure.kind, FailureKind::Unavailable);
+    assert!(failure
+        .to_string()
+        .contains("resource resolution/content changed"));
+    assert!(!dispatched.load(std::sync::atomic::Ordering::SeqCst));
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn real_checked_output_cannot_complete_a_job_after_a_source_edit() -> Result<(), Failure> {
+    use meden_core::{
+        check::Preparation,
+        evidence::{Contracts, EvidenceKind, EvidenceOrigin as Origin, Obligation},
+    };
+    let worker = worker()?;
+    let control = control();
+    let contract = Contract::parse(CONTRACT)?;
+    let root = tempfile::tempdir()?;
+    let source = root.path().join("counter.model.json");
+    std::fs::write(&source, MODEL)?;
+    let prepared = prepare(
+        &std::fs::read_to_string(&source)?,
+        &contract,
+        &worker,
+        &control,
+    )?;
+    let method_identity = prepared.inputs().checker_sha256.as_bytes().to_vec();
+    let session = b"finite-stale-source";
+    let mut current = Contracts::new(session.to_vec());
+    assert!(current.propose(
+        Origin::Controller,
+        contract.canonical()?,
+        vec![Obligation {
+            statement: contract.canonical()?,
+            kind: EvidenceKind::Bounded,
+            checker: method_identity.clone()
+        }]
+    ));
+    assert!(current.review(Origin::Host, session, 1));
+    assert!(current.accept(Origin::Host, session, 1));
+    let accepted = current
+        .accepted()
+        .ok_or_else(|| Failure::unavailable("No accepted view"))?;
+    let running = Preparation::begin(&mut current, accepted, ())
+        .and_then(|prepared_job| {
+            prepared_job.issue(&mut current, serde_json::to_vec(prepared.inputs()).ok()?)
+        })
+        .ok_or_else(|| Failure::unavailable("No issued job"))?;
+    let checked = prepared.check(&control)?;
+    let mut observed = checked.inputs();
+    // An external editor changes the real original source after the checker
+    // completed. The original issued inputs cannot be replaced by this read.
+    std::fs::write(&source, BROKEN)?;
+    observed.source_sha256 = hash(&std::fs::read(&source)?);
+    let storage = root.path().join("artifacts");
+    let staged = checked.stage(&storage)?;
+    let admitted = running.complete(
+        &mut current,
+        serde_json::to_vec(&observed).map_err(Failure::unavailable)?,
+        b"candidate artifact".to_vec(),
+        method_identity,
+        staged,
+    );
+    assert!(admitted.is_none());
+    assert!(!current.is_active() && !current.eligible(1, b"candidate artifact".to_vec()));
+    assert_eq!(std::fs::read_dir(storage)?.count(), 0);
+    Ok(())
+}

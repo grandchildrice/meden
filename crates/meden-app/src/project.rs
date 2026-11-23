@@ -221,6 +221,16 @@ impl Project {
         anyhow::ensure!(self.selected.as_deref().is_none_or(|id| id == contract.backend()), "The contract's backend differs from the host-selected verifier; review a replacement contract before checking");
         Ok(())
     }
+    fn parse_contract(&self, text: &str) -> Result<Contract> {
+        self.verifiers.parse(text).map_err(|error| {
+            if error.kind() == io::ErrorKind::InvalidData {
+                return error.into();
+            }
+            let failure = Failure::unavailable(error);
+            self.record_failure(failure.clone());
+            failure.into()
+        })
+    }
     fn binding(agreement: &Agreement, report: &Report, source: &str) -> Result<Subject> {
         anyhow::ensure!(
             serde_json::to_value(&agreement.contract)? == report.contract
@@ -228,7 +238,7 @@ impl Project {
             "artifact belongs to a different contract"
         );
         anyhow::ensure!(
-            report.backend == agreement.contract.backend()
+            report.registration == *agreement.contract.descriptor()
                 && agreement
                     .view
                     .obligations
@@ -240,9 +250,7 @@ impl Project {
             "bundle":report.bundle_sha256,"checker":report.checker_sha256,"worker":report.worker_sha256}))?))
     }
     pub fn propose(&self, contract: &Contract, control: &Control) -> Result<Summary> {
-        let contract = self
-            .verifiers
-            .parse(std::str::from_utf8(&contract.canonical()?)?)?;
+        let contract = self.parse_contract(std::str::from_utf8(&contract.canonical()?)?)?;
         self.selection(&contract)?;
         let bytes = contract.canonical()?;
         let required = obligation(&contract)?;
@@ -929,7 +937,7 @@ impl ProjectTool {
             match self.operation {
                 Operation::Propose => {
                     anyhow::ensure!(args.len() == 1, "proposal accepts only contract data");
-                    let contract = self.project.verifiers.parse(&serde_json::to_string(
+                    let contract = self.project.parse_contract(&serde_json::to_string(
                         args.get("contract").context("contract is required")?,
                     )?)?;
                     self.project.propose(&contract, &self.control)

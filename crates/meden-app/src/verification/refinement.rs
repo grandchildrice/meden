@@ -27,6 +27,9 @@ impl Backend for Refinement {
     fn schema(&self) -> io::Result<Value> {
         Ok(Specification::schema())
     }
+    fn descriptor(&self) -> io::Result<meden_runtime::plugin::Descriptor> {
+        kernel::descriptor()
+    }
     fn decode(&self, text: &str) -> io::Result<Specification> {
         Specification::parse(text)
     }

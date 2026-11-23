@@ -22,7 +22,7 @@ and SHA-256; individual directories retain timestamped
 not a recording of every paint. Per-test traces are capped at 10 MB and indicate
 truncation in `trace.json`; the final screen is retained separately.
 
-The command needs the Python dev dependencies, Linux, Bubblewrap, an actual
+The command needs the Python dev dependencies, Linux, Bubblewrap, public Z3, an actual
 installed Lean/Lake distribution (`MEDEN_ATLAS_LEAN`) and the host public toolchain used by the existing integration tests. A missing prerequisite,
 skipped journey, failed assertion or empty selection fails the required gate.
 Fixtures use temporary projects, synthetic replies and an inert project-checker

@@ -76,8 +76,50 @@ That trial compares the exact proposed contract before host acceptance, retains
 the real counterexample in history, checks the repaired source against a separate
 Python oracle for all 256 inputs, validates every retained result and reopens
 with fresh review. Installed tools and cloud success are not cold-install,
-local-inference or confidentiality evidence. Broader registry/resource/schema
-bindings and real solver-output/timeout fault injection remain migration work.
+local-inference or confidentiality evidence.
+
+Verifier registrations now freeze a bounded descriptor containing the original
+role, ID, version, formats and implementation/configuration/input/output-schema
+digests. The actual fixed limits and seed supply the configuration fingerprint.
+Object insertion order does not change metadata identities; array order and
+represented values remain significant. Backend-local schema references are
+namespaced through a schema-aware visitor. Literal data is preserved, and
+external/anchored references fail explicitly. Registrations retain their first
+validated schema/definition, and a changed method, ID or schema stops before
+the implementation callback. These are application/runtime checks, not a new
+proof of arbitrary plugin behavior.
+
+The original descriptor also enters the checker identity and prepared job
+inputs. Consuming output must preserve its descriptor and every original input;
+the saved report contains `registration` provenance instead of a second
+standalone backend label. Resources remain independently bound to their actual
+prepared bytes. Finite checking re-resolves and checks engine/library/worker
+resources before and after execution. Host mutation during loading, resolver
+attribution and physical OS enforcement remain adapters.
+
+Real solver conformance is part of the runtime tests. Build the actual worker
+first, then run the focused suite:
+
+```sh
+cargo build -p meden-cli
+MEDEN_TEST_WORKER="$PWD/target/debug/meden" \
+  cargo test -p meden-runtime verification::finite::tests
+```
+
+The host-only test variable is not a production verifier selector. The tests
+corrupt private prepared queries inside the test module: actual offline Z3 emits
+malformed/unknown output and verdicts inconsistent with the original model.
+A hard generated pigeonhole query prints a marker before running; timeout and
+marker-triggered cancellation must retain that marker, proving the solver
+started. Output limits and changed prepared workers also refuse success. A
+separate real-check/core-job/staging composition changes the actual source
+after successful checking and requires completion refusal with no retained
+artifact. Missing workers/tools are failed prerequisites, not successful skips.
+There are no public fault-query or test-executor settings.
+
+These checks complete the named finite-verifier fault cases. Complete shared
+bindings for the compiler, renderer, search and model roles, and persistent
+selection among implementations sharing one input format, remain migration work.
 
 ## Conversation and host review
 

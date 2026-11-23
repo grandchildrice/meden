@@ -44,6 +44,8 @@ jobs:
         env:
           CARGO_TARGET_DIR: target/tiny-http-regression
       - run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+      - name: Build the real worker for solver conformance
+        run: cargo build -p meden-cli
       - run: cargo test --workspace --all-features
       - uses: actions/upload-artifact@v7
         if: always()

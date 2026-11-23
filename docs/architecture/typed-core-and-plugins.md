@@ -141,6 +141,13 @@ bounded checking from refinement. The finite contract is a one-step JSON
 model, not a general SMT frontend or a Rust/RTL correctness claim. See
 [project verification](../project-verification.md) for the public entry points,
 real-tool journeys and remaining conformance work.
+Verifier definitions now retain role/version/format and exact
+implementation/configuration/schema fingerprints. Their original descriptors
+are included in checker identities, prepared inputs and consumed outputs;
+registrations freeze their initial schema and refuse metadata drift before
+dispatch. Backend-local schema references have separate namespaces. Public
+types/parameters remain role-specific, and the core still sees its existing
+opaque consuming job vocabulary. Other role-wide bindings are not complete.
 A completed host registry must describe supported operations/formats,
 implementation versions, resource requirements and limits. Initially use ordinary
 Rust implementations and explicit host registration. External implementations
@@ -337,9 +344,11 @@ availability, generic inventory/job/evidence DTOs, generation of the rest of the
 native wire contract and all remaining navigation waits still need work.
 Step 3 now executes the second backend through public TUI/GUI, actual offline
 Z3, a real approved-model trial and a separate 256-input Python oracle. Its
-parser/disagreement rejection tests and actual cancellation/refutation are
-covered, while real solver-output/timeout fault injection and complete role-wide
-resource/schema registration are still open. Step 5 remains open too.
+parser/disagreement rejection tests, actual solver-output faults, started-solver
+timeout/cancellation, resource changes and a real-check/stale-source/core-job
+composition are covered. Verifier descriptors bind original method and schema
+configuration through those existing jobs. Complete bindings for other roles,
+persistent selection among backends sharing a format and step 5 remain open.
 They retain the existing local/offline execution, accepted intent, exact evidence linkage and
 separate local-deployment/R1 obligations in [assurance.md](../assurance.md) and
 [verification.md](../verification.md).

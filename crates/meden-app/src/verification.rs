@@ -1,6 +1,7 @@
 //! Typed registered verification roles. The existing kernel owns acceptance and
 //! issued-job admission; these adapters only decode, prepare and check data.
 use meden_runtime::{
+    plugin::{Descriptor, Role},
     process::Control,
     verification::{
         artifact::{Checked, Class, Inputs},
@@ -9,10 +10,16 @@ use meden_runtime::{
 };
 use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
-use std::{collections::BTreeMap, io, path::Path, sync::Arc};
+use std::{
+    collections::BTreeMap,
+    io,
+    path::Path,
+    sync::{Arc, OnceLock},
+};
 
 mod finite;
 mod refinement;
+mod schema;
 /// Default host preparation, preserving the existing Rust-to-Lean workflow.
 pub const DEFAULT_BACKEND: &str = "lean.refinement.v1";
 
@@ -51,6 +58,8 @@ pub trait Backend: Send + Sync + 'static {
     fn id(&self) -> &'static str;
     /// Schema for this backend's data format.
     fn schema(&self) -> io::Result<Value>;
+    /// Complete original method/configuration/schema identity.
+    fn descriptor(&self) -> io::Result<Descriptor>;
     /// Decode and validate bounded data, without effectful checker execution.
     fn decode(&self, text: &str) -> io::Result<Self::Specification>;
     /// Produce immutable viewer data from the original typed specification.
@@ -84,16 +93,34 @@ trait Decoded: Send + Sync {
         worker: &Path,
         control: &Control,
     ) -> Result<Box<dyn PreparedCheck>, Failure>;
-    fn checker_id(&self) -> io::Result<String>;
 }
 struct Typed<B: Backend> {
     backend: Arc<B>,
     specification: B::Specification,
+    descriptor: Descriptor,
+}
+impl<B: Backend> Typed<B> {
+    fn current(&self) -> Result<(), Failure> {
+        if self.backend.id() != self.descriptor.id()
+            || self.backend.descriptor().map_err(Failure::unavailable)? != self.descriptor
+            || !self
+                .descriptor
+                .accepts_schema(&self.backend.schema().map_err(Failure::unavailable)?)
+                .map_err(Failure::unavailable)?
+        {
+            return Err(Failure::unavailable(
+                "Registered verification method changed after decoding",
+            ));
+        }
+        Ok(())
+    }
 }
 impl<B: Backend> Decoded for Typed<B> {
     fn check_draft(&self, worker: &Path, control: &Control) -> Result<(), Failure> {
+        self.current()?;
         self.backend
-            .check_draft(&self.specification, worker, control)
+            .check_draft(&self.specification, worker, control)?;
+        self.current()
     }
     fn prepare(
         &self,
@@ -101,11 +128,42 @@ impl<B: Backend> Decoded for Typed<B> {
         worker: &Path,
         control: &Control,
     ) -> Result<Box<dyn PreparedCheck>, Failure> {
-        self.backend
-            .prepare(&self.specification, source, worker, control)
+        self.current()?;
+        let prepared = self
+            .backend
+            .prepare(&self.specification, source, worker, control)?;
+        self.current()?;
+        let inputs = prepared.inputs().clone();
+        if inputs.registration_sha256 != self.descriptor.identity() {
+            return Err(Failure::unavailable(
+                "Prepared verifier differs from its registered definition",
+            ));
+        }
+        Ok(Box::new(RegisteredCheck {
+            prepared,
+            inputs,
+            descriptor: self.descriptor.clone(),
+        }))
     }
-    fn checker_id(&self) -> io::Result<String> {
-        self.backend.checker_id(&self.specification)
+}
+
+struct RegisteredCheck {
+    prepared: Box<dyn PreparedCheck>,
+    inputs: Inputs,
+    descriptor: Descriptor,
+}
+impl PreparedCheck for RegisteredCheck {
+    fn inputs(&self) -> &Inputs {
+        &self.inputs
+    }
+    fn check(self: Box<Self>, control: &Control) -> Result<Checked, Failure> {
+        let checked = self.prepared.check(control)?;
+        if checked.report().registration != self.descriptor || checked.inputs() != self.inputs {
+            return Err(Failure::unavailable(
+                "Verifier output differs from the original registration or prepared inputs",
+            ));
+        }
+        Ok(checked)
     }
 }
 
@@ -117,6 +175,8 @@ pub struct Contract {
     bytes: Arc<[u8]>,
     value: Value,
     description: Description,
+    descriptor: Descriptor,
+    checker: String,
     decoded: Arc<dyn Decoded>,
 }
 impl std::fmt::Debug for Contract {
@@ -129,7 +189,7 @@ impl std::fmt::Debug for Contract {
 }
 impl PartialEq for Contract {
     fn eq(&self, other: &Self) -> bool {
-        self.id == other.id && self.bytes == other.bytes
+        self.id == other.id && self.bytes == other.bytes && self.descriptor == other.descriptor
     }
 }
 impl Eq for Contract {}
@@ -164,7 +224,11 @@ impl Contract {
     }
     /// Fixed obligation checker identity.
     pub fn checker_id(&self) -> io::Result<String> {
-        self.decoded.checker_id()
+        Ok(self.checker.clone())
+    }
+    /// Frozen installed method; decoded metadata alone grants no authority.
+    pub fn descriptor(&self) -> &Descriptor {
+        &self.descriptor
     }
     /// Generic immutable viewer projection.
     pub fn description(&self) -> &Description {
@@ -192,8 +256,12 @@ impl Contract {
     /// Full review and explicit evidence scope.
     pub fn review_text(&self) -> String {
         format!(
-            "{}\n\nVerification backend: {}\nScope: {}\n",
-            self.description.review, self.id, self.description.scope
+            "{}\n\nInstalled verification method: {} @ {}\nDefinition SHA-256: {}\nScope: {}\n",
+            self.description.review,
+            self.descriptor.id(),
+            self.descriptor.version(),
+            self.descriptor.identity(),
+            self.description.scope
         )
     }
     /// Validate through the originally registered implementation.
@@ -221,42 +289,205 @@ pub fn completed_label(class: Class) -> &'static str {
     }
 }
 
-type Decoder = dyn Fn(&str) -> io::Result<Contract> + Send + Sync;
-struct Registration {
-    schema: Box<dyn Fn() -> io::Result<Value> + Send + Sync>,
-    decode: Box<Decoder>,
-    setup: Box<dyn Fn() -> anyhow::Result<()> + Send + Sync>,
+struct Definition {
+    descriptor: Descriptor,
+    schema: Value,
 }
-impl Registration {
-    fn new<B: Backend>(backend: B) -> Self {
-        let backend = Arc::new(backend);
-        let schema = Arc::clone(&backend);
-        let setup = Arc::clone(&backend);
+trait Registered: Send + Sync {
+    fn definition(&self) -> io::Result<&Definition>;
+    fn decode(&self, text: &str) -> io::Result<Contract>;
+    fn setup(&self) -> anyhow::Result<()>;
+}
+struct Registration<B: Backend> {
+    id: &'static str,
+    backend: Arc<B>,
+    frozen: OnceLock<Result<Definition, String>>,
+}
+impl<B: Backend> Registration<B> {
+    fn new(backend: B) -> Self {
+        let id = backend.id();
         Self {
-            schema: Box::new(move || schema.schema()),
-            setup: Box::new(move || setup.setup()),
-            decode: Box::new(move |text| {
-                let specification = backend.decode(text)?;
-                let bytes = serde_json::to_vec(&specification)?;
-                let description = backend.describe(&specification);
-                Ok(Contract {
-                    id: backend.id(),
-                    value: serde_json::from_slice(&bytes)?,
-                    bytes: bytes.into(),
-                    description,
-                    decoded: Arc::new(Typed {
-                        backend: Arc::clone(&backend),
-                        specification,
-                    }),
-                })
-            }),
+            id,
+            backend: Arc::new(backend),
+            frozen: OnceLock::new(),
         }
+    }
+}
+impl<B: Backend> Registered for Registration<B> {
+    fn definition(&self) -> io::Result<&Definition> {
+        self.frozen
+            .get_or_init(|| {
+                let result = (|| {
+                    let descriptor = self.backend.descriptor()?;
+                    let schema = self.backend.schema()?;
+                    if descriptor.role() != Role::Verifier
+                        || descriptor.id() != self.id
+                        || self.backend.id() != self.id
+                        || !descriptor.accepts_schema(&schema)?
+                    {
+                        return Err(io::Error::other(
+                            "Verifier registration/schema identity mismatch",
+                        ));
+                    }
+                    Ok(Definition { descriptor, schema })
+                })();
+                result.map_err(|error: io::Error| error.to_string())
+            })
+            .as_ref()
+            .map_err(|error| io::Error::other(error.clone()))
+    }
+    fn decode(&self, text: &str) -> io::Result<Contract> {
+        let definition = self.definition()?;
+        if self.backend.id() != self.id
+            || self.backend.descriptor()? != definition.descriptor
+            || !definition
+                .descriptor
+                .accepts_schema(&self.backend.schema()?)?
+        {
+            return Err(io::Error::other(
+                "Verifier definition changed after registration",
+            ));
+        }
+        let specification = self
+            .backend
+            .decode(text)
+            .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
+        let bytes = serde_json::to_vec(&specification)?;
+        Ok(Contract {
+            id: self.id,
+            value: serde_json::from_slice(&bytes)?,
+            bytes: bytes.into(),
+            description: self.backend.describe(&specification),
+            descriptor: definition.descriptor.clone(),
+            checker: self.backend.checker_id(&specification)?,
+            decoded: Arc::new(Typed {
+                backend: Arc::clone(&self.backend),
+                specification,
+                descriptor: definition.descriptor.clone(),
+            }),
+        })
+    }
+    fn setup(&self) -> anyhow::Result<()> {
+        self.definition()?;
+        self.backend.setup()
+    }
+}
+
+#[cfg(test)]
+mod binding_tests {
+    use super::*;
+    use meden_runtime::verification::{artifact::Report, finite::Contract as Specification};
+    use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
+    struct Changing {
+        phase: Arc<AtomicU8>,
+        entered: Arc<AtomicBool>,
+    }
+    impl Backend for Changing {
+        type Specification = Specification;
+        fn id(&self) -> &'static str {
+            if self.phase.load(Ordering::SeqCst) == 4 {
+                "changed.host.id"
+            } else {
+                "z3.finite.v1"
+            }
+        }
+        fn schema(&self) -> io::Result<Value> {
+            if self.phase.load(Ordering::SeqCst) == 2 {
+                Ok(serde_json::json!({"type":"null"}))
+            } else {
+                Specification::schema()
+            }
+        }
+        fn descriptor(&self) -> io::Result<Descriptor> {
+            let phase = self.phase.load(Ordering::SeqCst);
+            if phase == 1 || phase == 3 {
+                Descriptor::new(meden_runtime::plugin::Definition {
+                    id: self.id(),
+                    role: if phase == 3 {
+                        Role::Model
+                    } else {
+                        Role::Verifier
+                    },
+                    version: "2",
+                    formats: vec!["finite-bitvectors-v1".into()],
+                    implementation: b"changed host method",
+                    configuration: serde_json::json!({"seed":1}),
+                    input: Specification::schema()?,
+                    output: serde_json::to_value(schemars::schema_for!(Report))?,
+                })
+            } else {
+                meden_runtime::verification::finite::descriptor()
+            }
+        }
+        fn decode(&self, text: &str) -> io::Result<Specification> {
+            Specification::parse(text)
+        }
+        fn describe(&self, s: &Specification) -> Description {
+            finite::Finite.describe(s)
+        }
+        fn checker_id(&self, s: &Specification) -> io::Result<String> {
+            s.checker_id()
+        }
+        fn setup(&self) -> anyhow::Result<()> {
+            Ok(())
+        }
+        fn check_draft(&self, _: &Specification, _: &Path, _: &Control) -> Result<(), Failure> {
+            self.entered.store(true, Ordering::SeqCst);
+            Ok(())
+        }
+        fn prepare(
+            &self,
+            _: &Specification,
+            _: &str,
+            _: &Path,
+            _: &Control,
+        ) -> Result<Box<dyn PreparedCheck>, Failure> {
+            self.entered.store(true, Ordering::SeqCst);
+            Err(Failure::unavailable(
+                "No execution in a metadata-boundary fixture",
+            ))
+        }
+    }
+    #[test]
+    fn changed_method_or_schema_cannot_enter_the_frozen_implementation() -> io::Result<()> {
+        let phase = Arc::new(AtomicU8::new(0));
+        let entered = Arc::new(AtomicBool::new(false));
+        let mut registry = Registry::default();
+        registry.register(Changing {
+            phase: Arc::clone(&phase),
+            entered: Arc::clone(&entered),
+        })?;
+        let original_schema = registry.parameters(None)?;
+        let contract = registry.parse(include_str!(
+            "../../../verification/examples/finite-counter.contract.json"
+        ))?;
+        let control = Control::new(Arc::new(AtomicBool::new(false)));
+        for changed in [1, 2, 4] {
+            phase.store(changed, Ordering::SeqCst);
+            assert_eq!(registry.parameters(None)?, original_schema);
+            assert!(registry
+                .parse(include_str!(
+                    "../../../verification/examples/finite-counter.contract.json"
+                ))
+                .is_err());
+            assert!(contract
+                .check_draft(Path::new("/missing/worker"), &control)
+                .is_err());
+            assert!(contract
+                .prepare("{}", Path::new("/missing/worker"), &control)
+                .is_err());
+            assert!(!entered.load(Ordering::SeqCst));
+        }
+        phase.store(3, Ordering::SeqCst);
+        let mut fresh = Registry::default();
+        assert!(fresh.register(Changing { phase, entered }).is_err());
+        Ok(())
     }
 }
 /// Explicit host registrations. Unknown, duplicate or ambiguous formats fail.
 #[derive(Default)]
 pub struct Registry {
-    registrations: BTreeMap<String, Registration>,
+    registrations: BTreeMap<String, Box<dyn Registered>>,
 }
 impl Registry {
     /// Built-in host composition; no executable/path is read from model data.
@@ -265,17 +496,21 @@ impl Registry {
             registrations: BTreeMap::from([
                 (
                     DEFAULT_BACKEND.into(),
-                    Registration::new(refinement::Refinement {
+                    Box::new(Registration::new(refinement::Refinement {
                         bundle: crate::verifier::manifest(),
-                    }),
+                    })) as Box<dyn Registered>,
                 ),
-                ("z3.finite.v1".into(), Registration::new(finite::Finite)),
+                (
+                    "z3.finite.v1".into(),
+                    Box::new(Registration::new(finite::Finite)) as Box<dyn Registered>,
+                ),
             ]),
         }
     }
     /// Add a distinct known host implementation, never through a model request.
     pub fn register<B: Backend>(&mut self, backend: B) -> io::Result<()> {
-        let id = backend.id();
+        let registration = Registration::new(backend);
+        let id = registration.id;
         if id.is_empty()
             || id.len() > 128
             || !id
@@ -288,8 +523,8 @@ impl Registry {
                 "Invalid or duplicate verification backend registration",
             ));
         }
-        self.registrations
-            .insert(id.into(), Registration::new(backend));
+        registration.definition()?;
+        self.registrations.insert(id.into(), Box::new(registration));
         Ok(())
     }
     /// Check explicit host selection before opening a session.
@@ -298,21 +533,23 @@ impl Registry {
     }
     /// The selected host implementation prepares only its own prerequisites.
     pub fn setup(&self, id: &str) -> anyhow::Result<()> {
-        (self
-            .registrations
+        self.registrations
             .get(id)
             .ok_or_else(|| anyhow::anyhow!("Unknown verification backend {id}"))?
-            .setup)()
+            .setup()
     }
     /// Decode one unambiguous bounded backend schema; preserve original values.
     pub fn parse(&self, text: &str) -> io::Result<Contract> {
         if text.len() > 65_536 {
-            return Err(io::Error::other("Contract exceeds 64 KiB"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "Contract exceeds 64 KiB",
+            ));
         }
         let mut decoded = None;
         let mut diagnostics = Vec::new();
         for (id, registration) in &self.registrations {
-            match (registration.decode)(text) {
+            match registration.decode(text) {
                 Ok(value) => {
                     if decoded.is_some() {
                         return Err(io::Error::other(
@@ -321,18 +558,24 @@ impl Registry {
                     }
                     decoded = Some(value);
                 }
-                Err(error) => diagnostics.push(format!("{id}: {error}")),
+                Err(error) if error.kind() == io::ErrorKind::InvalidData => {
+                    diagnostics.push(format!("{id}: {error}"));
+                }
+                Err(error) => return Err(error),
             }
         }
         decoded.ok_or_else(|| {
-            io::Error::other(format!(
-                "No registered contract format accepted the proposal:\n{}",
-                diagnostics.join("\n")
-            ))
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!(
+                    "No registered contract format accepted the proposal:\n{}",
+                    diagnostics.join("\n")
+                ),
+            )
         })
     }
-    /// Full function-argument schema. Recursive backend definitions are hoisted
-    /// to the function root so JSON Schema references have the correct scope.
+    /// Full function-argument schema. Each backend keeps its own namespace;
+    /// local recursive references never collide with another backend's types.
     pub fn parameters(&self, selected: Option<&str>) -> io::Result<Value> {
         let mut variants = Vec::new();
         let mut definitions = serde_json::Map::new();
@@ -340,19 +583,11 @@ impl Registry {
             if selected.is_some_and(|selected| selected != id) {
                 continue;
             }
-            let mut schema = (registration.schema)()?;
-            if let Some(object) = schema.as_object_mut() {
-                object.remove("$schema");
-                object.remove("title");
-                if let Some(Value::Object(defs)) = object.remove("$defs") {
-                    for (key, value) in defs {
-                        if definitions.insert(key, value).is_some() {
-                            return Err(io::Error::other("Duplicate registered schema definition"));
-                        }
-                    }
-                }
-            }
-            variants.push(schema);
+            definitions.insert(
+                id.clone(),
+                schema::namespace(id, registration.definition()?.schema.clone())?,
+            );
+            variants.push(serde_json::json!({"$ref":format!("#/$defs/{id}")}));
         }
         if variants.is_empty() {
             return Err(io::Error::other("Unknown verification backend selection"));
@@ -419,7 +654,7 @@ mod tests {
         // Two genuine instances accepting the same data must remain ambiguous.
         registry.registrations.insert(
             "another-host-instance".into(),
-            Registration::new(finite::Finite),
+            Box::new(Registration::new(finite::Finite)),
         );
         assert!(registry.parse(FINITE).is_err());
         Ok(())
