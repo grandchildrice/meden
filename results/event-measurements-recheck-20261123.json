@@ -1,0 +1,1372 @@
+{
+  "date": "2026-11-23",
+  "kind": "Diagnostic repeat of the existing production GUI; no runtime changes",
+  "environment": {
+    "browser": "149.0.7827.53",
+    "viewport": "1440x960",
+    "throttling": "none",
+    "reduced_motion": "no-preference",
+    "gesture_tail_ms": 600,
+    "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+    "declarations": 15,
+    "project_files": 175187,
+    "setup_preparation_ms": 68762.37701099999,
+    "setup_cache_hit": true,
+    "cpu": "13th Gen Intel(R) Core(TM) i7-13620H",
+    "kernel": "6.12.92",
+    "node": "v22.22.2"
+  },
+  "artifacts": {
+    "directory": "target/native-profile/riemann-events-recheck/",
+    "manifest": {
+      "binary_sha256": "d770ade482bb3f66fb44d16d672889ac6ccc4ce37566833ab7565384c5256ace",
+      "samples": 4106,
+      "perf_event_paranoid": "2",
+      "kptr_restrict": "1",
+      "event": "cpu-clock:u",
+      "frequency_hz": 99,
+      "stack": "dwarf,8192",
+      "digests": {
+        "perf.data": "3081f98d1383880d7fbdc2e69ce632f040cba3c09a4401ac3db7c474e570704d",
+        "perf-report.txt": "d8d6b6274eb72eb84c669ca5cc32a0523f4c14cb24833186fe90d33ac648f8e4",
+        "trace.json": "13b1562c1fa1e60305a2f6d17fc5e4441b7cc499c82220205fbd30a8b776b3f1",
+        "native-metrics.json": "e56f8f8e56baf0b9d59ac1a689b57c9ed13479ccadbdb770a9130ca4fde56b67",
+        "summary.json": "6720533c394d242e3a3aac831fafa7545c2ea7fd56c023fe8682a143f28d6b9d",
+        "graph-hover.cpuprofile": "1ad12cae0687da496c14e0dbd5fb96fa7ffe6a489da69d9ba3f72074f7ef2816",
+        "graph-idle-poll.cpuprofile": "62f0dd8f066f1e51b19d6f3743793ee44636ffb5ed8bd2eab74c369557b9d134",
+        "graph-idle-settled.cpuprofile": "3402a604f8367f4a8dfa57c24d6ec1e9dd60f237d8eaf0314d5491f2abd409e5",
+        "graph-node-select.cpuprofile": "46630047fa6eda964ff56329874fc556a7a5a66bb46d0ecd77802ad1e27fb1ee",
+        "graph-pan.cpuprofile": "5992d124737266a9b2bea81aab9d49b2935a7c3b96372125ca691239daf9ff02",
+        "graph-resize.cpuprofile": "9d1181990dd2f3f75f376e7db3a1e1e9020ff18358fe0c8936a1bef60f89e8e3",
+        "graph-wheel.cpuprofile": "9012656233f018366f03f7f4d967bb546143f9a97f4ec8be1b98870ecee23007",
+        "project-map-idle.cpuprofile": "91ed887b7d3486abab31010e9baaeadd0ba91d7b5101af72df98ad9a5957ab5e",
+        "project-map-wheel.cpuprofile": "6fd4cf22dea2015ba14e91a227ee741c72deb21ff6904b3855b19e8bd188c5bf",
+        "tab-switch.cpuprofile": "2cf4412a0346ab4a1206c55810675aa42363ecb1e12385e5c020f3375c3331df"
+      },
+      "limits": "Current-user native host and inherited workers only; no kernel stacks. Thread CPU spans exclude worker CPU. File preparation reuses project/OS caches, not a cold installation. Sampling changes timing; browser profiles have their own overhead."
+    }
+  },
+  "native": {
+    "trace": 2259,
+    "records": 3140,
+    "evicted": 0,
+    "stages": {
+      "gui.enqueue": {
+        "count": 1,
+        "wall_ms": 0.001,
+        "host_thread_cpu_ms": 0,
+        "thread_cpu_samples": 1
+      },
+      "job.queue": {
+        "count": 1,
+        "wall_ms": 0.027,
+        "host_thread_cpu_ms": null,
+        "thread_cpu_samples": 0
+      },
+      "gui.serialize_respond": {
+        "count": 1,
+        "wall_ms": 0.074,
+        "host_thread_cpu_ms": 0.064,
+        "thread_cpu_samples": 1
+      },
+      "gui.command": {
+        "count": 1,
+        "wall_ms": 0.186,
+        "host_thread_cpu_ms": 0.173,
+        "thread_cpu_samples": 1
+      },
+      "process.run": {
+        "count": 101,
+        "wall_ms": 62543.088,
+        "host_thread_cpu_ms": 395.1929999999999,
+        "thread_cpu_samples": 101
+      },
+      "atlas.resources.select": {
+        "count": 15,
+        "wall_ms": 182.912,
+        "host_thread_cpu_ms": 178.418,
+        "thread_cpu_samples": 15
+      },
+      "atlas.resources.validate": {
+        "count": 28,
+        "wall_ms": 676.249,
+        "host_thread_cpu_ms": 651.0340000000001,
+        "thread_cpu_samples": 28
+      },
+      "analysis.capture_sources": {
+        "count": 3,
+        "wall_ms": 135.619,
+        "host_thread_cpu_ms": 3.933,
+        "thread_cpu_samples": 3
+      },
+      "sandbox.public_tools": {
+        "count": 13,
+        "wall_ms": 1258.632,
+        "host_thread_cpu_ms": 64.936,
+        "thread_cpu_samples": 13
+      },
+      "sandbox.libraries": {
+        "count": 13,
+        "wall_ms": 811.596,
+        "host_thread_cpu_ms": 62.20399999999999,
+        "thread_cpu_samples": 13
+      },
+      "sandbox.nix_closure": {
+        "count": 13,
+        "wall_ms": 693.6479999999999,
+        "host_thread_cpu_ms": 15.278,
+        "thread_cpu_samples": 13
+      },
+      "sandbox.prepare": {
+        "count": 13,
+        "wall_ms": 10042.806999999999,
+        "host_thread_cpu_ms": 747.822,
+        "thread_cpu_samples": 13
+      },
+      "atlas.lake_configuration": {
+        "count": 12,
+        "wall_ms": 24012.718,
+        "host_thread_cpu_ms": 768.6850000000001,
+        "thread_cpu_samples": 12
+      },
+      "analysis.discover_layout": {
+        "count": 1,
+        "wall_ms": 26013.012,
+        "host_thread_cpu_ms": 1504.523,
+        "thread_cpu_samples": 1
+      },
+      "analysis.select_roots": {
+        "count": 1,
+        "wall_ms": 26107.218,
+        "host_thread_cpu_ms": 1507.548,
+        "thread_cpu_samples": 1
+      },
+      "atlas.project.prepare": {
+        "count": 1,
+        "wall_ms": 38745.834,
+        "host_thread_cpu_ms": 314.144,
+        "thread_cpu_samples": 1
+      },
+      "analysis.cache.validate": {
+        "count": 2,
+        "wall_ms": 1268.661,
+        "host_thread_cpu_ms": 62.043,
+        "thread_cpu_samples": 2
+      },
+      "analysis.cache.retain_observation": {
+        "count": 1,
+        "wall_ms": 14.135,
+        "host_thread_cpu_ms": 13.769,
+        "thread_cpu_samples": 1
+      },
+      "analysis.cache.load_rendering": {
+        "count": 1,
+        "wall_ms": 1.411,
+        "host_thread_cpu_ms": 1.103,
+        "thread_cpu_samples": 1
+      },
+      "analysis.extract": {
+        "count": 1,
+        "wall_ms": 67529.06,
+        "host_thread_cpu_ms": 2039.24,
+        "thread_cpu_samples": 1
+      },
+      "analysis.materialize_view": {
+        "count": 1,
+        "wall_ms": 0.427,
+        "host_thread_cpu_ms": 0.422,
+        "thread_cpu_samples": 1
+      },
+      "gui.job": {
+        "count": 1,
+        "wall_ms": 67680.589,
+        "host_thread_cpu_ms": 2095.92,
+        "thread_cpu_samples": 1
+      }
+    }
+  },
+  "phases": {
+    "graph-idle-poll": {
+      "event_type": null,
+      "handler": null,
+      "input_to_two_raf": {
+        "count": 0,
+        "p50_ms": 0,
+        "p95_ms": 0,
+        "max_ms": 0,
+        "total_ms": 0
+      },
+      "long_tasks": {
+        "count": 0,
+        "p50_ms": 0,
+        "p95_ms": 0,
+        "max_ms": 0,
+        "total_ms": 0
+      },
+      "rendering": {
+        "UpdateLayoutTree": {
+          "count": 0,
+          "p50_ms": 0,
+          "p95_ms": 0,
+          "max_ms": 0,
+          "total_ms": 0
+        },
+        "Layout": {
+          "count": 0,
+          "p50_ms": 0,
+          "p95_ms": 0,
+          "max_ms": 0,
+          "total_ms": 0
+        },
+        "PrePaint": {
+          "count": 224,
+          "p50_ms": 0.012,
+          "p95_ms": 0.023,
+          "max_ms": 0.094,
+          "total_ms": 3.172999999999996
+        },
+        "Paint": {
+          "count": 0,
+          "p50_ms": 0,
+          "p95_ms": 0,
+          "max_ms": 0,
+          "total_ms": 0
+        },
+        "FunctionCall": {
+          "count": 482,
+          "p50_ms": 0.042,
+          "p95_ms": 0.56,
+          "max_ms": 20.814,
+          "total_ms": 185.383
+        },
+        "FireAnimationFrame": {
+          "count": 412,
+          "p50_ms": 0.071,
+          "p95_ms": 0.177,
+          "max_ms": 1.6,
+          "total_ms": 34.73400000000001
+        },
+        "TimerFire": {
+          "count": 10,
+          "p50_ms": 0.713,
+          "p95_ms": 0.997,
+          "max_ms": 0.997,
+          "total_ms": 7.055
+        }
+      },
+      "cpu_hotspots": [
+        {
+          "self_ms": 3059.8979999999997,
+          "location": "(idle)"
+        },
+        {
+          "self_ms": 612.639999999999,
+          "location": "(program)"
+        },
+        {
+          "self_ms": 66.861,
+          "location": "(garbage collector)"
+        },
+        {
+          "self_ms": 6.4719999999999995,
+          "location": "index-DhYsAvyM.js:48 · ft"
+        },
+        {
+          "self_ms": 5.412000000000001,
+          "location": "index-DhYsAvyM.js:56 · (anonymous)"
+        },
+        {
+          "self_ms": 5.392,
+          "location": "index-DhYsAvyM.js:694 · y"
+        },
+        {
+          "self_ms": 4.311000000000001,
+          "location": "index-DhYsAvyM.js:17 · Eq.Jt.createElement"
+        },
+        {
+          "self_ms": 4.295,
+          "location": "index-DhYsAvyM.js:694 · y"
+        }
+      ],
+      "state_requests": {
+        "count": 10,
+        "response_end_p95_ms": 15.055,
+        "response_body_bytes": [89687]
+      },
+      "non_state_requests": []
+    },
+    "graph-idle-settled": {
+      "event_type": null,
+      "handler": null,
+      "input_to_two_raf": {
+        "count": 0,
+        "p50_ms": 0,
+        "p95_ms": 0,
+        "max_ms": 0,
+        "total_ms": 0
+      },
+      "long_tasks": {
+        "count": 0,
+        "p50_ms": 0,
+        "p95_ms": 0,
+        "max_ms": 0,
+        "total_ms": 0
+      },
+      "rendering": {
+        "UpdateLayoutTree": {
+          "count": 0,
+          "p50_ms": 0,
+          "p95_ms": 0,
+          "max_ms": 0,
+          "total_ms": 0
+        },
+        "Layout": {
+          "count": 0,
+          "p50_ms": 0,
+          "p95_ms": 0,
+          "max_ms": 0,
+          "total_ms": 0
+        },
+        "PrePaint": {
+          "count": 224,
+          "p50_ms": 0.014,
+          "p95_ms": 0.025,
+          "max_ms": 0.112,
+          "total_ms": 3.684999999999995
+        },
+        "Paint": {
+          "count": 0,
+          "p50_ms": 0,
+          "p95_ms": 0,
+          "max_ms": 0,
+          "total_ms": 0
+        },
+        "FunctionCall": {
+          "count": 488,
+          "p50_ms": 0.044,
+          "p95_ms": 0.52,
+          "max_ms": 27.477,
+          "total_ms": 235.018
+        },
+        "FireAnimationFrame": {
+          "count": 412,
+          "p50_ms": 0.077,
+          "p95_ms": 0.171,
+          "max_ms": 0.75,
+          "total_ms": 34.27399999999998
+        },
+        "TimerFire": {
+          "count": 10,
+          "p50_ms": 0.716,
+          "p95_ms": 0.829,
+          "max_ms": 0.829,
+          "total_ms": 6.4159999999999995
+        }
+      },
+      "cpu_hotspots": [
+        {
+          "self_ms": 3068.1980000000017,
+          "location": "(idle)"
+        },
+        {
+          "self_ms": 584.7810000000003,
+          "location": "(program)"
+        },
+        {
+          "self_ms": 13.954,
+          "location": "index-DhYsAvyM.js:56 · (anonymous)"
+        },
+        {
+          "self_ms": 9.707999999999998,
+          "location": "index-DhYsAvyM.js:48 · lV"
+        },
+        {
+          "self_ms": 6.581,
+          "location": "index-DhYsAvyM.js:48 · h9"
+        },
+        {
+          "self_ms": 6.497,
+          "location": "index-DhYsAvyM.js:48 · fu"
+        },
+        {
+          "self_ms": 6.469999999999999,
+          "location": "index-DhYsAvyM.js:48 · ft"
+        },
+        {
+          "self_ms": 6.385,
+          "location": "index-DhYsAvyM.js:49 · MV"
+        }
+      ],
+      "state_requests": {
+        "count": 11,
+        "response_end_p95_ms": 25.454,
+        "response_body_bytes": [89687]
+      },
+      "non_state_requests": []
+    },
+    "graph-wheel": {
+      "event_type": "wheel",
+      "handler": {
+        "count": 24,
+        "p50_ms": 0.634,
+        "p95_ms": 0.962,
+        "max_ms": 2.098,
+        "total_ms": 16.250000000000004
+      },
+      "input_to_two_raf": {
+        "count": 26,
+        "p50_ms": 16.599999994039536,
+        "p95_ms": 17.100000023841858,
+        "max_ms": 22.599999994039536,
+        "total_ms": 418.60000002384186
+      },
+      "long_tasks": {
+        "count": 0,
+        "p50_ms": 0,
+        "p95_ms": 0,
+        "max_ms": 0,
+        "total_ms": 0
+      },
+      "rendering": {
+        "UpdateLayoutTree": {
+          "count": 25,
+          "p50_ms": 0.868,
+          "p95_ms": 1.359,
+          "max_ms": 1.419,
+          "total_ms": 22.971
+        },
+        "Layout": {
+          "count": 0,
+          "p50_ms": 0,
+          "p95_ms": 0,
+          "max_ms": 0,
+          "total_ms": 0
+        },
+        "PrePaint": {
+          "count": 118,
+          "p50_ms": 0.018,
+          "p95_ms": 3.466,
+          "max_ms": 4.059,
+          "total_ms": 72.477
+        },
+        "Paint": {
+          "count": 48,
+          "p50_ms": 1.924,
+          "p95_ms": 6.742,
+          "max_ms": 7.252,
+          "total_ms": 129.305
+        },
+        "FunctionCall": {
+          "count": 271,
+          "p50_ms": 0.055,
+          "p95_ms": 0.52,
+          "max_ms": 22.062,
+          "total_ms": 95.605
+        },
+        "FireAnimationFrame": {
+          "count": 153,
+          "p50_ms": 0.056,
+          "p95_ms": 0.158,
+          "max_ms": 0.218,
+          "total_ms": 10.160000000000002
+        },
+        "TimerFire": {
+          "count": 6,
+          "p50_ms": 0.668,
+          "p95_ms": 0.886,
+          "max_ms": 0.886,
+          "total_ms": 3.3000000000000003
+        }
+      },
+      "cpu_hotspots": [
+        {
+          "self_ms": 989.5110000000004,
+          "location": "(idle)"
+        },
+        {
+          "self_ms": 627.3140000000001,
+          "location": "(program)"
+        },
+        {
+          "self_ms": 5.404,
+          "location": "index-DhYsAvyM.js:56 · pK"
+        },
+        {
+          "self_ms": 4.321000000000001,
+          "location": "index-DhYsAvyM.js:48 · fu"
+        },
+        {
+          "self_ms": 3.252,
+          "location": "index-DhYsAvyM.js:17 · Eq.Jt.createElement"
+        },
+        {
+          "self_ms": 3.2380000000000004,
+          "location": "index-DhYsAvyM.js:48 · ce"
+        },
+        {
+          "self_ms": 2.343,
+          "location": "(garbage collector)"
+        },
+        {
+          "self_ms": 2.1980000000000004,
+          "location": "index-DhYsAvyM.js:49 · MV"
+        }
+      ],
+      "state_requests": {
+        "count": 4,
+        "response_end_p95_ms": 14.19,
+        "response_body_bytes": [89687]
+      },
+      "non_state_requests": []
+    },
+    "graph-hover": {
+      "event_type": "mousemove",
+      "handler": {
+        "count": 40,
+        "p50_ms": 0.057,
+        "p95_ms": 0.116,
+        "max_ms": 0.126,
+        "total_ms": 2.5630000000000006
+      },
+      "input_to_two_raf": {
+        "count": 80,
+        "p50_ms": 19.19999998807907,
+        "p95_ms": 29.399999976158142,
+        "max_ms": 31.200000017881393,
+        "total_ms": 1627.1999998390675
+      },
+      "long_tasks": {
+        "count": 0,
+        "p50_ms": 0,
+        "p95_ms": 0,
+        "max_ms": 0,
+        "total_ms": 0
+      },
+      "rendering": {
+        "UpdateLayoutTree": {
+          "count": 170,
+          "p50_ms": 0.398,
+          "p95_ms": 0.825,
+          "max_ms": 2.968,
+          "total_ms": 70.634
+        },
+        "Layout": {
+          "count": 107,
+          "p50_ms": 0.366,
+          "p95_ms": 0.643,
+          "max_ms": 5.188,
+          "total_ms": 46.07300000000001
+        },
+        "PrePaint": {
+          "count": 215,
+          "p50_ms": 0.008,
+          "p95_ms": 1.827,
+          "max_ms": 2.86,
+          "total_ms": 69.826
+        },
+        "Paint": {
+          "count": 280,
+          "p50_ms": 0.016,
+          "p95_ms": 3.98,
+          "max_ms": 6.473,
+          "total_ms": 200.32900000000004
+        },
+        "FunctionCall": {
+          "count": 1580,
+          "p50_ms": 0.009,
+          "p95_ms": 0.106,
+          "max_ms": 20.906,
+          "total_ms": 431.792
+        },
+        "FireAnimationFrame": {
+          "count": 279,
+          "p50_ms": 0.013,
+          "p95_ms": 0.111,
+          "max_ms": 0.386,
+          "total_ms": 8.510999999999996
+        },
+        "TimerFire": {
+          "count": 5,
+          "p50_ms": 0.529,
+          "p95_ms": 1.467,
+          "max_ms": 1.467,
+          "total_ms": 3.053
+        }
+      },
+      "cpu_hotspots": [
+        {
+          "self_ms": 800.9340000000008,
+          "location": "(idle)"
+        },
+        {
+          "self_ms": 714.5289999999961,
+          "location": "(program)"
+        },
+        {
+          "self_ms": 24.92500000000001,
+          "location": "index-DhYsAvyM.js:225 · jT"
+        },
+        {
+          "self_ms": 22.326999999999998,
+          "location": "get scrollTop"
+        },
+        {
+          "self_ms": 21.416999999999998,
+          "location": "index-DhYsAvyM.js:225 · jT"
+        },
+        {
+          "self_ms": 20.144000000000002,
+          "location": "query"
+        },
+        {
+          "self_ms": 18.233999999999998,
+          "location": "index-DhYsAvyM.js:56 · (anonymous)"
+        },
+        {
+          "self_ms": 16.076,
+          "location": "index-DhYsAvyM.js:225 · X7"
+        }
+      ],
+      "state_requests": {
+        "count": 5,
+        "response_end_p95_ms": 12.175,
+        "response_body_bytes": [89687]
+      },
+      "non_state_requests": []
+    },
+    "graph-pan": {
+      "event_type": "mousemove",
+      "handler": {
+        "count": 31,
+        "p50_ms": 0.188,
+        "p95_ms": 0.4,
+        "max_ms": 0.675,
+        "total_ms": 6.944000000000001
+      },
+      "input_to_two_raf": {
+        "count": 2,
+        "p50_ms": 37.099999994039536,
+        "p95_ms": 37.099999994039536,
+        "max_ms": 37.099999994039536,
+        "total_ms": 61.19999998807907
+      },
+      "long_tasks": {
+        "count": 0,
+        "p50_ms": 0,
+        "p95_ms": 0,
+        "max_ms": 0,
+        "total_ms": 0
+      },
+      "rendering": {
+        "UpdateLayoutTree": {
+          "count": 31,
+          "p50_ms": 0.652,
+          "p95_ms": 1.488,
+          "max_ms": 1.523,
+          "total_ms": 22.791
+        },
+        "Layout": {
+          "count": 0,
+          "p50_ms": 0,
+          "p95_ms": 0,
+          "max_ms": 0,
+          "total_ms": 0
+        },
+        "PrePaint": {
+          "count": 176,
+          "p50_ms": 0.012,
+          "p95_ms": 2.311,
+          "max_ms": 3.981,
+          "total_ms": 67.7
+        },
+        "Paint": {
+          "count": 60,
+          "p50_ms": 2.085,
+          "p95_ms": 5.983,
+          "max_ms": 6.341,
+          "total_ms": 128.41799999999998
+        },
+        "FunctionCall": {
+          "count": 368,
+          "p50_ms": 0.027,
+          "p95_ms": 0.247,
+          "max_ms": 18.71,
+          "total_ms": 64.03199999999998
+        },
+        "FireAnimationFrame": {
+          "count": 90,
+          "p50_ms": 0.068,
+          "p95_ms": 0.157,
+          "max_ms": 0.251,
+          "total_ms": 6.806000000000004
+        },
+        "TimerFire": {
+          "count": 5,
+          "p50_ms": 0.371,
+          "p95_ms": 0.78,
+          "max_ms": 0.78,
+          "total_ms": 1.865
+        }
+      },
+      "cpu_hotspots": [
+        {
+          "self_ms": 779.5770000000007,
+          "location": "(idle)"
+        },
+        {
+          "self_ms": 583.4970000000003,
+          "location": "(program)"
+        },
+        {
+          "self_ms": 3.2399999999999998,
+          "location": "index-DhYsAvyM.js:56 · pK"
+        },
+        {
+          "self_ms": 3.2039999999999997,
+          "location": "index-DhYsAvyM.js:48 · lV"
+        },
+        {
+          "self_ms": 2.153,
+          "location": "index-DhYsAvyM.js:49 · MV"
+        },
+        {
+          "self_ms": 2.145,
+          "location": "index-DhYsAvyM.js:56 · (anonymous)"
+        },
+        {
+          "self_ms": 2.1390000000000002,
+          "location": "index-DhYsAvyM.js:48 · ft"
+        },
+        {
+          "self_ms": 2.135,
+          "location": "index-DhYsAvyM.js:49 · MV"
+        }
+      ],
+      "state_requests": {
+        "count": 3,
+        "response_end_p95_ms": 10.794,
+        "response_body_bytes": [89687]
+      },
+      "non_state_requests": []
+    },
+    "graph-resize": {
+      "event_type": "resize",
+      "handler": {
+        "count": 6,
+        "p50_ms": 1.248,
+        "p95_ms": 1.894,
+        "max_ms": 1.894,
+        "total_ms": 7.639
+      },
+      "input_to_two_raf": {
+        "count": 0,
+        "p50_ms": 0,
+        "p95_ms": 0,
+        "max_ms": 0,
+        "total_ms": 0
+      },
+      "long_tasks": {
+        "count": 0,
+        "p50_ms": 0,
+        "p95_ms": 0,
+        "max_ms": 0,
+        "total_ms": 0
+      },
+      "rendering": {
+        "UpdateLayoutTree": {
+          "count": 20,
+          "p50_ms": 0.067,
+          "p95_ms": 1.501,
+          "max_ms": 1.501,
+          "total_ms": 8.587
+        },
+        "Layout": {
+          "count": 20,
+          "p50_ms": 0.402,
+          "p95_ms": 1.723,
+          "max_ms": 1.723,
+          "total_ms": 14.208000000000002
+        },
+        "PrePaint": {
+          "count": 61,
+          "p50_ms": 0.013,
+          "p95_ms": 2.058,
+          "max_ms": 3.443,
+          "total_ms": 15.136999999999999
+        },
+        "Paint": {
+          "count": 8,
+          "p50_ms": 3.439,
+          "p95_ms": 5.896,
+          "max_ms": 5.896,
+          "total_ms": 31.337
+        },
+        "FunctionCall": {
+          "count": 143,
+          "p50_ms": 0.042,
+          "p95_ms": 1.787,
+          "max_ms": 19.845,
+          "total_ms": 93.429
+        },
+        "FireAnimationFrame": {
+          "count": 58,
+          "p50_ms": 0.089,
+          "p95_ms": 0.2,
+          "max_ms": 0.255,
+          "total_ms": 5.228
+        },
+        "TimerFire": {
+          "count": 2,
+          "p50_ms": 0.845,
+          "p95_ms": 0.845,
+          "max_ms": 0.845,
+          "total_ms": 1.381
+        }
+      },
+      "cpu_hotspots": [
+        {
+          "self_ms": 599.2190000000007,
+          "location": "(idle)"
+        },
+        {
+          "self_ms": 306.81000000000006,
+          "location": "(program)"
+        },
+        {
+          "self_ms": 8.657,
+          "location": "index-DhYsAvyM.js:56 · (anonymous)"
+        },
+        {
+          "self_ms": 4.228000000000001,
+          "location": "index-DhYsAvyM.js:48 · lV"
+        },
+        {
+          "self_ms": 4.149,
+          "location": "index-DhYsAvyM.js:694 · (anonymous)"
+        },
+        {
+          "self_ms": 3.226,
+          "location": "index-DhYsAvyM.js:56 · pK"
+        },
+        {
+          "self_ms": 3.209,
+          "location": "index-DhYsAvyM.js:48 · bb"
+        },
+        {
+          "self_ms": 3.202,
+          "location": "index-DhYsAvyM.js:48 · ce"
+        }
+      ],
+      "state_requests": {
+        "count": 3,
+        "response_end_p95_ms": 16.102,
+        "response_body_bytes": [89687]
+      },
+      "non_state_requests": []
+    },
+    "tab-switch": {
+      "event_type": "click",
+      "handler": {
+        "count": 24,
+        "p50_ms": 17.632,
+        "p95_ms": 24.676,
+        "max_ms": 27.951,
+        "total_ms": 424.654
+      },
+      "input_to_two_raf": {
+        "count": 120,
+        "p50_ms": 37.099999994039536,
+        "p95_ms": 55.5,
+        "max_ms": 66.90000000596046,
+        "total_ms": 4613.600000411272
+      },
+      "long_tasks": {
+        "count": 1,
+        "p50_ms": 59,
+        "p95_ms": 59,
+        "max_ms": 59,
+        "total_ms": 59
+      },
+      "rendering": {
+        "UpdateLayoutTree": {
+          "count": 120,
+          "p50_ms": 0.52,
+          "p95_ms": 5.25,
+          "max_ms": 9.773,
+          "total_ms": 145.45999999999998
+        },
+        "Layout": {
+          "count": 25,
+          "p50_ms": 2.7,
+          "p95_ms": 8.179,
+          "max_ms": 13.111,
+          "total_ms": 106.657
+        },
+        "PrePaint": {
+          "count": 486,
+          "p50_ms": 0.006,
+          "p95_ms": 1.074,
+          "max_ms": 3.747,
+          "total_ms": 57.87699999999999
+        },
+        "Paint": {
+          "count": 48,
+          "p50_ms": 3.314,
+          "p95_ms": 3.907,
+          "max_ms": 4.266,
+          "total_ms": 140.46499999999997
+        },
+        "FunctionCall": {
+          "count": 2679,
+          "p50_ms": 0.01,
+          "p95_ms": 0.307,
+          "max_ms": 27.613,
+          "total_ms": 691.2109999999998
+        },
+        "FireAnimationFrame": {
+          "count": 455,
+          "p50_ms": 0.02,
+          "p95_ms": 0.233,
+          "max_ms": 0.644,
+          "total_ms": 21.485999999999986
+        },
+        "TimerFire": {
+          "count": 9,
+          "p50_ms": 0.26,
+          "p95_ms": 0.871,
+          "max_ms": 0.871,
+          "total_ms": 3.673
+        }
+      },
+      "cpu_hotspots": [
+        {
+          "self_ms": 1183.685999999999,
+          "location": "(idle)"
+        },
+        {
+          "self_ms": 955.3199999999956,
+          "location": "(program)"
+        },
+        {
+          "self_ms": 55.306000000000004,
+          "location": "query"
+        },
+        {
+          "self_ms": 49.92000000000001,
+          "location": "index-DhYsAvyM.js:702 · Y2"
+        },
+        {
+          "self_ms": 30.128999999999998,
+          "location": "index-DhYsAvyM.js:719 · dMe"
+        },
+        {
+          "self_ms": 20.509,
+          "location": "index-DhYsAvyM.js:719 · (anonymous)"
+        },
+        {
+          "self_ms": 17.491999999999997,
+          "location": "index-DhYsAvyM.js:713 · pCe"
+        },
+        {
+          "self_ms": 16.177999999999997,
+          "location": "index-DhYsAvyM.js:702 · qp"
+        }
+      ],
+      "state_requests": {
+        "count": 8,
+        "response_end_p95_ms": 10.906,
+        "response_body_bytes": [89687]
+      },
+      "non_state_requests": []
+    },
+    "graph-node-select": {
+      "event_type": "click",
+      "handler": {
+        "count": 9,
+        "p50_ms": 0.113,
+        "p95_ms": 29.863,
+        "max_ms": 29.863,
+        "total_ms": 44.187
+      },
+      "input_to_two_raf": {
+        "count": 31,
+        "p50_ms": 29.69999998807907,
+        "p95_ms": 76.59999999403954,
+        "max_ms": 76.90000000596046,
+        "total_ms": 1134.900000065565
+      },
+      "long_tasks": {
+        "count": 1,
+        "p50_ms": 50,
+        "p95_ms": 50,
+        "max_ms": 50,
+        "total_ms": 50
+      },
+      "rendering": {
+        "UpdateLayoutTree": {
+          "count": 62,
+          "p50_ms": 0.219,
+          "p95_ms": 0.626,
+          "max_ms": 8.597,
+          "total_ms": 25.177
+        },
+        "Layout": {
+          "count": 15,
+          "p50_ms": 0.352,
+          "p95_ms": 1.557,
+          "max_ms": 1.557,
+          "total_ms": 7.644
+        },
+        "PrePaint": {
+          "count": 136,
+          "p50_ms": 0.007,
+          "p95_ms": 0.131,
+          "max_ms": 1.741,
+          "total_ms": 7.696
+        },
+        "Paint": {
+          "count": 21,
+          "p50_ms": 0.407,
+          "p95_ms": 5.667,
+          "max_ms": 6.019,
+          "total_ms": 39.57
+        },
+        "FunctionCall": {
+          "count": 682,
+          "p50_ms": 0.008,
+          "p95_ms": 0.091,
+          "max_ms": 27.717,
+          "total_ms": 104.02199999999998
+        },
+        "FireAnimationFrame": {
+          "count": 127,
+          "p50_ms": 0.018,
+          "p95_ms": 0.148,
+          "max_ms": 0.706,
+          "total_ms": 6.042
+        },
+        "TimerFire": {
+          "count": 5,
+          "p50_ms": 0.282,
+          "p95_ms": 0.985,
+          "max_ms": 0.985,
+          "total_ms": 1.9489999999999998
+        }
+      },
+      "cpu_hotspots": [
+        {
+          "self_ms": 592.9499999999997,
+          "location": "(idle)"
+        },
+        {
+          "self_ms": 364.92499999999825,
+          "location": "(program)"
+        },
+        {
+          "self_ms": 8.016,
+          "location": "index-DhYsAvyM.js:225 · X7"
+        },
+        {
+          "self_ms": 6.597,
+          "location": "query"
+        },
+        {
+          "self_ms": 4.013,
+          "location": "get scrollTop"
+        },
+        {
+          "self_ms": 3.2359999999999998,
+          "location": "index-DhYsAvyM.js:100 · (anonymous)"
+        },
+        {
+          "self_ms": 3.1790000000000003,
+          "location": "index-DhYsAvyM.js:48 · T9"
+        },
+        {
+          "self_ms": 2.207,
+          "location": "(anonymous)"
+        }
+      ],
+      "state_requests": {
+        "count": 3,
+        "response_end_p95_ms": 13.57,
+        "response_body_bytes": [89687]
+      },
+      "non_state_requests": []
+    },
+    "project-map-wheel": {
+      "event_type": "wheel",
+      "handler": {
+        "count": 24,
+        "p50_ms": 8.882,
+        "p95_ms": 10.721,
+        "max_ms": 11.883,
+        "total_ms": 195.64000000000001
+      },
+      "input_to_two_raf": {
+        "count": 34,
+        "p50_ms": 18.80000001192093,
+        "p95_ms": 26.69999998807907,
+        "max_ms": 27.899999976158142,
+        "total_ms": 652.9000000059605
+      },
+      "long_tasks": {
+        "count": 0,
+        "p50_ms": 0,
+        "p95_ms": 0,
+        "max_ms": 0,
+        "total_ms": 0
+      },
+      "rendering": {
+        "UpdateLayoutTree": {
+          "count": 25,
+          "p50_ms": 0.933,
+          "p95_ms": 1.268,
+          "max_ms": 1.506,
+          "total_ms": 22.277000000000005
+        },
+        "Layout": {
+          "count": 25,
+          "p50_ms": 0.378,
+          "p95_ms": 0.575,
+          "max_ms": 7.035,
+          "total_ms": 15.649000000000001
+        },
+        "PrePaint": {
+          "count": 149,
+          "p50_ms": 0.013,
+          "p95_ms": 1.914,
+          "max_ms": 2.535,
+          "total_ms": 43.99799999999999
+        },
+        "Paint": {
+          "count": 73,
+          "p50_ms": 0.109,
+          "p95_ms": 4.534,
+          "max_ms": 4.796,
+          "total_ms": 83.91400000000002
+        },
+        "FunctionCall": {
+          "count": 489,
+          "p50_ms": 0.026,
+          "p95_ms": 4.118,
+          "max_ms": 25.609,
+          "total_ms": 289.655
+        },
+        "FireAnimationFrame": {
+          "count": 170,
+          "p50_ms": 0.031,
+          "p95_ms": 0.141,
+          "max_ms": 0.27,
+          "total_ms": 8.073000000000002
+        },
+        "TimerFire": {
+          "count": 8,
+          "p50_ms": 0.484,
+          "p95_ms": 0.957,
+          "max_ms": 0.957,
+          "total_ms": 3.281
+        }
+      },
+      "cpu_hotspots": [
+        {
+          "self_ms": 918.5980000000008,
+          "location": "(idle)"
+        },
+        {
+          "self_ms": 545.0560000000004,
+          "location": "(program)"
+        },
+        {
+          "self_ms": 63.673000000000016,
+          "location": "index-DhYsAvyM.js:702 · Y2"
+        },
+        {
+          "self_ms": 36.318999999999996,
+          "location": "index-DhYsAvyM.js:719 · (anonymous)"
+        },
+        {
+          "self_ms": 24.968,
+          "location": "index-DhYsAvyM.js:702 · qp"
+        },
+        {
+          "self_ms": 24.780999999999995,
+          "location": "index-DhYsAvyM.js:719 · dMe"
+        },
+        {
+          "self_ms": 6.372999999999999,
+          "location": "index-DhYsAvyM.js:719 · dMe"
+        },
+        {
+          "self_ms": 5.35,
+          "location": "index-DhYsAvyM.js:702 · Y2"
+        }
+      ],
+      "state_requests": {
+        "count": 5,
+        "response_end_p95_ms": 11.14,
+        "response_body_bytes": [89687]
+      },
+      "non_state_requests": []
+    },
+    "project-map-idle": {
+      "event_type": null,
+      "handler": null,
+      "input_to_two_raf": {
+        "count": 0,
+        "p50_ms": 0,
+        "p95_ms": 0,
+        "max_ms": 0,
+        "total_ms": 0
+      },
+      "long_tasks": {
+        "count": 0,
+        "p50_ms": 0,
+        "p95_ms": 0,
+        "max_ms": 0,
+        "total_ms": 0
+      },
+      "rendering": {
+        "UpdateLayoutTree": {
+          "count": 0,
+          "p50_ms": 0,
+          "p95_ms": 0,
+          "max_ms": 0,
+          "total_ms": 0
+        },
+        "Layout": {
+          "count": 0,
+          "p50_ms": 0,
+          "p95_ms": 0,
+          "max_ms": 0,
+          "total_ms": 0
+        },
+        "PrePaint": {
+          "count": 234,
+          "p50_ms": 0.013,
+          "p95_ms": 0.032,
+          "max_ms": 0.066,
+          "total_ms": 3.496999999999996
+        },
+        "Paint": {
+          "count": 0,
+          "p50_ms": 0,
+          "p95_ms": 0,
+          "max_ms": 0,
+          "total_ms": 0
+        },
+        "FunctionCall": {
+          "count": 519,
+          "p50_ms": 0.039,
+          "p95_ms": 0.583,
+          "max_ms": 30,
+          "total_ms": 242.038
+        },
+        "FireAnimationFrame": {
+          "count": 412,
+          "p50_ms": 0.067,
+          "p95_ms": 0.165,
+          "max_ms": 0.902,
+          "total_ms": 31.773000000000003
+        },
+        "TimerFire": {
+          "count": 10,
+          "p50_ms": 0.711,
+          "p95_ms": 0.953,
+          "max_ms": 0.953,
+          "total_ms": 7.058000000000001
+        }
+      },
+      "cpu_hotspots": [
+        {
+          "self_ms": 2976.745000000001,
+          "location": "(idle)"
+        },
+        {
+          "self_ms": 634.3169999999998,
+          "location": "(program)"
+        },
+        {
+          "self_ms": 43.995000000000005,
+          "location": "(garbage collector)"
+        },
+        {
+          "self_ms": 25.82,
+          "location": "index-DhYsAvyM.js:702 · Y2"
+        },
+        {
+          "self_ms": 19.301,
+          "location": "index-DhYsAvyM.js:719 · (anonymous)"
+        },
+        {
+          "self_ms": 9.665999999999999,
+          "location": "index-DhYsAvyM.js:719 · dMe"
+        },
+        {
+          "self_ms": 8.589,
+          "location": "fetch"
+        },
+        {
+          "self_ms": 8.572,
+          "location": "index-DhYsAvyM.js:56 · (anonymous)"
+        }
+      ],
+      "state_requests": {
+        "count": 10,
+        "response_end_p95_ms": 14.688,
+        "response_body_bytes": [89687]
+      },
+      "non_state_requests": []
+    }
+  },
+  "findings": [
+    {
+      "priority": 1,
+      "observation": "A persisted-cache file open took 68.762 seconds, compared with 40.04 and 41.20 seconds in the preceding captures of the same pinned binary. Layout discovery took 26.013 seconds, including twelve Lake configuration calls totaling 24.013 seconds. Build/input resolution and fingerprinting took 38.746 seconds. Exact cache validation took 1.269 seconds and source-view materialization 0.427 ms.",
+      "action": "Reuse host-evaluated Lake configuration and prepared input observations with explicit invalidation. Retain source, configuration, resource and artifact checks. These spans are nested; their totals are not additive. Timing variation alone does not identify its cause or establish a code regression."
+    },
+    {
+      "priority": 2,
+      "observation": "Map-wheel handler p95 was 10.721 ms for 24 events versus 0.962 ms for 24 dependency-graph wheel events. NativeWorkspaceGraph still scans scene.areas for legend visibility and scans the entire scene again for breadcrumbs at move end.",
+      "action": "Reuse the viewport index for legend and breadcrumb decisions. This is the leading measured gesture cost, separate from file preparation."
+    },
+    {
+      "priority": 3,
+      "observation": "Retained-tab handler p95 was 24.676 ms; its phase input/two-rAF proxy p95 was 55.5 ms. The nine-click node sequence including Fit View had handler p95 29.863 ms, proxy p95 76.6 ms and one 50 ms long task.",
+      "action": "Reduce map reactivation scans and source/popover layout, while keeping prepared tabs and cameras retained. The node sequence repeats a reachable node; it does not represent arbitrary declaration selection."
+    },
+    {
+      "priority": 4,
+      "observation": "No measured gesture or tab phase issued a non-state API request. Initial and settled graph idle and map idle windows contained zero long tasks.",
+      "action": "Do not attribute those gesture costs to compilation or claim every state poll rebuilds the map. Initial inventory arrival and revision changes need separate captures."
+    }
+  ],
+  "limits": [
+    "Real GUI pointer/wheel/click events with CDP dispatch spans and sampled CPU profiles. Input-to-two-rAF is a presentation proxy, not measured physical presentation or INP. Nested trace spans overlap and must not be summed as exclusive CPU time. Profiling and automation add overhead; one controlled desktop run is not a field percentile.",
+    "Fresh browser page, existing project/OS/compiler caches, one unthrottled desktop. No cold installation or uncached compilation claim.",
+    "A small 15-declaration file graph does not establish large per-file graph performance. Repeated gestures are not independent population samples.",
+    "Native user-space sampling includes inherited workers; host-thread CPU spans exclude worker CPU. Wall time minus host CPU is not measured I/O wait.",
+    "No chat message, inference request, source edit, executable rebuild or service restart was performed by the profiler. The production executable and assets were pinned."
+  ],
+  "checks": {
+    "raw_artifact_digests": "passed",
+    "native_samples": 4106,
+    "browser_screenshot_reviewed": "target/native-profile/riemann-events-recheck/project-map.png",
+    "required_tui": {
+      "success": true,
+      "selected": 34,
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/validation/b6878ba4504e33641b2a2556e77f2bdd5871db90c9f3240f470b83e745fdfae1/meden",
+        "sha256": "b6878ba4504e33641b2a2556e77f2bdd5871db90c9f3240f470b83e745fdfae1"
+      },
+      "evidence": "/tmp/meden-ux-events-recheck-20261123",
+      "summary_sha256": "c234613953f5b4c5cc4946bf35e0be233ba32e829e88e83265dd2716e2a7a3a1",
+      "decoded_screens_reviewed": [
+        "Lake source-inventory refusal and historical restart",
+        "Provider HTTP 429 retained stop and explicit retry recovery",
+        "GUI-to-TUI continuation with fresh processor review"
+      ],
+      "scope": "Current main validation executable, installed Lean/Lake and real Z3 where required; scripted inference fixtures. This executable differs from the pinned production executable measured above. No live-model or cold-install claim."
+    }
+  }
+}

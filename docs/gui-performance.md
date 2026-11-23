@@ -1,5 +1,64 @@
 # Graph interaction measurements
 
+## Production recheck (November 23)
+
+A third capture of the same pinned Riemann host confirms that preparation,
+map navigation and selection have separate costs. It uses a fresh browser
+page, the existing project/compiler caches and normal motion. The
+[recheck record](../results/event-measurements-recheck-20261123.json) retains
+the distributions, latest native trace, environment and verified artifact
+digests. Application code, project sources and the running services were not
+changed for this measurement.
+
+| Operation | Events | Handler p95 | Phase input/two-rAF p95 |
+| --- | ---: | ---: | ---: |
+| Project-map wheel | 24 | 10.721 ms | 26.7 ms |
+| Dependency-graph wheel | 24 | 0.962 ms | 17.1 ms |
+| Hover mouse movement | 40 | 0.116 ms | 29.4 ms |
+| Drag mouse movement | 31 | 0.400 ms | 37.1 ms |
+| Resize | 6 | 1.894 ms | Not instrumented |
+| File/map tab click | 24 | 24.676 ms | 55.5 ms |
+| Node sequence, including Fit View | 9 | 29.863 ms | 76.6 ms |
+
+The phase proxy combines instrumented input types, so it is not the latency
+of each handler or a physical paint measurement. The drag proxy contains only
+two instrumented samples. Node clicks repeatedly select a reachable node and
+include explicit Fit View; the sequence contained one 50 ms long task.
+None of the gesture or tab phases issued non-state API requests, and none of
+the initial/settled graph or map idle windows contained a long task.
+State polling still transfers 89,687 bytes per response in this capture;
+response-end p95 was 25.454 ms in settled graph idle and 14.688 ms in map idle.
+That is recurring network/serialization work, but these idle windows do not
+show a corresponding repeated long rendering task.
+
+The prepared-cache open took **68.762 seconds**, compared with 40.04 / 41.20
+seconds in the preceding captures. Native extraction took 67.529 seconds:
+
+- Layout discovery: 26.013 seconds, including twelve Lake configuration calls
+  totaling 24.013 seconds.
+- Build/input resolution and fingerprinting: 38.746 seconds. The visible build
+  log reported validation of 43,477 compiled inputs.
+- Exact cache-validation spans: 1.269 seconds.
+- Source-view materialization: 0.427 milliseconds.
+
+These stages overlap and must not be added as exclusive costs. Native sampling
+collected 4,106 samples, with Python/OpenSSL SHA-256 and actual Lake execution
+visible. This confirms expensive revalidation before cached display; it does
+not assign all preparation time to hashing. Timing variation on the same
+binary does not establish a code regression or identify its cause.
+
+The next optimization order remains: reuse evaluated Lake configuration and
+prepared input observations with explicit invalidation, remove full-inventory
+legend/breadcrumb scans during navigation, then reduce tab/selection layout
+work. Cache reuse must preserve the original source/configuration/resource
+bindings. Raw captures remain local under
+`target/native-profile/riemann-events-recheck`; repeat with the commands below.
+The required TUI gate passed all 34 journeys on the current main validation
+executable, with decoded Lake-failure/restart, provider-stop/retry and fresh
+processor-review screens inspected. This is a separate executable from the
+pinned production host measured above; neither gate establishes cold-install
+or live-model performance.
+
 ## Current event audit (November 23)
 
 Two sequential captures of the pinned running Riemann GUI cover 175,187 files
