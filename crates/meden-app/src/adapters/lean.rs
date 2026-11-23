@@ -1,9 +1,6 @@
 //! Lean-specific compilation adapter; no compiler syntax belongs to the core.
 use super::Context;
-use crate::{
-    analysis::sources::Snapshot,
-    compiler::{Compiler, Request},
-};
+use crate::compiler::{Compiled, Compiler, Invocation};
 use anyhow::{Context as _, Result};
 pub struct Lean {
     atlas: crate::atlas::Configuration,
@@ -15,13 +12,23 @@ impl Lean {
 }
 
 impl Compiler for Lean {
-    fn compile(&self, context: &Context<'_>, request: Request) -> Result<Snapshot> {
+    fn descriptor(&self) -> Result<meden_runtime::plugin::Descriptor> {
+        super::compiler_definition(
+            "lean.frozen",
+            include_bytes!("lean.rs"),
+            &self.atlas,
+            &serde_json::json!({"imports":"frozen-closure","source_files":32,"source_bytes":16_777_216}),
+        )
+    }
+    fn compile(&self, context: &Context<'_>, request: Invocation) -> Result<Compiled> {
         let paths = request.paths();
         let workspace = context.workspace;
         let control = context.control;
         let atlas = &self.atlas;
         atlas.ensure_prepared(control)?;
-        if let Some(cached) = crate::explanation::cache::compiled(workspace, control, paths)? {
+        if let Some(cached) =
+            crate::explanation::cache::compiled(workspace, control, paths, &request)?
+        {
             return Ok(cached);
         }
         let mut snapshot =
@@ -32,9 +39,12 @@ impl Compiler for Lean {
             .as_ref()
             .context("Missing collected module bindings")?;
         if paths.is_empty() {
-            if let Some(cached) =
-                crate::explanation::cache::compiled(workspace, control, &collection.roots)?
-            {
+            if let Some(cached) = crate::explanation::cache::compiled(
+                workspace,
+                control,
+                &collection.roots,
+                &request,
+            )? {
                 return Ok(cached);
             }
         }
@@ -52,6 +62,6 @@ impl Compiler for Lean {
         );
         snapshot.atlas = Some(graph);
         control.with_active(|| Ok(()))?;
-        Ok(snapshot)
+        Ok(request.observe(snapshot))
     }
 }

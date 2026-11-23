@@ -1387,6 +1387,51 @@ theorem slow : True := fast
     );
     expect(firstNode.semantic.checker.status).toBe("counterexample");
     expect(firstNode.semantic.renderer).toContain("Informath 0.4");
+    const cacheRoot = resolve(
+      root,
+      "data/meden/projects",
+      createHash("sha256").update(project).digest("hex"),
+      "compiled-views",
+    );
+    const index = async (role: string) =>
+      JSON.parse(
+        await readFile(resolve(cacheRoot, `${role}-index.json`), "utf8"),
+      );
+    const originalIndex = await index("observations");
+    const originalId = Object.values(originalIndex)[0];
+    expect(Object.values(originalIndex)).toHaveLength(1);
+    const originalArtifact = JSON.parse(
+      await readFile(
+        resolve(cacheRoot, "observations", `${originalId}.json`),
+        "utf8",
+      ),
+    );
+    expect(originalArtifact.compiler).toMatchObject({
+      id: "lean.frozen",
+      role: "compiler",
+      version: "1",
+    });
+    expect(originalArtifact.compiler.output_schema_sha256).toMatch(
+      /^[a-f0-9]{64}$/,
+    );
+    const firstReadings = await index("renderings");
+    expect(Object.values(firstReadings)).toHaveLength(1);
+    const firstReading = JSON.parse(
+      await readFile(
+        resolve(
+          cacheRoot,
+          "renderings",
+          `${Object.values(firstReadings)[0]}.json`,
+        ),
+        "utf8",
+      ),
+    );
+    expect(firstReading.renderer).toMatchObject({
+      id: "informath.gf",
+      role: "meaning_renderer",
+      version: "1",
+    });
+    expect(firstReading.observation).toBe(originalId);
     await stop();
 
     // This is a host resource update, outside the model-writable project. The
@@ -1415,6 +1460,26 @@ theorem slow : True := fast
     expect(node.semantic.checker).toEqual(firstNode.semantic.checker);
     expect(node.semantic.intermediate).toBe(firstNode.semantic.intermediate);
     expect(rerendered.source_preparation["Claim.lean"].cache_hit).toBe(false);
+    expect(await index("observations")).toEqual(originalIndex);
+    const updatedReadings = await index("renderings");
+    expect(Object.values(updatedReadings)).toHaveLength(2);
+    const updated = await Promise.all(
+      Object.values(updatedReadings).map(async (id) =>
+        JSON.parse(
+          await readFile(
+            resolve(cacheRoot, "renderings", `${id}.json`),
+            "utf8",
+          ),
+        ),
+      ),
+    );
+    expect(updated.every((reading) => reading.observation === originalId)).toBe(
+      true,
+    );
+    expect(
+      new Set(updated.map((reading) => reading.renderer.configuration_sha256))
+        .size,
+    ).toBe(2);
     const metrics = await page.evaluate(async () =>
       (
         await fetch("/api/metrics", {

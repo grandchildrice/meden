@@ -25,6 +25,7 @@ pub struct Configuration {
     lean: std::result::Result<PathBuf, String>,
     cache: Option<PathBuf>,
     observer: Option<crate::adapters::Observer>,
+    build_timeout: std::result::Result<Duration, String>,
 }
 #[derive(Serialize)]
 pub struct Status {
@@ -54,6 +55,7 @@ impl Configuration {
             lean,
             cache,
             observer: None,
+            build_timeout: project::build_timeout().map_err(|error| format!("{error:#}")),
         }
     }
     #[must_use]
@@ -79,6 +81,9 @@ impl Configuration {
         Ok(digest(&serde_json::to_vec(&Self::validate(
             &lean, &library,
         )?)?))
+    }
+    pub fn build_timeout(&self) -> Result<Duration> {
+        self.build_timeout.clone().map_err(anyhow::Error::msg)
     }
     fn selected(&self) -> Result<(PathBuf, PathBuf)> {
         let _timing = meden_runtime::metrics::Span::start("atlas.resources.select");

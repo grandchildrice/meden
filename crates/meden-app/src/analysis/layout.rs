@@ -13,7 +13,7 @@ use std::{
     path::Path,
 };
 
-#[derive(Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Module {
     pub name: String,
@@ -31,7 +31,7 @@ impl Module {
         Ok(())
     }
 }
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct PackageView {
     pub name: String,
     pub directory: String,

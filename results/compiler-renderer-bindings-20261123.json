@@ -1,0 +1,98 @@
+{
+  "date": "2026-11-23",
+  "change": "Original compiler and meaning-renderer definitions across dispatch, resource validation and separate cache artifacts",
+  "binary": {
+    "path": "/home/gohan/workspace/meden/target/validation/07d5a8f0a751849f31dc867edb9c888f25c491b240d0a127cd19ffe89fcf99f5/meden",
+    "sha256": "07d5a8f0a751849f31dc867edb9c888f25c491b240d0a127cd19ffe89fcf99f5"
+  },
+  "checks": {
+    "rust": {
+      "passed": 262,
+      "ignored": 0,
+      "scope": "Workspace tests and doc tests, including actual Z3 fault cases with the pinned CLI worker."
+    },
+    "application": {
+      "unit": 52,
+      "doc": 3
+    },
+    "clippy": "passed",
+    "architecture": "passed",
+    "schema_generation": "passed with no generated wire changes",
+    "typecheck": "passed",
+    "typescript": 30,
+    "tui": {
+      "success": true,
+      "selected": 34,
+      "evidence": "/tmp/meden-ux-roles-final-20261123",
+      "summary_sha256": "f185c64fa18c8ca160177b2bbe8bffe59c0bbb7379fa2b7a22b948b7ce6ad7c8",
+      "decoded_screens_reviewed": [
+        "Lake inventory-change refusal and historical restart",
+        "Provider HTTP 429 retained stop and explicit retry",
+        "GUI-to-TUI continuation requiring a fresh processor review"
+      ]
+    },
+    "gui": {
+      "passed": 6,
+      "workers": 2,
+      "report": "target/gui-checks/role-bindings-final-report",
+      "scenarios": [
+        "Retained file/map tabs without another inspection",
+        "Prepared 35-module Lake project, exact configuration reuse, parser failure twice, dependency edits, retry and restart",
+        "Actual GF resource update preserving the exact raw compiler/search observation; persisted compiler/renderer descriptors and distinct reading artifacts inspected",
+        "Compiled English and candidate outcomes with distant main-target navigation",
+        "Real offline Atlas cross-module extraction, meaning analysis and compilation-failure recovery",
+        "Read-only source/library and offline execution; corrupted Atlas-resource recovery"
+      ],
+      "images_reviewed": {
+        "target/gui-checks/renderer-update-reused-observation.png": "bf1845d9d43161c5b48339d5bbfc33e47085e971349aa9ae5666add8cda6925f",
+        "target/gui-checks/renderer-cache-source-failure.png": "bbcb06ef80cd4d04047aa935fc8da6298fa0e48df18be905b2e927031cb35a3b"
+      }
+    },
+    "logs": {
+      "rust": {
+        "path": "/tmp/meden-roles-final-workspace.log",
+        "sha256": "351660d46d01272e8bb143be7bf96deb13e828a8c789ba65f937488637bde2b6"
+      },
+      "clippy": {
+        "path": "/tmp/meden-roles-clippy.log",
+        "sha256": "d02588c402235c2a2a7227e013c8505b8820b2d2971f6615d237a6fdb1ee57a5"
+      },
+      "gui": {
+        "path": "/tmp/meden-roles-final-gui.log",
+        "sha256": "5734311531232cfbf5e9defa952a6c32a355617e831e91b9aec96c6bb0254ef9"
+      },
+      "architecture": {
+        "path": "/tmp/meden-roles-final-architecture.log",
+        "sha256": "423e6920c42ac4f5aa62ffc4165251493c9a45a8adb83cbd6e0d866745b1a7fb"
+      },
+      "schema": {
+        "path": "/tmp/meden-roles-final-schema.log",
+        "sha256": "e06c327ea9e36bf111930bbe9c5469991ae97ba3016e333154ebcfb79cec6f3c"
+      },
+      "typecheck": {
+        "path": "/tmp/meden-roles-final-typecheck.log",
+        "sha256": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f"
+      },
+      "typescript": {
+        "path": "/tmp/meden-roles-final-web.log",
+        "sha256": "b60daaec0fcf786e9463be5ccd6a868d6b5cde6afccdb1d9da3acb11eec4c7fb"
+      }
+    }
+  },
+  "binding_cases": [
+    "Wrong compiler role and either mismatched typed schema are refused before registration.",
+    "Changed definitions are refused before selection/dispatch and after implementation completion.",
+    "A completion from another definition or original request cannot be returned as the current invocation; cached restoration compares retained metadata rather than stamping it.",
+    "Originally selected files and the materialized graph must validate before completion.",
+    "Compiler and renderer definitions partition the separate content-addressed caches, including full original descriptor values.",
+    "Renderer batches check fixed resources and definitions; changed method during a call, invalid reading and cancellation cannot publish a complete rendering.",
+    "A separately valid replacement Informath resource manifest cannot pass validation under an older retained instance. This unit fixture is never executed as an engine.",
+    "The actual renderer update journey retained the same raw compiler artifact while producing two reading artifacts with different renderer configuration hashes."
+  ],
+  "scope": [
+    "The core, authority/evidence controllers and their extracted/refined source are unchanged. Metadata checks do not prove truthful I/O or mathematical/natural-language equivalence.",
+    "Compiler output remains the existing Lean-oriented internal snapshot. Generic inventory/job/evidence read models, model/provider and separate search bindings, shared-format verifier selection and obsolete-path retirement remain open in the full plan.",
+    "Actual installed Lean/Lake/Plausible/GF run in the named GUI journeys. Inference uses local scripted fixtures in the required gates; no new live-model, cold-install or local-inference claim.",
+    "This internal integration change was validated on the pinned candidate. Existing running project services were not redeployed in this slice."
+  ]
+}

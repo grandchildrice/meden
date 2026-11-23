@@ -43,6 +43,7 @@ impl Observation {
 #[serde(deny_unknown_fields)]
 struct Artifact {
     version: u8,
+    compiler: serde_json::Value,
     snapshot: Snapshot,
 }
 
@@ -50,7 +51,7 @@ struct Artifact {
 #[serde(deny_unknown_fields)]
 struct Rendering {
     observation: String,
-    renderer: String,
+    renderer: serde_json::Value,
     readings: Vec<Reading>,
 }
 
@@ -106,19 +107,25 @@ impl Store {
         crate::storage::write(&self.0.join(format!("{role}-index.json")), &index)?;
         Ok(id)
     }
-    fn observe(&self, snapshot: Snapshot) -> Result<Observation> {
+    fn observe(
+        &self,
+        snapshot: Snapshot,
+        definition: &meden_runtime::plugin::Descriptor,
+    ) -> Result<Observation> {
         let _timing = meden_runtime::metrics::Span::start("analysis.cache.retain_observation");
         let artifact = Artifact {
-            version: 1,
+            version: 2,
+            compiler: serde_json::to_value(definition)?,
             snapshot,
         };
         artifact.check()?;
+        artifact.check_compiler(definition)?;
         let collection = artifact
             .snapshot
             .collection
             .as_ref()
             .context("Missing compilation bindings")?;
-        let key = scope(&collection.roots, collection.prepared.is_some())?;
+        let key = scope(&collection.roots, collection.prepared.is_some(), definition)?;
         let id = hash(&artifact)?;
         if self.index("observations")?.get(&key) == Some(&id) {
             self.read::<Artifact>("observations", &id)?.check()?;
@@ -130,18 +137,23 @@ impl Store {
             snapshot: artifact.snapshot,
         })
     }
-    fn rendered(&self, id: &str, snapshot: &Snapshot, renderer: &str) -> Result<Option<Snapshot>> {
+    fn rendered(
+        &self,
+        id: &str,
+        snapshot: &Snapshot,
+        renderer: &meden_runtime::plugin::Descriptor,
+    ) -> Result<Option<Snapshot>> {
         let _timing = meden_runtime::metrics::Span::start("analysis.cache.load_rendering");
         let Some(rendering_id) = self
             .index("renderings")?
-            .get(&hash(&(id, renderer))?)
+            .get(&hash(&(id, renderer.identity()))?)
             .cloned()
         else {
             return Ok(None);
         };
         let rendering: Rendering = self.read("renderings", &rendering_id)?;
         anyhow::ensure!(
-            rendering.observation == id && rendering.renderer == renderer,
+            rendering.observation == id && rendering.renderer == serde_json::to_value(renderer)?,
             "Rendering input binding changed"
         );
         let mut result = rendering.project(snapshot.clone())?;
@@ -151,18 +163,18 @@ impl Store {
     fn render(
         &self,
         original: Observation,
-        renderer: String,
+        renderer: &meden_runtime::plugin::Descriptor,
         snapshot: &mut Snapshot,
     ) -> Result<()> {
         let _timing = meden_runtime::metrics::Span::start("analysis.cache.store_rendering");
         anyhow::ensure!(
-            !renderer.is_empty() && renderer.len() <= 256,
+            renderer.role() == meden_runtime::plugin::Role::MeaningRenderer,
             "Invalid renderer identity"
         );
         let graph = snapshot.atlas.as_ref().context("Missing rendered graph")?;
         let rendering = Rendering {
             observation: original.id,
-            renderer,
+            renderer: serde_json::to_value(renderer)?,
             readings: graph
                 .graph
                 .nodes
@@ -182,7 +194,7 @@ impl Store {
             serde_json::to_vec(&expected)? == serde_json::to_vec(snapshot)?,
             "Rendering changed a compiler/search observation"
         );
-        let key = hash(&(&rendering.observation, &rendering.renderer))?;
+        let key = hash(&(&rendering.observation, renderer.identity()))?;
         let id = self.write("renderings", key, &rendering)?;
         bind_revision(&mut expected, &id)?;
         *snapshot = expected;
@@ -191,6 +203,14 @@ impl Store {
 }
 
 impl Artifact {
+    fn check_compiler(&self, compiler: &meden_runtime::plugin::Descriptor) -> Result<()> {
+        anyhow::ensure!(
+            compiler.role() == meden_runtime::plugin::Role::Compiler
+                && self.compiler == serde_json::to_value(compiler)?,
+            "Compiler observation registration changed"
+        );
+        Ok(())
+    }
     fn check(&self) -> Result<()> {
         let snapshot = &self.snapshot;
         let collection = snapshot
@@ -202,7 +222,7 @@ impl Artifact {
             .as_ref()
             .context("Missing compiled observations")?;
         anyhow::ensure!(
-            self.version == 1
+            self.version == 2
                 && !snapshot.files.is_empty()
                 && snapshot.files.len() <= 32
                 && snapshot.revision == format!("sha256:{}", hash(&snapshot.files)?)
@@ -258,9 +278,13 @@ impl Rendering {
 fn hash(value: &impl Serialize) -> Result<String> {
     Ok(crate::atlas::digest(&serde_json::to_vec(value)?))
 }
-fn scope(paths: &[String], prepared: bool) -> Result<String> {
+fn scope(
+    paths: &[String],
+    prepared: bool,
+    compiler: &meden_runtime::plugin::Descriptor,
+) -> Result<String> {
     let paths = paths.iter().collect::<BTreeSet<_>>();
-    hash(&(paths, prepared))
+    hash(&(paths, prepared, compiler.identity()))
 }
 fn bind_revision(snapshot: &mut Snapshot, rendering: &str) -> Result<()> {
     let graph = snapshot.atlas.as_mut().context("Missing compiled graph")?;
@@ -268,21 +292,25 @@ fn bind_revision(snapshot: &mut Snapshot, rendering: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn retain_observation(workspace: &Workspace, snapshot: Snapshot) -> Result<Observation> {
-    Store::host(workspace)?.observe(snapshot)
+pub fn retain_observation(
+    workspace: &Workspace,
+    compiled: crate::compiler::Compiled,
+) -> Result<Observation> {
+    let (definition, snapshot) = compiled.into_parts();
+    Store::host(workspace)?.observe(snapshot, &definition)
 }
 /// Reuse only readings bound to this immutable observation and selected renderer.
 pub fn rendering(
     workspace: &Workspace,
     original: &Observation,
-    renderer: &str,
+    renderer: &meden_runtime::plugin::Descriptor,
 ) -> Result<Option<Snapshot>> {
     Store::host(workspace)?.rendered(&original.id, &original.snapshot, renderer)
 }
 pub fn retain_rendering(
     workspace: &Workspace,
     original: Observation,
-    renderer: String,
+    renderer: &meden_runtime::plugin::Descriptor,
     snapshot: &mut Snapshot,
 ) -> Result<()> {
     Store::host(workspace)?.render(original, renderer, snapshot)
@@ -293,13 +321,14 @@ fn artifacts(
     control: &Control,
     selections: impl IntoIterator<Item = Vec<String>>,
     prepared: Option<&str>,
+    compiler: &meden_runtime::plugin::Descriptor,
 ) -> Result<Vec<(String, Artifact)>> {
     let _timing = meden_runtime::metrics::Span::start("analysis.cache.validate");
     let store = Store::host(workspace)?;
     let index = store.index("observations")?;
     let mut ids: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for paths in selections {
-        let key = scope(&paths, prepared.is_some())?;
+        let key = scope(&paths, prepared.is_some(), compiler)?;
         if let Some(id) = index.get(&key) {
             ids.entry(id.clone()).or_default().insert(key);
         }
@@ -318,9 +347,14 @@ fn artifacts(
             .as_ref()
             .context("Missing compilation bindings")?;
         anyhow::ensure!(
-            keys.contains(&scope(&collection.roots, collection.prepared.is_some())?),
+            keys.contains(&scope(
+                &collection.roots,
+                collection.prepared.is_some(),
+                compiler
+            )?),
             "Compiler observation selection changed"
         );
+        artifact.check_compiler(compiler)?;
         if collection.prepared.as_deref() != prepared
             || artifact
                 .snapshot
@@ -350,23 +384,28 @@ fn artifacts(
 }
 
 pub fn load(workspace: &Workspace, control: &Control, paths: &[String]) -> Result<Vec<Note>> {
+    let (registry, selected) =
+        crate::adapters::compilers(crate::atlas::Configuration::host(workspace.path()))?;
+    let compiler = registry.select(selected)?;
     let artifacts = artifacts(
         workspace,
         control,
         paths.iter().map(|p| vec![p.clone()]),
         None,
+        compiler.definition(),
     )?;
     if artifacts.is_empty() {
         return Ok(Vec::new());
     }
     let store = Store::host(workspace)?;
-    let renderer = crate::adapters::informath::fingerprint()?;
+    let renderer = crate::adapters::informath::Prepared::discover()?;
     let mut notes = Vec::new();
     for (id, artifact) in artifacts {
         // Index projection never executes a renderer, compiler or search.
-        let Some(snapshot) = store.rendered(&id, &artifact.snapshot, &renderer)? else {
+        let Some(snapshot) = store.rendered(&id, &artifact.snapshot, renderer.definition())? else {
             continue;
         };
+        renderer.validate()?;
         let graph = snapshot.atlas.context("Missing compiled graph")?;
         for node in graph.graph.nodes {
             if !paths.contains(&node.file_path) {
@@ -392,8 +431,9 @@ pub fn compiled(
     workspace: &Workspace,
     control: &Control,
     paths: &[String],
-) -> Result<Option<Snapshot>> {
-    compiled_for(workspace, control, paths, None)
+    invocation: &crate::compiler::Invocation,
+) -> Result<Option<crate::compiler::Compiled>> {
+    compiled_for(workspace, control, paths, None, invocation)
 }
 /// Only a freshly prepared exact compiler-input fingerprint may reuse Lake observations.
 pub fn compiled_prepared(
@@ -401,26 +441,31 @@ pub fn compiled_prepared(
     control: &Control,
     paths: &[String],
     fingerprint: &str,
-) -> Result<Option<Snapshot>> {
-    compiled_for(workspace, control, paths, Some(fingerprint))
+    invocation: &crate::compiler::Invocation,
+) -> Result<Option<crate::compiler::Compiled>> {
+    compiled_for(workspace, control, paths, Some(fingerprint), invocation)
 }
 fn compiled_for(
     workspace: &Workspace,
     control: &Control,
     paths: &[String],
     prepared: Option<&str>,
-) -> Result<Option<Snapshot>> {
+    invocation: &crate::compiler::Invocation,
+) -> Result<Option<crate::compiler::Compiled>> {
     let Some((_, artifact)) = artifacts(
         workspace,
         control,
         std::iter::once(paths.to_vec()),
         prepared,
+        invocation.definition(),
     )?
     .into_iter()
     .next() else {
         return Ok(None);
     };
-    Ok(Some(artifact.snapshot))
+    Ok(Some(
+        invocation.restore(artifact.snapshot, &artifact.compiler)?,
+    ))
 }
 
 #[cfg(test)]

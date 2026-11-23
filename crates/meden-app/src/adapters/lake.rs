@@ -1,9 +1,6 @@
 //! Prepared Lake builds keep installed imports outside the selected-source graph.
 use super::Context;
-use crate::{
-    analysis::sources::Snapshot,
-    compiler::{Compiler, Request},
-};
+use crate::compiler::{Compiled, Compiler, Invocation};
 use anyhow::{Context as _, Result};
 use serde::Deserialize;
 
@@ -31,7 +28,15 @@ pub fn enabled() -> Result<bool> {
 }
 
 impl Compiler for Lake {
-    fn compile(&self, context: &Context<'_>, request: Request) -> Result<Snapshot> {
+    fn descriptor(&self) -> Result<meden_runtime::plugin::Descriptor> {
+        super::compiler_definition(
+            "lean.lake",
+            include_bytes!("lake.rs"),
+            &self.atlas,
+            &serde_json::json!({"imports":"prepared-boundaries","build_timeout_seconds":self.atlas.build_timeout()?.as_secs(),"extraction_timeout_seconds":600,"source_files":32,"source_bytes":16_777_216}),
+        )
+    }
+    fn compile(&self, context: &Context<'_>, request: Invocation) -> Result<Compiled> {
         let atlas = &self.atlas;
         let mut snapshot = crate::analysis::collect::roots(
             context.workspace,
@@ -66,6 +71,7 @@ impl Compiler for Lake {
             context.control,
             &collection.roots,
             &prepared.fingerprint,
+            &request,
         )? {
             return Ok(cached);
         }
@@ -112,7 +118,7 @@ impl Compiler for Lake {
         collection.external_modules =
             external_modules(atlas, &snapshot.files, &collection.modules, context.control)?;
         snapshot.atlas = Some(graph);
-        Ok(snapshot)
+        Ok(request.observe(snapshot))
     }
 }
 

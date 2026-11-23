@@ -158,7 +158,34 @@ are included in checker identities, prepared inputs and consumed outputs;
 registrations freeze their initial schema and refuse metadata drift before
 dispatch. Backend-local schema references have separate namespaces. Public
 types/parameters remain role-specific, and the core still sees its existing
-opaque consuming job vocabulary. Other role-wide bindings are not complete.
+opaque consuming job vocabulary.
+
+Compiler registrations now freeze the original descriptor and both typed
+schemas. Their consuming invocation retains the original source selection and
+definition for the backend's cache lookup. Dispatch checks the definition before
+and after the call, requires all selected sources and validates the projected
+graph before producing an opaque completed observation. Persisted compiler
+artifacts and their lookup keys include that original definition; a different
+implementation or request cannot return another invocation's opaque completion
+as its own. Cache restoration checks the retained descriptor rather than
+unconditionally stamping a new one onto old data. The prepared Lake build
+timeout is captured once with host configuration and used by both the descriptor
+and actual execution.
+
+Meaning rendering retains one selected instance across cache lookup, execution
+and publication. Readings have a typed bounded shape, and a scoped batch caller
+cannot escape the enclosing original-resource checks. Grammar hashing happens
+around the batch rather than for each declaration. The retained rendering
+artifact contains the full original descriptor, and cached publication rechecks
+the selected resources. A renderer update changes only the independent reading
+projection; compiled expressions, search observations and their provenance stay
+bound to their compiler artifact. These metadata/resource checks are adapters,
+not new extracted authority or proofs that an implementation is truthful.
+
+Model/provider and separately dispatched counterexample-search bindings remain
+incomplete, as does persistent selection among verifiers sharing a format.
+The [binding validation record](../../results/compiler-renderer-bindings-20261123.json)
+names the actual installed-tool journeys and their limits.
 A completed host registry must describe supported operations/formats,
 implementation versions, resource requirements and limits. Initially use ordinary
 Rust implementations and explicit host registration. External implementations
@@ -358,8 +385,10 @@ Z3, a real approved-model trial and a separate 256-input Python oracle. Its
 parser/disagreement rejection tests, actual solver-output faults, started-solver
 timeout/cancellation, resource changes and a real-check/stale-source/core-job
 composition are covered. Verifier descriptors bind original method and schema
-configuration through those existing jobs. Complete bindings for other roles,
-persistent selection among backends sharing a format and step 5 remain open.
+configuration through those existing jobs. Compiler and meaning-renderer
+definitions now also bind dispatch and independent cache artifacts. Model/provider
+and separate counterexample-search bindings, persistent selection among backends
+sharing a format and step 5 remain open.
 They retain the existing local/offline execution, accepted intent, exact evidence linkage and
 separate local-deployment/R1 obligations in [assurance.md](../assurance.md) and
 [verification.md](../verification.md).

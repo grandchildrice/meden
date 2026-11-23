@@ -29,7 +29,44 @@ pub fn compilers(
         "lean.frozen"
     };
     let mut registry = crate::compiler::Registry::default();
-    registry.register("lean.frozen", lean::Lean::new(atlas.clone()))?;
-    registry.register("lean.lake", lake::Lake::new(atlas))?;
+    if selected == "lean.frozen" {
+        registry.register(selected, lean::Lean::new(atlas))?;
+    } else {
+        registry.register(selected, lake::Lake::new(atlas))?;
+    }
     Ok((registry, selected))
+}
+
+fn compiler_definition(
+    id: &str,
+    implementation: &[u8],
+    atlas: &crate::atlas::Configuration,
+    configuration: &serde_json::Value,
+) -> anyhow::Result<meden_runtime::plugin::Descriptor> {
+    let implementation = [
+        implementation,
+        include_bytes!("analysis/collect.rs"),
+        include_bytes!("analysis/layout.rs"),
+        include_bytes!("analysis/observe.rs"),
+        include_bytes!("analysis/sources.rs"),
+        include_bytes!("compiler.rs"),
+        include_bytes!("adapters.rs"),
+        include_bytes!("atlas/mod.rs"),
+        include_bytes!("atlas/project.rs"),
+        include_bytes!("atlas/lake.rs"),
+        include_bytes!("atlas/graph.rs"),
+    ]
+    .concat();
+    Ok(meden_runtime::plugin::Descriptor::new(
+        meden_runtime::plugin::Definition {
+            id,
+            role: meden_runtime::plugin::Role::Compiler,
+            version: "1",
+            formats: vec!["lean-module-v1".into()],
+            implementation: &implementation,
+            configuration: serde_json::json!({"method":configuration,"resources_sha256":atlas.current_resources()?}),
+            input: crate::compiler::input_schema()?,
+            output: crate::compiler::output_schema()?,
+        },
+    )?)
 }

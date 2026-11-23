@@ -5,7 +5,7 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize, schemars::JsonSchema)]
 pub struct Extraction {
     pub revision: String,
     pub upstream: String,
@@ -64,7 +64,7 @@ mod tests {
         Ok(())
     }
 }
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Graph {
     pub metadata: Metadata,
@@ -72,13 +72,13 @@ pub struct Graph {
     pub edges: Vec<Edge>,
     pub external_references: Vec<String>,
 }
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Metadata {
     pub project_name: String,
     pub lean_version: String,
 }
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Node {
     pub id: String,
@@ -98,13 +98,13 @@ pub struct Node {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub meta: Option<NodeMeta>,
 }
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NodeMeta {
     #[serde(default)]
     pub is_main_theorem: bool,
 }
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize, schemars::JsonSchema)]
 pub struct Edge {
     pub source: String,
     pub target: String,

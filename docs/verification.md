@@ -2519,8 +2519,10 @@ The cloud trial is retained in
 ## Deterministic declaration explanations
 
 The compiler, structural English renderer, Informath interchange and Plausible
-search are separate adapters/modules. The core exposes only owned input/artifact
-bytes, format identities and an adapter interface; artifacts carry no proof authority.
+search are application adapters/modules. Typed integration ports live in
+`meden-app`; the unused byte/format adapter primitive was removed from the core.
+The core retains its consuming contract/grant/job/evidence controllers, and
+presentation observations carry no proof authority.
 The actual pinned Informath 0.4 executable and English GF grammar realize supported
 elaborated statements deterministically. Structural English remains available when
 realization is unsupported or exceeds its budget. Source-only English previews have
@@ -2551,6 +2553,36 @@ Informath output, rich candidate tables, cold preparation, warm restart, depende
 edits, cached invalid-file failure and recovery through the public refresh button. Presentation,
 sampling, compiler execution and cache I/O are adapters with tests; none adds
 native proof authority or establishes arbitrary natural-language equivalence.
+
+Compiler registration now checks its declared role and both actual typed
+schemas, freezes the definition and retains the original request through
+dispatch. A changed method/resource definition, omitted selected file or invalid
+graph cannot produce a completed compiler observation. The opaque result is
+checked against both the original definition and request; completions from a
+different method or source selection are refused. Cached restoration checks its
+retained definition instead of relabelling a decoded snapshot. The result is
+consumed into a raw cache artifact containing its full original descriptor;
+lookup uses that descriptor as well as the original roots/prepared-input kind.
+The prepared Lake timeout is retained with host configuration and used by both
+the definition and the actual build. Internal compiler schemas still describe
+the existing Lean-oriented snapshot; this is not a generic compiler AST.
+
+The meaning application selects one renderer before looking up readings and
+keeps it through publication. Typed readings have bounded sentence/attribution
+fields. A non-escaping batch caller checks original resources before/after the
+batch and metadata around each expression, without repeated grammar hashing per
+declaration. The actual Informath adapter rechecks its retained root and manifest
+rather than choosing another resource location. Cached publication also checks
+those original resources. Stored readings contain the full renderer definition
+and original compiler-observation ID; resource updates retain compiler/search
+data while selecting a distinct reading artifact. Tests cover method/schema
+drift, selected-source omission, cache partitioning, a valid replacement resource
+manifest, malformed readings and cancellation. Resource-manifest unit fixtures
+are not executed as an engine; the native journeys separately run actual
+Lean/Plausible/GF, compiler rejection/retry, resource corruption/recovery and
+unapproved restart. These adapter checks add no extraction/refinement theorem.
+The pinned executable, gate results and decoded-screen review are retained in
+[the compiler/renderer binding record](../results/compiler-renderer-bindings-20261123.json).
 
 Current prepared-observation browser/TUI checks and actual workspace observations
 are recorded in [the adapter validation record](../results/gui-observation-adapters.json).

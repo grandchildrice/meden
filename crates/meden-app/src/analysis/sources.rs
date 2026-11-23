@@ -17,7 +17,7 @@ use sha2::{Digest, Sha256};
 const FILE_LIMIT: usize = 1_048_576;
 const TOTAL_LIMIT: usize = 16_777_216;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct Snapshot {
     pub revision: String,
     pub files: BTreeMap<String, String>,

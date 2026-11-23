@@ -116,6 +116,10 @@ impl Descriptor {
     pub fn accepts_schema(&self, schema: &Value) -> io::Result<bool> {
         Ok(fingerprint(schema)? == self.metadata.input_schema_sha256)
     }
+    /// Check the successful-result schema of the typed role port.
+    pub fn accepts_output_schema(&self, schema: &Value) -> io::Result<bool> {
+        Ok(fingerprint(schema)? == self.metadata.output_schema_sha256)
+    }
 }
 
 fn identifier(value: &str) -> bool {
@@ -228,6 +232,8 @@ mod tests {
         .is_err());
         assert!(original.accepts_schema(&definition().input)?);
         assert!(!original.accepts_schema(&serde_json::json!({"type":"string"}))?);
+        assert!(original.accepts_output_schema(&definition().output)?);
+        assert!(!original.accepts_output_schema(&serde_json::json!({"type":"string"}))?);
         Ok(())
     }
 }

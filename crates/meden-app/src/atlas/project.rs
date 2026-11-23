@@ -4,6 +4,16 @@ use anyhow::Result;
 use meden_runtime::process::Control;
 use std::{collections::BTreeMap, path::Path, time::Duration};
 
+pub(super) fn build_timeout() -> Result<Duration> {
+    let seconds = std::env::var("MEDEN_ATLAS_BUILD_TIMEOUT_SECONDS")
+        .map_or_else(|_| Ok(7200), |s| s.parse::<u64>())?;
+    anyhow::ensure!(
+        (1..=86_400).contains(&seconds),
+        "Build timeout must be between 1 and 86400 seconds"
+    );
+    Ok(Duration::from_secs(seconds))
+}
+
 impl Configuration {
     pub fn project(
         &self,
@@ -24,13 +34,7 @@ impl Configuration {
         let timeout = if script == "project-atlas-prepare.sh"
             && args.first().is_some_and(|a| a == "prepare")
         {
-            let seconds = std::env::var("MEDEN_ATLAS_BUILD_TIMEOUT_SECONDS")
-                .map_or_else(|_| Ok(7200), |s| s.parse::<u64>())?;
-            anyhow::ensure!(
-                (1..=86_400).contains(&seconds),
-                "Build timeout must be between 1 and 86400 seconds"
-            );
-            Duration::from_secs(seconds)
+            self.build_timeout()?
         } else {
             Duration::from_secs(600)
         };

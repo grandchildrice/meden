@@ -146,22 +146,26 @@ pub fn extract_cached(
     if let Some(observer) = &context.observer {
         observer("Preparing explanations", std::time::Duration::ZERO, None);
     }
-    let renderer = crate::adapters::informath::fingerprint()?;
-    if let Some(snapshot) = crate::explanation::cache::rendering(workspace, &original, &renderer)? {
+    let renderer = crate::adapters::informath::Prepared::discover()?;
+    if let Some(snapshot) =
+        crate::explanation::cache::rendering(workspace, &original, renderer.definition())?
+    {
+        renderer.validate()?;
         return Ok((control.with_active(|| Ok(snapshot))?, true));
     }
     let mut snapshot = original.snapshot().clone();
-    let actual = crate::adapters::informath::enrich(
+    renderer.enrich(
         snapshot.atlas.as_mut().context("Missing compiled graph")?,
         control,
     )?;
-    anyhow::ensure!(
-        actual == renderer,
-        "Meaning renderer binding changed during preparation"
-    );
     control.with_active(|| {
-        crate::explanation::cache::retain_rendering(workspace, original, renderer, &mut snapshot)
-            .map_err(std::io::Error::other)
+        crate::explanation::cache::retain_rendering(
+            workspace,
+            original,
+            renderer.definition(),
+            &mut snapshot,
+        )
+        .map_err(std::io::Error::other)
     })?;
     Ok((snapshot, false))
 }
