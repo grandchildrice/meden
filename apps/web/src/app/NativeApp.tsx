@@ -129,7 +129,11 @@ export function NativeApp({ token }: { token: string }) {
   const started = useRef(0);
   const inFlight = useRef(0);
   const stateGeneration = useRef(0);
-  const [busy, setBusy] = useState(false);
+  const [commandActivity, setCommandActivity] = useState({
+    generation: 0,
+    pending: 0,
+  });
+  const busy = commandActivity.pending > 0;
   const [chatPending, setChatPending] = useState(false);
   const [queue, setQueue] = useState<
     Array<{
@@ -284,7 +288,7 @@ export function NativeApp({ token }: { token: string }) {
       if (command.type === "refresh_workspace") refreshEpoch.current++;
       const generation = ++stateGeneration.current;
       inFlight.current++;
-      setBusy(true);
+      setCommandActivity({ generation, pending: inFlight.current });
       try {
         await client.command(command);
         const next = await client.state();
@@ -322,7 +326,10 @@ export function NativeApp({ token }: { token: string }) {
         return false;
       } finally {
         inFlight.current--;
-        setBusy(inFlight.current > 0);
+        setCommandActivity({
+          generation: stateGeneration.current,
+          pending: inFlight.current,
+        });
       }
     },
     [client],
@@ -548,7 +555,9 @@ export function NativeApp({ token }: { token: string }) {
         offset: readTarget.offset,
       });
     }
-  }, [readTarget, running, command]);
+    // A fast background read can start and finish inside one React batch.
+    // Its generation still changes even when the visible busy boolean does not.
+  }, [readTarget, running, command, commandActivity]);
   useEffect(() => {
     if (!approval) {
       listedProvider.current = "";

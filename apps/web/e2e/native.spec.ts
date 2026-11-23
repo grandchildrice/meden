@@ -846,7 +846,7 @@ theorem slow : True := fast
       .getByRole("button", { name: "Retry preparation", exact: true })
       .click();
     await expect(loading.getByRole("log", { name: "Build log" })).toContainText(
-      "$ lake build +Entry",
+      "$ lake --json query +Entry +Entry:lean +Entry:olean +Entry:setup",
       { timeout: 120000 },
     );
     await loading
@@ -1010,6 +1010,7 @@ theorem slow : True := fast
       .poll(async () => (await nativeState(page)).running)
       .toBe(false);
     const reread = async () => {
+      const before = inspections;
       await page
         .getByRole("button", { name: "Refresh files and map", exact: true })
         .click();
@@ -1017,6 +1018,7 @@ theorem slow : True := fast
         .poll(async () => (await nativeState(page)).running)
         .toBe(false);
       await open();
+      await expect.poll(() => inspections).toBe(before + 1);
     };
     // Reproduce a late status view after an explicit refresh. The backend,
     // compilation, source contents and input fingerprints remain real.
@@ -1045,6 +1047,11 @@ theorem slow : True := fast
     expect(stages).toContain("atlas.lake_configuration.reuse");
     expect(stages).not.toContain("atlas.lake_configuration");
     expect(stages).toContain("atlas.project.prepare");
+    const cachedLog = (await nativeState(page)).source_preparation["Entry.lean"]
+      .log;
+    expect(cachedLog.match(/\$ lake --json query /g)).toHaveLength(1);
+    expect(cachedLog).toContain("Build/setup and input resolution completed");
+    expect(cachedLog).toMatch(/Validated \d+ files \/ \d+ bytes in /);
 
     // A cached successful configuration cannot hide a new parser failure.
     // Failed evaluations must not become reusable cache entries on retry.

@@ -1,5 +1,68 @@
 # Graph interaction measurements
 
+## Batched Lake preparation (November 23)
+
+Prepared analysis now requests the ordinary root build and the source, compiled
+output and compiler-setup facets in one `lake --json query`. All selected roots
+share Lake's build state. Separate build/setup-file/per-root query processes
+were removed; exact setup and complete-byte input validation remain mandatory.
+The worker rejects incomplete, extra, oversized and nonzero query output before
+returning a fingerprint, streams actual compiler stderr, and reports resolution
+and byte-validation durations separately.
+
+The [measurement record](../results/lake-query-batching-20261123.json) compares
+the same Riemann file, 175,187-file inventory and 15-declaration graph. Chrome 149
+used normal motion at 1440 × 960 without throttling. Two warm post-update captures
+both hit the complete analysis cache:
+
+| Stage                          | Before, runs 1 / 2 | After, runs 1 / 2 |
+| ------------------------------ | -----------------: | ----------------: |
+| Explorer open to prepared view |  35.529 / 40.231 s | 15.605 / 15.790 s |
+| Build/query/input validation   |  30.500 / 34.855 s | 10.066 / 10.300 s |
+| Source-view materialization    |   0.640 / 0.385 ms |  0.413 / 0.424 ms |
+
+The final cached log confirms one query and a full read of **43,477 files /
+5,992,114,707 bytes**. Build/setup/input resolution took 5.135 seconds and byte
+validation 4.524 seconds in that log. Twelve configuration observations were
+reused in each warm capture; no configuration evaluator or fresh graph/search
+extraction ran. Nested native stages overlap and cannot be added as exclusive
+costs. Raw captures and artifact digests are retained locally.
+
+These observations show a shorter prepare interval for this workload; they do
+not establish a universal speedup or isolate every end-to-end difference to one
+script edit. The native update also deploys compiler/renderer bindings already
+on main but absent from the preceding executable. The asset update includes
+the explicit-refresh wake-up fix described below. Exact source/build hashes are
+recorded, and profiling begins after unrelated validation jobs finish.
+
+The changed compiler/resource identities require a new observation artifact.
+That **initial cache fill took 197.448 seconds**, including 134.974 seconds of
+actual graph extraction and bounded counterexample observations, a second exact
+fingerprint, rendering and persistence. It is reported separately from warm
+cache validation and is not a cold installation. Parallel hashing was not
+adopted: an independent read-only diagnostic on the same cached input inventory
+measured serial per-file SHA-256 at 4.12–4.66 seconds and four threads at
+1.78–1.80 seconds. Its aggregate format differs from production and is only a
+diagnosis of hashing cost.
+
+Faster background work exposed a real navigation failure: a directory request
+could start and finish within one React batch, leaving the visible busy boolean
+unchanged and never waking the pending file read. Command activity now retains
+generation and pending count. The real 35-module browser journey requires one
+requested-file inspection on every explicit refresh, including configuration
+failure/recovery, dependency edits and restart. Cached logs require one query and
+completed byte validation. Held-compiler tests cover streamed output, timeout,
+cancel/retry and UTF-8 diagnostic truncation. Retained-tab budgets pass in both
+motion modes. Fifteen worker-protocol fixtures, 32 TypeScript tests, all 262 Rust
+tests, warning-free Clippy and all 34 required public TUI journeys passed; decoded
+failure/retry/restart screens and actual browser screenshots were inspected.
+The worker-mutation fixture now makes only its own temporary copy writable so
+the original pinned executable can stay read-only. These checks add no new
+refinement, inference-quality or confidentiality claim.
+
+Warm opens still take about 16 seconds. Exact input reads, initial extraction
+and independent search caching remain optimization/migration work.
+
 ## Indexed map navigation (November 23)
 
 The deployed map now reuses its branch-pruned visible areas for declaration

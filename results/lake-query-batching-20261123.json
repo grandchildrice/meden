@@ -1,0 +1,4406 @@
+{
+  "date": "2026-11-23",
+  "kind": "Batched Lake build/source/output/compiler-setup query with exact full-byte validation and reliable explicit refresh",
+  "implementation": {
+    "source_base": "8157072353251a7d1f67fa372df0dc3f7f7fd261",
+    "selected_source_changes": {
+      "crates/meden-app/src/atlas/project-atlas.py": "ff08a7cb05fc523d401b4af1c791508d4692e25e2f8f866e483bef49001286d2",
+      "python/tests/test_lake_inputs.py": "8d4acf0d7a61d29297eda0544d229a050090126530a93e59eb23b34781693c6c",
+      "crates/meden-runtime/src/verification/finite/tests.rs": "6de9161cf4417cfdb808c93bd903c6fe69d0da63b04bc5b534338276eb817963",
+      "apps/web/src/app/NativeApp.tsx": "cba61479d761cd376b8253cef0f82e7053e40aed8948c72bce7c34a44f7fa8a3",
+      "apps/web/e2e/native.spec.ts": "773553beb061235cbc95d280c0f938be3c42d539dcb22cf49e649b3d4a971bd2"
+    },
+    "build": "Tracked HEAD export plus these selected changes; unrelated unfinished model-transport worktree edits were excluded from the compiled/tested/deployed binary.",
+    "binary_sha256": "bcaed9846020272d9cb7e08ca3a2900be7a91e57c30646be89326ab71b0c143a",
+    "query": "lake --no-ansi --json query +Module +Module:lean +Module:olean +Module:setup, for all selected roots in one invocation",
+    "protocol": "One bounded JSON line per target, maximum 64 MiB/line, exact result count and successful actual process exit; incomplete/nonzero/extra/oversized output cannot return a fingerprint. Unfinished queries are killed/reaped. Anonymous targets preserve ordinary root builds. Actual compiler setup replaces the server setup projection; every original setup field and input byte remains hashed.",
+    "cache": "Compiler/resource identities change, so an initial raw-observation cache fill is required; there is no compatibility relabel or hash/mtime shortcut.",
+    "ui": "Command activity retains generation and pending count, so completion of a background directory command wakes a queued explicit file read even when React batches the visible busy/idle boolean. Each refresh must dispatch exactly one requested-file inspection.",
+    "test_fixture": "The copied-worker mutation test makes only its owned temporary copy writable. The immutable original remains unchanged; post-preparation tampering is refused before solver dispatch."
+  },
+  "before": {
+    "record": "results/map-navigation-pruning-20261123.json",
+    "sha256": "8c52c09aa5b59ac79be4298fc74988c5058ab7ed2d56c0494d9915ba6c92a53e",
+    "captures": [
+      {
+        "directory": "target/native-profile/event-audit-riemann-map-pruned-1",
+        "environment": {
+          "browser": "149.0.7827.53",
+          "viewport": "1440x960",
+          "throttling": "none",
+          "reduced_motion": "no-preference",
+          "gesture_tail_ms": 600,
+          "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "declarations": 15,
+          "project_files": 175187,
+          "setup_preparation_ms": 35529.063539,
+          "setup_cache_hit": true,
+          "source_map_directory": "/home/gohan/workspace/meden/target/map-pruning-profile-assets",
+          "source_maps_sha256": {
+            "index-CotkGies.js": "eaa4e0d23196cc9129983cc79219c689abeee1b77a7fc5600aecbc48a2e06f29",
+            "GraphView-AktdVjVR.js": "c3c2fd201908f7aee3ccb007ef435c95723b06a3823607d0553ce8489ab0a937"
+          }
+        },
+        "prepare": {
+          "count": 1,
+          "p50_ms": 30500.144,
+          "p95_ms": 30500.144,
+          "max_ms": 30500.144,
+          "total_ms": 30500.144
+        },
+        "extract": {
+          "count": 1,
+          "p50_ms": 34611.514,
+          "p95_ms": 34611.514,
+          "max_ms": 34611.514,
+          "total_ms": 34611.514
+        }
+      },
+      {
+        "directory": "target/native-profile/event-audit-riemann-map-pruned-2",
+        "environment": {
+          "browser": "149.0.7827.53",
+          "viewport": "1440x960",
+          "throttling": "none",
+          "reduced_motion": "no-preference",
+          "gesture_tail_ms": 600,
+          "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "declarations": 15,
+          "project_files": 175187,
+          "setup_preparation_ms": 40231.294472,
+          "setup_cache_hit": true,
+          "source_map_directory": "/home/gohan/workspace/meden/target/map-pruning-profile-assets",
+          "source_maps_sha256": {
+            "index-CotkGies.js": "eaa4e0d23196cc9129983cc79219c689abeee1b77a7fc5600aecbc48a2e06f29"
+          }
+        },
+        "prepare": {
+          "count": 1,
+          "p50_ms": 34855.346,
+          "p95_ms": 34855.346,
+          "max_ms": 34855.346,
+          "total_ms": 34855.346
+        },
+        "extract": {
+          "count": 1,
+          "p50_ms": 39311.376,
+          "p95_ms": 39311.376,
+          "max_ms": 39311.376,
+          "total_ms": 39311.376
+        }
+      }
+    ]
+  },
+  "captures": [
+    {
+      "name": "fill",
+      "directory": "target/native-profile/event-audit-riemann-lake-query-fill",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 197448.09164899998,
+        "setup_cache_hit": false,
+        "source_map_directory": "/home/gohan/workspace/meden/apps/web/dist",
+        "source_maps_sha256": {}
+      },
+      "manifest": {
+        "binary_sha256": "bcaed9846020272d9cb7e08ca3a2900be7a91e57c30646be89326ab71b0c143a",
+        "samples": 14435,
+        "perf_event_paranoid": "2",
+        "kptr_restrict": "1",
+        "event": "cpu-clock:u",
+        "frequency_hz": 99,
+        "stack": "dwarf,8192",
+        "digests": {
+          "perf.data": "5e94da3cd7aba3322e3f6fa0bd9ca161f25aac6e68a3a28f0a2c5ea3a8064be5",
+          "perf-report.txt": "7422b30a29d713f24dc0d0c530a2aedb41c4031a27e5326a3f5a552354ec26a1",
+          "trace.json": "3c1326aae6eb63ae69a748646ba717166bed7eb39b9cd82a5e582ef37c7f0495",
+          "native-metrics.json": "a12fdf23727f363ef0ddfaadbc7bb35d93a6b9fa7e45b109bcacec71ce42bf60",
+          "summary.json": "935c7c23343e53f6e50c97009e7a963f0e6bdb3156491b011d3175bfbcd19197",
+          "graph-hover.cpuprofile": "0d8406c3edbe61e604798d81334770b6dca9aeac0bb41aa72a8d6fe43773e02f",
+          "graph-idle-poll.cpuprofile": "06edd3b10e4c2b6338b353b81c0a6d63089e60319d5fc219ab9a9eba97a63ca4",
+          "graph-idle-settled.cpuprofile": "3c07002cf15b334ad4face298953ad1b2656ec129d9d49546e5e202e4b4a6c88",
+          "graph-node-select.cpuprofile": "2ee1b14d34fe1084159e4287c009b93d8e1199af02a6220778fe60afc71738fc",
+          "graph-pan.cpuprofile": "36c18a07d8c5c8fc0ff32799892791188c5e6b5f5dfbd5c82799f94756693239",
+          "graph-resize.cpuprofile": "ff9eb40bd1e812615958614c698a87ee6efbba3ba7b0b71a3f849c30095a9080",
+          "graph-wheel.cpuprofile": "fc664fc4ad2de4c90fd0da00c69c6944f6e296f343f5222c02356b0a06b0c3c6",
+          "project-map-idle.cpuprofile": "1d3e6d4f3f0bef851d907edcdbdab3d349d7fa2ecc9953be1a6dbb83c62d85a5",
+          "project-map-wheel.cpuprofile": "a2cf3c188de2f5c55e613038e14884772b0ffe8fb2d1eb269b58e864c9ab308d",
+          "tab-switch.cpuprofile": "c3ce28ed59b96a8c197290cc95502cae69f31755f4534922b60d359db1a82f2e"
+        },
+        "limits": "Current-user native host and inherited workers only; no kernel stacks. Thread CPU spans exclude worker CPU. File preparation reuses project/OS caches, not a cold installation. Sampling changes timing; browser profiles have their own overhead."
+      },
+      "native_stages": {
+        "available": true,
+        "evicted_during_capture": 0,
+        "stages": {
+          "gui.serialize_respond": {
+            "wall": {
+              "count": 1074,
+              "p50_ms": 0.54,
+              "p95_ms": 3.471,
+              "max_ms": 1354.389,
+              "total_ms": 3489.723000000001
+            },
+            "host_thread_cpu": {
+              "count": 1074,
+              "p50_ms": 0.503,
+              "p95_ms": 2.917,
+              "max_ms": 1234.94,
+              "total_ms": 3250.3039999999987
+            }
+          },
+          "process.run": {
+            "wall": {
+              "count": 122,
+              "p50_ms": 51.184,
+              "p95_ms": 423.93,
+              "max_ms": 134428.713,
+              "total_ms": 190637.60199999998
+            },
+            "host_thread_cpu": {
+              "count": 122,
+              "p50_ms": 0.456,
+              "p95_ms": 1.808,
+              "max_ms": 599.073,
+              "total_ms": 843.424
+            }
+          },
+          "gui.job": {
+            "wall": {
+              "count": 7,
+              "p50_ms": 61.544,
+              "p95_ms": 196145.747,
+              "max_ms": 196145.747,
+              "total_ms": 196476.554
+            },
+            "host_thread_cpu": {
+              "count": 7,
+              "p50_ms": 1.256,
+              "p95_ms": 2832.163,
+              "max_ms": 2832.163,
+              "total_ms": 2839.887
+            }
+          },
+          "gui.state": {
+            "wall": {
+              "count": 839,
+              "p50_ms": 0.908,
+              "p95_ms": 6.698,
+              "max_ms": 38.305,
+              "total_ms": 1188.2949999999998
+            },
+            "host_thread_cpu": {
+              "count": 839,
+              "p50_ms": 0.864,
+              "p95_ms": 6.531,
+              "max_ms": 37.028,
+              "total_ms": 1139.5310000000004
+            }
+          },
+          "gui.enqueue": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.001,
+              "p95_ms": 0.002,
+              "max_ms": 0.002,
+              "total_ms": 0.006
+            },
+            "host_thread_cpu": {
+              "count": 6,
+              "p50_ms": 0,
+              "p95_ms": 0.001,
+              "max_ms": 0.001,
+              "total_ms": 0.002
+            }
+          },
+          "job.queue": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.033,
+              "p95_ms": 0.081,
+              "max_ms": 0.081,
+              "total_ms": 0.261
+            },
+            "host_thread_cpu": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            }
+          },
+          "gui.command": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.213,
+              "p95_ms": 0.264,
+              "max_ms": 0.264,
+              "total_ms": 1.293
+            },
+            "host_thread_cpu": {
+              "count": 6,
+              "p50_ms": 0.19,
+              "p95_ms": 0.23,
+              "max_ms": 0.23,
+              "total_ms": 1.132
+            }
+          },
+          "atlas.resources.select": {
+            "wall": {
+              "count": 25,
+              "p50_ms": 9.669,
+              "p95_ms": 14.729,
+              "max_ms": 15.963,
+              "total_ms": 256.8110000000001
+            },
+            "host_thread_cpu": {
+              "count": 25,
+              "p50_ms": 9.595,
+              "p95_ms": 14.621,
+              "max_ms": 15.848,
+              "total_ms": 255.23299999999998
+            }
+          },
+          "atlas.resources.validate": {
+            "wall": {
+              "count": 40,
+              "p50_ms": 20.183,
+              "p95_ms": 28.311,
+              "max_ms": 28.667,
+              "total_ms": 812.49
+            },
+            "host_thread_cpu": {
+              "count": 40,
+              "p50_ms": 20.067,
+              "p95_ms": 27.313,
+              "max_ms": 28.001,
+              "total_ms": 806.5389999999999
+            }
+          },
+          "sandbox.public_tools": {
+            "wall": {
+              "count": 20,
+              "p50_ms": 90.889,
+              "p95_ms": 114.984,
+              "max_ms": 114.984,
+              "total_ms": 1792.0669999999998
+            },
+            "host_thread_cpu": {
+              "count": 20,
+              "p50_ms": 3.564,
+              "p95_ms": 4.846,
+              "max_ms": 4.846,
+              "total_ms": 74.14200000000001
+            }
+          },
+          "sandbox.libraries": {
+            "wall": {
+              "count": 20,
+              "p50_ms": 64.478,
+              "p95_ms": 68.536,
+              "max_ms": 68.536,
+              "total_ms": 1186.847
+            },
+            "host_thread_cpu": {
+              "count": 20,
+              "p50_ms": 4.699,
+              "p95_ms": 5.086,
+              "max_ms": 5.086,
+              "total_ms": 86.94600000000001
+            }
+          },
+          "sandbox.nix_closure": {
+            "wall": {
+              "count": 20,
+              "p50_ms": 50.482,
+              "p95_ms": 66.725,
+              "max_ms": 66.725,
+              "total_ms": 1015.8740000000003
+            },
+            "host_thread_cpu": {
+              "count": 20,
+              "p50_ms": 0.929,
+              "p95_ms": 1.47,
+              "max_ms": 1.47,
+              "total_ms": 19.171
+            }
+          },
+          "sandbox.prepare": {
+            "wall": {
+              "count": 20,
+              "p50_ms": 570.314,
+              "p95_ms": 682.067,
+              "max_ms": 682.067,
+              "total_ms": 11634.325
+            },
+            "host_thread_cpu": {
+              "count": 20,
+              "p50_ms": 36.402,
+              "p95_ms": 47.015,
+              "max_ms": 47.015,
+              "total_ms": 732.327
+            }
+          },
+          "atlas.execute": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 18719.74,
+              "p95_ms": 18719.74,
+              "max_ms": 18719.74,
+              "total_ms": 18719.74
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 94.358,
+              "p95_ms": 94.358,
+              "max_ms": 94.358,
+              "total_ms": 94.358
+            }
+          },
+          "analysis.capture_sources": {
+            "wall": {
+              "count": 3,
+              "p50_ms": 41.866,
+              "p95_ms": 52.866,
+              "max_ms": 52.866,
+              "total_ms": 136.445
+            },
+            "host_thread_cpu": {
+              "count": 3,
+              "p50_ms": 1.162,
+              "p95_ms": 1.996,
+              "max_ms": 1.996,
+              "total_ms": 4.220000000000001
+            }
+          },
+          "atlas.lake_configuration.reuse": {
+            "wall": {
+              "count": 12,
+              "p50_ms": 20.398,
+              "p95_ms": 22.09,
+              "max_ms": 22.09,
+              "total_ms": 248.169
+            },
+            "host_thread_cpu": {
+              "count": 12,
+              "p50_ms": 20.305,
+              "p95_ms": 21.972,
+              "max_ms": 21.972,
+              "total_ms": 247.14000000000001
+            }
+          },
+          "atlas.lake_configuration.resolve": {
+            "wall": {
+              "count": 12,
+              "p50_ms": 51.913,
+              "p95_ms": 56.516,
+              "max_ms": 56.516,
+              "total_ms": 630.3589999999999
+            },
+            "host_thread_cpu": {
+              "count": 12,
+              "p50_ms": 51.386,
+              "p95_ms": 55.958,
+              "max_ms": 55.958,
+              "total_ms": 624.538
+            }
+          },
+          "analysis.discover_layout": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1718.046,
+              "p95_ms": 1718.046,
+              "max_ms": 1718.046,
+              "total_ms": 1718.046
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 646.213,
+              "p95_ms": 646.213,
+              "max_ms": 646.213,
+              "total_ms": 646.213
+            }
+          },
+          "analysis.select_roots": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1801.774,
+              "p95_ms": 1801.774,
+              "max_ms": 1801.774,
+              "total_ms": 1801.774
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 648.585,
+              "p95_ms": 648.585,
+              "max_ms": 648.585,
+              "total_ms": 648.585
+            }
+          },
+          "atlas.project.prepare": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 15018.31,
+              "p95_ms": 15018.31,
+              "max_ms": 15018.31,
+              "total_ms": 15018.31
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 90.429,
+              "p95_ms": 90.429,
+              "max_ms": 90.429,
+              "total_ms": 90.429
+            }
+          },
+          "analysis.cache.validate": {
+            "wall": {
+              "count": 2,
+              "p50_ms": 0.091,
+              "p95_ms": 0.091,
+              "max_ms": 0.091,
+              "total_ms": 0.158
+            },
+            "host_thread_cpu": {
+              "count": 2,
+              "p50_ms": 0.09,
+              "p95_ms": 0.09,
+              "max_ms": 0.09,
+              "total_ms": 0.156
+            }
+          },
+          "atlas.project.extract": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 134974.477,
+              "p95_ms": 134974.477,
+              "max_ms": 134974.477,
+              "total_ms": 134974.477
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 630.628,
+              "p95_ms": 630.628,
+              "max_ms": 630.628,
+              "total_ms": 630.628
+            }
+          },
+          "atlas.project.fingerprint": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 10876.889,
+              "p95_ms": 10876.889,
+              "max_ms": 10876.889,
+              "total_ms": 10876.889
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 82.017,
+              "p95_ms": 82.017,
+              "max_ms": 82.017,
+              "total_ms": 82.017
+            }
+          },
+          "atlas.imports": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 967.619,
+              "p95_ms": 967.619,
+              "max_ms": 967.619,
+              "total_ms": 967.619
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 39.9,
+              "p95_ms": 39.9,
+              "max_ms": 39.9,
+              "total_ms": 39.9
+            }
+          },
+          "analysis.cache.retain_observation": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 14.574,
+              "p95_ms": 14.574,
+              "max_ms": 14.574,
+              "total_ms": 14.574
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 11.014,
+              "p95_ms": 11.014,
+              "max_ms": 11.014,
+              "total_ms": 11.014
+            }
+          },
+          "analysis.cache.load_rendering": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 0.238,
+              "p95_ms": 0.238,
+              "max_ms": 0.238,
+              "total_ms": 0.238
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 0.056,
+              "p95_ms": 0.056,
+              "max_ms": 0.056,
+              "total_ms": 0.056
+            }
+          },
+          "analysis.render": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 10847.307,
+              "p95_ms": 10847.307,
+              "max_ms": 10847.307,
+              "total_ms": 10847.307
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 600.414,
+              "p95_ms": 600.414,
+              "max_ms": 600.414,
+              "total_ms": 600.414
+            }
+          },
+          "analysis.cache.store_rendering": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 19.33,
+              "p95_ms": 19.33,
+              "max_ms": 19.33,
+              "total_ms": 19.33
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 15.591,
+              "p95_ms": 15.591,
+              "max_ms": 15.591,
+              "total_ms": 15.591
+            }
+          },
+          "analysis.extract": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 195913.002,
+              "p95_ms": 195913.002,
+              "max_ms": 195913.002,
+              "total_ms": 195913.002
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 2706.122,
+              "p95_ms": 2706.122,
+              "max_ms": 2706.122,
+              "total_ms": 2706.122
+            }
+          },
+          "analysis.materialize_view": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 0.899,
+              "p95_ms": 0.899,
+              "max_ms": 0.899,
+              "total_ms": 0.899
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 0.889,
+              "p95_ms": 0.889,
+              "max_ms": 0.889,
+              "total_ms": 0.889
+            }
+          }
+        }
+      },
+      "interactions": {
+        "graph-idle-poll": {
+          "dispatch": {},
+          "input_two_raf": {},
+          "long_tasks": {
+            "count": 2,
+            "p50_ms": 425,
+            "p95_ms": 425,
+            "max_ms": 425,
+            "total_ms": 569
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-idle-settled": {
+          "dispatch": {},
+          "input_two_raf": {},
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-wheel": {
+          "dispatch": {
+            "pointerout": {
+              "count": 1,
+              "p50_ms": 0.174,
+              "p95_ms": 0.174,
+              "max_ms": 0.174,
+              "total_ms": 0.174
+            },
+            "pointerover": {
+              "count": 1,
+              "p50_ms": 0.059,
+              "p95_ms": 0.059,
+              "max_ms": 0.059,
+              "total_ms": 0.059
+            },
+            "mouseout": {
+              "count": 1,
+              "p50_ms": 0.068,
+              "p95_ms": 0.068,
+              "max_ms": 0.068,
+              "total_ms": 0.068
+            },
+            "mouseover": {
+              "count": 1,
+              "p50_ms": 0.02,
+              "p95_ms": 0.02,
+              "max_ms": 0.02,
+              "total_ms": 0.02
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 0.026,
+              "p95_ms": 0.026,
+              "max_ms": 0.026,
+              "total_ms": 0.026
+            },
+            "mousemove": {
+              "count": 1,
+              "p50_ms": 0.086,
+              "p95_ms": 0.086,
+              "max_ms": 0.086,
+              "total_ms": 0.086
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 0.485,
+              "p95_ms": 0.983,
+              "max_ms": 1.487,
+              "total_ms": 13.084000000000001
+            }
+          },
+          "input_two_raf": {
+            "pointerout": {
+              "count": 1,
+              "p50_ms": 21.900000035762787,
+              "p95_ms": 21.900000035762787,
+              "max_ms": 21.900000035762787,
+              "total_ms": 21.900000035762787
+            },
+            "pointerover": {
+              "count": 1,
+              "p50_ms": 21.80000001192093,
+              "p95_ms": 21.80000001192093,
+              "max_ms": 21.80000001192093,
+              "total_ms": 21.80000001192093
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 21.600000023841858,
+              "p95_ms": 21.600000023841858,
+              "max_ms": 21.600000023841858,
+              "total_ms": 21.600000023841858
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 16.5,
+              "p95_ms": 20,
+              "max_ms": 24.5,
+              "total_ms": 408.5999998450279
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-hover": {
+          "dispatch": {
+            "pointerout": {
+              "count": 40,
+              "p50_ms": 0.166,
+              "p95_ms": 0.404,
+              "max_ms": 0.641,
+              "total_ms": 7.391000000000002
+            },
+            "pointerover": {
+              "count": 40,
+              "p50_ms": 0.045,
+              "p95_ms": 0.081,
+              "max_ms": 0.088,
+              "total_ms": 1.9200000000000002
+            },
+            "mouseout": {
+              "count": 40,
+              "p50_ms": 0.095,
+              "p95_ms": 0.159,
+              "max_ms": 0.268,
+              "total_ms": 4.0120000000000005
+            },
+            "mouseover": {
+              "count": 40,
+              "p50_ms": 0.032,
+              "p95_ms": 0.077,
+              "max_ms": 0.091,
+              "total_ms": 1.4010000000000002
+            },
+            "pointermove": {
+              "count": 40,
+              "p50_ms": 0.037,
+              "p95_ms": 0.07,
+              "max_ms": 0.097,
+              "total_ms": 1.5870000000000009
+            },
+            "mousemove": {
+              "count": 40,
+              "p50_ms": 0.045,
+              "p95_ms": 0.069,
+              "max_ms": 0.069,
+              "total_ms": 1.851
+            },
+            "load": {
+              "count": 1,
+              "p50_ms": 0.002,
+              "p95_ms": 0.002,
+              "max_ms": 0.002,
+              "total_ms": 0.002
+            }
+          },
+          "input_two_raf": {
+            "pointerout": {
+              "count": 40,
+              "p50_ms": 18.099999964237213,
+              "p95_ms": 27.599999964237213,
+              "max_ms": 31.900000035762787,
+              "total_ms": 723.6999999284744
+            },
+            "pointerover": {
+              "count": 40,
+              "p50_ms": 18,
+              "p95_ms": 27.5,
+              "max_ms": 31.80000001192093,
+              "total_ms": 718.1000000238419
+            },
+            "pointermove": {
+              "count": 40,
+              "p50_ms": 17.900000035762787,
+              "p95_ms": 27.299999952316284,
+              "max_ms": 31.30000001192093,
+              "total_ms": 709.9000001549721
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-pan": {
+          "dispatch": {
+            "pointermove": {
+              "count": 31,
+              "p50_ms": 0.175,
+              "p95_ms": 0.221,
+              "max_ms": 0.254,
+              "total_ms": 5.289
+            },
+            "mousemove": {
+              "count": 31,
+              "p50_ms": 0.167,
+              "p95_ms": 0.276,
+              "max_ms": 0.354,
+              "total_ms": 5.364
+            },
+            "pointerdown": {
+              "count": 1,
+              "p50_ms": 0.072,
+              "p95_ms": 0.072,
+              "max_ms": 0.072,
+              "total_ms": 0.072
+            },
+            "mousedown": {
+              "count": 1,
+              "p50_ms": 0.269,
+              "p95_ms": 0.269,
+              "max_ms": 0.269,
+              "total_ms": 0.269
+            },
+            "selectstart": {
+              "count": 1,
+              "p50_ms": 0.043,
+              "p95_ms": 0.043,
+              "max_ms": 0.043,
+              "total_ms": 0.043
+            },
+            "pointerup": {
+              "count": 1,
+              "p50_ms": 0.34,
+              "p95_ms": 0.34,
+              "max_ms": 0.34,
+              "total_ms": 0.34
+            },
+            "mouseup": {
+              "count": 1,
+              "p50_ms": 0.492,
+              "p95_ms": 0.492,
+              "max_ms": 0.492,
+              "total_ms": 0.492
+            },
+            "click": {
+              "count": 1,
+              "p50_ms": 0.025,
+              "p95_ms": 0.025,
+              "max_ms": 0.025,
+              "total_ms": 0.025
+            }
+          },
+          "input_two_raf": {
+            "pointermove": {
+              "count": 31,
+              "p50_ms": 19.80000001192093,
+              "p95_ms": 20.099999964237213,
+              "max_ms": 20.19999998807907,
+              "total_ms": 606.7999997138977
+            },
+            "pointerdown": {
+              "count": 1,
+              "p50_ms": 34.5,
+              "p95_ms": 34.5,
+              "max_ms": 34.5,
+              "total_ms": 34.5
+            },
+            "pointerup": {
+              "count": 1,
+              "p50_ms": 23.399999976158142,
+              "p95_ms": 23.399999976158142,
+              "max_ms": 23.399999976158142,
+              "total_ms": 23.399999976158142
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "graph-resize": {
+          "dispatch": {
+            "resize": {
+              "count": 4,
+              "p50_ms": 0.844,
+              "p95_ms": 0.866,
+              "max_ms": 0.866,
+              "total_ms": 3.272
+            },
+            "selectionchange": {
+              "count": 4,
+              "p50_ms": 0.053,
+              "p95_ms": 0.057,
+              "max_ms": 0.057,
+              "total_ms": 0.19499999999999998
+            }
+          },
+          "input_two_raf": {
+            "resize": {
+              "count": 4,
+              "p50_ms": 15.699999988079071,
+              "p95_ms": 18,
+              "max_ms": 18,
+              "total_ms": 61.19999998807907
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "tab-switch": {
+          "dispatch": {
+            "__playwright_reset_targets__": {
+              "count": 24,
+              "p50_ms": 0.006,
+              "p95_ms": 0.009,
+              "max_ms": 0.009,
+              "total_ms": 0.14900000000000002
+            },
+            "__playwright_mark_target__": {
+              "count": 24,
+              "p50_ms": 0.002,
+              "p95_ms": 0.003,
+              "max_ms": 0.026,
+              "total_ms": 0.08100000000000003
+            },
+            "pointerout": {
+              "count": 24,
+              "p50_ms": 0.23,
+              "p95_ms": 0.292,
+              "max_ms": 0.301,
+              "total_ms": 5.3149999999999995
+            },
+            "pointerover": {
+              "count": 24,
+              "p50_ms": 0.065,
+              "p95_ms": 0.124,
+              "max_ms": 0.161,
+              "total_ms": 1.7870000000000004
+            },
+            "mouseout": {
+              "count": 24,
+              "p50_ms": 0.087,
+              "p95_ms": 0.122,
+              "max_ms": 0.153,
+              "total_ms": 2.116
+            },
+            "mouseover": {
+              "count": 24,
+              "p50_ms": 0.048,
+              "p95_ms": 0.076,
+              "max_ms": 0.113,
+              "total_ms": 1.2170000000000003
+            },
+            "pointermove": {
+              "count": 24,
+              "p50_ms": 0.06,
+              "p95_ms": 0.071,
+              "max_ms": 0.087,
+              "total_ms": 1.4
+            },
+            "mousemove": {
+              "count": 24,
+              "p50_ms": 0.07,
+              "p95_ms": 0.092,
+              "max_ms": 0.097,
+              "total_ms": 1.701
+            },
+            "pointerdown": {
+              "count": 24,
+              "p50_ms": 1.195,
+              "p95_ms": 1.367,
+              "max_ms": 1.447,
+              "total_ms": 27.826999999999998
+            },
+            "mousedown": {
+              "count": 24,
+              "p50_ms": 0.061,
+              "p95_ms": 0.08,
+              "max_ms": 0.081,
+              "total_ms": 1.5099999999999998
+            },
+            "focus": {
+              "count": 24,
+              "p50_ms": 0.004,
+              "p95_ms": 0.004,
+              "max_ms": 0.004,
+              "total_ms": 0.08400000000000005
+            },
+            "focusin": {
+              "count": 24,
+              "p50_ms": 0.057,
+              "p95_ms": 0.078,
+              "max_ms": 0.108,
+              "total_ms": 1.4050000000000002
+            },
+            "DOMFocusIn": {
+              "count": 24,
+              "p50_ms": 0.003,
+              "p95_ms": 0.003,
+              "max_ms": 0.008,
+              "total_ms": 0.06700000000000003
+            },
+            "pointerup": {
+              "count": 24,
+              "p50_ms": 0.101,
+              "p95_ms": 0.128,
+              "max_ms": 0.173,
+              "total_ms": 2.3830000000000005
+            },
+            "mouseup": {
+              "count": 24,
+              "p50_ms": 0.061,
+              "p95_ms": 0.079,
+              "max_ms": 0.087,
+              "total_ms": 1.496
+            },
+            "click": {
+              "count": 24,
+              "p50_ms": 13.361,
+              "p95_ms": 15.996,
+              "max_ms": 17.166,
+              "total_ms": 312.674
+            },
+            "DOMActivate": {
+              "count": 24,
+              "p50_ms": 0.006,
+              "p95_ms": 0.011,
+              "max_ms": 0.026,
+              "total_ms": 0.16600000000000004
+            },
+            "blur": {
+              "count": 23,
+              "p50_ms": 0.006,
+              "p95_ms": 0.02,
+              "max_ms": 0.021,
+              "total_ms": 0.166
+            },
+            "focusout": {
+              "count": 23,
+              "p50_ms": 0.057,
+              "p95_ms": 0.071,
+              "max_ms": 0.136,
+              "total_ms": 1.388
+            },
+            "DOMFocusOut": {
+              "count": 23,
+              "p50_ms": 0.003,
+              "p95_ms": 0.003,
+              "max_ms": 0.021,
+              "total_ms": 0.08000000000000003
+            }
+          },
+          "input_two_raf": {
+            "pointerout": {
+              "count": 24,
+              "p50_ms": 34.799999952316284,
+              "p95_ms": 45.799999952316284,
+              "max_ms": 47.40000003576279,
+              "total_ms": 844.0999997854233
+            },
+            "pointerover": {
+              "count": 24,
+              "p50_ms": 34.80000001192093,
+              "p95_ms": 45.799999952316284,
+              "max_ms": 47.10000002384186,
+              "total_ms": 839.4999998807907
+            },
+            "pointermove": {
+              "count": 24,
+              "p50_ms": 34.5,
+              "p95_ms": 45.69999998807907,
+              "max_ms": 46.80000001192093,
+              "total_ms": 833.8999999761581
+            },
+            "pointerdown": {
+              "count": 24,
+              "p50_ms": 32.80000001192093,
+              "p95_ms": 44.89999997615814,
+              "max_ms": 45,
+              "total_ms": 796.3999999761581
+            },
+            "pointerup": {
+              "count": 24,
+              "p50_ms": 31.600000023841858,
+              "p95_ms": 43.10000002384186,
+              "max_ms": 43.89999997615814,
+              "total_ms": 757.5999998450279
+            },
+            "click": {
+              "count": 24,
+              "p50_ms": 31.5,
+              "p95_ms": 43,
+              "max_ms": 43.80000001192093,
+              "total_ms": 753.9000000357628
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "graph-node-select": {
+          "dispatch": {
+            "__playwright_reset_targets__": {
+              "count": 1,
+              "p50_ms": 0.005,
+              "p95_ms": 0.005,
+              "max_ms": 0.005,
+              "total_ms": 0.005
+            },
+            "__playwright_mark_target__": {
+              "count": 1,
+              "p50_ms": 0.003,
+              "p95_ms": 0.003,
+              "max_ms": 0.003,
+              "total_ms": 0.003
+            },
+            "pointerout": {
+              "count": 2,
+              "p50_ms": 0.317,
+              "p95_ms": 0.317,
+              "max_ms": 0.317,
+              "total_ms": 0.539
+            },
+            "pointerover": {
+              "count": 2,
+              "p50_ms": 0.16,
+              "p95_ms": 0.16,
+              "max_ms": 0.16,
+              "total_ms": 0.249
+            },
+            "mouseout": {
+              "count": 2,
+              "p50_ms": 0.246,
+              "p95_ms": 0.246,
+              "max_ms": 0.246,
+              "total_ms": 0.37
+            },
+            "mouseover": {
+              "count": 2,
+              "p50_ms": 0.09,
+              "p95_ms": 0.09,
+              "max_ms": 0.09,
+              "total_ms": 0.143
+            },
+            "pointermove": {
+              "count": 9,
+              "p50_ms": 0.077,
+              "p95_ms": 0.177,
+              "max_ms": 0.177,
+              "total_ms": 0.857
+            },
+            "mousemove": {
+              "count": 9,
+              "p50_ms": 0.073,
+              "p95_ms": 0.144,
+              "max_ms": 0.144,
+              "total_ms": 0.661
+            },
+            "pointerdown": {
+              "count": 9,
+              "p50_ms": 0.087,
+              "p95_ms": 1.269,
+              "max_ms": 1.269,
+              "total_ms": 1.952
+            },
+            "mousedown": {
+              "count": 9,
+              "p50_ms": 0.077,
+              "p95_ms": 0.204,
+              "max_ms": 0.204,
+              "total_ms": 0.7819999999999999
+            },
+            "blur": {
+              "count": 2,
+              "p50_ms": 0.009,
+              "p95_ms": 0.009,
+              "max_ms": 0.009,
+              "total_ms": 0.013999999999999999
+            },
+            "focusout": {
+              "count": 2,
+              "p50_ms": 0.12,
+              "p95_ms": 0.12,
+              "max_ms": 0.12,
+              "total_ms": 0.16699999999999998
+            },
+            "DOMFocusOut": {
+              "count": 2,
+              "p50_ms": 0.006,
+              "p95_ms": 0.006,
+              "max_ms": 0.006,
+              "total_ms": 0.009000000000000001
+            },
+            "focus": {
+              "count": 2,
+              "p50_ms": 0.007,
+              "p95_ms": 0.007,
+              "max_ms": 0.007,
+              "total_ms": 0.011
+            },
+            "focusin": {
+              "count": 2,
+              "p50_ms": 13.115,
+              "p95_ms": 13.115,
+              "max_ms": 13.115,
+              "total_ms": 13.198
+            },
+            "DOMFocusIn": {
+              "count": 2,
+              "p50_ms": 0.004,
+              "p95_ms": 0.004,
+              "max_ms": 0.004,
+              "total_ms": 0.007
+            },
+            "pointerup": {
+              "count": 9,
+              "p50_ms": 0.114,
+              "p95_ms": 0.179,
+              "max_ms": 0.179,
+              "total_ms": 1.096
+            },
+            "mouseup": {
+              "count": 9,
+              "p50_ms": 0.061,
+              "p95_ms": 0.099,
+              "max_ms": 0.099,
+              "total_ms": 0.54
+            },
+            "click": {
+              "count": 9,
+              "p50_ms": 0.139,
+              "p95_ms": 28.555,
+              "max_ms": 28.555,
+              "total_ms": 30.451
+            },
+            "DOMActivate": {
+              "count": 9,
+              "p50_ms": 0.005,
+              "p95_ms": 0.007,
+              "max_ms": 0.007,
+              "total_ms": 0.046
+            },
+            "scroll": {
+              "count": 2,
+              "p50_ms": 0.664,
+              "p95_ms": 0.664,
+              "max_ms": 0.664,
+              "total_ms": 1.2269999999999999
+            },
+            "scrollend": {
+              "count": 2,
+              "p50_ms": 0.02,
+              "p95_ms": 0.02,
+              "max_ms": 0.02,
+              "total_ms": 0.021
+            },
+            "load": {
+              "count": 3,
+              "p50_ms": 0.001,
+              "p95_ms": 0.002,
+              "max_ms": 0.002,
+              "total_ms": 0.004
+            },
+            "selectionchange": {
+              "count": 1,
+              "p50_ms": 0.021,
+              "p95_ms": 0.021,
+              "max_ms": 0.021,
+              "total_ms": 0.021
+            },
+            "transitionrun": {
+              "count": 3,
+              "p50_ms": 0.097,
+              "p95_ms": 0.139,
+              "max_ms": 0.139,
+              "total_ms": 0.259
+            },
+            "transitionstart": {
+              "count": 3,
+              "p50_ms": 0.016,
+              "p95_ms": 0.072,
+              "max_ms": 0.072,
+              "total_ms": 0.09999999999999999
+            },
+            "animationstart": {
+              "count": 2,
+              "p50_ms": 0.149,
+              "p95_ms": 0.149,
+              "max_ms": 0.149,
+              "total_ms": 0.175
+            },
+            "animationend": {
+              "count": 2,
+              "p50_ms": 0.034,
+              "p95_ms": 0.034,
+              "max_ms": 0.034,
+              "total_ms": 0.064
+            },
+            "transitionend": {
+              "count": 3,
+              "p50_ms": 0.168,
+              "p95_ms": 0.175,
+              "max_ms": 0.175,
+              "total_ms": 0.462
+            }
+          },
+          "input_two_raf": {
+            "pointerout": {
+              "count": 2,
+              "p50_ms": 55.799999952316284,
+              "p95_ms": 55.799999952316284,
+              "max_ms": 55.799999952316284,
+              "total_ms": 81.19999998807907
+            },
+            "pointerover": {
+              "count": 2,
+              "p50_ms": 55.39999997615814,
+              "p95_ms": 55.39999997615814,
+              "max_ms": 55.39999997615814,
+              "total_ms": 80.59999996423721
+            },
+            "pointermove": {
+              "count": 9,
+              "p50_ms": 28.600000023841858,
+              "p95_ms": 54.89999997615814,
+              "max_ms": 54.89999997615814,
+              "total_ms": 266.7999999523163
+            },
+            "pointerdown": {
+              "count": 9,
+              "p50_ms": 28.400000035762787,
+              "p95_ms": 54.09999996423721,
+              "max_ms": 54.09999996423721,
+              "total_ms": 262.60000002384186
+            },
+            "pointerup": {
+              "count": 9,
+              "p50_ms": 27.899999976158142,
+              "p95_ms": 37,
+              "max_ms": 37,
+              "total_ms": 240.10000002384186
+            },
+            "click": {
+              "count": 9,
+              "p50_ms": 27.599999964237213,
+              "p95_ms": 36.89999997615814,
+              "max_ms": 36.89999997615814,
+              "total_ms": 238.69999992847443
+            }
+          },
+          "long_tasks": {
+            "count": 1,
+            "p50_ms": 50,
+            "p95_ms": 50,
+            "max_ms": 50,
+            "total_ms": 50
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+          }
+        },
+        "project-map-wheel": {
+          "dispatch": {
+            "pointerout": {
+              "count": 5,
+              "p50_ms": 0.19,
+              "p95_ms": 0.298,
+              "max_ms": 0.298,
+              "total_ms": 0.9850000000000001
+            },
+            "pointerover": {
+              "count": 5,
+              "p50_ms": 0.073,
+              "p95_ms": 0.099,
+              "max_ms": 0.099,
+              "total_ms": 0.35
+            },
+            "mouseout": {
+              "count": 5,
+              "p50_ms": 0.078,
+              "p95_ms": 0.101,
+              "max_ms": 0.101,
+              "total_ms": 0.371
+            },
+            "mouseover": {
+              "count": 5,
+              "p50_ms": 0.045,
+              "p95_ms": 0.054,
+              "max_ms": 0.054,
+              "total_ms": 0.217
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 0.033,
+              "p95_ms": 0.033,
+              "max_ms": 0.033,
+              "total_ms": 0.033
+            },
+            "mousemove": {
+              "count": 1,
+              "p50_ms": 0.042,
+              "p95_ms": 0.042,
+              "max_ms": 0.042,
+              "total_ms": 0.042
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 2.407,
+              "p95_ms": 4.924,
+              "max_ms": 5.286,
+              "total_ms": 65.40500000000002
+            }
+          },
+          "input_two_raf": {
+            "pointerout": {
+              "count": 5,
+              "p50_ms": 19.099999964237213,
+              "p95_ms": 22.30000001192093,
+              "max_ms": 22.30000001192093,
+              "total_ms": 87
+            },
+            "pointerover": {
+              "count": 5,
+              "p50_ms": 19,
+              "p95_ms": 22.100000023841858,
+              "max_ms": 22.100000023841858,
+              "total_ms": 86.19999998807907
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 7.399999976158142,
+              "p95_ms": 7.399999976158142,
+              "max_ms": 7.399999976158142,
+              "total_ms": 7.399999976158142
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 17,
+              "p95_ms": 19.599999964237213,
+              "max_ms": 20.80000001192093,
+              "total_ms": 410
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": null,
+            "after": null
+          }
+        },
+        "project-map-idle": {
+          "dispatch": {},
+          "input_two_raf": {},
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": null,
+            "after": null
+          }
+        }
+      }
+    },
+    {
+      "name": "warm-1",
+      "directory": "target/native-profile/event-audit-riemann-lake-query-warm-1",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 15605.088639000001,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/lake-query-profile-assets",
+        "source_maps_sha256": {
+          "index-C1bIHHNu.js": "98301103c1b63eb11b4c6d3e7d6e5e468ee61f615b490ef38e03f44b8de8246b",
+          "GraphView-MhJMzsfo.js": "2833a449428e1fa5dbb11bf472a13acb2454309a21c189d6f9869f9df81c7b17"
+        }
+      },
+      "manifest": {
+        "binary_sha256": "bcaed9846020272d9cb7e08ca3a2900be7a91e57c30646be89326ab71b0c143a",
+        "samples": 1257,
+        "perf_event_paranoid": "2",
+        "kptr_restrict": "1",
+        "event": "cpu-clock:u",
+        "frequency_hz": 99,
+        "stack": "dwarf,8192",
+        "digests": {
+          "perf.data": "5cc35cfaf88926b038ebaeb892d903f0322900b2b3837a1e1562ece2a8886002",
+          "perf-report.txt": "d561fcc8f56d6ce75d1d4d6f07862e1869a12358753c2068a39a40919eb82a9b",
+          "trace.json": "e20a2b21e26610ca4e3d5b2a662a08fe3019ea74fced5f023ac9c733e95f9110",
+          "native-metrics.json": "9d92e6f889f1d29361d1745ce1c2a57da56536b3bf7d69945244d4992dab1efd",
+          "summary.json": "5fb1bc1b99d204b7c838e69d38dd3d33bebe2278393dbba57a09a31acaaa27af",
+          "graph-hover.cpuprofile": "df1539d79e97e55c184dfbd7386d714f6abe76b61120653126701dea7a9aadf8",
+          "graph-idle-poll.cpuprofile": "8fdac5aea1a4f33df3f26b08455a3be1325332867e4ff9d04cfd4ce95663a810",
+          "graph-idle-settled.cpuprofile": "8052d4423b6bba4eb2afde25d5caede2d6b101656617e5336ab671952a5076f1",
+          "graph-node-select.cpuprofile": "9e4106c04df392d8cb6830cd2637507507dc94c69f33a0ba06b6493047211fa7",
+          "graph-pan.cpuprofile": "def465aa23d590cadfa06c52694bcd0b2acf3b17cb50b270abac9e84e280a185",
+          "graph-resize.cpuprofile": "86e002b24816c60fa4d7406d2cf3ec9abcda01db2a51ecf1b560a6ab8a2d0d52",
+          "graph-wheel.cpuprofile": "ff522e8359f74049536beb98dddca1ef505287bf7ae0e991e72a449e8faff139",
+          "project-map-idle.cpuprofile": "f069d9a580b78b8fe07374bdf97292cef5d8b62fcb93dafcb44287a6e8e30a67",
+          "project-map-wheel.cpuprofile": "7760a93a29704a4dbef148bf48f7cdb0f694e75f4b46ab076fa51b37357dd799",
+          "tab-switch.cpuprofile": "b008b84fa4f06e04a120190387bc1a6b9e447258425d45b98196d3bc448ad823"
+        },
+        "limits": "Current-user native host and inherited workers only; no kernel stacks. Thread CPU spans exclude worker CPU. File preparation reuses project/OS caches, not a cold installation. Sampling changes timing; browser profiles have their own overhead."
+      },
+      "native_stages": {
+        "available": true,
+        "evicted_during_capture": 0,
+        "stages": {
+          "process.run": {
+            "wall": {
+              "count": 84,
+              "p50_ms": 51.208,
+              "p95_ms": 61.42,
+              "max_ms": 9481.41,
+              "total_ms": 13834.529000000002
+            },
+            "host_thread_cpu": {
+              "count": 84,
+              "p50_ms": 0.431,
+              "p95_ms": 0.7,
+              "max_ms": 38.538,
+              "total_ms": 76.332
+            }
+          },
+          "gui.job": {
+            "wall": {
+              "count": 7,
+              "p50_ms": 41.99,
+              "p95_ms": 14958.607,
+              "max_ms": 14958.607,
+              "total_ms": 15211.457
+            },
+            "host_thread_cpu": {
+              "count": 7,
+              "p50_ms": 1.48,
+              "p95_ms": 1203.067,
+              "max_ms": 1203.067,
+              "total_ms": 1212.442
+            }
+          },
+          "gui.serialize_respond": {
+            "wall": {
+              "count": 193,
+              "p50_ms": 2.465,
+              "p95_ms": 6.715,
+              "max_ms": 1130.013,
+              "total_ms": 1724.3459999999998
+            },
+            "host_thread_cpu": {
+              "count": 193,
+              "p50_ms": 2.417,
+              "p95_ms": 6.545,
+              "max_ms": 1061.431,
+              "total_ms": 1638.5529999999999
+            }
+          },
+          "gui.state": {
+            "wall": {
+              "count": 142,
+              "p50_ms": 5.036,
+              "p95_ms": 8.341,
+              "max_ms": 10.631,
+              "total_ms": 707.906
+            },
+            "host_thread_cpu": {
+              "count": 142,
+              "p50_ms": 4.907,
+              "p95_ms": 8.105,
+              "max_ms": 10.372,
+              "total_ms": 689.987
+            }
+          },
+          "gui.enqueue": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0,
+              "p95_ms": 0.001,
+              "max_ms": 0.001,
+              "total_ms": 0.001
+            },
+            "host_thread_cpu": {
+              "count": 6,
+              "p50_ms": 0,
+              "p95_ms": 0.001,
+              "max_ms": 0.001,
+              "total_ms": 0.001
+            }
+          },
+          "job.queue": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.079,
+              "p95_ms": 0.166,
+              "max_ms": 0.166,
+              "total_ms": 0.502
+            },
+            "host_thread_cpu": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            }
+          },
+          "gui.command": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.179,
+              "p95_ms": 0.276,
+              "max_ms": 0.276,
+              "total_ms": 1.149
+            },
+            "host_thread_cpu": {
+              "count": 6,
+              "p50_ms": 0.165,
+              "p95_ms": 0.253,
+              "max_ms": 0.253,
+              "total_ms": 1.038
+            }
+          },
+          "atlas.resources.select": {
+            "wall": {
+              "count": 21,
+              "p50_ms": 12.108,
+              "p95_ms": 15.689,
+              "max_ms": 16.386,
+              "total_ms": 251.29
+            },
+            "host_thread_cpu": {
+              "count": 21,
+              "p50_ms": 11.761,
+              "p95_ms": 15.193,
+              "max_ms": 16.255,
+              "total_ms": 247.79900000000004
+            }
+          },
+          "atlas.resources.validate": {
+            "wall": {
+              "count": 34,
+              "p50_ms": 19.882,
+              "p95_ms": 21.716,
+              "max_ms": 21.718,
+              "total_ms": 684.5149999999999
+            },
+            "host_thread_cpu": {
+              "count": 34,
+              "p50_ms": 19.805,
+              "p95_ms": 21.594,
+              "max_ms": 21.613,
+              "total_ms": 681.296
+            }
+          },
+          "analysis.capture_sources": {
+            "wall": {
+              "count": 3,
+              "p50_ms": 52.381,
+              "p95_ms": 52.616,
+              "max_ms": 52.616,
+              "total_ms": 146.97500000000002
+            },
+            "host_thread_cpu": {
+              "count": 3,
+              "p50_ms": 1.44,
+              "p95_ms": 1.712,
+              "max_ms": 1.712,
+              "total_ms": 4.478
+            }
+          },
+          "atlas.lake_configuration.reuse": {
+            "wall": {
+              "count": 12,
+              "p50_ms": 20,
+              "p95_ms": 22.189,
+              "max_ms": 22.189,
+              "total_ms": 246.24800000000002
+            },
+            "host_thread_cpu": {
+              "count": 12,
+              "p50_ms": 19.93,
+              "p95_ms": 22.08,
+              "max_ms": 22.08,
+              "total_ms": 245.08499999999998
+            }
+          },
+          "atlas.lake_configuration.resolve": {
+            "wall": {
+              "count": 12,
+              "p50_ms": 57.186,
+              "p95_ms": 74.452,
+              "max_ms": 74.452,
+              "total_ms": 706.623
+            },
+            "host_thread_cpu": {
+              "count": 12,
+              "p50_ms": 55.011,
+              "p95_ms": 57.473,
+              "max_ms": 57.473,
+              "total_ms": 652.835
+            }
+          },
+          "analysis.discover_layout": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1919.645,
+              "p95_ms": 1919.645,
+              "max_ms": 1919.645,
+              "total_ms": 1919.645
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 678.461,
+              "p95_ms": 678.461,
+              "max_ms": 678.461,
+              "total_ms": 678.461
+            }
+          },
+          "analysis.select_roots": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 2014.427,
+              "p95_ms": 2014.427,
+              "max_ms": 2014.427,
+              "total_ms": 2014.427
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 681.687,
+              "p95_ms": 681.687,
+              "max_ms": 681.687,
+              "total_ms": 681.687
+            }
+          },
+          "sandbox.public_tools": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 85.004,
+              "p95_ms": 85.004,
+              "max_ms": 85.004,
+              "total_ms": 85.004
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 4.487,
+              "p95_ms": 4.487,
+              "max_ms": 4.487,
+              "total_ms": 4.487
+            }
+          },
+          "sandbox.libraries": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 50.218,
+              "p95_ms": 50.218,
+              "max_ms": 50.218,
+              "total_ms": 50.218
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 4.045,
+              "p95_ms": 4.045,
+              "max_ms": 4.045,
+              "total_ms": 4.045
+            }
+          },
+          "sandbox.nix_closure": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 55.99,
+              "p95_ms": 55.99,
+              "max_ms": 55.99,
+              "total_ms": 55.99
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 0.916,
+              "p95_ms": 0.916,
+              "max_ms": 0.916,
+              "total_ms": 0.916
+            }
+          },
+          "sandbox.prepare": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 584.518,
+              "p95_ms": 584.518,
+              "max_ms": 584.518,
+              "total_ms": 584.518
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 39.991,
+              "p95_ms": 39.991,
+              "max_ms": 39.991,
+              "total_ms": 39.991
+            }
+          },
+          "atlas.project.prepare": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 10066.281,
+              "p95_ms": 10066.281,
+              "max_ms": 10066.281,
+              "total_ms": 10066.281
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 78.882,
+              "p95_ms": 78.882,
+              "max_ms": 78.882,
+              "total_ms": 78.882
+            }
+          },
+          "analysis.cache.validate": {
+            "wall": {
+              "count": 2,
+              "p50_ms": 1250.752,
+              "p95_ms": 1250.752,
+              "max_ms": 1250.752,
+              "total_ms": 1250.835
+            },
+            "host_thread_cpu": {
+              "count": 2,
+              "p50_ms": 57.822,
+              "p95_ms": 57.822,
+              "max_ms": 57.822,
+              "total_ms": 57.903000000000006
+            }
+          },
+          "analysis.cache.retain_observation": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 9.292,
+              "p95_ms": 9.292,
+              "max_ms": 9.292,
+              "total_ms": 9.292
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 9.26,
+              "p95_ms": 9.26,
+              "max_ms": 9.26,
+              "total_ms": 9.26
+            }
+          },
+          "analysis.cache.load_rendering": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1.048,
+              "p95_ms": 1.048,
+              "max_ms": 1.048,
+              "total_ms": 1.048
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 1.043,
+              "p95_ms": 1.043,
+              "max_ms": 1.043,
+              "total_ms": 1.043
+            }
+          },
+          "analysis.extract": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 14755.861,
+              "p95_ms": 14755.861,
+              "max_ms": 14755.861,
+              "total_ms": 14755.861
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 1083.786,
+              "p95_ms": 1083.786,
+              "max_ms": 1083.786,
+              "total_ms": 1083.786
+            }
+          },
+          "analysis.materialize_view": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 0.413,
+              "p95_ms": 0.413,
+              "max_ms": 0.413,
+              "total_ms": 0.413
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 0.412,
+              "p95_ms": 0.412,
+              "max_ms": 0.412,
+              "total_ms": 0.412
+            }
+          }
+        }
+      },
+      "interactions": {
+        "graph-idle-poll": {
+          "dispatch": {},
+          "input_two_raf": {},
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-idle-settled": {
+          "dispatch": {},
+          "input_two_raf": {},
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-wheel": {
+          "dispatch": {
+            "pointerout": {
+              "count": 1,
+              "p50_ms": 0.2,
+              "p95_ms": 0.2,
+              "max_ms": 0.2,
+              "total_ms": 0.2
+            },
+            "pointerover": {
+              "count": 1,
+              "p50_ms": 0.043,
+              "p95_ms": 0.043,
+              "max_ms": 0.043,
+              "total_ms": 0.043
+            },
+            "mouseout": {
+              "count": 1,
+              "p50_ms": 0.072,
+              "p95_ms": 0.072,
+              "max_ms": 0.072,
+              "total_ms": 0.072
+            },
+            "mouseover": {
+              "count": 1,
+              "p50_ms": 0.02,
+              "p95_ms": 0.02,
+              "max_ms": 0.02,
+              "total_ms": 0.02
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 0.024,
+              "p95_ms": 0.024,
+              "max_ms": 0.024,
+              "total_ms": 0.024
+            },
+            "mousemove": {
+              "count": 1,
+              "p50_ms": 0.084,
+              "p95_ms": 0.084,
+              "max_ms": 0.084,
+              "total_ms": 0.084
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 0.578,
+              "p95_ms": 1.035,
+              "max_ms": 2.218,
+              "total_ms": 16.083000000000002
+            }
+          },
+          "input_two_raf": {
+            "pointerout": {
+              "count": 1,
+              "p50_ms": 16.5,
+              "p95_ms": 16.5,
+              "max_ms": 16.5,
+              "total_ms": 16.5
+            },
+            "pointerover": {
+              "count": 1,
+              "p50_ms": 16.299999952316284,
+              "p95_ms": 16.299999952316284,
+              "max_ms": 16.299999952316284,
+              "total_ms": 16.299999952316284
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 16.19999998807907,
+              "p95_ms": 16.19999998807907,
+              "max_ms": 16.19999998807907,
+              "total_ms": 16.19999998807907
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 16.400000035762787,
+              "p95_ms": 16.80000001192093,
+              "max_ms": 16.899999976158142,
+              "total_ms": 389.5000001192093
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-hover": {
+          "dispatch": {
+            "pointerout": {
+              "count": 40,
+              "p50_ms": 0.152,
+              "p95_ms": 0.485,
+              "max_ms": 0.527,
+              "total_ms": 8.024000000000001
+            },
+            "pointerover": {
+              "count": 40,
+              "p50_ms": 0.049,
+              "p95_ms": 0.104,
+              "max_ms": 0.125,
+              "total_ms": 2.1490000000000005
+            },
+            "mouseout": {
+              "count": 40,
+              "p50_ms": 0.098,
+              "p95_ms": 0.193,
+              "max_ms": 0.211,
+              "total_ms": 4.441999999999999
+            },
+            "mouseover": {
+              "count": 40,
+              "p50_ms": 0.033,
+              "p95_ms": 0.075,
+              "max_ms": 0.118,
+              "total_ms": 1.4640000000000004
+            },
+            "pointermove": {
+              "count": 40,
+              "p50_ms": 0.037,
+              "p95_ms": 0.063,
+              "max_ms": 0.067,
+              "total_ms": 1.6060000000000003
+            },
+            "mousemove": {
+              "count": 40,
+              "p50_ms": 0.047,
+              "p95_ms": 0.081,
+              "max_ms": 0.088,
+              "total_ms": 1.9660000000000002
+            },
+            "load": {
+              "count": 2,
+              "p50_ms": 0.003,
+              "p95_ms": 0.003,
+              "max_ms": 0.003,
+              "total_ms": 0.004
+            }
+          },
+          "input_two_raf": {
+            "pointerout": {
+              "count": 40,
+              "p50_ms": 18.600000023841858,
+              "p95_ms": 24.30000001192093,
+              "max_ms": 42.60000002384186,
+              "total_ms": 733.6999998688698
+            },
+            "pointerover": {
+              "count": 40,
+              "p50_ms": 18.5,
+              "p95_ms": 24.19999998807907,
+              "max_ms": 42.40000003576279,
+              "total_ms": 727.6999998092651
+            },
+            "pointermove": {
+              "count": 40,
+              "p50_ms": 18.19999998807907,
+              "p95_ms": 23.899999976158142,
+              "max_ms": 42.10000002384186,
+              "total_ms": 719.1999999284744
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-pan": {
+          "dispatch": {
+            "pointermove": {
+              "count": 31,
+              "p50_ms": 0.163,
+              "p95_ms": 0.216,
+              "max_ms": 0.241,
+              "total_ms": 5.151999999999998
+            },
+            "mousemove": {
+              "count": 31,
+              "p50_ms": 0.165,
+              "p95_ms": 0.212,
+              "max_ms": 0.667,
+              "total_ms": 5.505000000000001
+            },
+            "pointerdown": {
+              "count": 1,
+              "p50_ms": 0.059,
+              "p95_ms": 0.059,
+              "max_ms": 0.059,
+              "total_ms": 0.059
+            },
+            "mousedown": {
+              "count": 1,
+              "p50_ms": 0.279,
+              "p95_ms": 0.279,
+              "max_ms": 0.279,
+              "total_ms": 0.279
+            },
+            "selectstart": {
+              "count": 1,
+              "p50_ms": 0.02,
+              "p95_ms": 0.02,
+              "max_ms": 0.02,
+              "total_ms": 0.02
+            },
+            "pointerup": {
+              "count": 1,
+              "p50_ms": 0.304,
+              "p95_ms": 0.304,
+              "max_ms": 0.304,
+              "total_ms": 0.304
+            },
+            "mouseup": {
+              "count": 1,
+              "p50_ms": 0.344,
+              "p95_ms": 0.344,
+              "max_ms": 0.344,
+              "total_ms": 0.344
+            },
+            "click": {
+              "count": 1,
+              "p50_ms": 0.014,
+              "p95_ms": 0.014,
+              "max_ms": 0.014,
+              "total_ms": 0.014
+            }
+          },
+          "input_two_raf": {
+            "pointermove": {
+              "count": 31,
+              "p50_ms": 19.80000001192093,
+              "p95_ms": 20.69999998807907,
+              "max_ms": 32.30000001192093,
+              "total_ms": 609.6000002622604
+            },
+            "pointerdown": {
+              "count": 1,
+              "p50_ms": 35.10000002384186,
+              "p95_ms": 35.10000002384186,
+              "max_ms": 35.10000002384186,
+              "total_ms": 35.10000002384186
+            },
+            "pointerup": {
+              "count": 1,
+              "p50_ms": 26.30000001192093,
+              "p95_ms": 26.30000001192093,
+              "max_ms": 26.30000001192093,
+              "total_ms": 26.30000001192093
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "graph-resize": {
+          "dispatch": {
+            "resize": {
+              "count": 4,
+              "p50_ms": 0.894,
+              "p95_ms": 0.928,
+              "max_ms": 0.928,
+              "total_ms": 3.295
+            },
+            "selectionchange": {
+              "count": 4,
+              "p50_ms": 0.043,
+              "p95_ms": 0.054,
+              "max_ms": 0.054,
+              "total_ms": 0.157
+            }
+          },
+          "input_two_raf": {
+            "resize": {
+              "count": 4,
+              "p50_ms": 17.80000001192093,
+              "p95_ms": 19.80000001192093,
+              "max_ms": 19.80000001192093,
+              "total_ms": 66.10000002384186
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "tab-switch": {
+          "dispatch": {
+            "__playwright_reset_targets__": {
+              "count": 24,
+              "p50_ms": 0.006,
+              "p95_ms": 0.01,
+              "max_ms": 0.024,
+              "total_ms": 0.17500000000000002
+            },
+            "__playwright_mark_target__": {
+              "count": 24,
+              "p50_ms": 0.002,
+              "p95_ms": 0.003,
+              "max_ms": 0.003,
+              "total_ms": 0.056000000000000036
+            },
+            "pointerout": {
+              "count": 24,
+              "p50_ms": 0.236,
+              "p95_ms": 0.298,
+              "max_ms": 0.299,
+              "total_ms": 5.477000000000001
+            },
+            "pointerover": {
+              "count": 24,
+              "p50_ms": 0.077,
+              "p95_ms": 0.1,
+              "max_ms": 0.116,
+              "total_ms": 1.858
+            },
+            "mouseout": {
+              "count": 24,
+              "p50_ms": 0.086,
+              "p95_ms": 0.106,
+              "max_ms": 0.108,
+              "total_ms": 2.047
+            },
+            "mouseover": {
+              "count": 24,
+              "p50_ms": 0.047,
+              "p95_ms": 0.075,
+              "max_ms": 0.077,
+              "total_ms": 1.1780000000000002
+            },
+            "pointermove": {
+              "count": 24,
+              "p50_ms": 0.063,
+              "p95_ms": 0.078,
+              "max_ms": 0.091,
+              "total_ms": 1.5140000000000002
+            },
+            "mousemove": {
+              "count": 24,
+              "p50_ms": 0.08,
+              "p95_ms": 0.101,
+              "max_ms": 0.103,
+              "total_ms": 1.8749999999999998
+            },
+            "pointerdown": {
+              "count": 24,
+              "p50_ms": 1.217,
+              "p95_ms": 1.379,
+              "max_ms": 1.484,
+              "total_ms": 28.953000000000003
+            },
+            "mousedown": {
+              "count": 24,
+              "p50_ms": 0.062,
+              "p95_ms": 0.083,
+              "max_ms": 0.089,
+              "total_ms": 1.5689999999999997
+            },
+            "focus": {
+              "count": 24,
+              "p50_ms": 0.004,
+              "p95_ms": 0.009,
+              "max_ms": 0.017,
+              "total_ms": 0.10800000000000003
+            },
+            "focusin": {
+              "count": 24,
+              "p50_ms": 0.057,
+              "p95_ms": 0.075,
+              "max_ms": 0.08,
+              "total_ms": 1.3850000000000005
+            },
+            "DOMFocusIn": {
+              "count": 24,
+              "p50_ms": 0.003,
+              "p95_ms": 0.003,
+              "max_ms": 0.003,
+              "total_ms": 0.06200000000000003
+            },
+            "pointerup": {
+              "count": 24,
+              "p50_ms": 0.102,
+              "p95_ms": 0.13,
+              "max_ms": 0.135,
+              "total_ms": 2.4670000000000005
+            },
+            "mouseup": {
+              "count": 24,
+              "p50_ms": 0.059,
+              "p95_ms": 0.072,
+              "max_ms": 0.076,
+              "total_ms": 1.387
+            },
+            "click": {
+              "count": 24,
+              "p50_ms": 11.112,
+              "p95_ms": 11.979,
+              "max_ms": 12.928,
+              "total_ms": 259.387
+            },
+            "DOMActivate": {
+              "count": 24,
+              "p50_ms": 0.004,
+              "p95_ms": 0.006,
+              "max_ms": 0.006,
+              "total_ms": 0.10800000000000005
+            },
+            "blur": {
+              "count": 23,
+              "p50_ms": 0.006,
+              "p95_ms": 0.006,
+              "max_ms": 0.008,
+              "total_ms": 0.13200000000000006
+            },
+            "focusout": {
+              "count": 23,
+              "p50_ms": 0.06,
+              "p95_ms": 0.076,
+              "max_ms": 0.124,
+              "total_ms": 1.4589999999999996
+            },
+            "DOMFocusOut": {
+              "count": 23,
+              "p50_ms": 0.003,
+              "p95_ms": 0.003,
+              "max_ms": 0.004,
+              "total_ms": 0.06500000000000002
+            }
+          },
+          "input_two_raf": {
+            "pointerout": {
+              "count": 24,
+              "p50_ms": 34.80000001192093,
+              "p95_ms": 37.89999997615814,
+              "max_ms": 39,
+              "total_ms": 795.7000002264977
+            },
+            "pointerover": {
+              "count": 24,
+              "p50_ms": 34.69999998807907,
+              "p95_ms": 37.69999998807907,
+              "max_ms": 38.89999997615814,
+              "total_ms": 790.2999999523163
+            },
+            "pointermove": {
+              "count": 24,
+              "p50_ms": 34.5,
+              "p95_ms": 37.5,
+              "max_ms": 38.59999996423721,
+              "total_ms": 784.8000001907349
+            },
+            "pointerdown": {
+              "count": 24,
+              "p50_ms": 32.60000002384186,
+              "p95_ms": 36.39999997615814,
+              "max_ms": 37,
+              "total_ms": 745.5000001788139
+            },
+            "pointerup": {
+              "count": 24,
+              "p50_ms": 30.69999998807907,
+              "p95_ms": 34.89999997615814,
+              "max_ms": 35.30000001192093,
+              "total_ms": 704.4999998807907
+            },
+            "click": {
+              "count": 24,
+              "p50_ms": 30.5,
+              "p95_ms": 34.80000001192093,
+              "max_ms": 35.09999996423721,
+              "total_ms": 700.8000001907349
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "graph-node-select": {
+          "dispatch": {
+            "__playwright_reset_targets__": {
+              "count": 1,
+              "p50_ms": 0.005,
+              "p95_ms": 0.005,
+              "max_ms": 0.005,
+              "total_ms": 0.005
+            },
+            "__playwright_mark_target__": {
+              "count": 1,
+              "p50_ms": 0.003,
+              "p95_ms": 0.003,
+              "max_ms": 0.003,
+              "total_ms": 0.003
+            },
+            "pointerout": {
+              "count": 2,
+              "p50_ms": 0.136,
+              "p95_ms": 0.136,
+              "max_ms": 0.136,
+              "total_ms": 0.246
+            },
+            "pointerover": {
+              "count": 2,
+              "p50_ms": 0.065,
+              "p95_ms": 0.065,
+              "max_ms": 0.065,
+              "total_ms": 0.113
+            },
+            "mouseout": {
+              "count": 2,
+              "p50_ms": 0.077,
+              "p95_ms": 0.077,
+              "max_ms": 0.077,
+              "total_ms": 0.129
+            },
+            "mouseover": {
+              "count": 2,
+              "p50_ms": 0.041,
+              "p95_ms": 0.041,
+              "max_ms": 0.041,
+              "total_ms": 0.068
+            },
+            "pointermove": {
+              "count": 9,
+              "p50_ms": 0.061,
+              "p95_ms": 0.099,
+              "max_ms": 0.099,
+              "total_ms": 0.5910000000000001
+            },
+            "mousemove": {
+              "count": 9,
+              "p50_ms": 0.038,
+              "p95_ms": 0.076,
+              "max_ms": 0.076,
+              "total_ms": 0.398
+            },
+            "pointerdown": {
+              "count": 9,
+              "p50_ms": 0.05,
+              "p95_ms": 0.722,
+              "max_ms": 0.722,
+              "total_ms": 1.107
+            },
+            "mousedown": {
+              "count": 9,
+              "p50_ms": 0.046,
+              "p95_ms": 0.062,
+              "max_ms": 0.062,
+              "total_ms": 0.44899999999999995
+            },
+            "blur": {
+              "count": 2,
+              "p50_ms": 0.003,
+              "p95_ms": 0.003,
+              "max_ms": 0.003,
+              "total_ms": 0.006
+            },
+            "focusout": {
+              "count": 2,
+              "p50_ms": 0.037,
+              "p95_ms": 0.037,
+              "max_ms": 0.037,
+              "total_ms": 0.07100000000000001
+            },
+            "DOMFocusOut": {
+              "count": 2,
+              "p50_ms": 0.002,
+              "p95_ms": 0.002,
+              "max_ms": 0.002,
+              "total_ms": 0.003
+            },
+            "focus": {
+              "count": 2,
+              "p50_ms": 0.003,
+              "p95_ms": 0.003,
+              "max_ms": 0.003,
+              "total_ms": 0.004
+            },
+            "focusin": {
+              "count": 2,
+              "p50_ms": 8.351,
+              "p95_ms": 8.351,
+              "max_ms": 8.351,
+              "total_ms": 8.425
+            },
+            "DOMFocusIn": {
+              "count": 2,
+              "p50_ms": 0.003,
+              "p95_ms": 0.003,
+              "max_ms": 0.003,
+              "total_ms": 0.005
+            },
+            "pointerup": {
+              "count": 9,
+              "p50_ms": 0.074,
+              "p95_ms": 0.144,
+              "max_ms": 0.144,
+              "total_ms": 0.755
+            },
+            "mouseup": {
+              "count": 9,
+              "p50_ms": 0.036,
+              "p95_ms": 0.076,
+              "max_ms": 0.076,
+              "total_ms": 0.393
+            },
+            "click": {
+              "count": 9,
+              "p50_ms": 0.076,
+              "p95_ms": 28.944,
+              "max_ms": 28.944,
+              "total_ms": 30.098
+            },
+            "DOMActivate": {
+              "count": 9,
+              "p50_ms": 0.003,
+              "p95_ms": 0.007,
+              "max_ms": 0.007,
+              "total_ms": 0.032
+            },
+            "scroll": {
+              "count": 2,
+              "p50_ms": 0.669,
+              "p95_ms": 0.669,
+              "max_ms": 0.669,
+              "total_ms": 1.199
+            },
+            "scrollend": {
+              "count": 2,
+              "p50_ms": 0.02,
+              "p95_ms": 0.02,
+              "max_ms": 0.02,
+              "total_ms": 0.021
+            },
+            "load": {
+              "count": 2,
+              "p50_ms": 0.003,
+              "p95_ms": 0.003,
+              "max_ms": 0.003,
+              "total_ms": 0.004
+            },
+            "selectionchange": {
+              "count": 1,
+              "p50_ms": 0.027,
+              "p95_ms": 0.027,
+              "max_ms": 0.027,
+              "total_ms": 0.027
+            },
+            "transitionrun": {
+              "count": 3,
+              "p50_ms": 0.115,
+              "p95_ms": 0.127,
+              "max_ms": 0.127,
+              "total_ms": 0.26
+            },
+            "transitionstart": {
+              "count": 3,
+              "p50_ms": 0.02,
+              "p95_ms": 0.032,
+              "max_ms": 0.032,
+              "total_ms": 0.069
+            },
+            "animationstart": {
+              "count": 2,
+              "p50_ms": 0.212,
+              "p95_ms": 0.212,
+              "max_ms": 0.212,
+              "total_ms": 0.244
+            },
+            "animationend": {
+              "count": 2,
+              "p50_ms": 0.059,
+              "p95_ms": 0.059,
+              "max_ms": 0.059,
+              "total_ms": 0.107
+            },
+            "transitionend": {
+              "count": 3,
+              "p50_ms": 0.164,
+              "p95_ms": 0.201,
+              "max_ms": 0.201,
+              "total_ms": 0.465
+            }
+          },
+          "input_two_raf": {
+            "pointerout": {
+              "count": 2,
+              "p50_ms": 58.200000047683716,
+              "p95_ms": 58.200000047683716,
+              "max_ms": 58.200000047683716,
+              "total_ms": 108.00000005960464
+            },
+            "pointerover": {
+              "count": 2,
+              "p50_ms": 58,
+              "p95_ms": 58,
+              "max_ms": 58,
+              "total_ms": 107.70000004768372
+            },
+            "pointermove": {
+              "count": 9,
+              "p50_ms": 25.900000035762787,
+              "p95_ms": 57.80000001192093,
+              "max_ms": 57.80000001192093,
+              "total_ms": 274.5
+            },
+            "pointerdown": {
+              "count": 9,
+              "p50_ms": 25.80000001192093,
+              "p95_ms": 56.90000003576279,
+              "max_ms": 56.90000003576279,
+              "total_ms": 272.0999999642372
+            },
+            "pointerup": {
+              "count": 9,
+              "p50_ms": 25.400000035762787,
+              "p95_ms": 56.30000001192093,
+              "max_ms": 56.30000001192093,
+              "total_ms": 257.89999997615814
+            },
+            "click": {
+              "count": 9,
+              "p50_ms": 25.399999976158142,
+              "p95_ms": 56.200000047683716,
+              "max_ms": 56.200000047683716,
+              "total_ms": 256.9000000357628
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "project-map-wheel": {
+          "dispatch": {
+            "pointerout": {
+              "count": 5,
+              "p50_ms": 0.19,
+              "p95_ms": 0.289,
+              "max_ms": 0.289,
+              "total_ms": 0.9909999999999999
+            },
+            "pointerover": {
+              "count": 5,
+              "p50_ms": 0.061,
+              "p95_ms": 0.086,
+              "max_ms": 0.086,
+              "total_ms": 0.31799999999999995
+            },
+            "mouseout": {
+              "count": 5,
+              "p50_ms": 0.061,
+              "p95_ms": 0.092,
+              "max_ms": 0.092,
+              "total_ms": 0.322
+            },
+            "mouseover": {
+              "count": 5,
+              "p50_ms": 0.034,
+              "p95_ms": 0.06,
+              "max_ms": 0.06,
+              "total_ms": 0.208
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 0.047,
+              "p95_ms": 0.047,
+              "max_ms": 0.047,
+              "total_ms": 0.047
+            },
+            "mousemove": {
+              "count": 1,
+              "p50_ms": 0.067,
+              "p95_ms": 0.067,
+              "max_ms": 0.067,
+              "total_ms": 0.067
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 2.804,
+              "p95_ms": 4.21,
+              "max_ms": 4.903,
+              "total_ms": 65.19
+            },
+            "transitionend": {
+              "count": 2,
+              "p50_ms": 0.091,
+              "p95_ms": 0.091,
+              "max_ms": 0.091,
+              "total_ms": 0.121
+            }
+          },
+          "input_two_raf": {
+            "pointerout": {
+              "count": 5,
+              "p50_ms": 19.80000001192093,
+              "p95_ms": 21.30000001192093,
+              "max_ms": 21.30000001192093,
+              "total_ms": 97.60000002384186
+            },
+            "pointerover": {
+              "count": 5,
+              "p50_ms": 19.600000023841858,
+              "p95_ms": 21.099999964237213,
+              "max_ms": 21.099999964237213,
+              "total_ms": 96.69999998807907
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 16.80000001192093,
+              "p95_ms": 16.80000001192093,
+              "max_ms": 16.80000001192093,
+              "total_ms": 16.80000001192093
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 16.80000001192093,
+              "p95_ms": 18.30000001192093,
+              "max_ms": 18.900000035762787,
+              "total_ms": 399.2999999523163
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": null,
+            "after": null
+          }
+        },
+        "project-map-idle": {
+          "dispatch": {},
+          "input_two_raf": {},
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": null,
+            "after": null
+          }
+        }
+      }
+    },
+    {
+      "name": "warm-2",
+      "directory": "target/native-profile/event-audit-riemann-lake-query-warm-2",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 15790.429576000002,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/lake-query-profile-assets",
+        "source_maps_sha256": {
+          "index-C1bIHHNu.js": "98301103c1b63eb11b4c6d3e7d6e5e468ee61f615b490ef38e03f44b8de8246b"
+        }
+      },
+      "manifest": {
+        "binary_sha256": "bcaed9846020272d9cb7e08ca3a2900be7a91e57c30646be89326ab71b0c143a",
+        "samples": 1303,
+        "perf_event_paranoid": "2",
+        "kptr_restrict": "1",
+        "event": "cpu-clock:u",
+        "frequency_hz": 99,
+        "stack": "dwarf,8192",
+        "digests": {
+          "perf.data": "483dc5ceca6ed058d08af5bd2130f5c728e1d66e9654e96594f3eeb6bb1fe1bb",
+          "perf-report.txt": "e5bf6460c128fc27a355cac36ed1394c15d163bbca221166638f4136a163e80b",
+          "trace.json": "a34d05eca0b2855e7dc0baa0f2e9ae88770636415627d0908e4630c840fcd426",
+          "native-metrics.json": "eb585ff107695dccb92a6121465d97d89a24973a04192e94c27ac256cf50158d",
+          "summary.json": "f3767b1fc8e8b8ac3ba7df5666f606fadbb8c022554ccce8b01d78f4f95258ef",
+          "graph-hover.cpuprofile": "5d4ce9b9f3cca862b5829cbe880ddee1c80d50fb100b06c9f0e102e3ece42968",
+          "graph-idle-poll.cpuprofile": "b3e5c3d54c88dae4572fd6c1704d5c7100a5e47a280b86d5b3f38643543039cb",
+          "graph-idle-settled.cpuprofile": "8d5f796f8e26a753721ca886696c9fd7203d876c101a89aac20520acce741baa",
+          "graph-node-select.cpuprofile": "a07ad94523bc374b041aefafc61478c893e07eeb505759a94acb648574c1a4c8",
+          "graph-pan.cpuprofile": "de360830cac2c5f698c23e91bee4f6d55b3d0615d1593f632c37a8a0c61da0bd",
+          "graph-resize.cpuprofile": "94002e3cef1ce0a4c1ebb6c65aea0219d53d015ef772810d6ab3c74fdcb1f477",
+          "graph-wheel.cpuprofile": "c5598054e91a17a41a885af7c8e843831618b1ac267c1eb71a9bdbced00e35bc",
+          "project-map-idle.cpuprofile": "c9c881e77bdb8d9fdc7945b678781934d15825a534292f805139e3da550db8ea",
+          "project-map-wheel.cpuprofile": "f7eddd083a21486c0fabe6082ae60ff41da490351d7d5e5f30b68d3452c29c15",
+          "tab-switch.cpuprofile": "4e121c0c2d8cb32a9edf1a323ddf7fab0c28c7431467363e9e0692d616006e20"
+        },
+        "limits": "Current-user native host and inherited workers only; no kernel stacks. Thread CPU spans exclude worker CPU. File preparation reuses project/OS caches, not a cold installation. Sampling changes timing; browser profiles have their own overhead."
+      },
+      "native_stages": {
+        "available": true,
+        "evicted_during_capture": 0,
+        "stages": {
+          "gui.serialize_respond": {
+            "wall": {
+              "count": 196,
+              "p50_ms": 2.435,
+              "p95_ms": 6.215,
+              "max_ms": 1126.736,
+              "total_ms": 1717.853
+            },
+            "host_thread_cpu": {
+              "count": 196,
+              "p50_ms": 2.362,
+              "p95_ms": 6.148,
+              "max_ms": 1056.202,
+              "total_ms": 1629.92
+            }
+          },
+          "gui.state": {
+            "wall": {
+              "count": 144,
+              "p50_ms": 5.121,
+              "p95_ms": 7.678,
+              "max_ms": 8.922,
+              "total_ms": 700.4939999999999
+            },
+            "host_thread_cpu": {
+              "count": 144,
+              "p50_ms": 4.997,
+              "p95_ms": 7.492,
+              "max_ms": 8.734,
+              "total_ms": 683.0879999999999
+            }
+          },
+          "process.run": {
+            "wall": {
+              "count": 84,
+              "p50_ms": 50.964,
+              "p95_ms": 61.503,
+              "max_ms": 9775.357,
+              "total_ms": 13969.832999999999
+            },
+            "host_thread_cpu": {
+              "count": 84,
+              "p50_ms": 0.415,
+              "p95_ms": 0.634,
+              "max_ms": 46.03,
+              "total_ms": 81.27699999999999
+            }
+          },
+          "gui.job": {
+            "wall": {
+              "count": 7,
+              "p50_ms": 41.567,
+              "p95_ms": 15091.492,
+              "max_ms": 15091.492,
+              "total_ms": 15342.138
+            },
+            "host_thread_cpu": {
+              "count": 7,
+              "p50_ms": 1.062,
+              "p95_ms": 1211.893,
+              "max_ms": 1211.893,
+              "total_ms": 1219.433
+            }
+          },
+          "gui.enqueue": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.001,
+              "p95_ms": 0.002,
+              "max_ms": 0.002,
+              "total_ms": 0.004
+            },
+            "host_thread_cpu": {
+              "count": 6,
+              "p50_ms": 0.001,
+              "p95_ms": 0.001,
+              "max_ms": 0.001,
+              "total_ms": 0.003
+            }
+          },
+          "job.queue": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.054,
+              "p95_ms": 0.059,
+              "max_ms": 0.059,
+              "total_ms": 0.237
+            },
+            "host_thread_cpu": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            }
+          },
+          "gui.command": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.2,
+              "p95_ms": 0.403,
+              "max_ms": 0.403,
+              "total_ms": 1.323
+            },
+            "host_thread_cpu": {
+              "count": 6,
+              "p50_ms": 0.177,
+              "p95_ms": 0.34,
+              "max_ms": 0.34,
+              "total_ms": 1.1620000000000001
+            }
+          },
+          "atlas.resources.select": {
+            "wall": {
+              "count": 21,
+              "p50_ms": 12.053,
+              "p95_ms": 18.706,
+              "max_ms": 20.944,
+              "total_ms": 270.239
+            },
+            "host_thread_cpu": {
+              "count": 21,
+              "p50_ms": 11.957,
+              "p95_ms": 18.559,
+              "max_ms": 20.623,
+              "total_ms": 267.149
+            }
+          },
+          "atlas.resources.validate": {
+            "wall": {
+              "count": 34,
+              "p50_ms": 19.58,
+              "p95_ms": 23.92,
+              "max_ms": 25.279,
+              "total_ms": 679.9979999999998
+            },
+            "host_thread_cpu": {
+              "count": 34,
+              "p50_ms": 19.51,
+              "p95_ms": 23.807,
+              "max_ms": 25.134,
+              "total_ms": 676.79
+            }
+          },
+          "analysis.capture_sources": {
+            "wall": {
+              "count": 3,
+              "p50_ms": 41.781,
+              "p95_ms": 41.89,
+              "max_ms": 41.89,
+              "total_ms": 125.288
+            },
+            "host_thread_cpu": {
+              "count": 3,
+              "p50_ms": 1.218,
+              "p95_ms": 1.222,
+              "max_ms": 1.222,
+              "total_ms": 3.515
+            }
+          },
+          "atlas.lake_configuration.reuse": {
+            "wall": {
+              "count": 12,
+              "p50_ms": 19.706,
+              "p95_ms": 19.968,
+              "max_ms": 19.968,
+              "total_ms": 236.62799999999996
+            },
+            "host_thread_cpu": {
+              "count": 12,
+              "p50_ms": 19.628,
+              "p95_ms": 19.887,
+              "max_ms": 19.887,
+              "total_ms": 235.584
+            }
+          },
+          "atlas.lake_configuration.resolve": {
+            "wall": {
+              "count": 12,
+              "p50_ms": 57.971,
+              "p95_ms": 66.484,
+              "max_ms": 66.484,
+              "total_ms": 679.855
+            },
+            "host_thread_cpu": {
+              "count": 12,
+              "p50_ms": 57.63,
+              "p95_ms": 65.929,
+              "max_ms": 65.929,
+              "total_ms": 674.8779999999999
+            }
+          },
+          "analysis.discover_layout": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1869.127,
+              "p95_ms": 1869.127,
+              "max_ms": 1869.127,
+              "total_ms": 1869.127
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 698.488,
+              "p95_ms": 698.488,
+              "max_ms": 698.488,
+              "total_ms": 698.488
+            }
+          },
+          "analysis.select_roots": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1952.954,
+              "p95_ms": 1952.954,
+              "max_ms": 1952.954,
+              "total_ms": 1952.954
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 701.084,
+              "p95_ms": 701.084,
+              "max_ms": 701.084,
+              "total_ms": 701.084
+            }
+          },
+          "sandbox.public_tools": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 100.791,
+              "p95_ms": 100.791,
+              "max_ms": 100.791,
+              "total_ms": 100.791
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 3.683,
+              "p95_ms": 3.683,
+              "max_ms": 3.683,
+              "total_ms": 3.683
+            }
+          },
+          "sandbox.libraries": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 67.445,
+              "p95_ms": 67.445,
+              "max_ms": 67.445,
+              "total_ms": 67.445
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 4.846,
+              "p95_ms": 4.846,
+              "max_ms": 4.846,
+              "total_ms": 4.846
+            }
+          },
+          "sandbox.nix_closure": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 66.159,
+              "p95_ms": 66.159,
+              "max_ms": 66.159,
+              "total_ms": 66.159
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 1.282,
+              "p95_ms": 1.282,
+              "max_ms": 1.282,
+              "total_ms": 1.282
+            }
+          },
+          "sandbox.prepare": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 524.217,
+              "p95_ms": 524.217,
+              "max_ms": 524.217,
+              "total_ms": 524.217
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 35.701,
+              "p95_ms": 35.701,
+              "max_ms": 35.701,
+              "total_ms": 35.701
+            }
+          },
+          "atlas.project.prepare": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 10300.114,
+              "p95_ms": 10300.114,
+              "max_ms": 10300.114,
+              "total_ms": 10300.114
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 82.26,
+              "p95_ms": 82.26,
+              "max_ms": 82.26,
+              "total_ms": 82.26
+            }
+          },
+          "analysis.cache.validate": {
+            "wall": {
+              "count": 2,
+              "p50_ms": 1224.232,
+              "p95_ms": 1224.232,
+              "max_ms": 1224.232,
+              "total_ms": 1224.318
+            },
+            "host_thread_cpu": {
+              "count": 2,
+              "p50_ms": 55.689,
+              "p95_ms": 55.689,
+              "max_ms": 55.689,
+              "total_ms": 55.774
+            }
+          },
+          "analysis.cache.retain_observation": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 9.387,
+              "p95_ms": 9.387,
+              "max_ms": 9.387,
+              "total_ms": 9.387
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 9.348,
+              "p95_ms": 9.348,
+              "max_ms": 9.348,
+              "total_ms": 9.348
+            }
+          },
+          "analysis.cache.load_rendering": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 0.925,
+              "p95_ms": 0.925,
+              "max_ms": 0.925,
+              "total_ms": 0.925
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 0.919,
+              "p95_ms": 0.919,
+              "max_ms": 0.919,
+              "total_ms": 0.919
+            }
+          },
+          "analysis.extract": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 14869.746,
+              "p95_ms": 14869.746,
+              "max_ms": 14869.746,
+              "total_ms": 14869.746
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 1093.679,
+              "p95_ms": 1093.679,
+              "max_ms": 1093.679,
+              "total_ms": 1093.679
+            }
+          },
+          "analysis.materialize_view": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 0.424,
+              "p95_ms": 0.424,
+              "max_ms": 0.424,
+              "total_ms": 0.424
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 0.424,
+              "p95_ms": 0.424,
+              "max_ms": 0.424,
+              "total_ms": 0.424
+            }
+          }
+        }
+      },
+      "interactions": {
+        "graph-idle-poll": {
+          "dispatch": {},
+          "input_two_raf": {},
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-idle-settled": {
+          "dispatch": {},
+          "input_two_raf": {},
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-wheel": {
+          "dispatch": {
+            "pointerout": {
+              "count": 1,
+              "p50_ms": 0.205,
+              "p95_ms": 0.205,
+              "max_ms": 0.205,
+              "total_ms": 0.205
+            },
+            "pointerover": {
+              "count": 1,
+              "p50_ms": 0.035,
+              "p95_ms": 0.035,
+              "max_ms": 0.035,
+              "total_ms": 0.035
+            },
+            "mouseout": {
+              "count": 1,
+              "p50_ms": 0.062,
+              "p95_ms": 0.062,
+              "max_ms": 0.062,
+              "total_ms": 0.062
+            },
+            "mouseover": {
+              "count": 1,
+              "p50_ms": 0.018,
+              "p95_ms": 0.018,
+              "max_ms": 0.018,
+              "total_ms": 0.018
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 0.022,
+              "p95_ms": 0.022,
+              "max_ms": 0.022,
+              "total_ms": 0.022
+            },
+            "mousemove": {
+              "count": 1,
+              "p50_ms": 0.073,
+              "p95_ms": 0.073,
+              "max_ms": 0.073,
+              "total_ms": 0.073
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 0.594,
+              "p95_ms": 0.865,
+              "max_ms": 1.941,
+              "total_ms": 14.802000000000001
+            }
+          },
+          "input_two_raf": {
+            "pointerout": {
+              "count": 1,
+              "p50_ms": 16.400000035762787,
+              "p95_ms": 16.400000035762787,
+              "max_ms": 16.400000035762787,
+              "total_ms": 16.400000035762787
+            },
+            "pointerover": {
+              "count": 1,
+              "p50_ms": 16.30000001192093,
+              "p95_ms": 16.30000001192093,
+              "max_ms": 16.30000001192093,
+              "total_ms": 16.30000001192093
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 16.100000023841858,
+              "p95_ms": 16.100000023841858,
+              "max_ms": 16.100000023841858,
+              "total_ms": 16.100000023841858
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 16.399999976158142,
+              "p95_ms": 16.700000047683716,
+              "max_ms": 16.80000001192093,
+              "total_ms": 392.1999998688698
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-hover": {
+          "dispatch": {
+            "pointerout": {
+              "count": 40,
+              "p50_ms": 0.157,
+              "p95_ms": 0.521,
+              "max_ms": 0.538,
+              "total_ms": 8.128
+            },
+            "pointerover": {
+              "count": 40,
+              "p50_ms": 0.044,
+              "p95_ms": 0.136,
+              "max_ms": 0.146,
+              "total_ms": 2.1620000000000004
+            },
+            "mouseout": {
+              "count": 40,
+              "p50_ms": 0.103,
+              "p95_ms": 0.248,
+              "max_ms": 0.375,
+              "total_ms": 4.5920000000000005
+            },
+            "mouseover": {
+              "count": 40,
+              "p50_ms": 0.032,
+              "p95_ms": 0.076,
+              "max_ms": 0.118,
+              "total_ms": 1.5070000000000006
+            },
+            "pointermove": {
+              "count": 40,
+              "p50_ms": 0.039,
+              "p95_ms": 0.116,
+              "max_ms": 0.117,
+              "total_ms": 1.887000000000001
+            },
+            "mousemove": {
+              "count": 40,
+              "p50_ms": 0.05,
+              "p95_ms": 0.1,
+              "max_ms": 0.155,
+              "total_ms": 2.2
+            },
+            "load": {
+              "count": 1,
+              "p50_ms": 0.003,
+              "p95_ms": 0.003,
+              "max_ms": 0.003,
+              "total_ms": 0.003
+            }
+          },
+          "input_two_raf": {
+            "pointerout": {
+              "count": 40,
+              "p50_ms": 17.80000001192093,
+              "p95_ms": 23.100000023841858,
+              "max_ms": 25,
+              "total_ms": 711.2999997138977
+            },
+            "pointerover": {
+              "count": 40,
+              "p50_ms": 17.69999998807907,
+              "p95_ms": 23,
+              "max_ms": 24.80000001192093,
+              "total_ms": 705.1999999284744
+            },
+            "pointermove": {
+              "count": 40,
+              "p50_ms": 17.399999976158142,
+              "p95_ms": 22.900000035762787,
+              "max_ms": 24.600000023841858,
+              "total_ms": 696.5000003576279
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-pan": {
+          "dispatch": {
+            "pointermove": {
+              "count": 31,
+              "p50_ms": 0.15,
+              "p95_ms": 0.209,
+              "max_ms": 0.219,
+              "total_ms": 4.526999999999998
+            },
+            "mousemove": {
+              "count": 31,
+              "p50_ms": 0.156,
+              "p95_ms": 0.2,
+              "max_ms": 0.432,
+              "total_ms": 5.001
+            },
+            "pointerdown": {
+              "count": 1,
+              "p50_ms": 0.073,
+              "p95_ms": 0.073,
+              "max_ms": 0.073,
+              "total_ms": 0.073
+            },
+            "mousedown": {
+              "count": 1,
+              "p50_ms": 0.249,
+              "p95_ms": 0.249,
+              "max_ms": 0.249,
+              "total_ms": 0.249
+            },
+            "selectstart": {
+              "count": 1,
+              "p50_ms": 0.021,
+              "p95_ms": 0.021,
+              "max_ms": 0.021,
+              "total_ms": 0.021
+            },
+            "pointerup": {
+              "count": 1,
+              "p50_ms": 0.336,
+              "p95_ms": 0.336,
+              "max_ms": 0.336,
+              "total_ms": 0.336
+            },
+            "mouseup": {
+              "count": 1,
+              "p50_ms": 0.451,
+              "p95_ms": 0.451,
+              "max_ms": 0.451,
+              "total_ms": 0.451
+            },
+            "click": {
+              "count": 1,
+              "p50_ms": 0.022,
+              "p95_ms": 0.022,
+              "max_ms": 0.022,
+              "total_ms": 0.022
+            }
+          },
+          "input_two_raf": {
+            "pointermove": {
+              "count": 31,
+              "p50_ms": 19.600000023841858,
+              "p95_ms": 20.600000023841858,
+              "max_ms": 20.80000001192093,
+              "total_ms": 602.4000000357628
+            },
+            "pointerdown": {
+              "count": 1,
+              "p50_ms": 34.40000003576279,
+              "p95_ms": 34.40000003576279,
+              "max_ms": 34.40000003576279,
+              "total_ms": 34.40000003576279
+            },
+            "pointerup": {
+              "count": 1,
+              "p50_ms": 26.30000001192093,
+              "p95_ms": 26.30000001192093,
+              "max_ms": 26.30000001192093,
+              "total_ms": 26.30000001192093
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "graph-resize": {
+          "dispatch": {
+            "resize": {
+              "count": 5,
+              "p50_ms": 0.829,
+              "p95_ms": 0.951,
+              "max_ms": 0.951,
+              "total_ms": 4.109999999999999
+            },
+            "selectionchange": {
+              "count": 5,
+              "p50_ms": 0.028,
+              "p95_ms": 0.056,
+              "max_ms": 0.056,
+              "total_ms": 0.165
+            }
+          },
+          "input_two_raf": {
+            "resize": {
+              "count": 5,
+              "p50_ms": 17.5,
+              "p95_ms": 18.69999998807907,
+              "max_ms": 18.69999998807907,
+              "total_ms": 83.60000002384186
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "tab-switch": {
+          "dispatch": {
+            "__playwright_reset_targets__": {
+              "count": 24,
+              "p50_ms": 0.007,
+              "p95_ms": 0.011,
+              "max_ms": 0.012,
+              "total_ms": 0.16600000000000004
+            },
+            "__playwright_mark_target__": {
+              "count": 24,
+              "p50_ms": 0.002,
+              "p95_ms": 0.005,
+              "max_ms": 0.02,
+              "total_ms": 0.07800000000000003
+            },
+            "pointerout": {
+              "count": 24,
+              "p50_ms": 0.207,
+              "p95_ms": 0.25,
+              "max_ms": 0.271,
+              "total_ms": 4.926
+            },
+            "pointerover": {
+              "count": 24,
+              "p50_ms": 0.061,
+              "p95_ms": 0.088,
+              "max_ms": 0.099,
+              "total_ms": 1.551
+            },
+            "mouseout": {
+              "count": 24,
+              "p50_ms": 0.076,
+              "p95_ms": 0.105,
+              "max_ms": 0.127,
+              "total_ms": 1.903
+            },
+            "mouseover": {
+              "count": 24,
+              "p50_ms": 0.04,
+              "p95_ms": 0.063,
+              "max_ms": 0.076,
+              "total_ms": 1.0530000000000002
+            },
+            "pointermove": {
+              "count": 24,
+              "p50_ms": 0.052,
+              "p95_ms": 0.07,
+              "max_ms": 0.125,
+              "total_ms": 1.3140000000000003
+            },
+            "mousemove": {
+              "count": 24,
+              "p50_ms": 0.07,
+              "p95_ms": 0.086,
+              "max_ms": 0.101,
+              "total_ms": 1.6790000000000003
+            },
+            "pointerdown": {
+              "count": 24,
+              "p50_ms": 1.174,
+              "p95_ms": 1.55,
+              "max_ms": 1.817,
+              "total_ms": 28.368000000000002
+            },
+            "mousedown": {
+              "count": 24,
+              "p50_ms": 0.063,
+              "p95_ms": 0.084,
+              "max_ms": 0.117,
+              "total_ms": 1.5660000000000003
+            },
+            "focus": {
+              "count": 24,
+              "p50_ms": 0.004,
+              "p95_ms": 0.004,
+              "max_ms": 0.006,
+              "total_ms": 0.08400000000000003
+            },
+            "focusin": {
+              "count": 24,
+              "p50_ms": 0.05,
+              "p95_ms": 0.086,
+              "max_ms": 0.132,
+              "total_ms": 1.3430000000000004
+            },
+            "DOMFocusIn": {
+              "count": 24,
+              "p50_ms": 0.003,
+              "p95_ms": 0.004,
+              "max_ms": 0.008,
+              "total_ms": 0.06400000000000003
+            },
+            "pointerup": {
+              "count": 24,
+              "p50_ms": 0.088,
+              "p95_ms": 0.113,
+              "max_ms": 0.171,
+              "total_ms": 2.1590000000000003
+            },
+            "mouseup": {
+              "count": 24,
+              "p50_ms": 0.056,
+              "p95_ms": 0.07,
+              "max_ms": 0.222,
+              "total_ms": 1.4789999999999999
+            },
+            "click": {
+              "count": 24,
+              "p50_ms": 12.834,
+              "p95_ms": 15.139,
+              "max_ms": 15.386,
+              "total_ms": 301.87800000000004
+            },
+            "DOMActivate": {
+              "count": 24,
+              "p50_ms": 0.006,
+              "p95_ms": 0.009,
+              "max_ms": 0.009,
+              "total_ms": 0.14300000000000004
+            },
+            "blur": {
+              "count": 23,
+              "p50_ms": 0.006,
+              "p95_ms": 0.008,
+              "max_ms": 0.008,
+              "total_ms": 0.13400000000000006
+            },
+            "focusout": {
+              "count": 23,
+              "p50_ms": 0.055,
+              "p95_ms": 0.076,
+              "max_ms": 0.081,
+              "total_ms": 1.3339999999999999
+            },
+            "DOMFocusOut": {
+              "count": 23,
+              "p50_ms": 0.003,
+              "p95_ms": 0.004,
+              "max_ms": 0.005,
+              "total_ms": 0.06500000000000003
+            }
+          },
+          "input_two_raf": {
+            "pointerout": {
+              "count": 24,
+              "p50_ms": 36.5,
+              "p95_ms": 42.799999952316284,
+              "max_ms": 44.799999952316284,
+              "total_ms": 829.4999999403954
+            },
+            "pointerover": {
+              "count": 24,
+              "p50_ms": 36.39999997615814,
+              "p95_ms": 42.5,
+              "max_ms": 44.69999998807907,
+              "total_ms": 824.2999998927116
+            },
+            "pointermove": {
+              "count": 24,
+              "p50_ms": 36.19999998807907,
+              "p95_ms": 42.299999952316284,
+              "max_ms": 44.59999996423721,
+              "total_ms": 820.0999998450279
+            },
+            "pointerdown": {
+              "count": 24,
+              "p50_ms": 34.19999998807907,
+              "p95_ms": 40.69999998807907,
+              "max_ms": 42.89999997615814,
+              "total_ms": 781.4999997019768
+            },
+            "pointerup": {
+              "count": 24,
+              "p50_ms": 32.09999996423721,
+              "p95_ms": 38.89999997615814,
+              "max_ms": 41.39999997615814,
+              "total_ms": 741.5999998450279
+            },
+            "click": {
+              "count": 24,
+              "p50_ms": 31.899999976158142,
+              "p95_ms": 38.799999952316284,
+              "max_ms": 41.30000001192093,
+              "total_ms": 738.1999999880791
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "graph-node-select": {
+          "dispatch": {
+            "__playwright_reset_targets__": {
+              "count": 1,
+              "p50_ms": 0.005,
+              "p95_ms": 0.005,
+              "max_ms": 0.005,
+              "total_ms": 0.005
+            },
+            "__playwright_mark_target__": {
+              "count": 1,
+              "p50_ms": 0.003,
+              "p95_ms": 0.003,
+              "max_ms": 0.003,
+              "total_ms": 0.003
+            },
+            "pointerout": {
+              "count": 3,
+              "p50_ms": 0.24,
+              "p95_ms": 0.279,
+              "max_ms": 0.279,
+              "total_ms": 0.7030000000000001
+            },
+            "pointerover": {
+              "count": 3,
+              "p50_ms": 0.066,
+              "p95_ms": 0.077,
+              "max_ms": 0.077,
+              "total_ms": 0.20500000000000002
+            },
+            "mouseout": {
+              "count": 3,
+              "p50_ms": 0.083,
+              "p95_ms": 0.126,
+              "max_ms": 0.126,
+              "total_ms": 0.276
+            },
+            "mouseover": {
+              "count": 3,
+              "p50_ms": 0.053,
+              "p95_ms": 0.054,
+              "max_ms": 0.054,
+              "total_ms": 0.151
+            },
+            "pointermove": {
+              "count": 9,
+              "p50_ms": 0.069,
+              "p95_ms": 0.102,
+              "max_ms": 0.102,
+              "total_ms": 0.642
+            },
+            "mousemove": {
+              "count": 9,
+              "p50_ms": 0.049,
+              "p95_ms": 0.077,
+              "max_ms": 0.077,
+              "total_ms": 0.432
+            },
+            "pointerdown": {
+              "count": 9,
+              "p50_ms": 0.054,
+              "p95_ms": 1.071,
+              "max_ms": 1.071,
+              "total_ms": 1.5379999999999998
+            },
+            "mousedown": {
+              "count": 9,
+              "p50_ms": 0.051,
+              "p95_ms": 0.206,
+              "max_ms": 0.206,
+              "total_ms": 0.654
+            },
+            "blur": {
+              "count": 2,
+              "p50_ms": 0.005,
+              "p95_ms": 0.005,
+              "max_ms": 0.005,
+              "total_ms": 0.009000000000000001
+            },
+            "focusout": {
+              "count": 2,
+              "p50_ms": 0.058,
+              "p95_ms": 0.058,
+              "max_ms": 0.058,
+              "total_ms": 0.111
+            },
+            "DOMFocusOut": {
+              "count": 2,
+              "p50_ms": 0.003,
+              "p95_ms": 0.003,
+              "max_ms": 0.003,
+              "total_ms": 0.005
+            },
+            "focus": {
+              "count": 2,
+              "p50_ms": 0.004,
+              "p95_ms": 0.004,
+              "max_ms": 0.004,
+              "total_ms": 0.007
+            },
+            "focusin": {
+              "count": 2,
+              "p50_ms": 10.234,
+              "p95_ms": 10.234,
+              "max_ms": 10.234,
+              "total_ms": 10.363
+            },
+            "DOMFocusIn": {
+              "count": 2,
+              "p50_ms": 0.004,
+              "p95_ms": 0.004,
+              "max_ms": 0.004,
+              "total_ms": 0.007
+            },
+            "pointerup": {
+              "count": 9,
+              "p50_ms": 0.097,
+              "p95_ms": 0.122,
+              "max_ms": 0.122,
+              "total_ms": 0.8619999999999999
+            },
+            "mouseup": {
+              "count": 9,
+              "p50_ms": 0.038,
+              "p95_ms": 0.094,
+              "max_ms": 0.094,
+              "total_ms": 0.43399999999999994
+            },
+            "click": {
+              "count": 9,
+              "p50_ms": 0.099,
+              "p95_ms": 28.269,
+              "max_ms": 28.269,
+              "total_ms": 30.122999999999998
+            },
+            "DOMActivate": {
+              "count": 9,
+              "p50_ms": 0.003,
+              "p95_ms": 0.009,
+              "max_ms": 0.009,
+              "total_ms": 0.037
+            },
+            "selectstart": {
+              "count": 1,
+              "p50_ms": 0.024,
+              "p95_ms": 0.024,
+              "max_ms": 0.024,
+              "total_ms": 0.024
+            },
+            "scroll": {
+              "count": 2,
+              "p50_ms": 0.591,
+              "p95_ms": 0.591,
+              "max_ms": 0.591,
+              "total_ms": 1.089
+            },
+            "scrollend": {
+              "count": 2,
+              "p50_ms": 0.018,
+              "p95_ms": 0.018,
+              "max_ms": 0.018,
+              "total_ms": 0.019
+            },
+            "load": {
+              "count": 2,
+              "p50_ms": 0.001,
+              "p95_ms": 0.001,
+              "max_ms": 0.001,
+              "total_ms": 0.002
+            },
+            "selectionchange": {
+              "count": 1,
+              "p50_ms": 0.018,
+              "p95_ms": 0.018,
+              "max_ms": 0.018,
+              "total_ms": 0.018
+            },
+            "transitionrun": {
+              "count": 3,
+              "p50_ms": 0.099,
+              "p95_ms": 0.146,
+              "max_ms": 0.146,
+              "total_ms": 0.257
+            },
+            "transitionstart": {
+              "count": 3,
+              "p50_ms": 0.016,
+              "p95_ms": 0.044,
+              "max_ms": 0.044,
+              "total_ms": 0.071
+            },
+            "animationstart": {
+              "count": 2,
+              "p50_ms": 0.148,
+              "p95_ms": 0.148,
+              "max_ms": 0.148,
+              "total_ms": 0.17099999999999999
+            },
+            "animationend": {
+              "count": 2,
+              "p50_ms": 0.038,
+              "p95_ms": 0.038,
+              "max_ms": 0.038,
+              "total_ms": 0.065
+            },
+            "transitionend": {
+              "count": 3,
+              "p50_ms": 0.176,
+              "p95_ms": 0.244,
+              "max_ms": 0.244,
+              "total_ms": 0.55
+            }
+          },
+          "input_two_raf": {
+            "pointerout": {
+              "count": 3,
+              "p50_ms": 49.30000001192093,
+              "p95_ms": 58.10000002384186,
+              "max_ms": 58.10000002384186,
+              "total_ms": 136.80000001192093
+            },
+            "pointerover": {
+              "count": 3,
+              "p50_ms": 49.10000002384186,
+              "p95_ms": 57.90000003576279,
+              "max_ms": 57.90000003576279,
+              "total_ms": 136.20000004768372
+            },
+            "pointermove": {
+              "count": 9,
+              "p50_ms": 28.80000001192093,
+              "p95_ms": 57.69999998807907,
+              "max_ms": 57.69999998807907,
+              "total_ms": 284.69999998807907
+            },
+            "pointerdown": {
+              "count": 9,
+              "p50_ms": 27.600000023841858,
+              "p95_ms": 56.90000003576279,
+              "max_ms": 56.90000003576279,
+              "total_ms": 281.30000019073486
+            },
+            "pointerup": {
+              "count": 9,
+              "p50_ms": 26.600000023841858,
+              "p95_ms": 54.40000003576279,
+              "max_ms": 54.40000003576279,
+              "total_ms": 262.60000014305115
+            },
+            "click": {
+              "count": 9,
+              "p50_ms": 26.399999976158142,
+              "p95_ms": 54.19999998807907,
+              "max_ms": 54.19999998807907,
+              "total_ms": 261.2000000476837
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+          }
+        },
+        "project-map-wheel": {
+          "dispatch": {
+            "pointerout": {
+              "count": 5,
+              "p50_ms": 0.214,
+              "p95_ms": 0.45,
+              "max_ms": 0.45,
+              "total_ms": 1.177
+            },
+            "pointerover": {
+              "count": 5,
+              "p50_ms": 0.062,
+              "p95_ms": 0.105,
+              "max_ms": 0.105,
+              "total_ms": 0.329
+            },
+            "mouseout": {
+              "count": 5,
+              "p50_ms": 0.071,
+              "p95_ms": 0.106,
+              "max_ms": 0.106,
+              "total_ms": 0.383
+            },
+            "mouseover": {
+              "count": 5,
+              "p50_ms": 0.039,
+              "p95_ms": 0.051,
+              "max_ms": 0.051,
+              "total_ms": 0.199
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 0.03,
+              "p95_ms": 0.03,
+              "max_ms": 0.03,
+              "total_ms": 0.03
+            },
+            "mousemove": {
+              "count": 1,
+              "p50_ms": 0.036,
+              "p95_ms": 0.036,
+              "max_ms": 0.036,
+              "total_ms": 0.036
+            },
+            "transitioncancel": {
+              "count": 2,
+              "p50_ms": 0.004,
+              "p95_ms": 0.004,
+              "max_ms": 0.004,
+              "total_ms": 0.005
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 2.996,
+              "p95_ms": 4.445,
+              "max_ms": 4.719,
+              "total_ms": 67.341
+            }
+          },
+          "input_two_raf": {
+            "pointerout": {
+              "count": 5,
+              "p50_ms": 19.19999998807907,
+              "p95_ms": 22.80000001192093,
+              "max_ms": 22.80000001192093,
+              "total_ms": 97.40000003576279
+            },
+            "pointerover": {
+              "count": 5,
+              "p50_ms": 19.100000023841858,
+              "p95_ms": 22.30000001192093,
+              "max_ms": 22.30000001192093,
+              "total_ms": 96.30000001192093
+            },
+            "pointermove": {
+              "count": 1,
+              "p50_ms": 16.599999964237213,
+              "p95_ms": 16.599999964237213,
+              "max_ms": 16.599999964237213,
+              "total_ms": 16.599999964237213
+            },
+            "wheel": {
+              "count": 24,
+              "p50_ms": 16.69999998807907,
+              "p95_ms": 18,
+              "max_ms": 18.5,
+              "total_ms": 400.50000005960464
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": null,
+            "after": null
+          }
+        },
+        "project-map-idle": {
+          "dispatch": {},
+          "input_two_raf": {},
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "camera": {
+            "before": null,
+            "after": null
+          }
+        }
+      }
+    }
+  ],
+  "confirmed_final_cached_preparation": {
+    "state": "ready",
+    "cache_hit": true,
+    "query_count": 1,
+    "durations": [
+      "Build/setup and input resolution completed in 5.135s.",
+      "Validated 43477 files / 5992114707 bytes in 4.524s."
+    ],
+    "files": 43477,
+    "bytes": 5992114707
+  },
+  "diagnostic_only": {
+    "method": "Read-only host traversal of the existing Lake setup artifact, per-file SHA-256 and aggregate of digests; serial/4-thread/4-thread/serial. This is not the production fingerprint format or a compiler execution. Parallel hashing was not adopted.",
+    "result": {
+      "files": 43477,
+      "resolve_seconds": 2.29235482000513,
+      "runs": [
+        {
+          "workers": 1,
+          "seconds": 4.65732137701707,
+          "bytes": 5992114707,
+          "fingerprint": "9de2d35d4041e669771c51f895969de520b51c81d3fef9226d0e4e736945897a"
+        },
+        {
+          "workers": 4,
+          "seconds": 1.7812971849925816,
+          "bytes": 5992114707,
+          "fingerprint": "9de2d35d4041e669771c51f895969de520b51c81d3fef9226d0e4e736945897a"
+        },
+        {
+          "workers": 4,
+          "seconds": 1.7959390390315093,
+          "bytes": 5992114707,
+          "fingerprint": "9de2d35d4041e669771c51f895969de520b51c81d3fef9226d0e4e736945897a"
+        },
+        {
+          "workers": 1,
+          "seconds": 4.117975372006185,
+          "bytes": 5992114707,
+          "fingerprint": "9de2d35d4041e669771c51f895969de520b51c81d3fef9226d0e4e736945897a"
+        }
+      ]
+    }
+  },
+  "validation": {
+    "rust_tests": 262,
+    "rust_ignored": 0,
+    "clippy": "all targets, -D warnings, selected clean source snapshot passed",
+    "python_worker_protocol_tests": 15,
+    "typescript_tests": 32,
+    "typecheck": "passed",
+    "architecture": "passed",
+    "schema": "passed without generated changes",
+    "format": "npm run format:check and selected Python Ruff checks passed",
+    "actual_browser": [
+      "Prepared real 35-module Lake dependency/cache/configuration failure/dependency edit/invalid Lean/retry/restart journey",
+      "Held real compiler streams completed-module output, times out, cancels, retries, retains UTF-8 diagnostic tail and reopens an unapproved cache",
+      "Retained source/graph/explanations and camera with no new inspection",
+      "Serialized retained-tab p95 budget below 250 ms in normal and reduced motion"
+    ],
+    "required_tui": {
+      "directory": "/tmp/meden-ux-lake-query-20261123",
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/validation/bcaed9846020272d9cb7e08ca3a2900be7a91e57c30646be89326ab71b0c143a/meden",
+        "sha256": "bcaed9846020272d9cb7e08ca3a2900be7a91e57c30646be89326ab71b0c143a"
+      },
+      "success": true,
+      "selected": 34,
+      "decoded_screens_reviewed": [
+        "Lake source inventory refusal and historical restart",
+        "provider 429, retained edits and /retry after restart",
+        "GUI/TUI continuation"
+      ]
+    },
+    "browser_screens_reviewed": [
+      "build-log-timeout.png",
+      "lake-configuration-reused-after-restart.png"
+    ],
+    "regression": "An actual cached refresh originally left Entry.lean ready without dispatching its requested inspection after a fast directory read. A generation/pending snapshot fixes the missed wake-up; the existing journey now requires one inspection on every refresh, including real configuration failures.",
+    "artifacts_sha256": {
+      "/tmp/meden-lake-query-gui-final.log": "4134f61f487f70d8259d393623c03a0ac7d7e3693fdf9ef4219ebd9f632717fc",
+      "/tmp/meden-lake-query-navigation-budgets.log": "6722a39eeb74fa45bbf626cd44b43b3a8dcf1cad9038efe139655c1414842195",
+      "/tmp/meden-lake-query-unit-final.log": "c98c6aa926cffcd9b85d2e9ece50ab0f8a5d7eadb1f160aa451da8f9207b51a0",
+      "/tmp/meden-lake-query-checked-source.log": "2cc65fe20aeb993e565ce554e1682fda4fc81b955be5d0a1c868bfb3f2e205a2",
+      "/tmp/meden-ux-lake-query-20261123/summary.json": "f6f0053fa731b27bebfab71ff837a677405cbfb88ad8ccb285addbd1a9a9c70b",
+      "target/gui-checks/build-log-timeout.png": "938ab7543948d3450c7fbbc687579c6d6614a1f52c9068ed8ab416d8eceb2816",
+      "target/gui-checks/lake-query-final-results/native-native-GUI-with-rea-3d1fa-tifacts-and-survive-restart/lake-configuration-reused-after-restart.png": "aad032926c28f514d2c52678b5775d663a30aa5c19b7531758223835cbc57d2b"
+    },
+    "limits": "Installed Lean/Lake and scripted TUI fixtures are not cold-install or live-model validation. No extraction/refinement theorem or whole-compiler proof is added."
+  },
+  "deployment": {
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/bcaed9846020272d9cb7e08ca3a2900be7a91e57c30646be89326ab71b0c143a-ef24b0e44dbee6cd",
+    "binary_sha256": "bcaed9846020272d9cb7e08ca3a2900be7a91e57c30646be89326ab71b0c143a",
+    "assets_sha256": "ef24b0e44dbee6cd39811f44063004df164e0f38fdfb92e288a2198d23a8c3bf",
+    "projects": {
+      "riemann": {
+        "port": 4323,
+        "files": 175187
+      },
+      "ethlib": {
+        "port": 4322,
+        "files": 2517
+      }
+    },
+    "session_urls": "Private local deployment metadata only"
+  },
+  "measurement_limits": "Two warm diagnostic desktop runs plus a separately labelled initial cache fill, normal motion and no throttling. The native update also includes compiler/renderer bindings already on main but absent from the preceding deployment; do not attribute every end-to-end difference solely to one script edit. The named prepare span directly measures the build/query/validation path. Browser assets include the refresh wake-up change; source-map JavaScript was checked byte-for-byte against the pinned deployment. Raw native/browser artifacts retain digests. Stages overlap and host-thread CPU excludes children. There is no cold-install, local-inference, field-INP or universal latency claim.",
+  "remaining": "Warm display still takes about 16 seconds, including a full 6 GB input read. New compiler/resource bindings require a full initial observation fill; this measured fill takes 197.448 seconds, including 134.974 seconds of actual extraction/search. Separate search bindings/cache and generic revision-bound read models remain migration work."
+}

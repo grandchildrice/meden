@@ -139,6 +139,11 @@ actual build and exact compiled-input fingerprinting; this removes repeated
 configuration evaluation rather than substituting a cached verification result.
 Explicit workspace refresh advances the browser's retained-file generation,
 so a late status response cannot suppress the next requested file read.
+Command activity also retains its generation and pending count: a fast directory
+operation cannot lose the wake-up for a queued file read when React batches its
+busy/idle updates. Prepared compilation batches the ordinary root build and
+source/output/compiler-setup queries in one Lake build state, while preserving
+the exact complete-input fingerprint and original resource checks.
 
 This is the first application extraction, not the complete multi-backend registry.
 Compiler snapshots remain Lean-oriented internally. Native source pages now use

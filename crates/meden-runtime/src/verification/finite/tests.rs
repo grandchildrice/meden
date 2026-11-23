@@ -226,10 +226,14 @@ fn real_started_solver_timeout_and_cancellation_are_inconclusive() -> Result<(),
 #[test]
 fn changed_prepared_worker_is_refused_before_solver_dispatch() -> Result<(), Failure> {
     use std::io::Write as _;
+    use std::os::unix::fs::PermissionsExt as _;
     let original = worker()?;
     let directory = tempfile::tempdir()?;
     let worker = directory.path().join("meden-worker");
     std::fs::copy(original, &worker)?;
+    // The original can be an immutable deployment. Only this owned mutation
+    // fixture needs write permission; never relax the original worker's mode.
+    std::fs::set_permissions(&worker, std::fs::Permissions::from_mode(0o700))?;
     let c = Contract::parse(CONTRACT)?;
     let control = control();
     let prepared = prepare(MODEL, &c, &worker, &control)?;

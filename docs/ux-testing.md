@@ -103,6 +103,13 @@ schema checks cover the owned vocabulary and reject unsupported constraints;
 they are not a general JSON Schema equivalence proof. The source/graph projection
 does not carry current accepted-contract evidence.
 
+The prepared-Lake browser journey requires exactly one requested-file inspection
+after each explicit refresh, even when fast directory work finishes within one
+React batch. Its cached build log must contain one batched Lake query and the
+completed file/byte validation. The real compiler remains responsible for builds,
+dependency edits, rejection and retry; protocol fixtures do not substitute for
+those installed-tool journeys.
+
 Graph interaction regression coverage also requires that wheel input over the
 passive review legend reaches the graph, hover/resize preserves the user's
 camera, reduced motion creates no graph transitions, and selecting a loaded

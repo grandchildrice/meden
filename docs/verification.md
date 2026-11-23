@@ -1846,7 +1846,7 @@ The explorer heading is the shortened workspace path with a refresh icon. There 
 no graph/code/preview/settings mode tabs, map-refresh or project-whole buttons. Preview
 opens a temporary editor tab; compiler tools use an optional context dialog. Model
 selection lives in the composer; provider/model changes select the host binding and
-**このモデルを使用** approves the exact displayed endpoint/model. The complete
+**Use this model** approves the exact displayed endpoint/model. The complete
 visible picker heading and immutable native identity still gate approval. Tool logs
 are inline conversation records rather than a separate button. Native operations carry
 a presentation category and preserve model-stop reporting separately, so inspection
@@ -2601,6 +2601,25 @@ a complete content attestation of the toolchain or standard library.
 Imported declarations are recorded as unexpanded boundaries, not silently copied
 or presented as an analyzed whole-project closure. Map startup never builds all
 Lake roots in this profile.
+
+Preparation now uses one `lake --json query` invocation for all selected roots.
+Each root requests its anonymous build target and its `lean`, `olean` and `setup`
+facets, sharing Lake's build state instead of repeating dependency work through
+separate build, setup-file and per-root query processes. The anonymous target
+retains the ordinary root build. Source/module identity and canonical input
+checks remain mandatory; all actual compiler setup fields and every selected
+compiled-input byte still contribute to the fingerprint. This uses Lake's
+compiler setup rather than the language server's setup projection.
+
+The worker bounds each JSON record at 64 MiB, requires exactly one result per
+requested target and a zero process exit, and kills/reaps an unfinished query on
+failure. Partial, extra, oversized or nonzero output cannot produce a fingerprint.
+It streams real compiler stderr and separately reports build/setup/resolution
+and complete-byte validation durations. Protocol fixtures test those failures,
+original source/module/plugin boundaries, and same-size edits with restored
+timestamps. They are not actual compiler or model validation. Real Lean/Lake
+browser journeys additionally retain timeout/cancellation logs, exact dependency
+edits, failed configuration/compiler recovery, and cache reuse after restart.
 
 The adapter caches deterministic evaluation of the exact frozen Lake
 configuration separately from compiler/search observations. The key includes

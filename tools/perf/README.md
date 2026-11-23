@@ -44,6 +44,12 @@ execution). Warm configuration reuse still requires `atlas.project.prepare` and
 the exact compiled-input fingerprint. Compare these stages separately from
 source-view materialization and retained-tab navigation.
 
+Prepared roots now use one batched Lake query for their normal build and
+source/output/compiler-setup results. The file's streamed diagnostic log separates
+build/setup/input resolution from the exact file/byte validation duration.
+A cached open must still validate all bytes; compare a new compiler/resource
+artifact's initial extraction/search fill separately from subsequent cache hits.
+
 `npm run test:fuzz` generates 3000 bounded inventories and camera traces, including
 empty maps, deep categories, tiny panes, extreme zooms and cyclic references.
 It compares visibility and center breadcrumbs to independent full-scan
