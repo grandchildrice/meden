@@ -2,6 +2,7 @@
 import { chromium, expect } from "@playwright/test";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve, basename } from "node:path";
+import { createHash } from "node:crypto";
 import { TraceMap, originalPositionFor } from "@jridgewell/trace-mapping";
 
 const [url, destination = "target/gui-profile"] = process.argv.slice(2);
@@ -21,6 +22,8 @@ if (!["reduce", "no-preference"].includes(motion))
   throw new Error("MEDEN_GUI_MOTION must be reduce or no-preference");
 const samples = {};
 const maps = new Map();
+const assets = resolve(process.env.MEDEN_GUI_ASSETS || "apps/web/dist");
+const sourceMaps = {};
 const quantiles = (values) => {
   const sorted = values.filter(Number.isFinite).sort((a, b) => a - b);
   const at = (q) =>
@@ -39,17 +42,10 @@ async function locate(frame) {
     return frame.functionName || frame.url || "(anonymous)";
   if (!maps.has(name)) {
     try {
-      maps.set(
-        name,
-        new TraceMap(
-          JSON.parse(
-            await readFile(
-              resolve("apps/web/dist/assets", name + ".map"),
-              "utf8",
-            ),
-          ),
-        ),
-      );
+      const path = resolve(assets, "assets", name + ".map");
+      const bytes = await readFile(path);
+      maps.set(name, new TraceMap(JSON.parse(bytes)));
+      sourceMaps[name] = createHash("sha256").update(bytes).digest("hex");
     } catch {
       maps.set(name, null);
     }
@@ -87,15 +83,8 @@ try {
       requestAnimationFrame(frame);
     };
     requestAnimationFrame(frame);
-    for (const type of [
-      "wheel",
-      "pointerdown",
-      "pointerup",
-      "pointerover",
-      "pointerout",
-      "click",
-    ]) {
-      document.addEventListener(
+    const observeInput = (target, type) => {
+      target.addEventListener(
         type,
         () => {
           const phase = p.phase,
@@ -108,7 +97,18 @@ try {
         },
         { capture: true, passive: true },
       );
-    }
+    };
+    for (const type of [
+      "wheel",
+      "pointermove",
+      "pointerdown",
+      "pointerup",
+      "pointerover",
+      "pointerout",
+      "click",
+    ])
+      observeInput(document, type);
+    observeInput(window, "resize");
     new PerformanceObserver((list) => {
       for (const e of list.getEntries())
         p.tasks.push({ phase: p.phase, ms: e.duration });
@@ -153,7 +153,23 @@ try {
         })
       ).json(),
     );
+  const nativeMetrics = () =>
+    page.evaluate(async () => {
+      const response = await fetch("/api/metrics", {
+        headers: {
+          Authorization:
+            "Bearer " + sessionStorage.getItem("meden-native-session"),
+        },
+      });
+      return response.ok ? response.json() : null;
+    });
   let native = await state();
+  if (native.running)
+    throw new Error("A workspace job is running; profile only an idle host.");
+  const metricsBefore = await nativeMetrics();
+  const previousSpans = new Set(
+    (metricsBefore?.records || []).map((r) => r.context.span),
+  );
   const file =
     process.env.MEDEN_GUI_FILE ||
     native.source_snapshot?.roots[0] ||
@@ -205,6 +221,10 @@ try {
   const graph = page.locator(".ide-file-page:not([hidden]) .cone-graph");
   await expect(graph).toBeVisible();
   const viewport = graph.locator(".react-flow__viewport");
+  const graphCamera = () =>
+    viewport.evaluateAll(
+      (elements) => elements[0]?.getAttribute("style") ?? null,
+    );
   const cdp = await page.context().newCDPSession(page);
   await cdp.send("Profiler.enable");
   await cdp.send("Profiler.setSamplingInterval", { interval: 1000 });
@@ -219,6 +239,7 @@ try {
       for (let i = 0; i < n; i++) await new Promise(requestAnimationFrame);
     }, count);
   const measure = async (label, action) => {
+    const cameraBefore = await graphCamera();
     await cdp.send("Profiler.start");
     phase = label;
     await page.evaluate((label) => {
@@ -257,7 +278,11 @@ try {
         location: await locate(nodes.get(id).callFrame),
       });
     }
-    samples[label] = { elapsed_ms: elapsed, cpu_hotspots: hotspots };
+    samples[label] = {
+      elapsed_ms: elapsed,
+      graph_camera: { before: cameraBefore, after: await graphCamera() },
+      cpu_hotspots: hotspots,
+    };
     console.log(JSON.stringify({ measured: label, elapsed_ms: elapsed }));
     phase = "between";
     await page.evaluate(() => {
@@ -356,6 +381,20 @@ try {
     sample.input_to_two_animation_frames = quantiles(
       metrics.inputs.filter((e) => e.phase === label).map((e) => e.ms),
     );
+    sample.input_to_two_animation_frames_by_type = Object.fromEntries(
+      [
+        ...new Set(
+          metrics.inputs.filter((e) => e.phase === label).map((e) => e.type),
+        ),
+      ].map((type) => [
+        type,
+        quantiles(
+          metrics.inputs
+            .filter((e) => e.phase === label && e.type === type)
+            .map((e) => e.ms),
+        ),
+      ]),
+    );
     sample.long_tasks = quantiles(
       metrics.tasks.filter((e) => e.phase === label).map((e) => e.ms),
     );
@@ -400,18 +439,13 @@ try {
       ]),
     );
   }
-  const nativeMetrics = await page.evaluate(async () => {
-    const response = await fetch("/api/metrics", {
-      headers: {
-        Authorization:
-          "Bearer " + sessionStorage.getItem("meden-native-session"),
-      },
-    });
-    return response.ok ? response.json() : null;
-  });
+  const metricsAfter = await nativeMetrics();
   await writeFile(
     resolve(destination, "native-metrics.json"),
-    JSON.stringify(nativeMetrics, null, 2),
+    JSON.stringify(metricsAfter, null, 2),
+  );
+  const newRecords = (metricsAfter?.records || []).filter(
+    (r) => !previousSpans.has(r.context.span),
   );
   const report = {
     environment: {
@@ -425,10 +459,35 @@ try {
       project_files: native.overview.total,
       setup_preparation_ms: setupElapsed,
       setup_cache_hit: native.source_preparation[file]?.cache_hit ?? null,
+      source_map_directory: assets,
+      source_maps_sha256: sourceMaps,
     },
     methodology:
       "Real GUI pointer/wheel/click events with CDP dispatch spans and sampled CPU profiles. Input-to-two-rAF is a presentation proxy, not measured physical presentation or INP. Nested trace spans overlap and must not be summed as exclusive CPU time. Profiling and automation add overhead; one controlled desktop run is not a field percentile.",
     samples,
+    native_stages: {
+      available: metricsAfter !== null,
+      evicted_during_capture:
+        metricsAfter === null || metricsBefore === null
+          ? null
+          : metricsAfter.evicted - metricsBefore.evicted,
+      stages: Object.fromEntries(
+        [...new Set(newRecords.map((r) => r.name))].map((name) => {
+          const records = newRecords.filter((r) => r.name === name);
+          return [
+            name,
+            {
+              wall: quantiles(records.map((r) => r.wall_us / 1000)),
+              host_thread_cpu: quantiles(
+                records.map((r) =>
+                  r.thread_cpu_us === null ? NaN : r.thread_cpu_us / 1000,
+                ),
+              ),
+            },
+          ];
+        }),
+      ),
+    },
     layout_shifts: metrics.shifts,
   };
   await writeFile(

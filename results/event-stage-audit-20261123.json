@@ -1,0 +1,2401 @@
+{
+  "date": "2026-11-23",
+  "kind": "Per-event dispatch, rendering, camera and native-stage diagnosis of the pinned production Riemann GUI",
+  "environment": {
+    "cpu": "13th Gen Intel(R) Core(TM) i7-13620H",
+    "kernel": "6.12.92",
+    "node": "v22.22.2"
+  },
+  "served_javascript_sha256": {
+    "AnalysisView-CC68D3Dl.js": "08bec98aacc2e1f9d5dc8f4dfdfcab184e14438b1d429dcc9e7da68c7328a1a4",
+    "ArtifactPanel-Dck8_h9Q.js": "cddc4aade715dd1ddc3ef3f023ea361ff7ead58ed8f83e38d8ffe884905e8373",
+    "GraphView-COQPMnR9.js": "7cf09681dbeb25cefaa0e1778f99a594e495fefb9fc2a3939ff3163294dc0423",
+    "ProofWorkspace-DuSie9Qv.js": "32a56c5b02aaeff525cd2c14e29089c9811508fa7dca44937a410a333a318517",
+    "ReviewView-B7DBAeJk.js": "25086e6cd7d24247b00e9c96041f30dd87b648d7ceb7a99a3d873f70d2cc2515",
+    "highlight-DnPkufdT.js": "9ecffbc454c6c8f2f77b98fc8792a6d7b956a56b471efe9e8e9be35d339a70df",
+    "index-CjVN-X59.js": "97087f424d974433f93f05ceb4f4acfa7ad65f9f7ea4caecb907a6f932623687"
+  },
+  "source_map_check": "All seven JavaScript bundles from a separate hidden-source-map build are byte-for-byte identical to the immutable deployed assets; their source maps were used without replacing production assets.",
+  "methodology": "Two sequential controlled desktop runs, same native binary/assets/file, normal motion, no throttling or inference. Event dispatch durations are separated from the input/two-requestAnimationFrame proxy for that event type. The proxy is not physical presentation or field INP. Resize delivery is coalesced. Node selection includes one explicit Fit View followed by eight reachable-node clicks. Native stages overlap, thread CPU excludes child processes, zero CPU samples means unavailable; completed span IDs present at the initial snapshot are excluded. No span eviction occurred. Project and OS caches are warm; this is not cold installation or a statistical confidence interval. No application runtime optimization or deployment was made in this audit.",
+  "captures": [
+    {
+      "directory": "target/native-profile/event-audit-riemann-2",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 29040.322751,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/event-audit-assets",
+        "source_maps_sha256": {
+          "index-CjVN-X59.js": "ff0395525879d7cb6cd638aa53d0c523516e9b4ba1d87b4b3bdf8ea536c3aa2d"
+        }
+      },
+      "manifest": {
+        "binary_sha256": "00c06f0989b556a9121ede3d38f996463db5c9403f9c45421d895e4112e06df4",
+        "samples": 2194,
+        "perf_event_paranoid": "2",
+        "kptr_restrict": "1",
+        "event": "cpu-clock:u",
+        "frequency_hz": 99,
+        "stack": "dwarf,8192",
+        "digests": {
+          "perf.data": "dbd0bbceaf465c620ab25f5893a2d0060b64c785d7566db59eacc4f5e1878185",
+          "perf-report.txt": "c62498956a7c9c104a732af2448f1d291aaabbeefbf3e4a5204cfaf67e7f63b5",
+          "trace.json": "68862b0a093421769d76737d265a16ac7f0e9571cfc6850fd50d7c41c00b55f8",
+          "native-metrics.json": "cb534b25a812c0606ff09627fa7e59738dbc6e24a4a4afe1ae13820a096c8c68",
+          "summary.json": "fcba05eefff647520c77a56def525d24548cecb97389a861a926f51b80a02c16",
+          "graph-hover.cpuprofile": "01e2d981c5eecf230a8294c5b4e19414a4b6d23105f63b761feb4671313bddcc",
+          "graph-idle-poll.cpuprofile": "1bfb969463b8511ae8cbe1557e3cca580a3197bc2b193a99e8929ba5564eb859",
+          "graph-idle-settled.cpuprofile": "f78980d219e838297fdbf76d288fdf41a8e9bdcdf4939954dc1cd0d590b9e8d3",
+          "graph-node-select.cpuprofile": "b52578d72f6794473485f864524822b7efbd51042a4a948bf7c1c3d40cd3d30e",
+          "graph-pan.cpuprofile": "05e5376856e8b15e7529fd6c413f24c35c90d9d06d88e1518be623949bcfc5b6",
+          "graph-resize.cpuprofile": "87e9caa78419985634fbea6fbca270ba4582cb5833f5a0ffbb2d1b55b14fc520",
+          "graph-wheel.cpuprofile": "8c297c58557ee8cab77c270ca12e0e4cb18a03d6c5745e2bd1c6b24290488bf4",
+          "project-map-idle.cpuprofile": "ee58224937e97b793888d26939250306192863a1dcf908f14fd92cf402b2f856",
+          "project-map-wheel.cpuprofile": "3f223cc174a51367943df2c36690bb3055ee4adcd062b2c3e65cb6304b59652a",
+          "tab-switch.cpuprofile": "02edb2f27ee66bb1cbb485d8c168bb429ab04b717a6db53488109a34a41e08c3"
+        },
+        "limits": "Current-user native host and inherited workers only; no kernel stacks. Thread CPU spans exclude worker CPU. File preparation reuses project/OS caches, not a cold installation. Sampling changes timing; browser profiles have their own overhead."
+      },
+      "events": {
+        "project-map-wheel": {
+          "event": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 9.426,
+            "p95_ms": 10.9,
+            "max_ms": 10.939,
+            "total_ms": 202.61
+          },
+          "proxy_event": "wheel",
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 17,
+            "p95_ms": 20.30000001192093,
+            "max_ms": 20.5,
+            "total_ms": 408.79999989271164
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 26,
+              "p50_ms": 0.839,
+              "p95_ms": 1.121,
+              "max_ms": 1.19,
+              "total_ms": 20.248
+            },
+            "Layout": {
+              "count": 25,
+              "p50_ms": 0.314,
+              "p95_ms": 0.485,
+              "max_ms": 3.156,
+              "total_ms": 10.764
+            },
+            "PrePaint": {
+              "count": 147,
+              "p50_ms": 0.009,
+              "p95_ms": 1.87,
+              "max_ms": 2.02,
+              "total_ms": 40.52300000000001
+            },
+            "Paint": {
+              "count": 73,
+              "p50_ms": 0.092,
+              "p95_ms": 3.956,
+              "max_ms": 4.107,
+              "total_ms": 76.814
+            },
+            "FunctionCall": {
+              "count": 482,
+              "p50_ms": 0.017,
+              "p95_ms": 4.246,
+              "max_ms": 21.115,
+              "total_ms": 284.63900000000007
+            },
+            "FireAnimationFrame": {
+              "count": 171,
+              "p50_ms": 0.021,
+              "p95_ms": 0.102,
+              "max_ms": 0.343,
+              "total_ms": 5.824999999999999
+            },
+            "TimerFire": {
+              "count": 8,
+              "p50_ms": 0.277,
+              "p95_ms": 0.937,
+              "max_ms": 0.937,
+              "total_ms": 2.9770000000000003
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": null,
+            "after": null
+          }
+        },
+        "graph-wheel": {
+          "event": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 0.524,
+            "p95_ms": 0.904,
+            "max_ms": 1.495,
+            "total_ms": 13.620000000000001
+          },
+          "proxy_event": "wheel",
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 16.399999976158142,
+            "p95_ms": 25.80000001192093,
+            "max_ms": 27.100000023841858,
+            "total_ms": 416.89999973773956
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 25,
+              "p50_ms": 0.943,
+              "p95_ms": 1.1,
+              "max_ms": 1.273,
+              "total_ms": 21.738
+            },
+            "Layout": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "PrePaint": {
+              "count": 118,
+              "p50_ms": 0.011,
+              "p95_ms": 2.939,
+              "max_ms": 3.166,
+              "total_ms": 62.707
+            },
+            "Paint": {
+              "count": 48,
+              "p50_ms": 2.343,
+              "p95_ms": 4.305,
+              "max_ms": 4.978,
+              "total_ms": 97.73800000000001
+            },
+            "FunctionCall": {
+              "count": 275,
+              "p50_ms": 0.034,
+              "p95_ms": 0.446,
+              "max_ms": 14.813,
+              "total_ms": 74.03
+            },
+            "FireAnimationFrame": {
+              "count": 155,
+              "p50_ms": 0.037,
+              "p95_ms": 0.117,
+              "max_ms": 0.245,
+              "total_ms": 7.288000000000001
+            },
+            "TimerFire": {
+              "count": 7,
+              "p50_ms": 0.513,
+              "p95_ms": 0.848,
+              "max_ms": 0.848,
+              "total_ms": 3.489
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-hover": {
+          "event": "mousemove",
+          "dispatch": {
+            "count": 40,
+            "p50_ms": 0.046,
+            "p95_ms": 0.08,
+            "max_ms": 0.084,
+            "total_ms": 1.9310000000000003
+          },
+          "proxy_event": "pointermove",
+          "input_to_two_raf": {
+            "count": 40,
+            "p50_ms": 18.400000035762787,
+            "p95_ms": 25.900000035762787,
+            "max_ms": 27.600000023841858,
+            "total_ms": 727.7000001072884
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 170,
+              "p50_ms": 0.312,
+              "p95_ms": 0.828,
+              "max_ms": 2.587,
+              "total_ms": 57.355000000000004
+            },
+            "Layout": {
+              "count": 107,
+              "p50_ms": 0.269,
+              "p95_ms": 0.611,
+              "max_ms": 5.513,
+              "total_ms": 37.99300000000001
+            },
+            "PrePaint": {
+              "count": 207,
+              "p50_ms": 0.006,
+              "p95_ms": 1.573,
+              "max_ms": 2.439,
+              "total_ms": 61.738000000000014
+            },
+            "Paint": {
+              "count": 280,
+              "p50_ms": 0.013,
+              "p95_ms": 3.134,
+              "max_ms": 5.42,
+              "total_ms": 170.701
+            },
+            "FunctionCall": {
+              "count": 1693,
+              "p50_ms": 0.006,
+              "p95_ms": 0.076,
+              "max_ms": 19.245,
+              "total_ms": 364.9369999999998
+            },
+            "FireAnimationFrame": {
+              "count": 352,
+              "p50_ms": 0.007,
+              "p95_ms": 0.092,
+              "max_ms": 0.414,
+              "total_ms": 7.331999999999995
+            },
+            "TimerFire": {
+              "count": 6,
+              "p50_ms": 0.458,
+              "p95_ms": 0.753,
+              "max_ms": 0.753,
+              "total_ms": 2.301
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-pan": {
+          "event": "mousemove",
+          "dispatch": {
+            "count": 31,
+            "p50_ms": 0.166,
+            "p95_ms": 0.312,
+            "max_ms": 1.096,
+            "total_ms": 6.295
+          },
+          "proxy_event": "pointermove",
+          "input_to_two_raf": {
+            "count": 31,
+            "p50_ms": 20,
+            "p95_ms": 21.19999998807907,
+            "max_ms": 27.899999976158142,
+            "total_ms": 611.3000000119209
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 31,
+              "p50_ms": 0.677,
+              "p95_ms": 0.861,
+              "max_ms": 1.027,
+              "total_ms": 20.994
+            },
+            "Layout": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "PrePaint": {
+              "count": 176,
+              "p50_ms": 0.008,
+              "p95_ms": 2.261,
+              "max_ms": 2.783,
+              "total_ms": 63.742000000000004
+            },
+            "Paint": {
+              "count": 60,
+              "p50_ms": 2.419,
+              "p95_ms": 4.186,
+              "max_ms": 4.261,
+              "total_ms": 112.15899999999998
+            },
+            "FunctionCall": {
+              "count": 465,
+              "p50_ms": 0.019,
+              "p95_ms": 0.156,
+              "max_ms": 14.019,
+              "total_ms": 64.345
+            },
+            "FireAnimationFrame": {
+              "count": 152,
+              "p50_ms": 0.028,
+              "p95_ms": 0.115,
+              "max_ms": 0.426,
+              "total_ms": 6.079
+            },
+            "TimerFire": {
+              "count": 6,
+              "p50_ms": 0.455,
+              "p95_ms": 1.199,
+              "max_ms": 1.199,
+              "total_ms": 2.8070000000000004
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "graph-resize": {
+          "event": "resize",
+          "dispatch": {
+            "count": 5,
+            "p50_ms": 1.118,
+            "p95_ms": 1.867,
+            "max_ms": 1.867,
+            "total_ms": 6.222
+          },
+          "proxy_event": "resize",
+          "input_to_two_raf": {
+            "count": 5,
+            "p50_ms": 18.19999998807907,
+            "p95_ms": 23.100000023841858,
+            "max_ms": 23.100000023841858,
+            "total_ms": 88.5
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 18,
+              "p50_ms": 0.071,
+              "p95_ms": 1.431,
+              "max_ms": 1.431,
+              "total_ms": 8.205000000000002
+            },
+            "Layout": {
+              "count": 18,
+              "p50_ms": 0.616,
+              "p95_ms": 1.951,
+              "max_ms": 1.951,
+              "total_ms": 14.112
+            },
+            "PrePaint": {
+              "count": 57,
+              "p50_ms": 0.01,
+              "p95_ms": 2.16,
+              "max_ms": 3.975,
+              "total_ms": 13.28
+            },
+            "Paint": {
+              "count": 8,
+              "p50_ms": 3.384,
+              "p95_ms": 5.547,
+              "max_ms": 5.547,
+              "total_ms": 29.643
+            },
+            "FunctionCall": {
+              "count": 130,
+              "p50_ms": 0.03,
+              "p95_ms": 0.874,
+              "max_ms": 13.231,
+              "total_ms": 53.105000000000004
+            },
+            "FireAnimationFrame": {
+              "count": 67,
+              "p50_ms": 0.045,
+              "p95_ms": 0.163,
+              "max_ms": 0.761,
+              "total_ms": 4.471
+            },
+            "TimerFire": {
+              "count": 2,
+              "p50_ms": 0.765,
+              "p95_ms": 0.765,
+              "max_ms": 0.765,
+              "total_ms": 1.514
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "tab-switch": {
+          "event": "click",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 12.981,
+            "p95_ms": 16.8,
+            "max_ms": 18.669,
+            "total_ms": 316.8
+          },
+          "proxy_event": "click",
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 30.600000023841858,
+            "p95_ms": 37.69999998807907,
+            "max_ms": 40.80000001192093,
+            "total_ms": 702.2999997735023
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 119,
+              "p50_ms": 0.443,
+              "p95_ms": 4.552,
+              "max_ms": 4.959,
+              "total_ms": 116.82099999999998
+            },
+            "Layout": {
+              "count": 24,
+              "p50_ms": 7.093,
+              "p95_ms": 7.377,
+              "max_ms": 7.705,
+              "total_ms": 92.46099999999998
+            },
+            "PrePaint": {
+              "count": 478,
+              "p50_ms": 0.004,
+              "p95_ms": 1.106,
+              "max_ms": 2.673,
+              "total_ms": 47.3
+            },
+            "Paint": {
+              "count": 48,
+              "p50_ms": 3.095,
+              "p95_ms": 3.34,
+              "max_ms": 3.361,
+              "total_ms": 122.20900000000002
+            },
+            "FunctionCall": {
+              "count": 2729,
+              "p50_ms": 0.008,
+              "p95_ms": 0.166,
+              "max_ms": 18.424,
+              "total_ms": 513.553
+            },
+            "FireAnimationFrame": {
+              "count": 498,
+              "p50_ms": 0.01,
+              "p95_ms": 0.13,
+              "max_ms": 0.36,
+              "total_ms": 14.581000000000001
+            },
+            "TimerFire": {
+              "count": 7,
+              "p50_ms": 0.265,
+              "p95_ms": 0.73,
+              "max_ms": 0.73,
+              "total_ms": 2.859
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "graph-node-select": {
+          "event": "click",
+          "dispatch": {
+            "count": 9,
+            "p50_ms": 0.115,
+            "p95_ms": 34.064,
+            "max_ms": 34.064,
+            "total_ms": 36.16
+          },
+          "proxy_event": "click",
+          "input_to_two_raf": {
+            "count": 9,
+            "p50_ms": 24.599999964237213,
+            "p95_ms": 74.19999998807907,
+            "max_ms": 74.19999998807907,
+            "total_ms": 271.6999999284744
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 58,
+              "p50_ms": 0.234,
+              "p95_ms": 0.944,
+              "max_ms": 9.177,
+              "total_ms": 24.263
+            },
+            "Layout": {
+              "count": 13,
+              "p50_ms": 0.399,
+              "p95_ms": 1.755,
+              "max_ms": 1.755,
+              "total_ms": 7.631
+            },
+            "PrePaint": {
+              "count": 133,
+              "p50_ms": 0.006,
+              "p95_ms": 0.096,
+              "max_ms": 2.163,
+              "total_ms": 7.497000000000002
+            },
+            "Paint": {
+              "count": 20,
+              "p50_ms": 0.348,
+              "p95_ms": 6.945,
+              "max_ms": 6.945,
+              "total_ms": 39.466
+            },
+            "FunctionCall": {
+              "count": 702,
+              "p50_ms": 0.009,
+              "p95_ms": 0.067,
+              "max_ms": 31.289,
+              "total_ms": 96.716
+            },
+            "FireAnimationFrame": {
+              "count": 143,
+              "p50_ms": 0.011,
+              "p95_ms": 0.112,
+              "max_ms": 0.65,
+              "total_ms": 5.125000000000001
+            },
+            "TimerFire": {
+              "count": 4,
+              "p50_ms": 0.401,
+              "p95_ms": 0.48,
+              "max_ms": 0.48,
+              "total_ms": 1.068
+            }
+          },
+          "long_tasks": {
+            "count": 1,
+            "p50_ms": 52,
+            "p95_ms": 52,
+            "max_ms": 52,
+            "total_ms": 52
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+          }
+        }
+      },
+      "idle": {
+        "graph-idle-poll": {
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "requests": 11,
+          "state_response_bytes": [89419]
+        },
+        "graph-idle-settled": {
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "requests": 11,
+          "state_response_bytes": [89419]
+        },
+        "project-map-idle": {
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "requests": 10,
+          "state_response_bytes": [89419]
+        }
+      },
+      "native_stages": {
+        "available": true,
+        "evicted_during_capture": 0,
+        "stages": {
+          "gui.serialize_respond": {
+            "wall": {
+              "count": 204,
+              "p50_ms": 3.154,
+              "p95_ms": 6.016,
+              "max_ms": 1105.3,
+              "total_ms": 1840.1779999999999
+            },
+            "host_thread_cpu": {
+              "count": 204,
+              "p50_ms": 3.109,
+              "p95_ms": 5.824,
+              "max_ms": 1050.199,
+              "total_ms": 1764.636
+            }
+          },
+          "gui.state": {
+            "wall": {
+              "count": 196,
+              "p50_ms": 3.992,
+              "p95_ms": 7.408,
+              "max_ms": 10.067,
+              "total_ms": 894.1299999999995
+            },
+            "host_thread_cpu": {
+              "count": 196,
+              "p50_ms": 3.858,
+              "p95_ms": 7.234,
+              "max_ms": 9.734,
+              "total_ms": 871.2679999999999
+            }
+          },
+          "process.run": {
+            "wall": {
+              "count": 84,
+              "p50_ms": 50.973,
+              "p95_ms": 61.422,
+              "max_ms": 23346.788,
+              "total_ms": 27579.067000000003
+            },
+            "host_thread_cpu": {
+              "count": 84,
+              "p50_ms": 0.402,
+              "p95_ms": 0.571,
+              "max_ms": 119.573,
+              "total_ms": 154.9
+            }
+          },
+          "gui.job": {
+            "wall": {
+              "count": 7,
+              "p50_ms": 41.841,
+              "p95_ms": 28431.569,
+              "max_ms": 28431.569,
+              "total_ms": 28693.319
+            },
+            "host_thread_cpu": {
+              "count": 7,
+              "p50_ms": 1.24,
+              "p95_ms": 1095.571,
+              "max_ms": 1095.571,
+              "total_ms": 1103.9279999999999
+            }
+          },
+          "gui.enqueue": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.001,
+              "p95_ms": 0.001,
+              "max_ms": 0.001,
+              "total_ms": 0.004
+            },
+            "host_thread_cpu": {
+              "count": 6,
+              "p50_ms": 0.001,
+              "p95_ms": 0.001,
+              "max_ms": 0.001,
+              "total_ms": 0.004
+            }
+          },
+          "job.queue": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.032,
+              "p95_ms": 0.041,
+              "max_ms": 0.041,
+              "total_ms": 0.19
+            },
+            "host_thread_cpu": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            }
+          },
+          "gui.command": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.205,
+              "p95_ms": 0.326,
+              "max_ms": 0.326,
+              "total_ms": 1.301
+            },
+            "host_thread_cpu": {
+              "count": 6,
+              "p50_ms": 0.176,
+              "p95_ms": 0.287,
+              "max_ms": 0.287,
+              "total_ms": 1.144
+            }
+          },
+          "atlas.resources.select": {
+            "wall": {
+              "count": 15,
+              "p50_ms": 13.392,
+              "p95_ms": 19.134,
+              "max_ms": 19.134,
+              "total_ms": 203.048
+            },
+            "host_thread_cpu": {
+              "count": 15,
+              "p50_ms": 13.057,
+              "p95_ms": 18.9,
+              "max_ms": 18.9,
+              "total_ms": 200.542
+            }
+          },
+          "atlas.resources.validate": {
+            "wall": {
+              "count": 28,
+              "p50_ms": 20,
+              "p95_ms": 22.829,
+              "max_ms": 24.918,
+              "total_ms": 567.14
+            },
+            "host_thread_cpu": {
+              "count": 28,
+              "p50_ms": 19.865,
+              "p95_ms": 22.671,
+              "max_ms": 24.807,
+              "total_ms": 564.46
+            }
+          },
+          "analysis.capture_sources": {
+            "wall": {
+              "count": 3,
+              "p50_ms": 51.649,
+              "p95_ms": 53.011,
+              "max_ms": 53.011,
+              "total_ms": 146.589
+            },
+            "host_thread_cpu": {
+              "count": 3,
+              "p50_ms": 1.364,
+              "p95_ms": 1.937,
+              "max_ms": 1.937,
+              "total_ms": 4.388
+            }
+          },
+          "atlas.lake_configuration.reuse": {
+            "wall": {
+              "count": 12,
+              "p50_ms": 19.979,
+              "p95_ms": 20.567,
+              "max_ms": 20.567,
+              "total_ms": 239.593
+            },
+            "host_thread_cpu": {
+              "count": 12,
+              "p50_ms": 19.895,
+              "p95_ms": 20.49,
+              "max_ms": 20.49,
+              "total_ms": 238.40900000000002
+            }
+          },
+          "atlas.lake_configuration.resolve": {
+            "wall": {
+              "count": 12,
+              "p50_ms": 58.034,
+              "p95_ms": 60.404,
+              "max_ms": 60.404,
+              "total_ms": 676.782
+            },
+            "host_thread_cpu": {
+              "count": 12,
+              "p50_ms": 56.915,
+              "p95_ms": 59.2,
+              "max_ms": 59.2,
+              "total_ms": 664.3640000000001
+            }
+          },
+          "analysis.discover_layout": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1846.433,
+              "p95_ms": 1846.433,
+              "max_ms": 1846.433,
+              "total_ms": 1846.433
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 687.501,
+              "p95_ms": 687.501,
+              "max_ms": 687.501,
+              "total_ms": 687.501
+            }
+          },
+          "analysis.select_roots": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1941.623,
+              "p95_ms": 1941.623,
+              "max_ms": 1941.623,
+              "total_ms": 1941.623
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 691.046,
+              "p95_ms": 691.046,
+              "max_ms": 691.046,
+              "total_ms": 691.046
+            }
+          },
+          "sandbox.public_tools": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 60.672,
+              "p95_ms": 60.672,
+              "max_ms": 60.672,
+              "total_ms": 60.672
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 5.004,
+              "p95_ms": 5.004,
+              "max_ms": 5.004,
+              "total_ms": 5.004
+            }
+          },
+          "sandbox.libraries": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 52.168,
+              "p95_ms": 52.168,
+              "max_ms": 52.168,
+              "total_ms": 52.168
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 3.765,
+              "p95_ms": 3.765,
+              "max_ms": 3.765,
+              "total_ms": 3.765
+            }
+          },
+          "sandbox.nix_closure": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 44.311,
+              "p95_ms": 44.311,
+              "max_ms": 44.311,
+              "total_ms": 44.311
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 1.13,
+              "p95_ms": 1.13,
+              "max_ms": 1.13,
+              "total_ms": 1.13
+            }
+          },
+          "sandbox.prepare": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 499.43,
+              "p95_ms": 499.43,
+              "max_ms": 499.43,
+              "total_ms": 499.43
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 39.801,
+              "p95_ms": 39.801,
+              "max_ms": 39.801,
+              "total_ms": 39.801
+            }
+          },
+          "atlas.project.prepare": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 23846.582,
+              "p95_ms": 23846.582,
+              "max_ms": 23846.582,
+              "total_ms": 23846.582
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 159.739,
+              "p95_ms": 159.739,
+              "max_ms": 159.739,
+              "total_ms": 159.739
+            }
+          },
+          "analysis.cache.validate": {
+            "wall": {
+              "count": 2,
+              "p50_ms": 1211.219,
+              "p95_ms": 1211.219,
+              "max_ms": 1211.219,
+              "total_ms": 1211.303
+            },
+            "host_thread_cpu": {
+              "count": 2,
+              "p50_ms": 54.85,
+              "p95_ms": 54.85,
+              "max_ms": 54.85,
+              "total_ms": 54.931000000000004
+            }
+          },
+          "analysis.cache.retain_observation": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 15.286,
+              "p95_ms": 15.286,
+              "max_ms": 15.286,
+              "total_ms": 15.286
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 15.142,
+              "p95_ms": 15.142,
+              "max_ms": 15.142,
+              "total_ms": 15.142
+            }
+          },
+          "analysis.cache.load_rendering": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1.38,
+              "p95_ms": 1.38,
+              "max_ms": 1.38,
+              "total_ms": 1.38
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 1.024,
+              "p95_ms": 1.024,
+              "max_ms": 1.024,
+              "total_ms": 1.024
+            }
+          },
+          "analysis.extract": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 28277.387,
+              "p95_ms": 28277.387,
+              "max_ms": 28277.387,
+              "total_ms": 28277.387
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 1035.578,
+              "p95_ms": 1035.578,
+              "max_ms": 1035.578,
+              "total_ms": 1035.578
+            }
+          },
+          "analysis.materialize_view": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 0.412,
+              "p95_ms": 0.412,
+              "max_ms": 0.412,
+              "total_ms": 0.412
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 0.408,
+              "p95_ms": 0.408,
+              "max_ms": 0.408,
+              "total_ms": 0.408
+            }
+          }
+        }
+      },
+      "cpu_hotspots": {
+        "project-map-wheel": [
+          {
+            "self_ms": 63.79500000000003,
+            "location": "../../../apps/web/src/features/native/project-map-model.ts:252 · Y2"
+          },
+          {
+            "self_ms": 36.707,
+            "location": "../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:468 · a"
+          },
+          {
+            "self_ms": 36.521,
+            "location": "../../../apps/web/src/features/native/project-map-model.ts:256 · declarationDetail"
+          },
+          {
+            "self_ms": 23.717,
+            "location": "../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:255 · WorkspaceMap"
+          },
+          {
+            "self_ms": 8.565,
+            "location": "../../../apps/web/src/features/native/project-map-model.ts:252 · Y2"
+          },
+          {
+            "self_ms": 5.364999999999999,
+            "location": "../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:468 · a"
+          },
+          {
+            "self_ms": 3.2350000000000003,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 · updateElement"
+          },
+          {
+            "self_ms": 3.224,
+            "location": "../../../apps/web/src/features/native/project-map-model.ts:256 · declarationDetail"
+          },
+          {
+            "self_ms": 3.217,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 · renderWithHooks"
+          },
+          {
+            "self_ms": 3.1870000000000003,
+            "location": "../../../node_modules/@emotion/hash/dist/emotion-hash.esm.js:4 · murmur2"
+          }
+        ],
+        "tab-switch": [
+          {
+            "self_ms": 37.236,
+            "location": "query"
+          },
+          {
+            "self_ms": 30.975,
+            "location": "../../../apps/web/src/features/native/project-map-model.ts:252 · Y2"
+          },
+          {
+            "self_ms": 24.637000000000004,
+            "location": "../../../apps/web/src/features/native/project-map-model.ts:256 · declarationDetail"
+          },
+          {
+            "self_ms": 20.288,
+            "location": "../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:468 · a"
+          },
+          {
+            "self_ms": 17.006,
+            "location": "(anonymous)"
+          },
+          {
+            "self_ms": 16.65,
+            "location": "../../../node_modules/@xyflow/system/dist/index.js:1847 · updateNodeInternals"
+          },
+          {
+            "self_ms": 14.044,
+            "location": "getAttribute"
+          },
+          {
+            "self_ms": 13.954999999999998,
+            "location": "elementsFromPoint"
+          },
+          {
+            "self_ms": 13.872,
+            "location": "elementSafeTagName"
+          },
+          {
+            "self_ms": 12.83,
+            "location": "../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:255 · WorkspaceMap"
+          }
+        ],
+        "graph-node-select": [
+          {
+            "self_ms": 8.864,
+            "location": "query"
+          },
+          {
+            "self_ms": 8.508,
+            "location": "../../../node_modules/@popperjs/core/lib/dom-utils/isScrollParent.js:2 · isScrollParent"
+          },
+          {
+            "self_ms": 3.191,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 · workLoopSync"
+          },
+          {
+            "self_ms": 3.1900000000000004,
+            "location": "querySelectorAll"
+          },
+          {
+            "self_ms": 3.173,
+            "location": "requestAnimationFrame"
+          },
+          {
+            "self_ms": 2.5250000000000004,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 · propagateParentContextChanges"
+          },
+          {
+            "self_ms": 2.209,
+            "location": "../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 · (anonymous)"
+          },
+          {
+            "self_ms": 2.178,
+            "location": "../../../node_modules/@mui/material/utils/useSlot.mjs:21 · useSlot"
+          },
+          {
+            "self_ms": 2.159,
+            "location": "get scrollTop"
+          },
+          {
+            "self_ms": 2.1580000000000004,
+            "location": "(anonymous)"
+          }
+        ]
+      }
+    },
+    {
+      "directory": "target/native-profile/event-audit-riemann-3",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 24896.823077,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/event-audit-assets",
+        "source_maps_sha256": {
+          "index-CjVN-X59.js": "ff0395525879d7cb6cd638aa53d0c523516e9b4ba1d87b4b3bdf8ea536c3aa2d"
+        }
+      },
+      "manifest": {
+        "binary_sha256": "00c06f0989b556a9121ede3d38f996463db5c9403f9c45421d895e4112e06df4",
+        "samples": 2085,
+        "perf_event_paranoid": "2",
+        "kptr_restrict": "1",
+        "event": "cpu-clock:u",
+        "frequency_hz": 99,
+        "stack": "dwarf,8192",
+        "digests": {
+          "perf.data": "f5b8a79b5a685e76636d09b256ed9722e99c14334ed51961c143e5b9d9b3ad1b",
+          "perf-report.txt": "207b8cf1034cd6b2503416dd7196f9bfac3462a005c6e9c0339cb9f0c06258c4",
+          "trace.json": "57d1f84cf74a72417817bacaf1efd90bbfd7aa753f5549d870c20bb6bda3db16",
+          "native-metrics.json": "adeef42ba625f1dd8759bae0856e1a57cf8412d102a2bb87d824904d7ab30d34",
+          "summary.json": "441514184ef3703ca44485b7f738ce07f686ca96eb0beec5dd49d35d2e791f6d",
+          "graph-hover.cpuprofile": "df077c7bfb2c6ef5035bf513a30968867ebd056f8b7790fed53e084843c5747f",
+          "graph-idle-poll.cpuprofile": "dfaf70564811761fa74c50a16d28b33cffd96a39f1748dd2b2f02d46451f3867",
+          "graph-idle-settled.cpuprofile": "db58b09a4d13b822b3ecee5c240231ca968563f55285f41e2f7889ac87497ca9",
+          "graph-node-select.cpuprofile": "2da2e21ffb0abded9b3f003823b89e1c2395b1e1c973558eea9adfeea8946300",
+          "graph-pan.cpuprofile": "8f1114243a0efa928f5061f3d6e78423490e107251c678ebf8f97f3752423b37",
+          "graph-resize.cpuprofile": "694e6a2b7ec3fabbfc0e83db39c9aedc688f5944d86675749aaa804db520ffd0",
+          "graph-wheel.cpuprofile": "3cf6b83d3d004172da6dd289d7a5ae8d413399e140bd994060549bc6bcd9fb59",
+          "project-map-idle.cpuprofile": "70a9cf7a90ecc92163998923fc9d1b333c66f09aefecd8d3dc280da675872647",
+          "project-map-wheel.cpuprofile": "f8ac48bc029028dcda9afb9e09529c97d5e3eb1c074fb7b7685b069182e8b051",
+          "tab-switch.cpuprofile": "3025b352e6ab944f80af3e019a8a76c78a68c7b01177fd771d91843c56c76da1"
+        },
+        "limits": "Current-user native host and inherited workers only; no kernel stacks. Thread CPU spans exclude worker CPU. File preparation reuses project/OS caches, not a cold installation. Sampling changes timing; browser profiles have their own overhead."
+      },
+      "events": {
+        "project-map-wheel": {
+          "event": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 8.047,
+            "p95_ms": 9.05,
+            "max_ms": 9.721,
+            "total_ms": 182.61800000000002
+          },
+          "proxy_event": "wheel",
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 16.700000047683716,
+            "p95_ms": 17.30000001192093,
+            "max_ms": 17.399999976158142,
+            "total_ms": 403.09999990463257
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 31,
+              "p50_ms": 0.745,
+              "p95_ms": 1.047,
+              "max_ms": 1.1,
+              "total_ms": 19.677000000000003
+            },
+            "Layout": {
+              "count": 27,
+              "p50_ms": 0.318,
+              "p95_ms": 0.505,
+              "max_ms": 3.386,
+              "total_ms": 11.593999999999998
+            },
+            "PrePaint": {
+              "count": 149,
+              "p50_ms": 0.01,
+              "p95_ms": 1.608,
+              "max_ms": 1.959,
+              "total_ms": 38.611000000000004
+            },
+            "Paint": {
+              "count": 74,
+              "p50_ms": 0.079,
+              "p95_ms": 2.808,
+              "max_ms": 2.978,
+              "total_ms": 64.99399999999999
+            },
+            "FunctionCall": {
+              "count": 497,
+              "p50_ms": 0.02,
+              "p95_ms": 6.699,
+              "max_ms": 18.098,
+              "total_ms": 264.052
+            },
+            "FireAnimationFrame": {
+              "count": 171,
+              "p50_ms": 0.02,
+              "p95_ms": 0.098,
+              "max_ms": 0.241,
+              "total_ms": 5.670000000000001
+            },
+            "TimerFire": {
+              "count": 7,
+              "p50_ms": 0.288,
+              "p95_ms": 0.514,
+              "max_ms": 0.514,
+              "total_ms": 2.104
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": null,
+            "after": null
+          }
+        },
+        "graph-wheel": {
+          "event": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 0.513,
+            "p95_ms": 1.051,
+            "max_ms": 2.249,
+            "total_ms": 14.297
+          },
+          "proxy_event": "wheel",
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 16.599999964237213,
+            "p95_ms": 17.80000001192093,
+            "max_ms": 18.19999998807907,
+            "total_ms": 375.19999969005585
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 25,
+              "p50_ms": 0.956,
+              "p95_ms": 1.472,
+              "max_ms": 1.792,
+              "total_ms": 23.450000000000003
+            },
+            "Layout": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "PrePaint": {
+              "count": 118,
+              "p50_ms": 0.012,
+              "p95_ms": 3.083,
+              "max_ms": 4.311,
+              "total_ms": 67.305
+            },
+            "Paint": {
+              "count": 48,
+              "p50_ms": 1.932,
+              "p95_ms": 7.073,
+              "max_ms": 8.349,
+              "total_ms": 126.11699999999999
+            },
+            "FunctionCall": {
+              "count": 281,
+              "p50_ms": 0.041,
+              "p95_ms": 0.49,
+              "max_ms": 18.525,
+              "total_ms": 101.96000000000001
+            },
+            "FireAnimationFrame": {
+              "count": 155,
+              "p50_ms": 0.043,
+              "p95_ms": 0.109,
+              "max_ms": 0.247,
+              "total_ms": 7.866999999999998
+            },
+            "TimerFire": {
+              "count": 7,
+              "p50_ms": 0.455,
+              "p95_ms": 1.136,
+              "max_ms": 1.136,
+              "total_ms": 3.4459999999999997
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-hover": {
+          "event": "mousemove",
+          "dispatch": {
+            "count": 40,
+            "p50_ms": 0.05,
+            "p95_ms": 0.1,
+            "max_ms": 1.761,
+            "total_ms": 3.8440000000000003
+          },
+          "proxy_event": "pointermove",
+          "input_to_two_raf": {
+            "count": 40,
+            "p50_ms": 18.69999998807907,
+            "p95_ms": 24.099999964237213,
+            "max_ms": 26.19999998807907,
+            "total_ms": 728.1000002026558
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 170,
+              "p50_ms": 0.339,
+              "p95_ms": 0.735,
+              "max_ms": 2.96,
+              "total_ms": 60.163000000000004
+            },
+            "Layout": {
+              "count": 107,
+              "p50_ms": 0.301,
+              "p95_ms": 0.55,
+              "max_ms": 4.888,
+              "total_ms": 38.31800000000001
+            },
+            "PrePaint": {
+              "count": 205,
+              "p50_ms": 0.007,
+              "p95_ms": 1.743,
+              "max_ms": 3.103,
+              "total_ms": 65.56099999999999
+            },
+            "Paint": {
+              "count": 278,
+              "p50_ms": 0.013,
+              "p95_ms": 3.339,
+              "max_ms": 5.716,
+              "total_ms": 173.511
+            },
+            "FunctionCall": {
+              "count": 1688,
+              "p50_ms": 0.007,
+              "p95_ms": 0.076,
+              "max_ms": 19.753,
+              "total_ms": 364.3519999999999
+            },
+            "FireAnimationFrame": {
+              "count": 351,
+              "p50_ms": 0.008,
+              "p95_ms": 0.092,
+              "max_ms": 0.8,
+              "total_ms": 8.228999999999996
+            },
+            "TimerFire": {
+              "count": 6,
+              "p50_ms": 0.346,
+              "p95_ms": 0.794,
+              "max_ms": 0.794,
+              "total_ms": 2.591
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+          }
+        },
+        "graph-pan": {
+          "event": "mousemove",
+          "dispatch": {
+            "count": 31,
+            "p50_ms": 0.18,
+            "p95_ms": 0.279,
+            "max_ms": 0.653,
+            "total_ms": 6.128
+          },
+          "proxy_event": "pointermove",
+          "input_to_two_raf": {
+            "count": 31,
+            "p50_ms": 20.100000023841858,
+            "p95_ms": 21.600000023841858,
+            "max_ms": 22.399999976158142,
+            "total_ms": 620.2999998927116
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 31,
+              "p50_ms": 0.648,
+              "p95_ms": 1.074,
+              "max_ms": 1.125,
+              "total_ms": 21.588
+            },
+            "Layout": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            },
+            "PrePaint": {
+              "count": 176,
+              "p50_ms": 0.009,
+              "p95_ms": 2.295,
+              "max_ms": 3.818,
+              "total_ms": 68.72
+            },
+            "Paint": {
+              "count": 60,
+              "p50_ms": 2.397,
+              "p95_ms": 4.585,
+              "max_ms": 5.849,
+              "total_ms": 120.86099999999999
+            },
+            "FunctionCall": {
+              "count": 465,
+              "p50_ms": 0.019,
+              "p95_ms": 0.177,
+              "max_ms": 15.467,
+              "total_ms": 63.57799999999999
+            },
+            "FireAnimationFrame": {
+              "count": 152,
+              "p50_ms": 0.029,
+              "p95_ms": 0.099,
+              "max_ms": 0.156,
+              "total_ms": 5.981000000000001
+            },
+            "TimerFire": {
+              "count": 6,
+              "p50_ms": 0.349,
+              "p95_ms": 0.446,
+              "max_ms": 0.446,
+              "total_ms": 1.6729999999999998
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "graph-resize": {
+          "event": "resize",
+          "dispatch": {
+            "count": 3,
+            "p50_ms": 1.335,
+            "p95_ms": 1.918,
+            "max_ms": 1.918,
+            "total_ms": 4.051
+          },
+          "proxy_event": "resize",
+          "input_to_two_raf": {
+            "count": 3,
+            "p50_ms": 19.299999952316284,
+            "p95_ms": 20.30000001192093,
+            "max_ms": 20.30000001192093,
+            "total_ms": 51.19999998807907
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 14,
+              "p50_ms": 0.771,
+              "p95_ms": 1.248,
+              "max_ms": 1.248,
+              "total_ms": 7.699999999999999
+            },
+            "Layout": {
+              "count": 14,
+              "p50_ms": 0.981,
+              "p95_ms": 1.811,
+              "max_ms": 1.811,
+              "total_ms": 12.218
+            },
+            "PrePaint": {
+              "count": 51,
+              "p50_ms": 0.011,
+              "p95_ms": 1.448,
+              "max_ms": 3.619,
+              "total_ms": 8.154
+            },
+            "Paint": {
+              "count": 6,
+              "p50_ms": 4.58,
+              "p95_ms": 6.12,
+              "max_ms": 6.12,
+              "total_ms": 27.329
+            },
+            "FunctionCall": {
+              "count": 90,
+              "p50_ms": 0.041,
+              "p95_ms": 0.752,
+              "max_ms": 18.927,
+              "total_ms": 45.363
+            },
+            "FireAnimationFrame": {
+              "count": 61,
+              "p50_ms": 0.065,
+              "p95_ms": 0.131,
+              "max_ms": 0.242,
+              "total_ms": 4.16
+            },
+            "TimerFire": {
+              "count": 2,
+              "p50_ms": 0.805,
+              "p95_ms": 0.805,
+              "max_ms": 0.805,
+              "total_ms": 1.342
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "tab-switch": {
+          "event": "click",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 18.47,
+            "p95_ms": 23.225,
+            "max_ms": 24.626,
+            "total_ms": 428.4910000000001
+          },
+          "proxy_event": "click",
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 35.09999996423721,
+            "p95_ms": 47,
+            "max_ms": 48,
+            "total_ms": 857.0000000596046
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 119,
+              "p50_ms": 0.556,
+              "p95_ms": 5,
+              "max_ms": 7.847,
+              "total_ms": 143.53799999999998
+            },
+            "Layout": {
+              "count": 24,
+              "p50_ms": 7.374,
+              "p95_ms": 8.099,
+              "max_ms": 9.709,
+              "total_ms": 100.409
+            },
+            "PrePaint": {
+              "count": 487,
+              "p50_ms": 0.006,
+              "p95_ms": 0.067,
+              "max_ms": 3.14,
+              "total_ms": 55.038999999999994
+            },
+            "Paint": {
+              "count": 48,
+              "p50_ms": 3.253,
+              "p95_ms": 3.6,
+              "max_ms": 3.819,
+              "total_ms": 131.56199999999995
+            },
+            "FunctionCall": {
+              "count": 2757,
+              "p50_ms": 0.01,
+              "p95_ms": 0.222,
+              "max_ms": 24.344,
+              "total_ms": 675.614
+            },
+            "FireAnimationFrame": {
+              "count": 506,
+              "p50_ms": 0.012,
+              "p95_ms": 0.168,
+              "max_ms": 0.548,
+              "total_ms": 20.358000000000004
+            },
+            "TimerFire": {
+              "count": 7,
+              "p50_ms": 0.454,
+              "p95_ms": 0.604,
+              "max_ms": 0.604,
+              "total_ms": 2.8120000000000003
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+          }
+        },
+        "graph-node-select": {
+          "event": "click",
+          "dispatch": {
+            "count": 9,
+            "p50_ms": 0.08,
+            "p95_ms": 29.695,
+            "max_ms": 29.695,
+            "total_ms": 31.629
+          },
+          "proxy_event": "click",
+          "input_to_two_raf": {
+            "count": 9,
+            "p50_ms": 25.099999964237213,
+            "p95_ms": 37.40000003576279,
+            "max_ms": 37.40000003576279,
+            "total_ms": 234.9999998807907
+          },
+          "rendering": {
+            "UpdateLayoutTree": {
+              "count": 58,
+              "p50_ms": 0.201,
+              "p95_ms": 0.834,
+              "max_ms": 8.466,
+              "total_ms": 22.317999999999998
+            },
+            "Layout": {
+              "count": 13,
+              "p50_ms": 0.34,
+              "p95_ms": 1.582,
+              "max_ms": 1.582,
+              "total_ms": 6.056
+            },
+            "PrePaint": {
+              "count": 134,
+              "p50_ms": 0.005,
+              "p95_ms": 0.129,
+              "max_ms": 2.545,
+              "total_ms": 8.379
+            },
+            "Paint": {
+              "count": 20,
+              "p50_ms": 0.396,
+              "p95_ms": 6.667,
+              "max_ms": 6.667,
+              "total_ms": 41.327000000000005
+            },
+            "FunctionCall": {
+              "count": 708,
+              "p50_ms": 0.007,
+              "p95_ms": 0.065,
+              "max_ms": 27.567,
+              "total_ms": 92.84599999999998
+            },
+            "FireAnimationFrame": {
+              "count": 144,
+              "p50_ms": 0.014,
+              "p95_ms": 0.108,
+              "max_ms": 2.444,
+              "total_ms": 7.575000000000002
+            },
+            "TimerFire": {
+              "count": 4,
+              "p50_ms": 0.546,
+              "p95_ms": 0.662,
+              "max_ms": 0.662,
+              "total_ms": 1.4540000000000002
+            }
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "non_state_requests": [],
+          "graph_camera": {
+            "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+            "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+          }
+        }
+      },
+      "idle": {
+        "graph-idle-poll": {
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "requests": 11,
+          "state_response_bytes": [89420]
+        },
+        "graph-idle-settled": {
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "requests": 11,
+          "state_response_bytes": [89420]
+        },
+        "project-map-idle": {
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "requests": 11,
+          "state_response_bytes": [89420]
+        }
+      },
+      "native_stages": {
+        "available": true,
+        "evicted_during_capture": 0,
+        "stages": {
+          "gui.serialize_respond": {
+            "wall": {
+              "count": 187,
+              "p50_ms": 2.962,
+              "p95_ms": 7.063,
+              "max_ms": 1106.88,
+              "total_ms": 1781.9400000000005
+            },
+            "host_thread_cpu": {
+              "count": 187,
+              "p50_ms": 2.875,
+              "p95_ms": 6.881,
+              "max_ms": 1053.02,
+              "total_ms": 1708.8870000000002
+            }
+          },
+          "gui.state": {
+            "wall": {
+              "count": 179,
+              "p50_ms": 3.796,
+              "p95_ms": 8.42,
+              "max_ms": 10.086,
+              "total_ms": 817.7949999999997
+            },
+            "host_thread_cpu": {
+              "count": 179,
+              "p50_ms": 3.71,
+              "p95_ms": 8.188,
+              "max_ms": 9.731,
+              "total_ms": 795.3999999999999
+            }
+          },
+          "process.run": {
+            "wall": {
+              "count": 84,
+              "p50_ms": 50.874,
+              "p95_ms": 61.6,
+              "max_ms": 19466.527,
+              "total_ms": 23544.606999999996
+            },
+            "host_thread_cpu": {
+              "count": 84,
+              "p50_ms": 0.413,
+              "p95_ms": 0.682,
+              "max_ms": 100.636,
+              "total_ms": 136.265
+            }
+          },
+          "gui.job": {
+            "wall": {
+              "count": 7,
+              "p50_ms": 41.609,
+              "p95_ms": 24450.746,
+              "max_ms": 24450.746,
+              "total_ms": 24721.927
+            },
+            "host_thread_cpu": {
+              "count": 7,
+              "p50_ms": 1.162,
+              "p95_ms": 1083.104,
+              "max_ms": 1083.104,
+              "total_ms": 1091.143
+            }
+          },
+          "gui.enqueue": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.001,
+              "p95_ms": 0.002,
+              "max_ms": 0.002,
+              "total_ms": 0.005
+            },
+            "host_thread_cpu": {
+              "count": 6,
+              "p50_ms": 0.001,
+              "p95_ms": 0.001,
+              "max_ms": 0.001,
+              "total_ms": 0.004
+            }
+          },
+          "job.queue": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.049,
+              "p95_ms": 0.15,
+              "max_ms": 0.15,
+              "total_ms": 0.346
+            },
+            "host_thread_cpu": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            }
+          },
+          "gui.command": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.288,
+              "p95_ms": 0.306,
+              "max_ms": 0.306,
+              "total_ms": 1.5
+            },
+            "host_thread_cpu": {
+              "count": 6,
+              "p50_ms": 0.243,
+              "p95_ms": 0.272,
+              "max_ms": 0.272,
+              "total_ms": 1.297
+            }
+          },
+          "atlas.resources.select": {
+            "wall": {
+              "count": 15,
+              "p50_ms": 13.526,
+              "p95_ms": 17.142,
+              "max_ms": 17.142,
+              "total_ms": 199.24199999999996
+            },
+            "host_thread_cpu": {
+              "count": 15,
+              "p50_ms": 13.447,
+              "p95_ms": 17.005,
+              "max_ms": 17.005,
+              "total_ms": 197.57200000000003
+            }
+          },
+          "atlas.resources.validate": {
+            "wall": {
+              "count": 28,
+              "p50_ms": 20.208,
+              "p95_ms": 27.293,
+              "max_ms": 29.756,
+              "total_ms": 587.371
+            },
+            "host_thread_cpu": {
+              "count": 28,
+              "p50_ms": 20.083,
+              "p95_ms": 27.086,
+              "max_ms": 29.474,
+              "total_ms": 584.113
+            }
+          },
+          "analysis.capture_sources": {
+            "wall": {
+              "count": 3,
+              "p50_ms": 41.904,
+              "p95_ms": 51.74,
+              "max_ms": 51.74,
+              "total_ms": 135.184
+            },
+            "host_thread_cpu": {
+              "count": 3,
+              "p50_ms": 1.18,
+              "p95_ms": 1.224,
+              "max_ms": 1.224,
+              "total_ms": 3.5060000000000002
+            }
+          },
+          "atlas.lake_configuration.reuse": {
+            "wall": {
+              "count": 12,
+              "p50_ms": 19.845,
+              "p95_ms": 30.177,
+              "max_ms": 30.177,
+              "total_ms": 248.99199999999996
+            },
+            "host_thread_cpu": {
+              "count": 12,
+              "p50_ms": 19.766,
+              "p95_ms": 29.894,
+              "max_ms": 29.894,
+              "total_ms": 247.634
+            }
+          },
+          "atlas.lake_configuration.resolve": {
+            "wall": {
+              "count": 12,
+              "p50_ms": 57.177,
+              "p95_ms": 65.242,
+              "max_ms": 65.242,
+              "total_ms": 690.762
+            },
+            "host_thread_cpu": {
+              "count": 12,
+              "p50_ms": 55.737,
+              "p95_ms": 63.838,
+              "max_ms": 63.838,
+              "total_ms": 677.668
+            }
+          },
+          "analysis.discover_layout": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1806.808,
+              "p95_ms": 1806.808,
+              "max_ms": 1806.808,
+              "total_ms": 1806.808
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 698.877,
+              "p95_ms": 698.877,
+              "max_ms": 698.877,
+              "total_ms": 698.877
+            }
+          },
+          "analysis.select_roots": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1890.421,
+              "p95_ms": 1890.421,
+              "max_ms": 1890.421,
+              "total_ms": 1890.421
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 701.373,
+              "p95_ms": 701.373,
+              "max_ms": 701.373,
+              "total_ms": 701.373
+            }
+          },
+          "sandbox.public_tools": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 108.311,
+              "p95_ms": 108.311,
+              "max_ms": 108.311,
+              "total_ms": 108.311
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 4.147,
+              "p95_ms": 4.147,
+              "max_ms": 4.147,
+              "total_ms": 4.147
+            }
+          },
+          "sandbox.libraries": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 61.082,
+              "p95_ms": 61.082,
+              "max_ms": 61.082,
+              "total_ms": 61.082
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 4.652,
+              "p95_ms": 4.652,
+              "max_ms": 4.652,
+              "total_ms": 4.652
+            }
+          },
+          "sandbox.nix_closure": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 46.287,
+              "p95_ms": 46.287,
+              "max_ms": 46.287,
+              "total_ms": 46.287
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 0.935,
+              "p95_ms": 0.935,
+              "max_ms": 0.935,
+              "total_ms": 0.935
+            }
+          },
+          "sandbox.prepare": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 512.337,
+              "p95_ms": 512.337,
+              "max_ms": 512.337,
+              "total_ms": 512.337
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 33.343,
+              "p95_ms": 33.343,
+              "max_ms": 33.343,
+              "total_ms": 33.343
+            }
+          },
+          "atlas.project.prepare": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 19979.163,
+              "p95_ms": 19979.163,
+              "max_ms": 19979.163,
+              "total_ms": 19979.163
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 134.277,
+              "p95_ms": 134.277,
+              "max_ms": 134.277,
+              "total_ms": 134.277
+            }
+          },
+          "analysis.cache.validate": {
+            "wall": {
+              "count": 2,
+              "p50_ms": 1160.445,
+              "p95_ms": 1160.445,
+              "max_ms": 1160.445,
+              "total_ms": 1160.5149999999999
+            },
+            "host_thread_cpu": {
+              "count": 2,
+              "p50_ms": 55.895,
+              "p95_ms": 55.895,
+              "max_ms": 55.895,
+              "total_ms": 55.963
+            }
+          },
+          "analysis.cache.retain_observation": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 14.568,
+              "p95_ms": 14.568,
+              "max_ms": 14.568,
+              "total_ms": 14.568
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 14.468,
+              "p95_ms": 14.468,
+              "max_ms": 14.468,
+              "total_ms": 14.468
+            }
+          },
+          "analysis.cache.load_rendering": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 0.917,
+              "p95_ms": 0.917,
+              "max_ms": 0.917,
+              "total_ms": 0.917
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 0.914,
+              "p95_ms": 0.914,
+              "max_ms": 0.914,
+              "total_ms": 0.914
+            }
+          },
+          "analysis.extract": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 24290.74,
+              "p95_ms": 24290.74,
+              "max_ms": 24290.74,
+              "total_ms": 24290.74
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 1026.274,
+              "p95_ms": 1026.274,
+              "max_ms": 1026.274,
+              "total_ms": 1026.274
+            }
+          },
+          "analysis.materialize_view": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 0.409,
+              "p95_ms": 0.409,
+              "max_ms": 0.409,
+              "total_ms": 0.409
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 0.405,
+              "p95_ms": 0.405,
+              "max_ms": 0.405,
+              "total_ms": 0.405
+            }
+          }
+        }
+      },
+      "cpu_hotspots": {
+        "project-map-wheel": [
+          {
+            "self_ms": 141.88699999999992,
+            "location": "../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:255 · WorkspaceMap"
+          },
+          {
+            "self_ms": 23.575999999999997,
+            "location": "../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:255 · WorkspaceMap"
+          },
+          {
+            "self_ms": 3.263,
+            "location": "../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 · (anonymous)"
+          },
+          {
+            "self_ms": 2.7110000000000003,
+            "location": "../../../node_modules/zustand/esm/vanilla.mjs:4 · r"
+          },
+          {
+            "self_ms": 2.1790000000000003,
+            "location": "../../../node_modules/@xyflow/react/dist/index.js:2 · t"
+          },
+          {
+            "self_ms": 2.1719999999999997,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 · workLoopSync"
+          },
+          {
+            "self_ms": 2.1630000000000003,
+            "location": "../../../node_modules/@mui/material/Tooltip/Tooltip.mjs:220 · (anonymous)"
+          },
+          {
+            "self_ms": 2.162,
+            "location": "fetch"
+          },
+          {
+            "self_ms": 2.161,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 · propagateParentContextChanges"
+          },
+          {
+            "self_ms": 2.12,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:6425 · updateForwardRef"
+          }
+        ],
+        "tab-switch": [
+          {
+            "self_ms": 42.931000000000004,
+            "location": "../../../apps/web/src/features/native/project-map-model.ts:252 · Y2"
+          },
+          {
+            "self_ms": 42.025,
+            "location": "query"
+          },
+          {
+            "self_ms": 36.418000000000006,
+            "location": "../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:468 · a"
+          },
+          {
+            "self_ms": 26.752000000000002,
+            "location": "../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:255 · WorkspaceMap"
+          },
+          {
+            "self_ms": 23.393,
+            "location": "(anonymous)"
+          },
+          {
+            "self_ms": 20.416,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 · workLoopSync"
+          },
+          {
+            "self_ms": 19.405,
+            "location": "../../../apps/web/src/features/native/project-map-model.ts:256 · declarationDetail"
+          },
+          {
+            "self_ms": 16.227,
+            "location": "../../../apps/web/src/features/native/project-map-model.ts:252 · Y2"
+          },
+          {
+            "self_ms": 14.774,
+            "location": "getImplicitAriaRole"
+          },
+          {
+            "self_ms": 14.625999999999998,
+            "location": "../../../node_modules/@xyflow/system/dist/index.js:1847 · updateNodeInternals"
+          }
+        ],
+        "graph-node-select": [
+          {
+            "self_ms": 8.555,
+            "location": "query"
+          },
+          {
+            "self_ms": 8.02,
+            "location": "../../../node_modules/@popperjs/core/lib/dom-utils/isScrollParent.js:2 · isScrollParent"
+          },
+          {
+            "self_ms": 3.2360000000000007,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:8335 · bubbleProperties"
+          },
+          {
+            "self_ms": 3.2169999999999996,
+            "location": "../../../node_modules/@mui/material/TextareaAutosize/TextareaAutosize.mjs:66 · (anonymous)"
+          },
+          {
+            "self_ms": 2.1870000000000003,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+          },
+          {
+            "self_ms": 2.184,
+            "location": "get scrollTop"
+          },
+          {
+            "self_ms": 2.182,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 · reconcileChildrenArray"
+          },
+          {
+            "self_ms": 2.167,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:6414 · reconcileChildren"
+          },
+          {
+            "self_ms": 2.152,
+            "location": "../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 · (anonymous)"
+          },
+          {
+            "self_ms": 2.122,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 · workLoopSync"
+          }
+        ]
+      }
+    }
+  ],
+  "findings": [
+    {
+      "operation": "Prepared file open",
+      "observation": "Both complete-observation cache hits still run the actual Lake build/input resolution and fingerprint 43477 compiled inputs before displaying the cached result. This nested stage takes 19.979–23.847 seconds of the 24.897–29.040 second opens. Layout discovery takes 1.807–1.846 seconds; twelve configuration results are reused with zero new Lake configuration evaluations. Source-view materialization takes 0.409–0.412 milliseconds.",
+      "priority": 1
+    },
+    {
+      "operation": "Project-map zoom and retained-tab reactivation",
+      "observation": "Sampled source positions include NativeWorkspaceGraph.tsx:468, project-map-model.ts:252/256 and WorkspaceMap. The legend predicate scans scene.areas on camera renders; the breadcrumb onMoveEnd also scans all areas. These paths bypass the existing branch-pruned visible-area query.",
+      "priority": 2
+    },
+    {
+      "operation": "Node selection and tooltips",
+      "observation": "The sequence including explicit Fit View has a click p95 of 29.695–34.064 ms and a click/two-rAF p95 of 37.4–74.2 ms. One run records a 52 ms long task. Sampled DOM queries, Popper scroll-parent traversal and React work warrant a narrower selection/tooltip follow-up; these phase samples do not assign the entire delay to any one function.",
+      "priority": 3
+    },
+    {
+      "operation": "Pointer movement, resize and retained tabs",
+      "observation": "No non-state API requests occurred in any measured interaction phase. Hover, resize and retained-tab round trips preserve the graph transform in both captures. Neither idle capture records a long task. The earlier camera-reset report is not reproduced in this sequence; this does not rule out other gestures or layouts.",
+      "priority": 4
+    }
+  ],
+  "validation": {
+    "status": "passed",
+    "required_ux_directory": "/tmp/meden-ux-events-measured-20261123",
+    "required_ux_binary": {
+      "path": "/home/gohan/workspace/meden/target/gui-runtime/00c06f0989b556a9121ede3d38f996463db5c9403f9c45421d895e4112e06df4-914feb57b4c63a0a/meden",
+      "sha256": "00c06f0989b556a9121ede3d38f996463db5c9403f9c45421d895e4112e06df4"
+    },
+    "required_ux_selected": 34,
+    "required_ux_summary_sha256": "4b46aac4034834e0ea637e6a7bc8a4bb6067805ba91044206d47e1a8b8a17a9a",
+    "decoded_screens_reviewed": [
+      "Lake source-inventory refusal and historical restart",
+      "GUI/TUI conversation continuation and fresh processor review",
+      "HTTP 429 stop, retained edits and public /retry after restart"
+    ],
+    "gui_review": "Both actual production captures completed; project-map screenshot inspected. Hover/resize/tab graph transforms match before/after in both captures. No non-state interaction requests.",
+    "typescript_tests": 30,
+    "architecture": "passed",
+    "script_syntax": "passed",
+    "format": "passed",
+    "scope": "Diagnostic tooling and measurements only. Scripted TUI fixtures and installed Lean/Lake prerequisites do not establish live-model or cold-install performance."
+  }
+}

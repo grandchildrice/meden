@@ -1,5 +1,77 @@
 # Graph interaction measurements
 
+## Per-event and native-stage audit (November 23, evening)
+
+Two sequential captures of the pinned Riemann GUI cover 175,187 indexed files
+and the same prepared 15-declaration graph. Both opens hit the complete analysis
+cache. The [measurement record](../results/event-stage-audit-20261123.json)
+retains distributions, verified raw-artifact digests, native stages and sampled
+source attribution. Chrome 149 used normal motion at 1440 × 960 without
+throttling. No application runtime or deployment changed for this audit.
+
+| Operation                                  | Dispatch p95, run 1 / 2 | Input/two-rAF p95, run 1 / 2 |
+| ------------------------------------------ | ----------------------: | ---------------------------: |
+| Project-map wheel, 24 events               |       10.900 / 9.050 ms |               20.3 / 17.3 ms |
+| Dependency-graph wheel, 24 events          |        0.904 / 1.051 ms |               25.8 / 17.8 ms |
+| Hover mouse movement, 40 events            |        0.080 / 0.100 ms |               25.9 / 24.1 ms |
+| Drag mouse movement, 31 events             |        0.312 / 0.279 ms |               21.2 / 21.6 ms |
+| Resize, 5 / 3 delivered events             |        1.867 / 1.918 ms |               23.1 / 20.3 ms |
+| File/map tab click, 24 events              |      16.800 / 23.225 ms |               37.7 / 47.0 ms |
+| Node sequence including Fit View, 9 clicks |      34.064 / 29.695 ms |               74.2 / 37.4 ms |
+
+The proxy now separates event types: hover/drag use pointermove observations
+for the corresponding mouse movements, and resize uses window resize. It is
+not physical presentation or field INP. Node selection includes one explicit
+Fit View and eight selections of a reachable node; it is not a distribution
+over arbitrary declarations. Its first run contained one 52 ms long task.
+Neither initial/settled graph idle nor map idle contained a long task. The
+hover, resize and tab-return phases preserve the retained graph transform in
+both runs. These checks do not rule out a reset during other gestures or layouts.
+Every interaction phase issued only state polls, with no new inspection,
+preparation or inference request. Settled state responses contained 89,419 bytes.
+
+The profiler now selects source maps explicitly with `MEDEN_GUI_ASSETS`.
+All seven generated JavaScript bundles were compared byte-for-byte with the
+immutable deployment before using a separate hidden-source-map build. This
+avoids attributing a running bundle through a newer mutable build. Map digests
+are retained; the deployed assets were not replaced.
+
+The main remaining costs are distinct:
+
+1. **Opening a prepared file still validates its compiled inputs.** The two
+   opens took 29.040 / 24.897 seconds. The nested actual build/input-resolution
+   and fingerprint stage took 23.847 / 19.979 seconds, including validation of
+   43,477 compiled inputs. Layout discovery took 1.846 / 1.807 seconds; twelve
+   Lake configuration observations were reused with zero evaluator executions.
+   Exact cache-validation spans totaled 1.211 / 1.161 seconds. Source-view
+   materialization took 0.412 / 0.409 milliseconds. These overlapping stages
+   cannot be added as exclusive costs. Reusing precisely bound preparation
+   observations with explicit invalidation is the first optimization target.
+2. **Map legend and breadcrumb decisions bypass visibility pruning.** Wheel
+   CPU samples resolve to `NativeWorkspaceGraph.tsx:468`,
+   `project-map-model.ts:252/256` and `WorkspaceMap`. The legend's
+   `scene.areas.some` runs on camera updates, and `onMoveEnd` separately walks
+   all areas for the breadcrumb. Tab reactivation also samples this work.
+   Both decisions should use the existing indexed visible-area query.
+3. **Selection and tab activation have a rendering tail.** DOM queries,
+   Popper scroll-parent traversal and React work appear in the selection
+   samples. This identifies a narrower follow-up around selection/tooltips;
+   it does not assign all click latency to one function. Measure that path
+   independently after removing map-wide scans.
+
+Native stage summaries exclude span IDs present before the capture. There was
+no eviction in either run. Host-thread CPU excludes workers, and nested spans
+overlap. Raw captures remain local under
+`target/native-profile/event-audit-riemann-{2,3}`. These are controlled desktop
+observations using warm project/OS caches, not cold-install measurements or
+confidence intervals.
+
+The same measured native executable passed all 34 required public TUI journeys.
+Decoded Lake inventory-refusal/history, provider-limit/retry and GUI/TUI
+continuation/fresh-review screens were inspected, along with the actual map
+screenshot. All 30 TypeScript tests, architecture boundaries, script syntax and
+format checks passed. This audit adds no live-model or cold-install claim.
+
 ## Frozen Lake configuration reuse (November 23)
 
 The host now retains deterministic configuration evaluation separately from
@@ -15,13 +87,13 @@ inventory and 15-declaration file. All three hit the existing complete analysis
 cache. The [measurement record](../results/lake-configuration-cache-20261123.json)
 retains native/browser artifacts, checked digests and validation evidence.
 
-| Stage | Initial configuration cache fill | Repeated open 1 | Repeated open 2 |
-| --- | ---: | ---: | ---: |
-| File request to prepared view | 59.748 s | 35.658 s | 24.817 s |
-| Actual configuration evaluations | 12 | 0 | 0 |
-| Reused configuration observations | 0 | 12 | 12 |
-| Layout discovery | 20.783 s | 2.042 s | 1.933 s |
-| Build/input resolution and fingerprinting | 35.046 s | 29.896 s | 19.277 s |
+| Stage                                     | Initial configuration cache fill | Repeated open 1 | Repeated open 2 |
+| ----------------------------------------- | -------------------------------: | --------------: | --------------: |
+| File request to prepared view             |                         59.748 s |        35.658 s |        24.817 s |
+| Actual configuration evaluations          |                               12 |               0 |               0 |
+| Reused configuration observations         |                                0 |              12 |              12 |
+| Layout discovery                          |                         20.783 s |         2.042 s |         1.933 s |
+| Build/input resolution and fingerprinting |                         35.046 s |        29.896 s |        19.277 s |
 
 These are nested diagnostic spans, not additive exclusive costs. Project/OS
 caches also warm, so the entire elapsed-time change cannot be attributed to
@@ -51,15 +123,15 @@ the distributions, latest native trace, environment and verified artifact
 digests. Application code, project sources and the running services were not
 changed for this measurement.
 
-| Operation | Events | Handler p95 | Phase input/two-rAF p95 |
-| --- | ---: | ---: | ---: |
-| Project-map wheel | 24 | 10.721 ms | 26.7 ms |
-| Dependency-graph wheel | 24 | 0.962 ms | 17.1 ms |
-| Hover mouse movement | 40 | 0.116 ms | 29.4 ms |
-| Drag mouse movement | 31 | 0.400 ms | 37.1 ms |
-| Resize | 6 | 1.894 ms | Not instrumented |
-| File/map tab click | 24 | 24.676 ms | 55.5 ms |
-| Node sequence, including Fit View | 9 | 29.863 ms | 76.6 ms |
+| Operation                         | Events | Handler p95 | Phase input/two-rAF p95 |
+| --------------------------------- | -----: | ----------: | ----------------------: |
+| Project-map wheel                 |     24 |   10.721 ms |                 26.7 ms |
+| Dependency-graph wheel            |     24 |    0.962 ms |                 17.1 ms |
+| Hover mouse movement              |     40 |    0.116 ms |                 29.4 ms |
+| Drag mouse movement               |     31 |    0.400 ms |                 37.1 ms |
+| Resize                            |      6 |    1.894 ms |        Not instrumented |
+| File/map tab click                |     24 |   24.676 ms |                 55.5 ms |
+| Node sequence, including Fit View |      9 |   29.863 ms |                 76.6 ms |
 
 The phase proxy combines instrumented input types, so it is not the latency
 of each handler or a physical paint measurement. The drag proxy contains only

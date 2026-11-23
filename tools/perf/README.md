@@ -75,6 +75,22 @@ Repeat captures per motion mode and cache condition before comparing browser
 latency; do not treat a single diagnostic percentile as a continuous browser
 performance budget. See `docs/gui-performance.md` for the current measurements.
 
+The browser report separates dispatch durations from the input/two-rAF proxy
+for each event type, including pointer movement and window resize. It records
+the retained graph transform before/after each phase. A hidden file has no
+active graph transform; a deliberate pan or Fit View changes it normally.
+Native stage distributions include only newly completed span IDs since the
+initial snapshot and report eviction during the capture. Stages overlap, and
+zero CPU samples means unavailable measurement rather than zero CPU work.
+
+Set `MEDEN_GUI_ASSETS` to the asset root containing the source maps for the
+served bundles (default `apps/web/dist`). The report retains the map digests.
+For a pinned deployment without maps, build separately with `--sourcemap hidden`
+and compare every generated JavaScript bundle byte-for-byte with its served
+counterpart before using those maps. Do not attribute a running bundle through
+maps from a different build. The November 23 event audit checks all seven
+JavaScript bundles this way without replacing the deployed assets.
+
 Complete Cargo builds/tests before starting a GUI/TUI validation run, or copy
 the built executable to an immutable digest-named validation path. `cargo test`
 may rebuild the ordinary CLI binary for integration tests. Replacing a running
