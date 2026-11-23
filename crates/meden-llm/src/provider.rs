@@ -14,25 +14,27 @@ pub enum Protocol {
     },
     /// Anthropic Messages with a host-owned subscription OAuth token.
     Claude,
+    /// Additional host-registered wire format, decoded by its own factory.
+    Registered {
+        /// Known host registration; never an executable or network address.
+        id: String,
+        /// Backend-owned configuration, validated before processor preparation.
+        configuration: serde_json::Value,
+    },
 }
 
 impl Protocol {
-    pub(crate) fn path(&self) -> &'static str {
+    pub(crate) fn registration(&self) -> (&str, serde_json::Value) {
         match self {
-            Self::ChatCompletions => "/chat/completions",
-            Self::Responses { .. } => "/responses",
-            Self::Claude => "/messages",
+            Self::ChatCompletions => ("openai.chat", serde_json::json!({})),
+            Self::Responses { account_id } => (
+                "openai.responses",
+                serde_json::json!({"account_id":account_id}),
+            ),
+            Self::Claude => ("anthropic.messages", serde_json::json!({})),
+            Self::Registered { id, configuration } => (id, configuration.clone()),
         }
     }
-}
-
-/// Encoded into the core's opaque provider bytes so transport interpretation
-/// cannot use a later presentation copy to replace the protocol or account.
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct Identity {
-    pub id: String,
-    pub protocol: Protocol,
 }
 
 /// A discovered HTTP model connection. Discovery does not authorize inference.
@@ -235,7 +237,7 @@ fn list_models(base_url: &str, api_key: Option<&str>) -> Option<Vec<String>> {
 pub fn models(provider: &Provider) -> Option<Vec<String>> {
     let prepared = crate::Gateway::prepare(b"model-discovery", provider.clone()).ok()?;
     let provider = prepared.provider();
-    if provider.protocol != Protocol::ChatCompletions {
+    if !prepared.supports_model_listing() {
         return Some(vec![provider.model.clone()]);
     }
     list_models(&provider.base_url, provider.api_key.as_deref()).map(|mut models| {

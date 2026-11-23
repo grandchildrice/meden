@@ -111,11 +111,10 @@ fn finding_id(record: &Record) -> Option<String> {
 }
 pub(super) fn begin(
     root: &Path,
-    processor: &str,
-    model: &str,
+    model: &crate::model::Bound,
     input: Input,
     source_artifact: String,
-    judge: Option<crate::model::Binding>,
+    judge: Option<&crate::model::Bound>,
 ) -> Result<Record> {
     let store = Store::open(root)?;
     let mut journal = if let Ok(journal) = store.read() {
@@ -149,9 +148,13 @@ pub(super) fn begin(
         finding_id: None,
         source_artifact: Some(source_artifact),
         engine: semantic::ENGINE.into(),
-        model: model.into(),
-        processor: processor.into(),
-        judge,
+        model: model.view().model.clone(),
+        processor: model.view().endpoint.clone(),
+        model_definition: Some(serde_json::to_value(model.definition())?),
+        judge_definition: judge
+            .map(|j| serde_json::to_value(j.definition()))
+            .transpose()?,
+        judge: judge.map(|j| j.view().clone()),
         input,
         state: State::Observing,
         assessment: None,
@@ -176,6 +179,8 @@ pub(super) fn save(root: &Path, record: &Record) -> Result<()> {
             && saved.model == record.model
             && saved.processor == record.processor
             && saved.judge == record.judge
+            && saved.model_definition == record.model_definition
+            && saved.judge_definition == record.judge_definition
             && saved.source_artifact == record.source_artifact
             && saved.requirement_id == record.requirement_id
             && saved.sequence == record.sequence,

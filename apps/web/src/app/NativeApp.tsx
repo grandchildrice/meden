@@ -135,6 +135,7 @@ export function NativeApp({ token }: { token: string }) {
   });
   const busy = commandActivity.pending > 0;
   const [chatPending, setChatPending] = useState(false);
+  const pendingCancellations = useRef(0);
   const [queue, setQueue] = useState<
     Array<{
       input: NativeCommand;
@@ -148,12 +149,12 @@ export function NativeApp({ token }: { token: string }) {
     const poll = async () => {
       try {
         const generation = stateGeneration.current;
-        const idle = inFlight.current === 0;
+        const readable = inFlight.current === pendingCancellations.current;
         const next = await client.state(abort.signal);
         if (
           !abort.signal.aborted &&
-          idle &&
-          inFlight.current === 0 &&
+          readable &&
+          inFlight.current === pendingCancellations.current &&
           generation === stateGeneration.current
         ) {
           if (initialMessageCount.current === null) {
@@ -288,6 +289,7 @@ export function NativeApp({ token }: { token: string }) {
       if (command.type === "refresh_workspace") refreshEpoch.current++;
       const generation = ++stateGeneration.current;
       inFlight.current++;
+      if (command.type === "cancel") pendingCancellations.current++;
       setCommandActivity({ generation, pending: inFlight.current });
       try {
         await client.command(command);
@@ -325,6 +327,12 @@ export function NativeApp({ token }: { token: string }) {
         else setWorkspaceError(String(error));
         return false;
       } finally {
+        if (command.type === "cancel") {
+          pendingCancellations.current--;
+          // Polls may observe a completed stop before its command response.
+          // Fence those reads once the final command snapshot is published.
+          if (generation === stateGeneration.current) stateGeneration.current++;
+        }
         inFlight.current--;
         setCommandActivity({
           generation: stateGeneration.current,

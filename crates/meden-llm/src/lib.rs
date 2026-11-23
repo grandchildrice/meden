@@ -9,6 +9,7 @@ pub mod provider;
 mod responses;
 mod stream;
 mod subscription;
+pub mod transport;
 #[cfg(target_os = "linux")]
 mod unix;
 pub use gateway::{Gateway, APPROVAL_LIFETIME};

@@ -16,7 +16,7 @@ use crate::{tool::Args, Registry};
 
 /// An API function call. Arguments remain text until execution, so malformed
 /// JSON can be returned to the model as an error with its original call id.
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 pub struct ToolCall {
     /// Correlates a call with its result.
     pub id: String,
@@ -25,7 +25,7 @@ pub struct ToolCall {
 }
 
 /// The function name and its JSON-encoded arguments.
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 pub struct FunctionCall {
     /// Registered tool name.
     pub name: String,
@@ -34,7 +34,7 @@ pub struct FunctionCall {
 }
 
 /// One assistant reply, including every call in a parallel-call group.
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct Reply {
     /// Optional accompanying text.
     pub content: Option<String>,

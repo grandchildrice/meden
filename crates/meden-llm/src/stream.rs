@@ -7,29 +7,51 @@ use meden_agent::conversation::{Delta, ModelError, Reply};
 use serde_json::{json, Value};
 
 use crate::openai::invalid;
-use crate::provider::Protocol;
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Format {
+    Chat,
+    Responses,
+    Claude,
+}
 use crate::responses::string;
 
 pub(crate) fn read_response(
     response: &mut ureq::http::Response<ureq::Body>,
-    protocol: &Protocol,
+    protocol: Format,
     notify: &dyn Fn(Delta<'_>),
     limit: u64,
 ) -> Result<Reply, ModelError> {
-    let sse = response
+    let content_type = response
         .headers()
         .get("content-type")
         .and_then(|v| v.to_str().ok())
-        .is_some_and(|v| {
-            v.split(';')
-                .next()
-                .is_some_and(|v| v.trim() == "text/event-stream")
-        });
+        .map(str::to_owned);
     let mut reader = response
         .body_mut()
         .as_reader()
         .take(limit.saturating_add(1));
-    if sse || matches!(protocol, Protocol::Responses { .. }) {
+    read_body(
+        &mut reader,
+        content_type.as_deref(),
+        protocol,
+        notify,
+        limit,
+    )
+}
+
+pub(crate) fn read_body(
+    mut reader: &mut dyn Read,
+    content_type: Option<&str>,
+    protocol: Format,
+    notify: &dyn Fn(Delta<'_>),
+    limit: u64,
+) -> Result<Reply, ModelError> {
+    let sse = content_type.is_some_and(|v| {
+        v.split(';')
+            .next()
+            .is_some_and(|v| v.trim() == "text/event-stream")
+    });
+    if sse || matches!(protocol, Format::Responses) {
         return read_sse(&mut reader, protocol, notify, limit);
     }
     // Some compatible/local servers return ordinary JSON even when asked to
@@ -44,8 +66,8 @@ pub(crate) fn read_response(
     let value: Value =
         serde_json::from_slice(&bytes).map_err(|_| invalid("unreadable API reply"))?;
     match protocol {
-        Protocol::Claude => crate::claude::decode_response(&value),
-        Protocol::ChatCompletions => {
+        Format::Claude => crate::claude::decode_response(&value),
+        Format::Chat => {
             if let Some(reasoning) = value
                 .pointer("/choices/0/message/reasoning_content")
                 .and_then(Value::as_str)
@@ -54,13 +76,13 @@ pub(crate) fn read_response(
             }
             crate::openai::decode_response(&value)
         }
-        Protocol::Responses { .. } => Err(invalid("expected response stream")),
+        Format::Responses => Err(invalid("expected response stream")),
     }
 }
 
 fn read_sse(
     reader: impl Read,
-    protocol: &Protocol,
+    protocol: Format,
     notify: &dyn Fn(Delta<'_>),
     limit: u64,
 ) -> Result<Reply, ModelError> {
@@ -93,7 +115,7 @@ fn read_sse(
             data.push_str(value.strip_prefix(' ').unwrap_or(value));
         } else if line.is_empty() && !data.is_empty() {
             if data == "[DONE]" {
-                if matches!(protocol, Protocol::ChatCompletions) {
+                if matches!(protocol, Format::Chat) {
                     chat.done = true;
                 }
             } else {
@@ -107,7 +129,7 @@ fn read_sse(
                     ));
                 }
                 match protocol {
-                    Protocol::Responses { .. } => match event.get("type").and_then(Value::as_str) {
+                    Format::Responses => match event.get("type").and_then(Value::as_str) {
                         Some("response.output_text.delta") => {
                             notify(Delta::Text(string(&event, "delta")?));
                         }
@@ -116,8 +138,8 @@ fn read_sse(
                         }
                         _ => {}
                     },
-                    Protocol::ChatCompletions => chat.event(&event, notify)?,
-                    Protocol::Claude => claude.event(&event, notify)?,
+                    Format::Chat => chat.event(&event, notify)?,
+                    Format::Claude => claude.event(&event, notify)?,
                 }
             }
             data.clear();
@@ -127,9 +149,9 @@ fn read_sse(
         return Err(invalid("stream ended inside an event frame"));
     }
     match protocol {
-        Protocol::Responses { .. } => crate::responses::decode_stream(&bytes),
-        Protocol::ChatCompletions => chat.finish(),
-        Protocol::Claude => claude.finish(),
+        Format::Responses => crate::responses::decode_stream(&bytes),
+        Format::Chat => chat.finish(),
+        Format::Claude => claude.finish(),
     }
 }
 
@@ -409,19 +431,13 @@ mod tests {
             Delta::Text(t) | Delta::Reasoning(t) => seen.borrow_mut().push(t.to_owned()),
         };
         assert!(
-            read_sse(
-                stream.as_bytes(),
-                &Protocol::ChatCompletions,
-                &observe,
-                4096
-            )
-            .is_err(),
+            read_sse(stream.as_bytes(), Format::Chat, &observe, 4096).is_err(),
             "partial calls cannot be admitted"
         );
         assert_eq!(*seen.borrow(), ["Plan.", "Checking."]);
         stream.push_str("data: [DONE]\n\n");
-        let reply = read_sse(stream.as_bytes(), &Protocol::ChatCompletions, &|_| {}, 4096)
-            .expect("complete stream");
+        let reply =
+            read_sse(stream.as_bytes(), Format::Chat, &|_| {}, 4096).expect("complete stream");
         assert_eq!(reply.content.as_deref(), Some("Checking."));
         assert_eq!(reply.tool_calls[0].id, "call-1");
         assert_eq!(
@@ -440,12 +456,10 @@ mod tests {
             "data: {\"error\":{}}\n\n",
         ] {
             let stream = format!("{}{tail}", frames(std::slice::from_ref(&choice)));
-            assert!(
-                read_sse(stream.as_bytes(), &Protocol::ChatCompletions, &|_| {}, 4096).is_err()
-            );
+            assert!(read_sse(stream.as_bytes(), Format::Chat, &|_| {}, 4096).is_err());
         }
         let stream = frames(&[choice]);
-        assert!(read_sse(stream.as_bytes(), &Protocol::ChatCompletions, &|_| {}, 12).is_err());
+        assert!(read_sse(stream.as_bytes(), Format::Chat, &|_| {}, 12).is_err());
     }
 
     #[test]
@@ -458,7 +472,7 @@ mod tests {
         let seen = RefCell::new(Vec::new());
         let reply = read_sse(
             stream.as_bytes(),
-            &Protocol::Responses { account_id: None },
+            Format::Responses,
             &|delta| match delta {
                 Delta::Text(t) | Delta::Reasoning(t) => seen.borrow_mut().push(t.to_owned()),
             },
@@ -468,13 +482,7 @@ mod tests {
         assert_eq!(*seen.borrow(), ["Plan.", "Provisional"]);
         assert_eq!(reply.content.as_deref(), Some("Final"));
         let failed = stream.replace("response.completed", "response.failed");
-        assert!(read_sse(
-            failed.as_bytes(),
-            &Protocol::Responses { account_id: None },
-            &|_| {},
-            4096
-        )
-        .is_err());
+        assert!(read_sse(failed.as_bytes(), Format::Responses, &|_| {}, 4096).is_err());
     }
 
     #[test]
@@ -489,7 +497,7 @@ mod tests {
         ];
         let stream = frames(&events);
         assert_eq!(
-            read_sse(stream.as_bytes(), &Protocol::Claude, &|_| {}, 4096)
+            read_sse(stream.as_bytes(), Format::Claude, &|_| {}, 4096)
                 .expect("Claude completion")
                 .content
                 .as_deref(),
@@ -498,7 +506,7 @@ mod tests {
         for n in 0..events.len() {
             assert!(read_sse(
                 frames(&events[..n]).as_bytes(),
-                &Protocol::Claude,
+                Format::Claude,
                 &|_| {},
                 4096
             )
@@ -506,7 +514,7 @@ mod tests {
         }
         assert!(read_sse(
             stream.replace("end_turn", "max_tokens").as_bytes(),
-            &Protocol::Claude,
+            Format::Claude,
             &|_| {},
             4096
         )

@@ -183,7 +183,7 @@ impl Local {
                 }
                 crate::stream::read_response(
                     &mut response,
-                    &crate::Protocol::ChatCompletions,
+                    crate::stream::Format::Chat,
                     notify,
                     1_048_576,
                 )

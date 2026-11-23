@@ -1,55 +1,41 @@
 //! Host-authorized HTTP inference, with native tool-calling protocol adapters.
-use crate::provider::{Identity, Protocol};
 use meden_agent::conversation::{Delta, ModelError};
 use meden_core::processor::HttpCall;
-use std::time::Duration;
+use std::{io::Read, time::Duration};
 
-/// The HTTP boundary consumes a host-authorized snapshot; callers cannot
-/// substitute another endpoint/model/credential after a Boolean decision.
+/// Only the consuming core call supplies endpoint, model and credential. The
+/// retained native adapter may encode/decode, never replace those parameters.
 pub(crate) fn reply(
     authorization: HttpCall,
+    selected: &crate::transport::Selected,
     messages: &[serde_json::Value],
     tools: &[serde_json::Value],
     notify: &dyn Fn(Delta<'_>),
 ) -> Result<meden_agent::conversation::Reply, ModelError> {
-    const LIMIT: u64 = 16 * 1024 * 1024;
     let parameters = authorization.into_parameters();
-    let identity: Identity = serde_json::from_slice(parameters.provider())
-        .map_err(|_| ModelError::Unavailable("invalid frozen processor protocol".into()))?;
+    if parameters.provider() != selected.identity.as_slice() {
+        return Err(crate::transport::unavailable(
+            "Registered model binding differs from the original processor call",
+        ));
+    }
     let endpoint = utf8(parameters.endpoint())?;
     let model = utf8(parameters.model())?;
     let credential = parameters.credential().map(utf8).transpose()?;
-    let body = match &identity.protocol {
-        Protocol::ChatCompletions => request_body(model, messages, tools),
-        Protocol::Responses { .. } => crate::responses::request_body(model, messages, tools)?,
-        Protocol::Claude => crate::claude::request_body(model, messages, tools)?,
-    };
+    let body = selected.encode(model, messages, tools)?;
     let config = ureq::Agent::config_builder()
         .proxy(None)
         .max_redirects(0)
-        .timeout_global(Some(Duration::from_secs(300)))
+        .timeout_global(Some(Duration::from_secs(crate::transport::TIMEOUT_SECONDS)))
         .build();
     let agent: ureq::Agent = config.into();
     let mut request = agent.post(endpoint);
     if let Some(key) = credential {
         request = request.header("authorization", &format!("Bearer {key}"));
     }
-    match &identity.protocol {
-        Protocol::Responses { account_id } => {
-            request = request.header("accept", "text/event-stream");
-            if let Some(account) = account_id {
-                request = request.header("chatgpt-account-id", account);
-            }
-        }
-        Protocol::Claude => {
-            request = request
-                .header("anthropic-version", "2023-06-01")
-                .header("anthropic-beta", "oauth-2025-04-20");
-        }
-        Protocol::ChatCompletions => {}
+    for (name, value) in &selected.headers {
+        request = request.header(name, value);
     }
-    // A failed exchange may already have delivered the confidential body.
-    // Neither a redirect nor an automatic retry grants another send.
+    selected.validate()?;
     let mut response = request.send_json(&body).map_err(|error| {
         if let ureq::Error::StatusCode(code) = error {
             return status_error(code);
@@ -59,7 +45,46 @@ pub(crate) fn reply(
     if !response.status().is_success() {
         return Err(status_error(response.status().as_u16()));
     }
-    crate::stream::read_response(&mut response, &identity.protocol, notify, LIMIT)
+    let content_type = response
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .map(str::to_owned);
+    let mut counted = Counted {
+        inner: response
+            .body_mut()
+            .as_reader()
+            .take(crate::transport::RESPONSE_BYTES.saturating_add(1)),
+        bytes: 0,
+    };
+    let reply = selected.decode(&mut counted, content_type.as_deref(), notify)?;
+    // A decoder cannot admit a reply while ignoring a trailing/incomplete body.
+    let mut probe = [0; 1];
+    let remaining = counted
+        .read(&mut probe)
+        .map_err(|_| invalid("incomplete API reply"))?;
+    if counted.bytes > crate::transport::RESPONSE_BYTES {
+        return Err(invalid("API reply exceeded the size limit"));
+    }
+    if remaining != 0 {
+        return Err(invalid("model adapter did not consume the complete reply"));
+    }
+    selected.validate()?;
+    Ok(reply)
+}
+
+struct Counted<R> {
+    inner: R,
+    bytes: u64,
+}
+impl<R: Read> Read for Counted<R> {
+    fn read(&mut self, buffer: &mut [u8]) -> std::io::Result<usize> {
+        let count = self.inner.read(buffer)?;
+        self.bytes = self
+            .bytes
+            .saturating_add(u64::try_from(count).map_err(std::io::Error::other)?);
+        Ok(count)
+    }
 }
 
 fn status_error(code: u16) -> ModelError {

@@ -187,8 +187,25 @@ projection; compiled expressions, search observations and their provenance stay
 bound to their compiler artifact. These metadata/resource checks are adapters,
 not new extracted authority or proofs that an implementation is truthful.
 
-Model/provider and separately dispatched counterexample-search bindings remain
-incomplete, as does persistent selection among verifiers sharing a format.
+Model implementations now freeze both port schemas, method configuration and
+implementation identity before constructing the session caller. Ordinary chat,
+translation, independent comparison and repair use that caller and reject method
+drift before dispatch or after a complete reply. HTTP wire backends register
+their own decoded configuration, encoder and decoder; the existing three formats
+use the same registry as an additional native implementation. The shared executor
+still consumes only the original `HttpCall`, including endpoint, model and
+credential. It refuses method/path/header/capability drift, partial bodies and
+oversized results without retries or fallback. Local calls retain their original
+consuming engine/weights check. Discovery and provenance confer no approval.
+
+Meaning history and reviewed repair artifacts retain original method descriptors;
+older history without descriptors remains unknown rather than being relabeled.
+These are host adapter and application checks, not new extracted refinement or
+a sandbox for arbitrary native plugin code. The
+[model-port validation record](../../results/model-transport-bindings-20261123.json)
+records actual HTTP extension, public TUI/GUI and approved cloud-model checks.
+Separately dispatched counterexample-search bindings remain incomplete, as does
+persistent selection among verifiers sharing a format.
 The [binding validation record](../../results/compiler-renderer-bindings-20261123.json)
 names the actual installed-tool journeys and their limits.
 A completed host registry must describe supported operations/formats,
@@ -396,7 +413,8 @@ timeout/cancellation, resource changes and a real-check/stale-source/core-job
 composition are covered. Verifier descriptors bind original method and schema
 configuration through those existing jobs. Compiler and meaning-renderer
 definitions now also bind dispatch and independent cache artifacts. Model/provider
-and separate counterexample-search bindings, persistent selection among backends
+bindings and a registered HTTP extension use the unchanged consuming processor.
+Separate counterexample-search bindings, persistent selection among backends
 sharing a format and step 5 remain open.
 They retain the existing local/offline execution, accepted intent, exact evidence linkage and
 separate local-deployment/R1 obligations in [assurance.md](../assurance.md) and

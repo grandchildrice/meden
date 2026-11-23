@@ -1,0 +1,197 @@
+{
+  "date": "2026-11-23",
+  "kind": "Typed registered model methods, consuming original HTTP execution and retained method provenance",
+  "source_base": "6e4fcd3",
+  "selected_source_changes": {
+    "Cargo.lock": "ec3a8784df406ec7a4112a84b64dcb97933a8645540613cdfb14c964213271d2",
+    "apps/web/e2e/native.spec.ts": "16d5d5677e267abeaa9daec27818bc6533df528bf201370b396bb7e060317b1d",
+    "apps/web/src/app/NativeApp.tsx": "444ffe386df6fc4f5dc12630e8fafd2b981069d732dfa71363a59f029a397186",
+    "crates/meden-agent/Cargo.toml": "57872da7d31dbf3bc28e32d4427078175f8ea48cdb59c701c8c500a049e1d51b",
+    "crates/meden-agent/src/conversation.rs": "b6ac3d259b34a4b1b2bb57483700c531d4abc888d516d7647627429c3025c72e",
+    "crates/meden-app/src/analysis.rs": "bc4eb598e1fc398d282a5c18273f95e942176b7c2c12dcfbc4b90fd2419cf6b1",
+    "crates/meden-app/src/analysis/journal.rs": "7de0769a8536435758101efe56ab6c34dc76f6ac709cfc0a67e6aa5d98aca164",
+    "crates/meden-app/src/analysis/repair.rs": "df6b921616e97f48ec7b37cf0a9e67b57ad4334197e56fbd351646c50c08f9de",
+    "crates/meden-app/src/model.rs": "ac58da34f59108c54f09c1339082c67e0292f6d3fb4dda30b6d663c9f0dfb0bc",
+    "crates/meden-cli/src/session.rs": "d9f3cb842becb72cf598f987d895ab21cd762dd6aaa406b9062c2a0c53a385fe",
+    "crates/meden-llm/Cargo.toml": "10817e90d92297b0c67692356ac1edf0b749bff458347767129ef6b375268b44",
+    "crates/meden-llm/src/gateway.rs": "ab2d0fb2a99d2669c9d8d95eeea84cb40e04a6d6e59705fa681c853d5f1929ea",
+    "crates/meden-llm/src/lib.rs": "fbf44e840ce9cf2fe61be2b9de833dd0d4dbf67fd04feea31951a939530cdb2e",
+    "crates/meden-llm/src/local.rs": "090fc238d97a1ba0918a77fd4abbdacf7dc4e1ad7417db5a40c08326ca326e7c",
+    "crates/meden-llm/src/openai.rs": "798eb8749686e13a4f226614369af0001fb50729ffe57d1a913b888a9c60393d",
+    "crates/meden-llm/src/provider.rs": "7a05b9433f459acb1f6ff26bd98515174d258ee434400ffa80f941ac0b0eb082",
+    "crates/meden-llm/src/stream.rs": "418aea100c64a23daa6f113930649c86664a546ff0a126bc944e39486a7a5e57",
+    "packages/agent-protocol/src/native.ts": "f4f694d6cdc7bb0328edeaa3b057741033a6dc68052665e22a7b2e7072211afc",
+    "python/tests/test_tui_judge.py": "458da88901dcadd17e966e5842a78b0a3a1bcac72cb1d061efe94f88280ec8ec",
+    "python/tests/test_tui_repair.py": "09bc61c420d3dd0ca546effaa1519684b5af7aad72915ea0cb0861f6588e0494",
+    "crates/meden-llm/src/transport.rs": "666410607a323e397f14e84e2468a69a9454b873aac7a85dc28439c1d1b9f652",
+    "crates/meden-llm/tests/registered_transport.rs": "856e2c1148f200ebcc9c37d545f3970556fe6ab63d5d4fc120932c6def08b8ee"
+  },
+  "binary_sha256": "f28311dfffff45e0c105894121868b0377ab79abdc5330facbf5d8e562f7aae7",
+  "implementation": {
+    "application": "meden-app::model::Bound freezes role, complete method descriptor, original labels and both actual port schemas before constructing the borrowed session caller. Every reply checks the original method before dispatch and after complete return. Construction and metadata grant no authority.",
+    "callers": [
+      "Ordinary conversation",
+      "Blind translation",
+      "Independent comparison",
+      "Reviewed repair proposal"
+    ],
+    "http": "Backend-owned Deserialize/Serialize/JsonSchema configuration, an explicit host Registry and Wire encoder/decoder. Built-in Chat Completions, Responses and Anthropic Messages use that registry. Additional native formats require no core or viewer branch. The common fixed Bearer HTTP executor consumes only the original HttpCall for endpoint/model/credential and verifies its original selected-wire identity. No retries, proxy or redirects.",
+    "binding": "Original configuration/schema/implementation, route, non-authority headers and model-listing capability are frozen and rechecked. A partial, ignored, truncated or oversized body cannot admit a complete reply/tool-call vector.",
+    "history": "Meaning records retain original translator/judge descriptors. Frozen reviewed repair bytes and repair logs retain the proposing method. Save checks include those original descriptor values. Older records with no descriptors remain unknown; the descriptor cannot restore a grant.",
+    "local": "Original LocalCall.consume_for and confined local execution remain. Diagnostic descriptor includes selected engine/weights path bytes, fixed limits and recipe source; it does not hash GGUF bytes or attest the engine/weights."
+  },
+  "regressions": {
+    "native_port": [
+      "Wrong role/input schema/output schema refused",
+      "Original method captured before caller factory",
+      "Pre-dispatch method drift issues no call",
+      "Post-reply drift cannot admit proposed tool calls"
+    ],
+    "registered_http": [
+      "Actual custom encoder/decoder through the common loopback HTTP executor",
+      "No request before host approval or for another session; original path/model/key/body after approval",
+      "Unknown/duplicate IDs, malformed and unknown configuration fields, wrong role/schema, invalid route and authority-changing headers refused",
+      "Original method, route, headers and discovery capability drift refused before approval/dispatch",
+      "Actual incomplete Content-Length, ignored body, valid reply plus oversized whitespace, and method drift during decode cannot admit tool calls"
+    ],
+    "gui_cancellation": {
+      "observed_failure": "A pending cancel-command HTTP response suppressed all state polling, leaving Stop visible after the host had finished. The initial browser run failed this outcome assertion.",
+      "fix": "Allow state observations while only cancellation commands are pending, preserve the send gate until command completion, and advance the read generation after publishing the final cancellation snapshot.",
+      "coverage": "Public browser holds cancellation response, confirms host cancellation before releasing a late tool reply, observes Stop disappearing/no tool edit, retains disabled Send until release, then completes an explicit new turn. Final desktop and phone screenshots inspected."
+    }
+  },
+  "checks": {
+    "rust": {
+      "passed": 270,
+      "failed": 0,
+      "ignored": 0,
+      "warning_free_clippy": true
+    },
+    "typescript": {
+      "tests": 32,
+      "typecheck": true,
+      "architecture": true,
+      "source_schema": true,
+      "format": true
+    },
+    "python": {
+      "changed_tests_ruff": true
+    },
+    "required_tui": {
+      "passed": 34,
+      "skipped": 0,
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/validation/f28311dfffff45e0c105894121868b0377ab79abdc5330facbf5d8e562f7aae7/meden",
+        "sha256": "f28311dfffff45e0c105894121868b0377ab79abdc5330facbf5d8e562f7aae7"
+      },
+      "summary_sha256": "874a3b16e2114a0ff038dfa33d394e57f8a5f0011ea5efed5fe085ee08a1533f",
+      "screens_inspected": [
+        "Separate judge HTTP 401 failure with no fallback and fresh restart review",
+        "Repair reject/stale-source stop/apply and historical restart",
+        "Provider HTTP 429 stop, retained files and explicit retry",
+        "Live original finite-contract review, actual bounded check and restart requiring fresh approval/check"
+      ]
+    },
+    "browser": {
+      "passed": 5,
+      "cancellation_screenshot_recheck_passed": 1,
+      "output": "target/gui-checks/model-port-final-results",
+      "report": "target/gui-checks/model-port-final-report"
+    }
+  },
+  "actual_cloud_trial": {
+    "success": true,
+    "provider": "hermes:ollama-cloud",
+    "model": "minimax-m3",
+    "elapsed_seconds": 40.92099588504061,
+    "independent_cases": 256,
+    "artifacts": 2,
+    "terminal_restored": true,
+    "contract_unchanged": true,
+    "steps": [
+      "processor reviewed",
+      "exact finite contract reviewed",
+      "real bounded check completed",
+      "restart requires fresh review and check"
+    ],
+    "raw_report": "/tmp/meden-model-port-live-finite-20261123.json",
+    "sha256": "7cf9f4ef2353404b9f8bb245c0df8d69e811eab101acd92f7be915174329a245",
+    "scope": "Live cloud inference, synthetic counter, installed offline Z3 and 256 independent Python cases. No local inference, cold installation or unbounded/Rust proof claim."
+  },
+  "example_original_descriptors": {
+    "translator": {
+      "id": "openai.chat",
+      "role": "model",
+      "version": "1",
+      "formats": [
+        "openai.chat"
+      ],
+      "implementation_sha256": "e1d0c8fcc62780c535a7579b19ffa19d026b2fe1f098cb091c9d5692413e4bd3",
+      "configuration_sha256": "d98fd49ae17a53a495af820c5017b5656d9e6de41350455fd75858887287429c",
+      "input_schema_sha256": "fad4f2d3f2ef422d58e4d288398703ff1efa8ed8143520aaea7bc078e11dd631",
+      "output_schema_sha256": "661abe823433c930b29ef7f0eda41bdf7bcb11ad5a819b1a3c3bd8912bcd2174"
+    },
+    "judge": {
+      "id": "openai.chat",
+      "role": "model",
+      "version": "1",
+      "formats": [
+        "openai.chat"
+      ],
+      "implementation_sha256": "e1d0c8fcc62780c535a7579b19ffa19d026b2fe1f098cb091c9d5692413e4bd3",
+      "configuration_sha256": "f289375404324f8e0f9768099c9658a6643f56481bd5d3cac12428abb99bbeda",
+      "input_schema_sha256": "fad4f2d3f2ef422d58e4d288398703ff1efa8ed8143520aaea7bc078e11dd631",
+      "output_schema_sha256": "661abe823433c930b29ef7f0eda41bdf7bcb11ad5a819b1a3c3bd8912bcd2174"
+    }
+  },
+  "deployment": {
+    "binary_sha256": "f28311dfffff45e0c105894121868b0377ab79abdc5330facbf5d8e562f7aae7",
+    "assets_sha256": "27d32ec1ba05a78d4ddacfeb7aab9410b7cfbaf0f9848deafe6be3e3b1049aa0",
+    "workspaces": {
+      "riemann": {
+        "running": false,
+        "authorized": false,
+        "files": 175187,
+        "overview": "ready",
+        "rendered_areas": 7
+      },
+      "ethlib": {
+        "running": false,
+        "authorized": false,
+        "files": 2517,
+        "overview": "ready",
+        "rendered_areas": 20
+      }
+    },
+    "restart": "Only idle, unapproved existing hosts restarted. Startup inventory work was allowed to settle and actual SVG areas were required before screenshots; no inference grant restored."
+  },
+  "artifacts": {
+    "/tmp/meden-ux-model-port-20261123/summary.json": "874a3b16e2114a0ff038dfa33d394e57f8a5f0011ea5efed5fe085ee08a1533f",
+    "/tmp/meden-model-port-live-finite-20261123.json": "7cf9f4ef2353404b9f8bb245c0df8d69e811eab101acd92f7be915174329a245",
+    "/tmp/meden-model-port-workspace-tests.log": "3fc019e396fd57355c71b61f63f749be3164fa47b80abab5c1201a85dd38a828",
+    "/tmp/meden-model-port-clippy-final.log": "49f1ec4827f6d8704defb36478a952ba2734911ea8584db29eafc94f23047a41",
+    "/tmp/meden-model-port-gui-final.log": "ce0853a0360c6befa2c8118e7707c186f1a621c1bfdadd638a891a5c919517ae",
+    "/tmp/meden-model-port-gui-cancel.log": "d7a0678adc5c148c1438acf3dd6968642cf07735963e11527401d31200296175",
+    "/tmp/meden-model-port-typecheck-final.log": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f",
+    "/tmp/meden-model-port-architecture.log": "2913db56a25393ea932c6a117b35181b11db8ecda4d0e1690939cfa7117a042d",
+    "/tmp/meden-model-port-schema.log": "e06c327ea9e36bf111930bbe9c5469991ae97ba3016e333154ebcfb79cec6f3c",
+    "/tmp/meden-model-port-ts-final.log": "25e4f9a1264abe3c2e32e55510e517550c805e98e0861e7cd39894d83bfcdb63",
+    "/tmp/meden-model-port-format-final.log": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c",
+    "target/gui-checks/native-cancel-resumed.png": "8fa7941dcb75e3e86329c9e5d8b95edd04e0c67fdf14988f0276d7ff3ccf9480",
+    "target/gui-checks/native-repair-review.png": "f4fb7e0ac6f9fb3a90db9ff844a6e47f1ad94c6324e6c250bc2647af10924884",
+    "target/gui-checks/native-separate-judge.png": "7070316e10523e98bc3f28b51d73a72784e24f5911bebfd13af60916f6948e8d",
+    "target/gui-checks/model-port-deployed-riemann.png": "89ac0367e2e5c30f00ffafd8e8d630b8c77569d70feb6a29e22a0af6852a7cbd",
+    "target/gui-checks/model-port-deployed-ethlib.png": "9acca3552a089dcf972f6550cee0c41e68562f36ccf46a0b3afccdbf99030fcc"
+  },
+  "remaining": [
+    "Separate counterexample-search role and cache",
+    "Persistent selection among verifiers sharing a format",
+    "Remaining generated native inventory/job/evidence DTOs and source availability states",
+    "Persisted versioned deterministic layout and legacy/demo retirement"
+  ],
+  "limits": [
+    "No changes to the pure authority kernels or new extracted refinement claim.",
+    "Native implementations and I/O/configuration/schema attribution are trusted/tested adapters, not a sandbox for arbitrary native code or proof that a plugin tells the truth.",
+    "The real provider trial uses approved cloud inference on synthetic inputs; it does not validate local inference, cold installation, large local weights or complete R1."
+  ]
+}

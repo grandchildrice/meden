@@ -127,6 +127,14 @@ the ordinary CLI worker path. The paired algorithm budget and shrinkable corpus
 run via `npm run test:performance` / `npm run test:fuzz`; see
 [the profiling tools](../tools/perf/README.md). See [the event audit](gui-performance.md) for measured costs.
 
+The separate-judge and repair journeys also inspect original model descriptors
+in retained history and reviewed repair logs, including failure and restart.
+The native cancellation journey holds the cancel-command response after the
+host has received it: the UI must still observe a completed stop, execute no
+late tool call and keep sending disabled until that response is released.
+Polling during that pending cancellation is allowed, while the completed
+command fences older reads so they cannot replace its final snapshot.
+
 1. Name the affected goal and observable outcome before editing. Use the README's
    public entry command and the intended starting state, including an empty
    configuration when changing onboarding.

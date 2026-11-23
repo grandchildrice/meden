@@ -7,6 +7,7 @@ use std::time::{Duration, Instant};
 
 use crate::model::Model;
 use anyhow::{Context, Result};
+use meden_agent::conversation::ChatModel;
 use meden_agent::tool::Args;
 use meden_core::{
     export_control::{ExportEvent, Origin, State},
@@ -36,6 +37,8 @@ pub struct Review {
     pub reference: Reference,
     pub model: String,
     pub processor: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub model_definition: Option<serde_json::Value>,
     pub finding_id: String,
     pub requirement_id: String,
     pub input: Input,
@@ -58,6 +61,8 @@ struct Frozen {
     id: String,
     model: String,
     processor: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    model_definition: Option<serde_json::Value>,
     finding_id: String,
     requirement_id: String,
     input: Input,
@@ -206,7 +211,8 @@ pub fn prepare(
         resources.as_deref(),
     )?;
     anyhow::ensure!(!control.flag().load(Ordering::SeqCst), "Repair cancelled");
-    let reply = gateway.for_session(workspace.session_id()).reply(&[
+    let caller = crate::model::bind(gateway, workspace.session_id());
+    let reply = caller.reply(&[
         json!({"role":"system","content":include_str!("repair.md")}),
         json!({"role":"user","content":json!({"input":record.input,"finding":record.assessment,"accepted_contract":project.accepted_contract,"files":snapshot.files}).to_string()}),
     ], &[json!({"type":"function","function":{"name":"propose_repair","description":"Return a single data-only source replacement for host review.","parameters":{"type":"object","properties":{
@@ -233,8 +239,9 @@ pub fn prepare(
     );
     let frozen = Frozen {
         id: id()?,
-        model: gateway.model().to_owned(),
-        processor: gateway.endpoint().into(),
+        model: caller.binding().view().model.clone(),
+        processor: caller.binding().view().endpoint.clone(),
+        model_definition: Some(serde_json::to_value(caller.binding().definition())?),
         finding_id: finding.clone(),
         requirement_id: record.requirement_id.clone(),
         input: record.input.clone(),
@@ -347,6 +354,7 @@ impl Pending {
             },
             model: frozen.model,
             processor: frozen.processor,
+            model_definition: frozen.model_definition,
             finding_id: frozen.finding_id,
             requirement_id: frozen.requirement_id,
             input: frozen.input,

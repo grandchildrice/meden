@@ -70,6 +70,8 @@ export const meaningRecordSchema = z
     engine: z.literal("meden-claimcheck-roundtrip-v1"),
     model: z.string(),
     processor: z.string(),
+    model_definition: z.unknown().optional(),
+    judge_definition: z.unknown().optional(),
     judge: z
       .object({ model: z.string(), endpoint: z.string() })
       .strict()
@@ -125,6 +127,7 @@ export const repairReviewSchema = z
     reference: repairReferenceSchema,
     model: z.string(),
     processor: z.string(),
+    model_definition: z.unknown().optional(),
     finding_id: z.string(),
     requirement_id: z.string(),
     input: meaningInputSchema,

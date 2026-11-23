@@ -2132,6 +2132,29 @@ file tools and multi-turn inference still work after authorization.
 These tests do not prove local inference confinement: an approved loopback
 service can still forward data unless the service's own egress is confined.
 
+The application model port now retains the original method descriptor and both
+actual input/output schemas before creating its session caller. Chat, translation,
+separate comparison and repair all use it. A changed method prevents dispatch or
+rejects the completed reply, including any proposed calls. Meaning and repair
+history retain the original descriptors; missing historical provenance is not
+inferred from a currently selected model. This metadata grants no authority.
+
+The three HTTP formats use the host's typed wire registry. An additional native
+registration exercises the actual shared TCP executor without adding another
+kernel or viewer branch. It checks malformed configuration, unknown/duplicate
+registrations, role/schema mismatch, authority headers, original endpoint/model/key,
+session refusal, revocation, method/route/header/discovery-capability drift and
+incomplete/ignored/oversized responses. The original consuming processor call
+still owns authorization and credentials. Native implementations are trusted host
+code; the registry is not an isolation boundary or a general native-plugin proof.
+Local metadata records selected engine/weights paths and the recipe, not an
+attestation of GGUF contents or large-model capability.
+The [validation record](../results/model-transport-bindings-20261123.json)
+also retains an actual approved Ollama Cloud `minimax-m3` public TUI journey:
+original contract review, real offline Z3 refutation and repair, 256 independent
+Python cases and restart requiring fresh review/checking. That observation is
+cloud inference on synthetic input, not local inference or cold installation.
+
 The [processor review screenshot](assets/processor-approval.png) is captured
 from the actual TUI; no inference request is made during capture.
 

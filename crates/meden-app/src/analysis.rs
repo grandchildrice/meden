@@ -42,6 +42,10 @@ pub struct Record {
     pub model: String,
     pub processor: String,
     pub judge: Option<crate::model::Binding>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub model_definition: Option<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub judge_definition: Option<serde_json::Value>,
     pub input: Input,
     pub state: State,
     pub assessment: Option<Assessment>,
@@ -185,13 +189,14 @@ pub fn run(
         snapshot.atlas.as_ref(),
     )?;
     let source_artifact = journal::retain_sources(workspace.path(), snapshot)?;
+    let translator = crate::model::bind(gateway, workspace.session_id());
+    let comparer = crate::model::bind(judge.unwrap_or(gateway), workspace.session_id());
     let record = RefCell::new(journal::begin(
         workspace.path(),
-        gateway.endpoint(),
-        gateway.model(),
+        translator.binding(),
         input,
         source_artifact,
-        judge.map(crate::model::binding),
+        judge.map(|_| comparer.binding()),
     )?);
     notify(&record.borrow());
 
@@ -203,8 +208,8 @@ pub fn run(
         );
         observe(workspace, control, snapshot, &record)?;
         let assessment = semantic::analyze(
-            &*gateway.for_session(workspace.session_id()),
-            &*judge.unwrap_or(gateway).for_session(workspace.session_id()),
+            &translator,
+            &comparer,
             &prepared,
             control.flag(),
             &|stage| {

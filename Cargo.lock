@@ -1055,6 +1055,7 @@ name = "meden-agent"
 version = "0.1.0"
 dependencies = [
  "meden-core",
+ "schemars",
  "serde",
  "serde_json",
  "thiserror 2.0.21",
@@ -1124,6 +1125,7 @@ dependencies = [
  "meden-core",
  "meden-runtime",
  "nix 0.31.3",
+ "schemars",
  "serde",
  "serde_json",
  "tempfile",

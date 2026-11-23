@@ -22,14 +22,13 @@ pub struct Gateway {
     created: Instant,
     state: Mutex<State>,
     local: Option<crate::local::Local>,
+    transport: Option<crate::transport::Selected>,
+    model_binding: meden_app::model::Bound,
 }
 
 impl meden_app::model::Model for Gateway {
-    fn model(&self) -> &str {
-        &self.provider().model
-    }
-    fn endpoint(&self) -> &str {
-        Self::endpoint(self)
+    fn binding(&self) -> &meden_app::model::Bound {
+        &self.model_binding
     }
     fn is_authorized(&self, session: &[u8]) -> bool {
         Self::is_authorized(self, session)
@@ -42,7 +41,17 @@ impl meden_app::model::Model for Gateway {
 impl Gateway {
     /// Prepare without I/O. The host session identifies the workspace/data
     /// scope; endpoint, model and exact credential are frozen together.
-    pub fn prepare(session: &[u8], mut provider: Provider) -> Result<Self, ModelError> {
+    pub fn prepare(session: &[u8], provider: Provider) -> Result<Self, ModelError> {
+        Self::prepare_with_registry(session, provider, &crate::transport::Registry::host()?)
+    }
+
+    /// Prepare an explicitly registered host implementation without granting
+    /// inference or exposing registration to model/workspace configuration.
+    pub fn prepare_with_registry(
+        session: &[u8],
+        mut provider: Provider,
+        registry: &crate::transport::Registry,
+    ) -> Result<Self, ModelError> {
         if provider.base_url.contains('#') {
             return Err(invalid_endpoint());
         }
@@ -61,12 +70,20 @@ impl Gateway {
         uri.to_string()
             .trim_end_matches('/')
             .clone_into(&mut provider.base_url);
-        let endpoint = format!("{}{}", provider.base_url, provider.protocol.path());
-        let identity = serde_json::to_vec(&crate::provider::Identity {
-            id: provider.id.clone(),
-            protocol: provider.protocol.clone(),
-        })
-        .map_err(|_| unavailable())?;
+        let selected = registry.select(&provider)?;
+        let endpoint = format!("{}{}", provider.base_url, selected.path);
+        let identity = selected.identity.clone();
+        let definition = model_definition(
+            selected.definition.id(),
+            &serde_json::json!({"transport":selected.binding,"endpoint":endpoint,"model":provider.model,"timeout_seconds":crate::transport::TIMEOUT_SECONDS,"response_bytes":crate::transport::RESPONSE_BYTES,"redirects":0,"proxy":false}),
+            &[
+                include_bytes!("gateway.rs").as_slice(),
+                include_bytes!("openai.rs").as_slice(),
+            ]
+            .concat(),
+        )?;
+        let model_binding =
+            meden_app::model::Bound::new(definition, provider.model.clone(), endpoint.clone())?;
         let binding = Binding::Http(HttpParameters::new(
             identity,
             endpoint.as_bytes().to_vec(),
@@ -79,6 +96,8 @@ impl Gateway {
             created: Instant::now(),
             state: Mutex::new(State::new(session.to_vec(), binding)),
             local: None,
+            transport: Some(selected),
+            model_binding,
         })
     }
 
@@ -102,12 +121,28 @@ impl Gateway {
             note: format!("CPU inference · {}", config.model.display()),
         };
         let binding = Binding::Local(local.parameters().clone());
+        let definition = model_definition(
+            "llama.local",
+            &serde_json::json!({"engine":local.parameters().engine(),"weights":local.parameters().weights(),"offline":true,"wire_model":provider.model,"startup_seconds":120,"request_seconds":300,"response_bytes":crate::transport::RESPONSE_BYTES}),
+            &[
+                include_bytes!("local.rs").as_slice(),
+                include_bytes!("openai.rs").as_slice(),
+                include_bytes!("stream.rs").as_slice(),
+                include_bytes!("../../meden-runtime/src/sandbox.rs").as_slice(),
+                include_bytes!("../../meden-runtime/src/sandbox/bubblewrap.rs").as_slice(),
+            ]
+            .concat(),
+        )?;
+        let model_binding =
+            meden_app::model::Bound::new(definition, provider.model.clone(), endpoint.clone())?;
         let gateway = Self {
             provider,
             endpoint,
             created: Instant::now(),
             state: Mutex::new(State::new(session.to_vec(), binding)),
             local: Some(local),
+            transport: None,
+            model_binding,
         };
         gateway.approve_from_host()?;
         Ok(gateway)
@@ -122,6 +157,12 @@ impl Gateway {
     pub fn provider(&self) -> &Provider {
         &self.provider
     }
+    /// Discovery capability of the originally prepared wire adapter, not approval.
+    pub fn supports_model_listing(&self) -> bool {
+        self.transport
+            .as_ref()
+            .is_some_and(crate::transport::Selected::supports_model_listing)
+    }
 
     /// Exact inference URL for trusted review and CLI destination matching.
     pub fn endpoint(&self) -> &str {
@@ -133,6 +174,9 @@ impl Gateway {
     /// implicitly, including after revocation. This is a processor grant,
     /// distinct from an exact, single-use artifact transfer authorization.
     pub fn approve_from_host(&self) -> Result<(), ModelError> {
+        if let Some(transport) = &self.transport {
+            transport.validate()?;
+        }
         if !self
             .state
             .lock()
@@ -180,6 +224,25 @@ impl Gateway {
     }
 }
 
+fn model_definition(
+    id: &str,
+    configuration: &serde_json::Value,
+    implementation: &[u8],
+) -> Result<meden_runtime::plugin::Descriptor, ModelError> {
+    use meden_runtime::plugin::{Definition, Descriptor, Role};
+    Descriptor::new(Definition {
+        id,
+        role: Role::Model,
+        version: "1",
+        formats: vec![id.into()],
+        implementation,
+        configuration: configuration.clone(),
+        input: meden_app::model::input_schema().map_err(|_| unavailable())?,
+        output: meden_app::model::output_schema().map_err(|_| unavailable())?,
+    })
+    .map_err(|_| unavailable())
+}
+
 struct SessionModel<'a> {
     gateway: &'a Gateway,
     session: &'a [u8],
@@ -218,7 +281,13 @@ impl ChatModel for SessionModel<'_> {
                     ModelError::Unavailable("local processor unavailable; no fallback".into())
                 })?
                 .reply(call, messages, tools, notify),
-            Dispatch::Http(call) => crate::openai::reply(call, messages, tools, notify),
+            Dispatch::Http(call) => crate::openai::reply(
+                call,
+                gateway.transport.as_ref().ok_or_else(unavailable)?,
+                messages,
+                tools,
+                notify,
+            ),
         }
     }
 }
@@ -299,7 +368,9 @@ mod tests {
         assert!(gateway.for_session(b"session-a").reply(&[], &[]).is_err());
         let port: &dyn meden_app::model::Model = &gateway;
         assert!(!port.is_authorized(b"session-a"));
-        assert!(port.for_session(b"session-a").reply(&[], &[]).is_err());
+        assert!(meden_app::model::bind(port, b"session-a")
+            .reply(&[], &[])
+            .is_err());
         assert!(receiver.accept().is_err());
     }
 

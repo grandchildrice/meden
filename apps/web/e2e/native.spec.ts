@@ -3602,11 +3602,13 @@ theorem slow : True := fast
       await route.fulfill({ response });
     });
     await page.getByRole("button", { name: "Stop" }).click();
+    await expect.poll(() => cancellationReachedHost).toBe(true);
     reply(
       held!,
       tool("write_file", { path: "must-not-exist.txt", content: "bad" }),
     );
     await expect(page.getByRole("button", { name: "Stop" })).not.toBeVisible();
+    expect((await nativeState(page)).running).toBe(false);
     await expect(
       readFile(resolve(project, "must-not-exist.txt")),
     ).rejects.toThrow();
@@ -3630,6 +3632,10 @@ theorem slow : True := fast
     await expect(
       page.getByText("EXPLICIT-NEW-TURN", { exact: true }),
     ).toBeVisible();
+    await page.screenshot({
+      path: "target/gui-checks/native-cancel-resumed.png",
+      fullPage: true,
+    });
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(
       page.getByRole("tab", { name: "Project map", exact: true }),

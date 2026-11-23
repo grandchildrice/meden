@@ -267,7 +267,7 @@ impl Session {
                 Effect::Model => {
                     status = self.conversation.run(
                         &next,
-                        &self.gateway.for_session(self.workspace.session_id()),
+                        &meden_app::model::bind(self.gateway.as_ref(), self.workspace.session_id()),
                         &conversation::Runtime {
                             registry: &self.registry,
                             policy: &self.policy,

@@ -160,6 +160,15 @@ def test_separate_judge_review_failure_recovery_and_restart(tmp_path, tui_verifi
             r["judge"] == {"model": "judge-fixture", "endpoint": endpoint + "/chat/completions"}
             for r in records
         )
+        for record in records:
+            translator = record["model_definition"]
+            judge = record["judge_definition"]
+            assert translator["role"] == judge["role"] == "model"
+            assert translator["id"] == judge["id"] == "openai.chat"
+            assert translator["input_schema_sha256"] == judge["input_schema_sha256"]
+            assert translator["output_schema_sha256"] == judge["output_schema_sha256"]
+            assert translator["configuration_sha256"] != judge["configuration_sha256"]
+        original_definitions = [(r["model_definition"], r["judge_definition"]) for r in records]
         terminal.quit()
         terminal.close()
         terminal = Terminal(args, env, project)
@@ -169,6 +178,10 @@ def test_separate_judge_review_failure_recovery_and_restart(tmp_path, tui_verifi
         terminal.send("\x1b")
         terminal.wait(lambda view: "shift+enter" in view)
         command("/analysis", "Historical", 4)
+        reopened = json.loads(saved.read_text())["entries"]
+        assert [
+            (r["model_definition"], r["judge_definition"]) for r in reopened
+        ] == original_definitions
         terminal.quit()
     finally:
         terminal.close()

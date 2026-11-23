@@ -207,6 +207,10 @@ def test_finding_repair_reject_stale_clipped_review_apply_and_restart(tmp_path, 
         assert retained == [original, concurrent, source.read_text()]
         logs = [json.loads(path.read_text()) for path in history_path.parent.glob("repairs/*.json")]
         assert sorted(log["state"] for log in logs) == ["reanalyzed", "rejected", "stopped"]
+        assert all(
+            log["review"]["model_definition"] == entries[-1]["model_definition"]
+            for log in logs
+        ), "Each reviewed diff must retain the original model method through apply/reject/failure"
         assert (
             next(log for log in logs if log["state"] == "reanalyzed")["analysis_id"]
             == entries[-1]["id"]
