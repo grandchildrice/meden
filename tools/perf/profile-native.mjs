@@ -150,6 +150,7 @@ try {
     "perf-report.txt",
     "trace.json",
     "native-metrics.json",
+    "preparation.json",
     "summary.json",
     ...(await readdir(destination))
       .filter((name) => name.endsWith(".cpuprofile"))

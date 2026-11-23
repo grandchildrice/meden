@@ -218,6 +218,10 @@ try {
     .toBe(true);
   const setupElapsed = performance.now() - setupStart;
   native = await state();
+  await writeFile(
+    resolve(destination, "preparation.json"),
+    JSON.stringify(native.source_preparation[file], null, 2),
+  );
   const graph = page.locator(".ide-file-page:not([hidden]) .cone-graph");
   await expect(graph).toBeVisible();
   const viewport = graph.locator(".react-flow__viewport");
@@ -290,26 +294,30 @@ try {
     });
   };
   const graphBox = await graph.boundingBox();
-  const visibleNode = () =>
-    graph.locator(".radar-node > button").evaluateAll((buttons) => {
-      const canvas = buttons[0]?.closest(".cone-graph").getBoundingClientRect();
-      for (const b of buttons) {
-        const r = b.getBoundingClientRect();
-        const x =
-          Math.max(r.left, canvas.left + 48) +
-          Math.min(r.width, canvas.width - 48) / 2;
-        const y =
-          Math.max(r.top, canvas.top + 20) +
-          Math.min(r.height, canvas.height - 40) / 2;
-        if (
-          x < canvas.right &&
-          y < canvas.bottom &&
-          document.elementFromPoint(x, y)?.closest("button") === b
-        )
-          return { x, y };
-      }
-      throw new Error("No graph node can be reached by the pointer");
-    });
+  const visibleNode = (exclude = null, only = null) =>
+    graph.locator(".radar-node > button").evaluateAll(
+      (buttons, { exclude, only }) => {
+        const canvas = buttons[0]
+          ?.closest(".cone-graph")
+          .getBoundingClientRect();
+        for (const b of buttons) {
+          const id = b.closest(".react-flow__node")?.getAttribute("data-id");
+          if (!id || id === exclude || (only && id !== only)) continue;
+          const r = b.getBoundingClientRect();
+          const left = Math.max(r.left, canvas.left + 48);
+          const right = Math.min(r.right, canvas.right - 8);
+          const top = Math.max(r.top, canvas.top + 20);
+          const bottom = Math.min(r.bottom, canvas.bottom - 20);
+          if (left >= right || top >= bottom) continue;
+          const x = (left + right) / 2;
+          const y = (top + bottom) / 2;
+          if (document.elementFromPoint(x, y)?.closest("button") === b)
+            return { x, y, id };
+        }
+        throw new Error("No graph node can be reached by the pointer");
+      },
+      { exclude, only },
+    );
   await measure("graph-idle-poll", () => waitFrames(180));
   // Separate late setup/layout work from steady status polling. The first idle
   // window can include an overview response begun during file preparation.
@@ -351,11 +359,39 @@ try {
       await page.getByRole("tab", { name: parts.at(-1), exact: true }).click();
     }
   });
-  await measure("graph-node-select", async () => {
+  await measure("graph-fit-view", async () => {
     await graph.getByRole("button", { name: "Fit View", exact: true }).click();
+  });
+  const selections = [];
+  const selectNode = async (target) => {
+    const before = await graphCamera();
+    await page.mouse.click(target.x, target.y);
+    const declaration = native.source_snapshot.graph.declarations.find(
+      (d) => d.id === target.id,
+    );
+    if (declaration?.source?.line)
+      await expect(
+        page.locator(
+          ".ide-file-page:not([hidden]) [aria-current=location] .editor-line-number",
+        ),
+      ).toHaveText(declaration.source.line + ":");
+    await waitFrames(3);
+    selections.push({
+      phase,
+      id: target.id,
+      graph_camera: { before, after: await graphCamera() },
+    });
+  };
+  await measure("graph-node-select", async () => {
+    const target = await visibleNode();
     for (let i = 0; i < 8; i++) {
-      const { x, y } = await visibleNode();
-      await page.mouse.click(x, y);
+      await selectNode(await visibleNode(null, target.id));
+    }
+  });
+  await measure("graph-node-select-distinct", async () => {
+    for (let i = 0; i < 8; i++) {
+      const target = await visibleNode(selections.at(-1)?.id);
+      await selectNode(target);
     }
   });
   await page.getByRole("tab", { name: "Project map", exact: true }).click();
@@ -404,6 +440,16 @@ try {
     const events = trace.filter(
       (e) => e.ts >= start && e.ts <= end && e.ph === "X",
     );
+    // Keep the chronological observations: a first selection and repeated
+    // selections of the same node must not masquerade as distinct-node costs.
+    sample.dispatch_events = events
+      .filter((e) => e.name === "EventDispatch")
+      .map((e) => ({
+        type: e.args?.data?.type,
+        offset_ms: (e.ts - start) / 1000,
+        duration_ms: e.dur / 1000,
+      }));
+    sample.selections = selections.filter((s) => s.phase === label);
     sample.dispatch = Object.fromEntries(
       [
         ...new Set(

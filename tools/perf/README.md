@@ -94,6 +94,16 @@ Native stage distributions include only newly completed span IDs since the
 initial snapshot and report eviction during the capture. Stages overlap, and
 zero CPU samples means unavailable measurement rather than zero CPU work.
 
+Fit View has its own phase. Selection first clicks one declaration eight times,
+then alternates between two reachable declarations for eight more clicks. Each
+click must reveal its original source line; target IDs, per-selection camera
+transforms and individual dispatch durations are retained so repeated selection
+cannot hide the cost of changing declarations. The profiler waits three frames
+after each selection before the next click. This does not cover every node or
+arbitrary rapid clicking. `preparation.json` retains the actual file-local build
+log, elapsed preparation time and cache-hit flag alongside the profiles; it is
+included in the native capture's digest manifest.
+
 Set `MEDEN_GUI_ASSETS` to the asset root containing the source maps for the
 served bundles (default `apps/web/dist`). The report retains the map digests.
 For a pinned deployment without maps, build separately with `--sourcemap hidden`

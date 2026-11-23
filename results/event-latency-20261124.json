@@ -1,0 +1,2698 @@
+{
+  "date": "2026-11-24",
+  "source_revision": "66a35e4",
+  "kind": "Repeated event and native-stage timing of the current deployed Riemann GUI",
+  "application_or_deployment_changes": false,
+  "served_javascript_bundles_verified": 7,
+  "host": {
+    "cpu": "13th Gen Intel(R) Core(TM) i7-13620H",
+    "kernel": "6.12.92"
+  },
+  "profiling_scripts_sha256": {
+    "tools/gui/profile-interactions.mjs": "aad4158b7167571ae462330f20570b58ec8aec97fef6ec557f3489e9d288eb0b",
+    "tools/perf/profile-native.mjs": "e63f44f437ee7c9c0ee1438edf8f119702725b05df3e203207bb5f19e4313480"
+  },
+  "methodology": [
+    "Two sequential fresh-browser captures at normal motion without throttling; the same 175187-file project and 15-declaration compiled graph. Profiling finished before validation workloads began.",
+    "Dispatch is synchronous browser event processing. Input-to-two-rAF includes browser scheduling; it is not physical presentation or field INP. Nested intervals overlap; sampled CPU share is not wall-time share. Small within-run p95 samples are diagnostic, not field percentiles.",
+    "Fit View is measured separately. Eight initial/repeated selections are followed by eight switches alternating two distinct declarations. Each click uses a real pointer hit and must reveal its exact original source line. Three frames settle each click. This is not an all-declaration or rapid-click workload.",
+    "Browser automation selectors and hit tests contribute CPU samples; do not assign all query/anonymous work to the application. Exact graph camera transforms and per-selection target identities are retained.",
+    "Native spans retain the original monotonic IDs and exact worker sampling manifests. The bounded ring evicted 0 / 214 records during the two captures; new native-stage summaries exclude IDs already present at each capture start.",
+    "All seven actual served JavaScript bundles were compared byte-for-byte with the hidden-source-map build. The executable matched its immutable deployment digest. No server restart or model request was performed."
+  ],
+  "initial_preparation": {
+    "directory": "target/native-profile/event-latency-20261124-riemann-1",
+    "native_interval": {
+      "context": {
+        "trace": 493,
+        "span": 501
+      },
+      "parent": 497,
+      "name": "analysis.extract",
+      "start_us": 337343252,
+      "wall_us": 229335358,
+      "thread_cpu_us": 3714358
+    },
+    "native_stages": [
+      {
+        "context": {
+          "trace": 493,
+          "span": 514
+        },
+        "parent": 501,
+        "name": "analysis.select_roots",
+        "start_us": 337465876,
+        "wall_us": 19962980,
+        "thread_cpu_us": 1320592
+      },
+      {
+        "context": {
+          "trace": 493,
+          "span": 891
+        },
+        "parent": 501,
+        "name": "atlas.project.prepare",
+        "start_us": 358607344,
+        "wall_us": 26147061,
+        "thread_cpu_us": 187903
+      },
+      {
+        "context": {
+          "trace": 493,
+          "span": 1129
+        },
+        "parent": 501,
+        "name": "atlas.project.extract",
+        "start_us": 384807831,
+        "wall_us": 19996445,
+        "thread_cpu_us": 98716
+      },
+      {
+        "context": {
+          "trace": 493,
+          "span": 1315
+        },
+        "parent": 501,
+        "name": "atlas.project.fingerprint",
+        "start_us": 404877861,
+        "wall_us": 14747685,
+        "thread_cpu_us": 107827
+      },
+      {
+        "context": {
+          "trace": 493,
+          "span": 1523
+        },
+        "parent": 1516,
+        "name": "atlas.search",
+        "start_us": 422057150,
+        "wall_us": 121409897,
+        "thread_cpu_us": 419409
+      },
+      {
+        "context": {
+          "trace": 493,
+          "span": 2622
+        },
+        "parent": 1516,
+        "name": "atlas.project.fingerprint",
+        "start_us": 544858177,
+        "wall_us": 10695496,
+        "thread_cpu_us": 83518
+      },
+      {
+        "context": {
+          "trace": 493,
+          "span": 1516
+        },
+        "parent": 501,
+        "name": "analysis.search",
+        "start_us": 421964134,
+        "wall_us": 133684119,
+        "thread_cpu_us": 764877
+      },
+      {
+        "context": {
+          "trace": 493,
+          "span": 2729
+        },
+        "parent": 501,
+        "name": "analysis.render",
+        "start_us": 555665107,
+        "wall_us": 11001848,
+        "thread_cpu_us": 622370
+      },
+      {
+        "context": {
+          "trace": 493,
+          "span": 501
+        },
+        "parent": 497,
+        "name": "analysis.extract",
+        "start_us": 337343252,
+        "wall_us": 229335358,
+        "thread_cpu_us": 3714358
+      }
+    ],
+    "preparation_sha256": "d6e694c3153fb46d2c8eae725bff8785dd65e4c6c08e86cf0baee5b51d3aba48",
+    "cache_hit": false,
+    "scope": "Single initial fill of the current compiler/search cache with installed Lean and existing project/OS dependencies, not cold installation. The exploratory browser script later failed because its source-line assertion used the demo reader selector instead of the native editor selector. That selector was corrected, and none of this incomplete attempt's gesture timings or unfinished sampling recording is counted as a successful capture."
+  },
+  "captures": [
+    {
+      "directory": "target/native-profile/event-latency-20261124-riemann-2",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 15764.283882999998,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/event-profile-assets-20261124",
+        "source_maps_sha256": {
+          "index-C6Z3Cj8H.js": "9fc2df98cfc3041dc352dabd103b68e0c4fcfdb96306a7398c9ebdb2b7a3e924"
+        }
+      },
+      "manifest": {
+        "binary_sha256": "8acd6ace9b2a4ed35eebea21e360d626f92441283650cab12b93307e62d0b72f",
+        "samples": 1261,
+        "perf_event_paranoid": "2",
+        "kptr_restrict": "1",
+        "event": "cpu-clock:u",
+        "frequency_hz": 99,
+        "stack": "dwarf,8192",
+        "digests": {
+          "perf.data": "8e34d0db2281a786d6a58dc0611db2f17f6796adb1a824c63e25b89464f86044",
+          "perf-report.txt": "12e285742e3197fb57aaab368a92f1a7abbafb6a965abd69dca21c6490e7e26a",
+          "trace.json": "ae41fd660136768b82e55ad0d85a175432298c13bb9962b8b7569cd7399dd49c",
+          "native-metrics.json": "fc0b7371ea1a0f96d9cb45b376234307a5082731801957121e02fc57f14098bd",
+          "preparation.json": "a26f3292f5053db0fb2d1348643b4ea03a1c2b53452d1e677f4c3d9c7011ed52",
+          "summary.json": "6c9fec80f2bafb42318c1ca9b048a077d8bdd1e7717e95ede58c7319e729946c",
+          "graph-fit-view.cpuprofile": "61db982ea9e9eeae36988196d0631489bdd96dae9620f97ee98c0eeb7d9132a2",
+          "graph-hover.cpuprofile": "d7cf8eb624d1c11f1f70706514b9e22135546dfd86d629c3aa0ff3591d8265de",
+          "graph-idle-poll.cpuprofile": "ed7b8b1cefed8ea19c20f85cabd7b427dc0cccb87bd0faf3fa9f72a7ddacbc84",
+          "graph-idle-settled.cpuprofile": "04ea3fd48a7c74105d0cafa7d080eb2265aba9d12c198aac39d0089738015bb3",
+          "graph-node-select-distinct.cpuprofile": "a6db7622136aacd4e51dacf1814b462a7873522d7436e2aa4939639c8563157f",
+          "graph-node-select.cpuprofile": "1e0165899348db80fb5653aa8f4c2aff3c473c8aa30212f2749bb03b6af703d1",
+          "graph-pan.cpuprofile": "2eeb23f5c4ef4db03cc119cbe5a7b36912f02f74dc3edfbb18f1bdd30b80fa59",
+          "graph-resize.cpuprofile": "4ec9698ac37fcf369b829097242c23b71b743c63eb20b33cc5d5f9e6928f42fb",
+          "graph-wheel.cpuprofile": "68b40c8daa4b654cd842f0bb7faa27092424572c19ae5267d3128a128c068e96",
+          "project-map-idle.cpuprofile": "bcfe9f3814010827f74e2ab2d74a2d0b4f468980c6172f0a000bd9c578ef7f43",
+          "project-map-wheel.cpuprofile": "eb0a3c0a38fc3afbf5a25f7d30c3255b9c81b6ced62160ffc26d33879ec709f4",
+          "tab-switch.cpuprofile": "9466ce8068ebf95abede8c9a78b8205fd652be65413b3ebb7b912bfd063032d1"
+        },
+        "limits": "Current-user native host and inherited workers only; no kernel stacks. Thread CPU spans exclude worker CPU. File preparation reuses project/OS caches, not a cold installation. Sampling changes timing; browser profiles have their own overhead."
+      },
+      "artifacts": {
+        "perf.data": "8e34d0db2281a786d6a58dc0611db2f17f6796adb1a824c63e25b89464f86044",
+        "perf-report.txt": "12e285742e3197fb57aaab368a92f1a7abbafb6a965abd69dca21c6490e7e26a",
+        "trace.json": "ae41fd660136768b82e55ad0d85a175432298c13bb9962b8b7569cd7399dd49c",
+        "native-metrics.json": "fc0b7371ea1a0f96d9cb45b376234307a5082731801957121e02fc57f14098bd",
+        "preparation.json": "a26f3292f5053db0fb2d1348643b4ea03a1c2b53452d1e677f4c3d9c7011ed52",
+        "summary.json": "6c9fec80f2bafb42318c1ca9b048a077d8bdd1e7717e95ede58c7319e729946c",
+        "graph-fit-view.cpuprofile": "61db982ea9e9eeae36988196d0631489bdd96dae9620f97ee98c0eeb7d9132a2",
+        "graph-hover.cpuprofile": "d7cf8eb624d1c11f1f70706514b9e22135546dfd86d629c3aa0ff3591d8265de",
+        "graph-idle-poll.cpuprofile": "ed7b8b1cefed8ea19c20f85cabd7b427dc0cccb87bd0faf3fa9f72a7ddacbc84",
+        "graph-idle-settled.cpuprofile": "04ea3fd48a7c74105d0cafa7d080eb2265aba9d12c198aac39d0089738015bb3",
+        "graph-node-select-distinct.cpuprofile": "a6db7622136aacd4e51dacf1814b462a7873522d7436e2aa4939639c8563157f",
+        "graph-node-select.cpuprofile": "1e0165899348db80fb5653aa8f4c2aff3c473c8aa30212f2749bb03b6af703d1",
+        "graph-pan.cpuprofile": "2eeb23f5c4ef4db03cc119cbe5a7b36912f02f74dc3edfbb18f1bdd30b80fa59",
+        "graph-resize.cpuprofile": "4ec9698ac37fcf369b829097242c23b71b743c63eb20b33cc5d5f9e6928f42fb",
+        "graph-wheel.cpuprofile": "68b40c8daa4b654cd842f0bb7faa27092424572c19ae5267d3128a128c068e96",
+        "project-map-idle.cpuprofile": "bcfe9f3814010827f74e2ab2d74a2d0b4f468980c6172f0a000bd9c578ef7f43",
+        "project-map-wheel.cpuprofile": "eb0a3c0a38fc3afbf5a25f7d30c3255b9c81b6ced62160ffc26d33879ec709f4",
+        "tab-switch.cpuprofile": "9466ce8068ebf95abede8c9a78b8205fd652be65413b3ebb7b912bfd063032d1",
+        "manifest.json": "71c0bf6b18b8240f67097f7098eef6ee8f952d720a3c810eb8f5e41e609168b6",
+        "project-map.png": "e8753780a535ecdb601d4ff0dc470fc45b4f63186b9ec8d5c89ee855e3c14b25"
+      },
+      "operations": {
+        "project-map-wheel": {
+          "event": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 2.859,
+            "p95_ms": 4.862,
+            "max_ms": 4.986,
+            "total_ms": 67.689
+          },
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 16.899999976158142,
+            "p95_ms": 17.69999998807907,
+            "max_ms": 18,
+            "total_ms": 403.2000000476837
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "selections": [],
+          "click_dispatch_ms": []
+        },
+        "graph-wheel": {
+          "event": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 0.554,
+            "p95_ms": 0.996,
+            "max_ms": 1.376,
+            "total_ms": 13.34
+          },
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 16.399999976158142,
+            "p95_ms": 16.69999998807907,
+            "max_ms": 16.69999998807907,
+            "total_ms": 393.49999982118607
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "selections": [],
+          "click_dispatch_ms": []
+        },
+        "graph-hover": {
+          "event": "pointermove",
+          "dispatch": {
+            "count": 40,
+            "p50_ms": 0.046,
+            "p95_ms": 0.104,
+            "max_ms": 0.106,
+            "total_ms": 2.0110000000000006
+          },
+          "input_to_two_raf": {
+            "count": 40,
+            "p50_ms": 18.80000001192093,
+            "p95_ms": 23.599999964237213,
+            "max_ms": 39.60000002384186,
+            "total_ms": 754.9999999403954
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "selections": [],
+          "click_dispatch_ms": []
+        },
+        "graph-pan": {
+          "event": "pointermove",
+          "dispatch": {
+            "count": 31,
+            "p50_ms": 0.146,
+            "p95_ms": 0.213,
+            "max_ms": 0.214,
+            "total_ms": 4.483999999999999
+          },
+          "input_to_two_raf": {
+            "count": 31,
+            "p50_ms": 19.69999998807907,
+            "p95_ms": 23.30000001192093,
+            "max_ms": 26.100000023841858,
+            "total_ms": 604.6000000238419
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "selections": [],
+          "click_dispatch_ms": [
+            0.02
+          ]
+        },
+        "graph-resize": {
+          "event": "resize",
+          "dispatch": {
+            "count": 3,
+            "p50_ms": 0.932,
+            "p95_ms": 0.936,
+            "max_ms": 0.936,
+            "total_ms": 2.712
+          },
+          "input_to_two_raf": {
+            "count": 3,
+            "p50_ms": 17.600000023841858,
+            "p95_ms": 18,
+            "max_ms": 18,
+            "total_ms": 50.10000002384186
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "selections": [],
+          "click_dispatch_ms": []
+        },
+        "tab-switch": {
+          "event": "click",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 12.902,
+            "p95_ms": 15.468,
+            "max_ms": 16.652,
+            "total_ms": 306.912
+          },
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 31.19999998807907,
+            "p95_ms": 42.10000002384186,
+            "max_ms": 42.19999998807907,
+            "total_ms": 741.6999999880791
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "selections": [],
+          "click_dispatch_ms": [
+            12.902,
+            12.87,
+            14.035,
+            16.652,
+            13.893,
+            11.705,
+            11.176,
+            15.468,
+            9.305,
+            13.033,
+            13.932,
+            12.818,
+            13.369,
+            10.182,
+            14.374,
+            12.778,
+            11.408,
+            10.904,
+            13.903,
+            14.399,
+            11.046,
+            13.244,
+            12.583,
+            10.933
+          ]
+        },
+        "graph-fit-view": {
+          "event": "click",
+          "dispatch": {
+            "count": 1,
+            "p50_ms": 1.041,
+            "p95_ms": 1.041,
+            "max_ms": 1.041,
+            "total_ms": 1.041
+          },
+          "input_to_two_raf": {
+            "count": 1,
+            "p50_ms": 23.099999964237213,
+            "p95_ms": 23.099999964237213,
+            "max_ms": 23.099999964237213,
+            "total_ms": 23.099999964237213
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "selections": [],
+          "click_dispatch_ms": [
+            1.041
+          ]
+        },
+        "graph-node-select": {
+          "event": "click",
+          "dispatch": {
+            "count": 8,
+            "p50_ms": 0.177,
+            "p95_ms": 32.022,
+            "max_ms": 32.022,
+            "total_ms": 33.19
+          },
+          "input_to_two_raf": {
+            "count": 8,
+            "p50_ms": 26.299999952316284,
+            "p95_ms": 40,
+            "max_ms": 40,
+            "total_ms": 211.29999989271164
+          },
+          "long_tasks": {
+            "count": 1,
+            "p50_ms": 52,
+            "p95_ms": 52,
+            "max_ms": 52,
+            "total_ms": 52
+          },
+          "selections": [
+            {
+              "phase": "graph-node-select",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            }
+          ],
+          "click_dispatch_ms": [
+            32.022,
+            0.175,
+            0.218,
+            0.177,
+            0.148,
+            0.082,
+            0.163,
+            0.205
+          ]
+        },
+        "graph-node-select-distinct": {
+          "event": "click",
+          "dispatch": {
+            "count": 8,
+            "p50_ms": 13.339,
+            "p95_ms": 14.812,
+            "max_ms": 14.812,
+            "total_ms": 107.761
+          },
+          "input_to_two_raf": {
+            "count": 8,
+            "p50_ms": 20.30000001192093,
+            "p95_ms": 22.700000047683716,
+            "max_ms": 22.700000047683716,
+            "total_ms": 164.80000013113022
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "selections": [
+            {
+              "phase": "graph-node-select-distinct",
+              "id": "PIW.AdelClassFin.DictGen.exists_denominator_fmat",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select-distinct",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select-distinct",
+              "id": "PIW.AdelClassFin.DictGen.exists_denominator_fmat",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select-distinct",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select-distinct",
+              "id": "PIW.AdelClassFin.DictGen.exists_denominator_fmat",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select-distinct",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select-distinct",
+              "id": "PIW.AdelClassFin.DictGen.exists_denominator_fmat",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select-distinct",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            }
+          ],
+          "click_dispatch_ms": [
+            13.664,
+            13.339,
+            13.061,
+            13.565,
+            13.244,
+            13.026,
+            13.05,
+            14.812
+          ]
+        }
+      },
+      "native_stages": {
+        "available": true,
+        "evicted_during_capture": 0,
+        "stages": {
+          "process.run": {
+            "wall": {
+              "count": 84,
+              "p50_ms": 51.224,
+              "p95_ms": 61.711,
+              "max_ms": 9393.945,
+              "total_ms": 13871.071
+            },
+            "host_thread_cpu": {
+              "count": 84,
+              "p50_ms": 0.46,
+              "p95_ms": 0.673,
+              "max_ms": 38.555,
+              "total_ms": 79.02600000000001
+            }
+          },
+          "gui.job": {
+            "wall": {
+              "count": 7,
+              "p50_ms": 52.54,
+              "p95_ms": 15116.727,
+              "max_ms": 15116.727,
+              "total_ms": 15412.37
+            },
+            "host_thread_cpu": {
+              "count": 7,
+              "p50_ms": 1.799,
+              "p95_ms": 1379.395,
+              "max_ms": 1379.395,
+              "total_ms": 1391.189
+            }
+          },
+          "gui.serialize_respond": {
+            "wall": {
+              "count": 205,
+              "p50_ms": 2.535,
+              "p95_ms": 6.544,
+              "max_ms": 1114.505,
+              "total_ms": 1750.9410000000005
+            },
+            "host_thread_cpu": {
+              "count": 205,
+              "p50_ms": 2.467,
+              "p95_ms": 6.394,
+              "max_ms": 1037.146,
+              "total_ms": 1654.2530000000002
+            }
+          },
+          "gui.state": {
+            "wall": {
+              "count": 151,
+              "p50_ms": 4.966,
+              "p95_ms": 8.397,
+              "max_ms": 9.698,
+              "total_ms": 758.801
+            },
+            "host_thread_cpu": {
+              "count": 151,
+              "p50_ms": 4.842,
+              "p95_ms": 8.259,
+              "max_ms": 9.52,
+              "total_ms": 739.054
+            }
+          },
+          "gui.enqueue": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.001,
+              "p95_ms": 0.002,
+              "max_ms": 0.002,
+              "total_ms": 0.007
+            },
+            "host_thread_cpu": {
+              "count": 6,
+              "p50_ms": 0.001,
+              "p95_ms": 0.001,
+              "max_ms": 0.001,
+              "total_ms": 0.005
+            }
+          },
+          "job.queue": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.034,
+              "p95_ms": 0.128,
+              "max_ms": 0.128,
+              "total_ms": 0.322
+            },
+            "host_thread_cpu": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            }
+          },
+          "gui.command": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.253,
+              "p95_ms": 0.296,
+              "max_ms": 0.296,
+              "total_ms": 1.459
+            },
+            "host_thread_cpu": {
+              "count": 6,
+              "p50_ms": 0.226,
+              "p95_ms": 0.27,
+              "max_ms": 0.27,
+              "total_ms": 1.297
+            }
+          },
+          "atlas.resources.select": {
+            "wall": {
+              "count": 25,
+              "p50_ms": 11.524,
+              "p95_ms": 18.161,
+              "max_ms": 18.579,
+              "total_ms": 306.694
+            },
+            "host_thread_cpu": {
+              "count": 25,
+              "p50_ms": 11.412,
+              "p95_ms": 17.977,
+              "max_ms": 18.322,
+              "total_ms": 303.527
+            }
+          },
+          "atlas.resources.validate": {
+            "wall": {
+              "count": 38,
+              "p50_ms": 19.971,
+              "p95_ms": 22.253,
+              "max_ms": 23.636,
+              "total_ms": 771.0350000000001
+            },
+            "host_thread_cpu": {
+              "count": 38,
+              "p50_ms": 19.864,
+              "p95_ms": 22.139,
+              "max_ms": 23.399,
+              "total_ms": 767.002
+            }
+          },
+          "analysis.capture_sources": {
+            "wall": {
+              "count": 3,
+              "p50_ms": 41.975,
+              "p95_ms": 52.332,
+              "max_ms": 52.332,
+              "total_ms": 136.18
+            },
+            "host_thread_cpu": {
+              "count": 3,
+              "p50_ms": 1.478,
+              "p95_ms": 1.555,
+              "max_ms": 1.555,
+              "total_ms": 4.234
+            }
+          },
+          "atlas.lake_configuration.reuse": {
+            "wall": {
+              "count": 12,
+              "p50_ms": 20.316,
+              "p95_ms": 22.684,
+              "max_ms": 22.684,
+              "total_ms": 245.97599999999997
+            },
+            "host_thread_cpu": {
+              "count": 12,
+              "p50_ms": 20.221,
+              "p95_ms": 22.508,
+              "max_ms": 22.508,
+              "total_ms": 244.75800000000004
+            }
+          },
+          "atlas.lake_configuration.resolve": {
+            "wall": {
+              "count": 12,
+              "p50_ms": 58.914,
+              "p95_ms": 66.58,
+              "max_ms": 66.58,
+              "total_ms": 694.1510000000001
+            },
+            "host_thread_cpu": {
+              "count": 12,
+              "p50_ms": 57.909,
+              "p95_ms": 65.242,
+              "max_ms": 65.242,
+              "total_ms": 682.484
+            }
+          },
+          "analysis.discover_layout": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1924.234,
+              "p95_ms": 1924.234,
+              "max_ms": 1924.234,
+              "total_ms": 1924.234
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 706.567,
+              "p95_ms": 706.567,
+              "max_ms": 706.567,
+              "total_ms": 706.567
+            }
+          },
+          "analysis.select_roots": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 2008.256,
+              "p95_ms": 2008.256,
+              "max_ms": 2008.256,
+              "total_ms": 2008.256
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 709.416,
+              "p95_ms": 709.416,
+              "max_ms": 709.416,
+              "total_ms": 709.416
+            }
+          },
+          "sandbox.public_tools": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 92.705,
+              "p95_ms": 92.705,
+              "max_ms": 92.705,
+              "total_ms": 92.705
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 4.138,
+              "p95_ms": 4.138,
+              "max_ms": 4.138,
+              "total_ms": 4.138
+            }
+          },
+          "sandbox.libraries": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 63.861,
+              "p95_ms": 63.861,
+              "max_ms": 63.861,
+              "total_ms": 63.861
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 4.289,
+              "p95_ms": 4.289,
+              "max_ms": 4.289,
+              "total_ms": 4.289
+            }
+          },
+          "sandbox.nix_closure": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 63.637,
+              "p95_ms": 63.637,
+              "max_ms": 63.637,
+              "total_ms": 63.637
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 1.046,
+              "p95_ms": 1.046,
+              "max_ms": 1.046,
+              "total_ms": 1.046
+            }
+          },
+          "sandbox.prepare": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 645.904,
+              "p95_ms": 645.904,
+              "max_ms": 645.904,
+              "total_ms": 645.904
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 51.46,
+              "p95_ms": 51.46,
+              "max_ms": 51.46,
+              "total_ms": 51.46
+            }
+          },
+          "atlas.project.prepare": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 10040.289,
+              "p95_ms": 10040.289,
+              "max_ms": 10040.289,
+              "total_ms": 10040.289
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 90.455,
+              "p95_ms": 90.455,
+              "max_ms": 90.455,
+              "total_ms": 90.455
+            }
+          },
+          "analysis.cache.validate": {
+            "wall": {
+              "count": 2,
+              "p50_ms": 1303.583,
+              "p95_ms": 1303.583,
+              "max_ms": 1303.583,
+              "total_ms": 1303.683
+            },
+            "host_thread_cpu": {
+              "count": 2,
+              "p50_ms": 61.247,
+              "p95_ms": 61.247,
+              "max_ms": 61.247,
+              "total_ms": 61.346
+            }
+          },
+          "analysis.cache.retain_observation": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 9.055,
+              "p95_ms": 9.055,
+              "max_ms": 9.055,
+              "total_ms": 9.055
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 9.014,
+              "p95_ms": 9.014,
+              "max_ms": 9.014,
+              "total_ms": 9.014
+            }
+          },
+          "analysis.search": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 62.163,
+              "p95_ms": 62.163,
+              "max_ms": 62.163,
+              "total_ms": 62.163
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 61.822,
+              "p95_ms": 61.822,
+              "max_ms": 61.822,
+              "total_ms": 61.822
+            }
+          },
+          "analysis.cache.load_rendering": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1.056,
+              "p95_ms": 1.056,
+              "max_ms": 1.056,
+              "total_ms": 1.056
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 1.052,
+              "p95_ms": 1.052,
+              "max_ms": 1.052,
+              "total_ms": 1.052
+            }
+          },
+          "analysis.extract": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 14896.736,
+              "p95_ms": 14896.736,
+              "max_ms": 14896.736,
+              "total_ms": 14896.736
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 1253.38,
+              "p95_ms": 1253.38,
+              "max_ms": 1253.38,
+              "total_ms": 1253.38
+            }
+          },
+          "analysis.materialize_view": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 0.439,
+              "p95_ms": 0.439,
+              "max_ms": 0.439,
+              "total_ms": 0.439
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 0.438,
+              "p95_ms": 0.438,
+              "max_ms": 0.438,
+              "total_ms": 0.438
+            }
+          }
+        }
+      },
+      "preparation": {
+        "cache_hit": true,
+        "native_elapsed_ms": 14897,
+        "build_resolution_seconds": [
+          4.78
+        ],
+        "validation": [
+          {
+            "files": 43477,
+            "bytes": 5992114707,
+            "seconds": 4.514
+          }
+        ]
+      },
+      "idle": {
+        "requests": 11,
+        "response_bytes": [
+          89695
+        ],
+        "request_start_intervals_ms": [
+          355.921142578125,
+          363.614990234375,
+          362.033203125,
+          361.080810546875,
+          361.94482421875,
+          361.313232421875,
+          362.080078125,
+          359.972900390625,
+          361.10009765625,
+          361.503662109375
+        ]
+      },
+      "camera_preserved": true,
+      "non_state_interaction_requests": 0,
+      "hotspots": {
+        "graph-hover": [
+          {
+            "self_ms": 826.8669999999997,
+            "location": "(idle)"
+          },
+          {
+            "self_ms": 638.1229999999945,
+            "location": "(program)"
+          },
+          {
+            "self_ms": 18.157999999999998,
+            "location": "get scrollTop"
+          },
+          {
+            "self_ms": 16.168,
+            "location": "get scrollTop"
+          },
+          {
+            "self_ms": 12.790999999999999,
+            "location": "../../../node_modules/@popperjs/core/lib/dom-utils/isScrollParent.js:2 · isScrollParent"
+          },
+          {
+            "self_ms": 12.23,
+            "location": "../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 · (anonymous)"
+          },
+          {
+            "self_ms": 12.154000000000002,
+            "location": "../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 · getTrueOffsetParent"
+          },
+          {
+            "self_ms": 10.585999999999999,
+            "location": "../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 · getTrueOffsetParent"
+          },
+          {
+            "self_ms": 9.994000000000002,
+            "location": "query"
+          },
+          {
+            "self_ms": 9.678,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+          },
+          {
+            "self_ms": 6.891,
+            "location": "../../../node_modules/react/cjs/react.production.js:453 · Eq.Xt.createElement"
+          },
+          {
+            "self_ms": 6.58,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 · workLoopSync"
+          },
+          {
+            "self_ms": 5.382000000000001,
+            "location": "../../../node_modules/@mui/material/Tooltip/Tooltip.mjs:220 · (anonymous)"
+          },
+          {
+            "self_ms": 5.297,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 · renderWithHooks"
+          },
+          {
+            "self_ms": 4.746,
+            "location": "../../../apps/web/src/features/native/NativeExplorer.tsx:277 · (anonymous)"
+          },
+          {
+            "self_ms": 4.588,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 · updateElement"
+          },
+          {
+            "self_ms": 4.539,
+            "location": "../../../node_modules/react/cjs/react-jsx-runtime.production.js:14 · jsxProd"
+          },
+          {
+            "self_ms": 4.212,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+          },
+          {
+            "self_ms": 4.144,
+            "location": "../../../node_modules/@emotion/react/dist/emotion-element-f0de968e.browser.esm.js:29 · (anonymous)"
+          },
+          {
+            "self_ms": 3.4370000000000003,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 · propagateParentContextChanges"
+          }
+        ],
+        "graph-node-select-distinct": [
+          {
+            "self_ms": 898.7460000000016,
+            "location": "(idle)"
+          },
+          {
+            "self_ms": 510.85399999999686,
+            "location": "(program)"
+          },
+          {
+            "self_ms": 34.989,
+            "location": "query"
+          },
+          {
+            "self_ms": 12.853000000000002,
+            "location": "../../../node_modules/@mui/material/TextareaAutosize/TextareaAutosize.mjs:66 · (anonymous)"
+          },
+          {
+            "self_ms": 11.835999999999999,
+            "location": "../../../node_modules/@popperjs/core/lib/dom-utils/isScrollParent.js:2 · isScrollParent"
+          },
+          {
+            "self_ms": 11.718000000000002,
+            "location": "../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 · getTrueOffsetParent"
+          },
+          {
+            "self_ms": 8.711,
+            "location": "querySelectorAll"
+          },
+          {
+            "self_ms": 6.100999999999999,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 · workLoopSync"
+          },
+          {
+            "self_ms": 5.529,
+            "location": "../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 · (anonymous)"
+          },
+          {
+            "self_ms": 5.462,
+            "location": "(garbage collector)"
+          },
+          {
+            "self_ms": 5.428,
+            "location": "../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 · getTrueOffsetParent"
+          },
+          {
+            "self_ms": 5.339,
+            "location": "../../../node_modules/@mui/material/TextareaAutosize/TextareaAutosize.mjs:66 · (anonymous)"
+          },
+          {
+            "self_ms": 5.312,
+            "location": "(anonymous)"
+          },
+          {
+            "self_ms": 5.061000000000001,
+            "location": "../../../apps/web/src/features/source/ExplanationHint.tsx:26 · ExplanationHint"
+          },
+          {
+            "self_ms": 4.981999999999999,
+            "location": "../../../node_modules/@emotion/hash/dist/emotion-hash.esm.js:4 · murmur2"
+          },
+          {
+            "self_ms": 4.422,
+            "location": "query"
+          },
+          {
+            "self_ms": 4.305,
+            "location": "../../../node_modules/@emotion/react/dist/emotion-element-f0de968e.browser.esm.js:29 · (anonymous)"
+          },
+          {
+            "self_ms": 4.293,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:6425 · updateForwardRef"
+          },
+          {
+            "self_ms": 4.292000000000001,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 · updateElement"
+          },
+          {
+            "self_ms": 3.2359999999999998,
+            "location": "../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 · (anonymous)"
+          }
+        ],
+        "tab-switch": [
+          {
+            "self_ms": 1236.7390000000025,
+            "location": "(idle)"
+          },
+          {
+            "self_ms": 946.4949999999913,
+            "location": "(program)"
+          },
+          {
+            "self_ms": 44.191,
+            "location": "query"
+          },
+          {
+            "self_ms": 33.821,
+            "location": "(garbage collector)"
+          },
+          {
+            "self_ms": 17.846999999999998,
+            "location": "getAriaRole"
+          },
+          {
+            "self_ms": 17.183,
+            "location": "elementSafeTagName"
+          },
+          {
+            "self_ms": 17.169999999999998,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 · reconcileChildrenArray"
+          },
+          {
+            "self_ms": 16.643,
+            "location": "../../../node_modules/@xyflow/system/dist/index.js:1847 · updateNodeInternals"
+          },
+          {
+            "self_ms": 15.871,
+            "location": "elementsFromPoint"
+          },
+          {
+            "self_ms": 15.026000000000002,
+            "location": "(anonymous)"
+          },
+          {
+            "self_ms": 11.869,
+            "location": "../../../apps/web/src/features/source/ExplanationHint.tsx:26 · ExplanationHint"
+          },
+          {
+            "self_ms": 10.697000000000001,
+            "location": "../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 · (anonymous)"
+          },
+          {
+            "self_ms": 10.687000000000001,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3644 · updateElement"
+          },
+          {
+            "self_ms": 10.677,
+            "location": "../../../apps/web/src/features/native/NativeExplorer.tsx:68 · entry"
+          },
+          {
+            "self_ms": 10.619,
+            "location": "getAttribute"
+          },
+          {
+            "self_ms": 8.577000000000002,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 · workLoopSync"
+          },
+          {
+            "self_ms": 8.517,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+          },
+          {
+            "self_ms": 8.511,
+            "location": "../../../node_modules/@emotion/hash/dist/emotion-hash.esm.js:4 · murmur2"
+          },
+          {
+            "self_ms": 7.548,
+            "location": "getExplicitAriaRole"
+          },
+          {
+            "self_ms": 7.500000000000002,
+            "location": "getTextAlternativeInternal"
+          }
+        ],
+        "project-map-wheel": [
+          {
+            "self_ms": 994.0830000000026,
+            "location": "(idle)"
+          },
+          {
+            "self_ms": 599.1719999999997,
+            "location": "(program)"
+          },
+          {
+            "self_ms": 3.2219999999999995,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+          },
+          {
+            "self_ms": 3.175,
+            "location": "../../../node_modules/@mui/material/utils/useSlot.mjs:21 · useSlot"
+          },
+          {
+            "self_ms": 2.379,
+            "location": "fetch"
+          },
+          {
+            "self_ms": 2.238,
+            "location": "../../../apps/web/src/features/native/NativeExplorer.tsx:29 · NativeExplorer"
+          },
+          {
+            "self_ms": 2.1900000000000004,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:10497 · commitMutationEffectsOnFiber"
+          },
+          {
+            "self_ms": 2.168,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 · reconcileChildrenArray"
+          },
+          {
+            "self_ms": 2.165,
+            "location": "../../../node_modules/@emotion/hash/dist/emotion-hash.esm.js:4 · murmur2"
+          },
+          {
+            "self_ms": 2.1630000000000003,
+            "location": "../../../node_modules/@emotion/serialize/dist/emotion-serialize.esm.js:188 · serializeStyles"
+          },
+          {
+            "self_ms": 2.156,
+            "location": "../../../node_modules/react/cjs/react.production.js:453 · Eq.Xt.createElement"
+          },
+          {
+            "self_ms": 2.145,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:10497 · commitMutationEffectsOnFiber"
+          },
+          {
+            "self_ms": 2.144,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:7768 · beginWork"
+          },
+          {
+            "self_ms": 2.143,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 · workLoopSync"
+          },
+          {
+            "self_ms": 2.134,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 · reconcileChildrenArray"
+          },
+          {
+            "self_ms": 2.129,
+            "location": "../../../node_modules/@xyflow/react/dist/index.js:7 · ga"
+          },
+          {
+            "self_ms": 2.118,
+            "location": "../../../node_modules/react/cjs/react.production.js:453 · Eq.Xt.createElement"
+          },
+          {
+            "self_ms": 2.1159999999999997,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:6425 · updateForwardRef"
+          },
+          {
+            "self_ms": 1.968,
+            "location": "../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:279 · (anonymous)"
+          },
+          {
+            "self_ms": 1.939,
+            "location": "mark"
+          }
+        ]
+      }
+    },
+    {
+      "directory": "target/native-profile/event-latency-20261124-riemann-3",
+      "environment": {
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 15792.250700999999,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/event-profile-assets-20261124",
+        "source_maps_sha256": {
+          "index-C6Z3Cj8H.js": "9fc2df98cfc3041dc352dabd103b68e0c4fcfdb96306a7398c9ebdb2b7a3e924"
+        }
+      },
+      "manifest": {
+        "binary_sha256": "8acd6ace9b2a4ed35eebea21e360d626f92441283650cab12b93307e62d0b72f",
+        "samples": 1286,
+        "perf_event_paranoid": "2",
+        "kptr_restrict": "1",
+        "event": "cpu-clock:u",
+        "frequency_hz": 99,
+        "stack": "dwarf,8192",
+        "digests": {
+          "perf.data": "603d790302fd869ed317f8f39e299e6e9d0d056569edb2d78d442bcb5177662b",
+          "perf-report.txt": "10f52ca28443d751787178fdae7f235f0b5873ee4a76a49f168df1f6fc7341d5",
+          "trace.json": "6095eab3a27748fd2474886a74994a3b2b0241c4a01f4d1afa928f05ac4d8268",
+          "native-metrics.json": "e3de923a96fccb04d39df97e60cfae14b84da81c204518b43c0e124fb44d7094",
+          "preparation.json": "0310408d30746b1b4f13dfb297d8d1344ad6102ac50a15247dc5a6817d789de2",
+          "summary.json": "26dbfeeaac56e5ffec56e4709f142e0bda46a90a57ae6d25ae216c64a9648039",
+          "graph-fit-view.cpuprofile": "54cbbf6b37256e87054169160056b724b3c4dbd772226474546b7099a4ab840a",
+          "graph-hover.cpuprofile": "31bdacba748d3adf40c30801ae776ad74debea22745276034bf2f35b04662509",
+          "graph-idle-poll.cpuprofile": "76f276f4db2044059077a813928d1397292aaba09eba39186359c5d65137414a",
+          "graph-idle-settled.cpuprofile": "29602a59959ca34c5f603d4025eb429a2ec941249b9e10cae451322fb8e2b09c",
+          "graph-node-select-distinct.cpuprofile": "5362593e76af33fb6c68db0743fe2e516e30a886b4770b091df36d5f73195589",
+          "graph-node-select.cpuprofile": "839dbfe600a271f64a65129e7ffc0e2f7e33f909a58865ee51ad844d939595c2",
+          "graph-pan.cpuprofile": "6d0515b76e73c601d40f927d7dd3280b522180a012265f763750f2e007ff54e8",
+          "graph-resize.cpuprofile": "72ef3a1817dcc44422e5afa2d4b0e68cf5c6e773f26127e4aec0e9c5bbd917b9",
+          "graph-wheel.cpuprofile": "a7e4aaebf4ddd223f7ee796d06bd1c210a23eda3415f497482b493019f1c25fa",
+          "project-map-idle.cpuprofile": "ad4c89284d46a56f581c771b117357303242578688e102365164158df9e355f9",
+          "project-map-wheel.cpuprofile": "ec17b69e85289351d750245aab8ed1f268a0cc362213271ee8d453496cda3ccf",
+          "tab-switch.cpuprofile": "944db4966edb9833a20cdc7139aec2d01e8a8c861cd30fd2928a1e7fff12afb4"
+        },
+        "limits": "Current-user native host and inherited workers only; no kernel stacks. Thread CPU spans exclude worker CPU. File preparation reuses project/OS caches, not a cold installation. Sampling changes timing; browser profiles have their own overhead."
+      },
+      "artifacts": {
+        "perf.data": "603d790302fd869ed317f8f39e299e6e9d0d056569edb2d78d442bcb5177662b",
+        "perf-report.txt": "10f52ca28443d751787178fdae7f235f0b5873ee4a76a49f168df1f6fc7341d5",
+        "trace.json": "6095eab3a27748fd2474886a74994a3b2b0241c4a01f4d1afa928f05ac4d8268",
+        "native-metrics.json": "e3de923a96fccb04d39df97e60cfae14b84da81c204518b43c0e124fb44d7094",
+        "preparation.json": "0310408d30746b1b4f13dfb297d8d1344ad6102ac50a15247dc5a6817d789de2",
+        "summary.json": "26dbfeeaac56e5ffec56e4709f142e0bda46a90a57ae6d25ae216c64a9648039",
+        "graph-fit-view.cpuprofile": "54cbbf6b37256e87054169160056b724b3c4dbd772226474546b7099a4ab840a",
+        "graph-hover.cpuprofile": "31bdacba748d3adf40c30801ae776ad74debea22745276034bf2f35b04662509",
+        "graph-idle-poll.cpuprofile": "76f276f4db2044059077a813928d1397292aaba09eba39186359c5d65137414a",
+        "graph-idle-settled.cpuprofile": "29602a59959ca34c5f603d4025eb429a2ec941249b9e10cae451322fb8e2b09c",
+        "graph-node-select-distinct.cpuprofile": "5362593e76af33fb6c68db0743fe2e516e30a886b4770b091df36d5f73195589",
+        "graph-node-select.cpuprofile": "839dbfe600a271f64a65129e7ffc0e2f7e33f909a58865ee51ad844d939595c2",
+        "graph-pan.cpuprofile": "6d0515b76e73c601d40f927d7dd3280b522180a012265f763750f2e007ff54e8",
+        "graph-resize.cpuprofile": "72ef3a1817dcc44422e5afa2d4b0e68cf5c6e773f26127e4aec0e9c5bbd917b9",
+        "graph-wheel.cpuprofile": "a7e4aaebf4ddd223f7ee796d06bd1c210a23eda3415f497482b493019f1c25fa",
+        "project-map-idle.cpuprofile": "ad4c89284d46a56f581c771b117357303242578688e102365164158df9e355f9",
+        "project-map-wheel.cpuprofile": "ec17b69e85289351d750245aab8ed1f268a0cc362213271ee8d453496cda3ccf",
+        "tab-switch.cpuprofile": "944db4966edb9833a20cdc7139aec2d01e8a8c861cd30fd2928a1e7fff12afb4",
+        "manifest.json": "c5133b171f06b3143de9c7ecb8fa830f19430dd8e540ecdc2fb55a1119725613",
+        "project-map.png": "e8753780a535ecdb601d4ff0dc470fc45b4f63186b9ec8d5c89ee855e3c14b25"
+      },
+      "operations": {
+        "project-map-wheel": {
+          "event": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 2.437,
+            "p95_ms": 4.053,
+            "max_ms": 5.288,
+            "total_ms": 64.648
+          },
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 16.80000001192093,
+            "p95_ms": 18.099999964237213,
+            "max_ms": 18.5,
+            "total_ms": 398.4999998807907
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "selections": [],
+          "click_dispatch_ms": []
+        },
+        "graph-wheel": {
+          "event": "wheel",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 0.53,
+            "p95_ms": 0.853,
+            "max_ms": 1.299,
+            "total_ms": 13.391
+          },
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 16.5,
+            "p95_ms": 22.19999998807907,
+            "max_ms": 27.19999998807907,
+            "total_ms": 417.0999998450279
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "selections": [],
+          "click_dispatch_ms": []
+        },
+        "graph-hover": {
+          "event": "pointermove",
+          "dispatch": {
+            "count": 40,
+            "p50_ms": 0.035,
+            "p95_ms": 0.1,
+            "max_ms": 0.178,
+            "total_ms": 1.7320000000000007
+          },
+          "input_to_two_raf": {
+            "count": 40,
+            "p50_ms": 18.69999998807907,
+            "p95_ms": 26.799999952316284,
+            "max_ms": 29.30000001192093,
+            "total_ms": 747.5000000596046
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "selections": [],
+          "click_dispatch_ms": []
+        },
+        "graph-pan": {
+          "event": "pointermove",
+          "dispatch": {
+            "count": 31,
+            "p50_ms": 0.173,
+            "p95_ms": 0.24,
+            "max_ms": 0.414,
+            "total_ms": 5.292999999999999
+          },
+          "input_to_two_raf": {
+            "count": 31,
+            "p50_ms": 20,
+            "p95_ms": 21.80000001192093,
+            "max_ms": 31.200000047683716,
+            "total_ms": 615.2000003457069
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "selections": [],
+          "click_dispatch_ms": [
+            0.028
+          ]
+        },
+        "graph-resize": {
+          "event": "resize",
+          "dispatch": {
+            "count": 3,
+            "p50_ms": 1.053,
+            "p95_ms": 1.264,
+            "max_ms": 1.264,
+            "total_ms": 3.0679999999999996
+          },
+          "input_to_two_raf": {
+            "count": 3,
+            "p50_ms": 15.599999964237213,
+            "p95_ms": 21.69999998807907,
+            "max_ms": 21.69999998807907,
+            "total_ms": 50.999999940395355
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "selections": [],
+          "click_dispatch_ms": []
+        },
+        "tab-switch": {
+          "event": "click",
+          "dispatch": {
+            "count": 24,
+            "p50_ms": 13.449,
+            "p95_ms": 15.528,
+            "max_ms": 16.511,
+            "total_ms": 318.689
+          },
+          "input_to_two_raf": {
+            "count": 24,
+            "p50_ms": 30.5,
+            "p95_ms": 43.10000002384186,
+            "max_ms": 45.30000001192093,
+            "total_ms": 736.299999833107
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "selections": [],
+          "click_dispatch_ms": [
+            12.795,
+            12.773,
+            15.506,
+            12.157,
+            12.513,
+            13.449,
+            11.65,
+            13.634,
+            12.429,
+            15.339,
+            13.555,
+            11.312,
+            12.372,
+            14.09,
+            14.986,
+            15.528,
+            12.482,
+            9.37,
+            13.935,
+            16.511,
+            10.438,
+            14.136,
+            15.379,
+            12.35
+          ]
+        },
+        "graph-fit-view": {
+          "event": "click",
+          "dispatch": {
+            "count": 1,
+            "p50_ms": 1.059,
+            "p95_ms": 1.059,
+            "max_ms": 1.059,
+            "total_ms": 1.059
+          },
+          "input_to_two_raf": {
+            "count": 1,
+            "p50_ms": 22.899999976158142,
+            "p95_ms": 22.899999976158142,
+            "max_ms": 22.899999976158142,
+            "total_ms": 22.899999976158142
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "selections": [],
+          "click_dispatch_ms": [
+            1.059
+          ]
+        },
+        "graph-node-select": {
+          "event": "click",
+          "dispatch": {
+            "count": 8,
+            "p50_ms": 0.151,
+            "p95_ms": 28.17,
+            "max_ms": 28.17,
+            "total_ms": 29.110000000000003
+          },
+          "input_to_two_raf": {
+            "count": 8,
+            "p50_ms": 26.900000035762787,
+            "p95_ms": 35.80000001192093,
+            "max_ms": 35.80000001192093,
+            "total_ms": 210.0000001192093
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "selections": [
+            {
+              "phase": "graph-node-select",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            }
+          ],
+          "click_dispatch_ms": [
+            28.17,
+            0.145,
+            0.09,
+            0.169,
+            0.154,
+            0.151,
+            0.123,
+            0.108
+          ]
+        },
+        "graph-node-select-distinct": {
+          "event": "click",
+          "dispatch": {
+            "count": 8,
+            "p50_ms": 14.347,
+            "p95_ms": 16.749,
+            "max_ms": 16.749,
+            "total_ms": 114.596
+          },
+          "input_to_two_raf": {
+            "count": 8,
+            "p50_ms": 21.80000001192093,
+            "p95_ms": 27.69999998807907,
+            "max_ms": 27.69999998807907,
+            "total_ms": 177.8999999165535
+          },
+          "long_tasks": {
+            "count": 0,
+            "p50_ms": 0,
+            "p95_ms": 0,
+            "max_ms": 0,
+            "total_ms": 0
+          },
+          "selections": [
+            {
+              "phase": "graph-node-select-distinct",
+              "id": "PIW.AdelClassFin.DictGen.exists_denominator_fmat",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select-distinct",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select-distinct",
+              "id": "PIW.AdelClassFin.DictGen.exists_denominator_fmat",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select-distinct",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select-distinct",
+              "id": "PIW.AdelClassFin.DictGen.exists_denominator_fmat",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select-distinct",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select-distinct",
+              "id": "PIW.AdelClassFin.DictGen.exists_denominator_fmat",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            },
+            {
+              "phase": "graph-node-select-distinct",
+              "id": "PIW.AdelClassFin.DictGen.denom",
+              "graph_camera": {
+                "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+                "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+              }
+            }
+          ],
+          "click_dispatch_ms": [
+            14.659,
+            14.347,
+            13.308,
+            13.655,
+            13.877,
+            14.912,
+            16.749,
+            13.089
+          ]
+        }
+      },
+      "native_stages": {
+        "available": true,
+        "evicted_during_capture": 214,
+        "stages": {
+          "process.run": {
+            "wall": {
+              "count": 84,
+              "p50_ms": 50.99,
+              "p95_ms": 62.015,
+              "max_ms": 9492.34,
+              "total_ms": 13777.197
+            },
+            "host_thread_cpu": {
+              "count": 84,
+              "p50_ms": 0.428,
+              "p95_ms": 0.69,
+              "max_ms": 48.453,
+              "total_ms": 85.824
+            }
+          },
+          "gui.job": {
+            "wall": {
+              "count": 7,
+              "p50_ms": 41.649,
+              "p95_ms": 14941.837,
+              "max_ms": 14941.837,
+              "total_ms": 15204.097
+            },
+            "host_thread_cpu": {
+              "count": 7,
+              "p50_ms": 1.078,
+              "p95_ms": 1312.319,
+              "max_ms": 1312.319,
+              "total_ms": 1321.43
+            }
+          },
+          "gui.serialize_respond": {
+            "wall": {
+              "count": 204,
+              "p50_ms": 2.547,
+              "p95_ms": 6.364,
+              "max_ms": 1094.589,
+              "total_ms": 1721.519
+            },
+            "host_thread_cpu": {
+              "count": 204,
+              "p50_ms": 2.472,
+              "p95_ms": 6.255,
+              "max_ms": 1040.595,
+              "total_ms": 1648.2839999999999
+            }
+          },
+          "gui.state": {
+            "wall": {
+              "count": 150,
+              "p50_ms": 4.784,
+              "p95_ms": 7.822,
+              "max_ms": 10.165,
+              "total_ms": 746.0079999999997
+            },
+            "host_thread_cpu": {
+              "count": 150,
+              "p50_ms": 4.726,
+              "p95_ms": 7.606,
+              "max_ms": 10.013,
+              "total_ms": 727.037
+            }
+          },
+          "gui.enqueue": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.002,
+              "p95_ms": 0.002,
+              "max_ms": 0.002,
+              "total_ms": 0.008
+            },
+            "host_thread_cpu": {
+              "count": 6,
+              "p50_ms": 0.001,
+              "p95_ms": 0.002,
+              "max_ms": 0.002,
+              "total_ms": 0.005
+            }
+          },
+          "job.queue": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.085,
+              "p95_ms": 0.133,
+              "max_ms": 0.133,
+              "total_ms": 0.481
+            },
+            "host_thread_cpu": {
+              "count": 0,
+              "p50_ms": 0,
+              "p95_ms": 0,
+              "max_ms": 0,
+              "total_ms": 0
+            }
+          },
+          "gui.command": {
+            "wall": {
+              "count": 6,
+              "p50_ms": 0.304,
+              "p95_ms": 0.367,
+              "max_ms": 0.367,
+              "total_ms": 1.654
+            },
+            "host_thread_cpu": {
+              "count": 6,
+              "p50_ms": 0.254,
+              "p95_ms": 0.336,
+              "max_ms": 0.336,
+              "total_ms": 1.433
+            }
+          },
+          "atlas.resources.select": {
+            "wall": {
+              "count": 25,
+              "p50_ms": 9.767,
+              "p95_ms": 16.848,
+              "max_ms": 17.715,
+              "total_ms": 273.21500000000003
+            },
+            "host_thread_cpu": {
+              "count": 25,
+              "p50_ms": 9.657,
+              "p95_ms": 16.748,
+              "max_ms": 17.553,
+              "total_ms": 270.776
+            }
+          },
+          "atlas.resources.validate": {
+            "wall": {
+              "count": 38,
+              "p50_ms": 19.566,
+              "p95_ms": 22.191,
+              "max_ms": 27.263,
+              "total_ms": 756.3549999999999
+            },
+            "host_thread_cpu": {
+              "count": 38,
+              "p50_ms": 19.445,
+              "p95_ms": 22.077,
+              "max_ms": 27.105,
+              "total_ms": 752.233
+            }
+          },
+          "analysis.capture_sources": {
+            "wall": {
+              "count": 3,
+              "p50_ms": 52.104,
+              "p95_ms": 52.211,
+              "max_ms": 52.211,
+              "total_ms": 146.25099999999998
+            },
+            "host_thread_cpu": {
+              "count": 3,
+              "p50_ms": 1.524,
+              "p95_ms": 1.547,
+              "max_ms": 1.547,
+              "total_ms": 4.452
+            }
+          },
+          "atlas.lake_configuration.reuse": {
+            "wall": {
+              "count": 12,
+              "p50_ms": 19.567,
+              "p95_ms": 20.507,
+              "max_ms": 20.507,
+              "total_ms": 236.51500000000001
+            },
+            "host_thread_cpu": {
+              "count": 12,
+              "p50_ms": 19.491,
+              "p95_ms": 20.419,
+              "max_ms": 20.419,
+              "total_ms": 235.37499999999997
+            }
+          },
+          "atlas.lake_configuration.resolve": {
+            "wall": {
+              "count": 12,
+              "p50_ms": 51.756,
+              "p95_ms": 58.665,
+              "max_ms": 58.665,
+              "total_ms": 631.075
+            },
+            "host_thread_cpu": {
+              "count": 12,
+              "p50_ms": 51.155,
+              "p95_ms": 58.336,
+              "max_ms": 58.336,
+              "total_ms": 626.38
+            }
+          },
+          "analysis.discover_layout": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1809.601,
+              "p95_ms": 1809.601,
+              "max_ms": 1809.601,
+              "total_ms": 1809.601
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 648.523,
+              "p95_ms": 648.523,
+              "max_ms": 648.523,
+              "total_ms": 648.523
+            }
+          },
+          "analysis.select_roots": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 1903.917,
+              "p95_ms": 1903.917,
+              "max_ms": 1903.917,
+              "total_ms": 1903.917
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 651.597,
+              "p95_ms": 651.597,
+              "max_ms": 651.597,
+              "total_ms": 651.597
+            }
+          },
+          "sandbox.public_tools": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 73.646,
+              "p95_ms": 73.646,
+              "max_ms": 73.646,
+              "total_ms": 73.646
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 3.738,
+              "p95_ms": 3.738,
+              "max_ms": 3.738,
+              "total_ms": 3.738
+            }
+          },
+          "sandbox.libraries": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 63.069,
+              "p95_ms": 63.069,
+              "max_ms": 63.069,
+              "total_ms": 63.069
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 5.344,
+              "p95_ms": 5.344,
+              "max_ms": 5.344,
+              "total_ms": 5.344
+            }
+          },
+          "sandbox.nix_closure": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 55.106,
+              "p95_ms": 55.106,
+              "max_ms": 55.106,
+              "total_ms": 55.106
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 1.292,
+              "p95_ms": 1.292,
+              "max_ms": 1.292,
+              "total_ms": 1.292
+            }
+          },
+          "sandbox.prepare": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 511.921,
+              "p95_ms": 511.921,
+              "max_ms": 511.921,
+              "total_ms": 511.921
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 37.247,
+              "p95_ms": 37.247,
+              "max_ms": 37.247,
+              "total_ms": 37.247
+            }
+          },
+          "atlas.project.prepare": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 10004.706,
+              "p95_ms": 10004.706,
+              "max_ms": 10004.706,
+              "total_ms": 10004.706
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 86.144,
+              "p95_ms": 86.144,
+              "max_ms": 86.144,
+              "total_ms": 86.144
+            }
+          },
+          "analysis.cache.validate": {
+            "wall": {
+              "count": 2,
+              "p50_ms": 1277.778,
+              "p95_ms": 1277.778,
+              "max_ms": 1277.778,
+              "total_ms": 1277.864
+            },
+            "host_thread_cpu": {
+              "count": 2,
+              "p50_ms": 60.271,
+              "p95_ms": 60.271,
+              "max_ms": 60.271,
+              "total_ms": 60.356
+            }
+          },
+          "analysis.cache.retain_observation": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 8.677,
+              "p95_ms": 8.677,
+              "max_ms": 8.677,
+              "total_ms": 8.677
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 8.638,
+              "p95_ms": 8.638,
+              "max_ms": 8.638,
+              "total_ms": 8.638
+            }
+          },
+          "analysis.search": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 61.262,
+              "p95_ms": 61.262,
+              "max_ms": 61.262,
+              "total_ms": 61.262
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 61.017,
+              "p95_ms": 61.017,
+              "max_ms": 61.017,
+              "total_ms": 61.017
+            }
+          },
+          "analysis.cache.load_rendering": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 0.967,
+              "p95_ms": 0.967,
+              "max_ms": 0.967,
+              "total_ms": 0.967
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 0.963,
+              "p95_ms": 0.963,
+              "max_ms": 0.963,
+              "total_ms": 0.963
+            }
+          },
+          "analysis.extract": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 14738.402,
+              "p95_ms": 14738.402,
+              "max_ms": 14738.402,
+              "total_ms": 14738.402
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 1192.468,
+              "p95_ms": 1192.468,
+              "max_ms": 1192.468,
+              "total_ms": 1192.468
+            }
+          },
+          "analysis.materialize_view": {
+            "wall": {
+              "count": 1,
+              "p50_ms": 0.432,
+              "p95_ms": 0.432,
+              "max_ms": 0.432,
+              "total_ms": 0.432
+            },
+            "host_thread_cpu": {
+              "count": 1,
+              "p50_ms": 0.432,
+              "p95_ms": 0.432,
+              "max_ms": 0.432,
+              "total_ms": 0.432
+            }
+          }
+        }
+      },
+      "preparation": {
+        "cache_hit": true,
+        "native_elapsed_ms": 14738,
+        "build_resolution_seconds": [
+          4.874
+        ],
+        "validation": [
+          {
+            "files": 43477,
+            "bytes": 5992114707,
+            "seconds": 4.509
+          }
+        ]
+      },
+      "idle": {
+        "requests": 11,
+        "response_bytes": [
+          89695
+        ],
+        "request_start_intervals_ms": [
+          356.396240234375,
+          362.165771484375,
+          362.628173828125,
+          362.68017578125,
+          362.40576171875,
+          364.010986328125,
+          360.138916015625,
+          361.654052734375,
+          362.260986328125,
+          362.55322265625
+        ]
+      },
+      "camera_preserved": true,
+      "non_state_interaction_requests": 0,
+      "hotspots": {
+        "graph-hover": [
+          {
+            "self_ms": 831.7470000000001,
+            "location": "(idle)"
+          },
+          {
+            "self_ms": 613.1999999999963,
+            "location": "(program)"
+          },
+          {
+            "self_ms": 22.675,
+            "location": "(garbage collector)"
+          },
+          {
+            "self_ms": 22.456000000000003,
+            "location": "../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 · getTrueOffsetParent"
+          },
+          {
+            "self_ms": 17.111,
+            "location": "get scrollTop"
+          },
+          {
+            "self_ms": 12.426,
+            "location": "../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 · (anonymous)"
+          },
+          {
+            "self_ms": 10.737999999999998,
+            "location": "../../../node_modules/@popperjs/core/lib/dom-utils/isScrollParent.js:2 · isScrollParent"
+          },
+          {
+            "self_ms": 9.785,
+            "location": "../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 · getTrueOffsetParent"
+          },
+          {
+            "self_ms": 9.657,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 · workLoopSync"
+          },
+          {
+            "self_ms": 8.434999999999999,
+            "location": "query"
+          },
+          {
+            "self_ms": 7.462,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 · commitHostUpdate"
+          },
+          {
+            "self_ms": 7.425000000000001,
+            "location": "querySelectorAll"
+          },
+          {
+            "self_ms": 7.333,
+            "location": "get scrollTop"
+          },
+          {
+            "self_ms": 6.431000000000001,
+            "location": "../../../node_modules/react/cjs/react.production.js:453 · Eq.Xt.createElement"
+          },
+          {
+            "self_ms": 6.363999999999999,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 · propagateParentContextChanges"
+          },
+          {
+            "self_ms": 5.699,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3786 · updateSlot"
+          },
+          {
+            "self_ms": 5.37,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:6425 · updateForwardRef"
+          },
+          {
+            "self_ms": 5.272,
+            "location": "../../../node_modules/@emotion/react/dist/emotion-element-f0de968e.browser.esm.js:29 · (anonymous)"
+          },
+          {
+            "self_ms": 5.05,
+            "location": "elementFromPoint"
+          },
+          {
+            "self_ms": 4.792,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 · renderWithHooks"
+          }
+        ],
+        "graph-node-select-distinct": [
+          {
+            "self_ms": 848.7599999999999,
+            "location": "(idle)"
+          },
+          {
+            "self_ms": 535.4349999999982,
+            "location": "(program)"
+          },
+          {
+            "self_ms": 39.13600000000001,
+            "location": "query"
+          },
+          {
+            "self_ms": 18.363999999999997,
+            "location": "../../../node_modules/@popperjs/core/lib/dom-utils/isScrollParent.js:2 · isScrollParent"
+          },
+          {
+            "self_ms": 10.722999999999999,
+            "location": "../../../node_modules/@mui/material/TextareaAutosize/TextareaAutosize.mjs:66 · (anonymous)"
+          },
+          {
+            "self_ms": 9.399000000000001,
+            "location": "query"
+          },
+          {
+            "self_ms": 9.358999999999998,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:6425 · updateForwardRef"
+          },
+          {
+            "self_ms": 7.573,
+            "location": "../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 · getTrueOffsetParent"
+          },
+          {
+            "self_ms": 7.430999999999999,
+            "location": "querySelectorAll"
+          },
+          {
+            "self_ms": 6.686,
+            "location": "../../../apps/web/src/features/source/ExplanationHint.tsx:26 · ExplanationHint"
+          },
+          {
+            "self_ms": 6.489,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 · propagateParentContextChanges"
+          },
+          {
+            "self_ms": 6.066,
+            "location": "../../../node_modules/@popperjs/core/lib/dom-utils/getOffsetParent.js:9 · getTrueOffsetParent"
+          },
+          {
+            "self_ms": 5.424,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:8335 · bubbleProperties"
+          },
+          {
+            "self_ms": 5.373,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3786 · updateSlot"
+          },
+          {
+            "self_ms": 5.332,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 · workLoopSync"
+          },
+          {
+            "self_ms": 5.215,
+            "location": "(anonymous)"
+          },
+          {
+            "self_ms": 4.406000000000001,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 · commitHostUpdate"
+          },
+          {
+            "self_ms": 4.315999999999999,
+            "location": "../../../node_modules/@emotion/hash/dist/emotion-hash.esm.js:4 · murmur2"
+          },
+          {
+            "self_ms": 4.3,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 · workLoopSync"
+          },
+          {
+            "self_ms": 4.29,
+            "location": "(garbage collector)"
+          }
+        ],
+        "tab-switch": [
+          {
+            "self_ms": 1201.2490000000014,
+            "location": "(idle)"
+          },
+          {
+            "self_ms": 970.5279999999935,
+            "location": "(program)"
+          },
+          {
+            "self_ms": 32.038,
+            "location": "query"
+          },
+          {
+            "self_ms": 30.578999999999994,
+            "location": "(garbage collector)"
+          },
+          {
+            "self_ms": 19.979999999999997,
+            "location": "../../../node_modules/@xyflow/system/dist/index.js:1847 · updateNodeInternals"
+          },
+          {
+            "self_ms": 18.166999999999994,
+            "location": "elementSafeTagName"
+          },
+          {
+            "self_ms": 17.179999999999996,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 · reconcileChildrenArray"
+          },
+          {
+            "self_ms": 17.126,
+            "location": "(anonymous)"
+          },
+          {
+            "self_ms": 16.186,
+            "location": "getImplicitAriaRole"
+          },
+          {
+            "self_ms": 15.820999999999996,
+            "location": "elementsFromPoint"
+          },
+          {
+            "self_ms": 13.990000000000002,
+            "location": "../../../apps/web/src/features/source/ExplanationHint.tsx:26 · ExplanationHint"
+          },
+          {
+            "self_ms": 12.661,
+            "location": "getAttribute"
+          },
+          {
+            "self_ms": 11.526,
+            "location": "getAriaRole"
+          },
+          {
+            "self_ms": 10.76,
+            "location": "../../../apps/web/src/features/native/NativeExplorer.tsx:68 · entry"
+          },
+          {
+            "self_ms": 10.676000000000002,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:12583 · workLoopSync"
+          },
+          {
+            "self_ms": 9.647,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+          },
+          {
+            "self_ms": 9.64,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+          },
+          {
+            "self_ms": 8.671000000000001,
+            "location": "../../../node_modules/@emotion/hash/dist/emotion-hash.esm.js:4 · murmur2"
+          },
+          {
+            "self_ms": 7.624999999999999,
+            "location": "../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 · (anonymous)"
+          },
+          {
+            "self_ms": 7.537999999999999,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 · propagateParentContextChanges"
+          }
+        ],
+        "project-map-wheel": [
+          {
+            "self_ms": 975.8699999999997,
+            "location": "(idle)"
+          },
+          {
+            "self_ms": 601.0319999999997,
+            "location": "(program)"
+          },
+          {
+            "self_ms": 3.232,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3786 · updateSlot"
+          },
+          {
+            "self_ms": 3.205,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:6425 · updateForwardRef"
+          },
+          {
+            "self_ms": 2.9610000000000003,
+            "location": "../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:105 · (anonymous)"
+          },
+          {
+            "self_ms": 2.242,
+            "location": "setAttribute"
+          },
+          {
+            "self_ms": 2.194,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+          },
+          {
+            "self_ms": 2.189,
+            "location": "../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:255 · WorkspaceMap"
+          },
+          {
+            "self_ms": 2.175,
+            "location": "../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:279 · (anonymous)"
+          },
+          {
+            "self_ms": 2.152,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3223 · propagateParentContextChanges"
+          },
+          {
+            "self_ms": 2.146,
+            "location": "../../../apps/web/src/features/native/NativeExplorer.tsx:68 · entry"
+          },
+          {
+            "self_ms": 2.121,
+            "location": "../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 · (anonymous)"
+          },
+          {
+            "self_ms": 2.118,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3786 · updateSlot"
+          },
+          {
+            "self_ms": 2.115,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:2668 · createWorkInProgress"
+          },
+          {
+            "self_ms": 2.077,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 · reconcileChildrenArray"
+          },
+          {
+            "self_ms": 2.041,
+            "location": "fetch"
+          },
+          {
+            "self_ms": 2.034,
+            "location": "frame"
+          },
+          {
+            "self_ms": 1.743,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 · renderWithHooks"
+          },
+          {
+            "self_ms": 1.175,
+            "location": "../../../node_modules/react-dom/cjs/react-dom-client.production.js:11849 · commitPassiveUnmountOnFiber"
+          },
+          {
+            "self_ms": 1.166,
+            "location": "../../../node_modules/@emotion/serialize/dist/emotion-serialize.esm.js:49 · handleInterpolation"
+          }
+        ]
+      }
+    }
+  ],
+  "findings": [
+    {
+      "priority": 1,
+      "observation": "Warm explorer open remains 15.764 / 15.792 seconds with full compiler/search/reading cache hits; exact prepared-input validation takes 10.040 / 10.005 seconds.",
+      "next": "Optimize exact-input preparation and trusted invalidation without weakening freshness; retain byte/hash binding."
+    },
+    {
+      "priority": 2,
+      "observation": "Initial preparation took 229.335 seconds. Actual counterexample worker took 121.410 seconds and exhausted its file budget, preserving unavailable observations. Initial discovery, extraction, rendering and repeated fingerprints also contribute.",
+      "next": "Precompute bounded compiler/search/reading artifacts before navigation and reuse independent outputs; do not replace unavailable observations with fabricated verdicts."
+    },
+    {
+      "priority": 3,
+      "observation": "Switching declarations costs 14.812 / 16.749 ms dispatch versus sub-millisecond repeats. Popper, source hints, React and chat TextareaAutosize appear in sampled CPU; tab switching also samples XYFlow node remeasurement.",
+      "next": "Narrow graph/source updates and tooltip work; isolate chat rendering and measure the same distinct-node workload after changes."
+    },
+    {
+      "priority": 4,
+      "observation": "Settled polling transfers 89695 bytes per response about every 360 ms. Native state p95 is 8.397 / 7.822 ms.",
+      "next": "Measure revision-aware state transfer/projection while preserving generation and cancellation fences."
+    }
+  ],
+  "checks": {
+    "browser": "Both captures complete all twelve phases, verify selected source lines and preserve the camera through hover, resize, tabs and selection. Actual screenshot inspected.",
+    "syntax": "node --check for both profiling scripts",
+    "format": "Prettier for changed profiling scripts and documentation",
+    "required_public_tui": {
+      "directory": "/tmp/meden-ux-event-latency-20261124",
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/validation/8acd6ace9b2a4ed35eebea21e360d626f92441283650cab12b93307e62d0b72f/meden",
+        "sha256": "8acd6ace9b2a4ed35eebea21e360d626f92441283650cab12b93307e62d0b72f"
+      },
+      "success": true,
+      "selected": 34,
+      "summary_sha256": "89d74db3df43ca12bcd198f3141aef5a2f88ebdda49283453870507aa616380e",
+      "decoded_screens_reviewed": [
+        "Lake metadata failure/recovery and historical restart",
+        "Meaning cancellation/history restart",
+        "Provider limit and explicit retry"
+      ]
+    }
+  },
+  "limits": [
+    "No functional performance fix or deployment change is claimed by this diagnostic-only change.",
+    "Reported snap-back was not reproduced in this measured camera/gesture workload.",
+    "Installed resources and synthetic-model TUI journeys do not establish cold installation, live-model quality, local inference, confidentiality or new refinement."
+  ]
+}

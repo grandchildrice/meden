@@ -1,6 +1,74 @@
 # Graph interaction measurements
 
-## Latest deployed event measurements (November 23)
+## Latest deployed event measurements (November 24)
+
+Two sequential captures of the current pinned Riemann GUI separate Fit View,
+initial/repeated selection, and switching between two different declarations.
+The [measurement record](../results/event-latency-20261124.json) contains
+per-event distributions, native stages and raw-artifact digests. Chrome 149 used
+normal motion at 1440 × 960 without throttling, with 175,187 indexed files and a
+15-declaration compiled graph. All seven served JavaScript bundles were compared
+byte-for-byte with the build supplying the source maps. The deployed executable
+and assets were unchanged; no server restart or model request was needed.
+
+| Operation                          | Dispatch p95, runs 1 / 2 | Input/two-rAF p95, runs 1 / 2 |
+| ---------------------------------- | -----------------------: | ----------------------------: |
+| Project-map wheel, 24 events       |         4.862 / 4.053 ms |                17.7 / 18.1 ms |
+| Dependency-graph wheel, 24 events  |         0.996 / 0.853 ms |                16.7 / 22.2 ms |
+| Hover pointer movement, 40 events  |         0.104 / 0.100 ms |                23.6 / 26.8 ms |
+| Drag pointer movement, 31 events   |         0.213 / 0.240 ms |                23.3 / 21.8 ms |
+| Resize, 3 delivered events         |         0.936 / 1.264 ms |                18.0 / 21.7 ms |
+| File/map tab click, 24 events      |       15.468 / 15.528 ms |                42.1 / 43.1 ms |
+| Different-node selection, 8 clicks |       14.812 / 16.749 ms |                22.7 / 27.7 ms |
+
+Dispatch measures synchronous event handling; the two-animation-frame proxy
+includes scheduling and is neither physical presentation nor field INP. These
+are within-capture percentiles, with small sample counts: eight-event p95 is the
+maximum. Selection alternates two reachable nodes, rather than covering every
+declaration. The driver verifies the actual selected source line after each click
+and records its target ID and camera. An explicit Fit View costs 1.041 / 1.059 ms.
+The first same-node selection costs 32.022 / 28.170 ms; its seven repeats cost
+0.082–0.218 ms. Treating those repeats as representative selections would hide
+the cost of changing declarations. One initial selection window contains a
+52 ms long task; none occurs in the other measured windows.
+
+File opening remains the dominant wait: **15.764 / 15.792 seconds despite a
+complete analysis-cache hit**. The nested prepared-input stage takes
+**10.040 / 10.005 seconds**. Streamed logs divide that work into 4.780 / 4.874
+seconds for Lake build/setup/input resolution and 4.514 / 4.509 seconds reading
+all **43,477 files / 5,992,114,707 bytes**. Native CPU sampling attributes
+24.66 / 24.03 percent to Python's SHA-256 block routine; these sampled CPU shares
+are not wall-time shares. Compilation, search and rendering outputs are reused.
+
+A separate initial cache fill took 229.335 seconds in the native controller.
+Its actual counterexample worker took 121.410 seconds and exhausted its file
+budget; its report preserves unavailable observations, rather than inventing a
+verdict. Graph extraction took 19.996 seconds, initial input preparation
+26.147 seconds, and two later fingerprint checks 14.748 and 10.695 seconds.
+Layout/root discovery took 19.963 seconds and rendering 11.002 seconds. These
+native intervals nest and overlap. This is a single setup observation with
+installed dependencies, not a cold-install or steady-state measurement.
+
+Browser profiles show Popper scroll/offset-parent traversal, React updates and
+source explanation hints during hover/selection. Chat `TextareaAutosize` also
+appears during graph selection, consistent with the top-level selection update
+reaching more than the graph/source panes. Tab switches sample XYFlow node
+remeasurement. Automation's selectors and hit tests are present too; do not
+attribute their entire sampled cost to the application. Graph camera transforms
+remain identical through hover, resize, retained-tab round trips and every
+selection. No interaction phase requests compilation, inspection or inference.
+This workload did not reproduce the reported camera snap-back.
+
+Settled idle polling still transfers 89,695 bytes per response approximately
+every 360 ms; native state projection p95 is 8.397 / 7.822 ms. The next measured
+optimization targets are exact-input preparation on a cache hit, initial
+background preparation/search, narrower React updates and revision-aware state
+transfer. Retain exact input freshness and cancellation-generation fencing while
+changing those paths. A profile identifies candidates; it does not establish
+their eventual savings. Raw captures remain local under
+`target/native-profile/event-latency-20261124-riemann-{2,3}`.
+
+## Deployed event measurements (November 23)
 
 Two fresh sequential captures of the current pinned Riemann GUI reproduce the
 same prepared-file wait and separate first selection from repeat selection.
@@ -12,15 +80,15 @@ changes are excluded. No application update, restart or inference was needed.
 Chrome 149 used normal motion, 1440 × 960, no throttling, 175,187 indexed files
 and a prepared 15-declaration file. Validation ran after profiling.
 
-| Operation | Dispatch p95, runs 1 / 2 | Input/two-rAF p95, runs 1 / 2 |
-| --- | ---: | ---: |
-| Project-map wheel, 24 events | 4.210 / 4.275 ms | 18.6 / 18.2 ms |
-| Dependency-graph wheel, 24 events | 0.777 / 0.952 ms | 16.6 / 23.3 ms |
-| Hover mouse movement, 40 events | 0.104 / 0.067 ms | 24.1 / 20.5 ms |
-| Drag mouse movement, 31 events | 0.193 / 0.281 ms | 20.3 / 21.5 ms |
-| Resize, 3 / 4 delivered events | 1.794 / 0.974 ms | 24.9 / 20.9 ms |
-| File/map tab click, 24 events | 15.463 / 14.175 ms | 40.0 / 36.5 ms |
-| Fit View and node selection, 9 clicks | 34.114 / 29.549 ms | 71.9 / 59.7 ms |
+| Operation                             | Dispatch p95, runs 1 / 2 | Input/two-rAF p95, runs 1 / 2 |
+| ------------------------------------- | -----------------------: | ----------------------------: |
+| Project-map wheel, 24 events          |         4.210 / 4.275 ms |                18.6 / 18.2 ms |
+| Dependency-graph wheel, 24 events     |         0.777 / 0.952 ms |                16.6 / 23.3 ms |
+| Hover mouse movement, 40 events       |         0.104 / 0.067 ms |                24.1 / 20.5 ms |
+| Drag mouse movement, 31 events        |         0.193 / 0.281 ms |                20.3 / 21.5 ms |
+| Resize, 3 / 4 delivered events        |         1.794 / 0.974 ms |                24.9 / 20.9 ms |
+| File/map tab click, 24 events         |       15.463 / 14.175 ms |                40.0 / 36.5 ms |
+| Fit View and node selection, 9 clicks |       34.114 / 29.549 ms |                71.9 / 59.7 ms |
 
 Dispatch is synchronous browser event processing. The two-animation-frame
 measurement also includes scheduling; it is neither physical presentation nor
