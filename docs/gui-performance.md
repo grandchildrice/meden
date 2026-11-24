@@ -1,7 +1,14 @@
 # Graph interaction measurements
 
+The [disjoint inventory comparison](performance/inventory-states.md) retains
+every original file/header field while removing repeated empty navigation from
+175,184 unindexed Riemann entries. Transfer fell from 36.229 MB to 25.018 MB;
+prepared-map navigation median changed from 1.284 s to 1.129 s. It records
+native publication costs, unchanged compiler-input validation, actual events
+and both retained-tab budgets separately.
+
 The [inventory-heading comparison](performance/inventory-headings.md) records
-the current served event timings, initial map transfer and retained-tab budget.
+the preceding served event timings, initial map transfer and retained-tab budget.
 EthLib's prepared-map navigation median fell from 2.066 s to 0.749 s; Riemann's
 large file inventory remains a separate cost. The report also preserves the
 22.45 s cache-hit Riemann file preparation and remaining deep-zoom long tasks.

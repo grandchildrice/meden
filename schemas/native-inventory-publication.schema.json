@@ -70,68 +70,100 @@
       ]
     },
     "Entry": {
-      "description": "Complete file metadata and declaration headings. Details use a separate query.",
-      "type": "object",
-      "properties": {
-        "path": {
-          "description": "Original relative path.",
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 4096
+      "description": "Complete navigation state. Unindexed files cannot carry invented declarations.\nBorrow original validated data only while freezing the publication bytes.",
+      "oneOf": [
+        {
+          "description": "Navigation was not indexed; no readability or proof claim is represented.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "unindexed"
+            },
+            "path": {
+              "description": "Original relative path.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "bytes": {
+              "description": "Original lossless byte count, including oversized inputs.",
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,19})$"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "path",
+            "bytes"
+          ]
         },
-        "sha256": {
-          "description": "Original complete text digest, empty for unindexed entries.",
-          "type": "string",
-          "pattern": "^(?:[a-f0-9]{64})?$"
-        },
-        "bytes": {
-          "description": "Original lossless byte count.",
-          "type": "string",
-          "pattern": "^(0|[1-9][0-9]{0,19})$"
-        },
-        "declarations": {
-          "description": "Original lexical declaration count.",
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 0,
-          "maximum": 1048576
-        },
-        "theorems": {
-          "description": "Original lexical theorem count.",
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 0,
-          "maximum": 1048576
-        },
-        "imports": {
-          "description": "Original import name candidates.",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "headers": {
-          "description": "All observed declaration identities and roles, without references/descriptions.",
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/Header"
-          }
-        },
-        "indexed": {
-          "description": "Whether complete lexical navigation was prepared on the host.",
-          "type": "boolean"
+        {
+          "description": "Complete observed syntax headings, without reference/description details.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "indexed"
+            },
+            "path": {
+              "description": "Original relative path.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "sha256": {
+              "description": "Original complete indexed text digest.",
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "bytes": {
+              "description": "Original lossless byte count.",
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,19})$"
+            },
+            "declarations": {
+              "description": "Original lexical declaration count.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0,
+              "maximum": 1048576
+            },
+            "theorems": {
+              "description": "Original lexical theorem count.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0,
+              "maximum": 1048576
+            },
+            "imports": {
+              "description": "Original import name candidates.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "headers": {
+              "description": "Every observed declaration identity and role.",
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Header"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "path",
+            "sha256",
+            "bytes",
+            "declarations",
+            "theorems",
+            "imports",
+            "headers"
+          ]
         }
-      },
-      "additionalProperties": false,
-      "required": [
-        "path",
-        "sha256",
-        "bytes",
-        "declarations",
-        "theorems",
-        "imports",
-        "headers",
-        "indexed"
       ]
     },
     "Header": {

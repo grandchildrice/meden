@@ -14,6 +14,7 @@ import {
   mapHasDeclarations,
   mapAreaBatches,
   navigationReady,
+  fileIndexed,
   mapLocation,
   visibleMapAreas,
   MAP_WIDTH,
@@ -121,7 +122,7 @@ function Scene({ data }: NodeProps<SceneNode>) {
                 role="button"
                 tabIndex={alpha > 0.5 ? 0 : -1}
                 aria-hidden={alpha <= 0.5}
-                aria-label={`${a.file ? (a.file.indexed ? "Dependencies" : "File") : "Category"}: ${a.path}`}
+                aria-label={`${a.file ? (fileIndexed(a.file) ? "Dependencies" : "File") : "Category"}: ${a.path}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   data.focus(a.path);

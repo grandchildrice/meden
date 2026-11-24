@@ -37,9 +37,12 @@ Private inventory data is not a CI prerequisite. See the
 [actual-project comparison](../../docs/performance/map-references.md).
 
 The [heading/detail transfer comparison](../../docs/performance/inventory-headings.md)
-records the current served inventory payloads, event distributions, native
+records the preceding served inventory payloads, event distributions, native
 preparation spans and both serialized retained-tab budgets. It distinguishes
 compiler-artifact cache hits from already-open tabs.
+The [disjoint inventory follow-up](../../docs/performance/inventory-states.md)
+retains those observations while replacing repeated empty navigation with an
+explicit unindexed state and borrowing metadata during publication freezing.
 
 `node --experimental-strip-types tools/perf/native-command-codec.mjs OUTPUT.json`
 compares the generated command tag lookup with a sequential union of the same

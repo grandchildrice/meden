@@ -33,17 +33,13 @@ export class NavigationCache {
     )
       throw Error("Invalid navigation retention bounds");
   }
-  private key(
-    indexer: string,
-    file: Pick<Entry, "path" | "sha256" | "indexed">,
-  ) {
-    return digest.test(indexer) &&
-      file.indexed &&
-      /^[a-f0-9]{64}$/.test(file.sha256)
+  private key(indexer: string, file: Pick<NavigationFile, "path" | "sha256">) {
+    return digest.test(indexer) && /^[a-f0-9]{64}$/.test(file.sha256)
       ? JSON.stringify([indexer, file.path, file.sha256])
       : undefined;
   }
   remember(indexer: string, original: NavigationFile) {
+    if (!original.indexed) return;
     const key = this.key(indexer, original);
     if (!key) return;
     const file: Retained["file"] = {
@@ -72,6 +68,7 @@ export class NavigationCache {
       this.remove(this.values.keys().next().value!);
   }
   replay(indexer: string, entry: Entry): NavigationFile | undefined {
+    if (entry.state !== "indexed") return;
     const key = this.key(indexer, entry),
       retained = key ? this.values.get(key) : undefined;
     if (!retained) return;
@@ -102,7 +99,7 @@ export class NavigationCache {
       declarations: entry.declarations,
       theorems: entry.theorems,
       imports: entry.imports.slice(),
-      indexed: entry.indexed,
+      indexed: true,
       symbols: entry.headers.map((header, i) => ({
         ...header,
         references: file.symbols[i]!.references.slice(),

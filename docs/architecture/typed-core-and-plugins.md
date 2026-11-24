@@ -377,6 +377,18 @@ generated types, including empty/unreadable completed responses. The former
 full overview wire shape is removed. See the
 [inventory measurements](../performance/inventory-headings.md).
 
+Inventory entries now distinguish unindexed observations from indexed syntax
+headings. An unindexed entry retains its exact path and lossless byte count;
+it cannot carry a digest, imports, declaration counts or headings. Complete
+original inputs are still validated first, so contradictory navigation is
+refused rather than silently dropped. Indexed entries require their original
+digest and complete metadata, including an explicitly empty heading vector
+when indexing found no declarations. The replaced boolean/empty-field overview
+shape has no compatibility decoder. Publication construction borrows the
+validated original metadata while freezing owned bytes, avoiding another copy
+of every path and heading. Geometry still receives the same original weights,
+and detail queries retain their separate complete-record contract.
+
 The disposable `MPL1` artifact contains dictionary indices and four little-endian
 Float64 coordinates per rectangle. SHA-256 binds the original canonical input
 and packed bytes. Decoding requires exact length, a complete unique inventory,
@@ -846,6 +858,11 @@ This does not finish step 4: broader orchestration jobs and remaining navigation
 waits still need work. Step 5 now has versioned project-map geometry, explicit
 ordering and independent lazy overlays. Other layout/versioning and the complete
 retirement audit remain open.
+The typed-identity audit also remains open: application source snapshots and
+publication references still expose raw string revisions within their owning
+records. Existing compound/reference checks are useful but do not complete the
+distinct-ID requirement above. The cone layout's version/configuration contract
+also needs its own audit; project-map coverage does not establish it.
 Step 3 now executes the second backend through public TUI/GUI, actual offline
 Z3, a real approved-model trial and a separate 256-input Python oracle. Its
 parser/disagreement rejection tests, actual solver-output faults, started-solver

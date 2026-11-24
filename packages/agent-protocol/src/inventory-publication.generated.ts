@@ -8,33 +8,42 @@ export const inventoryPublicationSchema = z
         generation: z.string().regex(new RegExp("^(0|[1-9][0-9]{0,19})$")),
         files: z
           .array(
-            z
-              .object({
-                path: z.string().min(1).max(4096),
-                sha256: z.string().regex(new RegExp("^(?:[a-f0-9]{64})?$")),
-                bytes: z.string().regex(new RegExp("^(0|[1-9][0-9]{0,19})$")),
-                declarations: z.number().int().min(0).max(1048576),
-                theorems: z.number().int().min(0).max(1048576),
-                imports: z.array(z.string()),
-                headers: z.array(
-                  z
-                    .object({
-                      name: z.string().min(1).max(1048576),
-                      line: z.number().int().min(1).max(1048577),
-                      kind: z.union([
-                        z.literal("theorem"),
-                        z.literal("definition"),
-                        z.literal("axiom"),
-                      ]),
-                      declaration: z.string(),
-                      private: z.boolean(),
-                      main_theorem: z.boolean(),
-                    })
-                    .strict(),
-                ),
-                indexed: z.boolean(),
-              })
-              .strict(),
+            z.discriminatedUnion("state", [
+              z
+                .object({
+                  state: z.literal("unindexed"),
+                  path: z.string().min(1).max(4096),
+                  bytes: z.string().regex(new RegExp("^(0|[1-9][0-9]{0,19})$")),
+                })
+                .strict(),
+              z
+                .object({
+                  state: z.literal("indexed"),
+                  path: z.string().min(1).max(4096),
+                  sha256: z.string().regex(new RegExp("^[a-f0-9]{64}$")),
+                  bytes: z.string().regex(new RegExp("^(0|[1-9][0-9]{0,19})$")),
+                  declarations: z.number().int().min(0).max(1048576),
+                  theorems: z.number().int().min(0).max(1048576),
+                  imports: z.array(z.string()),
+                  headers: z.array(
+                    z
+                      .object({
+                        name: z.string().min(1).max(1048576),
+                        line: z.number().int().min(1).max(1048577),
+                        kind: z.union([
+                          z.literal("theorem"),
+                          z.literal("definition"),
+                          z.literal("axiom"),
+                        ]),
+                        declaration: z.string(),
+                        private: z.boolean(),
+                        main_theorem: z.boolean(),
+                      })
+                      .strict(),
+                  ),
+                })
+                .strict(),
+            ]),
           )
           .max(250000),
         navigation: z.string().regex(new RegExp("^sha256:[a-f0-9]{64}$")),

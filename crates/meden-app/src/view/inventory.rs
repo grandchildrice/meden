@@ -163,72 +163,88 @@ pub struct Input {
 /// Declaration identity and role, without dependency strings or descriptions.
 #[derive(Clone, Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-pub struct Header {
+pub struct Header<'a> {
     /// Original observed name.
     #[schemars(length(min = 1, max = 1_048_576))]
-    pub name: String,
+    pub name: &'a str,
     /// Original one-based source line.
     #[schemars(range(min = 1, max = 1_048_577))]
     pub line: u32,
     /// Presentation role without a proof assertion.
-    pub kind: Kind,
+    pub kind: &'a Kind,
     /// Original declaration spelling.
-    pub declaration: String,
+    pub declaration: &'a str,
     /// Lexically observed visibility.
     pub private: bool,
     /// Original target metadata, never a proof receipt.
     pub main_theorem: bool,
 }
-impl From<&Symbol> for Header {
-    fn from(symbol: &Symbol) -> Self {
+impl<'a> From<&'a Symbol> for Header<'a> {
+    fn from(symbol: &'a Symbol) -> Self {
         Self {
-            name: symbol.name.clone(),
+            name: &symbol.name,
             line: symbol.line,
-            kind: symbol.kind.clone(),
-            declaration: symbol.declaration.clone(),
+            kind: &symbol.kind,
+            declaration: &symbol.declaration,
             private: symbol.private,
             main_theorem: symbol.main_theorem,
         }
     }
 }
 
-/// Complete file metadata and declaration headings. Details use a separate query.
+/// Complete navigation state. Unindexed files cannot carry invented declarations.
+/// Borrow original validated data only while freezing the publication bytes.
 #[derive(Clone, Serialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub struct Entry {
-    /// Original relative path.
-    #[schemars(length(min = 1, max = 4096))]
-    pub path: String,
-    /// Original complete text digest, empty for unindexed entries.
-    #[schemars(regex(pattern = r"^(?:[a-f0-9]{64})?$"))]
-    pub sha256: String,
-    /// Original lossless byte count.
-    #[schemars(regex(pattern = r"^(0|[1-9][0-9]{0,19})$"))]
-    pub bytes: String,
-    /// Original lexical declaration count.
-    #[schemars(range(max = 1_048_576))]
-    pub declarations: u32,
-    /// Original lexical theorem count.
-    #[schemars(range(max = 1_048_576))]
-    pub theorems: u32,
-    /// Original import name candidates.
-    pub imports: Vec<String>,
-    /// All observed declaration identities and roles, without references/descriptions.
-    pub headers: Vec<Header>,
-    /// Whether complete lexical navigation was prepared on the host.
-    pub indexed: bool,
+#[serde(tag = "state", rename_all = "snake_case", deny_unknown_fields)]
+pub enum Entry<'a> {
+    /// Navigation was not indexed; no readability or proof claim is represented.
+    Unindexed {
+        /// Original relative path.
+        #[schemars(length(min = 1, max = 4096))]
+        path: &'a str,
+        /// Original lossless byte count, including oversized inputs.
+        #[schemars(regex(pattern = r"^(0|[1-9][0-9]{0,19})$"))]
+        bytes: &'a str,
+    },
+    /// Complete observed syntax headings, without reference/description details.
+    Indexed {
+        /// Original relative path.
+        #[schemars(length(min = 1, max = 4096))]
+        path: &'a str,
+        /// Original complete indexed text digest.
+        #[schemars(regex(pattern = r"^[a-f0-9]{64}$"))]
+        sha256: &'a str,
+        /// Original lossless byte count.
+        #[schemars(regex(pattern = r"^(0|[1-9][0-9]{0,19})$"))]
+        bytes: &'a str,
+        /// Original lexical declaration count.
+        #[schemars(range(max = 1_048_576))]
+        declarations: u32,
+        /// Original lexical theorem count.
+        #[schemars(range(max = 1_048_576))]
+        theorems: u32,
+        /// Original import name candidates.
+        imports: &'a [String],
+        /// Every observed declaration identity and role.
+        headers: Vec<Header<'a>>,
+    },
 }
-impl From<&File> for Entry {
-    fn from(file: &File) -> Self {
-        Self {
-            path: file.path.clone(),
-            sha256: file.sha256.clone(),
-            bytes: file.bytes.clone(),
+impl<'a> From<&'a File> for Entry<'a> {
+    fn from(file: &'a File) -> Self {
+        if !file.indexed {
+            return Self::Unindexed {
+                path: &file.path,
+                bytes: &file.bytes,
+            };
+        }
+        Self::Indexed {
+            path: &file.path,
+            sha256: &file.sha256,
+            bytes: &file.bytes,
             declarations: file.declarations,
             theorems: file.theorems,
-            imports: file.imports.clone(),
+            imports: &file.imports,
             headers: file.symbols.iter().map(Header::from).collect(),
-            indexed: file.indexed,
         }
     }
 }
@@ -236,22 +252,22 @@ impl From<&File> for Entry {
 /// Bounded overview projection; complete navigation stays prepared on the host.
 #[derive(Clone, Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-pub struct Snapshot {
+pub struct Snapshot<'a> {
     /// Prepared navigation-cache generation, as a lossless canonical decimal.
     /// The complete envelope ID binds this hint and all original metadata.
     #[schemars(regex(pattern = r"^(0|[1-9][0-9]{0,19})$"))]
-    pub generation: String,
+    pub generation: &'a str,
     /// Complete source inventory, in canonical path order.
     #[schemars(length(max = 250_000))]
-    pub files: Vec<Entry>,
+    pub files: Vec<Entry<'a>>,
     /// Binds original declaration details; the envelope also binds all metadata.
     #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
     pub navigation: String,
     /// Original lexical implementation identity for source-bound candidate reuse.
     #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
-    pub indexer: String,
+    pub indexer: &'a str,
     /// Explicitly excluded directory names.
-    pub excluded: Vec<String>,
+    pub excluded: &'a [String],
     /// Large inventories load already-prepared navigation in bounded chunks.
     pub inventory_only: bool,
 }
@@ -312,14 +328,14 @@ impl Prepared {
             .revision
             .clone();
         let data = Snapshot {
-            generation: snapshot.generation.clone(),
+            generation: &snapshot.generation,
             files: snapshot.files.iter().map(Entry::from).collect(),
             navigation,
-            indexer: snapshot.indexer.clone(),
-            excluded: snapshot.excluded.clone(),
+            indexer: &snapshot.indexer,
+            excluded: &snapshot.excluded,
             inventory_only: snapshot.inventory_only,
         };
-        Ok(Self(Publication::new(b"meden.inventory.view.v2\0", &data)?))
+        Ok(Self(Publication::new(b"meden.inventory.view.v3\0", &data)?))
     }
     /// Small status identity; it confers no execution/evidence authority.
     pub fn reference(&self) -> &Reference {
@@ -485,6 +501,10 @@ mod tests {
         ));
         let decoded: serde_json::Value = serde_json::from_slice(&bytes)?;
         assert_eq!(
+            decoded["data"]["files"][0],
+            serde_json::json!({"state":"unindexed", "path":"A.lean", "bytes":"0"})
+        );
+        assert_eq!(
             decoded
                 .pointer("/data/files/1/path")
                 .and_then(|v| v.as_str()),
@@ -536,6 +556,8 @@ mod tests {
         let bytes = first.bytes(first_id).context("original overview")?;
         let data: serde_json::Value = serde_json::from_slice(&bytes)?;
         let file = &data["data"]["files"][0];
+        assert_eq!(file["state"], "indexed");
+        assert!(file.get("indexed").is_none());
         assert!(file.get("symbols").is_none());
         let header = &file["headers"][0];
         assert_eq!(header["name"], "A.claim");
@@ -572,6 +594,68 @@ mod tests {
         original.files[0].symbols[0].line = 0;
         assert!(Prepared::new(&original).is_err());
         Ok(())
+    }
+    #[test]
+    fn unindexed_observations_cannot_hide_navigation_and_empty_indexing_is_distinct() -> Result<()>
+    {
+        let mut original = input(vec![unread("A.lean")]);
+        let first = Prepared::new(&original)?;
+        let first_id = first.reference().revision.clone();
+        let bytes = first.bytes(&first_id).context("unindexed input")?;
+        for file in [
+            File {
+                sha256: "a".repeat(64),
+                ..unread("A.lean")
+            },
+            File {
+                imports: vec!["Hidden".into()],
+                ..unread("A.lean")
+            },
+            File {
+                theorems: 1,
+                ..unread("A.lean")
+            },
+        ] {
+            assert!(Prepared::new(&input(vec![file])).is_err());
+        }
+        original.files[0].indexed = true;
+        original.files[0].sha256 = "a".repeat(64);
+        let next = Prepared::new(&original)?;
+        assert_ne!(first_id, next.reference().revision);
+        let indexed: serde_json::Value = serde_json::from_slice(
+            &next
+                .bytes(&next.reference().revision)
+                .context("empty indexed input")?,
+        )?;
+        assert_eq!(indexed["data"]["files"][0]["state"], "indexed");
+        assert_eq!(
+            indexed["data"]["files"][0]["headers"],
+            serde_json::json!([])
+        );
+        assert!(next.bytes(&first_id).is_none());
+        assert!(Arc::ptr_eq(
+            &bytes,
+            &first.bytes(&first_id).context("frozen unindexed input")?
+        ));
+        Ok(())
+    }
+    proptest::proptest! {
+        #[test]
+        fn unindexed_sizes_are_lossless_and_change_the_exact_inventory_identity(bytes in proptest::prelude::any::<u64>()) {
+            let mut file = unread("Folder/λ\n日本語.lean");
+            file.bytes = bytes.to_string();
+            let mut original = input(vec![file]);
+            let first = Prepared::new(&original).unwrap();
+            let frozen = first.bytes(&first.reference().revision).unwrap();
+            let data: serde_json::Value = serde_json::from_slice(&frozen).unwrap();
+            proptest::prop_assert_eq!(&data["data"]["files"][0], &serde_json::json!({
+                "state":"unindexed", "path":"Folder/λ\n日本語.lean", "bytes":bytes.to_string()
+            }));
+            original.files[0].bytes = bytes.wrapping_add(1).to_string();
+            let next = Prepared::new(&original).unwrap();
+            proptest::prop_assert_ne!(first.reference().revision.as_str(), next.reference().revision.as_str());
+            proptest::prop_assert!(Arc::ptr_eq(&frozen, &first.bytes(&first.reference().revision).unwrap()));
+        }
     }
     #[test]
     fn metadata_without_declarations_is_bound_by_the_overview_not_repeated_in_details() -> Result<()>

@@ -56,10 +56,13 @@ export type MapGeometry = { input: string; areas: MapBox[] };
  * source bytes and tracked proof targets cannot relocate an existing box.
  */
 export type MapInput = Pick<WorkspaceOverview, "inventory_only"> & {
-  files: readonly Pick<
-    WorkspaceOverview["files"][number],
-    "path" | "declarations"
-  >[];
+  files: readonly (
+    | Pick<
+        Extract<WorkspaceOverview["files"][number], { state: "indexed" }>,
+        "path" | "declarations"
+      >
+    | { path: string; state: "unindexed" }
+  )[];
 };
 export function layoutInput(snapshot: MapInput): LayoutInput {
   if (snapshot.files.length > 250000)
@@ -69,7 +72,9 @@ export function layoutInput(snapshot: MapInput): LayoutInput {
       (file) =>
         [
           file.path,
-          snapshot.inventory_only ? 1 : Math.max(1, file.declarations),
+          snapshot.inventory_only
+            ? 1
+            : Math.max(1, "declarations" in file ? file.declarations : 0),
         ] as const,
     )
     .sort((a, b) => comparePath(a[0], b[0]));

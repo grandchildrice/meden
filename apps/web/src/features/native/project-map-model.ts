@@ -17,12 +17,23 @@ import { declarationRole, type DeclarationRole } from "./declaration-role";
 import { referenceEdges } from "./project-map-references";
 
 export type NavigationFile = InventoryChunk["data"]["files"][number];
+export type IndexedFile = Extract<
+  WorkspaceOverview["files"][number],
+  { state: "indexed" }
+>;
 export type MapFile = WorkspaceOverview["files"][number] | NavigationFile;
 type MapSnapshot = Omit<MapInput, "files"> & { files: readonly MapFile[] };
-type Heading = WorkspaceOverview["files"][number]["headers"][number] &
+type Heading = IndexedFile["headers"][number] &
   Partial<Pick<NavigationFile["symbols"][number], "references" | "semantic">>;
+const NO_HEADINGS: readonly Heading[] = [];
 const headings = (file: MapFile): readonly Heading[] =>
-  "headers" in file ? file.headers : file.symbols;
+  "headers" in file
+    ? file.headers
+    : "symbols" in file
+      ? file.symbols
+      : NO_HEADINGS;
+export const fileIndexed = (file: MapFile) =>
+  "state" in file ? file.state === "indexed" : file.indexed;
 /** A complete navigation response can still report an unreadable file. */
 export const navigationReady = (file: MapFile) => "symbols" in file;
 export type Symbol = NavigationFile["symbols"][number] & {

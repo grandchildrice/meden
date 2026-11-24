@@ -27,9 +27,12 @@ function file(path = "A.lean"): NavigationFile {
     ],
   };
 }
-function heading(file: NavigationFile): WorkspaceOverview["files"][number] {
-  const { symbols, ...metadata } = file;
+function heading(
+  file: NavigationFile,
+): Extract<WorkspaceOverview["files"][number], { state: "indexed" }> {
+  const { symbols, indexed: _, ...metadata } = file;
   return {
+    state: "indexed",
     ...metadata,
     headers: symbols.map(
       ({ references: _, semantic: __, ...header }) => header,
@@ -68,7 +71,13 @@ test("method/source changes and inconsistent fresh headings cannot reuse old can
   expect(
     cache.replay(indexer, { ...entry, sha256: "b".repeat(64) }),
   ).toBeUndefined();
-  expect(cache.replay(indexer, { ...entry, indexed: false })).toBeUndefined();
+  expect(
+    cache.replay(indexer, {
+      state: "unindexed",
+      path: entry.path,
+      bytes: entry.bytes,
+    }),
+  ).toBeUndefined();
   for (const changed of [
     { ...entry, bytes: "101" },
     { ...entry, declarations: 2 },

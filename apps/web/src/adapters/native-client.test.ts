@@ -5,6 +5,7 @@ import {
   nativeStateSchema,
   verificationJobPublicationSchema,
   previewPublicationSchema,
+  inventoryPublicationSchema,
 } from "@meden/agent-protocol/native";
 import { NativeClient, NativeHttpError } from "./native-client";
 
@@ -317,9 +318,7 @@ test("inventory and navigation reads bind exact publications and original parent
     revision,
     data: {
       generation: "0",
-      files: [{ ...file, headers: [] }].map(
-        ({ symbols: _, ...entry }) => entry,
-      ),
+      files: [{ state: "unindexed", path: file.path, bytes: file.bytes }],
       navigation: revision,
       indexer: revision,
       excluded: [],
@@ -335,6 +334,24 @@ test("inventory and navigation reads bind exact publications and original parent
   expect(fetch.mock.calls[0][0]).toBe(
     "/api/inventory?revision=" + encodeURIComponent(revision),
   );
+  for (const invalid of [
+    { ...file, headers: [] },
+    { state: "unindexed", path: file.path, bytes: file.bytes, headers: [] },
+    {
+      state: "unindexed",
+      path: file.path,
+      bytes: file.bytes,
+      sha256: "a".repeat(64),
+    },
+    { state: "indexed", path: file.path, bytes: "0" },
+    { state: "unsupported", path: file.path, bytes: "0" },
+  ])
+    expect(
+      inventoryPublicationSchema.safeParse({
+        ...inventory,
+        data: { ...inventory.data, files: [invalid] },
+      }).success,
+    ).toBe(false);
   await expect(client.inventory("sha256:" + "b".repeat(64))).rejects.toThrow(
     "does not match its requested revision",
   );

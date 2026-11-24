@@ -253,12 +253,17 @@ if (process.env.MEDEN_REFERENCE_WORKLOAD)
     expect(scene.edges).toEqual(scanReferences(scene.symbols));
     const summary = {
       inventory_only: Boolean(publication.data.inventory_only),
-      files: files.map(({ symbols, ...file }) => ({
-        ...file,
-        headers: symbols.map(
-          ({ references: _, semantic: __, ...header }) => header,
-        ),
-      })),
+      files: files.map(({ symbols, indexed, ...file }) =>
+        indexed
+          ? {
+              state: "indexed" as const,
+              ...file,
+              headers: symbols.map(
+                ({ references: _, semantic: __, ...header }) => header,
+              ),
+            }
+          : { state: "unindexed" as const, path: file.path, bytes: file.bytes },
+      ),
     };
     const initial = projectMap(prepareMap(summary, scene.index.geometry)),
       loaded = projectMap(

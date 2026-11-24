@@ -33,7 +33,7 @@ function fixture(count: number, inventoryOnly = true): NavigationInventory {
 function observe(file: MapFile, count: number, step: number, hidden = false) {
   return {
     path: file.path,
-    imports: file.imports,
+    imports: "imports" in file ? file.imports : [],
     sha256: "observation-" + step,
     bytes: String(10 + count),
     indexed: true,
@@ -84,8 +84,19 @@ test("finite file/target update traces match fresh complete projection without c
             ...source,
             files: source.files.map((file, i): MapFile => {
               if (!summarized) return file;
-              const { symbols, ...metadata } = observe(file, 2, i, i % 2 === 0);
+              if (i % 3 === 0)
+                return {
+                  state: "unindexed",
+                  path: file.path,
+                  bytes: file.bytes,
+                };
+              const {
+                symbols,
+                indexed: _,
+                ...metadata
+              } = observe(file, 2, i, i % 2 === 0);
               return {
+                state: "indexed",
                 ...metadata,
                 headers: symbols.map(
                   ({ references: _, semantic: __, ...header }) => header,
@@ -199,7 +210,8 @@ test("overview headings retain all roles and positions while complete cached nav
   source.files = source.files.map((file, i) => observe(file, 2, i));
   const summary = {
     inventory_only: source.inventory_only,
-    files: source.files.map(({ symbols, ...file }) => ({
+    files: source.files.map(({ symbols, indexed: _, ...file }) => ({
+      state: "indexed" as const,
       ...file,
       headers: symbols.map(
         ({ references: _, semantic: __, ...header }) => header,

@@ -3426,9 +3426,14 @@ theorem slow : True := fast
     );
     expect(inventory.files).toHaveLength(10001);
     expect(inventory.inventory_only).toBe(true);
-    expect(inventory.files.every((f: { indexed: boolean }) => !f.indexed)).toBe(
-      true,
-    );
+    expect(
+      inventory.files.every((f: { state: string }) => f.state === "unindexed"),
+    ).toBe(true);
+    expect(
+      inventory.files.every(
+        (f: object) => Object.keys(f).sort().join(",") === "bytes,path,state",
+      ),
+    ).toBe(true);
     const map = page.getByRole("region", { name: "Project map", exact: true });
     const chat = page.getByRole("complementary", {
       name: "Workspace chat",

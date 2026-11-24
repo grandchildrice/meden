@@ -461,7 +461,7 @@ export function NativeApp({ token }: { token: string }) {
     observedInventory.current = inventoryPublication.revision;
     const files = new Map<string, NavigationFile>();
     for (const entry of inventoryPublication.data.files) {
-      if (!entry.indexed) continue;
+      if (entry.state !== "indexed") continue;
       const retained = navigationCache.replay(
         inventoryPublication.data.indexer,
         entry,
