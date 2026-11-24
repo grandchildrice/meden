@@ -83,3 +83,51 @@ export function scanLocation(
   }
   return location;
 }
+
+import type { ReferenceSymbol } from "./project-map-references";
+
+// Independent original array/filter algorithm. Kept only as an outcome oracle
+// and a measured counterfactual, never as a production fallback.
+export function scanReferences(symbols: ReadonlyMap<string, ReferenceSymbol>) {
+  const names = new Map<string, ReferenceSymbol[]>(),
+    local = new Map<string, ReferenceSymbol[]>();
+  for (const symbol of symbols.values()) {
+    names.set(symbol.name, [...(names.get(symbol.name) || []), symbol]);
+    const key = symbol.file + ":" + symbol.name.split(".").at(-1);
+    local.set(key, [...(local.get(key) || []), symbol]);
+  }
+  const edges: Array<{ source: string; target: string }> = [],
+    seen = new Set<string>();
+  for (const symbol of symbols.values())
+    for (const reference of symbol.references) {
+      const parts = symbol.name.split(".").slice(0, -1),
+        candidates = [
+          ...parts.map(
+            (_, i) =>
+              parts.slice(0, parts.length - i).join(".") + "." + reference,
+          ),
+          reference,
+        ];
+      let target: ReferenceSymbol | undefined;
+      for (const name of candidates) {
+        const visible = (names.get(name) || []).filter(
+          (s) => !s.private || s.file === symbol.file,
+        );
+        if (visible.length === 1) {
+          target = visible[0];
+          break;
+        }
+      }
+      const fallback = local.get(symbol.file + ":" + reference);
+      target ||= fallback?.length === 1 ? fallback[0] : undefined;
+      if (
+        target &&
+        target.id !== symbol.id &&
+        !seen.has(symbol.id + "->" + target.id)
+      ) {
+        seen.add(symbol.id + "->" + target.id);
+        edges.push({ source: symbol.id, target: target.id });
+      }
+    }
+  return edges;
+}

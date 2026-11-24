@@ -14,7 +14,7 @@ import type {
 } from "@meden/agent-protocol/native";
 
 import { declarationRole, type DeclarationRole } from "./declaration-role";
-import { referenceEdges } from "./project-map-references";
+import { ReferenceIndex } from "./project-map-references";
 
 export type NavigationFile = InventoryChunk["data"]["files"][number];
 export type IndexedFile = Extract<
@@ -77,6 +77,7 @@ export type MapScene = {
   maxZoom: number;
   mainPins: Array<{ area: MapArea; symbols: Symbol[]; origin: string }>;
   symbols: Map<string, Symbol>;
+  references: ReferenceIndex;
   edges: Array<{ source: string; target: string }>;
   edgesByFile: Map<string, Array<{ source: string; target: string }>>;
 };
@@ -194,21 +195,40 @@ export function projectMap(
       if (!changed.has(area.path)) changed.set(area.path, area.file!);
   if (reuse && !changed.size && reuse.tracked === targetKey) return reuse;
   const descriptions = new Map(reuse?.descriptions);
-  let referencesChanged = !reuse;
+  let referencesChanged = !reuse,
+    targetsChanged = !reuse;
   for (const [path, file] of changed) {
     const base = index.byPath.get(path)!;
     if (reuse && mapArea(reuse, path)!.file !== file) referencesChanged = true;
+    const next = describe(base, file, tracked);
+    const before = reuse && mapArea(reuse, path)!.symbols;
+    if (
+      !before ||
+      before.length !== next.symbols.length ||
+      before.some((old, i) => {
+        const current = next.symbols[i]!;
+        return (
+          old.id !== current.id ||
+          old.file !== current.file ||
+          old.name !== current.name ||
+          old.private !== current.private
+        );
+      })
+    )
+      targetsChanged = true;
     if (file === base.file && !headings(file).length) descriptions.delete(path);
-    else descriptions.set(path, describe(base, file, tracked));
+    else descriptions.set(path, next);
   }
   const symbolAreas = [...descriptions.values()]
     .filter((area) => area.symbols.length)
     .sort((a, b) => comparePath(a.path, b.path));
-  const symbols = new Map(
-    symbolAreas.flatMap((area) => area.symbols.map((s) => [s.id, s] as const)),
-  );
+  const symbols = new Map<string, Symbol>();
+  for (const area of symbolAreas)
+    for (const symbol of area.symbols) symbols.set(symbol.id, symbol);
+  const references =
+    reuse && !targetsChanged ? reuse.references : new ReferenceIndex(symbols);
   const edges =
-    !referencesChanged && reuse ? reuse.edges : referenceEdges(symbols);
+    !referencesChanged && reuse ? reuse.edges : references.edges(symbols);
   let edgesByFile = reuse && !referencesChanged ? reuse.edgesByFile : undefined;
   if (!edgesByFile) {
     edgesByFile = new Map<string, typeof edges>();
@@ -242,6 +262,7 @@ export function projectMap(
         : [];
     }),
     symbols,
+    references,
     edges,
     edgesByFile,
   };

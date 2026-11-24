@@ -858,6 +858,14 @@ This does not finish step 4: broader orchestration jobs and remaining navigation
 waits still need work. Step 5 now has versioned project-map geometry, explicit
 ordering and independent lazy overlays. Other layout/versioning and the complete
 retirement audit remain open.
+The [reference-update comparison](../performance/map-reference-updates.md)
+addresses the measured repeated global work during detail arrival. One retained
+candidate index replaces one-shot reconstruction when original names, IDs and
+visibility are unchanged; actual generation changes and changed candidates still
+replace it. The pure display module carries no evidence authority, and the old
+runtime resolver is removed. Complete actual ordered-edge/scene comparisons,
+adversarial update traces and a rejected global-rebuild mutation are separate
+from the remaining SVG and native preparation costs.
 The typed-identity audit also remains open: application source snapshots and
 session/job identities still contain raw values within their owning records.
 Published views now use `ArtifactId<Domain>` / `ArtifactRef<Domain>` throughout

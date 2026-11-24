@@ -1,5 +1,11 @@
 # Graph interaction measurements
 
+The [retained-reference comparison](performance/map-reference-updates.md) reduces
+actual EthLib detail-update projection median from 316.544 ms to 42.480 ms over
+the same seven responses, preserving complete scenes and ordered edges. Riemann
+does not improve in that workload; its SVG work and native input preparation
+remain distinct costs. These same-process measurements exclude browser paint.
+
 The [cone-layout audit](performance/cone-layout.md) fixes valid declaration names
 colliding with inherited object properties and makes the existing L4SB settings
 explicit. Ordinary coordinates and ordering are preserved; this is separate

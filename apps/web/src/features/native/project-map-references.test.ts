@@ -4,54 +4,14 @@ import fc from "fast-check";
 import { createHash } from "node:crypto";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { inventoryChunkSchema } from "@meden/agent-protocol/native";
-import { referenceEdges, type ReferenceSymbol } from "./project-map-references";
+import { ReferenceIndex, type ReferenceSymbol } from "./project-map-references";
 import { projectMap } from "./project-map-model";
 
-// Independent original array/filter algorithm. Kept only as an outcome oracle
-// and a measured counterfactual, never as a production fallback.
-function scanReferences(symbols: ReadonlyMap<string, ReferenceSymbol>) {
-  const names = new Map<string, ReferenceSymbol[]>(),
-    local = new Map<string, ReferenceSymbol[]>();
-  for (const symbol of symbols.values()) {
-    names.set(symbol.name, [...(names.get(symbol.name) || []), symbol]);
-    const key = symbol.file + ":" + symbol.name.split(".").at(-1);
-    local.set(key, [...(local.get(key) || []), symbol]);
-  }
-  const edges: Array<{ source: string; target: string }> = [],
-    seen = new Set<string>();
-  for (const symbol of symbols.values())
-    for (const reference of symbol.references) {
-      const parts = symbol.name.split(".").slice(0, -1),
-        candidates = [
-          ...parts.map(
-            (_, i) =>
-              parts.slice(0, parts.length - i).join(".") + "." + reference,
-          ),
-          reference,
-        ];
-      let target: ReferenceSymbol | undefined;
-      for (const name of candidates) {
-        const visible = (names.get(name) || []).filter(
-          (s) => !s.private || s.file === symbol.file,
-        );
-        if (visible.length === 1) {
-          target = visible[0];
-          break;
-        }
-      }
-      const fallback = local.get(symbol.file + ":" + reference);
-      target ||= fallback?.length === 1 ? fallback[0] : undefined;
-      if (
-        target &&
-        target.id !== symbol.id &&
-        !seen.has(symbol.id + "->" + target.id)
-      ) {
-        seen.add(symbol.id + "->" + target.id);
-        edges.push({ source: symbol.id, target: target.id });
-      }
-    }
-  return edges;
-}
+const referenceEdges = (symbols: ReadonlyMap<string, ReferenceSymbol>) =>
+  new ReferenceIndex(symbols).edges(symbols);
+
+import { scanReferences } from "./project-map-oracle";
+
 const input = (rows: Array<Omit<ReferenceSymbol, "id">>) =>
   new Map(rows.map((row, i) => ["s" + i, { id: "s" + i, ...row }]));
 const symbol = (
@@ -281,4 +241,137 @@ if (process.env.MEDEN_REFERENCE_WORKLOAD)
       process.env.MEDEN_PERF_OUT || "target/performance/actual-references",
     );
     expect(JSON.stringify(files)).toBe(before);
+  }, 120000);
+
+test("retained readings bind shared arrays to the exact file and namespace before self suppression", () => {
+  const shared = ["x", "absent", "x"],
+    data = input([
+      symbol("A.lean", "N.x", shared, true),
+      symbol("A.lean", "N.source", shared),
+      symbol("A.lean", "M.x", [], true),
+      symbol("A.lean", "M.source", shared),
+      symbol("B.lean", "N.source", shared),
+      symbol("B.lean", "N.x", [], true),
+    ]),
+    original = JSON.stringify([...data]),
+    index = new ReferenceIndex(data);
+  for (const current of [data, new Map([...data].reverse()), data])
+    expect(index.edges(current)).toEqual(scanReferences(current));
+  expect(JSON.stringify([...data])).toBe(original);
+});
+
+test("retained resolution preserves empty IDs and global ordered delimiter collisions", () => {
+  const rows = [
+    { id: "a->b", ...symbol("A.lean", "N.first", ["c"]) },
+    { id: "a", ...symbol("B.lean", "N.second", ["bc"]) },
+    { id: "c", ...symbol("C.lean", "N.c") },
+    { id: "b->c", ...symbol("D.lean", "N.bc") },
+    { id: "", ...symbol("E.lean", "N.empty") },
+    { id: "user", ...symbol("F.lean", "N.user", ["empty"]) },
+  ];
+  const data = new Map(rows.map((s) => [s.id, s])),
+    index = new ReferenceIndex(data);
+  expect(index.edges(data)).toEqual([
+    { source: "a->b", target: "c" },
+    { source: "user", target: "" },
+  ]);
+  const reversed = new Map([...data].reverse());
+  expect(index.edges(reversed)).toEqual(scanReferences(reversed));
+  expect(index.edges(data)).toEqual(scanReferences(data));
+});
+
+if (process.env.MEDEN_PERFORMANCE === "1")
+  test("small detail arrivals reuse the fixed declaration universe instead of rebuilding global indices", async () => {
+    const files = Array.from({ length: 1600 }, (_, file) => ({
+      path: `Group/F${file}.lean`,
+      sha256: "original",
+      bytes: "100",
+      indexed: true,
+      declarations: 24,
+      theorems: 24,
+      imports: [],
+      symbols: Array.from({ length: 24 }, (_, n) => ({
+        name: `N.t${file}_${n}`,
+        line: n + 1,
+        kind: "theorem" as const,
+        declaration: "theorem",
+        private: false,
+        references: [`N.t${(file + 1) % 1600}_0`, `N.t${file}_0`, "missing"],
+        semantic: null,
+        main_theorem: false,
+      })),
+    }));
+    const index = prepareMap({
+      inventory_only: false,
+      files: files.map(({ symbols, indexed: _, ...file }) => ({
+        state: "indexed" as const,
+        ...file,
+        headers: symbols.map(
+          ({ references: _, semantic: __, ...header }) => header,
+        ),
+      })),
+    });
+    const arrivals = Array.from({ length: 8 }, (_, i) => files[i * 137]!);
+    const replay = (
+      initial: ReturnType<typeof projectMap>,
+      rebuild: boolean,
+    ) => {
+      let scene = initial;
+      const details = new Map<string, (typeof files)[number]>();
+      for (const file of arrivals) {
+        details.set(file.path, file);
+        const previous = rebuild
+          ? { ...scene, references: new ReferenceIndex(scene.symbols) }
+          : scene;
+        scene = projectMap(index, new Set(), details, previous);
+      }
+      return scene;
+    };
+    const expected = replay(projectMap(index), true);
+    expect(expected.edges.length).toBeGreaterThan(0);
+    expect(expected.edges).toEqual(scanReferences(expected.symbols));
+    const cached: number[] = [],
+      rebuilt: number[] = [];
+    let consumed = 0;
+    for (let i = 0; i < 9; i++) {
+      for (const rebuild of i % 2 ? [false, true] : [true, false]) {
+        const initial = projectMap(index),
+          start = performance.now();
+        const actual = replay(
+          initial,
+          rebuild ||
+            process.env.MEDEN_PERF_MUTANT === "rebuild-reference-index",
+        );
+        const elapsed = performance.now() - start;
+        expect(actual.edges).toEqual(expected.edges);
+        expect([...actual.symbols]).toEqual([...expected.symbols]);
+        consumed += actual.edges.length;
+        (rebuild ? rebuilt : cached).push(elapsed);
+      }
+    }
+    const median = (xs: number[]) =>
+      [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)]!;
+    const result = {
+      symbols: expected.symbols.size,
+      files: files.length,
+      arrivals: arrivals.length,
+      edges: expected.edges.length,
+      consumed,
+      repetitions: 9,
+      cached_ms: cached,
+      rebuilt_ms: rebuilt,
+      cached_median_ms: median(cached),
+      rebuilt_median_ms: median(rebuilt),
+      ratio: median(cached) / median(rebuilt),
+      maximum_ratio: 0.65,
+      scope:
+        "Prepared identical headings/geometry, eight detail arrivals; fresh index per series. Interleaved forced global-index reconstruction versus retained immutable candidate universe. Exact final ordered edges/symbols checked; no browser paint, compilation or live inference.",
+    };
+    const output = process.env.MEDEN_PERF_OUT || "target/performance";
+    await mkdir(output, { recursive: true });
+    await writeFile(
+      output + "/reference-updates.json",
+      JSON.stringify(result, null, 2) + "\n",
+    );
+    expect(result.ratio).toBeLessThan(result.maximum_ratio);
   }, 120000);

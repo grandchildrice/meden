@@ -3507,6 +3507,69 @@ theorem slow : True := fast
       map.getByRole("button", { name: /Declaration: N.staged/ }),
     ).toHaveCount(0);
     expect(await chat.innerHTML()).toBe(chatBefore);
+    // The unchanged source keeps its cached references while another file's
+    // visibility changes. Observe the new inventory, without requiring a reread.
+    const retainedSource = await readFile(
+        resolve(project, "Small/A.lean"),
+        "utf8",
+      ),
+      sourceReads = reads.length;
+    for (const hidden of [true, false]) {
+      const former = (await nativeState(page)).overview.revision;
+      await writeFile(
+        resolve(project, "Small/B.lean"),
+        "namespace N\n" +
+          (hidden ? "private " : "") +
+          "def helper : Nat := 1\nend N\n",
+      );
+      const delivered = page.waitForResponse((response) => {
+        const u = new URL(response.url());
+        return (
+          u.pathname === "/api/inventory" &&
+          u.searchParams.get("revision") !== former
+        );
+      });
+      await page
+        .getByRole("button", { name: "Refresh files and map", exact: true })
+        .click();
+      const response = await delivered;
+      await response.finished();
+      const publication = await response.json();
+      const helper = publication.data.files.find(
+        (f: any) => f.path === "Small/B.lean",
+      );
+      expect(
+        helper.headers.find((h: any) => h.name === "N.helper").private,
+      ).toBe(hidden);
+      await expect
+        .poll(async () => {
+          const state = await nativeState(page);
+          return (
+            !state.running && state.overview.revision === publication.revision
+          );
+        })
+        .toBe(true);
+      await map.evaluate(
+        async (element, count) => {
+          for (let i = 0; i < 6; i++) {
+            await new Promise(requestAnimationFrame);
+            if (
+              element.querySelectorAll('[data-map-layer="references"] line')
+                .length !== count
+            )
+              throw Error("Retained references used a former visibility scope");
+          }
+        },
+        hidden ? 0 : 1,
+      );
+      expect(reads).toHaveLength(sourceReads);
+      expect(await readFile(resolve(project, "Small/A.lean"), "utf8")).toBe(
+        retainedSource,
+      );
+      expect(await chat.innerHTML()).toBe(chatBefore);
+      expect((await nativeState(page)).source_preparation).toEqual({});
+      expect(requests).toHaveLength(0);
+    }
     const port = Number(new URL(url).port);
     await stop();
     await page.goto(await start(port));
@@ -3526,6 +3589,8 @@ theorem slow : True := fast
         local_retry: true,
         former_body_refused: true,
         restart_unapproved: true,
+        private_visibility_rechecked: true,
+        unchanged_source_reused_without_request: true,
       }),
       contentType: "application/json",
     });

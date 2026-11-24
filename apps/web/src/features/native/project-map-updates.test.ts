@@ -11,7 +11,7 @@ import {
   type MapFile,
   type MapScene,
 } from "./project-map-model";
-import { scan, scanLocation } from "./project-map-oracle";
+import { scan, scanLocation, scanReferences } from "./project-map-oracle";
 
 function fixture(count: number, inventoryOnly = true): NavigationInventory {
   return {
@@ -75,6 +75,20 @@ test("finite file/target update traces match fresh complete projection without c
           hidden: fc.boolean(),
           target: fc.boolean(),
           reuse: fc.boolean(),
+          sameIdentity: fc.boolean(),
+          rename: fc.boolean(),
+          references: fc.array(
+            fc.constantFrom(
+              "t0",
+              "t1",
+              "N.t0",
+              "N.t1",
+              "M.x",
+              "Ω.x",
+              "missing",
+            ),
+            { maxLength: 8 },
+          ),
         }),
         { minLength: 1, maxLength: 35 },
       ),
@@ -113,9 +127,36 @@ test("finite file/target update traces match fresh complete projection without c
           const before = JSON.stringify(outcome(scene)),
             previous = scene,
             i = event.file % count;
-          const file = event.reuse
-            ? current[i]!
-            : observe(current[i]!, event.count, step, event.hidden);
+          const old = current[i]!;
+          const oldSymbols =
+            "headers" in old
+              ? old.headers
+              : "symbols" in old
+                ? old.symbols
+                : [];
+          const observation = observe(old, event.count, step, event.hidden);
+          const updated = event.sameIdentity
+            ? {
+                ...observation,
+                declarations: oldSymbols.length,
+                theorems: oldSymbols.length,
+                symbols: oldSymbols.map((symbol) => ({
+                  ...symbol,
+                  references: event.references,
+                  semantic: null,
+                })),
+              }
+            : {
+                ...observation,
+                symbols: observation.symbols.map((symbol, n) => ({
+                  ...symbol,
+                  name: event.rename
+                    ? ["M.x", "Ω.x", "N.t0", "N.t1"][n % 4]!
+                    : symbol.name,
+                  references: event.references,
+                })),
+              };
+          const file = event.reuse ? old : updated;
           current = current.map((old, j) => (j === i ? file : old));
           cumulative.set(file.path, file);
           const tracked = new Set(event.target ? ["N.t1"] : []);
@@ -125,6 +166,7 @@ test("finite file/target update traces match fresh complete projection without c
             tracked,
           );
           expect(outcome(scene)).toEqual(outcome(full));
+          expect(scene.edges).toEqual(scanReferences(scene.symbols));
           expect(JSON.stringify(outcome(previous))).toBe(before);
           expect(scene.index).toBe(index);
           expect(scene.index.children).toBe(index.children);
@@ -243,4 +285,69 @@ test("overview headings retain all roles and positions while complete cached nav
   // A completed response may explicitly report an unreadable source.
   expect(navigationReady(fixture(1).files[0]!)).toBe(true);
   expect(initial.edges).toEqual([]);
+});
+
+test("details reuse the same target universe, while additions, ambiguity, privacy and renames invalidate earlier readings", () => {
+  const source = fixture(3, false);
+  source.files = source.files.map((file, i) => ({
+    ...observe(file, 1, 0),
+    symbols: [
+      {
+        name: i === 0 ? "N.user" : i === 1 ? "N.target" : "N.other",
+        line: 1,
+        kind: "theorem" as const,
+        declaration: "theorem",
+        private: false,
+        references: i === 0 ? ["target", "missing"] : [],
+        semantic: null,
+        main_theorem: false,
+      },
+    ],
+  }));
+  const summary = {
+    inventory_only: false,
+    files: source.files.map(({ symbols, indexed: _, ...file }) => ({
+      state: "indexed" as const,
+      ...file,
+      headers: symbols.map(
+        ({ references: _, semantic: __, ...header }) => header,
+      ),
+    })),
+  };
+  const index = prepareMap(summary),
+    files = new Map<string, MapFile>();
+  let scene = projectMap(index);
+  const initialIndex = scene.references;
+  for (const file of source.files) {
+    files.set(file.path, file);
+    const next = projectMap(index, new Set(), files, scene);
+    expect(next.references).toBe(initialIndex);
+    expect(next.edges).toEqual(scanReferences(next.symbols));
+    scene = next;
+  }
+  expect(scene.edges.length).toBeGreaterThan(0);
+  for (const [name, hidden] of [
+    ["N.target", false],
+    ["N.target", true],
+    ["N.missing", false],
+    ["N.other", false],
+  ] as const) {
+    const previous = scene,
+      retained = JSON.stringify([...scene.symbols]),
+      original = source.files[2]!,
+      file = {
+        ...original,
+        symbols: [{ ...original.symbols[0]!, name, private: hidden }],
+      };
+    files.set(file.path, file);
+    scene = projectMap(index, new Set(), files, scene);
+    expect(scene.references).not.toBe(previous.references);
+    expect(scene.edges).toEqual(scanReferences(scene.symbols));
+    expect(JSON.stringify([...previous.symbols])).toBe(retained);
+    const targets = new Set(["N.user"]),
+      changedRole = projectMap(index, targets, files, scene);
+    expect(changedRole.references).toBe(scene.references);
+    expect(changedRole.edges).toBe(scene.edges);
+    scene = changedRole;
+  }
 });

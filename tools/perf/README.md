@@ -49,6 +49,17 @@ retains ordinary upstream coordinates and order, while all twelve
 This is a correctness corpus, not a cone latency budget. See the
 [version/configuration audit](../../docs/performance/cone-layout.md).
 
+The reference-update gate in the same performance command resolves eight detail
+arrivals over 38,400 fixed headings. Nine interleaved pairs require retained
+candidate indices to stay below 0.65 of forced global reconstruction, with exact
+ordered edges and complete symbol values. Each series starts with a fresh
+prepared scene; initial materialization is outside the update interval.
+`MEDEN_PERF_MUTANT=rebuild-reference-index npm run test:performance` must fail
+that budget. The generated update corpus now also compares every step with the
+independent original reference oracle, including stable identities with changed
+reference arrays and changing ambiguity/private visibility. See the
+[actual-project comparison](../../docs/performance/map-reference-updates.md).
+
 The [heading/detail transfer comparison](../../docs/performance/inventory-headings.md)
 records the preceding served inventory payloads, event distributions, native
 preparation spans and both serialized retained-tab budgets. It distinguishes
