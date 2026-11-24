@@ -1,0 +1,531 @@
+{
+  "date": "2026-11-24",
+  "source_base_revision": "39cc907fb1b0ff73173a125d923f25a9aa0a0e5b",
+  "scope": "Shared application observations/timing of actual proposal checks and journal/controller recording. Reuses the existing job publisher/query; no second execution controller, compatibility fallback or core/runtime change. Broader jobs, remaining preparation/response waits and versioned layout/order/retirement remain open.",
+  "candidate": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/b07bbcf34acd038b0098d1bb82b1512012347575a6dfb79efdc9ff5eb9814ef7/meden",
+    "gate_binary": "/tmp/meden-proposal-final-b07bbcf34acd038b0098d1bb82b1512012347575a6dfb79efdc9ff5eb9814ef7",
+    "sha256": "b07bbcf34acd038b0098d1bb82b1512012347575a6dfb79efdc9ff5eb9814ef7"
+  },
+  "deployment": {
+    "binary_sha256": "b07bbcf34acd038b0098d1bb82b1512012347575a6dfb79efdc9ff5eb9814ef7",
+    "assets_sha256": "2a60b29123b17228437d34a4a800abe7a4b2c2547a24cb862698f2fa4e87b3f6",
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/b07bbcf34acd038b0098d1bb82b1512012347575a6dfb79efdc9ff5eb9814ef7-2a60b29123b17228"
+  },
+  "model": {
+    "subject": "Disjoint original draft session/canonical contract identity or original accepted revision/session/contract, with frozen method/class/scope/source path.",
+    "proposal_stages": [
+      "checking_proposal",
+      "recording_proposal"
+    ],
+    "completion": "Proposed contains only the originally returned new review reference. Completion validates original subject, draft contract, method, strength/scope/resource, no acceptance/current evidence/artifact/failure and actual recording stage.",
+    "lifecycle": "Private consuming observer, original monotonic elapsed time, replacement/terminal/backwards callbacks ignored, malformed observations retire bytes. New host sessions start idle. Observers are not kernel tickets, receipts or grants.",
+    "queries": "Existing exact-revision immutable query; retry makes no command/model request. Late old bodies cannot replace a new proposal. Duplicate displayed drafts start no new proposal check.",
+    "ui": "Existing chat activity row and folded terminal details; no additional panel/tab or graph-triggered chat operation."
+  },
+  "checks": {
+    "gates": [
+      {
+        "phase": "rust",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "clippy",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "rustdoc",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "typecheck",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "typescript",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "architecture",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "format",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "schema",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "algorithm-budget",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "python-lint",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "tui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "gui-all",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "budget-normal",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "budget-reduced",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "rust_passed": 335,
+    "typescript_passed": 43,
+    "architecture_passed": 33,
+    "owned_data_port_sources": 47,
+    "native_schemas": 37,
+    "tui": {
+      "passed": 35,
+      "skipped": 0,
+      "binary_sha256": "b07bbcf34acd038b0098d1bb82b1512012347575a6dfb79efdc9ff5eb9814ef7",
+      "decoded_screens_inspected": [
+        {
+          "journey": "test_finite_contract_real_refutation_repair_staleness_and_restart-0a1f467300",
+          "frame": 10,
+          "seconds": 0.268,
+          "columns": 130,
+          "rows": 36,
+          "screen_sha256": "b634db4c722ebc2f797890ac480747d5a3cc9dcdb8790de90ab2e5791b29bfd3",
+          "observed": "Original review identity/bounds and deliberate host keys"
+        },
+        {
+          "journey": "test_finite_contract_real_refutation_repair_staleness_and_restart-0a1f467300",
+          "frame": 54,
+          "seconds": 2.401,
+          "columns": 130,
+          "rows": 36,
+          "screen_sha256": "487863e63e9ecbc5a995442048f094fff4796a2ffb1f82a5367258bf7770a881",
+          "observed": "Refutation and repair retained; current evidence invalidated after edit"
+        },
+        {
+          "journey": "test_finite_contract_real_refutation_repair_staleness_and_restart-0a1f467300",
+          "frame": 58,
+          "seconds": 2.608,
+          "columns": 130,
+          "rows": 36,
+          "screen_sha256": "c1aef31f73446cc6c9f10760028b78f56e118e4f0ebe91cf2536dbb1b8af64a4",
+          "observed": "Fresh model selection after restart"
+        },
+        {
+          "journey": "test_gui_to_tui_and_back_retains_context_but_requires_fresh_review-65b00a5ecf",
+          "frame": 38,
+          "seconds": 1.103,
+          "columns": 130,
+          "rows": 40,
+          "screen_sha256": "13b39d40ff23ccbc920f7b3f1e59e61bc8569c758808d0cae21a33c47ee8711f",
+          "observed": "GUI conversation retained through public TUI continuation"
+        }
+      ],
+      "scope": "scripted fixtures; no live-model validation"
+    },
+    "browser": [
+      {
+        "report": "target/gui-proposal-v2-all-report",
+        "stats": {
+          "total": 69,
+          "expected": 69,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        }
+      },
+      {
+        "report": "target/gui-proposal-v2-budget-normal-report",
+        "stats": {
+          "total": 2,
+          "expected": 2,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        }
+      },
+      {
+        "report": "target/gui-proposal-v2-budget-reduced-report",
+        "stats": {
+          "total": 2,
+          "expected": 2,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        }
+      }
+    ],
+    "new_regressions": [
+      "Actual draft validation/readiness remains review-only, including replacement with retained old acceptance.",
+      "Duplicate displayed drafts preserve exact observation bytes.",
+      "Proposal/accepted completions cannot cross subjects or manufacture evidence; wrong session/hash/source/acceptance and premature completion retire bytes.",
+      "Actual cancelled proposal remains unaccepted; a fresh host turn recovers with a distinct job.",
+      "Retired draft callbacks cannot mutate a later accepted-job observation.",
+      "Actual browser transfer failure retries without check/model dispatch, delayed old body is rejected after replacement, and restart retains proposed meaning with idle jobs/no restored approval."
+    ]
+  },
+  "timings": {
+    "proposal": {
+      "samples": 2,
+      "retry_commands": 0,
+      "spans": [
+        {
+          "context": {
+            "trace": 57,
+            "span": 69
+          },
+          "parent": 68,
+          "name": "verification.proposal.check",
+          "start_us": 1338131,
+          "wall_us": 19039,
+          "thread_cpu_us": 18976
+        },
+        {
+          "context": {
+            "trace": 57,
+            "span": 72
+          },
+          "parent": 68,
+          "name": "verification.proposal.record",
+          "start_us": 1357275,
+          "wall_us": 3512,
+          "thread_cpu_us": 1768
+        },
+        {
+          "context": {
+            "trace": 57,
+            "span": 68
+          },
+          "parent": 60,
+          "name": "verification.proposal.total",
+          "start_us": 1338130,
+          "wall_us": 22817,
+          "thread_cpu_us": 21009
+        },
+        {
+          "context": {
+            "trace": 115,
+            "span": 127
+          },
+          "parent": 126,
+          "name": "verification.proposal.check",
+          "start_us": 2523566,
+          "wall_us": 13419,
+          "thread_cpu_us": 13376
+        },
+        {
+          "context": {
+            "trace": 115,
+            "span": 129
+          },
+          "parent": 126,
+          "name": "verification.proposal.record",
+          "start_us": 2537061,
+          "wall_us": 2905,
+          "thread_cpu_us": 1813
+        },
+        {
+          "context": {
+            "trace": 115,
+            "span": 126
+          },
+          "parent": 118,
+          "name": "verification.proposal.total",
+          "start_us": 2523565,
+          "wall_us": 16492,
+          "thread_cpu_us": 15356
+        }
+      ],
+      "methodology": "Actual registered finite contract validation and journal/controller proposal; no solver is needed to validate this bounded data format. Scripted inference. Transfer failure/delay changes only observed responses; no checker/compiler output is fabricated. No live-model, compilation, cold-install or evidence-admission claim.",
+      "limits": "Concurrent four-worker browser suite, not an isolated benchmark or before/after comparison. The host check aggregate includes rebinding, method/schema consistency checks and bounded-data validation; no per-substep CPU attribution. Total begins after observer creation and excludes earlier decode/binding and later model replies. No compiler/solver is needed for finite proposal validation."
+    },
+    "serialized_navigation": [
+      {
+        "browser": "149.0.7827.53",
+        "motion": "no-preference",
+        "cold_analysis_store_preparation_ms": 32868.394092,
+        "warm_tab_two_raf_ms": [
+          35.299999952316284,
+          26.5,
+          28.80000001192093,
+          24.900000035762787,
+          32.09999996423721,
+          22.600000023841858,
+          22.69999998807907,
+          20.100000023841858,
+          27.5,
+          24.80000001192093
+        ],
+        "p95_ms": 35.299999952316284,
+        "maximum_p95_ms": 250,
+        "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+      },
+      {
+        "browser": "149.0.7827.53",
+        "motion": "reduce",
+        "cold_analysis_store_preparation_ms": 33041.208555,
+        "warm_tab_two_raf_ms": [
+          28.700000047683716,
+          23.399999976158142,
+          24.100000023841858,
+          23.80000001192093,
+          25.30000001192093,
+          27.599999964237213,
+          23.69999998807907,
+          34.80000001192093,
+          27.399999976158142,
+          29
+        ],
+        "p95_ms": 34.80000001192093,
+        "maximum_p95_ms": 250,
+        "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+      }
+    ],
+    "interpretation": "Navigation is the two-rAF callback proxy, not physical paint or INP. Proposal timings are host-thread wall/CPU intervals, not browser handlers. Original interaction/frame/algorithm budgets were not relaxed; no overall application or compilation speedup claim."
+  },
+  "compiler_sources_unchanged": [
+    {
+      "path": "crates/meden-app/src/adapters/lake.rs",
+      "sha256": "bfb03188d670305be66d1152c47982a6bcea528b283d1e16de67ca9b8eebd8d8"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean.rs",
+      "sha256": "e64f92a04a26780fb32a9db274e1430fb142bcaad6cca8af12dab4cac65761de"
+    },
+    {
+      "path": "crates/meden-app/src/analysis/collect.rs",
+      "sha256": "755c5495ad2e80171a136ca9be194867741fc2d8db5376644a46fcb3766f194b"
+    },
+    {
+      "path": "crates/meden-app/src/analysis/layout.rs",
+      "sha256": "a6d7069ced1c8c1fcccf9349b293efc335e0a916df6ca864b4c8f30e35f1c94f"
+    },
+    {
+      "path": "crates/meden-app/src/analysis/observe.rs",
+      "sha256": "047ed863ac5571096a23ccb7196e713707a6bcae2db0b1d7b80c4674927bb7e5"
+    },
+    {
+      "path": "crates/meden-app/src/analysis/sources.rs",
+      "sha256": "88c5be999f8ba6a705dbcff8238f0648f3825f1e0fe61de3605a04075837c03a"
+    },
+    {
+      "path": "crates/meden-app/src/compiler.rs",
+      "sha256": "c2efc23d024921aa5bb5fcfa120f1e672438f09d25d7f4a309de19469483dbc4"
+    },
+    {
+      "path": "crates/meden-app/src/adapters.rs",
+      "sha256": "ab5b5f082cb99f9321bab7f49e322a1b97177340964b6ea7c9acd3c28e3cd713"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/mod.rs",
+      "sha256": "c0f2f0d9612e0181b01aa45f06f23f4e8c04361b5381d39d1c9d40e9672b0a74"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/project.rs",
+      "sha256": "13a22dcf4deb352b9076ba8f287cd440b94fae4bb87cec33576b121bbca4288c"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/lake.rs",
+      "sha256": "e732135a0bd5f3bbc87b0be02b077fa3b307c6b7d0ce6ee964f85aa2c6eb7760"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/graph.rs",
+      "sha256": "1efb44197f9762f7db65995eec0003c704b559efc3829c1455ed73300e288c40"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/frozen.rs",
+      "sha256": "37609bb326f5ab5d061be31c8ddac907949bb435b374750dc8d1a108f49e5b10"
+    }
+  ],
+  "actual_projects": [
+    {
+      "project": "riemann",
+      "pid": 2574201,
+      "binary_sha256": "b07bbcf34acd038b0098d1bb82b1512012347575a6dfb79efdc9ff5eb9814ef7",
+      "cache_hit": true,
+      "preparation_ms": 24322.083378,
+      "source_publication": "sha256:4671471a8580f25a42b2117fcc7cf5a8d25988b715b1a40cbb17b77e006bfa94",
+      "source_hash": "2063f4c8792707349ba4b3d295e779c565a63030790aae9d937d5f776d8d9184",
+      "reader_publication": "sha256:d3bca7c0ce21989bef612ac79475e72da33062b4140b13dfe87bbaf183a61be8",
+      "reader_hash": "d2c21198aaff30504f16966ddf61ce628ef7ac8632c62be3195b4e4f72e41806",
+      "inventory_files": 175187,
+      "metadata_hash": "5875c3c3432ddda379f8caf8ed411b77d30701443e5da912442935a296c3ae7a",
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "node_selection_preserves_camera_chat_and_source_line": true,
+      "selected_declaration": "PIW.AdelClassFin.DictGen.denom",
+      "verification_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "preview": {
+        "state": "idle"
+      },
+      "preview_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    },
+    {
+      "project": "ethlib",
+      "pid": 2574411,
+      "binary_sha256": "b07bbcf34acd038b0098d1bb82b1512012347575a6dfb79efdc9ff5eb9814ef7",
+      "cache_hit": true,
+      "preparation_ms": 2216.685991999999,
+      "source_publication": "sha256:c9a67ef7faab77791ab7d84fad5d7176476d3b7d5320d9f95f155b117b57e86b",
+      "source_hash": "ac220adb7270df17b304574138f8894ec78d92bc7a85c5e2e0e745edc885bb09",
+      "reader_publication": "sha256:0b79b28ff3aa227731108c7cde50cf54fa06cc447922756668b1197473b0d3ac",
+      "reader_hash": "60e647749624e65341239c16878edafe3083f1a0b0ba7ab0587b82511d80dd36",
+      "inventory_files": 2517,
+      "metadata_hash": "59b98c2e15f2f590463873351344a08a59e4aa3854a7dfb1779e635a680cb32f",
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "node_selection_preserves_camera_chat_and_source_line": true,
+      "selected_declaration": "EthLib.Networking.Gossip.GossipsubParameters",
+      "verification_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "preview": {
+        "state": "idle"
+      },
+      "preview_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip/Parameters.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    }
+  ],
+  "public_connection_bindings": [
+    {
+      "project": "riemann",
+      "prior_counter": 0,
+      "current_counter": null,
+      "complete_generated_state_validation": true,
+      "public_choices_preserved": true,
+      "selected_binding_preserved": true,
+      "choices": 3,
+      "choices_sha256": "3c22392a194ffb7d071e11dc260301f76666223753be8d9da40dc00cf720afaa",
+      "running": false,
+      "authorized": false
+    },
+    {
+      "project": "ethlib",
+      "prior_counter": 0,
+      "current_counter": null,
+      "complete_generated_state_validation": true,
+      "public_choices_preserved": true,
+      "selected_binding_preserved": true,
+      "choices": 3,
+      "choices_sha256": "3c22392a194ffb7d071e11dc260301f76666223753be8d9da40dc00cf720afaa",
+      "running": false,
+      "authorized": false
+    }
+  ],
+  "preflight": [
+    {
+      "attempt": "proposal-v1",
+      "result": "Rust passed; strict Clippy rejected three test JSON indexes, similar state/stage names and an overlong terminal projection. Replaced indexes with checked access, named the initial boundary and extracted the checked-proposal projection. The final pinned binary passed every v2 gate."
+    }
+  ],
+  "remaining": [
+    "Broader orchestration job read models and remaining navigation/preparation waits in step 4.",
+    "Versioned deterministic layout/order artifacts and obsolete-path retirement in step 5.",
+    "Response-body tail mechanism and finer backend CPU attribution remain unresolved.",
+    "This is observation/adapter validation, not new kernel refinement, full application assurance, live/large/local model quality, confidentiality or cold installation."
+  ]
+}

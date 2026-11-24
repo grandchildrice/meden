@@ -8,25 +8,39 @@ export const verificationJobPublicationSchema = z
         context: z
           .object({
             job: z.string().regex(new RegExp("^sha256:[a-f0-9]{64}$")),
-            reference: z
-              .object({
-                revision: z
-                  .string()
-                  .max(20)
-                  .regex(new RegExp("^[1-9][0-9]{0,19}$"))
-                  .refine(
-                    (value) =>
-                      /^[1-9][0-9]{0,19}$/.test(value) &&
-                      BigInt(value) <= 18446744073709551615n,
-                    {
-                      message:
-                        "Expected a canonical positive u64 decimal string",
-                    },
-                  ),
-                session: z.string().min(1).max(8192),
-                contract: z.string().regex(new RegExp("^[a-f0-9]{64}$")),
-              })
-              .strict(),
+            subject: z.discriminatedUnion("state", [
+              z
+                .object({
+                  state: z.literal("proposal"),
+                  session: z.string().min(1).max(256),
+                  contract: z.string().regex(new RegExp("^[a-f0-9]{64}$")),
+                })
+                .strict(),
+              z
+                .object({
+                  state: z.literal("accepted"),
+                  reference: z
+                    .object({
+                      revision: z
+                        .string()
+                        .max(20)
+                        .regex(new RegExp("^[1-9][0-9]{0,19}$"))
+                        .refine(
+                          (value) =>
+                            /^[1-9][0-9]{0,19}$/.test(value) &&
+                            BigInt(value) <= 18446744073709551615n,
+                          {
+                            message:
+                              "Expected a canonical positive u64 decimal string",
+                          },
+                        ),
+                      session: z.string().min(1).max(8192),
+                      contract: z.string().regex(new RegExp("^[a-f0-9]{64}$")),
+                    })
+                    .strict(),
+                })
+                .strict(),
+            ]),
             source_path: z.string().min(1).max(4096),
             name: z.string(),
             backend: z.string(),
@@ -43,8 +57,34 @@ export const verificationJobPublicationSchema = z
         phase: z.discriminatedUnion("state", [
           z
             .object({
+              state: z.literal("proposed"),
+              reference: z
+                .object({
+                  revision: z
+                    .string()
+                    .max(20)
+                    .regex(new RegExp("^[1-9][0-9]{0,19}$"))
+                    .refine(
+                      (value) =>
+                        /^[1-9][0-9]{0,19}$/.test(value) &&
+                        BigInt(value) <= 18446744073709551615n,
+                      {
+                        message:
+                          "Expected a canonical positive u64 decimal string",
+                      },
+                    ),
+                  session: z.string().min(1).max(8192),
+                  contract: z.string().regex(new RegExp("^[a-f0-9]{64}$")),
+                })
+                .strict(),
+            })
+            .strict(),
+          z
+            .object({
               state: z.literal("running"),
               stage: z.discriminatedUnion("state", [
+                z.object({ state: z.literal("checking_proposal") }).strict(),
+                z.object({ state: z.literal("recording_proposal") }).strict(),
                 z.object({ state: z.literal("reading_source") }).strict(),
                 z
                   .object({
@@ -120,6 +160,8 @@ export const verificationJobPublicationSchema = z
             .object({
               state: z.literal("failed"),
               during: z.discriminatedUnion("state", [
+                z.object({ state: z.literal("checking_proposal") }).strict(),
+                z.object({ state: z.literal("recording_proposal") }).strict(),
                 z.object({ state: z.literal("reading_source") }).strict(),
                 z
                   .object({
@@ -187,6 +229,8 @@ export const verificationJobPublicationSchema = z
             .object({
               state: z.literal("cancelled"),
               during: z.discriminatedUnion("state", [
+                z.object({ state: z.literal("checking_proposal") }).strict(),
+                z.object({ state: z.literal("recording_proposal") }).strict(),
                 z.object({ state: z.literal("reading_source") }).strict(),
                 z
                   .object({

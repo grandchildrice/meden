@@ -346,39 +346,51 @@ impl Project {
                 return self.summary(&state, false);
             }
         }
-        let result = self.verifiers.check_draft(
-            contract,
-            &std::env::current_exe().map_err(Failure::unavailable)?,
-            control,
-        );
-        if let Err(failure) = result {
-            self.record_failure(failure.clone());
-            return Err(failure.into());
-        }
-        let mut state = self
-            .state
-            .lock()
-            .map_err(|_| anyhow::anyhow!("project unavailable"))?;
-        control
-            .with_active(|| {
-                self.record(
-                    &mut state,
-                    journal::Event::propose(contract).map_err(io::Error::other)?,
+        let progress =
+            progress::Progress::proposal(&self.verification_jobs, &self.session, contract, control);
+        let _timing = meden_runtime::metrics::Span::start("verification.proposal.total");
+        let result = (|| {
+            let checked = {
+                let _timing = meden_runtime::metrics::Span::start("verification.proposal.check");
+                self.verifiers.check_draft(
+                    contract,
+                    &std::env::current_exe().map_err(Failure::unavailable)?,
+                    control,
                 )
-                .map_err(io::Error::other)?;
-                if !state
-                    .contracts
-                    .propose(Origin::Controller, bytes, vec![required])
-                {
-                    return Err(io::Error::other(
-                        "contract proposal refused or generations exhausted",
-                    ));
-                }
-                state.autorun = false;
-                state.failure = None;
-                self.summary(&state, false).map_err(io::Error::other)
-            })
-            .map_err(Into::into)
+            };
+            if let Err(failure) = checked {
+                self.record_failure(failure.clone());
+                return Err(failure.into());
+            }
+            progress.recording_proposal();
+            let _timing = meden_runtime::metrics::Span::start("verification.proposal.record");
+            let mut state = self
+                .state
+                .lock()
+                .map_err(|_| anyhow::anyhow!("project unavailable"))?;
+            control
+                .with_active(|| {
+                    self.record(
+                        &mut state,
+                        journal::Event::propose(contract).map_err(io::Error::other)?,
+                    )
+                    .map_err(io::Error::other)?;
+                    if !state
+                        .contracts
+                        .propose(Origin::Controller, bytes, vec![required])
+                    {
+                        return Err(io::Error::other(
+                            "contract proposal refused or generations exhausted",
+                        ));
+                    }
+                    state.autorun = false;
+                    state.failure = None;
+                    self.summary(&state, false).map_err(io::Error::other)
+                })
+                .map_err(Into::into)
+        })();
+        progress.finish_proposal(&result);
+        result
     }
     fn reference(&self, agreement: &Agreement, reference: &Reference) -> Result<()> {
         anyhow::ensure!(

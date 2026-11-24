@@ -53,6 +53,7 @@ Other platform-dependent tests may still skip; required `ux` cases must pass.
 | Keep a running preview while descriptions update | Retry a failed description transfer without recapture, preserve the actual browser counter through delayed diagnostic updates, retire an old origin on recapture, reject its late body, bound supplementary-Unicode diagnostics, reuse frozen description bytes and restart with idle preview and no restored model approval | Native preview-publication journey with real confined file capture and isolated browser execution; existing preview isolation/bounds journeys, application publication and generated URI-schema checks |
 | Review the original delivery before sending once | Page frozen binary bytes without changing the target, refuse clipped headings and pasted approval, reject a proposal, send once to a real local receiver and refuse replay; the browser also refuses stale or malformed review references and reopens without an old queue | Required public TUI `test_exports.py` journey, CLI queue/transport tests and native delivery browser cases; scripted proposals, actual file workers and loopback receivers |
 | Follow the actual accepted-project check without waiting for the next model reply | Retry a failed progress transfer without another command, cancel an issued check, reject its delayed publication, run a distinct job, publish admitted evidence before the final reply, invalidate it immediately after an actual source edit and reopen with idle jobs and no restored coverage | Native verification-progress and finite browser journeys; actual confined Z3 and scripted inference; finite stage/identity projection tests |
+| Follow proposal checking separately from accepted verification | Retry a failed proposal observation without another check or model request, reject its delayed body after a separately named replacement, retain review-only meaning and reopen with idle jobs and fresh model approval | Native proposal-observation journey with the actual finite-data validator and journal/controller, scripted inference; application cancellation/recovery, duplicate and cross-subject completion checks |
 | Continue with the originally selected verification method | Reopen without `--verifier`, retain the host-selected finite decoder without Lean setup, refuse an unknown key without modifying the journal, and preserve the originally reviewed method without restored proof coverage; method switches/upgrades require new review | `test_tui_finite.py`, native finite browser restart, live `finite_smoke`; same-format registry/journal conformance tests cover two validating fixture implementations, unavailable methods, changed definitions and unknown historical provenance |
 | Start without connection flags | Run `meden` or `meden tui --workspace …`, configure in the TUI, see inline errors, keep the key masked and choose whether to save it | `test_tui_setup.py` |
 | Work in the chosen repository | Files change in that repository; commands run there; original tests remain intact | `test_tui_integration.py`, `test_tui_smoke.py` |
@@ -132,6 +133,15 @@ held model response proves that evidence completion and source-edit invalidation
 publish before the next reply. Stop is acknowledged before that response is
 released; this does not measure model-transport abort latency. Scripted inference
 and this launcher timing fixture are not live-model or cold-install validation.
+
+The proposal-observation journey uses the finite backend's actual bounded-data
+validation, which requires no external compiler or solver. Its completed draft
+remains unaccepted and cannot display implementation evidence. Response
+failure/delay affects transfer only; retry must neither dispatch a command nor
+make another model request. A later proposal retires the old body, and restart
+keeps the proposed meaning without restoring a job or model approval. Separate
+proposal check/record/total timers observe actual application boundaries; this
+journey makes no compilation-speed or live-model claim.
 
 The prepared-Lake browser journey requires exactly one requested-file inspection
 after each explicit refresh, even when fast directory work finishes within one

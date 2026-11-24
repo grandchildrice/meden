@@ -47,15 +47,15 @@
       ]
     },
     "Context": {
-      "description": "Frozen original accepted meaning and host observation identity.",
+      "description": "Frozen original subject and host observation identity.",
       "type": "object",
       "properties": {
         "job": {
           "type": "string",
           "pattern": "^sha256:[a-f0-9]{64}$"
         },
-        "reference": {
-          "$ref": "#/$defs/Reference"
+        "subject": {
+          "$ref": "#/$defs/Subject"
         },
         "source_path": {
           "type": "string",
@@ -78,12 +78,63 @@
       "additionalProperties": false,
       "required": [
         "job",
-        "reference",
+        "subject",
         "source_path",
         "name",
         "backend",
         "class",
         "scope"
+      ]
+    },
+    "Subject": {
+      "description": "Original operation subject. A draft has no accepted revision or evidence.",
+      "oneOf": [
+        {
+          "description": "Check a new contract before offering its meaning for host review.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "proposal"
+            },
+            "session": {
+              "description": "Original project session, not a grant.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "contract": {
+              "description": "Complete canonical proposed contract identity.",
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "session",
+            "contract"
+          ]
+        },
+        {
+          "description": "Check implementation against the host-accepted original meaning.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "accepted"
+            },
+            "reference": {
+              "description": "Exact original accepted revision/session/contract.",
+              "$ref": "#/$defs/Reference"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "reference"
+          ]
+        }
       ]
     },
     "Reference": {
@@ -144,6 +195,25 @@
     "Phase": {
       "description": "Input-bound progress and disjoint terminal observations. Diagnostics do not\nselect a phase, stop class or evidence strength.",
       "oneOf": [
+        {
+          "description": "A checked draft is available for review. This is not acceptance or\nimplementation evidence, including when older accepted meaning remains.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "proposed"
+            },
+            "reference": {
+              "description": "Original newly displayed proposal reference.",
+              "$ref": "#/$defs/Reference"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "reference"
+          ]
+        },
         {
           "description": "The host is executing this actual application stage.",
           "type": "object",
@@ -247,6 +317,34 @@
     "Stage": {
       "description": "Actual application boundary with exactly the inputs known there. A checking\nstage without prepared inputs is not representable, including after failure.",
       "oneOf": [
+        {
+          "description": "Validate a draft through its originally registered verifier.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "checking_proposal"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "description": "Retain the checked draft for a separate host review.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "recording_proposal"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "additionalProperties": false
+        },
         {
           "description": "Read the accepted source under its frozen policy.",
           "type": "object",

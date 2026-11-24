@@ -32,6 +32,23 @@ impl<'a> Progress<'a> {
             control,
         }
     }
+    pub(super) fn proposal(
+        publisher: &'a Publisher,
+        session: &str,
+        contract: &Contract,
+        control: &'a Control,
+    ) -> Self {
+        Self {
+            publisher,
+            observation: publisher.begin_proposal(session, contract),
+            started: Instant::now(),
+            control,
+        }
+    }
+    pub(super) fn recording_proposal(&self) {
+        self.publisher
+            .recording_proposal(self.observation.as_ref(), self.elapsed());
+    }
     fn elapsed(&self) -> u32 {
         u32::try_from(self.started.elapsed().as_millis()).unwrap_or(u32::MAX)
     }
@@ -54,10 +71,20 @@ impl<'a> Progress<'a> {
         self.publisher
             .retaining(self.observation.as_ref(), self.elapsed());
     }
-    pub(super) fn finish(mut self, result: &Result<Summary>) {
+    pub(super) fn finish(self, result: &Result<Summary>) {
+        self.complete(result, Completion::Admitted);
+    }
+    pub(super) fn finish_proposal(self, result: &Result<Summary>) {
+        self.complete(result, Completion::Proposed);
+    }
+    fn complete<'r>(
+        mut self,
+        result: &'r Result<Summary>,
+        success: impl FnOnce(&'r Summary) -> Completion<'r>,
+    ) {
         let message;
         let outcome = match result {
-            Ok(summary) => Completion::Admitted(summary),
+            Ok(summary) => success(summary),
             Err(error) => {
                 message = format!("{error:#}");
                 if self.control.flag().load(Ordering::SeqCst) {

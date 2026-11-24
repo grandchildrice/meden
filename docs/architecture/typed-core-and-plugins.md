@@ -607,11 +607,15 @@ finite-verifier journey covers transfer failure/retry, actual Z3 rejection and
 repair, current bounded evidence and accepted meaning after restart without
 restored coverage or model approval.
 
-Accepted-project checks now publish their actual progress through a separate
-application-owned job observation. Immutable context retains the original
-contract reference, method, class, scope and source path. Running stages are
-source reading, checker preparation, checking, source refresh and evidence
-retention. Stages after issue carry the original source and prepared-input
+Project checks now publish their actual progress through a separate
+application-owned job observation. Its disjoint subject retains either the
+original draft session/canonical contract identity or the exact accepted
+contract reference, together with method, class, scope and source path. Draft
+stages follow the actual registered proposal check and journal/controller
+recording; completion only reports the original proposal ready for host review.
+It cannot report acceptance or implementation evidence. Duplicate displayed
+proposals start no new check. Accepted-check stages are source reading, checker
+preparation, checking, source refresh and evidence retention. Stages after issue carry the original source and prepared-input
 digests; failed/cancelled variants retain that exact stage rather than optional
 input fields. Only the original successful completion can display admission.
 The consuming observer is separate from the unchanged kernel job ticket and
@@ -708,7 +712,7 @@ entry source is restored; the metadata projection/schema now lives only under
 entry. The compiler's original definition, resources and complete input checks
 still determine cache reuse; no validation or identity check is bypassed.
 
-This does not finish step 4: proposal checks and broader orchestration jobs,
+This does not finish step 4: broader orchestration jobs,
 and remaining navigation waits still need work. Step 5's versioned layout/order and retirement
 requirements remain open too.
 Step 3 now executes the second backend through public TUI/GUI, actual offline

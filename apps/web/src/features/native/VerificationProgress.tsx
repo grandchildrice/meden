@@ -5,6 +5,10 @@ type Data = VerificationJobPublication["data"];
 type Stage = Extract<Data["phase"], { state: "running" }>["stage"];
 function stageLabel(stage: Stage): string {
   switch (stage.state) {
+    case "checking_proposal":
+      return "Checking contract proposal…";
+    case "recording_proposal":
+      return "Preparing contract review…";
     case "reading_source":
       return "Reading source…";
     case "preparing_checker":
@@ -19,7 +23,14 @@ function stageLabel(stage: Stage): string {
 }
 function stoppedLabel(
   phase: Extract<Data["phase"], { state: "failed" | "cancelled" }>,
+  proposal: boolean,
 ): string {
+  if (proposal)
+    return phase.state === "cancelled"
+      ? "Proposal check stopped"
+      : phase.kind === "unverified"
+        ? "The proposal did not pass its check"
+        : "Proposal check could not finish";
   if (phase.state === "cancelled") return "Verification stopped";
   return phase.kind === "unverified"
     ? "The check did not establish the contract"
@@ -75,7 +86,7 @@ export function VerificationProgress({
     <article className="chat-contract" aria-label="Verification progress">
       <Typography component="p">{data.context.name}</Typography>
       <Alert severity={phase.state === "cancelled" ? "info" : "warning"}>
-        {stoppedLabel(phase)}
+        {stoppedLabel(phase, data.context.subject.state === "proposal")}
         <details>
           <summary>Details</summary>
           <pre>{phase.message}</pre>

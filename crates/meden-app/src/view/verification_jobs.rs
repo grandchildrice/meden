@@ -9,13 +9,32 @@ use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::sync::{Arc, Mutex};
 
-/// Frozen original accepted meaning and host observation identity.
+/// Original operation subject. A draft has no accepted revision or evidence.
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(tag = "state", rename_all = "snake_case", deny_unknown_fields)]
+pub enum Subject {
+    /// Check a new contract before offering its meaning for host review.
+    Proposal {
+        /// Original project session, not a grant.
+        #[schemars(length(min = 1, max = 256))]
+        session: String,
+        /// Complete canonical proposed contract identity.
+        #[schemars(regex(pattern = r"^[a-f0-9]{64}$"))]
+        contract: String,
+    },
+    /// Check implementation against the host-accepted original meaning.
+    Accepted {
+        /// Exact original accepted revision/session/contract.
+        reference: super::evidence::Reference,
+    },
+}
+/// Frozen original subject and host observation identity.
 #[derive(Clone, Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Context {
     #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
     job: String,
-    reference: super::evidence::Reference,
+    subject: Subject,
     #[schemars(length(min = 1, max = 4096))]
     source_path: String,
     name: String,
@@ -38,6 +57,10 @@ pub struct Inputs {
 #[derive(Clone, Serialize, JsonSchema)]
 #[serde(tag = "state", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Stage {
+    /// Validate a draft through its originally registered verifier.
+    CheckingProposal,
+    /// Retain the checked draft for a separate host review.
+    RecordingProposal,
     /// Read the accepted source under its frozen policy.
     ReadingSource,
     /// Prepare the originally registered checker and its inputs.
@@ -67,6 +90,12 @@ pub enum Stage {
 #[derive(Clone, Serialize, JsonSchema)]
 #[serde(tag = "state", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Phase {
+    /// A checked draft is available for review. This is not acceptance or
+    /// implementation evidence, including when older accepted meaning remains.
+    Proposed {
+        /// Original newly displayed proposal reference.
+        reference: super::evidence::Reference,
+    },
     /// The host is executing this actual application stage.
     Running {
         /// Exact known input, frozen along with its operation boundary.
@@ -103,7 +132,10 @@ impl Phase {
     fn stage(&self) -> Option<&Stage> {
         match self {
             Self::Running { stage } => Some(stage),
-            Self::Admitted { .. } | Self::Failed { .. } | Self::Cancelled { .. } => None,
+            Self::Proposed { .. }
+            | Self::Admitted { .. }
+            | Self::Failed { .. }
+            | Self::Cancelled { .. } => None,
         }
     }
 }
@@ -221,30 +253,54 @@ impl Publisher {
         reference: &project::Reference,
         contract: &Contract,
     ) -> Option<Observation> {
+        self.begin_subject(contract, Stage::ReadingSource, || {
+            anyhow::ensure!(
+                contract.identity()? == reference.contract,
+                "Verification contract identity changed"
+            );
+            Ok(Subject::Accepted {
+                reference: super::evidence::Reference::new(reference)?,
+            })
+        })
+    }
+    pub(crate) fn begin_proposal(&self, session: &str, contract: &Contract) -> Option<Observation> {
+        self.begin_subject(contract, Stage::CheckingProposal, || {
+            anyhow::ensure!(
+                !session.is_empty() && session.len() <= 256,
+                "Invalid proposal session"
+            );
+            Ok(Subject::Proposal {
+                session: session.into(),
+                contract: contract.identity()?,
+            })
+        })
+    }
+    fn begin_subject(
+        &self,
+        contract: &Contract,
+        initial: Stage,
+        subject: impl FnOnce() -> Result<Subject>,
+    ) -> Option<Observation> {
         let mut state = self.0.lock().ok()?;
         let prepared = (|| -> Result<(u64, Context)> {
             let sequence = state
                 .sequence
                 .checked_add(1)
                 .context("Verification observation sequence exhausted")?;
-            anyhow::ensure!(
-                contract.identity()? == reference.contract,
-                "Verification contract identity changed"
-            );
-            let reference = super::evidence::Reference::new(reference)?;
+            let subject = subject()?;
             let description = contract.description();
             anyhow::ensure!(
                 !description.source.is_empty() && description.source.len() <= 4096,
                 "Verification resource exceeds view bounds"
             );
             let mut hash = Sha256::new();
-            hash.update(b"meden.verification.job.v1\0");
+            hash.update(b"meden.verification.job.v2\0");
             hash.update(state.epoch);
             hash.update(sequence.to_le_bytes());
-            hash.update(serde_json::to_vec(&reference)?);
+            hash.update(serde_json::to_vec(&subject)?);
             let context = Context {
                 job: format!("sha256:{:x}", hash.finalize()),
-                reference,
+                subject,
                 source_path: description.source.clone(),
                 name: description.name.clone(),
                 backend: contract.backend().into(),
@@ -262,9 +318,7 @@ impl Publisher {
                 state.original = Some(Data {
                     context,
                     elapsed_ms: 0,
-                    phase: Phase::Running {
-                        stage: Stage::ReadingSource,
-                    },
+                    phase: Phase::Running { stage: initial },
                 });
                 state.publish();
                 Some(observation)
@@ -311,6 +365,11 @@ impl Publisher {
             Ok(None) => {}
             Err(error) => state.unavailable(&error.to_string()),
         }
+    }
+    pub(crate) fn recording_proposal(&self, observation: Option<&Observation>, elapsed: u32) {
+        self.advance(observation, elapsed, |stage| {
+            Ok(matches!(stage, Stage::CheckingProposal).then_some(Stage::RecordingProposal))
+        });
     }
     pub(crate) fn source(
         &self,
@@ -402,7 +461,11 @@ impl Publisher {
                 .stage()
                 .context("Verification observation is already terminal")?;
             Ok(match outcome {
+                Completion::Proposed(summary) => checked_proposal(context, during, summary)?,
                 Completion::Admitted(summary) => {
+                    let Subject::Accepted { reference } = &context.subject else {
+                        anyhow::bail!("Evidence completion has no original accepted subject");
+                    };
                     let Stage::RetainingEvidence { inputs } = during else {
                         anyhow::bail!("Verification completion preceded retention");
                     };
@@ -410,8 +473,7 @@ impl Publisher {
                         summary.accepted
                             && summary.verified
                             && summary.accepted_reference.as_ref() == Some(&summary.reference)
-                            && super::evidence::Reference::new(&summary.reference)?
-                                == context.reference
+                            && super::evidence::Reference::new(&summary.reference)? == *reference
                             && summary.evidence_class == Some(context.class)
                             && summary.scope == context.scope
                             && summary.source_path == context.source_path
@@ -456,8 +518,43 @@ impl Publisher {
         }
     }
 }
+fn checked_proposal(
+    context: &Context,
+    during: &Stage,
+    summary: &project::Summary,
+) -> Result<Phase> {
+    let Subject::Proposal { session, contract } = &context.subject else {
+        anyhow::bail!("Proposal completion has no original draft");
+    };
+    anyhow::ensure!(
+        matches!(during, Stage::RecordingProposal)
+            && summary.proposed
+            && !summary.accepted
+            && !summary.verified
+            && summary.reference.session == *session
+            && summary.reference.contract == *contract
+            && summary.contract.as_ref().is_some_and(|original| original
+                .identity()
+                .is_ok_and(|identity| identity == *contract)
+                && original.backend() == context.backend
+                && original.description().name == context.name)
+            && summary.evidence_class == Some(context.class)
+            && summary.scope == context.scope
+            && summary.source_path == context.source_path
+            && summary.artifact.is_none()
+            && summary.source_sha256.is_none()
+            && summary.artifact_sha256.is_none()
+            && summary.verification_failure.is_none()
+            && summary.verification_diagnostic.is_none(),
+        "Checked proposal context changed"
+    );
+    Ok(Phase::Proposed {
+        reference: super::evidence::Reference::new(&summary.reference)?,
+    })
+}
 #[derive(Clone, Copy)]
 pub(crate) enum Completion<'a> {
+    Proposed(&'a project::Summary),
     Admitted(&'a project::Summary),
     Failed(FailureKind, &'a str),
     Cancelled(&'a str),

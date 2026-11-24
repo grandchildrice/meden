@@ -1,5 +1,43 @@
 # Graph interaction measurements
 
+## Proposal check observations (November 24)
+
+The [validation record](../results/proposal-observations-20261124.json) extends
+the existing job publisher to the actual shared application's proposal check
+and journal/controller recording boundaries. Timers named
+`verification.proposal.check`, `.record` and `.total` retain wall time and
+current-thread CPU time under the original tool trace. These are separate from
+accepted implementation checks, compiler preparation and HTTP response spans.
+The total starts after the observation is created; it includes the terminal
+publication but excludes prior decoding/binding checks and later model replies.
+
+The generated subject distinguishes the original draft session/contract from an
+accepted reference. Draft completion only makes a proposal available for host
+review; it cannot display acceptance or implementation evidence. The existing
+revision-bound query and chat activity row carry progress, with folded terminal
+details. Transfer retry does not run another check or make a model request.
+Duplicate displayed proposals retain their existing observation. Replacement,
+cancellation and restart keep their original lifecycle rules.
+
+The browser example uses the real finite-data validator, which does not need a
+solver or compiler for proposal validation. Its timings do not measure Lean
+compilation or model quality, and are not an isolated before/after speedup.
+The final two samples recorded 13.419–19.039 ms for checking,
+2.905–3.512 ms for recording and 16.492–22.817 ms for the measured total.
+Checking was predominantly current-thread CPU time. Rebinding, method/schema
+consistency checks and data validation are still one aggregate; these samples
+do not attribute the cost to a particular substep.
+
+Serialized retained-tab two-rAF p95 was 35.3 ms with ordinary motion and
+34.8 ms with reduced motion. Actual Riemann and EthLib cache-hit file opens
+took 24.322 s and 2.217 s respectively, preserving the original complete
+source/graph/reader/inventory/history/candidate/evidence observations. These are
+single preparation observations, not paired speedup measurements. They show
+that significant initial preparation waits remain even when compilation is
+cached. Idle navigation requested no job or preview body and changed no chat.
+Compiler-captured sources and the original input/resource checks are unchanged.
+Remaining compilation, navigation and response-body waits are separate work.
+
 ## Shared native wire definitions (November 24)
 
 The [validation record](../results/native-wire-20261124.json) covers the complete

@@ -129,10 +129,13 @@ test("verification queries bind the exact job and revision without admitting rec
   const data = {
     context: {
       job,
-      reference: {
-        revision: "18446744073709551615",
-        session: "host",
-        contract: "e".repeat(64),
+      subject: {
+        state: "accepted",
+        reference: {
+          revision: "18446744073709551615",
+          session: "host",
+          contract: "e".repeat(64),
+        },
       },
       source_path: "counter.model.json",
       name: "Finite counter",

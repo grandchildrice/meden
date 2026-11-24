@@ -64,7 +64,7 @@ fn original_context_and_inputs_survive_all_actual_stage_boundaries() -> Result<(
     let (first, bytes, start) = body(&reader)?;
     assert_eq!(at(&start, "/data/phase/stage/state")?, "reading_source");
     assert_eq!(
-        at(&start, "/data/context/reference")?,
+        at(&start, "/data/context/subject/reference")?,
         serde_json::to_value(super::super::evidence::Reference::new(&summary.reference)?)?
     );
     assert_eq!(at(&start, "/data/context/class")?, "bounded");
@@ -327,7 +327,7 @@ fn trace(events: &[(u8, u8, u8)]) -> Result<()> {
             assert_eq!(observed, phase);
             assert_eq!(at(&value, "/data/elapsed_ms")?, elapsed);
             assert_eq!(
-                at(&value, "/data/context/reference/contract")?,
+                at(&value, "/data/context/subject/reference/contract")?,
                 summary.reference.contract
             );
         } else {
@@ -337,5 +337,164 @@ fn trace(events: &[(u8, u8, u8)]) -> Result<()> {
             );
         }
     }
+    Ok(())
+}
+
+#[test]
+fn actual_proposal_is_review_only_and_duplicate_read_does_not_start_a_job() -> Result<()> {
+    let root = tempfile::tempdir()?;
+    let project = project::Project::new(root.path());
+    let reader = project.verification_view();
+    let control = Control::new(Arc::new(AtomicBool::new(false)));
+    let registry = crate::verification::Registry::host();
+    let original =
+        include_str!("../../../../../verification/examples/finite-counter.contract.json");
+    let contract = registry.parse_selected(original, Some("z3.finite.v1"))?;
+    let summary = project.propose(&contract, &control)?;
+    let (revision, bytes, proposed) = body(&reader)?;
+    assert_eq!(at(&proposed, "/data/context/subject/state")?, "proposal");
+    assert_eq!(
+        at(&proposed, "/data/context/subject/session")?,
+        summary.reference.session
+    );
+    assert_eq!(
+        at(&proposed, "/data/context/subject/contract")?,
+        summary.reference.contract
+    );
+    assert_eq!(at(&proposed, "/data/phase/state")?, "proposed");
+    assert_eq!(
+        at(&proposed, "/data/phase/reference")?,
+        serde_json::to_value(super::super::evidence::Reference::new(&summary.reference)?)?
+    );
+    assert!(!summary.accepted && !summary.verified && summary.artifact.is_none());
+    project.propose(&contract, &control)?;
+    assert!(Arc::ptr_eq(
+        &bytes,
+        &reader.bytes(&revision).context("unchanged duplicate")?
+    ));
+    project.review(&summary.reference)?;
+    project.accept(&summary.reference)?;
+    let replacement = registry.parse_selected(
+        &original.replace("Finite counter", "Replacement counter"),
+        Some("z3.finite.v1"),
+    )?;
+    let replacement = project.propose(&replacement, &control)?;
+    let (_, _, next) = body(&reader)?;
+    assert_eq!(at(&next, "/data/phase/state")?, "proposed");
+    assert_ne!(
+        at(&next, "/data/context/job")?,
+        at(&proposed, "/data/context/job")?
+    );
+    assert!(replacement.accepted_reference.as_ref() == Some(&summary.reference));
+    assert!(!replacement.accepted && !replacement.verified && replacement.artifact.is_none());
+    assert!(reader.bytes(&revision).is_none());
+    Ok(())
+}
+
+#[test]
+fn proposal_completions_preserve_subject_and_cannot_admit_evidence() -> Result<()> {
+    let summary = summary()?;
+    let contract = summary.contract.as_ref().context("contract")?;
+    let publisher = Publisher::new(b"host");
+    let reader = publisher.reader();
+    let draft = publisher.begin_proposal(&summary.reference.session, contract);
+    publisher.source(draft.as_ref(), 1, "a".repeat(64));
+    publisher.checking(draft.as_ref(), 2, &inputs());
+    publisher.refreshing(draft.as_ref(), 3);
+    publisher.retaining(draft.as_ref(), 4);
+    assert_eq!(
+        at(&body(&reader)?.2, "/data/phase/stage/state")?,
+        "checking_proposal"
+    );
+    let old = body(&reader)?.0;
+    publisher.finish(draft, 5, Completion::Admitted(&summary));
+    assert!(reader.bytes(&old).is_none());
+    assert_eq!(
+        at(&serde_json::to_value(&reader)?, "/state")?,
+        "unavailable"
+    );
+    for changed in ["accepted", "identity", "session", "source", "premature"] {
+        let mut proposed = summary.clone();
+        proposed.accepted = false;
+        proposed.verified = false;
+        proposed.artifact = None;
+        proposed.source_sha256 = None;
+        proposed.artifact_sha256 = None;
+        match changed {
+            "accepted" => proposed.accepted = true,
+            "identity" => proposed.reference.contract = "0".repeat(64),
+            "session" => proposed.reference.session = "another session".into(),
+            "source" => proposed.source_path = "another.model.json".into(),
+            _ => {}
+        }
+        let draft = publisher.begin_proposal(&summary.reference.session, contract);
+        if changed != "premature" {
+            publisher.recording_proposal(draft.as_ref(), 1);
+        }
+        let old = body(&reader)?.0;
+        publisher.finish(draft, 2, Completion::Proposed(&proposed));
+        assert!(reader.bytes(&old).is_none());
+        assert_eq!(
+            at(&serde_json::to_value(&reader)?, "/state")?,
+            "unavailable"
+        );
+    }
+    let accepted = publisher.begin(&summary.reference, contract);
+    publisher.recording_proposal(accepted.as_ref(), 1);
+    assert_eq!(
+        at(&body(&reader)?.2, "/data/phase/stage/state")?,
+        "reading_source"
+    );
+    publisher.finish(accepted, 2, Completion::Proposed(&summary));
+    assert_eq!(
+        at(&serde_json::to_value(&reader)?, "/state")?,
+        "unavailable"
+    );
+    let old_draft = publisher.begin_proposal(&summary.reference.session, contract);
+    let current = publisher.begin(&summary.reference, contract);
+    let (revision, original, _) = body(&reader)?;
+    publisher.recording_proposal(old_draft.as_ref(), 1);
+    publisher.finish(old_draft, 2, Completion::Cancelled("retired draft"));
+    assert!(Arc::ptr_eq(
+        &original,
+        &reader.bytes(&revision).context("original accepted job")?
+    ));
+    publisher.finish(current, 3, Completion::Cancelled("current host stop"));
+    assert_eq!(
+        at(&body(&reader)?.2, "/data/context/subject/state")?,
+        "accepted"
+    );
+    Ok(())
+}
+
+#[test]
+fn cancelled_actual_proposal_stays_unaccepted_and_a_fresh_turn_can_recover() -> Result<()> {
+    let root = tempfile::tempdir()?;
+    let project = project::Project::new(root.path());
+    let reader = project.verification_view();
+    let contract = crate::verification::Registry::host().parse_selected(
+        include_str!("../../../../../verification/examples/finite-counter.contract.json"),
+        Some("z3.finite.v1"),
+    )?;
+    let control = Control::new(Arc::new(AtomicBool::new(true)));
+    assert!(project.propose(&contract, &control).is_err());
+    let (cancelled_id, _, cancelled) = body(&reader)?;
+    assert_eq!(at(&cancelled, "/data/phase/state")?, "cancelled");
+    assert_eq!(
+        at(&cancelled, "/data/phase/during/state")?,
+        "checking_proposal"
+    );
+    assert!(!project.stored_status()?.proposed);
+    let control = Control::new(Arc::new(AtomicBool::new(false)));
+    project.begin_turn();
+    let summary = project.propose(&contract, &control)?;
+    assert!(summary.proposed && !summary.accepted && !summary.verified);
+    let (_, _, recovered) = body(&reader)?;
+    assert_eq!(at(&recovered, "/data/phase/state")?, "proposed");
+    assert_ne!(
+        at(&cancelled, "/data/context/job")?,
+        at(&recovered, "/data/context/job")?
+    );
+    assert!(reader.bytes(&cancelled_id).is_none());
     Ok(())
 }

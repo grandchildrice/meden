@@ -336,7 +336,10 @@ test.describe("native GUI with real offline workers", () => {
       completedJob?.phase.state !== "admitted"
     )
       throw new Error("Expected original admitted bounded observation");
-    expect(completedJob.context.reference).toEqual(current.contract.reference);
+    expect(completedJob.context.subject).toEqual({
+      state: "accepted",
+      reference: current.contract.reference,
+    });
     expect(completedJob.context.class).toBe("bounded");
     expect(completedJob.phase.inputs.source_sha256).toBe(
       current.evidence.artifact.source_sha256,
@@ -438,6 +441,184 @@ test.describe("native GUI with real offline workers", () => {
       page.getByRole("button", { name: "Choose model", exact: true }),
     ).toBeVisible();
     expect(requests.length).toBe(before);
+  });
+
+  test("proposal observations retry without another check and cannot replace a newer review", async ({
+    page,
+  }, info) => {
+    test.setTimeout(60000);
+    const contract = JSON.parse(
+      await readFile(
+        "verification/examples/finite-counter.contract.json",
+        "utf8",
+      ),
+    );
+    let failed = false,
+      held = false,
+      commands = 0;
+    let releaseOld = () => {};
+    const released = new Promise<void>((resolve) => {
+      releaseOld = resolve;
+    });
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname === "/api/command") commands++;
+    });
+    await page.route("**/api/verification-job?*", async (route) => {
+      const response = await route.fetch();
+      if (response.status() !== 200) {
+        await route.fulfill({ response });
+        return;
+      }
+      const body = await response.json();
+      if (body.data.phase.state === "proposed" && !failed) {
+        failed = true;
+        await route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({
+            error: "Temporary proposal observation transfer failure",
+          }),
+        });
+      } else if (body.data.phase.state === "proposed" && !held) {
+        held = true;
+        await released;
+        await route.fulfill({ response });
+      } else await route.fulfill({ response });
+    });
+    try {
+      responses.push((response) =>
+        reply(response, tool("propose_contract", { contract })),
+      );
+      await page.goto(
+        await start(0, { MEDEN_VERIFIER_BUNDLE: undefined }, [
+          "--verifier",
+          "z3.finite.v1",
+        ]),
+      );
+      expect(await verificationJob(page)).toBeUndefined();
+      await page
+        .getByRole("button", { name: "Choose model", exact: true })
+        .click();
+      await page
+        .getByRole("button", { name: "Use this model", exact: true })
+        .click();
+      await page
+        .getByRole("textbox", { name: "Message", exact: true })
+        .fill("Propose the finite counter meaning for review.");
+      await page.getByRole("button", { name: "Send", exact: true }).click();
+      await expect(
+        page.getByRole("button", {
+          name: "Review proposed contract",
+          exact: true,
+        }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: "Retry check status", exact: true }),
+      ).toBeVisible();
+      const beforeRetry = commands;
+      const modelRequests = requests.length;
+      await page
+        .getByRole("button", { name: "Retry check status", exact: true })
+        .click();
+      await expect.poll(() => held).toBe(true);
+      expect(commands).toBe(beforeRetry);
+      expect(requests).toHaveLength(modelRequests);
+      const retryCommands = commands - beforeRetry;
+      const first = await verificationJob(page);
+      const meaning = await projectEvidence(page);
+      expect(first?.context.subject.state).toBe("proposal");
+      expect(first?.phase.state).toBe("proposed");
+      if (first?.phase.state !== "proposed" || meaning.state !== "proposed")
+        throw new Error("Expected checked draft, never accepted evidence");
+      expect(first.phase.reference).toEqual(meaning.contract.reference);
+      expect(hasCurrentEvidence(meaning)).toBe(false);
+      await page.screenshot({ path: info.outputPath("proposal-ready.png") });
+      await page
+        .getByRole("button", { name: "Review proposed contract", exact: true })
+        .click();
+      await page
+        .getByRole("dialog", { name: "Review contract meaning" })
+        .getByRole("button", { name: "Reject", exact: true })
+        .click();
+      const replacement = { ...contract, name: "Replacement finite counter" };
+      responses.push((response) =>
+        reply(response, tool("propose_contract", { contract: replacement })),
+      );
+      await page
+        .getByRole("textbox", { name: "Message", exact: true })
+        .fill("Propose a separately named replacement for my review.");
+      await page.getByRole("button", { name: "Send", exact: true }).click();
+      await expect(
+        page.getByRole("button", {
+          name: "Review proposed contract",
+          exact: true,
+        }),
+      ).toBeVisible();
+      await expect
+        .poll(async () => (await verificationJob(page))?.context.job)
+        .not.toBe(first.context.job);
+      const next = await verificationJob(page);
+      expect(next?.phase.state).toBe("proposed");
+      expect(next?.context.name).toBe(replacement.name);
+      releaseOld();
+      await page.unrouteAll({ behavior: "wait" });
+      await expect(
+        page.getByRole("article", { name: "Verification progress" }),
+      ).toHaveCount(0);
+      expect((await verificationJob(page))?.context).toEqual(next?.context);
+      expect(hasCurrentEvidence(await projectEvidence(page))).toBe(false);
+      const metrics = await page.evaluate(async () =>
+        (
+          await fetch("/api/metrics", {
+            headers: {
+              Authorization: `Bearer ${sessionStorage.getItem("meden-native-session")}`,
+            },
+          })
+        ).json(),
+      );
+      const spans = metrics.records.filter((record: { name: string }) =>
+        record.name.startsWith("verification.proposal."),
+      );
+      expect(
+        spans.filter(
+          (record: { name: string }) =>
+            record.name === "verification.proposal.check",
+        ),
+      ).toHaveLength(2);
+      await info.attach("proposal-observations.json", {
+        contentType: "application/json",
+        body: JSON.stringify(
+          {
+            first,
+            next,
+            retry_commands: retryCommands,
+            spans,
+            methodology:
+              "Actual registered finite contract validation and journal/controller proposal; no solver is needed to validate this bounded data format. Scripted inference. Transfer failure/delay changes only observed responses; no checker/compiler output is fabricated. No live-model, compilation, cold-install or evidence-admission claim.",
+          },
+          null,
+          2,
+        ),
+      });
+      await stop();
+      await page.goto(
+        await start(0, { MEDEN_VERIFIER_BUNDLE: undefined }, [
+          "--verifier",
+          "z3.finite.v1",
+        ]),
+      );
+      expect(await verificationJob(page)).toBeUndefined();
+      const reopened = await projectEvidence(page);
+      expect(reopened.state).toBe("proposed");
+      expect(hasCurrentEvidence(reopened)).toBe(false);
+      await expect(
+        page.getByRole("button", { name: "Choose model", exact: true }),
+      ).toBeVisible();
+      await page.screenshot({ path: info.outputPath("proposal-reopened.png") });
+    } finally {
+      releaseOld();
+      await page.unrouteAll({ behavior: "wait" });
+    }
   });
 
   test("verification progress retries as data, cancels issued inputs and rejects delayed observations", async ({
@@ -599,7 +780,7 @@ test.describe("native GUI with real offline workers", () => {
       const next = await verificationJob(page);
       expect(next?.phase.state).toBe("running");
       expect(next?.context.job).not.toBe(originalJob);
-      expect(next?.context.reference).toEqual(issued.context.reference);
+      expect(next?.context.subject).toEqual(issued.context.subject);
       await expect(
         page
           .getByRole("status")
