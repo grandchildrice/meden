@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-24",
+  "base_revision": "3db61fc499511bcb1b16828d5c6117894f9bfbdf",
+  "scope": "Keep revisioned-history correctness assertions while waiting for actual host checkpoint/status completion after the visible final reply.",
+  "observed_failure": {
+    "ci_run": 45295330219,
+    "test": "large history is revisioned outside status polling, retries visibly and rejects late snapshots across restart",
+    "condition": "The final answer was visible but native state.running remained true after the default five-second expectation.",
+    "log_sha256": "a5386c8dd1e504b4c1972ee899efc327b1e2bb6dce106eda284c12a058f03294"
+  },
+  "change": "Use the existing 30-second functional wait budget for actual host idle. Retain exact request count, stale HTTP 409, latest-answer preservation and restart/no-approval assertions. Performance budgets are unchanged.",
+  "validation": {
+    "targeted_browser": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "report": "target/gui-history-finalization-wait-report",
+      "log_sha256": "557aba2ee90773eaba9a621a60041ffde5af078f411eb114fbe46ae70569249c"
+    },
+    "application_binary_unchanged": "6a553368adc63550cb0a8ecbd11725fa9e70a5c23c5b06e57bebe2474d7b8206",
+    "prior_full_gate": "results/evidence-publications-20261124.json",
+    "scope": "Test-only wait adjustment. The unchanged application previously passed all 66 browser cases, 34 public TUI cases and both serialized motion budgets. The targeted public browser journey was rerun with this adjusted wait; no live-model, cold-install or CI success claim."
+  }
+}

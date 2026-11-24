@@ -736,8 +736,10 @@ test.describe("native GUI with real offline workers", () => {
       ).toHaveCount(1);
       await expect(chat.getByRole("alert")).toHaveCount(0);
       expect(requests).toHaveLength(1);
+      // The final reply can precede host checkpoint/status completion. Retain
+      // the real idle condition within the fixture's functional wait budget.
       await expect
-        .poll(async () => (await nativeState(page)).running)
+        .poll(async () => (await nativeState(page)).running, { timeout: 30000 })
         .toBe(false);
       expect(
         await page.evaluate(async (revision) => {
