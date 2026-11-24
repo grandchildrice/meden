@@ -1,5 +1,11 @@
 # Local profiling and regression workloads
 
+The [November 25 event audit](../../docs/performance/event-audit-20261125.md)
+records two actual-project captures per project, all 13 interaction windows,
+five complete navigations and native sampling. It distinguishes fast overview
+handlers from later deep-zoom tasks and cache-hit file preparation; no runtime
+or deployment change is part of that measurement.
+
 The [SVG placement comparison](../../docs/performance/map-placement.md) measures
 stable groups of at most 128 original area siblings and separate painter layers
 against the preceding served map. CPU attribution uses the exact matching hidden

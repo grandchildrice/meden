@@ -1,5 +1,11 @@
 # Graph interaction measurements
 
+The [November 25 event audit](performance/event-audit-20261125.md) repeats all
+13 operation windows twice per actual project. It separates ordinary handlers
+from 83–226 ms deep-zoom tasks, repeated global reference work, cache-hit native
+preparation and complete initial navigation. This is measurement of the unchanged
+deployed implementation, with matched source maps and native sampling.
+
 The [typed publication validation](performance/artifact-contexts.md) replaces
 interchangeable view-reference strings with owner-specific Rust identities and
 DTO-bound publication contexts. Original wire digests, 37 browser validators,
