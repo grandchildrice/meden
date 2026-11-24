@@ -341,6 +341,18 @@ dictionary/coordinates; initial views avoid building unused change sets or
 rewriting their newly created index. [Event and startup measurements](../performance/map-events.md)
 record both the deep-zoom improvement and remaining main-thread startup costs.
 
+Project-map lexical reference resolution now has its own pure function over
+stable symbol identities, names, file visibility and reference strings. Unique
+public and file-private indices retain ambiguity explicitly, rather than
+filtering candidate arrays repeatedly. An exact file/namespace context reuses
+resolutions, including misses, only during that immutable graph construction.
+Nearest-namespace search, same-file fallback, cycles, self-edge suppression and
+ordered deduplication retain the original display rules. The former runtime
+resolver is deleted; its array/filter algorithm remains only as a differential
+test oracle and measured counterfactual. Generated scopes and the complete
+actual EthLib inventory check ordered-edge equality. These lexical display
+links carry no elaboration, verification or approval authority.
+
 Use small revisioned read models and bounded log/chunk streams rather than
 resending full source, graph and history on each status tick. Progress names
 the job/resource, current step, queue/wait reason, elapsed time, applicable limit

@@ -10,6 +10,7 @@ export { MAP_WIDTH, MAP_HEIGHT } from "./project-map-layout";
 import type { WorkspaceOverview } from "@meden/agent-protocol/native";
 
 import { declarationRole, type DeclarationRole } from "./declaration-role";
+import { referenceEdges } from "./project-map-references";
 
 type File = WorkspaceOverview["files"][number];
 export type Symbol = File["symbols"][number] & {
@@ -129,46 +130,7 @@ export function projectMap(
   const symbols = new Map(
     symbolAreas.flatMap((a) => a.symbols.map((s) => [s.id, s] as const)),
   );
-  const names = new Map<string, Symbol[]>();
-  const local = new Map<string, Symbol[]>();
-  for (const symbol of symbols.values()) {
-    names.set(symbol.name, [...(names.get(symbol.name) || []), symbol]);
-    const key = symbol.file + ":" + symbol.name.split(".").at(-1);
-    local.set(key, [...(local.get(key) || []), symbol]);
-  }
-  const edges: MapScene["edges"] = [];
-  const seenEdges = new Set<string>();
-  for (const symbol of symbols.values())
-    for (const reference of symbol.references) {
-      const parts = symbol.name.split(".").slice(0, -1);
-      const candidates = [
-        ...parts.map(
-          (_, i) =>
-            parts.slice(0, parts.length - i).join(".") + "." + reference,
-        ),
-        reference,
-      ];
-      let target: Symbol | undefined;
-      for (const name of candidates) {
-        const found = (names.get(name) || []).filter(
-          (s) => !s.private || s.file === symbol.file,
-        );
-        if (found.length === 1) {
-          target = found[0];
-          break;
-        }
-      }
-      const sameFile = local.get(symbol.file + ":" + reference);
-      target ||= sameFile?.length === 1 ? sameFile[0] : undefined;
-      if (
-        target &&
-        target.id !== symbol.id &&
-        !seenEdges.has(symbol.id + "->" + target.id)
-      ) {
-        seenEdges.add(symbol.id + "->" + target.id);
-        edges.push({ source: symbol.id, target: target.id });
-      }
-    }
+  const edges = referenceEdges(symbols);
   const edgesByFile = new Map<string, typeof edges>();
   for (const edge of edges) {
     const file = symbols.get(edge.source)!.file;

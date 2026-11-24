@@ -1,5 +1,10 @@
 # Graph interaction measurements
 
+The [reference-lookup follow-up](performance/map-references.md) checks all
+212,283 original EthLib display edges and replaces repeated candidate filtering
+with immutable-construction-local indices. Its complete browser-navigation
+comparison is separate from the resolver-only performance gate.
+
 The [current event and startup audit](performance/map-events.md) separates
 synchronous handlers, asynchronous declaration updates, initial map loading and
 native Lake/input preparation. Versioned geometry reuse reduces deep-zoom work;

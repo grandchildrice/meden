@@ -20,8 +20,8 @@
     "format": "prettier --write apps/web packages tools/gui tools/perf tools/architecture docs/gui.md docs/architecture package.json tsconfig.json vitest.config.ts",
     "schema:export": "node --experimental-strip-types tools/gui/export-schema.ts",
     "schema:check": "npm run schema:export && git diff --exit-code -- schemas/ packages/agent-protocol/src/*.generated.ts",
-    "test:fuzz": "MEDEN_FUZZ_RUNS=3000 vitest run apps/web/src/features/native/project-map-corpus.test.ts",
-    "test:performance": "MEDEN_PERFORMANCE=1 vitest run apps/web/src/features/native/project-map-corpus.test.ts apps/web/src/features/native/project-map-layout.test.ts --maxWorkers=1 --no-file-parallelism"
+    "test:fuzz": "MEDEN_FUZZ_RUNS=3000 vitest run apps/web/src/features/native/project-map-corpus.test.ts apps/web/src/features/native/project-map-references.test.ts",
+    "test:performance": "MEDEN_PERFORMANCE=1 vitest run apps/web/src/features/native/project-map-corpus.test.ts apps/web/src/features/native/project-map-layout.test.ts apps/web/src/features/native/project-map-references.test.ts --maxWorkers=1 --no-file-parallelism"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

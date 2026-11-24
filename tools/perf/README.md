@@ -1,5 +1,18 @@
 # Local profiling and regression workloads
 
+The project-map reference budget is part of `npm run test:performance` and
+`npm run test:fuzz`. Its public workload retains ambiguous public/file-private
+names, scoped fallback, cycles, repeated references and nonempty original
+ordered edges. Nine alternating original-scan/indexed runs must stay below a
+0.65 median ratio. `MEDEN_PERF_MUTANT=scan-references` forces the old scan into
+the indexed arm and must fail that ratio assertion. The original resolver is
+test-only; there is one runtime implementation. Output is
+`target/performance/references.json` (`MEDEN_PERF_OUT` selects another folder).
+An optional `MEDEN_REFERENCE_WORKLOAD=/private/inventory.json` runs the complete
+original publication through the generated schema and compares every ordered
+edge before timing; private inventory data is not a CI prerequisite. See the
+[actual-project comparison](../../docs/performance/map-references.md).
+
 `node --experimental-strip-types tools/perf/native-command-codec.mjs OUTPUT.json`
 compares the generated command tag lookup with a sequential union of the same
 owned branches. It validates and JSON-encodes preconstructed synthetic commands,
