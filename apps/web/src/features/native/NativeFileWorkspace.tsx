@@ -9,6 +9,7 @@ import type {
   FileView,
   PreparationLogPublication,
   MeaningRecord,
+  MeaningInput,
 } from "@meden/agent-protocol/native";
 import type { MapScene, Symbol } from "./project-map-model";
 import { NativeCode } from "./NativeExplorer";
@@ -148,6 +149,46 @@ export function NativeFileWorkspace({
     () => (snapshot?.graph ? displayGraph(snapshot) : graph),
     [snapshot, graph],
   );
+  const selectedHere =
+    selected?.file === path && selected.line
+      ? { file: selected.file, line: selected.line, name: selected.name }
+      : undefined;
+  const [selection, setSelection] = useState<MeaningInput["target"]>();
+  useEffect(() => {
+    if (selected?.file !== path || !selected.line) return;
+    const next = {
+      file: selected.file,
+      line: selected.line,
+      name: selected.name,
+    };
+    setSelection((previous) =>
+      previous?.file === next.file &&
+      previous.line === next.line &&
+      previous.name === next.name
+        ? previous
+        : next,
+    );
+  }, [selected?.file, selected?.line, selected?.name, path]);
+  const target = [
+    selectedHere,
+    selection,
+    focused,
+    analysis?.input.target,
+  ].find((item) => item?.file === path && item.line);
+  const declaration = snapshot?.graph?.declarations.find(
+    (item) =>
+      target &&
+      item.name === target.name &&
+      item.source.file === target.file &&
+      item.source.line === target.line,
+  );
+  const meaningTarget = declaration?.source.line
+    ? {
+        file: declaration.source.file,
+        line: declaration.source.line,
+        name: declaration.name,
+      }
+    : undefined;
   const explanations = useMemo(() => {
     if (!semanticGraph || !snapshot?.compiled) return [];
     const main = semanticGraph.declarations
@@ -201,7 +242,7 @@ export function NativeFileWorkspace({
             source={snapshot}
             observation={file}
             path={path}
-            line={selected?.file === path ? selected.line : undefined}
+            line={selectedHere?.line ?? selection?.line}
             running={running}
             onCommand={onCommand}
             explanations={preparing ? [] : explanations}
@@ -312,29 +353,18 @@ export function NativeFileWorkspace({
             {snapshot ? (
               <NativeGraph
                 focusName={focused?.file === path ? focused.name : undefined}
+                selection={meaningTarget}
                 key={snapshot.graph?.revision || snapshot.revision}
                 snapshot={snapshot}
-                analysis={analysis ?? null}
-                history={history ?? []}
-                onRepair={(finding_id) =>
-                  onCommand({ type: "prepare_repair", finding_id })
-                }
-                onSelectAnalysis={(id) =>
-                  onCommand({ type: "select_analysis", id })
-                }
-                authorized={state.authorized}
-                running={running}
                 onHover={setHovered}
-                onAnalyze={(input) =>
-                  onCommand({ type: "analyze_meaning", input })
-                }
                 onSource={(file, line, name) => {
+                  if (file === path) setSelection({ file, line, name });
                   const found =
                     scene &&
                     [...scene.symbols.values()].find(
                       (s) => s.file === file && s.line === line,
                     );
-                  if (found) onSelect(found);
+                  if (found) onSelect({ ...found, name });
                   else if (file === path)
                     onSelect({
                       id: name,
@@ -369,21 +399,35 @@ export function NativeFileWorkspace({
                 This file has no declarations supported by the reference graph.
               </p>
             )}
-            {!snapshot && analysis?.input.target.file === path && (
-              <NativeMeaning
-                record={analysis}
-                history={history ?? []}
-                onSelect={(id) => onCommand({ type: "select_analysis", id })}
-                onRepair={(finding_id) =>
-                  onCommand({ type: "prepare_repair", finding_id })
-                }
-                authorized={state.authorized}
-                running={running}
-                onRun={(input) => onCommand({ type: "analyze_meaning", input })}
-              />
-            )}
           </>
         )}
+        <div
+          hidden={
+            preparing ||
+            loading ||
+            !!sourceError ||
+            unavailable ||
+            sourceOnly ||
+            (!snapshot && analysis?.input.target.file !== path)
+          }
+        >
+          <NativeMeaning
+            record={analysis?.input.target.file === path ? analysis : null}
+            history={history ?? []}
+            onSelect={(id) => onCommand({ type: "select_analysis", id })}
+            onRepair={(finding_id) =>
+              onCommand({ type: "prepare_repair", finding_id })
+            }
+            authorized={state.authorized}
+            running={running}
+            sourceRevision={snapshot?.revision}
+            graphRevision={
+              snapshot?.compiled ? snapshot.graph?.revision : undefined
+            }
+            target={meaningTarget}
+            onRun={(input) => onCommand({ type: "analyze_meaning", input })}
+          />
+        </div>
       </div>
     </section>
   );

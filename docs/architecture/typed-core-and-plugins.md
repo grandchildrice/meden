@@ -633,6 +633,15 @@ evidence. Source edits invalidate current evidence before a later model reply,
 and completion publishes before that reply too. These are tested application
 and transport observations, not new kernel refinement or model-abort guarantees.
 
+File workspaces own their selected declaration and meaning-input draft. The
+graph renders prepared observations and reports the original selected name,
+file and line; it no longer owns the analysis form or a second selection state.
+Replacing/loading a graph or selecting a node in another file cannot discard
+that file's input. Temporary missing publications preserve the last observed
+draft context; explicitly selecting another saved analysis restores its original
+requirement. Freshness and displayed-result matching still use the actual source
+and graph revisions, independently of retained input text.
+
 This does not finish step 4: proposal checks and broader orchestration jobs,
 generation of the rest of the native wire contract and remaining navigation
 waits still need work. Step 5's versioned layout/order and retirement

@@ -141,7 +141,16 @@ those installed-tool journeys.
 Graph interaction regression coverage also requires that wheel input over the
 passive review legend reaches the graph, hover/resize preserves the user's
 camera, reduced motion creates no graph transitions, and selecting a loaded
-source line keeps its page. Native browser coverage retains the real compiled
+source line keeps its page. Replacing a prepared graph must retain a selected
+declaration with the same original file, line and name, independently of camera
+focus or saved analysis. The meaning-history restart journey replaces the actual
+source and graph after selection with a corrupt saved analysis, retains the
+unsent requirement through graph loading/replacement, then completes new
+translation/comparison through the visible input without selecting or typing again.
+It also selects a declaration in another real Lean file and returns to the
+original tab with its selection and draft intact. Selecting a different saved
+analysis must instead restore that record's original requirement.
+Native browser coverage retains the real compiled
 graph and the 10,001-file map journey; visibility pruning is compared with a
 full-scan oracle. The large-map journey requires a declaration legend only when
 symbols are visible, a center breadcrumb that follows the settled camera, and

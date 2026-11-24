@@ -6396,6 +6396,7 @@ theorem slow : True := fast
       (response) => reply(response, informalization()),
       (response) => reply(response, judgement()),
     );
+    await writeFile(resolve(project, "Other.lean"), "def other : Nat := 0\n");
     await openMeaning(page);
     await page
       .getByRole("button", { name: "Analyze declaration meaning" })
@@ -6482,11 +6483,36 @@ theorem slow : True := fast
       .getByRole("region", { name: "Local source graph" })
       .getByRole("button", { name: /Demo.stock_bound.*: select/ })
       .click();
+    // A later prepared graph must retain the user's original declaration,
+    // even when a corrupt history cannot supply a fallback analysis target.
     await input.fill(original);
+    await page
+      .getByRole("button", { name: "File: Other.lean", exact: true })
+      .click();
+    await page
+      .getByRole("region", { name: "Local source graph", exact: true })
+      .getByRole("button", { name: /other.*: select/ })
+      .click();
+    await page.getByRole("tab", { name: "Spec.lean", exact: true }).click();
+    await expect(input).toHaveValue(original);
+    const selectedRevision = (await nativeState(page)).sources.files[
+      "Spec.lean"
+    ].revision;
+    const replacedSource = formalSource + "-- prepared graph replacement\n";
+    await writeFile(resolve(project, "Spec.lean"), replacedSource);
+    await refreshReferences(page);
+    await expect
+      .poll(async () => (await nativeSource(page))?.files["Spec.lean"])
+      .toBe(replacedSource);
+    expect(
+      (await nativeState(page)).sources.files["Spec.lean"].revision,
+    ).not.toBe(selectedRevision);
+    await expect(input).toHaveValue(original);
     await page
       .getByRole("button", { name: "Choose model", exact: true })
       .click();
     await page.getByRole("button", { name: "Use this model" }).click();
+    await expect(input).toHaveValue(original);
     await page
       .getByRole("button", { name: "Analyze declaration meaning" })
       .click();

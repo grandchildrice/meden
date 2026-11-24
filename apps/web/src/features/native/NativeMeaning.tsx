@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Alert, Button, Chip, TextField, Typography } from "@mui/material";
 import type { MeaningInput, MeaningRecord } from "@meden/agent-protocol/native";
 
@@ -26,14 +26,21 @@ export function NativeMeaning({
   running: boolean;
   onRun: (input: MeaningInput) => Promise<boolean>;
 }) {
-  const [requirement, setRequirement] = useState("");
-  useEffect(() => {
-    setRequirement(
-      record && sameTarget(record.input.target, target)
+  const [draft, setDraft] = useState<{
+    record?: string;
+    input?: { target: Target; text: string };
+  }>({ record: record?.id });
+  // Selecting another saved analysis discards its former edit. A temporary
+  // missing publication does not change the last observed record context.
+  if (record && record.id !== draft.record) setDraft({ record: record.id });
+  const requirement =
+    draft.input &&
+    sameTarget(draft.input.target, target) &&
+    draft.record === (record?.id ?? draft.record)
+      ? draft.input.text
+      : record && sameTarget(record.input.target, target)
         ? record.input.requirement
-        : "",
-    );
-  }, [target?.file, target?.line, target?.name, record?.id]);
+        : "";
   const sameInput = Boolean(
     record &&
     target &&
@@ -81,7 +88,12 @@ export function NativeMeaning({
           <TextField
             label="Requirement to compare"
             value={requirement}
-            onChange={(event) => setRequirement(event.target.value)}
+            onChange={(event) =>
+              setDraft({
+                record: record?.id ?? draft.record,
+                input: { target, text: event.target.value },
+              })
+            }
             multiline
             minRows={3}
             fullWidth

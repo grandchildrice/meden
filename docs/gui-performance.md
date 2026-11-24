@@ -1,5 +1,59 @@
 # Graph interaction measurements
 
+## File-local selection and current event audit (November 24)
+
+The [measurement record](../results/selection-retention-events-20261124.json)
+contains one fresh normal-motion CDP capture per deployed project, with no
+concurrent build/test/profile. The original source/graph/reader, inventory,
+evidence, candidate observations and conversation revisions remain identical.
+Both projects reuse their prepared caches. These are diagnostic captures with
+profiling overhead, not paired speedup measurements or field percentiles.
+
+| Synchronous event dispatch p95 | Riemann | EthLib |
+| --- | ---: | ---: |
+| Project-map wheel, 24 events | 3.447 ms | 5.931 ms |
+| Dependency-graph wheel, 24 events | 0.662 ms | 0.937 ms |
+| Hover, 40 pointer events | 0.112 ms | 0.062 ms |
+| Pan, 31 pointer events | 0.212 ms | 0.312 ms |
+| Resize | 2.541 ms | 0.631 ms |
+| File/map tabs, 24 clicks | 17.713 ms | 9.487 ms |
+| Fit View | 1.034 ms | 0.996 ms |
+| Different-node selection, 8 clicks | 14.107 ms | 6.378 ms |
+
+Input/two-animation-callback p95 is **23.0 / 12.8 ms** for different-node
+selection, **42.1 / 29.6 ms** for tabs and **30.2 / 35.8 ms** for hover.
+These include browser scheduling; they are not physical paint or INP. Hover,
+resize, tab return and selection preserve the camera. Measured gestures issue
+only status reads, with no commands or analysis/history/source/evidence/job-body
+reads. Setup and the profiler's source-line oracle remain separate reads.
+Actual pointer selections also preserve chat DOM and select the original source
+line. The Riemann/EthLib files contain 15/42 observed declarations, within their
+175,187/2,517-file inventories; this does not cover every graph in those projects.
+
+Cache-hit file preparation still takes **21.496 / 2.069 seconds** in these
+captures. Riemann's analysis span is **20.901 seconds**. Its real build log
+records **10.972 seconds** for build/setup and input resolution, then **5.960
+seconds** to validate all **43,477 inputs / 5,992,114,707 bytes**. Cache reuse
+still performs this work. These stages identify the remaining wait; nested
+spans must not be added as exclusive CPU time. Host-thread CPU excludes child
+processes. The renderer change does not claim to reduce this compiler wait.
+
+The UI correction separates the file's selected declaration and unsent meaning
+input from graph lifetime. Actual graph replacement no longer discards them;
+selecting a node in another Lean file and returning preserves both. Selecting
+another saved analysis restores that record's original requirement. The graph
+now only renders prepared data and reports the original selected name/file/line.
+No Rust executable, execution authority, checker or proof changed in this slice.
+
+All **67 browser journeys** passed without skips or retries. Both serialized
+motion gates passed; retained-tab two-animation-callback p95 is **38.6 ms** with
+normal motion and **29.5 ms** with reduced motion, below the existing 250 ms
+budget. The unchanged pinned executable passed the required **34 public TUI
+journeys**, whose decoded finite/refutation/restart/stop screens were inspected.
+The record retains the original failure, intermediate failed attempts and the
+complete successful rerun. This is installed-tool/scripted-inference validation;
+remaining native-wire generation and versioned layout/order/retirement stay open.
+
 ## Verification-stage observations (November 24)
 
 The [validation record](../results/verification-job-observations-20261124.json)

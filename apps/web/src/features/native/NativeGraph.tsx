@@ -1,12 +1,10 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import { Alert, CircularProgress, Typography } from "@mui/material";
 import { explanationSchema, type Declaration } from "@meden/workspace-schema";
 import type {
   SourceSnapshot,
-  MeaningRecord,
   MeaningInput,
 } from "@meden/agent-protocol/native";
-import { NativeMeaning } from "./NativeMeaning";
 const GraphView = lazy(() =>
   import("../graph/GraphView").then((module) => ({
     default: module.GraphView,
@@ -30,29 +28,16 @@ export function displayGraph(snapshot: SourceSnapshot) {
 export function NativeGraph({
   snapshot,
   focusName,
-  analysis,
-  history,
-  onSelectAnalysis,
-  onRepair,
-  authorized,
-  running,
-  onAnalyze,
+  selection,
   onSource,
   onHover,
 }: {
   snapshot: SourceSnapshot;
   focusName?: string;
-  analysis: MeaningRecord | null;
-  history: MeaningRecord[];
-  onSelectAnalysis: (id: string) => Promise<boolean>;
-  onRepair: (finding: string) => Promise<boolean>;
-  authorized: boolean;
-  running: boolean;
-  onAnalyze: (input: MeaningInput) => Promise<boolean>;
+  selection?: MeaningInput["target"];
   onSource: (file: string, line: number, name: string) => void;
   onHover?: (declaration: Declaration | undefined) => void;
 }) {
-  const [selected, setSelected] = useState<Declaration>();
   const result = useMemo(() => {
     try {
       return { workspace: displayGraph(snapshot) };
@@ -63,22 +48,13 @@ export function NativeGraph({
   const focused = result.workspace?.declarations.find(
     (d) => d.name === focusName,
   );
-  useEffect(() => {
-    if (focused) setSelected(focused);
-  }, [focused]);
-  useEffect(() => {
-    if (!focused && !selected && analysis && result.workspace) {
-      const target = analysis.input.target;
-      setSelected(
-        result.workspace.declarations.find(
-          (item) =>
-            item.name === target.name &&
-            item.source?.file === target.file &&
-            item.source?.line === target.line,
-        ),
-      );
-    }
-  }, [analysis?.input.target.name, result.workspace, focused]);
+  const selected = result.workspace?.declarations.find(
+    (d) =>
+      selection &&
+      d.name === selection.name &&
+      d.source?.file === selection.file &&
+      d.source?.line === selection.line,
+  );
   if (!result.workspace)
     return (
       <Alert severity="error">
@@ -113,7 +89,6 @@ export function NativeGraph({
             focusId={focused?.id}
             selectedId={selected?.id}
             onSelect={(declaration) => {
-              setSelected(declaration);
               if (declaration.source?.line)
                 onSource(
                   declaration.source.file,
@@ -126,26 +101,6 @@ export function NativeGraph({
           <p>No declaration graph is available for these retained inputs.</p>
         )}
       </Suspense>
-      <NativeMeaning
-        record={analysis}
-        history={history}
-        onSelect={onSelectAnalysis}
-        onRepair={onRepair}
-        sourceRevision={snapshot.revision}
-        graphRevision={snapshot.compiled ? snapshot.graph?.revision : undefined}
-        authorized={authorized}
-        running={running}
-        onRun={onAnalyze}
-        target={
-          selected?.source?.line
-            ? {
-                file: selected.source.file,
-                line: selected.source.line,
-                name: selected.name,
-              }
-            : undefined
-        }
-      />
     </section>
   );
 }
