@@ -149,8 +149,7 @@
             },
             "contract": {
               "description": "Complete canonical proposed contract identity.",
-              "type": "string",
-              "pattern": "^[a-f0-9]{64}$"
+              "$ref": "#/$defs/ContractId"
             }
           },
           "additionalProperties": false,
@@ -181,6 +180,10 @@
         }
       ]
     },
+    "ContractId": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
     "Reference": {
       "description": "Lossless transport of the original selected contract identity, never authority.",
       "type": "object",
@@ -189,13 +192,10 @@
           "$ref": "#/$defs/NativeSequence"
         },
         "session": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 8192
+          "$ref": "#/$defs/SessionId"
         },
         "contract": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
+          "$ref": "#/$defs/ContractId"
         }
       },
       "additionalProperties": false,
@@ -210,6 +210,11 @@
       "format": "meden-positive-u64",
       "pattern": "^[1-9][0-9]{0,19}$",
       "maxLength": 20
+    },
+    "SessionId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8192
     },
     "Class": {
       "description": "Evidence strength carried by the application wire format.",

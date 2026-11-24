@@ -1,7 +1,11 @@
 //! Backend-neutral reviewed intent and evidence observations. Neither decoded
 //! references nor a published Current value construct a kernel receipt/grant.
 use super::publication::{ArtifactId, Envelope, Publication};
-use crate::{project, verification::Contract};
+use crate::{
+    identity::{ContractId, RequirementRevision, SessionId},
+    project,
+    verification::Contract,
+};
 use anyhow::{Context, Result};
 use meden_runtime::verification::{artifact::Class, FailureKind};
 use schemars::JsonSchema;
@@ -12,42 +16,50 @@ use std::sync::{Arc, Mutex};
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Reference {
-    revision: super::sequence::Sequence,
-    #[schemars(length(min = 1, max = 8192))]
-    session: String,
-    #[schemars(regex(pattern = r"^[a-f0-9]{64}$"))]
-    contract: String,
+    #[serde(with = "revision_text")]
+    #[schemars(with = "super::sequence::Sequence")]
+    revision: RequirementRevision,
+    session: SessionId,
+    contract: ContractId,
 }
 impl Reference {
     /// Observe an original host/controller reference without changing its identity.
-    pub fn new(original: &project::Reference) -> Result<Self> {
-        anyhow::ensure!(
-            !original.session.is_empty()
-                && original.session.len() <= 8192
-                && digest(&original.contract),
-            "Invalid contract reference"
-        );
-        Ok(Self {
-            revision: super::sequence::Sequence::new(original.revision)?,
+    pub fn new(original: &project::Reference) -> Self {
+        Self {
+            revision: original.revision,
             session: original.session.clone(),
             contract: original.contract.clone(),
-        })
+        }
     }
-    /// Recover only the exact original numbers/bytes. The existing controller
-    /// must still match the selected host review before accepting any operation.
-    pub fn original(self) -> Result<project::Reference> {
-        let revision = self.revision.value();
-        anyhow::ensure!(
-            !self.session.is_empty() && self.session.len() <= 8192 && digest(&self.contract),
-            "Invalid contract reference"
-        );
-        Ok(project::Reference {
-            revision,
+    /// Recover the original identity; the controller still matches the host review.
+    pub fn original(self) -> project::Reference {
+        project::Reference {
+            revision: self.revision,
             session: self.session,
             contract: self.contract,
-        })
+        }
     }
 }
+mod revision_text {
+    use super::*;
+    pub fn serialize<S: serde::Serializer>(
+        value: &RequirementRevision,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        super::super::sequence::Sequence::new(value.value())
+            .map_err(serde::ser::Error::custom)?
+            .serialize(serializer)
+    }
+    pub fn deserialize<'de, D: serde::Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<RequirementRevision, D::Error> {
+        RequirementRevision::new(
+            super::super::sequence::Sequence::deserialize(deserializer)?.value(),
+        )
+        .map_err(serde::de::Error::custom)
+    }
+}
+
 fn digest(value: &str) -> bool {
     value.len() == 64
         && value
@@ -73,14 +85,14 @@ pub struct Agreement {
 impl Agreement {
     fn new(contract: &Contract, reference: &project::Reference) -> Result<Self> {
         anyhow::ensure!(
-            contract.identity()? == reference.contract,
+            contract.identity()? == reference.contract.as_str(),
             "Contract content identity changed"
         );
         let description = contract.description();
         let canonical = String::from_utf8(contract.canonical()?)?;
         anyhow::ensure!(canonical.len() <= 65_536, "Contract exceeds view bounds");
         Ok(Self {
-            reference: Reference::new(reference)?,
+            reference: Reference::new(reference),
             name: description.name.clone(),
             source_path: description.source.clone(),
             interface: description.interface.clone(),
@@ -162,7 +174,11 @@ impl Data {
         };
         let Some(contract) = &summary.contract else {
             anyhow::ensure!(
-                !summary.proposed && !summary.accepted && !summary.verified && accepted.is_none(),
+                !summary.proposed
+                    && !summary.accepted
+                    && !summary.verified
+                    && accepted.is_none()
+                    && summary.reference.is_none(),
                 "Missing displayed agreement"
             );
             return Ok(Self::Empty);
@@ -171,7 +187,13 @@ impl Data {
             summary.proposed,
             "Displayed contract missing proposal observation"
         );
-        let displayed = Agreement::new(contract, &summary.reference)?;
+        let displayed = Agreement::new(
+            contract,
+            summary
+                .reference
+                .as_ref()
+                .context("Displayed contract has no reference")?,
+        )?;
         anyhow::ensure!(
             summary.source_path == displayed.source_path
                 && summary.scope == displayed.scope

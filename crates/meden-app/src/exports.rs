@@ -1,5 +1,6 @@
 //! Model proposals and host-only review of immutable, single-use HTTP exports.
 
+use crate::identity::{ContractId, SessionId};
 use std::fmt::Write as _;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -64,7 +65,7 @@ impl std::fmt::Display for State {
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Reference {
-    pub session: String,
+    pub session: SessionId,
     pub id: usize,
 }
 
@@ -73,7 +74,7 @@ pub struct Summary {
     #[serde(flatten)]
     pub reference: Reference,
     pub source: String,
-    pub contract: Option<String>,
+    pub contract: Option<ContractId>,
     pub target: String,
     pub bytes: usize,
     pub payload_sha256: String,
@@ -94,7 +95,7 @@ impl Prepared {
             source: self.source.clone(),
             contract: snapshot
                 .contract
-                .map(|v| format!("{:x}", Sha256::digest(&v.subject.contract))),
+                .map(|v| ContractId::from_canonical(&v.subject.contract)),
             target: snapshot.target,
             bytes: snapshot.payload.len(),
             payload_sha256: format!("{:x}", Sha256::digest(&snapshot.payload)),
@@ -150,7 +151,7 @@ impl Prepared {
 }
 
 pub struct Exports {
-    session: String,
+    session: SessionId,
     project: Arc<crate::project::Project>,
     entries: Mutex<Vec<Arc<Prepared>>>,
 }
@@ -169,7 +170,7 @@ impl Exports {
         workspace: &std::path::Path,
         project: &Arc<crate::project::Project>,
     ) -> bool {
-        self.session == project.session_id()
+        &self.session == project.session_id()
             && self.project.matches(workspace)
             && Arc::ptr_eq(&self.project, project)
     }
@@ -387,9 +388,10 @@ mod tests {
 
     #[test]
     fn shared_review_keeps_frozen_bytes_and_consumes_stale_selection() -> Result<()> {
-        let project = Arc::new(crate::project::Project::new(std::path::Path::new(
-            "/sessions/delivery",
-        )));
+        let project = Arc::new(
+            crate::project::Project::new(std::path::Path::new("/sessions/delivery"))
+                .expect("valid fixture workspace"),
+        );
         let mut delivery = Delivery::new(&project);
         let mut bytes = vec![0, 255, 10];
         let export = project.prepare_file_export("http://127.0.0.1:1234/exact", &bytes)?;
@@ -427,7 +429,7 @@ mod tests {
         assert!(delivery
             .queue
             .get(&Reference {
-                session: "another-session".into(),
+                session: crate::identity::SessionId::parse("another-session")?,
                 id: 0
             })
             .is_err());
@@ -436,9 +438,10 @@ mod tests {
 
     #[test]
     fn proposal_limit_matches_the_generated_bounded_index() -> Result<()> {
-        let project = Arc::new(crate::project::Project::new(std::path::Path::new(
-            "/sessions/bounds",
-        )));
+        let project = Arc::new(
+            crate::project::Project::new(std::path::Path::new("/sessions/bounds"))
+                .expect("valid fixture workspace"),
+        );
         let queue = Exports::new(Arc::clone(&project));
         for id in 0..8 {
             let export = project.prepare_file_export("http://127.0.0.1:1234/exact", &[])?;

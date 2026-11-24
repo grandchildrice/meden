@@ -6,15 +6,15 @@ use std::sync::atomic::AtomicBool;
 
 fn summary() -> Result<project::Summary> {
     let root = tempfile::tempdir()?;
-    let project = project::Project::new(root.path());
+    let project = project::Project::new(root.path()).expect("valid fixture workspace");
     let control = Control::new(Arc::new(AtomicBool::new(false)));
     let contract = crate::verification::Registry::host().parse_selected(
         include_str!("../../../../../verification/examples/finite-counter.contract.json"),
         Some("z3.finite.v1"),
     )?;
     let proposed = project.propose(&contract, &control)?;
-    project.review(&proposed.reference)?;
-    let mut summary = project.accept(&proposed.reference)?;
+    project.review(proposed.reference.as_ref().expect("original proposal"))?;
+    let mut summary = project.accept(proposed.reference.as_ref().expect("original proposal"))?;
     // Projection fixture only. This does not issue a job or admit actual evidence.
     summary.verified = true;
     summary.source_sha256 = Some("a".repeat(64));
@@ -54,7 +54,7 @@ fn original_context_and_inputs_survive_all_actual_stage_boundaries() -> Result<(
     );
     let observation = publisher
         .begin(
-            &summary.reference,
+            summary.reference.as_ref().expect("original proposal"),
             summary.contract.as_ref().context("contract")?,
         )
         .context("Observation")?;
@@ -62,7 +62,9 @@ fn original_context_and_inputs_survive_all_actual_stage_boundaries() -> Result<(
     assert_eq!(at(&start, "/data/phase/stage/state")?, "reading_source");
     assert_eq!(
         at(&start, "/data/context/subject/reference")?,
-        serde_json::to_value(super::super::evidence::Reference::new(&summary.reference)?)?
+        serde_json::to_value(super::super::evidence::Reference::new(
+            summary.reference.as_ref().expect("original proposal")
+        ))?
     );
     assert_eq!(at(&start, "/data/context/class")?, "bounded");
     for _ in 0..100 {
@@ -105,11 +107,17 @@ fn replacement_terminal_and_backwards_observations_cannot_revive_old_bytes() -> 
     let publisher = Publisher::new(b"host");
     let reader = publisher.reader();
     let old = publisher
-        .begin(&summary.reference, contract)
+        .begin(
+            summary.reference.as_ref().expect("original proposal"),
+            contract,
+        )
         .context("old")?;
     let (old_id, _, _) = body(&reader)?;
     let next = publisher
-        .begin(&summary.reference, contract)
+        .begin(
+            summary.reference.as_ref().expect("original proposal"),
+            contract,
+        )
         .context("next")?;
     publisher.source(Some(&next), 100, "a".repeat(64));
     let (current, original, _) = body(&reader)?;
@@ -155,7 +163,10 @@ fn diagnostic_words_cannot_select_failure_or_cancellation() -> Result<()> {
     let contract = summary.contract.as_ref().context("contract")?;
     let publisher = Publisher::new(b"host");
     let reader = publisher.reader();
-    let first = publisher.begin(&summary.reference, contract);
+    let first = publisher.begin(
+        summary.reference.as_ref().expect("original proposal"),
+        contract,
+    );
     publisher.source(first.as_ref(), 1, "a".repeat(64));
     publisher.checking(first.as_ref(), 2, &inputs());
     publisher.finish(
@@ -173,7 +184,10 @@ fn diagnostic_words_cannot_select_failure_or_cancellation() -> Result<()> {
         at(&failed, "/data/phase/during/inputs/source_sha256")?,
         "a".repeat(64)
     );
-    let second = publisher.begin(&summary.reference, contract);
+    let second = publisher.begin(
+        summary.reference.as_ref().expect("original proposal"),
+        contract,
+    );
     publisher.finish(second, 1, Completion::Cancelled(&"λ\0".repeat(10_000)));
     let (_, _, cancelled) = body(&reader)?;
     assert_eq!(at(&cancelled, "/data/phase/state")?, "cancelled");
@@ -189,7 +203,10 @@ fn invalid_or_premature_observations_retire_the_body_and_require_a_new_job() -> 
     let contract = summary.contract.as_ref().context("contract")?;
     let publisher = Publisher::new(b"host");
     let reader = publisher.reader();
-    let first = publisher.begin(&summary.reference, contract);
+    let first = publisher.begin(
+        summary.reference.as_ref().expect("original proposal"),
+        contract,
+    );
     publisher.finish(first, 0, Completion::Admitted(&summary));
     assert!(matches!(
         publisher
@@ -199,7 +216,10 @@ fn invalid_or_premature_observations_retire_the_body_and_require_a_new_job() -> 
             .status,
         Status::Unavailable { .. }
     ));
-    let second = publisher.begin(&summary.reference, contract);
+    let second = publisher.begin(
+        summary.reference.as_ref().expect("original proposal"),
+        contract,
+    );
     publisher.source(second.as_ref(), 1, "a".repeat(64));
     let (old, _, _) = body(&reader)?;
     let mut changed = inputs();
@@ -217,7 +237,10 @@ fn invalid_or_premature_observations_retire_the_body_and_require_a_new_job() -> 
         Status::Unavailable { .. }
     ));
     let third = publisher
-        .begin(&summary.reference, contract)
+        .begin(
+            summary.reference.as_ref().expect("original proposal"),
+            contract,
+        )
         .context("recovery")?;
     publisher.finish(
         Some(third),
@@ -231,7 +254,12 @@ fn invalid_or_premature_observations_retire_the_body_and_require_a_new_job() -> 
         .lock()
         .map_err(|_| anyhow::anyhow!("state"))?
         .sequence = u64::MAX;
-    assert!(publisher.begin(&summary.reference, contract).is_none());
+    assert!(publisher
+        .begin(
+            summary.reference.as_ref().expect("original proposal"),
+            contract
+        )
+        .is_none());
     assert!(reader.bytes(&last).is_none());
     Ok(())
 }
@@ -254,7 +282,10 @@ fn trace(events: &[(u8, u8, u8)]) -> Result<()> {
     for &(action, selection, time) in events {
         let time = u32::from(time);
         if action == 0 {
-            handles.push(publisher.begin(&summary.reference, contract));
+            handles.push(publisher.begin(
+                summary.reference.as_ref().expect("original proposal"),
+                contract,
+            ));
             current = handles.len().checked_sub(1);
             phase = "reading_source";
             elapsed = 0;
@@ -325,7 +356,12 @@ fn trace(events: &[(u8, u8, u8)]) -> Result<()> {
             assert_eq!(at(&value, "/data/elapsed_ms")?, elapsed);
             assert_eq!(
                 at(&value, "/data/context/subject/reference/contract")?,
-                summary.reference.contract
+                summary
+                    .reference
+                    .as_ref()
+                    .expect("original proposal")
+                    .contract
+                    .as_str()
             );
         } else {
             assert_eq!(
@@ -340,7 +376,7 @@ fn trace(events: &[(u8, u8, u8)]) -> Result<()> {
 #[test]
 fn actual_proposal_is_review_only_and_duplicate_read_does_not_start_a_job() -> Result<()> {
     let root = tempfile::tempdir()?;
-    let project = project::Project::new(root.path());
+    let project = project::Project::new(root.path()).expect("valid fixture workspace");
     let reader = project.verification_view();
     let control = Control::new(Arc::new(AtomicBool::new(false)));
     let registry = crate::verification::Registry::host();
@@ -352,16 +388,28 @@ fn actual_proposal_is_review_only_and_duplicate_read_does_not_start_a_job() -> R
     assert_eq!(at(&proposed, "/data/context/subject/state")?, "proposal");
     assert_eq!(
         at(&proposed, "/data/context/subject/session")?,
-        summary.reference.session
+        summary
+            .reference
+            .as_ref()
+            .expect("original proposal")
+            .session
+            .as_str()
     );
     assert_eq!(
         at(&proposed, "/data/context/subject/contract")?,
-        summary.reference.contract
+        summary
+            .reference
+            .as_ref()
+            .expect("original proposal")
+            .contract
+            .as_str()
     );
     assert_eq!(at(&proposed, "/data/phase/state")?, "proposed");
     assert_eq!(
         at(&proposed, "/data/phase/reference")?,
-        serde_json::to_value(super::super::evidence::Reference::new(&summary.reference)?)?
+        serde_json::to_value(super::super::evidence::Reference::new(
+            summary.reference.as_ref().expect("original proposal")
+        ))?
     );
     assert!(!summary.accepted && !summary.verified && summary.artifact.is_none());
     project.propose(&contract, &control)?;
@@ -369,8 +417,8 @@ fn actual_proposal_is_review_only_and_duplicate_read_does_not_start_a_job() -> R
         &bytes,
         &reader.bytes(&revision).context("unchanged duplicate")?
     ));
-    project.review(&summary.reference)?;
-    project.accept(&summary.reference)?;
+    project.review(summary.reference.as_ref().expect("original proposal"))?;
+    project.accept(summary.reference.as_ref().expect("original proposal"))?;
     let replacement = registry.parse_selected(
         &original.replace("Finite counter", "Replacement counter"),
         Some("z3.finite.v1"),
@@ -382,7 +430,10 @@ fn actual_proposal_is_review_only_and_duplicate_read_does_not_start_a_job() -> R
         at(&next, "/data/context/job")?,
         at(&proposed, "/data/context/job")?
     );
-    assert!(replacement.accepted_reference.as_ref() == Some(&summary.reference));
+    assert!(
+        replacement.accepted_reference.as_ref()
+            == Some(summary.reference.as_ref().expect("original proposal"))
+    );
     assert!(!replacement.accepted && !replacement.verified && replacement.artifact.is_none());
     assert!(reader.bytes(&revision).is_none());
     Ok(())
@@ -394,7 +445,14 @@ fn proposal_completions_preserve_subject_and_cannot_admit_evidence() -> Result<(
     let contract = summary.contract.as_ref().context("contract")?;
     let publisher = Publisher::new(b"host");
     let reader = publisher.reader();
-    let draft = publisher.begin_proposal(&summary.reference.session, contract);
+    let draft = publisher.begin_proposal(
+        &summary
+            .reference
+            .as_ref()
+            .expect("original proposal")
+            .session,
+        contract,
+    );
     publisher.source(draft.as_ref(), 1, "a".repeat(64));
     publisher.checking(draft.as_ref(), 2, &inputs());
     publisher.refreshing(draft.as_ref(), 3);
@@ -419,12 +477,25 @@ fn proposal_completions_preserve_subject_and_cannot_admit_evidence() -> Result<(
         proposed.artifact_sha256 = None;
         match changed {
             "accepted" => proposed.accepted = true,
-            "identity" => proposed.reference.contract = "0".repeat(64),
-            "session" => proposed.reference.session = "another session".into(),
+            "identity" => {
+                proposed.reference.as_mut().expect("proposal").contract =
+                    ContractId::parse(&"0".repeat(64))?
+            }
+            "session" => {
+                proposed.reference.as_mut().expect("proposal").session =
+                    SessionId::parse("another session")?
+            }
             "source" => proposed.source_path = "another.model.json".into(),
             _ => {}
         }
-        let draft = publisher.begin_proposal(&summary.reference.session, contract);
+        let draft = publisher.begin_proposal(
+            &summary
+                .reference
+                .as_ref()
+                .expect("original proposal")
+                .session,
+            contract,
+        );
         if changed != "premature" {
             publisher.recording_proposal(draft.as_ref(), 1);
         }
@@ -436,7 +507,10 @@ fn proposal_completions_preserve_subject_and_cannot_admit_evidence() -> Result<(
             "unavailable"
         );
     }
-    let accepted = publisher.begin(&summary.reference, contract);
+    let accepted = publisher.begin(
+        summary.reference.as_ref().expect("original proposal"),
+        contract,
+    );
     publisher.recording_proposal(accepted.as_ref(), 1);
     assert_eq!(
         at(&body(&reader)?.2, "/data/phase/stage/state")?,
@@ -447,8 +521,18 @@ fn proposal_completions_preserve_subject_and_cannot_admit_evidence() -> Result<(
         at(&serde_json::to_value(&reader)?, "/state")?,
         "unavailable"
     );
-    let old_draft = publisher.begin_proposal(&summary.reference.session, contract);
-    let current = publisher.begin(&summary.reference, contract);
+    let old_draft = publisher.begin_proposal(
+        &summary
+            .reference
+            .as_ref()
+            .expect("original proposal")
+            .session,
+        contract,
+    );
+    let current = publisher.begin(
+        summary.reference.as_ref().expect("original proposal"),
+        contract,
+    );
     let (revision, original, _) = body(&reader)?;
     publisher.recording_proposal(old_draft.as_ref(), 1);
     publisher.finish(old_draft, 2, Completion::Cancelled("retired draft"));
@@ -467,7 +551,7 @@ fn proposal_completions_preserve_subject_and_cannot_admit_evidence() -> Result<(
 #[test]
 fn cancelled_actual_proposal_stays_unaccepted_and_a_fresh_turn_can_recover() -> Result<()> {
     let root = tempfile::tempdir()?;
-    let project = project::Project::new(root.path());
+    let project = project::Project::new(root.path()).expect("valid fixture workspace");
     let reader = project.verification_view();
     let contract = crate::verification::Registry::host().parse_selected(
         include_str!("../../../../../verification/examples/finite-counter.contract.json"),

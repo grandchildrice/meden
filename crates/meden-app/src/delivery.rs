@@ -133,15 +133,17 @@ mod tests {
     // Selection comparison only: these private observations do not manufacture
     // a proposal or exercise physical delivery. Public journeys use real queues.
     fn selected(serial: u64) -> Delivery {
-        let project = Arc::new(crate::project::Project::new(std::path::Path::new(
-            "/sessions/sequence",
-        )));
+        let project = Arc::new(
+            crate::project::Project::new(std::path::Path::new("/sessions/sequence"))
+                .expect("valid fixture workspace"),
+        );
         let mut delivery = Delivery::new(&project);
         delivery.review = Some(Review {
             serial,
             summary: Summary {
                 reference: Reference {
-                    session: "original".into(),
+                    session: crate::identity::SessionId::parse("original")
+                        .expect("valid fixture session"),
                     id: 0,
                 },
                 source: "empty.bin".into(),
@@ -159,7 +161,7 @@ mod tests {
     #[test]
     fn full_u64_selection_is_exact_and_every_attempt_consumes_it() -> Result<()> {
         let original = Reference {
-            session: "original".into(),
+            session: crate::identity::SessionId::parse("original")?,
             id: 0,
         };
         let mut delivery = selected(u64::MAX);
@@ -179,11 +181,11 @@ mod tests {
         assert!(delivery.review.is_none());
         for reference in [
             Reference {
-                session: "replacement".into(),
+                session: crate::identity::SessionId::parse("replacement")?,
                 id: 0,
             },
             Reference {
-                session: "original".into(),
+                session: crate::identity::SessionId::parse("original")?,
                 id: 1,
             },
         ] {

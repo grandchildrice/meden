@@ -34,7 +34,7 @@ pub(super) fn perform(
             lock(view).activity = "Preparing patch".into();
             lock(view).repair_review = Some(meden_app::view::repairs::Review::new(
                 session.prepare_repair(repairs, &snapshot, &record)?,
-            )?);
+            ));
         }
         Command::ApplyRepair { reference } => {
             analysis::apply_repair(view, session, repairs, &reference)?;

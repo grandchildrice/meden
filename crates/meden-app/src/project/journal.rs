@@ -10,7 +10,8 @@ use meden_runtime::verification::artifact::Class;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use super::{hash, obligation, Obligation, Origin, Reference, State};
+use super::{obligation, Obligation, Origin, Reference, State};
+use crate::identity::{ContractId, RequirementRevision, SessionId};
 
 /// Keep the originally reviewed checker and strength across plugin upgrades.
 /// Replaying meaning must not silently adopt a new verification method.
@@ -41,16 +42,16 @@ pub(super) enum Event {
         binding: Option<Box<Binding>>,
     },
     Review {
-        revision: u64,
-        contract: String,
+        revision: RequirementRevision,
+        contract: ContractId,
     },
     Accept {
-        revision: u64,
-        contract: String,
+        revision: RequirementRevision,
+        contract: ContractId,
     },
     Reject {
-        revision: u64,
-        contract: String,
+        revision: RequirementRevision,
+        contract: ContractId,
     },
 }
 
@@ -127,13 +128,14 @@ impl Event {
             }
             Self::Review { revision, contract }
             | Self::Accept { revision, contract }
-            | Self::Reject { revision, contract } => (*revision, contract),
+            | Self::Reject { revision, contract } => (revision.value(), contract),
         };
         let displayed = controller
             .displayed()
             .context("saved contract decision has no proposal")?;
         anyhow::ensure!(
-            displayed.revision == revision && hash(&displayed.subject.contract) == *identity,
+            displayed.revision == revision
+                && ContractId::from_canonical(&displayed.subject.contract) == *identity,
             "saved contract decision does not match the displayed meaning"
         );
         let accepted = match self {
@@ -147,7 +149,7 @@ impl Event {
     }
 }
 
-pub(super) fn replay(events: &[Event], session: &str) -> Result<Contracts> {
+pub(super) fn replay(events: &[Event], session: &SessionId) -> Result<Contracts> {
     let mut controller = Contracts::new(session.as_bytes().to_vec());
     for event in events {
         event.apply(&mut controller, session.as_bytes())?;
@@ -158,7 +160,7 @@ pub(super) fn replay(events: &[Event], session: &str) -> Result<Contracts> {
 pub(super) fn load(
     path: &Path,
     root: &Path,
-    session: &str,
+    session: &SessionId,
 ) -> Result<(Contracts, Vec<Event>, Option<String>)> {
     let Some(saved) = crate::storage::read::<Saved>(path)? else {
         return Ok((
@@ -223,7 +225,7 @@ pub(super) fn save(
 pub(super) fn record(
     path: &Path,
     root: &Path,
-    session: &str,
+    session: &SessionId,
     selected: Option<&str>,
     state: &mut State,
     event: Event,
@@ -246,15 +248,15 @@ mod tests {
         let contract = Contract::parse(include_str!(
             "../../../../verification/examples/counter.contract.json"
         ))?;
-        let identity = contract.identity()?;
+        let identity = ContractId::from_canonical(&contract.canonical()?);
         Ok(vec![
             Event::propose(&contract)?,
             Event::Review {
-                revision: 1,
+                revision: RequirementRevision::new(1)?,
                 contract: identity.clone(),
             },
             Event::Accept {
-                revision: 1,
+                revision: RequirementRevision::new(1)?,
                 contract: identity,
             },
         ])
@@ -271,7 +273,7 @@ mod tests {
             required.class = Class::Bounded;
             *binding = None;
         }
-        let restored = replay(&events, "new-session")?;
+        let restored = replay(&events, &SessionId::parse("new-session")?)?;
         let accepted = restored.accepted().context("retained meaning")?;
         assert_eq!(
             accepted.obligations.first().map(|o| o.checker.as_slice()),
@@ -289,7 +291,7 @@ mod tests {
     fn reopening_keeps_meaning_but_never_jobs_evidence_or_the_old_session() -> Result<()> {
         let root = tempfile::tempdir()?;
         let events = accepted_events()?;
-        let mut old = replay(&events, "old-session")?;
+        let mut old = replay(&events, &SessionId::parse("old-session")?)?;
         let ticket = old
             .start(Origin::Controller, 1, b"old inputs".to_vec())
             .context("ticket")?;
@@ -303,7 +305,7 @@ mod tests {
                 events,
             },
         )?;
-        let (mut restored, _, _) = load(&path, root.path(), "new-session")?;
+        let (mut restored, _, _) = load(&path, root.path(), &SessionId::parse("new-session")?)?;
         let accepted = restored.accepted().context("accepted meaning")?;
         assert_eq!(accepted.revision, 1);
         assert_eq!(
@@ -327,11 +329,11 @@ mod tests {
         let replacement = Contract::parse(&serde_json::to_string(&replacement)?)?;
         events.push(Event::propose(&replacement)?);
         events.push(Event::Reject {
-            revision: 2,
-            contract: replacement.identity()?,
+            revision: RequirementRevision::new(2)?,
+            contract: ContractId::from_canonical(&replacement.canonical()?),
         });
         events.push(Event::propose(&replacement)?);
-        let restored = replay(&events, "new-session")?;
+        let restored = replay(&events, &SessionId::parse("new-session")?)?;
         assert_eq!(restored.accepted().context("retained")?.revision, 1);
         assert_eq!(restored.displayed().context("proposal")?.revision, 3);
         assert!(restored.pending() && !restored.is_accepted());
@@ -341,7 +343,7 @@ mod tests {
     #[test]
     fn failed_persistence_or_unreviewed_acceptance_does_not_commit_a_decision() -> Result<()> {
         let root = tempfile::tempdir()?;
-        let project = super::super::Project::new(root.path());
+        let project = super::super::Project::new(root.path()).expect("valid fixture workspace");
         let mut state = project.state.lock().map_err(|_| anyhow::anyhow!("state"))?;
         let contract = Contract::parse(include_str!(
             "../../../../verification/examples/counter.contract.json"
@@ -375,8 +377,8 @@ mod tests {
             None,
             &mut state,
             Event::Accept {
-                revision: 1,
-                contract: contract.identity()?
+                revision: RequirementRevision::new(1)?,
+                contract: ContractId::from_canonical(&contract.canonical()?)
             }
         )
         .is_err());

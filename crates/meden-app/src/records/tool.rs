@@ -112,7 +112,8 @@ mod tests {
         let root = tempfile::tempdir()?;
         let workspace = Arc::new(Workspace::open(root.path(), &std::env::current_exe()?)?);
         let control = Arc::new(Control::new(Arc::new(AtomicBool::new(false))));
-        let project = Arc::new(crate::project::Project::new(root.path()));
+        let project =
+            Arc::new(crate::project::Project::new(root.path()).expect("valid fixture workspace"));
         let mut registry = Registry::new();
         register(&mut registry, &workspace, &control, &project);
         let call = ToolCall {

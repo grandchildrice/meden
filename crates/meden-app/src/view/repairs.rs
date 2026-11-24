@@ -29,13 +29,12 @@ pub struct Review {
 }
 impl Review {
     /// Convert only the reference representation, preserving the original queue data.
-    pub fn new(original: repair::Review) -> Result<Self> {
+    pub fn new(original: repair::Review) -> Self {
         let accepted = original
             .accepted_reference
             .as_ref()
-            .map(super::evidence::Reference::new)
-            .transpose()?;
-        Ok(Self { original, accepted })
+            .map(super::evidence::Reference::new);
+        Self { original, accepted }
     }
     /// Original host selection used by existing apply/reject checks.
     pub fn original(&self) -> &repair::Review {
@@ -90,15 +89,15 @@ mod tests {
             },
             file: "Spec.lean".into(),
             accepted_reference: Some(crate::project::Reference {
-                revision: u64::MAX,
-                session: "host".into(),
-                contract: "d".repeat(64),
+                revision: crate::identity::RequirementRevision::new(u64::MAX)?,
+                session: crate::identity::SessionId::parse("host")?,
+                contract: crate::identity::ContractId::parse(&"d".repeat(64))?,
             }),
             explanation: "Original explanation\nλ".into(),
             diff: "-old\n+new\n".into(),
         };
         let journal = serde_json::to_value(&original)?;
-        let view = Review::new(original)?;
+        let view = Review::new(original);
         assert_eq!(serde_json::to_value(view.original())?, journal);
         let mut expected = journal;
         *expected

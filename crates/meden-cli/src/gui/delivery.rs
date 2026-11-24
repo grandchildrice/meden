@@ -27,17 +27,15 @@ pub(super) fn perform(
 ) -> Result<()> {
     match command {
         Command::ReviewExport { reference, offset } => {
-            delivery.review(&reference.original()?, usize::try_from(offset)?)
+            delivery.review(&reference.original(), usize::try_from(offset)?)
         }
         Command::SendExport { reference, serial } => {
-            delivery.send(&reference.original()?, serial, workspace, control)
+            delivery.send(&reference.original(), serial, workspace, control)
         }
         Command::RejectExport { reference, serial } => {
-            delivery.reject(&reference.original()?, serial)
+            delivery.reject(&reference.original(), serial)
         }
-        Command::CloseExport { reference, serial } => {
-            delivery.close(&reference.original()?, serial)
-        }
+        Command::CloseExport { reference, serial } => delivery.close(&reference.original(), serial),
         _ => anyhow::bail!("Unexpected delivery command"),
     }
 }

@@ -139,7 +139,7 @@ mod tests {
     fn full_session_projection_keeps_large_history_outside_polling_and_counters_exact() -> Result<()>
     {
         let root = tempfile::tempdir()?;
-        let project = Project::new(root.path());
+        let project = Project::new(root.path()).expect("valid fixture workspace");
         project.stored_status()?;
         let evidence = project.evidence_view()?;
         let jobs = project.verification_view();

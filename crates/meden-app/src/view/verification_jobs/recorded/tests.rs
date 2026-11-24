@@ -223,7 +223,7 @@ fn replacement_backwards_and_terminal_notifications_cannot_restore_recorded_jobs
 #[test]
 fn explicit_host_check_preserves_conversation_publication_and_has_a_distinct_job() -> Result<()> {
     let root = tempfile::tempdir()?;
-    let project = crate::project::Project::new(root.path());
+    let project = crate::project::Project::new(root.path()).expect("valid fixture workspace");
     let chat = project.check_observations(Origin::Model);
     let host = project.check_observations(Origin::Host);
     let chat_observation = start(chat, Origin::Model)?;

@@ -1,7 +1,11 @@
 //! Latest original verification observation. These identities are not kernel
 //! tickets, receipts or grants; only the project service owns the publisher.
 use super::publication::{ArtifactId, Envelope, Publication};
-use crate::{project, verification::Contract};
+use crate::{
+    identity::{ContractId, SessionId},
+    project,
+    verification::Contract,
+};
 use anyhow::{Context as _, Result};
 use meden_runtime::verification::{artifact::Class, FailureKind};
 use schemars::JsonSchema;
@@ -22,11 +26,10 @@ pub enum Subject {
     /// Check a new contract before offering its meaning for host review.
     Proposal {
         /// Original project session, not a grant.
-        #[schemars(length(min = 1, max = 256))]
-        session: String,
+        #[schemars(with = "String", length(min = 1, max = 256))]
+        session: SessionId,
         /// Complete canonical proposed contract identity.
-        #[schemars(regex(pattern = r"^[a-f0-9]{64}$"))]
-        contract: String,
+        contract: ContractId,
     },
     /// Check implementation against the host-accepted original meaning.
     Accepted {
@@ -321,23 +324,24 @@ impl Publisher {
     ) -> Option<Observation> {
         self.begin_subject(contract, Stage::ReadingSource, || {
             anyhow::ensure!(
-                contract.identity()? == reference.contract,
+                contract.identity()? == reference.contract.as_str(),
                 "Verification contract identity changed"
             );
             Ok(Subject::Accepted {
-                reference: super::evidence::Reference::new(reference)?,
+                reference: super::evidence::Reference::new(reference),
             })
         })
     }
-    pub(crate) fn begin_proposal(&self, session: &str, contract: &Contract) -> Option<Observation> {
+    pub(crate) fn begin_proposal(
+        &self,
+        session: &SessionId,
+        contract: &Contract,
+    ) -> Option<Observation> {
         self.begin_subject(contract, Stage::CheckingProposal, || {
-            anyhow::ensure!(
-                !session.is_empty() && session.len() <= 256,
-                "Invalid proposal session"
-            );
+            anyhow::ensure!(session.as_str().len() <= 256, "Invalid proposal session");
             Ok(Subject::Proposal {
-                session: session.into(),
-                contract: contract.identity()?,
+                session: session.clone(),
+                contract: ContractId::from_canonical(&contract.canonical()?),
             })
         })
     }
@@ -542,8 +546,10 @@ impl Publisher {
                     anyhow::ensure!(
                         summary.accepted
                             && summary.verified
-                            && summary.accepted_reference.as_ref() == Some(&summary.reference)
-                            && super::evidence::Reference::new(&summary.reference)? == *reference
+                            && summary.accepted_reference == summary.reference
+                            && summary.reference.as_ref().is_some_and(|original| {
+                                super::evidence::Reference::new(original) == *reference
+                            })
                             && summary.evidence_class == Some(context.class)
                             && summary.scope == context.scope
                             && summary.source_path == context.source_path
@@ -599,16 +605,20 @@ fn checked_proposal(
     let Subject::Proposal { session, contract } = &context.subject else {
         anyhow::bail!("Proposal completion has no original draft");
     };
+    let reference = summary
+        .reference
+        .as_ref()
+        .context("Checked proposal has no reference")?;
     anyhow::ensure!(
         matches!(during, Stage::RecordingProposal)
             && summary.proposed
             && !summary.accepted
             && !summary.verified
-            && summary.reference.session == *session
-            && summary.reference.contract == *contract
+            && reference.session == *session
+            && reference.contract == *contract
             && summary.contract.as_ref().is_some_and(|original| original
                 .identity()
-                .is_ok_and(|identity| identity == *contract)
+                .is_ok_and(|identity| identity == contract.as_str())
                 && original.backend() == context.backend
                 && original.description().name == context.name)
             && summary.evidence_class == Some(context.class)
@@ -622,7 +632,7 @@ fn checked_proposal(
         "Checked proposal context changed"
     );
     Ok(Phase::Proposed {
-        reference: super::evidence::Reference::new(&summary.reference)?,
+        reference: super::evidence::Reference::new(reference),
     })
 }
 #[derive(Clone, Copy)]

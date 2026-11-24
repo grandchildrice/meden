@@ -1122,13 +1122,10 @@
           "$ref": "#/$defs/NativeSequence"
         },
         "session": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 8192
+          "$ref": "#/$defs/SessionId"
         },
         "contract": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
+          "$ref": "#/$defs/ContractId"
         }
       },
       "additionalProperties": false,
@@ -1137,6 +1134,15 @@
         "session",
         "contract"
       ]
+    },
+    "SessionId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8192
+    },
+    "ContractId": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
     },
     "Status6": {
       "description": "Small status, independently serialized without inspecting assets or errors.",
@@ -1207,9 +1213,7 @@
       "type": "object",
       "properties": {
         "session": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 8192
+          "$ref": "#/$defs/SessionId"
         },
         "id": {
           "type": "integer",
@@ -1222,11 +1226,14 @@
           "maxLength": 8192
         },
         "contract": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-f0-9]{64}$"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContractId"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "target": {
           "type": "string",

@@ -5,9 +5,7 @@
   "type": "object",
   "properties": {
     "session": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 8192
+      "$ref": "#/$defs/SessionId"
     },
     "id": {
       "type": "integer",
@@ -20,5 +18,12 @@
   "required": [
     "session",
     "id"
-  ]
+  ],
+  "$defs": {
+    "SessionId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8192
+    }
+  }
 }

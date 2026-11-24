@@ -1,5 +1,11 @@
 # Graph interaction measurements
 
+The [accepted-reference validation](performance/agreement-identities.md) replaces
+project revision/session/contract primitives with owned application identities
+and removes the empty-reference sentinel. It retains original host comparisons,
+wire values and prepared compiler inputs; it is a type/ownership change with
+separate retained-tab checks, not a new rendering or compilation speedup.
+
 The [November 25 event audit](performance/event-audit-20261125.md) repeats all
 13 operation windows twice per actual project. It separates ordinary handlers
 from 83–226 ms deep-zoom tasks, repeated global reference work, cache-hit native

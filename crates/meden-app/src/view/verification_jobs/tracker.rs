@@ -34,7 +34,7 @@ impl<'a> Progress<'a> {
     }
     pub(crate) fn proposal(
         publisher: &'a Publisher,
-        session: &str,
+        session: &crate::identity::SessionId,
         contract: &Contract,
         control: &'a Control,
     ) -> Self {

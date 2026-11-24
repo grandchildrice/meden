@@ -1,7 +1,10 @@
 //! Exact delivery observations. Decoding these references grants no review or
 //! dispatch authority; the existing application/kernel still checks originals.
 use super::sequence::Sequence;
-use crate::exports;
+use crate::{
+    exports,
+    identity::{ContractId, SessionId},
+};
 use anyhow::Result;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -10,8 +13,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Reference {
-    #[schemars(length(min = 1, max = 8192))]
-    session: String,
+    session: SessionId,
     #[serde(deserialize_with = "index")]
     #[schemars(range(max = 7))]
     id: u8,
@@ -27,25 +29,18 @@ fn index<'de, D: serde::Deserializer<'de>>(decoder: D) -> Result<u8, D::Error> {
 }
 impl Reference {
     fn new(value: &exports::Reference) -> Result<Self> {
-        anyhow::ensure!(
-            value.id < 8 && !value.session.is_empty() && value.session.len() <= 8192,
-            "Invalid export reference"
-        );
+        anyhow::ensure!(value.id < 8, "Invalid export reference");
         Ok(Self {
             session: value.session.clone(),
             id: u8::try_from(value.id)?,
         })
     }
     /// Recover the original index/session before the unchanged host comparison.
-    pub fn original(self) -> Result<exports::Reference> {
-        anyhow::ensure!(
-            !self.session.is_empty() && self.session.len() <= 8192,
-            "Invalid export reference"
-        );
-        Ok(exports::Reference {
+    pub fn original(self) -> exports::Reference {
+        exports::Reference {
             session: self.session,
             id: usize::from(self.id),
-        })
+        }
     }
 }
 /// Description derived from the original immutable request and observed phase.
@@ -56,8 +51,7 @@ pub struct Summary {
     reference: Reference,
     #[schemars(length(max = 8192))]
     source: String,
-    #[schemars(regex(pattern = r"^[a-f0-9]{64}$"))]
-    contract: Option<String>,
+    contract: Option<ContractId>,
     #[schemars(length(min = 1, max = 8192))]
     target: String,
     #[schemars(range(max = 16_777_216))]
@@ -79,8 +73,7 @@ impl Summary {
                 && !value.target.is_empty()
                 && value.target.len() <= 8192
                 && value.bytes <= 16_777_216
-                && digest(&value.payload_sha256)
-                && value.contract.as_ref().is_none_or(|c| digest(c)),
+                && digest(&value.payload_sha256),
             "Invalid export observation"
         );
         Ok(Self {

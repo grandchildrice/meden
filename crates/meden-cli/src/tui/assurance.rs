@@ -131,18 +131,16 @@ pub(super) fn panel(app: &App) -> Vec<Line<'static>> {
     else {
         return Vec::new();
     };
+    let Some(reference) = summary.reference.as_ref() else {
+        return Vec::new();
+    };
     let state = current(app, summary);
     let contract = summary
         .accepted_contract
         .as_ref()
         .or(summary.contract.as_ref());
     let identity = summary.accepted_reference.as_ref().map_or_else(
-        || {
-            format!(
-                "Specification r{} · not accepted",
-                summary.reference.revision
-            )
-        },
+        || format!("Specification r{} · not accepted", reference.revision),
         |accepted| format!("Specification r{} · accepted", accepted.revision),
     );
     let mut lines = vec![
@@ -160,7 +158,7 @@ pub(super) fn panel(app: &App) -> Vec<Line<'static>> {
         lines.push(Line::styled(
             format!(
                 "Replacement r{} awaits review · accepted meaning retained",
-                summary.reference.revision
+                reference.revision
             ),
             Style::new().fg(Color::Yellow),
         ));
@@ -313,23 +311,25 @@ mod tests {
 
     fn app() -> anyhow::Result<App> {
         let root = PathBuf::from("/assurance-ui-test");
-        let mut summary = Project::new(&root).stored_status()?;
+        let mut summary = Project::new(&root)
+            .expect("valid fixture workspace")
+            .stored_status()?;
         let contract = Contract::parse(include_str!(
             "../../../../verification/examples/counter.contract.json"
         ))?;
-        summary.reference = Reference {
-            revision: 1,
-            session: "test".into(),
-            contract: contract.identity()?,
-        };
-        summary.accepted_reference = Some(summary.reference.clone());
+        summary.reference = Some(Reference {
+            revision: meden_app::identity::RequirementRevision::new(1)?,
+            session: meden_app::identity::SessionId::parse("test")?,
+            contract: meden_app::identity::ContractId::from_canonical(&contract.canonical()?),
+        });
+        summary.accepted_reference = summary.reference.clone();
         summary.accepted = true;
         summary.proposed = true;
         summary.verified = true;
         summary.contract = Some(contract.clone());
         summary.accepted_contract = Some(contract);
         summary.artifact = Some(root.join("retained-artifact"));
-        let mut app = App::new(Vec::new(), root);
+        let mut app = App::new(Vec::new(), root)?;
         app.screen = Screen::Instructing;
         app.project_status = Some(summary);
         Ok(app)
@@ -373,7 +373,8 @@ mod tests {
             .get_mut("name")
             .ok_or_else(|| anyhow::anyhow!("contract name"))? = "Replacement meaning".into();
         summary.contract = Some(Contract::parse(&serde_json::to_string(&replacement)?)?);
-        summary.reference.revision = 3;
+        summary.reference.as_mut().expect("proposal").revision =
+            meden_app::identity::RequirementRevision::new(3)?;
         summary.accepted = false;
         summary.verified = false;
         let diff = changes(summary);

@@ -21,6 +21,8 @@ pub mod explanation;
 /// Shared immutable export proposals and host-only dispatch through the original kernel.
 #[allow(missing_docs)]
 pub mod exports;
+/// Distinct owned identities at application/controller and transport boundaries.
+pub mod identity;
 pub mod meaning;
 pub mod model;
 /// Bounded static preview preparation through the original confined file port.

@@ -47,8 +47,8 @@ fn accepted(project: &Project) -> Result<Summary> {
     let control = Control::new(Arc::new(AtomicBool::new(false)));
     let contract = project.parse_contract(DATA)?;
     let summary = project.propose(&contract, &control)?;
-    project.review(&summary.reference)?;
-    project.accept(&summary.reference)
+    project.review(summary.reference.as_ref().expect("original proposal"))?;
+    project.accept(summary.reference.as_ref().expect("original proposal"))
 }
 
 #[test]
@@ -72,7 +72,18 @@ fn explicit_same_format_selection_survives_restart_and_switch_requires_review() 
     assert_eq!(restored.selected_verifier(), Some(SECOND));
     let summary = restored.stored_status()?;
     assert!(summary.accepted && !summary.verified && !restored.take_autorun());
-    assert_ne!(summary.reference.session, initial.reference.session);
+    assert_ne!(
+        summary
+            .reference
+            .as_ref()
+            .expect("original proposal")
+            .session,
+        initial
+            .reference
+            .as_ref()
+            .expect("original proposal")
+            .session
+    );
     assert_eq!(summary.contract, Some(original.clone()));
     assert_eq!(restored.parse_contract(DATA)?.backend(), SECOND);
     restored.prepare_access()?;
@@ -91,16 +102,42 @@ fn explicit_same_format_selection_survives_restart_and_switch_requires_review() 
     assert_ne!(replacement.checker_id()?, old.checker_id()?);
     let control = Control::new(Arc::new(AtomicBool::new(false)));
     let draft = switched.propose(&replacement, &control)?;
-    assert!(draft.reference.revision > initial.reference.revision);
+    assert!(
+        draft
+            .reference
+            .as_ref()
+            .expect("original proposal")
+            .revision
+            > initial
+                .reference
+                .as_ref()
+                .expect("original proposal")
+                .revision
+    );
     assert_eq!(draft.accepted_contract, Some(old.clone()));
-    assert!(switched.accept(&draft.reference).is_err());
-    switched.reject(&draft.reference)?;
+    assert!(switched
+        .accept(draft.reference.as_ref().expect("original proposal"))
+        .is_err());
+    switched.reject(draft.reference.as_ref().expect("original proposal"))?;
     assert_eq!(switched.stored_status()?.accepted_contract, Some(old));
     let renewed = switched.propose(&replacement, &control)?;
-    assert!(renewed.reference.revision > draft.reference.revision);
-    assert!(switched.review(&draft.reference).is_err());
-    switched.review(&renewed.reference)?;
-    let accepted = switched.accept(&renewed.reference)?;
+    assert!(
+        renewed
+            .reference
+            .as_ref()
+            .expect("original proposal")
+            .revision
+            > draft
+                .reference
+                .as_ref()
+                .expect("original proposal")
+                .revision
+    );
+    assert!(switched
+        .review(draft.reference.as_ref().expect("original proposal"))
+        .is_err());
+    switched.review(renewed.reference.as_ref().expect("original proposal"))?;
+    let accepted = switched.accept(renewed.reference.as_ref().expect("original proposal"))?;
     assert_eq!(accepted.contract.context("replacement")?.backend(), FIRST);
     assert!(!accepted.verified);
     Ok(())
@@ -148,7 +185,9 @@ fn unknown_selection_and_changed_method_never_fallback_or_relabel_history() -> R
     let replacement = changed.propose(&current, &control)?;
     assert!(replacement.proposed && !replacement.accepted);
     assert_eq!(replacement.accepted_contract, Some(original));
-    assert!(changed.accept(&replacement.reference).is_err());
+    assert!(changed
+        .accept(replacement.reference.as_ref().expect("original proposal"))
+        .is_err());
     Ok(())
 }
 
@@ -196,10 +235,23 @@ fn history_without_method_metadata_stays_unknown_and_recovers_by_new_host_review
     let control = Control::new(Arc::new(AtomicBool::new(false)));
     let replacement = restored.propose(&current, &control)?;
     assert_eq!(replacement.accepted_contract, Some(unknown));
-    assert!(replacement.reference.revision > historical.reference.revision);
-    assert!(restored.accept(&replacement.reference).is_err());
-    restored.review(&replacement.reference)?;
-    let accepted = restored.accept(&replacement.reference)?;
+    assert!(
+        replacement
+            .reference
+            .as_ref()
+            .expect("original proposal")
+            .revision
+            > historical
+                .reference
+                .as_ref()
+                .expect("original proposal")
+                .revision
+    );
+    assert!(restored
+        .accept(replacement.reference.as_ref().expect("original proposal"))
+        .is_err());
+    restored.review(replacement.reference.as_ref().expect("original proposal"))?;
+    let accepted = restored.accept(replacement.reference.as_ref().expect("original proposal"))?;
     assert!(accepted.accepted && !accepted.verified);
     restored.prepare_access()?;
     assert!(restored

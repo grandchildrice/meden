@@ -195,12 +195,12 @@ struct App {
 }
 
 impl App {
-    fn new(providers: Vec<Provider>, root: PathBuf) -> Self {
+    fn new(providers: Vec<Provider>, root: PathBuf) -> Result<Self> {
         let mut picker = ListState::default();
         picker.select(Some(0));
-        let project = Arc::new(crate::project::Project::new(&root));
+        let project = Arc::new(crate::project::Project::new(&root)?);
         let exports = Arc::new(Exports::new(Arc::clone(&project)));
-        Self {
+        Ok(Self {
             providers,
             picker,
             connection_form: None,
@@ -250,7 +250,7 @@ impl App {
             review_frame: Rect::default(),
             review_rows: 0,
             scroll_page: 0,
-        }
+        })
     }
     fn selected(&self) -> Option<&Provider> {
         self.providers.get(self.picker.selected().unwrap_or(0))
@@ -611,6 +611,15 @@ impl App {
         let Some(review) = self.contract_review.clone() else {
             return;
         };
+        let Some(reference) = review.reference.as_ref() else {
+            self.contract_review = None;
+            self.screen = Screen::Instructing;
+            self.say(
+                "Contract review has no original reference",
+                Style::new().fg(Color::Red),
+            );
+            return;
+        };
         match key.code {
             _ if matches!(
                 approval::route(
@@ -627,7 +636,7 @@ impl App {
                     self.screen = Screen::Instructing;
                     return;
                 }
-                match self.project.accept(&review.reference) {
+                match self.project.accept(reference) {
                     Ok(summary) => {
                         self.project_status = Some(summary);
                         self.screen = Screen::Instructing;
@@ -648,7 +657,7 @@ impl App {
             }
             KeyCode::Char('n') | KeyCode::Esc => {
                 if !review.accepted {
-                    match self.project.reject(&review.reference) {
+                    match self.project.reject(reference) {
                         Ok(summary) => self.project_status = Some(summary),
                         Err(error) => self.say(error.to_string(), Style::new().fg(Color::Red)),
                     }
@@ -1263,7 +1272,7 @@ pub fn run(
     let approved = args.model.approve_processor.as_deref();
     let judge_config = (&args.model.judge_model, args.model.approve_judge.as_deref());
     let workspace = Arc::new(Workspace::open(&args.workspace, &std::env::current_exe()?)?);
-    let mut app = App::new(providers, workspace.path().to_owned());
+    let mut app = App::new(providers, workspace.path().to_owned())?;
     app.project = Arc::new(crate::project::Project::open_with_registry(
         workspace.path(),
         workspace.session_id(),
@@ -1433,7 +1442,7 @@ where
 /// Exercise every screen using an in-memory terminal.
 #[cfg(test)]
 fn selftest(providers: Vec<Provider>) -> Result<String> {
-    let mut app = App::new(providers, PathBuf::from("/workspace"));
+    let mut app = App::new(providers, PathBuf::from("/workspace"))?;
     app.select_processor();
     let mut terminal = Terminal::new(ratatui::backend::TestBackend::new(100, 24))?;
     let mut rendered = String::new();
@@ -1458,8 +1467,26 @@ fn selftest(providers: Vec<Provider>) -> Result<String> {
 mod tests {
     use super::*;
     #[test]
+    fn a_review_without_an_original_reference_cannot_accept_and_returns_to_chat() -> Result<()> {
+        let mut app = App::new(Vec::new(), PathBuf::from("/workspace"))?;
+        app.contract_review = Some(app.project.stored_status()?);
+        app.screen = Screen::ReviewingContract;
+        app.review_area = Rect::new(0, 0, 130, 40);
+        app.review_rows = 3;
+        app.contract_key(crossterm::event::KeyEvent::new(
+            KeyCode::Enter,
+            KeyModifiers::NONE,
+        ));
+        assert!(app.screen == Screen::Instructing);
+        assert!(app.contract_review.is_none());
+        assert!(!app.project.accepted() && !app.project.pending());
+        assert!(app.project.current_reference().is_err());
+        Ok(())
+    }
+    #[test]
     fn model_and_file_text_cannot_emit_terminal_control_sequences() {
-        let mut app = App::new(Vec::new(), PathBuf::new());
+        let mut app =
+            App::new(Vec::new(), PathBuf::from("/workspace")).expect("valid fixture workspace");
         app.say("日本語🙂\n\u{1b}]52;c;payload\u{7}", Style::new());
         assert!(app
             .lines
@@ -1489,7 +1516,8 @@ mod tests {
     }
     #[test]
     fn streamed_text_is_sanitized_and_replaced_by_the_final_reply() {
-        let mut app = App::new(providers(), PathBuf::from("/workspace"));
+        let mut app =
+            App::new(providers(), PathBuf::from("/workspace")).expect("valid fixture workspace");
         app.delta("Plan\u{1b}[31m", true);
         app.delta("Provisional ", false);
         app.delta("reply\u{1b}]52;clipboard\u{7}", false);
@@ -1508,7 +1536,8 @@ mod tests {
     }
     #[test]
     fn conversation_gutters_and_tool_details_are_separate() -> Result<()> {
-        let mut app = App::new(providers(), PathBuf::from("/workspace"));
+        let mut app =
+            App::new(providers(), PathBuf::from("/workspace")).expect("valid fixture workspace");
         app.screen = Screen::Instructing;
         app.speak(Speaker::User, "Read note.txt.");
         app.tool_started("call-a".into(), "read_file", r#"{"path":"note.txt"}"#, None);
@@ -1550,7 +1579,8 @@ mod tests {
     }
     #[test]
     fn skipped_tool_failures_remain_visible_without_expanding_details() -> Result<()> {
-        let mut app = App::new(providers(), PathBuf::from("/workspace"));
+        let mut app =
+            App::new(providers(), PathBuf::from("/workspace")).expect("valid fixture workspace");
         app.screen = Screen::Instructing;
         app.tool_finished(
             "skipped",
@@ -1575,7 +1605,8 @@ mod tests {
     #[test]
     fn processor_cannot_be_approved_without_a_visible_review_area() -> Result<()> {
         use anyhow::Context as _;
-        let mut app = App::new(providers(), PathBuf::from("/workspace/hidden-review"));
+        let mut app = App::new(providers(), PathBuf::from("/workspace/hidden-review"))
+            .expect("valid fixture workspace");
         app.select_processor();
         let gateway = Arc::clone(app.gateway.as_ref().context("pending gateway")?);
         let mut terminal = Terminal::new(ratatui::backend::TestBackend::new(2, 20))?;
@@ -1608,7 +1639,8 @@ mod tests {
         let mut connections = providers();
         connections.first_mut().context("provider")?.base_url =
             format!("https://example.com/{}/destination-end", "a".repeat(240));
-        let mut app = App::new(connections, PathBuf::from("/workspace/clipped-review"));
+        let mut app = App::new(connections, PathBuf::from("/workspace/clipped-review"))
+            .expect("valid fixture workspace");
         app.select_processor();
         let gateway = Arc::clone(app.gateway.as_ref().context("pending gateway")?);
         let mut terminal = Terminal::new(ratatui::backend::TestBackend::new(20, 24))?;
@@ -1655,7 +1687,8 @@ mod tests {
     }
     #[test]
     fn picker_stays_in_range() {
-        let mut app = App::new(providers(), PathBuf::new());
+        let mut app =
+            App::new(providers(), PathBuf::from("/workspace")).expect("valid fixture workspace");
         app.move_selection(-1);
         assert_eq!(app.picker.selected(), Some(0));
         for _ in 0..10 {
@@ -1668,7 +1701,8 @@ mod tests {
     }
     #[test]
     fn empty_input_does_not_start_work() {
-        let mut app = App::new(providers(), PathBuf::new());
+        let mut app =
+            App::new(providers(), PathBuf::from("/workspace")).expect("valid fixture workspace");
         app.start();
         assert!(!app.busy);
     }
@@ -1680,7 +1714,8 @@ mod tests {
         second.id = "second".into();
         second.base_url = "http://127.0.0.1:2/v1".into();
         connections.push(second);
-        let mut app = App::new(connections, PathBuf::from("/workspace/session-a"));
+        let mut app = App::new(connections, PathBuf::from("/workspace/session-a"))
+            .expect("valid fixture workspace");
         app.select_processor();
         assert!(app.screen == Screen::ReviewingProcessor);
         let first = Arc::clone(app.gateway.as_ref().context("pending gateway")?);
@@ -1718,7 +1753,8 @@ mod tests {
     }
     #[test]
     fn long_input_keeps_cursor_visible_when_editing_in_the_middle() {
-        let mut app = App::new(providers(), PathBuf::new());
+        let mut app =
+            App::new(providers(), PathBuf::from("/workspace")).expect("valid fixture workspace");
         app.screen = Screen::Instructing;
         app.instruction.insert(&"日本語🙂abc ".repeat(40));
         let mut terminal =
@@ -1740,7 +1776,8 @@ mod tests {
     }
     #[test]
     fn a_disconnected_worker_becomes_editable() {
-        let mut app = App::new(providers(), PathBuf::new());
+        let mut app =
+            App::new(providers(), PathBuf::from("/workspace")).expect("valid fixture workspace");
         let (tx, rx) = mpsc::channel();
         app.rx = Some(rx);
         app.busy = true;

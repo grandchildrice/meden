@@ -41,9 +41,7 @@
       "type": "object",
       "properties": {
         "session": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 8192
+          "$ref": "#/$defs/SessionId"
         },
         "id": {
           "type": "integer",
@@ -56,11 +54,14 @@
           "maxLength": 8192
         },
         "contract": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^[a-f0-9]{64}$"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContractId"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "target": {
           "type": "string",
@@ -92,6 +93,15 @@
         "payload_sha256",
         "state"
       ]
+    },
+    "SessionId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8192
+    },
+    "ContractId": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
     },
     "State": {
       "description": "Observed kernel phase; this enum conveys no authority to advance it.",

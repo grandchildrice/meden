@@ -1,7 +1,7 @@
 //! Host-reviewed mathematical meaning and its input-bound verified artifact.
 //! Models propose drafts and implementations; only host review accepts meaning.
 
-use std::fmt::Write as _;
+use crate::identity::{ContractId, RequirementRevision, SessionId};
 use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, OnceLock};
@@ -41,14 +41,14 @@ use crate::verification::{Contract, PreparedCheck, Registry as Verifiers};
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct Reference {
-    pub revision: u64,
-    pub session: String,
-    pub contract: String,
+    pub revision: RequirementRevision,
+    pub session: SessionId,
+    pub contract: ContractId,
 }
 
 #[derive(Clone, Serialize)]
 pub struct Summary {
-    pub reference: Reference,
+    pub reference: Option<Reference>,
     pub accepted_reference: Option<Reference>,
     pub proposed: bool,
     /// Acceptance of the displayed contract, never of a pending replacement.
@@ -113,12 +113,12 @@ impl Agreement {
             ..self.view.subject.clone()
         }
     }
-    fn reference(&self, session: &str) -> Reference {
-        Reference {
-            revision: self.view.revision,
-            session: session.to_owned(),
-            contract: hash(&self.view.subject.contract),
-        }
+    fn reference(&self, session: &SessionId) -> Result<Reference> {
+        Ok(Reference {
+            revision: RequirementRevision::new(self.view.revision)?,
+            session: session.clone(),
+            contract: ContractId::from_canonical(&self.view.subject.contract),
+        })
     }
 }
 
@@ -141,7 +141,7 @@ struct State {
 
 pub struct Project {
     root: PathBuf,
-    session: String,
+    session: SessionId,
     verifiers: Verifiers,
     selected: Option<String>,
     storage: PathBuf,
@@ -162,24 +162,17 @@ impl Project {
     ) -> Result<Option<String>> {
         let root = root.canonicalize()?;
         let path = crate::storage::directory(&root)?.join("contracts.json");
-        let (_, _, saved) = journal::load(&path, &root, "tool-preparation")?;
+        let (_, _, saved) = journal::load(&path, &root, &SessionId::parse("tool-preparation")?)?;
         let selected = requested.or(saved.as_deref());
         anyhow::ensure!(selected.is_none_or(|id| verifiers.contains(id)), "Unknown verification backend selection; choose an installed backend explicitly. The saved journal was retained");
         Ok(selected.map(str::to_owned))
     }
-    pub fn new(root: &Path) -> Self {
-        let session =
-            root.as_os_str()
-                .as_encoded_bytes()
-                .iter()
-                .fold(String::new(), |mut out, b| {
-                    let _ = write!(out, "{b:02x}");
-                    out
-                });
+    pub fn new(root: &Path) -> Result<Self> {
+        let session = SessionId::from_host_bytes(root.as_os_str().as_encoded_bytes())?;
         let contracts = Contracts::new(session.as_bytes().to_vec());
         let verification_jobs = crate::view::verification_jobs::Publisher::new(session.as_bytes());
         let work_jobs = crate::view::verification_jobs::Publisher::new(session.as_bytes());
-        Self {
+        Ok(Self {
             root: root.to_owned(),
             session,
             verifiers: Verifiers::host(),
@@ -201,7 +194,7 @@ impl Project {
             presentation: OnceLock::new(),
             verification_jobs,
             work_jobs,
-        }
+        })
     }
     pub fn open(root: &Path, session: &[u8], selected: Option<&str>) -> Result<Self> {
         Self::open_with_registry(root, session, selected, Verifiers::host())
@@ -228,12 +221,9 @@ impl Project {
         verifiers: Verifiers,
         directory: &Path,
     ) -> Result<Self> {
-        let mut project = Self::new(root);
+        let mut project = Self::new(root)?;
         project.verifiers = verifiers;
-        project.session = session.iter().fold(String::new(), |mut out, byte| {
-            let _ = write!(out, "{byte:02x}");
-            out
-        });
+        project.session = SessionId::from_host_bytes(session)?;
         project.verification_jobs = crate::view::verification_jobs::Publisher::new(session);
         project.work_jobs = crate::view::verification_jobs::Publisher::new(session);
         let path = directory.join("contracts.json");
@@ -256,7 +246,7 @@ impl Project {
         });
         Ok(project)
     }
-    pub fn session_id(&self) -> &str {
+    pub fn session_id(&self) -> &SessionId {
         &self.session
     }
     /// Obtain the immutable evidence query handle after the initial host status
@@ -411,8 +401,9 @@ impl Project {
     fn reference(&self, agreement: &Agreement, reference: &Reference) -> Result<()> {
         anyhow::ensure!(
             reference.session == self.session
-                && reference.revision == agreement.view.revision
-                && reference.contract == hash(&agreement.view.subject.contract),
+                && reference.revision.value() == agreement.view.revision
+                && reference.contract
+                    == ContractId::from_canonical(&agreement.view.subject.contract),
             "contract belongs to another session or is no longer the displayed proposal"
         );
         Ok(())
@@ -435,7 +426,7 @@ impl Project {
             state.contracts.review(
                 Origin::Host,
                 reference.session.as_bytes(),
-                reference.revision
+                reference.revision.value()
             ),
             "review refused"
         );
@@ -459,7 +450,7 @@ impl Project {
             state.contracts.accept(
                 Origin::Host,
                 reference.session.as_bytes(),
-                reference.revision
+                reference.revision.value()
             ),
             "exact pending contract must be reviewed before host acceptance"
         );
@@ -487,7 +478,7 @@ impl Project {
             state.contracts.reject(
                 Origin::Host,
                 reference.session.as_bytes(),
-                reference.revision
+                reference.revision.value()
             ),
             "exact pending contract required"
         );
@@ -500,7 +491,9 @@ impl Project {
         self.state.lock().is_ok_and(|s| s.contracts.is_accepted())
     }
     pub fn current_reference(&self) -> Result<Reference> {
-        Ok(self.stored_status()?.reference)
+        self.stored_status()?
+            .reference
+            .context("No contract proposal")
     }
     pub fn take_autorun(&self) -> bool {
         self.state
@@ -797,14 +790,10 @@ impl Project {
             .accepted()
             .map(|view| Agreement::parse(view, &state.events))
             .transpose()?;
-        let reference = displayed.as_ref().map_or_else(
-            || Reference {
-                revision: 0,
-                session: self.session.clone(),
-                contract: String::new(),
-            },
-            |a| a.reference(&self.session),
-        );
+        let reference = displayed
+            .as_ref()
+            .map(|a| a.reference(&self.session))
+            .transpose()?;
         let mut review = displayed
             .as_ref()
             .map_or_else(String::new, |a| a.contract.review_text());
@@ -820,7 +809,10 @@ impl Project {
         };
         let summary = Summary {
             reference,
-            accepted_reference: accepted.as_ref().map(|a| a.reference(&self.session)),
+            accepted_reference: accepted
+                .as_ref()
+                .map(|a| a.reference(&self.session))
+                .transpose()?,
             proposed: displayed.is_some(),
             accepted: state.contracts.is_accepted(),
             verified: verified && !state.dirty && !state.contracts.pending(),
@@ -898,7 +890,7 @@ impl Project {
         })?;
         let progress = progress::Progress::new(
             &self.verification_jobs,
-            &preparation.data().reference(&self.session),
+            &preparation.data().reference(&self.session)?,
             &preparation.data().contract,
             control,
         );
@@ -1168,7 +1160,7 @@ mod tests {
             Ok((revision, data))
         }
         let root = tempfile::tempdir()?;
-        let project = Project::new(root.path());
+        let project = Project::new(root.path()).expect("valid fixture workspace");
         assert!(project.evidence_view().is_err()); // A getter cannot materialize.
         project.stored_status()?;
         let reader = project.evidence_view()?;
@@ -1190,8 +1182,8 @@ mod tests {
                 .and_then(Value::as_str),
             Some("proposed")
         );
-        project.review(&proposed.reference)?;
-        project.accept(&proposed.reference)?;
+        project.review(proposed.reference.as_ref().expect("original proposal"))?;
+        project.accept(proposed.reference.as_ref().expect("original proposal"))?;
         assert_eq!(
             observation(&reader)?
                 .1
@@ -1235,7 +1227,7 @@ mod tests {
     #[test]
     fn stale_or_mismatched_prepared_access_never_enters_the_io_callback() -> Result<()> {
         let root = tempfile::tempdir()?;
-        let project = Project::new(root.path());
+        let project = Project::new(root.path()).expect("valid fixture workspace");
         let empty = project.prepare_access()?;
         accepted(&project)?;
         let ran = std::cell::Cell::new(false);
@@ -1332,7 +1324,7 @@ mod tests {
             state.contracts.displayed().context("no draft")?,
             &state.events,
         )?;
-        Ok(agreement.reference(&project.session))
+        agreement.reference(&project.session)
     }
     fn accepted(project: &Project) -> Result<Reference> {
         let reference = draft(project, &contract()?)?;
@@ -1343,7 +1335,7 @@ mod tests {
 
     #[test]
     fn only_a_new_host_turn_clears_an_operational_failure() -> Result<()> {
-        let project = Project::new(Path::new("/sessions/failed"));
+        let project = Project::new(Path::new("/sessions/failed")).expect("valid fixture workspace");
         for kind in [
             FailureKind::Unverified,
             FailureKind::Unavailable,
@@ -1361,13 +1353,24 @@ mod tests {
 
     #[test]
     fn host_review_and_acceptance_bind_the_displayed_bytes_and_session() -> Result<()> {
-        let project = Project::new(Path::new("/sessions/one"));
+        let project = Project::new(Path::new("/sessions/one")).expect("valid fixture workspace");
         let original = contract()?;
         let reference = draft(&project, &original)?;
         assert!(project.accept(&reference).is_err());
         let mut foreign = reference.clone();
-        foreign.session.push_str("-other");
+        foreign.session = SessionId::parse(&format!("{}-other", foreign.session.as_str()))?;
         assert!(project.review(&foreign).is_err());
+        let mut another_revision = reference.clone();
+        another_revision.revision = RequirementRevision::new(reference.revision.value() + 1)?;
+        let mut another_contract = reference.clone();
+        another_contract.contract = ContractId::from_canonical(b"different reviewed meaning");
+        for wrong in [&another_revision, &another_contract] {
+            assert!(project.review(wrong).is_err());
+            assert!(project.accept(wrong).is_err());
+            assert!(project.reject(wrong).is_err());
+            assert!(project.current_reference()? == reference);
+            assert!(project.pending() && !project.accepted());
+        }
         project.review(&reference)?;
         assert!(project.accept(&foreign).is_err());
         project.accept(&reference)?;
@@ -1407,7 +1410,8 @@ mod tests {
 
     #[test]
     fn reproposing_identical_bytes_cannot_reuse_a_rejected_reference() -> Result<()> {
-        let project = Project::new(Path::new("/sessions/reproposal"));
+        let project =
+            Project::new(Path::new("/sessions/reproposal")).expect("valid fixture workspace");
         let original = contract()?;
         let old = draft(&project, &original)?;
         project.review(&old)?;
@@ -1428,7 +1432,8 @@ mod tests {
 
     #[test]
     fn editing_discards_evidence_before_another_status_read() -> Result<()> {
-        let project = Project::new(Path::new("/sessions/editing"));
+        let project =
+            Project::new(Path::new("/sessions/editing")).expect("valid fixture workspace");
         let reference = accepted(&project)?;
         let (subject, ticket, result) = {
             let mut state = project
@@ -1444,7 +1449,7 @@ mod tests {
                 .contracts
                 .start(
                     Origin::Controller,
-                    reference.revision,
+                    reference.revision.value(),
                     subject.inputs.clone(),
                 )
                 .context("no job")?;
@@ -1461,19 +1466,19 @@ mod tests {
             };
             assert!(state.contracts.complete(
                 Origin::Checker,
-                reference.revision,
+                reference.revision.value(),
                 &ticket,
                 subject.inputs.clone(),
                 result.clone()
             ));
             assert!(state
                 .contracts
-                .eligible(reference.revision, subject.inputs.clone()));
+                .eligible(reference.revision.value(), subject.inputs.clone()));
             let ticket = state
                 .contracts
                 .start(
                     Origin::Controller,
-                    reference.revision,
+                    reference.revision.value(),
                     subject.inputs.clone(),
                 )
                 .context("no job")?;
@@ -1488,15 +1493,15 @@ mod tests {
         assert!(state.contracts.is_accepted());
         assert!(state.contracts.refresh(
             Origin::Controller,
-            reference.revision,
+            reference.revision.value(),
             subject.inputs.clone()
         ));
         assert!(!state
             .contracts
-            .eligible(reference.revision, subject.inputs.clone()));
+            .eligible(reference.revision.value(), subject.inputs.clone()));
         assert!(!state.contracts.complete(
             Origin::Checker,
-            reference.revision,
+            reference.revision.value(),
             &ticket,
             subject.inputs,
             result
@@ -1506,7 +1511,8 @@ mod tests {
 
     #[test]
     fn cancelled_jobs_stay_cancelled_after_the_process_flag_is_reset() -> Result<()> {
-        let project = Project::new(Path::new("/sessions/cancelled"));
+        let project =
+            Project::new(Path::new("/sessions/cancelled")).expect("valid fixture workspace");
         let reference = accepted(&project)?;
         let (subject, ticket, result) = {
             let mut state = project
@@ -1522,7 +1528,7 @@ mod tests {
                 .contracts
                 .start(
                     Origin::Controller,
-                    reference.revision,
+                    reference.revision.value(),
                     subject.inputs.clone(),
                 )
                 .context("no job")?;
@@ -1551,20 +1557,20 @@ mod tests {
             .contracts
             .start(
                 Origin::Controller,
-                reference.revision,
+                reference.revision.value(),
                 subject.inputs.clone(),
             )
             .context("no next job")?;
         assert!(!state.contracts.complete(
             Origin::Checker,
-            reference.revision,
+            reference.revision.value(),
             &ticket,
             subject.inputs.clone(),
             result.clone()
         ));
         assert!(state.contracts.complete(
             Origin::Checker,
-            reference.revision,
+            reference.revision.value(),
             &next,
             subject.inputs,
             result

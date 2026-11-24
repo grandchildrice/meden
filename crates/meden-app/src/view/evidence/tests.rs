@@ -4,16 +4,18 @@ use serde_json::{json, Value};
 
 fn summary() -> Result<project::Summary> {
     let root = tempfile::tempdir()?;
-    let mut summary = project::Project::new(root.path()).stored_status()?;
+    let mut summary = project::Project::new(root.path())
+        .expect("valid fixture workspace")
+        .stored_status()?;
     let contract = crate::verification::Registry::host().parse_selected(
         include_str!("../../../../../verification/examples/finite-counter.contract.json"),
         Some("z3.finite.v1"),
     )?;
-    summary.reference = project::Reference {
-        revision: u64::MAX,
-        session: "original host session".into(),
-        contract: contract.identity()?,
-    };
+    summary.reference = Some(project::Reference {
+        revision: RequirementRevision::new(u64::MAX)?,
+        session: SessionId::parse("original host session")?,
+        contract: ContractId::from_canonical(&contract.canonical()?),
+    });
     summary.proposed = true;
     summary.source_path = contract.description().source.clone();
     summary.scope = contract.description().scope.clone();
@@ -25,7 +27,7 @@ fn summary() -> Result<project::Summary> {
 }
 fn accept(summary: &mut project::Summary) {
     summary.accepted = true;
-    summary.accepted_reference = Some(summary.reference.clone());
+    summary.accepted_reference = summary.reference.clone();
     summary.accepted_contract = summary.contract.clone();
 }
 fn artifact(summary: &mut project::Summary) {
@@ -51,10 +53,10 @@ fn published(project: &Project) -> Result<(ArtifactId<Artifact>, Arc<[u8]>, Valu
 proptest! {
     #[test]
     fn references_preserve_every_positive_u64(revision in 1u64..=u64::MAX) {
-        let original = project::Reference { revision, session: "host session λ".into(), contract: "c".repeat(64) };
-        let bytes = serde_json::to_vec(&Reference::new(&original).map_err(|e| TestCaseError::fail(e.to_string()))?).map_err(|e| TestCaseError::fail(e.to_string()))?;
+        let original = project::Reference { revision: RequirementRevision::new(revision).unwrap(), session: SessionId::parse("host session λ").unwrap(), contract: ContractId::parse(&"c".repeat(64)).unwrap() };
+        let bytes = serde_json::to_vec(&Reference::new(&original)).map_err(|e| TestCaseError::fail(e.to_string()))?;
         let decoded: Reference = serde_json::from_slice(&bytes).map_err(|e| TestCaseError::fail(e.to_string()))?;
-        prop_assert!(decoded.original().map_err(|e| TestCaseError::fail(e.to_string()))? == original);
+        prop_assert!(decoded.original() == original);
         let json: Value = serde_json::from_slice(&bytes).map_err(|e| TestCaseError::fail(e.to_string()))?;
         let decimal = revision.to_string();
         prop_assert_eq!(json.get("revision").ok_or_else(|| TestCaseError::fail("missing revision"))?.as_str(), Some(decimal.as_str()));
@@ -80,20 +82,21 @@ fn malformed_and_lossy_references_are_refused() -> Result<()> {
     }
     for revision in [1, 9_007_199_254_740_993, u64::MAX] {
         let original = project::Reference {
-            revision,
-            session: "s".into(),
-            contract: "a".repeat(64),
+            revision: RequirementRevision::new(revision)?,
+            session: SessionId::parse("s")?,
+            contract: ContractId::parse(&"a".repeat(64))?,
         };
-        assert!(Reference::new(&original)?.original()? == original);
+        assert!(Reference::new(&original).original() == original);
     }
     for (session, contract) in [
         ("", "a".repeat(64)),
         ("s", "A".repeat(64)),
         ("s", "a".repeat(63)),
     ] {
-        let decoded: Reference =
-            serde_json::from_value(json!({"revision":"1","session":session,"contract":contract}))?;
-        assert!(decoded.original().is_err());
+        assert!(serde_json::from_value::<Reference>(
+            json!({"revision":"1","session":session,"contract":contract})
+        )
+        .is_err());
     }
     assert!(serde_json::from_value::<Reference>(
         json!({"revision":"1","session":"s","contract":"a".repeat(64),"grant":true})
@@ -170,7 +173,8 @@ fn replacement_retains_accepted_meaning_and_contradictions_retire_old_views() ->
     let mut view = Project::new(original.clone());
     let (old, _, _) = published(&view)?;
     original.accepted = false;
-    original.reference.revision -= 1;
+    original.reference.as_mut().context("proposal")?.revision =
+        RequirementRevision::new(u64::MAX - 1)?;
     original.review = "Exact replacement review\n\"λ\"".into();
     view.observe(original.clone());
     let (_, _, proposal) = published(&view)?;
@@ -185,30 +189,54 @@ fn replacement_retains_accepted_meaning_and_contradictions_retire_old_views() ->
     assert!(matches!(view.status, Status::Unavailable { .. }));
     assert!(view.bytes(&old).is_none());
     assert!(view.original.verified);
-    for fault in 0..7 {
+    for fault in 0..8 {
         let mut bad = summary()?;
         accept(&mut bad);
         match fault {
-            0 => bad.reference.contract = "d".repeat(64),
+            0 => {
+                bad.reference.as_mut().context("proposal")?.contract =
+                    ContractId::parse(&"d".repeat(64))?
+            }
             1 => bad.accepted_reference = None,
             2 => {
                 bad.accepted_reference
                     .as_mut()
                     .context("accepted")?
-                    .revision = 1;
+                    .revision = RequirementRevision::new(1)?;
             }
             3 => bad.scope.push_str(" changed"),
             4 => bad.artifact = Some("incomplete".into()),
             5 => bad.verification_failure = Some(FailureKind::Unavailable),
-            _ => {
+            6 => {
                 bad.verified = true;
                 artifact(&mut bad);
                 bad.verification_failure = Some(FailureKind::Unverified);
                 bad.verification_diagnostic = Some("original failure".into());
             }
+            _ => bad.reference = None,
         }
         assert!(Data::new(&bad).is_err(), "fault {fault}");
     }
+    Ok(())
+}
+
+#[test]
+fn no_contract_has_no_reference_and_cannot_publish_a_standalone_identity() -> Result<()> {
+    let root = tempfile::tempdir()?;
+    let project = project::Project::new(root.path())?;
+    let mut empty = project.stored_status()?;
+    assert!(empty.reference.is_none() && empty.accepted_reference.is_none());
+    assert!(project.current_reference().is_err());
+    assert_eq!(
+        serde_json::to_value(Data::new(&empty)?)?,
+        json!({"state":"empty"})
+    );
+    let mut view = Project::new(empty.clone());
+    let (revision, _, _) = published(&view)?;
+    empty.reference = summary()?.reference;
+    view.observe(empty);
+    assert!(matches!(view.status, Status::Unavailable { .. }));
+    assert!(view.bytes(&revision).is_none());
     Ok(())
 }
 

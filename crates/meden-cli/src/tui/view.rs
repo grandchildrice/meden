@@ -1019,9 +1019,14 @@ fn draw_contract_review(frame: &mut Frame<'_>, app: &mut App, area: Rect) {
     let Some(review) = &app.contract_review else {
         return;
     };
+    let Some(reference) = review.reference.as_ref() else {
+        app.review_rows = 0;
+        app.review_area = Rect::default();
+        return;
+    };
     let heading = format!(
         "Contract revision: {}\nContract SHA-256: {}\nRequested evidence scope: {}",
-        review.reference.revision, review.reference.contract, review.scope
+        reference.revision, reference.contract, review.scope
     );
     let details = format!(
         "\n{}{}\n\nAccepting continues development under this exact contract.",
@@ -1058,7 +1063,7 @@ fn draw_export_review(frame: &mut Frame<'_>, app: &mut App, area: Rect) {
     let (Ok(summary), Ok(preview)) = (entry.summary(), entry.preview(app.export_offset)) else {
         return;
     };
-    let heading = format!("Export #{}\nDestination: {}\nMethod: POST · Content-Type: application/octet-stream\nFrozen body: {} bytes\nAccepted contract: {}\nAttempt: one POST; no redirects or automatic retries", summary.reference.id, summary.target, summary.bytes, summary.contract.as_deref().unwrap_or("ordinary file; no project contract"));
+    let heading = format!("Export #{}\nDestination: {}\nMethod: POST · Content-Type: application/octet-stream\nFrozen body: {} bytes\nAccepted contract: {}\nAttempt: one POST; no redirects or automatic retries", summary.reference.id, summary.target, summary.bytes, summary.contract.as_ref().map(meden_app::identity::ContractId::as_str).unwrap_or("ordinary file; no project contract"));
     let details = format!("State: {}\nSource name (untrusted): {}\nByte offset: {}\n\n{}\nThese exact payload bytes are retained outside the worker. Current project source and evidence are checked again before dispatch.", summary.state, visible(&summary.source).replace('\n', "⏎"), app.export_offset, preview);
     draw_review(
         frame,

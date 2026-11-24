@@ -1,0 +1,1704 @@
+{
+  "date_local": "2026-11-25",
+  "timezone": "Asia/Tokyo",
+  "validated_at_utc": "2026-11-24T16:26:34.399Z",
+  "source_base_revision": "213f103",
+  "scope": "Actual accepted-contract reference ownership and missing-reference representation; existing kernels and compiler sources unchanged. This is not completion of all architecture migration exits.",
+  "identities": ["SessionId", "RequirementRevision", "ContractId"],
+  "initial_checks": [
+    {
+      "phase": "typecheck",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "typescript",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "architecture",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "format",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "schema",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "rust-format",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "fuzz",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "performance",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "tui",
+      "code": 1,
+      "signal": null
+    }
+  ],
+  "initial_tui_failure": {
+    "summary": "/tmp/meden-ux-agreement-20261125/summary.json",
+    "sha256": "6288f8bde58b40e2d9e16b85139c7c11577956073605ee711d6a2cc00ab79f68",
+    "passed": 34,
+    "failed": 1,
+    "reason": "The CLI reopen test read the retired fake reference.session before any contract existed. It now requires no reference and directly refuses a restart without fresh processor approval; the full gate is rerun without dropping cases."
+  },
+  "checks": [
+    {
+      "phase": "tui-recheck",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "gui-all",
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "publication_checks": [
+    {
+      "phase": "normal",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "navigation-reduce",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "navigation-no-preference",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "format-final",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "hidden-build",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "deploy",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "fidelity",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "bindings",
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "rust_checks": {
+    "units": {
+      "path": "/tmp/meden-agreement-units-complete.log",
+      "sha256": "e268545676009170fd4db01a85b8b243e778c5ff1f7cde1d747b3cac2c104739",
+      "results": [
+        {
+          "passed": 132,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 50,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    "doc": {
+      "path": "/tmp/meden-agreement-doc-complete.log",
+      "sha256": "0cd08a23ff32319e631cd7c86b21baa3ac65472022381763f213219bbf6b08a0",
+      "results": [
+        {
+          "passed": 12,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    "workspace": {
+      "path": "/tmp/meden-agreement-workspace-check.log",
+      "sha256": "eddc5e4e004ac29e69194e72d7a9524296a0e7881f867694bfb40d17b0b6ed84"
+    },
+    "resume_focused": {
+      "path": "/tmp/meden-agreement-resume-focused.log",
+      "sha256": "8707f6d4c96754710bf0a62f35c31285b102588e841b88c1f9f5d0aae715dadd"
+    },
+    "python_lint": {
+      "path": "/tmp/meden-agreement-python-lint.log",
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    }
+  },
+  "public_tui": {
+    "path": "/tmp/meden-ux-agreement-recheck-20261125/summary.json",
+    "sha256": "1079a2e6f65fb5b46b6c63f6eef7659c99b4aa4b111d7eb8dad9df657fc9a47e",
+    "binary": {
+      "path": "/home/gohan/workspace/meden/target/validation-bin/41bce3551a5b6a5b64ac5abd052ec90c43aff2dbf971cbb414e7400cbcd4e04a/meden",
+      "sha256": "41bce3551a5b6a5b64ac5abd052ec90c43aff2dbf971cbb414e7400cbcd4e04a"
+    },
+    "cases": 35,
+    "success": true,
+    "inference": "scripted fixtures; no live-model validation"
+  },
+  "decoded_screens": [
+    {
+      "path": "/tmp/meden-ux-agreement-recheck-20261125/test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa/last-screen.txt",
+      "sha256": "7e0c854a30a9dec85137c8a0ce2fce84a0ff0c3ea7e3a6f1de827ed84cdcb076",
+      "frames": 758,
+      "frames_sha256": "ad8fc309bf90eccf4844b5dbb07eaaba79dcf20eacae56ed99b5c383f96b5c9e",
+      "inspected": true
+    },
+    {
+      "path": "/tmp/meden-ux-agreement-recheck-20261125/test_tui_meaning_source_freshness_cancel_and_historical_restart-a005e7f5d6/last-screen.txt",
+      "sha256": "b138958faa64d9892d5c79f8b223b767b1f941a68f9defa0e4afb5a1a44ed748",
+      "frames": 80,
+      "frames_sha256": "a2fb2a8801051e3c7a3bd253845fd9d8d83022a46a68b1f5f88c37e192d6a5ae",
+      "inspected": true
+    },
+    {
+      "path": "/tmp/meden-ux-agreement-recheck-20261125/test_finite_contract_real_refutation_repair_staleness_and_restart-0a1f467300/last-screen.txt",
+      "sha256": "fb3ee9152b3061955fc530c7fc38a61aa47b5f9e3eae30d514ee8a7e2d4350e9",
+      "frames": 58,
+      "frames_sha256": "605de0b1c6ffb261e486e8df73c5523da0bc73d590a95af431e54f56b085034a",
+      "inspected": true
+    }
+  ],
+  "public_gui": {
+    "all": {
+      "path": "target/gui-agreement-all-report/index.html",
+      "sha256": "4bb088f2e1f48cef5886e7b8e0ef3bbc2dfcfdcf759186412d017a8f60a23c04",
+      "stats": {
+        "total": 71,
+        "expected": 71,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      },
+      "attachments": {
+        "contract-reference-boundaries.json": [
+          {
+            "refused": [
+              {
+                "stage": "decode",
+                "operation": "review_contract",
+                "fault": "numeric_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "review_contract",
+                "fault": "zero_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "review_contract",
+                "fault": "noncanonical_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "review_contract",
+                "fault": "overflowing_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "review_contract",
+                "fault": "empty_session",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "review_contract",
+                "fault": "oversized_session",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "review_contract",
+                "fault": "uppercase_contract",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "review_contract",
+                "fault": "short_contract",
+                "status": 409
+              },
+              {
+                "stage": "host",
+                "operation": "review_contract",
+                "fault": "foreign_session",
+                "status": 202
+              },
+              {
+                "stage": "host",
+                "operation": "review_contract",
+                "fault": "foreign_revision",
+                "status": 202
+              },
+              {
+                "stage": "host",
+                "operation": "review_contract",
+                "fault": "foreign_contract",
+                "status": 202
+              },
+              {
+                "stage": "decode",
+                "operation": "accept_contract",
+                "fault": "numeric_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "accept_contract",
+                "fault": "zero_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "accept_contract",
+                "fault": "noncanonical_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "accept_contract",
+                "fault": "overflowing_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "accept_contract",
+                "fault": "empty_session",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "accept_contract",
+                "fault": "oversized_session",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "accept_contract",
+                "fault": "uppercase_contract",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "accept_contract",
+                "fault": "short_contract",
+                "status": 409
+              },
+              {
+                "stage": "host",
+                "operation": "accept_contract",
+                "fault": "foreign_session",
+                "status": 202
+              },
+              {
+                "stage": "host",
+                "operation": "accept_contract",
+                "fault": "foreign_revision",
+                "status": 202
+              },
+              {
+                "stage": "host",
+                "operation": "accept_contract",
+                "fault": "foreign_contract",
+                "status": 202
+              },
+              {
+                "stage": "decode",
+                "operation": "reject_contract",
+                "fault": "numeric_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "reject_contract",
+                "fault": "zero_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "reject_contract",
+                "fault": "noncanonical_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "reject_contract",
+                "fault": "overflowing_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "reject_contract",
+                "fault": "empty_session",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "reject_contract",
+                "fault": "oversized_session",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "reject_contract",
+                "fault": "uppercase_contract",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "reject_contract",
+                "fault": "short_contract",
+                "status": 409
+              },
+              {
+                "stage": "host",
+                "operation": "reject_contract",
+                "fault": "foreign_session",
+                "status": 202
+              },
+              {
+                "stage": "host",
+                "operation": "reject_contract",
+                "fault": "foreign_revision",
+                "status": 202
+              },
+              {
+                "stage": "host",
+                "operation": "reject_contract",
+                "fault": "foreign_contract",
+                "status": 202
+              }
+            ],
+            "old_session_after_restart_refused": true,
+            "original_proposal_preserved": true,
+            "current_evidence_after_explicit_acceptance": true,
+            "no_model_requests_from_refused_references": true
+          }
+        ],
+        "navigation-performance": [
+          {
+            "browser": "149.0.7827.53",
+            "motion": "reduce",
+            "cold_analysis_store_preparation_ms": 38832.043805,
+            "warm_tab_two_raf_ms": [
+              25, 27.600000023841858, 27.399999976158142, 28.30000001192093, 26,
+              28, 26.700000047683716, 26.5, 26, 26.100000023841858
+            ],
+            "p95_ms": 28.30000001192093,
+            "maximum_p95_ms": 250,
+            "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+          }
+        ]
+      }
+    },
+    "normal": {
+      "path": "target/gui-agreement-normal-report/index.html",
+      "sha256": "901b399375428e7b8fc7de738cb4473e1ad43b29d977eeeef10931d34738371e",
+      "stats": {
+        "total": 3,
+        "expected": 3,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      },
+      "attachments": {
+        "contract-reference-boundaries.json": [
+          {
+            "refused": [
+              {
+                "stage": "decode",
+                "operation": "review_contract",
+                "fault": "numeric_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "review_contract",
+                "fault": "zero_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "review_contract",
+                "fault": "noncanonical_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "review_contract",
+                "fault": "overflowing_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "review_contract",
+                "fault": "empty_session",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "review_contract",
+                "fault": "oversized_session",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "review_contract",
+                "fault": "uppercase_contract",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "review_contract",
+                "fault": "short_contract",
+                "status": 409
+              },
+              {
+                "stage": "host",
+                "operation": "review_contract",
+                "fault": "foreign_session",
+                "status": 202
+              },
+              {
+                "stage": "host",
+                "operation": "review_contract",
+                "fault": "foreign_revision",
+                "status": 202
+              },
+              {
+                "stage": "host",
+                "operation": "review_contract",
+                "fault": "foreign_contract",
+                "status": 202
+              },
+              {
+                "stage": "decode",
+                "operation": "accept_contract",
+                "fault": "numeric_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "accept_contract",
+                "fault": "zero_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "accept_contract",
+                "fault": "noncanonical_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "accept_contract",
+                "fault": "overflowing_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "accept_contract",
+                "fault": "empty_session",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "accept_contract",
+                "fault": "oversized_session",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "accept_contract",
+                "fault": "uppercase_contract",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "accept_contract",
+                "fault": "short_contract",
+                "status": 409
+              },
+              {
+                "stage": "host",
+                "operation": "accept_contract",
+                "fault": "foreign_session",
+                "status": 202
+              },
+              {
+                "stage": "host",
+                "operation": "accept_contract",
+                "fault": "foreign_revision",
+                "status": 202
+              },
+              {
+                "stage": "host",
+                "operation": "accept_contract",
+                "fault": "foreign_contract",
+                "status": 202
+              },
+              {
+                "stage": "decode",
+                "operation": "reject_contract",
+                "fault": "numeric_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "reject_contract",
+                "fault": "zero_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "reject_contract",
+                "fault": "noncanonical_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "reject_contract",
+                "fault": "overflowing_revision",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "reject_contract",
+                "fault": "empty_session",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "reject_contract",
+                "fault": "oversized_session",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "reject_contract",
+                "fault": "uppercase_contract",
+                "status": 409
+              },
+              {
+                "stage": "decode",
+                "operation": "reject_contract",
+                "fault": "short_contract",
+                "status": 409
+              },
+              {
+                "stage": "host",
+                "operation": "reject_contract",
+                "fault": "foreign_session",
+                "status": 202
+              },
+              {
+                "stage": "host",
+                "operation": "reject_contract",
+                "fault": "foreign_revision",
+                "status": 202
+              },
+              {
+                "stage": "host",
+                "operation": "reject_contract",
+                "fault": "foreign_contract",
+                "status": 202
+              }
+            ],
+            "old_session_after_restart_refused": true,
+            "original_proposal_preserved": true,
+            "current_evidence_after_explicit_acceptance": true,
+            "no_model_requests_from_refused_references": true
+          }
+        ]
+      }
+    },
+    "navigation-reduce": {
+      "path": "target/gui-agreement-navigation-reduce-report/index.html",
+      "sha256": "fade39ca10c4a2996088cfb9bd90f05fb484890304b3068f8fbe8430ba7c85bb",
+      "stats": {
+        "total": 1,
+        "expected": 1,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      },
+      "attachments": {
+        "navigation-performance": [
+          {
+            "browser": "149.0.7827.53",
+            "motion": "reduce",
+            "cold_analysis_store_preparation_ms": 31794.299375,
+            "warm_tab_two_raf_ms": [
+              22.600000023841858, 25.69999998807907, 24.700000047683716,
+              31.399999976158142, 26.899999976158142, 26.69999998807907,
+              19.700000047683716, 37.60000002384186, 29.5, 34
+            ],
+            "p95_ms": 37.60000002384186,
+            "maximum_p95_ms": 250,
+            "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+          }
+        ]
+      }
+    },
+    "navigation-no-preference": {
+      "path": "target/gui-agreement-navigation-no-preference-report/index.html",
+      "sha256": "49f3b23d29602637eef5b246833288a7e0b93cdba62a675d794c57233b841b6d",
+      "stats": {
+        "total": 1,
+        "expected": 1,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      },
+      "attachments": {
+        "navigation-performance": [
+          {
+            "browser": "149.0.7827.53",
+            "motion": "no-preference",
+            "cold_analysis_store_preparation_ms": 31948.233641000003,
+            "warm_tab_two_raf_ms": [
+              36.10000002384186, 26.5, 28.600000023841858, 26.899999976158142,
+              26.600000023841858, 29.600000023841858, 25, 26.30000001192093, 29,
+              39.59999996423721
+            ],
+            "p95_ms": 39.59999996423721,
+            "maximum_p95_ms": 250,
+            "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+          }
+        ]
+      }
+    }
+  },
+  "binary": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/41bce3551a5b6a5b64ac5abd052ec90c43aff2dbf971cbb414e7400cbcd4e04a/meden",
+    "sha256": "41bce3551a5b6a5b64ac5abd052ec90c43aff2dbf971cbb414e7400cbcd4e04a"
+  },
+  "generated_browser_validators_byte_identical": 37,
+  "generated_schema_files_changed": 10,
+  "compiler_sources_unchanged": [
+    {
+      "path": "crates/meden-app/src/adapters/lake.rs",
+      "sha256": "bfb03188d670305be66d1152c47982a6bcea528b283d1e16de67ca9b8eebd8d8",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean.rs",
+      "sha256": "e64f92a04a26780fb32a9db274e1430fb142bcaad6cca8af12dab4cac65761de",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/collect.rs",
+      "sha256": "755c5495ad2e80171a136ca9be194867741fc2d8db5376644a46fcb3766f194b",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/layout.rs",
+      "sha256": "a6d7069ced1c8c1fcccf9349b293efc335e0a916df6ca864b4c8f30e35f1c94f",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/observe.rs",
+      "sha256": "047ed863ac5571096a23ccb7196e713707a6bcae2db0b1d7b80c4674927bb7e5",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/sources.rs",
+      "sha256": "88c5be999f8ba6a705dbcff8238f0648f3825f1e0fe61de3605a04075837c03a",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/compiler.rs",
+      "sha256": "c2efc23d024921aa5bb5fcfa120f1e672438f09d25d7f4a309de19469483dbc4",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/adapters.rs",
+      "sha256": "ab5b5f082cb99f9321bab7f49e322a1b97177340964b6ea7c9acd3c28e3cd713",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/mod.rs",
+      "sha256": "c0f2f0d9612e0181b01aa45f06f23f4e8c04361b5381d39d1c9d40e9672b0a74",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/project.rs",
+      "sha256": "13a22dcf4deb352b9076ba8f287cd440b94fae4bb87cec33576b121bbca4288c",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/lake.rs",
+      "sha256": "e732135a0bd5f3bbc87b0be02b077fa3b307c6b7d0ce6ee964f85aa2c6eb7760",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/graph.rs",
+      "sha256": "1efb44197f9762f7db65995eec0003c704b559efc3829c1455ed73300e288c40",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/frozen.rs",
+      "sha256": "37609bb326f5ab5d061be31c8ddac907949bb435b374750dc8d1a108f49e5b10",
+      "unchanged": true
+    }
+  ],
+  "validated_assets": {
+    "all_validated_bytes_match": true,
+    "prior_assets_byte_identical": true,
+    "files": [
+      [
+        "assets/AnalysisView-BZ-Zupfd.js",
+        "c08b4750900943abbc013dd67281352be120172b03da401f9eab89a6948004d5"
+      ],
+      [
+        "assets/ArtifactPanel-ByJ8-FcN.js",
+        "8ab1479a1e64d99b23a5d00132aa79e33cc9a9baf6b0adfc1400c95a580a140b"
+      ],
+      [
+        "assets/GraphView-B97Awx-f.js",
+        "401555dd913b042cfc1c21a2177a150faab5ba63a8b169216bbf906e6612b860"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-BQhdFMY1.woff2",
+        "0cdd387c9590a1a9f9794560022dbb59654a7d86f187aa0c81495ad42d3a7308"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-DMm9YOAa.woff",
+        "30da91e84c893f875e252689faebdc590b2871145e8adc7f9a9d4dbd8ce0b251"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-DRggAlZN.ttf",
+        "68534840bcfdd2bffb6f0e8deb48684dd01e7f04ea2813267577afb906de1d13"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-ATXxdsX0.ttf",
+        "07d8e303ce4fc12b4bb54f1004170dd190a1f3db45d400fe68060df3e0897268"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-BEiXGLvX.woff",
+        "1ae6bd7475590e97e7f145a89e09ccde322f7a6bc0b91607b1c8b8ee28290fed"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-Dq_IR9rO.woff2",
+        "de7701e42cf1f4cf0b766c03fb27977207eee2f4fd5d76fa82188406da43ea4c"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-CTRA-rTL.woff",
+        "3398dd02302557a793f2863f88e02d96ce10df2abffa07c8e9fa90775116e65c"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-Di6jR-x-.woff2",
+        "5d53e70ad607c2352162dec9e0923fb54ecdafaccbf604cd8dcf7d00facb989b"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-wX97UBjC.ttf",
+        "ed0b74372feefcbb9c0666b2e210da37b7e49fa7fbbf3eeb11db5f693dacfbb7"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-BdnERNNW.ttf",
+        "9163df9c7122432e6495b4229fa9071cf9ae86a758ae5efc4924ec2e1a6dbce1"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-BsDP51OF.woff",
+        "9be7ceb88004ab8ad124082246fbfcca4091e36385d4ec6ed1df67375dad50fb"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-CL6g_b3V.woff2",
+        "74444efd593c005e3f4573b44524704c0af0a937fe911cca9e94068d0d140d3f"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-CB_wures.ttf",
+        "1e6f9579e90e2cac37f8f60a597c436e075c114385652b7cbeb0dec0421291b3"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-CTYiF6lA.woff2",
+        "51814d270d06ff0255dba0799994fa4d8c84d11f09951d47595f4abb1f3602dc"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-Dxdc4cR9.woff",
+        "5e28753be717dac97f559f49bc10be9cf3c124ddcabda6659d11cb68febc6463"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-Cx986IdX.woff2",
+        "0f60d1b897938ec918c8ce073092411baf9438f6739465693ff18b0f9d20b021"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-Jm3AIy58.woff",
+        "c76c5d696297d51b9cb1639c7da4334f0e7dec81b42b11213b5e25ef671bb822"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-waoOVXN0.ttf",
+        "138ac28d1663b3037e9c5f52371fa5c63d8324f4a38d22cd573e6ea3a3fd0cf8"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-DxDJ3AOS.woff2",
+        "99cd42a3c072d918f2f44984a807cf7aa16e13545fd0875fc07c6c65f99e715b"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-DzxPMmG6.ttf",
+        "70ee1f64a20f2048c21940ef46d0144fd215baa953ca69afd1e31e98544f708f"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-SpSLRI95.woff",
+        "a6f7ec0d846ac7ad975adb8959c37ed49b94acbc4ae436db9ce9e20287e4a64c"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-3WenGoN9.ttf",
+        "0d85ae7cc30f23790a7f1a58c4a112fdca8aae769b6ba11429af1d98b1b6cb3a"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-BMLOBm91.woff",
+        "f1d6ef86f3b11a528bd5185199bd2443ecb2b0dead96d88674b5a2c12be24bdf"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-NWA7e6Wa.woff2",
+        "97479ca6cce906abc961ecac96faa5f9ca2e61b8e7670d475826bcdee9a7c267"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-B22Nviop.woff2",
+        "c2342cd8b869e01752a9321dc17213fc40d4d04c79688c1d43f2cf316abd7866"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-Dr94JaBh.woff",
+        "c6368d87e8a1a3a5d337623d83d8dc4b868f242a9ad476237d6f8d1e0f168cdc"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-ypZvNtVU.ttf",
+        "d0332f52868370fd83ae7fa46470f90c8f2eab2fcf12bc4f88080b340c95a830"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-B3XSjfu4.ttf",
+        "f9377ab0271cda59af24bcffbd46a4d0c8a3572ffafdbb38de2ad5ea7b0d5ee5"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-CZnvNsCZ.woff2",
+        "dc47344dbb6cb5b655c8460d561f4df5f501b90c804ad3c6cec65fe322351ab1"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-iY-2wyZ7.woff",
+        "850c0af5c2238497febaf5e461d880bf458c341f42f4f330f1b1ab5698b1998e"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-DA0__PXp.woff",
+        "8a8d244581371912b8f3f5a23e2437cb2a59cd9bcaebb0346e722c05737a2571"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-flOr_0UB.ttf",
+        "08ce98e51b04d58945a301e639e02b6998af29fdfd61a7b8afdd07bbfc479d4a"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-t53AETM-.woff2",
+        "7af58c5ec8f132a2ddde9027c6d7814decce4d3b822a11192a42a20e2e973264"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-CFMepnvq.ttf",
+        "1ece03f79f95277d57dc7f6b435a74e1379b0d46104a8530286b60ff49369ea0"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-D1sUS0GD.woff2",
+        "e99ae51144bf1232efcc1bfe5add36262c6866b0faab24fa75740e1b98577a62"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-DbIhKOiC.woff",
+        "ece03cfd83e22c212cdef66feb8442d25a083beb988db3f1883f3f9738d750ba"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-C3H0VqGB.woff2",
+        "00b26ac825e2095056396e0553b8ac26d3f8ad158c3826e28b4c45b385c4714a"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-DN2j7dab.woff",
+        "91ee67500cc0129aa0ace3ac5c61ff1692102f0f31d02b69347fba35dcb75bf2"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-YYjJ1zSn.ttf",
+        "3931dd81faed86ba021bb2bbdc36f5bed9a38d6b4f4077aca59b265aa1b02083"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-BNo7hRIc.ttf",
+        "f36ea897e19f4a2e571d1e900e4e3710e438deb05a842486045ba0a3e616a4ad"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-CS6fqUqJ.woff",
+        "11e4dc8a6471ff6d6ee561d53d10fde8f7489e798257ff449c5d37c197435605"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-DDBCnlJ7.woff2",
+        "68e8c73ef42afd3ccec58bf0fba302cce448938e7fc020a5e31f8a952eee1342"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-C5JkGWo-.ttf",
+        "1c67f068fea8bb09bf099c088b1cf64bd27516a6e07f4684344873564bb66a67"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-D3wIWfF6.woff2",
+        "036d4e95149b69ff9bcc0cd55771efeb25ffa3947293e69acd78d5ac328c684b"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-D5yQViql.woff",
+        "d96cdf2b3bdd4d64a8fd5f74a4c467f123a8a73931cd435889f08ffaf9bf947a"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-C195tn64.woff",
+        "c943cc986384f59e86bea5fd7dc50a9c4dfe567a7c05eb40d6790720dead97c9"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-Dbsnue_I.ttf",
+        "95b6d2f1a50173bfedb8c63e1d1c99b10427d0a4df4201cb44513b226951a22b"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-mCD8mA8B.woff2",
+        "6b47c40166b6dbe21a5dfca7718413f2147fd2399be1ba605d8ad39cedf25dfe"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-B7gKUWhC.ttf",
+        "a6b2099fb555c60e3a0db3a08842ebf1d732c6eb4e4bf44913613bed4fc4e39b"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-Dy4dx90m.woff2",
+        "d04c54219f9eaec6d4d4fd42dfb28785975a4794d6b2fc71e566b9cd6db842dd"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-oD1tc_U0.woff",
+        "2014c523c3210bcc166648c4d4cc57f05b747df07a24277bf71c51e67dc79e3d"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-CTq5MqoE.woff",
+        "6ab6b62e9b62dae2c00dd90f791bd10950be0ecc3490d7d6045f51c2e8fe0949"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-DgpXs0kz.ttf",
+        "500e04d54f0d51666332c9d2089aa803be22aa878eca539e59fa53c6e522b082"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-gV2CO0n9.woff2",
+        "73d591271b1604960cb10bb90fee021670af7297017e0e98480b332d11f51995"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-BF-4gkZK.woff",
+        "99f9c6750b489c9462bf04900bd3f939df9b829339daaaaa99ef5495cdddea58"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-DWFBv043.ttf",
+        "c647367d1dd4e162468717d020e1fc0f1dc5c26ebfdffbe55261713bf88c5877"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-Dl5lxZxV.woff2",
+        "a4af7d414440a1c1790825cfb700cf9cf43b0f2c4b04f0ebc523011ad9853ec0"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-C0xS9mPB.woff",
+        "e14fed02b1aba7ce9f5afd5844b5d0321b22351febc720e0de8b8723527609f7"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-CO6r4hn1.woff2",
+        "71d517d67827787cfabdf186914cc3358eda539e37931941f2b2fd4a21f68c0b"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-D3Ib7_Hf.ttf",
+        "f01f3e87d9c6a61c0c081ceb577abd864eb00a612f7ac1620dd6915fad2ef5aa"
+      ],
+      [
+        "assets/ProofWorkspace-BeZ0iBwE.js",
+        "fabf6c4711d1fac8fad036c75357a8169cbc593f343f0403ce18e59ef86df780"
+      ],
+      [
+        "assets/ReviewView-DbDez3jX.js",
+        "43715b048237854aa464c0412dd435b978555fd3d660de1861398a5789184244"
+      ],
+      [
+        "assets/bend-DQWYak6m.png",
+        "9ba4741c87076a254bcee4ba0fb9ded366e6e7bacd6ae4727027e1aabd3a6bd5"
+      ],
+      [
+        "assets/certora-BGZUazkT.png",
+        "dd19f617a5463032f21785e5005c361bd753c0c32b6cd55e6e9f72149cb21242"
+      ],
+      [
+        "assets/cvc5-CKJsvvFK.png",
+        "d898a126bdae142e1ef6d2cf2f8b3b11bc7a3b50b48fa9e779d939070deb1354"
+      ],
+      [
+        "assets/dafny-Bqnbzobc.png",
+        "8e6e9042b348b551c7262a1153b83707ea32f59dd22a445f7d6ab6aa67f0903d"
+      ],
+      [
+        "assets/highlight-DTc7Zjax.js",
+        "e8975e457f1fa15c8407b66c0eaf07dbd0ca3756b49d0e2c090a8ca513bebea7"
+      ],
+      [
+        "assets/index-8nuQ6BYP.css",
+        "cc9bdfabadb34911ccb5b6be11daae242020bdd97803a8f7b27cf84113c78787"
+      ],
+      [
+        "assets/index-BEJtW7YD.js",
+        "a0f2afafb4a307f83809b6fa28e1538ef8ffa50c3621d696a6280f3eb0b342f0"
+      ],
+      [
+        "assets/isabelle-RH45X7aW.png",
+        "01eb41b46ddab73dfa89ab8bd83a4dabcace733d295ea2bfd16662e6432768e2"
+      ],
+      [
+        "assets/lean-DS4hWoMA.png",
+        "b802cfa824bbe3c143fd54ba93661f6cd1e03d0bdb3a2fe6d498a9ba94cd54fa"
+      ],
+      [
+        "assets/roboto-cyrillic-ext-wght-normal-BCp_3N7R.woff2",
+        "01f94d674db55952c35898fa4da22c3e7065c3cc4dbbcc9cb7beb8b6b017fbc9"
+      ],
+      [
+        "assets/roboto-cyrillic-wght-normal-fOt7epNf.woff2",
+        "481dd0c01e6bbb129fd147eb5d8571016193cba141c4627ca60ceabdb5a46ea8"
+      ],
+      [
+        "assets/roboto-greek-ext-wght-normal-Bgw4czJT.woff2",
+        "ec7769b089813996276482bbe7017adfffdd6c7543fd1f76244e2ffc1138ed86"
+      ],
+      [
+        "assets/roboto-greek-wght-normal-DlT9XTxE.woff2",
+        "97fbf7bd0b4579e632392a4f483acdae73cbf59ad90c1e5d2c5ec4044c377fce"
+      ],
+      [
+        "assets/roboto-latin-ext-wght-normal-DYIxWhlt.woff2",
+        "cedb374b05a35034cf96db185db4eeb8f8ce49e1a56197673702ff11b5533d6e"
+      ],
+      [
+        "assets/roboto-latin-wght-normal-ccAYIvAh.woff2",
+        "1404ca348bd75ef836f4dd8b6f2cc719458642d1237c368296b2fc652dca47dc"
+      ],
+      [
+        "assets/roboto-math-wght-normal-4a3xuzGk.woff2",
+        "7cb4281a0ccc84cc18617842c639fc66541cbef94a9dd245c754700210b4fcec"
+      ],
+      [
+        "assets/roboto-symbols-wght-normal-B7iHSfaG.woff2",
+        "2addf2d86d7a5778653b36d551e97a39da52855f82fac7461cfc1bd86d460aed"
+      ],
+      [
+        "assets/roboto-vietnamese-wght-normal-_f1XEJpo.woff2",
+        "0b60bbe04e9c479444b31270a72179f53e400beee57b7dd176c08e5e2e716831"
+      ],
+      [
+        "assets/rocq-Dna-P5lQ.png",
+        "0667a5431bc0a795111e8a1b35aca4fa8ae34d433c8e1e07587ec5eb1c92f4a7"
+      ],
+      [
+        "assets/rust-DwAlVRKW.png",
+        "8cdc4b755c58d9055e772411ad6fb1159a4adab1a51c9c35801fe1ca9c94132f"
+      ],
+      [
+        "assets/tla-AewV2MIo.png",
+        "9ec39edd70f43f0186a706a95dc1def0a90708a9c1ceaa53b035441daf7874ab"
+      ],
+      [
+        "assets/z3-BfVdzy76.png",
+        "1c0f1378fe1b68aa44727659197ee0beecdaca57fd833a25e2074db3acdc1b19"
+      ],
+      [
+        "index.html",
+        "6615fcc73463e07d5d3ec8bc0b7dd01e1ca97a49369d53cbfcbae59237a723dc"
+      ]
+    ],
+    "sha256": "b006f04530d482db9609215b68a26599a18fd37f3c804602d73c25c3475c93ad"
+  },
+  "actual_projects": [
+    {
+      "project": "riemann",
+      "pid": 150901,
+      "binary_sha256": "41bce3551a5b6a5b64ac5abd052ec90c43aff2dbf971cbb414e7400cbcd4e04a",
+      "cache_hit": true,
+      "preparation_ms": 20331.620687000002,
+      "source_publication": "sha256:4671471a8580f25a42b2117fcc7cf5a8d25988b715b1a40cbb17b77e006bfa94",
+      "source_hash": "2063f4c8792707349ba4b3d295e779c565a63030790aae9d937d5f776d8d9184",
+      "reader_publication": "sha256:d3bca7c0ce21989bef612ac79475e72da33062b4140b13dfe87bbaf183a61be8",
+      "reader_hash": "d2c21198aaff30504f16966ddf61ce628ef7ac8632c62be3195b4e4f72e41806",
+      "inventory_files": 175187,
+      "metadata_hash": "5875c3c3432ddda379f8caf8ed411b77d30701443e5da912442935a296c3ae7a",
+      "overview_headers_exactly_preserved": true,
+      "complete_original_header_metadata_round_trip": true,
+      "unindexed_entries": 175184,
+      "complete_original_navigation_binding": true,
+      "navigation_bytes": 13853,
+      "complete_cached_navigation_matches_original": true,
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "node_selection_preserves_camera_chat_and_source_line": true,
+      "selected_declaration": "PIW.AdelClassFin.DictGen.denom",
+      "verification_job": {
+        "state": "idle"
+      },
+      "work_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "preview": {
+        "state": "idle"
+      },
+      "preview_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    },
+    {
+      "project": "ethlib",
+      "pid": 151094,
+      "binary_sha256": "41bce3551a5b6a5b64ac5abd052ec90c43aff2dbf971cbb414e7400cbcd4e04a",
+      "cache_hit": true,
+      "preparation_ms": 2167.526049,
+      "source_publication": "sha256:c9a67ef7faab77791ab7d84fad5d7176476d3b7d5320d9f95f155b117b57e86b",
+      "source_hash": "ac220adb7270df17b304574138f8894ec78d92bc7a85c5e2e0e745edc885bb09",
+      "reader_publication": "sha256:0b79b28ff3aa227731108c7cde50cf54fa06cc447922756668b1197473b0d3ac",
+      "reader_hash": "60e647749624e65341239c16878edafe3083f1a0b0ba7ab0587b82511d80dd36",
+      "inventory_files": 2517,
+      "metadata_hash": "59b98c2e15f2f590463873351344a08a59e4aa3854a7dfb1779e635a680cb32f",
+      "overview_headers_exactly_preserved": true,
+      "complete_original_header_metadata_round_trip": true,
+      "unindexed_entries": 0,
+      "complete_original_navigation_binding": true,
+      "navigation_bytes": 1516,
+      "complete_cached_navigation_matches_original": true,
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "node_selection_preserves_camera_chat_and_source_line": true,
+      "selected_declaration": "EthLib.Networking.Gossip.GossipsubParameters",
+      "verification_job": {
+        "state": "idle"
+      },
+      "work_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "preview": {
+        "state": "idle"
+      },
+      "preview_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip/Parameters.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    }
+  ],
+  "public_connections": [
+    {
+      "project": "riemann",
+      "prior_counter": 0,
+      "current_counter": null,
+      "complete_generated_state_validation": true,
+      "public_choices_preserved": true,
+      "selected_binding_preserved": true,
+      "choices": 3,
+      "choices_sha256": "3c22392a194ffb7d071e11dc260301f76666223753be8d9da40dc00cf720afaa",
+      "running": false,
+      "authorized": false
+    },
+    {
+      "project": "ethlib",
+      "prior_counter": 0,
+      "current_counter": null,
+      "complete_generated_state_validation": true,
+      "public_choices_preserved": true,
+      "selected_binding_preserved": true,
+      "choices": 3,
+      "choices_sha256": "3c22392a194ffb7d071e11dc260301f76666223753be8d9da40dc00cf720afaa",
+      "running": false,
+      "authorized": false
+    }
+  ],
+  "deployment": {
+    "binary_sha256": "41bce3551a5b6a5b64ac5abd052ec90c43aff2dbf971cbb414e7400cbcd4e04a",
+    "assets_sha256": "b006f04530d482db9609215b68a26599a18fd37f3c804602d73c25c3475c93ad",
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/41bce3551a5b6a5b64ac5abd052ec90c43aff2dbf971cbb414e7400cbcd4e04a-b006f04530d482db",
+    "files": [
+      [
+        "assets/AnalysisView-BZ-Zupfd.js",
+        "c08b4750900943abbc013dd67281352be120172b03da401f9eab89a6948004d5"
+      ],
+      [
+        "assets/ArtifactPanel-ByJ8-FcN.js",
+        "8ab1479a1e64d99b23a5d00132aa79e33cc9a9baf6b0adfc1400c95a580a140b"
+      ],
+      [
+        "assets/GraphView-B97Awx-f.js",
+        "401555dd913b042cfc1c21a2177a150faab5ba63a8b169216bbf906e6612b860"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-BQhdFMY1.woff2",
+        "0cdd387c9590a1a9f9794560022dbb59654a7d86f187aa0c81495ad42d3a7308"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-DMm9YOAa.woff",
+        "30da91e84c893f875e252689faebdc590b2871145e8adc7f9a9d4dbd8ce0b251"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-DRggAlZN.ttf",
+        "68534840bcfdd2bffb6f0e8deb48684dd01e7f04ea2813267577afb906de1d13"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-ATXxdsX0.ttf",
+        "07d8e303ce4fc12b4bb54f1004170dd190a1f3db45d400fe68060df3e0897268"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-BEiXGLvX.woff",
+        "1ae6bd7475590e97e7f145a89e09ccde322f7a6bc0b91607b1c8b8ee28290fed"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-Dq_IR9rO.woff2",
+        "de7701e42cf1f4cf0b766c03fb27977207eee2f4fd5d76fa82188406da43ea4c"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-CTRA-rTL.woff",
+        "3398dd02302557a793f2863f88e02d96ce10df2abffa07c8e9fa90775116e65c"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-Di6jR-x-.woff2",
+        "5d53e70ad607c2352162dec9e0923fb54ecdafaccbf604cd8dcf7d00facb989b"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-wX97UBjC.ttf",
+        "ed0b74372feefcbb9c0666b2e210da37b7e49fa7fbbf3eeb11db5f693dacfbb7"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-BdnERNNW.ttf",
+        "9163df9c7122432e6495b4229fa9071cf9ae86a758ae5efc4924ec2e1a6dbce1"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-BsDP51OF.woff",
+        "9be7ceb88004ab8ad124082246fbfcca4091e36385d4ec6ed1df67375dad50fb"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-CL6g_b3V.woff2",
+        "74444efd593c005e3f4573b44524704c0af0a937fe911cca9e94068d0d140d3f"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-CB_wures.ttf",
+        "1e6f9579e90e2cac37f8f60a597c436e075c114385652b7cbeb0dec0421291b3"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-CTYiF6lA.woff2",
+        "51814d270d06ff0255dba0799994fa4d8c84d11f09951d47595f4abb1f3602dc"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-Dxdc4cR9.woff",
+        "5e28753be717dac97f559f49bc10be9cf3c124ddcabda6659d11cb68febc6463"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-Cx986IdX.woff2",
+        "0f60d1b897938ec918c8ce073092411baf9438f6739465693ff18b0f9d20b021"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-Jm3AIy58.woff",
+        "c76c5d696297d51b9cb1639c7da4334f0e7dec81b42b11213b5e25ef671bb822"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-waoOVXN0.ttf",
+        "138ac28d1663b3037e9c5f52371fa5c63d8324f4a38d22cd573e6ea3a3fd0cf8"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-DxDJ3AOS.woff2",
+        "99cd42a3c072d918f2f44984a807cf7aa16e13545fd0875fc07c6c65f99e715b"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-DzxPMmG6.ttf",
+        "70ee1f64a20f2048c21940ef46d0144fd215baa953ca69afd1e31e98544f708f"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-SpSLRI95.woff",
+        "a6f7ec0d846ac7ad975adb8959c37ed49b94acbc4ae436db9ce9e20287e4a64c"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-3WenGoN9.ttf",
+        "0d85ae7cc30f23790a7f1a58c4a112fdca8aae769b6ba11429af1d98b1b6cb3a"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-BMLOBm91.woff",
+        "f1d6ef86f3b11a528bd5185199bd2443ecb2b0dead96d88674b5a2c12be24bdf"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-NWA7e6Wa.woff2",
+        "97479ca6cce906abc961ecac96faa5f9ca2e61b8e7670d475826bcdee9a7c267"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-B22Nviop.woff2",
+        "c2342cd8b869e01752a9321dc17213fc40d4d04c79688c1d43f2cf316abd7866"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-Dr94JaBh.woff",
+        "c6368d87e8a1a3a5d337623d83d8dc4b868f242a9ad476237d6f8d1e0f168cdc"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-ypZvNtVU.ttf",
+        "d0332f52868370fd83ae7fa46470f90c8f2eab2fcf12bc4f88080b340c95a830"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-B3XSjfu4.ttf",
+        "f9377ab0271cda59af24bcffbd46a4d0c8a3572ffafdbb38de2ad5ea7b0d5ee5"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-CZnvNsCZ.woff2",
+        "dc47344dbb6cb5b655c8460d561f4df5f501b90c804ad3c6cec65fe322351ab1"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-iY-2wyZ7.woff",
+        "850c0af5c2238497febaf5e461d880bf458c341f42f4f330f1b1ab5698b1998e"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-DA0__PXp.woff",
+        "8a8d244581371912b8f3f5a23e2437cb2a59cd9bcaebb0346e722c05737a2571"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-flOr_0UB.ttf",
+        "08ce98e51b04d58945a301e639e02b6998af29fdfd61a7b8afdd07bbfc479d4a"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-t53AETM-.woff2",
+        "7af58c5ec8f132a2ddde9027c6d7814decce4d3b822a11192a42a20e2e973264"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-CFMepnvq.ttf",
+        "1ece03f79f95277d57dc7f6b435a74e1379b0d46104a8530286b60ff49369ea0"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-D1sUS0GD.woff2",
+        "e99ae51144bf1232efcc1bfe5add36262c6866b0faab24fa75740e1b98577a62"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-DbIhKOiC.woff",
+        "ece03cfd83e22c212cdef66feb8442d25a083beb988db3f1883f3f9738d750ba"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-C3H0VqGB.woff2",
+        "00b26ac825e2095056396e0553b8ac26d3f8ad158c3826e28b4c45b385c4714a"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-DN2j7dab.woff",
+        "91ee67500cc0129aa0ace3ac5c61ff1692102f0f31d02b69347fba35dcb75bf2"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-YYjJ1zSn.ttf",
+        "3931dd81faed86ba021bb2bbdc36f5bed9a38d6b4f4077aca59b265aa1b02083"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-BNo7hRIc.ttf",
+        "f36ea897e19f4a2e571d1e900e4e3710e438deb05a842486045ba0a3e616a4ad"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-CS6fqUqJ.woff",
+        "11e4dc8a6471ff6d6ee561d53d10fde8f7489e798257ff449c5d37c197435605"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-DDBCnlJ7.woff2",
+        "68e8c73ef42afd3ccec58bf0fba302cce448938e7fc020a5e31f8a952eee1342"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-C5JkGWo-.ttf",
+        "1c67f068fea8bb09bf099c088b1cf64bd27516a6e07f4684344873564bb66a67"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-D3wIWfF6.woff2",
+        "036d4e95149b69ff9bcc0cd55771efeb25ffa3947293e69acd78d5ac328c684b"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-D5yQViql.woff",
+        "d96cdf2b3bdd4d64a8fd5f74a4c467f123a8a73931cd435889f08ffaf9bf947a"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-C195tn64.woff",
+        "c943cc986384f59e86bea5fd7dc50a9c4dfe567a7c05eb40d6790720dead97c9"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-Dbsnue_I.ttf",
+        "95b6d2f1a50173bfedb8c63e1d1c99b10427d0a4df4201cb44513b226951a22b"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-mCD8mA8B.woff2",
+        "6b47c40166b6dbe21a5dfca7718413f2147fd2399be1ba605d8ad39cedf25dfe"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-B7gKUWhC.ttf",
+        "a6b2099fb555c60e3a0db3a08842ebf1d732c6eb4e4bf44913613bed4fc4e39b"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-Dy4dx90m.woff2",
+        "d04c54219f9eaec6d4d4fd42dfb28785975a4794d6b2fc71e566b9cd6db842dd"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-oD1tc_U0.woff",
+        "2014c523c3210bcc166648c4d4cc57f05b747df07a24277bf71c51e67dc79e3d"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-CTq5MqoE.woff",
+        "6ab6b62e9b62dae2c00dd90f791bd10950be0ecc3490d7d6045f51c2e8fe0949"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-DgpXs0kz.ttf",
+        "500e04d54f0d51666332c9d2089aa803be22aa878eca539e59fa53c6e522b082"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-gV2CO0n9.woff2",
+        "73d591271b1604960cb10bb90fee021670af7297017e0e98480b332d11f51995"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-BF-4gkZK.woff",
+        "99f9c6750b489c9462bf04900bd3f939df9b829339daaaaa99ef5495cdddea58"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-DWFBv043.ttf",
+        "c647367d1dd4e162468717d020e1fc0f1dc5c26ebfdffbe55261713bf88c5877"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-Dl5lxZxV.woff2",
+        "a4af7d414440a1c1790825cfb700cf9cf43b0f2c4b04f0ebc523011ad9853ec0"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-C0xS9mPB.woff",
+        "e14fed02b1aba7ce9f5afd5844b5d0321b22351febc720e0de8b8723527609f7"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-CO6r4hn1.woff2",
+        "71d517d67827787cfabdf186914cc3358eda539e37931941f2b2fd4a21f68c0b"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-D3Ib7_Hf.ttf",
+        "f01f3e87d9c6a61c0c081ceb577abd864eb00a612f7ac1620dd6915fad2ef5aa"
+      ],
+      [
+        "assets/ProofWorkspace-BeZ0iBwE.js",
+        "fabf6c4711d1fac8fad036c75357a8169cbc593f343f0403ce18e59ef86df780"
+      ],
+      [
+        "assets/ReviewView-DbDez3jX.js",
+        "43715b048237854aa464c0412dd435b978555fd3d660de1861398a5789184244"
+      ],
+      [
+        "assets/bend-DQWYak6m.png",
+        "9ba4741c87076a254bcee4ba0fb9ded366e6e7bacd6ae4727027e1aabd3a6bd5"
+      ],
+      [
+        "assets/certora-BGZUazkT.png",
+        "dd19f617a5463032f21785e5005c361bd753c0c32b6cd55e6e9f72149cb21242"
+      ],
+      [
+        "assets/cvc5-CKJsvvFK.png",
+        "d898a126bdae142e1ef6d2cf2f8b3b11bc7a3b50b48fa9e779d939070deb1354"
+      ],
+      [
+        "assets/dafny-Bqnbzobc.png",
+        "8e6e9042b348b551c7262a1153b83707ea32f59dd22a445f7d6ab6aa67f0903d"
+      ],
+      [
+        "assets/highlight-DTc7Zjax.js",
+        "e8975e457f1fa15c8407b66c0eaf07dbd0ca3756b49d0e2c090a8ca513bebea7"
+      ],
+      [
+        "assets/index-8nuQ6BYP.css",
+        "cc9bdfabadb34911ccb5b6be11daae242020bdd97803a8f7b27cf84113c78787"
+      ],
+      [
+        "assets/index-BEJtW7YD.js",
+        "a0f2afafb4a307f83809b6fa28e1538ef8ffa50c3621d696a6280f3eb0b342f0"
+      ],
+      [
+        "assets/isabelle-RH45X7aW.png",
+        "01eb41b46ddab73dfa89ab8bd83a4dabcace733d295ea2bfd16662e6432768e2"
+      ],
+      [
+        "assets/lean-DS4hWoMA.png",
+        "b802cfa824bbe3c143fd54ba93661f6cd1e03d0bdb3a2fe6d498a9ba94cd54fa"
+      ],
+      [
+        "assets/roboto-cyrillic-ext-wght-normal-BCp_3N7R.woff2",
+        "01f94d674db55952c35898fa4da22c3e7065c3cc4dbbcc9cb7beb8b6b017fbc9"
+      ],
+      [
+        "assets/roboto-cyrillic-wght-normal-fOt7epNf.woff2",
+        "481dd0c01e6bbb129fd147eb5d8571016193cba141c4627ca60ceabdb5a46ea8"
+      ],
+      [
+        "assets/roboto-greek-ext-wght-normal-Bgw4czJT.woff2",
+        "ec7769b089813996276482bbe7017adfffdd6c7543fd1f76244e2ffc1138ed86"
+      ],
+      [
+        "assets/roboto-greek-wght-normal-DlT9XTxE.woff2",
+        "97fbf7bd0b4579e632392a4f483acdae73cbf59ad90c1e5d2c5ec4044c377fce"
+      ],
+      [
+        "assets/roboto-latin-ext-wght-normal-DYIxWhlt.woff2",
+        "cedb374b05a35034cf96db185db4eeb8f8ce49e1a56197673702ff11b5533d6e"
+      ],
+      [
+        "assets/roboto-latin-wght-normal-ccAYIvAh.woff2",
+        "1404ca348bd75ef836f4dd8b6f2cc719458642d1237c368296b2fc652dca47dc"
+      ],
+      [
+        "assets/roboto-math-wght-normal-4a3xuzGk.woff2",
+        "7cb4281a0ccc84cc18617842c639fc66541cbef94a9dd245c754700210b4fcec"
+      ],
+      [
+        "assets/roboto-symbols-wght-normal-B7iHSfaG.woff2",
+        "2addf2d86d7a5778653b36d551e97a39da52855f82fac7461cfc1bd86d460aed"
+      ],
+      [
+        "assets/roboto-vietnamese-wght-normal-_f1XEJpo.woff2",
+        "0b60bbe04e9c479444b31270a72179f53e400beee57b7dd176c08e5e2e716831"
+      ],
+      [
+        "assets/rocq-Dna-P5lQ.png",
+        "0667a5431bc0a795111e8a1b35aca4fa8ae34d433c8e1e07587ec5eb1c92f4a7"
+      ],
+      [
+        "assets/rust-DwAlVRKW.png",
+        "8cdc4b755c58d9055e772411ad6fb1159a4adab1a51c9c35801fe1ca9c94132f"
+      ],
+      [
+        "assets/tla-AewV2MIo.png",
+        "9ec39edd70f43f0186a706a95dc1def0a90708a9c1ceaa53b035441daf7874ab"
+      ],
+      [
+        "assets/z3-BfVdzy76.png",
+        "1c0f1378fe1b68aa44727659197ee0beecdaca57fd833a25e2074db3acdc1b19"
+      ],
+      [
+        "index.html",
+        "6615fcc73463e07d5d3ec8bc0b7dd01e1ca97a49369d53cbfcbae59237a723dc"
+      ]
+    ]
+  },
+  "limits": [
+    "The three types validate represented IDs, not their origin or authority. Existing host/controller comparisons still authorize operations.",
+    "Kernel Rust/Lean refinement sources, worker/controller admission and all original resource/input checks are unchanged; no new refinement or complete application proof is claimed.",
+    "Native transport and positive journal values stay exact. Initial model-facing project status intentionally has a null reference instead of a zero/empty sentinel.",
+    "Installed Lean/Lake/GF/Z3 and scripted-model fixtures are not live-model, local-inference, confidentiality or cold-install validation. No new live-model trial is performed for this reference representation change.",
+    "The event audit is the performance baseline; this change does not claim compilation or rendering acceleration.",
+    "Backend snapshot/job identities, workspace/raw-processor sessions, broader orchestration and the cone-layout/version/retirement audit remain open."
+  ],
+  "final_hosts": [
+    {
+      "project": "riemann",
+      "pid": "150901",
+      "binary_sha256": "41bce3551a5b6a5b64ac5abd052ec90c43aff2dbf971cbb414e7400cbcd4e04a",
+      "choices": 3,
+      "running": false,
+      "authorized": false,
+      "verification": "idle",
+      "work": "idle",
+      "preview": "idle"
+    },
+    {
+      "project": "ethlib",
+      "pid": "151094",
+      "binary_sha256": "41bce3551a5b6a5b64ac5abd052ec90c43aff2dbf971cbb414e7400cbcd4e04a",
+      "choices": 3,
+      "running": false,
+      "authorized": false,
+      "verification": "idle",
+      "work": "idle",
+      "preview": "idle"
+    }
+  ]
+}

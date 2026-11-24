@@ -761,15 +761,15 @@ fn worker(
                 }
                 Command::Instruction { text } => Some(instruction(view, text)),
                 Command::ReviewContract { reference } => {
-                    project.review(&reference.original()?)?;
+                    project.review(&reference.original())?;
                     None
                 }
                 Command::AcceptContract { reference } => {
-                    project.accept(&reference.original()?)?;
+                    project.accept(&reference.original())?;
                     Some(project.continuation()?)
                 }
                 Command::RejectContract { reference } => {
-                    project.reject(&reference.original()?)?;
+                    project.reject(&reference.original())?;
                     None
                 }
                 Command::Inspect { path, directory } => {

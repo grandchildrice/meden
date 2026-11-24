@@ -303,6 +303,84 @@ test.describe("native GUI with real offline workers", () => {
     if (proposed.state !== "proposed")
       throw new Error("Expected actual finite proposal");
     expect(typeof proposed.contract.reference.revision).toBe("string");
+    const refusedReferences: Array<{
+      stage: string;
+      operation: string;
+      fault: string;
+      status: number;
+    }> = [];
+    const referenceCommand = async (operation: string, reference: unknown) =>
+      page.evaluate(
+        async ({ operation, reference }) => {
+          const response = await fetch("/api/command", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${sessionStorage.getItem("meden-native-session")}`,
+            },
+            body: JSON.stringify({ type: operation, reference }),
+          });
+          return response.status;
+        },
+        { operation, reference },
+      );
+    const originalReference = proposed.contract.reference;
+    const proposalRequests = requests.length;
+    for (const operation of [
+      "review_contract",
+      "accept_contract",
+      "reject_contract",
+    ]) {
+      for (const [fault, value] of Object.entries({
+        numeric_revision: { revision: 0 },
+        zero_revision: { revision: "0" },
+        noncanonical_revision: { revision: "01" },
+        overflowing_revision: { revision: "18446744073709551616" },
+        empty_session: { session: "" },
+        oversized_session: { session: "x".repeat(8193) },
+        uppercase_contract: { contract: "A".repeat(64) },
+        short_contract: { contract: "a".repeat(63) },
+      })) {
+        const status = await referenceCommand(operation, {
+          ...originalReference,
+          ...value,
+        });
+        expect(status).toBe(409);
+        refusedReferences.push({ stage: "decode", operation, fault, status });
+      }
+      for (const [fault, value] of Object.entries({
+        foreign_session: { session: "another host session" },
+        foreign_revision: {
+          revision: (BigInt(originalReference.revision) + 1n).toString(),
+        },
+        foreign_contract: { contract: "0".repeat(64) },
+      })) {
+        const status = await referenceCommand(operation, {
+          ...originalReference,
+          ...value,
+        });
+        expect(status).toBe(202);
+        await expect
+          .poll(async () =>
+            page.evaluate(async () => {
+              const state = await (
+                await fetch("/api/state", {
+                  headers: {
+                    Authorization: `Bearer ${sessionStorage.getItem("meden-native-session")}`,
+                  },
+                })
+              ).json();
+              return !state.running && state.stopped;
+            }),
+          )
+          .toContain("no longer the displayed proposal");
+        expect(await projectEvidence(page)).toEqual(proposed);
+        expect(requests).toHaveLength(proposalRequests);
+        refusedReferences.push({ stage: "host", operation, fault, status });
+      }
+    }
+    expect(await projectEvidence(page)).toEqual(proposed);
+    expect(requests).toHaveLength(proposalRequests);
     await page
       .getByRole("button", { name: "Review proposed contract", exact: true })
       .click();
@@ -441,6 +519,40 @@ test.describe("native GUI with real offline workers", () => {
       page.getByRole("button", { name: "Choose model", exact: true }),
     ).toBeVisible();
     expect(requests.length).toBe(before);
+    expect(reopened.contract.reference.session).not.toBe(
+      originalReference.session,
+    );
+    const restartStatus = await referenceCommand(
+      "review_contract",
+      originalReference,
+    );
+    expect(restartStatus).toBe(202);
+    await expect
+      .poll(async () =>
+        page.evaluate(async () => {
+          const state = await (
+            await fetch("/api/state", {
+              headers: {
+                Authorization: `Bearer ${sessionStorage.getItem("meden-native-session")}`,
+              },
+            })
+          ).json();
+          return !state.running && state.stopped;
+        }),
+      )
+      .toContain("no longer the displayed proposal");
+    expect(await projectEvidence(page)).toEqual(reopened);
+    expect(requests).toHaveLength(before);
+    await test.info().attach("contract-reference-boundaries.json", {
+      contentType: "application/json",
+      body: JSON.stringify({
+        refused: refusedReferences,
+        old_session_after_restart_refused: true,
+        original_proposal_preserved: true,
+        current_evidence_after_explicit_acceptance: true,
+        no_model_requests_from_refused_references: true,
+      }),
+    });
   });
 
   test("proposal observations retry without another check and cannot replace a newer review", async ({

@@ -649,9 +649,7 @@
       "type": "object",
       "properties": {
         "session": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 8192
+          "$ref": "#/$defs/SessionId"
         },
         "id": {
           "type": "integer",
@@ -665,6 +663,11 @@
         "session",
         "id"
       ]
+    },
+    "SessionId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8192
     },
     "Reference2": {
       "type": "object",
@@ -749,13 +752,10 @@
           "$ref": "#/$defs/NativeSequence"
         },
         "session": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 8192
+          "$ref": "#/$defs/SessionId"
         },
         "contract": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
+          "$ref": "#/$defs/ContractId"
         }
       },
       "additionalProperties": false,
@@ -764,6 +764,10 @@
         "session",
         "contract"
       ]
+    },
+    "ContractId": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
     }
   }
 }

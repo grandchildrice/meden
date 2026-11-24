@@ -32,6 +32,7 @@ def test_repository_reopens_with_fresh_authority_and_only_one_writer(tmp_path):
         first = json.loads(process.stdout.readline())["summary"]
         assert ready["workspace"] == str(root.resolve())
         assert not first["accepted"] and not first["verified"]
+        assert first["reference"] is None and first["accepted_reference"] is None
         blocked = subprocess.run(args, input=command, text=True, capture_output=True,
                                  env=env, timeout=15)
         assert blocked.returncode != 0 and "already open" in blocked.stderr
@@ -41,10 +42,17 @@ def test_repository_reopens_with_fresh_authority_and_only_one_writer(tmp_path):
         if process.poll() is None:
             process.kill()
             process.wait(timeout=5)
+    # A missing contract has no invented reference/session. Observe fresh
+    # authority at the actual public entry point instead: the preceding grant
+    # cannot substitute for a new explicit processor approval after restart.
+    unapproved = subprocess.run(args[:-2], input=command, text=True, capture_output=True,
+                                env=env, timeout=15)
+    assert unapproved.returncode != 0
+    assert "requires --approve-processor" in unapproved.stderr
     restarted = subprocess.run(args, input=command, text=True, capture_output=True,
                                env=env, timeout=15)
     assert restarted.returncode == 0, restarted.stderr
     records = [json.loads(line) for line in restarted.stdout.splitlines()]
     second = next(record["summary"] for record in records if record["type"] == "project")
-    assert second["reference"]["session"] != first["reference"]["session"]
+    assert second["reference"] is None and second["accepted_reference"] is None
     assert not second["accepted"] and not second["verified"]

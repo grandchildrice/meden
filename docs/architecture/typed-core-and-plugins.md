@@ -876,9 +876,27 @@ The [view-artifact validation record](../performance/artifact-contexts.md)
 retains the actual transport matrix, matching/rejected compile examples,
 unchanged wire/assets and public failure/restart evidence.
 This completes the view-artifact boundary, not the remaining session, backend
-snapshot, accepted-revision and job identity audit. The cone layout's
+snapshot and job identity audit. The cone layout's
 version/configuration contract also needs its own audit; project-map coverage
 does not establish it.
+The accepted-contract application now owns `SessionId`, `RequirementRevision`
+and `ContractId`. Actual project references, journal decisions, proposal/check
+observations, repair linkage and export references carry those values; the
+kernel still receives their original bytes and integer through explicit
+projections. A missing displayed agreement has no reference, replacing the former
+zero-revision/empty-digest sentinel. Private constructors reject invalid
+representations; positive revisions keep exact numeric journal encoding and
+canonical decimal-string native transport. Infallible typed reference
+projections replace duplicate string checks and obsolete conversion failures.
+Neither decoded identities nor matching digest spellings grant acceptance.
+Original host session/revision/content comparisons and frozen reviews still
+govern review, acceptance, rejection and delivery. The public finite-verifier
+journey refuses malformed references, then valid foreign identities, completes
+an explicit correct review/check and refuses its old session after restart.
+This is application typing and tested adapter behavior, not a new kernel
+refinement claim or completion of the workspace/raw-processor session,
+backend snapshot and job audits. See
+[the accepted-reference validation](../performance/agreement-identities.md).
 Step 3 now executes the second backend through public TUI/GUI, actual offline
 Z3, a real approved-model trial and a separate 256-input Python oracle. Its
 parser/disagreement rejection tests, actual solver-output faults, started-solver
