@@ -41,10 +41,13 @@ async function publicTool(name: string) {
 const quote = (value: string) => "'" + value.replaceAll("'", "'\\''") + "'";
 
 /** Trusted host launcher fixture, outside the writable project. Only the fixed
- * Z3 dispatch is held. Release executes the original Bubblewrap with unchanged
+ * Z3 or recorded-work Lake build dispatch is held. Release executes Bubblewrap with unchanged
  * arguments; no checker result, wrapper solver or unconfined fallback exists.
  */
-export async function verificationGate(root: string) {
+export async function verificationGate(
+  root: string,
+  kind: "z3" | "recorded" = "z3",
+) {
   const bash = await publicTool("bash"),
     sleep = await publicTool("sleep");
   const bwrap =
@@ -59,7 +62,9 @@ export async function verificationGate(root: string) {
     launcher,
     `#!${bash}
 set -eu
-if [[ "$#" -ge 2 && "\${@: -2:1}" == "-in" && "\${@: -1}" == "-smt2" ]]; then
+hold=false
+${kind === "z3" ? 'if [[ "$#" -ge 2 && "\${@: -2:1}" == "-in" && "\${@: -1}" == "-smt2" ]]; then hold=true; fi' : 'previous=""; for argument in "$@"; do if [[ "$previous" == "/analysis/library/project.sh" && "$argument" == "build" ]]; then hold=true; fi; previous="$argument"; done'}
+if $hold; then
   printf started > ${quote(started)}
   while [[ ! -e ${quote(release)} ]]; do ${quote(sleep)} 0.02; done
 fi

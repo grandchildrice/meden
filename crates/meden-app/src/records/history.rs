@@ -6,11 +6,11 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-pub(crate) use meden_app::records::{Message, Speaker};
+pub use super::{Message, Speaker};
 
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct History {
+pub struct History {
     version: u32,
     workspace: Vec<u8>,
     pub messages: Vec<Value>,
@@ -20,7 +20,7 @@ pub(crate) struct History {
     pub stopped: Option<String>,
 }
 
-pub(crate) fn load(root: &Path) -> Result<History> {
+pub fn load(root: &Path) -> Result<History> {
     let path = crate::storage::directory(root)?.join("conversation.json");
     let saved = crate::storage::read::<History>(&path)?.unwrap_or_else(|| History {
         version: 1,
@@ -45,13 +45,13 @@ pub(crate) fn load(root: &Path) -> Result<History> {
     Ok(saved)
 }
 
-pub(super) fn save_messages(root: &Path, messages: &[Value]) -> Result<()> {
+pub fn save_messages(root: &Path, messages: &[Value]) -> Result<()> {
     let mut saved = load(root)?;
     saved.messages = messages.get(1..).unwrap_or_default().to_vec();
     save(root, &saved)
 }
 
-pub(crate) fn save_transcript(
+pub fn save_transcript(
     root: &Path,
     transcript: Vec<Message>,
     stopped: Option<String>,
@@ -62,13 +62,13 @@ pub(crate) fn save_transcript(
     save(root, &saved)
 }
 
-pub(super) fn save_stop(root: &Path, stopped: Option<String>) -> Result<()> {
+pub fn save_stop(root: &Path, stopped: Option<String>) -> Result<()> {
     let mut saved = load(root)?;
     saved.stopped = stopped;
     save(root, &saved)
 }
 
-pub(crate) fn clear(root: &Path, clear_view: bool) -> Result<()> {
+pub fn clear(root: &Path, clear_view: bool) -> Result<()> {
     let mut saved = load(root)?;
     saved.messages.clear();
     saved.stopped = None;

@@ -1,5 +1,14 @@
 //! Untrusted portable work and conversation data, shared by application adapters.
 //! These records cannot restore grants, acceptance or admitted proof evidence.
+/// Host-bound conversation checkpoints, separate from portable repository data.
+pub mod history;
+/// Original offline Lake executor; results are historical observations.
+pub mod lake;
+/// Policy-bound portable record storage and original check workflow.
+pub mod store;
+mod tool;
+pub use tool::register;
+
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;

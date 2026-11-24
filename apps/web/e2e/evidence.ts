@@ -52,7 +52,10 @@ export function hasCurrentEvidence(data: EvidencePublication["data"]) {
 }
 
 /** Actual latest job observation, read independently of commands/model calls. */
-export async function verificationJob(page: Page) {
+export async function verificationJob(
+  page: Page,
+  channel: "verification_job" | "work_job" = "verification_job",
+) {
   for (let attempt = 0; attempt < 3; attempt++) {
     const status = await page.evaluate(async () =>
       (
@@ -63,9 +66,10 @@ export async function verificationJob(page: Page) {
         })
       ).json(),
     );
-    if (status.verification_job.state === "idle") return undefined;
-    expect(status.verification_job.state).toBe("ready");
-    const revision = status.verification_job.revision;
+    const job = status[channel];
+    if (job.state === "idle") return undefined;
+    expect(job.state).toBe("ready");
+    const revision = job.revision;
     const response = await page.evaluate(async (revision) => {
       const response = await fetch(
         "/api/verification-job?revision=" + encodeURIComponent(revision),
@@ -81,10 +85,25 @@ export async function verificationJob(page: Page) {
     expect(response.status).toBe(200);
     const publication = verificationJobPublicationSchema.parse(response.body);
     expect(publication.revision).toBe(revision);
-    expect(publication.data.context.job).toBe(status.verification_job.job);
+    expect(publication.data.context.job).toBe(job.job);
+    expect(
+      publication.data.kind === "project"
+        ? "project"
+        : publication.data.context.origin === "host"
+          ? "recorded_host"
+          : "recorded_model",
+    ).toBe(job.role);
     return publication.data;
   }
   throw new Error(
     "Verification observation did not stabilize after three fresh statuses",
   );
+}
+
+/** Assert the original role, rather than treating historical work as evidence. */
+export async function projectJob(page: Page) {
+  const data = await verificationJob(page);
+  if (data && data.kind !== "project")
+    throw new Error("Expected an original project check");
+  return data;
 }

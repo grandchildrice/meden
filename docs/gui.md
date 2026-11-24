@@ -771,7 +771,7 @@ provider-exposed reasoning deltas, but its saved presentation transcript selects
 only user/assistant message lines. The retained model-message objects in this
 checkpoint contain no reasoning fields either. See
 [`tui.rs`](../crates/meden-cli/src/tui.rs) (`delta` and `save_history`) and
-[`history.rs`](../crates/meden-cli/src/session/history.rs). The GUI marks this
+[`history.rs`](../crates/meden-app/src/records/history.rs). The GUI marks this
 absence and does not invent reasoning. Persisting future exposed reasoning is a
 separate native-adapter change, not implemented here.
 

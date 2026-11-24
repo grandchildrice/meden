@@ -14,7 +14,7 @@ struct LeanWork {
     sig: ToolSig,
 }
 
-pub(crate) fn register(
+pub fn register(
     registry: &mut Registry,
     workspace: &Arc<Workspace>,
     control: &Arc<Control>,
@@ -41,7 +41,7 @@ impl Tool for LeanWork {
         let id = args
             .get("id")
             .and_then(Value::as_str)
-            .filter(|id| crate::handoff::valid_name(id))
+            .filter(|id| super::store::valid_name(id))
             .filter(|_| args.len() == 1)
             .ok_or_else(|| ToolError::failed("Supply only an existing work item's id".into()))?
             .to_owned();
@@ -68,19 +68,24 @@ impl LeanWork {
     fn execute(&self, id: &str, rules: &Policy) -> Result<Value, ToolError> {
         // Executable project configuration may mutate the source. A historical
         // Lean observation cannot preserve an older native Rust proof result.
-        self.project.mark_dirty();
-        let observation = crate::handoff::check_observed(&self.workspace, &self.control, id, rules)
-            .map_err(|error| {
-                if self
-                    .control
-                    .flag()
-                    .load(std::sync::atomic::Ordering::SeqCst)
-                {
-                    ToolError::cancelled()
-                } else {
-                    ToolError::unavailable(format!("Lean work checker unavailable: {error:#}"))
-                }
-            })?;
+        let observation = super::store::check_observed(
+            &self.workspace,
+            &self.control,
+            id,
+            rules,
+            Some(&self.project),
+        )
+        .map_err(|error| {
+            if self
+                .control
+                .flag()
+                .load(std::sync::atomic::Ordering::SeqCst)
+            {
+                ToolError::cancelled()
+            } else {
+                ToolError::unavailable(format!("Lean work checker unavailable: {error:#}"))
+            }
+        })?;
         let value = serde_json::to_value(&observation.record)
             .map_err(|error| ToolError::unavailable(error.to_string()))?;
         if observation.record.success {
@@ -88,10 +93,10 @@ impl LeanWork {
         }
         let text = value.to_string();
         Err(match observation.outcome {
-            crate::lean_project::Outcome::Completed => ToolError::failed(text),
-            crate::lean_project::Outcome::Cancelled => ToolError::cancelled(),
-            crate::lean_project::Outcome::Inconclusive => ToolError::inconclusive(text),
-            crate::lean_project::Outcome::Unavailable => ToolError::unavailable(text),
+            super::lake::Outcome::Completed => ToolError::failed(text),
+            super::lake::Outcome::Cancelled => ToolError::cancelled(),
+            super::lake::Outcome::Inconclusive => ToolError::inconclusive(text),
+            super::lake::Outcome::Unavailable => ToolError::unavailable(text),
         })
     }
 }

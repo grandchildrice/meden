@@ -1,4 +1,8 @@
 //! Portable, untrusted project records. No grant or native proof authority is restored.
+use crate::{
+    project::Project,
+    view::verification_jobs::{recorded::Step, tracker::Progress, Publisher, RecordedOrigin},
+};
 use anyhow::{Context, Result};
 use meden_agent::tool::Args;
 use meden_core::file::{Operation, Request};
@@ -17,11 +21,11 @@ use std::{
 
 const FILE: &str = ".meden/workspace.json";
 
-pub(crate) use meden_app::records::{
+pub use super::{
     digest_valid, valid_name, validate, Check, Conversation, Document, Event, View, Work,
 };
 
-pub(crate) fn lean(root: &Path) -> Result<PathBuf> {
+pub fn lean(root: &Path) -> Result<PathBuf> {
     if let Some(path) = std::env::var_os("MEDEN_PROJECT_LEAN") {
         return Ok(PathBuf::from(path).canonicalize()?);
     }
@@ -68,7 +72,7 @@ fn call(
     )
     .map_err(|error| anyhow::anyhow!("Workspace record: {error}"))
 }
-pub(crate) fn load(workspace: &Workspace, control: &Control) -> Result<Option<Document>> {
+pub fn load(workspace: &Workspace, control: &Control) -> Result<Option<Document>> {
     if !workspace.path().join(FILE).try_exists()? {
         return Ok(None);
     }
@@ -79,6 +83,7 @@ pub(crate) fn load(workspace: &Workspace, control: &Control) -> Result<Option<Do
     )?))
 }
 fn read_with_policy(workspace: &Workspace, control: &Control, rules: &Policy) -> Result<Document> {
+    let _timing = meden_runtime::metrics::Span::start("recorded.history.read");
     let bytes: Vec<u8> = serde_json::from_value(call(
         workspace,
         control,
@@ -105,6 +110,7 @@ fn save_with_policy(
     document: &Document,
     rules: &Policy,
 ) -> Result<()> {
+    let _timing = meden_runtime::metrics::Span::start("recorded.history.write");
     validate(document)?;
     let content = serde_json::to_string_pretty(document)?;
     anyhow::ensure!(
@@ -120,7 +126,7 @@ fn save_with_policy(
     )?;
     Ok(())
 }
-pub(crate) fn initialize(workspace: &Workspace, control: &Control, name: String) -> Result<()> {
+pub fn initialize(workspace: &Workspace, control: &Control, name: String) -> Result<()> {
     anyhow::ensure!(
         load(workspace, control)?.is_none(),
         "A portable workspace already exists"
@@ -152,7 +158,7 @@ pub(crate) fn initialize(workspace: &Workspace, control: &Control, name: String)
         },
     )
 }
-pub(crate) fn put(workspace: &Workspace, control: &Control, work: Work) -> Result<()> {
+pub fn put(workspace: &Workspace, control: &Control, work: Work) -> Result<()> {
     let mut document =
         load(workspace, control)?.context("Initialize a portable workspace first")?;
     if let Some(old) = document.tasks.iter_mut().find(|t| t.id == work.id) {
@@ -162,7 +168,7 @@ pub(crate) fn put(workspace: &Workspace, control: &Control, work: Work) -> Resul
     }
     save(workspace, control, &document)
 }
-pub(crate) fn note(
+pub fn note(
     workspace: &Workspace,
     control: &Control,
     task: &str,
@@ -182,20 +188,21 @@ pub(crate) fn note(
     push(&mut document, task, text, None)?;
     save(workspace, control, &document)
 }
-fn push(document: &mut Document, task: &str, note: String, check: Option<Check>) -> Result<()> {
+fn push(document: &mut Document, task: &str, note: String, check: Option<Check>) -> Result<String> {
     let time = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
     let mut bytes = [0u8; 32];
     std::fs::File::open("/dev/urandom")?.read_exact(&mut bytes)?;
+    let event_id = format!("event_{:x}", Sha256::digest(bytes));
     document.events.push(Event {
-        id: format!("event_{:x}", Sha256::digest(bytes)),
+        id: event_id.clone(),
         task: task.into(),
         time,
         note,
         check,
     });
-    Ok(())
+    Ok(event_id)
 }
-pub(crate) fn view(workspace: &Workspace, control: &Control) -> View {
+pub fn view(workspace: &Workspace, control: &Control) -> View {
     let (document, error) = match load(workspace, control) {
         Ok(document) => (document, None),
         Err(error) => (None, Some(format!("{error:#}"))),
@@ -218,12 +225,8 @@ pub(crate) fn view(workspace: &Workspace, control: &Control) -> View {
         ),
     }
 }
-pub(crate) fn fingerprint(
-    workspace: &Workspace,
-    control: &Control,
-    selected: &Path,
-) -> Result<String> {
-    let output = crate::lean_project::run_controlled(
+pub fn fingerprint(workspace: &Workspace, control: &Control, selected: &Path) -> Result<String> {
+    let output = super::lake::run_controlled(
         workspace.path(),
         selected,
         &["--meden-fingerprint".into()],
@@ -252,7 +255,7 @@ fn output_text<'a>(output: &'a Value, key: &str) -> &'a str {
 }
 fn prepare_lake(workspace: &Workspace, control: &Control, selected: &Path) -> Result<()> {
     if !workspace.path().join("lake-manifest.json").try_exists()? {
-        let preparation = crate::lean_project::run_controlled(
+        let preparation = super::lake::run_controlled(
             workspace.path(),
             selected,
             &["resolve-deps".into()],
@@ -267,8 +270,20 @@ fn prepare_lake(workspace: &Workspace, control: &Control, selected: &Path) -> Re
     }
     Ok(())
 }
-pub(crate) fn check(workspace: &Workspace, control: &Control, id: &str) -> Result<()> {
-    let observation = check_observed(workspace, control, id, &crate::workspace::file_policy()?)?;
+pub fn check(
+    workspace: &Workspace,
+    control: &Control,
+    id: &str,
+    project: Option<&Project>,
+) -> Result<()> {
+    let observation = run_check(
+        workspace,
+        control,
+        id,
+        &crate::workspace::file_policy()?,
+        project,
+        RecordedOrigin::Host,
+    )?;
     anyhow::ensure!(
         observation.record.success,
         "Lean check did not complete successfully; its output was retained in workspace history"
@@ -276,9 +291,10 @@ pub(crate) fn check(workspace: &Workspace, control: &Control, id: &str) -> Resul
     Ok(())
 }
 
-pub(crate) struct Observation {
+pub struct Observation {
+    pub event: String,
     pub record: Check,
-    pub outcome: crate::lean_project::Outcome,
+    pub outcome: super::lake::Outcome,
 }
 
 fn selected_for_check(workspace: &Workspace, control: &Control, rules: &Policy) -> Result<PathBuf> {
@@ -319,49 +335,92 @@ fn work_for_check(document: &Document, id: &str) -> Result<Work> {
 
 /// Compile the original stored work item under the caller's admitted policy.
 /// The result is a historical observation, never native project proof authority.
-pub(crate) fn check_observed(
+pub fn check_observed(
     workspace: &Workspace,
     control: &Control,
     id: &str,
     rules: &Policy,
+    project: Option<&Project>,
 ) -> Result<Observation> {
-    use crate::lean_project::Outcome;
+    run_check(
+        workspace,
+        control,
+        id,
+        rules,
+        project,
+        RecordedOrigin::Model,
+    )
+}
+fn run_check(
+    workspace: &Workspace,
+    control: &Control,
+    id: &str,
+    rules: &Policy,
+    project: Option<&Project>,
+    origin: RecordedOrigin,
+) -> Result<Observation> {
+    let local = Publisher::new(workspace.session_id());
+    let publisher = project.map_or(&local, |owner| owner.check_observations(origin));
+    let progress = Progress::recorded(publisher, workspace.session_id(), id, control, origin);
+    let _timing = meden_runtime::metrics::Span::start("recorded.check.total");
+    let result = (|| {
+        if let Some(project) = project {
+            anyhow::ensure!(
+                project.matches(workspace.path()),
+                "Recorded check belongs to another project"
+            );
+            project.mark_dirty();
+        }
+        execute_check(workspace, control, id, rules, &progress)
+    })();
+    progress.finish_recorded(&result);
+    result
+}
+fn failed_check(error: &anyhow::Error) -> (Value, super::lake::Outcome) {
+    (
+        json!({"success":false,"termination":"PreparationFailed","stdout":"","stderr":format!("{error:#}")}),
+        super::lake::Outcome::Unavailable,
+    )
+}
+fn execute_check(
+    workspace: &Workspace,
+    control: &Control,
+    id: &str,
+    rules: &Policy,
+    progress: &Progress<'_>,
+) -> Result<Observation> {
+    use super::lake::Outcome;
     let mut document = read_with_policy(workspace, control, rules)
         .context("Initialize a readable portable workspace first")?;
     let task = work_for_check(&document, id)?;
+    progress.work(&task);
     let selected = selected_for_check(workspace, control, rules)?;
     let engine = format!(
         "sha256:{:x}",
         Sha256::digest(std::fs::read(selected.join("bin/lean"))?)
     );
     prepare_lake(workspace, control, &selected)?;
+    progress.engine(&engine);
     let before = fingerprint(workspace, control, &selected)?;
+    progress.inputs(&before);
     push(&mut document, id, format!("Started offline Lake build --wfail {}. Interrupted checks remain unfinished; rerun explicitly.", task.module), None)?;
     save_with_policy(workspace, control, &document, rules)?;
-    let failed = |error: anyhow::Error| {
-        json!({
-            "success":false,"termination":"PreparationFailed","stdout":"","stderr":format!("{error:#}")
-        })
-    };
-    let (output, build_outcome) = crate::lean_project::run_observed(
+    progress.step(Step::Building);
+    let (output, build_outcome) = super::lake::run_observed(
         workspace.path(),
         &selected,
         &["build".into(), "--wfail".into(), task.module.clone()],
         7200,
         control,
     )
-    .unwrap_or_else(|error| (failed(error), Outcome::Unavailable));
+    .unwrap_or_else(|error| failed_check(&error));
     let mut arguments = vec!["--meden-inspect".into(), task.module.clone()];
     arguments.extend(task.theorems.iter().cloned());
     let (inspection, inspection_outcome) = if succeeded(&output) {
-        let (report, outcome) = crate::lean_project::run_observed(
-            workspace.path(),
-            &selected,
-            &arguments,
-            600,
-            control,
-        )
-        .unwrap_or_else(|error| (failed(error), Outcome::Unavailable));
+        progress.step(Step::Inspecting);
+        let (report, outcome) =
+            super::lake::run_observed(workspace.path(), &selected, &arguments, 600, control)
+                .unwrap_or_else(|error| failed_check(&error));
         (Some(report), outcome)
     } else {
         (None, Outcome::Unavailable)
@@ -372,6 +431,7 @@ pub(crate) fn check_observed(
                 .and_then(Value::as_str)
                 .is_some_and(|s| s.contains("MEDEN_THEOREMS_CHECKED"))
     });
+    progress.step(Step::Refreshing);
     let after = fingerprint(workspace, control, &selected).ok();
     let outcome = if control.flag().load(std::sync::atomic::Ordering::SeqCst) {
         Outcome::Cancelled
@@ -417,20 +477,25 @@ pub(crate) fn check_observed(
         stdout: clip("stdout"),
         stderr: clip("stderr"),
     };
-    push(&mut document, id, if record.success { "Offline Lake build completed for the recorded source/configuration inputs. This record is historical on another machine." } else { "Check failed, was interrupted, or its source/configuration inputs changed. Inspect the retained output before retrying." }.into(), Some(record.clone()))?;
+    let event = push(&mut document, id, if record.success { "Offline Lake build completed for the recorded source/configuration inputs. This record is historical on another machine." } else { "Check failed, was interrupted, or its source/configuration inputs changed. Inspect the retained output before retrying." }.into(), Some(record.clone()))?;
     // Retain host observations even when the managed checker was cancelled.
     // This fresh control permits only this fixed history write, never inference.
     let logging = Control::new(std::sync::Arc::new(std::sync::atomic::AtomicBool::new(
         false,
     )));
+    progress.step(Step::Persisting);
     save_with_policy(workspace, &logging, &document, rules)?;
-    Ok(Observation { record, outcome })
+    Ok(Observation {
+        event,
+        record,
+        outcome,
+    })
 }
-pub(crate) fn checkpoint(workspace: &Workspace, control: &Control) -> Result<()> {
+pub fn checkpoint(workspace: &Workspace, control: &Control) -> Result<()> {
     let Some(mut document) = load(workspace, control)? else {
         return Ok(());
     };
-    let history = crate::session::history::load(workspace.path())?;
+    let history = super::history::load(workspace.path())?;
     if history.transcript.is_empty() {
         return Ok(());
     }
@@ -445,7 +510,7 @@ pub(crate) fn checkpoint(workspace: &Workspace, control: &Control) -> Result<()>
     }
     save(workspace, control, &document)
 }
-pub(crate) fn continuation(workspace: &Workspace, control: &Control, id: &str) -> Result<String> {
+pub fn continuation(workspace: &Workspace, control: &Control, id: &str) -> Result<String> {
     let document = load(workspace, control)?.context("No portable workspace")?;
     let task = document
         .tasks
@@ -495,7 +560,7 @@ pub(crate) fn continuation(workspace: &Workspace, control: &Control, id: &str) -
 
 /// Bounded context for a new device, supplied as ordinary user data. It never
 /// replays stored roles, restores authority, or chooses a task for the user.
-pub(crate) fn model_context(workspace: &Workspace, control: &Control) -> Result<Option<String>> {
+pub fn model_context(workspace: &Workspace, control: &Control) -> Result<Option<String>> {
     let document = match load(workspace, control) {
         Ok(Some(document)) => document,
         Ok(None) => return Ok(None),

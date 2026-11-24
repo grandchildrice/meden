@@ -82,6 +82,16 @@ Z3 rejection/repair. It checks that those reads add no materializations. These
 are diagnostic loopback/browser observations under functional validation, not
 an old/new latency benchmark or exclusive-stage CPU profile.
 
+Portable work checks emit `recorded.check.total`, `.lake`, `.inputs` and
+`.inspect` spans, plus `recorded.history.read` / `.write`. These surround the
+actual shared service, fixed offline Lake dispatch, complete input fingerprint,
+named-theorem inspection and history I/O. Input capture occurs before and after
+the build. They preserve wall and current-thread CPU separately; nested spans
+must not be added together and child-process CPU is excluded. The historical
+progress publication is separate from accepted-contract verification/evidence.
+The held-build browser journey validates instrumentation and recovery rather
+than natural compilation throughput.
+
 Accepted-project checks also emit `verification.capture_source`,
 `verification.prepare`, `verification.check`, `verification.refresh_source`
 and `verification.retain` around their actual application boundaries.

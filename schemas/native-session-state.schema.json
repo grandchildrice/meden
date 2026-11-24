@@ -121,7 +121,11 @@
       "$ref": "#/$defs/Status2"
     },
     "verification_job": {
-      "description": "Actual accepted-project verification progress availability.",
+      "description": "Actual project or historical-work check progress availability.",
+      "$ref": "#/$defs/Status3"
+    },
+    "work_job": {
+      "description": "Explicit host work progress is separate from conversation activity.",
       "$ref": "#/$defs/Status3"
     },
     "stopped": {
@@ -228,6 +232,7 @@
     "reasoning",
     "project",
     "verification_job",
+    "work_job",
     "stopped",
     "directories",
     "readers",
@@ -500,6 +505,10 @@
               "type": "string",
               "const": "ready"
             },
+            "role": {
+              "description": "Original requested display destination, not inferred from diagnostics.",
+              "$ref": "#/$defs/Role"
+            },
             "job": {
               "description": "Original host/session/contract-bound job, independent of body revision.",
               "type": "string",
@@ -514,6 +523,7 @@
           "additionalProperties": false,
           "required": [
             "state",
+            "role",
             "job",
             "revision"
           ]
@@ -526,6 +536,17 @@
               "type": "string",
               "const": "unavailable"
             },
+            "role": {
+              "description": "Original display destination when known; lock failure stays unknown.",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Role"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "message": {
               "description": "Bounded observation/projection failure.",
               "type": "string",
@@ -535,8 +556,29 @@
           "additionalProperties": false,
           "required": [
             "state",
+            "role",
             "message"
           ]
+        }
+      ]
+    },
+    "Role": {
+      "description": "Frozen display destination; it grants no execution or evidence authority.",
+      "oneOf": [
+        {
+          "description": "Project proposal/accepted check invoked from the conversation.",
+          "type": "string",
+          "const": "project"
+        },
+        {
+          "description": "Explicit host work check, shown in work history without activating chat.",
+          "type": "string",
+          "const": "recorded_host"
+        },
+        {
+          "description": "Historical work check from an explicitly sent model turn.",
+          "type": "string",
+          "const": "recorded_model"
         }
       ]
     },

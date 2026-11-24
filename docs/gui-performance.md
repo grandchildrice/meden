@@ -4,6 +4,53 @@ Prepared-input comparisons now have a [separate calibration report](performance/
 It rejects a slower prototype and separates normal invocation time from sampler
 overhead; the production compiler and existing graph caches are unchanged.
 
+## Recorded work check observations (November 24)
+
+The [validation record](../results/recorded-work-observations-20261124.json)
+covers the shared portable-work service and its historical progress/timers.
+The former CLI storage, checkpoint, checker and model-tool implementations are
+removed. The existing job publisher/query serves disjoint project and recorded
+observations; explicit host work stays in its history dialog and cannot replace
+conversation progress. Historical completion follows the original successful
+history write and cannot admit native evidence. Retry transfers the same body.
+
+Timers separate `recorded.check.total`, `.lake`, `.inputs`, `.inspect`, and
+`recorded.history.read` / `.write`. The real installed-Lean browser journey
+holds only dispatch, retries a failed transfer without a command, cancels and
+retains the observation, runs a distinct actual check, clones/reopens unapproved,
+and repairs through the original model tool. Its final host recheck waits for
+its new job and saved completion while preserving the original model publication.
+These fixture timings validate instrumentation, not natural compilation speed.
+
+Checks passed 340 Rust tests, 43 TypeScript tests, 33 architecture checks,
+37 generated native schemas, all 35 required public TUI journeys and 69 browser
+journeys. A final targeted portable rerun strengthens the completion assertion;
+its three completed checks also retain all six timer labels. Decoded TUI
+failure/recovery/restart screens and the running work dialog were inspected.
+Both serialized motion gates passed. Retained-tab two-animation-callback p95 was
+31.8 ms with ordinary motion and 38.7 ms with reduced motion; this is a scheduling
+proxy, not physical paint or INP. Existing budgets were unchanged.
+
+Actual post-restart cache-hit file opens took 21.314 s for Riemann and 2.238 s
+for EthLib. Riemann's matching native trace contains 19.244 s in extraction,
+including 16.153 s in offline Lake preparation and 15.656 s in its worker span.
+Preparation used 112.7 ms of host-thread CPU, excluding the worker's CPU.
+These nested spans must not be added. Riemann's dominant file-open wait remains backend
+preparation/input validation; this capture does not isolate hashing from the
+other worker steps. The separate interleaved Lake calibration remains the
+controlled comparison, and rejects the slower path-check parallelism prototype.
+EthLib also exposes 1.606–1.651 s history reads during startup, with roughly
+0.96–0.97 s host-thread CPU; those are different traces from its file inspection.
+Neither these single startup observations nor the service extraction establish
+an overall speedup.
+
+Both actual projects retain their complete original source/graph/reader,
+inventory, history, candidate/evidence observations, camera and quiet chat.
+The compiler's 13 captured sources and the four fixed portable checker resources
+retain their exact original bytes. Broader jobs, remaining preparation waits and
+versioned layout/order/retirement remain open. No core/runtime/agent changes,
+new kernel refinement, cold installation or live-model validation are claimed.
+
 ## Proposal check observations (November 24)
 
 The [validation record](../results/proposal-observations-20261124.json) extends

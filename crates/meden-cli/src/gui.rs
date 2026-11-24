@@ -79,6 +79,7 @@ struct View {
     reasoning: String,
     project: meden_app::view::evidence::Reader,
     verification_job: meden_app::view::verification_jobs::Reader,
+    work_job: meden_app::view::verification_jobs::Reader,
     stopped: Option<String>,
     directories: meden_app::view::directory::Directories,
     readers: meden_app::view::readers::Readers,
@@ -118,6 +119,7 @@ impl Serialize for View {
             reasoning: &self.reasoning,
             project: &self.project,
             verification_job: &self.verification_job,
+            work_job: &self.work_job,
             stopped: self.stopped.as_deref(),
             directories: &self.directories,
             readers: &self.readers,
@@ -311,6 +313,7 @@ fn initial_view(
         reasoning: String::new(),
         project: project.evidence_view()?,
         verification_job: project.verification_view(),
+        work_job: project.work_view(),
         stopped: saved.stopped,
         directories: meden_app::view::directory::Directories::default(),
         readers: meden_app::view::readers::Readers::default(),
@@ -512,7 +515,10 @@ impl Http<'_> {
                     PublicationRole::Analysis => view.analyses.current_bytes(&revision),
                     PublicationRole::AnalysisHistory => view.analyses.history_bytes(&revision),
                     PublicationRole::Evidence => view.project.bytes(&revision),
-                    PublicationRole::VerificationJob => view.verification_job.bytes(&revision),
+                    PublicationRole::VerificationJob => view
+                        .verification_job
+                        .bytes(&revision)
+                        .or_else(|| view.work_job.bytes(&revision)),
                     PublicationRole::Inventory => view
                         .overview_snapshot
                         .as_ref()
@@ -1093,12 +1099,13 @@ fn perform_work(
             None
         }
         Command::CheckWork { id } => {
-            project.mark_dirty();
             lock(view).project.invalidate();
             lock(view).sources.clear();
             lock(view).analyses.invalidate();
             lock(view).activity = format!("Checking Lean work {id}");
-            crate::handoff::check(workspace, processes, &id)?;
+            // The shared check publishes every result in work history. Keep its
+            // failures local instead of adding a second workspace-wide banner.
+            let _result = crate::handoff::check(workspace, processes, &id, Some(project));
             None
         }
         Command::ResumeWork { id } => Some(instruction(

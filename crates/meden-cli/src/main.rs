@@ -13,10 +13,9 @@ use std::process::ExitCode;
 use std::sync::{atomic::AtomicBool, Arc};
 mod connection;
 mod gui;
-mod handoff;
+use meden_app::records::store as handoff;
 mod judge;
-mod lean_project;
-mod lean_work;
+use meden_app::records::lake as lean_project;
 mod pages;
 mod protocol;
 mod session;
@@ -496,7 +495,7 @@ fn work(root: &std::path::Path, action: WorkCommand) -> Result<()> {
         WorkCommand::Note { id, text, next } => {
             handoff::note(&workspace, &control, &id, text, next)?;
         }
-        WorkCommand::Check { id } => handoff::check(&workspace, &control, &id)?,
+        WorkCommand::Check { id } => handoff::check(&workspace, &control, &id, None)?,
         WorkCommand::Show => {
             serde_json::to_writer_pretty(
                 io::stdout().lock(),

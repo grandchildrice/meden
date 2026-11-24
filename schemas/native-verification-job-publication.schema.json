@@ -22,28 +22,69 @@
   "$defs": {
     "Data": {
       "description": "One latest complete observation. No successful history prefix is invented.",
-      "type": "object",
-      "properties": {
-        "context": {
-          "description": "Original immutable host/contract/resource identity.",
-          "$ref": "#/$defs/Context"
+      "oneOf": [
+        {
+          "description": "Original project proposal or accepted implementation check.",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "project"
+            },
+            "context": {
+              "description": "Frozen original project meaning.",
+              "$ref": "#/$defs/Context"
+            },
+            "elapsed_ms": {
+              "description": "Host monotonic elapsed time.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            },
+            "phase": {
+              "description": "Actual application boundary/result.",
+              "$ref": "#/$defs/Phase"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "context",
+            "elapsed_ms",
+            "phase"
+          ]
         },
-        "elapsed_ms": {
-          "description": "Host monotonic observation, saturating at u32::MAX.",
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 0
-        },
-        "phase": {
-          "description": "Actual application stage or terminal result.",
-          "$ref": "#/$defs/Phase"
+        {
+          "description": "A portable work check is historical and cannot carry admitted evidence.",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "recorded"
+            },
+            "context": {
+              "description": "Original requested work and host session.",
+              "$ref": "#/$defs/Context2"
+            },
+            "elapsed_ms": {
+              "description": "Host monotonic elapsed time.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            },
+            "phase": {
+              "description": "Actual historical-check boundary/result.",
+              "$ref": "#/$defs/Phase2"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "context",
+            "elapsed_ms",
+            "phase"
+          ]
         }
-      },
-      "additionalProperties": false,
-      "required": [
-        "context",
-        "elapsed_ms",
-        "phase"
       ]
     },
     "Context": {
@@ -475,6 +516,349 @@
           "type": "string",
           "const": "inconclusive"
         }
+      ]
+    },
+    "Context2": {
+      "type": "object",
+      "properties": {
+        "origin": {
+          "$ref": "#/$defs/Origin"
+        },
+        "job": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "session": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "origin",
+        "job",
+        "session",
+        "id"
+      ]
+    },
+    "Origin": {
+      "type": "string",
+      "enum": [
+        "host",
+        "model"
+      ]
+    },
+    "Phase2": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "running"
+            },
+            "stage": {
+              "$ref": "#/$defs/Stage2"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "stage"
+          ]
+        },
+        {
+          "description": "Published only after the original history write succeeded. It cannot\naccept a contract, admit evidence or restore any native verification.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "historical"
+            },
+            "inputs": {
+              "$ref": "#/$defs/Inputs2"
+            },
+            "event": {
+              "type": "string",
+              "pattern": "^event_[a-f0-9]{64}$"
+            },
+            "record_sha256": {
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            },
+            "result": {
+              "$ref": "#/$defs/ResultKind"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "inputs",
+            "event",
+            "record_sha256",
+            "result"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "failed"
+            },
+            "during": {
+              "$ref": "#/$defs/Stage2"
+            },
+            "kind": {
+              "$ref": "#/$defs/FailureKind"
+            },
+            "message": {
+              "type": "string",
+              "maxLength": 8000
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "during",
+            "kind",
+            "message"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "cancelled"
+            },
+            "during": {
+              "$ref": "#/$defs/Stage2"
+            },
+            "message": {
+              "type": "string",
+              "maxLength": 8000
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "during",
+            "message"
+          ]
+        }
+      ]
+    },
+    "Stage2": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "reading_record"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "preparing"
+            },
+            "work": {
+              "$ref": "#/$defs/Work"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "work"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "capturing"
+            },
+            "work": {
+              "$ref": "#/$defs/Work"
+            },
+            "engine_sha256": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "work",
+            "engine_sha256"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "recording_start"
+            },
+            "inputs": {
+              "$ref": "#/$defs/Inputs2"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "inputs"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "building"
+            },
+            "inputs": {
+              "$ref": "#/$defs/Inputs2"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "inputs"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "inspecting"
+            },
+            "inputs": {
+              "$ref": "#/$defs/Inputs2"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "inputs"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "refreshing"
+            },
+            "inputs": {
+              "$ref": "#/$defs/Inputs2"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "inputs"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "persisting"
+            },
+            "inputs": {
+              "$ref": "#/$defs/Inputs2"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "inputs"
+          ]
+        }
+      ]
+    },
+    "Work": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "requirement": {
+          "type": "string"
+        },
+        "module": {
+          "type": "string"
+        },
+        "theorems": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "next": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "requirement",
+        "module",
+        "theorems",
+        "next"
+      ]
+    },
+    "Inputs2": {
+      "type": "object",
+      "properties": {
+        "work": {
+          "$ref": "#/$defs/Work"
+        },
+        "engine_sha256": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "source_revision": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "work",
+        "engine_sha256",
+        "source_revision"
+      ]
+    },
+    "ResultKind": {
+      "type": "string",
+      "enum": [
+        "checked",
+        "rejected",
+        "cancelled",
+        "inconclusive",
+        "unavailable"
       ]
     }
   }

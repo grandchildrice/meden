@@ -33,6 +33,7 @@ import {
   VerificationProgress,
   verificationActivity,
 } from "../features/native/VerificationProgress";
+import { useCheckProgress } from "../features/native/useCheckProgress";
 import { visibleHistory } from "../features/native/history";
 import HistoryOutlined from "@mui/icons-material/HistoryOutlined";
 import {
@@ -332,40 +333,14 @@ export function NativeApp({ token }: { token: string }) {
     state?.preview.state === "unavailable"
       ? state.preview.message
       : previewReads.get(previewRevision)?.error;
-  const verificationRevision =
-    state?.verification_job.state === "ready"
-      ? state.verification_job.revision
-      : undefined;
-  const verificationJobId =
-    state?.verification_job.state === "ready"
-      ? state.verification_job.job
-      : undefined;
-  const readVerification = useCallback(
-    (revision: string, signal: AbortSignal) => {
-      if (!verificationJobId)
-        return Promise.reject(new Error("Verification context is unavailable"));
-      return observePublication(
-        client.verificationJob(revision, verificationJobId, signal),
-      );
-    },
-    [client, verificationJobId],
-  );
-  const verificationReads = usePublications(
-    verificationRevision ? [verificationRevision] : [],
-    readVerification,
+  const verificationStatus = useCheckProgress(
+    client,
     state?.verification_job,
     reconnect,
   );
-  const observedVerification =
-    verificationReads.get(verificationRevision)?.publication?.data;
-  const verification = useRetainedPublication(
-    observedVerification,
-    verificationJobId,
-  );
-  const verificationError =
-    state?.verification_job.state === "unavailable"
-      ? state.verification_job.message
-      : verificationReads.get(verificationRevision)?.error;
+  const verification = verificationStatus.data;
+  const verificationError = verificationStatus.error;
+  const workCheck = useCheckProgress(client, state?.work_job, reconnect);
   const readDirectory = useCallback(
     (revision: string, signal: AbortSignal) =>
       observePublication(client.directory(revision, signal)),
@@ -1222,7 +1197,7 @@ export function NativeApp({ token }: { token: string }) {
                   : chatRunning
                     ? (verificationActivity(
                         verification,
-                        Boolean(verificationRevision),
+                        Boolean(verificationStatus.loading),
                       ) ?? state.activity + " · " + elapsed + "s")
                     : undefined
               }
@@ -1280,11 +1255,7 @@ export function NativeApp({ token }: { token: string }) {
             <VerificationProgress
               data={verification}
               error={verificationError}
-              retry={
-                verificationRevision
-                  ? () => verificationReads.retry(verificationRevision)
-                  : undefined
-              }
+              retry={verificationStatus.retry}
             />
             {project && project.state !== "empty" && (
               <article className="chat-contract">
@@ -1346,6 +1317,9 @@ export function NativeApp({ token }: { token: string }) {
               historyData ? (
                 <NativeWork
                   workspace={historyData.portable}
+                  check={workCheck.data}
+                  checkError={workCheck.error}
+                  retryCheck={workCheck.retry}
                   running={running}
                   authorized={state.authorized}
                   onCommand={command}

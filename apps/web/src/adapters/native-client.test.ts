@@ -127,6 +127,7 @@ test("verification queries bind the exact job and revision without admitting rec
     prepared_sha256: "d".repeat(64),
   };
   const data = {
+    kind: "project",
     context: {
       job,
       subject: {
@@ -153,7 +154,7 @@ test("verification queries bind the exact job and revision without admitting rec
     );
   vi.stubGlobal("fetch", fetch);
   const client = new NativeClient("session");
-  expect(await client.verificationJob(revision, job)).toEqual({
+  expect(await client.verificationJob(revision, job, "project")).toEqual({
     revision,
     data,
   });
@@ -161,10 +162,16 @@ test("verification queries bind the exact job and revision without admitting rec
     "/api/verification-job?revision=" + encodeURIComponent(revision),
   );
   await expect(
-    client.verificationJob(revision, "sha256:" + "f".repeat(64)),
+    client.verificationJob(revision, job, "recorded_host"),
+  ).rejects.toThrow("requested role");
+  await expect(
+    client.verificationJob(revision, job, "recorded_model"),
+  ).rejects.toThrow("requested role");
+  await expect(
+    client.verificationJob(revision, "sha256:" + "f".repeat(64), "project"),
   ).rejects.toThrow("does not match its requested job");
   await expect(
-    client.verificationJob("sha256:" + "f".repeat(64), job),
+    client.verificationJob("sha256:" + "f".repeat(64), job, "project"),
   ).rejects.toThrow("does not match its requested revision");
   expect(
     nativeStateSchema.shape.verification_job.parse({ state: "idle" }),

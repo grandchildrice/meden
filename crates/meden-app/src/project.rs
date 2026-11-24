@@ -33,7 +33,7 @@ use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 
 mod journal;
-mod progress;
+use crate::view::verification_jobs::tracker as progress;
 #[cfg(test)]
 mod selection_tests;
 use crate::verification::{Contract, PreparedCheck, Registry as Verifiers};
@@ -149,6 +149,7 @@ pub struct Project {
     journal: Option<PathBuf>,
     presentation: OnceLock<crate::view::evidence::Channel>,
     verification_jobs: crate::view::verification_jobs::Publisher,
+    work_jobs: crate::view::verification_jobs::Publisher,
 }
 
 impl Project {
@@ -177,6 +178,7 @@ impl Project {
                 });
         let contracts = Contracts::new(session.as_bytes().to_vec());
         let verification_jobs = crate::view::verification_jobs::Publisher::new(session.as_bytes());
+        let work_jobs = crate::view::verification_jobs::Publisher::new(session.as_bytes());
         Self {
             root: root.to_owned(),
             session,
@@ -198,6 +200,7 @@ impl Project {
             journal: None,
             presentation: OnceLock::new(),
             verification_jobs,
+            work_jobs,
         }
     }
     pub fn open(root: &Path, session: &[u8], selected: Option<&str>) -> Result<Self> {
@@ -232,6 +235,7 @@ impl Project {
             out
         });
         project.verification_jobs = crate::view::verification_jobs::Publisher::new(session);
+        project.work_jobs = crate::view::verification_jobs::Publisher::new(session);
         let path = directory.join("contracts.json");
         let (contracts, events, saved_selection) = journal::load(&path, root, &project.session)?;
         let choice = selected.or(saved_selection.as_deref());
@@ -265,6 +269,18 @@ impl Project {
             .reader())
     }
     /// Read the latest actual verification observation without starting work.
+    pub(crate) fn check_observations(
+        &self,
+        origin: crate::view::verification_jobs::RecordedOrigin,
+    ) -> &crate::view::verification_jobs::Publisher {
+        match origin {
+            crate::view::verification_jobs::RecordedOrigin::Host => &self.work_jobs,
+            crate::view::verification_jobs::RecordedOrigin::Model => &self.verification_jobs,
+        }
+    }
+    pub fn work_view(&self) -> crate::view::verification_jobs::Reader {
+        self.work_jobs.reader()
+    }
     pub fn verification_view(&self) -> crate::view::verification_jobs::Reader {
         self.verification_jobs.reader()
     }
@@ -987,7 +1003,7 @@ impl Project {
     }
 }
 
-fn hash(bytes: &[u8]) -> String {
+pub(crate) fn hash(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 

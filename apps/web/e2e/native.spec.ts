@@ -23,7 +23,7 @@ import { createHash } from "node:crypto";
 import {
   projectEvidence,
   hasCurrentEvidence,
-  verificationJob,
+  projectJob as verificationJob,
 } from "./evidence";
 import {
   analysisCurrentSchema,

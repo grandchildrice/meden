@@ -80,6 +80,7 @@ export class NativeClient {
   async verificationJob(
     revision: string,
     job: string,
+    role: Extract<NativeState["verification_job"], { state: "ready" }>["role"],
     signal?: AbortSignal,
   ): Promise<VerificationJobPublication> {
     const publication = await this.publication(
@@ -92,6 +93,14 @@ export class NativeClient {
       throw new Error(
         "Verification observation does not match its requested job",
       );
+    const observedRole =
+      publication.data.kind === "project"
+        ? "project"
+        : publication.data.context.origin === "host"
+          ? "recorded_host"
+          : "recorded_model";
+    if (observedRole !== role)
+      throw new Error("Check progress does not match its requested role");
     return publication;
   }
   async history(

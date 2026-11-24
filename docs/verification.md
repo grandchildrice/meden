@@ -1744,12 +1744,22 @@ not validation of every Linux distribution or large-model deployment.
 ## Portable work records and external Lean checks
 
 The GUI, public TUI `/work` commands and `meden work` CLI share
-`crates/meden-cli/src/handoff.rs`. `.meden/workspace.json` contains bounded, strict
+`crates/meden-app/src/records/store.rs`. `.meden/workspace.json` contains bounded, strict
 typed work items, visible conversations and historical check results. Loading it
 restores no processor grant, accepted native contract or proof receipt. Resume
 creates a new user instruction and requires the current session's processor review.
 The fixed record path uses the existing policy-bound pinned file worker; malformed
 records and escaping symlinks are refused and retained.
+
+The same service publishes typed recorded-work progress through the existing
+immutable job query. Host checks remain in work history; only an explicitly sent
+model turn can update the conversation's check observation. A historical result
+is published only after the original history write succeeds and binds the
+original work, engine, source fingerprint, event and complete saved record hash.
+It cannot carry an admitted native receipt. Premature, mismatched, replaced or
+terminal callbacks cannot restore retired bodies. Transfer retry reads bytes
+without another command. These are tested application/adapter properties, not
+additional extracted-kernel proofs.
 
 The host-selected `meden lake` adapter confines executable Lake code and Lean to
 the prepared offline worker. Portable checks freeze requirement/module/theorem

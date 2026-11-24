@@ -9,6 +9,12 @@ use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::sync::{Arc, Mutex};
 
+#[allow(missing_docs)]
+pub(crate) mod recorded;
+/// Original portable-work observations, never project proof authority.
+pub use recorded::{Context as RecordedContext, Origin as RecordedOrigin, Phase as RecordedPhase};
+pub(crate) mod tracker;
+
 /// Original operation subject. A draft has no accepted revision or evidence.
 #[derive(Clone, Serialize, JsonSchema)]
 #[serde(tag = "state", rename_all = "snake_case", deny_unknown_fields)]
@@ -141,17 +147,68 @@ impl Phase {
 }
 /// One latest complete observation. No successful history prefix is invented.
 #[derive(Clone, Serialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub struct Data {
-    /// Original immutable host/contract/resource identity.
-    context: Context,
-    /// Host monotonic observation, saturating at u32::MAX.
-    elapsed_ms: u32,
-    /// Actual application stage or terminal result.
-    phase: Phase,
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+pub enum Data {
+    /// Original project proposal or accepted implementation check.
+    Project {
+        /// Frozen original project meaning.
+        context: Context,
+        /// Host monotonic elapsed time.
+        elapsed_ms: u32,
+        /// Actual application boundary/result.
+        phase: Phase,
+    },
+    /// A portable work check is historical and cannot carry admitted evidence.
+    Recorded {
+        /// Original requested work and host session.
+        context: RecordedContext,
+        /// Host monotonic elapsed time.
+        elapsed_ms: u32,
+        /// Actual historical-check boundary/result.
+        phase: RecordedPhase,
+    },
+}
+impl Data {
+    fn job(&self) -> &str {
+        match self {
+            Self::Project { context, .. } => &context.job,
+            Self::Recorded { context, .. } => &context.job,
+        }
+    }
+    fn role(&self) -> Role {
+        match self {
+            Self::Project { .. } => Role::Project,
+            Self::Recorded { context, .. } => match context.origin {
+                RecordedOrigin::Host => Role::RecordedHost,
+                RecordedOrigin::Model => Role::RecordedModel,
+            },
+        }
+    }
+    fn elapsed(&self) -> u32 {
+        match self {
+            Self::Project { elapsed_ms, .. } | Self::Recorded { elapsed_ms, .. } => *elapsed_ms,
+        }
+    }
+    fn running(&self) -> bool {
+        match self {
+            Self::Project { phase, .. } => phase.stage().is_some(),
+            Self::Recorded { phase, .. } => phase.stage().is_some(),
+        }
+    }
 }
 /// Complete generated envelope, independent of the accepted-evidence body.
 pub type Snapshot = Envelope<Data>;
+/// Frozen display destination; it grants no execution or evidence authority.
+#[derive(Clone, Copy, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum Role {
+    /// Project proposal/accepted check invoked from the conversation.
+    Project,
+    /// Explicit host work check, shown in work history without activating chat.
+    RecordedHost,
+    /// Historical work check from an explicitly sent model turn.
+    RecordedModel,
+}
 /// Small frequent status; the complete context and diagnostic are queried once.
 #[derive(Clone, Serialize, JsonSchema)]
 #[serde(tag = "state", rename_all = "snake_case", deny_unknown_fields)]
@@ -160,6 +217,8 @@ pub enum Status {
     Idle,
     /// The complete latest observation is frozen and queryable.
     Ready {
+        /// Original requested display destination, not inferred from diagnostics.
+        role: Role,
         /// Original host/session/contract-bound job, independent of body revision.
         #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
         job: String,
@@ -169,6 +228,8 @@ pub enum Status {
     },
     /// No partial or superseded body is admitted.
     Unavailable {
+        /// Original display destination when known; lock failure stays unknown.
+        role: Option<Role>,
         /// Bounded observation/projection failure.
         #[schemars(length(max = 8000))]
         message: String,
@@ -197,7 +258,8 @@ impl State {
         match result {
             Ok(value) => {
                 self.status = Status::Ready {
-                    job: original.context.job.clone(),
+                    role: original.role(),
+                    job: original.job().into(),
                     revision: value.reference().revision.clone(),
                 };
                 self.publication = Some(value);
@@ -206,15 +268,20 @@ impl State {
         }
     }
     fn unavailable(&mut self, message: &str) {
+        self.unavailable_for(self.original.as_ref().map(Data::role), message);
+    }
+    fn unavailable_for(&mut self, role: Option<Role>, message: &str) {
         self.publication = None;
         self.status = Status::Unavailable {
+            role,
             message: diagnostic(message),
         };
     }
     fn active(&self, observation: &Observation, elapsed: u32) -> bool {
         matches!(self.status, Status::Ready { .. })
-            && matches!(&self.original, Some(Data { context, elapsed_ms, phase })
-            if context.job == observation.job && elapsed >= *elapsed_ms && phase.stage().is_some())
+            && self.original.as_ref().is_some_and(|data| {
+                data.job() == observation.job && elapsed >= data.elapsed() && data.running()
+            })
     }
 }
 fn diagnostic(message: &str) -> String {
@@ -315,7 +382,7 @@ impl Publisher {
                     job: context.job.clone(),
                 };
                 state.sequence = sequence;
-                state.original = Some(Data {
+                state.original = Some(Data::Project {
                     context,
                     elapsed_ms: 0,
                     phase: Phase::Running { stage: initial },
@@ -324,7 +391,7 @@ impl Publisher {
                 Some(observation)
             }
             Err(error) => {
-                state.unavailable(&error.to_string());
+                state.unavailable_for(Some(Role::Project), &error.to_string());
                 None
             }
         }
@@ -344,7 +411,7 @@ impl Publisher {
         if !state.active(observation, elapsed) {
             return;
         }
-        let Some(Data {
+        let Some(Data::Project {
             phase: Phase::Running { stage },
             ..
         }) = &state.original
@@ -353,7 +420,7 @@ impl Publisher {
         };
         match update(stage) {
             Ok(Some(next)) => {
-                if let Some(Data {
+                if let Some(Data::Project {
                     elapsed_ms, phase, ..
                 }) = &mut state.original
                 {
@@ -453,8 +520,12 @@ impl Publisher {
         if !state.active(&observation, elapsed) {
             return;
         }
+        if matches!(state.original, Some(Data::Recorded { .. })) {
+            recorded::finish(&mut state, elapsed, outcome);
+            return;
+        }
         let result = (|| -> Result<Phase> {
-            let Some(Data { context, phase, .. }) = &state.original else {
+            let Some(Data::Project { context, phase, .. }) = &state.original else {
                 anyhow::bail!("Verification observation missing");
             };
             let during = phase
@@ -492,6 +563,9 @@ impl Publisher {
                         completion_label: summary.completion_label.into(),
                     }
                 }
+                Completion::Recorded(_) => {
+                    anyhow::bail!("Historical completion cannot admit project evidence")
+                }
                 Completion::Failed(kind, message) => Phase::Failed {
                     during: during.clone(),
                     kind,
@@ -505,7 +579,7 @@ impl Publisher {
         })();
         match result {
             Ok(next) => {
-                if let Some(Data {
+                if let Some(Data::Project {
                     elapsed_ms, phase, ..
                 }) = &mut state.original
                 {
@@ -554,6 +628,7 @@ fn checked_proposal(
 }
 #[derive(Clone, Copy)]
 pub(crate) enum Completion<'a> {
+    Recorded(&'a crate::records::store::Observation),
     Proposed(&'a project::Summary),
     Admitted(&'a project::Summary),
     Failed(FailureKind, &'a str),
@@ -576,6 +651,7 @@ impl Serialize for Reader {
         match self.0.lock() {
             Ok(state) => state.status.serialize(serializer),
             Err(_) => Status::Unavailable {
+                role: None,
                 message: "Verification observation is unavailable".into(),
             }
             .serialize(serializer),

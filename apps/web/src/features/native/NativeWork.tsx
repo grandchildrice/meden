@@ -4,16 +4,27 @@ import type {
   NativeCommand,
   PortableWorkspace,
   WorkItem,
+  VerificationJobPublication,
 } from "@meden/agent-protocol/native";
+import {
+  VerificationProgress,
+  verificationActivity,
+} from "./VerificationProgress";
 
 export function NativeWork({
   workspace,
+  check,
+  checkError,
+  retryCheck,
   running,
   authorized,
   onCommand,
   onInspect,
 }: {
   workspace: PortableWorkspace;
+  check?: VerificationJobPublication["data"];
+  checkError?: string;
+  retryCheck?: () => void;
   running: boolean;
   authorized: boolean;
   onCommand: (command: NativeCommand) => Promise<boolean>;
@@ -147,6 +158,27 @@ export function NativeWork({
               >
                 Recheck with Lean
               </Button>
+              {check?.kind === "recorded" &&
+                check.context.id === task.id &&
+                check.phase.state === "running" && (
+                  <>
+                    <Typography component="p" role="status">
+                      {verificationActivity(check, false)}
+                    </Typography>
+                    <Button onClick={() => void onCommand({ type: "cancel" })}>
+                      Stop check
+                    </Button>
+                  </>
+                )}
+              <VerificationProgress
+                data={
+                  check?.kind === "recorded" && check.context.id === task.id
+                    ? check
+                    : undefined
+                }
+                error={checkError}
+                retry={retryCheck}
+              />
               {task.theorems.length === 0 && (
                 <p>Add theorem names to this work item before checking.</p>
               )}

@@ -83,6 +83,7 @@ impl App {
         self.rx = Some(rx);
         self.processes.flag().store(false, Ordering::SeqCst);
         let control = std::sync::Arc::clone(&self.processes);
+        let project = std::sync::Arc::clone(&self.project);
         self.busy = true;
         self.turn_started = Some(Instant::now());
         self.activity = Some(
@@ -110,7 +111,8 @@ impl App {
                         Ok("Conversation checkpoint saved to .meden/workspace.json. Commit and push the record with your source changes.".into())
                     }
                     WorkTask::Check(id) => {
-                        let checked = crate::handoff::check(&workspace, &control, &id);
+                        let checked =
+                            crate::handoff::check(&workspace, &control, &id, Some(&project));
                         let text = work_text(crate::handoff::view(&workspace, &control), Some(&id));
                         match checked {
                             Ok(()) => Ok(format!("{}\nOffline Lean check completed for {id}. The recorded result is historical.", text?)),

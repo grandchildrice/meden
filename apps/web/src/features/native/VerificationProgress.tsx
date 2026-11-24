@@ -2,7 +2,33 @@ import { Alert, Button, Typography } from "@mui/material";
 import type { VerificationJobPublication } from "@meden/agent-protocol/native";
 
 type Data = VerificationJobPublication["data"];
-type Stage = Extract<Data["phase"], { state: "running" }>["stage"];
+type ProjectData = Extract<Data, { kind: "project" }>;
+type Stage = Extract<ProjectData["phase"], { state: "running" }>["stage"];
+type RecordedData = Extract<Data, { kind: "recorded" }>;
+type RecordedStage = Extract<
+  RecordedData["phase"],
+  { state: "running" }
+>["stage"];
+function recordedLabel(stage: RecordedStage): string {
+  switch (stage.state) {
+    case "reading_record":
+      return "Reading work record…";
+    case "preparing":
+      return "Preparing work check…";
+    case "capturing":
+      return "Reading check inputs…";
+    case "recording_start":
+      return "Saving check start…";
+    case "building":
+      return "Building recorded module…";
+    case "inspecting":
+      return "Inspecting named theorems…";
+    case "refreshing":
+      return "Checking source freshness…";
+    case "persisting":
+      return "Saving check history…";
+  }
+}
 function stageLabel(stage: Stage): string {
   switch (stage.state) {
     case "checking_proposal":
@@ -24,7 +50,12 @@ function stageLabel(stage: Stage): string {
 function stoppedLabel(
   phase: Extract<Data["phase"], { state: "failed" | "cancelled" }>,
   proposal: boolean,
+  recorded: boolean,
 ): string {
+  if (recorded)
+    return phase.state === "cancelled"
+      ? "Work check stopped"
+      : "Work check could not finish";
   if (proposal)
     return phase.state === "cancelled"
       ? "Proposal check stopped"
@@ -45,6 +76,10 @@ export function verificationActivity(
   loading: boolean,
 ): string | undefined {
   if (!data) return loading ? "Loading verification status…" : undefined;
+  if (data.kind === "recorded")
+    return data.phase.state === "running"
+      ? recordedLabel(data.phase.stage)
+      : undefined;
   return data.phase.state === "running"
     ? stageLabel(data.phase.stage)
     : undefined;
@@ -84,9 +119,15 @@ export function VerificationProgress({
     return null;
   return (
     <article className="chat-contract" aria-label="Verification progress">
-      <Typography component="p">{data.context.name}</Typography>
+      <Typography component="p">
+        {data.kind === "project" ? data.context.name : data.context.id}
+      </Typography>
       <Alert severity={phase.state === "cancelled" ? "info" : "warning"}>
-        {stoppedLabel(phase, data.context.subject.state === "proposal")}
+        {stoppedLabel(
+          phase,
+          data.kind === "project" && data.context.subject.state === "proposal",
+          data.kind === "recorded",
+        )}
         <details>
           <summary>Details</summary>
           <pre>{phase.message}</pre>

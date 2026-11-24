@@ -6,7 +6,8 @@ import { createServer } from "node:http";
 import { mkdtemp, mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
-import { projectEvidence } from "./evidence";
+import { projectEvidence, verificationJob } from "./evidence";
+import { verificationGate } from "./launcher-gate";
 
 const exec = promisify(execFile);
 const binary = process.env.MEDEN_BIN || resolve("target/debug/meden");
@@ -34,7 +35,12 @@ test("portable GUI history survives a real git clone and checks actual Lean with
     "leanprover/lean4:v4.35.0\n",
   );
   await writeFile(resolve(project, ".gitignore"), ".lake/\n");
+  const gate = await verificationGate(root, "recorded");
   const requests: unknown[] = [];
+  let commands = 0;
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/api/command") commands++;
+  });
   let repair = false;
   const server = createServer(async (request, response) => {
     if (request.url === "/v1/models") {
@@ -66,6 +72,25 @@ test("portable GUI history survives a real git clone and checks actual Lean with
                 path: "Pilot.lean",
                 content: original,
               }),
+            },
+          },
+        ],
+      };
+    if (
+      repair &&
+      body.messages.at(-1)?.role === "tool" &&
+      body.messages.at(-1)?.tool_call_id === "repair_source"
+    )
+      message = {
+        role: "assistant",
+        content: null,
+        tool_calls: [
+          {
+            id: "check_original_work",
+            type: "function",
+            function: {
+              name: "check_lean_work",
+              arguments: JSON.stringify({ id: "identity" }),
             },
           },
         ],
@@ -108,6 +133,7 @@ test("portable GUI history survives a real git clone and checks actual Lean with
       {
         env: {
           ...process.env,
+          ...gate.environment,
           XDG_DATA_HOME: data,
           ...(process.env.MEDEN_ATLAS_LEAN
             ? { MEDEN_PROJECT_LEAN: process.env.MEDEN_ATLAS_LEAN }
@@ -142,9 +168,23 @@ test("portable GUI history survives a real git clone and checks actual Lean with
       .click();
   }
   async function idle() {
-    await expect(
-      page.getByRole("button", { name: "Stop", exact: true }),
-    ).toHaveCount(0, { timeout: 90_000 });
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(async () =>
+            (
+              await fetch("/api/state", {
+                headers: {
+                  Authorization: `Bearer ${sessionStorage.getItem("meden-native-session")}`,
+                },
+              })
+            )
+              .json()
+              .then((x) => x.running),
+          ),
+        { timeout: 90000 },
+      )
+      .toBe(false);
   }
   async function approve() {
     const manager = page.getByRole("dialog", { name: /Work history/ });
@@ -194,13 +234,97 @@ test("portable GUI history survives a real git clone and checks actual Lean with
         exact: true,
       }),
     ).toBeVisible();
+    const conversation = page.getByRole("region", {
+      name: "Conversation",
+      exact: true,
+      includeHidden: true,
+    });
+    const chatBefore = await conversation.innerHTML();
+    let rejectTransfer = true;
+    await page.route("**/api/verification-job?*", async (route) => {
+      const response = await route.fetch();
+      if (response.status() !== 200) {
+        await route.fulfill({ response });
+        return;
+      }
+      const body = await response.json();
+      if (
+        rejectTransfer &&
+        body.data?.kind === "recorded" &&
+        body.data.phase.state === "running" &&
+        body.data.phase.stage.state === "building"
+      ) {
+        rejectTransfer = false;
+        await route.fulfill({
+          status: 503,
+          body: "Transient original-view transfer failure",
+        });
+      } else await route.fulfill({ response });
+    });
     await page
       .getByRole("button", { name: "Recheck with Lean", exact: true })
       .click();
+    await expect.poll(gate.started).toBe("started");
+    const beforeRetry = commands;
+    await page
+      .getByRole("button", { name: "Retry check status", exact: true })
+      .click();
+    await expect(page.getByRole("status")).toContainText(
+      "Building recorded module",
+    );
+    const retryCommands = commands - beforeRetry;
+    expect(retryCommands).toBe(0);
+    const running = await verificationJob(page, "work_job");
+    expect(running?.kind).toBe("recorded");
+    expect(running?.phase.state).toBe("running");
+    expect(await verificationJob(page)).toBeUndefined();
+    expect(await conversation.innerHTML()).toBe(chatBefore);
+    await page.screenshot({
+      path: info.outputPath("recorded-check-running.png"),
+    });
+    await page.getByRole("button", { name: "Stop check", exact: true }).click();
+    await expect(
+      page.getByRole("button", { name: "Recheck with Lean", exact: true }),
+    ).toBeEnabled();
+    const cancelled = await verificationJob(page, "work_job");
+    if (
+      cancelled?.kind !== "recorded" ||
+      cancelled.phase.state !== "historical"
+    )
+      throw Error("Expected retained cancelled work");
+    expect(cancelled.phase.result).toBe("cancelled");
+    expect(await conversation.innerHTML()).toBe(chatBefore);
+    await expect(
+      page.getByRole("button", { name: "Recheck with Lean", exact: true }),
+    ).toBeEnabled();
+    await gate.reset();
+    await page
+      .getByRole("button", { name: "Recheck with Lean", exact: true })
+      .click();
+    await expect.poll(gate.started).toBe("started");
+    const retried = await verificationJob(page, "work_job");
+    expect(retried?.context.job).not.toBe(running?.context.job);
+    await gate.release();
     await expect(
       page.getByText("Saved check: Passed", { exact: true }),
     ).toBeVisible({ timeout: 90_000 });
     expect(requests).toHaveLength(0);
+    const checked = await verificationJob(page, "work_job");
+    if (checked?.kind !== "recorded" || checked.phase.state !== "historical")
+      throw Error("Expected retained original work check");
+    expect(checked.phase.result).toBe("checked");
+    expect(checked.phase.inputs.work.id).toBe("identity");
+    expect(await conversation.innerHTML()).toBe(chatBefore);
+    await info.attach("recorded-work-progress.json", {
+      body: JSON.stringify({
+        running,
+        cancelled,
+        retried,
+        checked,
+        retry_commands: retryCommands,
+      }),
+      contentType: "application/json",
+    });
     await page
       .getByLabel("Progress note", { exact: true })
       .fill("The original theorem passed the real local checker.");
@@ -275,6 +399,8 @@ test("portable GUI history survives a real git clone and checks actual Lean with
         .getByText("Saved conversation", { exact: true }),
     ).toHaveCount(0);
     expect(requests).toHaveLength(count);
+    expect(await verificationJob(page, "work_job")).toBeUndefined();
+    expect(await verificationJob(page)).toBeUndefined();
     await page.getByText(/Saved conversation ·/).click();
     await expect(
       page.getByRole("region", {
@@ -351,9 +477,46 @@ test("portable GUI history survives a real git clone and checks actual Lean with
       .poll(async () => readFile(resolve(clone, "Pilot.lean"), "utf8"))
       .toBe(original);
     await idle();
+    const modelCheck = await verificationJob(page);
+    if (
+      modelCheck?.kind !== "recorded" ||
+      modelCheck.phase.state !== "historical"
+    )
+      throw Error("Expected actual model-requested work check");
+    expect(modelCheck.context.origin).toBe("model");
+    expect(modelCheck.phase.result).toBe("checked");
+    const beforeHostCheck = await verificationJob(page, "work_job");
+    expect(beforeHostCheck?.context.job).not.toBe(modelCheck.context.job);
     await page
       .getByRole("button", { name: "Recheck with Lean", exact: true })
       .click();
+    await expect
+      .poll(async () =>
+        page.evaluate(async (old) => {
+          const state = await (
+            await fetch("/api/state", {
+              headers: {
+                Authorization: `Bearer ${sessionStorage.getItem("meden-native-session")}`,
+              },
+            })
+          ).json();
+          return state.work_job.state === "ready" && state.work_job.job !== old;
+        }, beforeHostCheck?.context.job),
+      )
+      .toBe(true);
+    await idle();
+    const recovered = await verificationJob(page, "work_job");
+    if (
+      recovered?.kind !== "recorded" ||
+      recovered.phase.state !== "historical"
+    )
+      throw Error("Expected completed host recovery check");
+    expect(recovered.phase.result).toBe("checked");
+    expect(await verificationJob(page)).toEqual(modelCheck);
+    await info.attach("recorded-work-recovered.json", {
+      body: JSON.stringify({ modelCheck, recovered }),
+      contentType: "application/json",
+    });
     await expect(
       page.getByText("Saved check: Passed", { exact: true }),
     ).toBeVisible({ timeout: 90_000 });
@@ -383,11 +546,36 @@ test("portable GUI history survives a real git clone and checks actual Lean with
     ).toBeLessThan(
       continuation.indexOf("repository-provided historical context"),
     );
+    const metrics = await page.evaluate(async () =>
+      (
+        await fetch("/api/metrics", {
+          headers: {
+            Authorization: `Bearer ${sessionStorage.getItem("meden-native-session")}`,
+          },
+        })
+      ).json(),
+    );
+    for (const name of [
+      "recorded.check.total",
+      "recorded.check.lake",
+      "recorded.check.inputs",
+      "recorded.check.inspect",
+      "recorded.history.read",
+      "recorded.history.write",
+    ])
+      expect(
+        metrics.records.some((r: { name: string }) => r.name === name),
+      ).toBe(true);
+    await info.attach("recorded-work-metrics.json", {
+      body: JSON.stringify(metrics),
+      contentType: "application/json",
+    });
     await info.attach("portable-workspace", {
       body: await readFile(resolve(clone, ".meden/workspace.json")),
       contentType: "application/json",
     });
   } finally {
+    await page.unrouteAll({ behavior: "wait" });
     await stop();
     await new Promise<void>((resolve) => server.close(() => resolve()));
     await rm(root, { recursive: true, force: true });

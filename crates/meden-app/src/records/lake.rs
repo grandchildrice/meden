@@ -13,14 +13,14 @@ use std::{
 
 /// Host-observed process completion, independent of checker diagnostics.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum Outcome {
+pub enum Outcome {
     Completed,
     Cancelled,
     Inconclusive,
     Unavailable,
 }
 
-pub(crate) fn run(
+pub fn run(
     root: &Path,
     lean: &Path,
     arguments: &[String],
@@ -30,7 +30,7 @@ pub(crate) fn run(
     run_controlled(root, lean, arguments, seconds, &control)
 }
 
-pub(crate) fn run_controlled(
+pub fn run_controlled(
     root: &Path,
     lean: &Path,
     arguments: &[String],
@@ -40,7 +40,7 @@ pub(crate) fn run_controlled(
     Ok(run_observed(root, lean, arguments, seconds, control)?.0)
 }
 
-pub(crate) fn run_observed(
+pub fn run_observed(
     root: &Path,
     lean: &Path,
     arguments: &[String],
@@ -51,14 +51,17 @@ pub(crate) fn run_observed(
         !arguments.is_empty() && (1..=7200).contains(&seconds),
         "Lake needs arguments and a timeout from 1 to 7200 seconds"
     );
+    let _timing =
+        meden_runtime::metrics::Span::start(match arguments.first().map(String::as_str) {
+            Some("--meden-fingerprint") => "recorded.check.inputs",
+            Some("--meden-inspect") => "recorded.check.inspect",
+            _ => "recorded.check.lake",
+        });
     let resources = tempfile::tempdir()?;
-    std::fs::write(
-        resources.path().join("project.sh"),
-        include_str!("lean_project.sh"),
-    )?;
+    std::fs::write(resources.path().join("project.sh"), include_str!("lake.sh"))?;
     std::fs::write(
         resources.path().join("project_hash.py"),
-        include_str!("lean_project_hash.py"),
+        include_str!("lake_hash.py"),
     )?;
     if arguments.first().is_some_and(|a| a == "--meden-inspect") {
         let module = arguments
@@ -75,11 +78,11 @@ pub(crate) fn run_observed(
         );
         std::fs::write(
             resources.path().join("inspect.lean"),
-            include_str!("lean_project_inspect.lean"),
+            include_str!("lake_inspect.lean"),
         )?;
         std::fs::write(
             resources.path().join("inspect.py"),
-            include_str!("lean_project_inspect.py"),
+            include_str!("lake_inspect.py"),
         )?;
     }
     let mut command = Sandbox::lean_command(

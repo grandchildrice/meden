@@ -716,6 +716,27 @@ entry source is restored; the metadata projection/schema now lives only under
 entry. The compiler's original definition, resources and complete input checks
 still determine cache reuse; no validation or identity check is bypassed.
 
+Portable work storage, named-theorem checking, conversation checkpoints and the
+model's `check_lean_work` registration now share the application's `records`
+service. The CLI's former implementations and fixed resource copies are deleted.
+Host and model checks use the original offline Lake/theorem inspection and exact
+stored requirement under the caller's original policy. Starting executable
+project code invalidates current native project evidence at this shared boundary.
+The `.meden` format and original fixed checker resources are unchanged.
+
+Recorded work reuses the existing job publisher, tracker and revision-bound
+query. Its disjoint historical result retains the original work, engine and input
+identities plus the saved event and record digest. It cannot accept a contract or
+admit native evidence. Publication follows successful history persistence;
+premature, foreign, replaced and terminal completions cannot revive old bodies.
+Explicit host work has its own latest observation channel, displayed only in the
+work-history dialog; model-requested work uses conversation activity. The two
+channels share machinery but cannot replace one another's observation. Retry only
+reads the original body. Actual dispatch cancellation, compiler rejection,
+clone/restart and fresh model approval remain exercised through public entry
+points. This is service extraction and typed observation coverage, not new kernel
+refinement or an assurance claim about repository Lean/Lake code.
+
 This does not finish step 4: broader orchestration jobs,
 and remaining navigation waits still need work. Step 5's versioned layout/order and retirement
 requirements remain open too.

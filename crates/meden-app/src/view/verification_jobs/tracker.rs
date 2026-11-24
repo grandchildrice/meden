@@ -1,6 +1,6 @@
 //! Host clocks and actual result attribution for the observation publisher.
 //! This adapter never constructs or consumes kernel authority.
-use super::{Reference, Summary};
+use crate::project::{Reference, Summary};
 use crate::{
     verification::Contract,
     view::verification_jobs::{Completion, Observation, Publisher},
@@ -12,14 +12,14 @@ use meden_runtime::{
 };
 use std::{sync::atomic::Ordering, time::Instant};
 
-pub(super) struct Progress<'a> {
+pub(crate) struct Progress<'a> {
     publisher: &'a Publisher,
     observation: Option<Observation>,
     started: Instant,
     control: &'a Control,
 }
 impl<'a> Progress<'a> {
-    pub(super) fn new(
+    pub(crate) fn new(
         publisher: &'a Publisher,
         reference: &Reference,
         contract: &Contract,
@@ -32,7 +32,7 @@ impl<'a> Progress<'a> {
             control,
         }
     }
-    pub(super) fn proposal(
+    pub(crate) fn proposal(
         publisher: &'a Publisher,
         session: &str,
         contract: &Contract,
@@ -45,42 +45,76 @@ impl<'a> Progress<'a> {
             control,
         }
     }
-    pub(super) fn recording_proposal(&self) {
+    pub(crate) fn recording_proposal(&self) {
         self.publisher
             .recording_proposal(self.observation.as_ref(), self.elapsed());
+    }
+    pub(crate) fn recorded(
+        publisher: &'a Publisher,
+        session: &[u8],
+        id: &str,
+        control: &'a Control,
+        origin: super::RecordedOrigin,
+    ) -> Self {
+        Self {
+            publisher,
+            observation: publisher.begin_recorded(session, id, origin),
+            started: Instant::now(),
+            control,
+        }
+    }
+    pub(crate) fn work(&self, work: &crate::records::Work) {
+        self.publisher
+            .recorded_work(self.observation.as_ref(), self.elapsed(), work);
+    }
+    pub(crate) fn engine(&self, engine: &str) {
+        self.publisher
+            .recorded_engine(self.observation.as_ref(), self.elapsed(), engine);
+    }
+    pub(crate) fn inputs(&self, source: &str) {
+        self.publisher
+            .recorded_source(self.observation.as_ref(), self.elapsed(), source);
+    }
+    pub(crate) fn step(&self, next: super::recorded::Step) {
+        self.publisher
+            .recorded_step(self.observation.as_ref(), self.elapsed(), next);
+    }
+    pub(crate) fn finish_recorded(self, result: &Result<crate::records::store::Observation>) {
+        self.complete(result, Completion::Recorded, FailureKind::Unavailable);
     }
     fn elapsed(&self) -> u32 {
         u32::try_from(self.started.elapsed().as_millis()).unwrap_or(u32::MAX)
     }
-    pub(super) fn source(&self, source: &str) {
+    pub(crate) fn source(&self, source: &str) {
         self.publisher.source(
             self.observation.as_ref(),
             self.elapsed(),
-            super::hash(source.as_bytes()),
+            crate::project::hash(source.as_bytes()),
         );
     }
-    pub(super) fn checking(&self, inputs: &Inputs) {
+    pub(crate) fn checking(&self, inputs: &Inputs) {
         self.publisher
             .checking(self.observation.as_ref(), self.elapsed(), inputs);
     }
-    pub(super) fn refreshing(&self) {
+    pub(crate) fn refreshing(&self) {
         self.publisher
             .refreshing(self.observation.as_ref(), self.elapsed());
     }
-    pub(super) fn retaining(&self) {
+    pub(crate) fn retaining(&self) {
         self.publisher
             .retaining(self.observation.as_ref(), self.elapsed());
     }
-    pub(super) fn finish(self, result: &Result<Summary>) {
-        self.complete(result, Completion::Admitted);
+    pub(crate) fn finish(self, result: &Result<Summary>) {
+        self.complete(result, Completion::Admitted, FailureKind::Inconclusive);
     }
-    pub(super) fn finish_proposal(self, result: &Result<Summary>) {
-        self.complete(result, Completion::Proposed);
+    pub(crate) fn finish_proposal(self, result: &Result<Summary>) {
+        self.complete(result, Completion::Proposed, FailureKind::Inconclusive);
     }
-    fn complete<'r>(
+    fn complete<'r, T>(
         mut self,
-        result: &'r Result<Summary>,
-        success: impl FnOnce(&'r Summary) -> Completion<'r>,
+        result: &'r Result<T>,
+        success: impl FnOnce(&'r T) -> Completion<'r>,
+        unavailable: FailureKind,
     ) {
         let message;
         let outcome = match result {
@@ -93,7 +127,7 @@ impl<'a> Progress<'a> {
                     Completion::Failed(
                         error
                             .downcast_ref::<Failure>()
-                            .map_or(FailureKind::Inconclusive, |failure| failure.kind),
+                            .map_or(unavailable, |failure| failure.kind),
                         &message,
                     )
                 }

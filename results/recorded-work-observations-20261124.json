@@ -1,0 +1,1471 @@
+{
+  "date": "2026-11-24",
+  "source_base_revision": "da412e617012c57509ff4d361b12e062c7503228",
+  "scope": "Shared portable records/checking/history/model-tool service and historical job progress/timing. Original offline Lean/Lake resources and authority semantics retained; no core/runtime/agent/model-transport changes or compatibility fallback.",
+  "candidate": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/9a6a58c731a82ca95d6eca9b194ff76e5039a84e0c4898f023ce5660003b0b2c/meden",
+    "sha256": "9a6a58c731a82ca95d6eca9b194ff76e5039a84e0c4898f023ce5660003b0b2c"
+  },
+  "deployment": {
+    "binary_sha256": "9a6a58c731a82ca95d6eca9b194ff76e5039a84e0c4898f023ce5660003b0b2c",
+    "assets_sha256": "77905f9e5294756584b6c0996b5701928716f43dd4e754c7375e814d3ba107da",
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/9a6a58c731a82ca95d6eca9b194ff76e5039a84e0c4898f023ce5660003b0b2c-77905f9e52947565"
+  },
+  "ownership": {
+    "service": "crates/meden-app/src/records",
+    "deleted": "CLI handoff, lean_project, lean_work and session/history implementations and duplicate checker resources; project-local progress tracker moved to the shared publisher.",
+    "execution": "Original caller policy, offline Lake build and actual named-theorem elaboration. If a live project owner exists, current native evidence is invalidated before executable project code. Fixed history persistence retains the original policy after cancellation.",
+    "observation": "Existing publisher/tracker/query machinery, with disjoint project and recorded kinds. Historical work cannot accept a contract or admit native evidence. Original work/engine/source/event/record identities checked after successful persistence.",
+    "presentation": "Independent latest channels for explicitly sent model turns and explicit host work; a host check cannot replace conversation progress. Local Retry only transfers bytes. No new tab, execution controller, receipt or grant."
+  },
+  "checks": {
+    "gates": [
+      {
+        "phase": "rust",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "clippy",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "rustdoc",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "typecheck",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "typescript",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "architecture",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "format",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "schema",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "algorithm-budget",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "python-lint",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "tui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "gui-all",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "budget-normal",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "budget-reduced",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "rust_passed": 340,
+    "typescript_passed": 43,
+    "architecture_passed": 33,
+    "owned_data_port_sources": 47,
+    "native_schemas": 37,
+    "tui": {
+      "passed": 35,
+      "skipped": 0,
+      "binary_sha256": "9a6a58c731a82ca95d6eca9b194ff76e5039a84e0c4898f023ce5660003b0b2c",
+      "decoded_inspection": {
+        "screens": [
+          {
+            "case": "test_model_repairs_a_lean_work_item_from_real_checker_feedback[True]-853f24fd4e",
+            "trace": "/tmp/meden-ux-recorded-v1-20261124/test_model_repairs_a_lean_work_item_from_real_checker_feedback[True]-853f24fd4e/screens.jsonl",
+            "seconds": 5.267,
+            "observed": "LEAN-MODEL-REPAIRED"
+          },
+          {
+            "case": "test_model_repairs_a_lean_work_item_from_real_checker_feedback[True]-853f24fd4e",
+            "trace": "/tmp/meden-ux-recorded-v1-20261124/test_model_repairs_a_lean_work_item_from_real_checker_feedback[True]-853f24fd4e/screens.jsonl",
+            "seconds": 5.178,
+            "observed": "Choose a model connection"
+          },
+          {
+            "case": "test_model_repairs_a_lean_work_item_from_real_checker_feedback[False]-5a0155866b",
+            "trace": "/tmp/meden-ux-recorded-v1-20261124/test_model_repairs_a_lean_work_item_from_real_checker_feedback[False]-5a0155866b/screens.jsonl",
+            "seconds": 0.925,
+            "observed": "Lean work checker unavailable"
+          },
+          {
+            "case": "test_portable_check_is_cancellable_without_a_processor_grant-f6843d93dd",
+            "trace": "/tmp/meden-ux-recorded-v1-20261124/test_portable_check_is_cancellable_without_a_processor_grant-f6843d93dd/screens.jsonl",
+            "seconds": 14.18,
+            "observed": "Recorded check: passed"
+          },
+          {
+            "case": "test_portable_work_clones_history_checks_locally_and_requires_fresh_re-ffb3cafaf2",
+            "trace": "/tmp/meden-ux-recorded-v1-20261124/test_portable_work_clones_history_checks_locally_and_requires_fresh_re-ffb3cafaf2/screens.jsonl",
+            "seconds": 9.262,
+            "observed": "PORTABLE-RESUMED"
+          },
+          {
+            "case": "test_portable_work_clones_history_checks_locally_and_requires_fresh_re-ffb3cafaf2",
+            "trace": "/tmp/meden-ux-recorded-v1-20261124/test_portable_work_clones_history_checks_locally_and_requires_fresh_re-ffb3cafaf2/screens.jsonl",
+            "seconds": 6.181,
+            "observed": "Choose a model connection"
+          },
+          {
+            "case": "test_finite_contract_real_refutation_repair_staleness_and_restart-0a1f467300",
+            "trace": "/tmp/meden-ux-recorded-v1-20261124/test_finite_contract_real_refutation_repair_staleness_and_restart-0a1f467300/screens.jsonl",
+            "seconds": 2.124,
+            "observed": "independently evaluated counterexample"
+          },
+          {
+            "case": "test_finite_contract_real_refutation_repair_staleness_and_restart-0a1f467300",
+            "trace": "/tmp/meden-ux-recorded-v1-20261124/test_finite_contract_real_refutation_repair_staleness_and_restart-0a1f467300/screens.jsonl",
+            "seconds": 2.29,
+            "observed": "Choose a model connection"
+          },
+          {
+            "case": "test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa",
+            "trace": "/tmp/meden-ux-recorded-v1-20261124/test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa/screens.jsonl",
+            "seconds": 72.052,
+            "observed": "Lake source inventory changed"
+          },
+          {
+            "case": "test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa",
+            "trace": "/tmp/meden-ux-recorded-v1-20261124/test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa/screens.jsonl",
+            "seconds": 72.032,
+            "observed": "Choose a model connection"
+          },
+          {
+            "case": "test_portable_check_is_cancellable_without_a_processor_grant-f6843d93dd",
+            "trace": "/tmp/meden-ux-recorded-v1-20261124/test_portable_check_is_cancellable_without_a_processor_grant-f6843d93dd/screens.jsonl",
+            "seconds": 1.506,
+            "observed": "Portable work stopped: offline Lean check failed / interrupted; retained output and explicit retry"
+          }
+        ],
+        "scope": "Decoded sampled public TUI screens inspected for original requirements, historical theorem checks, cancellation recovery, typed unavailable stop, bounded refutation/repair and fresh restart approval. Scripted inference and installed Lean/Z3; not live-model or cold-install evidence."
+      }
+    },
+    "browser": [
+      {
+        "report": "target/gui-recorded-v1-all-report",
+        "stats": {
+          "total": 69,
+          "expected": 69,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        }
+      },
+      {
+        "report": "target/gui-recorded-v1-budget-normal-report",
+        "stats": {
+          "total": 2,
+          "expected": 2,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        }
+      },
+      {
+        "report": "target/gui-recorded-v1-budget-reduced-report",
+        "stats": {
+          "total": 2,
+          "expected": 2,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        }
+      },
+      {
+        "report": "target/gui-recorded-final-portable-report",
+        "stats": {
+          "total": 1,
+          "expected": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        }
+      }
+    ],
+    "final_portable_scope": "The final targeted rerun strengthens completion: wait for a new host job, its terminal saved result, and unchanged original model publication, rather than an older Passed history label.",
+    "final_followups": {
+      "targeted_portable_passed": 1,
+      "typecheck": "Passed after final test changes.",
+      "format": "Passed after final documentation changes.",
+      "diff_whitespace": "Passed."
+    }
+  },
+  "regressions": [
+    "Original work/engine/input/result binding, exact repeated immutable reads and no accepted/admitted fields.",
+    "Typed host outcome selects historical result; diagnostic words cannot classify it.",
+    "Premature/foreign/source-changed completions retire bytes; replaced/backwards/terminal callbacks cannot revive them.",
+    "Actual held offline Lake dispatch, failed transfer/zero-command Retry, retained cancellation, distinct real retry, unchanged conversation DOM and unapproved clone restart.",
+    "Actual compiler rejection, model file repair plus shared check_lean_work, then a separately completed host recheck retaining the same model publication.",
+    "Original tool capability/path refusals occur before history/checker execution."
+  ],
+  "portable_observations": {
+    "progress": {
+      "running": {
+        "kind": "recorded",
+        "context": {
+          "origin": "host",
+          "job": "sha256:f6ccee3cfa7b769a47ac95bf689a7dab7b7713154886ce8f88ee4d4a9f47d059",
+          "session": "e6a68e9734add7a240a45559e33529313696006b1e9bb019e8def1802fccb734",
+          "id": "identity"
+        },
+        "elapsed_ms": 533,
+        "phase": {
+          "state": "running",
+          "stage": {
+            "state": "building",
+            "inputs": {
+              "work": {
+                "id": "identity",
+                "title": "Natural-number identity",
+                "requirement": "Every natural number equals itself.",
+                "module": "Pilot",
+                "theorems": [
+                  "portable_identity"
+                ],
+                "next": "Read the theorem and preserve its statement."
+              },
+              "engine_sha256": "sha256:a7bdefe4ee3ae500f64cf10b37df9fe98b7e8cd164647f805d6497bbb3113684",
+              "source_revision": "sha256:d298c8169475592adfed0ebfaaba72e9a4d0a2c519a37352eaea2edc40c5ecb0"
+            }
+          }
+        }
+      },
+      "cancelled": {
+        "kind": "recorded",
+        "context": {
+          "origin": "host",
+          "job": "sha256:f6ccee3cfa7b769a47ac95bf689a7dab7b7713154886ce8f88ee4d4a9f47d059",
+          "session": "e6a68e9734add7a240a45559e33529313696006b1e9bb019e8def1802fccb734",
+          "id": "identity"
+        },
+        "elapsed_ms": 1347,
+        "phase": {
+          "state": "historical",
+          "inputs": {
+            "work": {
+              "id": "identity",
+              "title": "Natural-number identity",
+              "requirement": "Every natural number equals itself.",
+              "module": "Pilot",
+              "theorems": [
+                "portable_identity"
+              ],
+              "next": "Read the theorem and preserve its statement."
+            },
+            "engine_sha256": "sha256:a7bdefe4ee3ae500f64cf10b37df9fe98b7e8cd164647f805d6497bbb3113684",
+            "source_revision": "sha256:d298c8169475592adfed0ebfaaba72e9a4d0a2c519a37352eaea2edc40c5ecb0"
+          },
+          "event": "event_1c3bb516b42d16575f25f2211a69d3042b66750660159fe331625d64dc442b22",
+          "record_sha256": "sha256:e53535fc3b9a04ef412742523ebe0d1a800e7a4eb5a0488c4fba36697eac2bd0",
+          "result": "cancelled"
+        }
+      },
+      "retried": {
+        "kind": "recorded",
+        "context": {
+          "origin": "host",
+          "job": "sha256:e2622106156c8456cd2325ebae7ca9a7186ffe0a38f1b04be3eeeb3967104022",
+          "session": "e6a68e9734add7a240a45559e33529313696006b1e9bb019e8def1802fccb734",
+          "id": "identity"
+        },
+        "elapsed_ms": 326,
+        "phase": {
+          "state": "running",
+          "stage": {
+            "state": "building",
+            "inputs": {
+              "work": {
+                "id": "identity",
+                "title": "Natural-number identity",
+                "requirement": "Every natural number equals itself.",
+                "module": "Pilot",
+                "theorems": [
+                  "portable_identity"
+                ],
+                "next": "Read the theorem and preserve its statement."
+              },
+              "engine_sha256": "sha256:a7bdefe4ee3ae500f64cf10b37df9fe98b7e8cd164647f805d6497bbb3113684",
+              "source_revision": "sha256:d298c8169475592adfed0ebfaaba72e9a4d0a2c519a37352eaea2edc40c5ecb0"
+            }
+          }
+        }
+      },
+      "checked": {
+        "kind": "recorded",
+        "context": {
+          "origin": "host",
+          "job": "sha256:e2622106156c8456cd2325ebae7ca9a7186ffe0a38f1b04be3eeeb3967104022",
+          "session": "e6a68e9734add7a240a45559e33529313696006b1e9bb019e8def1802fccb734",
+          "id": "identity"
+        },
+        "elapsed_ms": 3096,
+        "phase": {
+          "state": "historical",
+          "inputs": {
+            "work": {
+              "id": "identity",
+              "title": "Natural-number identity",
+              "requirement": "Every natural number equals itself.",
+              "module": "Pilot",
+              "theorems": [
+                "portable_identity"
+              ],
+              "next": "Read the theorem and preserve its statement."
+            },
+            "engine_sha256": "sha256:a7bdefe4ee3ae500f64cf10b37df9fe98b7e8cd164647f805d6497bbb3113684",
+            "source_revision": "sha256:d298c8169475592adfed0ebfaaba72e9a4d0a2c519a37352eaea2edc40c5ecb0"
+          },
+          "event": "event_35e303a3f80588c71411b15b57feb168b03f2d9a180de0954238dc797407f331",
+          "record_sha256": "sha256:997a67c11ba3825f6aa7f54470271fc97058893e70d45b9e3dc0440ed1334ad3",
+          "result": "checked"
+        }
+      },
+      "retry_commands": 0
+    },
+    "recovered": {
+      "modelCheck": {
+        "kind": "recorded",
+        "context": {
+          "origin": "model",
+          "job": "sha256:d52f3e438b5bdd0fe3d8afba0b47b5698babade128b0b3ae75fc64a6b9376535",
+          "session": "03db6abf9eabd52f3850f5f8288de53ccf7a3b2de76b9c21fde9e14c0665130c",
+          "id": "identity"
+        },
+        "elapsed_ms": 2472,
+        "phase": {
+          "state": "historical",
+          "inputs": {
+            "work": {
+              "id": "identity",
+              "title": "Natural-number identity",
+              "requirement": "Every natural number equals itself.",
+              "module": "Pilot",
+              "theorems": [
+                "portable_identity"
+              ],
+              "next": "Inspect the same theorem after cloning."
+            },
+            "engine_sha256": "sha256:a7bdefe4ee3ae500f64cf10b37df9fe98b7e8cd164647f805d6497bbb3113684",
+            "source_revision": "sha256:d298c8169475592adfed0ebfaaba72e9a4d0a2c519a37352eaea2edc40c5ecb0"
+          },
+          "event": "event_8f92efbe19b5bddd8b6d891a0b2a2d9056499bcaada9e49507d439663fd08128",
+          "record_sha256": "sha256:af12009808ade884bc714872d52a817820a8266ff6542a973c1d253b9860fd2e",
+          "result": "checked"
+        }
+      },
+      "recovered": {
+        "kind": "recorded",
+        "context": {
+          "origin": "host",
+          "job": "sha256:fada42c3b9b8f4824e515bb95cb35e5716e7520cad0c6d00f20025c566b5a048",
+          "session": "03db6abf9eabd52f3850f5f8288de53ccf7a3b2de76b9c21fde9e14c0665130c",
+          "id": "identity"
+        },
+        "elapsed_ms": 2608,
+        "phase": {
+          "state": "historical",
+          "inputs": {
+            "work": {
+              "id": "identity",
+              "title": "Natural-number identity",
+              "requirement": "Every natural number equals itself.",
+              "module": "Pilot",
+              "theorems": [
+                "portable_identity"
+              ],
+              "next": "Inspect the same theorem after cloning."
+            },
+            "engine_sha256": "sha256:a7bdefe4ee3ae500f64cf10b37df9fe98b7e8cd164647f805d6497bbb3113684",
+            "source_revision": "sha256:d298c8169475592adfed0ebfaaba72e9a4d0a2c519a37352eaea2edc40c5ecb0"
+          },
+          "event": "event_e65449c611877a2a4b4ae4145006a885b1fb28a51586a9043468fb91cf271ecb",
+          "record_sha256": "sha256:4e53bc58419277075d319121739c6bdc2ea55519374c636525acf6ca0a315616",
+          "result": "checked"
+        }
+      }
+    },
+    "spans": [
+      {
+        "context": {
+          "trace": 7,
+          "span": 7
+        },
+        "parent": null,
+        "name": "recorded.history.read",
+        "start_us": 185795,
+        "wall_us": 33347,
+        "thread_cpu_us": 2903
+      },
+      {
+        "context": {
+          "trace": 12,
+          "span": 23
+        },
+        "parent": 14,
+        "name": "recorded.history.read",
+        "start_us": 331168,
+        "wall_us": 22266,
+        "thread_cpu_us": 1843
+      },
+      {
+        "context": {
+          "trace": 12,
+          "span": 25
+        },
+        "parent": 14,
+        "name": "recorded.history.read",
+        "start_us": 353502,
+        "wall_us": 32160,
+        "thread_cpu_us": 1755
+      },
+      {
+        "context": {
+          "trace": 484,
+          "span": 491
+        },
+        "parent": 490,
+        "name": "recorded.history.read",
+        "start_us": 31915592,
+        "wall_us": 32625,
+        "thread_cpu_us": 2209
+      },
+      {
+        "context": {
+          "trace": 484,
+          "span": 497
+        },
+        "parent": 490,
+        "name": "recorded.check.inputs",
+        "start_us": 31948443,
+        "wall_us": 165269,
+        "thread_cpu_us": 14111
+      },
+      {
+        "context": {
+          "trace": 484,
+          "span": 505
+        },
+        "parent": 490,
+        "name": "recorded.history.write",
+        "start_us": 32113838,
+        "wall_us": 21107,
+        "thread_cpu_us": 774
+      },
+      {
+        "context": {
+          "trace": 484,
+          "span": 508
+        },
+        "parent": 490,
+        "name": "recorded.check.lake",
+        "start_us": 32135053,
+        "wall_us": 412326,
+        "thread_cpu_us": 14202
+      },
+      {
+        "context": {
+          "trace": 484,
+          "span": 520
+        },
+        "parent": 490,
+        "name": "recorded.check.inspect",
+        "start_us": 32547592,
+        "wall_us": 1627803,
+        "thread_cpu_us": 20848
+      },
+      {
+        "context": {
+          "trace": 484,
+          "span": 536
+        },
+        "parent": 490,
+        "name": "recorded.check.inputs",
+        "start_us": 34175584,
+        "wall_us": 194726,
+        "thread_cpu_us": 16105
+      },
+      {
+        "context": {
+          "trace": 484,
+          "span": 546
+        },
+        "parent": 490,
+        "name": "recorded.history.write",
+        "start_us": 34370660,
+        "wall_us": 42845,
+        "thread_cpu_us": 2109
+      },
+      {
+        "context": {
+          "trace": 484,
+          "span": 490
+        },
+        "parent": 487,
+        "name": "recorded.check.total",
+        "start_us": 31915587,
+        "wall_us": 2498214,
+        "thread_cpu_us": 71846
+      },
+      {
+        "context": {
+          "trace": 484,
+          "span": 550
+        },
+        "parent": 487,
+        "name": "recorded.history.read",
+        "start_us": 34413894,
+        "wall_us": 44028,
+        "thread_cpu_us": 3371
+      },
+      {
+        "context": {
+          "trace": 484,
+          "span": 552
+        },
+        "parent": 487,
+        "name": "recorded.history.read",
+        "start_us": 34458024,
+        "wall_us": 45840,
+        "thread_cpu_us": 5083
+      },
+      {
+        "context": {
+          "trace": 561,
+          "span": 567
+        },
+        "parent": 565,
+        "name": "recorded.history.read",
+        "start_us": 35223005,
+        "wall_us": 33143,
+        "thread_cpu_us": 2786
+      },
+      {
+        "context": {
+          "trace": 561,
+          "span": 571
+        },
+        "parent": 565,
+        "name": "recorded.history.read",
+        "start_us": 35256245,
+        "wall_us": 42548,
+        "thread_cpu_us": 1962
+      },
+      {
+        "context": {
+          "trace": 580,
+          "span": 585
+        },
+        "parent": 583,
+        "name": "recorded.history.read",
+        "start_us": 35724857,
+        "wall_us": 32623,
+        "thread_cpu_us": 2167
+      },
+      {
+        "context": {
+          "trace": 580,
+          "span": 593
+        },
+        "parent": 583,
+        "name": "recorded.history.read",
+        "start_us": 35768385,
+        "wall_us": 43588,
+        "thread_cpu_us": 3004
+      },
+      {
+        "context": {
+          "trace": 580,
+          "span": 601
+        },
+        "parent": 600,
+        "name": "recorded.history.read",
+        "start_us": 35874557,
+        "wall_us": 32461,
+        "thread_cpu_us": 2072
+      },
+      {
+        "context": {
+          "trace": 580,
+          "span": 605
+        },
+        "parent": 600,
+        "name": "recorded.check.inputs",
+        "start_us": 35907189,
+        "wall_us": 195692,
+        "thread_cpu_us": 11647
+      },
+      {
+        "context": {
+          "trace": 580,
+          "span": 612
+        },
+        "parent": 600,
+        "name": "recorded.history.write",
+        "start_us": 36103135,
+        "wall_us": 32438,
+        "thread_cpu_us": 1946
+      },
+      {
+        "context": {
+          "trace": 580,
+          "span": 621
+        },
+        "parent": 600,
+        "name": "recorded.check.lake",
+        "start_us": 36135709,
+        "wall_us": 412306,
+        "thread_cpu_us": 14105
+      },
+      {
+        "context": {
+          "trace": 580,
+          "span": 635
+        },
+        "parent": 600,
+        "name": "recorded.check.inspect",
+        "start_us": 36548124,
+        "wall_us": 1582694,
+        "thread_cpu_us": 15809
+      },
+      {
+        "context": {
+          "trace": 580,
+          "span": 655
+        },
+        "parent": 600,
+        "name": "recorded.check.inputs",
+        "start_us": 38130940,
+        "wall_us": 184530,
+        "thread_cpu_us": 13275
+      },
+      {
+        "context": {
+          "trace": 580,
+          "span": 665
+        },
+        "parent": 600,
+        "name": "recorded.history.write",
+        "start_us": 38315619,
+        "wall_us": 31488,
+        "thread_cpu_us": 1101
+      },
+      {
+        "context": {
+          "trace": 580,
+          "span": 600
+        },
+        "parent": 583,
+        "name": "recorded.check.total",
+        "start_us": 35874553,
+        "wall_us": 2472857,
+        "thread_cpu_us": 61194
+      },
+      {
+        "context": {
+          "trace": 580,
+          "span": 706
+        },
+        "parent": 583,
+        "name": "recorded.history.read",
+        "start_us": 38834681,
+        "wall_us": 32584,
+        "thread_cpu_us": 2204
+      },
+      {
+        "context": {
+          "trace": 580,
+          "span": 708
+        },
+        "parent": 583,
+        "name": "recorded.history.write",
+        "start_us": 38867722,
+        "wall_us": 31467,
+        "thread_cpu_us": 1116
+      },
+      {
+        "context": {
+          "trace": 580,
+          "span": 710
+        },
+        "parent": 583,
+        "name": "recorded.history.read",
+        "start_us": 38899237,
+        "wall_us": 33555,
+        "thread_cpu_us": 3173
+      },
+      {
+        "context": {
+          "trace": 738,
+          "span": 745
+        },
+        "parent": 744,
+        "name": "recorded.history.read",
+        "start_us": 39439176,
+        "wall_us": 47300,
+        "thread_cpu_us": 6732
+      },
+      {
+        "context": {
+          "trace": 738,
+          "span": 755
+        },
+        "parent": 744,
+        "name": "recorded.check.inputs",
+        "start_us": 39486776,
+        "wall_us": 240512,
+        "thread_cpu_us": 17595
+      },
+      {
+        "context": {
+          "trace": 738,
+          "span": 768
+        },
+        "parent": 744,
+        "name": "recorded.history.write",
+        "start_us": 39727455,
+        "wall_us": 42871,
+        "thread_cpu_us": 2349
+      },
+      {
+        "context": {
+          "trace": 738,
+          "span": 771
+        },
+        "parent": 744,
+        "name": "recorded.check.lake",
+        "start_us": 39770663,
+        "wall_us": 362824,
+        "thread_cpu_us": 21009
+      },
+      {
+        "context": {
+          "trace": 738,
+          "span": 783
+        },
+        "parent": 744,
+        "name": "recorded.check.inspect",
+        "start_us": 40133701,
+        "wall_us": 1642001,
+        "thread_cpu_us": 20638
+      },
+      {
+        "context": {
+          "trace": 738,
+          "span": 803
+        },
+        "parent": 744,
+        "name": "recorded.check.inputs",
+        "start_us": 41775834,
+        "wall_us": 228644,
+        "thread_cpu_us": 16193
+      },
+      {
+        "context": {
+          "trace": 738,
+          "span": 813
+        },
+        "parent": 744,
+        "name": "recorded.history.write",
+        "start_us": 42004747,
+        "wall_us": 43377,
+        "thread_cpu_us": 2672
+      },
+      {
+        "context": {
+          "trace": 738,
+          "span": 744
+        },
+        "parent": 741,
+        "name": "recorded.check.total",
+        "start_us": 39439169,
+        "wall_us": 2609324,
+        "thread_cpu_us": 88934
+      },
+      {
+        "context": {
+          "trace": 738,
+          "span": 817
+        },
+        "parent": 741,
+        "name": "recorded.history.read",
+        "start_us": 42048604,
+        "wall_us": 47488,
+        "thread_cpu_us": 6715
+      },
+      {
+        "context": {
+          "trace": 738,
+          "span": 819
+        },
+        "parent": 741,
+        "name": "recorded.history.write",
+        "start_us": 42096944,
+        "wall_us": 43103,
+        "thread_cpu_us": 2411
+      },
+      {
+        "context": {
+          "trace": 738,
+          "span": 821
+        },
+        "parent": 741,
+        "name": "recorded.history.read",
+        "start_us": 42140140,
+        "wall_us": 47947,
+        "thread_cpu_us": 7166
+      }
+    ],
+    "evicted": 0,
+    "limits": "Functional instrumentation with scripted inference, actual installed Lean and deliberately held dispatch under concurrent browser validation. Not natural throughput, live-model, cold-install, confidentiality or new refinement evidence. Wall intervals may nest; current-thread CPU excludes child processes."
+  },
+  "deployed_stage_timings": {
+    "observations": [
+      {
+        "project": "riemann",
+        "evicted": 0,
+        "records": [
+          {
+            "context": {
+              "trace": 157,
+              "span": 160
+            },
+            "parent": 158,
+            "name": "gui.job",
+            "start_us": 29560352,
+            "wall_us": 20699115,
+            "thread_cpu_us": 2579607
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 168
+            },
+            "parent": 160,
+            "name": "analysis.extract",
+            "start_us": 29602084,
+            "wall_us": 19244312,
+            "thread_cpu_us": 1211041
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 308
+            },
+            "parent": 168,
+            "name": "atlas.project.prepare",
+            "start_us": 32027007,
+            "wall_us": 16153115,
+            "thread_cpu_us": 112677
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 319
+            },
+            "parent": 308,
+            "name": "process.run",
+            "start_us": 32524334,
+            "wall_us": 15655701,
+            "thread_cpu_us": 72939
+          },
+          {
+            "context": {
+              "trace": 11,
+              "span": 13
+            },
+            "parent": 11,
+            "name": "gui.job",
+            "start_us": 567794,
+            "wall_us": 6381179,
+            "thread_cpu_us": 2912036
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 179
+            },
+            "parent": 168,
+            "name": "analysis.select_roots",
+            "start_us": 29727763,
+            "wall_us": 1889210,
+            "thread_cpu_us": 668890
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 185
+            },
+            "parent": 179,
+            "name": "analysis.discover_layout",
+            "start_us": 29769611,
+            "wall_us": 1805289,
+            "thread_cpu_us": 666103
+          },
+          {
+            "context": {
+              "trace": 11,
+              "span": 62
+            },
+            "parent": 13,
+            "name": "view.inventory.materialize",
+            "start_us": 5747954,
+            "wall_us": 1189412,
+            "thread_cpu_us": 1182984
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 514
+            },
+            "parent": 160,
+            "name": "view.inventory.materialize",
+            "start_us": 49078696,
+            "wall_us": 1149338,
+            "thread_cpu_us": 1146528
+          },
+          {
+            "context": {
+              "trace": 11,
+              "span": 45
+            },
+            "parent": 13,
+            "name": "process.run",
+            "start_us": 3491891,
+            "wall_us": 713974,
+            "thread_cpu_us": 8345
+          },
+          {
+            "context": {
+              "trace": 1,
+              "span": 1
+            },
+            "parent": null,
+            "name": "sandbox.prepare",
+            "start_us": 0,
+            "wall_us": 511725,
+            "thread_cpu_us": 39975
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 309
+            },
+            "parent": 308,
+            "name": "sandbox.prepare",
+            "start_us": 32027035,
+            "wall_us": 496913,
+            "thread_cpu_us": 39246
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 465
+            },
+            "parent": 168,
+            "name": "analysis.cache.validate",
+            "start_us": 48202908,
+            "wall_us": 451226,
+            "thread_cpu_us": 46253
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 289
+            },
+            "parent": 168,
+            "name": "analysis.metadata.validate",
+            "start_us": 31616977,
+            "wall_us": 375249,
+            "thread_cpu_us": 10559
+          }
+        ]
+      },
+      {
+        "project": "ethlib",
+        "evicted": 0,
+        "records": [
+          {
+            "context": {
+              "trace": 13,
+              "span": 15
+            },
+            "parent": 13,
+            "name": "gui.job",
+            "start_us": 2236539,
+            "wall_us": 22488867,
+            "thread_cpu_us": 4681296
+          },
+          {
+            "context": {
+              "trace": 8,
+              "span": 8
+            },
+            "parent": null,
+            "name": "recorded.history.read",
+            "start_us": 436163,
+            "wall_us": 1651077,
+            "thread_cpu_us": 971915
+          },
+          {
+            "context": {
+              "trace": 446,
+              "span": 449
+            },
+            "parent": 447,
+            "name": "gui.job",
+            "start_us": 55192773,
+            "wall_us": 1649023,
+            "thread_cpu_us": 700735
+          },
+          {
+            "context": {
+              "trace": 13,
+              "span": 345
+            },
+            "parent": 15,
+            "name": "recorded.history.read",
+            "start_us": 23011949,
+            "wall_us": 1621843,
+            "thread_cpu_us": 972384
+          },
+          {
+            "context": {
+              "trace": 13,
+              "span": 339
+            },
+            "parent": 15,
+            "name": "recorded.history.read",
+            "start_us": 21224641,
+            "wall_us": 1606042,
+            "thread_cpu_us": 958555
+          },
+          {
+            "context": {
+              "trace": 446,
+              "span": 457
+            },
+            "parent": 449,
+            "name": "analysis.extract",
+            "start_us": 55234110,
+            "wall_us": 867950,
+            "thread_cpu_us": 448760
+          },
+          {
+            "context": {
+              "trace": 13,
+              "span": 337
+            },
+            "parent": 15,
+            "name": "view.inventory.materialize",
+            "start_us": 20411822,
+            "wall_us": 778802,
+            "thread_cpu_us": 777010
+          },
+          {
+            "context": {
+              "trace": 8,
+              "span": 9
+            },
+            "parent": 8,
+            "name": "process.run",
+            "start_us": 436300,
+            "wall_us": 698650,
+            "thread_cpu_us": 22701
+          },
+          {
+            "context": {
+              "trace": 13,
+              "span": 346
+            },
+            "parent": 345,
+            "name": "process.run",
+            "start_us": 23012153,
+            "wall_us": 657061,
+            "thread_cpu_us": 10196
+          },
+          {
+            "context": {
+              "trace": 13,
+              "span": 340
+            },
+            "parent": 339,
+            "name": "process.run",
+            "start_us": 21224829,
+            "wall_us": 654802,
+            "thread_cpu_us": 9871
+          },
+          {
+            "context": {
+              "trace": 13,
+              "span": 273
+            },
+            "parent": 15,
+            "name": "analysis.cache.validate",
+            "start_us": 18814246,
+            "wall_us": 584001,
+            "thread_cpu_us": 74897
+          },
+          {
+            "context": {
+              "trace": 446,
+              "span": 527
+            },
+            "parent": 449,
+            "name": "analysis.cache.validate",
+            "start_us": 56218358,
+            "wall_us": 496176,
+            "thread_cpu_us": 50624
+          },
+          {
+            "context": {
+              "trace": 13,
+              "span": 307
+            },
+            "parent": 15,
+            "name": "analysis.cache.validate",
+            "start_us": 19677705,
+            "wall_us": 493577,
+            "thread_cpu_us": 68303
+          },
+          {
+            "context": {
+              "trace": 13,
+              "span": 276
+            },
+            "parent": 273,
+            "name": "analysis.metadata.validate",
+            "start_us": 18870993,
+            "wall_us": 475459,
+            "thread_cpu_us": 18350
+          }
+        ]
+      }
+    ],
+    "limits": "Fresh host snapshots include startup and explicit inspection traces. Largest selected intervals are nested and cannot be added; thread CPU excludes workers. Single post-restart observations, not interleaved throughput/speedup comparisons or substep attribution."
+  },
+  "serialized_navigation": [
+    {
+      "browser": "149.0.7827.53",
+      "motion": "no-preference",
+      "cold_analysis_store_preparation_ms": 31795.934417000004,
+      "warm_tab_two_raf_ms": [
+        24.100000023841858,
+        29.599999964237213,
+        29.69999998807907,
+        28.19999998807907,
+        27.5,
+        24,
+        28.600000023841858,
+        25.100000023841858,
+        29.099999964237213,
+        31.80000001192093
+      ],
+      "p95_ms": 31.80000001192093,
+      "maximum_p95_ms": 250,
+      "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+    },
+    {
+      "browser": "149.0.7827.53",
+      "motion": "reduce",
+      "cold_analysis_store_preparation_ms": 31810.547805,
+      "warm_tab_two_raf_ms": [
+        28.399999976158142,
+        30,
+        28.399999976158142,
+        31.100000023841858,
+        26,
+        27.600000023841858,
+        20.899999976158142,
+        33,
+        29.30000001192093,
+        38.69999998807907
+      ],
+      "p95_ms": 38.69999998807907,
+      "maximum_p95_ms": 250,
+      "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+    }
+  ],
+  "compiler_sources_unchanged": [
+    {
+      "path": "crates/meden-app/src/adapters/lake.rs",
+      "sha256": "bfb03188d670305be66d1152c47982a6bcea528b283d1e16de67ca9b8eebd8d8"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean.rs",
+      "sha256": "e64f92a04a26780fb32a9db274e1430fb142bcaad6cca8af12dab4cac65761de"
+    },
+    {
+      "path": "crates/meden-app/src/analysis/collect.rs",
+      "sha256": "755c5495ad2e80171a136ca9be194867741fc2d8db5376644a46fcb3766f194b"
+    },
+    {
+      "path": "crates/meden-app/src/analysis/layout.rs",
+      "sha256": "a6d7069ced1c8c1fcccf9349b293efc335e0a916df6ca864b4c8f30e35f1c94f"
+    },
+    {
+      "path": "crates/meden-app/src/analysis/observe.rs",
+      "sha256": "047ed863ac5571096a23ccb7196e713707a6bcae2db0b1d7b80c4674927bb7e5"
+    },
+    {
+      "path": "crates/meden-app/src/analysis/sources.rs",
+      "sha256": "88c5be999f8ba6a705dbcff8238f0648f3825f1e0fe61de3605a04075837c03a"
+    },
+    {
+      "path": "crates/meden-app/src/compiler.rs",
+      "sha256": "c2efc23d024921aa5bb5fcfa120f1e672438f09d25d7f4a309de19469483dbc4"
+    },
+    {
+      "path": "crates/meden-app/src/adapters.rs",
+      "sha256": "ab5b5f082cb99f9321bab7f49e322a1b97177340964b6ea7c9acd3c28e3cd713"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/mod.rs",
+      "sha256": "c0f2f0d9612e0181b01aa45f06f23f4e8c04361b5381d39d1c9d40e9672b0a74"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/project.rs",
+      "sha256": "13a22dcf4deb352b9076ba8f287cd440b94fae4bb87cec33576b121bbca4288c"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/lake.rs",
+      "sha256": "e732135a0bd5f3bbc87b0be02b077fa3b307c6b7d0ce6ee964f85aa2c6eb7760"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/graph.rs",
+      "sha256": "1efb44197f9762f7db65995eec0003c704b559efc3829c1455ed73300e288c40"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/frozen.rs",
+      "sha256": "37609bb326f5ab5d061be31c8ddac907949bb435b374750dc8d1a108f49e5b10"
+    }
+  ],
+  "portable_resources": [
+    {
+      "path": "crates/meden-app/src/records/lake.sh",
+      "sha256": "22557ec91c75432b1b6a3f1d2dbe0244615d70485ea3fd02b2a2399fa70bfaae",
+      "original_bytes_preserved": true
+    },
+    {
+      "path": "crates/meden-app/src/records/lake_hash.py",
+      "sha256": "1b2b02bbf6f5af5a5b9ff943625a8e11d7e63b5d1943e43a8e6547ce02426061",
+      "original_bytes_preserved": true
+    },
+    {
+      "path": "crates/meden-app/src/records/lake_inspect.py",
+      "sha256": "cd3571cb9ca3492e76b4244151667dc80d0853f230f83eb01b829dd2e0318ead",
+      "original_bytes_preserved": true
+    },
+    {
+      "path": "crates/meden-app/src/records/lake_inspect.lean",
+      "sha256": "b04bef2d926d686d4bbbe95f257c4a19ee6b345933bce02821afecc7a062e429",
+      "original_bytes_preserved": true
+    }
+  ],
+  "actual_projects": [
+    {
+      "project": "riemann",
+      "pid": 2778922,
+      "binary_sha256": "9a6a58c731a82ca95d6eca9b194ff76e5039a84e0c4898f023ce5660003b0b2c",
+      "cache_hit": true,
+      "preparation_ms": 21313.980457999998,
+      "source_publication": "sha256:4671471a8580f25a42b2117fcc7cf5a8d25988b715b1a40cbb17b77e006bfa94",
+      "source_hash": "2063f4c8792707349ba4b3d295e779c565a63030790aae9d937d5f776d8d9184",
+      "reader_publication": "sha256:d3bca7c0ce21989bef612ac79475e72da33062b4140b13dfe87bbaf183a61be8",
+      "reader_hash": "d2c21198aaff30504f16966ddf61ce628ef7ac8632c62be3195b4e4f72e41806",
+      "inventory_files": 175187,
+      "metadata_hash": "5875c3c3432ddda379f8caf8ed411b77d30701443e5da912442935a296c3ae7a",
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "node_selection_preserves_camera_chat_and_source_line": true,
+      "selected_declaration": "PIW.AdelClassFin.DictGen.denom",
+      "verification_job": {
+        "state": "idle"
+      },
+      "work_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "preview": {
+        "state": "idle"
+      },
+      "preview_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    },
+    {
+      "project": "ethlib",
+      "pid": 2779148,
+      "binary_sha256": "9a6a58c731a82ca95d6eca9b194ff76e5039a84e0c4898f023ce5660003b0b2c",
+      "cache_hit": true,
+      "preparation_ms": 2238.4127750000007,
+      "source_publication": "sha256:c9a67ef7faab77791ab7d84fad5d7176476d3b7d5320d9f95f155b117b57e86b",
+      "source_hash": "ac220adb7270df17b304574138f8894ec78d92bc7a85c5e2e0e745edc885bb09",
+      "reader_publication": "sha256:0b79b28ff3aa227731108c7cde50cf54fa06cc447922756668b1197473b0d3ac",
+      "reader_hash": "60e647749624e65341239c16878edafe3083f1a0b0ba7ab0587b82511d80dd36",
+      "inventory_files": 2517,
+      "metadata_hash": "59b98c2e15f2f590463873351344a08a59e4aa3854a7dfb1779e635a680cb32f",
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "node_selection_preserves_camera_chat_and_source_line": true,
+      "selected_declaration": "EthLib.Networking.Gossip.GossipsubParameters",
+      "verification_job": {
+        "state": "idle"
+      },
+      "work_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "preview": {
+        "state": "idle"
+      },
+      "preview_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip/Parameters.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    }
+  ],
+  "public_connection_bindings": [
+    {
+      "project": "riemann",
+      "prior_counter": 0,
+      "current_counter": null,
+      "complete_generated_state_validation": true,
+      "public_choices_preserved": true,
+      "selected_binding_preserved": true,
+      "choices": 3,
+      "choices_sha256": "3c22392a194ffb7d071e11dc260301f76666223753be8d9da40dc00cf720afaa",
+      "running": false,
+      "authorized": false
+    },
+    {
+      "project": "ethlib",
+      "prior_counter": 0,
+      "current_counter": null,
+      "complete_generated_state_validation": true,
+      "public_choices_preserved": true,
+      "selected_binding_preserved": true,
+      "choices": 3,
+      "choices_sha256": "3c22392a194ffb7d071e11dc260301f76666223753be8d9da40dc00cf720afaa",
+      "running": false,
+      "authorized": false
+    }
+  ],
+  "deployment_preflight": "The first smoke read observed actual startup inventory work still running. The final probe waits for actual idle before exercising the original UI; no configuration/cache edits or checks were bypassed.",
+  "preflight": [
+    "Initial browser fixture could not locate the aria-hidden conversation behind its dialog; include the hidden original region for DOM comparison.",
+    "Fail the transfer at the held Building boundary, pass through actual 409 retirement, and wait for the visible operation to finish before reading its terminal body.",
+    "A hidden Stop control was not completion; wait for actual host running state. Final recovery also requires a distinct new host job and its saved result."
+  ],
+  "remaining": [
+    "Broader orchestration job read models and remaining initial preparation/navigation waits.",
+    "Versioned deterministic layout/order artifacts and obsolete-path retirement.",
+    "The separate Lake calibration still identifies complete compiled-input validation as the large prepared-open cost; this service/view extraction is not a compiler speedup claim."
+  ]
+}

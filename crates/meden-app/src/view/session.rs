@@ -90,8 +90,11 @@ pub struct State<'a> {
     /// Original accepted/proposed meaning and evidence publication availability.
     pub project: &'a super::evidence::Reader,
     #[schemars(with = "super::verification_jobs::Status")]
-    /// Actual accepted-project verification progress availability.
+    /// Actual project or historical-work check progress availability.
     pub verification_job: &'a super::verification_jobs::Reader,
+    #[schemars(with = "super::verification_jobs::Status")]
+    /// Explicit host work progress is separate from conversation activity.
+    pub work_job: &'a super::verification_jobs::Reader,
     /// Last original operation diagnostic.
     pub stopped: Option<&'a str>,
     #[schemars(with = "super::directory::Index")]
@@ -192,6 +195,7 @@ mod tests {
             reasoning: "",
             project: &evidence,
             verification_job: &jobs,
+            work_job: &jobs,
             stopped: None,
             directories: &directories,
             readers: &readers,
