@@ -772,6 +772,89 @@ test("invalid imports retain the conversation; Atlas metadata stays unconfirmed"
   );
 });
 
+test("original prototype-named declarations import, remain unknown and reopen without losing chat or camera", async ({
+  page,
+}, info) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await archivedChat(page);
+  const conversation = await page.locator(".message").allTextContents();
+  const input = page.getByRole("textbox", { name: "Message", exact: true });
+  await input.fill("Unsent original requirement");
+  for (const root of ["__proto__", "constructor", "hasOwnProperty"]) {
+    await page.getByRole("button", { name: "Settings", exact: true }).click();
+    const chooser = page.waitForEvent("filechooser");
+    await page
+      .getByRole("button", { name: "Import JSON", exact: true })
+      .click();
+    const ids = [root, "dependency", "user"];
+    await (
+      await chooser
+    ).setFiles({
+      name: "names.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(
+        JSON.stringify({
+          metadata: { projectName: "Original declaration names" },
+          nodes: ids.map((id, i) => ({
+            id,
+            shortName: id,
+            kind: "theorem",
+            filePath: "Names.lean",
+            lineStart: i + 1,
+            statement: "True",
+            hasSorry: false,
+            meta: { proofProgress: "complete" },
+          })),
+          edges: [
+            { source: root, target: "dependency" },
+            { source: "user", target: root },
+          ],
+        }),
+      ),
+    });
+    await expect(page.locator(".message")).toHaveCount(0);
+    await input.fill("Inspect " + root);
+    const graph = page.locator(".cone-graph");
+    await expect(graph).toHaveAttribute("data-layout-version", "l4sb.cone.v1");
+    await expect(graph.locator(".react-flow__node")).toHaveCount(3);
+    for (const id of ids)
+      await expect(graph.locator(`[data-id="${id}"]`)).toBeVisible();
+    await graph.locator(`[data-id="${root}"] > .radar-node > button`).click();
+    await expect(page.locator(".proof-inspector")).toContainText("Unknown");
+    const viewport = graph.locator(".react-flow__viewport");
+    const box = (await graph.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.wheel(0, -160);
+    await viewport.evaluate(async () => {
+      for (let i = 0; i < 20; i++) await new Promise(requestAnimationFrame);
+    });
+    const camera = await viewport.getAttribute("style");
+    await graph.locator(`[data-id="${root}"] > .radar-node > button`).hover();
+    await expect(viewport).toHaveAttribute("style", camera!);
+    await expect(page.locator(".message")).toHaveCount(0);
+    await expect(input).toHaveValue("Inspect " + root);
+    expect(errors).toEqual([]);
+  }
+  await page.screenshot({ path: info.outputPath("original-names.png") });
+  await page.reload();
+  await openProof(page);
+  const graph = page.locator(".cone-graph");
+  await expect(graph.locator('[data-id="hasOwnProperty"]')).toBeVisible();
+  await expect(graph.locator(".react-flow__node")).toHaveCount(3);
+  await expect(page.locator(".message")).toHaveCount(0);
+  await expect(input).toHaveValue("Inspect hasOwnProperty");
+  await page
+    .getByRole("complementary", { name: "Conversation sidebar" })
+    .getByRole("button", { name: "Vending machine simulator", exact: true })
+    .click();
+  expect(await page.locator(".message").allTextContents()).toEqual(
+    conversation,
+  );
+  await expect(input).toHaveValue("Unsent original requirement");
+  expect(errors).toEqual([]);
+});
+
 test("desktop and compact layouts keep chat and artifact panes usable, with keyboard entry", async ({
   page,
 }) => {

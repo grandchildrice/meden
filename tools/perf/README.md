@@ -42,6 +42,13 @@ also replays its headings/details split and checks the same symbols and edges.
 Private inventory data is not a CI prerequisite. See the
 [actual-project comparison](../../docs/performance/map-references.md).
 
+The same fuzz command runs 3,000 identifier/cycle cases through the actual
+`l4sb.cone.v1` dependency-cone implementation. Its separate six-graph golden
+retains ordinary upstream coordinates and order, while all twelve
+`Object.prototype` names remain valid original declaration identifiers.
+This is a correctness corpus, not a cone latency budget. See the
+[version/configuration audit](../../docs/performance/cone-layout.md).
+
 The [heading/detail transfer comparison](../../docs/performance/inventory-headings.md)
 records the preceding served inventory payloads, event distributions, native
 preparation spans and both serialized retained-tab budgets. It distinguishes

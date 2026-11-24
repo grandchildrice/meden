@@ -876,9 +876,14 @@ The [view-artifact validation record](../performance/artifact-contexts.md)
 retains the actual transport matrix, matching/rejected compile examples,
 unchanged wire/assets and public failure/restart evidence.
 This completes the view-artifact boundary, not the remaining session, backend
-snapshot and job identity audit. The cone layout's
-version/configuration contract also needs its own audit; project-map coverage
-does not establish it.
+snapshot and job identity audit. The cone layout now has a separate
+`l4sb.cone.v1` definition that supplies its actual frozen settings and pinned
+upstream implementation. Declaration-keyed dictionaries have no inherited
+properties. Its ordinary coordinate/order comparison and special-identifier
+public journeys are recorded in [the cone audit](../performance/cone-layout.md);
+project-map coverage alone does not establish those properties. Existing
+one-hop scope and upstream pruning remain unchanged, and no persistent cone
+cache or new evidence authority is introduced.
 The accepted-contract application now owns `SessionId`, `RequirementRevision`
 and `ContractId`. Actual project references, journal decisions, proposal/check
 observations, repair linkage and export references carry those values; the

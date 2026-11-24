@@ -1,5 +1,10 @@
 # Graph interaction measurements
 
+The [cone-layout audit](performance/cone-layout.md) fixes valid declaration names
+colliding with inherited object properties and makes the existing L4SB settings
+explicit. Ordinary coordinates and ordering are preserved; this is separate
+from the event costs measured below and makes no new speedup claim.
+
 The [accepted-reference validation](performance/agreement-identities.md) replaces
 project revision/session/contract primitives with owned application identities
 and removes the empty-reference sentinel. It retains original host comparisons,

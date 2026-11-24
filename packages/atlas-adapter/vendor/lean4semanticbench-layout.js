@@ -23,13 +23,15 @@ SOFTWARE.
 */
 // Extracted from 0xfab0131/Lean4SemanticBench, Graph/Web/js/graph.js.
 // Commit: 97e7c29df8d3c358c395bd1a4f2fb6973527b33d. MIT; see LICENSE.Lean4SemanticBench.
+// Local adaptation: identifier-keyed dictionaries have no inherited properties.
+// Numeric formulas and own-key enumeration order remain upstream behavior.
 function longestPathLevels(root, adj, hop) {
   const inSet = new Set(Object.keys(hop));
-  const indeg = {};
+  const indeg = Object.create(null);
   for (const v of inSet) indeg[v] = 0;
   for (const u of inSet)
     for (const v of adj[u] || []) if (inSet.has(v)) indeg[v]++;
-  const level = {};
+  const level = Object.create(null);
   level[root] = 0;
   const queue = [];
   for (const v of inSet)
@@ -96,7 +98,7 @@ function layoutCone(spec) {
   const span = Math.max(0.15, th1 - th0);
   const mid = (th0 + th1) / 2;
 
-  const levelOf = {};
+  const levelOf = Object.create(null);
   layers.forEach((L, l) =>
     L.forEach((n) => {
       levelOf[n] = l;
@@ -105,8 +107,8 @@ function layoutCone(spec) {
   /* parents    外向き（層が増える）の親。重心法の角度決めに使う。
        anyParent  向きを問わない親。巡回の退避（longestPathLevels の hop 代用）では
                   親の層が自分以上になり得て、その辺は canvas が非外向きの直線で描く。 */
-  const parents = {},
-    anyParent = {};
+  const parents = Object.create(null),
+    anyParent = Object.create(null);
   for (const u of Object.keys(levelOf))
     for (const v of adj[u] || []) {
       if (levelOf[v] === undefined || v === u) continue;
@@ -114,10 +116,10 @@ function layoutCone(spec) {
       if (levelOf[v] > levelOf[u]) (parents[v] || (parents[v] = [])).push(u);
     }
 
-  const pos = {};
+  const pos = Object.create(null);
   const rings = [];
-  const overflow = {};
-  const angle = {};
+  const overflow = Object.create(null);
+  const angle = Object.create(null);
   let r = r0 - dr;
   let rMax = 0;
   /* ここまでに置いた節点。親が一つも置かれていない節点は辺を引けず浮くので
@@ -142,7 +144,7 @@ function layoutCone(spec) {
     }
 
     // 重心法: 親の角度の平均。親は必ず前の層にあるので既に確定している。
-    const key = {};
+    const key = Object.create(null);
     for (const n of layer) {
       const ps = (parents[n] || [])
         .map((p) => angle[p])

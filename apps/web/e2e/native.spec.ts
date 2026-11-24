@@ -4858,6 +4858,136 @@ theorem slow : True := fast
       fullPage: true,
     });
   });
+  test("compiled prototype-named Lean declarations retain source, camera and quiet chat through failure and restart", async ({
+    page,
+  }, info) => {
+    test.setTimeout(180000);
+    const original =
+      "theorem hasOwnProperty : True := True.intro\ntheorem «constructor» : True := hasOwnProperty\ntheorem result : True := «constructor»\n";
+    await writeFile(resolve(project, "Names.lean"), original);
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto(await start());
+    const chat = page.getByRole("complementary", {
+      name: "Workspace chat",
+      exact: true,
+    });
+    const input = chat.getByRole("textbox", { name: "Message", exact: true });
+    await page.getByRole("heading", { name: "Meden", exact: true }).click();
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    await page.waitForTimeout(400);
+    const chatBefore = await chat.innerHTML();
+    const open = () =>
+      page
+        .getByRole("button", { name: "File: Names.lean", exact: true })
+        .click();
+    const refreshAndOpen = async () => {
+      const refreshed = page.waitForResponse(
+        (response) =>
+          response.url().endsWith("/api/command") &&
+          response.request().postDataJSON()?.type === "refresh_workspace",
+      );
+      await page
+        .getByRole("button", { name: "Refresh files and map", exact: true })
+        .click();
+      await refreshed;
+      await expect
+        .poll(async () => (await nativeState(page)).running)
+        .toBe(false);
+      await open();
+    };
+    const graph = page.locator(".ide-file-page:not([hidden]) .cone-graph");
+    const ready = async () => {
+      await expect
+        .poll(
+          async () => {
+            const state = await nativeState(page);
+            return (
+              !state.running &&
+              state.source_preparation["Names.lean"]?.outcome.state === "ready"
+            );
+          },
+          { timeout: 120000 },
+        )
+        .toBe(true);
+      await expect(graph).toHaveAttribute(
+        "data-layout-version",
+        "l4sb.cone.v1",
+      );
+      // The source viewer initially centers its selected declaration. Explicitly
+      // center the middle theorem so both its dependency and user are one hop away.
+      await graph
+        .locator('[data-id="constructor"] > .radar-node > button')
+        .dblclick();
+      await expect(graph.locator(".react-flow__node")).toHaveCount(3);
+      for (const id of ["hasOwnProperty", "constructor", "result"])
+        await expect(graph.locator(`[data-id="${id}"]`)).toBeVisible();
+    };
+    await open();
+    await ready();
+    const camera = await graph
+      .locator(".react-flow__viewport")
+      .getAttribute("style");
+    await graph
+      .locator('[data-id="constructor"] > .radar-node > button')
+      .click();
+    await expect(
+      page.locator(
+        ".ide-file-page:not([hidden]) [aria-current=location] .editor-line-number",
+      ),
+    ).toHaveText("2:");
+    await expect(graph.locator(".react-flow__viewport")).toHaveAttribute(
+      "style",
+      camera!,
+    );
+    expect(await chat.innerHTML()).toBe(chatBefore);
+    expect(requests).toHaveLength(0);
+    await info.attach("compiled-identifiers.json", {
+      contentType: "application/json",
+      body: JSON.stringify(
+        (await nativeSource(page)).graph.declarations.map((d: any) => ({
+          id: d.id,
+          source: d.source,
+        })),
+      ),
+    });
+    await writeFile(
+      resolve(project, "Names.lean"),
+      original.replace(":= hasOwnProperty", ":= unknown_original_name"),
+    );
+    await refreshAndOpen();
+    await expect
+      .poll(
+        async () =>
+          (await nativeState(page)).source_preparation["Names.lean"]?.outcome
+            .state,
+        { timeout: 120000 },
+      )
+      .toBe("failed");
+    expect(await chat.innerHTML()).toBe(chatBefore);
+    await writeFile(resolve(project, "Names.lean"), original);
+    await refreshAndOpen();
+    await ready();
+    await expect(input).toHaveValue("");
+    expect(requests).toHaveLength(0);
+    await page.screenshot({
+      path: info.outputPath("compiled-original-names.png"),
+    });
+    await stop();
+    await page.goto(await start());
+    expect((await nativeState(page)).authorized).toBe(false);
+    await open();
+    await ready();
+    expect(
+      (await nativeState(page)).source_preparation["Names.lean"].outcome
+        .cache_hit,
+    ).toBe(true);
+    expect(requests).toHaveLength(0);
+    expect(errors).toEqual([]);
+  });
+
   test("declaration kinds and highlighted source stay independent of chat until the user sends", async ({
     page,
   }) => {

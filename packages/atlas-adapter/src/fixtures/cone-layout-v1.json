@@ -1,0 +1,863 @@
+{
+  "origin": "Meden a5f2061, L4SB 97e7c29df8d3c358c395bd1a4f2fb6973527b33d, original parameters",
+  "cases": [
+    {
+      "workspace": {
+        "name": "Ordinary 0",
+        "declarations": [
+          {
+            "id": "1",
+            "name": "1",
+            "label": "1",
+            "kind": "theorem",
+            "statement": "",
+            "source": {
+              "file": "B.lean"
+            },
+            "proofStatus": "unknown",
+            "evidenceRefs": [],
+            "axioms": []
+          },
+          {
+            "id": "A",
+            "name": "A",
+            "label": "A",
+            "kind": "theorem",
+            "statement": "",
+            "source": {
+              "file": "B.lean"
+            },
+            "proofStatus": "unknown",
+            "evidenceRefs": [],
+            "axioms": []
+          }
+        ],
+        "edges": [
+          {
+            "source": "1",
+            "target": "1",
+            "site": "unknown"
+          },
+          {
+            "source": "A",
+            "target": "A",
+            "site": "unknown"
+          }
+        ]
+      },
+      "roots": [
+        {
+          "root": "1",
+          "positions": [
+            [
+              "1",
+              {
+                "x": 0,
+                "y": 0,
+                "depth": 0,
+                "width": 297.6,
+                "side": "root"
+              }
+            ]
+          ]
+        },
+        {
+          "root": "A",
+          "positions": [
+            [
+              "A",
+              {
+                "x": 0,
+                "y": 0,
+                "depth": 0,
+                "width": 297.6,
+                "side": "root"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "workspace": {
+        "name": "Ordinary 1",
+        "declarations": [
+          {
+            "id": "0",
+            "name": "0",
+            "label": "0",
+            "kind": "theorem",
+            "statement": "",
+            "source": {
+              "file": "A.lean"
+            },
+            "proofStatus": "unknown",
+            "evidenceRefs": [],
+            "axioms": []
+          }
+        ],
+        "edges": [
+          {
+            "source": "0",
+            "target": "0",
+            "site": "unknown"
+          },
+          {
+            "source": "0",
+            "target": "0",
+            "site": "unknown"
+          },
+          {
+            "source": "0",
+            "target": "0",
+            "site": "unknown"
+          },
+          {
+            "source": "0",
+            "target": "0",
+            "site": "unknown"
+          }
+        ]
+      },
+      "roots": [
+        {
+          "root": "0",
+          "positions": [
+            [
+              "0",
+              {
+                "x": 0,
+                "y": 0,
+                "depth": 0,
+                "width": 297.6,
+                "side": "root"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "workspace": {
+        "name": "Ordinary 2",
+        "declarations": [
+          {
+            "id": "A",
+            "name": "A",
+            "label": "A",
+            "kind": "theorem",
+            "statement": "",
+            "source": {
+              "file": "B.lean"
+            },
+            "proofStatus": "unknown",
+            "evidenceRefs": [],
+            "axioms": []
+          }
+        ],
+        "edges": []
+      },
+      "roots": [
+        {
+          "root": "A",
+          "positions": [
+            [
+              "A",
+              {
+                "x": 0,
+                "y": 0,
+                "depth": 0,
+                "width": 297.6,
+                "side": "root"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "workspace": {
+        "name": "Ordinary 3",
+        "declarations": [
+          {
+            "id": "D",
+            "name": "D",
+            "label": "D",
+            "kind": "theorem",
+            "statement": "",
+            "source": {
+              "file": "B.lean"
+            },
+            "proofStatus": "unknown",
+            "evidenceRefs": [],
+            "axioms": []
+          },
+          {
+            "id": "é",
+            "name": "é",
+            "label": "é",
+            "kind": "theorem",
+            "statement": "",
+            "source": {
+              "file": "α.lean"
+            },
+            "proofStatus": "unknown",
+            "evidenceRefs": [],
+            "axioms": []
+          }
+        ],
+        "edges": [
+          {
+            "source": "é",
+            "target": "é",
+            "site": "unknown"
+          },
+          {
+            "source": "D",
+            "target": "é",
+            "site": "unknown"
+          },
+          {
+            "source": "é",
+            "target": "D",
+            "site": "unknown"
+          },
+          {
+            "source": "é",
+            "target": "é",
+            "site": "unknown"
+          }
+        ]
+      },
+      "roots": [
+        {
+          "root": "D",
+          "positions": [
+            [
+              "D",
+              {
+                "x": 0,
+                "y": 0,
+                "depth": 0,
+                "width": 297.6,
+                "side": "root"
+              }
+            ],
+            [
+              "é",
+              {
+                "x": 2.640338498961694e-14,
+                "y": -431.20000000000005,
+                "depth": 1,
+                "width": 297.6,
+                "side": "dep"
+              }
+            ]
+          ]
+        },
+        {
+          "root": "é",
+          "positions": [
+            [
+              "é",
+              {
+                "x": 0,
+                "y": 0,
+                "depth": 0,
+                "width": 297.6,
+                "side": "root"
+              }
+            ],
+            [
+              "D",
+              {
+                "x": 2.640338498961694e-14,
+                "y": -431.20000000000005,
+                "depth": 2,
+                "width": 297.6,
+                "side": "dep"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "workspace": {
+        "name": "Ordinary 4",
+        "declarations": [
+          {
+            "id": "N.lemma",
+            "name": "N.lemma",
+            "label": "N.lemma",
+            "kind": "theorem",
+            "statement": "",
+            "source": {
+              "file": "B.lean"
+            },
+            "proofStatus": "unknown",
+            "evidenceRefs": [],
+            "axioms": []
+          },
+          {
+            "id": "🦊",
+            "name": "🦊",
+            "label": "🦊",
+            "kind": "theorem",
+            "statement": "",
+            "source": {
+              "file": "α.lean"
+            },
+            "proofStatus": "unknown",
+            "evidenceRefs": [],
+            "axioms": []
+          }
+        ],
+        "edges": [
+          {
+            "source": "🦊",
+            "target": "N.lemma",
+            "site": "unknown"
+          },
+          {
+            "source": "🦊",
+            "target": "🦊",
+            "site": "unknown"
+          },
+          {
+            "source": "N.lemma",
+            "target": "N.lemma",
+            "site": "unknown"
+          },
+          {
+            "source": "N.lemma",
+            "target": "N.lemma",
+            "site": "unknown"
+          },
+          {
+            "source": "🦊",
+            "target": "N.lemma",
+            "site": "unknown"
+          },
+          {
+            "source": "N.lemma",
+            "target": "🦊",
+            "site": "unknown"
+          },
+          {
+            "source": "🦊",
+            "target": "N.lemma",
+            "site": "unknown"
+          },
+          {
+            "source": "🦊",
+            "target": "🦊",
+            "site": "unknown"
+          },
+          {
+            "source": "🦊",
+            "target": "N.lemma",
+            "site": "unknown"
+          }
+        ]
+      },
+      "roots": [
+        {
+          "root": "N.lemma",
+          "positions": [
+            [
+              "N.lemma",
+              {
+                "x": 0,
+                "y": 0,
+                "depth": 0,
+                "width": 297.6,
+                "side": "root"
+              }
+            ],
+            [
+              "🦊",
+              {
+                "x": 5.334561457085871e-14,
+                "y": -871.2,
+                "depth": 3,
+                "width": 297.6,
+                "side": "dep"
+              }
+            ]
+          ]
+        },
+        {
+          "root": "🦊",
+          "positions": [
+            [
+              "🦊",
+              {
+                "x": 0,
+                "y": 0,
+                "depth": 0,
+                "width": 297.6,
+                "side": "root"
+              }
+            ],
+            [
+              "N.lemma",
+              {
+                "x": 5.334561457085871e-14,
+                "y": -871.2,
+                "depth": 3,
+                "width": 297.6,
+                "side": "dep"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "workspace": {
+        "name": "Ordinary 5",
+        "declarations": [
+          {
+            "id": "1",
+            "name": "1",
+            "label": "1",
+            "kind": "theorem",
+            "statement": "",
+            "source": {
+              "file": "B.lean"
+            },
+            "proofStatus": "unknown",
+            "evidenceRefs": [],
+            "axioms": []
+          },
+          {
+            "id": "n10",
+            "name": "n10",
+            "label": "n10",
+            "kind": "theorem",
+            "statement": "",
+            "source": {
+              "file": "__proto__"
+            },
+            "proofStatus": "unknown",
+            "evidenceRefs": [],
+            "axioms": []
+          },
+          {
+            "id": "Z",
+            "name": "Z",
+            "label": "Z",
+            "kind": "theorem",
+            "statement": "",
+            "source": {
+              "file": "α.lean"
+            },
+            "proofStatus": "unknown",
+            "evidenceRefs": [],
+            "axioms": []
+          },
+          {
+            "id": "B",
+            "name": "B",
+            "label": "B",
+            "kind": "theorem",
+            "statement": "",
+            "source": {
+              "file": "B.lean"
+            },
+            "proofStatus": "unknown",
+            "evidenceRefs": [],
+            "axioms": []
+          },
+          {
+            "id": "é",
+            "name": "é",
+            "label": "é",
+            "kind": "theorem",
+            "statement": "",
+            "source": {
+              "file": "__proto__"
+            },
+            "proofStatus": "unknown",
+            "evidenceRefs": [],
+            "axioms": []
+          },
+          {
+            "id": "01",
+            "name": "01",
+            "label": "01",
+            "kind": "theorem",
+            "statement": "",
+            "source": {
+              "file": "B.lean"
+            },
+            "proofStatus": "unknown",
+            "evidenceRefs": [],
+            "axioms": []
+          },
+          {
+            "id": "0",
+            "name": "0",
+            "label": "0",
+            "kind": "theorem",
+            "statement": "",
+            "source": {
+              "file": "α.lean"
+            },
+            "proofStatus": "unknown",
+            "evidenceRefs": [],
+            "axioms": []
+          },
+          {
+            "id": "N.lemma",
+            "name": "N.lemma",
+            "label": "N.lemma",
+            "kind": "theorem",
+            "statement": "",
+            "source": {
+              "file": "B.lean"
+            },
+            "proofStatus": "unknown",
+            "evidenceRefs": [],
+            "axioms": []
+          }
+        ],
+        "edges": [
+          {
+            "source": "N.lemma",
+            "target": "1",
+            "site": "unknown"
+          },
+          {
+            "source": "é",
+            "target": "B",
+            "site": "unknown"
+          },
+          {
+            "source": "0",
+            "target": "é",
+            "site": "unknown"
+          },
+          {
+            "source": "01",
+            "target": "01",
+            "site": "unknown"
+          },
+          {
+            "source": "1",
+            "target": "0",
+            "site": "unknown"
+          },
+          {
+            "source": "01",
+            "target": "01",
+            "site": "unknown"
+          },
+          {
+            "source": "B",
+            "target": "1",
+            "site": "unknown"
+          },
+          {
+            "source": "B",
+            "target": "Z",
+            "site": "unknown"
+          },
+          {
+            "source": "n10",
+            "target": "N.lemma",
+            "site": "unknown"
+          },
+          {
+            "source": "N.lemma",
+            "target": "Z",
+            "site": "unknown"
+          }
+        ]
+      },
+      "roots": [
+        {
+          "root": "1",
+          "positions": [
+            [
+              "1",
+              {
+                "x": 0,
+                "y": 0,
+                "depth": 0,
+                "width": 297.6,
+                "side": "root"
+              }
+            ],
+            [
+              "0",
+              {
+                "x": 2.640338498961694e-14,
+                "y": -431.20000000000005,
+                "depth": 1,
+                "width": 297.6,
+                "side": "dep"
+              }
+            ],
+            [
+              "B",
+              {
+                "x": 210.578825988417,
+                "y": 376.28446426253106,
+                "depth": 1,
+                "width": 297.6,
+                "side": "ref"
+              }
+            ],
+            [
+              "N.lemma",
+              {
+                "x": -210.57882598841712,
+                "y": 376.28446426253106,
+                "depth": 1,
+                "width": 297.6,
+                "side": "ref"
+              }
+            ]
+          ]
+        },
+        {
+          "root": "n10",
+          "positions": [
+            [
+              "n10",
+              {
+                "x": 0,
+                "y": 0,
+                "depth": 0,
+                "width": 297.6,
+                "side": "root"
+              }
+            ],
+            [
+              "N.lemma",
+              {
+                "x": 2.640338498961694e-14,
+                "y": -431.20000000000005,
+                "depth": 1,
+                "width": 297.6,
+                "side": "dep"
+              }
+            ]
+          ]
+        },
+        {
+          "root": "Z",
+          "positions": [
+            [
+              "Z",
+              {
+                "x": 0,
+                "y": 0,
+                "depth": 0,
+                "width": 297.6,
+                "side": "root"
+              }
+            ],
+            [
+              "B",
+              {
+                "x": 210.578825988417,
+                "y": 376.28446426253106,
+                "depth": 1,
+                "width": 297.6,
+                "side": "ref"
+              }
+            ],
+            [
+              "N.lemma",
+              {
+                "x": -210.57882598841712,
+                "y": 376.28446426253106,
+                "depth": 1,
+                "width": 297.6,
+                "side": "ref"
+              }
+            ]
+          ]
+        },
+        {
+          "root": "B",
+          "positions": [
+            [
+              "B",
+              {
+                "x": 0,
+                "y": 0,
+                "depth": 0,
+                "width": 297.6,
+                "side": "root"
+              }
+            ],
+            [
+              "1",
+              {
+                "x": -210.57882598841695,
+                "y": -376.28446426253106,
+                "depth": 1,
+                "width": 297.6,
+                "side": "dep"
+              }
+            ],
+            [
+              "Z",
+              {
+                "x": 210.57882598841712,
+                "y": -376.28446426253106,
+                "depth": 1,
+                "width": 297.6,
+                "side": "dep"
+              }
+            ],
+            [
+              "é",
+              {
+                "x": 2.640338498961694e-14,
+                "y": 431.20000000000005,
+                "depth": 1,
+                "width": 297.6,
+                "side": "ref"
+              }
+            ]
+          ]
+        },
+        {
+          "root": "é",
+          "positions": [
+            [
+              "é",
+              {
+                "x": 0,
+                "y": 0,
+                "depth": 0,
+                "width": 297.6,
+                "side": "root"
+              }
+            ],
+            [
+              "B",
+              {
+                "x": 2.640338498961694e-14,
+                "y": -431.20000000000005,
+                "depth": 1,
+                "width": 297.6,
+                "side": "dep"
+              }
+            ],
+            [
+              "0",
+              {
+                "x": 2.640338498961694e-14,
+                "y": 431.20000000000005,
+                "depth": 1,
+                "width": 297.6,
+                "side": "ref"
+              }
+            ]
+          ]
+        },
+        {
+          "root": "01",
+          "positions": [
+            [
+              "01",
+              {
+                "x": 0,
+                "y": 0,
+                "depth": 0,
+                "width": 297.6,
+                "side": "root"
+              }
+            ]
+          ]
+        },
+        {
+          "root": "0",
+          "positions": [
+            [
+              "0",
+              {
+                "x": 0,
+                "y": 0,
+                "depth": 0,
+                "width": 297.6,
+                "side": "root"
+              }
+            ],
+            [
+              "é",
+              {
+                "x": 2.640338498961694e-14,
+                "y": -431.20000000000005,
+                "depth": 1,
+                "width": 297.6,
+                "side": "dep"
+              }
+            ],
+            [
+              "1",
+              {
+                "x": 2.640338498961694e-14,
+                "y": 431.20000000000005,
+                "depth": 1,
+                "width": 297.6,
+                "side": "ref"
+              }
+            ]
+          ]
+        },
+        {
+          "root": "N.lemma",
+          "positions": [
+            [
+              "N.lemma",
+              {
+                "x": 0,
+                "y": 0,
+                "depth": 0,
+                "width": 297.6,
+                "side": "root"
+              }
+            ],
+            [
+              "1",
+              {
+                "x": -210.57882598841695,
+                "y": -376.28446426253106,
+                "depth": 1,
+                "width": 297.6,
+                "side": "dep"
+              }
+            ],
+            [
+              "Z",
+              {
+                "x": 210.57882598841712,
+                "y": -376.28446426253106,
+                "depth": 1,
+                "width": 297.6,
+                "side": "dep"
+              }
+            ],
+            [
+              "n10",
+              {
+                "x": 2.640338498961694e-14,
+                "y": 431.20000000000005,
+                "depth": 1,
+                "width": 297.6,
+                "side": "ref"
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

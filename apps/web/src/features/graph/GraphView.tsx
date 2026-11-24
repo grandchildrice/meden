@@ -20,7 +20,11 @@ import {
   type NodeProps,
   type EdgeProps,
 } from "@xyflow/react";
-import { coneLayout, reviewScope } from "@meden/atlas-adapter";
+import {
+  coneLayout,
+  coneLayoutDefinition,
+  reviewScope,
+} from "@meden/atlas-adapter";
 import type { Workspace, Declaration } from "@meden/workspace-schema";
 
 type RadarData = Record<string, unknown> & {
@@ -162,7 +166,11 @@ export function GraphView({
     );
   return (
     <section className="graph-page" aria-label="Proof dependencies">
-      <div data-layout="l4sb" className="graph-canvas cone-graph">
+      <div
+        data-layout="l4sb"
+        data-layout-version={coneLayoutDefinition.version}
+        className="graph-canvas cone-graph"
+      >
         <div className="cone-label cone-label-up">Uses</div>
         <div className="cone-label cone-label-down">Used by</div>
         <div

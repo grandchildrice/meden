@@ -1,6 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { meaningDependencies, importAtlas } from "./index";
+import {
+  meaningDependencies,
+  importAtlas,
+  coneLayoutDefinition,
+  coneLayout,
+} from "./index";
 import { sampleWorkspace } from "../../../apps/web/src/fixtures/ledger";
+
+it("exported configuration cannot change later cone coordinates", () => {
+  const workspace = sampleWorkspace();
+  const root = workspace.declarations[0]!.id;
+  const original = [...coneLayout(workspace, root)];
+  for (const [owner, key] of [
+    [coneLayoutDefinition, "rootWidth"],
+    [coneLayoutDefinition.parameters, "r0"],
+    [coneLayoutDefinition.cones.dep, "th0"],
+    [coneLayoutDefinition.scale, "coordinates"],
+  ] as const)
+    expect(Reflect.set(owner, key, 99999)).toBe(false);
+  expect([...coneLayout(workspace, root)]).toEqual(original);
+});
 
 describe("Atlas boundary and dependency traversal", () => {
   it("imports complete/no-sorry metadata without fabricating proof evidence", () => {
