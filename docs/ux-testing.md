@@ -50,6 +50,7 @@ Other platform-dependent tests may still skip; required `ux` cases must pass.
 | --- | --- | --- |
 | Use another verifier without another approval/job/evidence controller | Select `--verifier z3.finite.v1` without a Lean bundle, review all finite bounds, observe a real overflow counterexample, repair through model tools, display bounded evidence, invalidate after an edit and reopen with fresh review and no restored coverage | `test_tui_finite.py`, native finite browser journey; separate `meden_checks.finite_smoke` uses an explicitly approved actual model and a separate exhaustive Python oracle |
 | Read accepted meaning and evidence independently of status polling | Retry a failed complete review transfer without a command, preserve the original canonical contract/reference through actual bounded verification, fetch frozen evidence repeatedly without materialization/checking and reopen with accepted meaning but no restored current evidence | Native finite browser journey with real offline Z3 and scripted inference; application projection/reference conformance and generated-schema tests |
+| Follow the actual accepted-project check without waiting for the next model reply | Retry a failed progress transfer without another command, cancel an issued check, reject its delayed publication, run a distinct job, publish admitted evidence before the final reply, invalidate it immediately after an actual source edit and reopen with idle jobs and no restored coverage | Native verification-progress and finite browser journeys; actual confined Z3 and scripted inference; finite stage/identity projection tests |
 | Continue with the originally selected verification method | Reopen without `--verifier`, retain the host-selected finite decoder without Lean setup, refuse an unknown key without modifying the journal, and preserve the originally reviewed method without restored proof coverage; method switches/upgrades require new review | `test_tui_finite.py`, native finite browser restart, live `finite_smoke`; same-format registry/journal conformance tests cover two validating fixture implementations, unavailable methods, changed definitions and unknown historical provenance |
 | Start without connection flags | Run `meden` or `meden tui --workspace …`, configure in the TUI, see inline errors, keep the key masked and choose whether to save it | `test_tui_setup.py` |
 | Work in the chosen repository | Files change in that repository; commands run there; original tests remain intact | `test_tui_integration.py`, `test_tui_smoke.py` |
@@ -119,6 +120,16 @@ source bindings, duplicate IDs, missing targets and valid cycles. Generated
 schema checks cover the owned vocabulary and reject unsupported constraints;
 they are not a general JSON Schema equivalence proof. The source/graph projection
 does not carry current accepted-contract evidence.
+
+The verification-progress journey holds only the original checker's dispatch
+through an explicit trusted host `MEDEN_BWRAP` launcher outside the workspace.
+The issued check is cancelled before Z3 starts; after release the unchanged
+Bubblewrap arguments run the actual installed solver and independent exhaustive
+checker. A delayed progress response cannot replace cancellation. A separately
+held model response proves that evidence completion and source-edit invalidation
+publish before the next reply. Stop is acknowledged before that response is
+released; this does not measure model-transport abort latency. Scripted inference
+and this launcher timing fixture are not live-model or cold-install validation.
 
 The prepared-Lake browser journey requires exactly one requested-file inspection
 after each explicit refresh, even when fast directory work finishes within one

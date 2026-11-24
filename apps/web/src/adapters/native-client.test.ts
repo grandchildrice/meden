@@ -3,6 +3,7 @@ import {
   evidencePublicationSchema,
   nativeReferenceSchema,
   nativeStateSchema,
+  verificationJobPublicationSchema,
 } from "@meden/agent-protocol/native";
 import { NativeClient, NativeHttpError } from "./native-client";
 
@@ -21,6 +22,91 @@ const snapshot = {
   },
 };
 afterEach(() => vi.unstubAllGlobals());
+
+test("verification queries bind the exact job and revision without admitting receipt fields", async () => {
+  const job = "sha256:" + "b".repeat(64);
+  const inputs = {
+    source_sha256: "c".repeat(64),
+    prepared_sha256: "d".repeat(64),
+  };
+  const data = {
+    context: {
+      job,
+      reference: {
+        revision: "18446744073709551615",
+        session: "host",
+        contract: "e".repeat(64),
+      },
+      source_path: "counter.model.json",
+      name: "Finite counter",
+      backend: "z3.finite.v1",
+      class: "bounded",
+      scope: "Original finite scope",
+    },
+    elapsed_ms: 12,
+    phase: { state: "running", stage: { state: "checking", inputs } },
+  };
+  const fetch = vi
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve(Response.json({ revision, data })),
+    );
+  vi.stubGlobal("fetch", fetch);
+  const client = new NativeClient("session");
+  expect(await client.verificationJob(revision, job)).toEqual({
+    revision,
+    data,
+  });
+  expect(fetch.mock.calls[0][0]).toBe(
+    "/api/verification-job?revision=" + encodeURIComponent(revision),
+  );
+  await expect(
+    client.verificationJob(revision, "sha256:" + "f".repeat(64)),
+  ).rejects.toThrow("does not match its requested job");
+  await expect(
+    client.verificationJob("sha256:" + "f".repeat(64), job),
+  ).rejects.toThrow("does not match its requested revision");
+  expect(
+    nativeStateSchema.shape.verification_job.parse({ state: "idle" }),
+  ).toEqual({ state: "idle" });
+  for (const phase of [
+    { state: "running", stage: { state: "checking" } },
+    { state: "admitted", inputs },
+    {
+      state: "failed",
+      kind: "unverified",
+      message: "missing original stage/input",
+    },
+    { state: "running", stage: { state: "checking", inputs }, receipt: true },
+  ]) {
+    expect(
+      verificationJobPublicationSchema.safeParse({
+        revision,
+        data: { ...data, phase },
+      }).success,
+    ).toBe(false);
+  }
+  for (const observed of [
+    { state: "reading_source" },
+    { state: "preparing_checker", source_sha256: inputs.source_sha256 },
+    { state: "checking", inputs },
+  ]) {
+    expect(
+      verificationJobPublicationSchema.parse({
+        revision,
+        data: {
+          ...data,
+          phase: {
+            state: "failed",
+            during: observed,
+            kind: "unavailable",
+            message: "Original resource failure",
+          },
+        },
+      }),
+    ).toBeTruthy();
+  }
+});
 
 test("evidence is an exact independent publication with disjoint states and lossless references", async () => {
   const reference = {

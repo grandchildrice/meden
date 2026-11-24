@@ -10,7 +10,7 @@ use std::sync::Arc;
 pub const MAX_BYTES: usize = 67_108_864;
 
 /// Bound a status diagnostic by UTF-8 bytes, with an explicit shortening marker.
-pub(super) fn diagnostic(message: &str, marker: &str) -> String {
+pub(crate) fn diagnostic(message: &str, marker: &str) -> String {
     if message.len() <= 8000 {
         return message.to_owned();
     }

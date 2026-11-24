@@ -73,6 +73,18 @@ Z3 rejection/repair. It checks that those reads add no materializations. These
 are diagnostic loopback/browser observations under functional validation, not
 an old/new latency benchmark or exclusive-stage CPU profile.
 
+Accepted-project checks also emit `verification.capture_source`,
+`verification.prepare`, `verification.check`, `verification.refresh_source`
+and `verification.retain` around their actual application boundaries.
+`view.verification_job.materialize` freezes a progress observation;
+`gui.verification_job_respond` serves its exact retained bytes. Context keeps
+the original contract/method and stages after issue keep the source/prepared-input
+digests. These observations do not issue jobs or admit evidence. A cancelled
+issued job remains distinct from a later successful job. Wall spans can nest
+other stages; host-thread CPU excludes child-process work and cannot attribute
+solver/Lean CPU. The browser fixture deliberately holds dispatch and response
+timing, so its spans validate instrumentation rather than natural throughput.
+
 Prepared roots now use one batched Lake query for their normal build and
 source/output/compiler-setup results. The file's streamed diagnostic log separates
 build/setup/input resolution from the exact file/byte validation duration.

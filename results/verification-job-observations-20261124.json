@@ -1,0 +1,1298 @@
+{
+  "date": "2026-11-24",
+  "source_base_revision": "223ad99bbbfedbf75b8ce8dbd7dede10aba169cf",
+  "scope": "Accepted-project check observations and five real application timing boundaries; shared evidence ownership at project mutations. Proposal/general orchestration jobs, remaining native wire generation and versioned layout/retirement remain open.",
+  "candidate": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/95305383e9414fd0b9e8b6db580dece7ae66c281f1a871e1a58419a6d00745bb/meden",
+    "sha256": "95305383e9414fd0b9e8b6db580dece7ae66c281f1a871e1a58419a6d00745bb"
+  },
+  "deployment": {
+    "binary_sha256": "95305383e9414fd0b9e8b6db580dece7ae66c281f1a871e1a58419a6d00745bb",
+    "assets_sha256": "e8ff560028dae977f73c3cc3ad7484f5c4ce234ff185ac436a58d8d2c36dabf1",
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/95305383e9414fd0b9e8b6db580dece7ae66c281f1a871e1a58419a6d00745bb-e8ff560028dae977",
+    "files": [
+      [
+        "assets/AnalysisView-OTemQ6kh.js",
+        "4e9b97b5c7ec2868ced8f919785d4c1dce8a055803c93fa406c931448ec74845"
+      ],
+      [
+        "assets/ArtifactPanel-DClMb3BR.js",
+        "eff1433d2ab76254db8e375dcd4c39d5bf954fae893053e311e8e48a66e2bd06"
+      ],
+      [
+        "assets/GraphView-DQ_D4dur.js",
+        "53040740e117ba53e72e0745bb7edaba3ca0cb25d960cb3fe60fbffc13be8a03"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-BQhdFMY1.woff2",
+        "0cdd387c9590a1a9f9794560022dbb59654a7d86f187aa0c81495ad42d3a7308"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-DMm9YOAa.woff",
+        "30da91e84c893f875e252689faebdc590b2871145e8adc7f9a9d4dbd8ce0b251"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-DRggAlZN.ttf",
+        "68534840bcfdd2bffb6f0e8deb48684dd01e7f04ea2813267577afb906de1d13"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-ATXxdsX0.ttf",
+        "07d8e303ce4fc12b4bb54f1004170dd190a1f3db45d400fe68060df3e0897268"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-BEiXGLvX.woff",
+        "1ae6bd7475590e97e7f145a89e09ccde322f7a6bc0b91607b1c8b8ee28290fed"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-Dq_IR9rO.woff2",
+        "de7701e42cf1f4cf0b766c03fb27977207eee2f4fd5d76fa82188406da43ea4c"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-CTRA-rTL.woff",
+        "3398dd02302557a793f2863f88e02d96ce10df2abffa07c8e9fa90775116e65c"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-Di6jR-x-.woff2",
+        "5d53e70ad607c2352162dec9e0923fb54ecdafaccbf604cd8dcf7d00facb989b"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-wX97UBjC.ttf",
+        "ed0b74372feefcbb9c0666b2e210da37b7e49fa7fbbf3eeb11db5f693dacfbb7"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-BdnERNNW.ttf",
+        "9163df9c7122432e6495b4229fa9071cf9ae86a758ae5efc4924ec2e1a6dbce1"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-BsDP51OF.woff",
+        "9be7ceb88004ab8ad124082246fbfcca4091e36385d4ec6ed1df67375dad50fb"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-CL6g_b3V.woff2",
+        "74444efd593c005e3f4573b44524704c0af0a937fe911cca9e94068d0d140d3f"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-CB_wures.ttf",
+        "1e6f9579e90e2cac37f8f60a597c436e075c114385652b7cbeb0dec0421291b3"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-CTYiF6lA.woff2",
+        "51814d270d06ff0255dba0799994fa4d8c84d11f09951d47595f4abb1f3602dc"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-Dxdc4cR9.woff",
+        "5e28753be717dac97f559f49bc10be9cf3c124ddcabda6659d11cb68febc6463"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-Cx986IdX.woff2",
+        "0f60d1b897938ec918c8ce073092411baf9438f6739465693ff18b0f9d20b021"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-Jm3AIy58.woff",
+        "c76c5d696297d51b9cb1639c7da4334f0e7dec81b42b11213b5e25ef671bb822"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-waoOVXN0.ttf",
+        "138ac28d1663b3037e9c5f52371fa5c63d8324f4a38d22cd573e6ea3a3fd0cf8"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-DxDJ3AOS.woff2",
+        "99cd42a3c072d918f2f44984a807cf7aa16e13545fd0875fc07c6c65f99e715b"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-DzxPMmG6.ttf",
+        "70ee1f64a20f2048c21940ef46d0144fd215baa953ca69afd1e31e98544f708f"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-SpSLRI95.woff",
+        "a6f7ec0d846ac7ad975adb8959c37ed49b94acbc4ae436db9ce9e20287e4a64c"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-3WenGoN9.ttf",
+        "0d85ae7cc30f23790a7f1a58c4a112fdca8aae769b6ba11429af1d98b1b6cb3a"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-BMLOBm91.woff",
+        "f1d6ef86f3b11a528bd5185199bd2443ecb2b0dead96d88674b5a2c12be24bdf"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-NWA7e6Wa.woff2",
+        "97479ca6cce906abc961ecac96faa5f9ca2e61b8e7670d475826bcdee9a7c267"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-B22Nviop.woff2",
+        "c2342cd8b869e01752a9321dc17213fc40d4d04c79688c1d43f2cf316abd7866"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-Dr94JaBh.woff",
+        "c6368d87e8a1a3a5d337623d83d8dc4b868f242a9ad476237d6f8d1e0f168cdc"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-ypZvNtVU.ttf",
+        "d0332f52868370fd83ae7fa46470f90c8f2eab2fcf12bc4f88080b340c95a830"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-B3XSjfu4.ttf",
+        "f9377ab0271cda59af24bcffbd46a4d0c8a3572ffafdbb38de2ad5ea7b0d5ee5"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-CZnvNsCZ.woff2",
+        "dc47344dbb6cb5b655c8460d561f4df5f501b90c804ad3c6cec65fe322351ab1"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-iY-2wyZ7.woff",
+        "850c0af5c2238497febaf5e461d880bf458c341f42f4f330f1b1ab5698b1998e"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-DA0__PXp.woff",
+        "8a8d244581371912b8f3f5a23e2437cb2a59cd9bcaebb0346e722c05737a2571"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-flOr_0UB.ttf",
+        "08ce98e51b04d58945a301e639e02b6998af29fdfd61a7b8afdd07bbfc479d4a"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-t53AETM-.woff2",
+        "7af58c5ec8f132a2ddde9027c6d7814decce4d3b822a11192a42a20e2e973264"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-CFMepnvq.ttf",
+        "1ece03f79f95277d57dc7f6b435a74e1379b0d46104a8530286b60ff49369ea0"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-D1sUS0GD.woff2",
+        "e99ae51144bf1232efcc1bfe5add36262c6866b0faab24fa75740e1b98577a62"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-DbIhKOiC.woff",
+        "ece03cfd83e22c212cdef66feb8442d25a083beb988db3f1883f3f9738d750ba"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-C3H0VqGB.woff2",
+        "00b26ac825e2095056396e0553b8ac26d3f8ad158c3826e28b4c45b385c4714a"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-DN2j7dab.woff",
+        "91ee67500cc0129aa0ace3ac5c61ff1692102f0f31d02b69347fba35dcb75bf2"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-YYjJ1zSn.ttf",
+        "3931dd81faed86ba021bb2bbdc36f5bed9a38d6b4f4077aca59b265aa1b02083"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-BNo7hRIc.ttf",
+        "f36ea897e19f4a2e571d1e900e4e3710e438deb05a842486045ba0a3e616a4ad"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-CS6fqUqJ.woff",
+        "11e4dc8a6471ff6d6ee561d53d10fde8f7489e798257ff449c5d37c197435605"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-DDBCnlJ7.woff2",
+        "68e8c73ef42afd3ccec58bf0fba302cce448938e7fc020a5e31f8a952eee1342"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-C5JkGWo-.ttf",
+        "1c67f068fea8bb09bf099c088b1cf64bd27516a6e07f4684344873564bb66a67"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-D3wIWfF6.woff2",
+        "036d4e95149b69ff9bcc0cd55771efeb25ffa3947293e69acd78d5ac328c684b"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-D5yQViql.woff",
+        "d96cdf2b3bdd4d64a8fd5f74a4c467f123a8a73931cd435889f08ffaf9bf947a"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-C195tn64.woff",
+        "c943cc986384f59e86bea5fd7dc50a9c4dfe567a7c05eb40d6790720dead97c9"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-Dbsnue_I.ttf",
+        "95b6d2f1a50173bfedb8c63e1d1c99b10427d0a4df4201cb44513b226951a22b"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-mCD8mA8B.woff2",
+        "6b47c40166b6dbe21a5dfca7718413f2147fd2399be1ba605d8ad39cedf25dfe"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-B7gKUWhC.ttf",
+        "a6b2099fb555c60e3a0db3a08842ebf1d732c6eb4e4bf44913613bed4fc4e39b"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-Dy4dx90m.woff2",
+        "d04c54219f9eaec6d4d4fd42dfb28785975a4794d6b2fc71e566b9cd6db842dd"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-oD1tc_U0.woff",
+        "2014c523c3210bcc166648c4d4cc57f05b747df07a24277bf71c51e67dc79e3d"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-CTq5MqoE.woff",
+        "6ab6b62e9b62dae2c00dd90f791bd10950be0ecc3490d7d6045f51c2e8fe0949"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-DgpXs0kz.ttf",
+        "500e04d54f0d51666332c9d2089aa803be22aa878eca539e59fa53c6e522b082"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-gV2CO0n9.woff2",
+        "73d591271b1604960cb10bb90fee021670af7297017e0e98480b332d11f51995"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-BF-4gkZK.woff",
+        "99f9c6750b489c9462bf04900bd3f939df9b829339daaaaa99ef5495cdddea58"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-DWFBv043.ttf",
+        "c647367d1dd4e162468717d020e1fc0f1dc5c26ebfdffbe55261713bf88c5877"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-Dl5lxZxV.woff2",
+        "a4af7d414440a1c1790825cfb700cf9cf43b0f2c4b04f0ebc523011ad9853ec0"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-C0xS9mPB.woff",
+        "e14fed02b1aba7ce9f5afd5844b5d0321b22351febc720e0de8b8723527609f7"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-CO6r4hn1.woff2",
+        "71d517d67827787cfabdf186914cc3358eda539e37931941f2b2fd4a21f68c0b"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-D3Ib7_Hf.ttf",
+        "f01f3e87d9c6a61c0c081ceb577abd864eb00a612f7ac1620dd6915fad2ef5aa"
+      ],
+      [
+        "assets/ProofWorkspace-BNxUu3dR.js",
+        "2210e7cfb5312d1e1900aa493b40bcb2a692dfdbeaf0711e60015b686840bd6b"
+      ],
+      [
+        "assets/ReviewView-Dt9_xI3n.js",
+        "cdc878caa244b16d8fe6e9add18cdcdc10e03af2d7836591ec3659ac2a238b60"
+      ],
+      [
+        "assets/bend-DQWYak6m.png",
+        "9ba4741c87076a254bcee4ba0fb9ded366e6e7bacd6ae4727027e1aabd3a6bd5"
+      ],
+      [
+        "assets/certora-BGZUazkT.png",
+        "dd19f617a5463032f21785e5005c361bd753c0c32b6cd55e6e9f72149cb21242"
+      ],
+      [
+        "assets/cvc5-CKJsvvFK.png",
+        "d898a126bdae142e1ef6d2cf2f8b3b11bc7a3b50b48fa9e779d939070deb1354"
+      ],
+      [
+        "assets/dafny-Bqnbzobc.png",
+        "8e6e9042b348b551c7262a1153b83707ea32f59dd22a445f7d6ab6aa67f0903d"
+      ],
+      [
+        "assets/highlight-D6M2DjpA.js",
+        "37d6b212cfc070c70a7a248d2447ec119356e14dfeb6504b74e761372f15f8c8"
+      ],
+      [
+        "assets/index-8nuQ6BYP.css",
+        "cc9bdfabadb34911ccb5b6be11daae242020bdd97803a8f7b27cf84113c78787"
+      ],
+      [
+        "assets/index-Jx2C5PhB.js",
+        "cd8fd82c664312146581a6287a58db4282e122b310b143836a9189936ff48e5a"
+      ],
+      [
+        "assets/isabelle-RH45X7aW.png",
+        "01eb41b46ddab73dfa89ab8bd83a4dabcace733d295ea2bfd16662e6432768e2"
+      ],
+      [
+        "assets/lean-DS4hWoMA.png",
+        "b802cfa824bbe3c143fd54ba93661f6cd1e03d0bdb3a2fe6d498a9ba94cd54fa"
+      ],
+      [
+        "assets/roboto-cyrillic-ext-wght-normal-BCp_3N7R.woff2",
+        "01f94d674db55952c35898fa4da22c3e7065c3cc4dbbcc9cb7beb8b6b017fbc9"
+      ],
+      [
+        "assets/roboto-cyrillic-wght-normal-fOt7epNf.woff2",
+        "481dd0c01e6bbb129fd147eb5d8571016193cba141c4627ca60ceabdb5a46ea8"
+      ],
+      [
+        "assets/roboto-greek-ext-wght-normal-Bgw4czJT.woff2",
+        "ec7769b089813996276482bbe7017adfffdd6c7543fd1f76244e2ffc1138ed86"
+      ],
+      [
+        "assets/roboto-greek-wght-normal-DlT9XTxE.woff2",
+        "97fbf7bd0b4579e632392a4f483acdae73cbf59ad90c1e5d2c5ec4044c377fce"
+      ],
+      [
+        "assets/roboto-latin-ext-wght-normal-DYIxWhlt.woff2",
+        "cedb374b05a35034cf96db185db4eeb8f8ce49e1a56197673702ff11b5533d6e"
+      ],
+      [
+        "assets/roboto-latin-wght-normal-ccAYIvAh.woff2",
+        "1404ca348bd75ef836f4dd8b6f2cc719458642d1237c368296b2fc652dca47dc"
+      ],
+      [
+        "assets/roboto-math-wght-normal-4a3xuzGk.woff2",
+        "7cb4281a0ccc84cc18617842c639fc66541cbef94a9dd245c754700210b4fcec"
+      ],
+      [
+        "assets/roboto-symbols-wght-normal-B7iHSfaG.woff2",
+        "2addf2d86d7a5778653b36d551e97a39da52855f82fac7461cfc1bd86d460aed"
+      ],
+      [
+        "assets/roboto-vietnamese-wght-normal-_f1XEJpo.woff2",
+        "0b60bbe04e9c479444b31270a72179f53e400beee57b7dd176c08e5e2e716831"
+      ],
+      [
+        "assets/rocq-Dna-P5lQ.png",
+        "0667a5431bc0a795111e8a1b35aca4fa8ae34d433c8e1e07587ec5eb1c92f4a7"
+      ],
+      [
+        "assets/rust-DwAlVRKW.png",
+        "8cdc4b755c58d9055e772411ad6fb1159a4adab1a51c9c35801fe1ca9c94132f"
+      ],
+      [
+        "assets/tla-AewV2MIo.png",
+        "9ec39edd70f43f0186a706a95dc1def0a90708a9c1ceaa53b035441daf7874ab"
+      ],
+      [
+        "assets/z3-BfVdzy76.png",
+        "1c0f1378fe1b68aa44727659197ee0beecdaca57fd833a25e2074db3acdc1b19"
+      ],
+      [
+        "index.html",
+        "4bea9893665c87ef774738693abd703f91cab3469922a5869a1b582100ef71f9"
+      ]
+    ]
+  },
+  "ownership": {
+    "publisher": "meden-app project service",
+    "consumer": "Generated immutable publication, read-only GUI reader",
+    "authority": "Existing core preparation/issue/completion unchanged. Display jobs cannot issue checks, construct receipts or restore accepted evidence.",
+    "evidence": "Project summary/mutation publishes through shared application channel; source edits invalidate before the next model reply."
+  },
+  "protocol": {
+    "endpoint": "/api/verification-job?revision=…",
+    "status": [
+      "idle",
+      "ready",
+      "unavailable"
+    ],
+    "stages": [
+      "reading_source",
+      "preparing_checker",
+      "checking",
+      "refreshing_source",
+      "retaining_evidence"
+    ],
+    "terminal": [
+      "admitted",
+      "failed",
+      "cancelled"
+    ],
+    "input_binding": "Source-only stage before preparation, original source and complete prepared-input serialization hashes after issue; original Stage embedded in failure/cancellation.",
+    "retention": "Latest complete bounded body only; replacement/stale observers cannot publish. No idle body request.",
+    "native_schema_count": 28
+  },
+  "static_spans": [
+    "verification.capture_source",
+    "verification.prepare",
+    "verification.check",
+    "verification.refresh_source",
+    "verification.retain",
+    "view.verification_job.materialize",
+    "gui.verification_job_respond"
+  ],
+  "workload": {
+    "issued": {
+      "context": {
+        "job": "sha256:695c041e4b284c66b6b535f202a4912ae3ef654114911bc0bf6a1a2b2603e0ed",
+        "reference": {
+          "revision": "1",
+          "session": "2f746d702f6d6564656e2d6e61746976652d62726f777365722d5a6a6f4f4a452f646174612f6d6564656e2f70726f6a656374732f383136396435373031313136376563616430313236663434363938663261343636343432643635353038336632366436306163616234656439346539633236372f72756e2d757435624c67",
+          "contract": "2f7c5dd71487a4f9bb5cc5bbe43a736d04c78f24b69eda65de52bbb4f1a3cd25"
+        },
+        "source_path": "counter.model.json",
+        "name": "Finite counter",
+        "backend": "z3.finite.v1",
+        "class": "bounded",
+        "scope": "Bounded one-step check of every input in the 4-bit unsigned domain (8 total input bits, 256 assignments). Addition/subtraction wrap modulo 2^4. No reachability, unbounded time, Rust correspondence or whole-application claim."
+      },
+      "elapsed_ms": 320,
+      "phase": {
+        "state": "running",
+        "stage": {
+          "state": "checking",
+          "inputs": {
+            "source_sha256": "bde027f84040ce43b0e70a03eb8880d367f3e5195f48e38158375d4b52d3b24f",
+            "prepared_sha256": "f182298cbe1e21f9de32e4c777a24d98c4bafb38abfb8c18a128143c2ea15e30"
+          }
+        }
+      }
+    },
+    "cancelled": {
+      "context": {
+        "job": "sha256:695c041e4b284c66b6b535f202a4912ae3ef654114911bc0bf6a1a2b2603e0ed",
+        "reference": {
+          "revision": "1",
+          "session": "2f746d702f6d6564656e2d6e61746976652d62726f777365722d5a6a6f4f4a452f646174612f6d6564656e2f70726f6a656374732f383136396435373031313136376563616430313236663434363938663261343636343432643635353038336632366436306163616234656439346539633236372f72756e2d757435624c67",
+          "contract": "2f7c5dd71487a4f9bb5cc5bbe43a736d04c78f24b69eda65de52bbb4f1a3cd25"
+        },
+        "source_path": "counter.model.json",
+        "name": "Finite counter",
+        "backend": "z3.finite.v1",
+        "class": "bounded",
+        "scope": "Bounded one-step check of every input in the 4-bit unsigned domain (8 total input bits, 256 assignments). Addition/subtraction wrap modulo 2^4. No reachability, unbounded time, Rust correspondence or whole-application claim."
+      },
+      "elapsed_ms": 1128,
+      "phase": {
+        "state": "cancelled",
+        "during": {
+          "state": "checking",
+          "inputs": {
+            "source_sha256": "bde027f84040ce43b0e70a03eb8880d367f3e5195f48e38158375d4b52d3b24f",
+            "prepared_sha256": "f182298cbe1e21f9de32e4c777a24d98c4bafb38abfb8c18a128143c2ea15e30"
+          }
+        },
+        "message": "Z3 did not complete: Cancelled\nstdout: \nstderr: "
+      }
+    },
+    "recovered": {
+      "context": {
+        "job": "sha256:c61fe51fd4b5c1bd9241a71c4fc0e1b89eca2ccce180b4005f26c6d39cef3d75",
+        "reference": {
+          "revision": "1",
+          "session": "2f746d702f6d6564656e2d6e61746976652d62726f777365722d5a6a6f4f4a452f646174612f6d6564656e2f70726f6a656374732f383136396435373031313136376563616430313236663434363938663261343636343432643635353038336632366436306163616234656439346539633236372f72756e2d757435624c67",
+          "contract": "2f7c5dd71487a4f9bb5cc5bbe43a736d04c78f24b69eda65de52bbb4f1a3cd25"
+        },
+        "source_path": "counter.model.json",
+        "name": "Finite counter",
+        "backend": "z3.finite.v1",
+        "class": "bounded",
+        "scope": "Bounded one-step check of every input in the 4-bit unsigned domain (8 total input bits, 256 assignments). Addition/subtraction wrap modulo 2^4. No reachability, unbounded time, Rust correspondence or whole-application claim."
+      },
+      "elapsed_ms": 1313,
+      "phase": {
+        "state": "admitted",
+        "inputs": {
+          "source_sha256": "bde027f84040ce43b0e70a03eb8880d367f3e5195f48e38158375d4b52d3b24f",
+          "prepared_sha256": "f182298cbe1e21f9de32e4c777a24d98c4bafb38abfb8c18a128143c2ea15e30"
+        },
+        "completion_label": "CHECKED · complete within finite bounds"
+      }
+    },
+    "source_changed_evidence": {
+      "state": "accepted",
+      "contract": {
+        "reference": {
+          "revision": "1",
+          "session": "2f746d702f6d6564656e2d6e61746976652d62726f777365722d5a6a6f4f4a452f646174612f6d6564656e2f70726f6a656374732f383136396435373031313136376563616430313236663434363938663261343636343432643635353038336632366436306163616234656439346539633236372f72756e2d757435624c67",
+          "contract": "2f7c5dd71487a4f9bb5cc5bbe43a736d04c78f24b69eda65de52bbb4f1a3cd25"
+        },
+        "name": "Finite counter",
+        "source_path": "counter.model.json",
+        "interface": "Simultaneous 4-bit transition: state (value) × arguments (amount) → state (value)",
+        "backend": "z3.finite.v1",
+        "class": "bounded",
+        "scope": "Bounded one-step check of every input in the 4-bit unsigned domain (8 total input bits, 256 assignments). Addition/subtraction wrap modulo 2^4. No reachability, unbounded time, Rust correspondence or whole-application claim.",
+        "canonical": "{\"format\":\"finite-bitvectors-v1\",\"name\":\"Finite counter\",\"description\":\"Increment a four-bit counter unless it would wrap; reject an overflowing increment without changing state.\",\"source_path\":\"counter.model.json\",\"width\":4,\"fields\":[\"value\"],\"parameters\":[\"amount\"],\"properties\":[{\"name\":\"step\",\"description\":\"Return the incremented value exactly when it fits; otherwise retain the original state.\",\"statement\":{\"op\":\"equal\",\"left\":{\"op\":\"output\",\"field\":\"value\"},\"right\":{\"op\":\"if\",\"condition\":{\"op\":\"less_equal\",\"left\":{\"op\":\"state\",\"field\":\"value\"},\"right\":{\"op\":\"add\",\"left\":{\"op\":\"state\",\"field\":\"value\"},\"right\":{\"op\":\"parameter\",\"name\":\"amount\"}}},\"then\":{\"op\":\"add\",\"left\":{\"op\":\"state\",\"field\":\"value\"},\"right\":{\"op\":\"parameter\",\"name\":\"amount\"}},\"else\":{\"op\":\"state\",\"field\":\"value\"}}}},{\"name\":\"monotone\",\"description\":\"The counter never decreases.\",\"statement\":{\"op\":\"less_equal\",\"left\":{\"op\":\"state\",\"field\":\"value\"},\"right\":{\"op\":\"output\",\"field\":\"value\"}}}],\"assumptions\":[\"The caller uses this transition for counter updates.\"]}"
+      },
+      "review": "Finite counter\n\nIncrement a four-bit counter unless it would wrap; reject an overflowing increment without changing state.\n\nSource: counter.model.json\n\nEvidence: bounded finite bit-vector checking\nBounded one-step check of every input in the 4-bit unsigned domain (8 total input bits, 256 assignments). Addition/subtraction wrap modulo 2^4. No reachability, unbounded time, Rust correspondence or whole-application claim.\n\nState fields: value\nParameters: amount\nAll output assignments are simultaneous. Every original state and argument is checked, not just sampled or reachable states.\n\nstep: Return the incremented value exactly when it fits; otherwise retain the original state.\n(out.value = (if (s.value ≤ (s.value + arg.amount)) then (s.value + arg.amount) else s.value))\n\nmonotone: The counter never decreases.\n(s.value ≤ out.value)\n\nReviewed environmental assumption: The caller uses this transition for counter updates.\n\n\nOriginal verification method: z3.finite.v1 @ 1\nDefinition SHA-256: 3435ecbcc71b936bd045e0ecc99ae4231bfa3390bb9d3c57018e58919bc61909\nScope: Bounded one-step check of every input in the 4-bit unsigned domain (8 total input bits, 256 assignments). Addition/subtraction wrap modulo 2^4. No reachability, unbounded time, Rust correspondence or whole-application claim.\n",
+      "evidence": {
+        "state": "unverified",
+        "retained": {
+          "directory": "/tmp/meden-native-browser-ZjoOJE/data/meden/projects/8169d57011167ecad0126f44698f2a466442d655083f26d60acab4ed94e9c267/artifacts/checked-Sv9VFd",
+          "source_sha256": "bde027f84040ce43b0e70a03eb8880d367f3e5195f48e38158375d4b52d3b24f",
+          "artifact_sha256": "4a38553d1099211c57863b4310a6a8fe6cc0515ddbf8b58e1af158b3464a0628"
+        },
+        "failure": null
+      }
+    },
+    "status_bytes": 182,
+    "retry_commands": 0,
+    "stages": [
+      {
+        "context": {
+          "trace": 88,
+          "span": 102
+        },
+        "parent": 91,
+        "name": "view.verification_job.materialize",
+        "start_us": 2095507,
+        "wall_us": 44,
+        "thread_cpu_us": 43
+      },
+      {
+        "context": {
+          "trace": 88,
+          "span": 103
+        },
+        "parent": 91,
+        "name": "verification.capture_source",
+        "start_us": 2095555,
+        "wall_us": 31369,
+        "thread_cpu_us": 1008
+      },
+      {
+        "context": {
+          "trace": 88,
+          "span": 105
+        },
+        "parent": 91,
+        "name": "view.verification_job.materialize",
+        "start_us": 2126969,
+        "wall_us": 93,
+        "thread_cpu_us": 92
+      },
+      {
+        "context": {
+          "trace": 110,
+          "span": 110
+        },
+        "parent": null,
+        "name": "gui.verification_job_respond",
+        "start_us": 2326688,
+        "wall_us": 90,
+        "thread_cpu_us": 71
+      },
+      {
+        "context": {
+          "trace": 88,
+          "span": 106
+        },
+        "parent": 91,
+        "name": "verification.prepare",
+        "start_us": 2127064,
+        "wall_us": 288969,
+        "thread_cpu_us": 279157
+      },
+      {
+        "context": {
+          "trace": 88,
+          "span": 111
+        },
+        "parent": 91,
+        "name": "view.verification_job.materialize",
+        "start_us": 2416148,
+        "wall_us": 92,
+        "thread_cpu_us": 91
+      },
+      {
+        "context": {
+          "trace": 118,
+          "span": 118
+        },
+        "parent": null,
+        "name": "gui.verification_job_respond",
+        "start_us": 2671931,
+        "wall_us": 92,
+        "thread_cpu_us": 74
+      },
+      {
+        "context": {
+          "trace": 122,
+          "span": 122
+        },
+        "parent": null,
+        "name": "gui.verification_job_respond",
+        "start_us": 2941307,
+        "wall_us": 128,
+        "thread_cpu_us": 102
+      },
+      {
+        "context": {
+          "trace": 127,
+          "span": 127
+        },
+        "parent": null,
+        "name": "gui.verification_job_respond",
+        "start_us": 3058252,
+        "wall_us": 124,
+        "thread_cpu_us": 92
+      },
+      {
+        "context": {
+          "trace": 88,
+          "span": 113
+        },
+        "parent": 112,
+        "name": "verification.z3",
+        "start_us": 2416244,
+        "wall_us": 807783,
+        "thread_cpu_us": 238541
+      },
+      {
+        "context": {
+          "trace": 88,
+          "span": 112
+        },
+        "parent": 91,
+        "name": "verification.check",
+        "start_us": 2416243,
+        "wall_us": 807857,
+        "thread_cpu_us": 238615
+      },
+      {
+        "context": {
+          "trace": 88,
+          "span": 133
+        },
+        "parent": 91,
+        "name": "view.verification_job.materialize",
+        "start_us": 3224150,
+        "wall_us": 90,
+        "thread_cpu_us": 90
+      },
+      {
+        "context": {
+          "trace": 142,
+          "span": 142
+        },
+        "parent": null,
+        "name": "gui.verification_job_respond",
+        "start_us": 3287850,
+        "wall_us": 81,
+        "thread_cpu_us": 64
+      },
+      {
+        "context": {
+          "trace": 145,
+          "span": 145
+        },
+        "parent": null,
+        "name": "gui.verification_job_respond",
+        "start_us": 3352058,
+        "wall_us": 128,
+        "thread_cpu_us": 96
+      },
+      {
+        "context": {
+          "trace": 151,
+          "span": 161
+        },
+        "parent": 154,
+        "name": "view.verification_job.materialize",
+        "start_us": 3525022,
+        "wall_us": 45,
+        "thread_cpu_us": 43
+      },
+      {
+        "context": {
+          "trace": 151,
+          "span": 162
+        },
+        "parent": 154,
+        "name": "verification.capture_source",
+        "start_us": 3525073,
+        "wall_us": 21194,
+        "thread_cpu_us": 927
+      },
+      {
+        "context": {
+          "trace": 151,
+          "span": 164
+        },
+        "parent": 154,
+        "name": "view.verification_job.materialize",
+        "start_us": 3546305,
+        "wall_us": 94,
+        "thread_cpu_us": 93
+      },
+      {
+        "context": {
+          "trace": 170,
+          "span": 170
+        },
+        "parent": null,
+        "name": "gui.verification_job_respond",
+        "start_us": 3731602,
+        "wall_us": 109,
+        "thread_cpu_us": 83
+      },
+      {
+        "context": {
+          "trace": 151,
+          "span": 165
+        },
+        "parent": 154,
+        "name": "verification.prepare",
+        "start_us": 3546403,
+        "wall_us": 274135,
+        "thread_cpu_us": 265617
+      },
+      {
+        "context": {
+          "trace": 151,
+          "span": 171
+        },
+        "parent": 154,
+        "name": "view.verification_job.materialize",
+        "start_us": 3820608,
+        "wall_us": 54,
+        "thread_cpu_us": 53
+      },
+      {
+        "context": {
+          "trace": 178,
+          "span": 178
+        },
+        "parent": null,
+        "name": "gui.verification_job_respond",
+        "start_us": 4081625,
+        "wall_us": 139,
+        "thread_cpu_us": 111
+      },
+      {
+        "context": {
+          "trace": 184,
+          "span": 184
+        },
+        "parent": null,
+        "name": "gui.verification_job_respond",
+        "start_us": 4387105,
+        "wall_us": 108,
+        "thread_cpu_us": 89
+      },
+      {
+        "context": {
+          "trace": 151,
+          "span": 173
+        },
+        "parent": 172,
+        "name": "verification.z3",
+        "start_us": 3820665,
+        "wall_us": 985174,
+        "thread_cpu_us": 520287
+      },
+      {
+        "context": {
+          "trace": 151,
+          "span": 172
+        },
+        "parent": 154,
+        "name": "verification.check",
+        "start_us": 3820664,
+        "wall_us": 985281,
+        "thread_cpu_us": 520392
+      },
+      {
+        "context": {
+          "trace": 151,
+          "span": 189
+        },
+        "parent": 154,
+        "name": "view.verification_job.materialize",
+        "start_us": 4805952,
+        "wall_us": 79,
+        "thread_cpu_us": 79
+      },
+      {
+        "context": {
+          "trace": 151,
+          "span": 190
+        },
+        "parent": 154,
+        "name": "verification.refresh_source",
+        "start_us": 4806034,
+        "wall_us": 31105,
+        "thread_cpu_us": 804
+      },
+      {
+        "context": {
+          "trace": 151,
+          "span": 192
+        },
+        "parent": 154,
+        "name": "view.verification_job.materialize",
+        "start_us": 4837321,
+        "wall_us": 59,
+        "thread_cpu_us": 58
+      },
+      {
+        "context": {
+          "trace": 151,
+          "span": 193
+        },
+        "parent": 154,
+        "name": "verification.retain",
+        "start_us": 4837382,
+        "wall_us": 1148,
+        "thread_cpu_us": 1143
+      },
+      {
+        "context": {
+          "trace": 151,
+          "span": 195
+        },
+        "parent": 154,
+        "name": "view.verification_job.materialize",
+        "start_us": 4838541,
+        "wall_us": 42,
+        "thread_cpu_us": 42
+      },
+      {
+        "context": {
+          "trace": 217,
+          "span": 217
+        },
+        "parent": null,
+        "name": "gui.verification_job_respond",
+        "start_us": 5150183,
+        "wall_us": 121,
+        "thread_cpu_us": 91
+      },
+      {
+        "context": {
+          "trace": 228,
+          "span": 228
+        },
+        "parent": null,
+        "name": "gui.verification_job_respond",
+        "start_us": 5393504,
+        "wall_us": 100,
+        "thread_cpu_us": 85
+      },
+      {
+        "context": {
+          "trace": 237,
+          "span": 237
+        },
+        "parent": null,
+        "name": "gui.verification_job_respond",
+        "start_us": 5603287,
+        "wall_us": 105,
+        "thread_cpu_us": 88
+      },
+      {
+        "context": {
+          "trace": 273,
+          "span": 273
+        },
+        "parent": null,
+        "name": "gui.verification_job_respond",
+        "start_us": 6283843,
+        "wall_us": 103,
+        "thread_cpu_us": 87
+      }
+    ],
+    "methodology": "Actual registered Z3, original offline Bubblewrap arguments and data-only finite counter. A trusted host launcher fixture holds checker dispatch; cancellation kills that issued dispatch before Z3 starts. Release executes original public Z3 and its independent exhaustive check. A final model response is held while asserting source-edit invalidation, then released after actual host cancellation. Scripted model transport, not live-model or cold-install validation.",
+    "limitation": "Dispatch/model responses are deliberately held. Stage timings are instrumentation conformance, not natural throughput; thread CPU excludes child-process CPU. Cancelled issued dispatch has not started Z3. Actual solver and exhaustive check execute after release."
+  },
+  "actual_projects": [
+    {
+      "project": "riemann",
+      "pid": 1384671,
+      "binary_sha256": "95305383e9414fd0b9e8b6db580dece7ae66c281f1a871e1a58419a6d00745bb",
+      "cache_hit": true,
+      "preparation_ms": 23322.438431,
+      "source_publication": "sha256:4671471a8580f25a42b2117fcc7cf5a8d25988b715b1a40cbb17b77e006bfa94",
+      "source_hash": "2063f4c8792707349ba4b3d295e779c565a63030790aae9d937d5f776d8d9184",
+      "reader_publication": "sha256:d3bca7c0ce21989bef612ac79475e72da33062b4140b13dfe87bbaf183a61be8",
+      "reader_hash": "d2c21198aaff30504f16966ddf61ce628ef7ac8632c62be3195b4e4f72e41806",
+      "inventory_files": 175187,
+      "metadata_hash": "5875c3c3432ddda379f8caf8ed411b77d30701443e5da912442935a296c3ae7a",
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "verification_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    },
+    {
+      "project": "ethlib",
+      "pid": 1384883,
+      "binary_sha256": "95305383e9414fd0b9e8b6db580dece7ae66c281f1a871e1a58419a6d00745bb",
+      "cache_hit": true,
+      "preparation_ms": 2225.511455,
+      "source_publication": "sha256:c9a67ef7faab77791ab7d84fad5d7176476d3b7d5320d9f95f155b117b57e86b",
+      "source_hash": "ac220adb7270df17b304574138f8894ec78d92bc7a85c5e2e0e745edc885bb09",
+      "reader_publication": "sha256:0b79b28ff3aa227731108c7cde50cf54fa06cc447922756668b1197473b0d3ac",
+      "reader_hash": "60e647749624e65341239c16878edafe3083f1a0b0ba7ab0587b82511d80dd36",
+      "inventory_files": 2517,
+      "metadata_hash": "59b98c2e15f2f590463873351344a08a59e4aa3854a7dfb1779e635a680cb32f",
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "verification_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip/Parameters.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    }
+  ],
+  "checks": {
+    "gates": [
+      {
+        "phase": "rust",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "clippy",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "rustdoc",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "typecheck",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "typescript",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "architecture",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "format",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "schema",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "tui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "gui-all",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "budget-normal",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "budget-reduced",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "terminal_service": {
+      "unit": "meden-verification-jobs-953-v1-validation.service",
+      "active_state": "active",
+      "sub_state": "exited",
+      "main_pid": 0,
+      "exec_main_status": 0
+    },
+    "rust": 320,
+    "typescript": 41,
+    "architecture": {
+      "tests": 23,
+      "owned_sources": 38
+    },
+    "generated_files": 56,
+    "tui": {
+      "passed": 34,
+      "skipped": 0,
+      "screen_root": "/tmp/meden-ux-verification-jobs-953-v1-20261124",
+      "inspected": "Decoded finite real refutation/acceptance/check/edit/restart and retained stop screens; browser admitted/source-edit screenshots and deployed actual source graphs."
+    },
+    "browser": [
+      {
+        "report": "target/gui-verification-jobs-953-v1-all-report",
+        "stats": {
+          "total": 67,
+          "expected": 67,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "navigation": {
+          "browser": "149.0.7827.53",
+          "motion": "reduce",
+          "cold_analysis_store_preparation_ms": 40964.004264,
+          "warm_tab_two_raf_ms": [
+            26.19999998807907,
+            28.69999998807907,
+            31.100000023841858,
+            31,
+            33.5,
+            25.100000023841858,
+            27.100000023841858,
+            27.80000001192093,
+            24,
+            28.30000001192093
+          ],
+          "p95_ms": 33.5,
+          "maximum_p95_ms": 250,
+          "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+        }
+      },
+      {
+        "report": "target/gui-verification-jobs-953-v1-budget-normal-report",
+        "stats": {
+          "total": 2,
+          "expected": 2,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "navigation": {
+          "browser": "149.0.7827.53",
+          "motion": "no-preference",
+          "cold_analysis_store_preparation_ms": 31664.585326,
+          "warm_tab_two_raf_ms": [
+            41,
+            25.899999976158142,
+            31.100000023841858,
+            21.80000001192093,
+            25.80000001192093,
+            27.399999976158142,
+            48.10000002384186,
+            27,
+            25.799999952316284,
+            31.30000001192093
+          ],
+          "p95_ms": 48.10000002384186,
+          "maximum_p95_ms": 250,
+          "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+        }
+      },
+      {
+        "report": "target/gui-verification-jobs-953-v1-budget-reduced-report",
+        "stats": {
+          "total": 2,
+          "expected": 2,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "navigation": {
+          "browser": "149.0.7827.53",
+          "motion": "reduce",
+          "cold_analysis_store_preparation_ms": 32690.47926,
+          "warm_tab_two_raf_ms": [
+            34.90000003576279,
+            27.19999998807907,
+            25,
+            24.5,
+            23.399999976158142,
+            26.69999998807907,
+            18.100000023841858,
+            29.099999964237213,
+            27.600000023841858,
+            21.80000001192093
+          ],
+          "p95_ms": 34.90000003576279,
+          "maximum_p95_ms": 250,
+          "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+        }
+      }
+    ]
+  },
+  "attempts": [
+    {
+      "scope": "Initial Rust run",
+      "result": "Namespace fixture lacked public Bubblewrap on PATH; repeated the full unchanged suite with canonical Bubblewrap. Final durable gate includes it; 320 tests pass."
+    },
+    {
+      "scope": "Extended new browser test",
+      "result": "An intentionally held final model response was never released before awaiting idle. Fixed the test to acknowledge actual Stop and then release that response. No model transport abort claim or product transport change."
+    },
+    {
+      "scope": "Final protocol",
+      "result": "Replaced a temporary flat-phase/optional-input prototype with Stage embedded in Phase, ruling out checking without inputs. Final pinned binary passed every local gate."
+    },
+    {
+      "scope": "Previous commit remote CI",
+      "run": 45303118937,
+      "head": "223ad99bbbfedbf75b8ce8dbd7dede10aba169cf",
+      "result": "Web 65 passed, one meaning-history restart journey failed after selecting a declaration during graph replacement: input absent after remount. Actual CI screenshot inspected; fixing selection retention is the next change. Rust/Python/Kani succeeded; Lean remains pending. This local 67-case run passed and is not reported as remote CI success."
+    }
+  ],
+  "limitations": [
+    "No new core refinement, live-model, cold-install, local-inference or confidentiality claim.",
+    "No old/new natural-latency comparison; graph event audit remains the previous independently captured baseline.",
+    "Actual graph reopening still validates full original prepared inputs, retaining original cache/source identity without normalization."
+  ],
+  "artifacts": [
+    {
+      "path": "/tmp/meden-verification-jobs-953-v1-definition.json",
+      "bytes": 2912,
+      "sha256": "988d7459658e215be9453e94bc40432caf04a08201e3d5b35f60bf564eed222d"
+    },
+    {
+      "path": "/tmp/meden-verification-jobs-953-v1-results.json",
+      "bytes": 819,
+      "sha256": "d69c75ad5939241fc5d340a4f9f01389d4815b04beda7fa58c73a1e6c305f992"
+    },
+    {
+      "path": "/tmp/meden-verification-jobs-953-reports.json",
+      "bytes": 118253,
+      "sha256": "50ced10e03e9a6d1988af9183fae92dfd55c8bb63181ecdd7d85bb6a80743a0c"
+    },
+    {
+      "path": "/tmp/meden-verification-jobs-953-fidelity.json",
+      "bytes": 3816,
+      "sha256": "c73bc5309f469dfe3955c995168fb859961fdb3282389e4526a2ac11d049ccd1"
+    },
+    {
+      "path": "/tmp/meden-verification-jobs-953-smoke.log",
+      "bytes": 188,
+      "sha256": "43793242e9eebecaa2ca40db397841cf957f2e8f7c04edc7effe64220462d011"
+    },
+    {
+      "path": "/tmp/meden-verification-jobs-953-v1-rust.log",
+      "bytes": 32528,
+      "sha256": "1920f58cf704b62af99c11e82c96a3cab28adcfaa18e5950e775e4e0f4526cf6"
+    },
+    {
+      "path": "/tmp/meden-verification-jobs-953-v1-clippy.log",
+      "bytes": 303,
+      "sha256": "ba1e4831f65d02f89b1539f9e05df8f6af87fe34b2f0db4fee39ba240f6854c5"
+    },
+    {
+      "path": "/tmp/meden-verification-jobs-953-v1-rustdoc.log",
+      "bytes": 550,
+      "sha256": "2fd7b1c53d126316b994c7b3cca681c09c483979241c8d3b6c507fb86564ea59"
+    },
+    {
+      "path": "/tmp/meden-verification-jobs-953-v1-typecheck.log",
+      "bytes": 29,
+      "sha256": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f"
+    },
+    {
+      "path": "/tmp/meden-verification-jobs-953-v1-typescript.log",
+      "bytes": 1018,
+      "sha256": "fd6eb104908e946af82517b98dfd2c911769b2d9110bc2f24b61fda3d2efbeca"
+    },
+    {
+      "path": "/tmp/meden-verification-jobs-953-v1-architecture.log",
+      "bytes": 4664,
+      "sha256": "b5c5bda6793494bea2277272c5b0840cdf7c397a8f7b466f1aa0dc80a261d7fc"
+    },
+    {
+      "path": "/tmp/meden-verification-jobs-953-v1-format.log",
+      "bytes": 234,
+      "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+    },
+    {
+      "path": "/tmp/meden-verification-jobs-953-v1-schema.log",
+      "bytes": 199,
+      "sha256": "734d89596387b1f55d1fb6ae3f61a01814ee19fc96332b8305203f8a563e9f5e"
+    },
+    {
+      "path": "/tmp/meden-verification-jobs-953-v1-tui.log",
+      "bytes": 200,
+      "sha256": "f6c63ccd95199a4254b7d0fe4d1ef1e930ea90b107db9b400b3e38face8c8881"
+    },
+    {
+      "path": "/tmp/meden-verification-jobs-953-v1-gui-all.log",
+      "bytes": 13173,
+      "sha256": "2d2923a484d31330452a03a99e3b9f49317106db63dab3a67de1ca26cc86624c"
+    },
+    {
+      "path": "/tmp/meden-verification-jobs-953-v1-budget-normal.log",
+      "bytes": 2069,
+      "sha256": "28f38a1a9f18f96425b3e532cd6a99a73ea86ef827e57d7c07c4d2434c7cc84f"
+    },
+    {
+      "path": "/tmp/meden-verification-jobs-953-v1-budget-reduced.log",
+      "bytes": 2069,
+      "sha256": "1701e77a9ea0a7a8eee440fe342c827ad4b90a9458d4a1c3c6cd516ea191ed78"
+    },
+    {
+      "path": "target/native-profile/verification-jobs-20261124/riemann-deployed.png",
+      "bytes": 166754,
+      "sha256": "6ebbf42954c4b6846b328fb3d1f783e98ee473a286e10dfd6345ac1a278a4b88"
+    },
+    {
+      "path": "target/native-profile/verification-jobs-20261124/ethlib-deployed.png",
+      "bytes": 189013,
+      "sha256": "a84996b45b44d107a0d3a226a07c9313e6337d3f40b6cd80a7f200a5b3ded23b"
+    }
+  ]
+}

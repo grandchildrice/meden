@@ -29,6 +29,8 @@ pub mod readers;
 pub mod repairs;
 /// Retention and exact-revision queries for prepared source/graph views.
 pub mod sources;
+/// Actual project verification progress, independent of kernel job authority.
+pub mod verification_jobs;
 
 /// A retained UTF-8 input, byte-bounded before publication. The generated wire
 /// validator also limits string length; it does not replace this byte check.

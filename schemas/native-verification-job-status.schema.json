@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Status",
+  "description": "Small frequent status; the complete context and diagnostic are queried once.",
+  "oneOf": [
+    {
+      "description": "No verification has started in this host session; no body is requested.",
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string",
+          "const": "idle"
+        }
+      },
+      "required": [
+        "state"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "description": "The complete latest observation is frozen and queryable.",
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string",
+          "const": "ready"
+        },
+        "job": {
+          "description": "Original host/session/contract-bound job, independent of body revision.",
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "revision": {
+          "description": "Exact content identity, never a job ticket or receipt.",
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "job",
+        "revision"
+      ]
+    },
+    {
+      "description": "No partial or superseded body is admitted.",
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string",
+          "const": "unavailable"
+        },
+        "message": {
+          "description": "Bounded observation/projection failure.",
+          "type": "string",
+          "maxLength": 8000
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "message"
+      ]
+    }
+  ]
+}

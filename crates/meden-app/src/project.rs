@@ -4,7 +4,7 @@
 use std::fmt::Write as _;
 use std::io;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Duration;
 
 use anyhow::{Context, Result};
@@ -33,6 +33,7 @@ use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 
 mod journal;
+mod progress;
 #[cfg(test)]
 mod selection_tests;
 use crate::verification::{Contract, PreparedCheck, Registry as Verifiers};
@@ -146,6 +147,8 @@ pub struct Project {
     storage: PathBuf,
     state: Mutex<State>,
     journal: Option<PathBuf>,
+    presentation: OnceLock<crate::view::evidence::Channel>,
+    verification_jobs: crate::view::verification_jobs::Publisher,
 }
 
 impl Project {
@@ -173,6 +176,7 @@ impl Project {
                     out
                 });
         let contracts = Contracts::new(session.as_bytes().to_vec());
+        let verification_jobs = crate::view::verification_jobs::Publisher::new(session.as_bytes());
         Self {
             root: root.to_owned(),
             session,
@@ -192,6 +196,8 @@ impl Project {
                 events: Vec::new(),
             }),
             journal: None,
+            presentation: OnceLock::new(),
+            verification_jobs,
         }
     }
     pub fn open(root: &Path, session: &[u8], selected: Option<&str>) -> Result<Self> {
@@ -225,6 +231,7 @@ impl Project {
             let _ = write!(out, "{byte:02x}");
             out
         });
+        project.verification_jobs = crate::view::verification_jobs::Publisher::new(session);
         let path = directory.join("contracts.json");
         let (contracts, events, saved_selection) = journal::load(&path, root, &project.session)?;
         let choice = selected.or(saved_selection.as_deref());
@@ -247,6 +254,19 @@ impl Project {
     }
     pub fn session_id(&self) -> &str {
         &self.session
+    }
+    /// Obtain the immutable evidence query handle after the initial host status
+    /// observation. Acquiring this handle never inspects a source or runs a check.
+    pub fn evidence_view(&self) -> Result<crate::view::evidence::Reader> {
+        Ok(self
+            .presentation
+            .get()
+            .context("Project status has not been observed")?
+            .reader())
+    }
+    /// Read the latest actual verification observation without starting work.
+    pub fn verification_view(&self) -> crate::view::verification_jobs::Reader {
+        self.verification_jobs.reader()
     }
     /// Fixed host preference, including a retained choice when no flag was supplied.
     pub fn selected_verifier(&self) -> Option<&str> {
@@ -482,6 +502,9 @@ impl Project {
                 state.failure = None;
             }
         }
+        if let Some(view) = self.presentation.get() {
+            view.invalidate();
+        }
     }
     pub fn begin_turn(&self) {
         if let Ok(mut state) = self.state.lock() {
@@ -495,13 +518,20 @@ impl Project {
         } else {
             control.cancel();
         }
+        if let Some(view) = self.presentation.get() {
+            view.invalidate();
+        }
     }
     pub fn failure(&self) -> Option<Failure> {
         self.state.lock().ok().and_then(|s| s.failure.clone())
     }
     fn record_failure(&self, failure: Failure) {
+        if let Some(view) = self.presentation.get() {
+            view.invalidate();
+        }
         if let Ok(mut state) = self.state.lock() {
             state.failure = Some(failure);
+            let _ = self.summary(&state, false);
         }
     }
     pub fn status(
@@ -760,7 +790,7 @@ impl Project {
         } else {
             state.artifact.as_ref()
         };
-        Ok(Summary {
+        let summary = Summary {
             reference,
             accepted_reference: accepted.as_ref().map(|a| a.reference(&self.session)),
             proposed: displayed.is_some(),
@@ -790,7 +820,16 @@ impl Project {
             artifact: artifact.map(|a| a.directory.clone()),
             source_sha256: artifact.map(|a| a.report.source_sha256.clone()),
             artifact_sha256: artifact.map(|a| a.report.artifact_sha256.clone()),
-        })
+        };
+        match self.presentation.get() {
+            Some(view) => view.observe(summary.clone()),
+            None => {
+                let _ = self
+                    .presentation
+                    .set(crate::view::evidence::Channel::new(summary.clone()));
+            }
+        }
+        Ok(summary)
     }
     pub fn verify(
         &self,
@@ -824,40 +863,63 @@ impl Project {
                     .context("host acceptance of the exact prepared contract is required")?;
             state.dirty = true;
             state.failure = None;
+            if let Some(view) = self.presentation.get() {
+                view.invalidate();
+            }
             Ok(preparation)
         })?;
-        let source = snapshot(
-            workspace,
-            preparation.data().contract.source(),
-            control,
-            rules,
-        )?;
-        let prepared = self.verifiers.prepare(
+        let progress = progress::Progress::new(
+            &self.verification_jobs,
+            &preparation.data().reference(&self.session),
             &preparation.data().contract,
-            &source,
-            &std::env::current_exe().map_err(Failure::unavailable)?,
             control,
-        )?;
-        let running = {
-            let mut state = self
-                .state
-                .lock()
-                .map_err(|_| anyhow::anyhow!("project unavailable"))?;
-            control.with_active(|| {
-                preparation
-                    .issue(&mut state.contracts, serde_json::to_vec(prepared.inputs())?)
-                    .ok_or_else(|| {
-                        io::Error::other("job issue refused or contract changed during preparation")
-                    })
-            })?
-        };
-        let ticket = running.ticket().clone();
-        let result = self.run_job(prepared, running, workspace, control, rules);
-        if result.is_err() {
-            if let Ok(mut state) = self.state.lock() {
-                state.contracts.abort(Origin::Controller, &ticket);
+        );
+        let result = (|| {
+            let source = {
+                let _timing = meden_runtime::metrics::Span::start("verification.capture_source");
+                snapshot(
+                    workspace,
+                    preparation.data().contract.source(),
+                    control,
+                    rules,
+                )?
+            };
+            progress.source(&source);
+            let prepared = {
+                let _timing = meden_runtime::metrics::Span::start("verification.prepare");
+                self.verifiers.prepare(
+                    &preparation.data().contract,
+                    &source,
+                    &std::env::current_exe().map_err(Failure::unavailable)?,
+                    control,
+                )?
+            };
+            let running = {
+                let mut state = self
+                    .state
+                    .lock()
+                    .map_err(|_| anyhow::anyhow!("project unavailable"))?;
+                control.with_active(|| {
+                    preparation
+                        .issue(&mut state.contracts, serde_json::to_vec(prepared.inputs())?)
+                        .ok_or_else(|| {
+                            io::Error::other(
+                                "job issue refused or contract changed during preparation",
+                            )
+                        })
+                })?
+            };
+            progress.checking(prepared.inputs());
+            let ticket = running.ticket().clone();
+            let result = self.run_job(prepared, running, workspace, control, rules, &progress);
+            if result.is_err() {
+                if let Ok(mut state) = self.state.lock() {
+                    state.contracts.abort(Origin::Controller, &ticket);
+                }
             }
-        }
+            result
+        })();
+        progress.finish(&result);
         result
     }
     fn run_job(
@@ -867,13 +929,23 @@ impl Project {
         workspace: &Workspace,
         control: &Control,
         rules: &Policy,
+        progress: &progress::Progress<'_>,
     ) -> Result<Summary> {
         let agreement = running.data();
-        let checked = prepared.check(control)?;
-        let fresh = snapshot(workspace, agreement.contract.source(), control, rules)?;
+        let checked = {
+            let _timing = meden_runtime::metrics::Span::start("verification.check");
+            prepared.check(control)?
+        };
+        progress.refreshing();
+        let fresh = {
+            let _timing = meden_runtime::metrics::Span::start("verification.refresh_source");
+            snapshot(workspace, agreement.contract.source(), control, rules)?
+        };
         let mut inputs = checked.inputs();
         inputs.source_sha256 = hash(fresh.as_bytes());
         let subject = Self::binding(agreement, checked.report(), &fresh)?;
+        progress.retaining();
+        let _timing = meden_runtime::metrics::Span::start("verification.retain");
         let mut state = self
             .state
             .lock()
@@ -1052,6 +1124,83 @@ mod tests {
     use super::*;
     use meden_core::evidence::CheckResult;
     use std::sync::atomic::{AtomicBool, Ordering};
+
+    #[test]
+    fn application_mutations_publish_original_evidence_without_transport_updates() -> Result<()> {
+        fn observation(reader: &crate::view::evidence::Reader) -> Result<(String, Value)> {
+            let status = serde_json::to_value(reader)?;
+            let revision = status
+                .get("revision")
+                .and_then(Value::as_str)
+                .context("view reference")?
+                .to_owned();
+            let data = serde_json::from_slice(&reader.bytes(&revision).context("view body")?)?;
+            Ok((revision, data))
+        }
+        let root = tempfile::tempdir()?;
+        let project = Project::new(root.path());
+        assert!(project.evidence_view().is_err()); // A getter cannot materialize.
+        project.stored_status()?;
+        let reader = project.evidence_view()?;
+        let (empty, value) = observation(&reader)?;
+        assert_eq!(
+            value.pointer("/data/state").and_then(Value::as_str),
+            Some("empty")
+        );
+        let contract = project.parse_contract(include_str!(
+            "../../../verification/examples/finite-counter.contract.json"
+        ))?;
+        let control = Control::new(Arc::new(AtomicBool::new(false)));
+        let proposed = project.propose(&contract, &control)?;
+        assert!(reader.bytes(&empty).is_none());
+        assert_eq!(
+            observation(&reader)?
+                .1
+                .pointer("/data/state")
+                .and_then(Value::as_str),
+            Some("proposed")
+        );
+        project.review(&proposed.reference)?;
+        project.accept(&proposed.reference)?;
+        assert_eq!(
+            observation(&reader)?
+                .1
+                .pointer("/data/evidence/state")
+                .and_then(Value::as_str),
+            Some("unverified")
+        );
+        project.record_failure(Failure::unavailable("Original resource failure"));
+        let (revision, failed) = observation(&reader)?;
+        assert_eq!(
+            failed
+                .pointer("/data/evidence/failure/kind")
+                .and_then(Value::as_str),
+            Some("unavailable")
+        );
+        assert_eq!(
+            failed
+                .pointer("/data/contract/canonical")
+                .and_then(Value::as_str),
+            Some(String::from_utf8(contract.canonical()?)?.as_str())
+        );
+        let bytes = reader.bytes(&revision).context("body")?;
+        for _ in 0..100 {
+            assert!(Arc::ptr_eq(
+                &bytes,
+                &reader.bytes(&revision).context("same bytes")?
+            ));
+        }
+        project.cancel(&control);
+        assert!(control.flag().load(Ordering::SeqCst));
+        assert_eq!(
+            observation(&reader)?
+                .1
+                .pointer("/data/evidence/state")
+                .and_then(Value::as_str),
+            Some("unverified")
+        );
+        Ok(())
+    }
 
     #[test]
     fn stale_or_mismatched_prepared_access_never_enters_the_io_callback() -> Result<()> {

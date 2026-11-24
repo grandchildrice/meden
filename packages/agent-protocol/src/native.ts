@@ -20,6 +20,9 @@ export { nativeReferenceSchema } from "./evidence-reference.generated";
 import type { NativeReference } from "./evidence-reference.generated";
 export type { NativeReference } from "./evidence-reference.generated";
 import { evidenceStatusSchema } from "./evidence-status.generated";
+import { verificationJobStatusSchema } from "./verification-job-status.generated";
+export { verificationJobPublicationSchema } from "./verification-job-publication.generated";
+export type { VerificationJobPublication } from "./verification-job-publication.generated";
 export { evidencePublicationSchema } from "./evidence-publication.generated";
 export type { EvidencePublication } from "./evidence-publication.generated";
 export type { SourcePage as SourceSnapshot } from "./source.generated";
@@ -147,6 +150,7 @@ export const nativeStateSchema = z.object({
   reasoning: z.string(),
   stopped: z.string().nullable(),
   project: evidenceStatusSchema,
+  verification_job: verificationJobStatusSchema,
   directories: directoryIndexSchema,
   readers: readerIndexSchema,
   sources: sourceIndexSchema,

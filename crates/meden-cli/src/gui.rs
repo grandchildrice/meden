@@ -39,6 +39,7 @@ enum PublicationRole {
     Analysis,
     AnalysisHistory,
     Evidence,
+    VerificationJob,
 }
 
 impl Task {
@@ -77,7 +78,8 @@ struct View {
     activity: String,
     partial: String,
     reasoning: String,
-    project: meden_app::view::evidence::Project,
+    project: meden_app::view::evidence::Reader,
+    verification_job: meden_app::view::verification_jobs::Reader,
     stopped: Option<String>,
     directories: meden_app::view::directory::Directories,
     readers: meden_app::view::readers::Readers,
@@ -353,6 +355,7 @@ fn initial_view(
     workspace: &Workspace,
     project: &crate::project::Project,
 ) -> Result<Arc<Mutex<View>>> {
+    project.stored_status()?;
     let saved = history::load(workspace.path())?;
     let analyses = match crate::analysis::journal::list(workspace.path()) {
         Ok(history) => meden_app::view::analyses::Analyses::new(meden_app::view::analyses::Records {
@@ -389,7 +392,8 @@ fn initial_view(
         activity: "Ready".into(),
         partial: String::new(),
         reasoning: String::new(),
-        project: meden_app::view::evidence::Project::new(project.stored_status()?),
+        project: project.evidence_view()?,
+        verification_job: project.verification_view(),
         stopped: saved.stopped,
         directories: meden_app::view::directory::Directories::default(),
         readers: meden_app::view::readers::Readers::default(),
@@ -561,6 +565,8 @@ impl Http<'_> {
             (PublicationRole::AnalysisHistory, revision)
         } else if let Some(revision) = url.strip_prefix("/api/evidence?revision=") {
             (PublicationRole::Evidence, revision)
+        } else if let Some(revision) = url.strip_prefix("/api/verification-job?revision=") {
+            (PublicationRole::VerificationJob, revision)
         } else if let Some(revision) = url.strip_prefix("/api/directory?revision=") {
             (PublicationRole::Directory, revision)
         } else if let Some(revision) = url.strip_prefix("/api/inventory?revision=") {
@@ -587,6 +593,7 @@ impl Http<'_> {
                     PublicationRole::Analysis => view.analyses.current_bytes(&revision),
                     PublicationRole::AnalysisHistory => view.analyses.history_bytes(&revision),
                     PublicationRole::Evidence => view.project.bytes(&revision),
+                    PublicationRole::VerificationJob => view.verification_job.bytes(&revision),
                     PublicationRole::Inventory => view
                         .overview_snapshot
                         .as_ref()
@@ -603,6 +610,7 @@ impl Http<'_> {
                 PublicationRole::Analysis => "gui.analysis_respond",
                 PublicationRole::AnalysisHistory => "gui.analysis_history_respond",
                 PublicationRole::Evidence => "gui.evidence_respond",
+                PublicationRole::VerificationJob => "gui.verification_job_respond",
                 PublicationRole::Inventory => "gui.inventory_respond",
             },
             bytes,
@@ -818,21 +826,15 @@ fn worker(
                 }
                 Command::Instruction { text } => Some(instruction(view, text)),
                 Command::ReviewContract { reference } => {
-                    lock(view)
-                        .project
-                        .observe(project.review(&reference.original()?)?);
+                    project.review(&reference.original()?)?;
                     None
                 }
                 Command::AcceptContract { reference } => {
-                    lock(view)
-                        .project
-                        .observe(project.accept(&reference.original()?)?);
+                    project.accept(&reference.original()?)?;
                     Some(project.continuation()?)
                 }
                 Command::RejectContract { reference } => {
-                    lock(view)
-                        .project
-                        .observe(project.reject(&reference.original()?)?);
+                    project.reject(&reference.original()?)?;
                     None
                 }
                 Command::Inspect { path, directory } => {
@@ -860,10 +862,9 @@ fn worker(
                 }
             }
             // This observes real source freshness, not only the last saved report.
-            let summary = project
+            project
                 .status(workspace, &processes)
                 .or_else(|_| project.stored_status())?;
-            lock(view).project.observe(summary);
             Ok(())
         })();
         if checkpoint_after {

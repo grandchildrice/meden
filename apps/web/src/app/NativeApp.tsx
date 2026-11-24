@@ -21,6 +21,7 @@ import {
   type NativeState,
   type HistorySnapshot,
   type WorkspaceOverview,
+  type VerificationJobPublication,
 } from "@meden/agent-protocol/native";
 import { ChatView } from "../features/chat/ChatView";
 import type { Conversation } from "@meden/workspace-schema";
@@ -29,6 +30,10 @@ import { NativePreview } from "../features/native/NativePreview";
 import { NativeRepair } from "../features/native/NativeRepair";
 import { NativeDelivery } from "../features/native/NativeDelivery";
 import { NativeWork } from "../features/native/NativeWork";
+import {
+  VerificationProgress,
+  verificationActivity,
+} from "../features/native/VerificationProgress";
 import { visibleHistory } from "../features/native/history";
 import HistoryOutlined from "@mui/icons-material/HistoryOutlined";
 import {
@@ -301,6 +306,47 @@ export function NativeApp({ token }: { token: string }) {
       : evidenceReads.get(evidenceRevision)?.error;
   const agreement =
     project && project.state !== "empty" ? project.contract : undefined;
+  const verificationRevision =
+    state?.verification_job.state === "ready"
+      ? state.verification_job.revision
+      : undefined;
+  const verificationJobId =
+    state?.verification_job.state === "ready"
+      ? state.verification_job.job
+      : undefined;
+  const readVerification = useCallback(
+    (revision: string, signal: AbortSignal) => {
+      if (!verificationJobId)
+        return Promise.reject(new Error("Verification context is unavailable"));
+      return observePublication(
+        client.verificationJob(revision, verificationJobId, signal),
+      );
+    },
+    [client, verificationJobId],
+  );
+  const verificationReads = usePublications(
+    verificationRevision ? [verificationRevision] : [],
+    readVerification,
+    state?.verification_job,
+    reconnect,
+  );
+  const observedVerification =
+    verificationReads.get(verificationRevision)?.publication?.data;
+  const lastVerification = useRef<
+    VerificationJobPublication["data"] | undefined
+  >(undefined);
+  useEffect(() => {
+    if (observedVerification) lastVerification.current = observedVerification;
+  }, [observedVerification]);
+  const verification =
+    observedVerification ??
+    (lastVerification.current?.context.job === verificationJobId
+      ? lastVerification.current
+      : undefined);
+  const verificationError =
+    state?.verification_job.state === "unavailable"
+      ? state.verification_job.message
+      : verificationReads.get(verificationRevision)?.error;
   const readDirectory = useCallback(
     (revision: string, signal: AbortSignal) =>
       observePublication(client.directory(revision, signal)),
@@ -1148,7 +1194,10 @@ export function NativeApp({ token }: { token: string }) {
                 queue.length > 0
                   ? "Waiting to send…"
                   : chatRunning
-                    ? state.activity + " · " + elapsed + "s"
+                    ? (verificationActivity(
+                        verification,
+                        Boolean(verificationRevision),
+                      ) ?? state.activity + " · " + elapsed + "s")
                     : undefined
               }
               disabled={!state.authorized || Boolean(connectionError)}
@@ -1202,6 +1251,15 @@ export function NativeApp({ token }: { token: string }) {
             {reviewing && !project && !evidenceError && (
               <p role="status">Loading contract review…</p>
             )}
+            <VerificationProgress
+              data={verification}
+              error={verificationError}
+              retry={
+                verificationRevision
+                  ? () => verificationReads.retry(verificationRevision)
+                  : undefined
+              }
+            />
             {project && project.state !== "empty" && (
               <article className="chat-contract">
                 <Typography component="h3">

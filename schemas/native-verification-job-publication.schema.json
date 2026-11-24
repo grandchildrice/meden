@@ -1,0 +1,378 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Envelope",
+  "description": "Shared wire framing; each data role retains its own generated schema.",
+  "type": "object",
+  "properties": {
+    "revision": {
+      "description": "Exact publication requested by the viewer.",
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "data": {
+      "description": "Original complete projection, never an authority token.",
+      "$ref": "#/$defs/Data"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "revision",
+    "data"
+  ],
+  "$defs": {
+    "Data": {
+      "description": "One latest complete observation. No successful history prefix is invented.",
+      "type": "object",
+      "properties": {
+        "context": {
+          "description": "Original immutable host/contract/resource identity.",
+          "$ref": "#/$defs/Context"
+        },
+        "elapsed_ms": {
+          "description": "Host monotonic observation, saturating at u32::MAX.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "phase": {
+          "description": "Actual application stage or terminal result.",
+          "$ref": "#/$defs/Phase"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "context",
+        "elapsed_ms",
+        "phase"
+      ]
+    },
+    "Context": {
+      "description": "Frozen original accepted meaning and host observation identity.",
+      "type": "object",
+      "properties": {
+        "job": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "reference": {
+          "$ref": "#/$defs/Reference"
+        },
+        "source_path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "name": {
+          "type": "string"
+        },
+        "backend": {
+          "type": "string"
+        },
+        "class": {
+          "$ref": "#/$defs/Class"
+        },
+        "scope": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "job",
+        "reference",
+        "source_path",
+        "name",
+        "backend",
+        "class",
+        "scope"
+      ]
+    },
+    "Reference": {
+      "description": "Lossless transport of the original selected contract identity, never authority.",
+      "type": "object",
+      "properties": {
+        "revision": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,19}$"
+        },
+        "session": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "contract": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "revision",
+        "session",
+        "contract"
+      ]
+    },
+    "Class": {
+      "description": "Evidence strength carried by the application wire format.",
+      "oneOf": [
+        {
+          "description": "Observations of named executions.",
+          "type": "string",
+          "const": "empirical"
+        },
+        {
+          "description": "Complete checking within the named finite scope.",
+          "type": "string",
+          "const": "bounded"
+        },
+        {
+          "description": "A checked theorem under named assumptions.",
+          "type": "string",
+          "const": "theorem"
+        },
+        {
+          "description": "Implementation correspondence to a specification.",
+          "type": "string",
+          "const": "refinement"
+        }
+      ]
+    },
+    "Phase": {
+      "description": "Input-bound progress and disjoint terminal observations. Diagnostics do not\nselect a phase, stop class or evidence strength.",
+      "oneOf": [
+        {
+          "description": "The host is executing this actual application stage.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "running"
+            },
+            "stage": {
+              "description": "Exact known input, frozen along with its operation boundary.",
+              "$ref": "#/$defs/Stage"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "stage"
+          ]
+        },
+        {
+          "description": "Reported only after actual project evidence admission. This display\nobservation cannot restore that receipt, acceptance or current freshness.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "admitted"
+            },
+            "inputs": {
+              "description": "Original input binding for the actual admitted result.",
+              "$ref": "#/$defs/Inputs"
+            },
+            "completion_label": {
+              "description": "The application's original strength-specific completion text.",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "inputs",
+            "completion_label"
+          ]
+        },
+        {
+          "description": "Original typed failure, without classifying diagnostic words.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "failed"
+            },
+            "during": {
+              "description": "Last actual operation boundary.",
+              "$ref": "#/$defs/Stage"
+            },
+            "kind": {
+              "description": "Original host classification.",
+              "$ref": "#/$defs/FailureKind"
+            },
+            "message": {
+              "description": "Bounded literal diagnostic, explicitly marked if shortened.",
+              "type": "string",
+              "maxLength": 8000
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "during",
+            "kind",
+            "message"
+          ]
+        },
+        {
+          "description": "Failed execution with an independently observed host cancellation flag.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "cancelled"
+            },
+            "during": {
+              "description": "Last actual operation boundary.",
+              "$ref": "#/$defs/Stage"
+            },
+            "message": {
+              "description": "Bounded original diagnostic.",
+              "type": "string",
+              "maxLength": 8000
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "during",
+            "message"
+          ]
+        }
+      ]
+    },
+    "Stage": {
+      "description": "Actual application boundary with exactly the inputs known there. A checking\nstage without prepared inputs is not representable, including after failure.",
+      "oneOf": [
+        {
+          "description": "Read the accepted source under its frozen policy.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "reading_source"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "description": "Prepare the originally registered checker and its inputs.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "preparing_checker"
+            },
+            "source_sha256": {
+              "description": "Complete original source bytes, not metadata or a prefix.",
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "source_sha256"
+          ]
+        },
+        {
+          "description": "Execute the already-issued check.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "checking"
+            },
+            "inputs": {
+              "description": "Original complete prepared input binding.",
+              "$ref": "#/$defs/Inputs"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "inputs"
+          ]
+        },
+        {
+          "description": "Observe the source again after checker completion.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "refreshing_source"
+            },
+            "inputs": {
+              "description": "Original check input; never replaced by the freshness read.",
+              "$ref": "#/$defs/Inputs"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "inputs"
+          ]
+        },
+        {
+          "description": "Stage outputs and ask the existing controller to admit them.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "retaining_evidence"
+            },
+            "inputs": {
+              "description": "Original check input.",
+              "$ref": "#/$defs/Inputs"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "inputs"
+          ]
+        }
+      ]
+    },
+    "Inputs": {
+      "description": "Original captured source and the complete prepared-input serialization hash.\nA viewer cannot use these hashes to issue or complete an execution.",
+      "type": "object",
+      "properties": {
+        "source_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "prepared_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "source_sha256",
+        "prepared_sha256"
+      ]
+    },
+    "FailureKind": {
+      "description": "Host-attributed check failure, never decoded from model/result text.",
+      "oneOf": [
+        {
+          "description": "A completed check did not establish the candidate's contract. This is\nnot a theorem that the contract is false; proof automation can fail too.",
+          "type": "string",
+          "const": "unverified"
+        },
+        {
+          "description": "Prepared resources, host I/O or the checker protocol are unavailable.",
+          "type": "string",
+          "const": "unavailable"
+        },
+        {
+          "description": "Cancellation or a resource limit prevented a conclusive check.",
+          "type": "string",
+          "const": "inconclusive"
+        }
+      ]
+    }
+  }
+}

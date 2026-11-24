@@ -11,6 +11,18 @@ writeFileSync(
 );
 for (const [key, rust, symbol, type, owner = "view"] of [
   [
+    "verification-job-status",
+    "verification_jobs::Status",
+    "verificationJobStatusSchema",
+    "VerificationJobStatus",
+  ],
+  [
+    "verification-job-publication",
+    "verification_jobs::Snapshot",
+    "verificationJobPublicationSchema",
+    "VerificationJobPublication",
+  ],
+  [
     "evidence-status",
     "evidence::Status",
     "evidenceStatusSchema",

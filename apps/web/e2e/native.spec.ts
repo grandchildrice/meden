@@ -20,11 +20,16 @@ import { homedir, tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { once } from "node:events";
 import { createHash } from "node:crypto";
-import { projectEvidence, hasCurrentEvidence } from "./evidence";
+import {
+  projectEvidence,
+  hasCurrentEvidence,
+  verificationJob,
+} from "./evidence";
 import {
   analysisCurrentSchema,
   analysisHistorySchema,
 } from "@meden/agent-protocol/native";
+import { verificationGate } from "./launcher-gate";
 
 test.describe("native GUI with real offline workers", () => {
   test.describe.configure({ mode: "parallel" });
@@ -260,9 +265,11 @@ test.describe("native GUI with real offline workers", () => {
       ["verify_project", {}],
     ] as const)
       responses.push((response) => reply(response, tool(name, args)));
-    responses.push((response) =>
-      reply(response, { role: "assistant", content: "FINITE-GUI-COMPLETE" }),
-    );
+    let finish: (() => void) | undefined;
+    responses.push((response) => {
+      finish = () =>
+        reply(response, { role: "assistant", content: "FINITE-GUI-COMPLETE" });
+    });
     await page.goto(
       await start(0, { MEDEN_VERIFIER_BUNDLE: undefined }, [
         "--verifier",
@@ -311,15 +318,35 @@ test.describe("native GUI with real offline workers", () => {
         exact: true,
       })
       .click();
-    await expect(
-      page.getByText("FINITE-GUI-COMPLETE", { exact: true }),
-    ).toBeVisible();
+    await expect.poll(() => Boolean(finish), { timeout: 30000 }).toBe(true);
+    // Actual core admission must be observable while the following model reply
+    // is still held; the GUI cannot wait for an end-of-turn summary assignment.
     const evidence = page.locator(".chat-contract");
     await expect(evidence.locator(".MuiChip-label")).toHaveText(
       "CHECKED · complete within finite bounds",
     );
     const current = await projectEvidence(page);
     expect(hasCurrentEvidence(current)).toBe(true);
+    const completedJob = await verificationJob(page);
+    expect(completedJob?.phase.state).toBe("admitted");
+    if (
+      current.state !== "accepted" ||
+      current.evidence.state !== "current" ||
+      completedJob?.phase.state !== "admitted"
+    )
+      throw new Error("Expected original admitted bounded observation");
+    expect(completedJob.context.reference).toEqual(current.contract.reference);
+    expect(completedJob.context.class).toBe("bounded");
+    expect(completedJob.phase.inputs.source_sha256).toBe(
+      current.evidence.artifact.source_sha256,
+    );
+    await expect(
+      page.getByText("FINITE-GUI-COMPLETE", { exact: true }),
+    ).toHaveCount(0);
+    finish!();
+    await expect(
+      page.getByText("FINITE-GUI-COMPLETE", { exact: true }),
+    ).toBeVisible();
     const status = await page.evaluate(async () =>
       (
         await fetch("/api/state", {
@@ -397,6 +424,7 @@ test.describe("native GUI with real offline workers", () => {
       "Contract accepted",
     );
     const reopened = await projectEvidence(page);
+    expect(await verificationJob(page)).toBeUndefined();
     expect(hasCurrentEvidence(reopened)).toBe(false);
     if (current.state !== "accepted" || reopened.state !== "accepted")
       throw new Error("Original accepted agreement must survive restart");
@@ -409,6 +437,301 @@ test.describe("native GUI with real offline workers", () => {
       page.getByRole("button", { name: "Choose model", exact: true }),
     ).toBeVisible();
     expect(requests.length).toBe(before);
+  });
+
+  test("verification progress retries as data, cancels issued inputs and rejects delayed observations", async ({
+    page,
+  }, info) => {
+    test.setTimeout(120000);
+    const gate = await verificationGate(root);
+    const contract = JSON.parse(
+      await readFile(
+        "verification/examples/finite-counter.contract.json",
+        "utf8",
+      ),
+    );
+    const correct = await readFile(
+      "verification/examples/finite-counter.model.json",
+      "utf8",
+    );
+    responses.push(
+      (response) => reply(response, tool("propose_contract", { contract })),
+      (response) =>
+        reply(
+          response,
+          tool("write_file", { path: contract.source_path, content: correct }),
+        ),
+      (response) => reply(response, tool("verify_project", {})),
+    );
+    let failed = false,
+      held = false,
+      commands = 0,
+      originalJob: string | undefined;
+    let releaseOld = () => {};
+    const released = new Promise<void>((resolve) => {
+      releaseOld = resolve;
+    });
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname === "/api/command") commands++;
+    });
+    await page.route("**/api/verification-job?*", async (route) => {
+      const response = await route.fetch();
+      if (response.status() !== 200) {
+        await route.fulfill({ response });
+        return;
+      }
+      const body = await response.json();
+      if (
+        body.data.phase.state === "running" &&
+        body.data.phase.stage.state === "checking" &&
+        !failed
+      ) {
+        originalJob = body.data.context.job;
+        failed = true;
+        await route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({
+            error: "Temporary observation transfer failure",
+          }),
+        });
+      } else if (
+        body.data.phase.state === "running" &&
+        body.data.phase.stage.state === "checking" &&
+        !held
+      ) {
+        held = true;
+        await released;
+        await route.fulfill({ response });
+      } else await route.fulfill({ response });
+    });
+    try {
+      await page.goto(
+        await start(
+          0,
+          { ...gate.environment, MEDEN_VERIFIER_BUNDLE: undefined },
+          ["--verifier", "z3.finite.v1"],
+        ),
+      );
+      expect(await verificationJob(page)).toBeUndefined();
+      await page
+        .getByRole("button", { name: "Choose model", exact: true })
+        .click();
+      await page
+        .getByRole("button", { name: "Use this model", exact: true })
+        .click();
+      await page
+        .getByRole("textbox", { name: "Message", exact: true })
+        .fill("Check the original finite counter contract.");
+      await page.getByRole("button", { name: "Send", exact: true }).click();
+      await page
+        .getByRole("button", { name: "Review proposed contract", exact: true })
+        .click();
+      await page
+        .getByRole("dialog", { name: "Review contract meaning" })
+        .getByRole("button", {
+          name: "Accept this contract and continue",
+          exact: true,
+        })
+        .click();
+      await expect.poll(gate.started, { timeout: 30000 }).toBe("started");
+      await expect(
+        page.getByRole("button", { name: "Retry check status", exact: true }),
+      ).toBeVisible();
+      const beforeRetry = commands;
+      await page
+        .getByRole("button", { name: "Retry check status", exact: true })
+        .click();
+      await expect.poll(() => held).toBe(true);
+      expect(commands).toBe(beforeRetry);
+      const retryCommands = commands - beforeRetry;
+      const issued = await verificationJob(page);
+      expect(issued?.phase.state).toBe("running");
+      expect(issued?.context.job).toBe(originalJob);
+      if (
+        issued?.phase.state !== "running" ||
+        issued.phase.stage.state !== "checking"
+      )
+        throw new Error("Expected actual issued verification input");
+      expect(issued.phase.stage.inputs.source_sha256).toBe(
+        createHash("sha256").update(correct).digest("hex"),
+      );
+      expect(hasCurrentEvidence(await projectEvidence(page))).toBe(false);
+      await page.getByRole("button", { name: "Stop", exact: true }).click();
+      await expect(
+        page.getByRole("article", { name: "Verification progress" }),
+      ).toContainText("Verification stopped");
+      const cancelled = await verificationJob(page);
+      expect(cancelled?.phase.state).toBe("cancelled");
+      expect(cancelled?.context).toEqual(issued.context);
+      if (
+        cancelled?.phase.state !== "cancelled" ||
+        cancelled.phase.during.state !== "checking"
+      )
+        throw new Error("Cancelled observation must retain issued input");
+      expect(cancelled.phase.during.inputs.source_sha256).toBe(
+        issued.phase.stage.inputs.source_sha256,
+      );
+      releaseOld();
+      await page.unrouteAll({ behavior: "wait" });
+      await expect(
+        page.getByRole("article", { name: "Verification progress" }),
+      ).toContainText("Verification stopped");
+      expect(hasCurrentEvidence(await projectEvidence(page))).toBe(false);
+      await expect(
+        page.getByRole("button", { name: "Stop", exact: true }),
+      ).toHaveCount(0, { timeout: 30000 });
+      await gate.reset();
+      responses.push(
+        (response) => reply(response, tool("verify_project", {})),
+        (response) =>
+          reply(response, {
+            role: "assistant",
+            content: "VERIFICATION-JOB-RECOVERED",
+          }),
+      );
+      await page
+        .getByRole("textbox", { name: "Message", exact: true })
+        .fill("Retry checking the same accepted counter.");
+      await page.getByRole("button", { name: "Send", exact: true }).click();
+      await expect.poll(gate.started, { timeout: 30000 }).toBe("started");
+      const next = await verificationJob(page);
+      expect(next?.phase.state).toBe("running");
+      expect(next?.context.job).not.toBe(originalJob);
+      expect(next?.context.reference).toEqual(issued.context.reference);
+      await expect(
+        page
+          .getByRole("status")
+          .filter({ hasText: "Checking the accepted contract" }),
+      ).toBeVisible();
+      await gate.release();
+      await expect(
+        page.getByText("VERIFICATION-JOB-RECOVERED", { exact: true }),
+      ).toBeVisible({ timeout: 30000 });
+      expect(hasCurrentEvidence(await projectEvidence(page))).toBe(true);
+      expect((await verificationJob(page))?.phase.state).toBe("admitted");
+      await page.screenshot({
+        path: info.outputPath("verification-recovered.png"),
+      });
+      const admitted = await projectEvidence(page);
+      const recoveredJob = await verificationJob(page);
+      const broken = await readFile(
+        "verification/examples/finite-counter-broken.model.json",
+        "utf8",
+      );
+      let editWaiting = false;
+      let finishEdit: (() => void) | undefined;
+      responses.push(
+        (response) =>
+          reply(
+            response,
+            tool("write_file", { path: contract.source_path, content: broken }),
+          ),
+        (response) => {
+          editWaiting = true;
+          finishEdit = () =>
+            reply(response, { role: "assistant", content: "EDIT-MODEL-ACK" });
+        },
+      );
+      await page
+        .getByRole("textbox", { name: "Message", exact: true })
+        .fill("Save the next source edit.");
+      await page.getByRole("button", { name: "Send", exact: true }).click();
+      await expect.poll(() => editWaiting, { timeout: 30000 }).toBe(true);
+      expect(
+        await readFile(resolve(project, contract.source_path), "utf8"),
+      ).toBe(broken);
+      const changed = await projectEvidence(page);
+      if (
+        admitted.state !== "accepted" ||
+        admitted.evidence.state !== "current" ||
+        changed.state !== "accepted" ||
+        changed.evidence.state !== "unverified"
+      )
+        throw new Error(
+          "A real source edit must invalidate current evidence before the next model reply",
+        );
+      expect(changed.contract).toEqual(admitted.contract);
+      expect(changed.evidence.retained).toEqual(admitted.evidence.artifact);
+      await expect(page.locator(".chat-contract .MuiChip-label")).toHaveText(
+        "Contract accepted",
+      );
+      await page.screenshot({
+        path: info.outputPath("verification-source-edited.png"),
+      });
+      const stopped = page.waitForResponse(
+        (response) =>
+          response.url().endsWith("/api/command") &&
+          response.request().postDataJSON()?.type === "cancel",
+      );
+      await page.getByRole("button", { name: "Stop", exact: true }).click();
+      await stopped;
+      finishEdit!();
+      await expect(
+        page.getByRole("button", { name: "Stop", exact: true }),
+      ).toHaveCount(0, { timeout: 30000 });
+      expect((await verificationJob(page))?.context.job).toBe(
+        next?.context.job,
+      );
+      const metrics = await page.evaluate(async () =>
+        (
+          await fetch("/api/metrics", {
+            headers: {
+              Authorization: `Bearer ${sessionStorage.getItem("meden-native-session")}`,
+            },
+          })
+        ).json(),
+      );
+      const status = await page.evaluate(async () =>
+        (
+          await fetch("/api/state", {
+            headers: {
+              Authorization: `Bearer ${sessionStorage.getItem("meden-native-session")}`,
+            },
+          })
+        ).json(),
+      );
+      await info.attach("verification-job-observations.json", {
+        contentType: "application/json",
+        body: JSON.stringify(
+          {
+            issued,
+            cancelled,
+            recovered: recoveredJob,
+            source_changed_evidence: changed,
+            status_bytes: Buffer.byteLength(
+              JSON.stringify(status.verification_job),
+            ),
+            retry_commands: retryCommands,
+            stages: metrics.records.filter(
+              (record: { name: string }) =>
+                record.name.startsWith("verification.") ||
+                record.name === "view.verification_job.materialize" ||
+                record.name === "gui.verification_job_respond",
+            ),
+            methodology:
+              "Actual registered Z3, original offline Bubblewrap arguments and data-only finite counter. A trusted host launcher fixture holds checker dispatch; cancellation kills that issued dispatch before Z3 starts. Release executes original public Z3 and its independent exhaustive check. A final model response is held while asserting source-edit invalidation, then released after actual host cancellation. Scripted model transport, not live-model or cold-install validation.",
+          },
+          null,
+          2,
+        ),
+      });
+      await stop();
+      await page.goto(
+        await start(0, { MEDEN_VERIFIER_BUNDLE: undefined }, [
+          "--verifier",
+          "z3.finite.v1",
+        ]),
+      );
+      expect(await verificationJob(page)).toBeUndefined();
+      expect(hasCurrentEvidence(await projectEvidence(page))).toBe(false);
+      await expect(
+        page.getByRole("button", { name: "Choose model", exact: true }),
+      ).toBeVisible();
+    } finally {
+      releaseOld();
+      await page.unrouteAll({ behavior: "wait" });
+    }
   });
 
   test("chat stays flat, folds long messages and remembers draggable sidebar widths", async ({

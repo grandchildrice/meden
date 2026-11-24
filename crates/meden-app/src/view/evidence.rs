@@ -6,7 +6,7 @@ use anyhow::{Context, Result};
 use meden_runtime::verification::{artifact::Class, FailureKind};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 /// Lossless transport of the original selected contract identity, never authority.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -352,6 +352,54 @@ impl Project {
 impl Serialize for Project {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         self.status.serialize(serializer)
+    }
+}
+
+/// Application-owned publisher. Only the shared project service replaces the
+/// original host observation; transport adapters receive its restricted reader.
+pub(crate) struct Channel(Arc<Mutex<Project>>);
+impl Channel {
+    pub(crate) fn new(original: project::Summary) -> Self {
+        Self(Arc::new(Mutex::new(Project::new(original))))
+    }
+    pub(crate) fn observe(&self, original: project::Summary) {
+        if let Ok(mut value) = self.0.lock() {
+            value.observe(original);
+        }
+    }
+    pub(crate) fn invalidate(&self) {
+        self.reader().invalidate();
+    }
+    pub(crate) fn reader(&self) -> Reader {
+        Reader(Arc::clone(&self.0))
+    }
+}
+/// Exact frozen reads and one-way invalidation from actual host source
+/// observations. This handle cannot publish a replacement or current evidence.
+#[derive(Clone)]
+pub struct Reader(Arc<Mutex<Project>>);
+impl Reader {
+    /// Return already-frozen complete bytes, without project/checker I/O.
+    pub fn bytes(&self, revision: &str) -> Option<Arc<[u8]>> {
+        self.0.lock().ok()?.bytes(revision)
+    }
+    /// A changed/unavailable host source removes the display's current claim.
+    /// Actual accepted meaning and kernel evidence remain in the project service.
+    pub fn invalidate(&self) {
+        if let Ok(mut value) = self.0.lock() {
+            value.invalidate();
+        }
+    }
+}
+impl Serialize for Reader {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        match self.0.lock() {
+            Ok(value) => value.serialize(serializer),
+            Err(_) => Status::Unavailable {
+                message: "Project observation is unavailable".into(),
+            }
+            .serialize(serializer),
+        }
     }
 }
 

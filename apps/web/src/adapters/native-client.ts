@@ -2,6 +2,8 @@ import {
   nativeStateSchema,
   evidencePublicationSchema,
   type EvidencePublication,
+  verificationJobPublicationSchema,
+  type VerificationJobPublication,
   analysisCurrentSchema,
   analysisHistorySchema,
   type AnalysisCurrentPublication,
@@ -56,6 +58,23 @@ export class NativeClient {
       evidencePublicationSchema,
       signal,
     );
+  }
+  async verificationJob(
+    revision: string,
+    job: string,
+    signal?: AbortSignal,
+  ): Promise<VerificationJobPublication> {
+    const publication = await this.publication(
+      "verification-job",
+      revision,
+      verificationJobPublicationSchema,
+      signal,
+    );
+    if (publication.data.context.job !== job)
+      throw new Error(
+        "Verification observation does not match its requested job",
+      );
+    return publication;
   }
   async history(
     revision: string,
@@ -139,7 +158,8 @@ export class NativeClient {
       | "preparation-log"
       | "analysis"
       | "analysis-history"
-      | "evidence",
+      | "evidence"
+      | "verification-job",
     revision: string,
     schema: { parse(value: unknown): T },
     signal?: AbortSignal,

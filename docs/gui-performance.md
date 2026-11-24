@@ -1,5 +1,34 @@
 # Graph interaction measurements
 
+## Verification-stage observations (November 24)
+
+The [validation record](../results/verification-job-observations-20261124.json)
+adds separate source-read, checker-preparation, checker-execution, freshness-read
+and result-retention spans. A revision-bound application observation carries
+the original accepted contract and exact issued-input hashes. The existing chat
+activity row displays the actual stage; polling and transfer retry cannot start
+a check. Shared evidence publication now follows the actual project mutation,
+so completion and source-edit invalidation appear before the next model reply.
+
+The actual offline Z3 journey exercises a failed progress transfer, command-free
+retry, cancellation of issued dispatch, a delayed old response, a distinct
+successful job and source editing before a deliberately held model reply.
+Its trusted host launcher holds dispatch before Z3 starts and later runs the
+original confined solver; its timings validate instrumentation, not solver
+throughput or model-transport cancellation latency. The ready status is 182
+bytes and the observed retry sends zero commands. Projection and response spans
+are below 0.2 ms in this fixture; nested spans are not exclusive CPU work.
+
+All 67 browser journeys and 34 public TUI journeys passed locally. Serialized
+retained-tab two-animation-callback p95 was **48.1 ms** with normal motion and
+**34.9 ms** with reduced motion, below the existing 250 ms budget. These are
+presentation proxies with installed Lean and empty analysis stores, not physical
+paint, cold installation or live-model validation. After deployment, both actual
+projects preserved their exact source/graph/reader, inventory metadata, evidence,
+conversation and candidate observations. File reopening reused prepared caches;
+hover/tab return preserved the camera and idle navigation fetched no job body.
+No new event-profile comparison is claimed for this observation-only slice.
+
 ## Accepted-contract publications and deployed event audit (November 24)
 
 The [measurement and validation record](../results/evidence-publications-20261124.json)

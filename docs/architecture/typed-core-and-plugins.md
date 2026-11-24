@@ -607,9 +607,36 @@ finite-verifier journey covers transfer failure/retry, actual Z3 rejection and
 repair, current bounded evidence and accepted meaning after restart without
 restored coverage or model approval.
 
-This does not finish step 4: generic verification-job DTOs, generation of
-the rest of the native wire contract and remaining navigation waits still need
-work. Step 5's versioned layout/order and retirement requirements remain open too.
+Accepted-project checks now publish their actual progress through a separate
+application-owned job observation. Immutable context retains the original
+contract reference, method, class, scope and source path. Running stages are
+source reading, checker preparation, checking, source refresh and evidence
+retention. Stages after issue carry the original source and prepared-input
+digests; failed/cancelled variants retain that exact stage rather than optional
+input fields. Only the original successful completion can display admission.
+The consuming observer is separate from the unchanged kernel job ticket and
+cannot authorize a check or manufacture a receipt. Replacement jobs reject old
+observers; malformed observations retire the publication until a new job begins.
+
+Status contains only an idle/ready/unavailable observation. Exact
+`GET /api/verification-job?revision=…` reads share frozen bounded bytes and cannot
+start work. The generated browser validator checks both publication and job
+identity. Local transfer retry sends no command, and delayed bodies cannot
+replace cancellation or a newer job. Progress uses the existing chat activity
+row; terminal details are folded. Idle graph navigation fetches no job body.
+Only the latest job is retained; conversation/tool history remains separate.
+
+The shared project service now owns evidence publication at its actual summary
+and mutation boundaries. GUI composition holds a read-only reader with one-way
+invalidation for host source observations; it cannot install replacement
+evidence. Source edits invalidate current evidence before a later model reply,
+and completion publishes before that reply too. These are tested application
+and transport observations, not new kernel refinement or model-abort guarantees.
+
+This does not finish step 4: proposal checks and broader orchestration jobs,
+generation of the rest of the native wire contract and remaining navigation
+waits still need work. Step 5's versioned layout/order and retirement
+requirements remain open too.
 Step 3 now executes the second backend through public TUI/GUI, actual offline
 Z3, a real approved-model trial and a separate 256-input Python oracle. Its
 parser/disagreement rejection tests, actual solver-output faults, started-solver
