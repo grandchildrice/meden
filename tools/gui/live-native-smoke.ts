@@ -2,6 +2,7 @@
 import { chromium, expect, type Page } from "@playwright/test";
 import {
   nativeStateSchema,
+  analysisCurrentSchema,
   sourcePublicationSchema,
   type SourceSnapshot,
   historySnapshotSchema,
@@ -96,6 +97,30 @@ async function state(page: Page): Promise<NativeState> {
     return response.json();
   });
   return nativeStateSchema.parse(value);
+}
+async function candidateObservation(page: Page, status?: NativeState) {
+  const reference = (status ?? (await state(page))).analyses.current;
+  if (reference.state === "empty") return null;
+  if (reference.state !== "ready") throw new Error(reference.message);
+  const value = await page.evaluate(async (revision) => {
+    const response = await fetch(
+      "/api/analysis?revision=" + encodeURIComponent(revision),
+      {
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("meden-native-session")}`,
+        },
+      },
+    );
+    if (response.status === 409) return undefined;
+    if (!response.ok)
+      throw new Error("Candidate observation read failed: " + response.status);
+    return response.json();
+  }, reference.revision);
+  if (!value) return undefined;
+  const publication = analysisCurrentSchema.parse(value);
+  if (publication.revision !== reference.revision)
+    throw new Error("Candidate observation identity changed");
+  return publication.data;
 }
 async function history(page: Page): Promise<HistoryData> {
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -457,20 +482,21 @@ try {
       .poll(
         async () => {
           const current = await state(page);
+          const candidate = await candidateObservation(page, current);
           return (
-            current.analysis?.input.requirement ===
+            candidate?.input.requirement ===
               (values.atlas
                 ? requirement +
                   " This statement covers all natural balances and stocks."
                 : requirement) &&
             !current.running &&
-            current.analysis?.state
+            candidate?.state
           );
         },
         { timeout: deadline, intervals: [350, 1000] },
       )
       .toBe("complete");
-    const candidate = (await state(page)).analysis;
+    const candidate = await candidateObservation(page);
     if (
       values.atlas &&
       candidate?.input.graph_revision !==

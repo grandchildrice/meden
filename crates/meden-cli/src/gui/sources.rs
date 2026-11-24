@@ -126,10 +126,10 @@ pub(super) fn refresh(
         }
     };
     let mut view = super::lock(view);
-    if view.analysis.as_ref().is_some_and(|record| {
+    if view.analyses.data().current.as_ref().is_some_and(|record| {
         record.input.source_revision != snapshot.revision || record.input.graph_revision.is_some()
     }) {
-        super::analysis::invalidate(&mut view);
+        view.analyses.invalidate();
     }
     view.sources.publish(snapshot);
     Ok(())
@@ -146,7 +146,7 @@ pub(super) fn extract_atlas(
     let originals = {
         let mut view = super::lock(view);
         view.sources.clear_current();
-        super::analysis::invalidate(&mut view);
+        view.analyses.invalidate();
         view.activity = "Compiling Lean and extracting Atlas dependencies".into();
         paths
             .iter()

@@ -20,6 +20,10 @@ import { homedir, tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { once } from "node:events";
 import { createHash } from "node:crypto";
+import {
+  analysisCurrentSchema,
+  analysisHistorySchema,
+} from "@meden/agent-protocol/native";
 
 test.describe("native GUI with real offline workers", () => {
   test.describe.configure({ mode: "parallel" });
@@ -1426,9 +1430,7 @@ test.describe("native GUI with real offline workers", () => {
       alpha.getByLabel("Meaning analysis result", { exact: true }),
     ).toContainText("Candidate match", { timeout: 60000 });
     expect(requests).toHaveLength(2);
-    expect((await nativeState(page)).analysis.input.target.file).toBe(
-      "Alpha.lean",
-    );
+    expect((await nativeAnalysis(page))?.input.target.file).toBe("Alpha.lean");
     expect((await nativeState(page)).project.verified).toBe(false);
     await graph.getByRole("button", { name: "Fit View", exact: true }).click();
     await graph.getByRole("button", { name: /later.*: select/ }).click();
@@ -4347,6 +4349,45 @@ theorem slow : True := fast
       return response.json();
     });
   }
+  async function candidateBody(page: Page, history: boolean) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const state = await nativeState(page);
+      const reference = history
+        ? state.analyses.history
+        : state.analyses.current;
+      if (reference.state === "empty") return null;
+      expect(reference.state).toBe("ready");
+      const response = await page.evaluate(
+        async ({ revision, history }) => {
+          const response = await fetch(
+            `/api/${history ? "analysis-history" : "analysis"}?revision=${encodeURIComponent(revision)}`,
+            {
+              headers: {
+                Authorization: `Bearer ${sessionStorage.getItem("meden-native-session")}`,
+              },
+            },
+          );
+          return { status: response.status, body: await response.json() };
+        },
+        { revision: reference.revision, history },
+      );
+      if (response.status === 409) continue;
+      expect(response.status).toBe(200);
+      expect(response.body.revision).toBe(reference.revision);
+      return response.body;
+    }
+    throw new Error(
+      "Candidate publication did not stabilize after three fresh status reads",
+    );
+  }
+  async function nativeAnalysis(page: Page) {
+    const body = await candidateBody(page, false);
+    return body ? analysisCurrentSchema.parse(body).data : null;
+  }
+  async function nativeAnalysisHistory(page: Page) {
+    return analysisHistorySchema.parse(await candidateBody(page, true)).data
+      .history;
+  }
   async function hostCommand(page: Page, command: unknown) {
     return page.evaluate(async (command) => {
       const response = await fetch("/api/command", {
@@ -5449,10 +5490,11 @@ theorem slow : True := fast
     );
     const state = await nativeState(page);
     expect(state.project.verified).toBe(false);
-    expect(state.analysis_history).toHaveLength(3);
+    const savedAnalyses = await nativeAnalysisHistory(page);
+    expect(savedAnalyses).toHaveLength(3);
     expect(
       new Set(
-        state.analysis_history.map(
+        savedAnalyses.map(
           (entry: { requirement_id: string }) => entry.requirement_id,
         ),
       ).size,
@@ -5521,6 +5563,214 @@ theorem slow : True := fast
     );
     expect(requests).toHaveLength(3);
   });
+  test("large candidate history transfers once, retries locally and keeps newer selections across delayed reads and restart", async ({
+    page,
+  }) => {
+    test.setTimeout(240000);
+    responses.push(
+      (response) => reply(response, informalization()),
+      (response) => reply(response, judgement()),
+    );
+    await openMeaning(page);
+    await page
+      .getByRole("button", { name: "Analyze declaration meaning", exact: true })
+      .click();
+    const result = page.getByLabel("Meaning analysis result", { exact: true });
+    await expect(result).toContainText("Candidate mismatch (Model assessment)");
+    const port = Number(new URL(url).port);
+    await stop();
+    const journal = resolve(
+      root,
+      "data/meden/projects",
+      createHash("sha256").update(project).digest("hex"),
+      "meaning-analysis.json",
+    );
+    const original = JSON.parse(await readFile(journal, "utf8"));
+    const marker = "ORIGINAL-CANDIDATE-λ\n<literal> 𝕏 ".repeat(160);
+    const seed = {
+      version: 2,
+      sequence: 400,
+      entries: Array.from({ length: 400 }, (_, index) => {
+        const row = structuredClone(original.entries[0]);
+        row.sequence = index + 1;
+        const id = createHash("sha256")
+          .update("history-fixture:" + index)
+          .digest("hex");
+        row.id = "analysis-" + id;
+        row.finding_id = "finding-" + id;
+        row.assessment.translation.naturalLanguage = `OBSERVATION ${index + 1}: ${marker}`;
+        return row;
+      }),
+    };
+    // Seed a retained-history workload from the actual preceding job. This is
+    // fixture construction while stopped, not live-model/cold-install evidence.
+    await writeFile(journal, JSON.stringify(seed));
+    let historyReads = 0,
+      failHistory = true,
+      currentReads = 0,
+      polls = 0;
+    const commands: unknown[] = [];
+    page.on("request", (request) => {
+      if (request.method() === "POST" && request.url().endsWith("/api/command"))
+        commands.push(request.postDataJSON());
+    });
+    page.on("response", (response) => {
+      if (response.url().endsWith("/api/state")) polls++;
+    });
+    await page.route("**/api/analysis-history?*", async (route) => {
+      historyReads++;
+      if (failHistory) {
+        failHistory = false;
+        await route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({
+            error: "temporary candidate history transfer",
+          }),
+        });
+      } else await route.continue();
+    });
+    let holdCurrent = false,
+      held = false;
+    let release = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route("**/api/analysis?*", async (route) => {
+      currentReads++;
+      if (holdCurrent) {
+        holdCurrent = false;
+        const response = await route.fetch();
+        held = true;
+        await gate;
+        await route.fulfill({ response }).catch(() => {});
+      } else await route.continue();
+    });
+    try {
+      await page.goto(await start(port));
+      await page
+        .getByRole("button", { name: "File: Spec.lean", exact: true })
+        .click();
+      const failure = page
+        .getByRole("alert")
+        .filter({ hasText: "Could not load saved analyses." });
+      await expect(failure).toBeVisible();
+      await page.screenshot({
+        path: "target/gui-checks/analysis-history-transfer-failure.png",
+        fullPage: true,
+      });
+      const beforeRetry = commands.length;
+      await failure
+        .getByRole("button", { name: "Retry analyses", exact: true })
+        .click();
+      await expect(failure).not.toBeVisible();
+      expect(commands.slice(beforeRetry)).toEqual([]);
+      await expect
+        .poll(async () => (await nativeState(page)).running, {
+          timeout: 120000,
+        })
+        .toBe(false);
+      await page
+        .getByRole("region", { name: "Local source graph" })
+        .getByRole("button", { name: /Demo.stock_bound.*: select/ })
+        .click();
+      const history = page.getByRole("combobox", {
+        name: "Saved analyses",
+        exact: true,
+      });
+      await expect(history.locator("option")).toHaveCount(400);
+      expect(commands.slice(beforeRetry)).toEqual([]);
+      expect(historyReads).toBe(2);
+      const status = await nativeState(page);
+      expect(status.analyses.history.runs).toBe(400);
+      expect(status).not.toHaveProperty("analysis");
+      expect(status).not.toHaveProperty("analysis_history");
+      expect(JSON.stringify(status)).not.toContain("ORIGINAL-CANDIDATE-");
+      const historyBody = await candidateBody(page, true);
+      expect(historyBody.data.history).toEqual(
+        seed.entries.map((row) => ({
+          ...row,
+          sequence: String(row.sequence),
+          state: "historical",
+        })),
+      );
+      const historyBytes = Buffer.byteLength(JSON.stringify(historyBody));
+      expect(historyBytes).toBeGreaterThan(1_000_000);
+      expect(Buffer.byteLength(JSON.stringify(status.analyses))).toBeLessThan(
+        350,
+      );
+      const stableReads = historyReads;
+      const navigationCommands = commands.length,
+        oldPolls = polls;
+      await page.getByRole("tab", { name: "Project map", exact: true }).click();
+      await page.getByRole("tab", { name: "Spec.lean", exact: true }).click();
+      await expect.poll(() => polls).toBeGreaterThan(oldPolls + 3);
+      expect(historyReads).toBe(stableReads);
+      expect(commands.slice(navigationCommands)).toEqual([]);
+      holdCurrent = true;
+      await history.selectOption(seed.entries[0]!.id);
+      await expect.poll(() => held).toBe(true);
+      await expect(history).toBeVisible();
+      await expect(history).toBeEnabled();
+      await history.selectOption(seed.entries[1]!.id);
+      await expect(result).toContainText("OBSERVATION 2:");
+      release();
+      await expect(result).toContainText("OBSERVATION 2:");
+      await expect(result).not.toContainText("OBSERVATION 1:");
+      expect(historyReads).toBe(stableReads);
+      expect(requests).toHaveLength(2);
+      expect((await nativeState(page)).authorized).toBe(false);
+      const currentBody = await candidateBody(page, false);
+      expect(currentBody.data.id).toBe(seed.entries[1]!.id);
+      await test.info().attach("analysis-publication-transfer.json", {
+        contentType: "application/json",
+        body: Buffer.from(
+          JSON.stringify({
+            runs: 400,
+            history_response_bytes: historyBytes,
+            current_response_bytes: Buffer.byteLength(
+              JSON.stringify(currentBody),
+            ),
+            status_projection_bytes: Buffer.byteLength(
+              JSON.stringify(status.analyses),
+            ),
+            commands_on_retry: [],
+            history_reads_on_navigation_or_selection:
+              historyReads - stableReads,
+            current_reads: currentReads,
+            scope:
+              "Actual host/journal/reader workers; seeded retained observations from one scripted-model job. Not live-model quality, cold installation or a physical-paint measurement.",
+          }),
+        ),
+      });
+      await page.screenshot({
+        path: "target/gui-checks/revisioned-analysis-history.png",
+        fullPage: true,
+      });
+      await result.scrollIntoViewIfNeeded();
+      await page.screenshot({
+        path: "target/gui-checks/revisioned-analysis-result.png",
+        fullPage: true,
+      });
+      await stop();
+      await page.goto(await start(port));
+      await page
+        .getByRole("button", { name: "File: Spec.lean", exact: true })
+        .click();
+      await page
+        .getByRole("region", { name: "Local source graph" })
+        .getByRole("button", { name: /Demo.stock_bound.*: select/ })
+        .click();
+      await expect(history.locator("option")).toHaveCount(400);
+      expect((await nativeState(page)).authorized).toBe(false);
+      expect(requests).toHaveLength(2);
+      expect(JSON.parse(await readFile(journal, "utf8"))).toEqual(seed);
+    } finally {
+      release();
+      await page.unroute("**/api/analysis-history?*");
+      await page.unroute("**/api/analysis?*");
+    }
+  });
   test("local meaning history retains requirement and Finding identities across reruns and restart", async ({
     page,
   }) => {
@@ -5542,14 +5792,14 @@ theorem slow : True := fast
     });
     await run.click();
     await expect(result).toContainText("Candidate mismatch (Model assessment)");
-    const first = (await nativeState(page)).analysis;
+    const first = (await nativeAnalysis(page))!;
     expect(first.finding_id).toMatch(/^finding-/);
     await requirement.fill("A different requirement retained as its own input");
     await run.click();
     await expect
-      .poll(async () => (await nativeState(page)).analysis_history.length)
+      .poll(async () => (await nativeAnalysisHistory(page)).length)
       .toBe(2);
-    const second = (await nativeState(page)).analysis;
+    const second = (await nativeAnalysis(page))!;
     expect(second.id).not.toBe(first.id);
     expect(second.requirement_id).not.toBe(first.requirement_id);
     const history = page.getByRole("combobox", { name: "Saved analyses" });
@@ -5561,13 +5811,14 @@ theorem slow : True := fast
     expect(requests).toHaveLength(4);
     await run.click();
     await expect
-      .poll(async () => (await nativeState(page)).analysis_history.length)
+      .poll(async () => (await nativeAnalysisHistory(page)).length)
       .toBe(3);
-    const state = await nativeState(page);
-    expect(state.analysis.requirement_id).toBe(first.requirement_id);
-    expect(state.analysis.finding_id).not.toBe(first.finding_id);
-    expect(state.analysis_history[0].assessment).toEqual(first.assessment);
-    expect(state.analysis_history[1].input).toEqual(second.input);
+    const current = (await nativeAnalysis(page))!;
+    const savedAnalyses = await nativeAnalysisHistory(page);
+    expect(current.requirement_id).toBe(first.requirement_id);
+    expect(current.finding_id).not.toBe(first.finding_id);
+    expect(savedAnalyses[0]!.assessment).toEqual(first.assessment);
+    expect(savedAnalyses[1]!.input).toEqual(second.input);
     await expect(result).toContainText("Candidate mismatch (Model assessment)");
     const port = Number(new URL(url).port);
     await stop();
@@ -5656,8 +5907,8 @@ theorem slow : True := fast
     expect((requests[1] as { model: string }).model).toBe(
       "separate-judge-fixture",
     );
-    const record = (await nativeState(page)).analysis;
-    expect(record.judge.model).toBe("separate-judge-fixture");
+    const record = (await nativeAnalysis(page))!;
+    expect(record.judge?.model).toBe("separate-judge-fixture");
     await result.getByText("Analysis target and process details").click();
     await expect(result).toContainText("Comparison: separate-judge-fixture");
     let releaseMetadata = () => {};
@@ -5777,10 +6028,13 @@ theorem slow : True := fast
     const checkpoint = resolve(journals, projectKey!, "meaning-analysis.json");
     await writeFile(checkpoint, "invalid analysis checkpoint");
     await page.goto(await start(port));
+    await page
+      .getByRole("button", { name: "File: Spec.lean", exact: true })
+      .click();
     await expect(
       page
         .getByRole("alert")
-        .filter({ hasText: "Meaning-analysis checkpoint unavailable" }),
+        .filter({ hasText: "Could not load saved analyses." }),
     ).toBeVisible();
     expect(await readFile(checkpoint, "utf8")).toBe(
       "invalid analysis checkpoint",

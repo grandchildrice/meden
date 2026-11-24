@@ -15,6 +15,18 @@ function only(schema, keys) {
       throw new Error("Unsupported source DTO constraint: " + key);
 }
 export function validator(schema, root = schema) {
+  // An explicit empty JSON schema denotes opaque diagnostic data. Unknown
+  // keywords still fail below; this does not decode a plugin or authority.
+  if (
+    schema === true ||
+    (schema &&
+      typeof schema === "object" &&
+      !Array.isArray(schema) &&
+      Object.keys(schema).every((key) =>
+        ["$schema", "$defs", "title", "description", "default"].includes(key),
+      ))
+  )
+    return "z.unknown()";
   if (schema.$ref) {
     only(schema, ["$ref"]);
     const key = schema.$ref.replace(/^#\/\$defs\//, "");

@@ -234,6 +234,53 @@ export function NativeApp({ token }: { token: string }) {
   useEffect(() => {
     if (historyPublication) setHistory(historyPublication);
   }, [historyPublication]);
+  const analysisRevision =
+    state?.analyses.current.state === "ready"
+      ? state.analyses.current.revision
+      : undefined;
+  const analysisHistoryRevision =
+    state?.analyses.history.state === "ready"
+      ? state.analyses.history.revision
+      : undefined;
+  const readAnalysis = useCallback(
+    (revision: string, signal: AbortSignal) =>
+      observePublication(client.analysis(revision, signal)),
+    [client],
+  );
+  const readAnalysisHistory = useCallback(
+    (revision: string, signal: AbortSignal) =>
+      observePublication(client.analysisHistory(revision, signal)),
+    [client],
+  );
+  const analysisReads = usePublications(
+    analysisRevision ? [analysisRevision] : [],
+    readAnalysis,
+    state?.analyses.current,
+    reconnect,
+  );
+  const analysisHistoryReads = usePublications(
+    analysisHistoryRevision ? [analysisHistoryRevision] : [],
+    readAnalysisHistory,
+    state?.analyses.history,
+    reconnect,
+  );
+  const analysis = analysisReads.get(analysisRevision)?.publication?.data;
+  const analysisHistory = analysisHistoryReads.get(analysisHistoryRevision)
+    ?.publication?.data.history;
+  const analysisReadError = analysisReads.get(analysisRevision)?.error;
+  const analysisHistoryReadError = analysisHistoryReads.get(
+    analysisHistoryRevision,
+  )?.error;
+  const analysesError = [
+    state?.analyses.current.state === "unavailable"
+      ? state.analyses.current.message
+      : analysisReadError,
+    state?.analyses.history.state === "unavailable"
+      ? state.analyses.history.message
+      : analysisHistoryReadError,
+  ]
+    .filter(Boolean)
+    .join("\n");
   const readDirectory = useCallback(
     (revision: string, signal: AbortSignal) =>
       observePublication(client.directory(revision, signal)),
@@ -859,7 +906,7 @@ export function NativeApp({ token }: { token: string }) {
                         activeFile && activeFile !== "__preview__"
                           ? activeFile
                           : graphPaths ||
-                            state.analysis?.input.target.file ||
+                            analysis?.input.target.file ||
                             state.project.source_path;
                       setGraphPaths(path);
                       if (overview?.files.some((f) => f.path === path))
@@ -929,6 +976,31 @@ export function NativeApp({ token }: { token: string }) {
                 >
                   <NativeFileWorkspace
                     state={state}
+                    analysis={analysis}
+                    history={analysisHistory}
+                    analysesLoading={Boolean(
+                      !analysesError &&
+                      ((analysisRevision && !analysis) ||
+                        (state.analyses.history.state === "ready" &&
+                          state.analyses.history.runs > 0 &&
+                          !analysisHistory)),
+                    )}
+                    analysesError={analysesError}
+                    onRetryAnalyses={
+                      analysisReadError || analysisHistoryReadError
+                        ? () => {
+                            if (analysisReadError && analysisRevision)
+                              analysisReads.retry(analysisRevision);
+                            if (
+                              analysisHistoryReadError &&
+                              analysisHistoryRevision
+                            )
+                              analysisHistoryReads.retry(
+                                analysisHistoryRevision,
+                              );
+                          }
+                        : undefined
+                    }
                     file={
                       preparedReaders.get(state.readers.files[file]?.revision)
                         ?.publication?.data

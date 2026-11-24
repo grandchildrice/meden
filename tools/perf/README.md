@@ -54,6 +54,15 @@ notes may perform a second validation after the file-local preparation completes
 Batching reduces worker startup; it does not remove either check, reuse a prior
 successful validation, or avoid Lake's complete compiled-input fingerprint.
 
+`view.analysis.materialize` freezes a selected/running candidate, whereas
+`view.analysis_history.materialize` freezes the complete retained history only
+when the original list changes. Exact reads have separate `gui.analysis_respond`
+and `gui.analysis_history_respond` intervals. Selection, progress and source
+invalidation must leave the latter body's identity and allocation unchanged.
+The large-history browser workload records original body sizes, the small status
+projection and history reads/commands during local retry, navigation and selection.
+These candidate observations are independent of current accepted-project evidence.
+
 Prepared roots now use one batched Lake query for their normal build and
 source/output/compiler-setup results. The file's streamed diagnostic log separates
 build/setup/input resolution from the exact file/byte validation duration.

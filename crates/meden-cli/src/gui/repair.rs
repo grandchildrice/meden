@@ -20,7 +20,9 @@ pub(super) fn perform(
                         .current()
                         .cloned()
                         .context("Read sources before requesting a repair")?,
-                    view.analysis
+                    view.analyses
+                        .data()
+                        .current
                         .clone()
                         .context("Select a retained Finding first")?,
                 )

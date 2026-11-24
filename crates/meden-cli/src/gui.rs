@@ -36,6 +36,8 @@ enum PublicationRole {
     Inventory,
     Directory,
     PreparationLog,
+    Analysis,
+    AnalysisHistory,
 }
 
 impl Task {
@@ -80,8 +82,7 @@ struct View {
     readers: meden_app::view::readers::Readers,
     sources: meden_app::view::sources::Sources,
     source_preparation: meden_app::view::jobs::Jobs,
-    analysis: Option<analysis::Record>,
-    analysis_history: Vec<analysis::Record>,
+    analyses: meden_app::view::analyses::Analyses,
     repair_review: Option<crate::analysis::repair::Review>,
     preview: Option<preview::Summary>,
     exports: Vec<crate::exports::Summary>,
@@ -352,9 +353,11 @@ fn initial_view(
     project: &crate::project::Project,
 ) -> Result<Arc<Mutex<View>>> {
     let saved = history::load(workspace.path())?;
-    let (analysis_history, analysis_error) = match crate::analysis::journal::list(workspace.path()) {
-        Ok(records) => (records, None),
-        Err(error) => (Vec::new(), Some(format!("Meaning-analysis checkpoint unavailable: {error:#}. The file was retained; reread sources and rerun analysis in the GUI."))),
+    let analyses = match crate::analysis::journal::list(workspace.path()) {
+        Ok(history) => meden_app::view::analyses::Analyses::new(meden_app::view::analyses::Records {
+            current: history.last().cloned(), history,
+        }),
+        Err(error) => meden_app::view::analyses::Analyses::unavailable(&format!("Meaning-analysis checkpoint unavailable: {error:#}. The file was retained; reread sources and rerun analysis in the GUI.")),
     };
     let view = Arc::new(Mutex::new(View {
         history: meden_app::view::history::History::new(meden_app::view::history::Data {
@@ -386,13 +389,12 @@ fn initial_view(
         partial: String::new(),
         reasoning: String::new(),
         project: project.stored_status()?,
-        stopped: analysis_error.or(saved.stopped),
+        stopped: saved.stopped,
         directories: meden_app::view::directory::Directories::default(),
         readers: meden_app::view::readers::Readers::default(),
         sources: meden_app::view::sources::Sources::default(),
         source_preparation: meden_app::view::jobs::Jobs::new(workspace.session_id()),
-        analysis: analysis_history.last().cloned(),
-        analysis_history,
+        analyses,
         repair_review: None,
         preview: None,
         exports: Vec::new(),
@@ -552,6 +554,10 @@ impl Http<'_> {
             (PublicationRole::History, revision)
         } else if let Some(revision) = url.strip_prefix("/api/preparation-log?revision=") {
             (PublicationRole::PreparationLog, revision)
+        } else if let Some(revision) = url.strip_prefix("/api/analysis?revision=") {
+            (PublicationRole::Analysis, revision)
+        } else if let Some(revision) = url.strip_prefix("/api/analysis-history?revision=") {
+            (PublicationRole::AnalysisHistory, revision)
         } else if let Some(revision) = url.strip_prefix("/api/directory?revision=") {
             (PublicationRole::Directory, revision)
         } else if let Some(revision) = url.strip_prefix("/api/inventory?revision=") {
@@ -575,6 +581,8 @@ impl Http<'_> {
                     PublicationRole::Reader => view.readers.bytes(&revision),
                     PublicationRole::Directory => view.directories.bytes(&revision),
                     PublicationRole::PreparationLog => view.source_preparation.bytes(&revision),
+                    PublicationRole::Analysis => view.analyses.current_bytes(&revision),
+                    PublicationRole::AnalysisHistory => view.analyses.history_bytes(&revision),
                     PublicationRole::Inventory => view
                         .overview_snapshot
                         .as_ref()
@@ -588,6 +596,8 @@ impl Http<'_> {
                 PublicationRole::Reader => "gui.reader_respond",
                 PublicationRole::Directory => "gui.directory_respond",
                 PublicationRole::PreparationLog => "gui.preparation_log_respond",
+                PublicationRole::Analysis => "gui.analysis_respond",
+                PublicationRole::AnalysisHistory => "gui.analysis_history_respond",
                 PublicationRole::Inventory => "gui.inventory_respond",
             },
             bytes,
@@ -789,8 +799,8 @@ fn worker(
                     None
                 }
                 Command::SelectAnalysis { id } => {
-                    lock(view).analysis =
-                        Some(crate::analysis::journal::select(workspace.path(), &id)?);
+                    let record = crate::analysis::journal::select(workspace.path(), &id)?;
+                    lock(view).analyses.select(Some(record));
                     None
                 }
                 Command::AnalyzeMeaning { input } => {
@@ -985,7 +995,7 @@ fn observe(view: &Mutex<View>, event: &Event<'_>) {
             if refusal.is_none() && call.function.name == "check_lean_work" {
                 view.project.verified = false;
                 view.sources.clear();
-                analysis::invalidate(&mut view);
+                view.analyses.invalidate();
             }
             view.activity = format!(
                 "{} · {}",
@@ -1147,7 +1157,7 @@ fn perform_work(
             project.mark_dirty();
             lock(view).project.verified = false;
             lock(view).sources.clear();
-            analysis::invalidate(&mut lock(view));
+            lock(view).analyses.invalidate();
             lock(view).activity = format!("Checking Lean work {id}");
             crate::handoff::check(workspace, processes, &id)?;
             None
@@ -1164,7 +1174,7 @@ fn perform_work(
 fn instruction(view: &Mutex<View>, text: String) -> String {
     let mut view = lock(view);
     view.sources.clear();
-    analysis::invalidate(&mut view);
+    view.analyses.invalidate();
     view.history.edit(|data| {
         data.messages.push(history::Message {
             speaker: history::Speaker::User,

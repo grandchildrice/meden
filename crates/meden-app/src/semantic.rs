@@ -11,20 +11,26 @@ use sha2::{Digest, Sha256};
 
 pub const ENGINE: &str = "meden-claimcheck-roundtrip-v1";
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Target {
+    #[schemars(length(min = 1, max = 4096))]
     pub file: String,
+    #[schemars(range(min = 1, max = 1_048_577))]
     pub line: usize,
+    #[schemars(length(min = 1, max = 1000))]
     pub name: String,
 }
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Input {
+    #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
     pub source_revision: String,
+    #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub graph_revision: Option<String>,
     pub target: Target,
+    #[schemars(length(min = 1, max = 16_384))]
     pub requirement: String,
 }
 /// Frozen data only. This value carries no approval or verification authority.
@@ -115,7 +121,7 @@ impl Input {
         Ok(())
     }
 }
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Translation {
     pub lemma_name: String,
@@ -124,9 +130,10 @@ pub struct Translation {
     pub postcondition: String,
     pub scope: String,
     pub strength: Strength,
+    #[schemars(range(min = 0, max = 1))]
     pub confidence: f64,
 }
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum Strength {
     Trivial,
@@ -134,7 +141,7 @@ pub enum Strength {
     Moderate,
     Strong,
 }
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Comparison {
     pub lemma_name: String,
@@ -144,7 +151,7 @@ pub struct Comparison {
     pub weakening_type: Weakening,
     pub explanation: String,
 }
-#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub enum Weakening {
     None,
@@ -154,14 +161,14 @@ pub enum Weakening {
     MissingCase,
     WrongProperty,
 }
-#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum Verdict {
     Match,
     Mismatch,
     Unclear,
 }
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Assessment {
     pub translation: Translation,

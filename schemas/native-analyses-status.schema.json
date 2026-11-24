@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Status",
+  "description": "Atomic current/history references; neither carries proof or execution authority.",
+  "type": "object",
+  "properties": {
+    "current": {
+      "$ref": "#/$defs/Current"
+    },
+    "history": {
+      "$ref": "#/$defs/HistoryStatus"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "current",
+    "history"
+  ],
+  "$defs": {
+    "Current": {
+      "description": "A selected candidate is absent, available, or explicitly unavailable.",
+      "oneOf": [
+        {
+          "description": "No job is selected; no successful assessment is invented.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "empty"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "description": "The exact complete observation is retained.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "ready"
+            },
+            "revision": {
+              "description": "Immutable body identity, never authority.",
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "revision"
+          ]
+        },
+        {
+          "description": "Original data is retained, but cannot be completely projected.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "unavailable"
+            },
+            "message": {
+              "description": "Bounded host diagnostic.",
+              "type": "string",
+              "maxLength": 8000
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "message"
+          ]
+        }
+      ]
+    },
+    "HistoryStatus": {
+      "description": "Complete history availability, separate from current job progress.",
+      "oneOf": [
+        {
+          "description": "Complete original history is available by exact identity.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "ready"
+            },
+            "revision": {
+              "description": "Immutable body identity.",
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            },
+            "runs": {
+              "description": "Complete retained run count.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0,
+              "maximum": 1000
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "revision",
+            "runs"
+          ]
+        },
+        {
+          "description": "No partial history is published and old bodies are retired.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "unavailable"
+            },
+            "message": {
+              "description": "Bounded host diagnostic.",
+              "type": "string",
+              "maxLength": 8000
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "message"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -292,17 +292,7 @@ impl Serialize for Jobs {
 /// Byte bounds also fit the browser's UTF-16 validation limits.
 fn diagnostic(message: &str) -> String {
     const MARKER: &str = "\n… (diagnostic shortened; see build log)";
-    if message.len() <= 8000 {
-        return message.to_owned();
-    }
-    let bound = 8000usize.saturating_sub(MARKER.len());
-    let mut result = message
-        .char_indices()
-        .take_while(|(i, c)| i.saturating_add(c.len_utf8()) <= bound)
-        .map(|(_, c)| c)
-        .collect::<String>();
-    result.push_str(MARKER);
-    result
+    super::publication::diagnostic(message, MARKER)
 }
 
 /// Keep the exact UTF-8 suffix within the byte bound without joining full output.

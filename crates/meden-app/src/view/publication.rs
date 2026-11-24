@@ -9,6 +9,21 @@ use std::sync::Arc;
 /// Complete envelope budget; no prefix is published on failure.
 pub const MAX_BYTES: usize = 67_108_864;
 
+/// Bound a status diagnostic by UTF-8 bytes, with an explicit shortening marker.
+pub(super) fn diagnostic(message: &str, marker: &str) -> String {
+    if message.len() <= 8000 {
+        return message.to_owned();
+    }
+    let bound = 8000usize.saturating_sub(marker.len());
+    let mut result = message
+        .char_indices()
+        .take_while(|(i, c)| i.saturating_add(c.len_utf8()) <= bound)
+        .map(|(_, c)| c)
+        .collect::<String>();
+    result.push_str(marker);
+    result
+}
+
 struct Bounded(Vec<u8>);
 impl Write for Bounded {
     fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {

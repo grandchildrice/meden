@@ -9,7 +9,32 @@ writeFileSync(
   "schemas/workspace-v1.schema.json",
   JSON.stringify(z.toJSONSchema(workspaceSchema), null, 2) + "\n",
 );
-for (const [key, rust, symbol, type] of [
+for (const [key, rust, symbol, type, owner = "view"] of [
+  [
+    "analyses-status",
+    "analyses::Status",
+    "analysesStatusSchema",
+    "AnalysesStatus",
+  ],
+  [
+    "analysis-current",
+    "analyses::CurrentPublication",
+    "analysisCurrentSchema",
+    "AnalysisCurrentPublication",
+  ],
+  [
+    "analysis-history",
+    "analyses::HistoryPublication",
+    "analysisHistorySchema",
+    "AnalysisHistoryPublication",
+  ],
+  [
+    "meaning-record",
+    "analyses::Record",
+    "meaningRecordSchema",
+    "MeaningRecord",
+  ],
+  ["meaning-input", "Input", "meaningInputSchema", "MeaningInput", "semantic"],
   [
     "preparation-index",
     "jobs::Index",
@@ -106,7 +131,7 @@ for (const [key, rust, symbol, type] of [
   writeFileSync(
     `packages/agent-protocol/src/${key}.generated.ts`,
     await format(
-      `// Generated from meden_app::view::${rust}. Do not edit.\nimport { z } from "zod";\nexport const ${symbol} = ${validator(source)};\nexport type ${type} = z.infer<typeof ${symbol}>;\n`,
+      `// Generated from meden_app::${owner}::${rust}. Do not edit.\nimport { z } from "zod";\nexport const ${symbol} = ${validator(source)};\nexport type ${type} = z.infer<typeof ${symbol}>;\n`,
       { parser: "typescript" },
     ),
   );

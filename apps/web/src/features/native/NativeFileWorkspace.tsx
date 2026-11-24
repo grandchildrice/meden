@@ -8,6 +8,7 @@ import type {
   SourceSnapshot,
   FileView,
   PreparationLogPublication,
+  MeaningRecord,
 } from "@meden/agent-protocol/native";
 import type { MapScene, Symbol } from "./project-map-model";
 import { NativeCode } from "./NativeExplorer";
@@ -51,6 +52,11 @@ function references(
 
 export function NativeFileWorkspace({
   state,
+  analysis,
+  history,
+  analysesLoading,
+  analysesError,
+  onRetryAnalyses,
   snapshot,
   sourceError,
   preparationLog,
@@ -71,6 +77,11 @@ export function NativeFileWorkspace({
   onSelect,
 }: {
   state: NativeState;
+  analysis?: MeaningRecord;
+  history?: MeaningRecord[];
+  analysesLoading?: boolean;
+  analysesError?: string;
+  onRetryAnalyses?: () => void;
   snapshot?: SourceSnapshot;
   sourceError?: string;
   preparationLog?: PreparationLogPublication["data"];
@@ -218,6 +229,19 @@ export function NativeFileWorkspace({
         {loading && !preparing && !sourceError && (
           <LinearProgress aria-label="Loading prepared graph" />
         )}
+        {analysesError && (
+          <Alert severity="warning">
+            Could not load saved analyses.
+            <details>
+              <summary>Details</summary>
+              {analysesError}
+            </details>
+            {onRetryAnalyses && (
+              <Button onClick={onRetryAnalyses}>Retry analyses</Button>
+            )}
+          </Alert>
+        )}
+        {analysesLoading && <p role="status">Loading saved analyses…</p>}
         {preparing ? (
           <NativePreparation
             preparation={preparation}
@@ -290,8 +314,8 @@ export function NativeFileWorkspace({
                 focusName={focused?.file === path ? focused.name : undefined}
                 key={snapshot.graph?.revision || snapshot.revision}
                 snapshot={snapshot}
-                analysis={state.analysis}
-                history={state.analysis_history}
+                analysis={analysis ?? null}
+                history={history ?? []}
                 onRepair={(finding_id) =>
                   onCommand({ type: "prepare_repair", finding_id })
                 }
@@ -345,10 +369,10 @@ export function NativeFileWorkspace({
                 This file has no declarations supported by the reference graph.
               </p>
             )}
-            {!snapshot && state.analysis?.input.target.file === path && (
+            {!snapshot && analysis?.input.target.file === path && (
               <NativeMeaning
-                record={state.analysis}
-                history={state.analysis_history}
+                record={analysis}
+                history={history ?? []}
                 onSelect={(id) => onCommand({ type: "select_analysis", id })}
                 onRepair={(finding_id) =>
                   onCommand({ type: "prepare_repair", finding_id })

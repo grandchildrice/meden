@@ -7,6 +7,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
+/// Candidate meaning jobs and retained observations, separate from evidence.
+pub mod analyses;
 /// Complete typed directory observations, independent of inventory/compiler jobs.
 pub mod directory;
 /// Bounded complete file availability, independent of compiler support.

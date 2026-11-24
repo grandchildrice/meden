@@ -1,7 +1,23 @@
 //! Emit the owned native source projection schema for frontend generation.
+fn output<T: schemars::JsonSchema>() -> schemars::Schema {
+    // A nullable serialized field is still present unless its serializer skips it.
+    schemars::generate::SchemaSettings::default()
+        .for_serialize()
+        .into_generator()
+        .into_root_schema_for::<T>()
+}
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let schema = match std::env::args().nth(1).as_deref() {
         None | Some("source") => schemars::schema_for!(meden_app::view::SourcePage),
+        Some("analyses-status") => output::<meden_app::view::analyses::Status>(),
+        Some("analysis-current") => {
+            output::<meden_app::view::analyses::CurrentPublication<'static>>()
+        }
+        Some("analysis-history") => {
+            output::<meden_app::view::analyses::HistoryPublication<'static>>()
+        }
+        Some("meaning-record") => output::<meden_app::view::analyses::Record<'static>>(),
+        Some("meaning-input") => schemars::schema_for!(meden_app::semantic::Input),
         Some("preparation-index") => schemars::schema_for!(meden_app::view::jobs::Index),
         Some("preparation-log") => schemars::schema_for!(
             meden_app::view::publication::Envelope<meden_app::view::jobs::Log>

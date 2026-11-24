@@ -1,15 +1,8 @@
 //! GUI presentation for the shared candidate analysis service.
 use super::{lock, View};
-pub(super) use crate::analysis::{Record, State};
+use crate::analysis::State;
 use anyhow::{Context, Result};
 
-pub(super) fn invalidate(view: &mut View) {
-    if let Some(record) = &mut view.analysis {
-        if record.state == State::Complete {
-            record.state = State::Stale;
-        }
-    }
-}
 pub(super) fn run(
     view: &std::sync::Mutex<View>,
     session: &crate::session::Session,
@@ -27,7 +20,7 @@ pub(super) fn run(
             .or_else(|| view.sources.current().map(|s| s.snapshot().clone()))
             .context("Read the source graph before meaning analysis")?
     };
-    invalidate(&mut lock(view));
+    lock(view).analyses.invalidate();
     let result = session.analyze(&snapshot, input, &|record| {
         let mut view = lock(view);
         view.activity = match record.state {
@@ -37,9 +30,10 @@ pub(super) fn run(
             _ => "Meaning analysis",
         }
         .into();
-        view.analysis = Some(record.clone());
+        view.analyses.select(Some(record.clone()));
     });
-    lock(view).analysis_history = session.analysis_history()?;
+    let history = session.analysis_history()?;
+    lock(view).analyses.replace_history(history);
     result?;
     Ok(())
 }
@@ -61,17 +55,18 @@ pub(super) fn apply_repair(
         view.repair_review = None;
         view.sources.clear();
         view.project.verified = false;
-        invalidate(&mut view);
+        view.analyses.invalidate();
     }
     let result = session.apply_repair(queue, reference, &|record| {
-        lock(view).analysis = Some(record.clone());
+        lock(view).analyses.select(Some(record.clone()));
     });
-    lock(view).analysis_history = session.analysis_history()?;
+    let history = session.analysis_history()?;
+    lock(view).analyses.replace_history(history);
     let (snapshot, record) = result?;
     let snapshot = meden_app::view::PreparedSource::new(snapshot)?;
     let mut view = lock(view);
     view.sources.publish(snapshot);
-    view.analysis = Some(record);
+    view.analyses.select(Some(record));
     view.activity =
         "Patch applied and original requirement reanalyzed (candidate model assessment)".into();
     Ok(())

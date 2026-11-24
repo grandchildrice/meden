@@ -28,98 +28,17 @@ export type { SourcePage as SourceSnapshot } from "./source.generated";
 export { sourcePublicationSchema } from "./source-publication.generated";
 export type { SourcePublication } from "./source-publication.generated";
 import { sourceIndexSchema } from "./source-index.generated";
-export const meaningInputSchema = z
-  .object({
-    source_revision: z.string().regex(/^sha256:[a-f0-9]{64}$/),
-    graph_revision: z
-      .string()
-      .regex(/^sha256:[a-f0-9]{64}$/)
-      .optional(),
-    target: z
-      .object({
-        file: z.string().max(4096),
-        line: z.number().int().positive(),
-        name: z.string().max(1000),
-      })
-      .strict(),
-    requirement: z.string().min(1).max(16_384),
-  })
-  .strict();
-export type MeaningInput = z.infer<typeof meaningInputSchema>;
-const meaningTranslationSchema = z
-  .object({
-    lemmaName: z.string(),
-    naturalLanguage: z.string(),
-    preconditions: z.string(),
-    postcondition: z.string(),
-    scope: z.string(),
-    strength: z.enum(["trivial", "weak", "moderate", "strong"]),
-    confidence: z.number().min(0).max(1),
-  })
-  .strict();
-export const meaningRecordSchema = z
-  .object({
-    version: z.literal(2),
-    sequence: z.number().int().positive(),
-    id: z.string().regex(/^analysis-[a-f0-9]{64}$/),
-    requirement_id: z.string().regex(/^requirement-[a-f0-9]{64}$/),
-    source_artifact: z
-      .string()
-      .regex(/^sha256:[a-f0-9]{64}$/)
-      .nullable(),
-    finding_id: z
-      .string()
-      .regex(/^finding-[a-f0-9]{64}$/)
-      .nullable(),
-    engine: z.literal("meden-claimcheck-roundtrip-v1"),
-    model: z.string(),
-    processor: z.string(),
-    model_definition: z.unknown().optional(),
-    judge_definition: z.unknown().optional(),
-    judge: z
-      .object({ model: z.string(), endpoint: z.string() })
-      .strict()
-      .nullable()
-      .optional(),
-    input: meaningInputSchema,
-    state: z.enum([
-      "observing",
-      "translating",
-      "comparing",
-      "complete",
-      "failed",
-      "cancelled",
-      "stale",
-      "historical",
-    ]),
-    error: z.string().nullable(),
-    partial_translation: meaningTranslationSchema.nullable().optional(),
-    assessment: z
-      .object({
-        verdict: z.enum(["match", "mismatch", "unclear"]),
-        translation: meaningTranslationSchema,
-        comparison: z
-          .object({
-            lemmaName: z.string(),
-            match: z.boolean(),
-            discrepancy: z.string(),
-            weakeningType: z.enum([
-              "none",
-              "tautology",
-              "weakened-postcondition",
-              "narrowed-scope",
-              "missing-case",
-              "wrong-property",
-            ]),
-            explanation: z.string(),
-          })
-          .strict(),
-      })
-      .strict()
-      .nullable(),
-  })
-  .strict();
-export type MeaningRecord = z.infer<typeof meaningRecordSchema>;
+import { meaningInputSchema } from "./meaning-input.generated";
+import type { MeaningInput } from "./meaning-input.generated";
+export { meaningInputSchema } from "./meaning-input.generated";
+export type { MeaningInput } from "./meaning-input.generated";
+export { meaningRecordSchema } from "./meaning-record.generated";
+export type { MeaningRecord } from "./meaning-record.generated";
+import { analysesStatusSchema } from "./analyses-status.generated";
+export { analysisCurrentSchema } from "./analysis-current.generated";
+export type { AnalysisCurrentPublication } from "./analysis-current.generated";
+export { analysisHistorySchema } from "./analysis-history.generated";
+export type { AnalysisHistoryPublication } from "./analysis-history.generated";
 export const repairReferenceSchema = z
   .object({
     id: z.string().regex(/^repair-[a-f0-9]{64}$/),
@@ -266,8 +185,7 @@ export const nativeStateSchema = z.object({
   directories: directoryIndexSchema,
   readers: readerIndexSchema,
   sources: sourceIndexSchema,
-  analysis: meaningRecordSchema.nullable(),
-  analysis_history: z.array(meaningRecordSchema).max(1000),
+  analyses: analysesStatusSchema,
   repair_review: repairReviewSchema.nullable(),
   preview: previewSchema.nullable(),
   exports: z.array(exportSummarySchema),

@@ -19,7 +19,7 @@ pub fn output_schema() -> Result<serde_json::Value, serde_json::Error> {
 }
 
 /// Display/review target, never a grant or a decoded implementation selection.
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Binding {
     /// Selected model identifier.

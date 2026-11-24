@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Input",
+  "type": "object",
+  "properties": {
+    "source_revision": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "graph_revision": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "target": {
+      "$ref": "#/$defs/Target"
+    },
+    "requirement": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 16384
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "source_revision",
+    "target",
+    "requirement"
+  ],
+  "$defs": {
+    "Target": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "line": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 1,
+          "maximum": 1048577
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "file",
+        "line",
+        "name"
+      ]
+    }
+  }
+}

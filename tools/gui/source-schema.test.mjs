@@ -72,6 +72,80 @@ test("owned nullable numeric constraints do not apply numeric methods to null", 
   assert.equal(text.parse("name"), "name");
   assert.throws(() => text.parse("other"));
 });
+test("candidate output schemas retain required nulls, opaque provenance and lossless sequences", () => {
+  const owned = (name) =>
+    compile(
+      JSON.parse(
+        readFileSync(
+          new URL(`../../schemas/native-${name}.schema.json`, import.meta.url),
+          "utf8",
+        ),
+      ),
+    );
+  const record = {
+    version: 2,
+    sequence: "18446744073709551615",
+    id: "analysis-" + "a".repeat(64),
+    requirement_id: "requirement-" + "b".repeat(64),
+    finding_id: null,
+    source_artifact: null,
+    engine: "replaceable.candidate.method",
+    model: "original",
+    processor: "original",
+    judge: null,
+    model_definition: { diagnostic: [null, true, { original: "λ" }] },
+    input: {
+      source_revision: "sha256:" + "c".repeat(64),
+      target: { file: "statement.smt2", line: 1, name: "claim" },
+      requirement: "Original requirement",
+    },
+    state: "historical",
+    assessment: null,
+    partial_translation: null,
+    error: null,
+  };
+  const current = owned("analysis-current"),
+    history = owned("analysis-history");
+  const publication = { revision: "sha256:" + "d".repeat(64), data: record };
+  assert.deepEqual(current.parse(publication), publication);
+  assert.deepEqual(
+    history.parse({ ...publication, data: { history: [record] } }).data.history,
+    [record],
+  );
+  for (const field of [
+    "judge",
+    "finding_id",
+    "source_artifact",
+    "assessment",
+    "partial_translation",
+    "error",
+  ]) {
+    const incomplete = { ...record };
+    delete incomplete[field];
+    assert.throws(() => current.parse({ ...publication, data: incomplete }));
+  }
+  for (const update of [
+    { sequence: 9007199254740992 },
+    { sequence: "01" },
+    { state: "proved" },
+    { verified: true },
+    { input: { ...record.input, target: { ...record.input.target, line: 0 } } },
+  ])
+    assert.throws(() =>
+      current.parse({ ...publication, data: { ...record, ...update } }),
+    );
+  assert.throws(() => history.parse(publication));
+  assert.throws(() =>
+    current.parse({ ...publication, data: { history: [record] } }),
+  );
+  const status = owned("analyses-status");
+  assert.throws(() =>
+    status.parse({
+      current: { state: "empty", revision: publication.revision },
+      history: { state: "ready", runs: 1, revision: publication.revision },
+    }),
+  );
+});
 test("owned object/record/reference bounds survive generation", () => {
   const schema = compile({
     type: "object",
@@ -93,6 +167,17 @@ test("owned object/record/reference bounds survive generation", () => {
     assert.throws(() => schema.parse(input));
 });
 test("unknown DTO constraints/references fail generation", () => {
+  assert.throws(() => validator([]));
+  const opaque = compile({});
+  assert.deepEqual(compile(true).parse({ original: [null, 42] }), {
+    original: [null, 42],
+  });
+  for (const value of [null, true, "literal", 42, [1], { role: "diagnostic" }])
+    assert.deepEqual(opaque.parse(value), value);
+  assert.deepEqual(
+    compile({ description: "Original diagnostic JSON" }).parse({ original: 1 }),
+    { original: 1 },
+  );
   assert.throws(() => validator({ type: "string", allOf: [] }));
   assert.throws(() => validator({ $ref: "#/$defs/Missing" }));
   assert.throws(() =>

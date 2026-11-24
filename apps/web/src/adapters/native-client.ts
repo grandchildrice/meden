@@ -1,5 +1,9 @@
 import {
   nativeStateSchema,
+  analysisCurrentSchema,
+  analysisHistorySchema,
+  type AnalysisCurrentPublication,
+  type AnalysisHistoryPublication,
   preparationLogSchema,
   type PreparationLogPublication,
   directoryPublicationSchema,
@@ -45,6 +49,28 @@ export class NativeClient {
     signal?: AbortSignal,
   ): Promise<HistorySnapshot> {
     return this.publication("history", revision, historySnapshotSchema, signal);
+  }
+  async analysis(
+    revision: string,
+    signal?: AbortSignal,
+  ): Promise<AnalysisCurrentPublication> {
+    return this.publication(
+      "analysis",
+      revision,
+      analysisCurrentSchema,
+      signal,
+    );
+  }
+  async analysisHistory(
+    revision: string,
+    signal?: AbortSignal,
+  ): Promise<AnalysisHistoryPublication> {
+    return this.publication(
+      "analysis-history",
+      revision,
+      analysisHistorySchema,
+      signal,
+    );
   }
   async source(
     revision: string,
@@ -97,7 +123,9 @@ export class NativeClient {
       | "reader"
       | "inventory"
       | "directory"
-      | "preparation-log",
+      | "preparation-log"
+      | "analysis"
+      | "analysis-history",
     revision: string,
     schema: { parse(value: unknown): T },
     signal?: AbortSignal,

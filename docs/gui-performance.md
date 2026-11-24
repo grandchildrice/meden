@@ -1,5 +1,68 @@
 # Graph interaction measurements
 
+## Separate candidate and history publications (November 24)
+
+The [implementation and validation record](../results/candidate-observations-20261124.json)
+separates candidate meaning observations into two application-owned immutable views:
+the selected/running record and the complete retained history. Status contains
+their bounded availability references. Progress, selection and source
+invalidation freeze only the selected record; they do not serialize or hash
+unchanged history. Exact-revision queries share existing bytes and cannot start
+inference, compilation or a command. The old inline `analysis` and
+`analysis_history` status fields and handwritten meaning-record/input validators
+are removed. The persisted journal format remains unchanged; presentation uses
+canonical decimal strings for original u64 sequences.
+
+The targeted native browser journey retained **400 original observations**:
+the JSON history envelope was **3,340,291 bytes**, the selected record was
+**8,440 bytes**, and their status projection was **238 bytes**. Injected HTTP
+503 recovered through **Retry analyses** without a command, while source
+preparation remained independent. Map/file navigation and changing the selected
+observation performed **zero additional history reads**. A held former selection
+could not replace the later displayed observation. Restart retained the exact
+seeded journal and all 400 selectable runs, with no restored approval or new
+model requests. These figures are one protocol workload, not an old/new latency
+comparison, field percentile, live-model or cold-install claim. The fixture is
+seeded from one actual preceding scripted-model job; source/graph preparation
+uses the actual installed host workers and compiler.
+
+The two actual deployed projects currently have **zero saved candidate runs**.
+Their original source/graph/reader and inventory observations were captured
+before deployment. The large-history result must not be presented as a measured
+speedup of their currently empty histories.
+
+Serialization-contract schema generation preserves required nullable fields,
+opaque method diagnostics and lossless sequence values. Generation still rejects
+unknown constraints; unconstrained diagnostic JSON is explicit data, not a
+plugin decoder or authority. Typed availability separates absent, ready and
+unavailable observations. A bad projection retires that role's old body while
+retaining its original records; it cannot admit a prefix or invent an empty
+successful history. Current/history envelopes share a 64 MiB retention budget
+and history contains at most 1000 runs. This does not bound raw host records,
+in-flight response references or total process memory. Candidate assessments
+remain separate from current accepted-project evidence and kernel job tickets.
+
+The exact binary passed all **66 browser cases**, public TUI **34 required
+cases**, Rust **308**, TypeScript **39**, **23 architecture checks** and
+reproducible export of **42 generated files**, with no skips. The strengthened
+candidate-view tests were rerun after adding the shared-quota case; individually
+valid current/history envelopes still cannot exceed the combined budget. Both
+serialized motion gates exited zero. Prepared-tab p95 was **31.8 / 31.6 ms**,
+compiler-held paging maximum **34.6 / 35.2 ms**, and first readable source
+**1,194 / 1,197 ms**, within the existing 250 ms / 5 s budgets. These are
+DOM/two-animation-callback proxies, not physical presentation or field INP.
+Decoded TUI recovery/restart and native failure/selection screens were inspected.
+
+Both actual GUIs now run the pinned binary and asset tree. Complete original
+source/graph, reader and inventory metadata hashes and conversation revisions
+match the before-deployment capture without normalization. Source preparation
+reuses the existing bound compiler/search/renderer cache; no implementation
+attribution is rewritten. The single GUI captures (**15.616 / 2.604 s** to
+cached graph readiness for Riemann/EthLib) include first browser navigation and
+are not comparable to the prior repeated warmed API medians. Both hosts finish
+idle and unapproved. Accepted-project evidence, verification-job read models and
+remaining native wire/layout migration work remain open.
+
 ## Batched exact metadata validation (November 24)
 
 The [implementation and measurement record](../results/metadata-batches-20261124.json)

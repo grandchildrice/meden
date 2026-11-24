@@ -1,0 +1,359 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Envelope",
+  "description": "Shared wire framing; each data role retains its own generated schema.",
+  "type": "object",
+  "properties": {
+    "revision": {
+      "description": "Exact publication requested by the viewer.",
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "data": {
+      "description": "Original complete projection, never an authority token.",
+      "$ref": "#/$defs/History"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "revision",
+    "data"
+  ],
+  "$defs": {
+    "History": {
+      "description": "Complete retained history, independent of the currently selected/running job.",
+      "type": "object",
+      "properties": {
+        "history": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Record"
+          },
+          "maxItems": 1000
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "history"
+      ]
+    },
+    "Record": {
+      "description": "Lossless presentation of an original record. Borrowing avoids cloning all history.",
+      "type": "object",
+      "properties": {
+        "version": {
+          "description": "Original journal version, independently validated before publication.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 2,
+          "maximum": 2
+        },
+        "sequence": {
+          "description": "Canonical positive u64 decimal; browsers must not round an original sequence.",
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,19}$"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^analysis-[a-f0-9]{64}$"
+        },
+        "requirement_id": {
+          "type": "string",
+          "pattern": "^requirement-[a-f0-9]{64}$"
+        },
+        "finding_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^finding-[a-f0-9]{64}$"
+        },
+        "source_artifact": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "engine": {
+          "description": "Original assessment method, independent of a compiler or verifier role.",
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "processor": {
+          "type": "string"
+        },
+        "judge": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Binding"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "model_definition": {
+          "description": "Retained method diagnostics; they cannot instantiate a model or grant."
+        },
+        "judge_definition": true,
+        "input": {
+          "$ref": "#/$defs/Input"
+        },
+        "state": {
+          "$ref": "#/$defs/State"
+        },
+        "assessment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Assessment"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "partial_translation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Translation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "sequence",
+        "id",
+        "requirement_id",
+        "finding_id",
+        "source_artifact",
+        "engine",
+        "model",
+        "processor",
+        "judge",
+        "input",
+        "state",
+        "assessment",
+        "partial_translation",
+        "error"
+      ]
+    },
+    "Binding": {
+      "description": "Display/review target, never a grant or a decoded implementation selection.",
+      "type": "object",
+      "properties": {
+        "model": {
+          "description": "Selected model identifier.",
+          "type": "string"
+        },
+        "endpoint": {
+          "description": "Frozen display destination.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "model",
+        "endpoint"
+      ]
+    },
+    "Input": {
+      "type": "object",
+      "properties": {
+        "source_revision": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "graph_revision": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "target": {
+          "$ref": "#/$defs/Target"
+        },
+        "requirement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16384
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "source_revision",
+        "target",
+        "requirement"
+      ]
+    },
+    "Target": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "line": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 1,
+          "maximum": 1048577
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "file",
+        "line",
+        "name"
+      ]
+    },
+    "State": {
+      "type": "string",
+      "enum": [
+        "observing",
+        "translating",
+        "comparing",
+        "complete",
+        "failed",
+        "cancelled",
+        "stale",
+        "historical"
+      ]
+    },
+    "Assessment": {
+      "type": "object",
+      "properties": {
+        "translation": {
+          "$ref": "#/$defs/Translation"
+        },
+        "comparison": {
+          "$ref": "#/$defs/Comparison"
+        },
+        "verdict": {
+          "$ref": "#/$defs/Verdict"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "translation",
+        "comparison",
+        "verdict"
+      ]
+    },
+    "Translation": {
+      "type": "object",
+      "properties": {
+        "lemmaName": {
+          "type": "string"
+        },
+        "naturalLanguage": {
+          "type": "string"
+        },
+        "preconditions": {
+          "type": "string"
+        },
+        "postcondition": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "strength": {
+          "$ref": "#/$defs/Strength"
+        },
+        "confidence": {
+          "type": "number",
+          "format": "double",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "lemmaName",
+        "naturalLanguage",
+        "preconditions",
+        "postcondition",
+        "scope",
+        "strength",
+        "confidence"
+      ]
+    },
+    "Strength": {
+      "type": "string",
+      "enum": [
+        "trivial",
+        "weak",
+        "moderate",
+        "strong"
+      ]
+    },
+    "Comparison": {
+      "type": "object",
+      "properties": {
+        "lemmaName": {
+          "type": "string"
+        },
+        "match": {
+          "type": "boolean"
+        },
+        "discrepancy": {
+          "type": "string"
+        },
+        "weakeningType": {
+          "$ref": "#/$defs/Weakening"
+        },
+        "explanation": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "lemmaName",
+        "match",
+        "discrepancy",
+        "weakeningType",
+        "explanation"
+      ]
+    },
+    "Weakening": {
+      "type": "string",
+      "enum": [
+        "none",
+        "tautology",
+        "weakened-postcondition",
+        "narrowed-scope",
+        "missing-case",
+        "wrong-property"
+      ]
+    },
+    "Verdict": {
+      "type": "string",
+      "enum": [
+        "match",
+        "mismatch",
+        "unclear"
+      ]
+    }
+  }
+}

@@ -566,6 +566,25 @@ queries never start work. These observation handles are not kernel job tickets o
 evidence. General analysis/verification job and evidence views still need their own
 revisioned queries.
 
+Candidate meaning observations now have application-owned current/history views
+and generated validators too. Frequent status reads contain only two bounded
+availability records. Exact current and complete-history queries share frozen
+bytes; selecting or advancing a candidate does not serialize, hash or transfer
+unchanged history. The original journal and host records retain their existing
+format. The presentation sequence is a canonical u64 decimal, without browser
+rounding. Current source invalidation belongs to this shared owner and does not
+rewrite historical inputs. Late responses cannot replace a newer selection;
+failed transfers retry locally without a command, and an unreadable journal is
+reported beside the source rather than in chat or a startup banner. Up to 1000
+runs and 64 MiB of combined retained current/history envelopes are allowed;
+failure retains original records but admits no prefix or superseded body.
+These are model assessments, not proof, kernel job tickets or admitted evidence.
+The new output schemas use the serialization contract: nullable fields emitted
+by Rust remain required and nullable in the browser. Original opaque method
+diagnostics remain data and cannot register an implementation. Accepted-project
+evidence, verification-job queries and the rest of the native wire contract
+still require their own projections.
+
 This does not finish step 4: generic job/evidence DTOs, generation of
 the rest of the native wire contract and remaining navigation waits still need
 work. Step 5's versioned layout/order and retirement requirements remain open too.
