@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Reference",
+  "description": "Lossless transport of the original selected contract identity, never authority.",
+  "type": "object",
+  "properties": {
+    "revision": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]{0,19}$"
+    },
+    "session": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8192
+    },
+    "contract": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "revision",
+    "session",
+    "contract"
+  ]
+}

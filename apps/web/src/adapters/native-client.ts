@@ -1,5 +1,7 @@
 import {
   nativeStateSchema,
+  evidencePublicationSchema,
+  type EvidencePublication,
   analysisCurrentSchema,
   analysisHistorySchema,
   type AnalysisCurrentPublication,
@@ -43,6 +45,17 @@ export class NativeClient {
   }
   async command(command: NativeCommand): Promise<void> {
     await this.request("/api/command", command);
+  }
+  async evidence(
+    revision: string,
+    signal?: AbortSignal,
+  ): Promise<EvidencePublication> {
+    return this.publication(
+      "evidence",
+      revision,
+      evidencePublicationSchema,
+      signal,
+    );
   }
   async history(
     revision: string,
@@ -125,7 +138,8 @@ export class NativeClient {
       | "directory"
       | "preparation-log"
       | "analysis"
-      | "analysis-history",
+      | "analysis-history"
+      | "evidence",
     revision: string,
     schema: { parse(value: unknown): T },
     signal?: AbortSignal,

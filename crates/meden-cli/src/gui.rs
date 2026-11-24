@@ -38,6 +38,7 @@ enum PublicationRole {
     PreparationLog,
     Analysis,
     AnalysisHistory,
+    Evidence,
 }
 
 impl Task {
@@ -76,14 +77,14 @@ struct View {
     activity: String,
     partial: String,
     reasoning: String,
-    project: crate::project::Summary,
+    project: meden_app::view::evidence::Project,
     stopped: Option<String>,
     directories: meden_app::view::directory::Directories,
     readers: meden_app::view::readers::Readers,
     sources: meden_app::view::sources::Sources,
     source_preparation: meden_app::view::jobs::Jobs,
     analyses: meden_app::view::analyses::Analyses,
-    repair_review: Option<crate::analysis::repair::Review>,
+    repair_review: Option<meden_app::view::repairs::Review>,
     preview: Option<preview::Summary>,
     exports: Vec<crate::exports::Summary>,
     export_review: Option<delivery::Review>,
@@ -176,13 +177,13 @@ enum Command {
         input: crate::semantic::Input,
     },
     ReviewContract {
-        reference: crate::project::Reference,
+        reference: meden_app::view::evidence::Reference,
     },
     AcceptContract {
-        reference: crate::project::Reference,
+        reference: meden_app::view::evidence::Reference,
     },
     RejectContract {
-        reference: crate::project::Reference,
+        reference: meden_app::view::evidence::Reference,
     },
     Inspect {
         path: String,
@@ -388,7 +389,7 @@ fn initial_view(
         activity: "Ready".into(),
         partial: String::new(),
         reasoning: String::new(),
-        project: project.stored_status()?,
+        project: meden_app::view::evidence::Project::new(project.stored_status()?),
         stopped: saved.stopped,
         directories: meden_app::view::directory::Directories::default(),
         readers: meden_app::view::readers::Readers::default(),
@@ -558,6 +559,8 @@ impl Http<'_> {
             (PublicationRole::Analysis, revision)
         } else if let Some(revision) = url.strip_prefix("/api/analysis-history?revision=") {
             (PublicationRole::AnalysisHistory, revision)
+        } else if let Some(revision) = url.strip_prefix("/api/evidence?revision=") {
+            (PublicationRole::Evidence, revision)
         } else if let Some(revision) = url.strip_prefix("/api/directory?revision=") {
             (PublicationRole::Directory, revision)
         } else if let Some(revision) = url.strip_prefix("/api/inventory?revision=") {
@@ -583,6 +586,7 @@ impl Http<'_> {
                     PublicationRole::PreparationLog => view.source_preparation.bytes(&revision),
                     PublicationRole::Analysis => view.analyses.current_bytes(&revision),
                     PublicationRole::AnalysisHistory => view.analyses.history_bytes(&revision),
+                    PublicationRole::Evidence => view.project.bytes(&revision),
                     PublicationRole::Inventory => view
                         .overview_snapshot
                         .as_ref()
@@ -598,6 +602,7 @@ impl Http<'_> {
                 PublicationRole::PreparationLog => "gui.preparation_log_respond",
                 PublicationRole::Analysis => "gui.analysis_respond",
                 PublicationRole::AnalysisHistory => "gui.analysis_history_respond",
+                PublicationRole::Evidence => "gui.evidence_respond",
                 PublicationRole::Inventory => "gui.inventory_respond",
             },
             bytes,
@@ -813,15 +818,21 @@ fn worker(
                 }
                 Command::Instruction { text } => Some(instruction(view, text)),
                 Command::ReviewContract { reference } => {
-                    lock(view).project = project.review(&reference)?;
+                    lock(view)
+                        .project
+                        .observe(project.review(&reference.original()?)?);
                     None
                 }
                 Command::AcceptContract { reference } => {
-                    lock(view).project = project.accept(&reference)?;
+                    lock(view)
+                        .project
+                        .observe(project.accept(&reference.original()?)?);
                     Some(project.continuation()?)
                 }
                 Command::RejectContract { reference } => {
-                    lock(view).project = project.reject(&reference)?;
+                    lock(view)
+                        .project
+                        .observe(project.reject(&reference.original()?)?);
                     None
                 }
                 Command::Inspect { path, directory } => {
@@ -852,7 +863,7 @@ fn worker(
             let summary = project
                 .status(workspace, &processes)
                 .or_else(|_| project.stored_status())?;
-            lock(view).project = summary;
+            lock(view).project.observe(summary);
             Ok(())
         })();
         if checkpoint_after {
@@ -993,7 +1004,7 @@ fn observe(view: &Mutex<View>, event: &Event<'_>) {
                 view.overview.state = overview::State::Stale;
             }
             if refusal.is_none() && call.function.name == "check_lean_work" {
-                view.project.verified = false;
+                view.project.invalidate();
                 view.sources.clear();
                 view.analyses.invalidate();
             }
@@ -1155,7 +1166,7 @@ fn perform_work(
         }
         Command::CheckWork { id } => {
             project.mark_dirty();
-            lock(view).project.verified = false;
+            lock(view).project.invalidate();
             lock(view).sources.clear();
             lock(view).analyses.invalidate();
             lock(view).activity = format!("Checking Lean work {id}");

@@ -1,5 +1,81 @@
 # Graph interaction measurements
 
+## Accepted-contract publications and deployed event audit (November 24)
+
+The [measurement and validation record](../results/evidence-publications-20261124.json)
+contains one fresh normal-motion CDP capture per actual project after deployment.
+Both reuse prepared compiler/search/renderer artifacts. No other test or profile
+ran during these sequential captures. Profiling adds overhead; these are local
+diagnostic event distributions, not field percentiles or a before/after speedup.
+The selected files are Riemann's `AdelicClassFiniteness/DictGen.lean` and EthLib's
+`Networking/Gossip/Parameters.lean`; their inventories retain 175,187 and 2,517 files.
+
+| Synchronous event dispatch p95 | Riemann | EthLib |
+| --- | ---: | ---: |
+| Project-map wheel, 24 events | 3.804 ms | 6.790 ms |
+| Dependency-graph wheel, 24 events | 0.882 ms | 1.152 ms |
+| Hover, 40 pointer events | 0.145 ms | 0.106 ms |
+| Pan, 31 pointer events | 0.176 ms | 0.578 ms |
+| Resize | 1.732 ms | 1.232 ms |
+| File/map tabs, 24 clicks | 18.592 ms | 13.588 ms |
+| Fit View | 1.067 ms | 0.715 ms |
+| Different-node selection, 8 clicks | 24.188 ms | 12.584 ms |
+
+Node selection remains the largest measured synchronous interaction. Its
+input/two-animation-callback p95 is **38.0 / 18.9 ms**; tabs are **43.7 / 37.4 ms**.
+These callbacks are scheduling proxies, not physical presentation or INP.
+Hover, resize, tab return and both repeated/different-node selection preserve
+the graph camera. All measured gestures send only status reads: **zero commands,
+source-body or evidence-body requests**. Source-line assertions use the complete
+original prepared source. Source maps are unavailable for these pinned bundles,
+so sampled compiled frames do not establish exclusive source-function costs.
+
+The large remaining wait occurs on explicit file preparation. Riemann takes
+**22.752 s** from the explorer click to prepared readiness, including **19.781 s**
+inside analysis and its nested **17.033 s** Lake preparation. The streamed log
+separately reports **11.870 s** for build/setup/input resolution and **4.421 s**
+for complete validation of **43,477 inputs / 5,992,114,707 bytes**. EthLib's
+corresponding browser wait is **2.350 s**, with **0.985 s** inside analysis.
+These are single cached observations, not comparable to prior repeated API
+medians. Native stages overlap; do not add parent and child intervals. Current
+status handling p95 is **1.223 / 1.396 ms**. Lake resolution and complete-input
+validation therefore remain the first preparation targets; node selection is
+the clearest remaining interaction target.
+
+Accepted/proposed contract meaning and evidence now have an independent
+application-owned immutable publication. Status reports its availability and
+exact revision; `/api/evidence?revision=…` shares complete frozen bytes. Disjoint
+states retain accepted meaning during replacement and distinguish current
+coverage from retained outputs and typed failures. Original canonical contracts,
+reviews, backend strength/scope and source/output hashes are preserved. Invalid
+or oversized observations retire the old body while retaining the original;
+there is no partial successful view. Browser reads cannot construct receipts,
+grant authority or initiate verification.
+
+The actual Z3 rejection/repair/restart browser journey transfers a **3,940-byte**
+complete evidence body with a **102-byte** status projection. Twenty sequential
+direct body reads add **zero materializations**; native response p95 is
+**0.148 ms**, while complete browser fetch median is **42.2 ms**, including the
+transport and scheduling boundary. HTTP 503 recovers through **Retry evidence**
+without a command. Required nullable fields and exact positive-u64 decimal
+references are generated from Rust; original repair queue/journal data remain
+unchanged. Restart retains accepted meaning without restoring current coverage.
+Both actual projects currently have no accepted/proposed native contract, so
+their evidence bodies are **111 bytes**, and this fixture's large-review saving
+is not a measured speedup of those empty observations.
+
+The pinned binary passed Rust **314**, TypeScript **40**, **23 architecture
+checks**, reproducible generation of **52 files**, public TUI **34** and the full
+browser gate **66**, with no skips. Both serialized motion gates passed: warm
+tab p95 **29.5 / 32.9 ms**, compiler-held paging maximum **29.4 / 34.0 ms**.
+The first full browser attempt exposed one remaining old inline-status assertion
+in the portable-clone test; its replacement reads the actual evidence publication,
+and the complete rerun passes. Decoded failure/restart screens and deployed map
+captures were inspected. Complete original source/graph, reader, inventory,
+candidate and conversation identities match the private before-deployment capture.
+Both hosts finish idle and unapproved. No kernel or checker execution behavior changed;
+general verification-job views and the remaining architecture migration stay open.
+
 ## Separate candidate and history publications (November 24)
 
 The [implementation and validation record](../results/candidate-observations-20261124.json)

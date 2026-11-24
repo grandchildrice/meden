@@ -13,6 +13,7 @@ import {
 import { resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { promisify } from "node:util";
+import { projectEvidence } from "./evidence";
 import type {
   NativeState,
   WorkspaceOverview,
@@ -133,8 +134,9 @@ test("unreadable portable history stays intact while the GUI graph and ordinary 
       }),
     ).toBeVisible();
     await expect.poll(async () => (await state(page)).overview.scanned).toBe(1);
-    expect((await state(page)).project.accepted).toBe(false);
-    expect((await state(page)).project.verified).toBe(false);
+    expect((await projectEvidence(page, await state(page))).state).toBe(
+      "empty",
+    );
     expect(requests).toBe(0);
     await page
       .getByRole("button", { name: "Choose model", exact: true })
@@ -487,8 +489,7 @@ test("opening a cloned workspace shows chat and the whole graph, then selects an
     ).toBe(false);
     const original = await state(page);
     expect(original.authorized).toBe(false);
-    expect(original.project.accepted).toBe(false);
-    expect(original.project.verified).toBe(false);
+    expect((await projectEvidence(page, original)).state).toBe("empty");
     expect(JSON.stringify(original)).not.toContain("HOST_SECRET");
     expect(calls).toHaveLength(0);
     await page

@@ -49,12 +49,12 @@ pub(super) fn apply_repair(
         anyhow::ensure!(
             view.repair_review
                 .as_ref()
-                .is_some_and(|review| &review.reference == reference),
+                .is_some_and(|review| &review.original().reference == reference),
             "Repair review selection changed"
         );
         view.repair_review = None;
         view.sources.clear();
-        view.project.verified = false;
+        view.project.invalidate();
         view.analyses.invalidate();
     }
     let result = session.apply_repair(queue, reference, &|record| {

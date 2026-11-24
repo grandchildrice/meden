@@ -1,0 +1,2297 @@
+{
+  "date": "2026-11-24",
+  "source_base_revision": "9e0701dad9b468a1d85adf9d7db0a5fd2a53f27d",
+  "scope": "Application-owned immutable accepted-contract/evidence observation; generated exact-reference and repair presentation DTOs; current deployed per-event browser/native-span audit.",
+  "candidate": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/6a553368adc63550cb0a8ecbd11725fa9e70a5c23c5b06e57bebe2474d7b8206/meden",
+    "sha256": "6a553368adc63550cb0a8ecbd11725fa9e70a5c23c5b06e57bebe2474d7b8206"
+  },
+  "deployment": {
+    "binary_sha256": "6a553368adc63550cb0a8ecbd11725fa9e70a5c23c5b06e57bebe2474d7b8206",
+    "assets_sha256": "71aa3761a29af8281303e6c3a52390b16a784ed6e2210455fdb0c1f3a8458f20",
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/6a553368adc63550cb0a8ecbd11725fa9e70a5c23c5b06e57bebe2474d7b8206-71aa3761a29af828"
+  },
+  "ownership": {
+    "core_changed": false,
+    "runtime_execution_changed": false,
+    "authority_changed": false,
+    "new_refinement_claim": false,
+    "journal_format_changed": false,
+    "reference": "Canonical positive-u64 decimal presentation; Rust consuming conversion rejects overflow and recovers the exact original revision/session/contract before the existing controller validates the selected review. Browser regex validates syntax; it is not the u64 authority boundary.",
+    "review": "Complete original canonical contract, original review, backend, evidence strength/scope and source/output hashes. Pending replacements retain original accepted meaning.",
+    "repair": "Generated presentation retains the complete original diff, input and method descriptor. Its original queue and journal keep their original numeric accepted reference; presentation uses canonical text. Repair review remains inline."
+  },
+  "protocol": {
+    "status": "project: ready with exact revision / unavailable with bounded diagnostic",
+    "body": "GET /api/evidence?revision=<exact reference>",
+    "states": "empty / proposed with independently retained accepted meaning / accepted with current or unverified evidence observation",
+    "retired": [
+      "Inline native /api/state project Summary",
+      "Handwritten nativeReferenceSchema, repairReferenceSchema and repairReviewSchema"
+    ],
+    "bounds": {
+      "complete_envelope_bytes": 67108864,
+      "diagnostic_utf8_bytes": 8000,
+      "canonical_contract_bytes": 65536,
+      "no_prefix": true,
+      "no_superseded_failed_body": true,
+      "scope": "Original summaries and in-flight Arc clones are outside the serialized-publication bound."
+    },
+    "authority": "Display observations cannot construct a receipt/grant or authorize delivery. Existing controller admission and fresh source/storage checks remain authoritative."
+  },
+  "static_spans": [
+    "view.evidence.materialize",
+    "gui.evidence_respond"
+  ],
+  "finite_workload": {
+    "scope": "Actual registered offline Z3 with scripted model transport. Public GUI proposal/review, completed refutation, source repair, successful bounded check and restart. Installed tools, not live inference/cold installation.",
+    "body_bytes": 3940,
+    "status_bytes": 102,
+    "sequential_direct_fetch_ms": [
+      41.90000003576279,
+      42.19999998807907,
+      41.80000001192093,
+      42.19999998807907,
+      41.80000001192093,
+      42.19999998807907,
+      42.700000047683716,
+      43.09999996423721,
+      42.80000001192093,
+      42.19999998807907,
+      42.80000001192093,
+      42.19999998807907,
+      42,
+      41.90000003576279,
+      42,
+      42.19999998807907,
+      41.89999997615814,
+      42,
+      42.10000002384186,
+      42.89999997615814
+    ],
+    "fetch_distribution": {
+      "count": 20,
+      "p50_ms": 42.19999998807907,
+      "p95_ms": 43.09999996423721,
+      "max_ms": 43.09999996423721
+    },
+    "materializations_before": 10,
+    "materializations_after": 10,
+    "native_stages": {
+      "view.evidence.materialize": {
+        "wall": {
+          "count": 10,
+          "p50_ms": 0.147,
+          "p95_ms": 0.347,
+          "max_ms": 0.347
+        },
+        "host_thread_cpu": {
+          "count": 10,
+          "p50_ms": 0.145,
+          "p95_ms": 0.316,
+          "max_ms": 0.316
+        }
+      },
+      "job.queue": {
+        "wall": {
+          "count": 7,
+          "p50_ms": 0.026,
+          "p95_ms": 0.689,
+          "max_ms": 0.689
+        },
+        "host_thread_cpu": {
+          "count": 0
+        }
+      },
+      "gui.job": {
+        "wall": {
+          "count": 7,
+          "p50_ms": 44.221,
+          "p95_ms": 1739.236,
+          "max_ms": 1739.236
+        },
+        "host_thread_cpu": {
+          "count": 7,
+          "p50_ms": 5.414,
+          "p95_ms": 1236.209,
+          "max_ms": 1236.209
+        }
+      },
+      "gui.state": {
+        "wall": {
+          "count": 28,
+          "p50_ms": 0.443,
+          "p95_ms": 0.834,
+          "max_ms": 0.887
+        },
+        "host_thread_cpu": {
+          "count": 28,
+          "p50_ms": 0.418,
+          "p95_ms": 0.643,
+          "max_ms": 0.761
+        }
+      },
+      "gui.evidence_respond": {
+        "wall": {
+          "count": 27,
+          "p50_ms": 0.1,
+          "p95_ms": 0.148,
+          "max_ms": 0.153
+        },
+        "host_thread_cpu": {
+          "count": 27,
+          "p50_ms": 0.085,
+          "p95_ms": 0.119,
+          "max_ms": 0.124
+        }
+      }
+    },
+    "native_ring_evicted": 0,
+    "assertions": [
+      "Injected HTTP 503 recovers through Retry evidence with zero new commands.",
+      "Status carries only state/revision; unchanged polling does not refetch the complete review.",
+      "20 sequential exact-body queries add no materialization. Fault-injection routing is removed before these timings.",
+      "Original canonical contract and contract identity survive restart; current coverage and approval do not."
+    ],
+    "methodology": "Sequential browser fetch/complete-arrayBuffer timing on loopback under functional validation. Native spans overlap; host-thread CPU excludes child processes. These samples are diagnostic, not an old/new latency benchmark or field percentiles."
+  },
+  "actual_projects": {
+    "fidelity": [
+      {
+        "project": "riemann",
+        "pid": 1165313,
+        "binary_sha256": "6a553368adc63550cb0a8ecbd11725fa9e70a5c23c5b06e57bebe2474d7b8206",
+        "source_publication": "sha256:4671471a8580f25a42b2117fcc7cf5a8d25988b715b1a40cbb17b77e006bfa94",
+        "source_hash": "2063f4c8792707349ba4b3d295e779c565a63030790aae9d937d5f776d8d9184",
+        "reader_publication": "sha256:d3bca7c0ce21989bef612ac79475e72da33062b4140b13dfe87bbaf183a61be8",
+        "reader_hash": "d2c21198aaff30504f16966ddf61ce628ef7ac8632c62be3195b4e4f72e41806",
+        "inventory_files": 175187,
+        "metadata_hash": "5875c3c3432ddda379f8caf8ed411b77d30701443e5da912442935a296c3ae7a",
+        "original_source_graph_reader_inventory_preserved": true,
+        "conversation_revision_unchanged": true,
+        "candidate_observations_unchanged": true,
+        "evidence_state": "empty",
+        "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+        "evidence_body_bytes": 111,
+        "evidence_status_bytes": 102,
+        "old_project_status_bytes": 629,
+        "cache_hit": true,
+        "running": false,
+        "authorized": false
+      },
+      {
+        "project": "ethlib",
+        "pid": 1165519,
+        "binary_sha256": "6a553368adc63550cb0a8ecbd11725fa9e70a5c23c5b06e57bebe2474d7b8206",
+        "source_publication": "sha256:c9a67ef7faab77791ab7d84fad5d7176476d3b7d5320d9f95f155b117b57e86b",
+        "source_hash": "ac220adb7270df17b304574138f8894ec78d92bc7a85c5e2e0e745edc885bb09",
+        "reader_publication": "sha256:0b79b28ff3aa227731108c7cde50cf54fa06cc447922756668b1197473b0d3ac",
+        "reader_hash": "60e647749624e65341239c16878edafe3083f1a0b0ba7ab0587b82511d80dd36",
+        "inventory_files": 2517,
+        "metadata_hash": "59b98c2e15f2f590463873351344a08a59e4aa3854a7dfb1779e635a680cb32f",
+        "original_source_graph_reader_inventory_preserved": true,
+        "conversation_revision_unchanged": true,
+        "candidate_observations_unchanged": true,
+        "evidence_state": "empty",
+        "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+        "evidence_body_bytes": 111,
+        "evidence_status_bytes": 102,
+        "old_project_status_bytes": 629,
+        "cache_hit": true,
+        "running": false,
+        "authorized": false
+      }
+    ],
+    "event_captures": [
+      {
+        "project": "riemann",
+        "directory": "target/native-profile/evidence-publications-20261124/riemann-events",
+        "environment": {
+          "browser": "149.0.7827.53",
+          "viewport": "1440x960",
+          "throttling": "none",
+          "reduced_motion": "no-preference",
+          "gesture_tail_ms": 600,
+          "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "declarations": 15,
+          "project_files": 175187,
+          "setup_preparation_ms": 22752.480402999998,
+          "setup_cache_hit": true,
+          "source_map_directory": "/home/gohan/workspace/meden/target/gui-runtime/6a553368adc63550cb0a8ecbd11725fa9e70a5c23c5b06e57bebe2474d7b8206-71aa3761a29af828/assets",
+          "source_maps_sha256": {}
+        },
+        "events": {
+          "project-map-wheel": {
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 1.795,
+              "p95_ms": 3.804,
+              "max_ms": 4.706,
+              "total_ms": 47.225000000000016
+            },
+            "input_two_raf": {
+              "count": 24,
+              "p50_ms": 17.19999998807907,
+              "p95_ms": 20.19999998807907,
+              "max_ms": 41.5,
+              "total_ms": 439.79999989271164
+            },
+            "camera": {
+              "before": null,
+              "after": null
+            },
+            "requests": [
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              }
+            ]
+          },
+          "graph-wheel": {
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 0.45,
+              "p95_ms": 0.882,
+              "max_ms": 0.922,
+              "total_ms": 11.131
+            },
+            "input_two_raf": {
+              "count": 24,
+              "p50_ms": 16.5,
+              "p95_ms": 22.100000023841858,
+              "max_ms": 23.5,
+              "total_ms": 407.5999998450279
+            },
+            "camera": {
+              "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+              "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+            },
+            "requests": [
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              }
+            ]
+          },
+          "graph-hover": {
+            "dispatch": {
+              "count": 40,
+              "p50_ms": 0.048,
+              "p95_ms": 0.145,
+              "max_ms": 2.22,
+              "total_ms": 4.228000000000001
+            },
+            "input_two_raf": {
+              "count": 40,
+              "p50_ms": 18.69999998807907,
+              "p95_ms": 26.099999964237213,
+              "max_ms": 27.100000023841858,
+              "total_ms": 756.4999998211861
+            },
+            "camera": {
+              "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+              "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+            },
+            "requests": [
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              }
+            ]
+          },
+          "graph-pan": {
+            "dispatch": {
+              "count": 31,
+              "p50_ms": 0.117,
+              "p95_ms": 0.176,
+              "max_ms": 0.192,
+              "total_ms": 3.8209999999999997
+            },
+            "input_two_raf": {
+              "count": 31,
+              "p50_ms": 18.80000001192093,
+              "p95_ms": 21,
+              "max_ms": 38.200000047683716,
+              "total_ms": 590.0999999642372
+            },
+            "camera": {
+              "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+              "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+            },
+            "requests": [
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              }
+            ]
+          },
+          "graph-resize": {
+            "dispatch": {
+              "count": 4,
+              "p50_ms": 1.337,
+              "p95_ms": 1.732,
+              "max_ms": 1.732,
+              "total_ms": 5.322
+            },
+            "input_two_raf": {
+              "count": 4,
+              "p50_ms": 21.200000047683716,
+              "p95_ms": 22,
+              "max_ms": 22,
+              "total_ms": 66.40000003576279
+            },
+            "camera": {
+              "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+              "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+            },
+            "requests": [
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              }
+            ]
+          },
+          "tab-switch": {
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 10.133,
+              "p95_ms": 18.592,
+              "max_ms": 26.979,
+              "total_ms": 291.90500000000003
+            },
+            "input_two_raf": {
+              "count": 24,
+              "p50_ms": 34.5,
+              "p95_ms": 43.700000047683716,
+              "max_ms": 48.5,
+              "total_ms": 831.6999997496605
+            },
+            "camera": {
+              "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+              "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+            },
+            "requests": [
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              }
+            ]
+          },
+          "graph-fit-view": {
+            "dispatch": {
+              "count": 1,
+              "p50_ms": 1.067,
+              "p95_ms": 1.067,
+              "max_ms": 1.067,
+              "total_ms": 1.067
+            },
+            "input_two_raf": {
+              "count": 1,
+              "p50_ms": 27.100000023841858,
+              "p95_ms": 27.100000023841858,
+              "max_ms": 27.100000023841858,
+              "total_ms": 27.100000023841858
+            },
+            "camera": {
+              "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+              "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+            },
+            "requests": [
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              }
+            ]
+          },
+          "graph-node-select-distinct": {
+            "dispatch": {
+              "count": 8,
+              "p50_ms": 18.661,
+              "p95_ms": 24.188,
+              "max_ms": 24.188,
+              "total_ms": 150.664
+            },
+            "input_two_raf": {
+              "count": 8,
+              "p50_ms": 26.5,
+              "p95_ms": 38,
+              "max_ms": 38,
+              "total_ms": 227.5999999642372
+            },
+            "camera": {
+              "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+              "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+            },
+            "requests": [
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              }
+            ]
+          }
+        },
+        "native_stages": {
+          "available": true,
+          "evicted_during_capture": 0,
+          "stages": {
+            "gui.serialize_respond": {
+              "wall": {
+                "count": 238,
+                "p50_ms": 0.264,
+                "p95_ms": 0.673,
+                "max_ms": 1.098,
+                "total_ms": 75.39300000000001
+              },
+              "host_thread_cpu": {
+                "count": 238,
+                "p50_ms": 0.236,
+                "p95_ms": 0.599,
+                "max_ms": 0.937,
+                "total_ms": 66.25400000000002
+              }
+            },
+            "process.run": {
+              "wall": {
+                "count": 52,
+                "p50_ms": 40.94,
+                "p95_ms": 51.211,
+                "max_ms": 16382.248,
+                "total_ms": 18884.11
+              },
+              "host_thread_cpu": {
+                "count": 52,
+                "p50_ms": 0.331,
+                "p95_ms": 0.628,
+                "max_ms": 71.489,
+                "total_ms": 90.98700000000001
+              }
+            },
+            "view.directory.observe": {
+              "wall": {
+                "count": 6,
+                "p50_ms": 43.349,
+                "p95_ms": 70.153,
+                "max_ms": 70.153,
+                "total_ms": 285.057
+              },
+              "host_thread_cpu": {
+                "count": 6,
+                "p50_ms": 2.882,
+                "p95_ms": 19.27,
+                "max_ms": 19.27,
+                "total_ms": 31.331
+              }
+            },
+            "view.evidence.materialize": {
+              "wall": {
+                "count": 7,
+                "p50_ms": 0.011,
+                "p95_ms": 0.035,
+                "max_ms": 0.035,
+                "total_ms": 0.114
+              },
+              "host_thread_cpu": {
+                "count": 7,
+                "p50_ms": 0.01,
+                "p95_ms": 0.033,
+                "max_ms": 0.033,
+                "total_ms": 0.108
+              }
+            },
+            "gui.job": {
+              "wall": {
+                "count": 7,
+                "p50_ms": 43.416,
+                "p95_ms": 21253.03,
+                "max_ms": 21253.03,
+                "total_ms": 21538.536
+              },
+              "host_thread_cpu": {
+                "count": 7,
+                "p50_ms": 2.946,
+                "p95_ms": 2543.327,
+                "max_ms": 2543.327,
+                "total_ms": 2575.0950000000003
+              }
+            },
+            "gui.inventory_respond": {
+              "wall": {
+                "count": 2,
+                "p50_ms": 135.515,
+                "p95_ms": 135.515,
+                "max_ms": 135.515,
+                "total_ms": 199.57799999999997
+              },
+              "host_thread_cpu": {
+                "count": 2,
+                "p50_ms": 20.692,
+                "p95_ms": 20.692,
+                "max_ms": 20.692,
+                "total_ms": 31.432000000000002
+              }
+            },
+            "gui.state": {
+              "wall": {
+                "count": 177,
+                "p50_ms": 0.594,
+                "p95_ms": 1.223,
+                "max_ms": 1.741,
+                "total_ms": 118.07499999999995
+              },
+              "host_thread_cpu": {
+                "count": 177,
+                "p50_ms": 0.547,
+                "p95_ms": 1.132,
+                "max_ms": 1.573,
+                "total_ms": 109.66300000000004
+              }
+            },
+            "gui.directory_respond": {
+              "wall": {
+                "count": 6,
+                "p50_ms": 0.109,
+                "p95_ms": 0.137,
+                "max_ms": 0.137,
+                "total_ms": 0.667
+              },
+              "host_thread_cpu": {
+                "count": 6,
+                "p50_ms": 0.092,
+                "p95_ms": 0.115,
+                "max_ms": 0.115,
+                "total_ms": 0.5559999999999999
+              }
+            },
+            "gui.enqueue": {
+              "wall": {
+                "count": 6,
+                "p50_ms": 0.001,
+                "p95_ms": 0.002,
+                "max_ms": 0.002,
+                "total_ms": 0.005
+              },
+              "host_thread_cpu": {
+                "count": 6,
+                "p50_ms": 0.001,
+                "p95_ms": 0.001,
+                "max_ms": 0.001,
+                "total_ms": 0.003
+              }
+            },
+            "job.queue": {
+              "wall": {
+                "count": 6,
+                "p50_ms": 0.024,
+                "p95_ms": 0.071,
+                "max_ms": 0.071,
+                "total_ms": 0.203
+              },
+              "host_thread_cpu": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              }
+            },
+            "gui.command": {
+              "wall": {
+                "count": 6,
+                "p50_ms": 0.212,
+                "p95_ms": 0.248,
+                "max_ms": 0.248,
+                "total_ms": 1.232
+              },
+              "host_thread_cpu": {
+                "count": 6,
+                "p50_ms": 0.189,
+                "p95_ms": 0.209,
+                "max_ms": 0.209,
+                "total_ms": 1.0799999999999998
+              }
+            },
+            "gui.reader_prepare": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 41.819,
+                "p95_ms": 41.819,
+                "max_ms": 41.819,
+                "total_ms": 41.819
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 1.408,
+                "p95_ms": 1.408,
+                "max_ms": 1.408,
+                "total_ms": 1.408
+              }
+            },
+            "atlas.resources.select": {
+              "wall": {
+                "count": 25,
+                "p50_ms": 9.286,
+                "p95_ms": 10.1,
+                "max_ms": 10.909,
+                "total_ms": 234.988
+              },
+              "host_thread_cpu": {
+                "count": 25,
+                "p50_ms": 9.244,
+                "p95_ms": 9.966,
+                "max_ms": 10.484,
+                "total_ms": 233.10800000000003
+              }
+            },
+            "atlas.resources.validate": {
+              "wall": {
+                "count": 38,
+                "p50_ms": 20.243,
+                "p95_ms": 21.562,
+                "max_ms": 21.767,
+                "total_ms": 771.5840000000002
+              },
+              "host_thread_cpu": {
+                "count": 38,
+                "p50_ms": 20.158,
+                "p95_ms": 21.503,
+                "max_ms": 21.655,
+                "total_ms": 767.975
+              }
+            },
+            "gui.reader_respond": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 0.112,
+                "p95_ms": 0.112,
+                "max_ms": 0.112,
+                "total_ms": 0.112
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 0.094,
+                "p95_ms": 0.094,
+                "max_ms": 0.094,
+                "total_ms": 0.094
+              }
+            },
+            "analysis.capture_sources": {
+              "wall": {
+                "count": 3,
+                "p50_ms": 41.675,
+                "p95_ms": 41.876,
+                "max_ms": 41.876,
+                "total_ms": 115.095
+              },
+              "host_thread_cpu": {
+                "count": 3,
+                "p50_ms": 1.062,
+                "p95_ms": 1.072,
+                "max_ms": 1.072,
+                "total_ms": 3.189
+              }
+            },
+            "atlas.lake_configuration.reuse": {
+              "wall": {
+                "count": 12,
+                "p50_ms": 20.602,
+                "p95_ms": 22.135,
+                "max_ms": 22.135,
+                "total_ms": 248.35899999999998
+              },
+              "host_thread_cpu": {
+                "count": 12,
+                "p50_ms": 20.524,
+                "p95_ms": 22.019,
+                "max_ms": 22.019,
+                "total_ms": 247.49
+              }
+            },
+            "atlas.lake_configuration.resolve": {
+              "wall": {
+                "count": 12,
+                "p50_ms": 51.941,
+                "p95_ms": 53.159,
+                "max_ms": 53.159,
+                "total_ms": 621.0980000000001
+              },
+              "host_thread_cpu": {
+                "count": 12,
+                "p50_ms": 51.556,
+                "p95_ms": 52.836,
+                "max_ms": 52.836,
+                "total_ms": 616.022
+              }
+            },
+            "analysis.discover_layout": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 1646.787,
+                "p95_ms": 1646.787,
+                "max_ms": 1646.787,
+                "total_ms": 1646.787
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 635.465,
+                "p95_ms": 635.465,
+                "max_ms": 635.465,
+                "total_ms": 635.465
+              }
+            },
+            "analysis.select_roots": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 1730.497,
+                "p95_ms": 1730.497,
+                "max_ms": 1730.497,
+                "total_ms": 1730.497
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 637.739,
+                "p95_ms": 637.739,
+                "max_ms": 637.739,
+                "total_ms": 637.739
+              }
+            },
+            "analysis.metadata.directory_batch": {
+              "wall": {
+                "count": 12,
+                "p50_ms": 41.434,
+                "p95_ms": 51.444,
+                "max_ms": 51.444,
+                "total_ms": 498.00700000000006
+              },
+              "host_thread_cpu": {
+                "count": 12,
+                "p50_ms": 0.87,
+                "p95_ms": 1.877,
+                "max_ms": 1.877,
+                "total_ms": 11.387000000000002
+              }
+            },
+            "analysis.metadata.file_batch": {
+              "wall": {
+                "count": 2,
+                "p50_ms": 42.075,
+                "p95_ms": 42.075,
+                "max_ms": 42.075,
+                "total_ms": 83.988
+              },
+              "host_thread_cpu": {
+                "count": 2,
+                "p50_ms": 1.476,
+                "p95_ms": 1.476,
+                "max_ms": 1.476,
+                "total_ms": 2.838
+              }
+            },
+            "analysis.metadata.validate": {
+              "wall": {
+                "count": 2,
+                "p50_ms": 300.867,
+                "p95_ms": 300.867,
+                "max_ms": 300.867,
+                "total_ms": 584.193
+              },
+              "host_thread_cpu": {
+                "count": 2,
+                "p50_ms": 9.166,
+                "p95_ms": 9.166,
+                "max_ms": 9.166,
+                "total_ms": 16.405
+              }
+            },
+            "sandbox.public_tools": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 55.157,
+                "p95_ms": 55.157,
+                "max_ms": 55.157,
+                "total_ms": 55.157
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 3.686,
+                "p95_ms": 3.686,
+                "max_ms": 3.686,
+                "total_ms": 3.686
+              }
+            },
+            "sandbox.libraries": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 63.962,
+                "p95_ms": 63.962,
+                "max_ms": 63.962,
+                "total_ms": 63.962
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 4.279,
+                "p95_ms": 4.279,
+                "max_ms": 4.279,
+                "total_ms": 4.279
+              }
+            },
+            "sandbox.nix_closure": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 41.773,
+                "p95_ms": 41.773,
+                "max_ms": 41.773,
+                "total_ms": 41.773
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 0.896,
+                "p95_ms": 0.896,
+                "max_ms": 0.896,
+                "total_ms": 0.896
+              }
+            },
+            "sandbox.prepare": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 650.617,
+                "p95_ms": 650.617,
+                "max_ms": 650.617,
+                "total_ms": 650.617
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 35.143,
+                "p95_ms": 35.143,
+                "max_ms": 35.143,
+                "total_ms": 35.143
+              }
+            },
+            "view.preparation_log.materialize": {
+              "wall": {
+                "count": 14,
+                "p50_ms": 0.255,
+                "p95_ms": 0.394,
+                "max_ms": 0.394,
+                "total_ms": 3.482
+              },
+              "host_thread_cpu": {
+                "count": 14,
+                "p50_ms": 0.248,
+                "p95_ms": 0.392,
+                "max_ms": 0.392,
+                "total_ms": 3.44
+              }
+            },
+            "gui.preparation_log_respond": {
+              "wall": {
+                "count": 13,
+                "p50_ms": 0.111,
+                "p95_ms": 0.229,
+                "max_ms": 0.229,
+                "total_ms": 1.5330000000000001
+              },
+              "host_thread_cpu": {
+                "count": 13,
+                "p50_ms": 0.092,
+                "p95_ms": 0.184,
+                "max_ms": 0.184,
+                "total_ms": 1.2469999999999999
+              }
+            },
+            "atlas.project.prepare": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 17033.252,
+                "p95_ms": 17033.252,
+                "max_ms": 17033.252,
+                "total_ms": 17033.252
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 107.018,
+                "p95_ms": 107.018,
+                "max_ms": 107.018,
+                "total_ms": 107.018
+              }
+            },
+            "analysis.cache.validate": {
+              "wall": {
+                "count": 2,
+                "p50_ms": 367.49,
+                "p95_ms": 367.49,
+                "max_ms": 367.49,
+                "total_ms": 367.572
+              },
+              "host_thread_cpu": {
+                "count": 2,
+                "p50_ms": 42.566,
+                "p95_ms": 42.566,
+                "max_ms": 42.566,
+                "total_ms": 42.647000000000006
+              }
+            },
+            "analysis.cache.retain_observation": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 8.895,
+                "p95_ms": 8.895,
+                "max_ms": 8.895,
+                "total_ms": 8.895
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 8.86,
+                "p95_ms": 8.86,
+                "max_ms": 8.86,
+                "total_ms": 8.86
+              }
+            },
+            "analysis.search": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 64.347,
+                "p95_ms": 64.347,
+                "max_ms": 64.347,
+                "total_ms": 64.347
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 63.083,
+                "p95_ms": 63.083,
+                "max_ms": 63.083,
+                "total_ms": 63.083
+              }
+            },
+            "analysis.cache.load_rendering": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 0.952,
+                "p95_ms": 0.952,
+                "max_ms": 0.952,
+                "total_ms": 0.952
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 0.946,
+                "p95_ms": 0.946,
+                "max_ms": 0.946,
+                "total_ms": 0.946
+              }
+            },
+            "analysis.extract": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 19780.786,
+                "p95_ms": 19780.786,
+                "max_ms": 19780.786,
+                "total_ms": 19780.786
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 1159.825,
+                "p95_ms": 1159.825,
+                "max_ms": 1159.825,
+                "total_ms": 1159.825
+              }
+            },
+            "analysis.materialize_view": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 2.13,
+                "p95_ms": 2.13,
+                "max_ms": 2.13,
+                "total_ms": 2.13
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 2.121,
+                "p95_ms": 2.121,
+                "max_ms": 2.121,
+                "total_ms": 2.121
+              }
+            },
+            "gui.source_respond": {
+              "wall": {
+                "count": 2,
+                "p50_ms": 0.199,
+                "p95_ms": 0.199,
+                "max_ms": 0.199,
+                "total_ms": 0.322
+              },
+              "host_thread_cpu": {
+                "count": 2,
+                "p50_ms": 0.172,
+                "p95_ms": 0.172,
+                "max_ms": 0.172,
+                "total_ms": 0.27899999999999997
+              }
+            },
+            "view.inventory.materialize": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 1169.663,
+                "p95_ms": 1169.663,
+                "max_ms": 1169.663,
+                "total_ms": 1169.663
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 1164.521,
+                "p95_ms": 1164.521,
+                "max_ms": 1164.521,
+                "total_ms": 1164.521
+              }
+            }
+          }
+        },
+        "methodology": "Real GUI pointer/wheel/click events with CDP dispatch spans and sampled CPU profiles. Input-to-two-rAF is a presentation proxy, not measured physical presentation or INP. Nested trace spans overlap and must not be summed as exclusive CPU time. Profiling and automation add overhead; one controlled desktop run is not a field percentile.",
+        "preparation_log": {
+          "revision": "sha256:659cc045d28c9cc38931146f84935c7416c7a0b2d4a8173b606c01cca84446f9",
+          "text_bytes": 8163,
+          "truncated": false,
+          "build_resolution_seconds": [
+            11.87
+          ],
+          "validated_inputs": [
+            {
+              "files": 43477,
+              "bytes": 5992114707,
+              "seconds": 4.421
+            }
+          ]
+        }
+      },
+      {
+        "project": "ethlib",
+        "directory": "target/native-profile/evidence-publications-20261124/ethlib-events",
+        "environment": {
+          "browser": "149.0.7827.53",
+          "viewport": "1440x960",
+          "throttling": "none",
+          "reduced_motion": "no-preference",
+          "gesture_tail_ms": 600,
+          "file": "EthLib/Networking/Gossip/Parameters.lean",
+          "declarations": 42,
+          "project_files": 2517,
+          "setup_preparation_ms": 2349.686183,
+          "setup_cache_hit": true,
+          "source_map_directory": "/home/gohan/workspace/meden/target/gui-runtime/6a553368adc63550cb0a8ecbd11725fa9e70a5c23c5b06e57bebe2474d7b8206-71aa3761a29af828/assets",
+          "source_maps_sha256": {}
+        },
+        "events": {
+          "project-map-wheel": {
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 2.364,
+              "p95_ms": 6.79,
+              "max_ms": 7.437,
+              "total_ms": 63.638
+            },
+            "input_two_raf": {
+              "count": 24,
+              "p50_ms": 16.799999952316284,
+              "p95_ms": 17.600000023841858,
+              "max_ms": 24.5,
+              "total_ms": 399.89999985694885
+            },
+            "camera": {
+              "before": null,
+              "after": null
+            },
+            "requests": [
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              }
+            ]
+          },
+          "graph-wheel": {
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 0.564,
+              "p95_ms": 1.152,
+              "max_ms": 2.208,
+              "total_ms": 15.382999999999997
+            },
+            "input_two_raf": {
+              "count": 24,
+              "p50_ms": 16.399999976158142,
+              "p95_ms": 17.099999964237213,
+              "max_ms": 18.399999976158142,
+              "total_ms": 381.69999980926514
+            },
+            "camera": {
+              "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+              "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+            },
+            "requests": [
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              }
+            ]
+          },
+          "graph-hover": {
+            "dispatch": {
+              "count": 40,
+              "p50_ms": 0.044,
+              "p95_ms": 0.106,
+              "max_ms": 0.115,
+              "total_ms": 2.149000000000001
+            },
+            "input_two_raf": {
+              "count": 40,
+              "p50_ms": 17.19999998807907,
+              "p95_ms": 25.80000001192093,
+              "max_ms": 28.80000001192093,
+              "total_ms": 722.9999996423721
+            },
+            "camera": {
+              "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+              "after": "transform: translate(205.474px, 179.157px) scale(0.127986);"
+            },
+            "requests": [
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              }
+            ]
+          },
+          "graph-pan": {
+            "dispatch": {
+              "count": 31,
+              "p50_ms": 0.218,
+              "p95_ms": 0.578,
+              "max_ms": 2.431,
+              "total_ms": 9.738
+            },
+            "input_two_raf": {
+              "count": 31,
+              "p50_ms": 18.5,
+              "p95_ms": 21.899999976158142,
+              "max_ms": 24.5,
+              "total_ms": 580.7000000476837
+            },
+            "camera": {
+              "before": "transform: translate(205.474px, 179.157px) scale(0.127986);",
+              "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+            },
+            "requests": [
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              }
+            ]
+          },
+          "graph-resize": {
+            "dispatch": {
+              "count": 4,
+              "p50_ms": 1.022,
+              "p95_ms": 1.232,
+              "max_ms": 1.232,
+              "total_ms": 3.9050000000000002
+            },
+            "input_two_raf": {
+              "count": 4,
+              "p50_ms": 17,
+              "p95_ms": 23.200000047683716,
+              "max_ms": 23.200000047683716,
+              "total_ms": 69
+            },
+            "camera": {
+              "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+              "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+            },
+            "requests": [
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              }
+            ]
+          },
+          "tab-switch": {
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 7.494,
+              "p95_ms": 13.588,
+              "max_ms": 15.488,
+              "total_ms": 202.35999999999999
+            },
+            "input_two_raf": {
+              "count": 24,
+              "p50_ms": 27.899999976158142,
+              "p95_ms": 37.40000003576279,
+              "max_ms": 38.69999998807907,
+              "total_ms": 680.4000000357628
+            },
+            "camera": {
+              "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+              "after": "transform: translate(105.474px, 229.157px) scale(0.127986);"
+            },
+            "requests": [
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              }
+            ]
+          },
+          "graph-fit-view": {
+            "dispatch": {
+              "count": 1,
+              "p50_ms": 0.715,
+              "p95_ms": 0.715,
+              "max_ms": 0.715,
+              "total_ms": 0.715
+            },
+            "input_two_raf": {
+              "count": 1,
+              "p50_ms": 26.80000001192093,
+              "p95_ms": 26.80000001192093,
+              "max_ms": 26.80000001192093,
+              "total_ms": 26.80000001192093
+            },
+            "camera": {
+              "before": "transform: translate(105.474px, 229.157px) scale(0.127986);",
+              "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+            },
+            "requests": [
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              }
+            ]
+          },
+          "graph-node-select-distinct": {
+            "dispatch": {
+              "count": 8,
+              "p50_ms": 10.448,
+              "p95_ms": 12.584,
+              "max_ms": 12.584,
+              "total_ms": 51.861000000000004
+            },
+            "input_two_raf": {
+              "count": 8,
+              "p50_ms": 14.399999976158142,
+              "p95_ms": 18.900000035762787,
+              "max_ms": 18.900000035762787,
+              "total_ms": 95.19999998807907
+            },
+            "camera": {
+              "before": "transform: translate(205.462px, 192.235px) scale(0.19198);",
+              "after": "transform: translate(205.462px, 192.235px) scale(0.19198);"
+            },
+            "requests": [
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              },
+              {
+                "path": "/api/state",
+                "method": "GET"
+              }
+            ]
+          }
+        },
+        "native_stages": {
+          "available": true,
+          "evicted_during_capture": 0,
+          "stages": {
+            "gui.serialize_respond": {
+              "wall": {
+                "count": 104,
+                "p50_ms": 0.357,
+                "p95_ms": 0.826,
+                "max_ms": 2.786,
+                "total_ms": 45.26399999999998
+              },
+              "host_thread_cpu": {
+                "count": 104,
+                "p50_ms": 0.322,
+                "p95_ms": 0.722,
+                "max_ms": 2.737,
+                "total_ms": 39.711
+              }
+            },
+            "gui.state": {
+              "wall": {
+                "count": 99,
+                "p50_ms": 0.64,
+                "p95_ms": 1.396,
+                "max_ms": 2.041,
+                "total_ms": 74.07199999999999
+              },
+              "host_thread_cpu": {
+                "count": 99,
+                "p50_ms": 0.605,
+                "p95_ms": 1.267,
+                "max_ms": 1.412,
+                "total_ms": 67.957
+              }
+            },
+            "process.run": {
+              "wall": {
+                "count": 24,
+                "p50_ms": 51.133,
+                "p95_ms": 61.747,
+                "max_ms": 81.821,
+                "total_ms": 1277.3809999999999
+              },
+              "host_thread_cpu": {
+                "count": 24,
+                "p50_ms": 0.521,
+                "p95_ms": 0.775,
+                "max_ms": 0.799,
+                "total_ms": 12.963000000000001
+              }
+            },
+            "view.directory.observe": {
+              "wall": {
+                "count": 4,
+                "p50_ms": 62.267,
+                "p95_ms": 82.748,
+                "max_ms": 82.748,
+                "total_ms": 259.291
+              },
+              "host_thread_cpu": {
+                "count": 4,
+                "p50_ms": 1.523,
+                "p95_ms": 1.703,
+                "max_ms": 1.703,
+                "total_ms": 6.184
+              }
+            },
+            "view.evidence.materialize": {
+              "wall": {
+                "count": 5,
+                "p50_ms": 0.028,
+                "p95_ms": 0.042,
+                "max_ms": 0.042,
+                "total_ms": 0.127
+              },
+              "host_thread_cpu": {
+                "count": 5,
+                "p50_ms": 0.027,
+                "p95_ms": 0.033,
+                "max_ms": 0.033,
+                "total_ms": 0.116
+              }
+            },
+            "gui.job": {
+              "wall": {
+                "count": 5,
+                "p50_ms": 62.392,
+                "p95_ms": 1827.072,
+                "max_ms": 1827.072,
+                "total_ms": 2086.7889999999998
+              },
+              "host_thread_cpu": {
+                "count": 5,
+                "p50_ms": 1.644,
+                "p95_ms": 804.73,
+                "max_ms": 804.73,
+                "total_ms": 811.328
+              }
+            },
+            "gui.inventory_respond": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 463.016,
+                "p95_ms": 463.016,
+                "max_ms": 463.016,
+                "total_ms": 463.016
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 15.716,
+                "p95_ms": 15.716,
+                "max_ms": 15.716,
+                "total_ms": 15.716
+              }
+            },
+            "gui.directory_respond": {
+              "wall": {
+                "count": 4,
+                "p50_ms": 0.139,
+                "p95_ms": 0.14,
+                "max_ms": 0.14,
+                "total_ms": 0.496
+              },
+              "host_thread_cpu": {
+                "count": 4,
+                "p50_ms": 0.106,
+                "p95_ms": 0.118,
+                "max_ms": 0.118,
+                "total_ms": 0.40199999999999997
+              }
+            },
+            "gui.enqueue": {
+              "wall": {
+                "count": 4,
+                "p50_ms": 0.003,
+                "p95_ms": 0.004,
+                "max_ms": 0.004,
+                "total_ms": 0.011
+              },
+              "host_thread_cpu": {
+                "count": 4,
+                "p50_ms": 0.002,
+                "p95_ms": 0.003,
+                "max_ms": 0.003,
+                "total_ms": 0.008
+              }
+            },
+            "job.queue": {
+              "wall": {
+                "count": 4,
+                "p50_ms": 0.031,
+                "p95_ms": 0.061,
+                "max_ms": 0.061,
+                "total_ms": 0.14300000000000002
+              },
+              "host_thread_cpu": {
+                "count": 0,
+                "p50_ms": 0,
+                "p95_ms": 0,
+                "max_ms": 0,
+                "total_ms": 0
+              }
+            },
+            "gui.command": {
+              "wall": {
+                "count": 4,
+                "p50_ms": 0.314,
+                "p95_ms": 0.358,
+                "max_ms": 0.358,
+                "total_ms": 1.1880000000000002
+              },
+              "host_thread_cpu": {
+                "count": 4,
+                "p50_ms": 0.272,
+                "p95_ms": 0.311,
+                "max_ms": 0.311,
+                "total_ms": 1.031
+              }
+            },
+            "gui.reader_prepare": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 51.825,
+                "p95_ms": 51.825,
+                "max_ms": 51.825,
+                "total_ms": 51.825
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 1.377,
+                "p95_ms": 1.377,
+                "max_ms": 1.377,
+                "total_ms": 1.377
+              }
+            },
+            "atlas.resources.select": {
+              "wall": {
+                "count": 18,
+                "p50_ms": 11.495,
+                "p95_ms": 16.469,
+                "max_ms": 16.469,
+                "total_ms": 215.65200000000002
+              },
+              "host_thread_cpu": {
+                "count": 18,
+                "p50_ms": 11.432,
+                "p95_ms": 16.279,
+                "max_ms": 16.279,
+                "total_ms": 213.713
+              }
+            },
+            "atlas.resources.validate": {
+              "wall": {
+                "count": 18,
+                "p50_ms": 23.399,
+                "p95_ms": 27.792,
+                "max_ms": 27.792,
+                "total_ms": 425.24700000000007
+              },
+              "host_thread_cpu": {
+                "count": 18,
+                "p50_ms": 23.123,
+                "p95_ms": 27.592,
+                "max_ms": 27.592,
+                "total_ms": 421.6359999999999
+              }
+            },
+            "gui.reader_respond": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 0.091,
+                "p95_ms": 0.091,
+                "max_ms": 0.091,
+                "total_ms": 0.091
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 0.076,
+                "p95_ms": 0.076,
+                "max_ms": 0.076,
+                "total_ms": 0.076
+              }
+            },
+            "analysis.metadata.directory_batch": {
+              "wall": {
+                "count": 14,
+                "p50_ms": 52.183,
+                "p95_ms": 62.618,
+                "max_ms": 62.618,
+                "total_ms": 728.572
+              },
+              "host_thread_cpu": {
+                "count": 14,
+                "p50_ms": 1.453,
+                "p95_ms": 1.772,
+                "max_ms": 1.772,
+                "total_ms": 19.923
+              }
+            },
+            "analysis.metadata.file_batch": {
+              "wall": {
+                "count": 2,
+                "p50_ms": 67.818,
+                "p95_ms": 67.818,
+                "max_ms": 67.818,
+                "total_ms": 134.165
+              },
+              "host_thread_cpu": {
+                "count": 2,
+                "p50_ms": 7.275,
+                "p95_ms": 7.275,
+                "max_ms": 7.275,
+                "total_ms": 12.794
+              }
+            },
+            "analysis.metadata.validate": {
+              "wall": {
+                "count": 2,
+                "p50_ms": 435.715,
+                "p95_ms": 435.715,
+                "max_ms": 435.715,
+                "total_ms": 867.8019999999999
+              },
+              "host_thread_cpu": {
+                "count": 2,
+                "p50_ms": 20.608,
+                "p95_ms": 20.608,
+                "max_ms": 20.608,
+                "total_ms": 37.730000000000004
+              }
+            },
+            "analysis.capture_sources": {
+              "wall": {
+                "count": 2,
+                "p50_ms": 51.534,
+                "p95_ms": 51.534,
+                "max_ms": 51.534,
+                "total_ms": 93.13499999999999
+              },
+              "host_thread_cpu": {
+                "count": 2,
+                "p50_ms": 1.133,
+                "p95_ms": 1.133,
+                "max_ms": 1.133,
+                "total_ms": 2.232
+              }
+            },
+            "analysis.cache.validate": {
+              "wall": {
+                "count": 2,
+                "p50_ms": 524.638,
+                "p95_ms": 524.638,
+                "max_ms": 524.638,
+                "total_ms": 1047.584
+              },
+              "host_thread_cpu": {
+                "count": 2,
+                "p50_ms": 66.813,
+                "p95_ms": 66.813,
+                "max_ms": 66.813,
+                "total_ms": 125.886
+              }
+            },
+            "analysis.cache.retain_observation": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 12.292,
+                "p95_ms": 12.292,
+                "max_ms": 12.292,
+                "total_ms": 12.292
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 12.228,
+                "p95_ms": 12.228,
+                "max_ms": 12.228,
+                "total_ms": 12.228
+              }
+            },
+            "analysis.search": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 78.016,
+                "p95_ms": 78.016,
+                "max_ms": 78.016,
+                "total_ms": 78.016
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 77.543,
+                "p95_ms": 77.543,
+                "max_ms": 77.543,
+                "total_ms": 77.543
+              }
+            },
+            "view.preparation_log.materialize": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 0.032,
+                "p95_ms": 0.032,
+                "max_ms": 0.032,
+                "total_ms": 0.032
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 0.031,
+                "p95_ms": 0.031,
+                "max_ms": 0.031,
+                "total_ms": 0.031
+              }
+            },
+            "analysis.cache.load_rendering": {
+              "wall": {
+                "count": 2,
+                "p50_ms": 2.872,
+                "p95_ms": 2.872,
+                "max_ms": 2.872,
+                "total_ms": 5.311
+              },
+              "host_thread_cpu": {
+                "count": 2,
+                "p50_ms": 2.856,
+                "p95_ms": 2.856,
+                "max_ms": 2.856,
+                "total_ms": 5.289
+              }
+            },
+            "analysis.extract": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 984.653,
+                "p95_ms": 984.653,
+                "max_ms": 984.653,
+                "total_ms": 984.653
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 512.958,
+                "p95_ms": 512.958,
+                "max_ms": 512.958,
+                "total_ms": 512.958
+              }
+            },
+            "analysis.materialize_view": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 4.879,
+                "p95_ms": 4.879,
+                "max_ms": 4.879,
+                "total_ms": 4.879
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 4.851,
+                "p95_ms": 4.851,
+                "max_ms": 4.851,
+                "total_ms": 4.851
+              }
+            },
+            "gui.source_respond": {
+              "wall": {
+                "count": 2,
+                "p50_ms": 0.218,
+                "p95_ms": 0.218,
+                "max_ms": 0.218,
+                "total_ms": 0.405
+              },
+              "host_thread_cpu": {
+                "count": 2,
+                "p50_ms": 0.184,
+                "p95_ms": 0.184,
+                "max_ms": 0.184,
+                "total_ms": 0.351
+              }
+            },
+            "gui.preparation_log_respond": {
+              "wall": {
+                "count": 1,
+                "p50_ms": 0.062,
+                "p95_ms": 0.062,
+                "max_ms": 0.062,
+                "total_ms": 0.062
+              },
+              "host_thread_cpu": {
+                "count": 1,
+                "p50_ms": 0.05,
+                "p95_ms": 0.05,
+                "max_ms": 0.05,
+                "total_ms": 0.05
+              }
+            }
+          }
+        },
+        "methodology": "Real GUI pointer/wheel/click events with CDP dispatch spans and sampled CPU profiles. Input-to-two-rAF is a presentation proxy, not measured physical presentation or INP. Nested trace spans overlap and must not be summed as exclusive CPU time. Profiling and automation add overhead; one controlled desktop run is not a field percentile.",
+        "preparation_log": {
+          "revision": "sha256:af9cff7a89c296e36b15a7027aacb54f74d931e36891e8499139bdb8432d3878",
+          "text_bytes": 26,
+          "truncated": false,
+          "build_resolution_seconds": [],
+          "validated_inputs": []
+        }
+      }
+    ],
+    "scope": "One normal-motion CDP capture per actual project, installed dependencies and confirmed prepared cache. Browser profiling/automation adds overhead. No current project contract exists in either project; fixture review-size savings are not a measured real-project large-contract speedup. Source/graph, reader, inventory, candidate state and conversation identities are checked against the private before-deployment capture."
+  },
+  "checks": {
+    "rust_workspace_all_features": 314,
+    "typescript": 40,
+    "clippy": "pass all targets/all features, warnings denied",
+    "architecture": {
+      "passed": 23,
+      "owned_typescript_sources": 36
+    },
+    "generated": {
+      "files": 52,
+      "reproducible": true
+    },
+    "typecheck": "pass",
+    "rustdoc": "pass all features/no dependencies, warnings denied",
+    "format": "Rustfmt, Prettier and git diff --check pass",
+    "tui": {
+      "required": 34,
+      "passed": 34,
+      "skipped": 0,
+      "path": "/tmp/meden-ux-evidence-v1-20261124",
+      "screens_inspected": [
+        "Original finite counterexample and repair outcome",
+        "Source edit invalidates evidence",
+        "Restart requires fresh processor review",
+        "Historical candidate observations remain distinct from proof"
+      ]
+    },
+    "gates": [
+      {
+        "phase": "gui-all",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "budget-normal",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "budget-reduced",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "service": "meden-evidence-v2-validation.service: active/exited, MainPID 0, ExecMainStatus 0",
+    "gui": [
+      {
+        "report": "target/gui-evidence-v2-all-report",
+        "stats": {
+          "total": 66,
+          "expected": 66,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "errors": [],
+        "attachments": [
+          {
+            "name": "navigation-performance",
+            "data": {
+              "browser": "149.0.7827.53",
+              "motion": "reduce",
+              "cold_analysis_store_preparation_ms": 41165.138595000004,
+              "warm_tab_two_raf_ms": [
+                26.19999998807907,
+                37.69999998807907,
+                32.5,
+                31.400000035762787,
+                29.399999976158142,
+                27.200000047683716,
+                24.900000035762787,
+                27.19999998807907,
+                27.400000035762787,
+                26.5
+              ],
+              "p95_ms": 37.69999998807907,
+              "maximum_p95_ms": 250,
+              "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+            }
+          },
+          {
+            "name": "source-before-analysis.json",
+            "data": {
+              "source_visible_ms": 784.3430130000015,
+              "budget_ms": 5000,
+              "methodology": "Real offline reader and a deliberately held installed Lean compiler; no complete semantic snapshot is available yet."
+            }
+          },
+          {
+            "name": "paging-during-compilation.json",
+            "data": {
+              "page_to_two_raf_ms": [
+                26.5,
+                42.80000001192093,
+                32,
+                38
+              ],
+              "commands": [],
+              "body_reads": [],
+              "scope": "Actual held Lean compiler; DOM page and two animation callbacks, not physical presentation."
+            }
+          }
+        ]
+      },
+      {
+        "report": "target/gui-evidence-v2-budget-normal-report",
+        "stats": {
+          "total": 2,
+          "expected": 2,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "errors": [],
+        "attachments": [
+          {
+            "name": "navigation-performance",
+            "data": {
+              "browser": "149.0.7827.53",
+              "motion": "no-preference",
+              "cold_analysis_store_preparation_ms": 31997.462517,
+              "warm_tab_two_raf_ms": [
+                22.200000047683716,
+                26.100000023841858,
+                29.5,
+                22.5,
+                24.69999998807907,
+                25.19999998807907,
+                23.099999964237213,
+                28.600000023841858,
+                26,
+                24.100000023841858
+              ],
+              "p95_ms": 29.5,
+              "maximum_p95_ms": 250,
+              "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+            }
+          },
+          {
+            "name": "source-before-analysis.json",
+            "data": {
+              "source_visible_ms": 1178.459597000001,
+              "budget_ms": 5000,
+              "methodology": "Real offline reader and a deliberately held installed Lean compiler; no complete semantic snapshot is available yet."
+            }
+          },
+          {
+            "name": "paging-during-compilation.json",
+            "data": {
+              "page_to_two_raf_ms": [
+                27.5,
+                26.399999976158142,
+                28.599999964237213,
+                29.399999976158142
+              ],
+              "commands": [],
+              "body_reads": [],
+              "scope": "Actual held Lean compiler; DOM page and two animation callbacks, not physical presentation."
+            }
+          }
+        ]
+      },
+      {
+        "report": "target/gui-evidence-v2-budget-reduced-report",
+        "stats": {
+          "total": 2,
+          "expected": 2,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "errors": [],
+        "attachments": [
+          {
+            "name": "navigation-performance",
+            "data": {
+              "browser": "149.0.7827.53",
+              "motion": "reduce",
+              "cold_analysis_store_preparation_ms": 32806.413604,
+              "warm_tab_two_raf_ms": [
+                30.69999998807907,
+                21,
+                25.600000023841858,
+                26,
+                30.5,
+                29.69999998807907,
+                27,
+                32.89999997615814,
+                22.69999998807907,
+                26
+              ],
+              "p95_ms": 32.89999997615814,
+              "maximum_p95_ms": 250,
+              "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+            }
+          },
+          {
+            "name": "source-before-analysis.json",
+            "data": {
+              "source_visible_ms": 423.07737500000076,
+              "budget_ms": 5000,
+              "methodology": "Real offline reader and a deliberately held installed Lean compiler; no complete semantic snapshot is available yet."
+            }
+          },
+          {
+            "name": "paging-during-compilation.json",
+            "data": {
+              "page_to_two_raf_ms": [
+                30.299999952316284,
+                27,
+                28.599999964237213,
+                34
+              ],
+              "commands": [],
+              "body_reads": [],
+              "scope": "Actual held Lean compiler; DOM page and two animation callbacks, not physical presentation."
+            }
+          }
+        ]
+      }
+    ],
+    "logs_sha256": {
+      "/tmp/meden-evidence-rust-all-2.log": "29d0dce531d620da7fc27fa972db85b187668d3d0e9d925e3cd51e45bb88baa3",
+      "/tmp/meden-evidence-clippy-4.log": "0aada1b49131b73a2255810e635b046dc0989e25b0ed01ad1bf2e6231d3e9438",
+      "/tmp/meden-evidence-rustdoc.log": "061dc10c58f1caf8939c08c9364b6fcc42d764553aeb394483be1d6b073fd026",
+      "/tmp/meden-evidence-ts-unit-2.log": "3de292d722913c083c0eababe6668b41bfad6d4b469790500ed1efe412bb0c19",
+      "/tmp/meden-evidence-architecture.log": "89abca198c5058db6773c413a1c43fee7daf96e2f58817fc1d2a5f698947b9d7",
+      "/tmp/meden-evidence-schema-final.log": "734d89596387b1f55d1fb6ae3f61a01814ee19fc96332b8305203f8a563e9f5e",
+      "/tmp/meden-evidence-format-final.log": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c",
+      "/tmp/meden-evidence-v1-tui.log": "bd8825350609ca6b080edf6a523e8ba28745d57a95f42db78b10a984d47156e0",
+      "/tmp/meden-evidence-v2-gui-all.log": "09cf17c4565dae46fc5e3ab67d6e5513fd5d646f9e26cb240a94417ea0cb0db8",
+      "/tmp/meden-evidence-v2-budget-normal.log": "900b9b1f739e091df4f24812cf368ba9b0728d9de07dd7309fb95fa69d594bd7",
+      "/tmp/meden-evidence-v2-budget-reduced.log": "b389a6d02c11102103157bc2ae2779bb227b20860a37823c7bb8b67ec1370a9f",
+      "/tmp/meden-evidence-format-last.log": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+    }
+  },
+  "attempts": [
+    {
+      "scope": "First full browser gate",
+      "result": "65 passed and the portable-clone journey failed at an obsolete inline project.verified assertion. Migrated it to the actual exact evidence publication (empty means no accepted/current native contract). Re-ran the complete functional gate with four workers; numerical gates remain serialized. Public TUI evidence is retained from its successful run of the identical pinned binary."
+    },
+    {
+      "scope": "Initial full Rust invocation",
+      "result": "54 runtime tests passed and one namespace fixture failed before execution because public Bubblewrap was absent from the launching PATH. Re-ran the full unchanged suite with the canonical installed Bubblewrap path; 314 passed, no skips."
+    },
+    {
+      "scope": "New test implementation",
+      "result": "Fixed a temporary-value lifetime, strict test lint diagnostics and a reused mock Response before the final checks. The initial targeted real-Z3 browser run passed; final gates use the subsequently pinned binary and direct, unrouted timing probes."
+    }
+  ],
+  "limitations": [
+    "No new live-model quality, local inference, confidentiality or cold-install validation.",
+    "DOM/two-animation-callback measurements are scheduling proxies, not physical presentation or field INP.",
+    "Current event captures include browser CDP CPU sampling; no new Linux perf recording is claimed. Source maps are unavailable for the pinned capture; compiled-bundle attribution is not source-function attribution.",
+    "Full compiled-input byte validation remains; revisioned read queries do not remove host freshness checks.",
+    "General verification-job read models, the remaining native wire generation, deterministic versioned layout/order and retirement work remain open."
+  ],
+  "artifacts": [
+    {
+      "path": "target/gui-evidence-v2-all-report/index.html",
+      "bytes": 785742,
+      "sha256": "65254a4fa2e54c8afa705fcadad12fcb5bf90696c1d2ab37e6881c45d9c5b3b8"
+    },
+    {
+      "path": "target/gui-evidence-v2-budget-normal-report/index.html",
+      "bytes": 543602,
+      "sha256": "5d5e55852068d095aab992097ad3d10b76d3bf15e25c0a6c02ab63c3789f614d"
+    },
+    {
+      "path": "target/gui-evidence-v2-budget-reduced-report/index.html",
+      "bytes": 543538,
+      "sha256": "fe6c2ddf04fb96944e6dfec26047c5bb8e83eb38a3f308075fd74ad62e0a2ca5"
+    },
+    {
+      "path": "target/gui-evidence-v2-all-output/native-native-GUI-with-rea-a4c95-opens-with-bounded-evidence/finite-bounded-evidence.png",
+      "bytes": 55556,
+      "sha256": "8cd92871f3de74f95691b1441f6ab2a870de3307ac00f789903339d32c106677"
+    },
+    {
+      "path": "target/native-profile/evidence-publications-20261124/riemann-events/summary.json",
+      "bytes": 494966,
+      "sha256": "2a2fa54a3096b522618dbf6dcd84761e53ada181b7356aa263f64452d4fbb7be"
+    },
+    {
+      "path": "target/native-profile/evidence-publications-20261124/riemann-events/trace.json",
+      "bytes": 12724293,
+      "sha256": "4ffeb4e845d3b6777202c10674c6eefa867959660218b9c1941c852e27e98dbe"
+    },
+    {
+      "path": "target/native-profile/evidence-publications-20261124/riemann-events/project-map.png",
+      "bytes": 80280,
+      "sha256": "e8753780a535ecdb601d4ff0dc470fc45b4f63186b9ec8d5c89ee855e3c14b25"
+    },
+    {
+      "path": "target/native-profile/evidence-publications-20261124/ethlib-events/summary.json",
+      "bytes": 332636,
+      "sha256": "1c0c4349829842a1957c5768922be5a89b15fe6627bc9e3bccaeb3aad252837e"
+    },
+    {
+      "path": "target/native-profile/evidence-publications-20261124/ethlib-events/trace.json",
+      "bytes": 11822282,
+      "sha256": "31af13f997eb945512090b2c5e89ccc1c6e45855941b3351045a1c883e1d462c"
+    },
+    {
+      "path": "target/native-profile/evidence-publications-20261124/ethlib-events/project-map.png",
+      "bytes": 124210,
+      "sha256": "3f15c359566c06b709f4b77fa01ebbbaba759471dac1908777a74faa917a1381"
+    }
+  ]
+}

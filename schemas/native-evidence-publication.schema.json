@@ -1,0 +1,328 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Envelope",
+  "description": "Shared wire framing; each data role retains its own generated schema.",
+  "type": "object",
+  "properties": {
+    "revision": {
+      "description": "Exact publication requested by the viewer.",
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "data": {
+      "description": "Original complete projection, never an authority token.",
+      "$ref": "#/$defs/Data"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "revision",
+    "data"
+  ],
+  "$defs": {
+    "Data": {
+      "description": "Impossible combinations such as current evidence without acceptance are absent.",
+      "oneOf": [
+        {
+          "description": "No contract has been proposed or accepted.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "empty"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "description": "Displayed proposal, with any separately retained original accepted meaning.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "proposed"
+            },
+            "contract": {
+              "description": "Exact selected proposal and its original contract identity.",
+              "$ref": "#/$defs/Agreement"
+            },
+            "accepted": {
+              "description": "Accepted meaning is retained until an explicit host replacement acceptance.",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Agreement"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "review": {
+              "description": "Complete original review body, including replacement context.",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "contract",
+            "accepted",
+            "review"
+          ]
+        },
+        {
+          "description": "Accepted meaning and a separately classified evidence observation.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "accepted"
+            },
+            "contract": {
+              "description": "Exact original accepted agreement.",
+              "$ref": "#/$defs/Agreement"
+            },
+            "review": {
+              "description": "Complete original review body.",
+              "type": "string"
+            },
+            "evidence": {
+              "description": "Host observation, never authority decoded from the browser.",
+              "$ref": "#/$defs/Evidence"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "contract",
+            "review",
+            "evidence"
+          ]
+        }
+      ]
+    },
+    "Agreement": {
+      "description": "Complete original reviewed data; backend syntax is opaque text to the viewer.",
+      "type": "object",
+      "properties": {
+        "reference": {
+          "$ref": "#/$defs/Reference"
+        },
+        "name": {
+          "type": "string"
+        },
+        "source_path": {
+          "type": "string"
+        },
+        "interface": {
+          "type": "string"
+        },
+        "backend": {
+          "type": "string"
+        },
+        "class": {
+          "$ref": "#/$defs/Class"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "canonical": {
+          "description": "Exact canonical contract bytes as UTF-8, bound to reference.contract.",
+          "type": "string",
+          "maxLength": 65536
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "reference",
+        "name",
+        "source_path",
+        "interface",
+        "backend",
+        "class",
+        "scope",
+        "canonical"
+      ]
+    },
+    "Reference": {
+      "description": "Lossless transport of the original selected contract identity, never authority.",
+      "type": "object",
+      "properties": {
+        "revision": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,19}$"
+        },
+        "session": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "contract": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "revision",
+        "session",
+        "contract"
+      ]
+    },
+    "Class": {
+      "description": "Evidence strength carried by the application wire format.",
+      "oneOf": [
+        {
+          "description": "Observations of named executions.",
+          "type": "string",
+          "const": "empirical"
+        },
+        {
+          "description": "Complete checking within the named finite scope.",
+          "type": "string",
+          "const": "bounded"
+        },
+        {
+          "description": "A checked theorem under named assumptions.",
+          "type": "string",
+          "const": "theorem"
+        },
+        {
+          "description": "Implementation correspondence to a specification.",
+          "type": "string",
+          "const": "refinement"
+        }
+      ]
+    },
+    "Evidence": {
+      "description": "Observation of the accepted contract's evidence, independent of graph/meaning.",
+      "oneOf": [
+        {
+          "description": "The host has not established current coverage; old outputs remain inspectable.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "unverified"
+            },
+            "retained": {
+              "description": "Original retained artifact, without a current-coverage claim.",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Binding"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "failure": {
+              "description": "Independently attributed original failure.",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Failure"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "retained",
+            "failure"
+          ]
+        },
+        {
+          "description": "A fresh host/controller observation reported complete admitted coverage.\nThis display value is not a receipt and cannot authorize delivery.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "current"
+            },
+            "completion_label": {
+              "description": "Original strength-specific completion text from the application.",
+              "type": "string"
+            },
+            "artifact": {
+              "description": "Exact retained source/output binding for this accepted agreement.",
+              "$ref": "#/$defs/Binding"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "completion_label",
+            "artifact"
+          ]
+        }
+      ]
+    },
+    "Binding": {
+      "description": "Retained checker output binding; its existence alone never establishes freshness.",
+      "type": "object",
+      "properties": {
+        "directory": {
+          "type": "string"
+        },
+        "source_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "artifact_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "directory",
+        "source_sha256",
+        "artifact_sha256"
+      ]
+    },
+    "Failure": {
+      "description": "The original host classification, never inferred from diagnostic words.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/FailureKind"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "message"
+      ]
+    },
+    "FailureKind": {
+      "description": "Host-attributed check failure, never decoded from model/result text.",
+      "oneOf": [
+        {
+          "description": "A completed check did not establish the candidate's contract. This is\nnot a theorem that the contract is false; proof automation can fail too.",
+          "type": "string",
+          "const": "unverified"
+        },
+        {
+          "description": "Prepared resources, host I/O or the checker protocol are unavailable.",
+          "type": "string",
+          "const": "unavailable"
+        },
+        {
+          "description": "Cancellation or a resource limit prevented a conclusive check.",
+          "type": "string",
+          "const": "inconclusive"
+        }
+      ]
+    }
+  }
+}

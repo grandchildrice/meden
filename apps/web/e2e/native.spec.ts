@@ -20,6 +20,7 @@ import { homedir, tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { once } from "node:events";
 import { createHash } from "node:crypto";
+import { projectEvidence, hasCurrentEvidence } from "./evidence";
 import {
   analysisCurrentSchema,
   analysisHistorySchema,
@@ -216,6 +217,27 @@ test.describe("native GUI with real offline workers", () => {
     page,
   }) => {
     test.setTimeout(60000);
+    const evidenceReads: string[] = [];
+    let failProposal = true;
+    let commands = 0;
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname === "/api/command") commands++;
+    });
+    await page.route("**/api/evidence?*", async (route) => {
+      const response = await route.fetch();
+      const body = await response.json();
+      evidenceReads.push(body.revision);
+      if (failProposal && body.data?.state === "proposed") {
+        failProposal = false;
+        await route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({
+            error: "Temporary evidence transfer failure",
+          }),
+        });
+      } else await route.fulfill({ response });
+    });
     const contract = JSON.parse(
       await readFile(
         "verification/examples/finite-counter.contract.json",
@@ -257,6 +279,22 @@ test.describe("native GUI with real offline workers", () => {
       .getByRole("textbox", { name: "Message", exact: true })
       .fill("Check every four-bit counter input; retain state on overflow.");
     await page.getByRole("button", { name: "Send", exact: true }).click();
+    const retryEvidence = page.getByRole("button", {
+      name: "Retry evidence",
+      exact: true,
+    });
+    await expect(retryEvidence).toBeVisible();
+    const beforeRetry = commands;
+    await retryEvidence.click();
+    await expect(page.locator(".chat-contract .MuiChip-label")).toHaveText(
+      "Proposal",
+    );
+    expect(commands).toBe(beforeRetry);
+    const proposed = await projectEvidence(page);
+    expect(proposed.state).toBe("proposed");
+    if (proposed.state !== "proposed")
+      throw new Error("Expected actual finite proposal");
+    expect(typeof proposed.contract.reference.revision).toBe("string");
     await page
       .getByRole("button", { name: "Review proposed contract", exact: true })
       .click();
@@ -280,6 +318,67 @@ test.describe("native GUI with real offline workers", () => {
     await expect(evidence.locator(".MuiChip-label")).toHaveText(
       "CHECKED · complete within finite bounds",
     );
+    const current = await projectEvidence(page);
+    expect(hasCurrentEvidence(current)).toBe(true);
+    const status = await page.evaluate(async () =>
+      (
+        await fetch("/api/state", {
+          headers: {
+            Authorization: `Bearer ${sessionStorage.getItem("meden-native-session")}`,
+          },
+        })
+      ).json(),
+    );
+    expect(Object.keys(status.project).sort()).toEqual(["revision", "state"]);
+    // Several real status polls do not transfer the complete review again.
+    const readCount = evidenceReads.length;
+    await page.waitForTimeout(1200);
+    expect(evidenceReads.length).toBe(readCount);
+    // Fault injection is complete; measure direct loopback reads without routing.
+    await page.unroute("**/api/evidence?*");
+    const timings = await page.evaluate(async () => {
+      const headers = {
+        Authorization: `Bearer ${sessionStorage.getItem("meden-native-session")}`,
+      };
+      const before = await (await fetch("/api/metrics", { headers })).json();
+      const state = await (await fetch("/api/state", { headers })).json();
+      const samples = [];
+      let bodyBytes = 0;
+      for (let i = 0; i < 20; i++) {
+        const start = performance.now();
+        const response = await fetch(
+          "/api/evidence?revision=" +
+            encodeURIComponent(state.project.revision),
+          { headers },
+        );
+        if (!response.ok) throw new Error("Exact evidence read failed");
+        const body = await response.arrayBuffer();
+        bodyBytes = body.byteLength;
+        samples.push(performance.now() - start);
+      }
+      const after = await (await fetch("/api/metrics", { headers })).json();
+      const materializations = (metrics: any) =>
+        metrics.records.filter(
+          (r: any) => r.name === "view.evidence.materialize",
+        ).length;
+      return {
+        samples_ms: samples,
+        body_bytes: bodyBytes,
+        status_bytes: new TextEncoder().encode(JSON.stringify(state.project))
+          .byteLength,
+        materializations_before: materializations(before),
+        materializations_after: materializations(after),
+        metrics: after,
+      };
+    });
+    expect(timings.materializations_after).toBe(
+      timings.materializations_before,
+    );
+    expect(timings.body_bytes).toBeGreaterThan(timings.status_bytes);
+    await test.info().attach("finite-evidence-timings.json", {
+      body: JSON.stringify(timings, null, 2),
+      contentType: "application/json",
+    });
     await evidence.hover();
     await page.mouse.wheel(0, -2000);
     await expect(evidence.locator(".MuiChip-label")).toBeInViewport();
@@ -296,6 +395,14 @@ test.describe("native GUI with real offline workers", () => {
     await page.goto(await start());
     await expect(page.locator(".chat-contract .MuiChip-label")).toHaveText(
       "Contract accepted",
+    );
+    const reopened = await projectEvidence(page);
+    expect(hasCurrentEvidence(reopened)).toBe(false);
+    if (current.state !== "accepted" || reopened.state !== "accepted")
+      throw new Error("Original accepted agreement must survive restart");
+    expect(reopened.contract.canonical).toBe(current.contract.canonical);
+    expect(reopened.contract.reference.contract).toBe(
+      current.contract.reference.contract,
     );
     const before = requests.length;
     await expect(
@@ -1431,7 +1538,7 @@ test.describe("native GUI with real offline workers", () => {
     ).toContainText("Candidate match", { timeout: 60000 });
     expect(requests).toHaveLength(2);
     expect((await nativeAnalysis(page))?.input.target.file).toBe("Alpha.lean");
-    expect((await nativeState(page)).project.verified).toBe(false);
+    expect(hasCurrentEvidence(await projectEvidence(page))).toBe(false);
     await graph.getByRole("button", { name: "Fit View", exact: true }).click();
     await graph.getByRole("button", { name: /later.*: select/ }).click();
     await expect(source.locator('[aria-current="location"]')).toContainText(
@@ -3500,7 +3607,7 @@ theorem slow : True := fast
     expect(first).not.toContain("ORIGINAL_COMMENT_MUST_NOT_REACH_TRANSLATOR");
     expect(first).not.toContain("ORIGINAL_SEPARATE_REQUIREMENT");
     expect(first).not.toContain("by sorry");
-    expect((await nativeState(page)).project.verified).toBe(false);
+    expect(hasCurrentEvidence(await projectEvidence(page))).toBe(false);
     await page
       .getByLabel("Meaning analysis result", { exact: true })
       .scrollIntoViewIfNeeded();
@@ -4151,7 +4258,7 @@ theorem slow : True := fast
     let state = await nativeState(page);
     let stateSource = await nativeSource(page, state);
     expect(stateSource.compiled).toBe(false);
-    expect(state.project.verified).toBe(false);
+    expect(hasCurrentEvidence(await projectEvidence(page, state))).toBe(false);
     await expect(
       readFile(resolve(project, "vendor/mathlib/lakefile.lean")),
     ).rejects.toThrow();
@@ -5489,7 +5596,7 @@ theorem slow : True := fast
       concurrent.replace("{ n }", "{ n.saturating_sub(1) }"),
     );
     const state = await nativeState(page);
-    expect(state.project.verified).toBe(false);
+    expect(hasCurrentEvidence(await projectEvidence(page, state))).toBe(false);
     const savedAnalyses = await nativeAnalysisHistory(page);
     expect(savedAnalyses).toHaveLength(3);
     expect(
@@ -5971,7 +6078,7 @@ theorem slow : True := fast
     const result = page.getByLabel("Meaning analysis result", { exact: true });
     await expect(result).toContainText("Candidate mismatch (Model assessment)");
     await expect(result).toContainText("Stock never increases");
-    expect((await nativeState(page)).project.verified).toBe(false);
+    expect(hasCurrentEvidence(await projectEvidence(page))).toBe(false);
     expect(requests).toHaveLength(2);
     expect(JSON.stringify(requests[0])).toContain("FORMAL_CONTEXT_SENTINEL");
     expect(JSON.stringify(requests[0])).not.toContain(

@@ -26,10 +26,12 @@ use sha2::{Digest, Sha256};
 use super::{sources, Record};
 use crate::semantic::{self, Input};
 
-#[derive(Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Reference {
+    #[schemars(regex(pattern = r"^repair-[a-f0-9]{64}$"))]
     pub id: String,
+    #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
     pub sha256: String,
 }
 #[derive(Clone, Serialize)]

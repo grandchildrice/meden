@@ -123,7 +123,7 @@ export function NativeApp({ token }: { token: string }) {
     reference: NativeReference;
     text: string;
   }>();
-  const [reviewing, setReviewing] = useState(false);
+  const [reviewing, setReviewing] = useState<NativeReference>();
   const [approval, setApproval] = useState(false);
   const approving = useRef(false);
   const [approvalPending, setApprovalPending] = useState(false);
@@ -281,6 +281,26 @@ export function NativeApp({ token }: { token: string }) {
   ]
     .filter(Boolean)
     .join("\n");
+  const evidenceRevision =
+    state?.project.state === "ready" ? state.project.revision : undefined;
+  const readEvidence = useCallback(
+    (revision: string, signal: AbortSignal) =>
+      observePublication(client.evidence(revision, signal)),
+    [client],
+  );
+  const evidenceReads = usePublications(
+    evidenceRevision ? [evidenceRevision] : [],
+    readEvidence,
+    state?.project,
+    reconnect,
+  );
+  const project = evidenceReads.get(evidenceRevision)?.publication?.data;
+  const evidenceError =
+    state?.project.state === "unavailable"
+      ? state.project.message
+      : evidenceReads.get(evidenceRevision)?.error;
+  const agreement =
+    project && project.state !== "empty" ? project.contract : undefined;
   const readDirectory = useCallback(
     (revision: string, signal: AbortSignal) =>
       observePublication(client.directory(revision, signal)),
@@ -394,15 +414,19 @@ export function NativeApp({ token }: { token: string }) {
   ]);
   // Freeze the reviewed body and exact identity only after the native review completed.
   useEffect(() => {
-    if (reviewing && state && !state.running) {
-      setReviewing(false);
-      if (!state.stopped)
+    if (reviewing && state && !state.running && project) {
+      setReviewing(undefined);
+      if (
+        !state.stopped &&
+        project.state !== "empty" &&
+        JSON.stringify(project.contract.reference) === JSON.stringify(reviewing)
+      )
         setReview({
-          reference: state.project.reference,
-          text: state.project.review,
+          reference: reviewing,
+          text: project.review,
         });
     }
-  }, [reviewing, state]);
+  }, [reviewing, state, project]);
   useEffect(() => {
     if (graphPaths === undefined && source) {
       setGraphPaths((source.roots ?? Object.keys(source.files)).join("\n"));
@@ -907,9 +931,9 @@ export function NativeApp({ token }: { token: string }) {
                           ? activeFile
                           : graphPaths ||
                             analysis?.input.target.file ||
-                            state.project.source_path;
+                            agreement?.source_path;
                       setGraphPaths(path);
-                      if (overview?.files.some((f) => f.path === path))
+                      if (path && overview?.files.some((f) => f.path === path))
                         openFile(
                           path,
                           state.sources.files[path] === undefined &&
@@ -1157,7 +1181,28 @@ export function NativeApp({ token }: { token: string }) {
                 {state.partial}
               </pre>
             )}
-            {(state.project.proposed || state.project.accepted) && (
+            {evidenceError && (
+              <article className="chat-contract">
+                <Alert severity="warning">
+                  Could not load verification requirements and evidence.
+                  <details>
+                    <summary>Details</summary>
+                    {evidenceError}
+                  </details>
+                  {evidenceRevision && (
+                    <Button
+                      onClick={() => evidenceReads.retry(evidenceRevision)}
+                    >
+                      Retry evidence
+                    </Button>
+                  )}
+                </Alert>
+              </article>
+            )}
+            {reviewing && !project && !evidenceError && (
+              <p role="status">Loading contract review…</p>
+            )}
+            {project && project.state !== "empty" && (
               <article className="chat-contract">
                 <Typography component="h3">
                   Verification requirements
@@ -1165,31 +1210,32 @@ export function NativeApp({ token }: { token: string }) {
                 <Chip
                   size="small"
                   label={
-                    state.project.verified
-                      ? state.project.completion_label
-                      : state.project.accepted
+                    project.state === "accepted" &&
+                    project.evidence.state === "current"
+                      ? project.evidence.completion_label
+                      : project.state === "accepted"
                         ? "Contract accepted"
                         : "Proposal"
                   }
                 />
-                <pre>{state.project.review}</pre>
+                <pre>{project.review}</pre>
                 <Button
                   disabled={running}
                   onClick={() => void command({ type: "refresh_status" })}
                 >
                   Check current evidence
                 </Button>
-                {state.project.proposed && !state.project.accepted && (
+                {project.state === "proposed" && (
                   <Button
                     disabled={running}
                     onClick={async () => {
                       if (
                         await command({
                           type: "review_contract",
-                          reference: state.project.reference,
+                          reference: project.contract.reference,
                         })
                       )
-                        setReviewing(true);
+                        setReviewing(project.contract.reference);
                     }}
                   >
                     Review proposed contract

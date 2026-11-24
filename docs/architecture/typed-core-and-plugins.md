@@ -563,8 +563,8 @@ or invalid-observation failure. Host clocks and diagnostic normalization remain
 adapters. At most 64 resources retain UTF-8 diagnostic tails of 64 KiB each; status
 contains only exact log references. Logs freeze when output changes and immutable
 queries never start work. These observation handles are not kernel job tickets or
-evidence. General analysis/verification job and evidence views still need their own
-revisioned queries.
+evidence. General analysis/verification jobs still need their own revisioned
+queries; accepted-contract evidence now has the separate projection below.
 
 Candidate meaning observations now have application-owned current/history views
 and generated validators too. Frequent status reads contain only two bounded
@@ -581,11 +581,33 @@ failure retains original records but admits no prefix or superseded body.
 These are model assessments, not proof, kernel job tickets or admitted evidence.
 The new output schemas use the serialization contract: nullable fields emitted
 by Rust remain required and nullable in the browser. Original opaque method
-diagnostics remain data and cannot register an implementation. Accepted-project
-evidence, verification-job queries and the rest of the native wire contract
-still require their own projections.
+diagnostics remain data and cannot register an implementation.
 
-This does not finish step 4: generic job/evidence DTOs, generation of
+Accepted-project meaning and evidence now have a separate application-owned
+immutable publication. Status contains only availability and its exact revision;
+`GET /api/evidence?revision=…` shares frozen bytes without checking sources,
+compiling, inferring or admitting evidence. Disjoint empty/proposed/accepted
+states separate the selected proposal, any retained accepted meaning and current
+versus unverified output observations. The projection preserves the complete
+original review, canonical contract, backend, strength/scope and source/output
+bindings. Invalid or oversized observations retain the original host summary but
+retire the old body instead of publishing a prefix. Current display data grants
+no authority: the existing controller still owns acceptance, job completion,
+freshness and delivery checks.
+
+Generated contract-reference DTOs transport original positive u64 revisions as
+canonical decimal strings. Command adapters recover the exact original number,
+session and contract identity before the existing controller checks. Repair
+presentation uses the same reference while its original queue/journal data stay
+unchanged. Generated repair DTOs replace handwritten validators; repair review
+itself remains inline pending the remaining native-wire migration. The browser
+uses the shared revision-bound query cache, retries failed transfers locally and
+freezes contract review only for its originally requested reference. The public
+finite-verifier journey covers transfer failure/retry, actual Z3 rejection and
+repair, current bounded evidence and accepted meaning after restart without
+restored coverage or model approval.
+
+This does not finish step 4: generic verification-job DTOs, generation of
 the rest of the native wire contract and remaining navigation waits still need
 work. Step 5's versioned layout/order and retirement requirements remain open too.
 Step 3 now executes the second backend through public TUI/GUI, actual offline

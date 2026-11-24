@@ -63,6 +63,16 @@ The large-history browser workload records original body sizes, the small status
 projection and history reads/commands during local retry, navigation and selection.
 These candidate observations are independent of current accepted-project evidence.
 
+`view.evidence.materialize` freezes the complete original accepted/proposed
+contract review and typed evidence observation at the host mutation boundary.
+`gui.evidence_respond` measures exact retained-byte responses separately from
+`gui.state`; polling and evidence queries cannot materialize or verify a contract.
+The finite-verifier browser journey records 20 sequential complete-body fetch
+intervals, status/body byte sizes and the native span snapshot after actual
+Z3 rejection/repair. It checks that those reads add no materializations. These
+are diagnostic loopback/browser observations under functional validation, not
+an old/new latency benchmark or exclusive-stage CPU profile.
+
 Prepared roots now use one batched Lake query for their normal build and
 source/output/compiler-setup results. The file's streamed diagnostic log separates
 build/setup/input resolution from the exact file/byte validation duration.

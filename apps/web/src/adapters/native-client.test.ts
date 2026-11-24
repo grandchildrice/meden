@@ -1,5 +1,9 @@
 import { afterEach, expect, test, vi } from "vitest";
-import { nativeStateSchema } from "@meden/agent-protocol/native";
+import {
+  evidencePublicationSchema,
+  nativeReferenceSchema,
+  nativeStateSchema,
+} from "@meden/agent-protocol/native";
 import { NativeClient, NativeHttpError } from "./native-client";
 
 const revision = "sha256:" + "a".repeat(64);
@@ -17,6 +21,93 @@ const snapshot = {
   },
 };
 afterEach(() => vi.unstubAllGlobals());
+
+test("evidence is an exact independent publication with disjoint states and lossless references", async () => {
+  const reference = {
+    revision: "18446744073709551615",
+    session: "original host",
+    contract: "b".repeat(64),
+  };
+  expect(nativeReferenceSchema.parse(reference)).toEqual(reference);
+  for (const revision of [0, 9007199254740992, "0", "01", "+1", " 1"]) {
+    expect(
+      nativeReferenceSchema.safeParse({ ...reference, revision }).success,
+    ).toBe(false);
+  }
+  const contract = {
+    reference,
+    name: "Finite counter",
+    source_path: "counter.model.json",
+    interface: "step",
+    backend: "z3.finite.v1",
+    class: "bounded",
+    scope: "256 assignments",
+    canonical: "original canonical bytes\nλ",
+  };
+  const artifact = {
+    directory: "original-output",
+    source_sha256: "c".repeat(64),
+    artifact_sha256: "d".repeat(64),
+  };
+  const bodies = [
+    { state: "empty" },
+    { state: "proposed", contract, accepted: null, review: "Original review" },
+    {
+      state: "accepted",
+      contract,
+      review: "Original review",
+      evidence: {
+        state: "unverified",
+        retained: null,
+        failure: { kind: "inconclusive", message: "Original diagnostic" },
+      },
+    },
+    {
+      state: "accepted",
+      contract,
+      review: "Original review",
+      evidence: {
+        state: "current",
+        artifact,
+        completion_label: "CHECKED · complete within finite bounds",
+      },
+    },
+  ];
+  const fetch = vi.fn();
+  vi.stubGlobal("fetch", fetch);
+  const client = new NativeClient("session");
+  for (const data of bodies) {
+    const body = { revision, data };
+    fetch.mockResolvedValue(Response.json(body));
+    expect(await client.evidence(revision)).toEqual(body);
+  }
+  expect(
+    fetch.mock.calls.every(
+      ([url]) =>
+        url === "/api/evidence?revision=" + encodeURIComponent(revision),
+    ),
+  ).toBe(true);
+  fetch.mockImplementation(() =>
+    Promise.resolve(Response.json({ revision, data: bodies[3] })),
+  );
+  await expect(client.evidence("sha256:" + "e".repeat(64))).rejects.toThrow(
+    "does not match its requested revision",
+  );
+  for (const data of [
+    { state: "empty", verified: true },
+    {
+      state: "proposed",
+      contract,
+      review: "Missing required nullable accepted",
+    },
+    { ...bodies[1], evidence: bodies[3].evidence },
+    { ...bodies[2], evidence: { state: "unverified" } },
+    { ...bodies[3], evidence: { ...bodies[3].evidence, grant: true } },
+  ])
+    expect(
+      evidencePublicationSchema.safeParse({ revision, data }).success,
+    ).toBe(false);
+});
 
 test("inventory and navigation reads bind exact publications and original parent/path", async () => {
   const file = {

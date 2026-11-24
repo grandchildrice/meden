@@ -338,6 +338,14 @@ conflict recovery, including clear/republish under the same content ID. A query
 does not read files or run compilation. Restart requires a new host observation;
 view caches do not restore approval or native evidence.
 
+Accepted/proposed contract reviews and evidence observations use their own
+`/api/evidence?revision=…` publication. Status reports only its availability and
+exact revision; polling does not transfer the canonical contract or full review.
+**Retry evidence** recovers a failed transfer without checking sources or sending
+an instruction. The complete review freezes for its selected original reference;
+restarting retains accepted meaning but requires a fresh evidence observation.
+The displayed evidence strength remains the original backend's stated scope.
+
 The index reads through the pinned, policy-bound offline file worker. Read-only batches
 retain each original request and check both original/resolved paths under the same policy;
 partial/failed worker output is refused. These batches and the navigation parser are

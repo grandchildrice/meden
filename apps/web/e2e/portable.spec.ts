@@ -6,6 +6,7 @@ import { createServer } from "node:http";
 import { mkdtemp, mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
+import { projectEvidence } from "./evidence";
 
 const exec = promisify(execFile);
 const binary = process.env.MEDEN_BIN || resolve("target/debug/meden");
@@ -369,8 +370,7 @@ test("portable GUI history survives a real git clone and checks actual Lean with
         ).json(),
       sessionToken,
     );
-    expect(state.project.verified).toBe(false);
-    expect(state.project.accepted).toBe(false);
+    expect((await projectEvidence(page, state)).state).toBe("empty");
     expect(JSON.stringify(requests.slice(count))).toContain(
       "repository-provided historical context",
     );

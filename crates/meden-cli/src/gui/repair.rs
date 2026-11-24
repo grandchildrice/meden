@@ -32,7 +32,9 @@ pub(super) fn perform(
                 "Repair Finding selection changed"
             );
             lock(view).activity = "Preparing patch".into();
-            lock(view).repair_review = Some(session.prepare_repair(repairs, &snapshot, &record)?);
+            lock(view).repair_review = Some(meden_app::view::repairs::Review::new(
+                session.prepare_repair(repairs, &snapshot, &record)?,
+            )?);
         }
         Command::ApplyRepair { reference } => {
             analysis::apply_repair(view, session, repairs, &reference)?;
@@ -42,7 +44,7 @@ pub(super) fn perform(
                 lock(view)
                     .repair_review
                     .as_ref()
-                    .is_some_and(|review| review.reference == reference),
+                    .is_some_and(|review| review.original().reference == reference),
                 "Repair review selection changed"
             );
             lock(view).repair_review = None;

@@ -16,19 +16,16 @@ export { inventoryChunkSchema } from "./inventory-chunk.generated";
 export type { InventoryPublication } from "./inventory-publication.generated";
 export type { InventorySnapshot as WorkspaceOverview } from "./inventory.generated";
 
-export const nativeReferenceSchema = z
-  .object({
-    revision: z.number().int().nonnegative(),
-    session: z.string(),
-    contract: z.string(),
-  })
-  .strict();
-export type NativeReference = z.infer<typeof nativeReferenceSchema>;
+export { nativeReferenceSchema } from "./evidence-reference.generated";
+import type { NativeReference } from "./evidence-reference.generated";
+export type { NativeReference } from "./evidence-reference.generated";
+import { evidenceStatusSchema } from "./evidence-status.generated";
+export { evidencePublicationSchema } from "./evidence-publication.generated";
+export type { EvidencePublication } from "./evidence-publication.generated";
 export type { SourcePage as SourceSnapshot } from "./source.generated";
 export { sourcePublicationSchema } from "./source-publication.generated";
 export type { SourcePublication } from "./source-publication.generated";
 import { sourceIndexSchema } from "./source-index.generated";
-import { meaningInputSchema } from "./meaning-input.generated";
 import type { MeaningInput } from "./meaning-input.generated";
 export { meaningInputSchema } from "./meaning-input.generated";
 export type { MeaningInput } from "./meaning-input.generated";
@@ -39,30 +36,12 @@ export { analysisCurrentSchema } from "./analysis-current.generated";
 export type { AnalysisCurrentPublication } from "./analysis-current.generated";
 export { analysisHistorySchema } from "./analysis-history.generated";
 export type { AnalysisHistoryPublication } from "./analysis-history.generated";
-export const repairReferenceSchema = z
-  .object({
-    id: z.string().regex(/^repair-[a-f0-9]{64}$/),
-    sha256: z.string().regex(/^sha256:[a-f0-9]{64}$/),
-  })
-  .strict();
-export const repairReviewSchema = z
-  .object({
-    reference: repairReferenceSchema,
-    model: z.string(),
-    processor: z.string(),
-    model_definition: z.unknown().optional(),
-    finding_id: z.string(),
-    requirement_id: z.string(),
-    input: meaningInputSchema,
-    file: z.string(),
-    accepted_reference: nativeReferenceSchema.nullable(),
-    explanation: z.string(),
-    diff: z.string(),
-  })
-  .strict();
-export type RepairReview = z.infer<typeof repairReviewSchema>;
-export type RepairReference = z.infer<typeof repairReferenceSchema>;
-
+export { repairReferenceSchema } from "./repair-reference.generated";
+export type { RepairReference } from "./repair-reference.generated";
+import type { RepairReference } from "./repair-reference.generated";
+import { repairReviewSchema } from "./repair-review.generated";
+export { repairReviewSchema } from "./repair-review.generated";
+export type { RepairReview } from "./repair-review.generated";
 export const previewSchema = z
   .object({
     root: z.string(),
@@ -167,21 +146,7 @@ export const nativeStateSchema = z.object({
   partial: z.string(),
   reasoning: z.string(),
   stopped: z.string().nullable(),
-  project: z
-    .object({
-      reference: nativeReferenceSchema,
-      accepted: z.boolean(),
-      proposed: z.boolean(),
-      verified: z.boolean(),
-      evidence_class: z
-        .enum(["empirical", "bounded", "theorem", "refinement"])
-        .nullable(),
-      completion_label: z.string(),
-      scope: z.string(),
-      review: z.string(),
-      source_path: z.string(),
-    })
-    .passthrough(),
+  project: evidenceStatusSchema,
   directories: directoryIndexSchema,
   readers: readerIndexSchema,
   sources: sourceIndexSchema,

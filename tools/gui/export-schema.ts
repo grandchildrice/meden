@@ -11,6 +11,32 @@ writeFileSync(
 );
 for (const [key, rust, symbol, type, owner = "view"] of [
   [
+    "evidence-status",
+    "evidence::Status",
+    "evidenceStatusSchema",
+    "EvidenceStatus",
+  ],
+  [
+    "evidence-publication",
+    "evidence::Snapshot",
+    "evidencePublicationSchema",
+    "EvidencePublication",
+  ],
+  [
+    "evidence-reference",
+    "evidence::Reference",
+    "nativeReferenceSchema",
+    "NativeReference",
+  ],
+  ["repair-review", "repairs::Data", "repairReviewSchema", "RepairReview"],
+  [
+    "repair-reference",
+    "repair::Reference",
+    "repairReferenceSchema",
+    "RepairReference",
+    "analysis",
+  ],
+  [
     "analyses-status",
     "analyses::Status",
     "analysesStatusSchema",

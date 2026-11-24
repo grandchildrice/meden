@@ -11,6 +11,8 @@ use std::collections::{BTreeMap, BTreeSet};
 pub mod analyses;
 /// Complete typed directory observations, independent of inventory/compiler jobs.
 pub mod directory;
+/// Original reviewed intent and observed project evidence, without authority.
+pub mod evidence;
 /// Bounded complete file availability, independent of compiler support.
 pub mod file;
 /// Revision-bound transcript/work data, separate from status polling.
@@ -23,6 +25,8 @@ pub mod jobs;
 pub mod publication;
 /// Immutable reader retention, separate from semantic graphs.
 pub mod readers;
+/// Lossless browser projection of an original host repair review.
+pub mod repairs;
 /// Retention and exact-revision queries for prepared source/graph views.
 pub mod sources;
 
