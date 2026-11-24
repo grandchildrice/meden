@@ -338,6 +338,17 @@ Generated finite update traces compare complete projections with fresh rebuilds,
 including empty observations, target changes and rebasing. See the
 [sparse-update measurements](../performance/map-updates.md).
 
+SVG projection keeps area, reference, declaration and main-target layers in their
+original painter order. Visible areas retain stable parents in batches of at
+most 128 original siblings, avoiding a single unbounded placement list. Batch
+membership comes from the prepared hierarchy, independently of viewport,
+visibility and arriving descriptions; panning does not move a retained file into
+another parent. This is disposable rendering structure, not a geometry artifact
+or verification identity. Generated visibility traces check lossless ordering
+and unique batches, while the actual large-map journey checks keyboard focus
+through lazy loading. [Placement measurements](../performance/map-placement.md)
+separate this change from remaining DOM/property work.
+
 The disposable `MPL1` artifact contains dictionary indices and four little-endian
 Float64 coordinates per rectangle. SHA-256 binds the original canonical input
 and packed bytes. Decoding requires exact length, a complete unique inventory,

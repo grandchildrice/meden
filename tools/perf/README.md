@@ -1,5 +1,14 @@
 # Local profiling and regression workloads
 
+The [SVG placement comparison](../../docs/performance/map-placement.md) measures
+stable groups of at most 128 original area siblings and separate painter layers
+against the preceding served map. CPU attribution uses the exact matching hidden
+source maps and retains original profiles, not a simulated React lookup. The
+generated map corpus additionally checks lossless group order, unique keys and
+the file-parent bound; the real large-map browser journey retains keyboard focus
+through lazy declaration loading. These are presentation checks. No sampled
+function frame means unavailable at that resolution, never zero execution.
+
 The prepared-map update budget compares complete index reconstruction with a
 sparse file-description update, using the same already prepared geometry and
 checking the complete resulting scene before timing. Nine alternating runs on

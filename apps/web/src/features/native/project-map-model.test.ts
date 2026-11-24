@@ -5,6 +5,7 @@ import {
   declarationDetail,
   fade,
   mapHasDeclarations,
+  mapAreaBatches,
   mapLocation,
   projectMap,
   visibleMapAreas,
@@ -80,6 +81,54 @@ test("branch pruning preserves the visible areas and opacity of a full scan", ()
         expected,
       );
     }
+});
+
+test("large-directory batches retain original painter order and file identity across camera changes", () => {
+  const scene = projectMap(
+    prepareMap({
+      generation: "0",
+      inventory_only: true,
+      excluded: [],
+      files: Array.from({ length: 400 }, (_, i) => ({
+        path: `src/F${i}.lean`,
+        sha256: "fixture",
+        bytes: "100",
+        declarations: 0,
+        theorems: 0,
+        indexed: false,
+        imports: [],
+        symbols: [],
+      })),
+    }),
+  );
+  const size = { width: 1200, height: 800 },
+    identities = new Map<string, string>();
+  let revisited = 0;
+  for (const camera of [
+    { x: 0, y: 0, zoom: 0.1 },
+    { x: -700, y: -400, zoom: 0.4 },
+    { x: -100, y: -500, zoom: 0.2 },
+  ]) {
+    const visible = visibleMapAreas(scene, camera, size),
+      batches = mapAreaBatches(visible);
+    expect(batches.flatMap((batch) => batch.visible)).toEqual(visible);
+    expect(new Set(batches.map((batch) => batch.key)).size).toBe(
+      batches.length,
+    );
+    for (const batch of batches) {
+      expect(batch.visible.length).toBeLessThanOrEqual(128);
+      for (const { area } of batch.visible) {
+        const prior = identities.get(area.path);
+        if (prior) {
+          expect(batch.key).toBe(prior);
+          revisited++;
+        }
+        identities.set(area.path, batch.key);
+      }
+    }
+  }
+  expect(identities.size).toBe(400);
+  expect(revisited).toBeGreaterThan(0);
 });
 
 test("the legend follows visible declarations rather than distant or empty files", () => {

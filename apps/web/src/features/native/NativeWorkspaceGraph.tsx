@@ -12,6 +12,7 @@ import type { NativeState } from "@meden/agent-protocol/native";
 import {
   declarationDetail,
   mapHasDeclarations,
+  mapAreaBatches,
   mapLocation,
   visibleMapAreas,
   MAP_WIDTH,
@@ -105,151 +106,175 @@ function Scene({ data }: NodeProps<SceneNode>) {
       data-scene-revision={data.layoutRevision}
       data-layout-source={data.layoutSource}
     >
-      {visible.map(({ area: a, opacity: alpha }) => (
-        <g
-          key={a.path}
-          pointerEvents={alpha < 0.5 ? "none" : undefined}
-          className="nodrag"
-          data-map-path={a.path}
-          data-world-x={a.x}
-          data-world-y={a.y}
-          role="button"
-          tabIndex={alpha > 0.5 ? 0 : -1}
-          aria-hidden={alpha <= 0.5}
-          aria-label={`${a.file ? (a.file.indexed ? "Dependencies" : "File") : "Category"}: ${a.path}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            data.focus(a.path);
-          }}
-          onKeyDown={(e) => keyboard(e, () => data.focus(a.path))}
-        >
-          <rect
-            x={a.x}
-            y={a.y}
-            width={a.width}
-            height={a.height}
-            rx={3 / v.zoom}
-            fill={
-              a.depth === 1
-                ? colors[a.color]
-                : `hsl(${(a.color * 67 + a.depth * 31 + (a.path.split("").reduce((n, c) => n + c.charCodeAt(0), 0) % 47)) % 360} 32% 28%)`
-            }
-            fillOpacity={alpha}
-            stroke="#c7d9ee"
-            strokeOpacity={0.75 * alpha}
-            strokeWidth={0.6 / v.zoom}
-          />
-          {alpha > 0.65 && a.width * v.zoom > 65 && a.height * v.zoom > 28 && (
-            <g pointerEvents="none">
-              <text
-                x={a.x + 10 / v.zoom}
-                y={a.y + Math.min(a.height * 0.5, 25 / v.zoom)}
-                fill="white"
-                fontSize={14 / v.zoom}
+      <g data-map-layer="areas">
+        {mapAreaBatches(visible).map((batch) => (
+          <g key={batch.key}>
+            {batch.visible.map(({ area: a, opacity: alpha }) => (
+              <g
+                key={a.path}
+                pointerEvents={alpha < 0.5 ? "none" : undefined}
+                className="nodrag"
+                data-map-path={a.path}
+                data-world-x={a.x}
+                data-world-y={a.y}
+                role="button"
+                tabIndex={alpha > 0.5 ? 0 : -1}
+                aria-hidden={alpha <= 0.5}
+                aria-label={`${a.file ? (a.file.indexed ? "Dependencies" : "File") : "Category"}: ${a.path}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  data.focus(a.path);
+                }}
+                onKeyDown={(e) => keyboard(e, () => data.focus(a.path))}
               >
-                {a.path.split("/").at(-1)}
-              </text>
-            </g>
-          )}
-        </g>
-      ))}
-      {[...edgeNodes]
-        .flatMap((file) => data.scene.edgesByFile.get(file) || [])
-        .map((edge) => {
-          const a = data.scene.symbols.get(edge.source)!,
-            b = data.scene.symbols.get(edge.target)!;
-          if (!edgeNodes.has(a.file) || !edgeNodes.has(b.file)) return null;
-          const alpha = Math.min(
-            fileGraphs.get(a.file) || 0,
-            fileGraphs.get(b.file) || 0,
-          );
-          return (
-            <line
-              key={`${edge.source}:${edge.target}`}
-              x1={a.x}
-              y1={a.y}
-              x2={b.x}
-              y2={b.y}
-              stroke="#bbd4de"
-              strokeOpacity={alpha * 0.65}
-              strokeWidth={1 / v.zoom}
-              pointerEvents="none"
-            />
-          );
-        })}
-      {visible
-        .filter((x) => x.area.file)
-        .flatMap(({ area: a }) => {
-          const alpha = fileGraphs.get(a.path) || 0;
-          if (alpha < 0.01) return [];
-          return a.symbols.map((symbol) => (
-            <g
-              key={symbol.id}
-              className="nodrag"
-              role="button"
-              tabIndex={alpha > 0.5 ? 0 : -1}
-              aria-hidden={alpha <= 0.5}
-              aria-label={`Declaration: ${symbol.name} · ${symbol.file}:${symbol.line}`}
-              aria-description={symbol.role.label}
-              data-declaration-role={symbol.role.id}
-              opacity={alpha}
-              data-symbol-id={symbol.id}
-              onClick={(e) => {
-                e.stopPropagation();
-                data.select(symbol);
-              }}
-              onKeyDown={(e) => keyboard(e, () => data.select(symbol))}
-            >
-              <title>{symbol.role.label + " · " + symbol.name}</title>
-              <SymbolMarker
-                symbol={symbol}
-                zoom={v.zoom}
-                selected={data.selected === symbol.id}
-              />
-              <text
-                x={symbol.x + 9 / v.zoom}
-                y={symbol.y + 4 / v.zoom}
-                fill="#fff"
-                fontSize={11 / v.zoom}
-              >
-                {(symbol.name.split(".").at(-1) || symbol.name).slice(
-                  0,
-                  Math.max(3, Math.floor((symbol.cellWidth * v.zoom - 20) / 6)),
-                )}
-              </text>
-            </g>
-          ));
-        })}
-      {data.scene.mainPins
-        .filter((pin) => declarationDetail(pin.area, v.zoom, data) < 0.5)
-        .map(({ area, symbols, origin }) => (
-          <g
-            key={area.path}
-            className="nodrag map-main-pin"
-            role="button"
-            tabIndex={0}
-            aria-label={`Main theorems: ${area.path} (${symbols.length})`}
-            transform={`translate(${area.x + area.width / 2}, ${area.y + area.height / 2}) scale(${1 / v.zoom})`}
-            onClick={(event) => {
-              event.stopPropagation();
-              data.focus(area.path);
-            }}
-            onKeyDown={(event) => keyboard(event, () => data.focus(area.path))}
-          >
-            <title>
-              {origin + ": " + symbols.map((s) => s.name).join(", ")}
-            </title>
-            <circle r={13} fill="#132631" stroke="#ffdc78" strokeWidth={1.5} />
-            <text textAnchor="middle" y={5} fill="#ffdc78" fontSize={18}>
-              ★
-            </text>
-            {symbols.length > 1 && (
-              <text x={16} y={4} fill="#ffdc78" fontSize={11}>
-                {symbols.length}
-              </text>
-            )}
+                <rect
+                  x={a.x}
+                  y={a.y}
+                  width={a.width}
+                  height={a.height}
+                  rx={3 / v.zoom}
+                  fill={
+                    a.depth === 1
+                      ? colors[a.color]
+                      : `hsl(${(a.color * 67 + a.depth * 31 + (a.path.split("").reduce((n, c) => n + c.charCodeAt(0), 0) % 47)) % 360} 32% 28%)`
+                  }
+                  fillOpacity={alpha}
+                  stroke="#c7d9ee"
+                  strokeOpacity={0.75 * alpha}
+                  strokeWidth={0.6 / v.zoom}
+                />
+                {alpha > 0.65 &&
+                  a.width * v.zoom > 65 &&
+                  a.height * v.zoom > 28 && (
+                    <g pointerEvents="none">
+                      <text
+                        x={a.x + 10 / v.zoom}
+                        y={a.y + Math.min(a.height * 0.5, 25 / v.zoom)}
+                        fill="white"
+                        fontSize={14 / v.zoom}
+                      >
+                        {a.path.split("/").at(-1)}
+                      </text>
+                    </g>
+                  )}
+              </g>
+            ))}
           </g>
         ))}
+      </g>
+      <g data-map-layer="references">
+        {[...edgeNodes]
+          .flatMap((file) => data.scene.edgesByFile.get(file) || [])
+          .map((edge) => {
+            const a = data.scene.symbols.get(edge.source)!,
+              b = data.scene.symbols.get(edge.target)!;
+            if (!edgeNodes.has(a.file) || !edgeNodes.has(b.file)) return null;
+            const alpha = Math.min(
+              fileGraphs.get(a.file) || 0,
+              fileGraphs.get(b.file) || 0,
+            );
+            return (
+              <line
+                key={`${edge.source}:${edge.target}`}
+                x1={a.x}
+                y1={a.y}
+                x2={b.x}
+                y2={b.y}
+                stroke="#bbd4de"
+                strokeOpacity={alpha * 0.65}
+                strokeWidth={1 / v.zoom}
+                pointerEvents="none"
+              />
+            );
+          })}
+      </g>
+      <g data-map-layer="declarations">
+        {visible
+          .filter((x) => x.area.file)
+          .flatMap(({ area: a }) => {
+            const alpha = fileGraphs.get(a.path) || 0;
+            if (alpha < 0.01) return [];
+            return a.symbols.map((symbol) => (
+              <g
+                key={symbol.id}
+                className="nodrag"
+                role="button"
+                tabIndex={alpha > 0.5 ? 0 : -1}
+                aria-hidden={alpha <= 0.5}
+                aria-label={`Declaration: ${symbol.name} · ${symbol.file}:${symbol.line}`}
+                aria-description={symbol.role.label}
+                data-declaration-role={symbol.role.id}
+                opacity={alpha}
+                data-symbol-id={symbol.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  data.select(symbol);
+                }}
+                onKeyDown={(e) => keyboard(e, () => data.select(symbol))}
+              >
+                <title>{symbol.role.label + " · " + symbol.name}</title>
+                <SymbolMarker
+                  symbol={symbol}
+                  zoom={v.zoom}
+                  selected={data.selected === symbol.id}
+                />
+                <text
+                  x={symbol.x + 9 / v.zoom}
+                  y={symbol.y + 4 / v.zoom}
+                  fill="#fff"
+                  fontSize={11 / v.zoom}
+                >
+                  {(symbol.name.split(".").at(-1) || symbol.name).slice(
+                    0,
+                    Math.max(
+                      3,
+                      Math.floor((symbol.cellWidth * v.zoom - 20) / 6),
+                    ),
+                  )}
+                </text>
+              </g>
+            ));
+          })}
+      </g>
+      <g data-map-layer="targets">
+        {data.scene.mainPins
+          .filter((pin) => declarationDetail(pin.area, v.zoom, data) < 0.5)
+          .map(({ area, symbols, origin }) => (
+            <g
+              key={area.path}
+              className="nodrag map-main-pin"
+              role="button"
+              tabIndex={0}
+              aria-label={`Main theorems: ${area.path} (${symbols.length})`}
+              transform={`translate(${area.x + area.width / 2}, ${area.y + area.height / 2}) scale(${1 / v.zoom})`}
+              onClick={(event) => {
+                event.stopPropagation();
+                data.focus(area.path);
+              }}
+              onKeyDown={(event) =>
+                keyboard(event, () => data.focus(area.path))
+              }
+            >
+              <title>
+                {origin + ": " + symbols.map((s) => s.name).join(", ")}
+              </title>
+              <circle
+                r={13}
+                fill="#132631"
+                stroke="#ffdc78"
+                strokeWidth={1.5}
+              />
+              <text textAnchor="middle" y={5} fill="#ffdc78" fontSize={18}>
+                ★
+              </text>
+              {symbols.length > 1 && (
+                <text x={16} y={4} fill="#ffdc78" fontSize={11}>
+                  {symbols.length}
+                </text>
+              )}
+            </g>
+          ))}
+      </g>
     </svg>
   );
 }

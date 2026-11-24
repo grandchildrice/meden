@@ -3267,13 +3267,17 @@ theorem slow : True := fast
       const box = await file.boundingBox();
       await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
       await page.mouse.wheel(0, -600);
-      await file.click();
+      await file.focus();
+      await file.press("Enter");
     };
     await zoomFile("File0");
     const declaration = map.getByRole("button", {
       name: /Declaration: identity0 · Many\/Group0\/File0.lean:/,
     });
     await expect(declaration).toBeVisible({ timeout: 30000 });
+    await expect(
+      map.locator('[data-map-path="Many/Group0/File0.lean"]'),
+    ).toBeFocused();
     await expect(map.locator(".continuous-map-scene")).toHaveAttribute(
       "data-scene-revision",
       geometryRevision!,

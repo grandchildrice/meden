@@ -1,0 +1,3067 @@
+{
+  "date": "2026-11-24",
+  "source_base_revision": "08f54db101b66cdc9d99b27060789d6026c03135",
+  "scope": "Stable bounded area parents and separate SVG painter layers; no native/compiler/evidence/model change.",
+  "implementation": {
+    "maximum_area_siblings_per_batch": 128,
+    "stable_membership": "Original parent and sibling ordinal in the prepared hierarchy",
+    "painter_layers": [
+      "areas",
+      "references",
+      "declarations",
+      "targets"
+    ],
+    "geometry_version_unchanged": true,
+    "no_new_dependency": true
+  },
+  "projects": {
+    "riemann": {
+      "before_environment": {
+        "captured_at_utc": "2026-11-24T11:57:30.429Z",
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 12298.776515000001,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/native-profile/map-sparse-20261124/hidden-assets",
+        "source_maps_sha256": {
+          "index-vshMrZ_o.js": "4f49424382994411827080d16e355e8c76a13bba545f86e0d897aeacdcdfdc34",
+          "GraphView-TCTpbVcX.js": "0607fa60c8e651a3bf70743394916cf51e1f602eb7d687baa452b811d0791f19"
+        }
+      },
+      "after_environment": {
+        "captured_at_utc": "2026-11-24T12:21:58.396Z",
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "declarations": 15,
+        "project_files": 175187,
+        "setup_preparation_ms": 16372.201194000001,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/native-profile/map-paint-20261124/hidden-assets",
+        "source_maps_sha256": {
+          "index-tRveuJxA.js": "5a5deb54480ce17e4a972a2d60e0ed39caa60fb685dc7e3455f7a7aea08c6380"
+        }
+      },
+      "drill": {
+        "target": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition/EvalUnitaryCoordinateZeroOfRationalPointsStatement.lean",
+        "before": {
+          "elapsed_ms": 6372.611268000001,
+          "long_tasks": {
+            "count": 8,
+            "p50_ms": 111,
+            "p95_ms": 359,
+            "max_ms": 359,
+            "total_ms": 1204
+          },
+          "frames": {
+            "count": 302,
+            "p50_ms": 16.69999999999709,
+            "p95_ms": 33.39999999999418,
+            "max_ms": 366.6999999999971,
+            "total_ms": 6366.5
+          },
+          "requests": {
+            "GET /api/state": {
+              "count": 16,
+              "bytes": 54064
+            },
+            "GET /api/map": {
+              "count": 10,
+              "bytes": 305846
+            }
+          },
+          "steps": [
+            {
+              "path": "src/Development",
+              "category": true,
+              "x": 581.7184143066406,
+              "y": 276.739990234375,
+              "area": 318672.5851306021
+            },
+            {
+              "wheel": -650,
+              "parent": "src/Development"
+            },
+            {
+              "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition",
+              "category": true,
+              "x": 541.1026916503906,
+              "y": 301.0216522216797,
+              "area": 107902.61881094612
+            },
+            {
+              "wheel": -650,
+              "parent": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition"
+            },
+            {
+              "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition/EvalUnitaryCoordinateZeroOfRationalPointsStatement.lean",
+              "category": false,
+              "x": 461.1611328125,
+              "y": 206.093994140625,
+              "area": 332.91505086421967
+            }
+          ],
+          "retained_dom": {
+            "graph_nodes": 0,
+            "map_boxes": 13,
+            "map_declarations": 26
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 2732.4600000000028,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 1919.2379999999998,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 210.91600000000003,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9236 · getHostSibling"
+            },
+            {
+              "self_ms": 127.996,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 94.33299999999998,
+              "location": "elementFromPoint"
+            },
+            {
+              "self_ms": 75.54800000000002,
+              "location": "../../../../../apps/web/src/features/native/project-map-references.ts:18 · referenceEdges"
+            },
+            {
+              "self_ms": 68.85200000000005,
+              "location": "setAttribute"
+            },
+            {
+              "self_ms": 56.83700000000001,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+            },
+            {
+              "self_ms": 56.81600000000002,
+              "location": "setAttribute"
+            },
+            {
+              "self_ms": 48.644,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+            },
+            {
+              "self_ms": 48.63699999999999,
+              "location": "../../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:108 · (anonymous)"
+            },
+            {
+              "self_ms": 41.267999999999994,
+              "location": "../../../../../apps/web/src/features/native/project-map-model.ts:244 · visibleMapAreas"
+            },
+            {
+              "self_ms": 39.352999999999994,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 · commitHostUpdate"
+            },
+            {
+              "self_ms": 33.86599999999999,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 · commitHostUpdate"
+            },
+            {
+              "self_ms": 28.155,
+              "location": "../../../../../apps/web/src/features/native/project-map-model.ts:244 · visibleMapAreas"
+            },
+            {
+              "self_ms": 23.569000000000003,
+              "location": "removeChild"
+            },
+            {
+              "self_ms": 23.086999999999996,
+              "location": "getBoundingClientRect"
+            },
+            {
+              "self_ms": 21.397000000000002,
+              "location": "../../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:79 · Scene"
+            },
+            {
+              "self_ms": 20.565,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:12522 · renderRootSync"
+            },
+            {
+              "self_ms": 18.413,
+              "location": "insertBefore"
+            }
+          ],
+          "graph_camera": {
+            "before": null,
+            "after": null
+          },
+          "map_camera": {
+            "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+            "after": "transform: translate(-154373px, -93580.9px) scale(45.3544);"
+          },
+          "sibling_search": {
+            "function": "getHostSibling",
+            "sample_count": 197,
+            "sampled_self_ms": 210.916,
+            "scope": "Whole diagnostic phase CPU-profile samples, including automation/profiler boundaries; no samples is unavailable, not zero execution."
+          }
+        },
+        "after": {
+          "elapsed_ms": 6183.8200979999965,
+          "long_tasks": {
+            "count": 8,
+            "p50_ms": 108,
+            "p95_ms": 231,
+            "max_ms": 231,
+            "total_ms": 957
+          },
+          "frames": {
+            "count": 303,
+            "p50_ms": 16.69999999999709,
+            "p95_ms": 33.400000000001455,
+            "max_ms": 233.29999999999563,
+            "total_ms": 6166.399999999994
+          },
+          "requests": {
+            "GET /api/state": {
+              "count": 16,
+              "bytes": 54064
+            },
+            "GET /api/map": {
+              "count": 10,
+              "bytes": 305846
+            }
+          },
+          "steps": [
+            {
+              "path": "src/Development",
+              "category": true,
+              "x": 581.7184143066406,
+              "y": 276.739990234375,
+              "area": 318672.5851306021
+            },
+            {
+              "wheel": -650,
+              "parent": "src/Development"
+            },
+            {
+              "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition",
+              "category": true,
+              "x": 541.1026916503906,
+              "y": 301.0216522216797,
+              "area": 107902.61881094612
+            },
+            {
+              "wheel": -650,
+              "parent": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition"
+            },
+            {
+              "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition/EvalUnitaryCoordinateZeroOfRationalPointsStatement.lean",
+              "category": false,
+              "x": 461.1611328125,
+              "y": 206.093994140625,
+              "area": 332.91505086421967
+            }
+          ],
+          "retained_dom": {
+            "graph_nodes": 0,
+            "map_boxes": 13,
+            "map_declarations": 26
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 2750.065000000006,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 1955.1470000000063,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 119.98199999999996,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 101.42299999999999,
+              "location": "elementFromPoint"
+            },
+            {
+              "self_ms": 91.46300000000004,
+              "location": "setAttribute"
+            },
+            {
+              "self_ms": 68.217,
+              "location": "../../../../../apps/web/src/features/native/project-map-references.ts:18 · referenceEdges"
+            },
+            {
+              "self_ms": 54.51000000000001,
+              "location": "setAttribute"
+            },
+            {
+              "self_ms": 48.755999999999986,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+            },
+            {
+              "self_ms": 47.711,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+            },
+            {
+              "self_ms": 46.156,
+              "location": "../../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:112 · (anonymous)"
+            },
+            {
+              "self_ms": 45.663000000000004,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 · commitHostUpdate"
+            },
+            {
+              "self_ms": 40.93299999999999,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 · commitHostUpdate"
+            },
+            {
+              "self_ms": 26.376999999999995,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:14406 · setProp"
+            },
+            {
+              "self_ms": 26.020999999999997,
+              "location": "../../../../../apps/web/src/features/native/project-map-model.ts:247 · visibleMapAreas"
+            },
+            {
+              "self_ms": 24.233999999999998,
+              "location": "getAttribute"
+            },
+            {
+              "self_ms": 21.480999999999998,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+            },
+            {
+              "self_ms": 21.435000000000002,
+              "location": "createElementNS"
+            },
+            {
+              "self_ms": 21.299,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:14406 · setProp"
+            },
+            {
+              "self_ms": 20.395999999999994,
+              "location": "query"
+            },
+            {
+              "self_ms": 19.776000000000003,
+              "location": "../../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:80 · Scene"
+            }
+          ],
+          "graph_camera": {
+            "before": null,
+            "after": null
+          },
+          "map_camera": {
+            "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+            "after": "transform: translate(-154373px, -93580.9px) scale(45.3544);"
+          },
+          "sibling_search": {
+            "function": "getHostSibling",
+            "sample_count": 0,
+            "sampled_self_ms": null,
+            "scope": "Whole diagnostic phase CPU-profile samples, including automation/profiler boundaries; no samples is unavailable, not zero execution."
+          }
+        }
+      },
+      "events": [
+        {
+          "action": "Project-map wheel",
+          "phase": "project-map-wheel",
+          "event": "wheel",
+          "before": {
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 2.861,
+              "p95_ms": 4.451,
+              "max_ms": 4.558,
+              "total_ms": 68.982
+            },
+            "two_raf": {
+              "count": 24,
+              "p50_ms": 16.900000035762787,
+              "p95_ms": 27.30000001192093,
+              "max_ms": 33.700000047683716,
+              "total_ms": 436.4000002145767
+            }
+          },
+          "after": {
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 2.623,
+              "p95_ms": 4.451,
+              "max_ms": 5.007,
+              "total_ms": 61.699
+            },
+            "two_raf": {
+              "count": 24,
+              "p50_ms": 16.80000001192093,
+              "p95_ms": 21.69999998807907,
+              "max_ms": 25.700000047683716,
+              "total_ms": 414.6999999284744
+            }
+          }
+        },
+        {
+          "action": "Dependency-graph wheel",
+          "phase": "graph-wheel",
+          "event": "wheel",
+          "before": {
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 0.562,
+              "p95_ms": 0.836,
+              "max_ms": 2.489,
+              "total_ms": 14.853000000000002
+            },
+            "two_raf": {
+              "count": 24,
+              "p50_ms": 16.599999964237213,
+              "p95_ms": 24.399999976158142,
+              "max_ms": 30.30000001192093,
+              "total_ms": 415.99999994039536
+            }
+          },
+          "after": {
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 0.639,
+              "p95_ms": 1.038,
+              "max_ms": 1.915,
+              "total_ms": 15.738000000000003
+            },
+            "two_raf": {
+              "count": 24,
+              "p50_ms": 16.399999976158142,
+              "p95_ms": 21.30000001192093,
+              "max_ms": 28.30000001192093,
+              "total_ms": 405
+            }
+          }
+        },
+        {
+          "action": "Hover",
+          "phase": "graph-hover",
+          "event": "pointermove",
+          "before": {
+            "dispatch": {
+              "count": 40,
+              "p50_ms": 0.042,
+              "p95_ms": 0.076,
+              "max_ms": 0.136,
+              "total_ms": 1.8920000000000003
+            },
+            "two_raf": {
+              "count": 40,
+              "p50_ms": 18,
+              "p95_ms": 28.100000023841858,
+              "max_ms": 38.89999997615814,
+              "total_ms": 719.1999999284744
+            }
+          },
+          "after": {
+            "dispatch": {
+              "count": 40,
+              "p50_ms": 0.041,
+              "p95_ms": 0.099,
+              "max_ms": 0.118,
+              "total_ms": 1.8250000000000002
+            },
+            "two_raf": {
+              "count": 40,
+              "p50_ms": 18.30000001192093,
+              "p95_ms": 33.30000001192093,
+              "max_ms": 34.80000001192093,
+              "total_ms": 746.8999998569489
+            }
+          }
+        },
+        {
+          "action": "Pan",
+          "phase": "graph-pan",
+          "event": "pointermove",
+          "before": {
+            "dispatch": {
+              "count": 31,
+              "p50_ms": 0.16,
+              "p95_ms": 0.345,
+              "max_ms": 0.427,
+              "total_ms": 4.771
+            },
+            "two_raf": {
+              "count": 31,
+              "p50_ms": 19.600000023841858,
+              "p95_ms": 21.19999998807907,
+              "max_ms": 26.19999998807907,
+              "total_ms": 602.4000000953674
+            }
+          },
+          "after": {
+            "dispatch": {
+              "count": 31,
+              "p50_ms": 0.172,
+              "p95_ms": 0.269,
+              "max_ms": 0.362,
+              "total_ms": 5.504999999999999
+            },
+            "two_raf": {
+              "count": 31,
+              "p50_ms": 19.80000001192093,
+              "p95_ms": 20.700000047683716,
+              "max_ms": 21.100000023841858,
+              "total_ms": 599.1000002026558
+            }
+          }
+        },
+        {
+          "action": "Resize",
+          "phase": "graph-resize",
+          "event": "resize",
+          "before": {
+            "dispatch": {
+              "count": 3,
+              "p50_ms": 0.822,
+              "p95_ms": 0.906,
+              "max_ms": 0.906,
+              "total_ms": 2.541
+            },
+            "two_raf": {
+              "count": 3,
+              "p50_ms": 17.19999998807907,
+              "p95_ms": 17.80000001192093,
+              "max_ms": 17.80000001192093,
+              "total_ms": 50
+            }
+          },
+          "after": {
+            "dispatch": {
+              "count": 3,
+              "p50_ms": 0.881,
+              "p95_ms": 0.997,
+              "max_ms": 0.997,
+              "total_ms": 2.56
+            },
+            "two_raf": {
+              "count": 3,
+              "p50_ms": 16.80000001192093,
+              "p95_ms": 18.100000023841858,
+              "max_ms": 18.100000023841858,
+              "total_ms": 49.90000003576279
+            }
+          }
+        },
+        {
+          "action": "File/map tab click",
+          "phase": "tab-switch",
+          "event": "click",
+          "before": {
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 11.791,
+              "p95_ms": 14.246,
+              "max_ms": 14.423,
+              "total_ms": 273.745
+            },
+            "two_raf": {
+              "count": 24,
+              "p50_ms": 29,
+              "p95_ms": 36.799999952316284,
+              "max_ms": 39.59999996423721,
+              "total_ms": 682.1999999880791
+            }
+          },
+          "after": {
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 13.92,
+              "p95_ms": 16.523,
+              "max_ms": 18.088,
+              "total_ms": 324.60900000000004
+            },
+            "two_raf": {
+              "count": 24,
+              "p50_ms": 31.900000035762787,
+              "p95_ms": 39.19999998807907,
+              "max_ms": 41.69999998807907,
+              "total_ms": 730.7999998927116
+            }
+          }
+        },
+        {
+          "action": "Distinct-node click",
+          "phase": "graph-node-select-distinct",
+          "event": "click",
+          "before": {
+            "dispatch": {
+              "count": 8,
+              "p50_ms": 12.693,
+              "p95_ms": 12.986,
+              "max_ms": 12.986,
+              "total_ms": 99.538
+            },
+            "two_raf": {
+              "count": 8,
+              "p50_ms": 19.69999998807907,
+              "p95_ms": 20,
+              "max_ms": 20,
+              "total_ms": 153.99999994039536
+            }
+          },
+          "after": {
+            "dispatch": {
+              "count": 8,
+              "p50_ms": 13.354,
+              "p95_ms": 14.343,
+              "max_ms": 14.343,
+              "total_ms": 106.241
+            },
+            "two_raf": {
+              "count": 8,
+              "p50_ms": 20.5,
+              "p95_ms": 23.100000023841858,
+              "max_ms": 23.100000023841858,
+              "total_ms": 167.30000007152557
+            }
+          }
+        },
+        {
+          "action": "Fit View",
+          "phase": "graph-fit-view",
+          "event": "click",
+          "before": {
+            "dispatch": {
+              "count": 1,
+              "p50_ms": 0.951,
+              "p95_ms": 0.951,
+              "max_ms": 0.951,
+              "total_ms": 0.951
+            },
+            "two_raf": {
+              "count": 1,
+              "p50_ms": 23.399999976158142,
+              "p95_ms": 23.399999976158142,
+              "max_ms": 23.399999976158142,
+              "total_ms": 23.399999976158142
+            }
+          },
+          "after": {
+            "dispatch": {
+              "count": 1,
+              "p50_ms": 1.287,
+              "p95_ms": 1.287,
+              "max_ms": 1.287,
+              "total_ms": 1.287
+            },
+            "two_raf": {
+              "count": 1,
+              "p50_ms": 21.900000035762787,
+              "p95_ms": 21.900000035762787,
+              "max_ms": 21.900000035762787,
+              "total_ms": 21.900000035762787
+            }
+          }
+        }
+      ],
+      "navigation": {
+        "prior_capture": "target/gui-profile/sparse-riemann-after",
+        "prior_warm_median_ms": 1279.5999999940395,
+        "current_warm_median_ms": 1276.5,
+        "visits": [
+          {
+            "ready": {
+              "attached_ms": 1307.0999999642372,
+              "two_raf_ms": 1326.699999988079,
+              "layout_revision": "sha256:83d46b921cf397494f038c5564098f69738bb0362afd77ddbc61830aeb098f8e",
+              "layout_source": "computed",
+              "visible_boxes": 7,
+              "camera": "transform: translate(32px, 163.74px) scale(0.0772);"
+            },
+            "tasks": [
+              {
+                "start": 162.5999999642372,
+                "duration": 110
+              },
+              {
+                "start": 528.2999999523163,
+                "duration": 244
+              },
+              {
+                "start": 778.5999999642372,
+                "duration": 194
+              },
+              {
+                "start": 974.3999999761581,
+                "duration": 98
+              },
+              {
+                "start": 1077.3999999761581,
+                "duration": 114
+              },
+              {
+                "start": 1192.3999999761581,
+                "duration": 107
+              }
+            ]
+          },
+          {
+            "ready": {
+              "attached_ms": 1224.800000011921,
+              "two_raf_ms": 1235.199999988079,
+              "layout_revision": "sha256:83d46b921cf397494f038c5564098f69738bb0362afd77ddbc61830aeb098f8e",
+              "layout_source": "cache",
+              "visible_boxes": 7,
+              "camera": "transform: translate(32px, 163.74px) scale(0.0772);"
+            },
+            "tasks": [
+              {
+                "start": 486.9000000357628,
+                "duration": 267
+              },
+              {
+                "start": 765.6000000238419,
+                "duration": 195
+              },
+              {
+                "start": 962.1999999880791,
+                "duration": 93
+              },
+              {
+                "start": 1102.5,
+                "duration": 119
+              }
+            ]
+          },
+          {
+            "ready": {
+              "attached_ms": 1259.300000011921,
+              "two_raf_ms": 1262.1000000238419,
+              "layout_revision": "sha256:83d46b921cf397494f038c5564098f69738bb0362afd77ddbc61830aeb098f8e",
+              "layout_source": "cache",
+              "visible_boxes": 7,
+              "camera": "transform: translate(32px, 163.74px) scale(0.0772);"
+            },
+            "tasks": [
+              {
+                "start": 575.3000000119209,
+                "duration": 257
+              },
+              {
+                "start": 835.3999999761581,
+                "duration": 276
+              },
+              {
+                "start": 1157.6000000238419,
+                "duration": 99
+              }
+            ]
+          },
+          {
+            "ready": {
+              "attached_ms": 1287,
+              "two_raf_ms": 1290.8999999761581,
+              "layout_revision": "sha256:83d46b921cf397494f038c5564098f69738bb0362afd77ddbc61830aeb098f8e",
+              "layout_source": "cache",
+              "visible_boxes": 7,
+              "camera": "transform: translate(32px, 163.74px) scale(0.0772);"
+            },
+            "tasks": [
+              {
+                "start": 570.6000000238419,
+                "duration": 256
+              },
+              {
+                "start": 837.6999999880791,
+                "duration": 186
+              },
+              {
+                "start": 1024.800000011921,
+                "duration": 92
+              },
+              {
+                "start": 1161.300000011921,
+                "duration": 123
+              }
+            ]
+          },
+          {
+            "ready": {
+              "attached_ms": 1351.800000011921,
+              "two_raf_ms": 1359.699999988079,
+              "layout_revision": "sha256:83d46b921cf397494f038c5564098f69738bb0362afd77ddbc61830aeb098f8e",
+              "layout_source": "cache",
+              "visible_boxes": 7,
+              "camera": "transform: translate(32px, 163.74px) scale(0.0772);"
+            },
+            "tasks": [
+              {
+                "start": 666.5,
+                "duration": 254
+              },
+              {
+                "start": 930.3000000119209,
+                "duration": 182
+              },
+              {
+                "start": 1113.800000011921,
+                "duration": 95
+              },
+              {
+                "start": 1250.300000011921,
+                "duration": 98
+              }
+            ]
+          }
+        ],
+        "scope": "Five complete navigations in one fresh browser context, native host/project/OS caches retained. First and persisted geometry hits are labelled by the actual DOM attribute; older clients report null. Attached/two-rAF are navigation-relative DOM/frame proxies, not physical first paint. CPU sampling and automation add overhead. Inventory transfer, JSON parsing, input construction, layout/decoding and initial rendering are included, unlike the prepared-geometry overlay unit benchmark. No file inspection, compilation request or model inference is sent."
+      },
+      "preparation": {
+        "observation": {
+          "job": "sha256:28f4428476511c64beb6686f5b0249fc68c17e5cda80802f7e6e7f61209b2d54",
+          "resource": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "phase": "Preparing explanations",
+          "elapsed_ms": 15956,
+          "phase_elapsed_ms": 23,
+          "limit_seconds": 0,
+          "outcome": {
+            "state": "ready",
+            "cache_hit": true
+          },
+          "log": {
+            "revision": "sha256:b30d9108b7c0571dc3b91e250b6581d74de13f7e713090e43767212516d153c7"
+          }
+        },
+        "log_revision": "sha256:b30d9108b7c0571dc3b91e250b6581d74de13f7e713090e43767212516d153c7",
+        "truncated": false,
+        "build_query_ms": 9650,
+        "validated_files": 43477,
+        "validated_bytes": 5992114707,
+        "validation_ms": 2649
+      }
+    },
+    "ethlib": {
+      "before_environment": {
+        "captured_at_utc": "2026-11-24T11:58:30.364Z",
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "EthLib/Networking/Gossip/Parameters.lean",
+        "declarations": 42,
+        "project_files": 2517,
+        "setup_preparation_ms": 2039.0108090000003,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/native-profile/map-sparse-20261124/hidden-assets",
+        "source_maps_sha256": {
+          "index-vshMrZ_o.js": "4f49424382994411827080d16e355e8c76a13bba545f86e0d897aeacdcdfdc34",
+          "GraphView-TCTpbVcX.js": "0607fa60c8e651a3bf70743394916cf51e1f602eb7d687baa452b811d0791f19"
+        }
+      },
+      "after_environment": {
+        "captured_at_utc": "2026-11-24T12:22:58.583Z",
+        "browser": "149.0.7827.53",
+        "viewport": "1440x960",
+        "throttling": "none",
+        "reduced_motion": "no-preference",
+        "gesture_tail_ms": 600,
+        "file": "EthLib/Networking/Gossip/Parameters.lean",
+        "declarations": 42,
+        "project_files": 2517,
+        "setup_preparation_ms": 2054.102633,
+        "setup_cache_hit": true,
+        "source_map_directory": "/home/gohan/workspace/meden/target/native-profile/map-paint-20261124/hidden-assets",
+        "source_maps_sha256": {
+          "index-tRveuJxA.js": "5a5deb54480ce17e4a972a2d60e0ed39caa60fb685dc7e3455f7a7aea08c6380",
+          "GraphView-oavZiHQe.js": "9760d9e5b21618f39d59f292b1dfac78f95869a826a578b10a9de3a65a2583e9"
+        }
+      },
+      "drill": {
+        "target": "EthLib/Cryptography/Proofs/Bls/CofactorPrimes.lean",
+        "before": {
+          "elapsed_ms": 5804.357113000002,
+          "long_tasks": {
+            "count": 5,
+            "p50_ms": 54,
+            "p95_ms": 57,
+            "max_ms": 57,
+            "total_ms": 273
+          },
+          "frames": {
+            "count": 321,
+            "p50_ms": 16.700000000000728,
+            "p95_ms": 16.80000000000291,
+            "max_ms": 133.29999999999927,
+            "total_ms": 5799.699999999997
+          },
+          "requests": {
+            "GET /api/state": {
+              "count": 16,
+              "bytes": 52272
+            }
+          },
+          "steps": [
+            {
+              "path": "EthLib/Cryptography",
+              "category": true,
+              "x": 418.0854187011719,
+              "y": 238.74000549316406,
+              "area": 151924.01089689136
+            },
+            {
+              "wheel": -650,
+              "parent": "EthLib/Cryptography"
+            },
+            {
+              "path": "EthLib/Cryptography/Proofs/Bls",
+              "category": true,
+              "x": 796.2194213867188,
+              "y": 540.9219360351562,
+              "area": 196442.38151367754
+            },
+            {
+              "wheel": -650,
+              "parent": "EthLib/Cryptography/Proofs/Bls"
+            },
+            {
+              "path": "EthLib/Cryptography/Proofs/Bls/CofactorPrimes.lean",
+              "category": false,
+              "x": 467.0340576171875,
+              "y": 272.91455078125,
+              "area": 92145.98274445534
+            }
+          ],
+          "retained_dom": {
+            "graph_nodes": 0,
+            "map_boxes": 15,
+            "map_declarations": 383
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 3695.9219999999955,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 1873.9470000000117,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 14.298999999999998,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+            },
+            {
+              "self_ms": 12.508,
+              "location": "setAttribute"
+            },
+            {
+              "self_ms": 11.426,
+              "location": "../../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:108 · (anonymous)"
+            },
+            {
+              "self_ms": 8.643,
+              "location": "../../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 · (anonymous)"
+            },
+            {
+              "self_ms": 8.391,
+              "location": "setAttribute"
+            },
+            {
+              "self_ms": 7.832999999999999,
+              "location": "../../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:158 · edge"
+            },
+            {
+              "self_ms": 6.398,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 · commitHostUpdate"
+            },
+            {
+              "self_ms": 6.398,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3834 · updateFromMap"
+            },
+            {
+              "self_ms": 5.9670000000000005,
+              "location": "../../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:185 · symbol"
+            },
+            {
+              "self_ms": 5.759,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+            },
+            {
+              "self_ms": 5.369000000000001,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 · commitHostUpdate"
+            },
+            {
+              "self_ms": 5.035,
+              "location": "../../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:185 · symbol"
+            },
+            {
+              "self_ms": 4.954000000000001,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 4.938000000000001,
+              "location": "elementFromPoint"
+            },
+            {
+              "self_ms": 4.526,
+              "location": "../../../../../node_modules/@emotion/hash/dist/emotion-hash.esm.js:4 · murmur2"
+            },
+            {
+              "self_ms": 4.2989999999999995,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:4627 · renderWithHooks"
+            },
+            {
+              "self_ms": 4.2940000000000005,
+              "location": "../../../../../node_modules/@emotion/serialize/dist/emotion-serialize.esm.js:49 · handleInterpolation"
+            },
+            {
+              "self_ms": 4.27,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 · commitHostUpdate"
+            }
+          ],
+          "graph_camera": {
+            "before": null,
+            "after": null
+          },
+          "map_camera": {
+            "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+            "after": "transform: translate(-4477.61px, -8336.8px) scale(2.18662);"
+          },
+          "sibling_search": {
+            "function": "getHostSibling",
+            "sample_count": 0,
+            "sampled_self_ms": null,
+            "scope": "Whole diagnostic phase CPU-profile samples, including automation/profiler boundaries; no samples is unavailable, not zero execution."
+          }
+        },
+        "after": {
+          "elapsed_ms": 5858.326631,
+          "long_tasks": {
+            "count": 6,
+            "p50_ms": 55,
+            "p95_ms": 58,
+            "max_ms": 58,
+            "total_ms": 327
+          },
+          "frames": {
+            "count": 321,
+            "p50_ms": 16.700000000000728,
+            "p95_ms": 16.80000000000291,
+            "max_ms": 133.29999999999927,
+            "total_ms": 5849.699999999997
+          },
+          "requests": {
+            "GET /api/state": {
+              "count": 16,
+              "bytes": 52272
+            }
+          },
+          "steps": [
+            {
+              "path": "EthLib/Cryptography",
+              "category": true,
+              "x": 418.0854187011719,
+              "y": 238.74000549316406,
+              "area": 151924.01089689136
+            },
+            {
+              "wheel": -650,
+              "parent": "EthLib/Cryptography"
+            },
+            {
+              "path": "EthLib/Cryptography/Proofs/Bls",
+              "category": true,
+              "x": 796.2194213867188,
+              "y": 540.9219360351562,
+              "area": 196442.38151367754
+            },
+            {
+              "wheel": -650,
+              "parent": "EthLib/Cryptography/Proofs/Bls"
+            },
+            {
+              "path": "EthLib/Cryptography/Proofs/Bls/CofactorPrimes.lean",
+              "category": false,
+              "x": 467.0340576171875,
+              "y": 272.91455078125,
+              "area": 92145.98274445534
+            }
+          ],
+          "retained_dom": {
+            "graph_nodes": 0,
+            "map_boxes": 15,
+            "map_declarations": 383
+          },
+          "cpu_hotspots": [
+            {
+              "self_ms": 3547.4220000000096,
+              "location": "(idle)"
+            },
+            {
+              "self_ms": 1957.7909999999986,
+              "location": "(program)"
+            },
+            {
+              "self_ms": 31.895999999999997,
+              "location": "(garbage collector)"
+            },
+            {
+              "self_ms": 17.207,
+              "location": "../../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:112 · (anonymous)"
+            },
+            {
+              "self_ms": 13.437000000000001,
+              "location": "../../../../../node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js:92 · (anonymous)"
+            },
+            {
+              "self_ms": 13.425999999999998,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+            },
+            {
+              "self_ms": 10.71,
+              "location": "elementFromPoint"
+            },
+            {
+              "self_ms": 10.498999999999999,
+              "location": "setAttribute"
+            },
+            {
+              "self_ms": 8.961,
+              "location": "../../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:197 · symbol"
+            },
+            {
+              "self_ms": 8.600999999999999,
+              "location": "setAttribute"
+            },
+            {
+              "self_ms": 8.111,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+            },
+            {
+              "self_ms": 8.045,
+              "location": "setAttribute"
+            },
+            {
+              "self_ms": 7.520999999999999,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:6425 · updateForwardRef"
+            },
+            {
+              "self_ms": 7.468,
+              "location": "setAttribute"
+            },
+            {
+              "self_ms": 6.8229999999999995,
+              "location": "../../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:168 · edge"
+            },
+            {
+              "self_ms": 6.515,
+              "location": "elementSafeTagName"
+            },
+            {
+              "self_ms": 6.425000000000001,
+              "location": "getImplicitAriaRole"
+            },
+            {
+              "self_ms": 6.355,
+              "location": "queryRole"
+            },
+            {
+              "self_ms": 5.666,
+              "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 · commitHostUpdate"
+            },
+            {
+              "self_ms": 5.646,
+              "location": "setAttribute"
+            }
+          ],
+          "graph_camera": {
+            "before": null,
+            "after": null
+          },
+          "map_camera": {
+            "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+            "after": "transform: translate(-4477.61px, -8336.8px) scale(2.18662);"
+          },
+          "sibling_search": {
+            "function": "getHostSibling",
+            "sample_count": 0,
+            "sampled_self_ms": null,
+            "scope": "Whole diagnostic phase CPU-profile samples, including automation/profiler boundaries; no samples is unavailable, not zero execution."
+          }
+        }
+      },
+      "events": [
+        {
+          "action": "Project-map wheel",
+          "phase": "project-map-wheel",
+          "event": "wheel",
+          "before": {
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 1.467,
+              "p95_ms": 2.974,
+              "max_ms": 5.302,
+              "total_ms": 42.132
+            },
+            "two_raf": {
+              "count": 24,
+              "p50_ms": 16.69999998807907,
+              "p95_ms": 17.200000047683716,
+              "max_ms": 17.399999976158142,
+              "total_ms": 402.4000000357628
+            }
+          },
+          "after": {
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 3.389,
+              "p95_ms": 6.604,
+              "max_ms": 7.723,
+              "total_ms": 88.601
+            },
+            "two_raf": {
+              "count": 24,
+              "p50_ms": 16.69999998807907,
+              "p95_ms": 20.69999998807907,
+              "max_ms": 22.900000035762787,
+              "total_ms": 413.1000000834465
+            }
+          }
+        },
+        {
+          "action": "Dependency-graph wheel",
+          "phase": "graph-wheel",
+          "event": "wheel",
+          "before": {
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 0.535,
+              "p95_ms": 1.159,
+              "max_ms": 2.07,
+              "total_ms": 15.494000000000002
+            },
+            "two_raf": {
+              "count": 24,
+              "p50_ms": 16.19999998807907,
+              "p95_ms": 16.5,
+              "max_ms": 16.899999976158142,
+              "total_ms": 389.6000000834465
+            }
+          },
+          "after": {
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 0.526,
+              "p95_ms": 0.936,
+              "max_ms": 1.952,
+              "total_ms": 14.394
+            },
+            "two_raf": {
+              "count": 24,
+              "p50_ms": 16.30000001192093,
+              "p95_ms": 16.600000023841858,
+              "max_ms": 22.5,
+              "total_ms": 387.10000002384186
+            }
+          }
+        },
+        {
+          "action": "Hover",
+          "phase": "graph-hover",
+          "event": "pointermove",
+          "before": {
+            "dispatch": {
+              "count": 40,
+              "p50_ms": 0.035,
+              "p95_ms": 0.08,
+              "max_ms": 0.082,
+              "total_ms": 1.595000000000001
+            },
+            "two_raf": {
+              "count": 40,
+              "p50_ms": 16.900000035762787,
+              "p95_ms": 24.69999998807907,
+              "max_ms": 26.600000023841858,
+              "total_ms": 688.8999998569489
+            }
+          },
+          "after": {
+            "dispatch": {
+              "count": 40,
+              "p50_ms": 0.05,
+              "p95_ms": 0.14,
+              "max_ms": 0.16,
+              "total_ms": 2.395000000000001
+            },
+            "two_raf": {
+              "count": 40,
+              "p50_ms": 17,
+              "p95_ms": 22.19999998807907,
+              "max_ms": 27.700000047683716,
+              "total_ms": 675.4000000953674
+            }
+          }
+        },
+        {
+          "action": "Pan",
+          "phase": "graph-pan",
+          "event": "pointermove",
+          "before": {
+            "dispatch": {
+              "count": 31,
+              "p50_ms": 0.243,
+              "p95_ms": 0.37,
+              "max_ms": 0.447,
+              "total_ms": 7.3260000000000005
+            },
+            "two_raf": {
+              "count": 31,
+              "p50_ms": 18.700000047683716,
+              "p95_ms": 21.5,
+              "max_ms": 24.100000023841858,
+              "total_ms": 576.0000002384186
+            }
+          },
+          "after": {
+            "dispatch": {
+              "count": 31,
+              "p50_ms": 0.224,
+              "p95_ms": 0.341,
+              "max_ms": 0.376,
+              "total_ms": 7.006
+            },
+            "two_raf": {
+              "count": 31,
+              "p50_ms": 18.599999964237213,
+              "p95_ms": 19.600000023841858,
+              "max_ms": 19.600000023841858,
+              "total_ms": 573.6000000834465
+            }
+          }
+        },
+        {
+          "action": "Resize",
+          "phase": "graph-resize",
+          "event": "resize",
+          "before": {
+            "dispatch": {
+              "count": 2,
+              "p50_ms": 0.807,
+              "p95_ms": 0.807,
+              "max_ms": 0.807,
+              "total_ms": 1.385
+            },
+            "two_raf": {
+              "count": 2,
+              "p50_ms": 17.600000023841858,
+              "p95_ms": 17.600000023841858,
+              "max_ms": 17.600000023841858,
+              "total_ms": 33.80000001192093
+            }
+          },
+          "after": {
+            "dispatch": {
+              "count": 2,
+              "p50_ms": 0.754,
+              "p95_ms": 0.754,
+              "max_ms": 0.754,
+              "total_ms": 1.385
+            },
+            "two_raf": {
+              "count": 2,
+              "p50_ms": 16.5,
+              "p95_ms": 16.5,
+              "max_ms": 16.5,
+              "total_ms": 31.900000035762787
+            }
+          }
+        },
+        {
+          "action": "File/map tab click",
+          "phase": "tab-switch",
+          "event": "click",
+          "before": {
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 9.705,
+              "p95_ms": 10.401,
+              "max_ms": 13.258,
+              "total_ms": 221.52900000000002
+            },
+            "two_raf": {
+              "count": 24,
+              "p50_ms": 25.599999964237213,
+              "p95_ms": 29.600000023841858,
+              "max_ms": 30.5,
+              "total_ms": 625.5999998450279
+            }
+          },
+          "after": {
+            "dispatch": {
+              "count": 24,
+              "p50_ms": 8.998,
+              "p95_ms": 11.099,
+              "max_ms": 12.207,
+              "total_ms": 202.99999999999994
+            },
+            "two_raf": {
+              "count": 24,
+              "p50_ms": 25.80000001192093,
+              "p95_ms": 29.19999998807907,
+              "max_ms": 29.599999964237213,
+              "total_ms": 617.4999998807907
+            }
+          }
+        },
+        {
+          "action": "Distinct-node click",
+          "phase": "graph-node-select-distinct",
+          "event": "click",
+          "before": {
+            "dispatch": {
+              "count": 8,
+              "p50_ms": 6.085,
+              "p95_ms": 8.018,
+              "max_ms": 8.018,
+              "total_ms": 28.709
+            },
+            "two_raf": {
+              "count": 8,
+              "p50_ms": 12,
+              "p95_ms": 18.30000001192093,
+              "max_ms": 18.30000001192093,
+              "total_ms": 92.29999995231628
+            }
+          },
+          "after": {
+            "dispatch": {
+              "count": 8,
+              "p50_ms": 6.003,
+              "p95_ms": 9.653,
+              "max_ms": 9.653,
+              "total_ms": 28.674
+            },
+            "two_raf": {
+              "count": 8,
+              "p50_ms": 11.5,
+              "p95_ms": 14.899999976158142,
+              "max_ms": 14.899999976158142,
+              "total_ms": 73.79999995231628
+            }
+          }
+        },
+        {
+          "action": "Fit View",
+          "phase": "graph-fit-view",
+          "event": "click",
+          "before": {
+            "dispatch": {
+              "count": 1,
+              "p50_ms": 0.959,
+              "p95_ms": 0.959,
+              "max_ms": 0.959,
+              "total_ms": 0.959
+            },
+            "two_raf": {
+              "count": 1,
+              "p50_ms": 24.69999998807907,
+              "p95_ms": 24.69999998807907,
+              "max_ms": 24.69999998807907,
+              "total_ms": 24.69999998807907
+            }
+          },
+          "after": {
+            "dispatch": {
+              "count": 1,
+              "p50_ms": 1.133,
+              "p95_ms": 1.133,
+              "max_ms": 1.133,
+              "total_ms": 1.133
+            },
+            "two_raf": {
+              "count": 1,
+              "p50_ms": 21.100000023841858,
+              "p95_ms": 21.100000023841858,
+              "max_ms": 21.100000023841858,
+              "total_ms": 21.100000023841858
+            }
+          }
+        }
+      ],
+      "navigation": {
+        "prior_capture": "target/gui-profile/sparse-ethlib-after",
+        "prior_warm_median_ms": 1901.1500000357628,
+        "current_warm_median_ms": 1890.2999999821186,
+        "visits": [
+          {
+            "ready": {
+              "attached_ms": 1709.699999988079,
+              "two_raf_ms": 1727.800000011921,
+              "layout_revision": "sha256:1841e568fcb03ac53aefb0b2c5fc3bc934e3c94fe680286be93cfd6478712033",
+              "layout_source": "computed",
+              "visible_boxes": 20,
+              "camera": "transform: translate(32px, 163.74px) scale(0.0772);"
+            },
+            "tasks": [
+              {
+                "start": 166.60000002384186,
+                "duration": 115
+              },
+              {
+                "start": 395.89999997615814,
+                "duration": 162
+              },
+              {
+                "start": 784.1999999880791,
+                "duration": 104
+              },
+              {
+                "start": 909.1999999880791,
+                "duration": 792
+              }
+            ]
+          },
+          {
+            "ready": {
+              "attached_ms": 1723.7999999523163,
+              "two_raf_ms": 1731,
+              "layout_revision": "sha256:1841e568fcb03ac53aefb0b2c5fc3bc934e3c94fe680286be93cfd6478712033",
+              "layout_source": "cache",
+              "visible_boxes": 20,
+              "camera": "transform: translate(32px, 163.74px) scale(0.0772);"
+            },
+            "tasks": [
+              {
+                "start": 399.19999998807907,
+                "duration": 111
+              },
+              {
+                "start": 735.5999999642372,
+                "duration": 107
+              },
+              {
+                "start": 878.7999999523163,
+                "duration": 840
+              }
+            ]
+          },
+          {
+            "ready": {
+              "attached_ms": 1867.800000011921,
+              "two_raf_ms": 1887,
+              "layout_revision": "sha256:1841e568fcb03ac53aefb0b2c5fc3bc934e3c94fe680286be93cfd6478712033",
+              "layout_source": "cache",
+              "visible_boxes": 20,
+              "camera": "transform: translate(32px, 163.74px) scale(0.0772);"
+            },
+            "tasks": [
+              {
+                "start": 534.6000000238419,
+                "duration": 113
+              },
+              {
+                "start": 863.3999999761581,
+                "duration": 125
+              },
+              {
+                "start": 1022.6000000238419,
+                "duration": 840
+              }
+            ]
+          },
+          {
+            "ready": {
+              "attached_ms": 1888.5999999642372,
+              "two_raf_ms": 1893.5999999642372,
+              "layout_revision": "sha256:1841e568fcb03ac53aefb0b2c5fc3bc934e3c94fe680286be93cfd6478712033",
+              "layout_source": "cache",
+              "visible_boxes": 20,
+              "camera": "transform: translate(32px, 163.74px) scale(0.0772);"
+            },
+            "tasks": [
+              {
+                "start": 551.8999999761581,
+                "duration": 104
+              },
+              {
+                "start": 924.5999999642372,
+                "duration": 94
+              },
+              {
+                "start": 1052.5,
+                "duration": 831
+              }
+            ]
+          },
+          {
+            "ready": {
+              "attached_ms": 1901.8999999761581,
+              "two_raf_ms": 1926.300000011921,
+              "layout_revision": "sha256:1841e568fcb03ac53aefb0b2c5fc3bc934e3c94fe680286be93cfd6478712033",
+              "layout_source": "cache",
+              "visible_boxes": 20,
+              "camera": "transform: translate(32px, 163.74px) scale(0.0772);"
+            },
+            "tasks": [
+              {
+                "start": 552.3999999761581,
+                "duration": 108
+              },
+              {
+                "start": 845.3000000119209,
+                "duration": 50
+              },
+              {
+                "start": 895.8999999761581,
+                "duration": 155
+              },
+              {
+                "start": 1088.199999988079,
+                "duration": 807
+              }
+            ]
+          }
+        ],
+        "scope": "Five complete navigations in one fresh browser context, native host/project/OS caches retained. First and persisted geometry hits are labelled by the actual DOM attribute; older clients report null. Attached/two-rAF are navigation-relative DOM/frame proxies, not physical first paint. CPU sampling and automation add overhead. Inventory transfer, JSON parsing, input construction, layout/decoding and initial rendering are included, unlike the prepared-geometry overlay unit benchmark. No file inspection, compilation request or model inference is sent."
+      },
+      "preparation": {
+        "observation": {
+          "job": "sha256:95af7d11fbda594bd8d4569e65ab5d479dacaa05a1943ee6cadf092c0c38a3dd",
+          "resource": "EthLib/Networking/Gossip/Parameters.lean",
+          "phase": "Preparing explanations",
+          "elapsed_ms": 873,
+          "phase_elapsed_ms": 25,
+          "limit_seconds": 0,
+          "outcome": {
+            "state": "ready",
+            "cache_hit": true
+          },
+          "log": {
+            "revision": "sha256:88601894255b206c876d8ac2527665f31b2f95b18dfcc0faf183361f1b74d76e"
+          }
+        },
+        "log_revision": "sha256:88601894255b206c876d8ac2527665f31b2f95b18dfcc0faf183361f1b74d76e",
+        "truncated": false,
+        "build_query_ms": null,
+        "validated_files": null,
+        "validated_bytes": null,
+        "validation_ms": null
+      }
+    }
+  },
+  "prototype": {
+    "asset_override": true,
+    "scope": "Candidate static assets intercepted locally; actual existing native API and original offline inspection. Diagnostic only, not deployment or live-model validation.",
+    "runtime_bytes_identical_to_gated_assets": true,
+    "environment": {
+      "captured_at_utc": "2026-11-24T12:05:45.206Z",
+      "browser": "149.0.7827.53",
+      "viewport": "1440x960",
+      "throttling": "none",
+      "reduced_motion": "no-preference",
+      "gesture_tail_ms": 600,
+      "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+      "declarations": 15,
+      "project_files": 175187,
+      "setup_preparation_ms": 12369.194699,
+      "setup_cache_hit": true,
+      "source_map_directory": "/home/gohan/workspace/meden/target/native-profile/map-paint-20261124/candidate-assets",
+      "source_maps_sha256": {
+        "index-tRveuJxA.js": "5a5deb54480ce17e4a972a2d60e0ed39caa60fb685dc7e3455f7a7aea08c6380",
+        "GraphView-oavZiHQe.js": "9760d9e5b21618f39d59f292b1dfac78f95869a826a578b10a9de3a65a2583e9"
+      }
+    },
+    "drill": {
+      "elapsed_ms": 6277.205254,
+      "long_tasks": {
+        "count": 11,
+        "p50_ms": 99,
+        "p95_ms": 276,
+        "max_ms": 276,
+        "total_ms": 1217
+      },
+      "frames": {
+        "count": 299,
+        "p50_ms": 16.69999999999709,
+        "p95_ms": 33.39999999999418,
+        "max_ms": 283.20000000000437,
+        "total_ms": 6266.4000000000015
+      },
+      "requests": {
+        "GET /api/state": {
+          "count": 16,
+          "bytes": 54064
+        },
+        "GET /api/map": {
+          "count": 10,
+          "bytes": 305846
+        }
+      },
+      "steps": [
+        {
+          "path": "src/Development",
+          "category": true,
+          "x": 581.7184143066406,
+          "y": 276.739990234375,
+          "area": 318672.5851306021
+        },
+        {
+          "wheel": -650,
+          "parent": "src/Development"
+        },
+        {
+          "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition",
+          "category": true,
+          "x": 541.1026916503906,
+          "y": 301.0216522216797,
+          "area": 107902.61881094612
+        },
+        {
+          "wheel": -650,
+          "parent": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition"
+        },
+        {
+          "path": "src/Development/AbelianVarietyTheory/Proofs/IwasawaDecomposition/EvalUnitaryCoordinateZeroOfRationalPointsStatement.lean",
+          "category": false,
+          "x": 461.1611328125,
+          "y": 206.093994140625,
+          "area": 332.91505086421967
+        }
+      ],
+      "retained_dom": {
+        "graph_nodes": 0,
+        "map_boxes": 13,
+        "map_declarations": 26
+      },
+      "cpu_hotspots": [
+        {
+          "self_ms": 2909.0910000000067,
+          "location": "(idle)"
+        },
+        {
+          "self_ms": 1902.3679999999993,
+          "location": "(program)"
+        },
+        {
+          "self_ms": 109.12699999999998,
+          "location": "elementFromPoint"
+        },
+        {
+          "self_ms": 97.03599999999999,
+          "location": "(garbage collector)"
+        },
+        {
+          "self_ms": 79.00700000000003,
+          "location": "setAttribute"
+        },
+        {
+          "self_ms": 76.089,
+          "location": "../../../../../apps/web/src/features/native/project-map-references.ts:18 · referenceEdges"
+        },
+        {
+          "self_ms": 74.78800000000003,
+          "location": "setAttribute"
+        },
+        {
+          "self_ms": 68.81899999999999,
+          "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+        },
+        {
+          "self_ms": 49.194,
+          "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 · commitHostUpdate"
+        },
+        {
+          "self_ms": 48.81099999999998,
+          "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+        },
+        {
+          "self_ms": 42.169999999999995,
+          "location": "../../../../../apps/web/src/features/native/project-map-model.ts:247 · visibleMapAreas"
+        },
+        {
+          "self_ms": 37.232,
+          "location": "../../../../../apps/web/src/features/native/NativeWorkspaceGraph.tsx:112 · (anonymous)"
+        },
+        {
+          "self_ms": 35.31799999999999,
+          "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:9218 · commitHostUpdate"
+        },
+        {
+          "self_ms": 29.208,
+          "location": "getBoundingClientRect"
+        },
+        {
+          "self_ms": 26.116999999999994,
+          "location": "../../../../../apps/web/src/features/native/project-map-model.ts:247 · visibleMapAreas"
+        },
+        {
+          "self_ms": 25.746000000000002,
+          "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 · reconcileChildrenArray"
+        },
+        {
+          "self_ms": 25.541999999999998,
+          "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:14406 · setProp"
+        },
+        {
+          "self_ms": 23.253999999999998,
+          "location": "createElementNS"
+        },
+        {
+          "self_ms": 22.197000000000003,
+          "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:15035 · updateProperties"
+        },
+        {
+          "self_ms": 19.337,
+          "location": "../../../../../node_modules/react-dom/cjs/react-dom-client.production.js:14406 · setProp"
+        }
+      ],
+      "graph_camera": {
+        "before": null,
+        "after": null
+      },
+      "map_camera": {
+        "before": "transform: translate(32px, 163.74px) scale(0.0772);",
+        "after": "transform: translate(-154373px, -93580.9px) scale(45.3544);"
+      }
+    },
+    "sibling_search": {
+      "function": "getHostSibling",
+      "sample_count": 0,
+      "sampled_self_ms": null,
+      "scope": "Whole diagnostic phase CPU-profile samples, including automation/profiler boundaries; no samples is unavailable, not zero execution."
+    }
+  },
+  "deployment": {
+    "binary_sha256": "1f7e10bcc572f9d278c1bf5b181ddf748b2e7f4f67a56b3e9d61e777a5661d59",
+    "assets_sha256": "08653b4112934249c9b48cdbc496aa62bc82706547fe213a661a1ffdfbf9c454",
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/1f7e10bcc572f9d278c1bf5b181ddf748b2e7f4f67a56b3e9d61e777a5661d59-08653b4112934249"
+  },
+  "validated_assets": {
+    "all_validated_bytes_match": true,
+    "files": [
+      [
+        "assets/AnalysisView-BwN1B5rE.js",
+        "04169a8f3099f77b48144ab6178a041380e92d28fffd12f64eda910d822569b2"
+      ],
+      [
+        "assets/ArtifactPanel-CB7LqAHB.js",
+        "fe416de6e03a3859f92fd89532634021d4e5d75030e2f9f98424612e2ca09a80"
+      ],
+      [
+        "assets/GraphView-oavZiHQe.js",
+        "98ee1eced5c75e523239c645910c46feee3ab9691fc125b966f973d095c95717"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-BQhdFMY1.woff2",
+        "0cdd387c9590a1a9f9794560022dbb59654a7d86f187aa0c81495ad42d3a7308"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-DMm9YOAa.woff",
+        "30da91e84c893f875e252689faebdc590b2871145e8adc7f9a9d4dbd8ce0b251"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-DRggAlZN.ttf",
+        "68534840bcfdd2bffb6f0e8deb48684dd01e7f04ea2813267577afb906de1d13"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-ATXxdsX0.ttf",
+        "07d8e303ce4fc12b4bb54f1004170dd190a1f3db45d400fe68060df3e0897268"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-BEiXGLvX.woff",
+        "1ae6bd7475590e97e7f145a89e09ccde322f7a6bc0b91607b1c8b8ee28290fed"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-Dq_IR9rO.woff2",
+        "de7701e42cf1f4cf0b766c03fb27977207eee2f4fd5d76fa82188406da43ea4c"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-CTRA-rTL.woff",
+        "3398dd02302557a793f2863f88e02d96ce10df2abffa07c8e9fa90775116e65c"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-Di6jR-x-.woff2",
+        "5d53e70ad607c2352162dec9e0923fb54ecdafaccbf604cd8dcf7d00facb989b"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-wX97UBjC.ttf",
+        "ed0b74372feefcbb9c0666b2e210da37b7e49fa7fbbf3eeb11db5f693dacfbb7"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-BdnERNNW.ttf",
+        "9163df9c7122432e6495b4229fa9071cf9ae86a758ae5efc4924ec2e1a6dbce1"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-BsDP51OF.woff",
+        "9be7ceb88004ab8ad124082246fbfcca4091e36385d4ec6ed1df67375dad50fb"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-CL6g_b3V.woff2",
+        "74444efd593c005e3f4573b44524704c0af0a937fe911cca9e94068d0d140d3f"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-CB_wures.ttf",
+        "1e6f9579e90e2cac37f8f60a597c436e075c114385652b7cbeb0dec0421291b3"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-CTYiF6lA.woff2",
+        "51814d270d06ff0255dba0799994fa4d8c84d11f09951d47595f4abb1f3602dc"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-Dxdc4cR9.woff",
+        "5e28753be717dac97f559f49bc10be9cf3c124ddcabda6659d11cb68febc6463"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-Cx986IdX.woff2",
+        "0f60d1b897938ec918c8ce073092411baf9438f6739465693ff18b0f9d20b021"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-Jm3AIy58.woff",
+        "c76c5d696297d51b9cb1639c7da4334f0e7dec81b42b11213b5e25ef671bb822"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-waoOVXN0.ttf",
+        "138ac28d1663b3037e9c5f52371fa5c63d8324f4a38d22cd573e6ea3a3fd0cf8"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-DxDJ3AOS.woff2",
+        "99cd42a3c072d918f2f44984a807cf7aa16e13545fd0875fc07c6c65f99e715b"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-DzxPMmG6.ttf",
+        "70ee1f64a20f2048c21940ef46d0144fd215baa953ca69afd1e31e98544f708f"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-SpSLRI95.woff",
+        "a6f7ec0d846ac7ad975adb8959c37ed49b94acbc4ae436db9ce9e20287e4a64c"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-3WenGoN9.ttf",
+        "0d85ae7cc30f23790a7f1a58c4a112fdca8aae769b6ba11429af1d98b1b6cb3a"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-BMLOBm91.woff",
+        "f1d6ef86f3b11a528bd5185199bd2443ecb2b0dead96d88674b5a2c12be24bdf"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-NWA7e6Wa.woff2",
+        "97479ca6cce906abc961ecac96faa5f9ca2e61b8e7670d475826bcdee9a7c267"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-B22Nviop.woff2",
+        "c2342cd8b869e01752a9321dc17213fc40d4d04c79688c1d43f2cf316abd7866"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-Dr94JaBh.woff",
+        "c6368d87e8a1a3a5d337623d83d8dc4b868f242a9ad476237d6f8d1e0f168cdc"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-ypZvNtVU.ttf",
+        "d0332f52868370fd83ae7fa46470f90c8f2eab2fcf12bc4f88080b340c95a830"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-B3XSjfu4.ttf",
+        "f9377ab0271cda59af24bcffbd46a4d0c8a3572ffafdbb38de2ad5ea7b0d5ee5"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-CZnvNsCZ.woff2",
+        "dc47344dbb6cb5b655c8460d561f4df5f501b90c804ad3c6cec65fe322351ab1"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-iY-2wyZ7.woff",
+        "850c0af5c2238497febaf5e461d880bf458c341f42f4f330f1b1ab5698b1998e"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-DA0__PXp.woff",
+        "8a8d244581371912b8f3f5a23e2437cb2a59cd9bcaebb0346e722c05737a2571"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-flOr_0UB.ttf",
+        "08ce98e51b04d58945a301e639e02b6998af29fdfd61a7b8afdd07bbfc479d4a"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-t53AETM-.woff2",
+        "7af58c5ec8f132a2ddde9027c6d7814decce4d3b822a11192a42a20e2e973264"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-CFMepnvq.ttf",
+        "1ece03f79f95277d57dc7f6b435a74e1379b0d46104a8530286b60ff49369ea0"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-D1sUS0GD.woff2",
+        "e99ae51144bf1232efcc1bfe5add36262c6866b0faab24fa75740e1b98577a62"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-DbIhKOiC.woff",
+        "ece03cfd83e22c212cdef66feb8442d25a083beb988db3f1883f3f9738d750ba"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-C3H0VqGB.woff2",
+        "00b26ac825e2095056396e0553b8ac26d3f8ad158c3826e28b4c45b385c4714a"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-DN2j7dab.woff",
+        "91ee67500cc0129aa0ace3ac5c61ff1692102f0f31d02b69347fba35dcb75bf2"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-YYjJ1zSn.ttf",
+        "3931dd81faed86ba021bb2bbdc36f5bed9a38d6b4f4077aca59b265aa1b02083"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-BNo7hRIc.ttf",
+        "f36ea897e19f4a2e571d1e900e4e3710e438deb05a842486045ba0a3e616a4ad"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-CS6fqUqJ.woff",
+        "11e4dc8a6471ff6d6ee561d53d10fde8f7489e798257ff449c5d37c197435605"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-DDBCnlJ7.woff2",
+        "68e8c73ef42afd3ccec58bf0fba302cce448938e7fc020a5e31f8a952eee1342"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-C5JkGWo-.ttf",
+        "1c67f068fea8bb09bf099c088b1cf64bd27516a6e07f4684344873564bb66a67"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-D3wIWfF6.woff2",
+        "036d4e95149b69ff9bcc0cd55771efeb25ffa3947293e69acd78d5ac328c684b"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-D5yQViql.woff",
+        "d96cdf2b3bdd4d64a8fd5f74a4c467f123a8a73931cd435889f08ffaf9bf947a"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-C195tn64.woff",
+        "c943cc986384f59e86bea5fd7dc50a9c4dfe567a7c05eb40d6790720dead97c9"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-Dbsnue_I.ttf",
+        "95b6d2f1a50173bfedb8c63e1d1c99b10427d0a4df4201cb44513b226951a22b"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-mCD8mA8B.woff2",
+        "6b47c40166b6dbe21a5dfca7718413f2147fd2399be1ba605d8ad39cedf25dfe"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-B7gKUWhC.ttf",
+        "a6b2099fb555c60e3a0db3a08842ebf1d732c6eb4e4bf44913613bed4fc4e39b"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-Dy4dx90m.woff2",
+        "d04c54219f9eaec6d4d4fd42dfb28785975a4794d6b2fc71e566b9cd6db842dd"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-oD1tc_U0.woff",
+        "2014c523c3210bcc166648c4d4cc57f05b747df07a24277bf71c51e67dc79e3d"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-CTq5MqoE.woff",
+        "6ab6b62e9b62dae2c00dd90f791bd10950be0ecc3490d7d6045f51c2e8fe0949"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-DgpXs0kz.ttf",
+        "500e04d54f0d51666332c9d2089aa803be22aa878eca539e59fa53c6e522b082"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-gV2CO0n9.woff2",
+        "73d591271b1604960cb10bb90fee021670af7297017e0e98480b332d11f51995"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-BF-4gkZK.woff",
+        "99f9c6750b489c9462bf04900bd3f939df9b829339daaaaa99ef5495cdddea58"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-DWFBv043.ttf",
+        "c647367d1dd4e162468717d020e1fc0f1dc5c26ebfdffbe55261713bf88c5877"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-Dl5lxZxV.woff2",
+        "a4af7d414440a1c1790825cfb700cf9cf43b0f2c4b04f0ebc523011ad9853ec0"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-C0xS9mPB.woff",
+        "e14fed02b1aba7ce9f5afd5844b5d0321b22351febc720e0de8b8723527609f7"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-CO6r4hn1.woff2",
+        "71d517d67827787cfabdf186914cc3358eda539e37931941f2b2fd4a21f68c0b"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-D3Ib7_Hf.ttf",
+        "f01f3e87d9c6a61c0c081ceb577abd864eb00a612f7ac1620dd6915fad2ef5aa"
+      ],
+      [
+        "assets/ProofWorkspace-CRBY4MOF.js",
+        "b98432f34a9484778c45f7047ffb50a571f2d769baf89f9b6265715e99998ca4"
+      ],
+      [
+        "assets/ReviewView-C7GHyeh6.js",
+        "c359c082f5d12e8847d0405319b0d525287f77413ba047af9472e06145399793"
+      ],
+      [
+        "assets/bend-DQWYak6m.png",
+        "9ba4741c87076a254bcee4ba0fb9ded366e6e7bacd6ae4727027e1aabd3a6bd5"
+      ],
+      [
+        "assets/certora-BGZUazkT.png",
+        "dd19f617a5463032f21785e5005c361bd753c0c32b6cd55e6e9f72149cb21242"
+      ],
+      [
+        "assets/cvc5-CKJsvvFK.png",
+        "d898a126bdae142e1ef6d2cf2f8b3b11bc7a3b50b48fa9e779d939070deb1354"
+      ],
+      [
+        "assets/dafny-Bqnbzobc.png",
+        "8e6e9042b348b551c7262a1153b83707ea32f59dd22a445f7d6ab6aa67f0903d"
+      ],
+      [
+        "assets/highlight-DoBG1uA2.js",
+        "940bddd0e35c7123e68aabe567a610aedd9908773c68bec64b4de61ad95e1fc7"
+      ],
+      [
+        "assets/index-8nuQ6BYP.css",
+        "cc9bdfabadb34911ccb5b6be11daae242020bdd97803a8f7b27cf84113c78787"
+      ],
+      [
+        "assets/index-tRveuJxA.js",
+        "ec83c6e72b00bff32b83505f6c04e4e93cbc87275d26fd71ea69ff521b91e0ab"
+      ],
+      [
+        "assets/isabelle-RH45X7aW.png",
+        "01eb41b46ddab73dfa89ab8bd83a4dabcace733d295ea2bfd16662e6432768e2"
+      ],
+      [
+        "assets/lean-DS4hWoMA.png",
+        "b802cfa824bbe3c143fd54ba93661f6cd1e03d0bdb3a2fe6d498a9ba94cd54fa"
+      ],
+      [
+        "assets/roboto-cyrillic-ext-wght-normal-BCp_3N7R.woff2",
+        "01f94d674db55952c35898fa4da22c3e7065c3cc4dbbcc9cb7beb8b6b017fbc9"
+      ],
+      [
+        "assets/roboto-cyrillic-wght-normal-fOt7epNf.woff2",
+        "481dd0c01e6bbb129fd147eb5d8571016193cba141c4627ca60ceabdb5a46ea8"
+      ],
+      [
+        "assets/roboto-greek-ext-wght-normal-Bgw4czJT.woff2",
+        "ec7769b089813996276482bbe7017adfffdd6c7543fd1f76244e2ffc1138ed86"
+      ],
+      [
+        "assets/roboto-greek-wght-normal-DlT9XTxE.woff2",
+        "97fbf7bd0b4579e632392a4f483acdae73cbf59ad90c1e5d2c5ec4044c377fce"
+      ],
+      [
+        "assets/roboto-latin-ext-wght-normal-DYIxWhlt.woff2",
+        "cedb374b05a35034cf96db185db4eeb8f8ce49e1a56197673702ff11b5533d6e"
+      ],
+      [
+        "assets/roboto-latin-wght-normal-ccAYIvAh.woff2",
+        "1404ca348bd75ef836f4dd8b6f2cc719458642d1237c368296b2fc652dca47dc"
+      ],
+      [
+        "assets/roboto-math-wght-normal-4a3xuzGk.woff2",
+        "7cb4281a0ccc84cc18617842c639fc66541cbef94a9dd245c754700210b4fcec"
+      ],
+      [
+        "assets/roboto-symbols-wght-normal-B7iHSfaG.woff2",
+        "2addf2d86d7a5778653b36d551e97a39da52855f82fac7461cfc1bd86d460aed"
+      ],
+      [
+        "assets/roboto-vietnamese-wght-normal-_f1XEJpo.woff2",
+        "0b60bbe04e9c479444b31270a72179f53e400beee57b7dd176c08e5e2e716831"
+      ],
+      [
+        "assets/rocq-Dna-P5lQ.png",
+        "0667a5431bc0a795111e8a1b35aca4fa8ae34d433c8e1e07587ec5eb1c92f4a7"
+      ],
+      [
+        "assets/rust-DwAlVRKW.png",
+        "8cdc4b755c58d9055e772411ad6fb1159a4adab1a51c9c35801fe1ca9c94132f"
+      ],
+      [
+        "assets/tla-AewV2MIo.png",
+        "9ec39edd70f43f0186a706a95dc1def0a90708a9c1ceaa53b035441daf7874ab"
+      ],
+      [
+        "assets/z3-BfVdzy76.png",
+        "1c0f1378fe1b68aa44727659197ee0beecdaca57fd833a25e2074db3acdc1b19"
+      ],
+      [
+        "index.html",
+        "b7957c118ef68ebce5fe3340ceb684fb5398801d84bf0c27fa523b914ebc3945"
+      ]
+    ],
+    "sha256": "08653b4112934249c9b48cdbc496aa62bc82706547fe213a661a1ffdfbf9c454"
+  },
+  "checks": [
+    {
+      "phase": "typecheck",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "typescript",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "architecture",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "format",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "schema",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "fuzz",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "performance",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "tui",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "gui-all",
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "tui": {
+    "success": true,
+    "selected": 35,
+    "binary": {
+      "path": "/home/gohan/workspace/meden/target/validation-bin/1f7e10bcc572f9d278c1bf5b181ddf748b2e7f4f67a56b3e9d61e777a5661d59/meden",
+      "sha256": "1f7e10bcc572f9d278c1bf5b181ddf748b2e7f4f67a56b3e9d61e777a5661d59"
+    },
+    "decoded_screens_inspected": [
+      "test_public_lake_journey_preserves_metadata_binding_and_history",
+      "test_tui_meaning_source_freshness_cancel_and_historical_restart"
+    ]
+  },
+  "actual_projects": [
+    {
+      "project": "riemann",
+      "pid": 3425517,
+      "binary_sha256": "1f7e10bcc572f9d278c1bf5b181ddf748b2e7f4f67a56b3e9d61e777a5661d59",
+      "cache_hit": true,
+      "preparation_ms": 22310.314282,
+      "source_publication": "sha256:4671471a8580f25a42b2117fcc7cf5a8d25988b715b1a40cbb17b77e006bfa94",
+      "source_hash": "2063f4c8792707349ba4b3d295e779c565a63030790aae9d937d5f776d8d9184",
+      "reader_publication": "sha256:d3bca7c0ce21989bef612ac79475e72da33062b4140b13dfe87bbaf183a61be8",
+      "reader_hash": "d2c21198aaff30504f16966ddf61ce628ef7ac8632c62be3195b4e4f72e41806",
+      "inventory_files": 175187,
+      "metadata_hash": "5875c3c3432ddda379f8caf8ed411b77d30701443e5da912442935a296c3ae7a",
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "node_selection_preserves_camera_chat_and_source_line": true,
+      "selected_declaration": "PIW.AdelClassFin.DictGen.denom",
+      "verification_job": {
+        "state": "idle"
+      },
+      "work_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "preview": {
+        "state": "idle"
+      },
+      "preview_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    },
+    {
+      "project": "ethlib",
+      "pid": 3425744,
+      "binary_sha256": "1f7e10bcc572f9d278c1bf5b181ddf748b2e7f4f67a56b3e9d61e777a5661d59",
+      "cache_hit": true,
+      "preparation_ms": 2200.0220280000067,
+      "source_publication": "sha256:c9a67ef7faab77791ab7d84fad5d7176476d3b7d5320d9f95f155b117b57e86b",
+      "source_hash": "ac220adb7270df17b304574138f8894ec78d92bc7a85c5e2e0e745edc885bb09",
+      "reader_publication": "sha256:0b79b28ff3aa227731108c7cde50cf54fa06cc447922756668b1197473b0d3ac",
+      "reader_hash": "60e647749624e65341239c16878edafe3083f1a0b0ba7ab0587b82511d80dd36",
+      "inventory_files": 2517,
+      "metadata_hash": "59b98c2e15f2f590463873351344a08a59e4aa3854a7dfb1779e635a680cb32f",
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "node_selection_preserves_camera_chat_and_source_line": true,
+      "selected_declaration": "EthLib.Networking.Gossip.GossipsubParameters",
+      "verification_job": {
+        "state": "idle"
+      },
+      "work_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "preview": {
+        "state": "idle"
+      },
+      "preview_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip/Parameters.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    }
+  ],
+  "public_connections": [
+    {
+      "project": "riemann",
+      "prior_counter": 0,
+      "current_counter": null,
+      "complete_generated_state_validation": true,
+      "public_choices_preserved": true,
+      "selected_binding_preserved": true,
+      "choices": 3,
+      "choices_sha256": "3c22392a194ffb7d071e11dc260301f76666223753be8d9da40dc00cf720afaa",
+      "running": false,
+      "authorized": false
+    },
+    {
+      "project": "ethlib",
+      "prior_counter": 0,
+      "current_counter": null,
+      "complete_generated_state_validation": true,
+      "public_choices_preserved": true,
+      "selected_binding_preserved": true,
+      "choices": 3,
+      "choices_sha256": "3c22392a194ffb7d071e11dc260301f76666223753be8d9da40dc00cf720afaa",
+      "running": false,
+      "authorized": false
+    }
+  ],
+  "compiler_sources_unchanged": [
+    {
+      "path": "crates/meden-app/src/adapters/lake.rs",
+      "sha256": "bfb03188d670305be66d1152c47982a6bcea528b283d1e16de67ca9b8eebd8d8",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean.rs",
+      "sha256": "e64f92a04a26780fb32a9db274e1430fb142bcaad6cca8af12dab4cac65761de",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/collect.rs",
+      "sha256": "755c5495ad2e80171a136ca9be194867741fc2d8db5376644a46fcb3766f194b",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/layout.rs",
+      "sha256": "a6d7069ced1c8c1fcccf9349b293efc335e0a916df6ca864b4c8f30e35f1c94f",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/observe.rs",
+      "sha256": "047ed863ac5571096a23ccb7196e713707a6bcae2db0b1d7b80c4674927bb7e5",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/sources.rs",
+      "sha256": "88c5be999f8ba6a705dbcff8238f0648f3825f1e0fe61de3605a04075837c03a",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/compiler.rs",
+      "sha256": "c2efc23d024921aa5bb5fcfa120f1e672438f09d25d7f4a309de19469483dbc4",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/adapters.rs",
+      "sha256": "ab5b5f082cb99f9321bab7f49e322a1b97177340964b6ea7c9acd3c28e3cd713",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/mod.rs",
+      "sha256": "c0f2f0d9612e0181b01aa45f06f23f4e8c04361b5381d39d1c9d40e9672b0a74",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/project.rs",
+      "sha256": "13a22dcf4deb352b9076ba8f287cd440b94fae4bb87cec33576b121bbca4288c",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/lake.rs",
+      "sha256": "e732135a0bd5f3bbc87b0be02b077fa3b307c6b7d0ce6ee964f85aa2c6eb7760",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/graph.rs",
+      "sha256": "1efb44197f9762f7db65995eec0003c704b559efc3829c1455ed73300e288c40",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/frozen.rs",
+      "sha256": "37609bb326f5ab5d061be31c8ddac907949bb435b374750dc8d1a108f49e5b10",
+      "unchanged": true
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "target/gui-profile/sparse-riemann-events/events.csv",
+      "sha256": "61be631559d9b3a940b1f88e9808cb340cf5472efb28ae24de02218f355b9b11"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/events.md",
+      "sha256": "fc25bb2dd01819d9dbc9ada52f008d31c9a701179abca195452313bd67503948"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/graph-fit-view.cpuprofile",
+      "sha256": "1b0903c947817eb9695e0df1502f115a9465356c2c9afb9aa9002fd0f01fee9b"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/graph-hover.cpuprofile",
+      "sha256": "159f41d878d40dc7c528ca4e877052e669c73c8e9f5a40610c820a0955cf11c7"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/graph-idle-poll.cpuprofile",
+      "sha256": "3195ed0bbcd68e65ba7a263914ad1380bda8a815f7b1a247a246792b58f08fca"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/graph-idle-settled.cpuprofile",
+      "sha256": "7805a5ba10248becab81187ae7c60f88a314e3d8a47fe34db101fc8b96bf4a68"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/graph-node-select-distinct.cpuprofile",
+      "sha256": "0b23fe66c29d1d738b773d51c8ec783fa1160755885e9eb4991bb20a1be01444"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/graph-node-select.cpuprofile",
+      "sha256": "a5b8884184d7284565ce919023f167bde6254d34f4081dbabce26855b4d88fe4"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/graph-pan.cpuprofile",
+      "sha256": "8940dd47789ca3da9d255948bc0b36c4137f86f501ce0ed7d2f16d65e45f63b7"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/graph-resize.cpuprofile",
+      "sha256": "ae54b76e92964f3b2e1d7bff0c5fa72637e821a268c4e597bffefe4151939f9d"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/graph-wheel.cpuprofile",
+      "sha256": "39441a41a5d3af4b27622d628f90527da40ae88e767ba6ef38c5fad66be8bb5a"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/native-metrics.json",
+      "sha256": "eaea23534ee26e6ad15aedcfdedbac34b6366234aec04a1c340fd1e3f53cf6e5"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/preparation-log.json",
+      "sha256": "a76d2e16e07cb5e13adf0d32a75e9d7fb9d8628515bf3e3c6c1d1174d8e09000"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/preparation.json",
+      "sha256": "541dddd5ec3194f720d8205af6fa683ac28a863b3b7e33ee96200e3faecfbcc6"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/project-map-drill.cpuprofile",
+      "sha256": "91a09b3ac0936682f613c6590ab3acc10dbaecc53bf27a6da4818a43a2cc4e80"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/project-map-idle.cpuprofile",
+      "sha256": "05fc31b480621469151f19ae7f988d443be38e3fa0246ae7cf7e9a51fcd65daf"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/project-map-wheel.cpuprofile",
+      "sha256": "0e54ed9fda33f4bac83a5a021bb849c9f378e5cb05075971c588257fbe918dcb"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/project-map.png",
+      "sha256": "dc11398c988e574da7606d27004868cc7cd2bb2f0e232f828544d5135dff5b08"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/summary.json",
+      "sha256": "00e9552eb74216e9224b386505e25b2cf7645fa03660de287f75881c3c92caf7"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/tab-switch.cpuprofile",
+      "sha256": "755a7e8ade49c8a3e9097600d8491db667c7080500d40349527f5c272c317a54"
+    },
+    {
+      "path": "target/gui-profile/sparse-riemann-events/trace.json",
+      "sha256": "6d3d05e2cfed7c81d7fd84f89a734938aaf91042aa910d12b8c00dc2f6b108c5"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/events.csv",
+      "sha256": "55bafb60aa43dbbd3550e4d92fa2b87127c9a9f396ff17c1160be63f54fe0c52"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/events.md",
+      "sha256": "ccfac32426ed962fda4c28f84fbc0005c815990760f1a7d1f1f5574db6dd98c6"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/graph-fit-view.cpuprofile",
+      "sha256": "0bf4b82478c60c73b9fefcfd99ed7040abd9a11f012e4e83015f9617d276aead"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/graph-hover.cpuprofile",
+      "sha256": "76fee0a07d8575c87163148bb9a64ba3b88926873ed3d14e32567e48e150c90d"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/graph-idle-poll.cpuprofile",
+      "sha256": "7ad38fc6daf68a9f9d98de311ef640440501a40f6a8ff04df6fe219937191281"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/graph-idle-settled.cpuprofile",
+      "sha256": "da982cc225b08085eaf1d07d9167e1e9a410bffef0a17b0fafcc4e3762f1e5a2"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/graph-node-select-distinct.cpuprofile",
+      "sha256": "db75b63683d3b0a0ee2503be5f31255c34bbc7c48ea85b6eaf36f35422e2d2e9"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/graph-node-select.cpuprofile",
+      "sha256": "8613accbbd51f37ecc72f19def85ea5c4654913189fa3e84344f165ec61ab636"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/graph-pan.cpuprofile",
+      "sha256": "b8cb7042a4ca405434b32f36ecef311fdd1e0f84978372fb82b2bcbcceea34dd"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/graph-resize.cpuprofile",
+      "sha256": "da4d1906914054c30cfe66ff3b1550314384c5bbe82cbd1d07e1d47abfea4fdc"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/graph-wheel.cpuprofile",
+      "sha256": "23361f5fcbf9c4d61930ee019ee4957d1ccbad7314d73883a08ec3ce76373494"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/native-metrics.json",
+      "sha256": "a6abd0370a1e620e47e6c247a012146f8c78c4315b5e279869ab42edcc777c63"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/preparation-log.json",
+      "sha256": "a91d5a2ebe19e5867534634e2529b9f3a13f5df311001b89b4f86d2b6c2e77c3"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/preparation.json",
+      "sha256": "d91f59beae50cbc2d2f5c7dc69740428837730c68661d779eb6d5006179637f9"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/project-map-drill.cpuprofile",
+      "sha256": "e7493580cd281391170aa252cb03960e153a10def9a18030414485d5a47c41ca"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/project-map-idle.cpuprofile",
+      "sha256": "a6d328f3207b657b28956bb9cb498cffa04b23489faeb4191ab846e2053f83ec"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/project-map-wheel.cpuprofile",
+      "sha256": "638211fb80169a931be3dc32b937693e907e5d9710293915a5333e1120eec9d8"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/project-map.png",
+      "sha256": "dc11398c988e574da7606d27004868cc7cd2bb2f0e232f828544d5135dff5b08"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/summary.json",
+      "sha256": "6e56f581c86efe4a933e734498fd2feaa87b96d6c58b07b5b5dfd1809bc8e7d6"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/tab-switch.cpuprofile",
+      "sha256": "fe0344bd028ff09df5ed707bffce3c9a7ab96c70a99dfc97601ee44f4e1a38a7"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-events/trace.json",
+      "sha256": "af3c1b83031b5e94067d355bba87db22ddbc96bb22c5d960c4bbca44d5cface7"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-after/summary.json",
+      "sha256": "f2e9a34be20bac65cc1a4cc7fd7d3839a1c1c60215d74727f85cf9fc00385be5"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-after/visit-0.cpuprofile",
+      "sha256": "7a1002e9ebff3986f5065ef280b64ba90ae52f12448009c8ab6c07d90beef0be"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-after/visit-1.cpuprofile",
+      "sha256": "c4c27d643a8f615cb0d96f49e1d1fa1038e1f23b20bdc969a2bb1e44dfd55aa8"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-after/visit-2.cpuprofile",
+      "sha256": "438cc70889b23f80069a0a77a53097750d80e88d2b481fbe574e6accf1094b25"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-after/visit-3.cpuprofile",
+      "sha256": "d2ba0ee9085ef458a688919eee9cd03e87c9111a1be6ebc201adfa4be6dfd6e9"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-after/visit-4.cpuprofile",
+      "sha256": "a524edd02d5f07c41339bd03e93a2106f8e22a821ab4d9707d227cf756ed177f"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/events.csv",
+      "sha256": "b950a5650151181e2bc4aa7661b1fcf81dbf642c61c83d14d1f52e4fa7a17223"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/events.md",
+      "sha256": "dbe42b6bb3145897d26356e8b1bf8566beebe945c09bc6b88d785b8f2fec00c2"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/graph-fit-view.cpuprofile",
+      "sha256": "5a72c52f6caef667dc073c78e354f12deb87a184149884723e0072498612c45f"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/graph-hover.cpuprofile",
+      "sha256": "730265fb054988ebfb416973244393566546cd5f06e45926fc65a46ab48473ab"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/graph-idle-poll.cpuprofile",
+      "sha256": "c5ef915f295b53797836c40ded5b0ad942ef62f0ee31e92c6151521d6446a065"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/graph-idle-settled.cpuprofile",
+      "sha256": "6570146c3f8634b290a4ccb3535aee323dcd2ab1881436fe570356cc38f40094"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/graph-node-select-distinct.cpuprofile",
+      "sha256": "debe1037966aec13e7f0faec7558bb99db11b308fc99b85173087eb707023302"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/graph-node-select.cpuprofile",
+      "sha256": "88dc4a75359bcc0f1cd8dfd7295bff020f25fc5d41a932d50ea8764ecc016379"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/graph-pan.cpuprofile",
+      "sha256": "c570e4c149bbd63d165f234b81c5533ea5074e3c07c827396ba2de06685287eb"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/graph-resize.cpuprofile",
+      "sha256": "fd8f36ff1580344fe0ca21e6ed543fbaff21ff0261753ffaf4b8267463e4762a"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/graph-wheel.cpuprofile",
+      "sha256": "c8f6c36e127b1e4ce60d05013a43b4f881d908a88dfff63df17e602c594ddb16"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/native-metrics.json",
+      "sha256": "3904a800963da5eb06cc39c2b0a6c126bbc4dc5cf6c0566f4b1c67abf9b680fb"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/preparation-log.json",
+      "sha256": "32229e9cc2953f3cadae3a6bfd1b59a4f8aefbc02012dbfa582e9092a6a7b840"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/preparation.json",
+      "sha256": "35005a2580f54a48c19fa617e08031cec5cce03c4eae975d31be387dcddb6a5a"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/project-map-drill.cpuprofile",
+      "sha256": "623c724356c7f6756332ac852b2433124d616c4ef04e6911e1e66a4e6f5c3fd6"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/project-map-idle.cpuprofile",
+      "sha256": "47acd4c6c1773ad13774d0f66f02d61de05f73e74079f53060691cc868af5cf0"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/project-map-wheel.cpuprofile",
+      "sha256": "968335091ffa5e2fc57af249ce819cd0dddffb2bdfe8c755c4b0f30ffa30e7f1"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/project-map.png",
+      "sha256": "bfa2af4c46e0ac573b73f762c7c883bb6e1d0d001649895345e31f50e14c5c54"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/summary.json",
+      "sha256": "6240aed59fdf2c69f028eb8a56069738d8611f2a457568962bd393de20308b88"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/tab-switch.cpuprofile",
+      "sha256": "006b7502d8dbbb09235b47a4cc33927b5184f6e87e5996dbf5beec0acefad4f5"
+    },
+    {
+      "path": "target/gui-profile/sparse-ethlib-events/trace.json",
+      "sha256": "17dc8164dbea51971faa01daaeb3d72cb49bceff6cd5832a1377bc4b82bd0475"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/events.csv",
+      "sha256": "e92838ac5ed9c33c1165b44dbf3df39382765c8ab5fc039f2a4a7f46e50f08d0"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/events.md",
+      "sha256": "103d9f1920f4c74f1bdd1eea7d6da2682ce6b1f9f9e6e86f868593bda1716665"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/graph-fit-view.cpuprofile",
+      "sha256": "3236247ba344f8811776daca13ef5b3e32b6ba85a919347da66b74840442919b"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/graph-hover.cpuprofile",
+      "sha256": "4664f088a2e8f70f0916de51721b4f2c5d0400ed742805f7d313d4de7facaf5a"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/graph-idle-poll.cpuprofile",
+      "sha256": "01114801951bff7594054eb10cbcbb697d670185b8017062e5be7d0b18bb05ba"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/graph-idle-settled.cpuprofile",
+      "sha256": "1e9c73418175febbb059b1c71f330dfea60bbb2d8b1a9d9fcdb4624292753af8"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/graph-node-select-distinct.cpuprofile",
+      "sha256": "5870b104844e5dc46214244eb7782323deffcb15e4645878c9ff67dc57d5b88f"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/graph-node-select.cpuprofile",
+      "sha256": "6f6c79a3a9bdde5189bf693d1cca0a6bac2e573d6345c5960fabc1ca0317246b"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/graph-pan.cpuprofile",
+      "sha256": "400ecdb3f1bf60bca6cc50e83d8bf937b9705c0492f0e89543b6df58f4b09d6f"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/graph-resize.cpuprofile",
+      "sha256": "318740427fdf25b834e7ded72b45eb704febd33e4363453944faadb14ddb965a"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/graph-wheel.cpuprofile",
+      "sha256": "9b4ecfd2e4fca3c2c0dfa877addc30050f2243e13f27b3e1b2c8dce815a8beae"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/native-metrics.json",
+      "sha256": "3496f6b42b71d1e4dc331dbf8f9e72e7a2abdebe7a710eb76ee5781a939607bc"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/preparation-log.json",
+      "sha256": "2c1eaa60b995a1f390c28e2458729c37b252cd5e256f4bae0166fb48e62e9d87"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/preparation.json",
+      "sha256": "6c0000be3db579bd63f1dfb445e8fde72b92377b2be261d02edcc6d09fdb8eca"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/project-map-drill.cpuprofile",
+      "sha256": "0368bc49f6ad0cff711edd1aa131c6128e993b01424e72503b45d293f206af92"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/project-map-idle.cpuprofile",
+      "sha256": "bdf15bfad08a1ec3e14965e09afa57e58a81cc16790812600801dee53b252dcd"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/project-map-wheel.cpuprofile",
+      "sha256": "b6237d847d596351da5b3d584ba2cde735326fdf01c3cb6f4fa334413196d237"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/project-map.png",
+      "sha256": "bfa2af4c46e0ac573b73f762c7c883bb6e1d0d001649895345e31f50e14c5c54"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/summary.json",
+      "sha256": "d7a8370d2c41afbe97cbe3a7eec166e72c7bfc2bcfc3cd709747a072556bc117"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/tab-switch.cpuprofile",
+      "sha256": "779a3b37f5ad97ccfdbdf825399210b614e2b56ca0bd73695246bf3138b05e8e"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-events/trace.json",
+      "sha256": "dbba85d029295d8bd919467d8a9ba30198b9846da4d3dfd9fb51da1c1f104855"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-after/summary.json",
+      "sha256": "5974dfb9e6bf6a0cf5b7d6b534d97bbd0096c02fdb12a517d997119a1513499f"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-after/visit-0.cpuprofile",
+      "sha256": "c3344169ff49de9098faf9524ec418bcd55512f3a487296b65d125f4d24c8b54"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-after/visit-1.cpuprofile",
+      "sha256": "8195ce92af898275b4f50e672fc0fcc13f9fa9cd058f72415b8f69637d94b222"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-after/visit-2.cpuprofile",
+      "sha256": "72188abc577305fd3b9efae78c90d99a8c22434c323d0473ae50a88acabd2d29"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-after/visit-3.cpuprofile",
+      "sha256": "be506516667c9016bfeda806da4f2e96c3b95b05ecabd359c17447d3b5e1bc5a"
+    },
+    {
+      "path": "target/gui-profile/paint-ethlib-after/visit-4.cpuprofile",
+      "sha256": "7bb3291d2016177f9015ad48fa729307ba081646106d5f49967daedd89b3c17f"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/events.csv",
+      "sha256": "2580515b62cfb8c43213f8429bebc0ca1b529746f721a29d31baa6b7ee5652c8"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/events.md",
+      "sha256": "cbf1fec76421551375c8d04a8a34701f6378a77c08c6ffc0355f5473ae0939d1"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/graph-fit-view.cpuprofile",
+      "sha256": "18f79716e6ad911956c9002e93989ad981a90c2227b674dd588e642df8669553"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/graph-hover.cpuprofile",
+      "sha256": "9565ee18bd1b07844590952e625800b98a3d2fea224bae2ec26907c7acb0ce2d"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/graph-idle-poll.cpuprofile",
+      "sha256": "7ac156e2068e4d4b2c136fa113a76383c16d9101149dc2f27caa6820dc1f3371"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/graph-idle-settled.cpuprofile",
+      "sha256": "dd0bd0dfce76209f0bc75220e20228ab389a4ef2b92520dc1f71828f6d709cce"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/graph-node-select-distinct.cpuprofile",
+      "sha256": "c6e3597718966973499c23e66907dcbf43cd7a891498532a2fc199bc99f1db0d"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/graph-node-select.cpuprofile",
+      "sha256": "87b5ff443c79925be7c42fa5b2c74d577658323c5b50f7cf5a343226dd066266"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/graph-pan.cpuprofile",
+      "sha256": "1e9e21011be03d5f170b5c6fb93b2d21d73e2d50d4655e99d3c8c8f244ce2c93"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/graph-resize.cpuprofile",
+      "sha256": "8dd949f4af3f6add94eeefcf20180f396cbbd2ce4782de919e86b6124fdd9936"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/graph-wheel.cpuprofile",
+      "sha256": "700bf60f7b9fccc64f57cedc8d30e5e0a4e33ca2d74f1251809d55f79dfd50ec"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/native-metrics.json",
+      "sha256": "d280719bf15723706e9690fea79e1b498b9131137db51eac8739115d87f70b21"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/preparation-log.json",
+      "sha256": "c385a37c617b850476a62de4c0503fb9b73510c2d8223a95115de4e943669cc3"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/preparation.json",
+      "sha256": "19c648b38f46a607b65f026688050ef1ec62faee7f62ed41ff56077f7070bf7d"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/project-map-drill.cpuprofile",
+      "sha256": "d458cbf500a87c674fb1f4f1500029d7aae1ac5f4696ec8d06d148e828c15aea"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/project-map-idle.cpuprofile",
+      "sha256": "e45d1a336aa6a65044e3d59958b03014ff29edf1ba07130b748ad22b07d4bb44"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/project-map-wheel.cpuprofile",
+      "sha256": "d746e140b60877dd0f21d5e94fb9c1ca212124d9ef88bebf179e03ac69e38c19"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/project-map.png",
+      "sha256": "dc11398c988e574da7606d27004868cc7cd2bb2f0e232f828544d5135dff5b08"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/summary.json",
+      "sha256": "29c5d249ba9721598bf1c4c3b4a6d40abf37732ac683e4ece522ee0c0ee68331"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/tab-switch.cpuprofile",
+      "sha256": "a4ffebf88d9e6645fe9aa9f33091a5eed9ac975bceb04e581c746f514e969a8c"
+    },
+    {
+      "path": "target/gui-profile/paint-riemann-prototype/trace.json",
+      "sha256": "08364a9ebb53f182ba6385b4dac71abc8a6b792924b87ffb884b251b5efa0509"
+    }
+  ],
+  "limits": [
+    "Same file targets, coordinates and source data; one sequential diagnostic capture per served version/project, with automation, tracing and 1 ms CPU sampling. This is not a field percentile or a controlled exclusive-stage experiment.",
+    "No getHostSibling sample means unavailable at this sampling resolution, never zero execution time. Whole CPU-profile phase intervals include instrumentation boundaries.",
+    "Area batches hold at most 128 original siblings; the number of batches, reference and declaration lists can still grow. No universal linear-time React/rendering claim.",
+    "Handler dispatch is inclusive synchronous time; two-rAF and frame intervals are proxies, not physical presentation or field INP. API timings and CPU stages overlap.",
+    "The current five-visit navigation comparison uses the immediately prior identical-baseline-assets capture; it is not an interleaved startup benchmark. Native/project/OS caches are warm.",
+    "Fixture TUI/GUI checks use actual offline workers and installed tools with scripted inference; they do not validate actual model quality, cold installation, local inference or confidentiality."
+  ],
+  "remaining": "Initial inventory materialization, DOM/property work, native preparation waits and the broader architecture-plan completion audit remain open.",
+  "publication_checks": [
+    {
+      "phase": "large-normal",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "format-final",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "hidden-build",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "deploy",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "fidelity",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "bindings",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "map-load-riemann",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "events-riemann",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "map-load-ethlib",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "events-ethlib",
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "gui_stats": {
+    "all": {
+      "total": 70,
+      "expected": 70,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "normal": {
+      "total": 1,
+      "expected": 1,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    }
+  },
+  "final_idle_hosts": [
+    {
+      "project": "riemann",
+      "port": "4323",
+      "running": false,
+      "authorized": false,
+      "connections": 3,
+      "original_executable": true,
+      "work_job": "idle",
+      "verification_job": "idle",
+      "preview": "idle"
+    },
+    {
+      "project": "ethlib",
+      "port": "4322",
+      "running": false,
+      "authorized": false,
+      "connections": 3,
+      "original_executable": true,
+      "work_job": "idle",
+      "verification_job": "idle",
+      "preview": "idle"
+    }
+  ],
+  "baseline_event_artifacts_unchanged": 42,
+  "inspected_screenshots": [
+    "target/native-profile/paint-20261124/ethlib-deployed-final.png",
+    "target/gui-profile/paint-riemann-events/project-map.png"
+  ]
+}

@@ -35,6 +35,7 @@ export type MapArea = {
   declarations: number;
   main: boolean;
   cellHeight: number;
+  batch: number;
   symbols: Symbol[];
 };
 export type MapIndex = {
@@ -64,19 +65,21 @@ export function prepareMap(
   geometry: MapGeometry = mapGeometry(layoutInput(snapshot)),
 ): MapIndex {
   const files = new Map(snapshot.files.map((file) => [file.path, file]));
-  const areas: MapArea[] = geometry.areas.map((box) => ({
-    ...box,
-    file: files.get(box.path),
-    main: false,
-    cellHeight: box.height * 0.76,
-    symbols: [],
-  }));
   const children = new Map<string, MapArea[]>();
-  for (const area of areas) {
-    const siblings = children.get(area.parent) || [];
+  const areas: MapArea[] = geometry.areas.map((box) => {
+    const siblings = children.get(box.parent) || [];
+    const area: MapArea = {
+      ...box,
+      file: files.get(box.path),
+      main: false,
+      cellHeight: box.height * 0.76,
+      batch: Math.floor(siblings.length / 128),
+      symbols: [],
+    };
     siblings.push(area);
-    children.set(area.parent, siblings);
-  }
+    children.set(box.parent, siblings);
+    return area;
+  });
   return {
     snapshot,
     geometry,
@@ -281,6 +284,28 @@ export function visibleMapAreas(
         queue.push({ area: child, opacity: childAlpha });
   }
   return visible;
+}
+
+/** Visible siblings retain their original order and stable bounded SVG parents.
+ * React placements need not search every later uncommitted file in a directory.
+ */
+export function mapAreaBatches(visible: ReturnType<typeof visibleMapAreas>) {
+  const batches: Array<{
+    key: string;
+    parent: string;
+    batch: number;
+    visible: typeof visible;
+  }> = [];
+  for (const item of visible) {
+    const { parent, batch } = item.area;
+    let last = batches.at(-1);
+    if (!last || last.parent !== parent || last.batch !== batch) {
+      last = { key: batch + ":" + parent, parent, batch, visible: [] };
+      batches.push(last);
+    }
+    last.visible.push(item);
+  }
+  return batches;
 }
 
 /** The legend describes declarations actually rendered in the current viewport. */

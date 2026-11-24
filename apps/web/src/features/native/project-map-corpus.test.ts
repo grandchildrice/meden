@@ -7,6 +7,7 @@ import type { WorkspaceOverview } from "@meden/agent-protocol/native";
 import {
   declarationDetail,
   mapHasDeclarations,
+  mapAreaBatches,
   mapLocation,
   projectMap,
   visibleMapAreas,
@@ -117,6 +118,14 @@ test("generated camera traces agree with a full scan and never change world coor
           const expected = scan(scene, view, size);
           const visible = visibleMapAreas(scene, view, size);
           expect(visible).toEqual(expected);
+          const batches = mapAreaBatches(visible);
+          expect(batches.flatMap((batch) => batch.visible)).toEqual(expected);
+          expect(new Set(batches.map((batch) => batch.key)).size).toBe(
+            batches.length,
+          );
+          expect(batches.every((batch) => batch.visible.length <= 128)).toBe(
+            true,
+          );
           const declarations = expected.flatMap(({ area, opacity }) =>
             opacity * declarationDetail(area, view.zoom, size) < 0.01
               ? []
