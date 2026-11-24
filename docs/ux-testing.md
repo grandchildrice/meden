@@ -168,6 +168,13 @@ run via `npm run test:performance` / `npm run test:fuzz`; see
 
 The separate-judge and repair journeys also inspect original model descriptors
 in retained history and reviewed repair logs, including failure and restart.
+The native root and command validators are generated from shared application
+definitions. The guarded API journey sends numeric, null, noncanonical and
+overflowing connection counters to the actual host and requires refusal with no
+model request or changed selection, then approves the original visible binding.
+A pure actual-gateway boundary test seeds the host counter near u64::MAX and
+checks exact comparison and overflow refusal; it is not live inference coverage.
+Client tests separately require malformed commands to fail before HTTP dispatch.
 The native cancellation journey holds the cancel-command response after the
 host has received it: the UI must still observe a completed stop, execute no
 late tool call and keep sending disabled until that response is released.
@@ -299,6 +306,11 @@ Inference in these browser cases remains scripted and does not prove model quali
 Native application-preview cases develop actual HTML/JS/CSS/JSON through file tools,
 exercise module imports and interactive controls on desktop/mobile, retain the
 document across tabs, reread after edits and recover from a missing entry/restart.
+The authored counter fixture keeps submission disabled until its real settings
+fetch and handler installation finish. The recovery path holds that actual
+response, observes the disabled control and then exercises the changed increment.
+A visible HTML document alone is not application readiness; this fixture check
+does not claim that Meden can infer readiness for arbitrary embedded programs.
 They check old preview revocation, missing-asset diagnostics, size limits, folder
 aliases resolving outside the selected root, browser parent/storage/API separation,
 working client-side form handlers, blocked cross-origin fetch/image/script/form loads

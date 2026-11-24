@@ -1,5 +1,6 @@
 import {
   nativeStateSchema,
+  nativeCommandSchema,
   previewPublicationSchema,
   type PreviewPublication,
   evidencePublicationSchema,
@@ -48,7 +49,7 @@ export class NativeClient {
     );
   }
   async command(command: NativeCommand): Promise<void> {
-    await this.request("/api/command", command);
+    await this.request("/api/command", nativeCommandSchema.parse(command));
   }
   async evidence(
     revision: string,

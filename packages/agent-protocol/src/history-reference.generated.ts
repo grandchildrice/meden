@@ -1,6 +1,6 @@
 // Generated from meden_app::view::history::Reference. Do not edit.
 import { z } from "zod";
-export const historyReferenceSchema = z.union([
+export const historyReferenceSchema = z.discriminatedUnion("state", [
   z
     .object({
       state: z.literal("ready"),

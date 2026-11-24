@@ -19,6 +19,11 @@ impl Sequence {
         self.0
     }
 }
+impl From<std::num::NonZeroU64> for Sequence {
+    fn from(value: std::num::NonZeroU64) -> Self {
+        Self(value.get())
+    }
+}
 impl Serialize for Sequence {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         serializer.serialize_str(&self.0.to_string())

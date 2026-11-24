@@ -5385,9 +5385,9 @@ theorem slow : True := fast
     test.setTimeout(60_000);
     await mkdir(resolve(project, "public"));
     const html =
-      '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Counter</title><link rel="stylesheet" href="/style.css"><script type="module" src="/counter.js"></script></head><body><h1>Local counter</h1><output aria-label="Count">0</output><form><button type="submit">Increment</button></form></body></html>';
+      '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Counter</title><link rel="stylesheet" href="/style.css"><script type="module" src="/counter.js"></script></head><body><h1>Local counter</h1><output aria-label="Count">0</output><form><button type="submit" disabled>Increment</button></form></body></html>';
     const script =
-      'const {step} = await (await fetch("/settings.json")).json(); let count=0; document.querySelector("form").addEventListener("submit",event=>{event.preventDefault();document.querySelector("output").textContent=String(count+=step);});';
+      'const {step} = await (await fetch("/settings.json")).json(); let count=0; document.querySelector("form").addEventListener("submit",event=>{event.preventDefault();document.querySelector("output").textContent=String(count+=step);}); document.querySelector("button").disabled=false;';
     for (const [path, content] of Object.entries({
       "public/index.html": html,
       "public/counter.js": script,
@@ -5486,9 +5486,39 @@ theorem slow : True := fast
       path: "target/gui-checks/native-preview-failed.png",
       fullPage: true,
     });
-    await preview(page, "public");
-    await frame.getByRole("button", { name: "Increment" }).click();
-    await expect(frame.getByLabel("Count")).toHaveText("3");
+    // A visible document is not an initialized application. Keep this authored
+    // fixture's control disabled until the actual settings fetch and handler
+    // installation complete, rather than racing a native form submission.
+    let settingsObserved = false;
+    let releaseSettings = () => {};
+    const settingsReleased = new Promise<void>(
+      (resolve) => (releaseSettings = resolve),
+    );
+    const holdSettings = async (route: import("@playwright/test").Route) => {
+      const response = await route.fetch();
+      settingsObserved = true;
+      await settingsReleased;
+      await route.fulfill({ response }).catch(() => {});
+    };
+    await page.route("**/settings.json", holdSettings);
+    try {
+      await preview(page, "public");
+      await expect.poll(() => settingsObserved).toBe(true);
+      await expect(
+        frame.getByRole("button", { name: "Increment" }),
+      ).toBeDisabled();
+      await expect(frame.getByLabel("Count")).toHaveText("0");
+      await page.screenshot({
+        path: test.info().outputPath("preview-settings-pending.png"),
+        fullPage: true,
+      });
+      releaseSettings();
+      await frame.getByRole("button", { name: "Increment" }).click();
+      await expect(frame.getByLabel("Count")).toHaveText("3");
+    } finally {
+      releaseSettings();
+      await page.unroute("**/settings.json", holdSettings);
+    }
     await page.reload();
     await page
       .getByRole("button", { name: "Preview app", exact: true })
@@ -5754,6 +5784,29 @@ theorem slow : True := fast
       },
     );
     expect(wrongHost).toBe(403);
+    const binding = await nativeState(page);
+    expect(typeof binding.connection_revision).toBe("string");
+    for (const connection_revision of [
+      1,
+      null,
+      "0",
+      "01",
+      "18446744073709551616",
+    ]) {
+      expect(
+        await hostCommand(page, {
+          type: "approve_processor",
+          connection_revision,
+          endpoint: binding.endpoint,
+          model: binding.model,
+          judge: binding.judge,
+        }),
+      ).toBe(409);
+      const unchanged = await nativeState(page);
+      expect(unchanged.connection_revision).toBe(binding.connection_revision);
+      expect(unchanged.authorized).toBe(false);
+      expect(requests).toHaveLength(0);
+    }
     expect(
       (
         await fetch(origin + "/api/command", {

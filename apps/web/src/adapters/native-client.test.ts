@@ -24,6 +24,46 @@ const snapshot = {
 };
 afterEach(() => vi.unstubAllGlobals());
 
+test("commands validate before transport and retain the exact original review counter and paths", async () => {
+  const fetch = vi
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve(Response.json({ accepted: true }, { status: 202 })),
+    );
+  vi.stubGlobal("fetch", fetch);
+  const client = new NativeClient("host-session");
+  const review = {
+    type: "approve_processor" as const,
+    connection_revision: "18446744073709551615",
+    endpoint: "https://original.invalid/v1/chat/completions",
+    model: "original-model",
+    judge: { endpoint: "https://judge.invalid/v1", model: "original-judge" },
+  };
+  await client.command(review);
+  expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual(review);
+  const inspect = {
+    type: "inspect" as const,
+    path: "Folder/one\nλ.lean",
+    directory: false,
+  };
+  await client.command(inspect);
+  expect(JSON.parse(fetch.mock.calls[1][1].body)).toEqual(inspect);
+  for (const invalid of [
+    { ...review, connection_revision: 1 },
+    { ...review, connection_revision: null },
+    { ...review, connection_revision: "0" },
+    { ...review, connection_revision: "01" },
+    { ...review, connection_revision: "18446744073709551616" },
+    { ...review, approved: true },
+    { type: "instruction", text: "Original intent", execute: "unreviewed" },
+    { type: "run_unknown_backend", path: "candidate" },
+  ])
+    await expect(
+      client.command(invalid as Parameters<NativeClient["command"]>[0]),
+    ).rejects.toThrow();
+  expect(fetch).toHaveBeenCalledTimes(2);
+});
+
 test("preview reads bind frame and publication while preserving bounded diagnostics", async () => {
   const frame = "sha256:" + "b".repeat(64);
   const data = {

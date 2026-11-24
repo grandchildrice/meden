@@ -1,0 +1,1288 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "State",
+  "description": "Exact serialized session view. Schema substitutions below name each owner's\nactual lightweight serialization contract; they do not decode its internals.",
+  "type": "object",
+  "properties": {
+    "history": {
+      "description": "Lightweight original transcript/work publication reference.",
+      "$ref": "#/$defs/Reference"
+    },
+    "workspace": {
+      "description": "Host workspace display path.",
+      "type": "string"
+    },
+    "endpoint": {
+      "description": "Current frozen processor display destination, empty before selection.",
+      "type": "string"
+    },
+    "model": {
+      "description": "Current selected model label.",
+      "type": "string"
+    },
+    "provider": {
+      "description": "Selected host connection key, absent before selection.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "connections": {
+      "description": "Public discovery labels; original provider implementations stay with the host.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Choice"
+      }
+    },
+    "connection_revision": {
+      "description": "Exact positive selection counter, absent before a connection is selected.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/NativeSequence"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "models": {
+      "description": "Last host-observed model list.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "models_error": {
+      "description": "Original discovery failure, independent of inference or approval.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "models_provider": {
+      "description": "Original host key associated with the observed model list.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "overview": {
+      "description": "Prepared complete inventory availability.",
+      "$ref": "#/$defs/Status"
+    },
+    "judge": {
+      "description": "Original optional second-model review target.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Binding"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "authorized": {
+      "description": "Observed gateway status, never an authority token.",
+      "type": "boolean"
+    },
+    "approval_available": {
+      "description": "Whether a host-prepared processor can be reviewed.",
+      "type": "boolean"
+    },
+    "running": {
+      "description": "Whether the host operation queue is occupied.",
+      "type": "boolean"
+    },
+    "operation": {
+      "description": "Category of the original host-selected operation.",
+      "$ref": "#/$defs/Operation"
+    },
+    "chat_stopped": {
+      "description": "Retained conversation stop diagnostic, independent of file inspection.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "activity": {
+      "description": "Current original operation label.",
+      "type": "string"
+    },
+    "partial": {
+      "description": "Current streamed assistant text.",
+      "type": "string"
+    },
+    "reasoning": {
+      "description": "Current streamed reasoning observation, separate from evidence.",
+      "type": "string"
+    },
+    "project": {
+      "description": "Original accepted/proposed meaning and evidence publication availability.",
+      "$ref": "#/$defs/Status2"
+    },
+    "verification_job": {
+      "description": "Actual accepted-project verification progress availability.",
+      "$ref": "#/$defs/Status3"
+    },
+    "stopped": {
+      "description": "Last original operation diagnostic.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "directories": {
+      "description": "Exact complete folder-listing references.",
+      "$ref": "#/$defs/Index"
+    },
+    "readers": {
+      "description": "Exact complete source-availability references.",
+      "$ref": "#/$defs/Index2"
+    },
+    "sources": {
+      "description": "Exact prepared graph/source publication references.",
+      "$ref": "#/$defs/Index3"
+    },
+    "source_preparation": {
+      "description": "Resource-local preparation observations and bounded log references.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/Status4"
+      }
+    },
+    "analyses": {
+      "description": "Current and historical model-assessment availability, never proof.",
+      "$ref": "#/$defs/Status5"
+    },
+    "repair_review": {
+      "description": "Original host-selected patch review projection; no patch authority.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Data"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "preview": {
+      "description": "Description availability of the actual captured static application.",
+      "$ref": "#/$defs/Status6"
+    },
+    "exports": {
+      "description": "At most eight original immutable session proposals.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Summary"
+      },
+      "maxItems": 8
+    },
+    "export_review": {
+      "description": "Original host-selected delivery page with its exact counter.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Review"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "export_outcome": {
+      "description": "Last original rejection or transport observation.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Outcome2"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "atlas": {
+      "description": "Host-observed installed compiler availability; no extraction runs here.",
+      "$ref": "#/$defs/Availability"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "history",
+    "workspace",
+    "endpoint",
+    "model",
+    "provider",
+    "connections",
+    "connection_revision",
+    "models",
+    "models_error",
+    "models_provider",
+    "overview",
+    "judge",
+    "authorized",
+    "approval_available",
+    "running",
+    "operation",
+    "chat_stopped",
+    "activity",
+    "partial",
+    "reasoning",
+    "project",
+    "verification_job",
+    "stopped",
+    "directories",
+    "readers",
+    "sources",
+    "source_preparation",
+    "analyses",
+    "repair_review",
+    "preview",
+    "exports",
+    "export_review",
+    "export_outcome",
+    "atlas"
+  ],
+  "$defs": {
+    "Reference": {
+      "description": "A host publication is available by exact revision or explicitly unavailable.",
+      "oneOf": [
+        {
+          "description": "Complete serialized original data is retained.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "ready"
+            },
+            "revision": {
+              "description": "Content identity, distinct from authority or a receipt.",
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            },
+            "messages": {
+              "description": "Native transcript count for lightweight startup/navigation state.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "revision",
+            "messages"
+          ]
+        },
+        {
+          "description": "No incomplete or unbounded publication is admitted.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "unavailable"
+            },
+            "message": {
+              "description": "Host diagnostic, independent of any proof outcome.",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "message"
+          ]
+        }
+      ]
+    },
+    "Choice": {
+      "description": "Host-discovered public labels; credentials and runnable providers stay private.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Original host connection key, not a runnable provider.",
+          "type": "string"
+        },
+        "label": {
+          "description": "Public display label.",
+          "type": "string"
+        },
+        "model": {
+          "description": "Current selected model label.",
+          "type": "string"
+        },
+        "note": {
+          "description": "Public host diagnostic; no credential material.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "model",
+        "note"
+      ]
+    },
+    "NativeSequence": {
+      "type": "string",
+      "format": "meden-positive-u64",
+      "pattern": "^[1-9][0-9]{0,19}$",
+      "maxLength": 20
+    },
+    "Status": {
+      "description": "Small generated progress/reference projection, never the inventory body.",
+      "type": "object",
+      "properties": {
+        "state": {
+          "description": "Host-observed state.",
+          "$ref": "#/$defs/State"
+        },
+        "scanned": {
+          "description": "Completed file observations.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0,
+          "maximum": 250000
+        },
+        "total": {
+          "description": "Known source-file count.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0,
+          "maximum": 250000
+        },
+        "revision": {
+          "description": "Exact complete publication, if available.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "error": {
+          "description": "Local bounded diagnostic, never an outcome classifier.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "scanned",
+        "total",
+        "revision",
+        "error"
+      ]
+    },
+    "State": {
+      "description": "Inventory availability is separate from compiler jobs and source readability.",
+      "oneOf": [
+        {
+          "description": "Original host capture is active.",
+          "type": "string",
+          "const": "loading"
+        },
+        {
+          "description": "The complete prepared inventory is queryable.",
+          "type": "string",
+          "const": "ready"
+        },
+        {
+          "description": "An edit requires an explicit/new host observation.",
+          "type": "string",
+          "const": "stale"
+        },
+        {
+          "description": "No complete new inventory was published.",
+          "type": "string",
+          "const": "failed"
+        }
+      ]
+    },
+    "Binding": {
+      "description": "Display/review target, never a grant or a decoded implementation selection.",
+      "type": "object",
+      "properties": {
+        "model": {
+          "description": "Selected model identifier.",
+          "type": "string"
+        },
+        "endpoint": {
+          "description": "Frozen display destination.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "model",
+        "endpoint"
+      ]
+    },
+    "Operation": {
+      "description": "Presentation category for an actual host-selected operation.",
+      "type": "string",
+      "enum": [
+        "conversation",
+        "inspection",
+        "analysis",
+        "preview",
+        "workspace"
+      ]
+    },
+    "Status2": {
+      "description": "Frequent polling reports only exact prepared availability.",
+      "oneOf": [
+        {
+          "description": "Complete host observation is frozen by content identity.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "ready"
+            },
+            "revision": {
+              "description": "Exact original display body, not an authority token.",
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "revision"
+          ]
+        },
+        {
+          "description": "Original observation is retained but no partial/superseded body is admitted.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "unavailable"
+            },
+            "message": {
+              "description": "Bounded host projection diagnostic.",
+              "type": "string",
+              "maxLength": 8000
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "message"
+          ]
+        }
+      ]
+    },
+    "Status3": {
+      "description": "Small frequent status; the complete context and diagnostic are queried once.",
+      "oneOf": [
+        {
+          "description": "No verification has started in this host session; no body is requested.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "idle"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "description": "The complete latest observation is frozen and queryable.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "ready"
+            },
+            "job": {
+              "description": "Original host/session/contract-bound job, independent of body revision.",
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            },
+            "revision": {
+              "description": "Exact content identity, never a job ticket or receipt.",
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "job",
+            "revision"
+          ]
+        },
+        {
+          "description": "No partial or superseded body is admitted.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "unavailable"
+            },
+            "message": {
+              "description": "Bounded observation/projection failure.",
+              "type": "string",
+              "maxLength": 8000
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "message"
+          ]
+        }
+      ]
+    },
+    "Index": {
+      "description": "Small status references, separate from directory contents.",
+      "type": "object",
+      "properties": {
+        "paths": {
+          "description": "Latest retained observation of each requested directory.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/Reference2"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "paths"
+      ]
+    },
+    "Reference2": {
+      "description": "Exact immutable presentation identity, independent of evidence/source IDs.",
+      "type": "object",
+      "properties": {
+        "revision": {
+          "description": "Domain-separated identity of every serialized data byte.",
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "revision"
+      ]
+    },
+    "Index2": {
+      "description": "Small status index; text and failure details live in their own publication.",
+      "type": "object",
+      "properties": {
+        "files": {
+          "description": "Latest complete observation of each retained logical path.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/Reference2"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "files"
+      ]
+    },
+    "Index3": {
+      "description": "Small generated status projection, containing no source text or declarations.",
+      "type": "object",
+      "properties": {
+        "current": {
+          "description": "Most recently published observation; absent while an explicit read fails.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reference2"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "files": {
+          "description": "Exact retained artifact for each observed path.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/Reference2"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "current",
+        "files"
+      ]
+    },
+    "Status4": {
+      "description": "Small generated status; no log body is repeated by polling.",
+      "type": "object",
+      "properties": {
+        "job": {
+          "description": "Host-session/resource/sequence-bound observation identity.",
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "resource": {
+          "description": "Exact original host-selected resource, not an executable request.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "phase": {
+          "description": "Original adapter step label, at most 512 UTF-8 bytes.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "elapsed_ms": {
+          "description": "Host-observed duration, saturating after about 49 days.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "phase_elapsed_ms": {
+          "description": "Duration within the current step.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "limit_seconds": {
+          "description": "Applicable host-selected timeout, zero when none is reported.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "outcome": {
+          "description": "Terminal outcomes cannot return to preparation.",
+          "$ref": "#/$defs/Outcome"
+        },
+        "log": {
+          "description": "Exact current bounded diagnostic body, if one has been emitted.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reference2"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "job",
+        "resource",
+        "phase",
+        "elapsed_ms",
+        "phase_elapsed_ms",
+        "limit_seconds",
+        "outcome",
+        "log"
+      ]
+    },
+    "Outcome": {
+      "description": "Disjoint display outcomes; only successful completion has a cache observation.",
+      "oneOf": [
+        {
+          "description": "The host is still preparing this resource.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "preparing"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "description": "Preparation completed; this does not imply admitted evidence.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "ready"
+            },
+            "cache_hit": {
+              "description": "All required preparation stages reused their original artifacts.",
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "cache_hit"
+          ]
+        },
+        {
+          "description": "Host-observed failure, independent of diagnostic wording.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "failed"
+            },
+            "kind": {
+              "description": "Typed host stop observation, independent of text.",
+              "$ref": "#/$defs/FailureKind"
+            },
+            "error": {
+              "description": "At most 8000 UTF-8 bytes, explicitly marked when shortened.",
+              "type": "string",
+              "maxLength": 8000
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "kind",
+            "error"
+          ]
+        }
+      ]
+    },
+    "FailureKind": {
+      "description": "Host-observed stop class; diagnostics never select it.",
+      "oneOf": [
+        {
+          "description": "Completed preparation operation failed.",
+          "type": "string",
+          "const": "operation"
+        },
+        {
+          "description": "Actual enclosing host control observed cancellation.",
+          "type": "string",
+          "const": "cancelled"
+        },
+        {
+          "description": "The progress adapter supplied an invalid observation.",
+          "type": "string",
+          "const": "observation"
+        }
+      ]
+    },
+    "Status5": {
+      "description": "Atomic current/history references; neither carries proof or execution authority.",
+      "type": "object",
+      "properties": {
+        "current": {
+          "$ref": "#/$defs/Current"
+        },
+        "history": {
+          "$ref": "#/$defs/HistoryStatus"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "current",
+        "history"
+      ]
+    },
+    "Current": {
+      "description": "A selected candidate is absent, available, or explicitly unavailable.",
+      "oneOf": [
+        {
+          "description": "No job is selected; no successful assessment is invented.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "empty"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "description": "The exact complete observation is retained.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "ready"
+            },
+            "revision": {
+              "description": "Immutable body identity, never authority.",
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "revision"
+          ]
+        },
+        {
+          "description": "Original data is retained, but cannot be completely projected.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "unavailable"
+            },
+            "message": {
+              "description": "Bounded host diagnostic.",
+              "type": "string",
+              "maxLength": 8000
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "message"
+          ]
+        }
+      ]
+    },
+    "HistoryStatus": {
+      "description": "Complete history availability, separate from current job progress.",
+      "oneOf": [
+        {
+          "description": "Complete original history is available by exact identity.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "ready"
+            },
+            "revision": {
+              "description": "Immutable body identity.",
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            },
+            "runs": {
+              "description": "Complete retained run count.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0,
+              "maximum": 1000
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "revision",
+            "runs"
+          ]
+        },
+        {
+          "description": "No partial history is published and old bodies are retired.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "unavailable"
+            },
+            "message": {
+              "description": "Bounded host diagnostic.",
+              "type": "string",
+              "maxLength": 8000
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "message"
+          ]
+        }
+      ]
+    },
+    "Data": {
+      "description": "Required fields and original diagnostics, with a lossless accepted reference.",
+      "type": "object",
+      "properties": {
+        "reference": {
+          "$ref": "#/$defs/Reference3"
+        },
+        "model": {
+          "type": "string"
+        },
+        "processor": {
+          "type": "string"
+        },
+        "model_definition": true,
+        "finding_id": {
+          "type": "string"
+        },
+        "requirement_id": {
+          "type": "string"
+        },
+        "input": {
+          "$ref": "#/$defs/Input"
+        },
+        "file": {
+          "type": "string"
+        },
+        "accepted_reference": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reference4"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "explanation": {
+          "type": "string"
+        },
+        "diff": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "reference",
+        "model",
+        "processor",
+        "finding_id",
+        "requirement_id",
+        "input",
+        "file",
+        "accepted_reference",
+        "explanation",
+        "diff"
+      ]
+    },
+    "Reference3": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^repair-[a-f0-9]{64}$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ]
+    },
+    "Input": {
+      "type": "object",
+      "properties": {
+        "source_revision": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "graph_revision": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "target": {
+          "$ref": "#/$defs/Target"
+        },
+        "requirement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16384
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "source_revision",
+        "target",
+        "requirement"
+      ]
+    },
+    "Target": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "line": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 1,
+          "maximum": 1048577
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "file",
+        "line",
+        "name"
+      ]
+    },
+    "Reference4": {
+      "description": "Lossless transport of the original selected contract identity, never authority.",
+      "type": "object",
+      "properties": {
+        "revision": {
+          "$ref": "#/$defs/NativeSequence"
+        },
+        "session": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "contract": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "revision",
+        "session",
+        "contract"
+      ]
+    },
+    "Status6": {
+      "description": "Small status, independently serialized without inspecting assets or errors.",
+      "oneOf": [
+        {
+          "description": "No preview has been captured in this host session.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "idle"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "description": "Complete frozen description available at exactly this revision.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "ready"
+            },
+            "frame": {
+              "description": "Original frame/bundle context; diagnostic updates do not replace it.",
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            },
+            "revision": {
+              "description": "Content identity, separate from the captured asset-manifest identity.",
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "frame",
+            "revision"
+          ]
+        },
+        {
+          "description": "An incomplete or superseded description is not served.",
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "unavailable"
+            },
+            "message": {
+              "description": "Bounded literal observation failure.",
+              "type": "string",
+              "maxLength": 8000
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "message"
+          ]
+        }
+      ]
+    },
+    "Summary": {
+      "description": "Description derived from the original immutable request and observed phase.",
+      "type": "object",
+      "properties": {
+        "session": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "id": {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0,
+          "maximum": 7
+        },
+        "source": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "contract": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "bytes": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0,
+          "maximum": 16777216
+        },
+        "payload_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "state": {
+          "$ref": "#/$defs/State2"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "session",
+        "id",
+        "source",
+        "contract",
+        "target",
+        "bytes",
+        "payload_sha256",
+        "state"
+      ]
+    },
+    "State2": {
+      "description": "Observed kernel phase; this enum conveys no authority to advance it.",
+      "oneOf": [
+        {
+          "description": "Prepared but not reviewed.",
+          "type": "string",
+          "const": "pending"
+        },
+        {
+          "description": "Original request exposed to the host.",
+          "type": "string",
+          "const": "reviewed"
+        },
+        {
+          "description": "Host refusal.",
+          "type": "string",
+          "const": "rejected"
+        },
+        {
+          "description": "A dispatch was reserved.",
+          "type": "string",
+          "const": "attempted"
+        },
+        {
+          "description": "An actual transport response arrived.",
+          "type": "string",
+          "const": "response_received"
+        },
+        {
+          "description": "The attempt remains consumed without a known response.",
+          "type": "string",
+          "const": "delivery_uncertain"
+        }
+      ]
+    },
+    "Review": {
+      "description": "Frozen host review page. Serial comparison uses the original exact u64.",
+      "type": "object",
+      "properties": {
+        "serial": {
+          "$ref": "#/$defs/NativeSequence"
+        },
+        "summary": {
+          "$ref": "#/$defs/Summary"
+        },
+        "offset": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0,
+          "maximum": 16777216
+        },
+        "body_hex": {
+          "type": "string",
+          "maxLength": 4096,
+          "pattern": "^(?:[0-9a-f]{2})*$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "serial",
+        "summary",
+        "offset",
+        "body_hex"
+      ]
+    },
+    "Outcome2": {
+      "description": "Original observed result; an uncertain attempt never gains another send.",
+      "type": "object",
+      "properties": {
+        "summary": {
+          "$ref": "#/$defs/Summary"
+        },
+        "http_status": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint16",
+          "minimum": 100,
+          "maximum": 999
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "http_status"
+      ]
+    },
+    "Availability": {
+      "description": "Read-only compiler availability. This metadata schema stays outside the\ncompiler's captured implementation sources, so GUI codec edits do not\ninvalidate otherwise identical compiler/search observations.",
+      "type": "object",
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "prepared": {
+          "type": "boolean"
+        },
+        "detail": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "available",
+        "prepared",
+        "detail"
+      ]
+    }
+  }
+}

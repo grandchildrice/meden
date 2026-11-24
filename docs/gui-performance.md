@@ -1,5 +1,80 @@
 # Graph interaction measurements
 
+## Shared native wire definitions (November 24)
+
+The [validation record](../results/native-wire-20261124.json) covers the complete
+application-owned session projection and host command vocabulary. Rust emits
+the root and command JSON Schemas plus browser validators/types, replacing the
+handwritten native protocol definitions. The session borrows existing publication
+owners and serializes their lightweight references. Model/provider labels expose
+no concrete gateway or credential fields. Actual approval remains with the host's
+original gateway/session/endpoint/model/judge comparison and consuming processor.
+
+Connection selection counters are canonical positive-u64 decimal strings, or
+null before selection. Numeric, null, noncanonical or overflowing counters in an
+approval command are refused. The browser also validates commands before HTTP.
+Typed exhaustive classification preserves the original operation/model-use rules;
+it cannot authorize execution. The architecture guard keeps the native barrel
+to generated re-exports and derived history aliases.
+
+The owned generator uses a unique required string tag to dispatch exclusive
+object unions. A pure Node codec probe compares that lookup with a sequential
+union of exactly the same branches. Nine interleaved batches per type/strategy
+validate and JSON-encode 1000 preconstructed commands after warmup, consuming and
+checking encoded lengths. The table contains median batch means, not individual
+event p95 or a new CI budget.
+
+| Validation and encoding, median batch mean | Tag lookup | Same branches, sequential |
+| --- | ---: | ---: |
+| File/folder inspection | 0.617 µs | 8.541 µs |
+| Instruction | 0.484 µs | 2.760 µs |
+| Source snapshot | 0.440 µs | 6.152 µs |
+| Processor review | 1.158 µs | 2.555 µs |
+| Delivery dispatch request | 1.455 µs | 6.371 µs |
+
+The former GUI did not validate outbound commands, so this compares two codec
+implementations for the new check, not old/new GUI performance. It excludes
+HTTP, queuing, compiler/model work and browser presentation. This migration does
+not address the separately recorded compiler wait or approximately 40 ms large
+response tail.
+
+The preceding commit's CI trace also exposed an asynchronous counter-fixture
+race: a click completed before its settings fetch, so no JS submit handler was
+installed and the preview's existing CSP refused the default form submission.
+The authored fixture now disables submission through initialization; recovery
+deliberately holds the real settings response, observes disabled/zero state and
+then confirms the changed increment. No preview CSP or isolation rule changed,
+and the original count, refresh, retirement, missing-entry and restart assertions
+remain. This tests fixture readiness, not arbitrary embedded-app readiness.
+
+The initial live deployment also caught a cache-binding regression that the
+single-build fixtures did not cover. Adding the availability schema to the Atlas
+entry module changed a captured compiler implementation source. Riemann therefore
+performed extraction/search again (**190.614 seconds**) and the original-cache
+fidelity assertion failed. The final change restores that compiler source and
+projects availability through a separate borrowed `view::session` DTO. Captured
+compiler implementation files remain identical to the base revision; the actual
+definition/resource/input checks remain intact. A new structural guard prevents
+wire-schema derives in that captured entry. No cache file or fingerprint rule
+was edited to force reuse.
+
+Final checks passed **332 Rust tests**, **43 TypeScript tests**, **33 architecture
+checks / 47 owned sources**, all **37 native schemas / 74 generated files**,
+**35 required public TUI journeys** and **68 browser journeys**. Both serialized
+motion gates passed; retained-tab two-animation-callback p95 is **29.0 / 29.3 ms**
+for normal/reduced motion. These callbacks are presentation proxies, not physical
+paint or INP. The 3000-case corpus and full-scan negative control also passed.
+
+The final actual Riemann/EthLib integration reuses the original pre-change
+compiler/search/rendering artifacts. Complete original source/graph/reader,
+inventory, history, candidate and evidence observations match exactly. Camera,
+selected source line and quiet chat are retained. The generated root validator
+accepts both real hosts; their public connection labels remain identical, with
+the intentional unselected-counter change from numeric zero to null. Cache-hit
+opens take **19.289 / 2.112 seconds** in this smoke, not a paired speedup benchmark.
+The large-project preparation wait remains separate from the resolved metadata
+invalidation regression.
+
 ## Shared delivery observations and response-body probe (November 24)
 
 The [validation record](../results/delivery-observations-20261124.json) covers

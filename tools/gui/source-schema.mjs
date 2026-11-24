@@ -56,11 +56,12 @@ export function validator(schema, root = schema) {
   if (variants) {
     only(schema, [schema.anyOf ? "anyOf" : "oneOf"]);
     if (!variants.length) throw new Error("Empty DTO union");
+    let discriminator;
     if (schema.oneOf) {
       const literals =
         variants.every((s) => typeof s.const === "string") &&
         new Set(variants.map((s) => s.const)).size === variants.length;
-      const discriminator = Object.keys(variants[0]?.properties || {}).find(
+      discriminator = Object.keys(variants[0]?.properties || {}).find(
         (key) =>
           variants.every(
             (s) =>
@@ -76,6 +77,8 @@ export function validator(schema, root = schema) {
           "Exclusive unions require disjoint required string tags",
         );
     }
+    if (discriminator)
+      return `z.discriminatedUnion(${JSON.stringify(discriminator)},[${variants.map((s) => validator(s, root)).join(",")}])`;
     return `z.union([${variants.map((s) => validator(s, root)).join(",")}])`;
   }
   if (Array.isArray(schema.type))

@@ -33,6 +33,8 @@ pub mod readers;
 pub mod repairs;
 /// Canonical lossless counters used by native view and command adapters.
 pub mod sequence;
+/// Borrowed native session projection, independent of controller authority.
+pub mod session;
 /// Retention and exact-revision queries for prepared source/graph views.
 pub mod sources;
 /// Actual project verification progress, independent of kernel job authority.

@@ -1491,6 +1491,7 @@ export function NativeApp({ token }: { token: string }) {
           <Button
             disabled={
               !state?.approval_available ||
+              state.connection_revision === null ||
               provider !== state.provider ||
               model !== state.model ||
               state.authorized ||
@@ -1498,7 +1499,12 @@ export function NativeApp({ token }: { token: string }) {
               !approvalVisible
             }
             onClick={async () => {
-              if (!state || approving.current) return;
+              if (
+                !state ||
+                state.connection_revision === null ||
+                approving.current
+              )
+                return;
               approving.current = true;
               setApprovalPending(true);
               try {

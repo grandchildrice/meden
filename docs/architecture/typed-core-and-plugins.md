@@ -674,14 +674,42 @@ Contract revisions and delivery review serials share a canonical positive-u64
 decimal-string representation, including exact range validation in the generated
 browser validators. Decoding a reference or counter grants no authority; the
 host still compares the original selected session, entry and serial, consuming
-the selection even on mismatch. The native root and remaining commands are
-still handwritten, and delivery observations remain inline at operation
+the selection even on mismatch. Delivery observations remain inline at operation
 boundaries. This is application extraction and transport validation, not a new
 kernel or whole-renderer proof.
 
+The complete native session projection and host command vocabulary now also
+come from shared application definitions. Rust generates both root/command
+schemas and their browser validators/types; the protocol barrel contains no
+parallel handwritten native wire shapes. The host retains its private working
+state and interprets the original typed command. A borrowed session projection
+serializes each publication owner's existing small reference, without copying
+its retained source, history or evidence body. Public connection choices contain
+labels only; credentials and concrete gateways remain in host composition.
+
+Connection selections use an exact positive-u64 decimal string, or null before
+selection. Approval commands require a positive original counter; the adapter
+recovers that exact u64 before comparing the actual frozen gateway, endpoint,
+model and optional judge. Decoding cannot grant authority or renew a processor.
+The browser validates commands before transport and refuses unknown keys/tags
+or malformed counters without sending. Operation and model-use classification
+are exhaustive over the shared command enum; actual admission still observes
+the host gateways. Generated exclusive object unions use their checked unique
+required tag for direct dispatch, while ambiguous/unknown schemas still fail
+generation. The structural architecture guard rejects handwritten native root
+or command shapes in the protocol barrel. These maintenance/codec checks are
+not alias-proof security or general JSON Schema equivalence proofs.
+
+Compiler availability uses a separate borrowed view DTO. Adding a GUI schema
+derive to the compiler-captured Atlas entry module initially changed its
+implementation identity and needlessly invalidated prepared observations. That
+entry source is restored; the metadata projection/schema now lives only under
+`view::session`. A structural guard rejects wire-schema derives in that captured
+entry. The compiler's original definition, resources and complete input checks
+still determine cache reuse; no validation or identity check is bypassed.
+
 This does not finish step 4: proposal checks and broader orchestration jobs,
-generation of the rest of the native wire contract and remaining navigation
-waits still need work. Step 5's versioned layout/order and retirement
+and remaining navigation waits still need work. Step 5's versioned layout/order and retirement
 requirements remain open too.
 Step 3 now executes the second backend through public TUI/GUI, actual offline
 Z3, a real approved-model trial and a separate 256-input Python oracle. Its

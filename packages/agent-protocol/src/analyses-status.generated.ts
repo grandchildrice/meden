@@ -2,7 +2,7 @@
 import { z } from "zod";
 export const analysesStatusSchema = z
   .object({
-    current: z.union([
+    current: z.discriminatedUnion("state", [
       z.object({ state: z.literal("empty") }).strict(),
       z
         .object({
@@ -17,7 +17,7 @@ export const analysesStatusSchema = z
         })
         .strict(),
     ]),
-    history: z.union([
+    history: z.discriminatedUnion("state", [
       z
         .object({
           state: z.literal("ready"),

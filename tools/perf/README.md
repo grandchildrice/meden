@@ -1,5 +1,14 @@
 # Local profiling and regression workloads
 
+`node --experimental-strip-types tools/perf/native-command-codec.mjs OUTPUT.json`
+compares the generated command tag lookup with a sequential union of the same
+owned branches. It validates and JSON-encodes preconstructed synthetic commands,
+consumes/checks their encoded lengths and records nine interleaved batches per
+strategy/type after warmup. The output path must be new. This is a diagnostic
+codec comparison, not HTTP/queue/model or browser input-to-paint latency. The
+former GUI did not validate outbound commands, so it is not an old/new GUI
+speedup claim or a new performance gate.
+
 `bash tools/perf/perf.sh stat -e task-clock:u -- true` probes real same-user
 counter access. The wrapper uses an explicitly selected `MEDEN_PERF`, installed
 `perf`, or one pinned Nix package; it never changes sysctls, privileges or the

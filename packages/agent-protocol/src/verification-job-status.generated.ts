@@ -1,6 +1,6 @@
 // Generated from meden_app::view::verification_jobs::Status. Do not edit.
 import { z } from "zod";
-export const verificationJobStatusSchema = z.union([
+export const verificationJobStatusSchema = z.discriminatedUnion("state", [
   z.object({ state: z.literal("idle") }).strict(),
   z
     .object({

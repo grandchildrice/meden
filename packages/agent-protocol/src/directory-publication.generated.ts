@@ -6,7 +6,7 @@ export const directoryPublicationSchema = z
     data: z
       .object({
         path: z.string().min(1).max(4096),
-        reading: z.union([
+        reading: z.discriminatedUnion("state", [
           z
             .object({
               state: z.literal("ready"),

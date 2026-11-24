@@ -127,7 +127,46 @@ export function sourceViolations(source, checker, packageRoot, allowed) {
     ts.forEachChild(node, visit);
   };
   visit(source);
+  if (
+    relative(root, source.fileName).replaceAll("\\", "/") ===
+    "packages/agent-protocol/src/native.ts"
+  )
+    errors.push(...nativeBarrelViolations(source));
   return errors;
+}
+
+// A maintenance boundary, not an alias-proof security check. Host controllers
+// remain authoritative regardless of any browser type or validator.
+export function nativeBarrelViolations(source) {
+  const aliases = new Set(["HistoryData", "PortableWorkspace", "WorkItem"]);
+  return source.statements
+    .filter((node) => {
+      if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node))
+        return (
+          !node.moduleSpecifier ||
+          !ts.isStringLiteral(node.moduleSpecifier) ||
+          !node.moduleSpecifier.text.startsWith("./") ||
+          !node.moduleSpecifier.text.endsWith(".generated")
+        );
+      return !(ts.isTypeAliasDeclaration(node) && aliases.has(node.name.text));
+    })
+    .map((node) => {
+      const { line } = source.getLineAndCharacterOfPosition(
+        node.getStart(source),
+      );
+      return `${relative(root, source.fileName)}:${line + 1}: native wire shapes must be generated; keep the barrel to generated re-exports and derived history aliases`;
+    });
+}
+
+// This entry module is captured in the compiler implementation identity.
+// Wire metadata belongs in view modules; this is a maintenance rule, not a
+// general Rust parser or semantic-equivalence proof.
+export function compilerEntryViolations(source) {
+  return /\bJsonSchema\b/.test(source)
+    ? [
+        "compiler-captured atlas entry must not own wire schemas; project availability in view instead",
+      ]
+    : [];
 }
 
 export function programFor(files, virtual = new Map()) {
@@ -179,6 +218,11 @@ export function check() {
     ),
   );
   const errors = cargoViolations(metadata.packages, metadata.workspace_members);
+  errors.push(
+    ...compilerEntryViolations(
+      readFileSync(resolve(root, "crates/meden-app/src/atlas/mod.rs"), "utf8"),
+    ),
+  );
   const packages = Object.entries(pure).map(([name, allowed]) => ({
     root: resolve(root, "packages", name),
     allowed,

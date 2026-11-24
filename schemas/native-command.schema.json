@@ -1,0 +1,769 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Command",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "initialize_work"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "name"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "put_work"
+        },
+        "work": {
+          "$ref": "#/$defs/Work"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "work"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "note_work"
+        },
+        "id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "next": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "id",
+        "text"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "check_work"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "id"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "resume_work"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "id"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "save_work"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "approve_processor"
+        },
+        "connection_revision": {
+          "$ref": "#/$defs/NativeSequence"
+        },
+        "endpoint": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "judge": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Binding"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "connection_revision",
+        "endpoint",
+        "model"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "select_connection"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "provider",
+        "model"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "list_models"
+        },
+        "provider": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "provider"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "refresh_workspace"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "refresh_connections"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "revoke_processor"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "instruction"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "text"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "cancel"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "refresh_status"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "prepare_atlas"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "atlas_snapshot"
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "paths"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "review_export"
+        },
+        "reference": {
+          "$ref": "#/$defs/Reference"
+        },
+        "offset": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "reference",
+        "offset"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "send_export"
+        },
+        "reference": {
+          "$ref": "#/$defs/Reference"
+        },
+        "serial": {
+          "$ref": "#/$defs/NativeSequence"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "reference",
+        "serial"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "reject_export"
+        },
+        "reference": {
+          "$ref": "#/$defs/Reference"
+        },
+        "serial": {
+          "$ref": "#/$defs/NativeSequence"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "reference",
+        "serial"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "close_export"
+        },
+        "reference": {
+          "$ref": "#/$defs/Reference"
+        },
+        "serial": {
+          "$ref": "#/$defs/NativeSequence"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "reference",
+        "serial"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "capture_preview"
+        },
+        "root": {
+          "type": "string"
+        },
+        "entry": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "root",
+        "entry"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "source_snapshot"
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "paths"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "prepare_repair"
+        },
+        "finding_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "finding_id"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "apply_repair"
+        },
+        "reference": {
+          "$ref": "#/$defs/Reference2"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "reference"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "reject_repair"
+        },
+        "reference": {
+          "$ref": "#/$defs/Reference2"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "reference"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "select_analysis"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "id"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "analyze_meaning"
+        },
+        "input": {
+          "$ref": "#/$defs/Input"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "input"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "review_contract"
+        },
+        "reference": {
+          "$ref": "#/$defs/Reference3"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "reference"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "accept_contract"
+        },
+        "reference": {
+          "$ref": "#/$defs/Reference3"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "reference"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "reject_contract"
+        },
+        "reference": {
+          "$ref": "#/$defs/Reference3"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "reference"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "inspect"
+        },
+        "path": {
+          "type": "string"
+        },
+        "directory": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "path",
+        "directory"
+      ]
+    }
+  ],
+  "$defs": {
+    "Work": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "requirement": {
+          "type": "string"
+        },
+        "module": {
+          "type": "string"
+        },
+        "theorems": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "next": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "requirement",
+        "module",
+        "theorems",
+        "next"
+      ]
+    },
+    "NativeSequence": {
+      "type": "string",
+      "format": "meden-positive-u64",
+      "pattern": "^[1-9][0-9]{0,19}$",
+      "maxLength": 20
+    },
+    "Binding": {
+      "description": "Display/review target, never a grant or a decoded implementation selection.",
+      "type": "object",
+      "properties": {
+        "model": {
+          "description": "Selected model identifier.",
+          "type": "string"
+        },
+        "endpoint": {
+          "description": "Frozen display destination.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "model",
+        "endpoint"
+      ]
+    },
+    "Reference": {
+      "description": "Original session and bounded queue index, never a send capability.",
+      "type": "object",
+      "properties": {
+        "session": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "id": {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0,
+          "maximum": 7
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "session",
+        "id"
+      ]
+    },
+    "Reference2": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^repair-[a-f0-9]{64}$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ]
+    },
+    "Input": {
+      "type": "object",
+      "properties": {
+        "source_revision": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "graph_revision": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "target": {
+          "$ref": "#/$defs/Target"
+        },
+        "requirement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16384
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "source_revision",
+        "target",
+        "requirement"
+      ]
+    },
+    "Target": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "line": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 1,
+          "maximum": 1048577
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "file",
+        "line",
+        "name"
+      ]
+    },
+    "Reference3": {
+      "description": "Lossless transport of the original selected contract identity, never authority.",
+      "type": "object",
+      "properties": {
+        "revision": {
+          "$ref": "#/$defs/NativeSequence"
+        },
+        "session": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "contract": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "revision",
+        "session",
+        "contract"
+      ]
+    }
+  }
+}

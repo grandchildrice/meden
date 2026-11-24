@@ -3,7 +3,7 @@ import { z } from "zod";
 export const evidencePublicationSchema = z
   .object({
     revision: z.string().regex(new RegExp("^sha256:[a-f0-9]{64}$")),
-    data: z.union([
+    data: z.discriminatedUnion("state", [
       z.object({ state: z.literal("empty") }).strict(),
       z
         .object({
@@ -123,7 +123,7 @@ export const evidencePublicationSchema = z
             })
             .strict(),
           review: z.string(),
-          evidence: z.union([
+          evidence: z.discriminatedUnion("state", [
             z
               .object({
                 state: z.literal("unverified"),

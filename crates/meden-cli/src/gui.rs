@@ -6,8 +6,9 @@ use std::sync::{atomic::AtomicBool, mpsc, Arc, Mutex};
 
 use anyhow::{Context, Result};
 use meden_agent::conversation::{Delta, Event, Status};
+use meden_app::command::{Command, Operation};
 use meden_runtime::{process::Control, workspace::Workspace};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use serde_json::{json, Value};
 use tiny_http::{Header, Method, Request, Response, Server, StatusCode};
 
@@ -54,26 +55,24 @@ impl Task {
     }
 }
 
-#[derive(Serialize)]
 struct View {
     history: meden_app::view::history::History,
     workspace: String,
     endpoint: String,
     model: String,
     provider: Option<String>,
-    connections: Vec<connections::Choice>,
-    connection_revision: u64,
+    connections: Vec<meden_app::view::session::Choice>,
+    connection_revision: Option<meden_app::view::sequence::Sequence>,
     models: Vec<String>,
     models_error: Option<String>,
     models_provider: Option<String>,
     overview: overview::Status,
-    #[serde(skip)]
     overview_snapshot: Option<Arc<overview::Snapshot>>,
     judge: Option<crate::judge::Binding>,
     authorized: bool,
     approval_available: bool,
     running: bool,
-    operation: &'static str,
+    operation: Operation,
     chat_stopped: Option<String>,
     activity: String,
     partial: String,
@@ -94,151 +93,67 @@ struct View {
     atlas: crate::atlas::Status,
 }
 
-#[derive(Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
-enum Command {
-    InitializeWork {
-        name: String,
-    },
-    PutWork {
-        work: crate::handoff::Work,
-    },
-    NoteWork {
-        id: String,
-        text: String,
-        next: Option<String>,
-    },
-    CheckWork {
-        id: String,
-    },
-    ResumeWork {
-        id: String,
-    },
-    SaveWork,
-    ApproveProcessor {
-        connection_revision: u64,
-        endpoint: String,
-        model: String,
-        judge: Option<crate::judge::Binding>,
-    },
-    SelectConnection {
-        provider: String,
-        model: String,
-    },
-    ListModels {
-        provider: String,
-    },
-    RefreshWorkspace,
-    RefreshConnections,
-    RevokeProcessor,
-    Instruction {
-        text: String,
-    },
-    Cancel,
-    RefreshStatus,
-    PrepareAtlas,
-    AtlasSnapshot {
-        paths: Vec<String>,
-    },
-    ReviewExport {
-        reference: meden_app::view::delivery::Reference,
-        offset: u32,
-    },
-    SendExport {
-        reference: meden_app::view::delivery::Reference,
-        serial: meden_app::view::sequence::Sequence,
-    },
-    RejectExport {
-        reference: meden_app::view::delivery::Reference,
-        serial: meden_app::view::sequence::Sequence,
-    },
-    CloseExport {
-        reference: meden_app::view::delivery::Reference,
-        serial: meden_app::view::sequence::Sequence,
-    },
-    CapturePreview {
-        root: String,
-        entry: String,
-    },
-    SourceSnapshot {
-        paths: Vec<String>,
-    },
-    PrepareRepair {
-        finding_id: String,
-    },
-    ApplyRepair {
-        reference: crate::analysis::repair::Reference,
-    },
-    RejectRepair {
-        reference: crate::analysis::repair::Reference,
-    },
-    SelectAnalysis {
-        id: String,
-    },
-    AnalyzeMeaning {
-        input: crate::semantic::Input,
-    },
-    ReviewContract {
-        reference: meden_app::view::evidence::Reference,
-    },
-    AcceptContract {
-        reference: meden_app::view::evidence::Reference,
-    },
-    RejectContract {
-        reference: meden_app::view::evidence::Reference,
-    },
-    Inspect {
-        path: String,
-        directory: bool,
-    },
+impl Serialize for View {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        meden_app::view::session::State {
+            history: &self.history,
+            workspace: &self.workspace,
+            endpoint: &self.endpoint,
+            model: &self.model,
+            provider: self.provider.as_deref(),
+            connections: &self.connections,
+            connection_revision: self.connection_revision,
+            models: &self.models,
+            models_error: self.models_error.as_deref(),
+            models_provider: self.models_provider.as_deref(),
+            overview: &self.overview,
+            judge: self.judge.as_ref(),
+            authorized: self.authorized,
+            approval_available: self.approval_available,
+            running: self.running,
+            operation: self.operation,
+            chat_stopped: self.chat_stopped.as_deref(),
+            activity: &self.activity,
+            partial: &self.partial,
+            reasoning: &self.reasoning,
+            project: &self.project,
+            verification_job: &self.verification_job,
+            stopped: self.stopped.as_deref(),
+            directories: &self.directories,
+            readers: &self.readers,
+            sources: &self.sources,
+            source_preparation: &self.source_preparation,
+            analyses: &self.analyses,
+            repair_review: self.repair_review.as_ref(),
+            preview: &self.preview,
+            exports: &self.exports,
+            export_review: self.export_review.as_ref(),
+            export_outcome: self.export_outcome.as_ref(),
+            atlas: (&self.atlas).into(),
+        }
+        .serialize(serializer)
+    }
 }
 
-impl Command {
-    fn operation(&self) -> &'static str {
-        match self {
-            Self::Instruction { .. } | Self::ResumeWork { .. } | Self::AcceptContract { .. } => {
-                "conversation"
-            }
-            Self::Inspect { .. } => "inspection",
-            Self::CapturePreview { .. } => "preview",
-            Self::AtlasSnapshot { .. }
-            | Self::SourceSnapshot { .. }
-            | Self::PrepareAtlas
-            | Self::AnalyzeMeaning { .. }
-            | Self::SelectAnalysis { .. }
-            | Self::PrepareRepair { .. }
-            | Self::ApplyRepair { .. }
-            | Self::RejectRepair { .. } => "analysis",
-            _ => "workspace",
-        }
+fn check_submission(
+    command: &Command,
+    connections: &connections::Connections,
+    session: &[u8],
+) -> Result<()> {
+    if let Command::Instruction { text } = command {
+        anyhow::ensure!(!text.trim().is_empty(), "Instruction is empty");
     }
-
-    fn check_submission(
-        &self,
-        connections: &connections::Connections,
-        session: &[u8],
-    ) -> Result<()> {
-        if let Self::Instruction { text } = self {
-            anyhow::ensure!(!text.trim().is_empty(), "Instruction is empty");
-        }
-        if matches!(
-            self,
-            Self::Instruction { .. }
-                | Self::AnalyzeMeaning { .. }
-                | Self::PrepareRepair { .. }
-                | Self::ResumeWork { .. }
-        ) {
-            anyhow::ensure!(
-                connections
-                    .gateway
-                    .as_ref()
-                    .is_some_and(|gateway| gateway.is_authorized(session))
-                    && crate::judge::authorized(connections.judge.as_deref(), session),
-                "Review and approve the processor before sending"
-            );
-        }
-        Ok(())
+    if command.uses_model() {
+        anyhow::ensure!(
+            connections
+                .gateway
+                .as_ref()
+                .is_some_and(|gateway| gateway.is_authorized(session))
+                && crate::judge::authorized(connections.judge.as_deref(), session),
+            "Review and approve the processor before sending"
+        );
     }
+    Ok(())
 }
 
 fn lock<T>(value: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
@@ -379,7 +294,7 @@ fn initial_view(
         model: String::new(),
         provider: None,
         connections: Vec::new(),
-        connection_revision: 0,
+        connection_revision: None,
         models: Vec::new(),
         models_error: None,
         models_provider: None,
@@ -389,7 +304,7 @@ fn initial_view(
         authorized: false,
         approval_available: false,
         running: false,
-        operation: "workspace",
+        operation: Operation::Workspace,
         chat_stopped: saved.stopped.clone(),
         activity: "Ready".into(),
         partial: String::new(),
@@ -647,7 +562,7 @@ impl Http<'_> {
                     connections::approve(
                         self.connections,
                         self.workspace.session_id(),
-                        connection_revision,
+                        connection_revision.value(),
                         &endpoint,
                         &model,
                         judge.as_ref(),
@@ -681,11 +596,14 @@ impl Http<'_> {
                 command => {
                     let mut view = lock(self.view);
                     anyhow::ensure!(!view.running, "Wait for the current operation or cancel it");
-                    command
-                        .check_submission(&lock(self.connections), self.workspace.session_id())?;
-                    let preserve_stop = command.operation() == "inspection";
+                    check_submission(
+                        &command,
+                        &lock(self.connections),
+                        self.workspace.session_id(),
+                    )?;
+                    let preserve_stop = command.operation() == Operation::Inspection;
                     view.operation = command.operation();
-                    if view.operation == "conversation" {
+                    if view.operation == Operation::Conversation {
                         view.chat_stopped = None;
                     }
                     // Reserve before enqueueing: concurrent tabs cannot queue a second turn.
@@ -733,7 +651,7 @@ fn worker(
     {
         meden_runtime::metrics::queue(timing, queued);
         let _timing = meden_runtime::metrics::Span::linked("gui.job", Some(timing));
-        let checkpoint_after = command.operation() != "inspection";
+        let checkpoint_after = command.operation() != Operation::Inspection;
         delivery::begin(&mut delivery, &command);
         let result = (|| -> Result<()> {
             repair::begin(view, workspace, &mut repairs, &command)?;
@@ -904,7 +822,7 @@ fn finish_operation(
     if let Err(error) = result {
         view.stopped = Some(format!("{error:#}"));
     }
-    if view.operation == "conversation" {
+    if view.operation == Operation::Conversation {
         let stopped = view.stopped.clone();
         view.chat_stopped = stopped;
     }

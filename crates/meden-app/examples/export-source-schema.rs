@@ -8,6 +8,8 @@ fn output<T: schemars::JsonSchema>() -> schemars::Schema {
 }
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let schema = match std::env::args().nth(1).as_deref() {
+        Some("session-state") => output::<meden_app::view::session::State<'static>>(),
+        Some("command") => schemars::schema_for!(meden_app::command::Command),
         Some("sequence") => schemars::schema_for!(meden_app::view::sequence::Sequence),
         Some("delivery-reference") => output::<meden_app::view::delivery::Reference>(),
         Some("delivery-summary") => output::<meden_app::view::delivery::Summary>(),

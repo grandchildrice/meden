@@ -10,6 +10,9 @@ pub mod adapters;
 pub mod analysis;
 #[allow(missing_docs)]
 pub mod atlas;
+/// Shared typed host commands; authority remains in existing application services.
+#[allow(missing_docs)]
+pub mod command;
 pub mod compiler;
 /// Original host review selection for shared export queues.
 pub mod delivery;

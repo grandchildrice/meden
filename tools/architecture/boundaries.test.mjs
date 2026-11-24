@@ -1,11 +1,33 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import { resolve } from "node:path";
-import { cargoViolations, programFor, sourceViolations } from "./check.mjs";
+import {
+  cargoViolations,
+  compilerEntryViolations,
+  programFor,
+  sourceViolations,
+} from "./check.mjs";
+
+test("compiler entry keeps domain availability independent of native metadata schemas", () => {
+  assert.deepEqual(
+    compilerEntryViolations(
+      "#[derive(Serialize)] pub struct Status { pub available: bool }",
+    ),
+    [],
+  );
+});
+test("compiler identity guard rejects adding a GUI schema derive to its captured entry", () => {
+  assert.match(
+    compilerEntryViolations(
+      "#[derive(Serialize, schemars::JsonSchema)] #[serde(deny_unknown_fields)] pub struct Status { pub available: bool }",
+    ).join(),
+    /compiler-captured atlas entry must not own wire schemas/,
+  );
+});
 
 const packageRoot = resolve("packages/agent-protocol");
-function violations(text) {
-  const file = resolve(packageRoot, "src/boundary-probe.ts");
+function violations(text, basename = "boundary-probe.ts") {
+  const file = resolve(packageRoot, "src/" + basename);
   const program = programFor([file], new Map([[file, text]]));
   return sourceViolations(
     program.getSourceFile(file),
@@ -14,6 +36,27 @@ function violations(text) {
     ["zod", "@meden/workspace-schema"],
   );
 }
+
+test("native wire barrel re-exports generated definitions and derived history aliases", () => {
+  assert.deepEqual(
+    violations(
+      'import type { HistorySnapshot } from "./history.generated"; export { nativeStateSchema } from "./session-state.generated"; export type { NativeCommand } from "./command.generated"; export type HistoryData = HistorySnapshot["data"];',
+      "native.ts",
+    ),
+    [],
+  );
+});
+for (const source of [
+  'import { z } from "zod";',
+  'export type NativeCommand = { type: "run" };',
+  "export const nativeStateSchema = {};",
+  'export { nativeStateSchema } from "./handwritten";',
+])
+  test(`native wire boundary refuses ${source}`, () =>
+    assert.match(
+      violations(source, "native.ts").join(),
+      /native wire shapes must be generated/,
+    ));
 
 test("data ports accept types and deterministic data, including a document field", () => {
   assert.deepEqual(

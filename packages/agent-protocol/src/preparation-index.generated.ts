@@ -10,7 +10,7 @@ export const preparationIndexSchema = z.record(
       elapsed_ms: z.number().int().min(0),
       phase_elapsed_ms: z.number().int().min(0),
       limit_seconds: z.number().int().min(0),
-      outcome: z.union([
+      outcome: z.discriminatedUnion("state", [
         z.object({ state: z.literal("preparing") }).strict(),
         z
           .object({ state: z.literal("ready"), cache_hit: z.boolean() })

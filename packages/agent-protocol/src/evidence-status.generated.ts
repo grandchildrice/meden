@@ -1,6 +1,6 @@
 // Generated from meden_app::view::evidence::Status. Do not edit.
 import { z } from "zod";
-export const evidenceStatusSchema = z.union([
+export const evidenceStatusSchema = z.discriminatedUnion("state", [
   z
     .object({
       state: z.literal("ready"),

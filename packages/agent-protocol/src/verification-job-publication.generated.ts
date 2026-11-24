@@ -40,11 +40,11 @@ export const verificationJobPublicationSchema = z
           })
           .strict(),
         elapsed_ms: z.number().int().min(0),
-        phase: z.union([
+        phase: z.discriminatedUnion("state", [
           z
             .object({
               state: z.literal("running"),
-              stage: z.union([
+              stage: z.discriminatedUnion("state", [
                 z.object({ state: z.literal("reading_source") }).strict(),
                 z
                   .object({
@@ -119,7 +119,7 @@ export const verificationJobPublicationSchema = z
           z
             .object({
               state: z.literal("failed"),
-              during: z.union([
+              during: z.discriminatedUnion("state", [
                 z.object({ state: z.literal("reading_source") }).strict(),
                 z
                   .object({
@@ -186,7 +186,7 @@ export const verificationJobPublicationSchema = z
           z
             .object({
               state: z.literal("cancelled"),
-              during: z.union([
+              during: z.discriminatedUnion("state", [
                 z.object({ state: z.literal("reading_source") }).strict(),
                 z
                   .object({

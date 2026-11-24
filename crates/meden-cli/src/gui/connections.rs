@@ -3,17 +3,9 @@
 use super::lock;
 use anyhow::{Context, Result};
 use meden_llm::{Gateway, Provider};
-use serde::Serialize;
 use std::sync::{Arc, Mutex};
 
-#[derive(Clone, Serialize)]
-pub(super) struct Choice {
-    id: String,
-    label: String,
-    model: String,
-    note: String,
-}
-
+use meden_app::view::session::Choice;
 pub(super) struct Connections {
     providers: Vec<Provider>,
     pub gateway: Option<Arc<Gateway>>,
@@ -114,7 +106,7 @@ impl Connections {
 
     pub fn display(&self, view: &mut super::View) {
         view.connections = self.choices();
-        view.connection_revision = self.revision;
+        view.connection_revision = std::num::NonZeroU64::new(self.revision).map(Into::into);
         view.provider = self
             .gateway
             .as_ref()
@@ -174,6 +166,76 @@ pub(super) fn approve(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn native_counter_is_exact_at_u64_maximum_and_overflow_cannot_switch_the_gateway() -> Result<()>
+    {
+        let provider = Provider {
+            id: "host".into(),
+            label: "Host".into(),
+            model: "original".into(),
+            base_url: "https://example.invalid/v1".into(),
+            protocol: meden_llm::Protocol::ChatCompletions,
+            api_key: None,
+            note: "counter boundary fixture; no inference".into(),
+        };
+        // Seed only the host counter at its boundary; selection and approval
+        // still use the real original prepared Gateway and its terminal grants.
+        let connections = Mutex::new(Connections {
+            providers: vec![provider],
+            gateway: None,
+            judge: None,
+            revision: u64::MAX - 1,
+            judge_model: None,
+        });
+        lock(&connections).select(b"workspace", "host", "original")?;
+        let gateway = lock(&connections)
+            .gateway
+            .clone()
+            .context("prepared original gateway")?;
+        assert!(!gateway.is_authorized(b"workspace"));
+        for (counter, allowed) in [(u64::MAX - 1, false), (u64::MAX, true)] {
+            let command: super::super::Command = serde_json::from_value(serde_json::json!({
+                "type":"approve_processor", "connection_revision":counter.to_string(),
+                "endpoint":gateway.endpoint(), "model":gateway.provider().model,
+                "judge":null
+            }))?;
+            let super::super::Command::ApproveProcessor {
+                connection_revision,
+                endpoint,
+                model,
+                judge,
+            } = command
+            else {
+                anyhow::bail!("original command tag changed");
+            };
+            assert_eq!(connection_revision.value(), counter);
+            assert_eq!(
+                approve(
+                    &connections,
+                    b"workspace",
+                    connection_revision.value(),
+                    &endpoint,
+                    &model,
+                    judge.as_ref()
+                )
+                .is_ok(),
+                allowed
+            );
+            assert_eq!(gateway.is_authorized(b"workspace"), allowed);
+        }
+        assert!(lock(&connections)
+            .select(b"workspace", "host", "replacement")
+            .is_err());
+        let retained = lock(&connections)
+            .gateway
+            .clone()
+            .context("retained original gateway")?;
+        assert!(Arc::ptr_eq(&gateway, &retained));
+        assert_eq!(retained.provider().model, "original");
+        assert!(retained.is_authorized(b"workspace"));
+        Ok(())
+    }
+
     #[test]
     fn changing_models_revokes_the_frozen_previous_gateway_and_requires_exact_fresh_review(
     ) -> Result<()> {

@@ -4,11 +4,11 @@ export const fileViewSchema = z
   .object({
     path: z.string().min(1).max(4096),
     navigation: z.union([z.literal("declarations"), z.literal("source_only")]),
-    reading: z.union([
+    reading: z.discriminatedUnion("state", [
       z
         .object({
           state: z.literal("ready"),
-          content: z.union([
+          content: z.discriminatedUnion("kind", [
             z
               .object({
                 kind: z.literal("text"),

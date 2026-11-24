@@ -1,6 +1,6 @@
 // Generated from meden_app::view::preview::Status. Do not edit.
 import { z } from "zod";
-export const previewStatusSchema = z.union([
+export const previewStatusSchema = z.discriminatedUnion("state", [
   z.object({ state: z.literal("idle") }).strict(),
   z
     .object({

@@ -92,7 +92,7 @@ export const historySnapshotSchema = z
         ),
         logs: z
           .array(
-            z.union([
+            z.discriminatedUnion("type", [
               z
                 .object({ type: z.literal("notice"), text: z.string() })
                 .strict(),
