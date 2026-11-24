@@ -642,6 +642,24 @@ draft context; explicitly selecting another saved analysis restores its original
 requirement. Freshness and displayed-result matching still use the actual source
 and graph revisions, independently of retained input text.
 
+Static preview preparation now also lives in the shared application. It freezes
+complete bounded static assets through the original policy-bound offline file
+worker; the CLI's duplicate preparation module is deleted. The host retains its
+existing nonce origin, listener and browser response policies. Immutable bundle
+getters cannot reread files or replace captured content.
+
+Preview metadata has separate generated idle/ready/unavailable status and
+`GET /api/preview?revision=…` publication. Capture and missing-asset observations
+materialize once at mutation boundaries, rather than cloning/serializing the
+description during status polling. The original asset revision, frame URL and
+bounded diagnostics remain distinct. A frame identity binds the bundle and URL:
+diagnostic updates retain the running document, while retirement/replacement
+rejects delayed former-frame bodies. Transfer retry performs no capture. The
+shared browser retention hook also replaces the duplicate job fallback logic.
+The owned generator preserves URI validation and refuses unknown formats,
+including format handling for nullable scalar fields. Browser execution, origin
+attribution and complete isolation remain tested adapters, not proof evidence.
+
 This does not finish step 4: proposal checks and broader orchestration jobs,
 generation of the rest of the native wire contract and remaining navigation
 waits still need work. Step 5's versioned layout/order and retirement

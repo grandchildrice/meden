@@ -10,6 +10,13 @@ writeFileSync(
   JSON.stringify(z.toJSONSchema(workspaceSchema), null, 2) + "\n",
 );
 for (const [key, rust, symbol, type, owner = "view"] of [
+  ["preview-status", "preview::Status", "previewStatusSchema", "PreviewStatus"],
+  [
+    "preview-publication",
+    "preview::Snapshot",
+    "previewPublicationSchema",
+    "PreviewPublication",
+  ],
   [
     "verification-job-status",
     "verification_jobs::Status",

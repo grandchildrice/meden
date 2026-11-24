@@ -16,6 +16,27 @@ interface Entry<T> {
   error?: string;
 }
 
+/** Keep the committed body during an update of the same original context.
+ * Retirement/replacement cannot fall back to another job, frame or session.
+ */
+export function useRetainedPublication<T>(
+  value: T | undefined,
+  identity: string | undefined,
+) {
+  const previous = useRef<{ identity: string; value: T } | undefined>(
+    undefined,
+  );
+  useEffect(() => {
+    if (identity && value !== undefined) previous.current = { identity, value };
+  }, [value, identity]);
+  return (
+    value ??
+    (identity && previous.current?.identity === identity
+      ? previous.current.value
+      : undefined)
+  );
+}
+
 /** Own one request per wanted immutable artifact; status ticks do not refetch.
  * Entries not referenced by their current views are cancelled/released.
  */

@@ -1,5 +1,47 @@
 # Graph interaction measurements
 
+## Immutable preview descriptions (November 24)
+
+The [validation record](../results/preview-publications-20261124.json) covers
+moving static capture out of CLI composition and generating its read model.
+Frequent status now contains only idle/ready/unavailable and the original frame
+and publication identities. `/api/preview?revision=…` shares complete frozen
+metadata; capture and missing-asset observations publish at their mutation
+boundaries. The original bounded offline file worker and isolated host listener
+remain responsible for actual content and browser response policies.
+
+The actual confined-capture/browser journey retains a running counter through
+failed description transfer, command-free retry and delayed diagnostic updates.
+An explicit recapture retires the former origin and a delayed old description
+cannot replace the new frame. Twenty supplementary-Unicode diagnostics produce
+a **41,355-byte** body with a **184-byte** status. Twenty direct reads add zero
+commands and leave the materialization count at **24**. Diagnostics remain
+available under Details so the live application stays in the viewport.
+
+The direct Node/browser-fixture read intervals include HTTP, JSON validation and
+assertion overhead under parallel functional validation. They alternate between
+roughly 3 and 44 ms despite retained bodies. This is an investigation target,
+not an exclusive-stage CPU or natural-throughput benchmark; transport attribution
+requires a separate controlled probe.
+
+Rust **322**, TypeScript **42**, architecture **24** / **40 owned sources** and
+the **60 generated files** passed their checks. The required public TUI passed
+all **34 journeys**. All **68 browser journeys** and both serialized motion
+gates passed; retained-tab two-animation-callback p95 is **40.2 / 35.9 ms** for
+normal/reduced motion. These callbacks are presentation proxies, not physical
+paint or INP. The 3000-case corpus, repeated algorithm budget and its actual
+full-scan negative control also passed. After rendered-screen review, folding
+long diagnostics was checked again through all three affected preview journeys,
+including an explicit assertion that the live frame stays in the viewport.
+
+Both deployed projects retain their exact original source/graph/reader,
+inventory, conversation, candidate and evidence observations. Prepared caches
+still hit; source-line selection, chat and camera remain stable. Idle graph
+navigation requests neither preview nor verification-job bodies. No new graph
+event speedup, live-model validation or proof/refinement claim is made here.
+Remaining native-wire definitions, broader job views and versioned layout/order
+and retirement requirements stay open.
+
 ## File-local selection and current event audit (November 24)
 
 The [measurement record](../results/selection-retention-events-20261124.json)

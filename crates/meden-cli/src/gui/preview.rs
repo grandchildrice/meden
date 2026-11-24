@@ -1,7 +1,7 @@
 //! Separate loopback origin serving only a frozen static bundle, never workspace I/O.
-use super::{assets::Bundle, header, lock};
+use super::{header, lock};
 use anyhow::{Context, Result};
-use serde::Serialize;
+use meden_app::{preview::Bundle, view::preview::Previews};
 use std::fmt::Write as _;
 use std::io::Read;
 use std::sync::{
@@ -13,26 +13,16 @@ use tiny_http::{Header, Method, Request, Response, Server, StatusCode};
 struct Current {
     authority: String,
     bundle: Bundle,
-    errors: Vec<String>,
-}
-#[derive(Clone, Serialize)]
-pub(super) struct Summary {
-    pub root: String,
-    pub entry: String,
-    pub revision: String,
-    pub url: String,
-    pub file_count: usize,
-    pub byte_count: usize,
-    pub errors: Vec<String>,
 }
 pub(super) struct Preview {
     server: Server,
     port: u16,
     parent_origin: String,
     current: Mutex<Option<Current>>,
+    presentation: Previews,
 }
 impl Preview {
-    pub fn new(parent_origin: &str) -> Result<Self> {
+    pub fn new(parent_origin: &str, presentation: Previews) -> Result<Self> {
         let server = Server::http((std::net::Ipv4Addr::LOCALHOST, 0))
             .map_err(|e| anyhow::anyhow!(e.to_string()))?;
         let port = server
@@ -45,13 +35,16 @@ impl Preview {
             port,
             parent_origin: parent_origin.into(),
             current: Mutex::new(None),
+            presentation,
         })
     }
     pub fn frame_source(&self) -> String {
         format!("http://*.localhost:{}", self.port)
     }
     pub fn clear(&self) {
-        *lock(&self.current) = None;
+        let mut current = lock(&self.current);
+        *current = None;
+        self.presentation.clear();
     }
     pub fn capture(
         &self,
@@ -61,7 +54,7 @@ impl Preview {
         entry: &str,
     ) -> Result<()> {
         self.clear();
-        let bundle = super::assets::capture(workspace, control, root, entry)?;
+        let bundle = meden_app::preview::capture(workspace, control, root, entry)?;
         control.with_active(|| self.install(bundle).map_err(std::io::Error::other))?;
         Ok(())
     }
@@ -73,37 +66,28 @@ impl Preview {
             text
         });
         let authority = format!("{token}.localhost:{}", self.port);
-        *lock(&self.current) = Some(Current {
+        let url = format!(
+            "http://{}/{}",
             authority,
-            bundle,
-            errors: Vec::new(),
-        });
-        Ok(())
-    }
-    pub fn summary(&self) -> Option<Summary> {
-        lock(&self.current).as_ref().map(|current| Summary {
-            root: current.bundle.root.clone(),
-            entry: current.bundle.entry.clone(),
-            revision: current.bundle.revision.clone(),
-            url: format!(
-                "http://{}/{}",
-                current.authority,
-                current
-                    .bundle
-                    .entry
-                    .split('/')
-                    .map(|s| percent_encoding::utf8_percent_encode(
-                        s,
-                        percent_encoding::NON_ALPHANUMERIC
-                    )
-                    .to_string())
-                    .collect::<Vec<_>>()
-                    .join("/")
-            ),
-            file_count: current.bundle.files.len(),
-            byte_count: current.bundle.byte_count,
-            errors: current.errors.clone(),
-        })
+            bundle
+                .entry()
+                .split('/')
+                .map(|s| percent_encoding::utf8_percent_encode(
+                    s,
+                    percent_encoding::NON_ALPHANUMERIC
+                )
+                .to_string())
+                .collect::<Vec<_>>()
+                .join("/")
+        );
+        let mut current = lock(&self.current);
+        let result = self.presentation.install(&bundle, url);
+        *current = if result.is_ok() {
+            Some(Current { authority, bundle })
+        } else {
+            None
+        };
+        result
     }
     pub fn listen(&self, stopping: &AtomicBool) {
         std::thread::scope(|scope| {
@@ -140,7 +124,7 @@ impl Preview {
                         .ok();
                     let asset = path
                         .as_ref()
-                        .and_then(|name| current.bundle.files.get(name.as_ref()));
+                        .and_then(|name| current.bundle.asset(name.as_ref()));
                     if request.method() != &Method::Get {
                         (
                             405,
@@ -149,18 +133,10 @@ impl Preview {
                             origin,
                         )
                     } else if let Some(asset) = asset {
-                        (200, asset.mime, Arc::clone(&asset.bytes), origin)
+                        (200, asset.mime(), asset.bytes(), origin)
                     } else {
-                        if current.errors.len() < 20 {
-                            current.errors.push(format!(
-                                "Missing preview asset: {}",
-                                path.as_deref()
-                                    .unwrap_or("invalid URL")
-                                    .chars()
-                                    .take(500)
-                                    .collect::<String>()
-                            ));
-                        }
+                        self.presentation
+                            .missing(path.as_deref().unwrap_or("invalid URL"));
                         (
                             404,
                             "text/plain",

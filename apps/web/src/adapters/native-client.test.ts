@@ -4,6 +4,7 @@ import {
   nativeReferenceSchema,
   nativeStateSchema,
   verificationJobPublicationSchema,
+  previewPublicationSchema,
 } from "@meden/agent-protocol/native";
 import { NativeClient, NativeHttpError } from "./native-client";
 
@@ -22,6 +23,62 @@ const snapshot = {
   },
 };
 afterEach(() => vi.unstubAllGlobals());
+
+test("preview reads bind frame and publication while preserving bounded diagnostics", async () => {
+  const frame = "sha256:" + "b".repeat(64);
+  const data = {
+    frame,
+    root: "public",
+    entry: "index.html",
+    revision: "sha256:" + "c".repeat(64),
+    url: "http://original.localhost:1234/index.html",
+    file_count: 1,
+    byte_count: 17,
+    errors: [
+      "Missing preview asset: " + "🧪".repeat(500) + "… (path shortened)",
+    ],
+  };
+  const fetch = vi
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve(Response.json({ revision, data })),
+    );
+  vi.stubGlobal("fetch", fetch);
+  const client = new NativeClient("session");
+  expect(await client.preview(revision, frame)).toEqual({ revision, data });
+  expect(fetch.mock.calls[0][0]).toBe(
+    "/api/preview?revision=" + encodeURIComponent(revision),
+  );
+  await expect(
+    client.preview(revision, "sha256:" + "d".repeat(64)),
+  ).rejects.toThrow("requested frame");
+  await expect(
+    client.preview("sha256:" + "e".repeat(64), frame),
+  ).rejects.toThrow("requested revision");
+  for (const update of [
+    { url: "relative.html" },
+    { file_count: 257 },
+    { byte_count: 16777217 },
+    { errors: Array(21).fill("x") },
+    { errors: ["x".repeat(2401)] },
+    { verified: true },
+    { root: "" },
+  ])
+    expect(
+      previewPublicationSchema.safeParse({
+        revision,
+        data: { ...data, ...update },
+      }).success,
+    ).toBe(false);
+  expect(nativeStateSchema.shape.preview.parse({ state: "idle" })).toEqual({
+    state: "idle",
+  });
+  expect(
+    nativeStateSchema.shape.preview.safeParse({ state: "ready", revision })
+      .success,
+  ).toBe(false);
+  expect(nativeStateSchema.shape.preview.safeParse(data).success).toBe(false);
+});
 
 test("verification queries bind the exact job and revision without admitting receipt fields", async () => {
   const job = "sha256:" + "b".repeat(64);

@@ -1,15 +1,21 @@
 import { useState } from "react";
 import { Alert, Button, Stack, TextField, Typography } from "@mui/material";
-import type { NativePreviewSnapshot } from "@meden/agent-protocol/native";
+import type { PreviewPublication } from "@meden/agent-protocol/native";
 
 export function NativePreview({
   snapshot,
   error,
+  loading,
+  transferError,
+  onRetry,
   running,
   onCapture,
 }: {
-  snapshot: NativePreviewSnapshot | null;
+  snapshot: PreviewPublication["data"] | null;
   error: string | null;
+  loading?: boolean;
+  transferError?: string;
+  onRetry?: () => void;
   running: boolean;
   onCapture: (root: string, entry: string) => Promise<boolean>;
 }) {
@@ -19,6 +25,16 @@ export function NativePreview({
     <Stack spacing={2}>
       <Typography variant="h3">App preview</Typography>
       {error && <Alert severity="error">{error}</Alert>}
+      {transferError && (
+        <Alert severity="warning">
+          Could not load the preview description.
+          <details>
+            <summary>Details</summary>
+            {transferError}
+          </details>
+          {onRetry && <Button onClick={onRetry}>Retry preview</Button>}
+        </Alert>
+      )}
       <TextField
         label="Public folder (inside workspace)"
         size="small"
@@ -60,11 +76,14 @@ export function NativePreview({
             <Alert severity="warning">
               Some files could not be read. Check the output folder and asset
               references, then reload.
-              <ul>
-                {snapshot.errors.map((error, index) => (
-                  <li key={index}>{error}</li>
-                ))}
-              </ul>
+              <details>
+                <summary>Details</summary>
+                <ul>
+                  {snapshot.errors.map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+              </details>
             </Alert>
           )}
           <iframe
@@ -76,6 +95,8 @@ export function NativePreview({
             className="native-preview"
           />
         </>
+      ) : loading ? (
+        <p role="status">Loading preview…</p>
       ) : (
         <p>Choose a folder and HTML file to load.</p>
       )}

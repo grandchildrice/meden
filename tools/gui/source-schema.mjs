@@ -139,6 +139,41 @@ export function validator(schema, root = schema) {
       code += `.${method}(${schema[key]})`;
   if (schema.pattern && schema.type === "string")
     code += `.regex(new RegExp(${JSON.stringify(schema.pattern)}))`;
+  if (schema.format !== undefined) {
+    if (schema.type === "string" && schema.format === "uri") code += ".url()";
+    else if (!(
+      (schema.type === "integer" &&
+        [
+          "uint",
+          "uint8",
+          "uint16",
+          "uint32",
+          "uint64",
+          "int8",
+          "int16",
+          "int32",
+          "int64",
+        ].includes(schema.format)) ||
+      (schema.type === "number" &&
+        ["float", "double"].includes(schema.format)) ||
+      (schema.type === "null" &&
+        [
+          "uri",
+          "uint",
+          "uint8",
+          "uint16",
+          "uint32",
+          "uint64",
+          "int8",
+          "int16",
+          "int32",
+          "int64",
+          "float",
+          "double",
+        ].includes(schema.format))
+    ))
+      throw new Error("Unsupported source DTO format: " + schema.format);
+  }
   for (const key of Object.keys(schema))
     if (
       ![

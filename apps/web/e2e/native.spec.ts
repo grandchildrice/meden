@@ -28,6 +28,7 @@ import {
 import {
   analysisCurrentSchema,
   analysisHistorySchema,
+  previewPublicationSchema,
 } from "@meden/agent-protocol/native";
 import { verificationGate } from "./launcher-gate";
 
@@ -5140,6 +5141,221 @@ theorem slow : True := fast
       },
     );
   }
+
+  test("preview descriptions retry without recapture, retain the live frame and reject delayed replacements", async ({
+    page,
+  }) => {
+    test.setTimeout(120000);
+    const html = (title: string) =>
+      `<!doctype html><title>${title}</title><h1>${title}</h1><button id="inc">Increment</button><output aria-label="Count">0</output><script>document.getElementById('inc').onclick=()=>{const count=document.querySelector('output');count.textContent=String(Number(count.textContent)+1)};</script>`;
+    await mkdir(resolve(project, "public"));
+    await writeFile(
+      resolve(project, "public/index.html"),
+      html("Original counter"),
+    );
+    await page.goto(await start());
+    const commands: unknown[] = [];
+    page.on("request", (request) => {
+      if (request.url().endsWith("/api/command"))
+        commands.push(request.postDataJSON());
+    });
+    const api = async (path: string) => {
+      const host = new URL(url);
+      const response = await fetch(host.origin + path, {
+        headers: {
+          Authorization: "Bearer " + host.hash.slice("#session=".length),
+        },
+      });
+      expect(response.status).toBe(200);
+      return response;
+    };
+    const description = async () => {
+      const state = await (await api("/api/state")).json();
+      expect(state.preview.state).toBe("ready");
+      const publication = previewPublicationSchema.parse(
+        await (
+          await api(
+            "/api/preview?revision=" +
+              encodeURIComponent(state.preview.revision),
+          )
+        ).json(),
+      );
+      expect(publication.revision).toBe(state.preview.revision);
+      expect(publication.data.frame).toBe(state.preview.frame);
+      return { status: state.preview, publication };
+    };
+    let fail = true,
+      hold = false;
+    const releases: Array<() => void> = [];
+    await page.route("**/api/preview?revision=*", async (route) => {
+      if (fail) {
+        fail = false;
+        await route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "Temporary preview transfer failure" }),
+        });
+        return;
+      }
+      const response = await route.fetch();
+      if (hold && response.status() === 200) {
+        hold = false;
+        await new Promise<void>((resolve) => releases.push(resolve));
+      }
+      await route.fulfill({ response }).catch(() => {}); // A retired frame request is intentionally aborted.
+    });
+    await preview(page, "public");
+    await expect(
+      page.getByText("Could not load the preview description.", {
+        exact: false,
+      }),
+    ).toBeVisible();
+    await expect(page.locator("iframe")).toHaveCount(0);
+    const commandsBeforeRetry = commands.length;
+    await page
+      .getByRole("button", { name: "Retry preview", exact: true })
+      .click();
+    const frame = page.frameLocator('iframe[title="Local app preview"]');
+    await expect(
+      frame.getByRole("heading", { name: "Original counter", exact: true }),
+    ).toBeVisible();
+    const retryCommands = commands.length - commandsBeforeRetry;
+    expect(retryCommands).toBe(0);
+    await frame.getByRole("button", { name: "Increment", exact: true }).click();
+    await expect(frame.getByLabel("Count")).toHaveText("1");
+    const original = await description(),
+      originalUrl = original.publication.data.url;
+    hold = true;
+    expect((await previewRequest(originalUrl, "/missing.js")).status).toBe(404);
+    await expect.poll(() => releases.length).toBe(1);
+    await expect(frame.getByLabel("Count")).toHaveText("1");
+    expect(await page.locator("iframe").getAttribute("src")).toBe(originalUrl);
+    releases[0]!();
+    await expect(
+      page
+        .getByRole("alert")
+        .filter({ hasText: "Missing preview asset: missing.js" }),
+    ).toBeVisible();
+    await expect(frame.getByLabel("Count")).toHaveText("1");
+    hold = true;
+    expect((await previewRequest(originalUrl, "/late.js")).status).toBe(404);
+    await expect.poll(() => releases.length).toBe(2);
+    await writeFile(
+      resolve(project, "public/index.html"),
+      html("Replacement counter"),
+    );
+    await expect(
+      frame.getByRole("heading", { name: "Original counter", exact: true }),
+    ).toBeVisible();
+    await preview(page, "public");
+    await expect(
+      frame.getByRole("heading", { name: "Replacement counter", exact: true }),
+    ).toBeVisible();
+    const replacement = await description();
+    expect(replacement.publication.data.frame).not.toBe(
+      original.publication.data.frame,
+    );
+    expect(replacement.publication.data.revision).not.toBe(
+      original.publication.data.revision,
+    );
+    expect((await previewRequest(originalUrl, "/index.html")).status).toBe(403);
+    releases[1]!();
+    await expect(frame.getByLabel("Count")).toHaveText("0");
+    expect(await page.locator("iframe").getAttribute("src")).toBe(
+      replacement.publication.data.url,
+    );
+    await expect(
+      page.getByRole("alert").filter({ hasText: "late.js" }),
+    ).toHaveCount(0);
+    await frame.getByRole("button", { name: "Increment", exact: true }).click();
+    for (let index = 0; index < 22; index++)
+      expect(
+        (
+          await previewRequest(
+            replacement.publication.data.url,
+            "/" + encodeURIComponent("🧪".repeat(550) + index),
+          )
+        ).status,
+      ).toBe(404);
+    await expect(page.getByRole("alert").locator("li")).toHaveCount(20);
+    await expect(frame.getByLabel("Count")).toHaveText("1");
+    await expect(
+      page.locator('iframe[title="Local app preview"]'),
+    ).toBeInViewport();
+    const bounded = await description();
+    expect(bounded.publication.data.frame).toBe(
+      replacement.publication.data.frame,
+    );
+    expect(
+      bounded.publication.data.errors.some((text) =>
+        text.endsWith("… (path shortened)"),
+      ),
+    ).toBe(true);
+    expect(
+      bounded.publication.data.errors.every((text) => text.length <= 2400),
+    ).toBe(true);
+    await page.unroute("**/api/preview?revision=*");
+    const before = await (await api("/api/metrics")).json(),
+      commandCount = commands.length,
+      timings: number[] = [];
+    const bytes = Buffer.from(JSON.stringify(bounded.publication));
+    for (let index = 0; index < 20; index++) {
+      const start = performance.now();
+      const response = await api(
+        "/api/preview?revision=" + encodeURIComponent(bounded.status.revision),
+      );
+      expect(previewPublicationSchema.parse(await response.json())).toEqual(
+        bounded.publication,
+      );
+      timings.push(performance.now() - start);
+    }
+    const after = await (await api("/api/metrics")).json();
+    const materializations = (metrics: any) =>
+      metrics.records.filter(
+        (record: any) => record.name === "view.preview.materialize",
+      ).length;
+    expect(materializations(after)).toBe(materializations(before));
+    const queryCommands = commands.length - commandCount;
+    expect(queryCommands).toBe(0);
+    expect(Buffer.byteLength(JSON.stringify(bounded.status))).toBeLessThan(250);
+    expect(bytes.length).toBeGreaterThan(30000);
+    await page.screenshot({
+      path: test.info().outputPath("preview-publication-ready.png"),
+    });
+    const port = Number(new URL(url).port);
+    await stop();
+    await page.goto(await start(port));
+    expect((await nativeState(page)).preview).toEqual({ state: "idle" });
+    expect((await nativeState(page)).authorized).toBe(false);
+    expect(requests).toHaveLength(0);
+    await test.info().attach("preview-publications.json", {
+      body: JSON.stringify(
+        {
+          original: {
+            frame: original.publication.data.frame,
+            asset_revision: original.publication.data.revision,
+          },
+          replacement: {
+            frame: replacement.publication.data.frame,
+            asset_revision: replacement.publication.data.revision,
+          },
+          status_bytes: Buffer.byteLength(JSON.stringify(bounded.status)),
+          body_bytes: bytes.length,
+          diagnostics: bounded.publication.data.errors.length,
+          retry_commands: retryCommands,
+          query_commands: queryCommands,
+          materializations_before: materializations(before),
+          materializations_after: materializations(after),
+          read_ms: timings,
+          methodology:
+            "Actual confined file capture and live isolated browser app; transfer faults and delayed bodies injected at the view boundary. Scripted provider unused; no live-model or proof-evidence claim.",
+        },
+        null,
+        2,
+      ),
+      contentType: "application/json",
+    });
+  });
 
   test("develop and interact with local module assets, refresh edits, recover and restart", async ({
     page,

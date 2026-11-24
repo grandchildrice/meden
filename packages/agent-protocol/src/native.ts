@@ -45,18 +45,9 @@ import type { RepairReference } from "./repair-reference.generated";
 import { repairReviewSchema } from "./repair-review.generated";
 export { repairReviewSchema } from "./repair-review.generated";
 export type { RepairReview } from "./repair-review.generated";
-export const previewSchema = z
-  .object({
-    root: z.string(),
-    entry: z.string(),
-    revision: z.string().regex(/^sha256:[a-f0-9]{64}$/),
-    url: z.string().url(),
-    file_count: z.number().int().nonnegative(),
-    byte_count: z.number().int().nonnegative(),
-    errors: z.array(z.string()),
-  })
-  .strict();
-export type NativePreviewSnapshot = z.infer<typeof previewSchema>;
+import { previewStatusSchema } from "./preview-status.generated";
+export { previewPublicationSchema } from "./preview-publication.generated";
+export type { PreviewPublication } from "./preview-publication.generated";
 export { historySnapshotSchema } from "./history.generated";
 import type { HistorySnapshot } from "./history.generated";
 import { historyReferenceSchema } from "./history-reference.generated";
@@ -156,7 +147,7 @@ export const nativeStateSchema = z.object({
   sources: sourceIndexSchema,
   analyses: analysesStatusSchema,
   repair_review: repairReviewSchema.nullable(),
-  preview: previewSchema.nullable(),
+  preview: previewStatusSchema,
   exports: z.array(exportSummarySchema),
   export_review: exportReviewSchema.nullable(),
   export_outcome: exportOutcomeSchema.nullable(),

@@ -21,6 +21,8 @@ pub mod history;
 pub mod inventory;
 /// Bounded preparation observations and exact diagnostic queries.
 pub mod jobs;
+/// Exact immutable static-preview observations, separate from browser authority.
+pub mod preview;
 /// Bounded, immutable publication framing shared by read-model owners.
 pub mod publication;
 /// Immutable reader retention, separate from semantic graphs.

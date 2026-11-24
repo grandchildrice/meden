@@ -280,6 +280,15 @@ port reloads the document so the new response policies apply. Missing requested
 assets appear beside the preview; that diagnostic does not detect every JavaScript
 failure. A loaded iframe or successful interaction never grants proof status.
 
+The preview description is fetched once per published update; status polling
+contains only its frame and revision. **Retry preview** retries a failed
+description transfer without rereading files or resetting the running document.
+Missing-asset diagnostics update that same frame. Explicit recapture retires its
+previous origin; long diagnostic details expand separately so the app stays visible.
+A delayed former description cannot restore it. Static capture
+and immutable descriptions belong to the shared application; the loopback
+listener and browser response policies remain host adapters.
+
 The existing policy-bound, offline file worker reads a bounded inventory and exact
 binary bytes. Its read-only policy limits both original and resolved paths to the
 selected folder; root aliases resolving elsewhere are refused. Hidden entries,

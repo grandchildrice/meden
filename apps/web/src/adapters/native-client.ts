@@ -1,5 +1,7 @@
 import {
   nativeStateSchema,
+  previewPublicationSchema,
+  type PreviewPublication,
   evidencePublicationSchema,
   type EvidencePublication,
   verificationJobPublicationSchema,
@@ -58,6 +60,21 @@ export class NativeClient {
       evidencePublicationSchema,
       signal,
     );
+  }
+  async preview(
+    revision: string,
+    frame: string,
+    signal?: AbortSignal,
+  ): Promise<PreviewPublication> {
+    const publication = await this.publication(
+      "preview",
+      revision,
+      previewPublicationSchema,
+      signal,
+    );
+    if (publication.data.frame !== frame)
+      throw new Error("Preview description does not match its requested frame");
+    return publication;
   }
   async verificationJob(
     revision: string,
@@ -150,6 +167,7 @@ export class NativeClient {
   }
   private async publication<T extends { revision: string }>(
     role:
+      | "preview"
       | "history"
       | "source"
       | "reader"

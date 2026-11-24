@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Envelope",
+  "description": "Shared wire framing; each data role retains its own generated schema.",
+  "type": "object",
+  "properties": {
+    "revision": {
+      "description": "Exact publication requested by the viewer.",
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "data": {
+      "description": "Original complete projection, never an authority token.",
+      "$ref": "#/$defs/Data"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "revision",
+    "data"
+  ],
+  "$defs": {
+    "Data": {
+      "description": "Original complete captured-bundle description and host-provided frame URL.",
+      "type": "object",
+      "properties": {
+        "frame": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "root": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "entry": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "revision": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "minLength": 1,
+          "maxLength": 16384
+        },
+        "file_count": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 1,
+          "maximum": 256
+        },
+        "byte_count": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0,
+          "maximum": 16777216
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Diagnostic"
+          },
+          "maxItems": 20
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "frame",
+        "root",
+        "entry",
+        "revision",
+        "url",
+        "file_count",
+        "byte_count",
+        "errors"
+      ]
+    },
+    "Diagnostic": {
+      "description": "A bounded literal browser observation, never an asset's contents.",
+      "type": "string",
+      "maxLength": 2400
+    }
+  }
+}

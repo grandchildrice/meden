@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Status",
+  "description": "Small status, independently serialized without inspecting assets or errors.",
+  "oneOf": [
+    {
+      "description": "No preview has been captured in this host session.",
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string",
+          "const": "idle"
+        }
+      },
+      "required": [
+        "state"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "description": "Complete frozen description available at exactly this revision.",
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string",
+          "const": "ready"
+        },
+        "frame": {
+          "description": "Original frame/bundle context; diagnostic updates do not replace it.",
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "revision": {
+          "description": "Content identity, separate from the captured asset-manifest identity.",
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "frame",
+        "revision"
+      ]
+    },
+    {
+      "description": "An incomplete or superseded description is not served.",
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string",
+          "const": "unavailable"
+        },
+        "message": {
+          "description": "Bounded literal observation failure.",
+          "type": "string",
+          "maxLength": 8000
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "message"
+      ]
+    }
+  ]
+}

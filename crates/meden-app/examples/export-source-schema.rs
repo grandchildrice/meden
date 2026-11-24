@@ -8,6 +8,8 @@ fn output<T: schemars::JsonSchema>() -> schemars::Schema {
 }
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let schema = match std::env::args().nth(1).as_deref() {
+        Some("preview-status") => output::<meden_app::view::preview::Status>(),
+        Some("preview-publication") => output::<meden_app::view::preview::Snapshot>(),
         Some("verification-job-status") => output::<meden_app::view::verification_jobs::Status>(),
         Some("verification-job-publication") => {
             output::<meden_app::view::verification_jobs::Snapshot>()

@@ -85,6 +85,14 @@ other stages; host-thread CPU excludes child-process work and cannot attribute
 solver/Lean CPU. The browser fixture deliberately holds dispatch and response
 timing, so its spans validate instrumentation rather than natural throughput.
 
+`view.preview.materialize` freezes a complete preview description at capture or
+missing-asset mutation. `gui.preview_respond` serves its original frozen bytes.
+The real browser journey records small status/body sizes and twenty direct
+loopback reads, requiring no new materializations or commands. Frame identity
+is independent of diagnostic revision, so updates and transfer retry do not
+reload the live app. Its transfer faults are instrumentation/UX conformance,
+not a natural throughput benchmark or proof of browser isolation.
+
 Prepared roots now use one batched Lake query for their normal build and
 source/output/compiler-setup results. The file's streamed diagnostic log separates
 build/setup/input resolution from the exact file/byte validation duration.

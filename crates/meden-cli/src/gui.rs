@@ -13,7 +13,6 @@ use tiny_http::{Header, Method, Request, Response, Server, StatusCode};
 
 use crate::{session::history, session::Session, WorkspaceArgs};
 mod analysis;
-mod assets;
 mod connections;
 mod delivery;
 mod overview;
@@ -30,6 +29,7 @@ struct Task {
 
 #[derive(Clone, Copy)]
 enum PublicationRole {
+    Preview,
     History,
     Source,
     Reader,
@@ -87,7 +87,7 @@ struct View {
     source_preparation: meden_app::view::jobs::Jobs,
     analyses: meden_app::view::analyses::Analyses,
     repair_review: Option<meden_app::view::repairs::Review>,
-    preview: Option<preview::Summary>,
+    preview: meden_app::view::preview::Reader,
     exports: Vec<crate::exports::Summary>,
     export_review: Option<delivery::Review>,
     export_outcome: Option<delivery::Outcome>,
@@ -274,7 +274,8 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
         workspace.session_id(),
         args.verifier.as_deref(),
     )?);
-    let view = initial_view(&workspace, &project)?;
+    let preview_views = meden_app::view::preview::Previews::default();
+    let view = initial_view(&workspace, &project, preview_views.reader())?;
     lock(&connections).display(&mut lock(&view));
     let control = Arc::new(Mutex::new(Arc::new(Control::new(Arc::new(
         AtomicBool::new(false),
@@ -288,7 +289,7 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
         .context("loopback listener missing")?;
     let origin = format!("http://{address}");
     let authority = address.to_string();
-    let preview = Arc::new(preview::Preview::new(&origin)?);
+    let preview = Arc::new(preview::Preview::new(&origin, preview_views)?);
     let (sender, receiver) = mpsc::sync_channel::<Task>(1);
     let worker_view = Arc::clone(&view);
     let worker_workspace = Arc::clone(&workspace);
@@ -354,6 +355,7 @@ pub fn run(args: &WorkspaceArgs, assets: &Path, port: u16) -> Result<()> {
 fn initial_view(
     workspace: &Workspace,
     project: &crate::project::Project,
+    preview: meden_app::view::preview::Reader,
 ) -> Result<Arc<Mutex<View>>> {
     project.stored_status()?;
     let saved = history::load(workspace.path())?;
@@ -401,7 +403,7 @@ fn initial_view(
         source_preparation: meden_app::view::jobs::Jobs::new(workspace.session_id()),
         analyses,
         repair_review: None,
-        preview: None,
+        preview,
         exports: Vec::new(),
         export_review: None,
         export_outcome: None,
@@ -514,7 +516,6 @@ impl Http<'_> {
                         connections.judge.as_deref(),
                         self.workspace.session_id(),
                     );
-                view.preview = self.preview.summary();
                 json!(&*view)
             };
             respond(request, 200, &snapshot);
@@ -555,7 +556,9 @@ impl Http<'_> {
     }
 
     fn publication(&self, url: &str) -> Option<(&'static str, Option<Arc<[u8]>>)> {
-        let (role, encoded) = if let Some(revision) = url.strip_prefix("/api/history?revision=") {
+        let (role, encoded) = if let Some(revision) = url.strip_prefix("/api/preview?revision=") {
+            (PublicationRole::Preview, revision)
+        } else if let Some(revision) = url.strip_prefix("/api/history?revision=") {
             (PublicationRole::History, revision)
         } else if let Some(revision) = url.strip_prefix("/api/preparation-log?revision=") {
             (PublicationRole::PreparationLog, revision)
@@ -585,6 +588,7 @@ impl Http<'_> {
             .and_then(|revision| {
                 let view = lock(self.view);
                 match role {
+                    PublicationRole::Preview => view.preview.bytes(&revision),
                     PublicationRole::History => view.history.bytes(&revision),
                     PublicationRole::Source => view.sources.bytes(&revision),
                     PublicationRole::Reader => view.readers.bytes(&revision),
@@ -602,6 +606,7 @@ impl Http<'_> {
             });
         Some((
             match role {
+                PublicationRole::Preview => "gui.preview_respond",
                 PublicationRole::History => "gui.history_respond",
                 PublicationRole::Source => "gui.source_respond",
                 PublicationRole::Reader => "gui.reader_respond",

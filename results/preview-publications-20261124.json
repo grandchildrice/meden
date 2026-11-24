@@ -1,0 +1,1025 @@
+{
+  "date": "2026-11-24",
+  "source_base_revision": "23d930742945e6525f7ed1b43bc4f34ea9fb7a35",
+  "scope": "Shared static-preview preparation and immutable generated descriptions. Native root status/command/export/connection generation, broader orchestration jobs and versioned layout/order/retirement remain open.",
+  "candidate": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/12f0e688a89a985f8780b7658cb0de42fe693bc9ab5da25fef561e58d4177b8c/meden",
+    "sha256": "12f0e688a89a985f8780b7658cb0de42fe693bc9ab5da25fef561e58d4177b8c"
+  },
+  "deployment": {
+    "binary_sha256": "12f0e688a89a985f8780b7658cb0de42fe693bc9ab5da25fef561e58d4177b8c",
+    "assets_sha256": "93a4a8e013af28bcc37e9721514769356bba5b1d6b6d5ab2063ca358c2182aef",
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/12f0e688a89a985f8780b7658cb0de42fe693bc9ab5da25fef561e58d4177b8c-93a4a8e013af28bc",
+    "files": [
+      [
+        "assets/AnalysisView-BO_v7Bwv.js",
+        "d6d8cff3bdf394e47a3b9abc990c54925ff942ba3f3cbe6702687755b6d6adf8"
+      ],
+      [
+        "assets/ArtifactPanel-BYo_7TyI.js",
+        "1e5b03893f53d6dd99f4ce177b3d4880eaef6087a26e20332d2d78fc31021325"
+      ],
+      [
+        "assets/GraphView-BDb31d5s.js",
+        "768f4b5e189752d672968de23924fd6a7d13c2c0ef5f633e62533fe47c78c6ca"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-BQhdFMY1.woff2",
+        "0cdd387c9590a1a9f9794560022dbb59654a7d86f187aa0c81495ad42d3a7308"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-DMm9YOAa.woff",
+        "30da91e84c893f875e252689faebdc590b2871145e8adc7f9a9d4dbd8ce0b251"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-DRggAlZN.ttf",
+        "68534840bcfdd2bffb6f0e8deb48684dd01e7f04ea2813267577afb906de1d13"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-ATXxdsX0.ttf",
+        "07d8e303ce4fc12b4bb54f1004170dd190a1f3db45d400fe68060df3e0897268"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-BEiXGLvX.woff",
+        "1ae6bd7475590e97e7f145a89e09ccde322f7a6bc0b91607b1c8b8ee28290fed"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-Dq_IR9rO.woff2",
+        "de7701e42cf1f4cf0b766c03fb27977207eee2f4fd5d76fa82188406da43ea4c"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-CTRA-rTL.woff",
+        "3398dd02302557a793f2863f88e02d96ce10df2abffa07c8e9fa90775116e65c"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-Di6jR-x-.woff2",
+        "5d53e70ad607c2352162dec9e0923fb54ecdafaccbf604cd8dcf7d00facb989b"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-wX97UBjC.ttf",
+        "ed0b74372feefcbb9c0666b2e210da37b7e49fa7fbbf3eeb11db5f693dacfbb7"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-BdnERNNW.ttf",
+        "9163df9c7122432e6495b4229fa9071cf9ae86a758ae5efc4924ec2e1a6dbce1"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-BsDP51OF.woff",
+        "9be7ceb88004ab8ad124082246fbfcca4091e36385d4ec6ed1df67375dad50fb"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-CL6g_b3V.woff2",
+        "74444efd593c005e3f4573b44524704c0af0a937fe911cca9e94068d0d140d3f"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-CB_wures.ttf",
+        "1e6f9579e90e2cac37f8f60a597c436e075c114385652b7cbeb0dec0421291b3"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-CTYiF6lA.woff2",
+        "51814d270d06ff0255dba0799994fa4d8c84d11f09951d47595f4abb1f3602dc"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-Dxdc4cR9.woff",
+        "5e28753be717dac97f559f49bc10be9cf3c124ddcabda6659d11cb68febc6463"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-Cx986IdX.woff2",
+        "0f60d1b897938ec918c8ce073092411baf9438f6739465693ff18b0f9d20b021"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-Jm3AIy58.woff",
+        "c76c5d696297d51b9cb1639c7da4334f0e7dec81b42b11213b5e25ef671bb822"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-waoOVXN0.ttf",
+        "138ac28d1663b3037e9c5f52371fa5c63d8324f4a38d22cd573e6ea3a3fd0cf8"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-DxDJ3AOS.woff2",
+        "99cd42a3c072d918f2f44984a807cf7aa16e13545fd0875fc07c6c65f99e715b"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-DzxPMmG6.ttf",
+        "70ee1f64a20f2048c21940ef46d0144fd215baa953ca69afd1e31e98544f708f"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-SpSLRI95.woff",
+        "a6f7ec0d846ac7ad975adb8959c37ed49b94acbc4ae436db9ce9e20287e4a64c"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-3WenGoN9.ttf",
+        "0d85ae7cc30f23790a7f1a58c4a112fdca8aae769b6ba11429af1d98b1b6cb3a"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-BMLOBm91.woff",
+        "f1d6ef86f3b11a528bd5185199bd2443ecb2b0dead96d88674b5a2c12be24bdf"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-NWA7e6Wa.woff2",
+        "97479ca6cce906abc961ecac96faa5f9ca2e61b8e7670d475826bcdee9a7c267"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-B22Nviop.woff2",
+        "c2342cd8b869e01752a9321dc17213fc40d4d04c79688c1d43f2cf316abd7866"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-Dr94JaBh.woff",
+        "c6368d87e8a1a3a5d337623d83d8dc4b868f242a9ad476237d6f8d1e0f168cdc"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-ypZvNtVU.ttf",
+        "d0332f52868370fd83ae7fa46470f90c8f2eab2fcf12bc4f88080b340c95a830"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-B3XSjfu4.ttf",
+        "f9377ab0271cda59af24bcffbd46a4d0c8a3572ffafdbb38de2ad5ea7b0d5ee5"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-CZnvNsCZ.woff2",
+        "dc47344dbb6cb5b655c8460d561f4df5f501b90c804ad3c6cec65fe322351ab1"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-iY-2wyZ7.woff",
+        "850c0af5c2238497febaf5e461d880bf458c341f42f4f330f1b1ab5698b1998e"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-DA0__PXp.woff",
+        "8a8d244581371912b8f3f5a23e2437cb2a59cd9bcaebb0346e722c05737a2571"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-flOr_0UB.ttf",
+        "08ce98e51b04d58945a301e639e02b6998af29fdfd61a7b8afdd07bbfc479d4a"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-t53AETM-.woff2",
+        "7af58c5ec8f132a2ddde9027c6d7814decce4d3b822a11192a42a20e2e973264"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-CFMepnvq.ttf",
+        "1ece03f79f95277d57dc7f6b435a74e1379b0d46104a8530286b60ff49369ea0"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-D1sUS0GD.woff2",
+        "e99ae51144bf1232efcc1bfe5add36262c6866b0faab24fa75740e1b98577a62"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-DbIhKOiC.woff",
+        "ece03cfd83e22c212cdef66feb8442d25a083beb988db3f1883f3f9738d750ba"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-C3H0VqGB.woff2",
+        "00b26ac825e2095056396e0553b8ac26d3f8ad158c3826e28b4c45b385c4714a"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-DN2j7dab.woff",
+        "91ee67500cc0129aa0ace3ac5c61ff1692102f0f31d02b69347fba35dcb75bf2"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-YYjJ1zSn.ttf",
+        "3931dd81faed86ba021bb2bbdc36f5bed9a38d6b4f4077aca59b265aa1b02083"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-BNo7hRIc.ttf",
+        "f36ea897e19f4a2e571d1e900e4e3710e438deb05a842486045ba0a3e616a4ad"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-CS6fqUqJ.woff",
+        "11e4dc8a6471ff6d6ee561d53d10fde8f7489e798257ff449c5d37c197435605"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-DDBCnlJ7.woff2",
+        "68e8c73ef42afd3ccec58bf0fba302cce448938e7fc020a5e31f8a952eee1342"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-C5JkGWo-.ttf",
+        "1c67f068fea8bb09bf099c088b1cf64bd27516a6e07f4684344873564bb66a67"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-D3wIWfF6.woff2",
+        "036d4e95149b69ff9bcc0cd55771efeb25ffa3947293e69acd78d5ac328c684b"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-D5yQViql.woff",
+        "d96cdf2b3bdd4d64a8fd5f74a4c467f123a8a73931cd435889f08ffaf9bf947a"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-C195tn64.woff",
+        "c943cc986384f59e86bea5fd7dc50a9c4dfe567a7c05eb40d6790720dead97c9"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-Dbsnue_I.ttf",
+        "95b6d2f1a50173bfedb8c63e1d1c99b10427d0a4df4201cb44513b226951a22b"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-mCD8mA8B.woff2",
+        "6b47c40166b6dbe21a5dfca7718413f2147fd2399be1ba605d8ad39cedf25dfe"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-B7gKUWhC.ttf",
+        "a6b2099fb555c60e3a0db3a08842ebf1d732c6eb4e4bf44913613bed4fc4e39b"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-Dy4dx90m.woff2",
+        "d04c54219f9eaec6d4d4fd42dfb28785975a4794d6b2fc71e566b9cd6db842dd"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-oD1tc_U0.woff",
+        "2014c523c3210bcc166648c4d4cc57f05b747df07a24277bf71c51e67dc79e3d"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-CTq5MqoE.woff",
+        "6ab6b62e9b62dae2c00dd90f791bd10950be0ecc3490d7d6045f51c2e8fe0949"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-DgpXs0kz.ttf",
+        "500e04d54f0d51666332c9d2089aa803be22aa878eca539e59fa53c6e522b082"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-gV2CO0n9.woff2",
+        "73d591271b1604960cb10bb90fee021670af7297017e0e98480b332d11f51995"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-BF-4gkZK.woff",
+        "99f9c6750b489c9462bf04900bd3f939df9b829339daaaaa99ef5495cdddea58"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-DWFBv043.ttf",
+        "c647367d1dd4e162468717d020e1fc0f1dc5c26ebfdffbe55261713bf88c5877"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-Dl5lxZxV.woff2",
+        "a4af7d414440a1c1790825cfb700cf9cf43b0f2c4b04f0ebc523011ad9853ec0"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-C0xS9mPB.woff",
+        "e14fed02b1aba7ce9f5afd5844b5d0321b22351febc720e0de8b8723527609f7"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-CO6r4hn1.woff2",
+        "71d517d67827787cfabdf186914cc3358eda539e37931941f2b2fd4a21f68c0b"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-D3Ib7_Hf.ttf",
+        "f01f3e87d9c6a61c0c081ceb577abd864eb00a612f7ac1620dd6915fad2ef5aa"
+      ],
+      [
+        "assets/ProofWorkspace-CWqTvC7I.js",
+        "f165036b450a32beb100923fb21eccf167a918ca42740ff7bec16f8461642ebc"
+      ],
+      [
+        "assets/ReviewView-D0tNKdO2.js",
+        "c4e021072b4ab5a87e9a58c2de4a0aa6677a8c4f0e83a1445a838adfad232c86"
+      ],
+      [
+        "assets/bend-DQWYak6m.png",
+        "9ba4741c87076a254bcee4ba0fb9ded366e6e7bacd6ae4727027e1aabd3a6bd5"
+      ],
+      [
+        "assets/certora-BGZUazkT.png",
+        "dd19f617a5463032f21785e5005c361bd753c0c32b6cd55e6e9f72149cb21242"
+      ],
+      [
+        "assets/cvc5-CKJsvvFK.png",
+        "d898a126bdae142e1ef6d2cf2f8b3b11bc7a3b50b48fa9e779d939070deb1354"
+      ],
+      [
+        "assets/dafny-Bqnbzobc.png",
+        "8e6e9042b348b551c7262a1153b83707ea32f59dd22a445f7d6ab6aa67f0903d"
+      ],
+      [
+        "assets/highlight-CwgtpIlc.js",
+        "1fc9cf42ea7a3c66ac58f0ec9d9b48649de3e0a7fcf64aaddbb4ffe0274bdf10"
+      ],
+      [
+        "assets/index-8nuQ6BYP.css",
+        "cc9bdfabadb34911ccb5b6be11daae242020bdd97803a8f7b27cf84113c78787"
+      ],
+      [
+        "assets/index-DPRl2FOM.js",
+        "35cd34a78ed7d37ea62fcebfbc35a197912ccbfaf049b5fd900d69578ab8f1c7"
+      ],
+      [
+        "assets/isabelle-RH45X7aW.png",
+        "01eb41b46ddab73dfa89ab8bd83a4dabcace733d295ea2bfd16662e6432768e2"
+      ],
+      [
+        "assets/lean-DS4hWoMA.png",
+        "b802cfa824bbe3c143fd54ba93661f6cd1e03d0bdb3a2fe6d498a9ba94cd54fa"
+      ],
+      [
+        "assets/roboto-cyrillic-ext-wght-normal-BCp_3N7R.woff2",
+        "01f94d674db55952c35898fa4da22c3e7065c3cc4dbbcc9cb7beb8b6b017fbc9"
+      ],
+      [
+        "assets/roboto-cyrillic-wght-normal-fOt7epNf.woff2",
+        "481dd0c01e6bbb129fd147eb5d8571016193cba141c4627ca60ceabdb5a46ea8"
+      ],
+      [
+        "assets/roboto-greek-ext-wght-normal-Bgw4czJT.woff2",
+        "ec7769b089813996276482bbe7017adfffdd6c7543fd1f76244e2ffc1138ed86"
+      ],
+      [
+        "assets/roboto-greek-wght-normal-DlT9XTxE.woff2",
+        "97fbf7bd0b4579e632392a4f483acdae73cbf59ad90c1e5d2c5ec4044c377fce"
+      ],
+      [
+        "assets/roboto-latin-ext-wght-normal-DYIxWhlt.woff2",
+        "cedb374b05a35034cf96db185db4eeb8f8ce49e1a56197673702ff11b5533d6e"
+      ],
+      [
+        "assets/roboto-latin-wght-normal-ccAYIvAh.woff2",
+        "1404ca348bd75ef836f4dd8b6f2cc719458642d1237c368296b2fc652dca47dc"
+      ],
+      [
+        "assets/roboto-math-wght-normal-4a3xuzGk.woff2",
+        "7cb4281a0ccc84cc18617842c639fc66541cbef94a9dd245c754700210b4fcec"
+      ],
+      [
+        "assets/roboto-symbols-wght-normal-B7iHSfaG.woff2",
+        "2addf2d86d7a5778653b36d551e97a39da52855f82fac7461cfc1bd86d460aed"
+      ],
+      [
+        "assets/roboto-vietnamese-wght-normal-_f1XEJpo.woff2",
+        "0b60bbe04e9c479444b31270a72179f53e400beee57b7dd176c08e5e2e716831"
+      ],
+      [
+        "assets/rocq-Dna-P5lQ.png",
+        "0667a5431bc0a795111e8a1b35aca4fa8ae34d433c8e1e07587ec5eb1c92f4a7"
+      ],
+      [
+        "assets/rust-DwAlVRKW.png",
+        "8cdc4b755c58d9055e772411ad6fb1159a4adab1a51c9c35801fe1ca9c94132f"
+      ],
+      [
+        "assets/tla-AewV2MIo.png",
+        "9ec39edd70f43f0186a706a95dc1def0a90708a9c1ceaa53b035441daf7874ab"
+      ],
+      [
+        "assets/z3-BfVdzy76.png",
+        "1c0f1378fe1b68aa44727659197ee0beecdaca57fd833a25e2074db3acdc1b19"
+      ],
+      [
+        "index.html",
+        "05ccfb5a4b0273d42e438e20d4d80d7d971942d0ea0f343127a3a6f538d75357"
+      ]
+    ]
+  },
+  "ownership": {
+    "preparation": "meden-app::preview, original offline policy-bound file worker, complete bounded immutable bundle",
+    "presentation": "meden-app::view::preview, latest frozen description and read-only transport handle",
+    "adapter": "Existing CLI listener, random nonce origin, actual Host check and browser headers unchanged; no asset/source reads during description queries.",
+    "retirement": "Deleted CLI gui/assets.rs and handwritten preview summary/schema; graph/job/preview body retention shares one context-bound browser helper.",
+    "authority": "No core, processor, verification, receipt or export authority change. Browser execution/origin attribution remain tested adapters; preview is never proof evidence."
+  },
+  "protocol": {
+    "route": "/api/preview?revision=…",
+    "status": [
+      "idle",
+      "ready(frame,revision)",
+      "unavailable"
+    ],
+    "context": "Frame binds original asset-manifest revision and host-provided URL. Diagnostics change publication revision without replacing that frame. A replaced/cleared context cannot reuse a former body.",
+    "bounds": {
+      "assets": 256,
+      "asset_bytes": 4194304,
+      "bundle_bytes": 16777216,
+      "diagnostics": 20,
+      "diagnostic_path_scalars": 500,
+      "diagnostic_wire_bound": 2400,
+      "url_bytes": 16384
+    },
+    "generated_files": 60,
+    "native_schemas": 30,
+    "uri": "Generated URI validation preserves former browser URL checks; unknown formats fail generation. Known nullable scalar formats remain nullable."
+  },
+  "fixture": {
+    "original": {
+      "frame": "sha256:302319a3e7fc7a0307a88b383d39f4e03bb2db366fb29156409210f546fe2185",
+      "asset_revision": "sha256:91dad8f328ff89fadea4d78bddea1a0593db602a16ffea3491784fd7aa6c1a2c"
+    },
+    "replacement": {
+      "frame": "sha256:6ab1cd709728b3190c2c36dea51f6c0c7b6f4f5ef6177995d3ce77f4bdda6272",
+      "asset_revision": "sha256:ac2a074c34dd9c408b07fbcdd1aa83be18566f9bdaf138bde18fbd811812350a"
+    },
+    "status_bytes": 184,
+    "body_bytes": 41355,
+    "diagnostics": 20,
+    "retry_commands": 0,
+    "query_commands": 0,
+    "materializations_before": 24,
+    "materializations_after": 24,
+    "read_ms": [
+      3.4667659999686293,
+      45.15152700000908,
+      3.168920000025537,
+      43.28663500002585,
+      2.5569269999978133,
+      44.65013999998337,
+      3.0203309999778867,
+      43.02363100001821,
+      2.911339999991469,
+      43.86912799999118,
+      3.9259559999918565,
+      43.32885799999349,
+      3.1143279999960214,
+      44.64049600000726,
+      2.2545209999661893,
+      42.614652000018395,
+      2.547314000024926,
+      43.86852799996268,
+      4.3914260000456125,
+      43.600846000015736
+    ],
+    "methodology": "Actual confined file capture and live isolated browser app; transfer faults and delayed bodies injected at the view boundary. Scripted provider unused; no live-model or proof-evidence claim."
+  },
+  "actual_projects": [
+    {
+      "project": "riemann",
+      "pid": 1943052,
+      "binary_sha256": "12f0e688a89a985f8780b7658cb0de42fe693bc9ab5da25fef561e58d4177b8c",
+      "cache_hit": true,
+      "preparation_ms": 18314.325864000002,
+      "source_publication": "sha256:4671471a8580f25a42b2117fcc7cf5a8d25988b715b1a40cbb17b77e006bfa94",
+      "source_hash": "2063f4c8792707349ba4b3d295e779c565a63030790aae9d937d5f776d8d9184",
+      "reader_publication": "sha256:d3bca7c0ce21989bef612ac79475e72da33062b4140b13dfe87bbaf183a61be8",
+      "reader_hash": "d2c21198aaff30504f16966ddf61ce628ef7ac8632c62be3195b4e4f72e41806",
+      "inventory_files": 175187,
+      "metadata_hash": "5875c3c3432ddda379f8caf8ed411b77d30701443e5da912442935a296c3ae7a",
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "node_selection_preserves_camera_chat_and_source_line": true,
+      "selected_declaration": "PIW.AdelClassFin.DictGen.denom",
+      "verification_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "preview": {
+        "state": "idle"
+      },
+      "preview_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    },
+    {
+      "project": "ethlib",
+      "pid": 1943240,
+      "binary_sha256": "12f0e688a89a985f8780b7658cb0de42fe693bc9ab5da25fef561e58d4177b8c",
+      "cache_hit": true,
+      "preparation_ms": 3127.4319529999993,
+      "source_publication": "sha256:c9a67ef7faab77791ab7d84fad5d7176476d3b7d5320d9f95f155b117b57e86b",
+      "source_hash": "ac220adb7270df17b304574138f8894ec78d92bc7a85c5e2e0e745edc885bb09",
+      "reader_publication": "sha256:0b79b28ff3aa227731108c7cde50cf54fa06cc447922756668b1197473b0d3ac",
+      "reader_hash": "60e647749624e65341239c16878edafe3083f1a0b0ba7ab0587b82511d80dd36",
+      "inventory_files": 2517,
+      "metadata_hash": "59b98c2e15f2f590463873351344a08a59e4aa3854a7dfb1779e635a680cb32f",
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "node_selection_preserves_camera_chat_and_source_line": true,
+      "selected_declaration": "EthLib.Networking.Gossip.GossipsubParameters",
+      "verification_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "preview": {
+        "state": "idle"
+      },
+      "preview_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip/Parameters.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    }
+  ],
+  "checks": {
+    "gates": [
+      {
+        "phase": "rust",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "clippy",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "rustdoc",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "typecheck",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "typescript",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "architecture",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "format",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "schema",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "corpus",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "algorithm-budget",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "negative-control",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "tui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "gui-all",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "budget-normal",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "budget-reduced",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "terminal_service": {
+      "unit": "meden-preview-12f0-v1-validation.service",
+      "active_state": "active",
+      "sub_state": "exited",
+      "main_pid": 0,
+      "exec_main_status": 0
+    },
+    "rust": 322,
+    "typescript": 42,
+    "architecture": {
+      "tests": 24,
+      "owned_sources": 40
+    },
+    "tui": {
+      "passed": 34,
+      "success": true,
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/validation-bin/12f0e688a89a985f8780b7658cb0de42fe693bc9ab5da25fef561e58d4177b8c/meden",
+        "sha256": "12f0e688a89a985f8780b7658cb0de42fe693bc9ab5da25fef561e58d4177b8c"
+      },
+      "decoded_screens": "/tmp/meden-ux-preview-12f0-v1-20261124"
+    },
+    "browser": [
+      {
+        "report": "target/gui-preview-12f0-v1-all-report",
+        "stats": {
+          "total": 68,
+          "expected": 68,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "navigation": {
+          "browser": "149.0.7827.53",
+          "motion": "reduce",
+          "cold_analysis_store_preparation_ms": 63848.14348,
+          "warm_tab_two_raf_ms": [
+            36.19999998807907,
+            28.5,
+            26.399999976158142,
+            31.100000023841858,
+            41.60000002384186,
+            22.899999976158142,
+            26.100000023841858,
+            32.69999998807907,
+            26.399999976158142,
+            22.80000001192093
+          ],
+          "p95_ms": 41.60000002384186,
+          "maximum_p95_ms": 250,
+          "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+        }
+      },
+      {
+        "report": "target/gui-preview-12f0-v1-budget-normal-report",
+        "stats": {
+          "total": 2,
+          "expected": 2,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "navigation": {
+          "browser": "149.0.7827.53",
+          "motion": "no-preference",
+          "cold_analysis_store_preparation_ms": 37968.359767999995,
+          "warm_tab_two_raf_ms": [
+            28.099999964237213,
+            22.099999964237213,
+            28.100000023841858,
+            31.30000001192093,
+            26.100000023841858,
+            21.600000023841858,
+            25.700000047683716,
+            26.80000001192093,
+            23.80000001192093,
+            40.19999998807907
+          ],
+          "p95_ms": 40.19999998807907,
+          "maximum_p95_ms": 250,
+          "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+        }
+      },
+      {
+        "report": "target/gui-preview-12f0-v1-budget-reduced-report",
+        "stats": {
+          "total": 2,
+          "expected": 2,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "navigation": {
+          "browser": "149.0.7827.53",
+          "motion": "reduce",
+          "cold_analysis_store_preparation_ms": 35074.791008,
+          "warm_tab_two_raf_ms": [
+            24,
+            31.299999952316284,
+            24.69999998807907,
+            23.5,
+            29.399999976158142,
+            27.19999998807907,
+            30.099999964237213,
+            24.80000001192093,
+            35.90000003576279,
+            24.100000023841858
+          ],
+          "p95_ms": 35.90000003576279,
+          "maximum_p95_ms": 250,
+          "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+        }
+      }
+    ],
+    "corpus": {
+      "seed": 20261123,
+      "runs": 3000,
+      "passed": true
+    },
+    "algorithm_budget": {
+      "median_ratio": 0.0002632181523133095,
+      "maximum_ratio": 0.35
+    },
+    "negative_control": {
+      "median_ratio": 1.0375338178406603,
+      "maximum_ratio": 0.35,
+      "rejected_at_actual_ratio_assertion": true
+    },
+    "rendered_ui_followup": {
+      "scope": "After full pinned-binary validation, folded the existing long diagnostic list under Details; reran all three affected real preview journeys and asserted the live frame remains in the viewport. Same unchanged Rust executable; no protocol/worker/policy change.",
+      "report": "target/gui-preview-12f0-ui2-report",
+      "stats": {
+        "total": 3,
+        "expected": 3,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      },
+      "fixture": {
+        "original": {
+          "frame": "sha256:7fc38ddfec9638eea6fe2e7f32691df9b8ecef92af7128b5997460f372f738bb",
+          "asset_revision": "sha256:91dad8f328ff89fadea4d78bddea1a0593db602a16ffea3491784fd7aa6c1a2c"
+        },
+        "replacement": {
+          "frame": "sha256:9b9a70518f37384bea5fc00f421020b95fb7485b8c9af60d5aae2c1224219da7",
+          "asset_revision": "sha256:ac2a074c34dd9c408b07fbcdd1aa83be18566f9bdaf138bde18fbd811812350a"
+        },
+        "status_bytes": 184,
+        "body_bytes": 41355,
+        "diagnostics": 20,
+        "retry_commands": 0,
+        "query_commands": 0,
+        "materializations_before": 24,
+        "materializations_after": 24,
+        "read_ms": [
+          10.825942999999825,
+          46.81061799999952,
+          5.974936000000525,
+          42.97283900000002,
+          2.6836730000004536,
+          44.18852800000059,
+          5.279437000000144,
+          44.07331900000008,
+          7.934097000000293,
+          45.61254800000006,
+          5.815536999999495,
+          43.88239199999953,
+          5.923913999999968,
+          43.540257000000565,
+          2.801900999999816,
+          43.01742099999956,
+          3.496809000000212,
+          44.4081470000001,
+          2.31660600000032,
+          41.93204100000003
+        ],
+        "methodology": "Actual confined file capture and live isolated browser app; transfer faults and delayed bodies injected at the view boundary. Scripted provider unused; no live-model or proof-evidence claim."
+      }
+    }
+  },
+  "attempts": [
+    {
+      "scope": "Initial schema annotation",
+      "result": "The installed Schemars derive uses url, not format, for URI output. Corrected against its actual local source and compiled."
+    },
+    {
+      "scope": "Format vocabulary",
+      "result": "Rejecting unknown formats initially rejected known nullable uint64 annotations. Added explicit known-null handling and positive/negative nullable URI/scalar tests; complete generation then passed."
+    },
+    {
+      "scope": "Projection test lint",
+      "result": "Replaced JSON indexing with checked JSON-pointer helpers and a redundant method closure before final clippy/workspace gates."
+    },
+    {
+      "scope": "Final focused browser run",
+      "result": "Three actual confined-preview/isolation/transfer journeys passed; final full gate then passed all 68 journeys."
+    },
+    {
+      "scope": "Rendered-screen review",
+      "result": "The adversarial long-diagnostic screenshot pushed the app below the viewport. Folded diagnostic details, added an actual viewport outcome assertion, reran the affected three journeys and deployed those final assets."
+    }
+  ],
+  "observations": [
+    "Twenty direct reads preserve the original materialization count (24) and issue no command.",
+    "The functional direct-read sample alternates approximately 3/44 ms despite cached descriptions. It includes HTTP/client JSON validation/assertion overhead; it is not a throughput or exclusive CPU benchmark. Transport attribution needs a separate controlled probe.",
+    "Deployed ordinary graph navigation requests no preview/job body, preserves source-line selection, chat and camera, and keeps both hosts idle and unapproved."
+  ],
+  "limitations": [
+    "Installed real file/Lean/Z3 workers and browser execution; no new live-model, cold-install, local-inference, confidentiality or refinement claim.",
+    "Serialized warm-tab timings are two-animation-callback presentation proxies, not physical paint or INP.",
+    "Graph event distributions remain the previous independently captured selection-retention audit; no new graph speedup claim."
+  ],
+  "artifacts": [
+    {
+      "path": "/tmp/meden-preview-candidate.json",
+      "bytes": 218,
+      "sha256": "0f175641b25c786085d5a6de3bddd6ee2d84b701c6353f026c6a6028ccaf5abb"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-v1-definition.json",
+      "bytes": 3182,
+      "sha256": "ed9e07dad19aa4f6599ec9e04b6eff76a93134b82e60be695c9c071c318baff2"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-v1-results.json",
+      "bytes": 1037,
+      "sha256": "df38e681b61588224c93c643e715c9035f53274598aa10b18b584cc77d1e3458"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-reports.json",
+      "bytes": 120455,
+      "sha256": "4b689c7fb1f464385d9debeb9761983aaffc340bd80362903b265efc902378ed"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-fidelity.json",
+      "bytes": 4249,
+      "sha256": "cc229e7b8587a1b9dd7eff3aa2374e56526a60e1d3e8ba3a92588e2980834fd1"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-smoke.log",
+      "bytes": 195,
+      "sha256": "d8007bfa9222bfbcc901623d8319a1077ad2c195fb03c5c69717589ad7e42878"
+    },
+    {
+      "path": "/tmp/meden-preview-initial-check.log",
+      "bytes": 336,
+      "sha256": "4c99318fccc343f287c761d1cd847631019118e1976cce068de390ff910ea767"
+    },
+    {
+      "path": "/tmp/meden-preview-generate.log",
+      "bytes": 975,
+      "sha256": "f75bcfcc31c7c5b9c1ac963fb2bf5cfc5c17590f8954ea54ef983c3caf0a074c"
+    },
+    {
+      "path": "/tmp/meden-preview-target.log",
+      "bytes": 3144,
+      "sha256": "005887b1d151a6db44ba2ad2bda5664daaf728f4ca344ca950696c1fe7a25932"
+    },
+    {
+      "path": "/tmp/meden-ux-preview-12f0-v1-20261124/summary.json",
+      "bytes": 9870,
+      "sha256": "cb14209615cd9cbca9b6fad49a5b213e5315ee425a1b0464f123a5fe3de384c4"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-v1-rust.log",
+      "bytes": 32726,
+      "sha256": "3eecc80aaf0ff78611109dc9c9b93c5abd0268c6e41b7f60b2bd26b0693c7f20"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-v1-clippy.log",
+      "bytes": 303,
+      "sha256": "e923dc1f49c64b4ac1490753b1529bf3fe666ef4c885cd9a6ae29067810d809e"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-v1-rustdoc.log",
+      "bytes": 550,
+      "sha256": "e522cfc4a037b755c41dce1f54d327161ed0bd0b5398746c961f5d9cff472eb8"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-v1-typecheck.log",
+      "bytes": 29,
+      "sha256": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-v1-typescript.log",
+      "bytes": 924,
+      "sha256": "af0ee74ccd8141c491f973c12aae90060abf91e719fbd13463894ccc698b11b4"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-v1-architecture.log",
+      "bytes": 4870,
+      "sha256": "5ecb1f8d668fdbaab96b8d04186ab9ca9574200849e6a71dc64085c4e79093e2"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-v1-format.log",
+      "bytes": 234,
+      "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-v1-schema.log",
+      "bytes": 199,
+      "sha256": "734d89596387b1f55d1fb6ae3f61a01814ee19fc96332b8305203f8a563e9f5e"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-v1-corpus.log",
+      "bytes": 502,
+      "sha256": "96338e7ffab9528fe51caf6c1d5f74e52ccfe5a616c0ceb6c96010fbf6a2b8d4"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-v1-algorithm-budget.log",
+      "bytes": 516,
+      "sha256": "eeb00094d696de8fc1242b100883c0cab77f941167c15c399e130d3da03ee665"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-v1-negative-control.log",
+      "bytes": 1315,
+      "sha256": "ebede2be8b4362e6c9a21e6173c61f1befe6664277cee49a92b1d8065ac3a2a7"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-v1-tui.log",
+      "bytes": 191,
+      "sha256": "80a0d6c41f00866ccafe172c6c6508c5b5b9331b1ad556bf88f8f8ead35ead9e"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-v1-gui-all.log",
+      "bytes": 13361,
+      "sha256": "458804296bdeedaf18e51c2d1a243b0490ee8481619eea19798cc2e41c7382c0"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-v1-budget-normal.log",
+      "bytes": 2069,
+      "sha256": "2e7925a0aee70fec5d87ee1b4ebe4859e1ed54e8f0c32f4d525f7d75fbe76823"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-v1-budget-reduced.log",
+      "bytes": 2069,
+      "sha256": "d155f5cc2edb145599a9b70afc027aee1391f80e150e20cac86c303c44c97cb1"
+    },
+    {
+      "path": "target/native-profile/preview-publications-20261124/riemann-deployed.png",
+      "bytes": 289263,
+      "sha256": "6751404742029bdca1ea1515c747b9003aefdd2f059e1bb5787e979f9945b8c8"
+    },
+    {
+      "path": "target/native-profile/preview-publications-20261124/ethlib-deployed.png",
+      "bytes": 206718,
+      "sha256": "07c347cf48fd82dab0a4c8c1fe5c96c95644ead20066f9e8b1ce23afc071c846"
+    },
+    {
+      "path": "/tmp/meden-preview-ui2-report.json",
+      "bytes": 1803,
+      "sha256": "223a46b295f94a00b551a9ff9a2e22b2527dc5226f2558938166d1c2e40a4c45"
+    },
+    {
+      "path": "/tmp/meden-preview-ui2.log",
+      "bytes": 3144,
+      "sha256": "9d463bc7b468f7105213d506523233c904b09f9ecb05ce9053694b9b14af76cc"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-ui2-fidelity.json",
+      "bytes": 4255,
+      "sha256": "cd128862935ebcd9571b4903e1760eb394e0178ba9909747872676c8571b2d50"
+    },
+    {
+      "path": "/tmp/meden-preview-12f0-ui2-smoke.log",
+      "bytes": 201,
+      "sha256": "aff81f1862871386c24e9477dc24d094750474972940ff78998dca9d38838251"
+    },
+    {
+      "path": "target/native-profile/preview-publications-20261124/riemann-deployed-ui2.png",
+      "bytes": 277370,
+      "sha256": "58deacfb23a7503104556ba9b3973bb8e54e9a091f1f91d5d0121499f7936973"
+    },
+    {
+      "path": "target/native-profile/preview-publications-20261124/ethlib-deployed-ui2.png",
+      "bytes": 206718,
+      "sha256": "07c347cf48fd82dab0a4c8c1fe5c96c95644ead20066f9e8b1ce23afc071c846"
+    }
+  ]
+}

@@ -15,6 +15,8 @@ pub mod compiler;
 pub mod explanation;
 pub mod meaning;
 pub mod model;
+/// Bounded static preview preparation through the original confined file port.
+pub mod preview;
 #[allow(missing_docs)]
 pub mod project;
 #[allow(missing_docs)]

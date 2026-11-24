@@ -5,6 +5,30 @@ import { validator } from "./source-schema.mjs";
 import { readFileSync } from "node:fs";
 
 const compile = (schema) => Function("z", "return " + validator(schema))(z);
+test("owned URI format validates URLs and unknown formats fail generation", () => {
+  const uri = compile({ type: "string", format: "uri", maxLength: 100 });
+  assert.equal(
+    uri.parse("http://original.localhost:1234/index.html"),
+    "http://original.localhost:1234/index.html",
+  );
+  for (const input of ["relative.html", "http://", "x".repeat(101)])
+    assert.throws(() => uri.parse(input));
+  for (const schema of [
+    { type: "string", format: "email" },
+    { type: "string", format: "uint32" },
+    { type: "number", format: "uri" },
+  ])
+    assert.throws(() => validator(schema));
+  assert.equal(
+    compile({ type: ["integer", "null"], format: "uint64", minimum: 0 }).parse(
+      null,
+    ),
+    null,
+  );
+  const nullableUri = compile({ type: ["string", "null"], format: "uri" });
+  assert.equal(nullableUri.parse(null), null);
+  assert.throws(() => nullableUri.parse("relative"));
+});
 test("actual generated file DTO keeps availability disjoint and bounded", () => {
   const schema = compile(
     JSON.parse(

@@ -21,7 +21,6 @@ import {
   type NativeState,
   type HistorySnapshot,
   type WorkspaceOverview,
-  type VerificationJobPublication,
 } from "@meden/agent-protocol/native";
 import { ChatView } from "../features/chat/ChatView";
 import type { Conversation } from "@meden/workspace-schema";
@@ -52,6 +51,7 @@ import { NativeWorkspaceGraph } from "../features/native/NativeWorkspaceGraph";
 /** A single host workspace is attached; choosing another requires a new host launch. */
 import {
   usePublications,
+  useRetainedPublication,
   type PublicationRead,
 } from "../features/native/usePublications";
 
@@ -306,6 +306,32 @@ export function NativeApp({ token }: { token: string }) {
       : evidenceReads.get(evidenceRevision)?.error;
   const agreement =
     project && project.state !== "empty" ? project.contract : undefined;
+  const previewRevision =
+    state?.preview.state === "ready" ? state.preview.revision : undefined;
+  const previewFrame =
+    state?.preview.state === "ready" ? state.preview.frame : undefined;
+  const readPreview = useCallback(
+    (revision: string, signal: AbortSignal) => {
+      if (!previewFrame)
+        return Promise.reject(new Error("Preview context is unavailable"));
+      return observePublication(client.preview(revision, previewFrame, signal));
+    },
+    [client, previewFrame],
+  );
+  const previewReads = usePublications(
+    previewRevision ? [previewRevision] : [],
+    readPreview,
+    state?.preview,
+    reconnect,
+  );
+  const previewData = useRetainedPublication(
+    previewReads.get(previewRevision)?.publication?.data,
+    previewFrame,
+  );
+  const previewError =
+    state?.preview.state === "unavailable"
+      ? state.preview.message
+      : previewReads.get(previewRevision)?.error;
   const verificationRevision =
     state?.verification_job.state === "ready"
       ? state.verification_job.revision
@@ -332,17 +358,10 @@ export function NativeApp({ token }: { token: string }) {
   );
   const observedVerification =
     verificationReads.get(verificationRevision)?.publication?.data;
-  const lastVerification = useRef<
-    VerificationJobPublication["data"] | undefined
-  >(undefined);
-  useEffect(() => {
-    if (observedVerification) lastVerification.current = observedVerification;
-  }, [observedVerification]);
-  const verification =
-    observedVerification ??
-    (lastVerification.current?.context.job === verificationJobId
-      ? lastVerification.current
-      : undefined);
+  const verification = useRetainedPublication(
+    observedVerification,
+    verificationJobId,
+  );
   const verificationError =
     state?.verification_job.state === "unavailable"
       ? state.verification_job.message
@@ -1128,7 +1147,14 @@ export function NativeApp({ token }: { token: string }) {
                   hidden={activeFile !== "__preview__"}
                 >
                   <NativePreview
-                    snapshot={state.preview}
+                    snapshot={previewData ?? null}
+                    loading={!!previewRevision && !previewData && !previewError}
+                    transferError={previewError}
+                    onRetry={
+                      previewRevision
+                        ? () => previewReads.retry(previewRevision)
+                        : undefined
+                    }
                     error={
                       state.operation === "preview" && !state.running
                         ? state.stopped
