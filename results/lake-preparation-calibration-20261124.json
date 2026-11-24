@@ -1,0 +1,438 @@
+{
+  "environment": {
+    "system": "Linux",
+    "release": "6.12.92",
+    "machine": "x86_64"
+  },
+  "date": "2026-11-24",
+  "source_base_revision": "15462833446074606eedc7196e3ab62ced76b0ec",
+  "scope": "Reproducible host-only prepared-input diagnostic, interleaved implementation comparison, sampler overhead calibration and a canonical-parent alias regression. The slower prototype is removed; production source, compiler/resources, core, cache identities and deployed executable remain unchanged.",
+  "production_binary_sha256": "b07bbcf34acd038b0098d1bb82b1512012347575a6dfb79efdc9ff5eb9814ef7",
+  "compiler_script_sha256": "82657e055cc6f37e1b0bfd4f38a755ab318d238018d0d313f76b77516b3d6361",
+  "diagnostic": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/lake-input-probes/043cc6d191b75bb459e07c72326989d502a19453cd6430a6798ed5aae420fa86/probe",
+    "sha256": "043cc6d191b75bb459e07c72326989d502a19453cd6430a6798ed5aae420fa86",
+    "resources_revision": "1f16f251de0a3f2c0ecca8ca5aec1cb2012643aec5b81059cc86317fca7eb3a8",
+    "selected_public_python": "/nix/store/js941drasjx1cylqn60q29vbmqfzfrdr-python3-3.11.15/bin/python3.11",
+    "actual_result": {
+      "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+      "files": 43477,
+      "bytes": 5992114707
+    },
+    "positive_invocations": 1,
+    "negative_invocations": [
+      {
+        "case": "invalid-count",
+        "exit_code": 1,
+        "stdout_bytes": 0,
+        "original_error_retained": true
+      },
+      {
+        "case": "missing-module",
+        "exit_code": 1,
+        "stdout_bytes": 0,
+        "original_error_retained": true
+      }
+    ],
+    "launcher": "Original meden_runtime::process::exec_clean in the dedicated single-threaded worker-launch branch. No unconfined fallback or new runtime policy."
+  },
+  "implementation_comparison": {
+    "plan": [
+      "base",
+      "candidate",
+      "candidate",
+      "base",
+      "base",
+      "candidate",
+      "candidate",
+      "base"
+    ],
+    "samples": [
+      {
+        "order": 0,
+        "version": "base",
+        "elapsed_ms": 7607.245370000001,
+        "resource_preparation_ms": 40.153127,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "binary_sha256": "2a58592b578e2c739e859a9cc5def3dadd636a6ee9a2fa3261f9ca8ff535c75b",
+        "script_sha256": "82657e055cc6f37e1b0bfd4f38a755ab318d238018d0d313f76b77516b3d6361"
+      },
+      {
+        "order": 1,
+        "version": "candidate",
+        "elapsed_ms": 8395.006723,
+        "resource_preparation_ms": 35.951682999999996,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "binary_sha256": "30052a352453e7a3ddb253cc3e14aa568fbce51f1cc7abf8e96ef2fbca81f75b",
+        "script_sha256": "441d4d3fb9bedf4a99af049fe9d5adbde8abd30f2b69c1a5f24053e8f73e9816"
+      },
+      {
+        "order": 2,
+        "version": "candidate",
+        "elapsed_ms": 8022.826581,
+        "resource_preparation_ms": 34.470794,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "binary_sha256": "30052a352453e7a3ddb253cc3e14aa568fbce51f1cc7abf8e96ef2fbca81f75b",
+        "script_sha256": "441d4d3fb9bedf4a99af049fe9d5adbde8abd30f2b69c1a5f24053e8f73e9816"
+      },
+      {
+        "order": 3,
+        "version": "base",
+        "elapsed_ms": 7387.844037,
+        "resource_preparation_ms": 34.794872999999995,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "binary_sha256": "2a58592b578e2c739e859a9cc5def3dadd636a6ee9a2fa3261f9ca8ff535c75b",
+        "script_sha256": "82657e055cc6f37e1b0bfd4f38a755ab318d238018d0d313f76b77516b3d6361"
+      },
+      {
+        "order": 4,
+        "version": "base",
+        "elapsed_ms": 7510.583069,
+        "resource_preparation_ms": 34.987715,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "binary_sha256": "2a58592b578e2c739e859a9cc5def3dadd636a6ee9a2fa3261f9ca8ff535c75b",
+        "script_sha256": "82657e055cc6f37e1b0bfd4f38a755ab318d238018d0d313f76b77516b3d6361"
+      },
+      {
+        "order": 5,
+        "version": "candidate",
+        "elapsed_ms": 8533.119873,
+        "resource_preparation_ms": 35.178678,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "binary_sha256": "30052a352453e7a3ddb253cc3e14aa568fbce51f1cc7abf8e96ef2fbca81f75b",
+        "script_sha256": "441d4d3fb9bedf4a99af049fe9d5adbde8abd30f2b69c1a5f24053e8f73e9816"
+      },
+      {
+        "order": 6,
+        "version": "candidate",
+        "elapsed_ms": 8231.802086,
+        "resource_preparation_ms": 39.420896,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "binary_sha256": "30052a352453e7a3ddb253cc3e14aa568fbce51f1cc7abf8e96ef2fbca81f75b",
+        "script_sha256": "441d4d3fb9bedf4a99af049fe9d5adbde8abd30f2b69c1a5f24053e8f73e9816"
+      },
+      {
+        "order": 7,
+        "version": "base",
+        "elapsed_ms": 7352.765855000001,
+        "resource_preparation_ms": 34.642177000000004,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "binary_sha256": "2a58592b578e2c739e859a9cc5def3dadd636a6ee9a2fa3261f9ca8ff535c75b",
+        "script_sha256": "82657e055cc6f37e1b0bfd4f38a755ab318d238018d0d313f76b77516b3d6361"
+      }
+    ],
+    "medians_ms": {
+      "base": 7449.213553,
+      "candidate": 8313.404404500001
+    },
+    "candidate_change_percent": 11.601101852583739,
+    "decision": "Reject and remove parallel canonical-path validation; exact results match but it is slower under controlled interleaving. Earlier standalone captures do not establish an improvement.",
+    "scope": "Actual installed Lake and original offline sandbox, same Riemann module/input setup, no project/OS cache reset. Resource preparation is outside the invocation interval. No graph extraction, model call or evidence admission."
+  },
+  "sampler_calibration": {
+    "plan": [
+      false,
+      true,
+      true,
+      false,
+      false,
+      true,
+      true,
+      false
+    ],
+    "measurements": [
+      {
+        "order": 0,
+        "sampled": false,
+        "protocol_to_idle_ms": 11482.329092,
+        "lake_prepare_ms": 8118.401
+      },
+      {
+        "order": 1,
+        "sampled": true,
+        "protocol_to_idle_ms": 11420.911515999998,
+        "lake_prepare_ms": 8106.939,
+        "decoded_native_samples": 1155
+      },
+      {
+        "order": 2,
+        "sampled": true,
+        "protocol_to_idle_ms": 10993.284813999999,
+        "lake_prepare_ms": 7706.561,
+        "decoded_native_samples": 1096
+      },
+      {
+        "order": 3,
+        "sampled": false,
+        "protocol_to_idle_ms": 10618.695447999999,
+        "lake_prepare_ms": 7457.712
+      },
+      {
+        "order": 4,
+        "sampled": false,
+        "protocol_to_idle_ms": 10838.460017999998,
+        "lake_prepare_ms": 7540.952
+      },
+      {
+        "order": 5,
+        "sampled": true,
+        "protocol_to_idle_ms": 11010.951892999998,
+        "lake_prepare_ms": 7775.522,
+        "decoded_native_samples": 1111
+      },
+      {
+        "order": 6,
+        "sampled": true,
+        "protocol_to_idle_ms": 11102.755365000005,
+        "lake_prepare_ms": 7854.884,
+        "decoded_native_samples": 1148
+      },
+      {
+        "order": 7,
+        "sampled": false,
+        "protocol_to_idle_ms": 10933.538283000002,
+        "lake_prepare_ms": 7632.021
+      }
+    ],
+    "medians": {
+      "sampler_off": {
+        "samples": 4,
+        "protocol_to_idle_median_ms": 10885.9991505,
+        "lake_prepare_median_ms": 7586.4865
+      },
+      "sampler_on": {
+        "samples": 4,
+        "protocol_to_idle_median_ms": 11056.853629000001,
+        "lake_prepare_median_ms": 7815.2029999999995
+      }
+    },
+    "protocol_median_difference_percent": 1.5694882586147818,
+    "sampler": {
+      "event": "cpu-clock:u",
+      "frequency_hz": 99,
+      "stack": "dwarf,8192",
+      "kernel_samples": false,
+      "decoded_all_captures": true,
+      "lost_samples": 0
+    },
+    "controls": "Same original native host/protocol inspection, cache-hit completion, source publication and conversation revision retained in every run; no model approval or inference. Protocol-to-idle includes responses and 100 ms polling, not physical paint. Four observations per condition; not a portable overhead constant or continuous budget."
+  },
+  "initial_profile": {
+    "samples": 4860,
+    "largest_resolved_symbol": "python3 / libcrypto.so.3 / sha256_block_data_order_shaext",
+    "largest_resolved_symbol_percent": 25.53,
+    "scope": "Resolved symbol sample share, not exclusive wall attribution. Many Lean addresses remain unresolved. Earlier sequential sampled/unprofiled differences cannot be assigned entirely to sampler overhead or a code change."
+  },
+  "checks": {
+    "strict_clippy_all_targets_all_features": true,
+    "python_lint": true,
+    "prepared_input_unit_passed": 24,
+    "public_tui": {
+      "passed": 35,
+      "skipped": 0,
+      "binary_sha256": "b07bbcf34acd038b0098d1bb82b1512012347575a6dfb79efdc9ff5eb9814ef7",
+      "scope": "scripted fixtures; no live-model validation",
+      "decoded_screens_inspected": [
+        {
+          "journey": "test_finite_contract_real_refutation_repair_staleness_and_restart-0a1f467300",
+          "frame": 11,
+          "seconds": 0.296,
+          "screen_sha256": "a75c5c2dc1d7028f79a32c99a064d504dd771223c93105aa770b2e60767e3118",
+          "observed": "Original contract review and bounded scope"
+        },
+        {
+          "journey": "test_finite_contract_real_refutation_repair_staleness_and_restart-0a1f467300",
+          "frame": 56,
+          "seconds": 2.428,
+          "screen_sha256": "1300af8655f2d4e65fa31dc8b97073e0fed083a14a868f5bce3f4d0f2a54d99d",
+          "observed": "Actual refutation/repair transcript retained after source invalidation"
+        },
+        {
+          "journey": "test_finite_contract_real_refutation_repair_staleness_and_restart-0a1f467300",
+          "frame": 60,
+          "seconds": 2.628,
+          "screen_sha256": "4e3f612b877de88d190b01116217d240422914abbcfcc9775dec36a461ae586d",
+          "observed": "Fresh model choice after restart"
+        },
+        {
+          "journey": "test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa",
+          "frame": 809,
+          "seconds": 76.088,
+          "screen_sha256": "aff725604d2323ffbfec7476a794403a8080015764ef671b687a90f51c9d76b5",
+          "observed": "Actual Lake failure and recovered source graph"
+        },
+        {
+          "journey": "test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa",
+          "frame": 813,
+          "seconds": 76.338,
+          "screen_sha256": "8c7a6d93cb43d79b00dc6e64f9d29f9f159094fc3a4bf42326e18e267a22db7d",
+          "observed": "Lake restart requires fresh connection review"
+        }
+      ]
+    },
+    "production_source_diff_empty": true,
+    "production_executable_byte_identical": true,
+    "gui_gate": "No GUI code or assets changed; the prior 69-case deployed-binary validation remains a separate record. Current protocol calibration exercises actual source preparations without inference."
+  },
+  "artifacts": [
+    {
+      "path": "target/native-profile/lake-paths-paired-20261124/summary.json",
+      "sha256": "2f366fe9e3781c181dc38743a1d75b695b175887a7ed3817ed551859428bb1e1",
+      "bytes": 4101
+    },
+    {
+      "path": "target/native-profile/lake-paths-paired-20261124/0-base.json",
+      "sha256": "0a415cf0888b2370b9892c2850403503d866791d75bdcbee94a954b471b5c850",
+      "bytes": 11563
+    },
+    {
+      "path": "target/native-profile/lake-paths-paired-20261124/1-candidate.json",
+      "sha256": "d1d8d6cc8a37367aea351f7a1681066aa3141cc02f04b532a016ba66482bb32b",
+      "bytes": 11567
+    },
+    {
+      "path": "target/native-profile/lake-paths-paired-20261124/2-candidate.json",
+      "sha256": "a56b02dcf91fa07d22d01aa54b0843f1610b890bc1ea7ad22f66271979ab22b5",
+      "bytes": 11558
+    },
+    {
+      "path": "target/native-profile/lake-paths-paired-20261124/3-base.json",
+      "sha256": "88986908e0e33a6c73cc4b2c976d658d0f39f4e2f089009213e5f7c37dbb0681",
+      "bytes": 11567
+    },
+    {
+      "path": "target/native-profile/lake-paths-paired-20261124/4-base.json",
+      "sha256": "769057e9e0be1b58eb927c74b4cbda31a56cf986c15c0491cf463267997a0fc5",
+      "bytes": 11558
+    },
+    {
+      "path": "target/native-profile/lake-paths-paired-20261124/5-candidate.json",
+      "sha256": "085a389a23a3a9bf25ca7b6517771648fee693ecf9d24e7a97f96052f9c7877d",
+      "bytes": 11558
+    },
+    {
+      "path": "target/native-profile/lake-paths-paired-20261124/6-candidate.json",
+      "sha256": "69490bdd1491b5756d4c1729fcc11b24520d26aba7b99c01d910566cb6219602",
+      "bytes": 11558
+    },
+    {
+      "path": "target/native-profile/lake-paths-paired-20261124/7-base.json",
+      "sha256": "6731dc74468bfb528e5f4fc03c8a8de65819f4e48f2a812d9bb23c63513d615c",
+      "bytes": 11574
+    },
+    {
+      "path": "target/native-profile/lake-perf-calibration-20261124/samples.json",
+      "sha256": "19ade0b405ed5829c1d5f1adc5393df05e67bfe3f2997c02a9684463f94a8ce1",
+      "bytes": 945439
+    },
+    {
+      "path": "target/native-profile/lake-perf-calibration-20261124/1-perf.data",
+      "sha256": "f89112bef50187e50634abf9171e716c1f06fdb939be65b7d0dd2bb9aa0794ad",
+      "bytes": 13356908
+    },
+    {
+      "path": "target/native-profile/lake-perf-calibration-20261124/2-perf.data",
+      "sha256": "668121f951ef10fa2f5ff61ed7b4e3039c1fc170e06a23784bb651d31d0f729a",
+      "bytes": 12884452
+    },
+    {
+      "path": "target/native-profile/lake-perf-calibration-20261124/5-perf.data",
+      "sha256": "5a3cec8c3093385ac83cd877cd29936c59f41533212e99e775e44b59d510141f",
+      "bytes": 12998180
+    },
+    {
+      "path": "target/native-profile/lake-perf-calibration-20261124/6-perf.data",
+      "sha256": "5d0c32208ad9c2aa3ba2add9dfbd480826196e0e789165abdfcd3df37887ed47",
+      "bytes": 13338188
+    },
+    {
+      "path": "target/native-profile/lake-perf-calibration-20261124/1-perf-report.txt",
+      "sha256": "975242fc81b447953925cadb63cb302f1618eec17135428b330319606f39660e",
+      "bytes": 2072
+    },
+    {
+      "path": "target/native-profile/lake-perf-calibration-20261124/2-perf-report.txt",
+      "sha256": "05fbff46dc671d581ec319612e9d80be4241fb2a0a9819a501305161ac77871e",
+      "bytes": 2518
+    },
+    {
+      "path": "target/native-profile/lake-perf-calibration-20261124/5-perf-report.txt",
+      "sha256": "b7ee1f6f6f329283a2df45a3cd65d29cd57261f2c6654ea0905dd398c248ed94",
+      "bytes": 1506
+    },
+    {
+      "path": "target/native-profile/lake-perf-calibration-20261124/6-perf-report.txt",
+      "sha256": "075f4bbd268fc11b2b401ae86c3e1aa39a2b7440c9cf6332dc2e6d584803451e",
+      "bytes": 1010
+    },
+    {
+      "path": "target/native-profile/lake-paths-before-v2-20261124/perf.data",
+      "sha256": "48a67e27de4ff444920ce511f6f5eb4b9602c3d0a552255c4bcfc2b2a4d1ff12",
+      "bytes": 51999444
+    },
+    {
+      "path": "target/native-profile/lake-paths-before-v2-20261124/perf-report.txt",
+      "sha256": "cfb8c9a7831d6c886ca65bdeed935a8a538bc723228a84eccb0d426caa0d97f5",
+      "bytes": 2258
+    },
+    {
+      "path": "target/native-profile/lake-paths-before-v2-20261124/samples.json",
+      "sha256": "d54a1eccce09e0b809b3c9597e32348a156bd28df9f641dc64d5ce9a06a4eb7a",
+      "bytes": 461224
+    },
+    {
+      "path": "target/lake-paths-paired.mjs",
+      "sha256": "d3c808d2541b04afea1e7f4ff998ad0dda9c0c476b6909e9f86e18b46b70486e",
+      "bytes": 2646
+    },
+    {
+      "path": "target/lake-perf-calibration.mjs",
+      "sha256": "90420956f7b852424d39738888917f1deaa6111f125bff277c0a49493571830b",
+      "bytes": 3094
+    },
+    {
+      "path": "target/lake-preparation-baseline.mjs",
+      "sha256": "d8c66ac8faeb6dd4a910acad728a25ab57f283db96a666e3ed1136c372b56c07",
+      "bytes": 2774
+    }
+  ],
+  "limits": [
+    "Actual resources and caches were already installed; no cold-install, live/large/local-model quality or confidentiality claim.",
+    "The diagnostic report and prepared-input fingerprint are not kernel tickets, acceptance or current evidence.",
+    "Compiler/evidence freshness and all file/byte/output limits remain unchanged.",
+    "Kernel samples and full attribution of unresolved Lean addresses are unavailable in these user-space captures.",
+    "Broader job read models, remaining initial preparation waits, versioned layout/order and retirement still remain in the original architecture plan."
+  ]
+}

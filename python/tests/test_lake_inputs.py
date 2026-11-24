@@ -313,3 +313,12 @@ def test_byte_limit_is_checked_before_scheduling_reads(worker, inputs, tmp_path,
     monkeypatch.setattr(worker, "file_hash", lambda _: pytest.fail("Read past the byte budget"))
     with pytest.raises(RuntimeError, match="exceed 512 GiB"):
         worker.fingerprint(root, executable, bindings, "prepare")
+
+
+def test_alias_in_setup_cannot_be_deduplicated_into_the_canonical_input(worker, inputs, tmp_path):
+    root, bindings, rows = inputs
+    (root / "alias").symlink_to(root / "imports", target_is_directory=True)
+    rows[2]["importArts"]["Alias"] = [[str(root / "alias/B.olean")]]
+    executable, _ = lake(tmp_path, encode(rows))
+    with pytest.raises(RuntimeError, match="symlinks"):
+        worker.fingerprint(root, executable, bindings, "prepare")

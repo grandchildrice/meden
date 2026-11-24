@@ -229,3 +229,27 @@ the timing data; numeric budgeting is reserved for this serialized gate.
 test:performance` is a negative control and must fail at the ratio assertion.
 CI checks its actual report so an unrelated tool failure cannot satisfy the
 negative control.
+
+## Isolate prepared-input work
+
+```sh
+cargo build -p meden-app --example profile-prepared-inputs
+target/debug/examples/profile-prepared-inputs /absolute/project \
+  '[{"name":"Entry","file":"Entry.lean"}]' 3 > /tmp/prepared-inputs.json
+```
+
+This host-only diagnostic uses the application's actual selected Lean/resources,
+original offline sandbox and runtime descriptor-closing launcher. It builds the
+selected Lake roots and validates every compiled-input byte. It does not extract
+a graph, call a model, accept a contract or admit evidence. The JSON report
+separates initial resource preparation from each measured invocation, retains the
+actual fingerprint/file/byte counts and bounded original worker diagnostic, and
+names the selected public Python object and resource revision. Project/OS caches
+are not reset. The output contains local paths/diagnostics; keep it local.
+
+Compare implementations with interleaved runs on the same input/resource setup,
+require exact result equality and retain executable/script digests. Measure
+sampler on/off separately; sequential before/after captures can differ for other
+reasons. The [Riemann calibration](../../results/lake-preparation-calibration-20261124.json)
+rejects a slower path-validation prototype rather than adopting a misleading
+standalone improvement. Production compilation and cache checks remain unchanged.

@@ -450,6 +450,10 @@ cold-analysis-store/prepared-tab browser budgets in both motion modes. See
 [the measurement tools](../../tools/perf/README.md) and
 [the native audit](../gui-performance.md). These budgets cover the named
 workloads; they are not universal latency guarantees or live-model validation.
+Prepared-input diagnostics now isolate actual offline Lake invocations from the
+GUI and measure sampler on/off through the same native inspection path. The
+[interleaved calibration](../performance/lake-preparation.md) rejects a slower
+prototype while preserving the production compiler and cache identities.
 
 Step 3 now has a shared application crate and the first typed compiler, renderer
 and model ports. Step 4 has its first source/graph projection in

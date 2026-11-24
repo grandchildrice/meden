@@ -1,5 +1,9 @@
 # Graph interaction measurements
 
+Prepared-input comparisons now have a [separate calibration report](performance/lake-preparation.md).
+It rejects a slower prototype and separates normal invocation time from sampler
+overhead; the production compiler and existing graph caches are unchanged.
+
 ## Proposal check observations (November 24)
 
 The [validation record](../results/proposal-observations-20261124.json) extends
