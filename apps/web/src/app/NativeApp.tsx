@@ -1139,6 +1139,7 @@ export function NativeApp({ token }: { token: string }) {
                   hidden={activeFile !== file}
                 >
                   <NativeFileWorkspace
+                    active={activeFile === file}
                     state={state}
                     analysis={analysis}
                     history={analysisHistory}

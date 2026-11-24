@@ -31,6 +31,12 @@ import {
   previewPublicationSchema,
 } from "@meden/agent-protocol/native";
 import { verificationGate } from "./launcher-gate";
+import {
+  installMapPaintObserver,
+  measureMapGeometry,
+  expectMapKeyboardFocus,
+  observeRetainedAreaWrites,
+} from "./map-geometry";
 
 test.describe("native GUI with real offline workers", () => {
   test.describe.configure({ mode: "parallel" });
@@ -70,7 +76,7 @@ test.describe("native GUI with real offline workers", () => {
         "--workspace",
         project,
         "--assets",
-        resolve("apps/web/dist"),
+        resolve(process.env.MEDEN_GUI_TEST_ASSETS || "apps/web/dist"),
         "--port",
         String(port),
         "--base-url",
@@ -1959,6 +1965,29 @@ test.describe("native GUI with real offline workers", () => {
     build.stdout.on("data", (data) => (buildOutput += String(data)));
     build.stderr.on("data", (data) => (buildOutput += String(data)));
     expect((await once(build, "exit"))[0], buildOutput).toBe(0);
+    await writeFile(
+      resolve(project, "Gamma.lean"),
+      "def gammaBase : Nat := 1\n" +
+        Array.from(
+          { length: 200 },
+          (_, i) => `def gamma_${i} : Nat := gammaBase\n`,
+        ).join(""),
+    );
+    let gammaHeld = false;
+    let releaseGamma!: () => void;
+    const gammaTransfer = new Promise<void>((resolve) => {
+      releaseGamma = resolve;
+    });
+    await page.route("**/api/map?*", async (route) => {
+      if (
+        new URL(route.request().url()).searchParams.get("path") !== "Gamma.lean"
+      )
+        return route.continue();
+      const response = await route.fetch();
+      gammaHeld = true;
+      await gammaTransfer;
+      await route.fulfill({ response });
+    });
     const commands: string[] = [];
     page.on("request", (r) => {
       if (r.url().endsWith("/api/command"))
@@ -2000,6 +2029,10 @@ test.describe("native GUI with real offline workers", () => {
       ];
     });
     expect(Math.min(...margins)).toBeGreaterThan(10);
+    await button.click();
+    await expect(
+      alpha.getByLabel("Requirement to compare", { exact: true }),
+    ).toBeVisible();
     await source.evaluate((e) => {
       e.scrollTop = 160;
     });
@@ -2065,6 +2098,47 @@ test.describe("native GUI with real offline workers", () => {
     expect((await nativeSource(page)).inputs_revision).toMatch(
       /^[a-f0-9]{64}$/,
     );
+    await expect.poll(() => gammaHeld).toBe(true);
+    await page.getByRole("tab", { name: "Project map", exact: true }).click();
+    await page.evaluate(async () => {
+      for (let i = 0; i < 8; i++) await new Promise(requestAnimationFrame);
+    });
+    await page.evaluate(() => {
+      const read = window.getComputedStyle.bind(window);
+      (window as any).__hiddenEditorReads = 0;
+      window.getComputedStyle = (element, pseudo) => {
+        if (
+          element instanceof HTMLTextAreaElement &&
+          element.closest(".ide-file-page[hidden]")
+        )
+          (window as any).__hiddenEditorReads++;
+        return read(element, pseudo);
+      };
+    });
+    releaseGamma();
+    const map = page.getByRole("region", { name: "Project map", exact: true });
+    await expect
+      .poll(() => map.locator('[data-map-layer="references"] line').count())
+      .toBeGreaterThan(100);
+    await page.evaluate(async () => {
+      for (let i = 0; i < 4; i++) await new Promise(requestAnimationFrame);
+    });
+    const hiddenReads = await page.evaluate(
+      () => (window as any).__hiddenEditorReads,
+    );
+    await test.info().attach("hidden-file-layout.json", {
+      contentType: "application/json",
+      body: JSON.stringify({
+        hidden_textarea_style_reads: hiddenReads,
+        maximum_hidden_reads: 0,
+        real_compiled_editor_input: true,
+        held_original_navigation_applied: true,
+        scope:
+          "Actual built Lake fixture and held original Gamma navigation response; hidden Alpha input exists before map updates. Not live inference or cold installation.",
+      }),
+    });
+    expect(hiddenReads).toBe(0);
+    await page.getByRole("tab", { name: "Beta.lean", exact: true }).click();
     await page.evaluate(() => {
       const samples: number[] = [];
       (window as any).__tabTimings = samples;
@@ -3593,6 +3667,210 @@ theorem slow : True := fast
         unchanged_source_reused_without_request: true,
       }),
       contentType: "application/json",
+    });
+  });
+
+  test.describe("retained area rendering", () => {
+    test.use({ deviceScaleFactor: 2 });
+    test("project map retains screen-space geometry and avoids rewriting retained areas during zoom", async ({
+      page,
+    }, info) => {
+      test.setTimeout(300000);
+      await writeFile(
+        resolve(project, "Syntax.lean"),
+        'import Lean\nmacro "lemma " name:ident " : " ty:term " := " proof:term : command => `(theorem $name : $ty := $proof)\n',
+      );
+      await writeFile(
+        resolve(project, "Main.lean"),
+        "theorem main : True := True.intro\n" +
+          Array.from(
+            { length: 199 },
+            (_, i) => `def main_${i} : Nat := ${i}\n`,
+          ).join(""),
+      );
+      await writeFile(
+        resolve(project, "Kinds.lean"),
+        "import Syntax\nnamespace Geometry\ndef value : Nat := 1\nlemma claim : True := True.intro\ntheorem result : True := claim\naxiom hypothesis : True\nstructure Datum where\n  value : Nat\n" +
+          Array.from(
+            { length: 195 },
+            (_, i) => `def filler_${i} : Nat := value\n`,
+          ).join("") +
+          "end Geometry\n",
+      );
+      const commands: string[] = [],
+        errors: string[] = [];
+      page.on("pageerror", (e) => errors.push(e.message));
+      page.on("request", (r) => {
+        if (new URL(r.url()).pathname === "/api/command")
+          commands.push(r.postDataJSON().type);
+      });
+      await page.addInitScript(installMapPaintObserver);
+      await page.goto(await start());
+      const map = page.getByRole("region", {
+          name: "Project map",
+          exact: true,
+        }),
+        chat = page.getByRole("complementary", {
+          name: "Workspace chat",
+          exact: true,
+        });
+      await expect
+        .poll(async () => (await nativeState(page)).overview.state, {
+          // Entry-module preparation uses the compiler deadline, independently
+          // of the zoom/write budgets measured after readiness.
+          timeout: 180000,
+        })
+        .toBe("ready");
+      await expect(map.locator(".map-main-pin")).toHaveCount(1, {
+        timeout: 60000,
+      });
+      await expect(
+        map.locator('[data-declaration-role="definition"]').first(),
+      ).toBeVisible();
+      await expect
+        .poll(async () => (await nativeState(page)).running, {
+          timeout: 180000,
+        })
+        .toBe(false);
+      const preparation = (state: any) =>
+        Object.entries(state.source_preparation).map(
+          ([path, value]: [string, any]) => ({
+            path,
+            job: value.job,
+            outcome: value.outcome,
+          }),
+        );
+      const initialState = await nativeState(page);
+      const initialPreparation = preparation(initialState);
+      expect(initialState.source_preparation["Main.lean"].outcome.state).toBe(
+        "ready",
+      );
+      const chatBefore = await chat.innerHTML(),
+        beforeCommands = commands.length;
+      const settle = async () =>
+        map.locator(".react-flow__viewport").evaluate(async (e) => {
+          let old = e.getAttribute("style"),
+            stable = 0;
+          while (stable < 4) {
+            await new Promise(requestAnimationFrame);
+            const next = e.getAttribute("style");
+            stable = old === next ? stable + 1 : 0;
+            old = next;
+          }
+          return old;
+        });
+      const geometry = () => map.evaluate(measureMapGeometry);
+      await settle();
+      const samples = [await geometry()];
+      const firstArea = map.locator('[data-map-path][tabindex="0"]').first();
+      await firstArea.focus();
+      await page.keyboard.press("Tab");
+      await page.evaluate(async () => {
+        for (let i = 0; i < 2; i++) await new Promise(requestAnimationFrame);
+      });
+      await map.evaluate(expectMapKeyboardFocus);
+      await map
+        .locator(".continuous-map-scene")
+        .evaluate(observeRetainedAreaWrites);
+      const activityBefore = await page.evaluate(() => ({
+        ...(window as any).__areaPaintActivity,
+      }));
+      const box = (await map
+        .locator(".workspace-overview-canvas")
+        .boundingBox())!;
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      for (let i = 0; i < 8; i++) {
+        await page.mouse.wheel(0, -100);
+        await page.evaluate(async () => {
+          for (let i = 0; i < 2; i++) await new Promise(requestAnimationFrame);
+        });
+      }
+      const camera = await settle(),
+        mutations: Record<string, number> = await page.evaluate(() =>
+          (window as any).__areaWrites(),
+        );
+      const activityAfter = await page.evaluate(() => ({
+        ...(window as any).__areaPaintActivity,
+      }));
+      const domWork = {
+        font_settings:
+          activityAfter.font_settings - activityBefore.font_settings,
+        text_draws: activityAfter.text_draws - activityBefore.text_draws,
+        image_copies: activityAfter.image_copies - activityBefore.image_copies,
+      };
+      samples.push(await geometry());
+      expect(samples.at(-1)!.zoom).toBeGreaterThan(samples[0]!.zoom);
+      await expect(
+        map.locator('[data-declaration-role="main_theorem"]').first(),
+      ).toBeVisible();
+      for (const role of [
+        "theorem",
+        "lemma",
+        "definition",
+        "axiom",
+        "structure",
+      ])
+        await expect(
+          map.locator(`[data-declaration-role="${role}"]`).first(),
+        ).toBeVisible();
+      expect(samples.at(-1)!.references).toBeGreaterThan(0);
+      await page.mouse.move(box.x + 12, box.y + 30);
+      await page.mouse.move(box.x + 24, box.y + 42);
+      await expect(map.locator(".react-flow__viewport")).toHaveAttribute(
+        "style",
+        camera!,
+      );
+      await page.setViewportSize({ width: 1200, height: 820 });
+      await settle();
+      samples.push(await geometry());
+      const total = Object.values(mutations).reduce((sum, n) => sum + n, 0);
+      await info.attach("retained-area-geometry.json", {
+        contentType: "application/json",
+        body: JSON.stringify({
+          samples,
+          mutations,
+          total,
+          dom_canvas_work: domWork,
+          maximum_dom_font_text_and_image_copies: 0,
+          maximum_retained_area_writes: 0,
+          scope:
+            "Actual native map and file workers; eight wheel gestures. Screen-pixel geometry, endpoints, opacity, roles, retained area DOM writes and camera. Not physical paint, INP, live inference or cold installation.",
+        }),
+      });
+      expect(total).toBe(0);
+      expect(
+        domWork.font_settings + domWork.text_draws + domWork.image_copies,
+      ).toBe(0);
+      expect(await chat.innerHTML()).toBe(chatBefore);
+      expect(commands.slice(beforeCommands)).toEqual([]);
+      expect(requests).toHaveLength(0);
+      expect(preparation(await nativeState(page))).toEqual(initialPreparation);
+      await map.getByRole("button", { name: "Fit View", exact: true }).click();
+      await settle();
+      const pin = map.getByRole("button", {
+        name: "Main theorems: Main.lean (1)",
+        exact: true,
+      });
+      await pin.focus();
+      await pin.press("Enter");
+      await settle();
+      await expect(
+        map.getByRole("navigation", { name: "Map location" }),
+      ).toContainText("Main.lean");
+      await expect(page.locator(".ide-file-tab")).toHaveCount(0);
+      await page.screenshot({
+        path: info.outputPath("retained-map-geometry.png"),
+      });
+      await stop();
+      await page.goto(await start());
+      await expect(map.locator(".map-main-pin")).toHaveCount(1, {
+        timeout: 60000,
+      });
+      await settle();
+      await geometry();
+      expect((await nativeState(page)).authorized).toBe(false);
+      expect(requests).toHaveLength(0);
+      expect(errors).toEqual([]);
     });
   });
 

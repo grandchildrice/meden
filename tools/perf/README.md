@@ -15,6 +15,20 @@ the file-parent bound; the real large-map browser journey retains keyboard focus
 through lazy declaration loading. These are presentation checks. No sampled
 function frame means unavailable at that resolution, never zero execution.
 
+The [area-paint comparison](../../docs/performance/map-area-paint.md) keeps
+OffscreenCanvas paint separate from retained SVG interaction geometry. The
+public native map journey checks actual draw calls/pixels, constant screen sizes,
+reference endpoints, keyboard focus, resize, restart and zero retained-area
+geometry/style writes during eight wheel gestures. It runs at device-pixel ratio 2. The native fixture launcher's `MEDEN_GUI_TEST_ASSETS` selects an immutable
+old asset directory for the negative control; that renderer must fail the write
+budget after passing geometry checks. The DOM-Canvas control must instead fail
+zero DOM font/text/image-copy work; the retained-tab control must fail zero
+hidden-input layout reads after applying a real held navigation response. This
+input affects test hosts only. The
+interaction profiler locates rectangular bounds for both target structures,
+without forced clicks. Repeated served captures remain separate from this
+work-count regression and from native preparation.
+
 The prepared-map update budget compares complete index reconstruction with a
 sparse file-description update, using the same already prepared geometry and
 checking the complete resulting scene before timing. Nine alternating runs on

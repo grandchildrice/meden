@@ -338,8 +338,12 @@ Generated finite update traces compare complete projections with fresh rebuilds,
 including empty observations, target changes and rebasing. See the
 [sparse-update measurements](../performance/map-updates.md).
 
-SVG projection keeps area, reference, declaration and main-target layers in their
-original painter order. Visible areas retain stable parents in batches of at
+Area pixels use a retained OffscreenCanvas background, while SVG retains rectangular interaction
+targets, references, declarations and main pins. The original area sequence and
+foreground painter order remain fixed; zoom does not rewrite retained area
+geometry. [Area-paint measurements](../performance/map-area-paint.md) cover the
+engine change, screen-pixel conformance and its original-renderer negative
+control. Visible targets retain stable parents in batches of at
 most 128 original siblings, avoiding a single unbounded placement list. Batch
 membership comes from the prepared hierarchy, independently of viewport,
 visibility and arriving descriptions; panning does not move a retained file into
@@ -434,7 +438,7 @@ host-observed result, not a message-string heuristic.
 | Shell, source readers, interaction and accessibility             | Keep TypeScript/React initially; typed validated read models and deterministic reducers | A comparable prototype improves end-to-end latency and retains UX/authority boundaries                          |
 | Heavy browser computation                                        | A Worker behind a typed job/result port when main-thread profiling justifies it         | Include copies/transfers, cancellation, warm/cold and memory costs                                              |
 | Rust/WASM kernel                                                 | Optional compute implementation behind that same port                                   | Differential agreement and a measured end-to-end win; batch data across the boundary                            |
-| SVG/DOM versus Canvas/WebGL                                      | Keep the current renderer while reducing work to visible data                           | Migrate only when measured paint/DOM cost dominates; retain hit testing, source linkage and accessible controls |
+| SVG/DOM versus Canvas/WebGL                                      | OffscreenCanvas area paint with SVG targets, declarations and references                | Migrate only when measured paint/DOM cost dominates; retain hit testing, source linkage and accessible controls |
 
 Browser WASM remains a computation/presentation implementation; it does not
 become a second authoritative contract, job or evidence controller.

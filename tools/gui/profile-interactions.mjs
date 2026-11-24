@@ -372,7 +372,7 @@ try {
       map_camera: { before: mapCameraBefore, after: await mapCamera() },
       retained_dom: {
         graph_nodes: await graph.locator(".react-flow__node").count(),
-        map_boxes: await map.locator("g[data-map-path]").count(),
+        map_boxes: await map.locator("[data-map-path]").count(),
         map_declarations: await map
           .locator('[aria-label^="Declaration:"]')
           .count(),
@@ -502,7 +502,7 @@ try {
       // Use a real reachable box/header. Ancestors can cover the canvas while
       // their children intercept its center; never force a click through them.
       const target = await map
-        .locator("g[data-map-path]")
+        .locator("[data-map-path]")
         .evaluateAll((groups, parent) => {
           const viewport = document
             .querySelector(".project-map-page .workspace-overview-canvas")
@@ -512,7 +512,9 @@ try {
               .flatMap((g) => {
                 const path = g.getAttribute("data-map-path"),
                   label = g.getAttribute("aria-label"),
-                  r = g.querySelector("rect").getBoundingClientRect();
+                  r = (
+                    g instanceof SVGRectElement ? g : g.querySelector("rect")
+                  ).getBoundingClientRect();
                 if (
                   g.getAttribute("aria-hidden") === "true" ||
                   !path ||
@@ -529,7 +531,7 @@ try {
                   if (
                     document
                       .elementFromPoint(x, y)
-                      ?.closest("g[data-map-path]") === g
+                      ?.closest("[data-map-path]") === g
                   )
                     return [
                       {

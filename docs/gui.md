@@ -26,7 +26,9 @@ Select a declaration to open a filename tab containing its source and reference
 graph side by side. Source uses the existing browser Shiki Lean/Rust highlighting;
 line numbers and selected source locations remain separate from token colors.
 Selecting another declaration updates the source line; returning
-to the project map preserves the scene and camera. At compact widths, **Files**
+to the project map preserves the scene and camera. Hidden file presentation
+keeps its DOM and draft without rebuilding graphs or measuring inputs on map
+updates; activation receives the latest prepared data. At compact widths, **Files**
 and **Chat** open side panels and the file split stacks vertically.
 There are no separate graph/code/preview/settings mode tabs. Preview opens through
 its play icon as a temporary editor tab. The explorer heading shows the shortened
@@ -34,7 +36,10 @@ workspace path and one refresh icon; the map has no refresh or project-whole but
 
 The map is built from the initial policy-bound source inventory and retained per
 source revision. D3's treemap layout fixes every category/file rectangle once;
-React Flow supplies the retained pan/zoom camera. Increasing zoom fades in nested
+React Flow supplies the retained pan/zoom camera. A retained OffscreenCanvas paints area backgrounds
+and headings; SVG retains accessible rectangular targets, declaration nodes and
+reference lines. Area pixels and hit targets share the same frozen world bounds.
+Increasing zoom fades in nested
 categories, files, then declaration nodes and reference lines in those same coordinates.
 Zoom never dispatches extraction or switches views. A minimap keeps the current
 position visible. The map contains lexical reference candidates, not compiler

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, memo, Suspense, useEffect, useMemo, useState } from "react";
 import { Alert, Button, LinearProgress } from "@mui/material";
 import { NativePreparation, PreparationLog } from "./NativePreparation";
 import type { Declaration, Workspace } from "@meden/workspace-schema";
@@ -51,7 +51,7 @@ function references(
   };
 }
 
-export function NativeFileWorkspace({
+function FileWorkspace({
   state,
   analysis,
   history,
@@ -77,6 +77,7 @@ export function NativeFileWorkspace({
   onCommand,
   onSelect,
 }: {
+  active: boolean;
   state: NativeState;
   analysis?: MeaningRecord;
   history?: MeaningRecord[];
@@ -432,3 +433,11 @@ export function NativeFileWorkspace({
     </section>
   );
 }
+
+// Data and jobs are retained by the parent. Hidden presentation keeps its draft
+// and DOM without measuring inputs or rebuilding graphs on unrelated updates.
+// Activation always renders the current source, callbacks and analysis state.
+export const NativeFileWorkspace = memo(
+  FileWorkspace,
+  (_, next) => !next.active,
+);
