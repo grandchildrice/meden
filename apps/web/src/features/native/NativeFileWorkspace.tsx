@@ -11,7 +11,7 @@ import type {
   MeaningRecord,
   MeaningInput,
 } from "@meden/agent-protocol/native";
-import type { MapScene, Symbol } from "./project-map-model";
+import { mapArea, type MapScene, type Symbol } from "./project-map-model";
 import { NativeCode } from "./NativeExplorer";
 import { NativeMeaning } from "./NativeMeaning";
 import { declarationRole } from "./declaration-role";
@@ -25,7 +25,7 @@ function references(
   scene: MapScene,
   path: string,
 ): Pick<Workspace, "declarations" | "edges"> {
-  const local = scene.byPath.get(path)?.symbols || [];
+  const local = mapArea(scene, path)?.symbols || [];
   const ids = new Set(local.map((s) => s.id));
   const edges = scene.edges.filter(
     (e) => ids.has(e.source) || ids.has(e.target),

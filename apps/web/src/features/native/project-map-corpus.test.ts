@@ -1,3 +1,4 @@
+import { prepareMap, mapArea } from "./project-map-model";
 import fc from "fast-check";
 import { mkdir, writeFile } from "node:fs/promises";
 import { cpus, platform, release } from "node:os";
@@ -5,81 +6,15 @@ import { expect, test } from "vitest";
 import type { WorkspaceOverview } from "@meden/agent-protocol/native";
 import {
   declarationDetail,
-  fade,
-  MAP_HEIGHT,
-  MAP_WIDTH,
   mapHasDeclarations,
   mapLocation,
   projectMap,
   visibleMapAreas,
-  type MapScene,
 } from "./project-map-model";
 
-// Deliberately scan every area, without the production parent/children index.
-export function scan(
-  scene: MapScene,
-  view: { x: number; y: number; zoom: number },
-  size: { width: number; height: number },
-) {
-  const opacity = new Map([["", 1]]);
-  const left = -view.x / view.zoom,
-    top = -view.y / view.zoom;
-  return scene.areas.flatMap((area) => {
-    const parent = scene.byPath.get(area.parent);
-    const alpha = parent
-      ? opacity.get(parent.path)! *
-        fade(Math.max(parent.width, parent.height) * view.zoom, 650, 950)
-      : 1;
-    opacity.set(area.path, alpha);
-    if (
-      alpha < 0.015 ||
-      area.x > left + size.width / view.zoom ||
-      area.y > top + size.height / view.zoom ||
-      area.x + area.width < left ||
-      area.y + area.height < top ||
-      ((area.width * view.zoom < 2 || area.height * view.zoom < 2) &&
-        !(area.main && declarationDetail(area, view.zoom, size) > 0.01))
-    )
-      return [];
-    return [{ area, opacity: alpha }];
-  });
-}
+import { scan, scanLocation } from "./project-map-oracle";
 
-// Original breadcrumb rules, independently walking the complete flat inventory.
-export function scanLocation(
-  scene: MapScene,
-  view: { x: number; y: number; zoom: number },
-  size: { width: number; height: number },
-) {
-  if (
-    view.zoom <=
-    Math.min(size.width / MAP_WIDTH, size.height / MAP_HEIGHT) * 1.2
-  )
-    return "";
-  const x = (size.width / 2 - view.x) / view.zoom,
-    y = (size.height / 2 - view.y) / view.zoom;
-  const opacity = new Map([["", 1]]);
-  let location = "";
-  for (const area of scene.areas) {
-    const parent = scene.byPath.get(area.parent);
-    const alpha = parent
-      ? opacity.get(parent.path)! *
-        fade(Math.min(parent.width, parent.height) * view.zoom)
-      : 1;
-    opacity.set(area.path, alpha);
-    if (
-      alpha > 0.5 &&
-      x >= area.x &&
-      x <= area.x + area.width &&
-      y >= area.y &&
-      y <= area.y + area.height
-    )
-      location = area.path;
-  }
-  return location;
-}
-
-export function corpus(
+function corpus(
   rows: Array<{ folders: number[]; count: number; main: boolean }>,
 ): WorkspaceOverview {
   return {
@@ -139,18 +74,34 @@ test("generated camera traces agree with a full scan and never change world coor
       fc.array(fc.record({ view, size }), { minLength: 1, maxLength: 25 }),
       (rows, moves) => {
         const input = corpus(rows),
-          scene = projectMap(input);
-        const coordinates = scene.areas.map(({ x, y, width, height }) => ({
-          x,
-          y,
-          width,
-          height,
-        }));
-        const focused = scene.areas.length
+          scene = projectMap(prepareMap(input));
+        const coordinates = [...scene.index.byPath.keys()]
+          .map((path) => mapArea(scene, path)!)
+          .map(({ x, y, width, height }) => ({
+            x,
+            y,
+            width,
+            height,
+          }));
+        const focused = [...scene.index.byPath.keys()].map((path) =>
+          mapArea(scene, path)!,
+        ).length
           ? [
-              scene.areas[0]!,
-              scene.areas[Math.floor(scene.areas.length / 2)]!,
-              scene.areas.at(-1)!,
+              [...scene.index.byPath.keys()].map((path) =>
+                mapArea(scene, path)!,
+              )[0]!,
+              [...scene.index.byPath.keys()].map((path) =>
+                mapArea(scene, path)!,
+              )[
+                Math.floor(
+                  [...scene.index.byPath.keys()].map((path) =>
+                    mapArea(scene, path)!,
+                  ).length / 2,
+                )
+              ]!,
+              [...scene.index.byPath.keys()]
+                .map((path) => mapArea(scene, path)!)
+                .at(-1)!,
             ]
               .flatMap((area) => [
                 { x: area.x + area.width / 2, y: area.y + area.height / 2 },
@@ -178,15 +129,24 @@ test("generated camera traces agree with a full scan and never change world coor
             scanLocation(scene, view, size),
           );
           expect(
-            scene.areas.map(({ x, y, width, height }) => ({
-              x,
-              y,
-              width,
-              height,
-            })),
+            [...scene.index.byPath.keys()]
+              .map((path) => mapArea(scene, path)!)
+              .map(({ x, y, width, height }) => ({
+                x,
+                y,
+                width,
+                height,
+              })),
           ).toEqual(coordinates);
         }
-        expect(projectMap(input).areas).toEqual(scene.areas);
+        const rebuilt = projectMap(prepareMap(input));
+        expect(
+          [...rebuilt.index.byPath.keys()].map((path) =>
+            mapArea(rebuilt, path)!,
+          ),
+        ).toEqual(
+          [...scene.index.byPath.keys()].map((path) => mapArea(scene, path)!),
+        );
       },
     ),
     { seed, numRuns: runs, path: process.env.MEDEN_FUZZ_PATH, verbose: true },
@@ -203,10 +163,11 @@ if (process.env.MEDEN_PERFORMANCE === "1") {
       })),
     );
     const start = performance.now();
-    const scene = projectMap(input);
+    const scene = projectMap(prepareMap(input));
     const layout = performance.now() - start;
     const size = { width: 900, height: 700 };
-    const file = scene.byPath.get(
+    const file = mapArea(
+      scene,
       input.files[Math.floor(input.files.length / 2)]!.path,
     )!;
     const zoom =

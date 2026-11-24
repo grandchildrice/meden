@@ -1,3 +1,4 @@
+import { prepareMap } from "./project-map-model";
 import { expect, test } from "vitest";
 import fc from "fast-check";
 import { createHash } from "node:crypto";
@@ -239,7 +240,7 @@ if (process.env.MEDEN_REFERENCE_WORKLOAD)
     const body = await readFile(process.env.MEDEN_REFERENCE_WORKLOAD!, "utf8"),
       publication = inventoryPublicationSchema.parse(JSON.parse(body));
     const before = JSON.stringify(publication),
-      scene = projectMap(publication.data);
+      scene = projectMap(prepareMap(publication.data));
     expect(scene.edges).toEqual(scanReferences(scene.symbols));
     await compare(
       scene.symbols,

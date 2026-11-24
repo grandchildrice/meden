@@ -37,131 +37,168 @@ export type MapArea = {
   cellHeight: number;
   symbols: Symbol[];
 };
-export type MapScene = {
+export type MapIndex = {
+  snapshot: WorkspaceOverview;
   geometry: MapGeometry;
+  byPath: ReadonlyMap<string, MapArea>;
+  children: ReadonlyMap<string, readonly MapArea[]>;
+  symbolFiles: readonly File[];
+  maxZoom: number;
+};
+export type MapScene = {
+  index: MapIndex;
   tracked: string;
+  descriptions: ReadonlyMap<string, MapArea>;
   symbolAreas: MapArea[];
   inventoryOnly: boolean;
   maxZoom: number;
   mainPins: Array<{ area: MapArea; symbols: Symbol[]; origin: string }>;
-  areas: MapArea[];
-  byPath: Map<string, MapArea>;
-  children: Map<string, MapArea[]>;
   symbols: Map<string, Symbol>;
   edges: Array<{ source: string; target: string }>;
   edgesByFile: Map<string, Array<{ source: string; target: string }>>;
 };
 
-/** Prepared once per native source revision. Navigation never changes these coordinates. */
-export function projectMap(
+/** One immutable coordinate/branch index per original inventory and geometry. */
+export function prepareMap(
   snapshot: WorkspaceOverview,
-  tracked: ReadonlySet<string> = new Set(),
   geometry: MapGeometry = mapGeometry(layoutInput(snapshot)),
+): MapIndex {
+  const files = new Map(snapshot.files.map((file) => [file.path, file]));
+  const areas: MapArea[] = geometry.areas.map((box) => ({
+    ...box,
+    file: files.get(box.path),
+    main: false,
+    cellHeight: box.height * 0.76,
+    symbols: [],
+  }));
+  const children = new Map<string, MapArea[]>();
+  for (const area of areas) {
+    const siblings = children.get(area.parent) || [];
+    siblings.push(area);
+    children.set(area.parent, siblings);
+  }
+  return {
+    snapshot,
+    geometry,
+    byPath: new Map(areas.map((area) => [area.path, area])),
+    children,
+    symbolFiles: snapshot.files.filter((file) => file.symbols.length),
+    maxZoom: areas.reduce(
+      (zoom, a) =>
+        a.file ? Math.max(zoom, 600 / Math.min(a.width, a.height)) : zoom,
+      500,
+    ),
+  };
+}
+
+function describe(
+  box: MapArea,
+  file: File,
+  tracked: ReadonlySet<string>,
+): MapArea {
+  const { width, height } = box;
+  const columns = Math.max(
+    1,
+    Math.min(
+      file.symbols.length || 1,
+      Math.ceil(
+        Math.sqrt(((file.symbols.length || 1) * width) / Math.max(1, height)),
+      ),
+    ),
+  );
+  const rows = Math.ceil((file.symbols.length || 1) / columns);
+  const symbols = [...file.symbols]
+    .sort((a, b) => a.line - b.line || comparePath(a.name, b.name))
+    .map((s, i) => ({
+      ...s,
+      name: s.name.split(/[^\p{L}\p{N}_'.«»]/u)[0] || s.name,
+      role: declarationRole(
+        s.declaration,
+        tracked.has(s.name.split(/[^\p{L}\p{N}_'.«»]/u)[0] || s.name) ||
+          s.main_theorem ||
+          (s.kind === "theorem" &&
+            box.path.split("/").length <= 2 &&
+            box.path.split("/").at(-1) === "Main.lean"),
+      ),
+      cellWidth: (width * 0.88) / columns,
+      id: `${box.path}:${s.line}:${s.name}`,
+      file: box.path,
+      x: box.x + width * (0.06 + 0.88 * (((i % columns) + 0.5) / columns)),
+      y:
+        box.y +
+        height * (0.18 + 0.76 * ((Math.floor(i / columns) + 0.5) / rows)),
+    }));
+  return {
+    ...box,
+    file,
+    main: symbols.some((s) => s.role.id === "main_theorem"),
+    cellHeight: (height * 0.76) / rows,
+    symbols,
+  };
+}
+
+export function mapArea(scene: MapScene, path: string) {
+  return scene.descriptions.get(path) || scene.index.byPath.get(path);
+}
+
+/** Project current file observations over fixed geometry. Only loaded/changed
+ * descriptions participate in updates; no complete inventory/index is copied.
+ * An unrelated index never inherits an older scene's descriptions or edges.
+ */
+export function projectMap(
+  index: MapIndex,
+  tracked: ReadonlySet<string> = new Set(),
+  files: ReadonlyMap<string, File> = new Map(),
   previous?: MapScene,
 ): MapScene {
-  const files = new Map(snapshot.files.map((file) => [file.path, file]));
   const targetKey = JSON.stringify([...tracked].sort(comparePath));
-  const reuse = previous?.geometry === geometry ? previous : undefined;
-  const areas: MapArea[] = geometry.areas.map((box) => {
-    const file = files.get(box.path);
-    const old = reuse?.byPath.get(box.path);
-    if (
-      old &&
-      old.file === file &&
-      (!file?.symbols.length || reuse?.tracked === targetKey)
-    )
-      return old;
-    const { width, height } = box;
-    const columns = Math.max(
-      1,
-      Math.min(
-        file?.symbols.length || 1,
-        Math.ceil(
-          Math.sqrt(
-            ((file?.symbols.length || 1) * width) / Math.max(1, height),
-          ),
-        ),
-      ),
-    );
-    const rows = Math.ceil((file?.symbols.length || 1) / columns);
-    const symbols = [...(file?.symbols || [])]
-      .sort((a, b) => a.line - b.line || comparePath(a.name, b.name))
-      .map((s, i) => ({
-        ...s,
-        name: s.name.split(/[^\p{L}\p{N}_'.«»]/u)[0] || s.name,
-        role: declarationRole(
-          s.declaration,
-          tracked.has(s.name.split(/[^\p{L}\p{N}_'.«»]/u)[0] || s.name) ||
-            s.main_theorem ||
-            (s.kind === "theorem" &&
-              box.path.split("/").length <= 2 &&
-              box.path.split("/").at(-1) === "Main.lean"),
-        ),
-        cellWidth: (width * 0.88) / columns,
-        id: `${box.path}:${s.line}:${s.name}`,
-        file: box.path,
-        x: box.x + width * (0.06 + 0.88 * (((i % columns) + 0.5) / columns)),
-        y:
-          box.y +
-          height * (0.18 + 0.76 * ((Math.floor(i / columns) + 0.5) / rows)),
-      }));
-    return {
-      ...box,
-      file,
-      main: symbols.some((symbol) => symbol.role.id === "main_theorem"),
-      cellHeight: (height * 0.76) / rows,
-      symbols,
-    };
-  });
-  const changed = reuse
-    ? areas.filter((area, i) => area !== reuse.areas[i])
-    : areas;
-  const changedPaths = reuse
-    ? new Set(changed.map((area) => area.path))
-    : undefined;
-  const symbolAreas = (
-    reuse
-      ? [
-          ...reuse.symbolAreas.filter((area) => !changedPaths!.has(area.path)),
-          ...changed.filter((area) => area.symbols.length),
-        ]
-      : areas.filter((area) => area.symbols.length)
-  ).sort((a, b) => comparePath(a.path, b.path));
-  const symbols = new Map(
-    symbolAreas.flatMap((a) => a.symbols.map((s) => [s.id, s] as const)),
-  );
-  const edges = referenceEdges(symbols);
-  const edgesByFile = new Map<string, typeof edges>();
-  for (const edge of edges) {
-    const file = symbols.get(edge.source)!.file;
-    const found = edgesByFile.get(file) || [];
-    found.push(edge);
-    edgesByFile.set(file, found);
+  const reuse = previous?.index === index ? previous : undefined;
+  const changed = new Map<string, File>();
+  if (!reuse)
+    for (const file of index.symbolFiles) changed.set(file.path, file);
+  for (const [path, file] of files) {
+    if (path !== file.path)
+      throw Error("Map file observation does not match its path");
+    if (!index.byPath.get(path)?.file) continue;
+    if (!reuse || mapArea(reuse, path)!.file !== file) changed.set(path, file);
   }
-  const byPath = reuse
-    ? new Map(reuse.byPath)
-    : new Map(areas.map((area) => [area.path, area]));
-  if (reuse) for (const area of changed) byPath.set(area.path, area);
-  const children = reuse
-    ? new Map(reuse.children)
-    : new Map<string, MapArea[]>();
-  if (reuse) {
-    for (const parent of new Set(changed.map((area) => area.parent)))
-      children.set(
-        parent,
-        reuse.children.get(parent)!.map((area) => byPath.get(area.path)!),
-      );
-  } else
-    for (const area of areas) {
-      const siblings = children.get(area.parent) || [];
-      siblings.push(area);
-      children.set(area.parent, siblings);
+  if (reuse && reuse.tracked !== targetKey)
+    for (const area of reuse.symbolAreas)
+      if (!changed.has(area.path)) changed.set(area.path, area.file!);
+  if (reuse && !changed.size && reuse.tracked === targetKey) return reuse;
+  const descriptions = new Map(reuse?.descriptions);
+  let referencesChanged = !reuse;
+  for (const [path, file] of changed) {
+    const base = index.byPath.get(path)!;
+    if (reuse && mapArea(reuse, path)!.file !== file) referencesChanged = true;
+    if (file === base.file && !file.symbols.length) descriptions.delete(path);
+    else descriptions.set(path, describe(base, file, tracked));
+  }
+  const symbolAreas = [...descriptions.values()]
+    .filter((area) => area.symbols.length)
+    .sort((a, b) => comparePath(a.path, b.path));
+  const symbols = new Map(
+    symbolAreas.flatMap((area) => area.symbols.map((s) => [s.id, s] as const)),
+  );
+  const edges =
+    !referencesChanged && reuse ? reuse.edges : referenceEdges(symbols);
+  let edgesByFile = reuse && !referencesChanged ? reuse.edgesByFile : undefined;
+  if (!edgesByFile) {
+    edgesByFile = new Map<string, typeof edges>();
+    for (const edge of edges) {
+      const file = symbols.get(edge.source)!.file,
+        found = edgesByFile.get(file) || [];
+      found.push(edge);
+      edgesByFile.set(file, found);
     }
+  }
   return {
-    geometry,
+    index,
     tracked: targetKey,
+    descriptions,
     symbolAreas,
-    inventoryOnly: snapshot.inventory_only,
+    inventoryOnly: index.snapshot.inventory_only,
+    maxZoom: index.maxZoom,
     mainPins: symbolAreas.flatMap((area) => {
       const main = area.symbols.filter((s) => s.role.id === "main_theorem");
       return main.length
@@ -178,16 +215,6 @@ export function projectMap(
           ]
         : [];
     }),
-    maxZoom:
-      reuse?.maxZoom ??
-      areas.reduce(
-        (zoom, a) =>
-          a.file ? Math.max(zoom, 600 / Math.min(a.width, a.height)) : zoom,
-        500,
-      ),
-    areas,
-    byPath,
-    children,
     symbols,
     edges,
     edgesByFile,
@@ -224,13 +251,14 @@ export function visibleMapAreas(
     top = -y / zoom,
     right = left + size.width / zoom,
     bottom = top + size.height / zoom;
-  const queue = (scene.children.get("") || []).map((area) => ({
+  const queue = (scene.index.children.get("") || []).map((area) => ({
     area,
     opacity: 1,
   }));
   const visible: Array<{ area: MapArea; opacity: number }> = [];
   for (let i = 0; i < queue.length; i++) {
-    const { area, opacity: alpha } = queue[i]!;
+    const { area: base, opacity: alpha } = queue[i]!;
+    const area = scene.descriptions.get(base.path) || base;
     if (
       alpha < 0.015 ||
       area.x > right ||
@@ -249,7 +277,7 @@ export function visibleMapAreas(
     const childAlpha =
       alpha * fade(Math.max(area.width, area.height) * zoom, 650, 950);
     if (childAlpha >= 0.015)
-      for (const child of scene.children.get(area.path) || [])
+      for (const child of scene.index.children.get(area.path) || [])
         queue.push({ area: child, opacity: childAlpha });
   }
   return visible;
@@ -281,7 +309,7 @@ export function mapLocation(
     return "";
   const x = (size.width / 2 - view.x) / view.zoom,
     y = (size.height / 2 - view.y) / view.zoom;
-  const queue = (scene.children.get("") || []).map((area) => ({
+  const queue = (scene.index.children.get("") || []).map((area) => ({
     area,
     opacity: 1,
   }));
@@ -300,7 +328,7 @@ export function mapLocation(
     const childOpacity =
       opacity * fade(Math.min(area.width, area.height) * view.zoom);
     if (childOpacity > 0.5)
-      for (const child of scene.children.get(area.path) || [])
+      for (const child of scene.index.children.get(area.path) || [])
         queue.push({ area: child, opacity: childOpacity });
   }
   return location;

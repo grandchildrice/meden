@@ -1,5 +1,16 @@
 # Local profiling and regression workloads
 
+The prepared-map update budget compares complete index reconstruction with a
+sparse file-description update, using the same already prepared geometry and
+checking the complete resulting scene before timing. Nine alternating runs on
+175,187 files require the update/rebuild median ratio below 0.25. It excludes
+layout preparation, browser paint and native compilation. Output is
+`target/performance/map-overlay.json`. `MEDEN_PERF_MUTANT=full-index` forces
+complete reconstruction into the update arm and must fail that ratio assertion.
+`npm run test:fuzz` also exercises 3,000 finite file/target update traces against
+fresh complete projections, preserving previous scenes and original inventory
+data. See the [actual browser comparison](../../docs/performance/map-updates.md).
+
 The project-map reference budget is part of `npm run test:performance` and
 `npm run test:fuzz`. Its public workload retains ambiguous public/file-private
 names, scoped fallback, cycles, repeated references and nonempty original

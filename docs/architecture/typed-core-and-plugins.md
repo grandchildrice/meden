@@ -323,6 +323,21 @@ its prepared geometry; changed files replace their descriptions and symbols
 without recreating every rectangle. World coordinates never depend on viewport,
 font measurement, status polling or camera position.
 
+The prepared map index also freezes the complete path lookup and hierarchy once
+per original inventory. Lazy file observations live in a separate sparse map;
+projection replaces only their descriptions, symbols and derived lexical links.
+The host publication is never rewritten to look like a new complete inventory.
+Earlier scenes retain their original data, and replacing the inventory/index
+cannot inherit old observations even when geometry is identical. A deferred
+completion must still match the current refresh epoch and original publication
+inside the state update. Dependencies outside that original inventory remain
+excluded, as before. Target-only highlighting reuses unchanged reference edges.
+Updates still traverse loaded descriptions and rebuild loaded reference links
+when their inputs change; this is not a constant-time graph-update claim.
+Generated finite update traces compare complete projections with fresh rebuilds,
+including empty observations, target changes and rebasing. See the
+[sparse-update measurements](../performance/map-updates.md).
+
 The disposable `MPL1` artifact contains dictionary indices and four little-endian
 Float64 coordinates per rectangle. SHA-256 binds the original canonical input
 and packed bytes. Decoding requires exact length, a complete unique inventory,

@@ -336,7 +336,7 @@ function WorkspaceMap({
     state.overview.error,
   ]);
   const focus = (path: string) => {
-    const a = scene?.byPath.get(path);
+    const a = scene?.index.byPath.get(path);
     if (flow)
       void flow.fitBounds(
         a
@@ -359,7 +359,7 @@ function WorkspaceMap({
         height = canvas.clientHeight;
       if (!width || !height) return;
       setSize({ width, height });
-      const identity = layoutRevision || scene?.geometry.input;
+      const identity = layoutRevision || scene?.index.geometry.input;
       if (scene && initial.current !== identity) {
         initial.current = identity;
         void flow.fitBounds(
@@ -381,7 +381,7 @@ function WorkspaceMap({
     });
     observer.observe(canvas);
     return () => observer.disconnect();
-  }, [canvas, flow, scene?.geometry.input, layoutRevision]);
+  }, [canvas, flow, scene?.index.geometry.input, layoutRevision]);
   const nodes = useMemo<SceneNode[]>(
     () =>
       scene
@@ -492,7 +492,7 @@ function WorkspaceMap({
             viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
             aria-label="Position in the whole project"
           >
-            {(scene.children.get("") || []).map((a) => (
+            {(scene.index.children.get("") || []).map((a) => (
               <rect
                 key={a.path}
                 x={a.x}

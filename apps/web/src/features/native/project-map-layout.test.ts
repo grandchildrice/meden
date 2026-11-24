@@ -1,3 +1,4 @@
+import { prepareMap, mapArea } from "./project-map-model";
 import { expect, test, vi } from "vitest";
 import fc from "fast-check";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
@@ -220,7 +221,7 @@ test("updating a prepared declaration overlay agrees with a complete rebuild and
   const original = fixture(["A/First.lean", "A/Second.lean", "B/Third.lean"]),
     input = layoutInput(original),
     geometry = mapGeometry(input),
-    before = projectMap(original, new Set(), geometry);
+    before = projectMap(prepareMap(original, geometry));
   const changed = {
     ...original,
     files: original.files.map((f, i) =>
@@ -258,18 +259,25 @@ test("updating a prepared declaration overlay agrees with a complete rebuild and
     ),
   };
   const tracked = new Set(["N.second"]),
-    updated = projectMap(changed, tracked, geometry, before),
-    full = projectMap(changed, tracked);
-  expect(updated.areas).toEqual(full.areas);
+    updated = projectMap(
+      before.index,
+      tracked,
+      new Map(changed.files.map((file) => [file.path, file])),
+      before,
+    ),
+    full = projectMap(prepareMap(changed), tracked);
+  expect(
+    [...updated.index.byPath.keys()].map((path) => mapArea(updated, path)),
+  ).toEqual([...full.index.byPath.keys()].map((path) => mapArea(full, path)));
   expect(updated.edges).toEqual(full.edges);
   expect(updated.mainPins).toEqual(full.mainPins);
-  expect([...updated.children]).toEqual([...full.children]);
+  expect(updated.index.children).toBe(before.index.children);
   expect([...updated.symbols]).toEqual([...full.symbols]);
-  expect(updated.byPath.get("A/Second.lean")).toBe(
-    before.byPath.get("A/Second.lean"),
+  expect(mapArea(updated, "A/Second.lean")).toBe(
+    mapArea(before, "A/Second.lean"),
   );
   expect(before.symbols.size).toBe(0);
-  expect(updated.geometry).toBe(geometry);
+  expect(updated.index.geometry).toBe(geometry);
 });
 test("the declared implementation version matches the actually installed layout engine", async () => {
   const pkg = JSON.parse(
@@ -291,7 +299,7 @@ test("unavailable browser storage computes the same disposable layout without in
 });
 
 if (process.env.MEDEN_PERFORMANCE === "1")
-  test("prepared large-map overlays avoid repeating full layout without changing the resulting scene", async () => {
+  test("prepared large-map overlays avoid rebuilding the complete index without changing the resulting scene", async () => {
     const data = fixture(
       Array.from(
         { length: 175187 },
@@ -305,7 +313,7 @@ if (process.env.MEDEN_PERFORMANCE === "1")
       geometry = mapGeometry(input),
       geometryMs = performance.now() - geometryStart;
     const sceneStart = performance.now(),
-      before = projectMap(data, new Set(), geometry),
+      before = projectMap(prepareMap(data, geometry)),
       sceneMs = performance.now() - sceneStart;
     const changed = {
       ...data,
@@ -333,9 +341,22 @@ if (process.env.MEDEN_PERFORMANCE === "1")
           : f,
       ),
     };
-    const reference = projectMap(changed),
-      candidate = projectMap(changed, new Set(), geometry, before);
-    expect(candidate.areas).toEqual(reference.areas);
+    const patches = new Map(
+      changed.files
+        .filter((file, i) => file !== data.files[i])
+        .map((file) => [file.path, file]),
+    );
+    const reference = projectMap(prepareMap(changed, geometry)),
+      candidate = projectMap(before.index, new Set(), patches, before);
+    expect(
+      [...candidate.index.byPath.keys()].map((path) =>
+        mapArea(candidate, path),
+      ),
+    ).toEqual(
+      [...reference.index.byPath.keys()].map((path) =>
+        mapArea(reference, path),
+      ),
+    );
     expect(candidate.mainPins).toEqual(reference.mainPins);
     const full: number[] = [],
       reuse: number[] = [];
@@ -343,10 +364,12 @@ if (process.env.MEDEN_PERFORMANCE === "1")
     const measure = (kind: "full" | "reuse") => {
       const start = performance.now(),
         scene =
-          kind === "full" || process.env.MEDEN_PERF_MUTANT === "full-layout"
-            ? projectMap(changed)
-            : projectMap(changed, new Set(), geometry, before);
-      consume += scene.areas.length + scene.symbols.size;
+          process.env.MEDEN_PERF_MUTANT === "full-layout"
+            ? projectMap(prepareMap(changed))
+            : kind === "full" || process.env.MEDEN_PERF_MUTANT === "full-index"
+              ? projectMap(prepareMap(changed, geometry))
+              : projectMap(before.index, new Set(), patches, before);
+      consume += scene.index.byPath.size + scene.symbols.size;
       return performance.now() - start;
     };
     for (let i = 0; i < 9; i++)
@@ -373,7 +396,7 @@ if (process.env.MEDEN_PERFORMANCE === "1")
           full_ms: full,
           reuse_ms: reuse,
           ratio,
-          maximum_ratio: 0.5,
+          maximum_ratio: 0.25,
           packed_bytes: packed.byteLength,
           unpack_ms,
           first_input_ms: inputMs,
@@ -381,11 +404,11 @@ if (process.env.MEDEN_PERFORMANCE === "1")
           first_scene_ms: sceneMs,
           consume,
           scope:
-            "Same process, paired current-algorithm recomputation versus prepared geometry overlay; no browser paint or native compilation measurement.",
+            "Same process, paired complete-index reconstruction with already prepared geometry versus sparse file-description updates; complete original output checked before timing. No browser paint, layout preparation or native compilation measurement.",
         },
         null,
         2,
       ),
     );
-    expect(ratio).toBeLessThan(0.5);
+    expect(ratio).toBeLessThan(0.25);
   }, 60000);

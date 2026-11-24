@@ -47,7 +47,7 @@ import Tune from "@mui/icons-material/Tune";
 import PlayArrow from "@mui/icons-material/PlayArrow";
 import Close from "@mui/icons-material/Close";
 import { useMapLayout } from "../features/native/useMapLayout";
-import { projectMap } from "../features/native/project-map-model";
+import { prepareMap, projectMap } from "../features/native/project-map-model";
 import { NativeExplorer } from "../features/native/NativeExplorer";
 import { NativeWorkspaceGraph } from "../features/native/NativeWorkspaceGraph";
 
@@ -101,10 +101,17 @@ export function NativeApp({ token }: { token: string }) {
   >(null);
   const [overviewView, setOverviewView] = useState<{
     original: InventoryPublication;
-    data: WorkspaceOverview;
+    files: ReadonlyMap<string, WorkspaceOverview["files"][number]>;
   }>();
-  const overview = overviewView?.data;
+  const overview = overviewView?.original.data;
   const mapLayout = useMapLayout(overviewView?.original.data);
+  const mapIndex = useMemo(
+    () =>
+      overview && mapLayout.prepared
+        ? prepareMap(overview, mapLayout.prepared.geometry)
+        : undefined,
+    [overview, mapLayout.prepared],
+  );
   const previousScene = useRef<ReturnType<typeof projectMap> | undefined>(
     undefined,
   );
@@ -126,15 +133,15 @@ export function NativeApp({ token }: { token: string }) {
   );
   const scene = useMemo(
     () =>
-      overview && mapLayout.prepared
+      mapIndex
         ? projectMap(
-            overview,
+            mapIndex,
             new Set<string>(JSON.parse(trackedTargets)),
-            mapLayout.prepared.geometry,
+            overviewView?.files,
             previousScene.current,
           )
         : undefined,
-    [overview, trackedTargets, mapLayout.prepared],
+    [mapIndex, overviewView?.files, trackedTargets],
   );
   useEffect(() => {
     previousScene.current = scene;
@@ -437,7 +444,7 @@ export function NativeApp({ token }: { token: string }) {
     observedInventory.current = inventoryPublication.revision;
     setOverviewView({
       original: inventoryPublication,
-      data: inventoryPublication.data,
+      files: new Map(),
     });
     setOverviewError("");
   }, [inventoryPublication]);
@@ -606,18 +613,20 @@ export function NativeApp({ token }: { token: string }) {
         if (mapEpoch.current !== epoch || currentInventory.current !== parent)
           return false;
         setOverviewView((previous) => {
-          if (!previous || previous.original.revision !== parent)
+          if (
+            mapEpoch.current !== epoch ||
+            currentInventory.current !== parent ||
+            !previous ||
+            previous.original.revision !== parent ||
+            !mapIndex ||
+            mapIndex.snapshot !== previous.original.data
+          )
             return previous;
-          const files = new Map(chunk.files.map((file) => [file.path, file]));
-          return {
-            ...previous,
-            data: {
-              ...previous.data,
-              files: previous.data.files.map(
-                (file) => files.get(file.path) || file,
-              ),
-            },
-          };
+          const files = new Map(previous.files);
+          for (const file of chunk.files)
+            if (mapIndex.byPath.get(file.path)?.file)
+              files.set(file.path, file);
+          return { ...previous, files };
         });
         return true;
       } catch (error) {
@@ -626,7 +635,7 @@ export function NativeApp({ token }: { token: string }) {
         return true;
       }
     },
-    [client, inventoryPublication],
+    [client, inventoryPublication, mapIndex],
   );
   const selectSymbol = useCallback(
     (symbol: Symbol) => {
