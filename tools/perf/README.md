@@ -111,6 +111,9 @@ Fast-check shrinks
 failures and prints a seed/path; replay with `MEDEN_FUZZ_SEED`,
 `MEDEN_FUZZ_PATH`, and `MEDEN_FUZZ_RUNS` using the direct Vitest file command.
 Retain that counterexample in the corpus before fixing a discovered fault.
+The correctness corpus has a 60-second runner allowance, matching the large-map
+test, rather than Vitest's five-second default. Its 3000 cases and assertions
+remain unchanged; this is separate from the numerical performance ratio below.
 These are presentation properties, not verification or renderer proofs.
 
 `npm run test:performance` uses the pinned 175187-file corpus and nine alternating

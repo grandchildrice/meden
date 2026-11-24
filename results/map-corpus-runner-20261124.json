@@ -1,0 +1,67 @@
+{
+  "date": "2026-11-24",
+  "base_revision": "583648dee5c22e4ca6e788390e9104cb8509bc63",
+  "scope": "Correctness-corpus runner allowance only; no product implementation, corpus, assertions, shrinker, seed or numerical performance budget changed.",
+  "ci": {
+    "run": 45318925473,
+    "job": 138192411202,
+    "failure": "3000-case correctness test stopped by generic Vitest 5000 ms deadline; no counterexample reported."
+  },
+  "runner_allowance_ms": 60000,
+  "checks": {
+    "corpus": {
+      "seed": 20261123,
+      "runs": 3000,
+      "passed": true
+    },
+    "typescript_tests": 41,
+    "format": true,
+    "performance": {
+      "median_ratio": 0.0002604687950842478,
+      "maximum_ratio": 0.35
+    },
+    "negative_control": {
+      "median_ratio": 1.0526544967214309,
+      "maximum_ratio": 0.35,
+      "failed_at_ratio_assertion": true
+    },
+    "ux": "Public TUI 34, browser 67 and both serialized browser budgets retained from the preceding verified unchanged product binary/assets; this change touches only the property test and documentation."
+  },
+  "artifacts": [
+    {
+      "path": "/tmp/meden-583-ci-web.log",
+      "bytes": 69581,
+      "sha256": "2d399c928ca82bf77b81b3bde552e4965ccdeabb6c7c4697e9fe3a8f8cc1c77d"
+    },
+    {
+      "path": "/tmp/meden-corpus-before-timeout.log",
+      "bytes": 502,
+      "sha256": "31219569f90a38ae1b740e6332de97f35533856e0d293808e042630c5856d12e"
+    },
+    {
+      "path": "/tmp/meden-corpus-explicit-timeout.log",
+      "bytes": 502,
+      "sha256": "40394fa6253133b0f33d23df8090a1979690d1997ffe339457b0250bc26fc343"
+    },
+    {
+      "path": "/tmp/meden-corpus-performance.log",
+      "bytes": 516,
+      "sha256": "893ef30ed868e1409826b59d403e0f5ae170b53174763d9e48afad5e0cb75bc6"
+    },
+    {
+      "path": "/tmp/meden-corpus-mutant.log",
+      "bytes": 1259,
+      "sha256": "9b8946977c92e084277059aca11fc59339a8a8a6b61e17bfe36558c89b0decee"
+    },
+    {
+      "path": "/tmp/meden-corpus-unit.log",
+      "bytes": 1018,
+      "sha256": "882c0d768ff44bbd593ae1b4acaa5d34c01e6d598a967587c4434a025b38dfbd"
+    },
+    {
+      "path": "/tmp/meden-corpus-format.log",
+      "bytes": 234,
+      "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+    }
+  ]
+}

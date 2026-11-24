@@ -191,7 +191,7 @@ test("generated camera traces agree with a full scan and never change world coor
     ),
     { seed, numRuns: runs, path: process.env.MEDEN_FUZZ_PATH, verbose: true },
   );
-});
+}, 60000);
 
 if (process.env.MEDEN_PERFORMANCE === "1") {
   test("large-map visibility, legend and breadcrumb stay below 35% of the full-scan baseline", async () => {
