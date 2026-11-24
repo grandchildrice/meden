@@ -4,6 +4,8 @@ import hashlib
 import importlib.util
 import json
 import os
+import random
+import stat
 import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor
@@ -322,3 +324,120 @@ def test_alias_in_setup_cannot_be_deduplicated_into_the_canonical_input(worker, 
     executable, _ = lake(tmp_path, encode(rows))
     with pytest.raises(RuntimeError, match="symlinks"):
         worker.fingerprint(root, executable, bindings, "prepare")
+
+
+def test_kernel_names_agree_with_independent_strict_path_resolution(worker, tmp_path):
+    root = tmp_path / "workspace"
+    root.mkdir()
+    links = root / "links"
+    links.mkdir()
+    outside = tmp_path / "outside.olean"
+    outside.write_bytes(b"OUTSIDE")
+    root_alias = tmp_path / "workspace-alias"
+    root_alias.symlink_to(root, target_is_directory=True)
+    cases = [(root, outside), (root, root), (root, "missing"), (root, "\0")]
+    names = ["λ", "日本語", "space name", 'quote"', "back\\slash", "line\nfeed", "(deleted)"]
+    for index in range(64):
+        parent = root / f"tree-{index}" / "a" / "b" / "c"
+        parent.mkdir(parents=True)
+        path = parent / f"{names[index % len(names)]}.olean"
+        path.write_bytes(bytes([index]))
+        alias = root / f"alias-{index}"
+        alias.symlink_to(parent, target_is_directory=True)
+        link = links / str(index)
+        link.symlink_to(path)
+        cases.extend([
+            (root, path), (root, path.relative_to(root)),
+            (root, alias / path.name), (root, link), (root, parent),
+            (root, parent / "missing"), (root, parent / ".." / "c" / path.name),
+            (root, str(path).replace("/a/", "/./a//")),
+            (root_alias, root_alias / path.relative_to(root)),
+        ])
+    fifo = root / "pipe"
+    os.mkfifo(fifo)
+    (links / "cycle").symlink_to("cycle")
+    (links / "dangling").symlink_to("missing")
+    cases.extend([(root, fifo), (root, links / "cycle"), (root, links / "dangling")])
+    # Fixed seed, every boundary case plus generated order/repetitions. The
+    # oracle uses strict filesystem resolution, not the new descriptor path.
+    rng = random.Random(0x4D4544454E)
+    cases += rng.choices(cases, k=3000 - len(cases))
+    rng.shuffle(cases)
+    descriptors = len(os.listdir("/proc/self/fd"))
+    for workspace, value in cases:
+        path = Path(value)
+        if not path.is_absolute():
+            path = workspace / path
+        try:
+            canonical = path.resolve(strict=True)
+            expected = canonical == path and canonical.is_relative_to(workspace)
+            expected = expected and stat.S_ISREG(path.lstat().st_mode)
+        except (OSError, RuntimeError, ValueError):
+            expected = False
+        try:
+            actual = worker.regular(workspace, value)
+        except (OSError, RuntimeError, ValueError):
+            assert not expected, (workspace, value)
+        else:
+            assert expected and actual == path, (workspace, value)
+    assert len(os.listdir("/proc/self/fd")) == descriptors
+
+
+def test_deep_inputs_do_not_repeat_metadata_work_for_every_ancestor(worker, tmp_path, monkeypatch):
+    root = tmp_path / "workspace"
+    parent = root.joinpath(*(f"level-{index}" for index in range(16)))
+    parent.mkdir(parents=True)
+    paths = [parent / f"input-{index}.olean" for index in range(128)]
+    for path in paths:
+        path.write_bytes(b"ORIGINAL")
+    counts = dict.fromkeys(["open", "lstat", "stat", "fstat", "readlink"], 0)
+
+    def observe(name, original):
+        def call(*args, **kwargs):
+            counts[name] += 1
+            return original(*args, **kwargs)
+        return call
+
+    for name in counts:
+        monkeypatch.setattr(os, name, observe(name, getattr(os, name)))
+    for path in paths:
+        assert worker.regular(root, path) == path
+    # Real filesystem observations, independent of directory depth. This does
+    # not budget the separate complete-byte hashing or hidden kernel work.
+    assert sum(counts.values()) <= 4 * len(paths), counts
+
+
+@pytest.mark.parametrize("fault", ["renamed", "proc_unavailable", "status_unavailable"])
+def test_observation_failure_retires_its_descriptor_without_a_fallback(
+    worker, tmp_path, monkeypatch, fault
+):
+    path = tmp_path / "input.olean"
+    path.write_bytes(b"ORIGINAL")
+    descriptors = len(os.listdir("/proc/self/fd"))
+    original = os.readlink
+    original_status = os.fstat
+
+    def observe(value):
+        if fault == "renamed":
+            path.rename(path.with_suffix(".moved"))
+            path.write_bytes(b"REPLACEMENT")
+        elif fault == "proc_unavailable":
+            raise PermissionError("Original proc observation unavailable")
+        return original(value)
+
+    def status(handle):
+        # Affect only the real input handle, not pytest's capture descriptors.
+        try:
+            selected = original(f"/proc/self/fd/{handle}") == str(path)
+        except OSError:
+            selected = False
+        if selected:
+            raise PermissionError("Original status observation unavailable")
+        return original_status(handle)
+
+    monkeypatch.setattr(os, "readlink", observe)
+    if fault == "status_unavailable":
+        monkeypatch.setattr(os, "fstat", status)
+    with pytest.raises((OSError, RuntimeError)):
+        worker.regular(tmp_path, path)
+    assert len(os.listdir("/proc/self/fd")) == descriptors

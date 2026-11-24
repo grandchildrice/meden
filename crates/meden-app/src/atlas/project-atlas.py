@@ -125,22 +125,37 @@ def query(lake, bindings):
             child.wait()
 
 
-def fingerprint(root, lake, bindings, mode):
-    if mode not in {"prepare", "fingerprint"} or not 1 <= len(bindings) <= 32:
-        raise ValueError("Expected prepare/fingerprint and between 1 and 32 roots")
-
-    def regular(value):
-        path = pathlib.Path(value)
-        if not path.is_absolute():
-            path = root / path
-        canonical = path.resolve(strict=True)
-        if canonical != path or not canonical.is_relative_to(root):
+def regular(root, value):
+    path = pathlib.Path(value)
+    if not path.is_absolute():
+        path = root / path
+    if not path.is_relative_to(root):
+        raise RuntimeError(
+            "Prepared compiler input leaves the workspace or uses symlinks"
+        )
+    # The Linux worker already mounts procfs. Ask the kernel for the opened
+    # object's actual name instead of re-lstat'ing every ancestor in Python
+    # for every imported artifact. O_PATH opens no content, including FIFOs;
+    # O_NOFOLLOW plus fstat rejects a final symlink. Parent aliases change the
+    # actual name and are rejected too, even if their target was already seen.
+    # The handle is closed here; hash_inputs still performs its original full
+    # content read and before/after checks. This is not a pinned snapshot.
+    handle = os.open(path, os.O_PATH | os.O_NOFOLLOW | os.O_CLOEXEC)
+    try:
+        if os.readlink(f"/proc/self/fd/{handle}") != str(path):
             raise RuntimeError(
                 "Prepared compiler input leaves the workspace or uses symlinks"
             )
-        if not stat.S_ISREG(path.lstat().st_mode):
+        if not stat.S_ISREG(os.fstat(handle).st_mode):
             raise RuntimeError("Prepared compiler input is not a regular file")
-        return path
+    finally:
+        os.close(handle)
+    return path
+
+
+def fingerprint(root, lake, bindings, mode):
+    if mode not in {"prepare", "fingerprint"} or not 1 <= len(bindings) <= 32:
+        raise ValueError("Expected prepare/fingerprint and between 1 and 32 roots")
 
     started = time.monotonic()
     paths = set()
@@ -150,8 +165,8 @@ def fingerprint(root, lake, bindings, mode):
     # no separate build, setup-file or per-root query repeats dependency work.
     with closing(query(lake, bindings)) as records:
         for binding, resolved, compiled, setup in records:
-            source = regular(binding["file"])
-            if regular(resolved) != source:
+            source = regular(root, binding["file"])
+            if regular(root, resolved) != source:
                 raise RuntimeError(
                     "Lake resolved a different source than the selected root"
                 )
@@ -166,8 +181,8 @@ def fingerprint(root, lake, bindings, mode):
                 )
             for artifact in setup.get("importArts", {}).values():
                 for group in artifact:
-                    paths.update(regular(path) for path in group)
-            compiled = regular(compiled)
+                    paths.update(regular(root, path) for path in group)
+            compiled = regular(root, compiled)
             if compiled.suffix != ".olean":
                 raise RuntimeError("Lake resolved an invalid compiled root")
             base = compiled.with_suffix("")
@@ -180,7 +195,7 @@ def fingerprint(root, lake, bindings, mode):
             ]:
                 path = pathlib.Path(str(base) + suffix)
                 if suffix == ".olean" or path.exists():
-                    paths.add(regular(path))
+                    paths.add(regular(root, path))
             # Include all actual compiler options, resolved paths and future fields.
             # Stream setups into the aggregate instead of retaining every root's copy.
             encoded = json.dumps(setup, sort_keys=True, separators=(",", ":")).encode()

@@ -926,6 +926,18 @@ cancellation/retry/restart journeys are recorded in
 [the job-observation validation](../performance/job-observation-identities.md).
 Workspace/raw-processor and recorded-work session representations, backend
 snapshots and the remaining orchestration identities still need their own audit.
+The [prepared-path comparison](../performance/lake-path-observations.md) removes
+repeated Python ancestor traversal in the Linux compiler adapter. It keeps every
+input byte, original ordered fingerprint and existing authority controller,
+while changing the actual registered implementation/resource identity. The old
+runtime path is deleted; its functional comparison and rejected resource-budget
+mutation remain test evidence. This is a measured preparation improvement, not
+a completion claim for the remaining typing, navigation or retirement work.
+The actual update/restart probe also exposes coarse compiler/search resource
+fingerprints: a prepared-input helper change currently invalidates the frozen
+path too. Auditing their executed dependency sets and keeping prepared-snapshot
+provenance separate from unchanged computation remains necessary; silently
+relabeling older observations is not a cache optimization.
 Step 3 now executes the second backend through public TUI/GUI, actual offline
 Z3, a real approved-model trial and a separate 256-input Python oracle. Its
 parser/disagreement rejection tests, actual solver-output faults, started-solver

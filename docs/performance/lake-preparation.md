@@ -2,8 +2,12 @@
 
 The [calibration record](../../results/lake-preparation-calibration-20261124.json)
 separates actual prepared-input work from GUI protocol time and native sampling.
-The production compiler, input validation, resource identities and caches are
-unchanged. Its executable is byte-identical to the previous validated deployment.
+In that November 24 experiment, the production compiler, input validation,
+resource identities and caches were unchanged. Its executable was byte-identical
+to the preceding validated deployment. The later
+[kernel path-observation comparison](lake-path-observations.md) adopts a different
+optimization with independent refusal/resource tests and new implementation
+attribution; it preserves the complete-byte fingerprint format.
 
 The host diagnostic `profile-prepared-inputs` calls the shared application's real
 offline preparation path. It reports resource preparation separately, then

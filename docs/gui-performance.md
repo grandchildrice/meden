@@ -1979,3 +1979,32 @@ types claim no speedup and do not weaken complete-input validation. Exact
 correlated spans, original log timings, cache outcomes, source/graph equality
 and their limits are retained in
 [the validation record](../results/job-observation-identities-20261125.json).
+
+## Bound repeated input-path observations (November 25)
+
+The Linux preparation worker now checks an opened object's actual procfs name
+and regular-file type instead of repeatedly walking every ancestor in Python.
+The original full-content hashing, metadata change checks, root/file/setup
+binding, bounds and ordered fingerprint remain intact. Eight interleaved actual
+Lake invocations over the same 43,477 files / 5,992,114,707 bytes reduce the
+complete preparation median from 7.314 s to 6.313 s (13.7%). Every fingerprint,
+file count and byte count matches. Two separate resource/input warmups are
+excluded; no concurrent builds/tests or native sampler ran during comparison.
+This measures preparation, not browser latency or physical paint.
+
+The source script's resource attribution changes correctly. Actual-project
+semantic preparations consequently run once under the new compiler/search
+identities (181.582 s Riemann / 65.349 s EthLib). After host restart, cached
+file opening takes 15.316 s / 2.235 s in single unpaired functional probes.
+Complete source/graph data matches the original except the graph binding
+revision; checksummed compiler/search/rendering chains and raw graphs also
+match their expected new attribution and remain identical across restart.
+No graph-extraction/search/render worker runs during the cache-hit inspections.
+
+The same experiment exposes remaining resource coupling: the frozen compiler
+and searcher also invalidate when the prepared-input helper changes, although
+their logical output is unchanged. Partitioning executed resources and sharing
+appropriately owned prepared snapshots still need work. This optimization
+keeps the exact-input validation and makes no whole-workflow speedup claim. See
+[the implementation and regression scope](performance/lake-path-observations.md)
+and [the complete record](../results/lake-path-observations-20261125.json).

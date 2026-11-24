@@ -1,0 +1,2225 @@
+{
+  "date_local": "2026-11-25",
+  "timezone": "Asia/Tokyo",
+  "validated_at_utc": "2026-11-24T21:58:44.974Z",
+  "source_base_revision": "d967da8b1c47cde46495de12078e84f5fe49a627",
+  "scope": "Linux prepared-input metadata observations replace repeated Python ancestor walks. Complete content validation, input representation, controller authority and browser assets remain unchanged. Actual resource attribution changes; former observations are not relabeled.",
+  "candidate": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/b94c4fbaf657a17d30b720d359025866c5d96c02dbe426ae549a9b2ca5d5fb73/meden",
+    "sha256": "b94c4fbaf657a17d30b720d359025866c5d96c02dbe426ae549a9b2ca5d5fb73",
+    "script_sha256": "04a46c68ab662113eb7aa9faba65bc0cd16e7fb7603e3455f2e48df326fba851"
+  },
+  "changed_sources": [
+    {
+      "path": "crates/meden-app/src/atlas/project-atlas.py",
+      "sha256": "04a46c68ab662113eb7aa9faba65bc0cd16e7fb7603e3455f2e48df326fba851"
+    },
+    {
+      "path": "python/tests/test_lake_inputs.py",
+      "sha256": "5902d059923b39708aa50b8ed65db0385b817737dd99108d67cf6fcdbfa350d3"
+    }
+  ],
+  "unchanged_compiler_rust_sources": [
+    {
+      "path": "crates/meden-app/src/adapters/lake.rs",
+      "sha256": "bfb03188d670305be66d1152c47982a6bcea528b283d1e16de67ca9b8eebd8d8",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean.rs",
+      "sha256": "e64f92a04a26780fb32a9db274e1430fb142bcaad6cca8af12dab4cac65761de",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/collect.rs",
+      "sha256": "755c5495ad2e80171a136ca9be194867741fc2d8db5376644a46fcb3766f194b",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/layout.rs",
+      "sha256": "a6d7069ced1c8c1fcccf9349b293efc335e0a916df6ca864b4c8f30e35f1c94f",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/observe.rs",
+      "sha256": "047ed863ac5571096a23ccb7196e713707a6bcae2db0b1d7b80c4674927bb7e5",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/sources.rs",
+      "sha256": "88c5be999f8ba6a705dbcff8238f0648f3825f1e0fe61de3605a04075837c03a",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/compiler.rs",
+      "sha256": "c2efc23d024921aa5bb5fcfa120f1e672438f09d25d7f4a309de19469483dbc4",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/adapters.rs",
+      "sha256": "ab5b5f082cb99f9321bab7f49e322a1b97177340964b6ea7c9acd3c28e3cd713",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/mod.rs",
+      "sha256": "c0f2f0d9612e0181b01aa45f06f23f4e8c04361b5381d39d1c9d40e9672b0a74",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/project.rs",
+      "sha256": "13a22dcf4deb352b9076ba8f287cd440b94fae4bb87cec33576b121bbca4288c",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/lake.rs",
+      "sha256": "e732135a0bd5f3bbc87b0be02b077fa3b307c6b7d0ce6ee964f85aa2c6eb7760",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/graph.rs",
+      "sha256": "1efb44197f9762f7db65995eec0003c704b559efc3829c1455ed73300e288c40",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/frozen.rs",
+      "sha256": "37609bb326f5ab5d061be31c8ddac907949bb435b374750dc8d1a108f49e5b10",
+      "unchanged": true
+    }
+  ],
+  "linux_api_sources": [
+    "https://man7.org/linux/man-pages/man2/open.2.html",
+    "https://man7.org/linux/man-pages/man5/proc_pid_fd.5.html"
+  ],
+  "controlled_comparison": {
+    "plan": [
+      "base",
+      "candidate",
+      "candidate",
+      "base",
+      "base",
+      "candidate",
+      "candidate",
+      "base"
+    ],
+    "warmups": [
+      {
+        "order": 0,
+        "version": "base",
+        "binary_sha256": "7e789996fe6aa2fac2f63a502484bb35d505e1fcd6ea48e94ed16bd8cfa58687",
+        "script_sha256": "82657e055cc6f37e1b0bfd4f38a755ab318d238018d0d313f76b77516b3d6361",
+        "elapsed_ms": 7357.210514,
+        "resource_preparation_ms": 35.303413,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resource_revision": "1f16f251de0a3f2c0ecca8ca5aec1cb2012643aec5b81059cc86317fca7eb3a8",
+        "diagnostic_truncated": false,
+        "original_worker_timing_lines": [
+          "Build/setup and input resolution completed in 4.804s.",
+          "Validated 43477 files / 5992114707 bytes in 2.284s."
+        ],
+        "private_report": "/home/gohan/workspace/meden/target/native-profile/canonical-paths-20261125/warmup-0-base.json"
+      },
+      {
+        "order": 1,
+        "version": "candidate",
+        "binary_sha256": "abca35f6ce1a82157a28501688f92dc549e33c9760060033a2c65af47603f7e8",
+        "script_sha256": "04a46c68ab662113eb7aa9faba65bc0cd16e7fb7603e3455f2e48df326fba851",
+        "elapsed_ms": 6274.2213280000005,
+        "resource_preparation_ms": 19879.637437,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resource_revision": "399c9f828abea517692c2d6a28f49270eb45dda8cd5f241d8ead8729b7340ede",
+        "diagnostic_truncated": false,
+        "original_worker_timing_lines": [
+          "Build/setup and input resolution completed in 3.665s.",
+          "Validated 43477 files / 5992114707 bytes in 2.312s."
+        ],
+        "private_report": "/home/gohan/workspace/meden/target/native-profile/canonical-paths-20261125/warmup-1-candidate.json"
+      }
+    ],
+    "samples": [
+      {
+        "order": 2,
+        "version": "base",
+        "binary_sha256": "7e789996fe6aa2fac2f63a502484bb35d505e1fcd6ea48e94ed16bd8cfa58687",
+        "script_sha256": "82657e055cc6f37e1b0bfd4f38a755ab318d238018d0d313f76b77516b3d6361",
+        "elapsed_ms": 7381.840393,
+        "resource_preparation_ms": 34.817906,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resource_revision": "1f16f251de0a3f2c0ecca8ca5aec1cb2012643aec5b81059cc86317fca7eb3a8",
+        "diagnostic_truncated": false,
+        "original_worker_timing_lines": [
+          "Build/setup and input resolution completed in 4.802s.",
+          "Validated 43477 files / 5992114707 bytes in 2.309s."
+        ],
+        "private_report": "/home/gohan/workspace/meden/target/native-profile/canonical-paths-20261125/sample-2-base.json"
+      },
+      {
+        "order": 3,
+        "version": "candidate",
+        "binary_sha256": "abca35f6ce1a82157a28501688f92dc549e33c9760060033a2c65af47603f7e8",
+        "script_sha256": "04a46c68ab662113eb7aa9faba65bc0cd16e7fb7603e3455f2e48df326fba851",
+        "elapsed_ms": 6424.9822349999995,
+        "resource_preparation_ms": 34.396862,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resource_revision": "399c9f828abea517692c2d6a28f49270eb45dda8cd5f241d8ead8729b7340ede",
+        "diagnostic_truncated": false,
+        "original_worker_timing_lines": [
+          "Build/setup and input resolution completed in 3.817s.",
+          "Validated 43477 files / 5992114707 bytes in 2.314s."
+        ],
+        "private_report": "/home/gohan/workspace/meden/target/native-profile/canonical-paths-20261125/sample-3-candidate.json"
+      },
+      {
+        "order": 4,
+        "version": "candidate",
+        "binary_sha256": "abca35f6ce1a82157a28501688f92dc549e33c9760060033a2c65af47603f7e8",
+        "script_sha256": "04a46c68ab662113eb7aa9faba65bc0cd16e7fb7603e3455f2e48df326fba851",
+        "elapsed_ms": 6201.388456,
+        "resource_preparation_ms": 34.322548000000005,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resource_revision": "399c9f828abea517692c2d6a28f49270eb45dda8cd5f241d8ead8729b7340ede",
+        "diagnostic_truncated": false,
+        "original_worker_timing_lines": [
+          "Build/setup and input resolution completed in 3.669s.",
+          "Validated 43477 files / 5992114707 bytes in 2.271s."
+        ],
+        "private_report": "/home/gohan/workspace/meden/target/native-profile/canonical-paths-20261125/sample-4-candidate.json"
+      },
+      {
+        "order": 5,
+        "version": "base",
+        "binary_sha256": "7e789996fe6aa2fac2f63a502484bb35d505e1fcd6ea48e94ed16bd8cfa58687",
+        "script_sha256": "82657e055cc6f37e1b0bfd4f38a755ab318d238018d0d313f76b77516b3d6361",
+        "elapsed_ms": 7523.114843,
+        "resource_preparation_ms": 35.272834,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resource_revision": "1f16f251de0a3f2c0ecca8ca5aec1cb2012643aec5b81059cc86317fca7eb3a8",
+        "diagnostic_truncated": false,
+        "original_worker_timing_lines": [
+          "Build/setup and input resolution completed in 4.913s.",
+          "Validated 43477 files / 5992114707 bytes in 2.346s."
+        ],
+        "private_report": "/home/gohan/workspace/meden/target/native-profile/canonical-paths-20261125/sample-5-base.json"
+      },
+      {
+        "order": 6,
+        "version": "base",
+        "binary_sha256": "7e789996fe6aa2fac2f63a502484bb35d505e1fcd6ea48e94ed16bd8cfa58687",
+        "script_sha256": "82657e055cc6f37e1b0bfd4f38a755ab318d238018d0d313f76b77516b3d6361",
+        "elapsed_ms": 7135.341166,
+        "resource_preparation_ms": 34.161493,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resource_revision": "1f16f251de0a3f2c0ecca8ca5aec1cb2012643aec5b81059cc86317fca7eb3a8",
+        "diagnostic_truncated": false,
+        "original_worker_timing_lines": [
+          "Build/setup and input resolution completed in 4.597s.",
+          "Validated 43477 files / 5992114707 bytes in 2.264s."
+        ],
+        "private_report": "/home/gohan/workspace/meden/target/native-profile/canonical-paths-20261125/sample-6-base.json"
+      },
+      {
+        "order": 7,
+        "version": "candidate",
+        "binary_sha256": "abca35f6ce1a82157a28501688f92dc549e33c9760060033a2c65af47603f7e8",
+        "script_sha256": "04a46c68ab662113eb7aa9faba65bc0cd16e7fb7603e3455f2e48df326fba851",
+        "elapsed_ms": 6122.96713,
+        "resource_preparation_ms": 35.925726,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resource_revision": "399c9f828abea517692c2d6a28f49270eb45dda8cd5f241d8ead8729b7340ede",
+        "diagnostic_truncated": false,
+        "original_worker_timing_lines": [
+          "Build/setup and input resolution completed in 3.565s.",
+          "Validated 43477 files / 5992114707 bytes in 2.285s."
+        ],
+        "private_report": "/home/gohan/workspace/meden/target/native-profile/canonical-paths-20261125/sample-7-candidate.json"
+      },
+      {
+        "order": 8,
+        "version": "candidate",
+        "binary_sha256": "abca35f6ce1a82157a28501688f92dc549e33c9760060033a2c65af47603f7e8",
+        "script_sha256": "04a46c68ab662113eb7aa9faba65bc0cd16e7fb7603e3455f2e48df326fba851",
+        "elapsed_ms": 6647.115760000001,
+        "resource_preparation_ms": 42.158516999999996,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resource_revision": "399c9f828abea517692c2d6a28f49270eb45dda8cd5f241d8ead8729b7340ede",
+        "diagnostic_truncated": false,
+        "original_worker_timing_lines": [
+          "Build/setup and input resolution completed in 4.091s.",
+          "Validated 43477 files / 5992114707 bytes in 2.283s."
+        ],
+        "private_report": "/home/gohan/workspace/meden/target/native-profile/canonical-paths-20261125/sample-8-candidate.json"
+      },
+      {
+        "order": 9,
+        "version": "base",
+        "binary_sha256": "7e789996fe6aa2fac2f63a502484bb35d505e1fcd6ea48e94ed16bd8cfa58687",
+        "script_sha256": "82657e055cc6f37e1b0bfd4f38a755ab318d238018d0d313f76b77516b3d6361",
+        "elapsed_ms": 7246.69423,
+        "resource_preparation_ms": 35.547075,
+        "result": {
+          "fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "files": 43477,
+          "bytes": 5992114707
+        },
+        "resource_revision": "1f16f251de0a3f2c0ecca8ca5aec1cb2012643aec5b81059cc86317fca7eb3a8",
+        "diagnostic_truncated": false,
+        "original_worker_timing_lines": [
+          "Build/setup and input resolution completed in 4.656s.",
+          "Validated 43477 files / 5992114707 bytes in 2.305s."
+        ],
+        "private_report": "/home/gohan/workspace/meden/target/native-profile/canonical-paths-20261125/sample-9-base.json"
+      }
+    ],
+    "medians_ms": {
+      "base": 7314.2673115,
+      "candidate": 6313.1853455
+    },
+    "change_percent": -13.686701939728518,
+    "scope": "Actual offline Lake preparation, unchanged complete fingerprint/file/byte count, fixed same-source probe except path validation; two excluded resource/tool/input warmups. Project/OS caches retained. No parallel builds, tests, graph compilation, inference or current evidence admission."
+  },
+  "regressions": {
+    "python_tests": 29,
+    "passed": 29,
+    "initial_fixture_failure": {
+      "failed": 1,
+      "passed": 28,
+      "cause": "The first status-unavailable test replaced every os.fstat and also intercepted pytest capture. The final injection affects only the actual selected input descriptor; no production code or test budget changed."
+    },
+    "oracle_corpus": {
+      "cases": 3000,
+      "seed": "0x4D4544454E",
+      "reference": "Independent strict Path.resolve/lstat oracle over real files, symbolic roots/parents/leaves, normalized/Unicode paths, absent entries, loops, directories and FIFOs."
+    },
+    "resource_budget": {
+      "inputs": 128,
+      "parent_depth": 16,
+      "maximum_python_observation_calls": 512,
+      "original_walk_calls": 2944,
+      "scope": "Python open/lstat/stat/fstat/readlink calls during actual path validation, not content hashing or hidden kernel work."
+    },
+    "mutation_controls": [
+      {
+        "mutant": "ancestor-walk",
+        "case": "functional",
+        "code": 0,
+        "expected_rejection": false,
+        "log": "/home/gohan/workspace/meden/target/native-profile/canonical-paths-20261125/ancestor-walk-functional.log"
+      },
+      {
+        "mutant": "ancestor-walk",
+        "case": "budget",
+        "code": 1,
+        "expected_rejection": true,
+        "log": "/home/gohan/workspace/meden/target/native-profile/canonical-paths-20261125/ancestor-walk-budget.log"
+      },
+      {
+        "mutant": "unchecked-alias",
+        "case": "refusal",
+        "code": 1,
+        "expected_rejection": true,
+        "log": "/home/gohan/workspace/meden/target/native-profile/canonical-paths-20261125/unchecked-alias-refusal.log"
+      },
+      {
+        "mutant": "unchecked-kind",
+        "case": "refusal",
+        "code": 1,
+        "expected_rejection": true,
+        "log": "/home/gohan/workspace/meden/target/native-profile/canonical-paths-20261125/unchecked-kind-refusal.log"
+      }
+    ]
+  },
+  "public_checks": {
+    "application_unit": {
+      "passed": 134,
+      "failed": 0,
+      "log": "/tmp/meden-canonical-paths-app-tests.log"
+    },
+    "format": {
+      "passed": true,
+      "log": "/tmp/meden-canonical-paths-format.log"
+    },
+    "gates": [
+      {
+        "phase": "architecture",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "python-lint",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "tui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "gui-all",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "tui": {
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/validation-bin/b94c4fbaf657a17d30b720d359025866c5d96c02dbe426ae549a9b2ca5d5fb73/meden",
+        "sha256": "b94c4fbaf657a17d30b720d359025866c5d96c02dbe426ae549a9b2ca5d5fb73"
+      },
+      "passed": 35,
+      "selected": 35,
+      "inference": "scripted fixtures; no live-model validation",
+      "report": "/tmp/meden-ux-canonical-paths-20261125/index.html",
+      "decoded_screens": [
+        {
+          "label": "lake",
+          "journey": "test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa",
+          "frames": 766,
+          "seconds": 70.739,
+          "columns": 130,
+          "rows": 36,
+          "screen_sha256": "1842412cba8a439e70c8fd89c4846b6ebc5256be43aba664360b34375c9d1b28",
+          "observed_lines": [
+            "               · Stopped: Lake source inventory changed at src/lib/Store; reread the graph"
+          ]
+        },
+        {
+          "label": "cancel",
+          "journey": "test_portable_check_is_cancellable_without_a_processor_grant-f6843d93dd",
+          "frames": 150,
+          "seconds": 13.8,
+          "columns": 130,
+          "rows": 36,
+          "screen_sha256": "8cf214c599757188e7469c6349fa96e10ba9ced29a3d0fb1b3ad10ab439dc776",
+          "observed_lines": [
+            "               · Portable work stopped: Lean check did not complete successfully; its output was retained in",
+            "               · Portable work stopped: offline Lean check failed / interrupted for gossip. Inspect the retained"
+          ]
+        },
+        {
+          "label": "finite",
+          "journey": "test_finite_contract_real_refutation_repair_staleness_and_restart-0a1f467300",
+          "frames": 61,
+          "seconds": 2.336,
+          "columns": 130,
+          "rows": 36,
+          "screen_sha256": "2e86ca8be08d7fe1c0e618bd8dd5bfd0c8072cf9b29353e282ad69d985c81a5c",
+          "observed_lines": [
+            "                   Finite property failed; independently evaluated counterexample:"
+          ]
+        },
+        {
+          "label": "restart",
+          "journey": "test_portable_work_clones_history_checks_locally_and_requires_fresh_re-ffb3cafaf2",
+          "frames": 163,
+          "seconds": 6.427,
+          "columns": 130,
+          "rows": 36,
+          "screen_sha256": "fd4ebc548faf6c2c12ea54c5ae3cdc32afa548f1e9cba72fed3d982d4255db9e",
+          "observed_lines": [
+            "               Choose a model connection"
+          ]
+        }
+      ]
+    },
+    "gui": {
+      "path": "target/gui-canonical-paths-all-report/index.html",
+      "stats": {
+        "total": 74,
+        "expected": 74,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      },
+      "duration_ms": 499180.593,
+      "tests": [
+        {
+          "title": "home, three sidebar tabs, source navigation and semantic differences pass automated WCAG AA",
+          "outcome": "expected"
+        },
+        {
+          "title": "registered finite verifier reviews, refutes, repairs and reopens with bounded evidence",
+          "outcome": "expected"
+        },
+        {
+          "title": "proposal observations retry without another check and cannot replace a newer review",
+          "outcome": "expected"
+        },
+        {
+          "title": "verification progress retries as data, cancels issued inputs and rejects delayed observations",
+          "outcome": "expected"
+        },
+        {
+          "title": "chat stays flat, folds long messages and remembers draggable sidebar widths",
+          "outcome": "expected"
+        },
+        {
+          "title": "large history is revisioned outside status polling, retries visibly and rejects late snapshots across restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "typed folder listings retain every entry beyond 500, literal names and local retry without poll payloads",
+          "outcome": "expected"
+        },
+        {
+          "title": "inventory publications retry without recapture and reject older bodies across refresh and restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "prepared source publications retry locally, transfer once and refuse delayed older views across restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "open file tabs restore source, graph camera and explanations without another inspection",
+          "outcome": "expected"
+        },
+        {
+          "title": "bounded file availability preserves literal pages, unreadable inventory and retry across restart without analysis",
+          "outcome": "expected"
+        },
+        {
+          "title": "reader publications recover locally and delayed old bodies cannot replace a refreshed file",
+          "outcome": "expected"
+        },
+        {
+          "title": "long Unicode compiler failures stay file-local and status remains readable across restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "build logs stream before completion, retain timeout and cancellation output, and retry the real compiler",
+          "outcome": "expected"
+        },
+        {
+          "title": "prepared Lake dependencies bypass source-copy limits, refresh exact artifacts and survive restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "versioned map geometry survives host restart, rejects corrupt storage and stays usable without storage",
+          "outcome": "expected"
+        },
+        {
+          "title": "small-map headings are available before details, retry locally and refuse a late former inventory",
+          "outcome": "expected"
+        },
+        {
+          "title": "project map retains screen-space geometry and avoids rewriting retained areas during zoom",
+          "outcome": "expected"
+        },
+        {
+          "title": "large project map loads declaration nodes on zoom without opening files or changing chat",
+          "outcome": "expected"
+        },
+        {
+          "title": "search settings reuse compiled modules and keep separately bound results across restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "renderer updates reuse compiled observations, preserve counterexamples and reject changed sources",
+          "outcome": "expected"
+        },
+        {
+          "title": "main targets stay visible at a distance and compiled English/counterexamples annotate source without inference",
+          "outcome": "expected"
+        },
+        {
+          "title": "warm browser assets survive repeated host restart with fresh session review",
+          "outcome": "expected"
+        },
+        {
+          "title": "discover the project Lean without Atlas environment variables, recover after installation and extract in one action",
+          "outcome": "expected"
+        },
+        {
+          "title": "prepare real Atlas offline, extract elaborated cross-module scope, analyze it and recover from compilation failure",
+          "outcome": "expected"
+        },
+        {
+          "title": "Lake discovers configured roots and dependency sources, follows their paths and recovers from a missing root",
+          "outcome": "expected"
+        },
+        {
+          "title": "compiled prototype-named Lean declarations retain source, camera and quiet chat through failure and restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "declaration kinds and highlighted source stay independent of chat until the user sends",
+          "outcome": "expected"
+        },
+        {
+          "title": "IDE map keeps one camera while revealing cached declarations, opens large source files and selects models from chat",
+          "outcome": "expected"
+        },
+        {
+          "title": "opening a file prepares analysis and keeps a bounded-import failure beside its readable source",
+          "outcome": "expected"
+        },
+        {
+          "title": "missing Mathlib explains preparation and an existing-file picker recovers through source inspection without fetching",
+          "outcome": "expected"
+        },
+        {
+          "title": "Atlas code stays offline with read-only sources and libraries, and corrupt resources recover through the GUI",
+          "outcome": "expected"
+        },
+        {
+          "title": "review frozen delivery bytes, reject another target, send once and restart without a queue",
+          "outcome": "expected"
+        },
+        {
+          "title": "delivery refuses stale reviews, does not follow redirects and leaves uncertain attempts terminal",
+          "outcome": "expected"
+        },
+        {
+          "title": "preview descriptions retry without recapture, retain the live frame and reject delayed replacements",
+          "outcome": "expected"
+        },
+        {
+          "title": "develop and interact with local module assets, refresh edits, recover and restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "preview separates browser authority, rejects missing assets and bounds captured files",
+          "outcome": "expected"
+        },
+        {
+          "title": "develop, recover from provider failure, inspect files and restart without restoring grants",
+          "outcome": "expected"
+        },
+        {
+          "title": "visible silent wait, cancellation before model reply and guarded local API",
+          "outcome": "expected"
+        },
+        {
+          "title": "local source graph follows exact code, refreshes after development and rejects unavailable inputs",
+          "outcome": "expected"
+        },
+        {
+          "title": "review a Finding repair, reject it, refuse stale sources and reanalyze the applied exact diff",
+          "outcome": "expected"
+        },
+        {
+          "title": "restarting discards a pending repair approval without changing source",
+          "outcome": "expected"
+        },
+        {
+          "title": "large candidate history transfers once, retries locally and keeps newer selections across delayed reads and restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "local meaning history retains requirement and Finding identities across reruns and restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "separate judge models are visible, retained and revoked together",
+          "outcome": "expected"
+        },
+        {
+          "title": "meaning analysis runs separated real requests, keeps proof unknown and restores a historical result",
+          "outcome": "expected"
+        },
+        {
+          "title": "meaning analysis refuses a current result after cancel",
+          "outcome": "expected"
+        },
+        {
+          "title": "meaning analysis refuses a current result after revoke",
+          "outcome": "expected"
+        },
+        {
+          "title": "meaning analysis refuses a current result after stale",
+          "outcome": "expected"
+        },
+        {
+          "title": "meaning analysis refuses a current result after provider",
+          "outcome": "expected"
+        },
+        {
+          "title": "meaning analysis refuses a current result after invalid",
+          "outcome": "expected"
+        },
+        {
+          "title": "portable GUI history survives a real git clone and checks actual Lean without restoring authority",
+          "outcome": "expected"
+        },
+        {
+          "title": "missing GUI assets explain the build step and a built GUI opens with fresh review",
+          "outcome": "expected"
+        },
+        {
+          "title": "unreadable portable history stays intact while the GUI graph and ordinary chat remain usable",
+          "outcome": "expected"
+        },
+        {
+          "title": "opening a cloned workspace shows chat and the whole graph, then selects and switches host connections",
+          "outcome": "expected"
+        },
+        {
+          "title": "the conversation sidebar collapses independently of the artifact panel",
+          "outcome": "expected"
+        },
+        {
+          "title": "home starts with a large composer and Send; instruction creates its title and opens results",
+          "outcome": "expected"
+        },
+        {
+          "title": "home displays the pitch logos below the suggestions at desktop and phone widths",
+          "outcome": "expected"
+        },
+        {
+          "title": "the sidebar keeps one continuous vending history including its original opening request",
+          "outcome": "expected"
+        },
+        {
+          "title": "the full conversation artifact opens preview and keeps proof details readable",
+          "outcome": "expected"
+        },
+        {
+          "title": "proof opens the wider source graph and follows a declaration into its exact Lean source",
+          "outcome": "expected"
+        },
+        {
+          "title": "graph zoom survives pointer movement and canvas resizing until explicit fit",
+          "outcome": "expected"
+        },
+        {
+          "title": "hover keeps dense graph nodes in place until the pointer selects them",
+          "outcome": "expected"
+        },
+        {
+          "title": "meaning analysis shows an NG comparison by default, can switch to OK and keeps cancellation working",
+          "outcome": "expected"
+        },
+        {
+          "title": "sending opens the real demo preview; purchase, rejection and refund follow its kernel",
+          "outcome": "expected"
+        },
+        {
+          "title": "unsent input survives navigation and reload without creating a named empty conversation",
+          "outcome": "expected"
+        },
+        {
+          "title": "requirement edits invalidate retained proof and analysis across restart",
+          "outcome": "expected"
+        },
+        {
+          "title": "review export remains revision-bound and omits conversations",
+          "outcome": "expected"
+        },
+        {
+          "title": "invalid imports retain the conversation; Atlas metadata stays unconfirmed",
+          "outcome": "expected"
+        },
+        {
+          "title": "original prototype-named declarations import, remain unknown and reopen without losing chat or camera",
+          "outcome": "expected"
+        },
+        {
+          "title": "desktop and compact layouts keep chat and artifact panes usable, with keyboard entry",
+          "outcome": "expected"
+        },
+        {
+          "title": "failed storage retains a sent conversation and recovers through retry",
+          "outcome": "expected"
+        },
+        {
+          "title": "legacy v2 continuations merge permanently and start with the exact supplied request",
+          "outcome": "expected"
+        },
+        {
+          "title": "expanded graph keeps source and statement readers tall, scrollable and synchronized",
+          "outcome": "expected"
+        }
+      ]
+    }
+  },
+  "actual_projects": {
+    "source_before": [
+      {
+        "project": "riemann",
+        "pid": 1056787,
+        "exe": "/home/gohan/workspace/meden/target/gui-runtime/eeebc998e183399727cd0175740321b3d76d45d61e280c8ef9633b9cb256fd2c-bfb7e4aeae6c723d/meden",
+        "file": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+        "source_publication": "sha256:4671471a8580f25a42b2117fcc7cf5a8d25988b715b1a40cbb17b77e006bfa94",
+        "source_data_sha256": "2063f4c8792707349ba4b3d295e779c565a63030790aae9d937d5f776d8d9184",
+        "baseline_body_path": "target/native-profile/canonical-paths-20261125/riemann-baseline-source.json",
+        "baseline_body_sha256": "ff3cdcb0decaa1fd32185705768bc1d8bc9463a821a54b896c8aaa8ee6ef740d"
+      },
+      {
+        "project": "ethlib",
+        "pid": 1057170,
+        "exe": "/home/gohan/workspace/meden/target/gui-runtime/eeebc998e183399727cd0175740321b3d76d45d61e280c8ef9633b9cb256fd2c-bfb7e4aeae6c723d/meden",
+        "file": "EthLib/Networking/Gossip/Parameters.lean",
+        "source_publication": "sha256:c9a67ef7faab77791ab7d84fad5d7176476d3b7d5320d9f95f155b117b57e86b",
+        "source_data_sha256": "ac220adb7270df17b304574138f8894ec78d92bc7a85c5e2e0e745edc885bb09",
+        "baseline_body_path": "target/native-profile/canonical-paths-20261125/ethlib-baseline-source.json",
+        "baseline_body_sha256": "4c7027f2e474101c6a52401033f14591777ea5cab2e3b7615bfacaabc1562e05"
+      }
+    ],
+    "first_preparation": [
+      {
+        "project": "riemann",
+        "pid": 1187995,
+        "binary_sha256": "b94c4fbaf657a17d30b720d359025866c5d96c02dbe426ae549a9b2ca5d5fb73",
+        "cache_hit": false,
+        "preparation_ms": 181582.43607099997,
+        "source_publication": "sha256:3d43552093bc0923176a92f256764c6ef972e5a28dd3622c0f73a0784133907b",
+        "source_hash": "bbfc77f1da7bd755dee4ba24d63224529586cf1b96dec1500fee232246782edf",
+        "reader_publication": "sha256:d3bca7c0ce21989bef612ac79475e72da33062b4140b13dfe87bbaf183a61be8",
+        "reader_hash": "d2c21198aaff30504f16966ddf61ce628ef7ac8632c62be3195b4e4f72e41806",
+        "inventory_files": 175187,
+        "metadata_hash": "5875c3c3432ddda379f8caf8ed411b77d30701443e5da912442935a296c3ae7a",
+        "overview_headers_exactly_preserved": true,
+        "complete_original_header_metadata_round_trip": true,
+        "unindexed_entries": 175184,
+        "complete_original_navigation_binding": true,
+        "navigation_bytes": 13853,
+        "complete_cached_navigation_matches_original": true,
+        "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+        "original_logical_source_graph_reader_inventory_evidence_preserved": true,
+        "complete_source_data_equal_except_graph_binding": true,
+        "graph_binding_revision_changed": true,
+        "original_graph_revision": "sha256:1fd1657b6166afe1c71570405fe7d0a61c0026104487fbffb8cfe1e7115ba51e",
+        "current_graph_revision": "sha256:0fa2c7e5fb9b007eff456b2d6ee300afd410fec7970db92bce307c55764663a3",
+        "phase": "warm",
+        "conversation_revision_unchanged": true,
+        "candidate_observations_unchanged": true,
+        "hover_and_retained_tab_camera_preserved": true,
+        "node_selection_preserves_camera_chat_and_source_line": true,
+        "selected_declaration": "PIW.AdelClassFin.DictGen.denom",
+        "verification_job": {
+          "state": "idle"
+        },
+        "work_job": {
+          "state": "idle"
+        },
+        "job_body_requests": 0,
+        "preview": {
+          "state": "idle"
+        },
+        "preview_body_requests": 0,
+        "commands": [
+          {
+            "type": "inspect",
+            "path": ".",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "src",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "src/Formalism",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "src/Formalism/PeriodIntegrals",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+            "directory": false
+          }
+        ],
+        "page_errors": [],
+        "running": false,
+        "authorized": false
+      },
+      {
+        "project": "ethlib",
+        "pid": 1188212,
+        "binary_sha256": "b94c4fbaf657a17d30b720d359025866c5d96c02dbe426ae549a9b2ca5d5fb73",
+        "cache_hit": false,
+        "preparation_ms": 65349.09554800001,
+        "source_publication": "sha256:393be03d1fe427c5d6d0b745831a6d008d058ac638f478bd194798a331a8fd63",
+        "source_hash": "3f0fdd21076273e8620a6b2e0ea17cbf599eeaab84d669750894ac296b742a41",
+        "reader_publication": "sha256:0b79b28ff3aa227731108c7cde50cf54fa06cc447922756668b1197473b0d3ac",
+        "reader_hash": "60e647749624e65341239c16878edafe3083f1a0b0ba7ab0587b82511d80dd36",
+        "inventory_files": 2517,
+        "metadata_hash": "59b98c2e15f2f590463873351344a08a59e4aa3854a7dfb1779e635a680cb32f",
+        "overview_headers_exactly_preserved": true,
+        "complete_original_header_metadata_round_trip": true,
+        "unindexed_entries": 0,
+        "complete_original_navigation_binding": true,
+        "navigation_bytes": 1516,
+        "complete_cached_navigation_matches_original": true,
+        "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+        "original_logical_source_graph_reader_inventory_evidence_preserved": true,
+        "complete_source_data_equal_except_graph_binding": true,
+        "graph_binding_revision_changed": true,
+        "original_graph_revision": "sha256:3c5ddac10e9adf90d7e394542e5cdf712658be30bbc15a7a0c36438914489b78",
+        "current_graph_revision": "sha256:f82cd6a6cd81b840c50d366dba3726841bd6b61a9c3c76db6e2bb5e3fee8d8e2",
+        "phase": "warm",
+        "conversation_revision_unchanged": true,
+        "candidate_observations_unchanged": true,
+        "hover_and_retained_tab_camera_preserved": true,
+        "node_selection_preserves_camera_chat_and_source_line": true,
+        "selected_declaration": "EthLib.Networking.Gossip.GossipsubParameters",
+        "verification_job": {
+          "state": "idle"
+        },
+        "work_job": {
+          "state": "idle"
+        },
+        "job_body_requests": 0,
+        "preview": {
+          "state": "idle"
+        },
+        "preview_body_requests": 0,
+        "commands": [
+          {
+            "type": "inspect",
+            "path": ".",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "EthLib",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "EthLib/Networking",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "EthLib/Networking/Gossip",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "EthLib/Networking/Gossip/Parameters.lean",
+            "directory": false
+          }
+        ],
+        "page_errors": [],
+        "running": false,
+        "authorized": false
+      }
+    ],
+    "restarted_cache_hit": [
+      {
+        "project": "riemann",
+        "pid": 1201391,
+        "binary_sha256": "b94c4fbaf657a17d30b720d359025866c5d96c02dbe426ae549a9b2ca5d5fb73",
+        "cache_hit": true,
+        "preparation_ms": 15315.674652999998,
+        "source_publication": "sha256:3d43552093bc0923176a92f256764c6ef972e5a28dd3622c0f73a0784133907b",
+        "source_hash": "bbfc77f1da7bd755dee4ba24d63224529586cf1b96dec1500fee232246782edf",
+        "reader_publication": "sha256:d3bca7c0ce21989bef612ac79475e72da33062b4140b13dfe87bbaf183a61be8",
+        "reader_hash": "d2c21198aaff30504f16966ddf61ce628ef7ac8632c62be3195b4e4f72e41806",
+        "inventory_files": 175187,
+        "metadata_hash": "5875c3c3432ddda379f8caf8ed411b77d30701443e5da912442935a296c3ae7a",
+        "overview_headers_exactly_preserved": true,
+        "complete_original_header_metadata_round_trip": true,
+        "unindexed_entries": 175184,
+        "complete_original_navigation_binding": true,
+        "navigation_bytes": 13853,
+        "complete_cached_navigation_matches_original": true,
+        "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+        "original_logical_source_graph_reader_inventory_evidence_preserved": true,
+        "complete_source_data_equal_except_graph_binding": true,
+        "graph_binding_revision_changed": true,
+        "original_graph_revision": "sha256:1fd1657b6166afe1c71570405fe7d0a61c0026104487fbffb8cfe1e7115ba51e",
+        "current_graph_revision": "sha256:0fa2c7e5fb9b007eff456b2d6ee300afd410fec7970db92bce307c55764663a3",
+        "phase": "cached",
+        "conversation_revision_unchanged": true,
+        "candidate_observations_unchanged": true,
+        "hover_and_retained_tab_camera_preserved": true,
+        "node_selection_preserves_camera_chat_and_source_line": true,
+        "selected_declaration": "PIW.AdelClassFin.DictGen.denom",
+        "verification_job": {
+          "state": "idle"
+        },
+        "work_job": {
+          "state": "idle"
+        },
+        "job_body_requests": 0,
+        "preview": {
+          "state": "idle"
+        },
+        "preview_body_requests": 0,
+        "commands": [
+          {
+            "type": "inspect",
+            "path": ".",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "src",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "src/Formalism",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "src/Formalism/PeriodIntegrals",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+            "directory": false
+          }
+        ],
+        "page_errors": [],
+        "running": false,
+        "authorized": false
+      },
+      {
+        "project": "ethlib",
+        "pid": 1201607,
+        "binary_sha256": "b94c4fbaf657a17d30b720d359025866c5d96c02dbe426ae549a9b2ca5d5fb73",
+        "cache_hit": true,
+        "preparation_ms": 2235.4404650000033,
+        "source_publication": "sha256:393be03d1fe427c5d6d0b745831a6d008d058ac638f478bd194798a331a8fd63",
+        "source_hash": "3f0fdd21076273e8620a6b2e0ea17cbf599eeaab84d669750894ac296b742a41",
+        "reader_publication": "sha256:0b79b28ff3aa227731108c7cde50cf54fa06cc447922756668b1197473b0d3ac",
+        "reader_hash": "60e647749624e65341239c16878edafe3083f1a0b0ba7ab0587b82511d80dd36",
+        "inventory_files": 2517,
+        "metadata_hash": "59b98c2e15f2f590463873351344a08a59e4aa3854a7dfb1779e635a680cb32f",
+        "overview_headers_exactly_preserved": true,
+        "complete_original_header_metadata_round_trip": true,
+        "unindexed_entries": 0,
+        "complete_original_navigation_binding": true,
+        "navigation_bytes": 1516,
+        "complete_cached_navigation_matches_original": true,
+        "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+        "original_logical_source_graph_reader_inventory_evidence_preserved": true,
+        "complete_source_data_equal_except_graph_binding": true,
+        "graph_binding_revision_changed": true,
+        "original_graph_revision": "sha256:3c5ddac10e9adf90d7e394542e5cdf712658be30bbc15a7a0c36438914489b78",
+        "current_graph_revision": "sha256:f82cd6a6cd81b840c50d366dba3726841bd6b61a9c3c76db6e2bb5e3fee8d8e2",
+        "phase": "cached",
+        "conversation_revision_unchanged": true,
+        "candidate_observations_unchanged": true,
+        "hover_and_retained_tab_camera_preserved": true,
+        "node_selection_preserves_camera_chat_and_source_line": true,
+        "selected_declaration": "EthLib.Networking.Gossip.GossipsubParameters",
+        "verification_job": {
+          "state": "idle"
+        },
+        "work_job": {
+          "state": "idle"
+        },
+        "job_body_requests": 0,
+        "preview": {
+          "state": "idle"
+        },
+        "preview_body_requests": 0,
+        "commands": [
+          {
+            "type": "inspect",
+            "path": ".",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "EthLib",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "EthLib/Networking",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "EthLib/Networking/Gossip",
+            "directory": true
+          },
+          {
+            "type": "inspect",
+            "path": "EthLib/Networking/Gossip/Parameters.lean",
+            "directory": false
+          }
+        ],
+        "page_errors": [],
+        "running": false,
+        "authorized": false
+      }
+    ],
+    "original_chains": [
+      {
+        "project": "riemann",
+        "cache_root": "/home/gohan/.local/share/meden/projects/960ae937632dfe4d9f70a0c404391fe0064d5bc1c8cc5945ab4b8c324e121a86/compiled-views",
+        "observation_id": "4da13ff863691dae3111c8be9dbfe9e0d2e22cdddf292ea6181ee90a943841ca",
+        "search_id": "2aca57201920d4a85a474487b6f0da2ab4af11b7e99fcc66e34ef5ca8b7e9ff9",
+        "rendering_id": "a1afbe30135b859cd90a4981834f1b0767e9a2e657bc6a63e972734e0b884537",
+        "compiler": {
+          "id": "lean.lake",
+          "role": "compiler",
+          "version": "1",
+          "formats": [
+            "lean-module-v1"
+          ],
+          "implementation_sha256": "4fdd3bed0b70309387b7b0732418bfa659183b2c8c9e47cfd35de59a7d5a3f32",
+          "configuration_sha256": "03262608ff677176d6d2566ac815a439aefcaa04c756a3be606e94f64d98d923",
+          "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+          "output_schema_sha256": "96d1a5232d66174a207c529fbf56bfc49a212eec1bc6f503d2c5c4195ee2e495"
+        },
+        "searcher": {
+          "id": "lean.plausible",
+          "role": "counterexample_search",
+          "version": "1",
+          "formats": [
+            "lean-module-v1"
+          ],
+          "implementation_sha256": "2416bb6a250edded626b0282890f57481524435d01d3e62e5703056a52f62d6a",
+          "configuration_sha256": "0c2150d84bfba0ea5df8458cca8df370fbbcdf63e650ea7d136df43345e37ac1",
+          "input_schema_sha256": "361be339c5015b2b253d625a9d36f067d67224a1e0a451a7a0ff37e70ee86cbc",
+          "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+        },
+        "renderer": {
+          "id": "informath.gf",
+          "role": "meaning_renderer",
+          "version": "1",
+          "formats": [
+            "dedukti-v1"
+          ],
+          "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+          "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+          "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+          "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+        },
+        "resources_sha256": "1f16f251de0a3f2c0ecca8ca5aec1cb2012643aec5b81059cc86317fca7eb3a8",
+        "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+        "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+        "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+        "checksummed_original_objects": true,
+        "complete_graph_revision_chain": true
+      },
+      {
+        "project": "ethlib",
+        "cache_root": "/home/gohan/.local/share/meden/projects/ba8ba17d23649db541faf4f95767b224589869a2317e447dbedb055399b416de/compiled-views",
+        "observation_id": "c991749ca18695b26d05ec21ffa397b0d2ff51acaf7d8cfda8c29a082efa6d28",
+        "search_id": "5e1b81eee894adbdbacc0116d595b1f758fe77ac27ae0e1ee1969ee7c65dba5c",
+        "rendering_id": "180055f89f2c74bff35f7da7a92374e98392c5f57d42eec25da4392d9eddebc8",
+        "compiler": {
+          "id": "lean.frozen",
+          "role": "compiler",
+          "version": "1",
+          "formats": [
+            "lean-module-v1"
+          ],
+          "implementation_sha256": "a13cef553d25c4722dfbafb5490ee7e66a987fef003c9169e37f8e13a34ce6ee",
+          "configuration_sha256": "95a67821a3fc203ff10d19088bea0d957b934a47652bf5a8592383ddd38f116d",
+          "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+          "output_schema_sha256": "96d1a5232d66174a207c529fbf56bfc49a212eec1bc6f503d2c5c4195ee2e495"
+        },
+        "searcher": {
+          "id": "lean.plausible",
+          "role": "counterexample_search",
+          "version": "1",
+          "formats": [
+            "lean-module-v1"
+          ],
+          "implementation_sha256": "2416bb6a250edded626b0282890f57481524435d01d3e62e5703056a52f62d6a",
+          "configuration_sha256": "307d5aa601c9a5dd83791382159e718153bdced86c4ba7450d6cb170debbb789",
+          "input_schema_sha256": "361be339c5015b2b253d625a9d36f067d67224a1e0a451a7a0ff37e70ee86cbc",
+          "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+        },
+        "renderer": {
+          "id": "informath.gf",
+          "role": "meaning_renderer",
+          "version": "1",
+          "formats": [
+            "dedukti-v1"
+          ],
+          "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+          "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+          "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+          "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+        },
+        "resources_sha256": "3fdd5aba60823a4f3c0f3e49a232fd9c44df2576f1ad75850c2502925669f9db",
+        "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+        "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+        "prepared_input_fingerprint": null,
+        "checksummed_original_objects": true,
+        "complete_graph_revision_chain": true
+      }
+    ],
+    "fresh_chains": [
+      {
+        "project": "riemann",
+        "chain": {
+          "cache_root": "/home/gohan/.local/share/meden/projects/960ae937632dfe4d9f70a0c404391fe0064d5bc1c8cc5945ab4b8c324e121a86/compiled-views",
+          "observation_id": "1524a1c7c6e99e5e7455542296b43cd79bd23d86af3fa4c56a28d4d9eac26454",
+          "search_id": "42038f650ea996f28910eea022f677a36f094d92a0d736f9ae0f7147c29c1750",
+          "rendering_id": "c6e5d1c48dfa345890a39c66365b718e7f1cc266f0a577fb87152c2534c386c7",
+          "compiler": {
+            "id": "lean.lake",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "4fdd3bed0b70309387b7b0732418bfa659183b2c8c9e47cfd35de59a7d5a3f32",
+            "configuration_sha256": "dedcdc2265e51afda537b5804644537e24936c1ea2a405a317e0424a10c56638",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "96d1a5232d66174a207c529fbf56bfc49a212eec1bc6f503d2c5c4195ee2e495"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "2416bb6a250edded626b0282890f57481524435d01d3e62e5703056a52f62d6a",
+            "configuration_sha256": "452b896dacf291bea92567d8daf904feafed8dc052388f87c176ee9f68793ca6",
+            "input_schema_sha256": "361be339c5015b2b253d625a9d36f067d67224a1e0a451a7a0ff37e70ee86cbc",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "399c9f828abea517692c2d6a28f49270eb45dda8cd5f241d8ead8729b7340ede",
+          "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+          "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+          "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "checksummed_original_objects": true,
+          "complete_graph_revision_chain": true
+        },
+        "original_chain": {
+          "project": "riemann",
+          "cache_root": "/home/gohan/.local/share/meden/projects/960ae937632dfe4d9f70a0c404391fe0064d5bc1c8cc5945ab4b8c324e121a86/compiled-views",
+          "observation_id": "4da13ff863691dae3111c8be9dbfe9e0d2e22cdddf292ea6181ee90a943841ca",
+          "search_id": "2aca57201920d4a85a474487b6f0da2ab4af11b7e99fcc66e34ef5ca8b7e9ff9",
+          "rendering_id": "a1afbe30135b859cd90a4981834f1b0767e9a2e657bc6a63e972734e0b884537",
+          "compiler": {
+            "id": "lean.lake",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "4fdd3bed0b70309387b7b0732418bfa659183b2c8c9e47cfd35de59a7d5a3f32",
+            "configuration_sha256": "03262608ff677176d6d2566ac815a439aefcaa04c756a3be606e94f64d98d923",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "96d1a5232d66174a207c529fbf56bfc49a212eec1bc6f503d2c5c4195ee2e495"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "2416bb6a250edded626b0282890f57481524435d01d3e62e5703056a52f62d6a",
+            "configuration_sha256": "0c2150d84bfba0ea5df8458cca8df370fbbcdf63e650ea7d136df43345e37ac1",
+            "input_schema_sha256": "361be339c5015b2b253d625a9d36f067d67224a1e0a451a7a0ff37e70ee86cbc",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "1f16f251de0a3f2c0ecca8ca5aec1cb2012643aec5b81059cc86317fca7eb3a8",
+          "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+          "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+          "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "checksummed_original_objects": true,
+          "complete_graph_revision_chain": true
+        },
+        "compiler_observation_changed": true,
+        "complete_raw_graph_equal": true,
+        "original_complete_inputs_equal": true,
+        "configuration_changes": {
+          "compiler": true,
+          "searcher": true,
+          "renderer": false
+        },
+        "unchanged_role_identity_implementation_and_schemas": true,
+        "persisted_chain_equal_after_restart": false
+      },
+      {
+        "project": "ethlib",
+        "chain": {
+          "cache_root": "/home/gohan/.local/share/meden/projects/ba8ba17d23649db541faf4f95767b224589869a2317e447dbedb055399b416de/compiled-views",
+          "observation_id": "b791c9be1d166dc5d86a5bbd72cf3794f84e861bbb1b4779488b01657f5e2f97",
+          "search_id": "225f258194afbba6f5c0875aeb7fb2f92d16c541e608460cfa595111e86bbe19",
+          "rendering_id": "c41d8fb9d1908439ed2813ea7917f06cce066a9d2ed29a2130ee52c846ff8dbb",
+          "compiler": {
+            "id": "lean.frozen",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "a13cef553d25c4722dfbafb5490ee7e66a987fef003c9169e37f8e13a34ce6ee",
+            "configuration_sha256": "384b16b088012d1a7b1159224bb9ed2eb414e4d177fb4625a25103466c571ff0",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "96d1a5232d66174a207c529fbf56bfc49a212eec1bc6f503d2c5c4195ee2e495"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "2416bb6a250edded626b0282890f57481524435d01d3e62e5703056a52f62d6a",
+            "configuration_sha256": "62e457ece3790d5165654a4dda7114bff6906886005f903b00030c929f0e3efa",
+            "input_schema_sha256": "361be339c5015b2b253d625a9d36f067d67224a1e0a451a7a0ff37e70ee86cbc",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "05943343a31c7a1a4dec3885930dcdc67b701656d32c7ac906b1762ac6ac4b20",
+          "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+          "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+          "prepared_input_fingerprint": null,
+          "checksummed_original_objects": true,
+          "complete_graph_revision_chain": true
+        },
+        "original_chain": {
+          "project": "ethlib",
+          "cache_root": "/home/gohan/.local/share/meden/projects/ba8ba17d23649db541faf4f95767b224589869a2317e447dbedb055399b416de/compiled-views",
+          "observation_id": "c991749ca18695b26d05ec21ffa397b0d2ff51acaf7d8cfda8c29a082efa6d28",
+          "search_id": "5e1b81eee894adbdbacc0116d595b1f758fe77ac27ae0e1ee1969ee7c65dba5c",
+          "rendering_id": "180055f89f2c74bff35f7da7a92374e98392c5f57d42eec25da4392d9eddebc8",
+          "compiler": {
+            "id": "lean.frozen",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "a13cef553d25c4722dfbafb5490ee7e66a987fef003c9169e37f8e13a34ce6ee",
+            "configuration_sha256": "95a67821a3fc203ff10d19088bea0d957b934a47652bf5a8592383ddd38f116d",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "96d1a5232d66174a207c529fbf56bfc49a212eec1bc6f503d2c5c4195ee2e495"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "2416bb6a250edded626b0282890f57481524435d01d3e62e5703056a52f62d6a",
+            "configuration_sha256": "307d5aa601c9a5dd83791382159e718153bdced86c4ba7450d6cb170debbb789",
+            "input_schema_sha256": "361be339c5015b2b253d625a9d36f067d67224a1e0a451a7a0ff37e70ee86cbc",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "3fdd5aba60823a4f3c0f3e49a232fd9c44df2576f1ad75850c2502925669f9db",
+          "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+          "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+          "prepared_input_fingerprint": null,
+          "checksummed_original_objects": true,
+          "complete_graph_revision_chain": true
+        },
+        "compiler_observation_changed": true,
+        "complete_raw_graph_equal": true,
+        "original_complete_inputs_equal": true,
+        "configuration_changes": {
+          "compiler": true,
+          "searcher": true,
+          "renderer": false
+        },
+        "unchanged_role_identity_implementation_and_schemas": true,
+        "persisted_chain_equal_after_restart": false
+      }
+    ],
+    "cached_chains": [
+      {
+        "project": "riemann",
+        "chain": {
+          "cache_root": "/home/gohan/.local/share/meden/projects/960ae937632dfe4d9f70a0c404391fe0064d5bc1c8cc5945ab4b8c324e121a86/compiled-views",
+          "observation_id": "1524a1c7c6e99e5e7455542296b43cd79bd23d86af3fa4c56a28d4d9eac26454",
+          "search_id": "42038f650ea996f28910eea022f677a36f094d92a0d736f9ae0f7147c29c1750",
+          "rendering_id": "c6e5d1c48dfa345890a39c66365b718e7f1cc266f0a577fb87152c2534c386c7",
+          "compiler": {
+            "id": "lean.lake",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "4fdd3bed0b70309387b7b0732418bfa659183b2c8c9e47cfd35de59a7d5a3f32",
+            "configuration_sha256": "dedcdc2265e51afda537b5804644537e24936c1ea2a405a317e0424a10c56638",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "96d1a5232d66174a207c529fbf56bfc49a212eec1bc6f503d2c5c4195ee2e495"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "2416bb6a250edded626b0282890f57481524435d01d3e62e5703056a52f62d6a",
+            "configuration_sha256": "452b896dacf291bea92567d8daf904feafed8dc052388f87c176ee9f68793ca6",
+            "input_schema_sha256": "361be339c5015b2b253d625a9d36f067d67224a1e0a451a7a0ff37e70ee86cbc",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "399c9f828abea517692c2d6a28f49270eb45dda8cd5f241d8ead8729b7340ede",
+          "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+          "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+          "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "checksummed_original_objects": true,
+          "complete_graph_revision_chain": true
+        },
+        "original_chain": {
+          "project": "riemann",
+          "cache_root": "/home/gohan/.local/share/meden/projects/960ae937632dfe4d9f70a0c404391fe0064d5bc1c8cc5945ab4b8c324e121a86/compiled-views",
+          "observation_id": "4da13ff863691dae3111c8be9dbfe9e0d2e22cdddf292ea6181ee90a943841ca",
+          "search_id": "2aca57201920d4a85a474487b6f0da2ab4af11b7e99fcc66e34ef5ca8b7e9ff9",
+          "rendering_id": "a1afbe30135b859cd90a4981834f1b0767e9a2e657bc6a63e972734e0b884537",
+          "compiler": {
+            "id": "lean.lake",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "4fdd3bed0b70309387b7b0732418bfa659183b2c8c9e47cfd35de59a7d5a3f32",
+            "configuration_sha256": "03262608ff677176d6d2566ac815a439aefcaa04c756a3be606e94f64d98d923",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "96d1a5232d66174a207c529fbf56bfc49a212eec1bc6f503d2c5c4195ee2e495"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "2416bb6a250edded626b0282890f57481524435d01d3e62e5703056a52f62d6a",
+            "configuration_sha256": "0c2150d84bfba0ea5df8458cca8df370fbbcdf63e650ea7d136df43345e37ac1",
+            "input_schema_sha256": "361be339c5015b2b253d625a9d36f067d67224a1e0a451a7a0ff37e70ee86cbc",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "1f16f251de0a3f2c0ecca8ca5aec1cb2012643aec5b81059cc86317fca7eb3a8",
+          "raw_graph_sha256": "8a409e31c8fd415594119d51bd09669c2c188930f175965244c7c20c0a3f0eff",
+          "original_source_revision": "sha256:6a33018bbbc95d814ba8af93dc88fc6517ac74d5311b60d937a0523c1c0bbfaf",
+          "prepared_input_fingerprint": "4831c0551d1911b91c8f8181c6569f34c97e3b069356b7a8f6c46a81a6ac60d6",
+          "checksummed_original_objects": true,
+          "complete_graph_revision_chain": true
+        },
+        "compiler_observation_changed": true,
+        "complete_raw_graph_equal": true,
+        "original_complete_inputs_equal": true,
+        "configuration_changes": {
+          "compiler": true,
+          "searcher": true,
+          "renderer": false
+        },
+        "unchanged_role_identity_implementation_and_schemas": true,
+        "persisted_chain_equal_after_restart": true
+      },
+      {
+        "project": "ethlib",
+        "chain": {
+          "cache_root": "/home/gohan/.local/share/meden/projects/ba8ba17d23649db541faf4f95767b224589869a2317e447dbedb055399b416de/compiled-views",
+          "observation_id": "b791c9be1d166dc5d86a5bbd72cf3794f84e861bbb1b4779488b01657f5e2f97",
+          "search_id": "225f258194afbba6f5c0875aeb7fb2f92d16c541e608460cfa595111e86bbe19",
+          "rendering_id": "c41d8fb9d1908439ed2813ea7917f06cce066a9d2ed29a2130ee52c846ff8dbb",
+          "compiler": {
+            "id": "lean.frozen",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "a13cef553d25c4722dfbafb5490ee7e66a987fef003c9169e37f8e13a34ce6ee",
+            "configuration_sha256": "384b16b088012d1a7b1159224bb9ed2eb414e4d177fb4625a25103466c571ff0",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "96d1a5232d66174a207c529fbf56bfc49a212eec1bc6f503d2c5c4195ee2e495"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "2416bb6a250edded626b0282890f57481524435d01d3e62e5703056a52f62d6a",
+            "configuration_sha256": "62e457ece3790d5165654a4dda7114bff6906886005f903b00030c929f0e3efa",
+            "input_schema_sha256": "361be339c5015b2b253d625a9d36f067d67224a1e0a451a7a0ff37e70ee86cbc",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "05943343a31c7a1a4dec3885930dcdc67b701656d32c7ac906b1762ac6ac4b20",
+          "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+          "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+          "prepared_input_fingerprint": null,
+          "checksummed_original_objects": true,
+          "complete_graph_revision_chain": true
+        },
+        "original_chain": {
+          "project": "ethlib",
+          "cache_root": "/home/gohan/.local/share/meden/projects/ba8ba17d23649db541faf4f95767b224589869a2317e447dbedb055399b416de/compiled-views",
+          "observation_id": "c991749ca18695b26d05ec21ffa397b0d2ff51acaf7d8cfda8c29a082efa6d28",
+          "search_id": "5e1b81eee894adbdbacc0116d595b1f758fe77ac27ae0e1ee1969ee7c65dba5c",
+          "rendering_id": "180055f89f2c74bff35f7da7a92374e98392c5f57d42eec25da4392d9eddebc8",
+          "compiler": {
+            "id": "lean.frozen",
+            "role": "compiler",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "a13cef553d25c4722dfbafb5490ee7e66a987fef003c9169e37f8e13a34ce6ee",
+            "configuration_sha256": "95a67821a3fc203ff10d19088bea0d957b934a47652bf5a8592383ddd38f116d",
+            "input_schema_sha256": "1b3188ba225d9b33eadeacd3c1e5f6eea3e3c97b243e883b9d2c56188b9361af",
+            "output_schema_sha256": "96d1a5232d66174a207c529fbf56bfc49a212eec1bc6f503d2c5c4195ee2e495"
+          },
+          "searcher": {
+            "id": "lean.plausible",
+            "role": "counterexample_search",
+            "version": "1",
+            "formats": [
+              "lean-module-v1"
+            ],
+            "implementation_sha256": "2416bb6a250edded626b0282890f57481524435d01d3e62e5703056a52f62d6a",
+            "configuration_sha256": "307d5aa601c9a5dd83791382159e718153bdced86c4ba7450d6cb170debbb789",
+            "input_schema_sha256": "361be339c5015b2b253d625a9d36f067d67224a1e0a451a7a0ff37e70ee86cbc",
+            "output_schema_sha256": "a29d7c1bed53234c81fe78fc3b65c64b38cea0f211b983f68d3795e076051968"
+          },
+          "renderer": {
+            "id": "informath.gf",
+            "role": "meaning_renderer",
+            "version": "1",
+            "formats": [
+              "dedukti-v1"
+            ],
+            "implementation_sha256": "a65e209c3ed65211214af1a55c88a6033b8ed5cae47d23c623345e78d4b40c71",
+            "configuration_sha256": "8ebd88cfe4404a91237d8b99ff9d7e8e421c2bee8dd57a1d4707a0f6b0941305",
+            "input_schema_sha256": "9a361dbb5568801cd5d446e00aa275ec21bff220ab410db5e115766faa0a59d0",
+            "output_schema_sha256": "517d0d116d8abd1b8b7fb376e51c1ca77885a7b14cccb174c4850fa3a5a47bb0"
+          },
+          "resources_sha256": "3fdd5aba60823a4f3c0f3e49a232fd9c44df2576f1ad75850c2502925669f9db",
+          "raw_graph_sha256": "e255896ec375e52a240fd681304f973f06e91929496f8f5764022a4733353faf",
+          "original_source_revision": "sha256:8aba354e91199c07ee9698b93ebde8a33ca7b1120a530b4463299698c1fe593e",
+          "prepared_input_fingerprint": null,
+          "checksummed_original_objects": true,
+          "complete_graph_revision_chain": true
+        },
+        "compiler_observation_changed": true,
+        "complete_raw_graph_equal": true,
+        "original_complete_inputs_equal": true,
+        "configuration_changes": {
+          "compiler": true,
+          "searcher": true,
+          "renderer": false
+        },
+        "unchanged_role_identity_implementation_and_schemas": true,
+        "persisted_chain_equal_after_restart": true
+      }
+    ],
+    "native_cached_observations": [
+      {
+        "project": "riemann",
+        "trace": 157,
+        "capacity": 4096,
+        "evicted": 0,
+        "records": 509,
+        "required_stage_cache_hit": true,
+        "actual_extraction_search_renderer_worker_calls": {
+          "atlas.project.extract": 0,
+          "atlas.execute": 0,
+          "atlas.compile": 0,
+          "atlas.search": 0,
+          "analysis.render": 0
+        },
+        "top_nested_spans": [
+          {
+            "context": {
+              "trace": 157,
+              "span": 160
+            },
+            "parent": 158,
+            "name": "gui.job",
+            "start_us": 96329921,
+            "wall_us": 14351134,
+            "thread_cpu_us": 2181262
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 169
+            },
+            "parent": 160,
+            "name": "analysis.extract",
+            "start_us": 96371687,
+            "wall_us": 13279555,
+            "thread_cpu_us": 1195414
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 309
+            },
+            "parent": 169,
+            "name": "atlas.project.prepare",
+            "start_us": 98733577,
+            "wall_us": 10293408,
+            "thread_cpu_us": 79631
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 318
+            },
+            "parent": 309,
+            "name": "process.run",
+            "start_us": 99144132,
+            "wall_us": 9882725,
+            "thread_cpu_us": 44434
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 182
+            },
+            "parent": 169,
+            "name": "analysis.select_roots",
+            "start_us": 96495891,
+            "wall_us": 1833181,
+            "thread_cpu_us": 675286
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 186
+            },
+            "parent": 182,
+            "name": "analysis.discover_layout",
+            "start_us": 96537680,
+            "wall_us": 1749183,
+            "thread_cpu_us": 672693
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 467
+            },
+            "parent": 160,
+            "name": "view.inventory.materialize",
+            "start_us": 109890471,
+            "wall_us": 757891,
+            "thread_cpu_us": 755567
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 310
+            },
+            "parent": 309,
+            "name": "sandbox.prepare",
+            "start_us": 98733604,
+            "wall_us": 410233,
+            "thread_cpu_us": 34747
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 419
+            },
+            "parent": 169,
+            "name": "analysis.cache.validate",
+            "start_us": 109052183,
+            "wall_us": 397432,
+            "thread_cpu_us": 43185
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 290
+            },
+            "parent": 169,
+            "name": "analysis.metadata.validate",
+            "start_us": 98329077,
+            "wall_us": 366036,
+            "thread_cpu_us": 9584
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 422
+            },
+            "parent": 419,
+            "name": "analysis.metadata.validate",
+            "start_us": 109086308,
+            "wall_us": 311363,
+            "thread_cpu_us": 7851
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 311
+            },
+            "parent": 310,
+            "name": "process.run",
+            "start_us": 98733827,
+            "wall_us": 252617,
+            "thread_cpu_us": 955
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 257
+            },
+            "parent": 186,
+            "name": "atlas.lake_configuration.resolve",
+            "start_us": 97841209,
+            "wall_us": 62743,
+            "thread_cpu_us": 61604
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 451
+            },
+            "parent": 169,
+            "name": "analysis.search",
+            "start_us": 109569320,
+            "wall_us": 61855,
+            "thread_cpu_us": 61661
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 216
+            },
+            "parent": 186,
+            "name": "atlas.lake_configuration.resolve",
+            "start_us": 97130947,
+            "wall_us": 60058,
+            "thread_cpu_us": 58961
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 266
+            },
+            "parent": 186,
+            "name": "atlas.lake_configuration.resolve",
+            "start_us": 97996756,
+            "wall_us": 59257,
+            "thread_cpu_us": 58776
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 227
+            },
+            "parent": 186,
+            "name": "atlas.lake_configuration.resolve",
+            "start_us": 97283844,
+            "wall_us": 58223,
+            "thread_cpu_us": 57804
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 198
+            },
+            "parent": 186,
+            "name": "atlas.lake_configuration.resolve",
+            "start_us": 96744090,
+            "wall_us": 57220,
+            "thread_cpu_us": 56711
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 250
+            },
+            "parent": 186,
+            "name": "atlas.lake_configuration.resolve",
+            "start_us": 97694174,
+            "wall_us": 53489,
+            "thread_cpu_us": 52404
+          },
+          {
+            "context": {
+              "trace": 157,
+              "span": 272
+            },
+            "parent": 186,
+            "name": "atlas.lake_configuration.resolve",
+            "start_us": 98097470,
+            "wall_us": 53219,
+            "thread_cpu_us": 52776
+          }
+        ],
+        "original_preparation_log_timings": [
+          "Build/setup and input resolution completed in 7.179s.",
+          "Validated 43477 files / 5992114707 bytes in 2.607s."
+        ],
+        "scope": "One unpaired restarted-host cache-hit functional observation; nested timings are not exclusive CPU/paint costs. Dependency preparation may still invoke Lake/Lean; the zero counts refer only to the named graph/search/render adapter spans."
+      },
+      {
+        "project": "ethlib",
+        "trace": 712,
+        "capacity": 4096,
+        "evicted": 0,
+        "records": 1541,
+        "required_stage_cache_hit": true,
+        "actual_extraction_search_renderer_worker_calls": {
+          "atlas.project.extract": 0,
+          "atlas.execute": 0,
+          "atlas.compile": 0,
+          "atlas.search": 0,
+          "analysis.render": 0
+        },
+        "top_nested_spans": [
+          {
+            "context": {
+              "trace": 712,
+              "span": 717
+            },
+            "parent": 713,
+            "name": "gui.job",
+            "start_us": 114838173,
+            "wall_us": 1651000,
+            "thread_cpu_us": 694997
+          },
+          {
+            "context": {
+              "trace": 712,
+              "span": 724
+            },
+            "parent": 717,
+            "name": "analysis.extract",
+            "start_us": 114890131,
+            "wall_us": 874056,
+            "thread_cpu_us": 447426
+          },
+          {
+            "context": {
+              "trace": 712,
+              "span": 796
+            },
+            "parent": 717,
+            "name": "analysis.cache.validate",
+            "start_us": 115877266,
+            "wall_us": 488557,
+            "thread_cpu_us": 53215
+          },
+          {
+            "context": {
+              "trace": 712,
+              "span": 740
+            },
+            "parent": 724,
+            "name": "analysis.cache.validate",
+            "start_us": 115058413,
+            "wall_us": 474862,
+            "thread_cpu_us": 50094
+          },
+          {
+            "context": {
+              "trace": 712,
+              "span": 799
+            },
+            "parent": 796,
+            "name": "analysis.metadata.validate",
+            "start_us": 115914169,
+            "wall_us": 399915,
+            "thread_cpu_us": 15328
+          },
+          {
+            "context": {
+              "trace": 712,
+              "span": 744
+            },
+            "parent": 740,
+            "name": "analysis.metadata.validate",
+            "start_us": 115096069,
+            "wall_us": 385801,
+            "thread_cpu_us": 11671
+          },
+          {
+            "context": {
+              "trace": 712,
+              "span": 818
+            },
+            "parent": 799,
+            "name": "analysis.metadata.file_batch",
+            "start_us": 116245244,
+            "wall_us": 67704,
+            "thread_cpu_us": 7054
+          },
+          {
+            "context": {
+              "trace": 712,
+              "span": 778
+            },
+            "parent": 724,
+            "name": "analysis.search",
+            "start_us": 115677777,
+            "wall_us": 65325,
+            "thread_cpu_us": 65083
+          },
+          {
+            "context": {
+              "trace": 712,
+              "span": 819
+            },
+            "parent": 818,
+            "name": "process.run",
+            "start_us": 116245526,
+            "wall_us": 61117,
+            "thread_cpu_us": 546
+          },
+          {
+            "context": {
+              "trace": 712,
+              "span": 718
+            },
+            "parent": 717,
+            "name": "gui.reader_prepare",
+            "start_us": 114838186,
+            "wall_us": 51919,
+            "thread_cpu_us": 1168
+          },
+          {
+            "context": {
+              "trace": 712,
+              "span": 820
+            },
+            "parent": 796,
+            "name": "analysis.capture_sources",
+            "start_us": 116314152,
+            "wall_us": 51653,
+            "thread_cpu_us": 1036
+          },
+          {
+            "context": {
+              "trace": 712,
+              "span": 807
+            },
+            "parent": 799,
+            "name": "analysis.metadata.directory_batch",
+            "start_us": 116058739,
+            "wall_us": 51619,
+            "thread_cpu_us": 988
+          },
+          {
+            "context": {
+              "trace": 712,
+              "span": 753
+            },
+            "parent": 744,
+            "name": "analysis.metadata.directory_batch",
+            "start_us": 115230701,
+            "wall_us": 51598,
+            "thread_cpu_us": 1061
+          },
+          {
+            "context": {
+              "trace": 712,
+              "span": 755
+            },
+            "parent": 744,
+            "name": "analysis.metadata.directory_batch",
+            "start_us": 115282395,
+            "wall_us": 51591,
+            "thread_cpu_us": 1098
+          },
+          {
+            "context": {
+              "trace": 712,
+              "span": 758
+            },
+            "parent": 744,
+            "name": "analysis.metadata.directory_batch",
+            "start_us": 115334087,
+            "wall_us": 51549,
+            "thread_cpu_us": 1085
+          },
+          {
+            "context": {
+              "trace": 712,
+              "span": 749
+            },
+            "parent": 744,
+            "name": "analysis.metadata.directory_batch",
+            "start_us": 115179052,
+            "wall_us": 51500,
+            "thread_cpu_us": 887
+          },
+          {
+            "context": {
+              "trace": 712,
+              "span": 805
+            },
+            "parent": 799,
+            "name": "analysis.metadata.directory_batch",
+            "start_us": 116007216,
+            "wall_us": 51386,
+            "thread_cpu_us": 790
+          },
+          {
+            "context": {
+              "trace": 712,
+              "span": 766
+            },
+            "parent": 740,
+            "name": "analysis.capture_sources",
+            "start_us": 115481912,
+            "wall_us": 51341,
+            "thread_cpu_us": 847
+          },
+          {
+            "context": {
+              "trace": 712,
+              "span": 802
+            },
+            "parent": 799,
+            "name": "analysis.metadata.directory_batch",
+            "start_us": 115955858,
+            "wall_us": 51245,
+            "thread_cpu_us": 666
+          },
+          {
+            "context": {
+              "trace": 712,
+              "span": 760
+            },
+            "parent": 744,
+            "name": "analysis.metadata.directory_batch",
+            "start_us": 115385759,
+            "wall_us": 51221,
+            "thread_cpu_us": 745
+          }
+        ],
+        "original_preparation_log_timings": [],
+        "scope": "One unpaired restarted-host cache-hit functional observation; nested timings are not exclusive CPU/paint costs. Dependency preparation may still invoke Lake/Lean; the zero counts refer only to the named graph/search/render adapter spans."
+      }
+    ],
+    "public_connections": [
+      {
+        "project": "riemann",
+        "prior_counter": 0,
+        "current_counter": null,
+        "complete_generated_state_validation": true,
+        "public_choices_preserved": true,
+        "selected_binding_preserved": true,
+        "choices": 3,
+        "choices_sha256": "3c22392a194ffb7d071e11dc260301f76666223753be8d9da40dc00cf720afaa",
+        "running": false,
+        "authorized": false
+      },
+      {
+        "project": "ethlib",
+        "prior_counter": 0,
+        "current_counter": null,
+        "complete_generated_state_validation": true,
+        "public_choices_preserved": true,
+        "selected_binding_preserved": true,
+        "choices": 3,
+        "choices_sha256": "3c22392a194ffb7d071e11dc260301f76666223753be8d9da40dc00cf720afaa",
+        "running": false,
+        "authorized": false
+      }
+    ],
+    "screenshots": [
+      {
+        "project": "riemann",
+        "path": "target/native-profile/canonical-paths-20261125/riemann-cached-deployed.png",
+        "sha256": "6751404742029bdca1ea1515c747b9003aefdd2f059e1bb5787e979f9945b8c8",
+        "visually_inspected": true
+      },
+      {
+        "project": "ethlib",
+        "path": "target/native-profile/canonical-paths-20261125/ethlib-cached-deployed.png",
+        "sha256": "07c347cf48fd82dab0a4c8c1fe5c96c95644ead20066f9e8b1ce23afc071c846",
+        "visually_inspected": false
+      }
+    ]
+  },
+  "deployment": {
+    "binary_sha256": "b94c4fbaf657a17d30b720d359025866c5d96c02dbe426ae549a9b2ca5d5fb73",
+    "assets_sha256": "bfb7e4aeae6c723d735cb27931ed4ac778a6ad0d786d609a44d714864bb3a05f",
+    "assets": 88,
+    "original_live_processes_replaced_only_when_idle_and_unapproved": true,
+    "all_88_http_assets_verified_per_project": true,
+    "listening_observations": [
+      {
+        "project": "riemann",
+        "pid": 1187995,
+        "initial_running": true,
+        "initial_operation": "workspace",
+        "initial_overview": "loading",
+        "authorized": false
+      },
+      {
+        "project": "ethlib",
+        "pid": 1188212,
+        "initial_running": true,
+        "initial_operation": "workspace",
+        "initial_overview": "loading",
+        "authorized": false
+      }
+    ],
+    "processes": [
+      {
+        "project": "riemann",
+        "pid": 1201391,
+        "port": 4323,
+        "running": false,
+        "authorized": false,
+        "binary_sha256": "b94c4fbaf657a17d30b720d359025866c5d96c02dbe426ae549a9b2ca5d5fb73"
+      },
+      {
+        "project": "ethlib",
+        "pid": 1201607,
+        "port": 4322,
+        "running": false,
+        "authorized": false,
+        "binary_sha256": "b94c4fbaf657a17d30b720d359025866c5d96c02dbe426ae549a9b2ca5d5fb73"
+      }
+    ]
+  },
+  "limits": [
+    "The eight-run interleaved benchmark covers actual installed offline Lake preparation and complete compiled-input bytes. It is not a browser, physical-paint, cold-install, inference or evidence-admission benchmark.",
+    "First semantic preparation and restarted-host cached opening are single unpaired functional measurements. Do not interpret their difference or a preceding deployment sample as a controlled speedup.",
+    "Raw complete graphs, source/readers/inventory/history/evidence and public choices are preserved. New graph/publication and compiler/search object identities reflect actual resource changes.",
+    "The short O_PATH metadata handle is closed before the original later content read. Filesystem concurrency, namespace/name attribution and actual I/O remain adapters, not new Lean or pinned-snapshot proofs.",
+    "Current cache-hit traces have no graph-extraction/search/render adapter calls, but Lake dependency preparation can still run compilation as needed. Nested spans are not additive and host-thread CPU excludes children.",
+    "Broad shared resource fingerprints also invalidate the unchanged frozen/search paths when this prepared-input helper changes. Transitive resource partitioning, prepared-snapshot reuse, remaining session/snapshot typing and the complete retirement audit remain open.",
+    "Public journeys use actual installed Lean/Lake/Z3 and scripted inference. They do not establish paid-model quality, cold verifier installation, 100–600B local operation, whole-renderer authenticity or complete R1."
+  ]
+}
