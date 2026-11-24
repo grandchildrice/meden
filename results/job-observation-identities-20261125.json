@@ -1,0 +1,1369 @@
+{
+  "date_local": "2026-11-25",
+  "timezone": "Asia/Tokyo",
+  "validated_at_utc": "2026-11-24T20:59:43.622Z",
+  "source_base_revision": "16972ebcb4c5cb5ab2b5447221e3be0e7267dad2",
+  "scope": "Application observation identities only. No kernel/controller, compiler/cache implementation, browser, protocol representation or inference change.",
+  "candidate": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/eeebc998e183399727cd0175740321b3d76d45d61e280c8ef9633b9cb256fd2c/meden",
+    "sha256": "eeebc998e183399727cd0175740321b3d76d45d61e280c8ef9633b9cb256fd2c",
+    "compiler_sources_unchanged": 13
+  },
+  "validated_rust_sources": [
+    {
+      "path": "crates/meden-app/src/view.rs",
+      "sha256": "ecf7cebb07f5ef5a087fe31e1920cb8668ce1f52b7375878834a46cc541e261c"
+    },
+    {
+      "path": "crates/meden-app/src/view/job_id.rs",
+      "sha256": "8a8c71064377ffeff35831a76cf3caa867217a8c1cffae127b98237847705e01"
+    },
+    {
+      "path": "crates/meden-app/src/view/jobs.rs",
+      "sha256": "57e97e387d421c75330d9dbfc2414f2ae4a6e3f7df2e06b9642efcd0061950d7"
+    },
+    {
+      "path": "crates/meden-app/src/view/verification_jobs.rs",
+      "sha256": "bf3735fd9f96065120db52f5d07f39d3e3bdc2b7b82b1b3749e9794e9afa297d"
+    },
+    {
+      "path": "crates/meden-app/src/view/verification_jobs/tests.rs",
+      "sha256": "fbe5d43cbc6e9fdfa78d7dc7d8ac52b1354dc4f4b189ec1570e28c65eb100259"
+    },
+    {
+      "path": "crates/meden-app/src/view/verification_jobs/recorded.rs",
+      "sha256": "2cec7cfe588227a3871ef0b6ca80fb64d61c7315f451de332d4349981f7b3be4"
+    },
+    {
+      "path": "crates/meden-app/src/view/verification_jobs/recorded/tests.rs",
+      "sha256": "1698c153c74118e3bf268030e15f4152993cd886e157f90057144d32fd8e69f1"
+    }
+  ],
+  "compiler_sources_unchanged": [
+    {
+      "path": "crates/meden-app/src/adapters/lake.rs",
+      "sha256": "bfb03188d670305be66d1152c47982a6bcea528b283d1e16de67ca9b8eebd8d8",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean.rs",
+      "sha256": "e64f92a04a26780fb32a9db274e1430fb142bcaad6cca8af12dab4cac65761de",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/collect.rs",
+      "sha256": "755c5495ad2e80171a136ca9be194867741fc2d8db5376644a46fcb3766f194b",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/layout.rs",
+      "sha256": "a6d7069ced1c8c1fcccf9349b293efc335e0a916df6ca864b4c8f30e35f1c94f",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/observe.rs",
+      "sha256": "047ed863ac5571096a23ccb7196e713707a6bcae2db0b1d7b80c4674927bb7e5",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/sources.rs",
+      "sha256": "88c5be999f8ba6a705dbcff8238f0648f3825f1e0fe61de3605a04075837c03a",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/compiler.rs",
+      "sha256": "c2efc23d024921aa5bb5fcfa120f1e672438f09d25d7f4a309de19469483dbc4",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/adapters.rs",
+      "sha256": "ab5b5f082cb99f9321bab7f49e322a1b97177340964b6ea7c9acd3c28e3cd713",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/mod.rs",
+      "sha256": "c0f2f0d9612e0181b01aa45f06f23f4e8c04361b5381d39d1c9d40e9672b0a74",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/project.rs",
+      "sha256": "13a22dcf4deb352b9076ba8f287cd440b94fae4bb87cec33576b121bbca4288c",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/lake.rs",
+      "sha256": "e732135a0bd5f3bbc87b0be02b077fa3b307c6b7d0ce6ee964f85aa2c6eb7760",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/graph.rs",
+      "sha256": "1efb44197f9762f7db65995eec0003c704b559efc3829c1455ed73300e288c40",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/frozen.rs",
+      "sha256": "37609bb326f5ab5d061be31c8ddac907949bb435b374750dc8d1a108f49e5b10",
+      "unchanged": true
+    }
+  ],
+  "wire": {
+    "generated_schemas_and_browser_codecs_byte_identical": true,
+    "preparation_golden": "sha256:72c84e1c46bbdf1a7f364df0025d5fde28e126fea29918e424e9ad79d3d2659a",
+    "proposal_golden": "sha256:9e83a2b58ce9bc8c82e55be7ae046899141155b9b59f770b7fbb839627552301",
+    "recorded_golden": "sha256:df2a9c2685247eda8d68379804fd03e7ea659fe48a7d27deb988de6efb88f01d",
+    "golden_reference": "Independently computed with Node crypto from original domain separators, exact UTF-8/compact JSON and little-endian sequence 1."
+  },
+  "checks": {
+    "application_unit": {
+      "passed": 134,
+      "failed": 0,
+      "log": "/tmp/meden-job-identities-app-tests.log"
+    },
+    "rust_examples": {
+      "passed": 16,
+      "failed": 0,
+      "new_matching": 1,
+      "new_compile_rejections": 3,
+      "log": "/tmp/meden-job-identities-doc-tests.log"
+    },
+    "schema": {
+      "passed": true,
+      "log": "/tmp/meden-job-identities-schema.log"
+    },
+    "format": {
+      "passed": true,
+      "command": "npm run format:check"
+    },
+    "public_gates": [
+      {
+        "phase": "architecture",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "rust-format",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "tui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "gui-all",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "publication": [
+      {
+        "phase": "adopt",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "fidelity",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "bindings",
+        "code": 0,
+        "signal": null
+      }
+    ]
+  },
+  "public_tui": {
+    "binary": {
+      "path": "/home/gohan/workspace/meden/target/validation-bin/eeebc998e183399727cd0175740321b3d76d45d61e280c8ef9633b9cb256fd2c/meden",
+      "sha256": "eeebc998e183399727cd0175740321b3d76d45d61e280c8ef9633b9cb256fd2c"
+    },
+    "selected": 35,
+    "passed": 35,
+    "success": true,
+    "inference": "scripted fixtures; no live-model validation",
+    "report": "/tmp/meden-ux-job-identities-20261125/index.html",
+    "decoded_screens": [
+      {
+        "label": "lake",
+        "journey": "test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa",
+        "frames": 767,
+        "seconds": 70.96,
+        "columns": 130,
+        "rows": 36,
+        "screen_sha256": "e883f74f3359f4426f496352c8cb13ebd6cab6c1180f4db5b5cfb7b530935b30",
+        "matched": [
+          "               · Stopped: Lake source inventory changed at src/lib/Store; reread the graph"
+        ]
+      },
+      {
+        "label": "cancel",
+        "journey": "test_portable_check_is_cancellable_without_a_processor_grant-f6843d93dd",
+        "frames": 148,
+        "seconds": 13.677,
+        "columns": 130,
+        "rows": 36,
+        "screen_sha256": "1224e5c730eb39d5e64261e13f0c7c006392245dd00b09f4e334644fc0e85ca3",
+        "matched": [
+          "               · Portable work stopped: Workspace record: Tool execution cancelled",
+          "               · Portable work stopped: offline Lean check failed / interrupted for gossip. Inspect the retained"
+        ]
+      },
+      {
+        "label": "finite",
+        "journey": "test_finite_contract_real_refutation_repair_staleness_and_restart-0a1f467300",
+        "frames": 61,
+        "seconds": 2.421,
+        "columns": 130,
+        "rows": 36,
+        "screen_sha256": "9b31cafc5109d9b4d19aad63e0941328b6c0cdd9ee44e54b74a2c8ef5e142837",
+        "matched": [
+          "                   Finite property failed; independently evaluated counterexample:"
+        ]
+      },
+      {
+        "label": "restart",
+        "journey": "test_portable_work_clones_history_checks_locally_and_requires_fresh_re-ffb3cafaf2",
+        "frames": 165,
+        "seconds": 6.523,
+        "columns": 130,
+        "rows": 36,
+        "screen_sha256": "b36323aa029290bd0cabcf003184b9f0ed9819b23d49ef71e82ee47a88546523",
+        "matched": [
+          "               Choose a model connection"
+        ]
+      }
+    ]
+  },
+  "public_gui": {
+    "path": "target/gui-job-identities-all-report/index.html",
+    "stats": {
+      "total": 74,
+      "expected": 74,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "duration_ms": 503941.051,
+    "tests": [
+      {
+        "title": "home, three sidebar tabs, source navigation and semantic differences pass automated WCAG AA",
+        "outcome": "expected"
+      },
+      {
+        "title": "registered finite verifier reviews, refutes, repairs and reopens with bounded evidence",
+        "outcome": "expected"
+      },
+      {
+        "title": "proposal observations retry without another check and cannot replace a newer review",
+        "outcome": "expected"
+      },
+      {
+        "title": "verification progress retries as data, cancels issued inputs and rejects delayed observations",
+        "outcome": "expected"
+      },
+      {
+        "title": "chat stays flat, folds long messages and remembers draggable sidebar widths",
+        "outcome": "expected"
+      },
+      {
+        "title": "large history is revisioned outside status polling, retries visibly and rejects late snapshots across restart",
+        "outcome": "expected"
+      },
+      {
+        "title": "typed folder listings retain every entry beyond 500, literal names and local retry without poll payloads",
+        "outcome": "expected"
+      },
+      {
+        "title": "inventory publications retry without recapture and reject older bodies across refresh and restart",
+        "outcome": "expected"
+      },
+      {
+        "title": "prepared source publications retry locally, transfer once and refuse delayed older views across restart",
+        "outcome": "expected"
+      },
+      {
+        "title": "open file tabs restore source, graph camera and explanations without another inspection",
+        "outcome": "expected"
+      },
+      {
+        "title": "bounded file availability preserves literal pages, unreadable inventory and retry across restart without analysis",
+        "outcome": "expected"
+      },
+      {
+        "title": "reader publications recover locally and delayed old bodies cannot replace a refreshed file",
+        "outcome": "expected"
+      },
+      {
+        "title": "long Unicode compiler failures stay file-local and status remains readable across restart",
+        "outcome": "expected"
+      },
+      {
+        "title": "build logs stream before completion, retain timeout and cancellation output, and retry the real compiler",
+        "outcome": "expected"
+      },
+      {
+        "title": "prepared Lake dependencies bypass source-copy limits, refresh exact artifacts and survive restart",
+        "outcome": "expected"
+      },
+      {
+        "title": "versioned map geometry survives host restart, rejects corrupt storage and stays usable without storage",
+        "outcome": "expected"
+      },
+      {
+        "title": "small-map headings are available before details, retry locally and refuse a late former inventory",
+        "outcome": "expected"
+      },
+      {
+        "title": "project map retains screen-space geometry and avoids rewriting retained areas during zoom",
+        "outcome": "expected"
+      },
+      {
+        "title": "large project map loads declaration nodes on zoom without opening files or changing chat",
+        "outcome": "expected"
+      },
+      {
+        "title": "search settings reuse compiled modules and keep separately bound results across restart",
+        "outcome": "expected"
+      },
+      {
+        "title": "renderer updates reuse compiled observations, preserve counterexamples and reject changed sources",
+        "outcome": "expected"
+      },
+      {
+        "title": "main targets stay visible at a distance and compiled English/counterexamples annotate source without inference",
+        "outcome": "expected"
+      },
+      {
+        "title": "warm browser assets survive repeated host restart with fresh session review",
+        "outcome": "expected"
+      },
+      {
+        "title": "discover the project Lean without Atlas environment variables, recover after installation and extract in one action",
+        "outcome": "expected"
+      },
+      {
+        "title": "prepare real Atlas offline, extract elaborated cross-module scope, analyze it and recover from compilation failure",
+        "outcome": "expected"
+      },
+      {
+        "title": "Lake discovers configured roots and dependency sources, follows their paths and recovers from a missing root",
+        "outcome": "expected"
+      },
+      {
+        "title": "compiled prototype-named Lean declarations retain source, camera and quiet chat through failure and restart",
+        "outcome": "expected"
+      },
+      {
+        "title": "declaration kinds and highlighted source stay independent of chat until the user sends",
+        "outcome": "expected"
+      },
+      {
+        "title": "IDE map keeps one camera while revealing cached declarations, opens large source files and selects models from chat",
+        "outcome": "expected"
+      },
+      {
+        "title": "opening a file prepares analysis and keeps a bounded-import failure beside its readable source",
+        "outcome": "expected"
+      },
+      {
+        "title": "missing Mathlib explains preparation and an existing-file picker recovers through source inspection without fetching",
+        "outcome": "expected"
+      },
+      {
+        "title": "Atlas code stays offline with read-only sources and libraries, and corrupt resources recover through the GUI",
+        "outcome": "expected"
+      },
+      {
+        "title": "review frozen delivery bytes, reject another target, send once and restart without a queue",
+        "outcome": "expected"
+      },
+      {
+        "title": "delivery refuses stale reviews, does not follow redirects and leaves uncertain attempts terminal",
+        "outcome": "expected"
+      },
+      {
+        "title": "preview descriptions retry without recapture, retain the live frame and reject delayed replacements",
+        "outcome": "expected"
+      },
+      {
+        "title": "develop and interact with local module assets, refresh edits, recover and restart",
+        "outcome": "expected"
+      },
+      {
+        "title": "preview separates browser authority, rejects missing assets and bounds captured files",
+        "outcome": "expected"
+      },
+      {
+        "title": "develop, recover from provider failure, inspect files and restart without restoring grants",
+        "outcome": "expected"
+      },
+      {
+        "title": "visible silent wait, cancellation before model reply and guarded local API",
+        "outcome": "expected"
+      },
+      {
+        "title": "local source graph follows exact code, refreshes after development and rejects unavailable inputs",
+        "outcome": "expected"
+      },
+      {
+        "title": "review a Finding repair, reject it, refuse stale sources and reanalyze the applied exact diff",
+        "outcome": "expected"
+      },
+      {
+        "title": "restarting discards a pending repair approval without changing source",
+        "outcome": "expected"
+      },
+      {
+        "title": "large candidate history transfers once, retries locally and keeps newer selections across delayed reads and restart",
+        "outcome": "expected"
+      },
+      {
+        "title": "local meaning history retains requirement and Finding identities across reruns and restart",
+        "outcome": "expected"
+      },
+      {
+        "title": "separate judge models are visible, retained and revoked together",
+        "outcome": "expected"
+      },
+      {
+        "title": "meaning analysis runs separated real requests, keeps proof unknown and restores a historical result",
+        "outcome": "expected"
+      },
+      {
+        "title": "meaning analysis refuses a current result after cancel",
+        "outcome": "expected"
+      },
+      {
+        "title": "meaning analysis refuses a current result after revoke",
+        "outcome": "expected"
+      },
+      {
+        "title": "meaning analysis refuses a current result after stale",
+        "outcome": "expected"
+      },
+      {
+        "title": "meaning analysis refuses a current result after provider",
+        "outcome": "expected"
+      },
+      {
+        "title": "meaning analysis refuses a current result after invalid",
+        "outcome": "expected"
+      },
+      {
+        "title": "portable GUI history survives a real git clone and checks actual Lean without restoring authority",
+        "outcome": "expected"
+      },
+      {
+        "title": "missing GUI assets explain the build step and a built GUI opens with fresh review",
+        "outcome": "expected"
+      },
+      {
+        "title": "unreadable portable history stays intact while the GUI graph and ordinary chat remain usable",
+        "outcome": "expected"
+      },
+      {
+        "title": "opening a cloned workspace shows chat and the whole graph, then selects and switches host connections",
+        "outcome": "expected"
+      },
+      {
+        "title": "the conversation sidebar collapses independently of the artifact panel",
+        "outcome": "expected"
+      },
+      {
+        "title": "home starts with a large composer and Send; instruction creates its title and opens results",
+        "outcome": "expected"
+      },
+      {
+        "title": "home displays the pitch logos below the suggestions at desktop and phone widths",
+        "outcome": "expected"
+      },
+      {
+        "title": "the sidebar keeps one continuous vending history including its original opening request",
+        "outcome": "expected"
+      },
+      {
+        "title": "the full conversation artifact opens preview and keeps proof details readable",
+        "outcome": "expected"
+      },
+      {
+        "title": "proof opens the wider source graph and follows a declaration into its exact Lean source",
+        "outcome": "expected"
+      },
+      {
+        "title": "graph zoom survives pointer movement and canvas resizing until explicit fit",
+        "outcome": "expected"
+      },
+      {
+        "title": "hover keeps dense graph nodes in place until the pointer selects them",
+        "outcome": "expected"
+      },
+      {
+        "title": "meaning analysis shows an NG comparison by default, can switch to OK and keeps cancellation working",
+        "outcome": "expected"
+      },
+      {
+        "title": "sending opens the real demo preview; purchase, rejection and refund follow its kernel",
+        "outcome": "expected"
+      },
+      {
+        "title": "unsent input survives navigation and reload without creating a named empty conversation",
+        "outcome": "expected"
+      },
+      {
+        "title": "requirement edits invalidate retained proof and analysis across restart",
+        "outcome": "expected"
+      },
+      {
+        "title": "review export remains revision-bound and omits conversations",
+        "outcome": "expected"
+      },
+      {
+        "title": "invalid imports retain the conversation; Atlas metadata stays unconfirmed",
+        "outcome": "expected"
+      },
+      {
+        "title": "original prototype-named declarations import, remain unknown and reopen without losing chat or camera",
+        "outcome": "expected"
+      },
+      {
+        "title": "desktop and compact layouts keep chat and artifact panes usable, with keyboard entry",
+        "outcome": "expected"
+      },
+      {
+        "title": "failed storage retains a sent conversation and recovers through retry",
+        "outcome": "expected"
+      },
+      {
+        "title": "legacy v2 continuations merge permanently and start with the exact supplied request",
+        "outcome": "expected"
+      },
+      {
+        "title": "expanded graph keeps source and statement readers tall, scrollable and synchronized",
+        "outcome": "expected"
+      }
+    ]
+  },
+  "deployment": {
+    "binary_sha256": "eeebc998e183399727cd0175740321b3d76d45d61e280c8ef9633b9cb256fd2c",
+    "assets_sha256": "bfb7e4aeae6c723d735cb27931ed4ac778a6ad0d786d609a44d714864bb3a05f",
+    "assets": 88,
+    "assets_identical_to_previous_deployment": true,
+    "processes": [
+      {
+        "project": "riemann",
+        "pid": 1056787,
+        "port": 4323,
+        "binary_sha256": "eeebc998e183399727cd0175740321b3d76d45d61e280c8ef9633b9cb256fd2c",
+        "running": false,
+        "authorized": false
+      },
+      {
+        "project": "ethlib",
+        "pid": 1057170,
+        "port": 4322,
+        "binary_sha256": "eeebc998e183399727cd0175740321b3d76d45d61e280c8ef9633b9cb256fd2c",
+        "running": false,
+        "authorized": false
+      }
+    ]
+  },
+  "actual_projects": [
+    {
+      "project": "riemann",
+      "pid": 1056787,
+      "binary_sha256": "eeebc998e183399727cd0175740321b3d76d45d61e280c8ef9633b9cb256fd2c",
+      "cache_hit": true,
+      "preparation_ms": 20234.250059,
+      "source_publication": "sha256:4671471a8580f25a42b2117fcc7cf5a8d25988b715b1a40cbb17b77e006bfa94",
+      "source_hash": "2063f4c8792707349ba4b3d295e779c565a63030790aae9d937d5f776d8d9184",
+      "reader_publication": "sha256:d3bca7c0ce21989bef612ac79475e72da33062b4140b13dfe87bbaf183a61be8",
+      "reader_hash": "d2c21198aaff30504f16966ddf61ce628ef7ac8632c62be3195b4e4f72e41806",
+      "inventory_files": 175187,
+      "metadata_hash": "5875c3c3432ddda379f8caf8ed411b77d30701443e5da912442935a296c3ae7a",
+      "overview_headers_exactly_preserved": true,
+      "complete_original_header_metadata_round_trip": true,
+      "unindexed_entries": 175184,
+      "complete_original_navigation_binding": true,
+      "navigation_bytes": 13853,
+      "complete_cached_navigation_matches_original": true,
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "node_selection_preserves_camera_chat_and_source_line": true,
+      "selected_declaration": "PIW.AdelClassFin.DictGen.denom",
+      "verification_job": {
+        "state": "idle"
+      },
+      "work_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "preview": {
+        "state": "idle"
+      },
+      "preview_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    },
+    {
+      "project": "ethlib",
+      "pid": 1057170,
+      "binary_sha256": "eeebc998e183399727cd0175740321b3d76d45d61e280c8ef9633b9cb256fd2c",
+      "cache_hit": true,
+      "preparation_ms": 2224.619645999999,
+      "source_publication": "sha256:c9a67ef7faab77791ab7d84fad5d7176476d3b7d5320d9f95f155b117b57e86b",
+      "source_hash": "ac220adb7270df17b304574138f8894ec78d92bc7a85c5e2e0e745edc885bb09",
+      "reader_publication": "sha256:0b79b28ff3aa227731108c7cde50cf54fa06cc447922756668b1197473b0d3ac",
+      "reader_hash": "60e647749624e65341239c16878edafe3083f1a0b0ba7ab0587b82511d80dd36",
+      "inventory_files": 2517,
+      "metadata_hash": "59b98c2e15f2f590463873351344a08a59e4aa3854a7dfb1779e635a680cb32f",
+      "overview_headers_exactly_preserved": true,
+      "complete_original_header_metadata_round_trip": true,
+      "unindexed_entries": 0,
+      "complete_original_navigation_binding": true,
+      "navigation_bytes": 1516,
+      "complete_cached_navigation_matches_original": true,
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "node_selection_preserves_camera_chat_and_source_line": true,
+      "selected_declaration": "EthLib.Networking.Gossip.GossipsubParameters",
+      "verification_job": {
+        "state": "idle"
+      },
+      "work_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "preview": {
+        "state": "idle"
+      },
+      "preview_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip/Parameters.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    }
+  ],
+  "public_connections": [
+    {
+      "project": "riemann",
+      "prior_counter": 0,
+      "current_counter": null,
+      "complete_generated_state_validation": true,
+      "public_choices_preserved": true,
+      "selected_binding_preserved": true,
+      "choices": 3,
+      "choices_sha256": "3c22392a194ffb7d071e11dc260301f76666223753be8d9da40dc00cf720afaa",
+      "running": false,
+      "authorized": false
+    },
+    {
+      "project": "ethlib",
+      "prior_counter": 0,
+      "current_counter": null,
+      "complete_generated_state_validation": true,
+      "public_choices_preserved": true,
+      "selected_binding_preserved": true,
+      "choices": 3,
+      "choices_sha256": "3c22392a194ffb7d071e11dc260301f76666223753be8d9da40dc00cf720afaa",
+      "running": false,
+      "authorized": false
+    }
+  ],
+  "initial_publication_attempt": {
+    "phase": "failed",
+    "checks": [
+      {
+        "phase": "deploy",
+        "code": 1,
+        "signal": null
+      }
+    ]
+  },
+  "deployment_recovery": {
+    "initial_failure": "The deployment helper did not observe all readiness predicates for EthLib within its bounded 60 × 250 ms polling loop. Which initial predicate was absent was not captured.",
+    "action": "Read authenticated current state and exact /proc executable of both already-started new processes, verify every HTTP asset, retain them without another restart.",
+    "rows": [
+      {
+        "project": "riemann",
+        "pid": 1056787,
+        "assets": 88,
+        "start_to_announcement_ms": 605.128,
+        "running": false,
+        "authorized": false,
+        "original_new_process_reused": true
+      },
+      {
+        "project": "ethlib",
+        "pid": 1057170,
+        "assets": 88,
+        "start_to_announcement_ms": 915.21,
+        "running": false,
+        "authorized": false,
+        "original_new_process_reused": true
+      }
+    ]
+  },
+  "inspected_screenshot": {
+    "path": "target/native-profile/job-identities-20261125/riemann-deployed-final.png",
+    "sha256": "58deacfb23a7503104556ba9b3973bb8e54e9a091f1f91d5d0121499f7936973"
+  },
+  "limits": [
+    "JobId is a read-only producer observation, not a kernel ticket, grant, acceptance or evidence receipt. JSON carries no Rust nominal type.",
+    "Original producer domains, session/input bindings, generation comparisons and terminal/cancellation rules remain unchanged; compile-time checks are not whole-adapter or Lean refinement proofs.",
+    "Actual installed Lean/Lake and Z3 with scripted inference cover workflows, not paid/live model quality, cold installation, local-model performance or confidentiality.",
+    "This change claims no measured speedup. Actual-project cache-hit open durations are unpaired fidelity observations; previous event profiling remains separate.",
+    "Backend snapshots, other session representations, remaining orchestration identities and the full retirement audit remain open."
+  ],
+  "native_fidelity_observations": [
+    {
+      "project": "riemann",
+      "cache_hit": true,
+      "public_file_open_ms": 20234.250059,
+      "native_job_wall_ms": 19930.579,
+      "inspection_trace": 205,
+      "source": "Authenticated /api/metrics from the exact deployed process after the actual public source/graph journey; no extra compiler command or inference.",
+      "metrics": {
+        "capacity": 4096,
+        "evicted": 0,
+        "records": 594,
+        "raw_sha256": "8086227996241cc6b20b3b59f5082f423a6b465a3516fe150a9e92f6c30cbd91",
+        "path": "/tmp/meden-job-identities-riemann-metrics.json"
+      },
+      "largest_nested_spans": [
+        {
+          "context": {
+            "trace": 205,
+            "span": 209
+          },
+          "parent": 206,
+          "name": "gui.job",
+          "start_us": 148218455,
+          "wall_us": 19930579,
+          "thread_cpu_us": 2192003
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 217
+          },
+          "parent": 209,
+          "name": "analysis.extract",
+          "start_us": 148260602,
+          "wall_us": 18857090,
+          "thread_cpu_us": 1203891
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 357
+          },
+          "parent": 217,
+          "name": "atlas.project.prepare",
+          "start_us": 150647683,
+          "wall_us": 15854055,
+          "thread_cpu_us": 106849
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 368
+          },
+          "parent": 357,
+          "name": "process.run",
+          "start_us": 151151513,
+          "wall_us": 15350130,
+          "thread_cpu_us": 74076
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 228
+          },
+          "parent": 217,
+          "name": "analysis.select_roots",
+          "start_us": 148383188,
+          "wall_us": 1862402,
+          "thread_cpu_us": 686857
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 233
+          },
+          "parent": 228,
+          "name": "analysis.discover_layout",
+          "start_us": 148424969,
+          "wall_us": 1778582,
+          "thread_cpu_us": 684337
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 562
+          },
+          "parent": 209,
+          "name": "view.inventory.materialize",
+          "start_us": 167355376,
+          "wall_us": 762211,
+          "thread_cpu_us": 760035
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 358
+          },
+          "parent": 357,
+          "name": "sandbox.prepare",
+          "start_us": 150647709,
+          "wall_us": 503500,
+          "thread_cpu_us": 32349
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 512
+          },
+          "parent": 217,
+          "name": "analysis.cache.validate",
+          "start_us": 166525130,
+          "wall_us": 407066,
+          "thread_cpu_us": 42484
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 338
+          },
+          "parent": 217,
+          "name": "analysis.metadata.validate",
+          "start_us": 150245596,
+          "wall_us": 372843,
+          "thread_cpu_us": 8599
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 515
+          },
+          "parent": 512,
+          "name": "analysis.metadata.validate",
+          "start_us": 166558987,
+          "wall_us": 331606,
+          "thread_cpu_us": 7594
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 359
+          },
+          "parent": 358,
+          "name": "process.run",
+          "start_us": 150647941,
+          "wall_us": 323357,
+          "thread_cpu_us": 1339
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 345
+          },
+          "parent": 338,
+          "name": "analysis.metadata.directory_batch",
+          "start_us": 150369506,
+          "wall_us": 72146,
+          "thread_cpu_us": 1473
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 346
+          },
+          "parent": 345,
+          "name": "process.run",
+          "start_us": 150369711,
+          "wall_us": 71137,
+          "thread_cpu_us": 465
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 314
+          },
+          "parent": 233,
+          "name": "atlas.lake_configuration.resolve",
+          "start_us": 149900960,
+          "wall_us": 63393,
+          "thread_cpu_us": 62185
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 320
+          },
+          "parent": 233,
+          "name": "atlas.lake_configuration.resolve",
+          "start_us": 150005653,
+          "wall_us": 63171,
+          "thread_cpu_us": 62251
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 347
+          },
+          "parent": 338,
+          "name": "analysis.metadata.directory_batch",
+          "start_us": 150441806,
+          "wall_us": 62576,
+          "thread_cpu_us": 1709
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 542
+          },
+          "parent": 217,
+          "name": "analysis.search",
+          "start_us": 167035610,
+          "wall_us": 61961,
+          "thread_cpu_us": 61706
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 349
+          },
+          "parent": 338,
+          "name": "analysis.metadata.directory_batch",
+          "start_us": 150504537,
+          "wall_us": 61710,
+          "thread_cpu_us": 960
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 348
+          },
+          "parent": 347,
+          "name": "process.run",
+          "start_us": 150442198,
+          "wall_us": 61395,
+          "thread_cpu_us": 539
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 350
+          },
+          "parent": 349,
+          "name": "process.run",
+          "start_us": 150504771,
+          "wall_us": 61217,
+          "thread_cpu_us": 468
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 264
+          },
+          "parent": 233,
+          "name": "atlas.lake_configuration.resolve",
+          "start_us": 149042769,
+          "wall_us": 60617,
+          "thread_cpu_us": 59363
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 257
+          },
+          "parent": 233,
+          "name": "atlas.lake_configuration.resolve",
+          "start_us": 148889495,
+          "wall_us": 59905,
+          "thread_cpu_us": 58768
+        },
+        {
+          "context": {
+            "trace": 205,
+            "span": 362
+          },
+          "parent": 358,
+          "name": "sandbox.public_tools",
+          "start_us": 150992803,
+          "wall_us": 57343,
+          "thread_cpu_us": 3608
+        }
+      ],
+      "build_log_timings": [
+        "Build/setup and input resolution completed in 10.961s.",
+        "Validated 43477 files / 5992114707 bytes in 4.278s."
+      ],
+      "limits": [
+        "One unpaired cache-hit fidelity open per project; not a speedup/regression comparison or cold installation.",
+        "Intervals nest and must not be summed as an exclusive decomposition. thread_cpu_us measures the current host thread, excluding worker/child CPU.",
+        "Log timing observations do not classify success; cache_hit comes from the original typed preparation outcome."
+      ]
+    },
+    {
+      "project": "ethlib",
+      "cache_hit": true,
+      "public_file_open_ms": 2224.619645999999,
+      "native_job_wall_ms": 1668.638,
+      "inspection_trace": 968,
+      "source": "Authenticated /api/metrics from the exact deployed process after the actual public source/graph journey; no extra compiler command or inference.",
+      "metrics": {
+        "capacity": 4096,
+        "evicted": 0,
+        "records": 1262,
+        "raw_sha256": "d4e1bef42b4174a901bf8cb917c1ee7f71ad169de0eb22eb316538e468ac4449",
+        "path": "/tmp/meden-job-identities-ethlib-metrics.json"
+      },
+      "largest_nested_spans": [
+        {
+          "context": {
+            "trace": 968,
+            "span": 973
+          },
+          "parent": 969,
+          "name": "gui.job",
+          "start_us": 165425978,
+          "wall_us": 1668638,
+          "thread_cpu_us": 712672
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 980
+          },
+          "parent": 973,
+          "name": "analysis.extract",
+          "start_us": 165477863,
+          "wall_us": 858403,
+          "thread_cpu_us": 451989
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 1053
+          },
+          "parent": 973,
+          "name": "analysis.cache.validate",
+          "start_us": 166461272,
+          "wall_us": 501375,
+          "thread_cpu_us": 55878
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 995
+          },
+          "parent": 980,
+          "name": "analysis.cache.validate",
+          "start_us": 165644738,
+          "wall_us": 454527,
+          "thread_cpu_us": 49893
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 1056
+          },
+          "parent": 1053,
+          "name": "analysis.metadata.validate",
+          "start_us": 166498183,
+          "wall_us": 412743,
+          "thread_cpu_us": 17976
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 999
+          },
+          "parent": 995,
+          "name": "analysis.metadata.validate",
+          "start_us": 165682317,
+          "wall_us": 375721,
+          "thread_cpu_us": 11610
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 1033
+          },
+          "parent": 980,
+          "name": "analysis.search",
+          "start_us": 166249122,
+          "wall_us": 65045,
+          "thread_cpu_us": 64767
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 1074
+          },
+          "parent": 1056,
+          "name": "analysis.metadata.file_batch",
+          "start_us": 166852372,
+          "wall_us": 57286,
+          "thread_cpu_us": 6779
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 1019
+          },
+          "parent": 999,
+          "name": "analysis.metadata.file_batch",
+          "start_us": 166003153,
+          "wall_us": 54285,
+          "thread_cpu_us": 3688
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 1057
+          },
+          "parent": 1056,
+          "name": "analysis.metadata.directory_batch",
+          "start_us": 166498262,
+          "wall_us": 52261,
+          "thread_cpu_us": 1550
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 1059
+          },
+          "parent": 1056,
+          "name": "analysis.metadata.directory_batch",
+          "start_us": 166550825,
+          "wall_us": 52156,
+          "thread_cpu_us": 1328
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 1067
+          },
+          "parent": 1056,
+          "name": "analysis.metadata.directory_batch",
+          "start_us": 166706386,
+          "wall_us": 52096,
+          "thread_cpu_us": 1601
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 1069
+          },
+          "parent": 1056,
+          "name": "analysis.metadata.directory_batch",
+          "start_us": 166758684,
+          "wall_us": 52080,
+          "thread_cpu_us": 1405
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 974
+          },
+          "parent": 973,
+          "name": "gui.reader_prepare",
+          "start_us": 165425990,
+          "wall_us": 51838,
+          "thread_cpu_us": 1153
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 1013
+          },
+          "parent": 999,
+          "name": "analysis.metadata.directory_batch",
+          "start_us": 165899687,
+          "wall_us": 51766,
+          "thread_cpu_us": 1184
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 1063
+          },
+          "parent": 1056,
+          "name": "analysis.metadata.directory_batch",
+          "start_us": 166654612,
+          "wall_us": 51692,
+          "thread_cpu_us": 1087
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 1009
+          },
+          "parent": 999,
+          "name": "analysis.metadata.directory_batch",
+          "start_us": 165806367,
+          "wall_us": 51660,
+          "thread_cpu_us": 1097
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 1076
+          },
+          "parent": 1053,
+          "name": "analysis.capture_sources",
+          "start_us": 166910985,
+          "wall_us": 51641,
+          "thread_cpu_us": 1052
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 1060
+          },
+          "parent": 1059,
+          "name": "process.run",
+          "start_us": 166551303,
+          "wall_us": 51486,
+          "thread_cpu_us": 662
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 1061
+          },
+          "parent": 1056,
+          "name": "analysis.metadata.directory_batch",
+          "start_us": 166603104,
+          "wall_us": 51298,
+          "thread_cpu_us": 835
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 1015
+          },
+          "parent": 999,
+          "name": "analysis.metadata.directory_batch",
+          "start_us": 165951589,
+          "wall_us": 51295,
+          "thread_cpu_us": 736
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 1058
+          },
+          "parent": 1057,
+          "name": "process.run",
+          "start_us": 166498422,
+          "wall_us": 51260,
+          "thread_cpu_us": 551
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 975
+          },
+          "parent": 974,
+          "name": "process.run",
+          "start_us": 165426276,
+          "wall_us": 51106,
+          "thread_cpu_us": 431
+        },
+        {
+          "context": {
+            "trace": 968,
+            "span": 1077
+          },
+          "parent": 1076,
+          "name": "process.run",
+          "start_us": 166911311,
+          "wall_us": 51000,
+          "thread_cpu_us": 415
+        }
+      ],
+      "build_log_timings": [],
+      "limits": [
+        "One unpaired cache-hit fidelity open per project; not a speedup/regression comparison or cold installation.",
+        "Intervals nest and must not be summed as an exclusive decomposition. thread_cpu_us measures the current host thread, excluding worker/child CPU.",
+        "Log timing observations do not classify success; cache_hit comes from the original typed preparation outcome."
+      ]
+    }
+  ]
+}

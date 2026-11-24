@@ -1,5 +1,5 @@
 //! Historical work observations in the existing latest-job publication owner.
-use super::{diagnostic, Completion, Data, Observation, Publisher, State};
+use super::{diagnostic, Completion, Data, Job, JobId, Observation, Publisher, State};
 use crate::records::{lake::Outcome, store, Check, Work};
 use anyhow::{Context as _, Result};
 use meden_runtime::verification::FailureKind;
@@ -17,8 +17,7 @@ pub enum Origin {
 #[serde(deny_unknown_fields)]
 pub struct Context {
     pub(super) origin: Origin,
-    #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
-    pub(super) job: String,
+    pub(super) job: JobId<Job>,
     #[schemars(regex(pattern = r"^[a-f0-9]{64}$"))]
     session: String,
     #[schemars(length(min = 1, max = 1000))]
@@ -136,7 +135,7 @@ impl Publisher {
                 sequence,
                 Context {
                     origin,
-                    job: format!("sha256:{:x}", hash.finalize()),
+                    job: JobId::from_digest(hash.finalize()),
                     session: format!("{:x}", Sha256::digest(session)),
                     id: id.into(),
                 },

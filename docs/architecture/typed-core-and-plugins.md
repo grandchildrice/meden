@@ -914,6 +914,18 @@ This is application typing and tested adapter behavior, not a new kernel
 refinement claim or completion of the workspace/raw-processor session,
 backend snapshot and job audits. See
 [the accepted-reference validation](../performance/agreement-identities.md).
+Resource preparation and the shared project/recorded verification observation
+owner now retain `JobId<Owner>` through producer handles, current status and
+frozen log/progress bodies. An observation cannot be passed to the other owner
+or queried as a content artifact. Only the original producer's computed digest
+constructs it; there is no transport decoder. The original hash domains, inputs,
+sequence comparisons and serialized bytes remain unchanged. These are display
+observations, never kernel job tickets or completion receipts. Matching and
+rejected compile examples, independent original-digest fixtures and public
+cancellation/retry/restart journeys are recorded in
+[the job-observation validation](../performance/job-observation-identities.md).
+Workspace/raw-processor and recorded-work session representations, backend
+snapshots and the remaining orchestration identities still need their own audit.
 Step 3 now executes the second backend through public TUI/GUI, actual offline
 Z3, a real approved-model trial and a separate 256-input Python oracle. Its
 parser/disagreement rejection tests, actual solver-output faults, started-solver

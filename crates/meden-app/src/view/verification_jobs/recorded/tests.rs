@@ -70,6 +70,12 @@ fn original_historical_inputs_and_saved_result_never_become_project_evidence() -
     let (old, _, running) = body(&reader)?;
     assert_eq!(at(&running, "/data/kind")?, "recorded");
     assert_eq!(at(&running, "/data/context/origin")?, "model");
+    // Independent original hash fixture: host, sequence 1, original session
+    // bytes, work id and model origin, preserving their original JSON framing.
+    assert_eq!(
+        at(&running, "/data/context/job")?,
+        "sha256:df2a9c2685247eda8d68379804fd03e7ea659fe48a7d27deb988de6efb88f01d"
+    );
     assert_eq!(
         at(&running, "/data/phase/stage/inputs/work")?,
         serde_json::to_value(work())?

@@ -1951,3 +1951,31 @@ budget claim. The no-recompilation claim comes from the independent native spans
 and preserved observations, not a timing threshold. They do not predict Riemann's
 larger Lake input-validation cost. See
 [the cache split record](../results/renderer-cache-20261123.json).
+
+## Remaining prepared-file wait (November 25)
+
+The observation-identity change preserves every compiler-captured source and all
+88 browser assets. Its final actual-project probe still exposes a large native
+wait, despite complete semantic-artifact cache hits:
+
+| Current fidelity probe | File click to prepared-source DOM | Native job wall time |
+| ---------------------- | --------------------------------: | -------------------: |
+| Riemann                |                          20.234 s |             19.931 s |
+| EthLib                 |                           2.225 s |              1.669 s |
+
+Riemann's correlated `atlas.project.prepare` span lasts 15.854 s, including a
+15.350 s worker invocation. That worker's original build log reports 10.961 s
+for build/setup/input resolution and 4.278 s to validate **43,477 files /
+5,992,114,707 bytes**. The remaining host spans include layout discovery and
+view materialization. These nested intervals must not be added as exclusive
+costs. Host-thread CPU measurements exclude child-process CPU, so they do not
+establish that the worker is I/O-bound.
+
+This is one unpaired cache-hit observation per project, collected after the
+public TUI/GUI gates and deployment. It is neither a controlled comparison with
+the preceding binary nor a cold-install, physical-paint or inference benchmark.
+It identifies input preparation as a remaining bottleneck; the nominal job
+types claim no speedup and do not weaken complete-input validation. Exact
+correlated spans, original log timings, cache outcomes, source/graph equality
+and their limits are retained in
+[the validation record](../results/job-observation-identities-20261125.json).

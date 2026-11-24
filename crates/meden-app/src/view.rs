@@ -21,6 +21,8 @@ pub mod file;
 pub mod history;
 /// Prepared generic navigation inventory and chunks, separate from source text.
 pub mod inventory;
+/// Producer-owned job identities, separate from content and execution tickets.
+pub mod job_id;
 /// Bounded preparation observations and exact diagnostic queries.
 pub mod jobs;
 /// Exact immutable static-preview observations, separate from browser authority.

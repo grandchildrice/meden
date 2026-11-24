@@ -44,6 +44,30 @@ fn at(value: &Value, path: &str) -> Result<Value> {
 }
 
 #[test]
+fn proposal_identity_keeps_original_domain_subject_and_wire_bytes() -> Result<()> {
+    let contract = crate::verification::Registry::host().parse_selected(
+        include_str!("../../../../../verification/examples/finite-counter.contract.json"),
+        Some("z3.finite.v1"),
+    )?;
+    let publisher = Publisher::new(b"host");
+    publisher
+        .begin_proposal(&SessionId::parse("project λ")?, &contract)
+        .context("Original observation")?;
+    let (_, _, original) = body(&publisher.reader())?;
+    // Independently computed from the original compact finite contract, tagged
+    // subject JSON, host hash and little-endian sequence 1, without JobId.
+    assert_eq!(
+        at(&original, "/data/context/subject/contract")?,
+        "2f7c5dd71487a4f9bb5cc5bbe43a736d04c78f24b69eda65de52bbb4f1a3cd25"
+    );
+    assert_eq!(
+        at(&original, "/data/context/job")?,
+        "sha256:9e83a2b58ce9bc8c82e55be7ae046899141155b9b59f770b7fbb839627552301"
+    );
+    Ok(())
+}
+
+#[test]
 fn original_context_and_inputs_survive_all_actual_stage_boundaries() -> Result<()> {
     let summary = summary()?;
     let publisher = Publisher::new(b"original host session");

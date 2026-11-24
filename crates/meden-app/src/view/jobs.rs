@@ -1,6 +1,9 @@
 //! Bounded resource-local progress and immutable diagnostic queries.
 //! These are observations, never kernel job tickets or evidence receipts.
-use super::publication::{ArtifactId, ArtifactRef, Publication};
+use super::{
+    job_id::JobId,
+    publication::{ArtifactId, ArtifactRef, Publication},
+};
 use anyhow::{Context, Result};
 use schemars::JsonSchema;
 use serde::{ser::SerializeMap, Serialize};
@@ -64,8 +67,7 @@ pub enum Outcome {
 #[serde(deny_unknown_fields)]
 pub struct Status {
     /// Host-session/resource/sequence-bound observation identity.
-    #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
-    pub job: String,
+    pub job: JobId<Job>,
     /// Exact original host-selected resource, not an executable request.
     #[schemars(length(min = 1, max = 4096))]
     pub resource: String,
@@ -90,8 +92,7 @@ pub type Index = BTreeMap<String, Status>;
 #[serde(deny_unknown_fields)]
 pub struct Log {
     /// Original preparation identity, independent of publication identity.
-    #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
-    pub job: String,
+    pub job: JobId<Job>,
     /// Original resource; the viewer checks this as well as the job.
     #[schemars(length(min = 1, max = 4096))]
     pub resource: String,
@@ -104,7 +105,7 @@ pub struct Log {
 /// Non-deserializable handle: late observers cannot update a replacement job.
 #[derive(Clone)]
 pub struct Observation {
-    job: String,
+    job: JobId<Job>,
     resource: String,
 }
 struct Entry {
@@ -151,7 +152,7 @@ impl Jobs {
         hash.update(self.epoch);
         hash.update(next.to_le_bytes());
         hash.update(resource.as_bytes());
-        let job = format!("sha256:{:x}", hash.finalize());
+        let job = JobId::from_digest(hash.finalize());
         self.sequence = next;
         self.remove(resource);
         self.order.push_back(resource.into());
@@ -318,6 +319,8 @@ fn tail(parts: &[&str]) -> (String, bool) {
 
 /// Identity context for this owner's immutable publications, never authority.
 pub enum Artifact {}
+/// Resource preparation observation context, distinct from verification checks.
+pub enum Job {}
 impl super::publication::Domain for Artifact {
     const PREFIX: &'static [u8] = b"meden.preparation.log.v1\0";
 }
@@ -393,6 +396,23 @@ mod tests {
                 .pointer("/outcome")
                 .context("field")?,
             &serde_json::json!({"state":"ready", "cache_hit":true})
+        );
+        Ok(())
+    }
+    #[test]
+    fn preparation_identity_keeps_original_digest_and_wire_bytes() -> Result<()> {
+        let mut jobs = Jobs::new(b"host");
+        let original = jobs.begin("src/λ.lean", "Compile")?;
+        // Independently computed from the original domain, host hash, little-
+        // endian sequence 1 and exact UTF-8 resource, without typed wrappers.
+        let expected = "sha256:72c84e1c46bbdf1a7f364df0025d5fde28e126fea29918e424e9ad79d3d2659a";
+        assert_eq!(
+            status(&jobs, "src/λ.lean")?.get("job"),
+            Some(&serde_json::json!(expected))
+        );
+        assert_eq!(
+            serde_json::to_string(&original.job)?,
+            format!("\"{expected}\"")
         );
         Ok(())
     }

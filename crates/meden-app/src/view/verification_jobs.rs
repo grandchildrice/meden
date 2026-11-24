@@ -1,6 +1,9 @@
 //! Latest original verification observation. These identities are not kernel
 //! tickets, receipts or grants; only the project service owns the publisher.
-use super::publication::{ArtifactId, Envelope, Publication};
+use super::{
+    job_id::JobId,
+    publication::{ArtifactId, Envelope, Publication},
+};
 use crate::{
     identity::{ContractId, SessionId},
     project,
@@ -41,8 +44,7 @@ pub enum Subject {
 #[derive(Clone, Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Context {
-    #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
-    job: String,
+    job: JobId<Job>,
     subject: Subject,
     #[schemars(length(min = 1, max = 4096))]
     source_path: String,
@@ -172,7 +174,7 @@ pub enum Data {
     },
 }
 impl Data {
-    fn job(&self) -> &str {
+    fn job(&self) -> &JobId<Job> {
         match self {
             Self::Project { context, .. } => &context.job,
             Self::Recorded { context, .. } => &context.job,
@@ -223,8 +225,7 @@ pub enum Status {
         /// Original requested display destination, not inferred from diagnostics.
         role: Role,
         /// Original host/session/contract-bound job, independent of body revision.
-        #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
-        job: String,
+        job: JobId<Job>,
         /// Exact content identity, never a job ticket or receipt.
         revision: ArtifactId<Artifact>,
     },
@@ -261,7 +262,7 @@ impl State {
             Ok(value) => {
                 self.status = Status::Ready {
                     role: original.role(),
-                    job: original.job().into(),
+                    job: original.job().clone(),
                     revision: value.reference().revision.clone(),
                 };
                 self.publication = Some(value);
@@ -282,7 +283,7 @@ impl State {
     fn active(&self, observation: &Observation, elapsed: u32) -> bool {
         matches!(self.status, Status::Ready { .. })
             && self.original.as_ref().is_some_and(|data| {
-                data.job() == observation.job && elapsed >= data.elapsed() && data.running()
+                data.job() == &observation.job && elapsed >= data.elapsed() && data.running()
             })
     }
 }
@@ -298,7 +299,7 @@ fn digest(value: &str) -> bool {
 /// A non-deserializable producer handle. Replacement and terminal completion
 /// retire it. It carries no kernel ticket and cannot cause an execution.
 pub(crate) struct Observation {
-    job: String,
+    job: JobId<Job>,
 }
 /// The project service alone creates and advances these display observations.
 pub(crate) struct Publisher(Arc<Mutex<State>>);
@@ -369,7 +370,7 @@ impl Publisher {
             hash.update(sequence.to_le_bytes());
             hash.update(serde_json::to_vec(&subject)?);
             let context = Context {
-                job: format!("sha256:{:x}", hash.finalize()),
+                job: JobId::from_digest(hash.finalize()),
                 subject,
                 source_path: description.source.clone(),
                 name: description.name.clone(),
@@ -670,6 +671,8 @@ impl Serialize for Reader {
 
 /// Identity context for this owner's immutable publications, never authority.
 pub enum Artifact {}
+/// Original project/recorded check observation context; never a kernel ticket.
+pub enum Job {}
 impl super::publication::Domain for Artifact {
     const PREFIX: &'static [u8] = b"meden.verification.observation.v1\0";
 }
