@@ -3151,6 +3151,201 @@ theorem slow : True := fast
     });
   });
 
+  test("small-map headings are available before details, retry locally and refuse a late former inventory", async ({
+    page,
+  }, info) => {
+    test.setTimeout(120000);
+    await mkdir(resolve(project, "Small"));
+    await writeFile(
+      resolve(project, "Small/B.lean"),
+      "namespace N\ndef helper : Nat := 1\nend N\n",
+    );
+    await writeFile(
+      resolve(project, "Small/A.lean"),
+      "import Small.B\nnamespace N\ntheorem claim : helper = 1 := by rfl\nend N\n",
+    );
+    const commands: Array<{ type: string; directory?: boolean }> = [],
+      reads: string[] = [];
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname === "/api/command")
+        commands.push(request.postDataJSON());
+    });
+    let release!: () => void,
+      held = false,
+      first = true,
+      holdAutomatic = false,
+      automaticHeld = false,
+      releaseAutomatic!: () => void;
+    await page.route("**/api/map?**", async (route) => {
+      const u = new URL(route.request().url());
+      if (u.searchParams.get("path") !== "Small/A.lean")
+        return route.continue();
+      reads.push(u.searchParams.get("inventory")!);
+      if (first) {
+        first = false;
+        return route.fulfill({
+          status: 503,
+          contentType: "text/plain",
+          body: "Transfer unavailable",
+        });
+      }
+      const response = await route.fetch();
+      if (!held) {
+        held = true;
+        await new Promise<void>((resolve) => {
+          release = resolve;
+        });
+      }
+      if (holdAutomatic) {
+        holdAutomatic = false;
+        automaticHeld = true;
+        await new Promise<void>((resolve) => {
+          releaseAutomatic = resolve;
+        });
+      }
+      await route.fulfill({ response });
+    });
+    await page.goto(await start());
+    const map = page.getByRole("region", { name: "Project map", exact: true }),
+      chat = page.getByRole("complementary", {
+        name: "Workspace chat",
+        exact: true,
+      });
+    await expect(
+      map.getByRole("button", { name: /Declaration: N.claim/ }),
+    ).toBeVisible();
+    await expect(map.getByRole("alert")).toContainText(
+      "Could not load navigation",
+    );
+    const initial = await nativeState(page),
+      beforeCommands = commands.length,
+      chatBefore = await chat.innerHTML();
+    expect(initial.running).toBe(false);
+    expect(initial.authorized).toBe(false);
+    await map.getByRole("button", { name: "Retry map", exact: true }).click();
+    await expect.poll(() => held).toBe(true);
+    await expect(
+      map.getByRole("button", { name: /Declaration: N.claim/ }),
+    ).toBeVisible();
+    expect(commands.length).toBe(beforeCommands);
+    expect(reads).toHaveLength(2);
+    expect(reads[0]).toBe(reads[1]);
+    expect(await chat.innerHTML()).toBe(chatBefore);
+    // A new source observation replaces the parent while its former body is held.
+    await writeFile(
+      resolve(project, "Small/A.lean"),
+      "import Small.B\nnamespace N\ntheorem renewed : helper = 1 := by rfl\nend N\n",
+    );
+    await page
+      .getByRole("button", { name: "Refresh files and map", exact: true })
+      .click();
+    await expect(
+      map.getByRole("button", { name: /Declaration: N.renewed/ }),
+    ).toBeVisible();
+    await expect(map.locator('[data-map-layer="references"] line')).toHaveCount(
+      1,
+    );
+    const formerBody = page.waitForResponse((response) => {
+      const u = new URL(response.url());
+      return (
+        u.pathname === "/api/map" &&
+        u.searchParams.get("inventory") === reads[1]
+      );
+    });
+    release();
+    await (await formerBody).finished();
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+        ),
+    );
+    await expect(
+      map.getByRole("button", { name: /Declaration: N.claim/ }),
+    ).toHaveCount(0);
+    await expect(map.getByRole("alert")).toHaveCount(0);
+    expect(reads.some((parent) => parent !== reads[0])).toBe(true);
+    expect(await chat.innerHTML()).toBe(chatBefore);
+    expect(
+      commands
+        .slice(beforeCommands)
+        .filter((c) => c.type === "refresh_workspace"),
+    ).toHaveLength(1);
+    expect(
+      commands
+        .slice(beforeCommands)
+        .every(
+          (c) =>
+            c.type === "refresh_workspace" ||
+            (c.type === "inspect" && c.directory === true),
+        ),
+    ).toBe(true);
+    expect(requests).toHaveLength(0);
+    holdAutomatic = true;
+    await writeFile(
+      resolve(project, "Small/A.lean"),
+      "import Small.B\nnamespace N\ntheorem staged : helper = 1 := by rfl\nend N\n",
+    );
+    await page
+      .getByRole("button", { name: "Refresh files and map", exact: true })
+      .click();
+    await expect.poll(() => automaticHeld).toBe(true);
+    const stagedParent = reads.at(-1)!;
+    await writeFile(
+      resolve(project, "Small/A.lean"),
+      "import Small.B\nnamespace N\ntheorem finalClaim : helper = 1 := by rfl\nend N\n",
+    );
+    await page
+      .getByRole("button", { name: "Refresh files and map", exact: true })
+      .click();
+    await expect(
+      map.getByRole("button", { name: /Declaration: N.finalClaim/ }),
+    ).toBeVisible();
+    // The new generation must load even while the old automatic read is pending.
+    await expect(map.locator('[data-map-layer="references"] line')).toHaveCount(
+      1,
+    );
+    const oldAutomatic = page.waitForResponse(
+      (r) =>
+        new URL(r.url()).pathname === "/api/map" &&
+        new URL(r.url()).searchParams.get("inventory") === stagedParent,
+    );
+    releaseAutomatic();
+    await (await oldAutomatic).finished();
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+        ),
+    );
+    await expect(
+      map.getByRole("button", { name: /Declaration: N.staged/ }),
+    ).toHaveCount(0);
+    expect(await chat.innerHTML()).toBe(chatBefore);
+    const port = Number(new URL(url).port);
+    await stop();
+    await page.goto(await start(port));
+    await expect(
+      map.getByRole("button", { name: /Declaration: N.finalClaim/ }),
+    ).toBeVisible();
+    await expect(map.locator('[data-map-layer="references"] line')).toHaveCount(
+      1,
+    );
+    expect((await nativeState(page)).authorized).toBe(false);
+    expect(requests).toHaveLength(0);
+    await info.attach("summary-navigation.json", {
+      body: JSON.stringify({
+        reads,
+        commands,
+        headings_before_details: true,
+        local_retry: true,
+        former_body_refused: true,
+        restart_unapproved: true,
+      }),
+      contentType: "application/json",
+    });
+  });
+
   test("large project map loads declaration nodes on zoom without opening files or changing chat", async ({
     page,
   }) => {

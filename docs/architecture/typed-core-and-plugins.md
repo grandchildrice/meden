@@ -328,7 +328,7 @@ per original inventory. Lazy file observations live in a separate sparse map;
 projection replaces only their descriptions, symbols and derived lexical links.
 The host publication is never rewritten to look like a new complete inventory.
 Earlier scenes retain their original data, and replacing the inventory/index
-cannot inherit old observations even when geometry is identical. A deferred
+does not implicitly inherit an old scene even when geometry is identical. A deferred
 completion must still match the current refresh epoch and original publication
 inside the state update. Dependencies outside that original inventory remain
 excluded, as before. Target-only highlighting reuses unchanged reference edges.
@@ -348,6 +348,34 @@ or verification identity. Generated visibility traces check lossless ordering
 and unique batches, while the actual large-map journey checks keyboard focus
 through lazy loading. [Placement measurements](../performance/map-placement.md)
 separate this change from remaining DOM/property work.
+
+The native inventory body now contains complete file metadata and declaration
+headings, rather than every reference string and prepared explanation. Its
+application-owned constructor validates the complete original navigation input
+and jointly binds the original metadata and a fingerprint of every nonempty
+declaration record into the overview identity. Empty declaration vectors need
+no repeated path serialization. Overview, detail fingerprinting and chunk
+publications each retain a 64 MiB framing budget; the original source, worker,
+compiler and evidence limits stay unchanged.
+Changing an omitted reference still retires the old overview. Exact parent-bound
+navigation chunks retain the original complete records; small and large maps use
+the same detail query. Geometry weights, declaration kinds, target markers and
+world coordinates stay independent of this transfer split.
+An independently bounded candidate cache can reuse lexical references only for
+the same actual indexer, path and complete source digest, after every current
+syntax heading and metadata field matches. It owns copied candidate vectors,
+excludes prepared descriptions, takes target flags from current headings and
+retains at most 64 entries/64 MiB of serialized data. An updated compiler reading
+therefore need not fetch the same lexical candidates again. Indexer/source
+attribution and cache correspondence remain adapters; this restores no evidence
+or approval and does not bypass compiler-input revalidation.
+Opening a file also requests its prepared navigation without blocking source or
+compiler observations. Concurrent reads share one transport request; a failed
+transfer retries locally, and an old generation cannot block the next read or
+replace its data/error. Header-only and complete file records remain distinct
+generated types, including empty/unreadable completed responses. The former
+full overview wire shape is removed. See the
+[inventory measurements](../performance/inventory-headings.md).
 
 The disposable `MPL1` artifact contains dictionary indices and four little-endian
 Float64 coordinates per rectangle. SHA-256 binds the original canonical input

@@ -5,15 +5,27 @@ import {
   MAP_WIDTH,
   MAP_HEIGHT,
   type MapGeometry,
+  type MapInput,
 } from "./project-map-layout";
 export { MAP_WIDTH, MAP_HEIGHT } from "./project-map-layout";
-import type { WorkspaceOverview } from "@meden/agent-protocol/native";
+import type {
+  WorkspaceOverview,
+  InventoryChunk,
+} from "@meden/agent-protocol/native";
 
 import { declarationRole, type DeclarationRole } from "./declaration-role";
 import { referenceEdges } from "./project-map-references";
 
-type File = WorkspaceOverview["files"][number];
-export type Symbol = File["symbols"][number] & {
+export type NavigationFile = InventoryChunk["data"]["files"][number];
+export type MapFile = WorkspaceOverview["files"][number] | NavigationFile;
+type MapSnapshot = Omit<MapInput, "files"> & { files: readonly MapFile[] };
+type Heading = WorkspaceOverview["files"][number]["headers"][number] &
+  Partial<Pick<NavigationFile["symbols"][number], "references" | "semantic">>;
+const headings = (file: MapFile): readonly Heading[] =>
+  "headers" in file ? file.headers : file.symbols;
+/** A complete navigation response can still report an unreadable file. */
+export const navigationReady = (file: MapFile) => "symbols" in file;
+export type Symbol = NavigationFile["symbols"][number] & {
   id: string;
   file: string;
   x: number;
@@ -23,7 +35,7 @@ export type Symbol = File["symbols"][number] & {
 };
 export type MapArea = {
   path: string;
-  file?: File;
+  file?: MapFile;
   parent: string;
   x: number;
   y: number;
@@ -39,11 +51,11 @@ export type MapArea = {
   symbols: Symbol[];
 };
 export type MapIndex = {
-  snapshot: WorkspaceOverview;
+  snapshot: MapSnapshot;
   geometry: MapGeometry;
   byPath: ReadonlyMap<string, MapArea>;
   children: ReadonlyMap<string, readonly MapArea[]>;
-  symbolFiles: readonly File[];
+  symbolFiles: readonly MapFile[];
   maxZoom: number;
 };
 export type MapScene = {
@@ -51,7 +63,6 @@ export type MapScene = {
   tracked: string;
   descriptions: ReadonlyMap<string, MapArea>;
   symbolAreas: MapArea[];
-  inventoryOnly: boolean;
   maxZoom: number;
   mainPins: Array<{ area: MapArea; symbols: Symbol[]; origin: string }>;
   symbols: Map<string, Symbol>;
@@ -61,7 +72,7 @@ export type MapScene = {
 
 /** One immutable coordinate/branch index per original inventory and geometry. */
 export function prepareMap(
-  snapshot: WorkspaceOverview,
+  snapshot: MapSnapshot,
   geometry: MapGeometry = mapGeometry(layoutInput(snapshot)),
 ): MapIndex {
   const files = new Map(snapshot.files.map((file) => [file.path, file]));
@@ -85,7 +96,7 @@ export function prepareMap(
     geometry,
     byPath: new Map(areas.map((area) => [area.path, area])),
     children,
-    symbolFiles: snapshot.files.filter((file) => file.symbols.length),
+    symbolFiles: snapshot.files.filter((file) => headings(file).length),
     maxZoom: areas.reduce(
       (zoom, a) =>
         a.file ? Math.max(zoom, 600 / Math.min(a.width, a.height)) : zoom,
@@ -96,24 +107,26 @@ export function prepareMap(
 
 function describe(
   box: MapArea,
-  file: File,
+  file: MapFile,
   tracked: ReadonlySet<string>,
 ): MapArea {
   const { width, height } = box;
   const columns = Math.max(
     1,
     Math.min(
-      file.symbols.length || 1,
+      headings(file).length || 1,
       Math.ceil(
-        Math.sqrt(((file.symbols.length || 1) * width) / Math.max(1, height)),
+        Math.sqrt(((headings(file).length || 1) * width) / Math.max(1, height)),
       ),
     ),
   );
-  const rows = Math.ceil((file.symbols.length || 1) / columns);
-  const symbols = [...file.symbols]
+  const rows = Math.ceil((headings(file).length || 1) / columns);
+  const symbols = [...headings(file)]
     .sort((a, b) => a.line - b.line || comparePath(a.name, b.name))
     .map((s, i) => ({
       ...s,
+      references: s.references ?? [],
+      semantic: s.semantic ?? null,
       name: s.name.split(/[^\p{L}\p{N}_'.«»]/u)[0] || s.name,
       role: declarationRole(
         s.declaration,
@@ -151,12 +164,12 @@ export function mapArea(scene: MapScene, path: string) {
 export function projectMap(
   index: MapIndex,
   tracked: ReadonlySet<string> = new Set(),
-  files: ReadonlyMap<string, File> = new Map(),
+  files: ReadonlyMap<string, MapFile> = new Map(),
   previous?: MapScene,
 ): MapScene {
   const targetKey = JSON.stringify([...tracked].sort(comparePath));
   const reuse = previous?.index === index ? previous : undefined;
-  const changed = new Map<string, File>();
+  const changed = new Map<string, MapFile>();
   if (!reuse)
     for (const file of index.symbolFiles) changed.set(file.path, file);
   for (const [path, file] of files) {
@@ -174,7 +187,7 @@ export function projectMap(
   for (const [path, file] of changed) {
     const base = index.byPath.get(path)!;
     if (reuse && mapArea(reuse, path)!.file !== file) referencesChanged = true;
-    if (file === base.file && !file.symbols.length) descriptions.delete(path);
+    if (file === base.file && !headings(file).length) descriptions.delete(path);
     else descriptions.set(path, describe(base, file, tracked));
   }
   const symbolAreas = [...descriptions.values()]
@@ -200,7 +213,6 @@ export function projectMap(
     tracked: targetKey,
     descriptions,
     symbolAreas,
-    inventoryOnly: index.snapshot.inventory_only,
     maxZoom: index.maxZoom,
     mainPins: symbolAreas.flatMap((area) => {
       const main = area.symbols.filter((s) => s.role.id === "main_theorem");

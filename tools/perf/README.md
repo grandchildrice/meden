@@ -28,10 +28,18 @@ ordered edges. Nine alternating original-scan/indexed runs must stay below a
 the indexed arm and must fail that ratio assertion. The original resolver is
 test-only; there is one runtime implementation. Output is
 `target/performance/references.json` (`MEDEN_PERF_OUT` selects another folder).
-An optional `MEDEN_REFERENCE_WORKLOAD=/private/inventory.json` runs the complete
-original publication through the generated schema and compares every ordered
-edge before timing; private inventory data is not a CI prerequisite. See the
+An optional `MEDEN_REFERENCE_WORKLOAD=/private/inventory.json` validates the
+original complete-file vector through the generated navigation-record schema
+and compares every ordered edge before timing. Supply a complete original
+navigation capture, rather than the separate heading-only overview. The harness
+also replays its headings/details split and checks the same symbols and edges.
+Private inventory data is not a CI prerequisite. See the
 [actual-project comparison](../../docs/performance/map-references.md).
+
+The [heading/detail transfer comparison](../../docs/performance/inventory-headings.md)
+records the current served inventory payloads, event distributions, native
+preparation spans and both serialized retained-tab budgets. It distinguishes
+compiler-artifact cache hits from already-open tabs.
 
 `node --experimental-strip-types tools/perf/native-command-codec.mjs OUTPUT.json`
 compares the generated command tag lookup with a sequential union of the same

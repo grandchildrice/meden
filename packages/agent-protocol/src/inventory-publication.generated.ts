@@ -16,7 +16,7 @@ export const inventoryPublicationSchema = z
                 declarations: z.number().int().min(0).max(1048576),
                 theorems: z.number().int().min(0).max(1048576),
                 imports: z.array(z.string()),
-                symbols: z.array(
+                headers: z.array(
                   z
                     .object({
                       name: z.string().min(1).max(1048576),
@@ -28,63 +28,6 @@ export const inventoryPublicationSchema = z
                       ]),
                       declaration: z.string(),
                       private: z.boolean(),
-                      references: z.array(z.string()),
-                      semantic: z
-                        .union([
-                          z
-                            .object({
-                              version: z.number().int().min(0).max(255),
-                              origin: z.literal("elaborated"),
-                              sentence: z.string(),
-                              refutation: z.string(),
-                              checker: z
-                                .object({
-                                  engine: z.string(),
-                                  status: z.enum([
-                                    "counterexample",
-                                    "predicate_false_example",
-                                    "not_found",
-                                    "gave_up",
-                                    "budget_exhausted",
-                                    "unavailable",
-                                    "unsupported",
-                                    "not_proposition",
-                                  ]),
-                                  candidates: z.array(z.string()),
-                                  diagnostic: z
-                                    .union([z.string(), z.null()])
-                                    .optional(),
-                                  seed: z
-                                    .union([z.number().int().min(0), z.null()])
-                                    .optional(),
-                                  numInst: z
-                                    .union([z.number().int().min(0), z.null()])
-                                    .optional(),
-                                  numRetries: z
-                                    .union([z.number().int().min(0), z.null()])
-                                    .optional(),
-                                  maxSize: z
-                                    .union([z.number().int().min(0), z.null()])
-                                    .optional(),
-                                  mode: z
-                                    .union([z.string(), z.null()])
-                                    .optional(),
-                                })
-                                .strict(),
-                              intermediate: z
-                                .union([z.string(), z.null()])
-                                .optional(),
-                              renderer: z
-                                .union([z.string(), z.null()])
-                                .optional(),
-                              rendering_error: z
-                                .union([z.string(), z.null()])
-                                .optional(),
-                            })
-                            .strict(),
-                          z.null(),
-                        ])
-                        .optional(),
                       main_theorem: z.boolean(),
                     })
                     .strict(),
@@ -94,6 +37,8 @@ export const inventoryPublicationSchema = z
               .strict(),
           )
           .max(250000),
+        navigation: z.string().regex(new RegExp("^sha256:[a-f0-9]{64}$")),
+        indexer: z.string().regex(new RegExp("^sha256:[a-f0-9]{64}$")),
         excluded: z.array(z.string()),
         inventory_only: z.boolean(),
       })

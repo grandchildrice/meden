@@ -3,7 +3,7 @@ import { expect, test, vi } from "vitest";
 import fc from "fast-check";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
-import type { WorkspaceOverview } from "@meden/agent-protocol/native";
+import type { NavigationInventory } from "./project-map-oracle";
 import {
   layoutInput,
   mapGeometry,
@@ -15,7 +15,7 @@ import {
 import { projectMap } from "./project-map-model";
 import { BrowserMapLayouts } from "../../adapters/map-layouts";
 
-function fixture(paths: string[]): WorkspaceOverview {
+function fixture(paths: string[]): NavigationInventory {
   return {
     generation: "1",
     excluded: [],

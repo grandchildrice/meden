@@ -1,6 +1,6 @@
 import { prepareMap, mapArea } from "./project-map-model";
 import { expect, test } from "vitest";
-import type { WorkspaceOverview } from "@meden/agent-protocol/native";
+import type { NavigationInventory } from "./project-map-oracle";
 import {
   declarationDetail,
   fade,
@@ -12,7 +12,7 @@ import {
 } from "./project-map-model";
 
 test("branch pruning preserves the visible areas and opacity of a full scan", () => {
-  const files: WorkspaceOverview["files"] = Array.from(
+  const files: NavigationInventory["files"] = Array.from(
     { length: 1200 },
     (_, i) => ({
       path: `src/Group${i % 12}/Part${i % 7}/File${i}.lean`,
@@ -38,9 +38,7 @@ test("branch pruning preserves the visible areas and opacity of a full scan", ()
   );
   const scene = projectMap(
     prepareMap({
-      generation: "0",
       files,
-      excluded: [],
       inventory_only: false,
     }),
   );
@@ -86,9 +84,7 @@ test("branch pruning preserves the visible areas and opacity of a full scan", ()
 test("large-directory batches retain original painter order and file identity across camera changes", () => {
   const scene = projectMap(
     prepareMap({
-      generation: "0",
       inventory_only: true,
-      excluded: [],
       files: Array.from({ length: 400 }, (_, i) => ({
         path: `src/F${i}.lean`,
         sha256: "fixture",
@@ -134,9 +130,7 @@ test("large-directory batches retain original painter order and file identity ac
 test("the legend follows visible declarations rather than distant or empty files", () => {
   const scene = projectMap(
     prepareMap({
-      generation: "0",
       inventory_only: false,
-      excluded: [],
       files: ["Empty.lean", "Proof.lean"].map((path, i) => ({
         path,
         sha256: "fixture",
@@ -183,9 +177,7 @@ test("the legend follows visible declarations rather than distant or empty files
 test("breadcrumbs enter a containing child only after its opacity exceeds one half", () => {
   const scene = projectMap(
     prepareMap({
-      generation: "0",
       inventory_only: false,
-      excluded: [],
       files: ["A/Inner/First.lean", "A/Second.lean", "B/Third.lean"].map(
         (path) => ({
           path,

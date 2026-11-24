@@ -20,7 +20,6 @@ import {
   type NativeReference,
   type NativeState,
   type HistorySnapshot,
-  type WorkspaceOverview,
   type InventoryPublication,
 } from "@meden/agent-protocol/native";
 import { ChatView } from "../features/chat/ChatView";
@@ -47,9 +46,16 @@ import Tune from "@mui/icons-material/Tune";
 import PlayArrow from "@mui/icons-material/PlayArrow";
 import Close from "@mui/icons-material/Close";
 import { useMapLayout } from "../features/native/useMapLayout";
-import { prepareMap, projectMap } from "../features/native/project-map-model";
+import {
+  prepareMap,
+  projectMap,
+  mapArea,
+  navigationReady,
+  type NavigationFile,
+} from "../features/native/project-map-model";
 import { NativeExplorer } from "../features/native/NativeExplorer";
 import { NativeWorkspaceGraph } from "../features/native/NativeWorkspaceGraph";
+import { NavigationCache } from "../features/native/navigation-cache";
 
 /** A single host workspace is attached; choosing another requires a new host launch. */
 import {
@@ -72,6 +78,7 @@ async function observePublication<T>(
 
 export function NativeApp({ token }: { token: string }) {
   const client = useMemo(() => new NativeClient(token), [token]);
+  const navigationCache = useMemo(() => new NavigationCache(), [client]);
   const [state, setState] = useState<NativeState>();
   const [history, setHistory] = useState<HistorySnapshot>();
   const historyData = history?.data;
@@ -101,7 +108,7 @@ export function NativeApp({ token }: { token: string }) {
   >(null);
   const [overviewView, setOverviewView] = useState<{
     original: InventoryPublication;
-    files: ReadonlyMap<string, WorkspaceOverview["files"][number]>;
+    files: ReadonlyMap<string, NavigationFile>;
   }>();
   const overview = overviewView?.original.data;
   const mapLayout = useMapLayout(overviewView?.original.data);
@@ -115,7 +122,12 @@ export function NativeApp({ token }: { token: string }) {
   const previousScene = useRef<ReturnType<typeof projectMap> | undefined>(
     undefined,
   );
-  const [overviewError, setOverviewError] = useState("");
+  const [navigationFailure, setNavigationError] = useState<{
+    path: string;
+    parent: string;
+    epoch: number;
+    message: string;
+  }>();
   const [overviewCycle, setOverviewCycle] = useState(0);
   const mapEpoch = useRef(0);
   const trackedTargets = useMemo(
@@ -435,6 +447,11 @@ export function NativeApp({ token }: { token: string }) {
   const observedInventory = useRef<string | undefined>(undefined);
   const currentInventory = useRef(inventoryRevision);
   currentInventory.current = inventoryRevision;
+  const navigationError =
+    navigationFailure?.parent === inventoryRevision &&
+    navigationFailure?.epoch === mapEpoch.current
+      ? navigationFailure
+      : undefined;
   useEffect(() => {
     if (
       !inventoryPublication ||
@@ -442,12 +459,18 @@ export function NativeApp({ token }: { token: string }) {
     )
       return;
     observedInventory.current = inventoryPublication.revision;
-    setOverviewView({
-      original: inventoryPublication,
-      files: new Map(),
-    });
-    setOverviewError("");
-  }, [inventoryPublication]);
+    const files = new Map<string, NavigationFile>();
+    for (const entry of inventoryPublication.data.files) {
+      if (!entry.indexed) continue;
+      const retained = navigationCache.replay(
+        inventoryPublication.data.indexer,
+        entry,
+      );
+      if (retained) files.set(entry.path, retained);
+    }
+    setOverviewView({ original: inventoryPublication, files });
+    setNavigationError(undefined);
+  }, [inventoryPublication, navigationCache]);
   useEffect(() => {
     if (approval) {
       const choice =
@@ -533,7 +556,7 @@ export function NativeApp({ token }: { token: string }) {
           mapEpoch.current++;
           setOverviewView(undefined);
           observedInventory.current = undefined;
-          setOverviewError("");
+          setNavigationError(undefined);
           setOverviewCycle((value) => value + 1);
         }
         if (generation === stateGeneration.current) setState(next);
@@ -612,6 +635,16 @@ export function NativeApp({ token }: { token: string }) {
         const chunk = await client.map(parent, path);
         if (mapEpoch.current !== epoch || currentInventory.current !== parent)
           return false;
+        for (const file of chunk.files)
+          if (mapIndex?.byPath.get(file.path)?.file)
+            navigationCache.remember(inventoryPublication!.data.indexer, file);
+        setNavigationError((previous) =>
+          previous?.path === path &&
+          previous.parent === parent &&
+          previous.epoch === epoch
+            ? undefined
+            : previous,
+        );
         setOverviewView((previous) => {
           if (
             mapEpoch.current !== epoch ||
@@ -622,21 +655,36 @@ export function NativeApp({ token }: { token: string }) {
             mapIndex.snapshot !== previous.original.data
           )
             return previous;
+          const updates = chunk.files.filter(
+            (file) =>
+              mapIndex.byPath.get(file.path)?.file &&
+              previous.files.get(file.path) !== file,
+          );
+          if (!updates.length) return previous;
           const files = new Map(previous.files);
-          for (const file of chunk.files)
-            if (mapIndex.byPath.get(file.path)?.file)
-              files.set(file.path, file);
+          for (const file of updates) files.set(file.path, file);
           return { ...previous, files };
         });
         return true;
       } catch (error) {
-        if (mapEpoch.current !== epoch) return false;
-        setOverviewError(`Could not index ${path}: ${String(error)}`);
+        if (mapEpoch.current !== epoch || currentInventory.current !== parent)
+          return false;
+        setNavigationError({
+          parent,
+          epoch,
+          path,
+          message: `Could not load navigation for ${path}: ${String(error)}`,
+        });
         return true;
       }
     },
-    [client, inventoryPublication, mapIndex],
+    [client, inventoryPublication, mapIndex, navigationCache],
   );
+  useEffect(() => {
+    if (!activeFile || !scene || navigationError?.path === activeFile) return;
+    const file = mapArea(scene, activeFile)?.file;
+    if (file && !navigationReady(file)) void indexMapFile(activeFile);
+  }, [activeFile, scene, indexMapFile, navigationError?.path]);
   const selectSymbol = useCallback(
     (symbol: Symbol) => {
       setSelectedSymbol(symbol);
@@ -1043,7 +1091,11 @@ export function NativeApp({ token }: { token: string }) {
             <div className="ide-stage">
               <div className="project-map-page" hidden={Boolean(activeFile)}>
                 <NativeWorkspaceGraph
-                  error={inventoryError || overviewError || mapLayout.error}
+                  error={
+                    inventoryError ||
+                    navigationError?.message ||
+                    mapLayout.error
+                  }
                   loading={Boolean(
                     (inventoryRevision &&
                       !inventoryPublication &&
@@ -1053,7 +1105,11 @@ export function NativeApp({ token }: { token: string }) {
                   onRetry={
                     inventoryError && inventoryRevision
                       ? () => inventories.retry(inventoryRevision)
-                      : undefined
+                      : navigationError
+                        ? () => {
+                            void indexMapFile(navigationError.path);
+                          }
+                        : undefined
                   }
                   active={!activeFile}
                   canIndex={
@@ -1064,6 +1120,10 @@ export function NativeApp({ token }: { token: string }) {
                     overviewView?.original.revision === currentInventory.current
                   }
                   onIndex={indexMapFile}
+                  requestGeneration={JSON.stringify([
+                    inventoryPublication?.revision,
+                    overviewCycle,
+                  ])}
                   scene={scene}
                   layoutRevision={mapLayout.prepared?.revision}
                   layoutSource={mapLayout.prepared?.source}

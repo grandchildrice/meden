@@ -3,7 +3,7 @@ import fc from "fast-check";
 import { mkdir, writeFile } from "node:fs/promises";
 import { cpus, platform, release } from "node:os";
 import { expect, test } from "vitest";
-import type { WorkspaceOverview } from "@meden/agent-protocol/native";
+import type { NavigationInventory } from "./project-map-oracle";
 import {
   declarationDetail,
   mapHasDeclarations,
@@ -17,7 +17,7 @@ import { scan, scanLocation } from "./project-map-oracle";
 
 function corpus(
   rows: Array<{ folders: number[]; count: number; main: boolean }>,
-): WorkspaceOverview {
+): NavigationInventory {
   return {
     generation: "0",
     excluded: [],

@@ -13,6 +13,7 @@ import {
   declarationDetail,
   mapHasDeclarations,
   mapAreaBatches,
+  navigationReady,
   mapLocation,
   visibleMapAreas,
   MAP_WIDTH,
@@ -289,6 +290,7 @@ function WorkspaceMap({
   onSelect,
   active,
   canIndex,
+  requestGeneration,
   onIndex,
   error,
   loading,
@@ -302,6 +304,7 @@ function WorkspaceMap({
   onSelect: (symbol: Symbol) => void;
   active: boolean;
   canIndex: boolean;
+  requestGeneration: string;
   onIndex: (path: string) => Promise<boolean>;
   error?: string;
   loading?: boolean;
@@ -321,38 +324,49 @@ function WorkspaceMap({
   );
   const initial = useRef<string | undefined>(undefined);
   const requested = useRef(new Set<string>());
-  const indexing = useRef(false);
+  const indexing = useRef<{ generation: string; path: string } | undefined>(
+    undefined,
+  );
+  const currentGeneration = useRef(requestGeneration);
+  currentGeneration.current = requestGeneration;
   useEffect(() => {
-    if (state.overview.state === "loading" || !state.overview.error)
-      requested.current.clear();
-  }, [state.overview.state, state.overview.error, state.overview.revision]);
+    requested.current.clear();
+  }, [requestGeneration]);
   useEffect(() => {
-    if (!active || !canIndex || !scene?.inventoryOnly || indexing.current)
+    if (
+      !active ||
+      !canIndex ||
+      !scene ||
+      indexing.current?.generation === requestGeneration
+    )
       return;
     const file = visible.find(
       ({ area, opacity }) =>
         area.file &&
-        !area.file.indexed &&
+        !navigationReady(area.file) &&
         opacity > 0.5 &&
         declarationDetail(area, camera.zoom, size) > 0.01 &&
         !requested.current.has(area.path),
     )?.area;
     if (!file) return;
+    const request = { generation: requestGeneration, path: file.path };
     // Declarations are already prepared on disk; zoom only reads that cache.
     const timer = setTimeout(() => {
-      indexing.current = true;
+      indexing.current = request;
       void onIndex(file.path)
         .then((accepted) => {
-          if (accepted) requested.current.add(file.path);
+          if (accepted && currentGeneration.current === request.generation)
+            requested.current.add(file.path);
         })
         .finally(() => {
-          indexing.current = false;
+          if (indexing.current === request) indexing.current = undefined;
         });
     }, 0);
     return () => clearTimeout(timer);
   }, [
     active,
     canIndex,
+    requestGeneration,
     scene,
     camera,
     size,

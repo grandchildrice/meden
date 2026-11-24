@@ -1,11 +1,19 @@
 # Graph interaction measurements
 
+The [inventory-heading comparison](performance/inventory-headings.md) records
+the current served event timings, initial map transfer and retained-tab budget.
+EthLib's prepared-map navigation median fell from 2.066 s to 0.749 s; Riemann's
+large file inventory remains a separate cost. The report also preserves the
+22.45 s cache-hit Riemann file preparation and remaining deep-zoom long tasks.
+The preceding [SVG placement comparison](performance/map-placement.md) isolates
+React sibling placement from those data and preparation costs.
+
 The [reference-lookup follow-up](performance/map-references.md) checks all
 212,283 original EthLib display edges and replaces repeated candidate filtering
 with immutable-construction-local indices. Its complete browser-navigation
 comparison is separate from the resolver-only performance gate.
 
-The [current event and startup audit](performance/map-events.md) separates
+The [earlier event and startup audit](performance/map-events.md) separates
 synchronous handlers, asynchronous declaration updates, initial map loading and
 native Lake/input preparation. Versioned geometry reuse reduces deep-zoom work;
 the report also retains the remaining startup overhead and reference-resolution

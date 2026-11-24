@@ -55,7 +55,13 @@ export type MapGeometry = { input: string; areas: MapBox[] };
 /** Only geometry dependencies enter this key. Chunk descriptions, symbols,
  * source bytes and tracked proof targets cannot relocate an existing box.
  */
-export function layoutInput(snapshot: WorkspaceOverview): LayoutInput {
+export type MapInput = Pick<WorkspaceOverview, "inventory_only"> & {
+  files: readonly Pick<
+    WorkspaceOverview["files"][number],
+    "path" | "declarations"
+  >[];
+};
+export function layoutInput(snapshot: MapInput): LayoutInput {
   if (snapshot.files.length > 250000)
     throw new Error("Map inventory exceeds its file budget");
   const files = snapshot.files

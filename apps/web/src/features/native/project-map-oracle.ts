@@ -7,6 +7,13 @@ import {
   type MapScene,
 } from "./project-map-model";
 
+export type NavigationInventory = {
+  generation: string;
+  excluded: string[];
+  inventory_only: boolean;
+  files: import("./project-map-model").NavigationFile[];
+};
+
 // Deliberately scan every area, without the production parent/children index.
 export function scan(
   scene: MapScene,

@@ -58,7 +58,7 @@ impl std::ops::Deref for Snapshot {
 }
 impl Snapshot {
     fn new(captured: Captured) -> Result<Self> {
-        let data = inventory::Snapshot {
+        let data = inventory::Input {
             generation: captured.generation.to_string(),
             files: captured
                 .files
@@ -67,6 +67,7 @@ impl Snapshot {
                 .collect::<Result<_>>()?,
             excluded: captured.excluded.iter().map(ToString::to_string).collect(),
             inventory_only: captured.inventory_only,
+            indexer: format!("sha256:{}", crate::adapters::source::identity()),
         };
         let prepared = inventory::Prepared::new(&data)?;
         let chunks = Mutex::new(inventory::Chunks::new(prepared.reference().clone())?);

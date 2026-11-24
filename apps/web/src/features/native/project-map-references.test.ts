@@ -3,7 +3,7 @@ import { expect, test } from "vitest";
 import fc from "fast-check";
 import { createHash } from "node:crypto";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
-import { inventoryPublicationSchema } from "@meden/agent-protocol/native";
+import { inventoryChunkSchema } from "@meden/agent-protocol/native";
 import { referenceEdges, type ReferenceSymbol } from "./project-map-references";
 import { projectMap } from "./project-map-model";
 
@@ -238,13 +238,42 @@ if (process.env.MEDEN_PERFORMANCE === "1")
 if (process.env.MEDEN_REFERENCE_WORKLOAD)
   test("complete captured inventory retains the original reference graph", async () => {
     const body = await readFile(process.env.MEDEN_REFERENCE_WORKLOAD!, "utf8"),
-      publication = inventoryPublicationSchema.parse(JSON.parse(body));
-    const before = JSON.stringify(publication),
-      scene = projectMap(prepareMap(publication.data));
+      publication = JSON.parse(body),
+      files = inventoryChunkSchema.shape.data.shape.files.element
+        .array()
+        .max(250000)
+        .parse(publication.data.files);
+    const before = JSON.stringify(files),
+      scene = projectMap(
+        prepareMap({
+          files,
+          inventory_only: Boolean(publication.data.inventory_only),
+        }),
+      );
     expect(scene.edges).toEqual(scanReferences(scene.symbols));
+    const summary = {
+      inventory_only: Boolean(publication.data.inventory_only),
+      files: files.map(({ symbols, ...file }) => ({
+        ...file,
+        headers: symbols.map(
+          ({ references: _, semantic: __, ...header }) => header,
+        ),
+      })),
+    };
+    const initial = projectMap(prepareMap(summary, scene.index.geometry)),
+      loaded = projectMap(
+        initial.index,
+        new Set(),
+        new Map(files.map((file) => [file.path, file])),
+        initial,
+      );
+    expect(initial.edges).toEqual([]);
+    expect(loaded.edges).toEqual(scene.edges);
+    expect([...loaded.symbols]).toEqual([...scene.symbols]);
+
     await compare(
       scene.symbols,
       process.env.MEDEN_PERF_OUT || "target/performance/actual-references",
     );
-    expect(JSON.stringify(publication)).toBe(before);
+    expect(JSON.stringify(files)).toBe(before);
   }, 120000);

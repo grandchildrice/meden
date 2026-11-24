@@ -19,6 +19,7 @@ export type { FileView } from "./file.generated";
 
 export { inventoryPublicationSchema } from "./inventory-publication.generated";
 export { inventoryChunkSchema } from "./inventory-chunk.generated";
+export type { InventoryChunk } from "./inventory-chunk.generated";
 export type { InventoryPublication } from "./inventory-publication.generated";
 export type { InventorySnapshot as WorkspaceOverview } from "./inventory.generated";
 

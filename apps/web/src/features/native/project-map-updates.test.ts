@@ -1,17 +1,19 @@
 import { expect, test } from "vitest";
 import fc from "fast-check";
-import type { WorkspaceOverview } from "@meden/agent-protocol/native";
+import type { NavigationInventory } from "./project-map-oracle";
 import {
   prepareMap,
   projectMap,
   mapArea,
   visibleMapAreas,
   mapLocation,
+  navigationReady,
+  type MapFile,
   type MapScene,
 } from "./project-map-model";
 import { scan, scanLocation } from "./project-map-oracle";
 
-function fixture(count: number, inventoryOnly = true): WorkspaceOverview {
+function fixture(count: number, inventoryOnly = true): NavigationInventory {
   return {
     generation: "0",
     excluded: [],
@@ -28,14 +30,10 @@ function fixture(count: number, inventoryOnly = true): WorkspaceOverview {
     })),
   };
 }
-function observe(
-  file: WorkspaceOverview["files"][number],
-  count: number,
-  step: number,
-  hidden = false,
-) {
+function observe(file: MapFile, count: number, step: number, hidden = false) {
   return {
-    ...file,
+    path: file.path,
+    imports: file.imports,
     sha256: "observation-" + step,
     bytes: String(10 + count),
     indexed: true,
@@ -61,7 +59,6 @@ function outcome(scene: MapScene) {
     edgesByFile: [...scene.edgesByFile],
     pins: scene.mainPins,
     maxZoom: scene.maxZoom,
-    inventoryOnly: scene.inventoryOnly,
   };
 }
 
@@ -69,6 +66,7 @@ test("finite file/target update traces match fresh complete projection without c
   fc.assert(
     fc.property(
       fc.integer({ min: 1, max: 14 }),
+      fc.boolean(),
       fc.boolean(),
       fc.array(
         fc.record({
@@ -80,16 +78,26 @@ test("finite file/target update traces match fresh complete projection without c
         }),
         { minLength: 1, maxLength: 35 },
       ),
-      (count, inventoryOnly, updates) => {
-        const original = fixture(count, inventoryOnly),
+      (count, inventoryOnly, summarized, updates) => {
+        const source = fixture(count, inventoryOnly);
+        const original = {
+            ...source,
+            files: source.files.map((file, i): MapFile => {
+              if (!summarized) return file;
+              const { symbols, ...metadata } = observe(file, 2, i, i % 2 === 0);
+              return {
+                ...metadata,
+                headers: symbols.map(
+                  ({ references: _, semantic: __, ...header }) => header,
+                ),
+              };
+            }),
+          },
           initial = JSON.stringify(original),
           index = prepareMap(original);
         let scene = projectMap(index),
           current = original.files.slice();
-        const cumulative = new Map<
-          string,
-          WorkspaceOverview["files"][number]
-        >();
+        const cumulative = new Map<string, MapFile>();
         for (const [step, event] of updates.entries()) {
           const before = JSON.stringify(outcome(scene)),
             previous = scene,
@@ -184,4 +192,43 @@ test("empty/repeated observations and out-of-inventory dependencies do not alter
     projectMap(index, new Set(), new Map([["wrong", first]]), before),
   ).toThrow("does not match its path");
   expect(index.snapshot).toBe(original);
+});
+
+test("overview headings retain all roles and positions while complete cached navigation arrives separately", () => {
+  const source = fixture(2, false);
+  source.files = source.files.map((file, i) => observe(file, 2, i));
+  const summary = {
+    inventory_only: source.inventory_only,
+    files: source.files.map(({ symbols, ...file }) => ({
+      ...file,
+      headers: symbols.map(
+        ({ references: _, semantic: __, ...header }) => header,
+      ),
+    })),
+  };
+  const index = prepareMap(summary),
+    initial = projectMap(index),
+    complete = projectMap(prepareMap(source, index.geometry));
+  expect(initial.edges).toEqual([]);
+  expect(
+    [...initial.symbols.values()].map(
+      ({ references: _, semantic: __, ...s }) => s,
+    ),
+  ).toEqual(
+    [...complete.symbols.values()].map(
+      ({ references: _, semantic: __, ...s }) => s,
+    ),
+  );
+  expect(navigationReady(mapArea(initial, source.files[0]!.path)!.file!)).toBe(
+    false,
+  );
+  const files = new Map(source.files.map((file) => [file.path, file]));
+  const loaded = projectMap(index, new Set(), files, initial);
+  expect(outcome(loaded)).toEqual(outcome(complete));
+  expect(navigationReady(mapArea(loaded, source.files[0]!.path)!.file!)).toBe(
+    true,
+  );
+  // A completed response may explicitly report an unreadable source.
+  expect(navigationReady(fixture(1).files[0]!)).toBe(true);
+  expect(initial.edges).toEqual([]);
 });

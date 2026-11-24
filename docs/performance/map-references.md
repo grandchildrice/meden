@@ -48,4 +48,11 @@ MEDEN_REFERENCE_WORKLOAD=/private/original-inventory.json \
   --maxWorkers=1 --minWorkers=1
 ```
 
-The private-workload option validates a complete original inventory publication through the generated schema. It runs the actual scene projection, compares all original edges, retains the output hash and verifies input immutability. It is separate from the CI workload and makes no inference requests. Browser capture commands and their observation limits are documented in [the event audit](map-events.md) and [profiling tools](../../tools/perf/README.md).
+The private-workload option validates original complete-file records through the
+generated navigation schema. Supply a complete original navigation capture;
+the current overview contains headings separately. The harness runs the actual
+scene projection and heading/detail replay, compares all original edges, retains
+the output hash and verifies input immutability. It is separate from the CI
+workload and makes no inference requests. Browser capture commands and their
+observation limits are documented in [the event audit](map-events.md) and
+[profiling tools](../../tools/perf/README.md).

@@ -145,7 +145,95 @@ impl File {
         Ok(())
     }
 }
-/// Complete bounded inventory projection; individual prepared chunks may enrich it.
+/// Complete original navigation inputs retained by the host, never the overview body.
+#[derive(Clone, Serialize)]
+pub struct Input {
+    /// Original cache generation.
+    pub generation: String,
+    /// Complete original file observations, including references and explanations.
+    pub files: Vec<File>,
+    /// Original excluded directory names.
+    pub excluded: Vec<String>,
+    /// Original geometry weighting policy.
+    pub inventory_only: bool,
+    /// Actual deterministic lexical implementation, distinct from compiler identity.
+    pub indexer: String,
+}
+
+/// Declaration identity and role, without dependency strings or descriptions.
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct Header {
+    /// Original observed name.
+    #[schemars(length(min = 1, max = 1_048_576))]
+    pub name: String,
+    /// Original one-based source line.
+    #[schemars(range(min = 1, max = 1_048_577))]
+    pub line: u32,
+    /// Presentation role without a proof assertion.
+    pub kind: Kind,
+    /// Original declaration spelling.
+    pub declaration: String,
+    /// Lexically observed visibility.
+    pub private: bool,
+    /// Original target metadata, never a proof receipt.
+    pub main_theorem: bool,
+}
+impl From<&Symbol> for Header {
+    fn from(symbol: &Symbol) -> Self {
+        Self {
+            name: symbol.name.clone(),
+            line: symbol.line,
+            kind: symbol.kind.clone(),
+            declaration: symbol.declaration.clone(),
+            private: symbol.private,
+            main_theorem: symbol.main_theorem,
+        }
+    }
+}
+
+/// Complete file metadata and declaration headings. Details use a separate query.
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct Entry {
+    /// Original relative path.
+    #[schemars(length(min = 1, max = 4096))]
+    pub path: String,
+    /// Original complete text digest, empty for unindexed entries.
+    #[schemars(regex(pattern = r"^(?:[a-f0-9]{64})?$"))]
+    pub sha256: String,
+    /// Original lossless byte count.
+    #[schemars(regex(pattern = r"^(0|[1-9][0-9]{0,19})$"))]
+    pub bytes: String,
+    /// Original lexical declaration count.
+    #[schemars(range(max = 1_048_576))]
+    pub declarations: u32,
+    /// Original lexical theorem count.
+    #[schemars(range(max = 1_048_576))]
+    pub theorems: u32,
+    /// Original import name candidates.
+    pub imports: Vec<String>,
+    /// All observed declaration identities and roles, without references/descriptions.
+    pub headers: Vec<Header>,
+    /// Whether complete lexical navigation was prepared on the host.
+    pub indexed: bool,
+}
+impl From<&File> for Entry {
+    fn from(file: &File) -> Self {
+        Self {
+            path: file.path.clone(),
+            sha256: file.sha256.clone(),
+            bytes: file.bytes.clone(),
+            declarations: file.declarations,
+            theorems: file.theorems,
+            imports: file.imports.clone(),
+            headers: file.symbols.iter().map(Header::from).collect(),
+            indexed: file.indexed,
+        }
+    }
+}
+
+/// Bounded overview projection; complete navigation stays prepared on the host.
 #[derive(Clone, Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Snapshot {
@@ -155,7 +243,13 @@ pub struct Snapshot {
     pub generation: String,
     /// Complete source inventory, in canonical path order.
     #[schemars(length(max = 250_000))]
-    pub files: Vec<File>,
+    pub files: Vec<Entry>,
+    /// Binds original declaration details; the envelope also binds all metadata.
+    #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
+    pub navigation: String,
+    /// Original lexical implementation identity for source-bound candidate reuse.
+    #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
+    pub indexer: String,
     /// Explicitly excluded directory names.
     pub excluded: Vec<String>,
     /// Large inventories load already-prepared navigation in bounded chunks.
@@ -177,8 +271,9 @@ pub struct Chunk {
 pub struct Prepared(Publication);
 impl Prepared {
     /// Validate the complete projection and serialize it once outside host locks.
-    pub fn new(snapshot: &Snapshot) -> Result<Self> {
+    pub fn new(snapshot: &Input) -> Result<Self> {
         let _timing = meden_runtime::metrics::Span::start("view.inventory.materialize");
+        validate_revision(&snapshot.indexer)?;
         anyhow::ensure!(
             snapshot.files.len() <= 250_000
                 && snapshot.files.windows(2).all(|p| p
@@ -195,10 +290,36 @@ impl Prepared {
             generation.to_string() == snapshot.generation,
             "Invalid inventory generation"
         );
-        Ok(Self(Publication::new(
-            b"meden.inventory.view.v1\0",
-            snapshot,
-        )?))
+        #[derive(Serialize)]
+        struct Details<'a> {
+            path: &'a str,
+            symbols: &'a [Symbol],
+        }
+        // Empty declaration vectors are represented completely by empty headings.
+        // Do not serialize every path/metadata field a second time just to bind
+        // the omitted reference and description records.
+        let details = snapshot
+            .files
+            .iter()
+            .filter(|file| !file.symbols.is_empty())
+            .map(|file| Details {
+                path: &file.path,
+                symbols: &file.symbols,
+            })
+            .collect::<Vec<_>>();
+        let navigation = Publication::new(b"meden.inventory.details.v1\0", &details)?
+            .reference()
+            .revision
+            .clone();
+        let data = Snapshot {
+            generation: snapshot.generation.clone(),
+            files: snapshot.files.iter().map(Entry::from).collect(),
+            navigation,
+            indexer: snapshot.indexer.clone(),
+            excluded: snapshot.excluded.clone(),
+            inventory_only: snapshot.inventory_only,
+        };
+        Ok(Self(Publication::new(b"meden.inventory.view.v2\0", &data)?))
     }
     /// Small status identity; it confers no execution/evidence authority.
     pub fn reference(&self) -> &Reference {
@@ -343,12 +464,13 @@ mod tests {
             indexed: false,
         }
     }
-    fn input(files: Vec<File>) -> Snapshot {
-        Snapshot {
+    fn input(files: Vec<File>) -> Input {
+        Input {
             generation: "0".into(),
             files,
             excluded: vec!["target".into()],
             inventory_only: true,
+            indexer: format!("sha256:{}", "0".repeat(64)),
         }
     }
     #[test]
@@ -386,6 +508,92 @@ mod tests {
         let mut false_index = unread("wrong.lean");
         false_index.declarations = 1;
         assert!(Prepared::new(&input(vec![false_index])).is_err());
+        Ok(())
+    }
+    #[test]
+    fn overview_omits_details_but_binds_every_original_reference() -> Result<()> {
+        let mut original = input(vec![File {
+            path: "A.lean".into(),
+            sha256: "a".repeat(64),
+            bytes: "100".into(),
+            declarations: 1,
+            theorems: 1,
+            imports: vec!["B".into()],
+            indexed: true,
+            symbols: vec![Symbol {
+                name: "A.claim".into(),
+                line: 3,
+                kind: Kind::Theorem,
+                declaration: "lemma".into(),
+                private: true,
+                references: vec!["B.original".into()],
+                semantic: None,
+                main_theorem: true,
+            }],
+        }]);
+        let first = Prepared::new(&original)?;
+        let first_id = &first.reference().revision;
+        let bytes = first.bytes(first_id).context("original overview")?;
+        let data: serde_json::Value = serde_json::from_slice(&bytes)?;
+        let file = &data["data"]["files"][0];
+        assert!(file.get("symbols").is_none());
+        let header = &file["headers"][0];
+        assert_eq!(header["name"], "A.claim");
+        assert_eq!(header["line"], 3);
+        assert_eq!(header["declaration"], "lemma");
+        assert_eq!(header["private"], true);
+        assert_eq!(header["main_theorem"], true);
+        assert!(header.get("references").is_none());
+        assert!(header.get("semantic").is_none());
+        original.files[0].symbols[0].references[0] = "B.changed".into();
+        let next = Prepared::new(&original)?;
+        let updated: serde_json::Value = serde_json::from_slice(
+            &next
+                .bytes(&next.reference().revision)
+                .context("next overview")?,
+        )?;
+        assert_eq!(data["data"]["files"], updated["data"]["files"]);
+        assert_ne!(data["data"]["navigation"], updated["data"]["navigation"]);
+        assert_ne!(first_id, &next.reference().revision);
+        assert!(next.bytes(first_id).is_none());
+        original.indexer = format!("sha256:{}", "1".repeat(64));
+        let changed_indexer = Prepared::new(&original)?;
+        assert_ne!(
+            next.reference().revision,
+            changed_indexer.reference().revision
+        );
+        original.indexer = "unknown".into();
+        assert!(Prepared::new(&original).is_err());
+        original.indexer = format!("sha256:{}", "1".repeat(64));
+        assert!(Arc::ptr_eq(
+            &bytes,
+            &first.bytes(first_id).context("retained overview")?
+        ));
+        original.files[0].symbols[0].line = 0;
+        assert!(Prepared::new(&original).is_err());
+        Ok(())
+    }
+    #[test]
+    fn metadata_without_declarations_is_bound_by_the_overview_not_repeated_in_details() -> Result<()>
+    {
+        let mut original = input(vec![unread("A.lean")]);
+        let first = Prepared::new(&original)?;
+        let data: serde_json::Value = serde_json::from_slice(
+            &first
+                .bytes(&first.reference().revision)
+                .context("first metadata")?,
+        )?;
+        original.files[0].bytes = "7".into();
+        let next = Prepared::new(&original)?;
+        let updated: serde_json::Value = serde_json::from_slice(
+            &next
+                .bytes(&next.reference().revision)
+                .context("updated metadata")?,
+        )?;
+        assert_eq!(data["data"]["navigation"], updated["data"]["navigation"]);
+        assert_ne!(data["data"]["files"], updated["data"]["files"]);
+        assert_ne!(first.reference().revision, next.reference().revision);
+        assert!(next.bytes(&first.reference().revision).is_none());
         Ok(())
     }
     #[test]

@@ -40,6 +40,10 @@ export class NativeHttpError extends Error {
 /** Same-origin native adapter. Tokens never enter workspace/history exports. */
 export class NativeClient {
   private readonly token: string;
+  private readonly mapReads = new Map<
+    string,
+    ReturnType<NativeClient["readMap"]>
+  >();
   constructor(token: string) {
     this.token = token;
   }
@@ -214,7 +218,19 @@ export class NativeClient {
       signal,
     );
   }
-  async map(revision: string, path: string) {
+  map(revision: string, path: string) {
+    const key = JSON.stringify([revision, path]);
+    const existing = this.mapReads.get(key);
+    if (existing) return existing;
+    const read = this.readMap(revision, path);
+    this.mapReads.set(key, read);
+    const clear = () => {
+      if (this.mapReads.get(key) === read) this.mapReads.delete(key);
+    };
+    void read.then(clear, clear);
+    return read;
+  }
+  private async readMap(revision: string, path: string) {
     const chunk = inventoryChunkSchema.parse(
       await this.request(
         "/api/map?inventory=" +
@@ -248,14 +264,15 @@ export class NativeClient {
       credentials: "omit",
       cache: "no-store",
     });
-    const value: unknown = await response.json();
-    if (!response.ok)
+    if (!response.ok) {
+      const value: unknown = await response.json().catch(() => undefined);
       throw new NativeHttpError(
         response.status,
         typeof value === "object" && value && "error" in value
           ? String(value.error)
           : "Native session unavailable",
       );
-    return value;
+    }
+    return response.json();
   }
 }

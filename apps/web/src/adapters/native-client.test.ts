@@ -317,7 +317,11 @@ test("inventory and navigation reads bind exact publications and original parent
     revision,
     data: {
       generation: "0",
-      files: [file],
+      files: [{ ...file, headers: [] }].map(
+        ({ symbols: _, ...entry }) => entry,
+      ),
+      navigation: revision,
+      indexer: revision,
       excluded: [],
       inventory_only: true,
     },
@@ -346,6 +350,38 @@ test("inventory and navigation reads bind exact publications and original parent
   await expect(
     client.map("sha256:" + "d".repeat(64), "A.lean"),
   ).rejects.toThrow("does not match");
+});
+
+test("concurrent navigation reads share one request and a failed transfer can retry", async () => {
+  const file = {
+    path: "A.lean",
+    sha256: "",
+    bytes: "0",
+    declarations: 0,
+    theorems: 0,
+    indexed: false,
+    imports: [],
+    symbols: [],
+  };
+  let respond!: (response: Response) => void;
+  const fetch = vi.fn(
+    () =>
+      new Promise<Response>((resolve) => {
+        respond = resolve;
+      }),
+  );
+  vi.stubGlobal("fetch", fetch);
+  const client = new NativeClient("session"),
+    first = client.map(revision, "A.lean"),
+    same = client.map(revision, "A.lean");
+  expect(same).toBe(first);
+  expect(fetch).toHaveBeenCalledTimes(1);
+  respond(new Response("transfer failed", { status: 503 }));
+  await expect(first).rejects.toBeInstanceOf(NativeHttpError);
+  const retry = client.map(revision, "A.lean");
+  expect(fetch).toHaveBeenCalledTimes(2);
+  respond(Response.json({ revision, data: { revision, files: [file] } }));
+  expect((await retry).files).toEqual([file]);
 });
 
 test("reader queries bind complete literal text to an exact publication", async () => {
