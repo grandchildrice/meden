@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NativeSequence",
+  "type": "string",
+  "format": "meden-positive-u64",
+  "pattern": "^[1-9][0-9]{0,19}$",
+  "maxLength": 20
+}

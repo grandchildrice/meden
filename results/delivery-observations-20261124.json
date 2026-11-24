@@ -1,0 +1,1088 @@
+{
+  "date": "2026-11-24",
+  "source_base_revision": "615838b43bc0a101d1c53233d7daef8735464458",
+  "scope": "Shared immutable export proposals, application-owned native review selection and generated delivery observations with exact positive-u64 transport. Native root/connections/remaining commands, broader job views and versioned layout/order/retirement remain open.",
+  "candidate": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/f04ca2c40a6aaa98dd60b11c4947a11ec60e49d39f3c06da8368aa0b8854a20c/meden",
+    "sha256": "f04ca2c40a6aaa98dd60b11c4947a11ec60e49d39f3c06da8368aa0b8854a20c"
+  },
+  "deployment": {
+    "binary_sha256": "f04ca2c40a6aaa98dd60b11c4947a11ec60e49d39f3c06da8368aa0b8854a20c",
+    "assets_sha256": "002fabe057fffe7ceeb183a7b0e21f343515b08f75ccdd1940728a0c3937be64",
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/f04ca2c40a6aaa98dd60b11c4947a11ec60e49d39f3c06da8368aa0b8854a20c-002fabe057fffe7c"
+  },
+  "ownership": {
+    "proposals": "Moved CLI exports.rs into meden-app and deleted original implementation; TUI/protocol share that queue and proposal-only model registration.",
+    "review": "Application owns native selected original session/entry/serial and consumes the selection before comparison or send. CLI only interprets commands and projects observations.",
+    "authority": "Existing project/kernel keeps frozen request, host origin, freshness, reservation and at-most-once transport. Core/runtime authorization and their proof inputs are unchanged.",
+    "observations": "Generated application DTOs replace handwritten native delivery validators. Original observed phases project through a closed enum; the original kernel phase still owns transitions."
+  },
+  "protocol": {
+    "sequence": "Canonical positive-u64 decimal strings in Rust and generated browser validators, including exact u64::MAX. Shared with accepted-contract revisions; no numeric or leading-zero compatibility path.",
+    "queue_entries": 8,
+    "maximum_observation_payload_bytes": 16777216,
+    "page_bytes": 2048,
+    "http_status_range": [
+      100,
+      999
+    ],
+    "native_schemas": 35,
+    "generated_files": 70,
+    "remaining": "Native root and remaining commands still handwritten; delivery descriptions remain inline at operation boundaries."
+  },
+  "checks": {
+    "gates": [
+      {
+        "phase": "rust",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "clippy",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "rustdoc",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "typecheck",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "typescript",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "architecture",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "format",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "schema",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "corpus",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "algorithm-budget",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "negative-control",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "tui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "gui-all",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "budget-normal",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "budget-reduced",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "additional": [
+      {
+        "phase": "public-tui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "cli-delivery",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "python-lint",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "terminal": [
+      {
+        "unit": "meden-delivery-v2-validation.service",
+        "ActiveState": "active",
+        "SubState": "exited",
+        "MainPID": "0",
+        "ExecMainStatus": "0"
+      },
+      {
+        "unit": "meden-delivery-tui-final.service",
+        "ActiveState": "active",
+        "SubState": "exited",
+        "MainPID": "0",
+        "ExecMainStatus": "0"
+      }
+    ],
+    "rust": 328,
+    "typescript": 42,
+    "architecture": {
+      "tests": 26,
+      "owned_sources": 45
+    },
+    "tui": {
+      "passed": 35,
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/validation-bin/f04ca2c40a6aaa98dd60b11c4947a11ec60e49d39f3c06da8368aa0b8854a20c/meden",
+        "sha256": "f04ca2c40a6aaa98dd60b11c4947a11ec60e49d39f3c06da8368aa0b8854a20c"
+      },
+      "decoded_screens": "/tmp/meden-ux-delivery-final-20261124",
+      "inspected": [
+        "fixed destination/method and original binary bytes",
+        "clipped heading refuses approval",
+        "rejection and terminal replay refusal",
+        "reopened finite project requires fresh model review"
+      ]
+    },
+    "browser": [
+      {
+        "report": "target/gui-delivery-v2-all-report",
+        "stats": {
+          "total": 68,
+          "expected": 68,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "navigation": {
+          "browser": "149.0.7827.53",
+          "motion": "reduce",
+          "cold_analysis_store_preparation_ms": 42953.836409,
+          "warm_tab_two_raf_ms": [
+            29,
+            26.80000001192093,
+            25.5,
+            24.30000001192093,
+            30.799999952316284,
+            33.69999998807907,
+            34,
+            22.5,
+            28.399999976158142,
+            33.69999998807907
+          ],
+          "p95_ms": 34,
+          "maximum_p95_ms": 250,
+          "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+        }
+      },
+      {
+        "report": "target/gui-delivery-v2-budget-normal-report",
+        "stats": {
+          "total": 2,
+          "expected": 2,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "navigation": {
+          "browser": "149.0.7827.53",
+          "motion": "no-preference",
+          "cold_analysis_store_preparation_ms": 40240.266199,
+          "warm_tab_two_raf_ms": [
+            21.200000047683716,
+            29.5,
+            28,
+            24.400000035762787,
+            20.400000035762787,
+            26.80000001192093,
+            36,
+            25,
+            20.399999976158142,
+            26.19999998807907
+          ],
+          "p95_ms": 36,
+          "maximum_p95_ms": 250,
+          "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+        }
+      },
+      {
+        "report": "target/gui-delivery-v2-budget-reduced-report",
+        "stats": {
+          "total": 2,
+          "expected": 2,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "navigation": {
+          "browser": "149.0.7827.53",
+          "motion": "reduce",
+          "cold_analysis_store_preparation_ms": 36061.19645,
+          "warm_tab_two_raf_ms": [
+            24,
+            22.80000001192093,
+            28.399999976158142,
+            23.799999952316284,
+            26.599999964237213,
+            24.899999976158142,
+            32,
+            26.5,
+            33.89999997615814,
+            28.100000023841858
+          ],
+          "p95_ms": 33.89999997615814,
+          "maximum_p95_ms": 250,
+          "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+        }
+      }
+    ],
+    "cli_delivery": {
+      "passed": 2,
+      "actual_loopback_receivers": true
+    },
+    "corpus": {
+      "seed": 20261123,
+      "runs": 3000,
+      "passed": true
+    },
+    "algorithm_budget": {
+      "median_ratio": 0.00029528153203057654,
+      "maximum_ratio": 0.35
+    },
+    "negative_control": {
+      "median_ratio": 1.0026882565997828,
+      "maximum_ratio": 0.35,
+      "rejected_at_original_ratio_assertion": true
+    }
+  },
+  "regressions": [
+    "Original binary payload survives subsequent workspace edits and paging; exact target and hash stay fixed.",
+    "Numeric, leading-zero and overflowing native serials and index 8 are rejected before worker admission, retain the selected review and send nothing.",
+    "Stale selected review consumes readiness; mismatched session/index and exact full-u64 comparisons are separately checked in pure application tests.",
+    "Actual native delivery sends once, refuses replay, rejects another proposal, does not follow redirects, keeps uncertain attempts terminal and restarts with no old queue.",
+    "Required public TUI now includes the actual frozen-delivery/heading/input/replay journey; no fixture decoder or private configuration rescue replaces its PTY."
+  ],
+  "actual_projects": [
+    {
+      "project": "riemann",
+      "pid": 2103392,
+      "binary_sha256": "f04ca2c40a6aaa98dd60b11c4947a11ec60e49d39f3c06da8368aa0b8854a20c",
+      "cache_hit": true,
+      "preparation_ms": 23221.646905,
+      "source_publication": "sha256:4671471a8580f25a42b2117fcc7cf5a8d25988b715b1a40cbb17b77e006bfa94",
+      "source_hash": "2063f4c8792707349ba4b3d295e779c565a63030790aae9d937d5f776d8d9184",
+      "reader_publication": "sha256:d3bca7c0ce21989bef612ac79475e72da33062b4140b13dfe87bbaf183a61be8",
+      "reader_hash": "d2c21198aaff30504f16966ddf61ce628ef7ac8632c62be3195b4e4f72e41806",
+      "inventory_files": 175187,
+      "metadata_hash": "5875c3c3432ddda379f8caf8ed411b77d30701443e5da912442935a296c3ae7a",
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "node_selection_preserves_camera_chat_and_source_line": true,
+      "selected_declaration": "PIW.AdelClassFin.DictGen.denom",
+      "verification_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "preview": {
+        "state": "idle"
+      },
+      "preview_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    },
+    {
+      "project": "ethlib",
+      "pid": 2103612,
+      "binary_sha256": "f04ca2c40a6aaa98dd60b11c4947a11ec60e49d39f3c06da8368aa0b8854a20c",
+      "cache_hit": true,
+      "preparation_ms": 2121.115082999997,
+      "source_publication": "sha256:c9a67ef7faab77791ab7d84fad5d7176476d3b7d5320d9f95f155b117b57e86b",
+      "source_hash": "ac220adb7270df17b304574138f8894ec78d92bc7a85c5e2e0e745edc885bb09",
+      "reader_publication": "sha256:0b79b28ff3aa227731108c7cde50cf54fa06cc447922756668b1197473b0d3ac",
+      "reader_hash": "60e647749624e65341239c16878edafe3083f1a0b0ba7ab0587b82511d80dd36",
+      "inventory_files": 2517,
+      "metadata_hash": "59b98c2e15f2f590463873351344a08a59e4aa3854a7dfb1779e635a680cb32f",
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "node_selection_preserves_camera_chat_and_source_line": true,
+      "selected_declaration": "EthLib.Networking.Gossip.GossipsubParameters",
+      "verification_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "preview": {
+        "state": "idle"
+      },
+      "preview_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip/Parameters.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    }
+  ],
+  "response_probe": {
+    "actual_hosts": [
+      {
+        "body": "wire-probe",
+        "project": "riemann",
+        "pid": 1943052,
+        "bytes": 111,
+        "responses": {
+          "n": 72,
+          "wall_us": {
+            "min": 19,
+            "max": 590
+          }
+        },
+        "new_application_jobs": 0,
+        "new_analysis_materializations": 0,
+        "new_evidence_materializations": 0,
+        "modes": [
+          {
+            "mode": "new-connection",
+            "total_ms": {
+              "n": 20,
+              "min": 0.3495630000000034,
+              "p50": 0.6895039999999995,
+              "p95": 1.3037509999999912,
+              "max": 1.3054479999999984
+            },
+            "headers_ms": {
+              "n": 20,
+              "min": 0.3077130000000068,
+              "p50": 0.600428000000008,
+              "p95": 1.196393999999998,
+              "max": 1.2304749999999984
+            },
+            "body_ms": {
+              "n": 20,
+              "min": 0.036777000000000726,
+              "p50": 0.06832899999999142,
+              "p95": 0.16574599999999862,
+              "max": 0.42662099999999725
+            }
+          },
+          {
+            "mode": "one-keepalive",
+            "total_ms": {
+              "n": 20,
+              "min": 0.19593499999999153,
+              "p50": 0.34306399999999826,
+              "p95": 0.46519899999999836,
+              "max": 0.5039139999999946
+            },
+            "headers_ms": {
+              "n": 20,
+              "min": 0.14659899999999482,
+              "p50": 0.2553890000000081,
+              "p95": 0.42996300000000076,
+              "max": 0.4445840000000061
+            },
+            "body_ms": {
+              "n": 20,
+              "min": 0.03501500000000135,
+              "p50": 0.049014999999997144,
+              "p95": 0.09495499999999879,
+              "max": 0.09497700000000009
+            }
+          },
+          {
+            "mode": "fetch",
+            "total_ms": {
+              "n": 20,
+              "min": 0.3279060000000129,
+              "p50": 0.6269980000000004,
+              "p95": 1.020707999999999,
+              "max": 1.343311
+            },
+            "headers_ms": {
+              "n": 20,
+              "min": 0.2742760000000146,
+              "p50": 0.5195509999999786,
+              "p95": 0.7709449999999975,
+              "max": 1.1409979999999962
+            },
+            "body_ms": {
+              "n": 20,
+              "min": 0.052160999999983915,
+              "p50": 0.08911399999999503,
+              "p95": 0.2078029999999984,
+              "max": 0.2492289999999997
+            }
+          }
+        ]
+      },
+      {
+        "body": "wire-probe",
+        "project": "ethlib",
+        "pid": 1943240,
+        "bytes": 111,
+        "responses": {
+          "n": 72,
+          "wall_us": {
+            "min": 17,
+            "max": 112
+          }
+        },
+        "new_application_jobs": 0,
+        "new_analysis_materializations": 0,
+        "new_evidence_materializations": 0,
+        "modes": [
+          {
+            "mode": "new-connection",
+            "total_ms": {
+              "n": 20,
+              "min": 0.27310900000000515,
+              "p50": 0.46050000000002456,
+              "p95": 0.7340030000000013,
+              "max": 1.2146779999999922
+            },
+            "headers_ms": {
+              "n": 20,
+              "min": 0.2381809999999973,
+              "p50": 0.375503000000009,
+              "p95": 0.683351000000016,
+              "max": 1.161276000000015
+            },
+            "body_ms": {
+              "n": 20,
+              "min": 0.03182499999999777,
+              "p50": 0.0498670000000061,
+              "p95": 0.09755900000001816,
+              "max": 0.13817900000000805
+            }
+          },
+          {
+            "mode": "one-keepalive",
+            "total_ms": {
+              "n": 20,
+              "min": 0.14332500000000437,
+              "p50": 0.259444000000002,
+              "p95": 0.3991100000000074,
+              "max": 0.4093200000000081
+            },
+            "headers_ms": {
+              "n": 20,
+              "min": 0.11409499999999184,
+              "p50": 0.1985729999999819,
+              "p95": 0.346652999999975,
+              "max": 0.37756100000001425
+            },
+            "body_ms": {
+              "n": 20,
+              "min": 0.027037999999976137,
+              "p50": 0.03352999999998474,
+              "p95": 0.09657300000000646,
+              "max": 0.0987739999999917
+            }
+          },
+          {
+            "mode": "fetch",
+            "total_ms": {
+              "n": 20,
+              "min": 0.4934470000000033,
+              "p50": 0.7542200000000037,
+              "p95": 1.0621429999999918,
+              "max": 1.32851500000001
+            },
+            "headers_ms": {
+              "n": 20,
+              "min": 0.4263770000000022,
+              "p50": 0.6344029999999918,
+              "p95": 0.8700649999999825,
+              "max": 1.2393730000000005
+            },
+            "body_ms": {
+              "n": 20,
+              "min": 0.06678600000000756,
+              "p50": 0.11286699999999428,
+              "p95": 0.1912410000000193,
+              "max": 0.1928089999999827
+            }
+          }
+        ]
+      },
+      {
+        "body": "source-wire-probe",
+        "project": "riemann",
+        "pid": 1943052,
+        "bytes": 69201,
+        "responses": {
+          "n": 72,
+          "wall_us": {
+            "min": 71,
+            "max": 465
+          }
+        },
+        "new_application_jobs": 0,
+        "new_analysis_materializations": 0,
+        "new_evidence_materializations": 0,
+        "modes": [
+          {
+            "mode": "new-connection",
+            "total_ms": {
+              "n": 20,
+              "min": 0.5053039999999953,
+              "p50": 0.9126190000000065,
+              "p95": 1.5917010000000005,
+              "max": 2.3596629999999976
+            },
+            "headers_ms": {
+              "n": 20,
+              "min": 0.3874979999999937,
+              "p50": 0.7726320000000015,
+              "p95": 1.3969510000000014,
+              "max": 2.0847579999999937
+            },
+            "body_ms": {
+              "n": 20,
+              "min": 0.08914199999999539,
+              "p50": 0.16782600000000514,
+              "p95": 0.3338760000000036,
+              "max": 0.4793329999999969
+            }
+          },
+          {
+            "mode": "one-keepalive",
+            "total_ms": {
+              "n": 20,
+              "min": 0.5970299999999895,
+              "p50": 0.7355770000000064,
+              "p95": 0.9552220000000204,
+              "max": 0.9991679999999974
+            },
+            "headers_ms": {
+              "n": 20,
+              "min": 0.4972190000000012,
+              "p50": 0.5985869999999807,
+              "p95": 0.7837289999999939,
+              "max": 0.876609000000002
+            },
+            "body_ms": {
+              "n": 20,
+              "min": 0.08418599999998833,
+              "p50": 0.12663299999999822,
+              "p95": 0.2177899999999795,
+              "max": 0.22105099999998856
+            }
+          },
+          {
+            "mode": "fetch",
+            "total_ms": {
+              "n": 20,
+              "min": 1.0870600000000081,
+              "p50": 2.307382999999959,
+              "p95": 42.580355000000054,
+              "max": 43.28148699999997
+            },
+            "headers_ms": {
+              "n": 20,
+              "min": 0.5909969999999589,
+              "p50": 1.2332659999999578,
+              "p95": 2.421882000000096,
+              "max": 3.8789950000000317
+            },
+            "body_ms": {
+              "n": 20,
+              "min": 0.2164070000000038,
+              "p50": 0.5523479999999381,
+              "p95": 41.44824199999994,
+              "max": 42.018546999999955
+            }
+          }
+        ]
+      },
+      {
+        "body": "source-wire-probe",
+        "project": "ethlib",
+        "pid": 1943240,
+        "bytes": 146985,
+        "responses": {
+          "n": 72,
+          "wall_us": {
+            "min": 83,
+            "max": 570
+          }
+        },
+        "new_application_jobs": 0,
+        "new_analysis_materializations": 0,
+        "new_evidence_materializations": 0,
+        "modes": [
+          {
+            "mode": "new-connection",
+            "total_ms": {
+              "n": 20,
+              "min": 0.9423779999999624,
+              "p50": 1.454441000000088,
+              "p95": 2.2590020000000095,
+              "max": 2.3517269999999826
+            },
+            "headers_ms": {
+              "n": 20,
+              "min": 0.5669429999999238,
+              "p50": 0.9545750000000908,
+              "p95": 1.7784260000000813,
+              "max": 1.8329250000000457
+            },
+            "body_ms": {
+              "n": 20,
+              "min": 0.23744599999997718,
+              "p50": 0.48280399999998735,
+              "p95": 0.7819339999999784,
+              "max": 0.8254040000000487
+            }
+          },
+          {
+            "mode": "one-keepalive",
+            "total_ms": {
+              "n": 20,
+              "min": 0.5128199999999197,
+              "p50": 0.9618569999998954,
+              "p95": 41.38884299999995,
+              "max": 41.709653
+            },
+            "headers_ms": {
+              "n": 20,
+              "min": 0.39405999999996766,
+              "p50": 0.641783999999916,
+              "p95": 0.8043349999999236,
+              "max": 0.9664940000000115
+            },
+            "body_ms": {
+              "n": 20,
+              "min": 0.11850100000003749,
+              "p50": 0.36139700000001085,
+              "p95": 40.90491300000008,
+              "max": 40.92362600000001
+            }
+          },
+          {
+            "mode": "fetch",
+            "total_ms": {
+              "n": 20,
+              "min": 0.7333580000001803,
+              "p50": 1.5825489999999718,
+              "p95": 42.23271899999986,
+              "max": 42.543623000000025
+            },
+            "headers_ms": {
+              "n": 20,
+              "min": 0.4398830000000089,
+              "p50": 0.7702669999999898,
+              "p95": 2.3170089999999846,
+              "max": 3.2622410000000173
+            },
+            "body_ms": {
+              "n": 20,
+              "min": 0.28888099999994665,
+              "p50": 0.6671129999999721,
+              "p95": 41.526478,
+              "max": 41.799942999999985
+            }
+          }
+        ]
+      }
+    ],
+    "framing_control": {
+      "default": {
+        "n": 24,
+        "headers_ms": {
+          "n": 20,
+          "p50": 0.7018050000000358,
+          "p95": 1.4572069999999826,
+          "max": 2.2446999999999946
+        },
+        "body_ms": {
+          "n": 20,
+          "p50": 0.5254209999999944,
+          "p95": 40.90651100000002,
+          "max": 41.04242999999997
+        },
+        "total_ms": {
+          "n": 20,
+          "p50": 1.3961100000000215,
+          "p95": 41.63130000000001,
+          "max": 42.46003799999998
+        },
+        "transfer_encoding": "chunked",
+        "content_length": null
+      },
+      "length": {
+        "n": 24,
+        "headers_ms": {
+          "n": 20,
+          "p50": 0.6571710000000053,
+          "p95": 0.8483110000000238,
+          "max": 0.8883010000000127
+        },
+        "body_ms": {
+          "n": 20,
+          "p50": 0.2664790000000039,
+          "p95": 40.64456899999999,
+          "max": 40.873457
+        },
+        "total_ms": {
+          "n": 20,
+          "p50": 1.0461149999999861,
+          "p95": 41.32508299999995,
+          "max": 41.761758000000015
+        },
+        "transfer_encoding": null,
+        "content_length": "146985"
+      }
+    },
+    "interpretation": "Approximately 40ms tails occur between headers and complete larger retained bodies, while actual server response spans stay below 0.6ms and no new jobs/materializations occur. Empty 111-byte bodies do not reproduce them. Explicit Content-Length alone retains the tail in the paired synthetic fixture; no socket/framing change was shipped.",
+    "conditions": "Read-only idle actual hosts; 24 sequential requests per client mode, first four excluded. Concurrent functional validation. Separate synthetic loopback paired fixture uses actual tiny_http 0.12 and identical 146985-byte frozen Arc/Cursor bytes; 24 per mode with four excluded, interleaved order. No TCP packet capture or browser event measurement."
+  },
+  "attempts": [
+    {
+      "scope": "Validation orchestration preflight",
+      "result": "The copied runner initially pointed at an existing prior TUI evidence directory and refused to run; corrected to a fresh directory before any gate result."
+    },
+    {
+      "scope": "Initial d46 Rust check",
+      "result": "Workspace tests passed; clippy rejected a post-MSRV is_multiple_of call and JSON indexing in new tests. Replaced with MSRV-compatible remainder and checked JSON access; final f04 full workspace gates passed."
+    },
+    {
+      "scope": "Wire probe",
+      "result": "Initial helper attempted optional destroy on boolean false; corrected before complete measurement. Raw completed samples are retained separately. Synthetic runner note said 48 reads but actual rows/summaries contain 24 per mode; record notes the metadata correction."
+    },
+    {
+      "scope": "Required delivery coverage",
+      "result": "Initial unchanged 34-case public gate passed. Promoted the existing actual TUI delivery journey to the required gate, then reran the complete public runner: 35 passed, followed by both CLI/TUI export tests and Python lint."
+    }
+  ],
+  "limitations": [
+    "This slice does not complete architecture steps 4/5 and claims no graph-interaction speedup.",
+    "Installed actual file, Lean/Z3 and browser workers with scripted inference; no new live-model, cold-install, local-model, confidentiality or refinement claim.",
+    "Two-animation-callback timing is a presentation proxy, not physical paint/INP. Loopback probe percentiles are diagnostic small samples under functional load, not production percentiles.",
+    "Transport mechanism remains unresolved; fixed-length framing alone did not remove the observed tail. Actual compiler/input-validation waits remain separately recorded."
+  ],
+  "artifacts": [
+    {
+      "path": "/tmp/meden-delivery-candidate.json",
+      "bytes": 218,
+      "sha256": "a8f1b7570b831ccc16ecac66552f60accd119502b323d6644350d7c47abf29e0"
+    },
+    {
+      "path": "/tmp/meden-delivery-v2-definition.json",
+      "bytes": 3151,
+      "sha256": "7d4f854616cf6ce93007e0b15e2f9634680efbfab5203a31c8b59c314df03c3d"
+    },
+    {
+      "path": "/tmp/meden-delivery-v2-results.json",
+      "bytes": 1037,
+      "sha256": "df38e681b61588224c93c643e715c9035f53274598aa10b18b584cc77d1e3458"
+    },
+    {
+      "path": "/tmp/meden-delivery-v2-reports.json",
+      "bytes": 118636,
+      "sha256": "c93fa6f9af786f745725496e7cf824bcae9429babaf7e5bfe3de06308feea4d9"
+    },
+    {
+      "path": "/tmp/meden-delivery-tui-final-results.json",
+      "bytes": 215,
+      "sha256": "1b525fc7010a1825848dc2cde82f2b2021ca211b101ae3475112d16b2d900d9c"
+    },
+    {
+      "path": "/tmp/meden-delivery-tui-final-public-tui.log",
+      "bytes": 190,
+      "sha256": "41cccf2513e29b319f33ac1518034fad2cec43f4b797907a536d89a407df39ee"
+    },
+    {
+      "path": "/tmp/meden-delivery-tui-final-cli-delivery.log",
+      "bytes": 98,
+      "sha256": "3ea42ee6ab3f5a259dde99221524f0b85ee4bf5ea4984c2cac61aa1b5caddedc"
+    },
+    {
+      "path": "/tmp/meden-delivery-tui-final-python-lint.log",
+      "bytes": 19,
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "path": "/tmp/meden-delivery-cli.xml",
+      "bytes": 515,
+      "sha256": "2f1b2e272bcede616da16051a00c35867e0635b3b26930fceaeaddf1b6b6091e"
+    },
+    {
+      "path": "/tmp/meden-ux-delivery-final-20261124/summary.json",
+      "bytes": 10125,
+      "sha256": "a1cdd22fb03f5a51835725d7fe2fc823544074b49e3863ad90ad7c1104f81905"
+    },
+    {
+      "path": "/tmp/meden-delivery-f04-deployment.json",
+      "bytes": 12162,
+      "sha256": "e4b1270e0845191146763a0b733463d4ed53cb7196c7b0258a619b46095fdd97"
+    },
+    {
+      "path": "/tmp/meden-delivery-f04-fidelity.json",
+      "bytes": 4248,
+      "sha256": "64c2d6a468afb9fd95f4b9033ddd52571f83363f429c1df80f8176eb7e9ad296"
+    },
+    {
+      "path": "/tmp/meden-delivery-f04-smoke.log",
+      "bytes": 194,
+      "sha256": "d90018da60e0e85c806479e62a14bd37424e13152cb8d6928db6d8af5abfa0f8"
+    },
+    {
+      "path": "/tmp/meden-delivery-d46-v1-definition.json",
+      "bytes": 3183,
+      "sha256": "7c854cf78093a65a2d160aff85229dc2d55bdc1e59721ddedc063cd97dd0b1c4"
+    },
+    {
+      "path": "/tmp/meden-delivery-d46-v1-results.json",
+      "bytes": 134,
+      "sha256": "4319a7c64312366a561089e87edd9d7e88a7564a080f0576ee2c249bb61e933b"
+    },
+    {
+      "path": "/tmp/meden-delivery-d46-v1-clippy.log",
+      "bytes": 4705,
+      "sha256": "8f3fc2b371b870abbaeea091fa9a2b775f40e8a973c00c67f4d18d9d04494d3a"
+    },
+    {
+      "path": "/tmp/meden-delivery-v2-rust.log",
+      "bytes": 33231,
+      "sha256": "88d5c8db153707bf8f5ecd5e60d8c9bb7aeb2b45d6cfd023f6d130356e01a8b3"
+    },
+    {
+      "path": "/tmp/meden-delivery-v2-clippy.log",
+      "bytes": 72,
+      "sha256": "a41051563a4cb5fc1b1bcdd9aa0ba28ca80f7736d629d90cc138218756e8e3a9"
+    },
+    {
+      "path": "/tmp/meden-delivery-v2-rustdoc.log",
+      "bytes": 550,
+      "sha256": "3ac232dd19b214b5ef5558d2426b855a6b77ffe331ed64929748f7e0faeed7d4"
+    },
+    {
+      "path": "/tmp/meden-delivery-v2-typecheck.log",
+      "bytes": 29,
+      "sha256": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f"
+    },
+    {
+      "path": "/tmp/meden-delivery-v2-typescript.log",
+      "bytes": 1020,
+      "sha256": "485210abff9658b9f03f63dd8e3f89adf06b3ca6e7b9bdd83ef7a597ddbd3ab0"
+    },
+    {
+      "path": "/tmp/meden-delivery-v2-architecture.log",
+      "bytes": 5381,
+      "sha256": "b2d914d36e8a42cf6e78f8734a7a9b4dbdc418ccf24bc1527632d172fdb66820"
+    },
+    {
+      "path": "/tmp/meden-delivery-v2-format.log",
+      "bytes": 234,
+      "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+    },
+    {
+      "path": "/tmp/meden-delivery-v2-schema.log",
+      "bytes": 199,
+      "sha256": "734d89596387b1f55d1fb6ae3f61a01814ee19fc96332b8305203f8a563e9f5e"
+    },
+    {
+      "path": "/tmp/meden-delivery-v2-corpus.log",
+      "bytes": 502,
+      "sha256": "f067766f2d21a9ab7ed628dcebb12063c975115d589f396da4c00e16243f8904"
+    },
+    {
+      "path": "/tmp/meden-delivery-v2-algorithm-budget.log",
+      "bytes": 516,
+      "sha256": "0bd2637627686eb965a3bb1a2034efeac428aa11fe91d2a36849e1f821951751"
+    },
+    {
+      "path": "/tmp/meden-delivery-v2-negative-control.log",
+      "bytes": 1315,
+      "sha256": "8599edfede5f5ea615be0a4b15ca44f4fd3c7676ba27754aa76ac3ba3fc14844"
+    },
+    {
+      "path": "/tmp/meden-delivery-v2-tui.log",
+      "bytes": 187,
+      "sha256": "0ad0fbcfb07538356272ceb5ad3eea9f8fd19feda7cd0444ae5e3bc46b912734"
+    },
+    {
+      "path": "/tmp/meden-delivery-v2-gui-all.log",
+      "bytes": 13362,
+      "sha256": "4d8d00907a7d934e46278b66b89626f2e2f9b0fb6793813d0bf1d16248e98b7a"
+    },
+    {
+      "path": "/tmp/meden-delivery-v2-budget-normal.log",
+      "bytes": 2069,
+      "sha256": "2e7925a0aee70fec5d87ee1b4ebe4859e1ed54e8f0c32f4d525f7d75fbe76823"
+    },
+    {
+      "path": "/tmp/meden-delivery-v2-budget-reduced.log",
+      "bytes": 2069,
+      "sha256": "f95b8ac81279e63a3e3141cb6f2694d24ed42da818396042e077d0293fc77bd2"
+    },
+    {
+      "path": "target/native-profile/delivery-observations-20261124/before.json",
+      "bytes": 2253,
+      "sha256": "ceb9fa6ba41327f2124f37084bed08a9fe2204c39720c5cec1cf3789cdebd32b"
+    },
+    {
+      "path": "target/native-profile/delivery-observations-20261124/wire-probe.json",
+      "bytes": 2154299,
+      "sha256": "2a7248b043d19eacc9302b88108553412c95967ec188aff61a051690bb6398ce"
+    },
+    {
+      "path": "target/native-profile/delivery-observations-20261124/source-wire-probe.json",
+      "bytes": 2289562,
+      "sha256": "aa321b3136063a0837709a10484d1eab617efccdae9b1ca890659486208a4877"
+    },
+    {
+      "path": "target/native-profile/delivery-observations-20261124/wire-summary.json",
+      "bytes": 9093,
+      "sha256": "efe90c89c030d43b61fca428832518129712a76f00f135a4525979ae7d0dcba1"
+    },
+    {
+      "path": "target/native-profile/delivery-observations-20261124/framing-ab.json",
+      "bytes": 17388,
+      "sha256": "508e0ee49ff17d3ee94f422ace764faa2cd5e3f66b90af78911ffa38f9e21534"
+    },
+    {
+      "path": "target/native-profile/delivery-observations-20261124/delivery-review.png",
+      "bytes": 252731,
+      "sha256": "67d393388587a81b552daf79b7a7023aaca632f08626e569cf87c65b10d9969c"
+    },
+    {
+      "path": "target/native-profile/delivery-observations-20261124/delivery-mobile.png",
+      "bytes": 71763,
+      "sha256": "b9d6cf539690f0ec4ce6be58e75d656fc117e8d572fba612ad4429b5415dd13c"
+    },
+    {
+      "path": "target/native-profile/delivery-observations-20261124/delivery-uncertain.png",
+      "bytes": 119645,
+      "sha256": "201edd0d719c92771d190bddd40c0e0c303a010e94cc0c4b375751088d7a6a47"
+    },
+    {
+      "path": "target/native-profile/delivery-observations-20261124/riemann-deployed.png",
+      "bytes": 277370,
+      "sha256": "58deacfb23a7503104556ba9b3973bb8e54e9a091f1f91d5d0121499f7936973"
+    },
+    {
+      "path": "target/native-profile/delivery-observations-20261124/ethlib-deployed.png",
+      "bytes": 206718,
+      "sha256": "07c347cf48fd82dab0a4c8c1fe5c96c95644ead20066f9e8b1ce23afc071c846"
+    },
+    {
+      "path": "/tmp/meden-delivery-final-format.log",
+      "bytes": 234,
+      "sha256": "9c7e5c29f3684f3307cf3db58aa4f1617ed4a86a3031a43fc1faf186c7e70b3c"
+    },
+    {
+      "path": "target/performance/map.json",
+      "bytes": 1494,
+      "sha256": "ddf1701d8dfb7f563ffe8d9600ad3719eae8f0bf4ea982b9d81cdfa024c9d160"
+    },
+    {
+      "path": "target/performance/delivery-d46-mutant/map.json",
+      "bytes": 1473,
+      "sha256": "ffc127c3b682c84d7c4f336135e4746c072429738a0a381161ea703d9b84969c"
+    },
+    {
+      "path": "/tmp/meden-ux-delivery-final-20261124/test_tui_export_review_uses_host_keys_and_exact_frozen_bytes-1483985e35/trace.json",
+      "bytes": 160,
+      "sha256": "8b20642c565cde49120be06d03129a2bf27e82b6c36080c163cf66cdf80e72ef"
+    },
+    {
+      "path": "/tmp/meden-ux-delivery-final-20261124/test_tui_export_review_uses_host_keys_and_exact_frozen_bytes-1483985e35/screens.jsonl",
+      "bytes": 4407038,
+      "sha256": "ffcaa0d3c658ff7212a65d83881edbf51928f9acbd897b4d34d5ed37b48e3f7d"
+    },
+    {
+      "path": "/tmp/meden-ux-delivery-final-20261124/test_tui_export_review_uses_host_keys_and_exact_frozen_bytes-1483985e35/last-screen.txt",
+      "bytes": 1609,
+      "sha256": "41403d8815b5126fec23042462c95459cf9e87aed34691c140798968a53bff44"
+    }
+  ]
+}

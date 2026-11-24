@@ -4918,6 +4918,28 @@ theorem slow : True := fast
         dialog.getByRole("button", { name: "Send once to this destination" }),
       ).toBeEnabled();
       const first = (await nativeState(page)).export_review;
+      expect(typeof first.serial).toBe("string");
+      // Invalid wire values never enter the worker or replace its selected
+      // original review. Authority is still checked again on actual send.
+      for (const serial of [1, "01", "18446744073709551616"]) {
+        expect(
+          await hostCommand(page, {
+            type: "send_export",
+            reference: { session: first.summary.session, id: 0 },
+            serial,
+          }),
+        ).toBe(409);
+        expect((await nativeState(page)).export_review).toEqual(first);
+      }
+      expect(
+        await hostCommand(page, {
+          type: "review_export",
+          reference: { session: first.summary.session, id: 8 },
+          offset: 0,
+        }),
+      ).toBe(409);
+      expect((await nativeState(page)).export_review).toEqual(first);
+      expect(received).toHaveLength(0);
       await page.screenshot({
         path: "target/gui-checks/native-delivery-review.png",
         fullPage: true,

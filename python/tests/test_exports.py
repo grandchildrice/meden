@@ -229,6 +229,7 @@ def test_cli_review_reject_cross_session_freeze_replay_redirect_and_uncertain_de
 
 
 @pytest.mark.skipif(os.name != "posix", reason="PTY/termios required")
+@pytest.mark.ux
 def test_tui_export_review_uses_host_keys_and_exact_frozen_bytes(tmp_path, tui_verifier):
     import codecs
     import fcntl

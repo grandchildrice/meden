@@ -9,6 +9,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 /// Candidate meaning jobs and retained observations, separate from evidence.
 pub mod analyses;
+/// Original delivery descriptions and lossless host review references.
+pub mod delivery;
 /// Complete typed directory observations, independent of inventory/compiler jobs.
 pub mod directory;
 /// Original reviewed intent and observed project evidence, without authority.
@@ -29,6 +31,8 @@ pub mod publication;
 pub mod readers;
 /// Lossless browser projection of an original host repair review.
 pub mod repairs;
+/// Canonical lossless counters used by native view and command adapters.
+pub mod sequence;
 /// Retention and exact-revision queries for prepared source/graph views.
 pub mod sources;
 /// Actual project verification progress, independent of kernel job authority.

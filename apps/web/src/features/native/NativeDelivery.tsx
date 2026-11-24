@@ -40,7 +40,7 @@ export function NativeDelivery({
   onCommand: (command: NativeCommand) => Promise<boolean>;
 }) {
   const [heading, setHeading] = useState<HTMLDivElement | null>(null);
-  const [visibleSerial, setVisibleSerial] = useState<number>();
+  const [visibleSerial, setVisibleSerial] = useState<ExportReview["serial"]>();
   useEffect(() => {
     setVisibleSerial(undefined);
     const node = heading;

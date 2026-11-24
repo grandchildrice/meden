@@ -12,36 +12,23 @@ use std::sync::{Arc, Mutex};
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Reference {
-    #[serde(deserialize_with = "revision")]
-    #[schemars(regex(pattern = r"^[1-9][0-9]{0,19}$"))]
-    revision: String,
+    revision: super::sequence::Sequence,
     #[schemars(length(min = 1, max = 8192))]
     session: String,
     #[schemars(regex(pattern = r"^[a-f0-9]{64}$"))]
     contract: String,
 }
-fn revision<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<String, D::Error> {
-    let value = String::deserialize(deserializer)?;
-    let number = value.parse::<u64>().map_err(serde::de::Error::custom)?;
-    if number == 0 || number.to_string() != value {
-        return Err(serde::de::Error::custom(
-            "Contract revision must be a canonical positive u64 decimal",
-        ));
-    }
-    Ok(value)
-}
 impl Reference {
     /// Observe an original host/controller reference without changing its identity.
     pub fn new(original: &project::Reference) -> Result<Self> {
         anyhow::ensure!(
-            original.revision > 0
-                && !original.session.is_empty()
+            !original.session.is_empty()
                 && original.session.len() <= 8192
                 && digest(&original.contract),
             "Invalid contract reference"
         );
         Ok(Self {
-            revision: original.revision.to_string(),
+            revision: super::sequence::Sequence::new(original.revision)?,
             session: original.session.clone(),
             contract: original.contract.clone(),
         })
@@ -49,13 +36,9 @@ impl Reference {
     /// Recover only the exact original numbers/bytes. The existing controller
     /// must still match the selected host review before accepting any operation.
     pub fn original(self) -> Result<project::Reference> {
-        let revision = self.revision.parse::<u64>()?;
+        let revision = self.revision.value();
         anyhow::ensure!(
-            revision > 0
-                && revision.to_string() == self.revision
-                && !self.session.is_empty()
-                && self.session.len() <= 8192
-                && digest(&self.contract),
+            !self.session.is_empty() && self.session.len() <= 8192 && digest(&self.contract),
             "Invalid contract reference"
         );
         Ok(project::Reference {

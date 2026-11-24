@@ -11,8 +11,13 @@ pub mod analysis;
 #[allow(missing_docs)]
 pub mod atlas;
 pub mod compiler;
+/// Original host review selection for shared export queues.
+pub mod delivery;
 #[allow(missing_docs)]
 pub mod explanation;
+/// Shared immutable export proposals and host-only dispatch through the original kernel.
+#[allow(missing_docs)]
+pub mod exports;
 pub mod meaning;
 pub mod model;
 /// Bounded static preview preparation through the original confined file port.

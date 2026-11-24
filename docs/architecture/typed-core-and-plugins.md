@@ -660,6 +660,25 @@ The owned generator preserves URI validation and refuses unknown formats,
 including format handling for nullable scalar fields. Browser execution, origin
 attribution and complete isolation remain tested adapters, not proof evidence.
 
+Immutable export proposals and their model-tool registration now live in the
+shared application too; the CLI's former queue module is deleted. The TUI and
+protocol use that same queue. The native host's selected review and consuming
+serial comparison also have one application owner, while the GUI adapter only
+interprets commands and displays observations. The existing project/kernel still
+owns authorization, frozen payloads, freshness, dispatch and terminal attempts.
+
+Delivery references, summaries, review pages and outcomes are generated from
+application-owned DTOs. Queue indices and payload/page bounds reflect the actual
+bounded queue. Observed HTTP codes retain the transport's full 100–999 range.
+Contract revisions and delivery review serials share a canonical positive-u64
+decimal-string representation, including exact range validation in the generated
+browser validators. Decoding a reference or counter grants no authority; the
+host still compares the original selected session, entry and serial, consuming
+the selection even on mismatch. The native root and remaining commands are
+still handwritten, and delivery observations remain inline at operation
+boundaries. This is application extraction and transport validation, not a new
+kernel or whole-renderer proof.
+
 This does not finish step 4: proposal checks and broader orchestration jobs,
 generation of the rest of the native wire contract and remaining navigation
 waits still need work. Step 5's versioned layout/order and retirement

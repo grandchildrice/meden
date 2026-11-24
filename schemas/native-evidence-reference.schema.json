@@ -5,8 +5,7 @@
   "type": "object",
   "properties": {
     "revision": {
-      "type": "string",
-      "pattern": "^[1-9][0-9]{0,19}$"
+      "$ref": "#/$defs/NativeSequence"
     },
     "session": {
       "type": "string",
@@ -23,5 +22,13 @@
     "revision",
     "session",
     "contract"
-  ]
+  ],
+  "$defs": {
+    "NativeSequence": {
+      "type": "string",
+      "format": "meden-positive-u64",
+      "pattern": "^[1-9][0-9]{0,19}$",
+      "maxLength": 20
+    }
+  }
 }

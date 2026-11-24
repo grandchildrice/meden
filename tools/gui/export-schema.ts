@@ -10,6 +10,26 @@ writeFileSync(
   JSON.stringify(z.toJSONSchema(workspaceSchema), null, 2) + "\n",
 );
 for (const [key, rust, symbol, type, owner = "view"] of [
+  ["sequence", "sequence::Sequence", "nativeSequenceSchema", "NativeSequence"],
+  [
+    "delivery-reference",
+    "delivery::Reference",
+    "exportReferenceSchema",
+    "ExportReference",
+  ],
+  [
+    "delivery-summary",
+    "delivery::Summary",
+    "exportSummarySchema",
+    "ExportSummary",
+  ],
+  ["delivery-review", "delivery::Review", "exportReviewSchema", "ExportReview"],
+  [
+    "delivery-outcome",
+    "delivery::Outcome",
+    "exportOutcomeSchema",
+    "ExportOutcome",
+  ],
   ["preview-status", "preview::Status", "previewStatusSchema", "PreviewStatus"],
   [
     "preview-publication",

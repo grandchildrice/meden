@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Outcome",
+  "description": "Original observed result; an uncertain attempt never gains another send.",
+  "type": "object",
+  "properties": {
+    "summary": {
+      "$ref": "#/$defs/Summary"
+    },
+    "http_status": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint16",
+      "minimum": 100,
+      "maximum": 999
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "summary",
+    "http_status"
+  ],
+  "$defs": {
+    "Summary": {
+      "description": "Description derived from the original immutable request and observed phase.",
+      "type": "object",
+      "properties": {
+        "session": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "id": {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0,
+          "maximum": 7
+        },
+        "source": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "contract": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "bytes": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0,
+          "maximum": 16777216
+        },
+        "payload_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "state": {
+          "$ref": "#/$defs/State"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "session",
+        "id",
+        "source",
+        "contract",
+        "target",
+        "bytes",
+        "payload_sha256",
+        "state"
+      ]
+    },
+    "State": {
+      "description": "Observed kernel phase; this enum conveys no authority to advance it.",
+      "oneOf": [
+        {
+          "description": "Prepared but not reviewed.",
+          "type": "string",
+          "const": "pending"
+        },
+        {
+          "description": "Original request exposed to the host.",
+          "type": "string",
+          "const": "reviewed"
+        },
+        {
+          "description": "Host refusal.",
+          "type": "string",
+          "const": "rejected"
+        },
+        {
+          "description": "A dispatch was reserved.",
+          "type": "string",
+          "const": "attempted"
+        },
+        {
+          "description": "An actual transport response arrived.",
+          "type": "string",
+          "const": "response_received"
+        },
+        {
+          "description": "The attempt remains consumed without a known response.",
+          "type": "string",
+          "const": "delivery_uncertain"
+        }
+      ]
+    }
+  }
+}

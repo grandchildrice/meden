@@ -8,6 +8,11 @@ fn output<T: schemars::JsonSchema>() -> schemars::Schema {
 }
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let schema = match std::env::args().nth(1).as_deref() {
+        Some("sequence") => schemars::schema_for!(meden_app::view::sequence::Sequence),
+        Some("delivery-reference") => output::<meden_app::view::delivery::Reference>(),
+        Some("delivery-summary") => output::<meden_app::view::delivery::Summary>(),
+        Some("delivery-review") => output::<meden_app::view::delivery::Review>(),
+        Some("delivery-outcome") => output::<meden_app::view::delivery::Outcome>(),
         Some("preview-status") => output::<meden_app::view::preview::Status>(),
         Some("preview-publication") => output::<meden_app::view::preview::Snapshot>(),
         Some("verification-job-status") => output::<meden_app::view::verification_jobs::Status>(),

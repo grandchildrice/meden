@@ -1,5 +1,63 @@
 # Graph interaction measurements
 
+## Shared delivery observations and response-body probe (November 24)
+
+The [validation record](../results/delivery-observations-20261124.json) covers
+moving the immutable export queue and host review selection into the shared
+application, deleting their CLI implementations and generating the delivery
+DTOs. Exact canonical positive-u64 counters replace numeric browser review
+serials. Original kernel authorization, payloads and consuming dispatch remain
+unchanged. This boundary cleanup makes no graph-interaction speedup claim.
+
+A separate read-only probe investigated the preceding fixture's approximately
+40 ms tail. Both idle deployed hosts served exactly retained bytes through the
+authenticated public API. Each client mode made 24 sequential complete reads;
+the first four were excluded from summaries. Functional checks ran concurrently,
+so these are diagnostic loopback samples, not an isolated throughput benchmark
+or a browser paint/INP measurement.
+
+| Complete response p95 | Riemann | EthLib |
+| --- | ---: | ---: |
+| 111-byte empty-evidence body, Node fetch | 1.021 ms | 1.062 ms |
+| Prepared source body, new connection per read | 1.592 ms | 2.259 ms |
+| Prepared source body, one reused HTTP connection | 0.955 ms | 41.389 ms |
+| Prepared source body, Node fetch | 42.580 ms | 42.233 ms |
+
+The source bodies contain **69,201 / 146,985 bytes**. Node fetch's header p95
+is **2.422 / 2.317 ms**, while the interval from headers to complete body is
+**41.448 / 41.526 ms**. All 72 corresponding server response spans per project
+take at most **0.465 / 0.570 ms**. The reads start no application jobs or source
+materialization. The tail is therefore observed after headers during completion
+of a retained response, independently of compiler or graph regeneration. Its
+size/connection sensitivity warrants a packet-level transport investigation;
+these observations alone do not establish Nagle, delayed ACK or a browser cause.
+No socket settings, client connection policy or response implementation changed
+in this migration. The larger-body result also limits the earlier small-body
+observation: low empty-evidence latency does not establish low source latency.
+
+A synthetic paired probe used the same installed `tiny_http 0.12` frozen
+`Arc`/`Cursor` response path with a 146,985-byte body. Interleaved default-chunked
+and explicit-length responses both retained the tail: complete p95 **41.631 /
+41.325 ms** across 24 reads per mode, excluding four warmups. Changing only
+response framing therefore did not remove it in this probe. This experiment is
+neither an actual GUI fix nor evidence for a particular TCP mechanism.
+
+The final local checks passed **328 Rust tests**, **42 TypeScript tests**,
+**26 architecture checks / 45 owned sources**, the **70 generated files**,
+all **35 required public TUI journeys** and **68 browser journeys**. The TUI
+gate now includes the actual frozen-delivery, clipped-heading and replay path.
+Both serialized motion gates passed; retained-tab two-animation-callback p95
+is **36.0 / 33.9 ms** for normal/reduced motion. These callbacks are presentation
+proxies, not physical paint or INP. The 3000-case differential corpus and actual
+full-scan performance negative control passed without weakening their assertions.
+
+After deployment, both actual projects retain the identical source/graph,
+reader, inventory, conversation, candidate and evidence observations. Hover,
+tab return and node/source-line selection preserve the camera and chat. Ordinary
+graph navigation fetches no job or preview body. Cache-hit file opens take
+**23.222 / 2.121 seconds** for Riemann/EthLib in this integration smoke; this is
+not a paired speedup benchmark and the large-project preparation wait remains.
+
 ## Immutable preview descriptions (November 24)
 
 The [validation record](../results/preview-publications-20261124.json) covers

@@ -141,6 +141,9 @@ export function validator(schema, root = schema) {
     code += `.regex(new RegExp(${JSON.stringify(schema.pattern)}))`;
   if (schema.format !== undefined) {
     if (schema.type === "string" && schema.format === "uri") code += ".url()";
+    else if (schema.type === "string" && schema.format === "meden-positive-u64")
+      code +=
+        '.refine(value => /^[1-9][0-9]{0,19}$/.test(value) && BigInt(value) <= 18446744073709551615n, { message: "Expected a canonical positive u64 decimal string" })';
     else if (!(
       (schema.type === "integer" &&
         [
@@ -159,6 +162,7 @@ export function validator(schema, root = schema) {
       (schema.type === "null" &&
         [
           "uri",
+          "meden-positive-u64",
           "uint",
           "uint8",
           "uint16",

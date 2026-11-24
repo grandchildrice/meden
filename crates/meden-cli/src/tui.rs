@@ -500,9 +500,13 @@ impl App {
             entries
                 .into_iter()
                 .find(|entry| {
-                    id.map_or(matches!(entry.state, "pending" | "reviewed"), |id| {
-                        entry.reference.id == id
-                    })
+                    id.map_or(
+                        matches!(
+                            entry.state,
+                            crate::exports::State::Pending | crate::exports::State::Reviewed
+                        ),
+                        |id| entry.reference.id == id,
+                    )
                 })
                 .map(|entry| entry.reference)
                 .ok_or_else(|| anyhow::anyhow!("No matching export proposal."))
@@ -823,7 +827,12 @@ impl App {
         if let Ok(entries) = self.exports.list() {
             let pending = entries
                 .iter()
-                .filter(|entry| matches!(entry.state, "pending" | "reviewed"))
+                .filter(|entry| {
+                    matches!(
+                        entry.state,
+                        crate::exports::State::Pending | crate::exports::State::Reviewed
+                    )
+                })
                 .count();
             if pending > 0 {
                 self.say(

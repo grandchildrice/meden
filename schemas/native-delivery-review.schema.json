@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Review",
+  "description": "Frozen host review page. Serial comparison uses the original exact u64.",
+  "type": "object",
+  "properties": {
+    "serial": {
+      "$ref": "#/$defs/NativeSequence"
+    },
+    "summary": {
+      "$ref": "#/$defs/Summary"
+    },
+    "offset": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0,
+      "maximum": 16777216
+    },
+    "body_hex": {
+      "type": "string",
+      "maxLength": 4096,
+      "pattern": "^(?:[0-9a-f]{2})*$"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "serial",
+    "summary",
+    "offset",
+    "body_hex"
+  ],
+  "$defs": {
+    "NativeSequence": {
+      "type": "string",
+      "format": "meden-positive-u64",
+      "pattern": "^[1-9][0-9]{0,19}$",
+      "maxLength": 20
+    },
+    "Summary": {
+      "description": "Description derived from the original immutable request and observed phase.",
+      "type": "object",
+      "properties": {
+        "session": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "id": {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0,
+          "maximum": 7
+        },
+        "source": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "contract": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "bytes": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0,
+          "maximum": 16777216
+        },
+        "payload_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "state": {
+          "$ref": "#/$defs/State"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "session",
+        "id",
+        "source",
+        "contract",
+        "target",
+        "bytes",
+        "payload_sha256",
+        "state"
+      ]
+    },
+    "State": {
+      "description": "Observed kernel phase; this enum conveys no authority to advance it.",
+      "oneOf": [
+        {
+          "description": "Prepared but not reviewed.",
+          "type": "string",
+          "const": "pending"
+        },
+        {
+          "description": "Original request exposed to the host.",
+          "type": "string",
+          "const": "reviewed"
+        },
+        {
+          "description": "Host refusal.",
+          "type": "string",
+          "const": "rejected"
+        },
+        {
+          "description": "A dispatch was reserved.",
+          "type": "string",
+          "const": "attempted"
+        },
+        {
+          "description": "An actual transport response arrived.",
+          "type": "string",
+          "const": "response_received"
+        },
+        {
+          "description": "The attempt remains consumed without a known response.",
+          "type": "string",
+          "const": "delivery_uncertain"
+        }
+      ]
+    }
+  }
+}

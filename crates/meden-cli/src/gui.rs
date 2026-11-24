@@ -88,9 +88,9 @@ struct View {
     analyses: meden_app::view::analyses::Analyses,
     repair_review: Option<meden_app::view::repairs::Review>,
     preview: meden_app::view::preview::Reader,
-    exports: Vec<crate::exports::Summary>,
-    export_review: Option<delivery::Review>,
-    export_outcome: Option<delivery::Outcome>,
+    exports: Vec<meden_app::view::delivery::Summary>,
+    export_review: Option<meden_app::view::delivery::Review>,
+    export_outcome: Option<meden_app::view::delivery::Outcome>,
     atlas: crate::atlas::Status,
 }
 
@@ -141,20 +141,20 @@ enum Command {
         paths: Vec<String>,
     },
     ReviewExport {
-        reference: crate::exports::Reference,
-        offset: usize,
+        reference: meden_app::view::delivery::Reference,
+        offset: u32,
     },
     SendExport {
-        reference: crate::exports::Reference,
-        serial: u64,
+        reference: meden_app::view::delivery::Reference,
+        serial: meden_app::view::sequence::Sequence,
     },
     RejectExport {
-        reference: crate::exports::Reference,
-        serial: u64,
+        reference: meden_app::view::delivery::Reference,
+        serial: meden_app::view::sequence::Sequence,
     },
     CloseExport {
-        reference: crate::exports::Reference,
-        serial: u64,
+        reference: meden_app::view::delivery::Reference,
+        serial: meden_app::view::sequence::Sequence,
     },
     CapturePreview {
         root: String,
@@ -722,7 +722,7 @@ fn worker(
     pages: &Arc<meden_runtime::pages::Pages>,
     preview: &preview::Preview,
 ) {
-    let mut delivery = delivery::Delivery::new(project);
+    let mut delivery = meden_app::delivery::Delivery::new(project);
     let mut repairs = crate::analysis::repair::Queue::default();
     for Task {
         command,
@@ -734,7 +734,7 @@ fn worker(
         meden_runtime::metrics::queue(timing, queued);
         let _timing = meden_runtime::metrics::Span::linked("gui.job", Some(timing));
         let checkpoint_after = command.operation() != "inspection";
-        delivery.begin(&command);
+        delivery::begin(&mut delivery, &command);
         let result = (|| -> Result<()> {
             repair::begin(view, workspace, &mut repairs, &command)?;
             let exports = Arc::clone(&delivery.queue);
@@ -803,7 +803,7 @@ fn worker(
                 | Command::SendExport { .. }
                 | Command::RejectExport { .. }
                 | Command::CloseExport { .. }) => {
-                    delivery.perform(command, workspace, &processes)?;
+                    delivery::perform(&mut delivery, command, workspace, &processes)?;
                     None
                 }
                 Command::CapturePreview { root, entry } => {
@@ -892,9 +892,13 @@ fn checkpoint(view: &Mutex<View>, workspace: &Workspace) {
     lock(view).history.edit(|data| data.portable = portable);
 }
 
-fn finish_operation(view: &Mutex<View>, delivery: &delivery::Delivery, result: Result<()>) {
+fn finish_operation(
+    view: &Mutex<View>,
+    delivery: &meden_app::delivery::Delivery,
+    result: Result<()>,
+) {
     let mut view = lock(view);
-    if let Err(error) = delivery.observe(&mut view) {
+    if let Err(error) = delivery::observe(delivery, &mut view) {
         view.stopped = Some(format!("{error:#}"));
     }
     if let Err(error) = result {

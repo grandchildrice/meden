@@ -3,14 +3,15 @@
 use anyhow::{Context, Result};
 use clap::{Args, Parser, Subcommand};
 use connection::ModelArgs;
-use meden_app::{adapters, analysis, atlas, explanation, project, semantic, storage, workspace};
+use meden_app::{
+    adapters, analysis, atlas, explanation, exports, project, semantic, storage, workspace,
+};
 use meden_runtime::{process::Control, workspace::Workspace};
 use std::io::{self, Read, Write};
 use std::path::PathBuf;
 use std::process::ExitCode;
 use std::sync::{atomic::AtomicBool, Arc};
 mod connection;
-mod exports;
 mod gui;
 mod handoff;
 mod judge;
