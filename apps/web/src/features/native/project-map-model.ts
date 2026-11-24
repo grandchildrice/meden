@@ -1,10 +1,16 @@
-import { hierarchy, treemap, treemapBinary } from "d3-hierarchy";
+import {
+  layoutInput,
+  mapGeometry,
+  comparePath,
+  MAP_WIDTH,
+  MAP_HEIGHT,
+  type MapGeometry,
+} from "./project-map-layout";
+export { MAP_WIDTH, MAP_HEIGHT } from "./project-map-layout";
 import type { WorkspaceOverview } from "@meden/agent-protocol/native";
 
 import { declarationRole, type DeclarationRole } from "./declaration-role";
 
-export const MAP_WIDTH = 10000;
-export const MAP_HEIGHT = 6600;
 type File = WorkspaceOverview["files"][number];
 export type Symbol = File["symbols"][number] & {
   id: string;
@@ -14,7 +20,6 @@ export type Symbol = File["symbols"][number] & {
   cellWidth: number;
   role: DeclarationRole;
 };
-type Branch = { path: string; file?: File; children?: Branch[] };
 export type MapArea = {
   path: string;
   file?: File;
@@ -32,6 +37,9 @@ export type MapArea = {
   symbols: Symbol[];
 };
 export type MapScene = {
+  geometry: MapGeometry;
+  tracked: string;
+  symbolAreas: MapArea[];
   inventoryOnly: boolean;
   maxZoom: number;
   mainPins: Array<{ area: MapArea; symbols: Symbol[]; origin: string }>;
@@ -47,85 +55,37 @@ export type MapScene = {
 export function projectMap(
   snapshot: WorkspaceOverview,
   tracked: ReadonlySet<string> = new Set(),
+  geometry: MapGeometry = mapGeometry(layoutInput(snapshot)),
+  previous?: MapScene,
 ): MapScene {
-  const root: Branch = { path: "", children: [] };
-  const branches = new Map([["", root]]);
-  for (const file of snapshot.files) {
-    let parent = root;
-    const parts = file.path.split("/");
-    for (let i = 0; i < parts.length; i++) {
-      const path = parts.slice(0, i + 1).join("/");
-      let item = branches.get(path);
-      if (!item) {
-        item = i === parts.length - 1 ? { path, file } : { path, children: [] };
-        branches.set(path, item);
-        parent.children!.push(item);
-      }
-      parent = item;
-    }
-  }
-  // Show the dominant namespace's categories without giving them new coordinates on zoom.
-  const count = (branch: Branch): number =>
-    branch.file ? 1 : (branch.children || []).reduce((n, b) => n + count(b), 0);
-  const dominant = root.children?.find(
-    (b) => b.children && count(b) > snapshot.files.length * 0.8,
-  );
-  if (dominant)
-    root.children = root.children!.flatMap((b) =>
-      b === dominant ? b.children! : [b],
-    );
-  const tree = hierarchy(root)
-    .sum((b) =>
-      b.file
-        ? snapshot.inventory_only
-          ? 1
-          : Math.max(1, b.file.declarations)
-        : 0,
+  const files = new Map(snapshot.files.map((file) => [file.path, file]));
+  const targetKey = JSON.stringify([...tracked].sort(comparePath));
+  const reuse = previous?.geometry === geometry ? previous : undefined;
+  const areas: MapArea[] = geometry.areas.map((box) => {
+    const file = files.get(box.path);
+    const old = reuse?.byPath.get(box.path);
+    if (
+      old &&
+      old.file === file &&
+      (!file?.symbols.length || reuse?.tracked === targetKey)
     )
-    .sort(
-      (a, b) => b.value! - a.value! || a.data.path.localeCompare(b.data.path),
-    );
-  const layout = treemap<Branch>()
-    .size([MAP_WIDTH, MAP_HEIGHT])
-    .tile(treemapBinary)
-    .paddingInner((d) => {
-      const span = Math.min(d.x1 - d.x0, d.y1 - d.y0);
-      const smallest = (d.children || []).reduce(
-        (value, child) => Math.min(value, (child.value || 1) / (d.value || 1)),
-        1,
-      );
-      // A fixed gap can collapse a rare entry file next to a huge category.
-      return Math.min(d.depth ? span * 0.012 : 22, span * smallest * 0.2);
-    })
-    .paddingOuter((d) =>
-      d.depth ? Math.min(d.x1 - d.x0, d.y1 - d.y0) * 0.016 : 0,
-    )
-    .paddingTop((d) =>
-      d.depth ? Math.min(d.x1 - d.x0, d.y1 - d.y0) * 0.09 : 0,
-    )(tree);
-  const colors = new Map(layout.children?.map((b, i) => [b.data.path, i % 5]));
-  const areas: MapArea[] = layout
-    .descendants()
-    .filter((d) => d.depth)
-    .map((d) => {
-      let top = d;
-      while (top.parent?.depth) top = top.parent;
-      const width = d.x1 - d.x0,
-        height = d.y1 - d.y0;
-      const columns = Math.max(
-        1,
-        Math.min(
-          d.data.file?.symbols.length || 1,
-          Math.ceil(
-            Math.sqrt(
-              ((d.data.file?.symbols.length || 1) * width) /
-                Math.max(1, height),
-            ),
+      return old;
+    const { width, height } = box;
+    const columns = Math.max(
+      1,
+      Math.min(
+        file?.symbols.length || 1,
+        Math.ceil(
+          Math.sqrt(
+            ((file?.symbols.length || 1) * width) / Math.max(1, height),
           ),
         ),
-      );
-      const rows = Math.ceil((d.data.file?.symbols.length || 1) / columns);
-      const symbols = (d.data.file?.symbols || []).map((s, i) => ({
+      ),
+    );
+    const rows = Math.ceil((file?.symbols.length || 1) / columns);
+    const symbols = [...(file?.symbols || [])]
+      .sort((a, b) => a.line - b.line || comparePath(a.name, b.name))
+      .map((s, i) => ({
         ...s,
         name: s.name.split(/[^\p{L}\p{N}_'.«»]/u)[0] || s.name,
         role: declarationRole(
@@ -133,36 +93,41 @@ export function projectMap(
           tracked.has(s.name.split(/[^\p{L}\p{N}_'.«»]/u)[0] || s.name) ||
             s.main_theorem ||
             (s.kind === "theorem" &&
-              d.data.path.split("/").length <= 2 &&
-              d.data.path.split("/").at(-1) === "Main.lean"),
+              box.path.split("/").length <= 2 &&
+              box.path.split("/").at(-1) === "Main.lean"),
         ),
         cellWidth: (width * 0.88) / columns,
-        id: `${d.data.path}:${s.line}:${s.name}`,
-        file: d.data.path,
-        x: d.x0 + width * (0.06 + 0.88 * (((i % columns) + 0.5) / columns)),
+        id: `${box.path}:${s.line}:${s.name}`,
+        file: box.path,
+        x: box.x + width * (0.06 + 0.88 * (((i % columns) + 0.5) / columns)),
         y:
-          d.y0 +
+          box.y +
           height * (0.18 + 0.76 * ((Math.floor(i / columns) + 0.5) / rows)),
       }));
-      return {
-        path: d.data.path,
-        file: d.data.file,
-        parent: d.parent?.data.path || "",
-        x: d.x0,
-        y: d.y0,
-        width,
-        height,
-        depth: d.depth,
-        color: colors.get(top.data.path) || 0,
-        files: count(d.data),
-        declarations: d.value || 0,
-        main: symbols.some((symbol) => symbol.role.id === "main_theorem"),
-        cellHeight: (height * 0.76) / rows,
-        symbols,
-      };
-    });
+    return {
+      ...box,
+      file,
+      main: symbols.some((symbol) => symbol.role.id === "main_theorem"),
+      cellHeight: (height * 0.76) / rows,
+      symbols,
+    };
+  });
+  const changed = reuse
+    ? areas.filter((area, i) => area !== reuse.areas[i])
+    : areas;
+  const changedPaths = reuse
+    ? new Set(changed.map((area) => area.path))
+    : undefined;
+  const symbolAreas = (
+    reuse
+      ? [
+          ...reuse.symbolAreas.filter((area) => !changedPaths!.has(area.path)),
+          ...changed.filter((area) => area.symbols.length),
+        ]
+      : areas.filter((area) => area.symbols.length)
+  ).sort((a, b) => comparePath(a.path, b.path));
   const symbols = new Map(
-    areas.flatMap((a) => a.symbols.map((s) => [s.id, s] as const)),
+    symbolAreas.flatMap((a) => a.symbols.map((s) => [s.id, s] as const)),
   );
   const names = new Map<string, Symbol[]>();
   const local = new Map<string, Symbol[]>();
@@ -211,15 +176,31 @@ export function projectMap(
     found.push(edge);
     edgesByFile.set(file, found);
   }
-  const children = new Map<string, MapArea[]>();
-  for (const area of areas) {
-    const siblings = children.get(area.parent) || [];
-    siblings.push(area);
-    children.set(area.parent, siblings);
-  }
+  const byPath = reuse
+    ? new Map(reuse.byPath)
+    : new Map(areas.map((area) => [area.path, area]));
+  if (reuse) for (const area of changed) byPath.set(area.path, area);
+  const children = reuse
+    ? new Map(reuse.children)
+    : new Map<string, MapArea[]>();
+  if (reuse) {
+    for (const parent of new Set(changed.map((area) => area.parent)))
+      children.set(
+        parent,
+        reuse.children.get(parent)!.map((area) => byPath.get(area.path)!),
+      );
+  } else
+    for (const area of areas) {
+      const siblings = children.get(area.parent) || [];
+      siblings.push(area);
+      children.set(area.parent, siblings);
+    }
   return {
+    geometry,
+    tracked: targetKey,
+    symbolAreas,
     inventoryOnly: snapshot.inventory_only,
-    mainPins: areas.flatMap((area) => {
+    mainPins: symbolAreas.flatMap((area) => {
       const main = area.symbols.filter((s) => s.role.id === "main_theorem");
       return main.length
         ? [
@@ -235,13 +216,15 @@ export function projectMap(
           ]
         : [];
     }),
-    maxZoom: areas.reduce(
-      (zoom, a) =>
-        a.file ? Math.max(zoom, 600 / Math.min(a.width, a.height)) : zoom,
-      500,
-    ),
+    maxZoom:
+      reuse?.maxZoom ??
+      areas.reduce(
+        (zoom, a) =>
+          a.file ? Math.max(zoom, 600 / Math.min(a.width, a.height)) : zoom,
+        500,
+      ),
     areas,
-    byPath: new Map(areas.map((a) => [a.path, a])),
+    byPath,
     children,
     symbols,
     edges,

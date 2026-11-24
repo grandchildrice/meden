@@ -2960,6 +2960,197 @@ theorem slow : True := fast
     expect((await nativeState(page)).authorized).toBe(false);
   });
 
+  test("versioned map geometry survives host restart, rejects corrupt storage and stays usable without storage", async ({
+    page,
+  }, info) => {
+    test.setTimeout(120000);
+    await mkdir(resolve(project, "Group"));
+    for (const [i, name] of ["A", "a", "z", "ä", "Ω", "🧪"].entries())
+      await writeFile(
+        resolve(project, `Group/${name}.lean`),
+        `theorem result${i} : True := by trivial\n`,
+      );
+    const commands: Array<{
+      type: string;
+      directory?: boolean;
+      path?: string;
+    }> = [];
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname === "/api/command")
+        commands.push(request.postDataJSON());
+    });
+    await page.goto(await start());
+    const map = page.getByRole("region", { name: "Project map", exact: true }),
+      scene = map.locator(".continuous-map-scene");
+    await expect(scene).toHaveAttribute("data-layout-source", "computed");
+    const revision = await scene.getAttribute("data-scene-revision");
+    expect(revision).toMatch(/^sha256:[a-f0-9]{64}$/);
+    const boxes = () =>
+      scene.locator("[data-map-path]").evaluateAll((elements) =>
+        elements.map((e) => ({
+          path: e.getAttribute("data-map-path"),
+          x: e.getAttribute("data-world-x"),
+          y: e.getAttribute("data-world-y"),
+        })),
+      );
+    const original = await boxes();
+    expect(original.length).toBe(6);
+    const cache = async (corrupt = false) =>
+      page.evaluate(async (corrupt) => {
+        const open = () =>
+          new Promise<IDBDatabase>((resolve, reject) => {
+            const request = indexedDB.open("meden-map-layouts", 1);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+          });
+        const db = await open(),
+          tx = db.transaction("layouts", "readonly"),
+          store = tx.objectStore("layouts");
+        const [items, ids] = await Promise.all([
+          new Promise<
+            Array<{ key: string; blob: Blob; digest: string; bytes: number }>
+          >((resolve, reject) => {
+            const r = store.getAll();
+            r.onsuccess = () => resolve(r.result);
+            r.onerror = () => reject(r.error);
+          }),
+          new Promise<IDBValidKey[]>((resolve, reject) => {
+            const r = store.getAllKeys();
+            r.onsuccess = () => resolve(r.result);
+            r.onerror = () => reject(r.error);
+          }),
+        ]);
+        db.close();
+        if (corrupt && items.length) {
+          const entry = items[0]!,
+            buffer = await entry.blob.arrayBuffer();
+          new DataView(buffer).setUint32(0, 0, true);
+          const prefix = new TextEncoder().encode(entry.key),
+            bytes = new Uint8Array(prefix.length + buffer.byteLength);
+          bytes.set(prefix);
+          bytes.set(new Uint8Array(buffer), prefix.length);
+          const digest =
+            "sha256:" +
+            Array.from(
+              new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)),
+              (b) => b.toString(16).padStart(2, "0"),
+            ).join("");
+          const next = await open();
+          try {
+            await new Promise<void>((resolve, reject) => {
+              const t = next.transaction("layouts", "readwrite");
+              t.objectStore("layouts").put(
+                { ...entry, blob: new Blob([buffer]), digest },
+                ids[0]!,
+              );
+              t.oncomplete = () => resolve();
+              t.onerror = () => reject(t.error);
+            });
+          } finally {
+            next.close();
+          }
+        }
+        return {
+          items: items.length,
+          keys: items.map((e) => e.key),
+          digests: items.map((e) => e.digest),
+          bytes: items.reduce((n, e) => n + e.bytes, 0),
+        };
+      }, corrupt);
+    await expect.poll(async () => (await cache()).items).toBe(1);
+    const port = Number(new URL(url).port);
+    await stop();
+    await page.goto(await start(port));
+    await expect(scene).toHaveAttribute("data-layout-source", "cache");
+    await expect(scene).toHaveAttribute("data-scene-revision", revision!);
+    expect(await boxes()).toEqual(original);
+    expect((await nativeState(page)).authorized).toBe(false);
+    expect(requests).toHaveLength(0);
+    await cache(true);
+    await page.reload();
+    await expect(scene).toHaveAttribute("data-layout-source", "computed");
+    await expect(scene).toHaveAttribute("data-scene-revision", revision!);
+    expect(await boxes()).toEqual(original);
+    // Prepare real successive inventories through the public refresh action.
+    // The ninth retained world evicts the original, without changing authority.
+    const firstKey = (await cache()).keys[0]!;
+    for (let i = 0; i < 8; i++) {
+      await writeFile(
+        resolve(project, `Group/Extra${i}.lean`),
+        `theorem extra${i} : True := by trivial\n`,
+      );
+      await page
+        .getByRole("button", { name: "Refresh files and map", exact: true })
+        .click();
+      await expect(
+        scene.locator(`[data-map-path="Group/Extra${i}.lean"]`),
+      ).toBeVisible();
+      await expect
+        .poll(async () =>
+          (await cache()).digests.includes(
+            (await scene.getAttribute("data-scene-revision"))!,
+          ),
+        )
+        .toBe(true);
+      expect((await cache()).items).toBeLessThanOrEqual(8);
+      expect((await cache()).bytes).toBeLessThanOrEqual(64 * 1024 * 1024);
+    }
+    expect((await cache()).items).toBe(8);
+    expect((await cache()).keys).not.toContain(firstKey);
+    const latestWorld = await boxes(),
+      latestRevision = await scene.getAttribute("data-scene-revision");
+    await page.addInitScript(() => {
+      const open = indexedDB.open.bind(indexedDB);
+      indexedDB.open = ((name: string, version?: number) => {
+        if (name === "meden-map-layouts")
+          throw new DOMException("Storage unavailable", "InvalidStateError");
+        return open(name, version);
+      }) as typeof indexedDB.open;
+    });
+    await page.reload();
+    await expect(scene).toHaveAttribute("data-layout-source", "computed");
+    expect(await boxes()).toEqual(latestWorld);
+    await expect(map.getByRole("alert")).toHaveCount(0);
+    await writeFile(
+      resolve(project, "Group/New.lean"),
+      "theorem new_target : True := by trivial\n",
+    );
+    await page
+      .getByRole("button", { name: "Refresh files and map", exact: true })
+      .click();
+    await expect
+      .poll(async () => scene.getAttribute("data-scene-revision"))
+      .not.toBe(latestRevision);
+    await expect(
+      scene.locator('[data-map-path="Group/New.lean"]'),
+    ).toBeVisible();
+    expect(requests).toHaveLength(0);
+    expect(
+      commands.every(
+        (command) =>
+          command.type === "refresh_workspace" ||
+          (command.type === "inspect" &&
+            command.directory === true &&
+            command.path === "."),
+      ),
+    ).toBe(true);
+    expect(
+      commands.filter((command) => command.type === "refresh_workspace"),
+    ).toHaveLength(9);
+    await info.attach("map-layout-cache.json", {
+      body: JSON.stringify({
+        revision,
+        world: original,
+        codec_corruption_recovered: true,
+        storage_unavailable_recomputed: true,
+        cache_entry_and_byte_budgets_enforced: true,
+        same_origin_unapproved_restart: true,
+        commands,
+      }),
+      contentType: "application/json",
+    });
+  });
+
   test("large project map loads declaration nodes on zoom without opening files or changing chat", async ({
     page,
   }) => {
@@ -3060,6 +3251,10 @@ theorem slow : True := fast
       .toBe(false);
     const beforeCommands = commands.length;
     const beforeInspection = (await nativeState(page)).directories;
+    const geometryRevision = await map
+      .locator(".continuous-map-scene")
+      .getAttribute("data-scene-revision");
+    expect(geometryRevision).toMatch(/^sha256:[a-f0-9]{64}$/);
     const originalCanvas = await map
       .locator(".workspace-overview-canvas")
       .boundingBox();
@@ -3079,6 +3274,10 @@ theorem slow : True := fast
       name: /Declaration: identity0 · Many\/Group0\/File0.lean:/,
     });
     await expect(declaration).toBeVisible({ timeout: 30000 });
+    await expect(map.locator(".continuous-map-scene")).toHaveAttribute(
+      "data-scene-revision",
+      geometryRevision!,
+    );
     await expect(
       map.getByLabel("Declaration types", { exact: true }),
     ).toBeVisible();

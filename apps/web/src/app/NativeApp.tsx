@@ -21,6 +21,7 @@ import {
   type NativeState,
   type HistorySnapshot,
   type WorkspaceOverview,
+  type InventoryPublication,
 } from "@meden/agent-protocol/native";
 import { ChatView } from "../features/chat/ChatView";
 import type { Conversation } from "@meden/workspace-schema";
@@ -45,6 +46,7 @@ import { NativeFileWorkspace } from "../features/native/NativeFileWorkspace";
 import Tune from "@mui/icons-material/Tune";
 import PlayArrow from "@mui/icons-material/PlayArrow";
 import Close from "@mui/icons-material/Close";
+import { useMapLayout } from "../features/native/useMapLayout";
 import { projectMap } from "../features/native/project-map-model";
 import { NativeExplorer } from "../features/native/NativeExplorer";
 import { NativeWorkspaceGraph } from "../features/native/NativeWorkspaceGraph";
@@ -97,7 +99,15 @@ export function NativeApp({ token }: { token: string }) {
   const [utility, setUtility] = useState<
     "history" | "delivery" | "analysis" | null
   >(null);
-  const [overview, setOverview] = useState<WorkspaceOverview>();
+  const [overviewView, setOverviewView] = useState<{
+    original: InventoryPublication;
+    data: WorkspaceOverview;
+  }>();
+  const overview = overviewView?.data;
+  const mapLayout = useMapLayout(overviewView?.original.data);
+  const previousScene = useRef<ReturnType<typeof projectMap> | undefined>(
+    undefined,
+  );
   const [overviewError, setOverviewError] = useState("");
   const [overviewCycle, setOverviewCycle] = useState(0);
   const mapEpoch = useRef(0);
@@ -116,11 +126,19 @@ export function NativeApp({ token }: { token: string }) {
   );
   const scene = useMemo(
     () =>
-      overview
-        ? projectMap(overview, new Set<string>(JSON.parse(trackedTargets)))
+      overview && mapLayout.prepared
+        ? projectMap(
+            overview,
+            new Set<string>(JSON.parse(trackedTargets)),
+            mapLayout.prepared.geometry,
+            previousScene.current,
+          )
         : undefined,
-    [overview, trackedTargets],
+    [overview, trackedTargets, mapLayout.prepared],
   );
+  useEffect(() => {
+    previousScene.current = scene;
+  }, [scene]);
   const [provider, setProvider] = useState("");
   const [model, setModel] = useState("");
   const listedProvider = useRef("");
@@ -417,7 +435,10 @@ export function NativeApp({ token }: { token: string }) {
     )
       return;
     observedInventory.current = inventoryPublication.revision;
-    setOverview(inventoryPublication.data);
+    setOverviewView({
+      original: inventoryPublication,
+      data: inventoryPublication.data,
+    });
     setOverviewError("");
   }, [inventoryPublication]);
   useEffect(() => {
@@ -503,7 +524,7 @@ export function NativeApp({ token }: { token: string }) {
         if (command.type === "refresh_workspace") {
           next.sources = { current: null, files: {} };
           mapEpoch.current++;
-          setOverview(undefined);
+          setOverviewView(undefined);
           observedInventory.current = undefined;
           setOverviewError("");
           setOverviewCycle((value) => value + 1);
@@ -584,13 +605,18 @@ export function NativeApp({ token }: { token: string }) {
         const chunk = await client.map(parent, path);
         if (mapEpoch.current !== epoch || currentInventory.current !== parent)
           return false;
-        setOverview((previous) => {
-          if (!previous || observedInventory.current !== parent)
+        setOverviewView((previous) => {
+          if (!previous || previous.original.revision !== parent)
             return previous;
           const files = new Map(chunk.files.map((file) => [file.path, file]));
           return {
             ...previous,
-            files: previous.files.map((file) => files.get(file.path) || file),
+            data: {
+              ...previous.data,
+              files: previous.data.files.map(
+                (file) => files.get(file.path) || file,
+              ),
+            },
           };
         });
         return true;
@@ -1008,11 +1034,12 @@ export function NativeApp({ token }: { token: string }) {
             <div className="ide-stage">
               <div className="project-map-page" hidden={Boolean(activeFile)}>
                 <NativeWorkspaceGraph
-                  error={inventoryError || overviewError}
+                  error={inventoryError || overviewError || mapLayout.error}
                   loading={Boolean(
-                    inventoryRevision &&
-                    !inventoryPublication &&
-                    !inventoryError,
+                    (inventoryRevision &&
+                      !inventoryPublication &&
+                      !inventoryError) ||
+                    mapLayout.loading,
                   )}
                   onRetry={
                     inventoryError && inventoryRevision
@@ -1023,10 +1050,14 @@ export function NativeApp({ token }: { token: string }) {
                   canIndex={
                     !running &&
                     queue.length === 0 &&
-                    inventoryPublication?.revision === currentInventory.current
+                    inventoryPublication?.revision ===
+                      currentInventory.current &&
+                    overviewView?.original.revision === currentInventory.current
                   }
                   onIndex={indexMapFile}
                   scene={scene}
+                  layoutRevision={mapLayout.prepared?.revision}
+                  layoutSource={mapLayout.prepared?.source}
                   state={state}
                   selectedId={selectedSymbol?.id}
                   onSelect={selectMapSymbol}

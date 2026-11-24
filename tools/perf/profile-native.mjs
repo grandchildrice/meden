@@ -13,7 +13,7 @@ if (!workspace || !file)
   throw new Error(
     "Usage: node tools/perf/profile-native.mjs WORKSPACE FILE [OUTPUT_DIRECTORY]",
   );
-await mkdir(destination, { recursive: true });
+await mkdir(destination, { recursive: true, mode: 0o700 });
 const attach = process.env.MEDEN_PROFILE_PID;
 const binary = attach
   ? `/proc/${attach}/exe`
@@ -151,9 +151,14 @@ try {
     "trace.json",
     "native-metrics.json",
     "preparation.json",
+    "events.csv",
+    "events.md",
     "summary.json",
     ...(await readdir(destination))
-      .filter((name) => name.endsWith(".cpuprofile"))
+      .filter(
+        (name) =>
+          name.endsWith(".cpuprofile") || name === "preparation-log.json",
+      )
       .sort(),
   ];
   const digests = {};

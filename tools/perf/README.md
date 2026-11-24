@@ -175,6 +175,34 @@ Native stage distributions include only newly completed span IDs since the
 initial snapshot and report eviction during the capture. Stages overlap, and
 zero CPU samples means unavailable measurement rather than zero CPU work.
 
+`events.csv` and `events.md` expose each action/event type's sample count,
+synchronous handler p50/p95/max and the corresponding two-rAF p95. The JSON
+keeps chronological dispatches, inclusive rendering spans and sampled CPU
+leaders. A separate `project-map-drill` phase clicks reachable category headers
+and a file box, retaining lazy map traffic and its rendering tail; overview
+wheel events alone do not exercise declaration-chunk updates. Discrete
+[Event Timing](https://www.w3.org/TR/event-timing/) observations additionally
+retain input queue delay, processing and reported duration at a 16 ms threshold.
+Absent observations are unavailable, never zero; continuous wheel/move/resize
+events do not receive that API's queue measurement. Delayed observer delivery
+is attributed by start time to the original measured window. No diagnostics
+are added to the normal product UI or sent to an analytics service.
+
+```sh
+node tools/gui/profile-map-load.mjs '<GUI_URL>' target/gui-profile/map-load
+```
+
+This separate driver measures five full navigations in a fresh browser context,
+retaining the same native host/project/OS caches. It captures inventory transfer,
+long tasks and a CPU profile per visit, including JSON decoding, canonical input
+construction, geometry preparation and initial rendering. DOM attachment and
+two-rAF timings are navigation-relative proxies, not physical presentation.
+Actual DOM cache-source attributes classify hits; the first visit number alone
+does not. It opens no files or chat, refuses non-directory commands and checks
+that the final host remains idle/unapproved. Optional storage gets a one-second
+settling interval between visits, outside the measured readiness proxy. Keep
+these diagnostic captures serialized with other performance work.
+
 The report also retains the complete API request timeline, including setup and
 between-phase reads. Use it to distinguish one revisioned history fetch from
 repeated status traffic; do not infer that setup performed no transfer merely
@@ -188,9 +216,10 @@ click must reveal its original source line; target IDs, per-selection camera
 transforms and individual dispatch durations are retained so repeated selection
 cannot hide the cost of changing declarations. The profiler waits three frames
 after each selection before the next click. This does not cover every node or
-arbitrary rapid clicking. `preparation.json` retains the actual file-local build
-log, elapsed preparation time and cache-hit flag alongside the profiles; it is
-included in the native capture's digest manifest.
+arbitrary rapid clicking. `preparation.json` retains file-local progress, elapsed
+preparation time and cache-hit status. `preparation-log.json` reads the exact
+original revisioned log, including its truncation flag; both are retained beside
+the profiles and included in the native capture's digest manifest.
 
 Prepared sources are queried through the exact revision advertised by the small
 status index. The profiler performs one additional source-body read after

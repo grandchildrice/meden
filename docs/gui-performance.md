@@ -1,5 +1,11 @@
 # Graph interaction measurements
 
+The [current event and startup audit](performance/map-events.md) separates
+synchronous handlers, asynchronous declaration updates, initial map loading and
+native Lake/input preparation. Versioned geometry reuse reduces deep-zoom work;
+the report also retains the remaining startup overhead and reference-resolution
+cost rather than treating a cache hit as an end-to-end speedup.
+
 Prepared-input comparisons now have a [separate calibration report](performance/lake-preparation.md).
 It rejects a slower prototype and separates normal invocation time from sampler
 overhead; the production compiler and existing graph caches are unchanged.

@@ -312,6 +312,35 @@ world coordinates independent of camera/viewport; view state is separate from
 evidence state. Retain source pages/tokens and only invalidate affected artifacts.
 Caches of presentation data never restore current verification or an approval.
 
+The project map now implements that separation with one pure layout module and
+an optional browser storage adapter. Version 1 records the pinned D3 binary
+treemap implementation, padding/extent/color rules, no random seed and explicit
+UTF-16 path ordering after descending weight. Its canonical input includes the
+complete sorted path/weight inventory and inventory mode. Source bytes, labels,
+tracked targets and lazy declaration chunks do not affect these rectangles;
+their current observations are overlaid separately. An unchanged input reuses
+its prepared geometry; changed files replace their descriptions and symbols
+without recreating every rectangle. World coordinates never depend on viewport,
+font measurement, status polling or camera position.
+
+The disposable `MPL1` artifact contains dictionary indices and four little-endian
+Float64 coordinates per rectangle. SHA-256 binds the original canonical input
+and packed bytes. Decoding requires exact length, a complete unique inventory,
+parent-before-child order and finite, positive rectangles within their original
+parent/world bounds. Labels, paths, counts and roles come from the current
+inventory, not stored display metadata. The adapter retains at most eight
+artifacts/64 MiB, evicts oldest entries and recomputes on corrupt or unavailable
+storage. Persistence runs after commit during idle time. There is no old JSON
+layout parser or second renderer. The content revision, rather than a label
+refresh, controls initial camera fitting. Golden coordinates, generated-tree
+round trips, overlay/rebuild agreement and actual browser recovery exercise this
+boundary. A checksum and containment check do not authenticate D3 correctness
+against a deliberately rewritten browser cache; this data carries no authority.
+Sorted input construction reuses common path prefixes while retaining the same
+dictionary/coordinates; initial views avoid building unused change sets or
+rewriting their newly created index. [Event and startup measurements](../performance/map-events.md)
+record both the deep-zoom improvement and remaining main-thread startup costs.
+
 Use small revisioned read models and bounded log/chunk streams rather than
 resending full source, graph and history on each status tick. Progress names
 the job/resource, current step, queue/wait reason, elapsed time, applicable limit
@@ -747,9 +776,10 @@ the byte budget. The original reader fails that outcome check. Interleaved
 actual-worker measurements bind the complete original document and reduce this
 measured loading cost without changing the compiler or its cache identities.
 
-This does not finish step 4: broader orchestration jobs,
-and remaining navigation waits still need work. Step 5's versioned layout/order and retirement
-requirements remain open too.
+This does not finish step 4: broader orchestration jobs and remaining navigation
+waits still need work. Step 5 now has versioned project-map geometry, explicit
+ordering and independent lazy overlays. Other layout/versioning and the complete
+retirement audit remain open.
 Step 3 now executes the second backend through public TUI/GUI, actual offline
 Z3, a real approved-model trial and a separate 256-input Python oracle. Its
 parser/disagreement rejection tests, actual solver-output faults, started-solver

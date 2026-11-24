@@ -66,6 +66,8 @@ function SymbolMarker({
 
 type SceneData = Record<string, unknown> & {
   scene: MapScene;
+  layoutRevision?: string;
+  layoutSource?: string;
   width: number;
   height: number;
   selected?: string;
@@ -100,7 +102,8 @@ function Scene({ data }: NodeProps<SceneNode>) {
       width={MAP_WIDTH}
       height={MAP_HEIGHT}
       aria-label="Project in stable coordinates"
-      data-scene-revision="fixed"
+      data-scene-revision={data.layoutRevision}
+      data-layout-source={data.layoutSource}
     >
       {visible.map(({ area: a, opacity: alpha }) => (
         <g
@@ -254,6 +257,8 @@ const nodeTypes = { scene: Scene };
 
 function WorkspaceMap({
   scene,
+  layoutRevision,
+  layoutSource,
   state,
   selectedId,
   onSelect,
@@ -265,6 +270,8 @@ function WorkspaceMap({
   onRetry,
 }: {
   scene?: MapScene;
+  layoutRevision?: string;
+  layoutSource?: string;
   state: NativeState;
   selectedId?: string;
   onSelect: (symbol: Symbol) => void;
@@ -287,7 +294,7 @@ function WorkspaceMap({
     () => (scene ? mapLocation(scene, camera, size) : ""),
     [scene, camera, size],
   );
-  const initial = useRef(false);
+  const initial = useRef<string | undefined>(undefined);
   const requested = useRef(new Set<string>());
   const indexing = useRef(false);
   useEffect(() => {
@@ -352,8 +359,9 @@ function WorkspaceMap({
         height = canvas.clientHeight;
       if (!width || !height) return;
       setSize({ width, height });
-      if (!initial.current && scene) {
-        initial.current = true;
+      const identity = layoutRevision || scene?.geometry.input;
+      if (scene && initial.current !== identity) {
+        initial.current = identity;
         void flow.fitBounds(
           { x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT },
           { padding: "32px" },
@@ -373,7 +381,7 @@ function WorkspaceMap({
     });
     observer.observe(canvas);
     return () => observer.disconnect();
-  }, [canvas, flow, Boolean(scene)]);
+  }, [canvas, flow, scene?.geometry.input, layoutRevision]);
   const nodes = useMemo<SceneNode[]>(
     () =>
       scene
@@ -387,6 +395,8 @@ function WorkspaceMap({
               style: { width: MAP_WIDTH, height: MAP_HEIGHT },
               data: {
                 scene,
+                layoutRevision,
+                layoutSource,
                 ...size,
                 selected: selectedId,
                 focus,
@@ -395,7 +405,7 @@ function WorkspaceMap({
             },
           ]
         : [],
-    [scene, size, flow, onSelect, selectedId],
+    [scene, size, flow, onSelect, selectedId, layoutRevision, layoutSource],
   );
   return (
     <section

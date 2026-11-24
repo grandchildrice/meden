@@ -4,13 +4,18 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve, basename } from "node:path";
 import { createHash } from "node:crypto";
 import { TraceMap, originalPositionFor } from "@jridgewell/trace-mapping";
+import {
+  interactionRows,
+  interactionCsv,
+  interactionMarkdown,
+} from "./interaction-report.mjs";
 
 const [url, destination = "target/gui-profile"] = process.argv.slice(2);
 if (!url)
   throw new Error(
     "Usage: node tools/gui/profile-interactions.mjs GUI_URL [OUTPUT_DIRECTORY]",
   );
-await mkdir(destination, { recursive: true });
+await mkdir(destination, { recursive: true, mode: 0o700 });
 const browser = await chromium.launch({
   executablePath:
     process.env.MEDEN_GUI_CHROME ||
@@ -40,6 +45,13 @@ async function locate(frame) {
   const name = basename(frame.url || "");
   if (!name.endsWith(".js"))
     return frame.functionName || frame.url || "(anonymous)";
+  if (
+    !Number.isInteger(frame.lineNumber) ||
+    frame.lineNumber < 0 ||
+    !Number.isInteger(frame.columnNumber) ||
+    frame.columnNumber < 0
+  )
+    return `${name} · ${frame.functionName || "(anonymous)"} (source position unavailable)`;
   if (!maps.has(name)) {
     try {
       const path = resolve(assets, "assets", name + ".map");
@@ -74,6 +86,8 @@ try {
       inputs: [],
       tasks: [],
       shifts: [],
+      eventTimings: [],
+      windows: [],
       last: 0,
     };
     const p = window.__medenProfile;
@@ -109,9 +123,21 @@ try {
     ])
       observeInput(document, type);
     observeInput(window, "resize");
+    if (PerformanceObserver.supportedEntryTypes.includes("event"))
+      new PerformanceObserver((list) => {
+        for (const e of list.getEntries())
+          p.eventTimings.push({
+            type: e.name,
+            start: e.startTime,
+            queue_ms: e.processingStart - e.startTime,
+            processing_ms: e.processingEnd - e.processingStart,
+            duration_ms: e.duration,
+            interaction: e.interactionId,
+          });
+      }).observe({ type: "event", buffered: true, durationThreshold: 16 });
     new PerformanceObserver((list) => {
       for (const e of list.getEntries())
-        p.tasks.push({ phase: p.phase, ms: e.duration });
+        p.tasks.push({ phase: p.phase, start: e.startTime, ms: e.duration });
     }).observe({ type: "longtask", buffered: true });
     new PerformanceObserver((list) => {
       for (const e of list.getEntries())
@@ -143,16 +169,19 @@ try {
   });
   await page.goto(url);
   const state = () =>
-    page.evaluate(async () =>
-      (
-        await fetch("/api/state", {
-          headers: {
-            Authorization:
-              "Bearer " + sessionStorage.getItem("meden-native-session"),
-          },
-        })
-      ).json(),
-    );
+    page.evaluate(async () => {
+      const response = await fetch("/api/state", {
+        headers: {
+          Authorization:
+            "Bearer " + sessionStorage.getItem("meden-native-session"),
+        },
+      });
+      if (!response.ok)
+        throw Error(
+          `Native state unavailable (HTTP ${response.status}); use the current host session URL`,
+        );
+      return response.json();
+    });
   const nativeMetrics = () =>
     page.evaluate(async () => {
       const response = await fetch("/api/metrics", {
@@ -244,6 +273,29 @@ try {
     resolve(destination, "preparation.json"),
     JSON.stringify(native.source_preparation[file], null, 2),
   );
+  const logRevision = native.source_preparation[file]?.log?.revision;
+  if (logRevision) {
+    const log = await page.evaluate(async (revision) => {
+      const response = await fetch(
+        "/api/preparation-log?revision=" + encodeURIComponent(revision),
+        {
+          headers: {
+            Authorization:
+              "Bearer " + sessionStorage.getItem("meden-native-session"),
+          },
+        },
+      );
+      if (!response.ok) throw Error("Original preparation log unavailable");
+      const body = await response.json();
+      if (body.revision !== revision)
+        throw Error("Preparation log revision mismatch");
+      return body;
+    }, logRevision);
+    await writeFile(
+      resolve(destination, "preparation-log.json"),
+      JSON.stringify(log, null, 2),
+    );
+  }
   const graph = page.locator(".ide-file-page:not([hidden]) .cone-graph");
   await expect(graph).toBeVisible();
   const viewport = graph.locator(".react-flow__viewport");
@@ -251,6 +303,10 @@ try {
     viewport.evaluateAll(
       (elements) => elements[0]?.getAttribute("style") ?? null,
     );
+  const mapCamera = () =>
+    map
+      .locator(".react-flow__viewport")
+      .evaluateAll((elements) => elements[0]?.getAttribute("style") ?? null);
   const cdp = await page.context().newCDPSession(page);
   await cdp.send("Profiler.enable");
   await cdp.send("Profiler.setSamplingInterval", { interval: 1000 });
@@ -266,12 +322,17 @@ try {
     }, count);
   const measure = async (label, action) => {
     const cameraBefore = await graphCamera();
+    const mapCameraBefore = await mapCamera();
     await cdp.send("Profiler.start");
     phase = label;
     await page.evaluate((label) => {
       window.__medenProfile.phase = label;
       window.__medenProfile.last = 0;
       performance.mark("meden:" + label + ":start");
+      window.__medenProfile.windows.push({
+        phase: label,
+        start: performance.now(),
+      });
     }, label);
     const before = performance.now();
     await action();
@@ -282,6 +343,7 @@ try {
     const elapsed = performance.now() - before;
     await page.evaluate((label) => {
       performance.mark("meden:" + label + ":end");
+      window.__medenProfile.windows.at(-1).end = performance.now();
       window.__medenProfile.phase = "between";
     }, label);
     phase = "between";
@@ -307,6 +369,14 @@ try {
     samples[label] = {
       elapsed_ms: elapsed,
       graph_camera: { before: cameraBefore, after: await graphCamera() },
+      map_camera: { before: mapCameraBefore, after: await mapCamera() },
+      retained_dom: {
+        graph_nodes: await graph.locator(".react-flow__node").count(),
+        map_boxes: await map.locator("g[data-map-path]").count(),
+        map_declarations: await map
+          .locator('[aria-label^="Declaration:"]')
+          .count(),
+      },
       cpu_hotspots: hotspots,
     };
     console.log(JSON.stringify({ measured: label, elapsed_ms: elapsed }));
@@ -425,6 +495,90 @@ try {
     );
     for (let i = 0; i < 24; i++) await page.mouse.wheel(0, i < 12 ? -35 : 35);
   });
+  const drill = [];
+  await measure("project-map-drill", async () => {
+    let parent = "";
+    for (let step = 0; step < 20; step++) {
+      // Use a real reachable box/header. Ancestors can cover the canvas while
+      // their children intercept its center; never force a click through them.
+      const target = await map
+        .locator("g[data-map-path]")
+        .evaluateAll((groups, parent) => {
+          const viewport = document
+            .querySelector(".project-map-page .workspace-overview-canvas")
+            .getBoundingClientRect();
+          return (
+            groups
+              .flatMap((g) => {
+                const path = g.getAttribute("data-map-path"),
+                  label = g.getAttribute("aria-label"),
+                  r = g.querySelector("rect").getBoundingClientRect();
+                if (
+                  g.getAttribute("aria-hidden") === "true" ||
+                  !path ||
+                  (parent && !path.startsWith(parent + "/"))
+                )
+                  return [];
+                const left = Math.max(r.left, viewport.left + 8),
+                  right = Math.min(r.right, viewport.right - 8),
+                  top = Math.max(r.top, viewport.top + 8),
+                  bottom = Math.min(r.bottom, viewport.bottom - 8);
+                if (right - left < 12 || bottom - top < 12) return [];
+                for (const y of [top + 3, (top + bottom) / 2]) {
+                  const x = (left + right) / 2;
+                  if (
+                    document
+                      .elementFromPoint(x, y)
+                      ?.closest("g[data-map-path]") === g
+                  )
+                    return [
+                      {
+                        path,
+                        category: label?.startsWith("Category:"),
+                        x,
+                        y,
+                        area: (right - left) * (bottom - top),
+                      },
+                    ];
+                }
+                return [];
+              })
+              .sort((a, b) => b.area - a.area)[0] ?? null
+          );
+        }, parent);
+      if (!target) {
+        // Newly revealed children can still be too small for a real click.
+        // Continue zooming rather than claiming one category click exercised
+        // declaration loading. Keep the pointer inside the visible canvas.
+        if (!parent) break;
+        await page.mouse.move(
+          mapBox.x + mapBox.width / 2,
+          mapBox.y + mapBox.height / 2,
+        );
+        await page.mouse.wheel(0, -650);
+        drill.push({ wheel: -650, parent });
+        await page.waitForTimeout(600);
+        await waitFrames(4);
+        continue;
+      }
+      drill.push(target);
+      await page.mouse.click(target.x, target.y);
+      // Include the intentional normal-motion focus and subsequent lazy chunk.
+      await page.waitForTimeout(800);
+      await waitFrames(4);
+      parent = target.path;
+      if (!target.category) break;
+    }
+    if (!drill.some((step) => step.path && !step.category))
+      throw Error(
+        "Project-map drill did not reach a file box; no declaration-loading measurement admitted",
+      );
+    await page.waitForTimeout(1000);
+  });
+  samples["project-map-drill"].steps = drill;
+  samples["project-map-drill"].visible_declarations = await map
+    .getByRole("button", { name: /^Declaration:/ })
+    .count();
   await measure("project-map-idle", () => waitFrames(180));
   const done = new Promise((resolve) =>
     cdp.once("Tracing.tracingComplete", resolve),
@@ -453,8 +607,28 @@ try {
         ),
       ]),
     );
+    const window = metrics.windows.find((w) => w.phase === label);
     sample.long_tasks = quantiles(
-      metrics.tasks.filter((e) => e.phase === label).map((e) => e.ms),
+      metrics.tasks
+        .filter((e) => e.start >= window.start && e.start <= window.end)
+        .map((e) => e.ms),
+    );
+    const timings = metrics.eventTimings.filter(
+      (e) => e.start >= window.start && e.start <= window.end,
+    );
+    sample.event_timing = Object.fromEntries(
+      [...new Set(timings.map((e) => e.type))].map((type) => {
+        const events = timings.filter((e) => e.type === type);
+        return [
+          type,
+          {
+            queue: quantiles(events.map((e) => e.queue_ms)),
+            processing: quantiles(events.map((e) => e.processing_ms)),
+            reported_duration: quantiles(events.map((e) => e.duration_ms)),
+            events,
+          },
+        ];
+      }),
     );
     sample.requests = requests.filter((r) => r.phase === label);
     const start = trace.find((e) => e.name === "meden:" + label + ":start")?.ts;
@@ -517,6 +691,7 @@ try {
   );
   const report = {
     environment: {
+      captured_at_utc: new Date().toISOString(),
       browser: browser.version(),
       viewport: "1440x960",
       throttling: "none",
@@ -565,6 +740,12 @@ try {
   await writeFile(
     resolve(destination, "summary.json"),
     JSON.stringify(report, null, 2),
+  );
+  const rows = interactionRows(samples);
+  await writeFile(resolve(destination, "events.csv"), interactionCsv(rows));
+  await writeFile(
+    resolve(destination, "events.md"),
+    interactionMarkdown(rows, samples),
   );
   await writeFile(
     resolve(destination, "trace.json"),
