@@ -6,8 +6,7 @@
   "properties": {
     "revision": {
       "description": "Exact publication requested by the viewer.",
-      "type": "string",
-      "pattern": "^sha256:[a-f0-9]{64}$"
+      "$ref": "#/$defs/ArtifactId"
     },
     "data": {
       "description": "Original complete projection, never an authority token.",
@@ -20,14 +19,17 @@
     "data"
   ],
   "$defs": {
+    "ArtifactId": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
     "Chunk": {
       "description": "Complete generated chunk; revision binds its parent inventory scope.",
       "type": "object",
       "properties": {
         "revision": {
           "description": "Exact parent publication requested by the browser.",
-          "type": "string",
-          "pattern": "^sha256:[a-f0-9]{64}$"
+          "$ref": "#/$defs/ArtifactId"
         },
         "files": {
           "description": "Complete selected file and import-only neighbors, never source prefixes.",

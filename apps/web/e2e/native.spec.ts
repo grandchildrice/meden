@@ -1653,6 +1653,78 @@ test.describe("native GUI with real offline workers", () => {
         })
       ).status,
     ).toBe(403);
+    await expect
+      .poll(async () => (await nativeState(page)).running)
+      .toBe(false);
+    const originalOwners = await nativeState(page);
+    const probes = await page.evaluate(async (state) => {
+      const headers = {
+        Authorization:
+          "Bearer " + sessionStorage.getItem("meden-native-session"),
+      };
+      const owners = [
+        ["source", state.sources.current.revision],
+        ["reader", state.readers.files["Tiny.txt"].revision],
+        ["inventory", state.overview.revision],
+        ["history", state.history.revision],
+        ["evidence", state.project.revision],
+        [
+          "directory",
+          (Object.values(state.directories.paths)[0] as { revision: string })
+            .revision,
+        ],
+      ];
+      const results = [];
+      for (const [route, own] of owners) {
+        for (const [origin, revision] of owners) {
+          const response = await fetch(
+            "/api/" + route + "?revision=" + encodeURIComponent(revision),
+            { headers },
+          );
+          await response.arrayBuffer();
+          results.push({
+            route,
+            origin,
+            expected: route === origin ? 200 : 409,
+            status: response.status,
+          });
+        }
+        for (const revision of [
+          "obsolete",
+          "sha256:" + "A".repeat(64),
+          own + "\n",
+        ]) {
+          const response = await fetch(
+            "/api/" + route + "?revision=" + encodeURIComponent(revision),
+            { headers },
+          );
+          await response.arrayBuffer();
+          results.push({
+            route,
+            origin: "malformed",
+            expected: 409,
+            status: response.status,
+          });
+        }
+      }
+      return results;
+    }, originalOwners);
+    expect(probes).toHaveLength(54);
+    for (const probe of probes)
+      expect(probe.status, JSON.stringify(probe)).toBe(probe.expected);
+    const afterProbes = await nativeState(page);
+    for (const field of [
+      "sources",
+      "readers",
+      "directories",
+      "history",
+      "project",
+      "overview",
+    ])
+      expect(afterProbes[field]).toEqual(originalOwners[field]);
+    expect(afterProbes.running).toBe(false);
+    expect(afterProbes.authorized).toBe(false);
+    expect(await chat.innerHTML()).toBe(before);
     const unchangedReads = reads;
     for (let i = 0; i < 3; i++) {
       await page.getByRole("tab", { name: "Project map", exact: true }).click();
@@ -1708,6 +1780,7 @@ test.describe("native GUI with real offline workers", () => {
           status_bytes: JSON.stringify(newest).length,
           source_bytes: sourceQuery.bytes,
           initial_reads_before_manual_probe: 5,
+          artifact_context_probes: probes,
           unchanged_navigation_reads: 0,
           stale_response_status: stale,
           chat_dom_unchanged: true,

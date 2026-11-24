@@ -318,11 +318,13 @@ mod tests {
             .cloned()
             .with_context(|| format!("Missing original field: {path}"))
     }
-    fn revision(reader: &crate::view::preview::Reader) -> Result<String> {
-        Ok(field(&serde_json::to_value(reader)?, "/revision")?
-            .as_str()
-            .ok_or_else(|| anyhow::anyhow!("No ready preview"))?
-            .into())
+    fn revision(
+        reader: &crate::view::preview::Reader,
+    ) -> Result<crate::view::publication::ArtifactId<crate::view::preview::Artifact>> {
+        Ok(serde_json::from_value(field(
+            &serde_json::to_value(reader)?,
+            "/revision",
+        )?)?)
     }
     #[test]
     fn original_bundle_frame_and_frozen_reads_survive_diagnostics_but_not_replacement() -> Result<()>

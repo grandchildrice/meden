@@ -1,6 +1,6 @@
 //! Frozen descriptions of actual static captures. These are neither proof
 //! evidence nor authority to read a workspace or start a browser server.
-use super::publication::{Envelope, Publication};
+use super::publication::{ArtifactId, Envelope, Publication};
 use crate::preview::Bundle;
 use anyhow::Result;
 use schemars::JsonSchema;
@@ -48,8 +48,7 @@ pub enum Status {
         #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
         frame: String,
         /// Content identity, separate from the captured asset-manifest identity.
-        #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
-        revision: String,
+        revision: ArtifactId<Artifact>,
     },
     /// An incomplete or superseded description is not served.
     Unavailable {
@@ -61,7 +60,7 @@ pub enum Status {
 
 struct State {
     data: Option<Data>,
-    publication: Option<Publication>,
+    publication: Option<Publication<Artifact>>,
     status: Status,
 }
 impl State {
@@ -78,8 +77,8 @@ impl State {
             .as_ref()
             .ok_or_else(|| anyhow::anyhow!("Preview observation missing"))?;
         let result = match &self.publication {
-            Some(previous) => previous.update(b"meden.preview.v1\0", data),
-            None => Publication::new(b"meden.preview.v1\0", data),
+            Some(previous) => previous.update(data),
+            None => Publication::new(data),
         };
         match result {
             Ok(value) => {
@@ -170,7 +169,7 @@ impl Previews {
 pub struct Reader(Arc<Mutex<State>>);
 impl Reader {
     /// No asset/source reads, serialization or worker calls on this path.
-    pub fn bytes(&self, revision: &str) -> Option<Arc<[u8]>> {
+    pub fn bytes(&self, revision: &ArtifactId<Artifact>) -> Option<Arc<[u8]>> {
         self.0.lock().ok()?.publication.as_ref()?.bytes(revision)
     }
 }
@@ -184,4 +183,13 @@ impl Serialize for Reader {
             .serialize(serializer),
         }
     }
+}
+
+/// Identity context for this owner's immutable publications, never authority.
+pub enum Artifact {}
+impl super::publication::Domain for Artifact {
+    const PREFIX: &'static [u8] = b"meden.preview.v1\0";
+}
+impl super::publication::Data for Data {
+    type Domain = Artifact;
 }

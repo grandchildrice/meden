@@ -8,7 +8,7 @@
       "description": "Latest retained observation of each requested directory.",
       "type": "object",
       "additionalProperties": {
-        "$ref": "#/$defs/Reference"
+        "$ref": "#/$defs/ArtifactRef"
       }
     }
   },
@@ -17,20 +17,23 @@
     "paths"
   ],
   "$defs": {
-    "Reference": {
-      "description": "Exact immutable presentation identity, independent of evidence/source IDs.",
+    "ArtifactRef": {
+      "description": "Exact immutable presentation reference in its original context.",
       "type": "object",
       "properties": {
         "revision": {
           "description": "Domain-separated identity of every serialized data byte.",
-          "type": "string",
-          "pattern": "^sha256:[a-f0-9]{64}$"
+          "$ref": "#/$defs/ArtifactId"
         }
       },
       "additionalProperties": false,
       "required": [
         "revision"
       ]
+    },
+    "ArtifactId": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
     }
   }
 }

@@ -25,6 +25,7 @@ mod cache;
 
 use meden_app::view::inventory;
 pub(super) use meden_app::view::inventory::{State, Status};
+use meden_app::view::publication::ArtifactId;
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub(super) struct File {
     path: String,
@@ -77,10 +78,10 @@ impl Snapshot {
             chunks,
         })
     }
-    pub(super) fn revision(&self) -> &str {
+    pub(super) fn revision(&self) -> &ArtifactId<inventory::Artifact> {
         &self.prepared.reference().revision
     }
-    pub(super) fn bytes(&self, revision: &str) -> Option<Arc<[u8]>> {
+    pub(super) fn bytes(&self, revision: &ArtifactId<inventory::Artifact>) -> Option<Arc<[u8]>> {
         self.prepared.bytes(revision)
     }
 }
@@ -570,7 +571,7 @@ fn observe_batch(
 pub(super) fn cached(
     view: &Mutex<View>,
     workspace: &Workspace,
-    revision: &str,
+    revision: &ArtifactId<inventory::Artifact>,
     path: &str,
 ) -> Result<Arc<[u8]>> {
     let snapshot = lock(view)
@@ -608,7 +609,7 @@ pub(super) fn cached(
     let bytes = lock(&snapshot.chunks).publish(
         path,
         &inventory::Chunk {
-            revision: revision.into(),
+            revision: revision.clone(),
             files,
         },
     )?;

@@ -1,5 +1,5 @@
 //! Immutable history publications. Imported records remain presentation data.
-use super::publication::{Envelope, Publication};
+use super::publication::{ArtifactId, Envelope, Publication};
 use crate::records::{Message, View};
 use anyhow::Result;
 use schemars::JsonSchema;
@@ -60,8 +60,7 @@ pub enum Reference {
     /// Complete serialized original data is retained.
     Ready {
         /// Content identity, distinct from authority or a receipt.
-        #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
-        revision: String,
+        revision: ArtifactId<Artifact>,
         /// Native transcript count for lightweight startup/navigation state.
         messages: u32,
     },
@@ -80,7 +79,7 @@ pub type Snapshot<'a> = Envelope<&'a Data>;
 pub struct History {
     data: Data,
     reference: Reference,
-    publication: Option<Publication>,
+    publication: Option<Publication<Artifact>>,
 }
 impl History {
     /// Freeze the initial projection without restoring authority.
@@ -107,7 +106,7 @@ impl History {
         self.refresh();
     }
     /// Share already serialized bytes only for the exact current revision.
-    pub fn bytes(&self, revision: &str) -> Option<Arc<[u8]>> {
+    pub fn bytes(&self, revision: &ArtifactId<Artifact>) -> Option<Arc<[u8]>> {
         match &self.reference {
             Reference::Ready {
                 revision: current, ..
@@ -120,8 +119,8 @@ impl History {
         let result = (|| -> Result<_> {
             let messages = u32::try_from(self.data.messages.len())?;
             let publication = match &self.publication {
-                Some(previous) => previous.update(b"meden.history.view.v1\0", &self.data)?,
-                None => Publication::new(b"meden.history.view.v1\0", &self.data)?,
+                Some(previous) => previous.update(&self.data)?,
+                None => Publication::new(&self.data)?,
             };
             Ok((
                 Reference::Ready {
@@ -151,6 +150,15 @@ impl Serialize for History {
     }
 }
 
+/// Identity context for this owner's immutable publications, never authority.
+pub enum Artifact {}
+impl super::publication::Domain for Artifact {
+    const PREFIX: &'static [u8] = b"meden.history.view.v1\0";
+}
+impl super::publication::Data for Data {
+    type Domain = Artifact;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -173,7 +181,7 @@ mod tests {
             logs: Vec::new(),
         }
     }
-    fn revision(history: &History) -> Result<String> {
+    fn revision(history: &History) -> Result<ArtifactId<Artifact>> {
         match &history.reference {
             Reference::Ready { revision, .. } => Ok(revision.clone()),
             Reference::Unavailable { .. } => anyhow::bail!("Unavailable history"),
@@ -204,7 +212,7 @@ mod tests {
         let mut hash = Sha256::new();
         hash.update(b"meden.history.view.v1\0");
         hash.update(serde_json::to_vec(history.data())?);
-        assert_eq!(id, format!("sha256:{:x}", hash.finalize()));
+        assert_eq!(id.as_str(), format!("sha256:{:x}", hash.finalize()));
         Ok(())
     }
     #[test]
@@ -229,7 +237,7 @@ mod tests {
             Some(1)
         );
         assert_eq!(history.data().messages.len(), 2);
-        assert!(history.bytes("not a revision").is_none());
+        assert!(ArtifactId::<Artifact>::parse("not a revision").is_err());
         Ok(())
     }
     #[test]

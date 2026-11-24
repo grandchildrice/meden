@@ -859,10 +859,26 @@ waits still need work. Step 5 now has versioned project-map geometry, explicit
 ordering and independent lazy overlays. Other layout/versioning and the complete
 retirement audit remain open.
 The typed-identity audit also remains open: application source snapshots and
-publication references still expose raw string revisions within their owning
-records. Existing compound/reference checks are useful but do not complete the
-distinct-ID requirement above. The cone layout's version/configuration contract
-also needs its own audit; project-map coverage does not establish it.
+session/job identities still contain raw values within their owning records.
+Published views now use `ArtifactId<Domain>` / `ArtifactRef<Domain>` throughout
+their actual owners, retention tables and query APIs. Each DTO family fixes its
+own domain; a source ID cannot query a file reader, and a directory DTO cannot
+be frozen or retained as a reader. Borrowed projections share their owner's
+domain without retaining their input lifetime. The former untyped publication
+and caller-supplied hash-domain argument are removed. Wire digests and all
+original host comparisons remain unchanged; explicit decoding establishes only
+canonical spelling, never ownership or authority. Native HTTP routes decode
+their own context, then query the original owner. Generated browser validators
+remain identical; JSON does not carry the Rust nominal type. Compile-time
+rejection and the real source-publication failure/retry/restart journey cover
+cross-owner and malformed reads without changing retained views or chat.
+The [view-artifact validation record](../performance/artifact-contexts.md)
+retains the actual transport matrix, matching/rejected compile examples,
+unchanged wire/assets and public failure/restart evidence.
+This completes the view-artifact boundary, not the remaining session, backend
+snapshot, accepted-revision and job identity audit. The cone layout's
+version/configuration contract also needs its own audit; project-map coverage
+does not establish it.
 Step 3 now executes the second backend through public TUI/GUI, actual offline
 Z3, a real approved-model trial and a separate 256-input Python oracle. Its
 parser/disagreement rejection tests, actual solver-output faults, started-solver

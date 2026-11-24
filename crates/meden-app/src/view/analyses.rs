@@ -1,5 +1,5 @@
 //! Revision-bound candidate jobs. These observations carry no proof or authority.
-use super::publication::{Envelope, Publication};
+use super::publication::{ArtifactId, Envelope, Publication};
 use crate::{analysis, semantic};
 use anyhow::Result;
 use schemars::JsonSchema;
@@ -135,8 +135,7 @@ pub enum Current {
     /// The exact complete observation is retained.
     Ready {
         /// Immutable body identity, never authority.
-        #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
-        revision: String,
+        revision: ArtifactId<CurrentArtifact>,
     },
     /// Original data is retained, but cannot be completely projected.
     Unavailable {
@@ -152,8 +151,7 @@ pub enum HistoryStatus {
     /// Complete original history is available by exact identity.
     Ready {
         /// Immutable body identity.
-        #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
-        revision: String,
+        revision: ArtifactId<HistoryArtifact>,
         /// Complete retained run count.
         #[schemars(range(max = 1000))]
         runs: u32,
@@ -176,8 +174,8 @@ pub struct Status {
 pub struct Analyses {
     records: Records,
     status: Status,
-    current: Option<Publication>,
-    history: Option<Publication>,
+    current: Option<Publication<CurrentArtifact>>,
+    history: Option<Publication<HistoryArtifact>>,
 }
 impl Analyses {
     /// An unreadable journal has no invented empty successful history.
@@ -232,24 +230,19 @@ impl Analyses {
         }
     }
     /// Exact current bytes only; no I/O or rematerialization.
-    pub fn current_bytes(&self, revision: &str) -> Option<Arc<[u8]>> {
+    pub fn current_bytes(&self, revision: &ArtifactId<CurrentArtifact>) -> Option<Arc<[u8]>> {
         self.current.as_ref()?.bytes(revision)
     }
     /// Exact history bytes only; selected/progress changes do not retire them.
-    pub fn history_bytes(&self, revision: &str) -> Option<Arc<[u8]>> {
+    pub fn history_bytes(&self, revision: &ArtifactId<HistoryArtifact>) -> Option<Arc<[u8]>> {
         self.history.as_ref()?.bytes(revision)
     }
-    fn prepare_current(&self, record: &analysis::Record) -> Result<Publication> {
+    fn prepare_current(&self, record: &analysis::Record) -> Result<Publication<CurrentArtifact>> {
         let _timing = meden_runtime::metrics::Span::start("view.analysis.materialize");
         let data = Record::new(record)?;
-        freeze(
-            self.current.as_ref(),
-            self.history.as_ref(),
-            b"meden.candidate-current.v1\0",
-            &data,
-        )
+        freeze(self.current.as_ref(), self.history.as_ref(), &data)
     }
-    fn prepare_history(&self) -> Result<(Publication, u32)> {
+    fn prepare_history(&self) -> Result<(Publication<HistoryArtifact>, u32)> {
         let _timing = meden_runtime::metrics::Span::start("view.analysis_history.materialize");
         anyhow::ensure!(
             self.records.history.len() <= 1000,
@@ -263,12 +256,7 @@ impl Analyses {
                 .map(Record::new)
                 .collect::<Result<_>>()?,
         };
-        let publication = freeze(
-            self.history.as_ref(),
-            self.current.as_ref(),
-            b"meden.candidate-history.v1\0",
-            &data,
-        )?;
+        let publication = freeze(self.history.as_ref(), self.current.as_ref(), &data)?;
         Ok((publication, u32::try_from(self.records.history.len())?))
     }
     fn refresh_current(&mut self) {
@@ -310,15 +298,14 @@ impl Analyses {
         }
     }
 }
-fn freeze(
-    previous: Option<&Publication>,
-    other: Option<&Publication>,
-    domain: &[u8],
-    data: &impl Serialize,
-) -> Result<Publication> {
+fn freeze<D: super::publication::Domain, O: super::publication::Domain>(
+    previous: Option<&Publication<D>>,
+    other: Option<&Publication<O>>,
+    data: &impl super::publication::Data<Domain = D>,
+) -> Result<Publication<D>> {
     let publication = match previous {
-        Some(previous) => previous.update(domain, data),
-        None => Publication::new(domain, data),
+        Some(previous) => previous.update(data),
+        None => Publication::new(data),
     }?;
     anyhow::ensure!(
         publication
@@ -337,5 +324,22 @@ impl Serialize for Analyses {
         self.status.serialize(serializer)
     }
 }
+/// Identity context of the selected/running candidate observation.
+pub enum CurrentArtifact {}
+impl super::publication::Domain for CurrentArtifact {
+    const PREFIX: &'static [u8] = b"meden.candidate-current.v1\0";
+}
+impl super::publication::Data for Record<'_> {
+    type Domain = CurrentArtifact;
+}
+/// Identity context of complete candidate history, separate from the selection.
+pub enum HistoryArtifact {}
+impl super::publication::Domain for HistoryArtifact {
+    const PREFIX: &'static [u8] = b"meden.candidate-history.v1\0";
+}
+impl super::publication::Data for History<'_> {
+    type Domain = HistoryArtifact;
+}
+
 #[cfg(test)]
 mod tests;

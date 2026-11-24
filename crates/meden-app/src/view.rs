@@ -144,14 +144,14 @@ pub enum Site {
 #[derive(Clone)]
 pub struct PreparedSource {
     snapshot: std::sync::Arc<Snapshot>,
-    publication: publication::Publication,
+    publication: publication::Publication<sources::Artifact>,
 }
 impl PreparedSource {
     /// Materialize and validate once before the GUI publishes a source view.
     pub fn new(snapshot: Snapshot) -> Result<Self> {
         let _timing = meden_runtime::metrics::Span::start("analysis.materialize_view");
         let page = SourcePage::from_snapshot(&snapshot)?;
-        let publication = publication::Publication::new(b"meden.source.view.v1\0", &page)?;
+        let publication = publication::Publication::new(&page)?;
         Ok(Self {
             snapshot: std::sync::Arc::new(snapshot),
             publication,
@@ -162,7 +162,7 @@ impl PreparedSource {
         &self.snapshot
     }
     /// Complete frozen presentation, separately identified from input sources.
-    pub fn publication(&self) -> &publication::Publication {
+    pub fn publication(&self) -> &publication::Publication<sources::Artifact> {
         &self.publication
     }
 }

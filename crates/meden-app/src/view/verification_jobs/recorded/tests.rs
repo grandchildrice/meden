@@ -1,5 +1,6 @@
 use super::*;
 use crate::view::verification_jobs::{Reader, Role};
+use crate::view::{publication::ArtifactId, verification_jobs::Artifact};
 use serde_json::{json, Value};
 use std::sync::Arc;
 
@@ -33,13 +34,10 @@ fn record(outcome: Outcome, success: bool) -> store::Observation {
         },
     }
 }
-fn body(reader: &Reader) -> Result<(String, Arc<[u8]>, Value)> {
+fn body(reader: &Reader) -> Result<(ArtifactId<Artifact>, Arc<[u8]>, Value)> {
     let status = serde_json::to_value(reader)?;
-    let revision = status
-        .get("revision")
-        .and_then(Value::as_str)
-        .context("Ready revision")?
-        .to_owned();
+    let revision =
+        serde_json::from_value(status.get("revision").context("Ready reference")?.clone())?;
     let bytes = reader.bytes(&revision).context("Frozen original body")?;
     let value = serde_json::from_slice(&bytes)?;
     Ok((revision, bytes, value))

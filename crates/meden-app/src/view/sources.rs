@@ -1,5 +1,9 @@
 //! Prepared source retention. Querying a publication never performs host I/O.
-use super::{file, publication::Reference, PreparedSource};
+use super::{
+    file,
+    publication::{ArtifactId, ArtifactRef},
+    PreparedSource,
+};
 use schemars::JsonSchema;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
@@ -18,18 +22,18 @@ pub const MAX_BYTES: usize = 134_217_728;
 #[serde(deny_unknown_fields)]
 pub struct Index {
     /// Most recently published observation; absent while an explicit read fails.
-    pub current: Option<Reference>,
+    pub current: Option<ArtifactRef<Artifact>>,
     /// Exact retained artifact for each observed path.
-    pub files: BTreeMap<String, Reference>,
+    pub files: BTreeMap<String, ArtifactRef<Artifact>>,
 }
 
 /// Sole owner of retained originals, publication identities and eviction order.
 #[derive(Default)]
 pub struct Sources {
-    current: Option<String>,
-    files: BTreeMap<String, String>,
-    artifacts: BTreeMap<String, PreparedSource>,
-    order: VecDeque<String>,
+    current: Option<ArtifactId<Artifact>>,
+    files: BTreeMap<String, ArtifactId<Artifact>>,
+    artifacts: BTreeMap<ArtifactId<Artifact>, PreparedSource>,
+    order: VecDeque<ArtifactId<Artifact>>,
     bytes: usize,
 }
 impl Sources {
@@ -108,7 +112,7 @@ impl Sources {
         paths
     }
     /// Return existing immutable bytes only for an exact retained publication.
-    pub fn bytes(&self, revision: &str) -> Option<Arc<[u8]>> {
+    pub fn bytes(&self, revision: &ArtifactId<Artifact>) -> Option<Arc<[u8]>> {
         self.artifacts.get(revision)?.publication().bytes(revision)
     }
     /// Derive the small index without exposing the original backend records.
@@ -126,13 +130,13 @@ impl Sources {
                 .collect(),
         }
     }
-    fn remove(&mut self, id: &str) {
+    fn remove(&mut self, id: &ArtifactId<Artifact>) {
         if let Some(source) = self.artifacts.remove(id) {
             self.bytes = self.bytes.saturating_sub(source.publication().size());
         }
         self.files.retain(|_, value| value != id);
         self.order.retain(|value| value != id);
-        if self.current.as_deref() == Some(id) {
+        if self.current.as_ref() == Some(id) {
             self.current = None;
         }
     }
@@ -158,6 +162,15 @@ impl Serialize for Sources {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         self.index().serialize(serializer)
     }
+}
+
+/// Identity context of prepared source/graph publications, distinct from source snapshots.
+pub enum Artifact {}
+impl super::publication::Domain for Artifact {
+    const PREFIX: &'static [u8] = b"meden.source.view.v1\0";
+}
+impl super::publication::Data for super::SourcePage {
+    type Domain = Artifact;
 }
 
 #[cfg(test)]
@@ -282,7 +295,7 @@ mod tests {
             let rows: Vec<_> = paths.iter().map(|p| (p.as_str(), text.as_str())).collect();
             sources.publish(PreparedSource::new(original(&rows)?)?);
         }
-        assert!(sources.bytes(first.as_deref().context("first")?).is_none());
+        assert!(sources.bytes(first.as_ref().context("first")?).is_none());
         assert!(sources.bytes <= MAX_BYTES && sources.current().is_some());
         Ok(())
     }
@@ -291,8 +304,8 @@ mod tests {
         #[test]
         fn finite_publication_traces_preserve_latest_paths_and_refuse_evicted_ids(actions in prop::collection::vec((0u8..5,0u8..90),1..180)) {
             let mut sources=Sources::default();
-            let mut expected:Vec<(String,String)>=Vec::new();
-            let mut current:Option<(String,String)>=None;
+            let mut expected:Vec<(String,ArtifactId<Artifact>)>=Vec::new();
+            let mut current:Option<(String,ArtifactId<Artifact>)>=None;
             let mut ids=Vec::new();
             // Exercise count eviction before random clears: all these small,
             // distinct artifacts fit the byte budget, so it cannot mask a

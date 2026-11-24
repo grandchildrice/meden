@@ -1,0 +1,1840 @@
+{
+  "date_local": "2026-11-25",
+  "timezone": "Asia/Tokyo",
+  "captured_at_utc": "2026-11-24T15:32:21.704Z",
+  "source_base_revision": "695e33d88662b4c71304c9038f1db292cba6b1c4",
+  "scope": "Typed actual publication construction, references, retention and queries across 13 view contexts; original bytes and host matching remain authoritative. No kernel/controller/compiler/search/renderer changes.",
+  "domains": [
+    {
+      "type": "sources::Artifact",
+      "original_hash_domain": "meden.source.view.v1\\0"
+    },
+    {
+      "type": "readers::Artifact",
+      "original_hash_domain": "meden.reader.view.v1\\0"
+    },
+    {
+      "type": "directory::Artifact",
+      "original_hash_domain": "meden.directory.view.v1\\0"
+    },
+    {
+      "type": "inventory::Artifact",
+      "original_hash_domain": "meden.inventory.view.v3\\0"
+    },
+    {
+      "type": "inventory::NavigationArtifact",
+      "original_hash_domain": "meden.inventory.details.v1\\0"
+    },
+    {
+      "type": "inventory::ChunkArtifact",
+      "original_hash_domain": "meden.inventory.chunk.v1\\0"
+    },
+    {
+      "type": "history::Artifact",
+      "original_hash_domain": "meden.history.view.v1\\0"
+    },
+    {
+      "type": "analyses::CurrentArtifact",
+      "original_hash_domain": "meden.candidate-current.v1\\0"
+    },
+    {
+      "type": "analyses::HistoryArtifact",
+      "original_hash_domain": "meden.candidate-history.v1\\0"
+    },
+    {
+      "type": "jobs::Artifact",
+      "original_hash_domain": "meden.preparation.log.v1\\0"
+    },
+    {
+      "type": "evidence::Artifact",
+      "original_hash_domain": "meden.project-evidence.v1\\0"
+    },
+    {
+      "type": "verification_jobs::Artifact",
+      "original_hash_domain": "meden.verification.observation.v1\\0"
+    },
+    {
+      "type": "preview::Artifact",
+      "original_hash_domain": "meden.preview.v1\\0"
+    }
+  ],
+  "checks": [
+    {
+      "phase": "typecheck",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "typescript",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "architecture",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "format",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "schema",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "fuzz",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "performance",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "tui",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "gui-all",
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "rust_checks": [
+    {
+      "phase": "app",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "cli",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "doc",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "build",
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "focused_check": {
+    "phase": "complete",
+    "code": 0
+  },
+  "publication_checks": [
+    {
+      "phase": "normal",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "format-final",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "hidden-build",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "deploy",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "fidelity",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "bindings",
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "navigation_checks": [
+    {
+      "phase": "reduce",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "phase": "no-preference-replacement",
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "interrupted_navigation_attempt": {
+    "parent_exec_exit": 143,
+    "last_phase": "no-preference",
+    "last_pid": 4140803,
+    "parent_and_child_absent_on_process_inspection": true,
+    "browser_report": "target/gui-artifact-navigation-no-preference-report",
+    "browser_verdict": "1 passed",
+    "gate_completion_observed": false
+  },
+  "decoded_validation": {
+    "gui": {
+      "all": {
+        "report": "target/gui-artifact-all-report/index.html",
+        "sha256": "77df0f34a974bafb6d02bbb59a854485f69e6f8f6cccd59c88483b3c17ae71dc",
+        "stats": {
+          "total": 71,
+          "expected": 71,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "navigation_performance": [
+          {
+            "browser": "149.0.7827.53",
+            "motion": "reduce",
+            "cold_analysis_store_preparation_ms": 41011.935278000004,
+            "warm_tab_two_raf_ms": [
+              24.19999998807907,
+              37.59999996423721,
+              25.30000001192093,
+              25.599999964237213,
+              30.400000035762787,
+              27.19999998807907,
+              25.69999998807907,
+              35.69999998807907,
+              26.899999976158142,
+              33.80000001192093
+            ],
+            "p95_ms": 37.59999996423721,
+            "maximum_p95_ms": 250,
+            "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+          }
+        ],
+        "source_transfers": [
+          {
+            "status_bytes": 2267,
+            "source_bytes": 408776,
+            "initial_reads_before_manual_probe": 5,
+            "unchanged_navigation_reads": 0,
+            "stale_response_status": 409,
+            "chat_dom_unchanged": true
+          }
+        ]
+      },
+      "normal": {
+        "report": "target/gui-artifact-normal-report/index.html",
+        "sha256": "4397bb53bfd97b1594b81368816a8c9bbb2b17339568b397a6fee0bb64f18f8a",
+        "stats": {
+          "total": 2,
+          "expected": 2,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "navigation_performance": [],
+        "source_transfers": [
+          {
+            "status_bytes": 2267,
+            "source_bytes": 408776,
+            "initial_reads_before_manual_probe": 5,
+            "artifact_context_probes": [
+              {
+                "route": "source",
+                "origin": "source",
+                "expected": 200,
+                "status": 200
+              },
+              {
+                "route": "source",
+                "origin": "reader",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "source",
+                "origin": "inventory",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "source",
+                "origin": "history",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "source",
+                "origin": "evidence",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "source",
+                "origin": "directory",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "source",
+                "origin": "malformed",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "source",
+                "origin": "malformed",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "source",
+                "origin": "malformed",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "reader",
+                "origin": "source",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "reader",
+                "origin": "reader",
+                "expected": 200,
+                "status": 200
+              },
+              {
+                "route": "reader",
+                "origin": "inventory",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "reader",
+                "origin": "history",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "reader",
+                "origin": "evidence",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "reader",
+                "origin": "directory",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "reader",
+                "origin": "malformed",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "reader",
+                "origin": "malformed",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "reader",
+                "origin": "malformed",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "inventory",
+                "origin": "source",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "inventory",
+                "origin": "reader",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "inventory",
+                "origin": "inventory",
+                "expected": 200,
+                "status": 200
+              },
+              {
+                "route": "inventory",
+                "origin": "history",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "inventory",
+                "origin": "evidence",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "inventory",
+                "origin": "directory",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "inventory",
+                "origin": "malformed",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "inventory",
+                "origin": "malformed",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "inventory",
+                "origin": "malformed",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "history",
+                "origin": "source",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "history",
+                "origin": "reader",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "history",
+                "origin": "inventory",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "history",
+                "origin": "history",
+                "expected": 200,
+                "status": 200
+              },
+              {
+                "route": "history",
+                "origin": "evidence",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "history",
+                "origin": "directory",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "history",
+                "origin": "malformed",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "history",
+                "origin": "malformed",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "history",
+                "origin": "malformed",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "evidence",
+                "origin": "source",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "evidence",
+                "origin": "reader",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "evidence",
+                "origin": "inventory",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "evidence",
+                "origin": "history",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "evidence",
+                "origin": "evidence",
+                "expected": 200,
+                "status": 200
+              },
+              {
+                "route": "evidence",
+                "origin": "directory",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "evidence",
+                "origin": "malformed",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "evidence",
+                "origin": "malformed",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "evidence",
+                "origin": "malformed",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "directory",
+                "origin": "source",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "directory",
+                "origin": "reader",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "directory",
+                "origin": "inventory",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "directory",
+                "origin": "history",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "directory",
+                "origin": "evidence",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "directory",
+                "origin": "directory",
+                "expected": 200,
+                "status": 200
+              },
+              {
+                "route": "directory",
+                "origin": "malformed",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "directory",
+                "origin": "malformed",
+                "expected": 409,
+                "status": 409
+              },
+              {
+                "route": "directory",
+                "origin": "malformed",
+                "expected": 409,
+                "status": 409
+              }
+            ],
+            "unchanged_navigation_reads": 0,
+            "stale_response_status": 409,
+            "chat_dom_unchanged": true
+          }
+        ]
+      },
+      "navigation-reduce": {
+        "report": "target/gui-artifact-navigation-reduce-report/index.html",
+        "sha256": "5f6e01bb554900a9d98f27088218e44b74fd83eb2b3ff3285205f5e6e3f62d1a",
+        "stats": {
+          "total": 1,
+          "expected": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "navigation_performance": [
+          {
+            "browser": "149.0.7827.53",
+            "motion": "reduce",
+            "cold_analysis_store_preparation_ms": 32792.202378,
+            "warm_tab_two_raf_ms": [
+              24.299999952316284,
+              34,
+              25.900000035762787,
+              26.900000035762787,
+              22.80000001192093,
+              22.399999976158142,
+              35,
+              23.30000001192093,
+              32.19999998807907,
+              27
+            ],
+            "p95_ms": 35,
+            "maximum_p95_ms": 250,
+            "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+          }
+        ],
+        "source_transfers": []
+      },
+      "navigation-no-preference": {
+        "report": "target/gui-artifact-navigation-no-preference-replacement-report/index.html",
+        "sha256": "9fd0fc675a7cf629ef59d26a42b34e5290a8848dd5d349b25e4c3f83242437f5",
+        "stats": {
+          "total": 1,
+          "expected": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "navigation_performance": [
+          {
+            "browser": "149.0.7827.53",
+            "motion": "no-preference",
+            "cold_analysis_store_preparation_ms": 31780.603642000002,
+            "warm_tab_two_raf_ms": [
+              38,
+              26.299999952316284,
+              32.39999997615814,
+              30.599999964237213,
+              30.700000047683716,
+              26.100000023841858,
+              22.599999964237213,
+              27.100000023841858,
+              31.5,
+              29.399999976158142
+            ],
+            "p95_ms": 38,
+            "maximum_p95_ms": 250,
+            "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+          }
+        ],
+        "source_transfers": []
+      }
+    },
+    "tui": {
+      "path": "/tmp/meden-ux-artifact-20261125/summary.json",
+      "sha256": "dddc49cf3c38a920e9420ae51afbd16b7e1d138f8f1d065ae797ba955408b5f1",
+      "binary": {
+        "path": "/home/gohan/workspace/meden/target/validation-bin/e9b77587e61fd858b1803fdb33911f2e5f6309ea5031ea0f9b95f612e7544716/meden",
+        "sha256": "e9b77587e61fd858b1803fdb33911f2e5f6309ea5031ea0f9b95f612e7544716"
+      },
+      "cases": 35,
+      "success": true,
+      "inference": "scripted fixtures; no live-model validation"
+    },
+    "decoded_screens": [
+      {
+        "path": "/tmp/meden-ux-artifact-20261125/test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa/last-screen.txt",
+        "sha256": "fcb277111b43fe9b112ccf4041c5538ecf189a5466c7fef4419eb2a28901d6fe",
+        "inspected": true
+      },
+      {
+        "path": "/tmp/meden-ux-artifact-20261125/test_tui_meaning_source_freshness_cancel_and_historical_restart-a005e7f5d6/last-screen.txt",
+        "sha256": "5cf55716f092c51b6f8c32b34c337ffab7430c4ac1fceb1ecc83fc62b50325c3",
+        "inspected": true
+      }
+    ]
+  },
+  "public_http_matrix": {
+    "journey": "prepared source publications retry locally, transfer once and refuse delayed older views across restart",
+    "owners": [
+      "source",
+      "reader",
+      "inventory",
+      "history",
+      "evidence",
+      "directory"
+    ],
+    "own_reads": 6,
+    "foreign_reads": 30,
+    "malformed_reads": 18,
+    "total": 54,
+    "cases": [
+      {
+        "route": "source",
+        "origin": "source",
+        "expected": 200,
+        "status": 200
+      },
+      {
+        "route": "source",
+        "origin": "reader",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "source",
+        "origin": "inventory",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "source",
+        "origin": "history",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "source",
+        "origin": "evidence",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "source",
+        "origin": "directory",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "source",
+        "origin": "malformed",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "source",
+        "origin": "malformed",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "source",
+        "origin": "malformed",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "reader",
+        "origin": "source",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "reader",
+        "origin": "reader",
+        "expected": 200,
+        "status": 200
+      },
+      {
+        "route": "reader",
+        "origin": "inventory",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "reader",
+        "origin": "history",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "reader",
+        "origin": "evidence",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "reader",
+        "origin": "directory",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "reader",
+        "origin": "malformed",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "reader",
+        "origin": "malformed",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "reader",
+        "origin": "malformed",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "inventory",
+        "origin": "source",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "inventory",
+        "origin": "reader",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "inventory",
+        "origin": "inventory",
+        "expected": 200,
+        "status": 200
+      },
+      {
+        "route": "inventory",
+        "origin": "history",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "inventory",
+        "origin": "evidence",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "inventory",
+        "origin": "directory",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "inventory",
+        "origin": "malformed",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "inventory",
+        "origin": "malformed",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "inventory",
+        "origin": "malformed",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "history",
+        "origin": "source",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "history",
+        "origin": "reader",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "history",
+        "origin": "inventory",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "history",
+        "origin": "history",
+        "expected": 200,
+        "status": 200
+      },
+      {
+        "route": "history",
+        "origin": "evidence",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "history",
+        "origin": "directory",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "history",
+        "origin": "malformed",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "history",
+        "origin": "malformed",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "history",
+        "origin": "malformed",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "evidence",
+        "origin": "source",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "evidence",
+        "origin": "reader",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "evidence",
+        "origin": "inventory",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "evidence",
+        "origin": "history",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "evidence",
+        "origin": "evidence",
+        "expected": 200,
+        "status": 200
+      },
+      {
+        "route": "evidence",
+        "origin": "directory",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "evidence",
+        "origin": "malformed",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "evidence",
+        "origin": "malformed",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "evidence",
+        "origin": "malformed",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "directory",
+        "origin": "source",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "directory",
+        "origin": "reader",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "directory",
+        "origin": "inventory",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "directory",
+        "origin": "history",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "directory",
+        "origin": "evidence",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "directory",
+        "origin": "directory",
+        "expected": 200,
+        "status": 200
+      },
+      {
+        "route": "directory",
+        "origin": "malformed",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "directory",
+        "origin": "malformed",
+        "expected": 409,
+        "status": 409
+      },
+      {
+        "route": "directory",
+        "origin": "malformed",
+        "expected": 409,
+        "status": 409
+      }
+    ],
+    "own_status": 200,
+    "refused_status": 409,
+    "original_views_and_chat_unchanged": true,
+    "failure_retry_refresh_late_body_and_unapproved_restart": true
+  },
+  "compile_examples": {
+    "total": 8,
+    "new_rejected": 3,
+    "new_matching": 2,
+    "prior_rejected": 3,
+    "owner_query_role": true,
+    "dto_context": true,
+    "retention_context": true
+  },
+  "scalar_tests": {
+    "arbitrary_digests_round_trip": true,
+    "original_utf8_control_and_json_framing": true,
+    "unchanged_reuse_shares_bytes": true,
+    "explicit_foreign_decode_does_not_match_owner": true,
+    "malformed_noncanonical_and_nonstring_refused": true
+  },
+  "generated_browser_validators_byte_identical": [
+    {
+      "path": "packages/agent-protocol/src/analyses-status.generated.ts",
+      "sha256": "9e974ab3ddf826ee995956669ee4f505cd5b2041e78d8a96c29d63458b9a94db"
+    },
+    {
+      "path": "packages/agent-protocol/src/analysis-current.generated.ts",
+      "sha256": "2a981bf6ee55eaf9a17a04e4e655e47dec60c5b4927ebdd7ce193f3f48d74e75"
+    },
+    {
+      "path": "packages/agent-protocol/src/analysis-history.generated.ts",
+      "sha256": "57c2907cefa98e1c70489f14ce1f5d0127e66025f95ce1ef458b56871229b10e"
+    },
+    {
+      "path": "packages/agent-protocol/src/command.generated.ts",
+      "sha256": "fcea4dc356b7d08515adc482853af5f5c622a298c9384e1e4950328234266f4a"
+    },
+    {
+      "path": "packages/agent-protocol/src/delivery-outcome.generated.ts",
+      "sha256": "b990db79b073382e4e7f059495668a5cd909f0fb669a46b87d70802338b71c68"
+    },
+    {
+      "path": "packages/agent-protocol/src/delivery-reference.generated.ts",
+      "sha256": "ada70c314d69b30117c092092810512c566c4813aed5a309cd022d085b651438"
+    },
+    {
+      "path": "packages/agent-protocol/src/delivery-review.generated.ts",
+      "sha256": "7ceb0d234723dfbe2c0d7a437f746804a36dfa2562780632077b4b82499f6fd2"
+    },
+    {
+      "path": "packages/agent-protocol/src/delivery-summary.generated.ts",
+      "sha256": "32948d0568a42cb1d51fc8ca66af10c70224b9864877143365757ed9dcdff3ed"
+    },
+    {
+      "path": "packages/agent-protocol/src/directory-index.generated.ts",
+      "sha256": "8040120d2773c8357aa0164a33976f682e9d2fe6b59e53a8d4f3caa52fa0a322"
+    },
+    {
+      "path": "packages/agent-protocol/src/directory-publication.generated.ts",
+      "sha256": "00f73e822d1fc79a269f42fe15b72c693ab1bed5fe6b7e104dd9e70fb1858296"
+    },
+    {
+      "path": "packages/agent-protocol/src/evidence-publication.generated.ts",
+      "sha256": "711b272988fa502d183f91d80b39aca8b523575a48fecb4a257c9161697cfa05"
+    },
+    {
+      "path": "packages/agent-protocol/src/evidence-reference.generated.ts",
+      "sha256": "3e02afba0aaf7111c77bdfc7d9d41e08dedc20a943767e917d529d0bc6a4f7a0"
+    },
+    {
+      "path": "packages/agent-protocol/src/evidence-status.generated.ts",
+      "sha256": "15850164fc568615ec66dc2299643d90407f2201295e64755cf72b3f08f66cb3"
+    },
+    {
+      "path": "packages/agent-protocol/src/file.generated.ts",
+      "sha256": "22c080ac98297f8956db39280da9627daa9fc6a304503702ee3c436c79137f36"
+    },
+    {
+      "path": "packages/agent-protocol/src/history-reference.generated.ts",
+      "sha256": "765e46f334b155e1f7dc0a4c3f6491f81978acf7cdedc7719a7d98f8aadd88b8"
+    },
+    {
+      "path": "packages/agent-protocol/src/history.generated.ts",
+      "sha256": "e605aceccf2d0d0fa0f7842e7174d391793f669bca33e37b08fdebb0667178a2"
+    },
+    {
+      "path": "packages/agent-protocol/src/inventory-chunk.generated.ts",
+      "sha256": "d0d7aa99794d7e1cd2c2be606adbe390e7b34245de970c313d52ada01ce844f7"
+    },
+    {
+      "path": "packages/agent-protocol/src/inventory-publication.generated.ts",
+      "sha256": "d054513a8c5b07acb181e26fe1adfc16bf04e3ba6211516484301471c710e9d2"
+    },
+    {
+      "path": "packages/agent-protocol/src/inventory-status.generated.ts",
+      "sha256": "85c83679623122cb3487b77741fe84f38560116e6b1df4a492bcba7422683e95"
+    },
+    {
+      "path": "packages/agent-protocol/src/inventory.generated.ts",
+      "sha256": "3ec27b9c8057002f9031ac1e4374e53385be02d6d97d306f6870a034c0e809f0"
+    },
+    {
+      "path": "packages/agent-protocol/src/meaning-input.generated.ts",
+      "sha256": "94fed639b23983f4f7b2828efa7cb0d37e9bec17da4118ce9cb7bc6349b02ddc"
+    },
+    {
+      "path": "packages/agent-protocol/src/meaning-record.generated.ts",
+      "sha256": "c561a759e550a1fe71ea7a215d12b3d2d68e4236836c99c2a81cb7413a189a21"
+    },
+    {
+      "path": "packages/agent-protocol/src/preparation-index.generated.ts",
+      "sha256": "91421d61e20f1312ef65b27b9a4e47c6b15c84e7b9e283ff2c463ef05ed64032"
+    },
+    {
+      "path": "packages/agent-protocol/src/preparation-log.generated.ts",
+      "sha256": "250fa655346638b738d54a9eefe17989943d161d81e41f0d902860bdc61eddef"
+    },
+    {
+      "path": "packages/agent-protocol/src/preview-publication.generated.ts",
+      "sha256": "50953bb79c4021cbca1dd3d451366f8bfb8730726d0df6ea34b08ce7a44a7de3"
+    },
+    {
+      "path": "packages/agent-protocol/src/preview-status.generated.ts",
+      "sha256": "be71e365e691fa5c843fd865d32cfe8f7c9ebd2215bc3b6bf728dc183b3abea4"
+    },
+    {
+      "path": "packages/agent-protocol/src/reader-index.generated.ts",
+      "sha256": "94a56d63fedd682a8cdbe56fb25b67efe564469a5ab95ff1657308e5778dc99c"
+    },
+    {
+      "path": "packages/agent-protocol/src/reader-publication.generated.ts",
+      "sha256": "7e8bbe8783c2cd38c04b61531f052cddf0ba9589fbc2fe571f54e1fc8258d65a"
+    },
+    {
+      "path": "packages/agent-protocol/src/repair-reference.generated.ts",
+      "sha256": "0b9effe5ad136e8dcfb0b27777ca7fadb6e37647c40508d2eb37effde1ef0c53"
+    },
+    {
+      "path": "packages/agent-protocol/src/repair-review.generated.ts",
+      "sha256": "1621f8c54dd9ed935ecf85ac8ff661d6f30c694b66ae91c254a1be0fd0758834"
+    },
+    {
+      "path": "packages/agent-protocol/src/sequence.generated.ts",
+      "sha256": "64bf22582839189b07a06782c1d2b93794b6442655e63faac4ff76045f35b254"
+    },
+    {
+      "path": "packages/agent-protocol/src/session-state.generated.ts",
+      "sha256": "fd9a490cf33d8f924131c3fdcc603ecb7ab118c732ede674b9c3e5809f13365c"
+    },
+    {
+      "path": "packages/agent-protocol/src/source-index.generated.ts",
+      "sha256": "35ef2d61e484c3c4e1b71200297d57809d3380154a23a3f90bd89ebea4194a94"
+    },
+    {
+      "path": "packages/agent-protocol/src/source-publication.generated.ts",
+      "sha256": "6499db707efe18cc7f2ac6ea912d6abd93036b62e711d03fb170f208bc6d7b56"
+    },
+    {
+      "path": "packages/agent-protocol/src/source.generated.ts",
+      "sha256": "1ef2bfe86baea6b7c8a9b4bf9a7ff0596bf347843b56441469e000c7c2906d65"
+    },
+    {
+      "path": "packages/agent-protocol/src/verification-job-publication.generated.ts",
+      "sha256": "7f516f7a98f6e3ce2dc5edd96f33ca9f32f65b7eb4ef05c4d2571a2db8b9eaa9"
+    },
+    {
+      "path": "packages/agent-protocol/src/verification-job-status.generated.ts",
+      "sha256": "c6d5c6c1e5a54203023e79125bc7fb395d343419b6483d93da37ce308bef416f"
+    }
+  ],
+  "tested_and_prior_browser_assets_byte_identical": true,
+  "validated_assets": {
+    "all_validated_bytes_match": true,
+    "files": [
+      [
+        "assets/AnalysisView-BZ-Zupfd.js",
+        "c08b4750900943abbc013dd67281352be120172b03da401f9eab89a6948004d5"
+      ],
+      [
+        "assets/ArtifactPanel-ByJ8-FcN.js",
+        "8ab1479a1e64d99b23a5d00132aa79e33cc9a9baf6b0adfc1400c95a580a140b"
+      ],
+      [
+        "assets/GraphView-B97Awx-f.js",
+        "401555dd913b042cfc1c21a2177a150faab5ba63a8b169216bbf906e6612b860"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-BQhdFMY1.woff2",
+        "0cdd387c9590a1a9f9794560022dbb59654a7d86f187aa0c81495ad42d3a7308"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-DMm9YOAa.woff",
+        "30da91e84c893f875e252689faebdc590b2871145e8adc7f9a9d4dbd8ce0b251"
+      ],
+      [
+        "assets/KaTeX_AMS-Regular-DRggAlZN.ttf",
+        "68534840bcfdd2bffb6f0e8deb48684dd01e7f04ea2813267577afb906de1d13"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-ATXxdsX0.ttf",
+        "07d8e303ce4fc12b4bb54f1004170dd190a1f3db45d400fe68060df3e0897268"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-BEiXGLvX.woff",
+        "1ae6bd7475590e97e7f145a89e09ccde322f7a6bc0b91607b1c8b8ee28290fed"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Bold-Dq_IR9rO.woff2",
+        "de7701e42cf1f4cf0b766c03fb27977207eee2f4fd5d76fa82188406da43ea4c"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-CTRA-rTL.woff",
+        "3398dd02302557a793f2863f88e02d96ce10df2abffa07c8e9fa90775116e65c"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-Di6jR-x-.woff2",
+        "5d53e70ad607c2352162dec9e0923fb54ecdafaccbf604cd8dcf7d00facb989b"
+      ],
+      [
+        "assets/KaTeX_Caligraphic-Regular-wX97UBjC.ttf",
+        "ed0b74372feefcbb9c0666b2e210da37b7e49fa7fbbf3eeb11db5f693dacfbb7"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-BdnERNNW.ttf",
+        "9163df9c7122432e6495b4229fa9071cf9ae86a758ae5efc4924ec2e1a6dbce1"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-BsDP51OF.woff",
+        "9be7ceb88004ab8ad124082246fbfcca4091e36385d4ec6ed1df67375dad50fb"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Bold-CL6g_b3V.woff2",
+        "74444efd593c005e3f4573b44524704c0af0a937fe911cca9e94068d0d140d3f"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-CB_wures.ttf",
+        "1e6f9579e90e2cac37f8f60a597c436e075c114385652b7cbeb0dec0421291b3"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-CTYiF6lA.woff2",
+        "51814d270d06ff0255dba0799994fa4d8c84d11f09951d47595f4abb1f3602dc"
+      ],
+      [
+        "assets/KaTeX_Fraktur-Regular-Dxdc4cR9.woff",
+        "5e28753be717dac97f559f49bc10be9cf3c124ddcabda6659d11cb68febc6463"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-Cx986IdX.woff2",
+        "0f60d1b897938ec918c8ce073092411baf9438f6739465693ff18b0f9d20b021"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-Jm3AIy58.woff",
+        "c76c5d696297d51b9cb1639c7da4334f0e7dec81b42b11213b5e25ef671bb822"
+      ],
+      [
+        "assets/KaTeX_Main-Bold-waoOVXN0.ttf",
+        "138ac28d1663b3037e9c5f52371fa5c63d8324f4a38d22cd573e6ea3a3fd0cf8"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-DxDJ3AOS.woff2",
+        "99cd42a3c072d918f2f44984a807cf7aa16e13545fd0875fc07c6c65f99e715b"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-DzxPMmG6.ttf",
+        "70ee1f64a20f2048c21940ef46d0144fd215baa953ca69afd1e31e98544f708f"
+      ],
+      [
+        "assets/KaTeX_Main-BoldItalic-SpSLRI95.woff",
+        "a6f7ec0d846ac7ad975adb8959c37ed49b94acbc4ae436db9ce9e20287e4a64c"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-3WenGoN9.ttf",
+        "0d85ae7cc30f23790a7f1a58c4a112fdca8aae769b6ba11429af1d98b1b6cb3a"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-BMLOBm91.woff",
+        "f1d6ef86f3b11a528bd5185199bd2443ecb2b0dead96d88674b5a2c12be24bdf"
+      ],
+      [
+        "assets/KaTeX_Main-Italic-NWA7e6Wa.woff2",
+        "97479ca6cce906abc961ecac96faa5f9ca2e61b8e7670d475826bcdee9a7c267"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-B22Nviop.woff2",
+        "c2342cd8b869e01752a9321dc17213fc40d4d04c79688c1d43f2cf316abd7866"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-Dr94JaBh.woff",
+        "c6368d87e8a1a3a5d337623d83d8dc4b868f242a9ad476237d6f8d1e0f168cdc"
+      ],
+      [
+        "assets/KaTeX_Main-Regular-ypZvNtVU.ttf",
+        "d0332f52868370fd83ae7fa46470f90c8f2eab2fcf12bc4f88080b340c95a830"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-B3XSjfu4.ttf",
+        "f9377ab0271cda59af24bcffbd46a4d0c8a3572ffafdbb38de2ad5ea7b0d5ee5"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-CZnvNsCZ.woff2",
+        "dc47344dbb6cb5b655c8460d561f4df5f501b90c804ad3c6cec65fe322351ab1"
+      ],
+      [
+        "assets/KaTeX_Math-BoldItalic-iY-2wyZ7.woff",
+        "850c0af5c2238497febaf5e461d880bf458c341f42f4f330f1b1ab5698b1998e"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-DA0__PXp.woff",
+        "8a8d244581371912b8f3f5a23e2437cb2a59cd9bcaebb0346e722c05737a2571"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-flOr_0UB.ttf",
+        "08ce98e51b04d58945a301e639e02b6998af29fdfd61a7b8afdd07bbfc479d4a"
+      ],
+      [
+        "assets/KaTeX_Math-Italic-t53AETM-.woff2",
+        "7af58c5ec8f132a2ddde9027c6d7814decce4d3b822a11192a42a20e2e973264"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-CFMepnvq.ttf",
+        "1ece03f79f95277d57dc7f6b435a74e1379b0d46104a8530286b60ff49369ea0"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-D1sUS0GD.woff2",
+        "e99ae51144bf1232efcc1bfe5add36262c6866b0faab24fa75740e1b98577a62"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Bold-DbIhKOiC.woff",
+        "ece03cfd83e22c212cdef66feb8442d25a083beb988db3f1883f3f9738d750ba"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-C3H0VqGB.woff2",
+        "00b26ac825e2095056396e0553b8ac26d3f8ad158c3826e28b4c45b385c4714a"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-DN2j7dab.woff",
+        "91ee67500cc0129aa0ace3ac5c61ff1692102f0f31d02b69347fba35dcb75bf2"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Italic-YYjJ1zSn.ttf",
+        "3931dd81faed86ba021bb2bbdc36f5bed9a38d6b4f4077aca59b265aa1b02083"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-BNo7hRIc.ttf",
+        "f36ea897e19f4a2e571d1e900e4e3710e438deb05a842486045ba0a3e616a4ad"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-CS6fqUqJ.woff",
+        "11e4dc8a6471ff6d6ee561d53d10fde8f7489e798257ff449c5d37c197435605"
+      ],
+      [
+        "assets/KaTeX_SansSerif-Regular-DDBCnlJ7.woff2",
+        "68e8c73ef42afd3ccec58bf0fba302cce448938e7fc020a5e31f8a952eee1342"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-C5JkGWo-.ttf",
+        "1c67f068fea8bb09bf099c088b1cf64bd27516a6e07f4684344873564bb66a67"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-D3wIWfF6.woff2",
+        "036d4e95149b69ff9bcc0cd55771efeb25ffa3947293e69acd78d5ac328c684b"
+      ],
+      [
+        "assets/KaTeX_Script-Regular-D5yQViql.woff",
+        "d96cdf2b3bdd4d64a8fd5f74a4c467f123a8a73931cd435889f08ffaf9bf947a"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-C195tn64.woff",
+        "c943cc986384f59e86bea5fd7dc50a9c4dfe567a7c05eb40d6790720dead97c9"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-Dbsnue_I.ttf",
+        "95b6d2f1a50173bfedb8c63e1d1c99b10427d0a4df4201cb44513b226951a22b"
+      ],
+      [
+        "assets/KaTeX_Size1-Regular-mCD8mA8B.woff2",
+        "6b47c40166b6dbe21a5dfca7718413f2147fd2399be1ba605d8ad39cedf25dfe"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-B7gKUWhC.ttf",
+        "a6b2099fb555c60e3a0db3a08842ebf1d732c6eb4e4bf44913613bed4fc4e39b"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-Dy4dx90m.woff2",
+        "d04c54219f9eaec6d4d4fd42dfb28785975a4794d6b2fc71e566b9cd6db842dd"
+      ],
+      [
+        "assets/KaTeX_Size2-Regular-oD1tc_U0.woff",
+        "2014c523c3210bcc166648c4d4cc57f05b747df07a24277bf71c51e67dc79e3d"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-CTq5MqoE.woff",
+        "6ab6b62e9b62dae2c00dd90f791bd10950be0ecc3490d7d6045f51c2e8fe0949"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-DgpXs0kz.ttf",
+        "500e04d54f0d51666332c9d2089aa803be22aa878eca539e59fa53c6e522b082"
+      ],
+      [
+        "assets/KaTeX_Size3-Regular-gV2CO0n9.woff2",
+        "73d591271b1604960cb10bb90fee021670af7297017e0e98480b332d11f51995"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-BF-4gkZK.woff",
+        "99f9c6750b489c9462bf04900bd3f939df9b829339daaaaa99ef5495cdddea58"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-DWFBv043.ttf",
+        "c647367d1dd4e162468717d020e1fc0f1dc5c26ebfdffbe55261713bf88c5877"
+      ],
+      [
+        "assets/KaTeX_Size4-Regular-Dl5lxZxV.woff2",
+        "a4af7d414440a1c1790825cfb700cf9cf43b0f2c4b04f0ebc523011ad9853ec0"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-C0xS9mPB.woff",
+        "e14fed02b1aba7ce9f5afd5844b5d0321b22351febc720e0de8b8723527609f7"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-CO6r4hn1.woff2",
+        "71d517d67827787cfabdf186914cc3358eda539e37931941f2b2fd4a21f68c0b"
+      ],
+      [
+        "assets/KaTeX_Typewriter-Regular-D3Ib7_Hf.ttf",
+        "f01f3e87d9c6a61c0c081ceb577abd864eb00a612f7ac1620dd6915fad2ef5aa"
+      ],
+      [
+        "assets/ProofWorkspace-BeZ0iBwE.js",
+        "fabf6c4711d1fac8fad036c75357a8169cbc593f343f0403ce18e59ef86df780"
+      ],
+      [
+        "assets/ReviewView-DbDez3jX.js",
+        "43715b048237854aa464c0412dd435b978555fd3d660de1861398a5789184244"
+      ],
+      [
+        "assets/bend-DQWYak6m.png",
+        "9ba4741c87076a254bcee4ba0fb9ded366e6e7bacd6ae4727027e1aabd3a6bd5"
+      ],
+      [
+        "assets/certora-BGZUazkT.png",
+        "dd19f617a5463032f21785e5005c361bd753c0c32b6cd55e6e9f72149cb21242"
+      ],
+      [
+        "assets/cvc5-CKJsvvFK.png",
+        "d898a126bdae142e1ef6d2cf2f8b3b11bc7a3b50b48fa9e779d939070deb1354"
+      ],
+      [
+        "assets/dafny-Bqnbzobc.png",
+        "8e6e9042b348b551c7262a1153b83707ea32f59dd22a445f7d6ab6aa67f0903d"
+      ],
+      [
+        "assets/highlight-DTc7Zjax.js",
+        "e8975e457f1fa15c8407b66c0eaf07dbd0ca3756b49d0e2c090a8ca513bebea7"
+      ],
+      [
+        "assets/index-8nuQ6BYP.css",
+        "cc9bdfabadb34911ccb5b6be11daae242020bdd97803a8f7b27cf84113c78787"
+      ],
+      [
+        "assets/index-BEJtW7YD.js",
+        "a0f2afafb4a307f83809b6fa28e1538ef8ffa50c3621d696a6280f3eb0b342f0"
+      ],
+      [
+        "assets/isabelle-RH45X7aW.png",
+        "01eb41b46ddab73dfa89ab8bd83a4dabcace733d295ea2bfd16662e6432768e2"
+      ],
+      [
+        "assets/lean-DS4hWoMA.png",
+        "b802cfa824bbe3c143fd54ba93661f6cd1e03d0bdb3a2fe6d498a9ba94cd54fa"
+      ],
+      [
+        "assets/roboto-cyrillic-ext-wght-normal-BCp_3N7R.woff2",
+        "01f94d674db55952c35898fa4da22c3e7065c3cc4dbbcc9cb7beb8b6b017fbc9"
+      ],
+      [
+        "assets/roboto-cyrillic-wght-normal-fOt7epNf.woff2",
+        "481dd0c01e6bbb129fd147eb5d8571016193cba141c4627ca60ceabdb5a46ea8"
+      ],
+      [
+        "assets/roboto-greek-ext-wght-normal-Bgw4czJT.woff2",
+        "ec7769b089813996276482bbe7017adfffdd6c7543fd1f76244e2ffc1138ed86"
+      ],
+      [
+        "assets/roboto-greek-wght-normal-DlT9XTxE.woff2",
+        "97fbf7bd0b4579e632392a4f483acdae73cbf59ad90c1e5d2c5ec4044c377fce"
+      ],
+      [
+        "assets/roboto-latin-ext-wght-normal-DYIxWhlt.woff2",
+        "cedb374b05a35034cf96db185db4eeb8f8ce49e1a56197673702ff11b5533d6e"
+      ],
+      [
+        "assets/roboto-latin-wght-normal-ccAYIvAh.woff2",
+        "1404ca348bd75ef836f4dd8b6f2cc719458642d1237c368296b2fc652dca47dc"
+      ],
+      [
+        "assets/roboto-math-wght-normal-4a3xuzGk.woff2",
+        "7cb4281a0ccc84cc18617842c639fc66541cbef94a9dd245c754700210b4fcec"
+      ],
+      [
+        "assets/roboto-symbols-wght-normal-B7iHSfaG.woff2",
+        "2addf2d86d7a5778653b36d551e97a39da52855f82fac7461cfc1bd86d460aed"
+      ],
+      [
+        "assets/roboto-vietnamese-wght-normal-_f1XEJpo.woff2",
+        "0b60bbe04e9c479444b31270a72179f53e400beee57b7dd176c08e5e2e716831"
+      ],
+      [
+        "assets/rocq-Dna-P5lQ.png",
+        "0667a5431bc0a795111e8a1b35aca4fa8ae34d433c8e1e07587ec5eb1c92f4a7"
+      ],
+      [
+        "assets/rust-DwAlVRKW.png",
+        "8cdc4b755c58d9055e772411ad6fb1159a4adab1a51c9c35801fe1ca9c94132f"
+      ],
+      [
+        "assets/tla-AewV2MIo.png",
+        "9ec39edd70f43f0186a706a95dc1def0a90708a9c1ceaa53b035441daf7874ab"
+      ],
+      [
+        "assets/z3-BfVdzy76.png",
+        "1c0f1378fe1b68aa44727659197ee0beecdaca57fd833a25e2074db3acdc1b19"
+      ],
+      [
+        "index.html",
+        "6615fcc73463e07d5d3ec8bc0b7dd01e1ca97a49369d53cbfcbae59237a723dc"
+      ]
+    ],
+    "sha256": "b006f04530d482db9609215b68a26599a18fd37f3c804602d73c25c3475c93ad"
+  },
+  "actual_projects": [
+    {
+      "project": "riemann",
+      "pid": 4133608,
+      "binary_sha256": "e9b77587e61fd858b1803fdb33911f2e5f6309ea5031ea0f9b95f612e7544716",
+      "cache_hit": true,
+      "preparation_ms": 21309.464115,
+      "source_publication": "sha256:4671471a8580f25a42b2117fcc7cf5a8d25988b715b1a40cbb17b77e006bfa94",
+      "source_hash": "2063f4c8792707349ba4b3d295e779c565a63030790aae9d937d5f776d8d9184",
+      "reader_publication": "sha256:d3bca7c0ce21989bef612ac79475e72da33062b4140b13dfe87bbaf183a61be8",
+      "reader_hash": "d2c21198aaff30504f16966ddf61ce628ef7ac8632c62be3195b4e4f72e41806",
+      "inventory_files": 175187,
+      "metadata_hash": "5875c3c3432ddda379f8caf8ed411b77d30701443e5da912442935a296c3ae7a",
+      "overview_headers_exactly_preserved": true,
+      "complete_original_header_metadata_round_trip": true,
+      "unindexed_entries": 175184,
+      "complete_original_navigation_binding": true,
+      "navigation_bytes": 13853,
+      "complete_cached_navigation_matches_original": true,
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "node_selection_preserves_camera_chat_and_source_line": true,
+      "selected_declaration": "PIW.AdelClassFin.DictGen.denom",
+      "verification_job": {
+        "state": "idle"
+      },
+      "work_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "preview": {
+        "state": "idle"
+      },
+      "preview_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    },
+    {
+      "project": "ethlib",
+      "pid": 4133884,
+      "binary_sha256": "e9b77587e61fd858b1803fdb33911f2e5f6309ea5031ea0f9b95f612e7544716",
+      "cache_hit": true,
+      "preparation_ms": 2203.156401,
+      "source_publication": "sha256:c9a67ef7faab77791ab7d84fad5d7176476d3b7d5320d9f95f155b117b57e86b",
+      "source_hash": "ac220adb7270df17b304574138f8894ec78d92bc7a85c5e2e0e745edc885bb09",
+      "reader_publication": "sha256:0b79b28ff3aa227731108c7cde50cf54fa06cc447922756668b1197473b0d3ac",
+      "reader_hash": "60e647749624e65341239c16878edafe3083f1a0b0ba7ab0587b82511d80dd36",
+      "inventory_files": 2517,
+      "metadata_hash": "59b98c2e15f2f590463873351344a08a59e4aa3854a7dfb1779e635a680cb32f",
+      "overview_headers_exactly_preserved": true,
+      "complete_original_header_metadata_round_trip": true,
+      "unindexed_entries": 0,
+      "complete_original_navigation_binding": true,
+      "navigation_bytes": 1516,
+      "complete_cached_navigation_matches_original": true,
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "node_selection_preserves_camera_chat_and_source_line": true,
+      "selected_declaration": "EthLib.Networking.Gossip.GossipsubParameters",
+      "verification_job": {
+        "state": "idle"
+      },
+      "work_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "preview": {
+        "state": "idle"
+      },
+      "preview_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip/Parameters.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    }
+  ],
+  "public_connections": [
+    {
+      "project": "riemann",
+      "prior_counter": 0,
+      "current_counter": null,
+      "complete_generated_state_validation": true,
+      "public_choices_preserved": true,
+      "selected_binding_preserved": true,
+      "choices": 3,
+      "choices_sha256": "3c22392a194ffb7d071e11dc260301f76666223753be8d9da40dc00cf720afaa",
+      "running": false,
+      "authorized": false
+    },
+    {
+      "project": "ethlib",
+      "prior_counter": 0,
+      "current_counter": null,
+      "complete_generated_state_validation": true,
+      "public_choices_preserved": true,
+      "selected_binding_preserved": true,
+      "choices": 3,
+      "choices_sha256": "3c22392a194ffb7d071e11dc260301f76666223753be8d9da40dc00cf720afaa",
+      "running": false,
+      "authorized": false
+    }
+  ],
+  "deployment": {
+    "binary_sha256": "e9b77587e61fd858b1803fdb33911f2e5f6309ea5031ea0f9b95f612e7544716",
+    "assets_sha256": "b006f04530d482db9609215b68a26599a18fd37f3c804602d73c25c3475c93ad",
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/e9b77587e61fd858b1803fdb33911f2e5f6309ea5031ea0f9b95f612e7544716-b006f04530d482db"
+  },
+  "final_hosts": [
+    {
+      "project": "riemann",
+      "pid": "4133608",
+      "port": "4323",
+      "inventory_bytes": 25017593,
+      "inventory_sha256": "579ed44b95141dc63e6a11abcbb02c12538daf6ec47667e2f56bc9278981da24",
+      "complete_inventory_byte_identical": true,
+      "running": false,
+      "authorized": false,
+      "connection_revision": null,
+      "choices": 3,
+      "work": "idle",
+      "verification": "idle",
+      "preview": "idle",
+      "exports": []
+    },
+    {
+      "project": "ethlib",
+      "pid": "4133884",
+      "port": "4322",
+      "inventory_bytes": 7308199,
+      "inventory_sha256": "b92c50b775297409a65bcf5a6678dd66d146d9daec4ffe67837788aabd2d7237",
+      "complete_inventory_byte_identical": true,
+      "running": false,
+      "authorized": false,
+      "connection_revision": null,
+      "choices": 3,
+      "work": "idle",
+      "verification": "idle",
+      "preview": "idle",
+      "exports": []
+    }
+  ],
+  "compiler_sources_unchanged": [
+    {
+      "path": "crates/meden-app/src/adapters/lake.rs",
+      "sha256": "bfb03188d670305be66d1152c47982a6bcea528b283d1e16de67ca9b8eebd8d8",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean.rs",
+      "sha256": "e64f92a04a26780fb32a9db274e1430fb142bcaad6cca8af12dab4cac65761de",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/collect.rs",
+      "sha256": "755c5495ad2e80171a136ca9be194867741fc2d8db5376644a46fcb3766f194b",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/layout.rs",
+      "sha256": "a6d7069ced1c8c1fcccf9349b293efc335e0a916df6ca864b4c8f30e35f1c94f",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/observe.rs",
+      "sha256": "047ed863ac5571096a23ccb7196e713707a6bcae2db0b1d7b80c4674927bb7e5",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/analysis/sources.rs",
+      "sha256": "88c5be999f8ba6a705dbcff8238f0648f3825f1e0fe61de3605a04075837c03a",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/compiler.rs",
+      "sha256": "c2efc23d024921aa5bb5fcfa120f1e672438f09d25d7f4a309de19469483dbc4",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/adapters.rs",
+      "sha256": "ab5b5f082cb99f9321bab7f49e322a1b97177340964b6ea7c9acd3c28e3cd713",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/mod.rs",
+      "sha256": "c0f2f0d9612e0181b01aa45f06f23f4e8c04361b5381d39d1c9d40e9672b0a74",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/project.rs",
+      "sha256": "13a22dcf4deb352b9076ba8f287cd440b94fae4bb87cec33576b121bbca4288c",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/lake.rs",
+      "sha256": "e732135a0bd5f3bbc87b0be02b077fa3b307c6b7d0ce6ee964f85aa2c6eb7760",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/graph.rs",
+      "sha256": "1efb44197f9762f7db65995eec0003c704b559efc3829c1455ed73300e288c40",
+      "unchanged": true
+    },
+    {
+      "path": "crates/meden-app/src/atlas/frozen.rs",
+      "sha256": "37609bb326f5ab5d061be31c8ddac907949bb435b374750dc8d1a108f49e5b10",
+      "unchanged": true
+    }
+  ],
+  "limits": [
+    "Nominal Rust contexts erase to the same canonical JSON strings. Generated browser validators are unchanged; browser strings are not newly branded.",
+    "Explicit role decoding validates spelling only. Original owner, source/parent/job/session and freshness comparisons remain necessary; a parsed ID is not proof, receipt or authorization.",
+    "DTO/ownership typing and real transport tests are not a new extracted refinement or proof of truthful adapters.",
+    "Installed tools and scripted fixture inference do not establish live-model quality, cold installation, local inference or confidentiality. No new compilation/interaction speedup is claimed from this type-only change."
+  ],
+  "remaining": "Session, backend snapshot, accepted-revision and job identity audit; cone-layout/versioning and retirement audit; native preparation latency.",
+  "final_checks": {
+    "rustfmt": "passed",
+    "prettier": "passed",
+    "diff_check": "passed",
+    "generated_browser_validators_unchanged": 37,
+    "validated_and_original_browser_assets_unchanged": 88,
+    "captured_compiler_sources_unchanged": 13
+  }
+}

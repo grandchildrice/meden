@@ -1,6 +1,6 @@
 //! Latest original verification observation. These identities are not kernel
 //! tickets, receipts or grants; only the project service owns the publisher.
-use super::publication::{Envelope, Publication};
+use super::publication::{ArtifactId, Envelope, Publication};
 use crate::{project, verification::Contract};
 use anyhow::{Context as _, Result};
 use meden_runtime::verification::{artifact::Class, FailureKind};
@@ -223,8 +223,7 @@ pub enum Status {
         #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
         job: String,
         /// Exact content identity, never a job ticket or receipt.
-        #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
-        revision: String,
+        revision: ArtifactId<Artifact>,
     },
     /// No partial or superseded body is admitted.
     Unavailable {
@@ -241,7 +240,7 @@ struct State {
     sequence: u64,
     original: Option<Data>,
     status: Status,
-    publication: Option<Publication>,
+    publication: Option<Publication<Artifact>>,
 }
 impl State {
     fn publish(&mut self) {
@@ -252,8 +251,8 @@ impl State {
         };
         let _timing = meden_runtime::metrics::Span::start("view.verification_job.materialize");
         let result = match &self.publication {
-            Some(old) => old.update(b"meden.verification.observation.v1\0", original),
-            None => Publication::new(b"meden.verification.observation.v1\0", original),
+            Some(old) => old.update(original),
+            None => Publication::new(original),
         };
         match result {
             Ok(value) => {
@@ -639,7 +638,7 @@ pub(crate) enum Completion<'a> {
 pub struct Reader(Arc<Mutex<State>>);
 impl Reader {
     /// Exact already-frozen bytes, independent of project/checker execution.
-    pub fn bytes(&self, revision: &str) -> Option<Arc<[u8]>> {
+    pub fn bytes(&self, revision: &ArtifactId<Artifact>) -> Option<Arc<[u8]>> {
         self.0.lock().ok()?.publication.as_ref()?.bytes(revision)
     }
 }
@@ -657,6 +656,15 @@ impl Serialize for Reader {
             .serialize(serializer),
         }
     }
+}
+
+/// Identity context for this owner's immutable publications, never authority.
+pub enum Artifact {}
+impl super::publication::Domain for Artifact {
+    const PREFIX: &'static [u8] = b"meden.verification.observation.v1\0";
+}
+impl super::publication::Data for Data {
+    type Domain = Artifact;
 }
 
 #[cfg(test)]

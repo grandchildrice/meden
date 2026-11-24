@@ -24,11 +24,14 @@
     },
     "revision": {
       "description": "Exact complete publication, if available.",
-      "type": [
-        "string",
-        "null"
-      ],
-      "pattern": "^sha256:[a-f0-9]{64}$"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ArtifactId"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "error": {
       "description": "Local bounded diagnostic, never an outcome classifier.",
@@ -69,6 +72,10 @@
           "const": "failed"
         }
       ]
+    },
+    "ArtifactId": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
     }
   }
 }

@@ -13,8 +13,7 @@
         },
         "revision": {
           "description": "Content identity, distinct from authority or a receipt.",
-          "type": "string",
-          "pattern": "^sha256:[a-f0-9]{64}$"
+          "$ref": "#/$defs/ArtifactId"
         },
         "messages": {
           "description": "Native transcript count for lightweight startup/navigation state.",
@@ -49,5 +48,11 @@
         "message"
       ]
     }
-  ]
+  ],
+  "$defs": {
+    "ArtifactId": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    }
+  }
 }

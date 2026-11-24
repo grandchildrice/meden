@@ -1,6 +1,6 @@
 //! Generic immutable navigation observations; never compilation or evidence.
 use super::{
-    publication::{Publication, Reference},
+    publication::{ArtifactId, ArtifactRef, Publication},
     Kind,
 };
 use anyhow::Result;
@@ -262,7 +262,7 @@ pub struct Snapshot<'a> {
     pub files: Vec<Entry<'a>>,
     /// Binds original declaration details; the envelope also binds all metadata.
     #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
-    pub navigation: String,
+    pub navigation: ArtifactId<NavigationArtifact>,
     /// Original lexical implementation identity for source-bound candidate reuse.
     #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
     pub indexer: &'a str,
@@ -277,14 +277,14 @@ pub struct Snapshot<'a> {
 pub struct Chunk {
     /// Exact parent publication requested by the browser.
     #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
-    pub revision: String,
+    pub revision: ArtifactId<Artifact>,
     /// Complete selected file and import-only neighbors, never source prefixes.
     #[schemars(length(min = 1, max = 32))]
     pub files: Vec<File>,
 }
 /// Frozen bytes prepared before a status reference becomes visible.
 #[derive(Clone)]
-pub struct Prepared(Publication);
+pub struct Prepared(Publication<Artifact>);
 impl Prepared {
     /// Validate the complete projection and serialize it once outside host locks.
     pub fn new(snapshot: &Input) -> Result<Self> {
@@ -311,6 +311,9 @@ impl Prepared {
             path: &'a str,
             symbols: &'a [Symbol],
         }
+        impl super::publication::Data for Vec<Details<'_>> {
+            type Domain = NavigationArtifact;
+        }
         // Empty declaration vectors are represented completely by empty headings.
         // Do not serialize every path/metadata field a second time just to bind
         // the omitted reference and description records.
@@ -323,10 +326,7 @@ impl Prepared {
                 symbols: &file.symbols,
             })
             .collect::<Vec<_>>();
-        let navigation = Publication::new(b"meden.inventory.details.v1\0", &details)?
-            .reference()
-            .revision
-            .clone();
+        let navigation = Publication::new(&details)?.reference().revision.clone();
         let data = Snapshot {
             generation: &snapshot.generation,
             files: snapshot.files.iter().map(Entry::from).collect(),
@@ -335,14 +335,14 @@ impl Prepared {
             excluded: &snapshot.excluded,
             inventory_only: snapshot.inventory_only,
         };
-        Ok(Self(Publication::new(b"meden.inventory.view.v3\0", &data)?))
+        Ok(Self(Publication::new(&data)?))
     }
     /// Small status identity; it confers no execution/evidence authority.
-    pub fn reference(&self) -> &Reference {
+    pub fn reference(&self) -> &ArtifactRef<Artifact> {
         self.0.reference()
     }
     /// Exact immutable bytes only; querying cannot prepare anything.
-    pub fn bytes(&self, revision: &str) -> Option<Arc<[u8]>> {
+    pub fn bytes(&self, revision: &ArtifactId<Artifact>) -> Option<Arc<[u8]>> {
         self.0.bytes(revision)
     }
 }
@@ -361,15 +361,14 @@ fn validate_revision(revision: &str) -> Result<()> {
 
 /// Bounded cached chunks owned by one immutable parent inventory.
 pub struct Chunks {
-    parent: Reference,
-    values: std::collections::BTreeMap<String, Publication>,
+    parent: ArtifactRef<Artifact>,
+    values: std::collections::BTreeMap<String, Publication<ChunkArtifact>>,
     order: std::collections::VecDeque<String>,
     bytes: usize,
 }
 impl Chunks {
     /// Freeze the original parent, independently of subsequent host inventory.
-    pub fn new(parent: Reference) -> Result<Self> {
-        validate_revision(&parent.revision)?;
+    pub fn new(parent: ArtifactRef<Artifact>) -> Result<Self> {
         Ok(Self {
             parent,
             values: std::collections::BTreeMap::new(),
@@ -396,7 +395,7 @@ impl Chunks {
             file.validate()?;
             anyhow::ensure!(paths.insert(&file.path), "Duplicate inventory chunk file");
         }
-        let value = Publication::new(b"meden.inventory.chunk.v1\0", chunk)?;
+        let value = Publication::new(chunk)?;
         let bytes = value
             .bytes(&value.reference().revision)
             .ok_or_else(|| anyhow::anyhow!("Missing prepared chunk"))?;
@@ -447,7 +446,7 @@ pub struct Status {
     pub total: usize,
     /// Exact complete publication, if available.
     #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
-    pub revision: Option<String>,
+    pub revision: Option<ArtifactId<Artifact>>,
     /// Local bounded diagnostic, never an outcome classifier.
     pub error: Option<String>,
 }
@@ -461,6 +460,28 @@ impl Default for Status {
             error: None,
         }
     }
+}
+
+/// Identity context of a complete inventory overview.
+pub enum Artifact {}
+impl super::publication::Domain for Artifact {
+    const PREFIX: &'static [u8] = b"meden.inventory.view.v3\0";
+}
+impl super::publication::Data for Snapshot<'_> {
+    type Domain = Artifact;
+}
+/// Identity context of the original omitted declaration detail fingerprint.
+pub enum NavigationArtifact {}
+impl super::publication::Domain for NavigationArtifact {
+    const PREFIX: &'static [u8] = b"meden.inventory.details.v1\0";
+}
+/// Identity context of one parent/path-bound complete navigation chunk.
+pub enum ChunkArtifact {}
+impl super::publication::Domain for ChunkArtifact {
+    const PREFIX: &'static [u8] = b"meden.inventory.chunk.v1\0";
+}
+impl super::publication::Data for Chunk {
+    type Domain = ChunkArtifact;
 }
 
 #[cfg(test)]
@@ -510,7 +531,7 @@ mod tests {
                 .and_then(|v| v.as_str()),
             Some("Z.rs")
         );
-        assert!(prepared.bytes("sha256:obsolete").is_none());
+        assert!(ArtifactId::<Artifact>::parse("sha256:obsolete").is_err());
         for files in [
             vec![unread("B.lean"), unread("A.lean")],
             vec![unread("A.lean"), unread("A.lean")],
@@ -705,7 +726,7 @@ mod tests {
             .publish(
                 "A.lean",
                 &Chunk {
-                    revision: "sha256:".to_string() + &"b".repeat(64),
+                    revision: ArtifactId::parse(&("sha256:".to_string() + &"b".repeat(64)))?,
                     files: vec![unread("A.lean")]
                 }
             )

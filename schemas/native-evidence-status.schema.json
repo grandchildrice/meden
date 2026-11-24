@@ -13,8 +13,7 @@
         },
         "revision": {
           "description": "Exact original display body, not an authority token.",
-          "type": "string",
-          "pattern": "^sha256:[a-f0-9]{64}$"
+          "$ref": "#/$defs/ArtifactId"
         }
       },
       "additionalProperties": false,
@@ -43,5 +42,11 @@
         "message"
       ]
     }
-  ]
+  ],
+  "$defs": {
+    "ArtifactId": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    }
+  }
 }

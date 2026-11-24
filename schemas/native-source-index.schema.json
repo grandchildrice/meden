@@ -8,7 +8,7 @@
       "description": "Most recently published observation; absent while an explicit read fails.",
       "anyOf": [
         {
-          "$ref": "#/$defs/Reference"
+          "$ref": "#/$defs/ArtifactRef"
         },
         {
           "type": "null"
@@ -19,7 +19,7 @@
       "description": "Exact retained artifact for each observed path.",
       "type": "object",
       "additionalProperties": {
-        "$ref": "#/$defs/Reference"
+        "$ref": "#/$defs/ArtifactRef"
       }
     }
   },
@@ -28,20 +28,23 @@
     "files"
   ],
   "$defs": {
-    "Reference": {
-      "description": "Exact immutable presentation identity, independent of evidence/source IDs.",
+    "ArtifactRef": {
+      "description": "Exact immutable presentation reference in its original context.",
       "type": "object",
       "properties": {
         "revision": {
           "description": "Domain-separated identity of every serialized data byte.",
-          "type": "string",
-          "pattern": "^sha256:[a-f0-9]{64}$"
+          "$ref": "#/$defs/ArtifactId"
         }
       },
       "additionalProperties": false,
       "required": [
         "revision"
       ]
+    },
+    "ArtifactId": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
     }
   }
 }

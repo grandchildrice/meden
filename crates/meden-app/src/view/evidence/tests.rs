@@ -39,12 +39,10 @@ fn at(value: &Value, path: &str) -> Result<Value> {
         .cloned()
         .context("Expected original field")
 }
-fn published(project: &Project) -> Result<(String, Arc<[u8]>, Value)> {
+fn published(project: &Project) -> Result<(ArtifactId<Artifact>, Arc<[u8]>, Value)> {
     let status = serde_json::to_value(project)?;
-    let revision = at(&status, "/revision")?
-        .as_str()
-        .context("ready reference")?
-        .to_owned();
+    let revision =
+        serde_json::from_value(status.get("revision").context("Ready reference")?.clone())?;
     let bytes = project.bytes(&revision).context("exact body")?;
     let body = serde_json::from_slice(&bytes)?;
     Ok((revision, bytes, body))

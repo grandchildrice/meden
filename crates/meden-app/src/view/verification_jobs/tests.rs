@@ -31,13 +31,10 @@ fn inputs() -> PreparedInputs {
         worker_sha256: "f".repeat(64),
     }
 }
-fn body(reader: &Reader) -> Result<(String, Arc<[u8]>, Value)> {
+fn body(reader: &Reader) -> Result<(ArtifactId<Artifact>, Arc<[u8]>, Value)> {
     let status = serde_json::to_value(reader)?;
-    let revision = status
-        .get("revision")
-        .and_then(Value::as_str)
-        .context("Ready reference")?
-        .to_owned();
+    let revision =
+        serde_json::from_value(status.get("revision").context("Ready reference")?.clone())?;
     let bytes = reader.bytes(&revision).context("Exact body")?;
     let data = serde_json::from_slice(&bytes)?;
     Ok((revision, bytes, data))

@@ -44,8 +44,7 @@
             },
             "revision": {
               "description": "Immutable body identity, never authority.",
-              "type": "string",
-              "pattern": "^sha256:[a-f0-9]{64}$"
+              "$ref": "#/$defs/ArtifactId"
             }
           },
           "additionalProperties": false,
@@ -76,6 +75,10 @@
         }
       ]
     },
+    "ArtifactId": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
     "HistoryStatus": {
       "description": "Complete history availability, separate from current job progress.",
       "oneOf": [
@@ -89,8 +92,7 @@
             },
             "revision": {
               "description": "Immutable body identity.",
-              "type": "string",
-              "pattern": "^sha256:[a-f0-9]{64}$"
+              "$ref": "#/$defs/ArtifactId"
             },
             "runs": {
               "description": "Complete retained run count.",

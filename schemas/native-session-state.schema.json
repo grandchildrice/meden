@@ -260,8 +260,7 @@
             },
             "revision": {
               "description": "Content identity, distinct from authority or a receipt.",
-              "type": "string",
-              "pattern": "^sha256:[a-f0-9]{64}$"
+              "$ref": "#/$defs/ArtifactId"
             },
             "messages": {
               "description": "Native transcript count for lightweight startup/navigation state.",
@@ -297,6 +296,10 @@
           ]
         }
       ]
+    },
+    "ArtifactId": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
     },
     "Choice": {
       "description": "Host-discovered public labels; credentials and runnable providers stay private.",
@@ -357,11 +360,14 @@
         },
         "revision": {
           "description": "Exact complete publication, if available.",
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^sha256:[a-f0-9]{64}$"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArtifactId"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "error": {
           "description": "Local bounded diagnostic, never an outcome classifier.",
@@ -448,8 +454,7 @@
             },
             "revision": {
               "description": "Exact original display body, not an authority token.",
-              "type": "string",
-              "pattern": "^sha256:[a-f0-9]{64}$"
+              "$ref": "#/$defs/ArtifactId"
             }
           },
           "additionalProperties": false,
@@ -516,8 +521,7 @@
             },
             "revision": {
               "description": "Exact content identity, never a job ticket or receipt.",
-              "type": "string",
-              "pattern": "^sha256:[a-f0-9]{64}$"
+              "$ref": "#/$defs/ArtifactId"
             }
           },
           "additionalProperties": false,
@@ -590,7 +594,7 @@
           "description": "Latest retained observation of each requested directory.",
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/$defs/Reference2"
+            "$ref": "#/$defs/ArtifactRef"
           }
         }
       },
@@ -599,14 +603,13 @@
         "paths"
       ]
     },
-    "Reference2": {
-      "description": "Exact immutable presentation identity, independent of evidence/source IDs.",
+    "ArtifactRef": {
+      "description": "Exact immutable presentation reference in its original context.",
       "type": "object",
       "properties": {
         "revision": {
           "description": "Domain-separated identity of every serialized data byte.",
-          "type": "string",
-          "pattern": "^sha256:[a-f0-9]{64}$"
+          "$ref": "#/$defs/ArtifactId"
         }
       },
       "additionalProperties": false,
@@ -622,13 +625,27 @@
           "description": "Latest complete observation of each retained logical path.",
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/$defs/Reference2"
+            "$ref": "#/$defs/ArtifactRef2"
           }
         }
       },
       "additionalProperties": false,
       "required": [
         "files"
+      ]
+    },
+    "ArtifactRef2": {
+      "description": "Exact immutable presentation reference in its original context.",
+      "type": "object",
+      "properties": {
+        "revision": {
+          "description": "Domain-separated identity of every serialized data byte.",
+          "$ref": "#/$defs/ArtifactId"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "revision"
       ]
     },
     "Index3": {
@@ -639,7 +656,7 @@
           "description": "Most recently published observation; absent while an explicit read fails.",
           "anyOf": [
             {
-              "$ref": "#/$defs/Reference2"
+              "$ref": "#/$defs/ArtifactRef3"
             },
             {
               "type": "null"
@@ -650,7 +667,7 @@
           "description": "Exact retained artifact for each observed path.",
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/$defs/Reference2"
+            "$ref": "#/$defs/ArtifactRef3"
           }
         }
       },
@@ -658,6 +675,20 @@
       "required": [
         "current",
         "files"
+      ]
+    },
+    "ArtifactRef3": {
+      "description": "Exact immutable presentation reference in its original context.",
+      "type": "object",
+      "properties": {
+        "revision": {
+          "description": "Domain-separated identity of every serialized data byte.",
+          "$ref": "#/$defs/ArtifactId"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "revision"
       ]
     },
     "Status4": {
@@ -707,7 +738,7 @@
           "description": "Exact current bounded diagnostic body, if one has been emitted.",
           "anyOf": [
             {
-              "$ref": "#/$defs/Reference2"
+              "$ref": "#/$defs/ArtifactRef4"
             },
             {
               "type": "null"
@@ -810,6 +841,20 @@
         }
       ]
     },
+    "ArtifactRef4": {
+      "description": "Exact immutable presentation reference in its original context.",
+      "type": "object",
+      "properties": {
+        "revision": {
+          "description": "Domain-separated identity of every serialized data byte.",
+          "$ref": "#/$defs/ArtifactId"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "revision"
+      ]
+    },
     "Status5": {
       "description": "Atomic current/history references; neither carries proof or execution authority.",
       "type": "object",
@@ -854,8 +899,7 @@
             },
             "revision": {
               "description": "Immutable body identity, never authority.",
-              "type": "string",
-              "pattern": "^sha256:[a-f0-9]{64}$"
+              "$ref": "#/$defs/ArtifactId"
             }
           },
           "additionalProperties": false,
@@ -899,8 +943,7 @@
             },
             "revision": {
               "description": "Immutable body identity.",
-              "type": "string",
-              "pattern": "^sha256:[a-f0-9]{64}$"
+              "$ref": "#/$defs/ArtifactId"
             },
             "runs": {
               "description": "Complete retained run count.",
@@ -944,7 +987,7 @@
       "type": "object",
       "properties": {
         "reference": {
-          "$ref": "#/$defs/Reference3"
+          "$ref": "#/$defs/Reference2"
         },
         "model": {
           "type": "string"
@@ -968,7 +1011,7 @@
         "accepted_reference": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Reference4"
+              "$ref": "#/$defs/Reference3"
             },
             {
               "type": "null"
@@ -996,7 +1039,7 @@
         "diff"
       ]
     },
-    "Reference3": {
+    "Reference2": {
       "type": "object",
       "properties": {
         "id": {
@@ -1071,7 +1114,7 @@
         "name"
       ]
     },
-    "Reference4": {
+    "Reference3": {
       "description": "Lossless transport of the original selected contract identity, never authority.",
       "type": "object",
       "properties": {
@@ -1127,8 +1170,7 @@
             },
             "revision": {
               "description": "Content identity, separate from the captured asset-manifest identity.",
-              "type": "string",
-              "pattern": "^sha256:[a-f0-9]{64}$"
+              "$ref": "#/$defs/ArtifactId"
             }
           },
           "additionalProperties": false,

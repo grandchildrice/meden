@@ -449,7 +449,7 @@ impl Http<'_> {
                     .decode_utf8()
                     .map(std::borrow::Cow::into_owned);
                 match path.map_err(anyhow::Error::new).and_then(|path| {
-                    let revision = revision?;
+                    let revision = meden_app::view::publication::ArtifactId::parse(&revision?)?;
                     overview::cached(self.view, self.workspace, &revision, &path)
                 }) {
                     Ok(bytes) => {
@@ -506,23 +506,29 @@ impl Http<'_> {
             .and_then(|revision| {
                 let view = lock(self.view);
                 match role {
-                    PublicationRole::Preview => view.preview.bytes(&revision),
-                    PublicationRole::History => view.history.bytes(&revision),
-                    PublicationRole::Source => view.sources.bytes(&revision),
-                    PublicationRole::Reader => view.readers.bytes(&revision),
-                    PublicationRole::Directory => view.directories.bytes(&revision),
-                    PublicationRole::PreparationLog => view.source_preparation.bytes(&revision),
-                    PublicationRole::Analysis => view.analyses.current_bytes(&revision),
-                    PublicationRole::AnalysisHistory => view.analyses.history_bytes(&revision),
-                    PublicationRole::Evidence => view.project.bytes(&revision),
-                    PublicationRole::VerificationJob => view
-                        .verification_job
-                        .bytes(&revision)
-                        .or_else(|| view.work_job.bytes(&revision)),
-                    PublicationRole::Inventory => view
-                        .overview_snapshot
-                        .as_ref()
-                        .and_then(|s| s.bytes(&revision)),
+                    PublicationRole::Preview => query(&revision, |id| view.preview.bytes(id)),
+                    PublicationRole::History => query(&revision, |id| view.history.bytes(id)),
+                    PublicationRole::Source => query(&revision, |id| view.sources.bytes(id)),
+                    PublicationRole::Reader => query(&revision, |id| view.readers.bytes(id)),
+                    PublicationRole::Directory => query(&revision, |id| view.directories.bytes(id)),
+                    PublicationRole::PreparationLog => {
+                        query(&revision, |id| view.source_preparation.bytes(id))
+                    }
+                    PublicationRole::Analysis => {
+                        query(&revision, |id| view.analyses.current_bytes(id))
+                    }
+                    PublicationRole::AnalysisHistory => {
+                        query(&revision, |id| view.analyses.history_bytes(id))
+                    }
+                    PublicationRole::Evidence => query(&revision, |id| view.project.bytes(id)),
+                    PublicationRole::VerificationJob => query(&revision, |id| {
+                        view.verification_job
+                            .bytes(id)
+                            .or_else(|| view.work_job.bytes(id))
+                    }),
+                    PublicationRole::Inventory => query(&revision, |id| {
+                        view.overview_snapshot.as_ref().and_then(|s| s.bytes(id))
+                    }),
                 }
             });
         Some((
@@ -979,6 +985,14 @@ fn bounded_append(target: &mut String, text: &str) {
         Some(c)
     }));
 }
+fn query<D>(
+    revision: &str,
+    read: impl FnOnce(&meden_app::view::publication::ArtifactId<D>) -> Option<Arc<[u8]>>,
+) -> Option<Arc<[u8]>> {
+    let original = meden_app::view::publication::ArtifactId::parse(revision).ok()?;
+    read(&original)
+}
+
 fn header<'a>(request: &'a Request, name: &str) -> Option<&'a str> {
     request
         .headers()

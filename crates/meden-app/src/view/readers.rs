@@ -1,7 +1,7 @@
 //! Frozen complete file observations. Queries never start a worker or compiler.
 use super::{
     file::FileView,
-    publication::{Publication, Reference, Table},
+    publication::{ArtifactId, ArtifactRef, Publication, Table},
 };
 use anyhow::Result;
 use schemars::JsonSchema;
@@ -13,13 +13,13 @@ use std::{collections::BTreeMap, sync::Arc};
 #[serde(deny_unknown_fields)]
 pub struct Index {
     /// Latest complete observation of each retained logical path.
-    pub files: BTreeMap<String, Reference>,
+    pub files: BTreeMap<String, ArtifactRef<Artifact>>,
 }
 
 /// Frozen outside the host's shared status lock.
 pub struct Prepared {
     path: String,
-    publication: Publication,
+    publication: Publication<Artifact>,
 }
 impl Prepared {
     /// Validate the complete input and freeze it once; no partial text is kept.
@@ -35,7 +35,7 @@ impl Prepared {
                 "Reader diagnostic exceeds its bound"
             ),
         }
-        let publication = Publication::new(b"meden.reader.view.v1\0", &view)?;
+        let publication = Publication::new(&view)?;
         Ok(Self {
             path: view.path,
             publication,
@@ -46,7 +46,7 @@ impl Prepared {
 /// One latest immutable observation per path, with bounded serialized retention.
 #[derive(Default)]
 pub struct Readers {
-    table: Table,
+    table: Table<Artifact>,
 }
 impl Readers {
     /// Replacement immediately makes the older file publication unqueryable.
@@ -58,7 +58,7 @@ impl Readers {
         self.table.clear();
     }
     /// Query only already-frozen bytes. The returned Arc outlives the lock.
-    pub fn bytes(&self, revision: &str) -> Option<Arc<[u8]>> {
+    pub fn bytes(&self, revision: &ArtifactId<Artifact>) -> Option<Arc<[u8]>> {
         self.table.bytes(revision)
     }
     /// Small typed references, never copies of complete file text.
@@ -73,6 +73,15 @@ impl Serialize for Readers {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         self.index().serialize(serializer)
     }
+}
+
+/// Identity context for this owner's immutable publications, never authority.
+pub enum Artifact {}
+impl super::publication::Domain for Artifact {
+    const PREFIX: &'static [u8] = b"meden.reader.view.v1\0";
+}
+impl super::publication::Data for FileView {
+    type Domain = Artifact;
 }
 
 #[cfg(test)]

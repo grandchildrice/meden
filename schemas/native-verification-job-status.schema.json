@@ -36,8 +36,7 @@
         },
         "revision": {
           "description": "Exact content identity, never a job ticket or receipt.",
-          "type": "string",
-          "pattern": "^sha256:[a-f0-9]{64}$"
+          "$ref": "#/$defs/ArtifactId"
         }
       },
       "additionalProperties": false,
@@ -101,6 +100,10 @@
           "const": "recorded_model"
         }
       ]
+    },
+    "ArtifactId": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
     }
   }
 }

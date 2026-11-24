@@ -1,7 +1,7 @@
 //! Complete policy-bound directory observations and immutable viewer queries.
 use super::{
     file::{self, FailureKind},
-    publication::{Publication, Reference, Table},
+    publication::{ArtifactId, ArtifactRef, Publication, Table},
 };
 use anyhow::Result;
 use meden_agent::tool::{Args, ToolError};
@@ -71,12 +71,12 @@ pub struct Directory {
 #[serde(deny_unknown_fields)]
 pub struct Index {
     /// Latest retained observation of each requested directory.
-    pub paths: BTreeMap<String, Reference>,
+    pub paths: BTreeMap<String, ArtifactRef<Artifact>>,
 }
 /// Prepared outside the status lock, with no subsequent filesystem access.
 pub struct Prepared {
     path: String,
-    publication: Publication,
+    publication: Publication<Artifact>,
 }
 impl Prepared {
     /// Freeze a complete validated directory outcome.
@@ -108,7 +108,7 @@ impl Prepared {
                 "Directory diagnostic exceeds its bound"
             ),
         }
-        let publication = Publication::new(b"meden.directory.view.v1\0", &directory)?;
+        let publication = Publication::new(&directory)?;
         Ok(Self {
             path: directory.path,
             publication,
@@ -118,7 +118,7 @@ impl Prepared {
 /// Bounded directory retention shares framing/table mechanics with file readers.
 #[derive(Default)]
 pub struct Directories {
-    table: Table,
+    table: Table<Artifact>,
 }
 impl Directories {
     /// Publish the latest complete observation of its original path.
@@ -126,7 +126,7 @@ impl Directories {
         self.table.publish(prepared.path, prepared.publication);
     }
     /// Queries clone only complete retained bytes.
-    pub fn bytes(&self, revision: &str) -> Option<Arc<[u8]>> {
+    pub fn bytes(&self, revision: &ArtifactId<Artifact>) -> Option<Arc<[u8]>> {
         self.table.bytes(revision)
     }
     /// Explicit refresh retires all old references.
@@ -184,6 +184,15 @@ pub fn observe(workspace: &Workspace, control: &Control, path: &str) -> Result<P
         path: path.into(),
         reading,
     })
+}
+
+/// Identity context for this owner's immutable publications, never authority.
+pub enum Artifact {}
+impl super::publication::Domain for Artifact {
+    const PREFIX: &'static [u8] = b"meden.directory.view.v1\0";
+}
+impl super::publication::Data for Directory {
+    type Domain = Artifact;
 }
 
 #[cfg(test)]

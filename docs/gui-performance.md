@@ -1,5 +1,12 @@
 # Graph interaction measurements
 
+The [typed publication validation](performance/artifact-contexts.md) replaces
+interchangeable view-reference strings with owner-specific Rust identities and
+DTO-bound publication contexts. Original wire digests, 37 browser validators,
+88 assets and complete actual-project inventory bytes are unchanged. The public
+failure/retry/restart journey also checks 54 own/foreign/malformed queries;
+retained-tab timing remains a separate unchanged budget, with no new speedup claim.
+
 The [disjoint inventory comparison](performance/inventory-states.md) retains
 every original file/header field while removing repeated empty navigation from
 175,184 unindexed Riemann entries. Transfer fell from 36.229 MB to 25.018 MB;

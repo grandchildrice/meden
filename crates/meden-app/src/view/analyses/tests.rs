@@ -42,9 +42,9 @@ fn body(analyses: &Analyses, history: bool) -> Result<(String, Arc<[u8]>, Value)
         .context("ready revision")?
         .to_owned();
     let bytes = if history {
-        analyses.history_bytes(&revision)
+        analyses.history_bytes(&ArtifactId::parse(&revision)?)
     } else {
-        analyses.current_bytes(&revision)
+        analyses.current_bytes(&ArtifactId::parse(&revision)?)
     }
     .context("complete body")?;
     let parsed = serde_json::from_slice(&bytes)?;
@@ -75,16 +75,22 @@ fn preserves_every_original_field_and_lossless_sequence_while_polling_only_refer
         assert_eq!(serde_json::to_string(&analyses)?, status);
         assert!(Arc::ptr_eq(
             &bytes,
-            &analyses.current_bytes(&revision).context("retained")?
+            &analyses
+                .current_bytes(&ArtifactId::parse(&revision)?)
+                .context("retained")?
         ));
     }
     analyses.select(Some(original));
     assert!(Arc::ptr_eq(
         &bytes,
-        &analyses.current_bytes(&revision).context("identical")?
+        &analyses
+            .current_bytes(&ArtifactId::parse(&revision)?)
+            .context("identical")?
     ));
     analyses.invalidate();
-    assert!(analyses.current_bytes(&revision).is_none());
+    assert!(analyses
+        .current_bytes(&ArtifactId::parse(&revision)?)
+        .is_none());
     let (stale_revision, _, stale) = body(&analyses, false)?;
     assert_ne!(stale_revision, revision);
     assert_eq!(stale.pointer("/data/state"), Some(&json!("stale")));
@@ -92,11 +98,13 @@ fn preserves_every_original_field_and_lossless_sequence_while_polling_only_refer
     assert!(Arc::ptr_eq(
         &history_bytes,
         &analyses
-            .history_bytes(&history_revision)
+            .history_bytes(&ArtifactId::parse(&history_revision)?)
             .context("unchanged history")?
     ));
     analyses.select(Some(record(12)));
-    assert!(analyses.current_bytes(&stale_revision).is_none());
+    assert!(analyses
+        .current_bytes(&ArtifactId::parse(&stale_revision)?)
+        .is_none());
     assert_eq!(
         body(&analyses, false)?.2.pointer("/data/sequence"),
         Some(&json!("12"))
@@ -104,11 +112,15 @@ fn preserves_every_original_field_and_lossless_sequence_while_polling_only_refer
     assert!(Arc::ptr_eq(
         &history_bytes,
         &analyses
-            .history_bytes(&history_revision)
+            .history_bytes(&ArtifactId::parse(&history_revision)?)
             .context("selection retains history")?
     ));
-    assert!(analyses.history_bytes(&body(&analyses, false)?.0).is_none());
-    assert!(analyses.current_bytes(&history_revision).is_none());
+    assert!(analyses
+        .history_bytes(&ArtifactId::parse(&body(&analyses, false)?.0)?)
+        .is_none());
+    assert!(analyses
+        .current_bytes(&ArtifactId::parse(&history_revision)?)
+        .is_none());
     Ok(())
 }
 #[test]
@@ -146,7 +158,9 @@ fn large_complete_history_has_constant_poll_size_and_never_admits_a_prefix() -> 
         analyses.status.history,
         HistoryStatus::Unavailable { .. }
     ));
-    assert!(analyses.history_bytes(&revision).is_none());
+    assert!(analyses
+        .history_bytes(&ArtifactId::parse(&revision)?)
+        .is_none());
     assert_eq!(analyses.data().history.len(), 1001);
     let mut restored = analyses.data().history.clone();
     restored.truncate(400);
@@ -172,7 +186,9 @@ fn large_complete_history_has_constant_poll_size_and_never_admits_a_prefix() -> 
         analyses.status.history,
         HistoryStatus::Unavailable { .. }
     ));
-    assert!(analyses.current_bytes(&current_revision).is_some());
+    assert!(analyses
+        .current_bytes(&ArtifactId::parse(&current_revision)?)
+        .is_some());
     analyses.select(None);
     analyses.replace_history(analyses.data().history.clone());
     assert!(matches!(
@@ -192,7 +208,9 @@ fn large_complete_history_has_constant_poll_size_and_never_admits_a_prefix() -> 
         analyses.status.history,
         HistoryStatus::Unavailable { .. }
     ));
-    assert!(analyses.history_bytes(&before).is_none());
+    assert!(analyses
+        .history_bytes(&ArtifactId::parse(&before)?)
+        .is_none());
     assert_eq!(
         analyses
             .data()
@@ -217,7 +235,9 @@ fn invalid_or_unreadable_observations_are_explicit_without_restoring_old_results
     let mut invalid = record(1);
     invalid.input.source_revision = "different".into();
     analyses.select(Some(invalid));
-    assert!(analyses.current_bytes(&original).is_none());
+    assert!(analyses
+        .current_bytes(&ArtifactId::parse(&original)?)
+        .is_none());
     assert!(matches!(
         analyses.status.current,
         Current::Unavailable { .. }

@@ -1155,13 +1155,15 @@ mod tests {
 
     #[test]
     fn application_mutations_publish_original_evidence_without_transport_updates() -> Result<()> {
-        fn observation(reader: &crate::view::evidence::Reader) -> Result<(String, Value)> {
+        fn observation(
+            reader: &crate::view::evidence::Reader,
+        ) -> Result<(
+            crate::view::publication::ArtifactId<crate::view::evidence::Artifact>,
+            Value,
+        )> {
             let status = serde_json::to_value(reader)?;
-            let revision = status
-                .get("revision")
-                .and_then(Value::as_str)
-                .context("view reference")?
-                .to_owned();
+            let revision =
+                serde_json::from_value(status.get("revision").context("view reference")?.clone())?;
             let data = serde_json::from_slice(&reader.bytes(&revision).context("view body")?)?;
             Ok((revision, data))
         }

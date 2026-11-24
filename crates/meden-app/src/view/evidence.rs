@@ -1,6 +1,6 @@
 //! Backend-neutral reviewed intent and evidence observations. Neither decoded
 //! references nor a published Current value construct a kernel receipt/grant.
-use super::publication::{Envelope, Publication};
+use super::publication::{ArtifactId, Envelope, Publication};
 use crate::{project, verification::Contract};
 use anyhow::{Context, Result};
 use meden_runtime::verification::{artifact::Class, FailureKind};
@@ -258,8 +258,7 @@ pub enum Status {
     /// Complete host observation is frozen by content identity.
     Ready {
         /// Exact original display body, not an authority token.
-        #[schemars(regex(pattern = r"^sha256:[a-f0-9]{64}$"))]
-        revision: String,
+        revision: ArtifactId<Artifact>,
     },
     /// Original observation is retained but no partial/superseded body is admitted.
     Unavailable {
@@ -271,7 +270,7 @@ pub enum Status {
 /// One owner for original host observations and their immutable publication.
 pub struct Project {
     original: project::Summary,
-    publication: Option<Publication>,
+    publication: Option<Publication<Artifact>>,
     status: Status,
 }
 impl Project {
@@ -301,15 +300,15 @@ impl Project {
         }
     }
     /// Exact retained bytes only, without source inspection or a checker call.
-    pub fn bytes(&self, revision: &str) -> Option<Arc<[u8]>> {
+    pub fn bytes(&self, revision: &ArtifactId<Artifact>) -> Option<Arc<[u8]>> {
         self.publication.as_ref()?.bytes(revision)
     }
-    fn prepare(&self) -> Result<Publication> {
+    fn prepare(&self) -> Result<Publication<Artifact>> {
         let _timing = meden_runtime::metrics::Span::start("view.evidence.materialize");
         let data = Data::new(&self.original)?;
         match &self.publication {
-            Some(old) => old.update(b"meden.project-evidence.v1\0", &data),
-            None => Publication::new(b"meden.project-evidence.v1\0", &data),
+            Some(old) => old.update(&data),
+            None => Publication::new(&data),
         }
     }
     fn refresh(&mut self) {
@@ -363,7 +362,7 @@ impl Channel {
 pub struct Reader(Arc<Mutex<Project>>);
 impl Reader {
     /// Return already-frozen complete bytes, without project/checker I/O.
-    pub fn bytes(&self, revision: &str) -> Option<Arc<[u8]>> {
+    pub fn bytes(&self, revision: &ArtifactId<Artifact>) -> Option<Arc<[u8]>> {
         self.0.lock().ok()?.bytes(revision)
     }
     /// A changed/unavailable host source removes the display's current claim.
@@ -384,6 +383,15 @@ impl Serialize for Reader {
             .serialize(serializer),
         }
     }
+}
+
+/// Identity context for this owner's immutable publications, never authority.
+pub enum Artifact {}
+impl super::publication::Domain for Artifact {
+    const PREFIX: &'static [u8] = b"meden.project-evidence.v1\0";
+}
+impl super::publication::Data for Data {
+    type Domain = Artifact;
 }
 
 #[cfg(test)]

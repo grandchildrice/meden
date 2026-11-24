@@ -19,8 +19,7 @@
     },
     "navigation": {
       "description": "Binds original declaration details; the envelope also binds all metadata.",
-      "type": "string",
-      "pattern": "^sha256:[a-f0-9]{64}$"
+      "$ref": "#/$defs/ArtifactId"
     },
     "indexer": {
       "description": "Original lexical implementation identity for source-bound candidate reuse.",
@@ -209,6 +208,10 @@
           "const": "axiom"
         }
       ]
+    },
+    "ArtifactId": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
     }
   }
 }

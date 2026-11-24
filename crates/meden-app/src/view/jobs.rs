@@ -1,6 +1,6 @@
 //! Bounded resource-local progress and immutable diagnostic queries.
 //! These are observations, never kernel job tickets or evidence receipts.
-use super::publication::{Publication, Reference};
+use super::publication::{ArtifactId, ArtifactRef, Publication};
 use anyhow::{Context, Result};
 use schemars::JsonSchema;
 use serde::{ser::SerializeMap, Serialize};
@@ -81,7 +81,7 @@ pub struct Status {
     /// Terminal outcomes cannot return to preparation.
     pub outcome: Outcome,
     /// Exact current bounded diagnostic body, if one has been emitted.
-    pub log: Option<Reference>,
+    pub log: Option<ArtifactRef<Artifact>>,
 }
 /// One latest resource-local status, bounded to 64 entries by its owner.
 pub type Index = BTreeMap<String, Status>;
@@ -113,7 +113,7 @@ struct Entry {
     prefix: String,
     text: String,
     truncated: bool,
-    publication: Option<Publication>,
+    publication: Option<Publication<Artifact>>,
 }
 /// One bounded owner. Clocks, output normalization and execution stay in hosts.
 pub struct Jobs {
@@ -238,7 +238,7 @@ impl Jobs {
         // Serialize only at a changed-output boundary, never on status reads.
         if entry.text != text || entry.truncated != truncated || entry.publication.is_none() {
             let _timing = meden_runtime::metrics::Span::start("view.preparation_log.materialize");
-            let publication = Publication::new(b"meden.preparation.log.v1\0", &log)?;
+            let publication = Publication::new(&log)?;
             entry.status.log = Some(publication.reference().clone());
             entry.publication = Some(publication);
             entry.text = text;
@@ -264,7 +264,7 @@ impl Jobs {
         };
     }
     /// Exact frozen bytes only; a superseded resource's log is unavailable.
-    pub fn bytes(&self, revision: &str) -> Option<Arc<[u8]>> {
+    pub fn bytes(&self, revision: &ArtifactId<Artifact>) -> Option<Arc<[u8]>> {
         self.entries
             .values()
             .find_map(|entry| entry.publication.as_ref()?.bytes(revision))
@@ -316,6 +316,15 @@ fn tail(parts: &[&str]) -> (String, bool) {
     (result, total > LOG_BYTES)
 }
 
+/// Identity context for this owner's immutable publications, never authority.
+pub enum Artifact {}
+impl super::publication::Domain for Artifact {
+    const PREFIX: &'static [u8] = b"meden.preparation.log.v1\0";
+}
+impl super::publication::Data for Log {
+    type Domain = Artifact;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -356,7 +365,7 @@ mod tests {
             .context("field")?
             .as_str()
             .context("log")?;
-        let bytes = jobs.bytes(id).context("body")?;
+        let bytes = jobs.bytes(&ArtifactId::parse(id)?).context("body")?;
         let log: serde_json::Value = serde_json::from_slice(&bytes)?;
         assert_eq!(
             log.pointer("/data/job").context("field")?,
@@ -372,7 +381,10 @@ mod tests {
         assert_eq!(log.pointer("/data/truncated").context("field")?, true);
         assert!(serde_json::to_vec(&jobs)?.len() < 1000);
         jobs.update(&original, 9, "Compile", 5, Some((&text, false)))?;
-        assert!(Arc::ptr_eq(&bytes, &jobs.bytes(id).context("same")?));
+        assert!(Arc::ptr_eq(
+            &bytes,
+            &jobs.bytes(&ArtifactId::parse(id)?).context("same")?
+        ));
         jobs.finish(&original, 10, Ok(true));
         jobs.update(&original, 11, "Compile", 5, Some(("late", false)))?;
         jobs.finish(&original, 12, Err("late failure".to_owned().into()));
@@ -404,7 +416,7 @@ mod tests {
                 .context("field")?,
             "preparing"
         );
-        assert!(jobs.bytes(&old).is_none());
+        assert!(jobs.bytes(&ArtifactId::parse(&old)?).is_none());
         jobs.update(&next, 10, "Compile", 5, Some(("new", false)))?;
         jobs.update(&next, 9, "Compile", 5, Some(("backwards", false)))?;
         assert_eq!(
@@ -436,12 +448,12 @@ mod tests {
         jobs.update(&original, 5, "Compile", 9, Some(("second\n", false)))?;
         let s = status(&jobs, "A")?;
         let bytes = jobs
-            .bytes(
+            .bytes(&ArtifactId::parse(
                 s.pointer("/log/revision")
                     .context("field")?
                     .as_str()
                     .context("id")?,
-            )
+            )?)
             .context("body")?;
         let log: serde_json::Value = serde_json::from_slice(&bytes)?;
         assert_eq!(
