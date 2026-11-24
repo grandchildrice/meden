@@ -737,6 +737,16 @@ clone/restart and fresh model approval remain exercised through public entry
 points. This is service extraction and typed observation coverage, not new kernel
 refinement or an assurance claim about repository Lean/Lake code.
 
+Portable history now uses the file worker's existing complete encoded snapshot
+mode. The intermediate numeric JSON array is removed from that loader; the
+original 4 MiB input bound, strict record validation and pinned policy/path
+checks remain. Worker replies fit an 8 MiB budget. The public CLI exercises a
+complete boundary-size Unicode/control-text record, append/reopen and malformed
+input refusal; an unchanged real worker reply is independently observed against
+the byte budget. The original reader fails that outcome check. Interleaved
+actual-worker measurements bind the complete original document and reduce this
+measured loading cost without changing the compiler or its cache identities.
+
 This does not finish step 4: broader orchestration jobs,
 and remaining navigation waits still need work. Step 5's versioned layout/order and retirement
 requirements remain open too.

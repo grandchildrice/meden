@@ -4,6 +4,28 @@ Prepared-input comparisons now have a [separate calibration report](performance/
 It rejects a slower prototype and separates normal invocation time from sampler
 overhead; the production compiler and existing graph caches are unchanged.
 
+## Portable history loading follow-up (November 24)
+
+The [complete comparison](performance/recorded-history.md) replaces the portable
+loader's intermediate numeric JSON array with the existing file worker's encoded
+snapshot mode. The same private copy of actual 4,137,646-byte EthLib records and
+the same pinned, real worker returned exactly the same complete document across
+eight interleaved measured observations after warm-up.
+
+Median load/decode/validation fell from **1,595.187 ms to 239.879 ms**, about 85%.
+The loader's current-thread CPU fell from **961.137 ms to 77.492 ms**, excluding
+worker CPU. This isolates the record-loading path, not startup as a whole or
+Lean preparation. Input bytes are warmed and validated before each invocation;
+workspace/tool preparation and result hashing are outside the read interval.
+
+The original 4 MiB input limit remains. Complete encoded replies fit an 8 MiB
+budget. An actual-CLI boundary-size Unicode/control-text read, append and reopen
+passes; an independent unchanged-reply observer measures 5,592,417 bytes. The
+original reader fails the same resource assertion at 12,623,124 bytes. Invalid
+UTF-8, malformed/oversized records and escaping links still fail without edits.
+No core, runtime, file-worker, schema or captured compiler source changes are
+needed. Broader preparation waits remain separate work.
+
 ## Recorded work check observations (November 24)
 
 The [validation record](../results/recorded-work-observations-20261124.json)

@@ -263,3 +263,28 @@ sampler on/off separately; sequential before/after captures can differ for other
 reasons. The [Riemann calibration](../../results/lake-preparation-calibration-20261124.json)
 rejects a slower path-validation prototype rather than adopting a misleading
 standalone improvement. Production compilation and cache checks remain unchanged.
+
+## Isolate portable history loading
+
+```sh
+cargo build -p meden-app --example profile-recorded-history
+target/debug/examples/profile-recorded-history /absolute/workspace \
+  /absolute/installed/meden 3 > /tmp/recorded-history.json
+```
+
+This host-only diagnostic calls the shared application's actual complete record
+loader through the original confined file worker and policy. It reports each
+read/decode/validation interval, a canonical document digest and counts, and the
+existing native wall/current-thread-CPU spans. It prints no document contents.
+Workspace/tool preparation and result hashing are outside the read interval.
+There is no inference, Lean execution or evidence admission. The source file is
+still bounded at 4 MiB and the complete encoded worker reply at 8 MiB.
+
+Use a private, byte-identical copy when the actual workspace is already open;
+the normal exclusive workspace lease is not bypassed. Keep both input and host
+data directories private. Compare pinned implementations and the same selected
+worker with interleaved runs, check complete document equality, and distinguish
+warm-byte reads from cold installation/startup. The
+[recorded-history comparison](../../docs/performance/recorded-history.md) records
+the original numeric-array reader against the existing encoded snapshot mode;
+the production loader retains only the latter.

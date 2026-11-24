@@ -1050,7 +1050,9 @@ test.describe("native GUI with real offline workers", () => {
   }, testInfo) => {
     test.setTimeout(120000);
     await mkdir(resolve(project, ".meden"));
-    const note = "LOG-SENTINEL:".repeat(4000);
+    const note =
+      "LOG-SENTINEL:".repeat(4000) +
+      ' Literal λ 🧪 "{\"Err\":{\"kind\":\"cancelled\"}}"';
     const saved = [
       { speaker: "user", text: "SAVED-REVISIONED-HISTORY" },
       { speaker: "assistant", text: "SAVED-ANSWER" },

@@ -1,0 +1,902 @@
+{
+  "date": "2026-11-24",
+  "source_base_revision": "5ee57a684f5414dc877ce215cc0c5de3beaab8cb",
+  "scope": "Shared portable-history loading through the existing complete encoded file snapshot. Removes the loader numeric JSON array; retains only the existing encoded mode. No core/runtime/file-worker/model-transport/compiler/schema changes or new dependency.",
+  "candidate": {
+    "binary": "/home/gohan/workspace/meden/target/validation-bin/1f7e10bcc572f9d278c1bf5b181ddf748b2e7f4f67a56b3e9d61e777a5661d59/meden",
+    "sha256": "1f7e10bcc572f9d278c1bf5b181ddf748b2e7f4f67a56b3e9d61e777a5661d59"
+  },
+  "deployment": {
+    "binary_sha256": "1f7e10bcc572f9d278c1bf5b181ddf748b2e7f4f67a56b3e9d61e777a5661d59",
+    "assets_sha256": "77905f9e5294756584b6c0996b5701928716f43dd4e754c7375e814d3ba107da",
+    "directory": "/home/gohan/workspace/meden/target/gui-runtime/1f7e10bcc572f9d278c1bf5b181ddf748b2e7f4f67a56b3e9d61e777a5661d59-77905f9e52947565"
+  },
+  "contract": {
+    "source_limit_bytes": 4194304,
+    "reply_limit_bytes": 8388608,
+    "unchanged": "Original fixed path/operation, immutable caller policy, requested/resolved pinned resource checks, actual process-completion admission, strict full document parser/linkage validation and historical-only meaning. No metadata-only reuse, cached validation, authority restoration or partial prefix."
+  },
+  "workload": {
+    "source_base_revision": "5ee57a684f5414dc877ce215cc0c5de3beaab8cb",
+    "worker": "/home/gohan/workspace/meden/target/validation-bin/9a6a58c731a82ca95d6eca9b194ff76e5039a84e0c4898f023ce5660003b0b2c/meden",
+    "worker_sha256": "9a6a58c731a82ca95d6eca9b194ff76e5039a84e0c4898f023ce5660003b0b2c",
+    "baseline_sha256": "cee0f1a2d7cfff0b58792def2ddc9fab5d596b3ece928f19cb60837922a1ef12",
+    "candidate_sha256": "73c7e7418dd8fa2dfe356b29d4caa627f7bfaebf8f6976916a11575ef8b34810",
+    "input_bytes": 4137646,
+    "input_sha256": "afca8dbc3f6bbcbdcf3d1ecf9cc11d1cca527a2fee38c01c4e272f21ecaec71c"
+  },
+  "comparison": {
+    "method": "One warm-up per implementation, then eight ABBA/ABBA interleaved actual-worker invocations; four measured samples each. Same private read-only byte-identical copy of actual EthLib records and original worker. Hash-check input before each invocation and after sequence; caches are warm. Workspace/tool preparation and canonical result hashing excluded from read interval. No document contents in reports.",
+    "same_document_sha256": "sha256:c95610948d083c5402667a4fbcf9b75e7daf7057929caa6555ca9bb5eaf37993",
+    "canonical_bytes": 4092354,
+    "counts": {
+      "tasks": 6,
+      "events": 91,
+      "conversations": 68
+    },
+    "measurements": {
+      "baseline": {
+        "samples": 4,
+        "read_median_ms": 1595.1866355,
+        "host_cpu_median_ms": 961.137,
+        "process_median_ms": 648.736,
+        "observations": [
+          {
+            "order": 2,
+            "sample": {
+              "sample": 0,
+              "elapsed_ms": 1569.837996,
+              "document_sha256": "sha256:c95610948d083c5402667a4fbcf9b75e7daf7057929caa6555ca9bb5eaf37993",
+              "canonical_bytes": 4092354,
+              "tasks": 6,
+              "events": 91,
+              "conversations": 68
+            },
+            "spans": [
+              {
+                "context": {
+                  "trace": 5,
+                  "span": 6
+                },
+                "parent": 5,
+                "name": "process.run",
+                "start_us": 162956,
+                "wall_us": 642542,
+                "thread_cpu_us": 18284
+              },
+              {
+                "context": {
+                  "trace": 5,
+                  "span": 5
+                },
+                "parent": null,
+                "name": "recorded.history.read",
+                "start_us": 162741,
+                "wall_us": 1569798,
+                "thread_cpu_us": 942947
+              }
+            ]
+          },
+          {
+            "order": 5,
+            "sample": {
+              "sample": 0,
+              "elapsed_ms": 1668.735945,
+              "document_sha256": "sha256:c95610948d083c5402667a4fbcf9b75e7daf7057929caa6555ca9bb5eaf37993",
+              "canonical_bytes": 4092354,
+              "tasks": 6,
+              "events": 91,
+              "conversations": 68
+            },
+            "spans": [
+              {
+                "context": {
+                  "trace": 5,
+                  "span": 6
+                },
+                "parent": 5,
+                "name": "process.run",
+                "start_us": 157428,
+                "wall_us": 692812,
+                "thread_cpu_us": 16748
+              },
+              {
+                "context": {
+                  "trace": 5,
+                  "span": 5
+                },
+                "parent": null,
+                "name": "recorded.history.read",
+                "start_us": 157267,
+                "wall_us": 1668702,
+                "thread_cpu_us": 990002
+              }
+            ]
+          },
+          {
+            "order": 6,
+            "sample": {
+              "sample": 0,
+              "elapsed_ms": 1615.438202,
+              "document_sha256": "sha256:c95610948d083c5402667a4fbcf9b75e7daf7057929caa6555ca9bb5eaf37993",
+              "canonical_bytes": 4092354,
+              "tasks": 6,
+              "events": 91,
+              "conversations": 68
+            },
+            "spans": [
+              {
+                "context": {
+                  "trace": 5,
+                  "span": 6
+                },
+                "parent": 5,
+                "name": "process.run",
+                "start_us": 160354,
+                "wall_us": 654924,
+                "thread_cpu_us": 19315
+              },
+              {
+                "context": {
+                  "trace": 5,
+                  "span": 5
+                },
+                "parent": null,
+                "name": "recorded.history.read",
+                "start_us": 160089,
+                "wall_us": 1615365,
+                "thread_cpu_us": 977470
+              }
+            ]
+          },
+          {
+            "order": 9,
+            "sample": {
+              "sample": 0,
+              "elapsed_ms": 1574.9350689999999,
+              "document_sha256": "sha256:c95610948d083c5402667a4fbcf9b75e7daf7057929caa6555ca9bb5eaf37993",
+              "canonical_bytes": 4092354,
+              "tasks": 6,
+              "events": 91,
+              "conversations": 68
+            },
+            "spans": [
+              {
+                "context": {
+                  "trace": 5,
+                  "span": 6
+                },
+                "parent": 5,
+                "name": "process.run",
+                "start_us": 156694,
+                "wall_us": 642548,
+                "thread_cpu_us": 16987
+              },
+              {
+                "context": {
+                  "trace": 5,
+                  "span": 5
+                },
+                "parent": null,
+                "name": "recorded.history.read",
+                "start_us": 156550,
+                "wall_us": 1574905,
+                "thread_cpu_us": 944804
+              }
+            ]
+          }
+        ]
+      },
+      "candidate": {
+        "samples": 4,
+        "read_median_ms": 239.87884250000002,
+        "host_cpu_median_ms": 77.49199999999999,
+        "process_median_ms": 168.3515,
+        "observations": [
+          {
+            "order": 3,
+            "sample": {
+              "sample": 0,
+              "elapsed_ms": 239.820314,
+              "document_sha256": "sha256:c95610948d083c5402667a4fbcf9b75e7daf7057929caa6555ca9bb5eaf37993",
+              "canonical_bytes": 4092354,
+              "tasks": 6,
+              "events": 91,
+              "conversations": 68
+            },
+            "spans": [
+              {
+                "context": {
+                  "trace": 5,
+                  "span": 6
+                },
+                "parent": 5,
+                "name": "process.run",
+                "start_us": 162144,
+                "wall_us": 168333,
+                "thread_cpu_us": 6272
+              },
+              {
+                "context": {
+                  "trace": 5,
+                  "span": 5
+                },
+                "parent": null,
+                "name": "recorded.history.read",
+                "start_us": 161822,
+                "wall_us": 239762,
+                "thread_cpu_us": 77384
+              }
+            ]
+          },
+          {
+            "order": 4,
+            "sample": {
+              "sample": 0,
+              "elapsed_ms": 239.937371,
+              "document_sha256": "sha256:c95610948d083c5402667a4fbcf9b75e7daf7057929caa6555ca9bb5eaf37993",
+              "canonical_bytes": 4092354,
+              "tasks": 6,
+              "events": 91,
+              "conversations": 68
+            },
+            "spans": [
+              {
+                "context": {
+                  "trace": 5,
+                  "span": 6
+                },
+                "parent": 5,
+                "name": "process.run",
+                "start_us": 146653,
+                "wall_us": 168370,
+                "thread_cpu_us": 6060
+              },
+              {
+                "context": {
+                  "trace": 5,
+                  "span": 5
+                },
+                "parent": null,
+                "name": "recorded.history.read",
+                "start_us": 146459,
+                "wall_us": 239898,
+                "thread_cpu_us": 77053
+              }
+            ]
+          },
+          {
+            "order": 7,
+            "sample": {
+              "sample": 0,
+              "elapsed_ms": 251.23689,
+              "document_sha256": "sha256:c95610948d083c5402667a4fbcf9b75e7daf7057929caa6555ca9bb5eaf37993",
+              "canonical_bytes": 4092354,
+              "tasks": 6,
+              "events": 91,
+              "conversations": 68
+            },
+            "spans": [
+              {
+                "context": {
+                  "trace": 5,
+                  "span": 6
+                },
+                "parent": 5,
+                "name": "process.run",
+                "start_us": 137685,
+                "wall_us": 178804,
+                "thread_cpu_us": 6800
+              },
+              {
+                "context": {
+                  "trace": 5,
+                  "span": 5
+                },
+                "parent": null,
+                "name": "recorded.history.read",
+                "start_us": 137533,
+                "wall_us": 251202,
+                "thread_cpu_us": 78938
+              }
+            ]
+          },
+          {
+            "order": 8,
+            "sample": {
+              "sample": 0,
+              "elapsed_ms": 239.511081,
+              "document_sha256": "sha256:c95610948d083c5402667a4fbcf9b75e7daf7057929caa6555ca9bb5eaf37993",
+              "canonical_bytes": 4092354,
+              "tasks": 6,
+              "events": 91,
+              "conversations": 68
+            },
+            "spans": [
+              {
+                "context": {
+                  "trace": 5,
+                  "span": 6
+                },
+                "parent": 5,
+                "name": "process.run",
+                "start_us": 158284,
+                "wall_us": 167876,
+                "thread_cpu_us": 6252
+              },
+              {
+                "context": {
+                  "trace": 5,
+                  "span": 5
+                },
+                "parent": null,
+                "name": "recorded.history.read",
+                "start_us": 158088,
+                "wall_us": 239472,
+                "thread_cpu_us": 77600
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "read_reduction_percent": 84.96233373815775,
+    "limits": "Nested wall intervals cannot be summed. Current-thread CPU excludes worker CPU. This isolates warm record loading; not physical paint, cold installation, a universal throughput bound or an overall GUI/Lean speedup."
+  },
+  "resource_gate": {
+    "entry": "Public actual meden work show, note, show with real confined worker and fixed original policy.",
+    "input_bytes": 4194304,
+    "observed_complete_reply_bytes": 5592417,
+    "budget_bytes": 8388608,
+    "data": "Original Unicode/quotes/backslashes/newlines/tabs/NUL and JSON-shaped cancellation string, unchanged initial file, then append/reopen preserving original tasks/conversation.",
+    "observer": "Trusted host MEDEN_BWRAP launcher executes the original Bubblewrap with unchanged arguments, copies its complete original stdout verbatim and propagates exit status. No fake result or unconfined worker fallback. This resource observation is not a timing benchmark.",
+    "negative_control": {
+      "binary_sha256": "9a6a58c731a82ca95d6eca9b194ff76e5039a84e0c4898f023ce5660003b0b2c",
+      "observed_reply_bytes": 12623124,
+      "exit_code": 1,
+      "failure": "Independent complete-reply byte-budget assertion, after successful old CLI/worker completion."
+    }
+  },
+  "checks": {
+    "gates": [
+      {
+        "phase": "rust",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "clippy",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "rustdoc",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "typecheck",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "typescript",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "architecture",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "format",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "schema",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "python-lint",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "portable-cli",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "tui",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "gui-focused",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "budget-normal",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "phase": "budget-reduced",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "rust_passed": 340,
+    "typescript_passed": 43,
+    "architecture_checks": 33,
+    "owned_data_port_sources": 47,
+    "native_schemas": 37,
+    "portable_cli": {
+      "passed": 26,
+      "skipped": 0
+    },
+    "tui": {
+      "passed": 35,
+      "skipped": 0,
+      "binary_sha256": "1f7e10bcc572f9d278c1bf5b181ddf748b2e7f4f67a56b3e9d61e777a5661d59",
+      "decoded_inspection": [
+        {
+          "case": "test_model_repairs_a_lean_work_item_from_real_checker_feedback[True]-853f24fd4e",
+          "trace": "/tmp/meden-ux-recorded-read-20261124/test_model_repairs_a_lean_work_item_from_real_checker_feedback[True]-853f24fd4e/screens.jsonl",
+          "seconds": 4.711,
+          "observed": "MEDEN_THEOREMS_CHECKED"
+        },
+        {
+          "case": "test_model_repairs_a_lean_work_item_from_real_checker_feedback[False]-5a0155866b",
+          "trace": "/tmp/meden-ux-recorded-read-20261124/test_model_repairs_a_lean_work_item_from_real_checker_feedback[False]-5a0155866b/screens.jsonl",
+          "seconds": 0.6,
+          "observed": "Lean work checker unavailable"
+        },
+        {
+          "case": "test_portable_check_is_cancellable_without_a_processor_grant-f6843d93dd",
+          "trace": "/tmp/meden-ux-recorded-read-20261124/test_portable_check_is_cancellable_without_a_processor_grant-f6843d93dd/screens.jsonl",
+          "seconds": 0.876,
+          "observed": "Portable work stopped:"
+        },
+        {
+          "case": "test_portable_work_clones_history_checks_locally_and_requires_fresh_re-ffb3cafaf2",
+          "trace": "/tmp/meden-ux-recorded-read-20261124/test_portable_work_clones_history_checks_locally_and_requires_fresh_re-ffb3cafaf2/screens.jsonl",
+          "seconds": 5.754,
+          "observed": "Choose a model connection"
+        },
+        {
+          "case": "test_finite_contract_real_refutation_repair_staleness_and_restart-0a1f467300",
+          "trace": "/tmp/meden-ux-recorded-read-20261124/test_finite_contract_real_refutation_repair_staleness_and_restart-0a1f467300/screens.jsonl",
+          "seconds": 2.178,
+          "observed": "independently evaluated counterexample"
+        },
+        {
+          "case": "test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa",
+          "trace": "/tmp/meden-ux-recorded-read-20261124/test_public_lake_journey_preserves_metadata_binding_and_history-ebeee62caa/screens.jsonl",
+          "seconds": 74.976,
+          "observed": "Lake source inventory changed"
+        }
+      ]
+    },
+    "browser": [
+      {
+        "report": "target/gui-recorded-read-all-report",
+        "stats": {
+          "total": 6,
+          "expected": 6,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        }
+      },
+      {
+        "report": "target/gui-recorded-read-budget-normal-report",
+        "stats": {
+          "total": 1,
+          "expected": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        }
+      },
+      {
+        "report": "target/gui-recorded-read-budget-reduced-report",
+        "stats": {
+          "total": 1,
+          "expected": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        }
+      }
+    ],
+    "diagnostic_entry": [
+      {
+        "case": "help",
+        "returncode": 0,
+        "stdout_bytes": 430,
+        "stderr": ""
+      },
+      {
+        "case": "zero",
+        "returncode": 1,
+        "stdout_bytes": 0,
+        "stderr": "Error: Use WORKSPACE WORKER SAMPLES (1\u201316)\n"
+      },
+      {
+        "case": "missing",
+        "returncode": 1,
+        "stdout_bytes": 0,
+        "stderr": "Error: Expected an original portable workspace document\n"
+      }
+    ]
+  },
+  "serialized_navigation": [
+    {
+      "browser": "149.0.7827.53",
+      "motion": "no-preference",
+      "cold_analysis_store_preparation_ms": 32873.487751,
+      "warm_tab_two_raf_ms": [
+        18.69999998807907,
+        27.19999998807907,
+        23.30000001192093,
+        26.19999998807907,
+        25.600000023841858,
+        22.600000023841858,
+        14.400000035762787,
+        18,
+        28.100000023841858,
+        39
+      ],
+      "p95_ms": 39,
+      "maximum_p95_ms": 250,
+      "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+    },
+    {
+      "browser": "149.0.7827.53",
+      "motion": "reduce",
+      "cold_analysis_store_preparation_ms": 34852.98787600001,
+      "warm_tab_two_raf_ms": [
+        16.599999964237213,
+        26.099999964237213,
+        26.80000001192093,
+        24.600000023841858,
+        31.80000001192093,
+        30.100000023841858,
+        21.69999998807907,
+        26.69999998807907,
+        26.399999976158142,
+        23.5
+      ],
+      "p95_ms": 31.80000001192093,
+      "maximum_p95_ms": 250,
+      "scope": "Installed Lean/built Lake fixture, empty analysis store then retained tabs. Two-rAF presentation proxy, not physical paint, INP, live inference or cold installation."
+    }
+  ],
+  "compiler_sources_unchanged": [
+    {
+      "path": "crates/meden-app/src/adapters/lake.rs",
+      "sha256": "bfb03188d670305be66d1152c47982a6bcea528b283d1e16de67ca9b8eebd8d8"
+    },
+    {
+      "path": "crates/meden-app/src/adapters/lean.rs",
+      "sha256": "e64f92a04a26780fb32a9db274e1430fb142bcaad6cca8af12dab4cac65761de"
+    },
+    {
+      "path": "crates/meden-app/src/analysis/collect.rs",
+      "sha256": "755c5495ad2e80171a136ca9be194867741fc2d8db5376644a46fcb3766f194b"
+    },
+    {
+      "path": "crates/meden-app/src/analysis/layout.rs",
+      "sha256": "a6d7069ced1c8c1fcccf9349b293efc335e0a916df6ca864b4c8f30e35f1c94f"
+    },
+    {
+      "path": "crates/meden-app/src/analysis/observe.rs",
+      "sha256": "047ed863ac5571096a23ccb7196e713707a6bcae2db0b1d7b80c4674927bb7e5"
+    },
+    {
+      "path": "crates/meden-app/src/analysis/sources.rs",
+      "sha256": "88c5be999f8ba6a705dbcff8238f0648f3825f1e0fe61de3605a04075837c03a"
+    },
+    {
+      "path": "crates/meden-app/src/compiler.rs",
+      "sha256": "c2efc23d024921aa5bb5fcfa120f1e672438f09d25d7f4a309de19469483dbc4"
+    },
+    {
+      "path": "crates/meden-app/src/adapters.rs",
+      "sha256": "ab5b5f082cb99f9321bab7f49e322a1b97177340964b6ea7c9acd3c28e3cd713"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/mod.rs",
+      "sha256": "c0f2f0d9612e0181b01aa45f06f23f4e8c04361b5381d39d1c9d40e9672b0a74"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/project.rs",
+      "sha256": "13a22dcf4deb352b9076ba8f287cd440b94fae4bb87cec33576b121bbca4288c"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/lake.rs",
+      "sha256": "e732135a0bd5f3bbc87b0be02b077fa3b307c6b7d0ce6ee964f85aa2c6eb7760"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/graph.rs",
+      "sha256": "1efb44197f9762f7db65995eec0003c704b559efc3829c1455ed73300e288c40"
+    },
+    {
+      "path": "crates/meden-app/src/atlas/frozen.rs",
+      "sha256": "37609bb326f5ab5d061be31c8ddac907949bb435b374750dc8d1a108f49e5b10"
+    }
+  ],
+  "actual_projects": [
+    {
+      "project": "riemann",
+      "pid": 2905817,
+      "binary_sha256": "1f7e10bcc572f9d278c1bf5b181ddf748b2e7f4f67a56b3e9d61e777a5661d59",
+      "cache_hit": true,
+      "preparation_ms": 23332.612204,
+      "source_publication": "sha256:4671471a8580f25a42b2117fcc7cf5a8d25988b715b1a40cbb17b77e006bfa94",
+      "source_hash": "2063f4c8792707349ba4b3d295e779c565a63030790aae9d937d5f776d8d9184",
+      "reader_publication": "sha256:d3bca7c0ce21989bef612ac79475e72da33062b4140b13dfe87bbaf183a61be8",
+      "reader_hash": "d2c21198aaff30504f16966ddf61ce628ef7ac8632c62be3195b4e4f72e41806",
+      "inventory_files": 175187,
+      "metadata_hash": "5875c3c3432ddda379f8caf8ed411b77d30701443e5da912442935a296c3ae7a",
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "node_selection_preserves_camera_chat_and_source_line": true,
+      "selected_declaration": "PIW.AdelClassFin.DictGen.denom",
+      "verification_job": {
+        "state": "idle"
+      },
+      "work_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "preview": {
+        "state": "idle"
+      },
+      "preview_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "src/Formalism/PeriodIntegrals/UnitaryGroupMassFormula/AdelicClassFiniteness/DictGen.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    },
+    {
+      "project": "ethlib",
+      "pid": 2906077,
+      "binary_sha256": "1f7e10bcc572f9d278c1bf5b181ddf748b2e7f4f67a56b3e9d61e777a5661d59",
+      "cache_hit": true,
+      "preparation_ms": 2219.2960380000004,
+      "source_publication": "sha256:c9a67ef7faab77791ab7d84fad5d7176476d3b7d5320d9f95f155b117b57e86b",
+      "source_hash": "ac220adb7270df17b304574138f8894ec78d92bc7a85c5e2e0e745edc885bb09",
+      "reader_publication": "sha256:0b79b28ff3aa227731108c7cde50cf54fa06cc447922756668b1197473b0d3ac",
+      "reader_hash": "60e647749624e65341239c16878edafe3083f1a0b0ba7ab0587b82511d80dd36",
+      "inventory_files": 2517,
+      "metadata_hash": "59b98c2e15f2f590463873351344a08a59e4aa3854a7dfb1779e635a680cb32f",
+      "evidence_publication": "sha256:384fd578530226bf51adfe7725528537a95064699013209fc98f05f84c4ccc46",
+      "original_source_graph_reader_inventory_evidence_preserved": true,
+      "conversation_revision_unchanged": true,
+      "candidate_observations_unchanged": true,
+      "hover_and_retained_tab_camera_preserved": true,
+      "node_selection_preserves_camera_chat_and_source_line": true,
+      "selected_declaration": "EthLib.Networking.Gossip.GossipsubParameters",
+      "verification_job": {
+        "state": "idle"
+      },
+      "work_job": {
+        "state": "idle"
+      },
+      "job_body_requests": 0,
+      "preview": {
+        "state": "idle"
+      },
+      "preview_body_requests": 0,
+      "commands": [
+        {
+          "type": "inspect",
+          "path": ".",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip",
+          "directory": true
+        },
+        {
+          "type": "inspect",
+          "path": "EthLib/Networking/Gossip/Parameters.lean",
+          "directory": false
+        }
+      ],
+      "page_errors": [],
+      "running": false,
+      "authorized": false
+    }
+  ],
+  "public_connections": [
+    {
+      "project": "riemann",
+      "prior_counter": 0,
+      "current_counter": null,
+      "complete_generated_state_validation": true,
+      "public_choices_preserved": true,
+      "selected_binding_preserved": true,
+      "choices": 3,
+      "choices_sha256": "3c22392a194ffb7d071e11dc260301f76666223753be8d9da40dc00cf720afaa",
+      "running": false,
+      "authorized": false
+    },
+    {
+      "project": "ethlib",
+      "prior_counter": 0,
+      "current_counter": null,
+      "complete_generated_state_validation": true,
+      "public_choices_preserved": true,
+      "selected_binding_preserved": true,
+      "choices": 3,
+      "choices_sha256": "3c22392a194ffb7d071e11dc260301f76666223753be8d9da40dc00cf720afaa",
+      "running": false,
+      "authorized": false
+    }
+  ],
+  "deployed_history_spans": [
+    {
+      "project": "riemann",
+      "evicted": 0,
+      "records": []
+    },
+    {
+      "project": "ethlib",
+      "evicted": 0,
+      "records": [
+        {
+          "context": {
+            "trace": 8,
+            "span": 8
+          },
+          "parent": null,
+          "name": "recorded.history.read",
+          "start_us": 442826,
+          "wall_us": 260185,
+          "thread_cpu_us": 78569
+        },
+        {
+          "context": {
+            "trace": 13,
+            "span": 336
+          },
+          "parent": 15,
+          "name": "recorded.history.read",
+          "start_us": 16912614,
+          "wall_us": 269160,
+          "thread_cpu_us": 77429
+        },
+        {
+          "context": {
+            "trace": 13,
+            "span": 341
+          },
+          "parent": 15,
+          "name": "recorded.history.read",
+          "start_us": 17363623,
+          "wall_us": 242443,
+          "thread_cpu_us": 70975
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "target/native-profile/recorded-read-v2-20261124/00-baseline.json",
+      "sha256": "abfd43eaf9da600b4a4b948e4cc058dd3b9e6c0eeb90ae1fdb8a4b4303f8e91c"
+    },
+    {
+      "path": "target/native-profile/recorded-read-v2-20261124/01-candidate.json",
+      "sha256": "cd66753c84bd9b00be4af6ef4e6107679f07564165b1fe6a0950c9a6fed351c7"
+    },
+    {
+      "path": "target/native-profile/recorded-read-v2-20261124/02-baseline.json",
+      "sha256": "be8b413e183d8630b84423c16c4cc059b0f1af00f55058dd00423a59c30a666f"
+    },
+    {
+      "path": "target/native-profile/recorded-read-v2-20261124/03-candidate.json",
+      "sha256": "ee98c1007590053821831938549d51c698e872a8df79d90b32ff89f7deccc4b3"
+    },
+    {
+      "path": "target/native-profile/recorded-read-v2-20261124/04-candidate.json",
+      "sha256": "a88e2c6c0f1bd020b09705a7c87a879ee0750c3620796f93f79daf3528a68459"
+    },
+    {
+      "path": "target/native-profile/recorded-read-v2-20261124/05-baseline.json",
+      "sha256": "929d713a604b63b1438b11d13e3db5fc94b68f6f4759b1f8752d9b359ee008d2"
+    },
+    {
+      "path": "target/native-profile/recorded-read-v2-20261124/06-baseline.json",
+      "sha256": "a8916518b8ebaf39e1d4c060a63064d57725c018bcb3c53ff8be93e9588b4e3f"
+    },
+    {
+      "path": "target/native-profile/recorded-read-v2-20261124/07-candidate.json",
+      "sha256": "4d03bfeef99b43be1594856136f24b2bb9f6a8869a22525af978a9b6e4fb7659"
+    },
+    {
+      "path": "target/native-profile/recorded-read-v2-20261124/08-candidate.json",
+      "sha256": "c4ec9d3a4044bd59b6f77e00aba40283939ff1fa47f609729fd66f42d139131b"
+    },
+    {
+      "path": "target/native-profile/recorded-read-v2-20261124/09-baseline.json",
+      "sha256": "896fd87befc1d2ad3ee0e2abdff7e1c5cfc5e50421c9c1b62cdf9baf83d9e60b"
+    },
+    {
+      "path": "target/native-profile/recorded-read-v2-20261124/bindings.json",
+      "sha256": "e36868c00a7f1cba9597d25052a644c683ecdbdf69bf168bb4ace955952c2994"
+    },
+    {
+      "path": "target/native-profile/recorded-read-v2-20261124/comparison.json",
+      "sha256": "0e6907c18c6a2daeeae45601154866e2ac90839103f636e81fdcc2d7e26b963b"
+    }
+  ],
+  "preflight": [
+    "Initial standalone pytest command selected the host executable outside the project module environment and did not collect tests. The final gate uses uv run --project python --group dev python -m pytest and passes all 26 cases.",
+    "An initial 24 MB reply-budget prototype showed the same improvement. The final comparison and all gates use the smaller 8 MiB complete-reply bound."
+  ],
+  "remaining": [
+    "Riemann complete compiled-input preparation and other startup/navigation waits.",
+    "Broader orchestration job read models; versioned layout/order and retirement.",
+    "No new extracted refinement, large/local/live-model quality, confidentiality or cold-install evidence."
+  ]
+}

@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import shlex
 import shutil
 import signal
 import subprocess
@@ -184,11 +185,15 @@ def test_portable_clone_retains_real_proof_and_failure_history(project, tmp_path
     )
 
 
-@pytest.mark.parametrize("kind", ["malformed", "oversized", "authority", "task-authority"])
+@pytest.mark.parametrize(
+    "kind", ["malformed", "invalid-utf8", "oversized", "authority", "task-authority"]
+)
 def test_portable_rejects_bad_records_without_rewriting_them(project, kind):
     document = project.document()
     if kind == "malformed":
         contents = b'{"tasks": ['
+    elif kind == "invalid-utf8":
+        contents = json.dumps(document).encode() + b"\xff"
     elif kind == "oversized":
         contents = b" " * (4_194_304 + 1)
     else:
@@ -203,6 +208,64 @@ def test_portable_rejects_bad_records_without_rewriting_them(project, kind):
     assert hashlib.sha256(project.history.read_bytes()).digest() == before
     project.run("note", "proof", "--text", "Must not overwrite invalid history", success=False)
     assert hashlib.sha256(project.history.read_bytes()).digest() == before
+
+
+def test_complete_portable_history_at_the_byte_limit_preserves_literal_data_and_edits(
+    project, tmp_path
+):
+    document = project.document()
+    literal = 'Literal λ 🧪: \"quotes\" \\ path\n\t\0 {"Err":{"kind":"cancelled"}}\n' * 1000
+    document["conversations"] = [
+        {"id": "literal", "messages": [{"speaker": "user", "text": literal}]}
+    ]
+    encoded = json.dumps(document, ensure_ascii=False).encode()
+    contents = encoded + b" " * (4_194_304 - len(encoded))
+    assert len(contents) == 4_194_304
+    project.history.write_bytes(contents)
+    before = hashlib.sha256(contents).digest()
+    # Observe the actual confined worker's unchanged reply. This trusted host
+    # launcher copies bytes verbatim; it neither supplies nor edits a result.
+    public = {}
+    for name in ("bash", "cat"):
+        alias = shutil.which(name)
+        assert alias and str(Path(alias).resolve()).startswith(("/nix/store/", "/usr/", "/bin/"))
+        public[name] = alias
+    bwrap = project.env.get("MEDEN_BWRAP")
+    if bwrap is None:
+        bwrap = shutil.which("bwrap")
+        assert bwrap and str(Path(bwrap).resolve()).startswith(("/nix/store/", "/usr/", "/bin/"))
+    assert bwrap, "Actual Bubblewrap is required"
+    replies = tmp_path / "worker-replies"
+    replies.mkdir()
+    launcher = tmp_path / "observed-bwrap"
+    launcher.write_text(
+        f"#!{public['bash']}\nset -eu\n"
+        f"reply={shlex.quote(str(replies))}/\"$BASHPID\"\n"
+        "worker_status=0\n"
+        f"{shlex.quote(bwrap)} \"$@\" > \"$reply\" || worker_status=$?\n"
+        f"{shlex.quote(public['cat'])} \"$reply\"\nexit \"$worker_status\"\n"
+    )
+    launcher.chmod(0o700)
+    result = subprocess.run(
+        project.command("show"),
+        env={**project.env, "MEDEN_BWRAP": str(launcher)},
+        text=True,
+        capture_output=True,
+        timeout=120,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    reply_bytes = sum(path.stat().st_size for path in replies.iterdir())
+    assert 0 < reply_bytes <= 8_388_608, "Complete 4 MiB history exceeds its IPC budget"
+    view = json.loads(result.stdout)
+    assert view["error"] is None
+    assert view["document"] == document
+    assert hashlib.sha256(project.history.read_bytes()).digest() == before
+    project.run("note", "proof", "--text", "APPEND-AFTER-COMPLETE-READ")
+    after = project.document()
+    assert after["conversations"] == document["conversations"]
+    assert after["tasks"] == document["tasks"]
+    assert after["events"][-1]["note"] == "APPEND-AFTER-COMPLETE-READ"
+    assert json.loads(project.run("show").stdout)["document"] == after
 
 
 @pytest.mark.parametrize("link", ["directory", "file"])

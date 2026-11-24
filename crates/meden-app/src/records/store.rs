@@ -4,6 +4,7 @@ use crate::{
     view::verification_jobs::{recorded::Step, tracker::Progress, Publisher, RecordedOrigin},
 };
 use anyhow::{Context, Result};
+use base64::Engine as _;
 use meden_agent::tool::Args;
 use meden_core::file::{Operation, Request};
 use meden_core::Policy;
@@ -66,8 +67,10 @@ fn call(
         rules,
         &Limits {
             timeout: Duration::from_secs(30),
-            capture_bytes: 24_000_000,
-            output_bytes: 24_000_000,
+            // A complete 4 MiB snapshot needs less than 6 MiB in Base64.
+            // Writes return only the original small acknowledgement.
+            capture_bytes: 8_388_608,
+            output_bytes: 8_388_608,
         },
     )
     .map_err(|error| anyhow::anyhow!("Workspace record: {error}"))
@@ -84,13 +87,22 @@ pub fn load(workspace: &Workspace, control: &Control) -> Result<Option<Document>
 }
 fn read_with_policy(workspace: &Workspace, control: &Control, rules: &Policy) -> Result<Document> {
     let _timing = meden_runtime::metrics::Span::start("recorded.history.read");
-    let bytes: Vec<u8> = serde_json::from_value(call(
+    let snapshot = call(
         workspace,
         control,
         Operation::Snapshot,
-        Args::from_iter([("max_bytes".into(), 4_194_304.into())]),
+        Args::from_iter([
+            ("max_bytes".into(), 4_194_304.into()),
+            ("encoding".into(), "base64".into()),
+        ]),
         rules,
-    )?)?;
+    )?;
+    let bytes = base64::engine::general_purpose::STANDARD.decode(
+        snapshot
+            .as_str()
+            .context("Invalid portable history snapshot response")?,
+    )?;
+    anyhow::ensure!(bytes.len() <= 4_194_304, "Portable history exceeds 4 MiB");
     let document: Document = serde_json::from_slice(&bytes)
         .context("Portable history is unreadable; the file was retained")?;
     validate(&document)?;

@@ -1761,6 +1761,16 @@ terminal callbacks cannot restore retired bodies. Transfer retry reads bytes
 without another command. These are tested application/adapter properties, not
 additional extracted-kernel proofs.
 
+Portable history reads use the same pinned worker's existing Base64 snapshot
+mode, with a 4 MiB source bound and an 8 MiB complete-reply bound. The application
+decodes the original bytes before the unchanged strict document parser and
+linkage validation. No numeric-array compatibility fallback remains in this
+loader. Runtime process/result admission and original/resolved policy checks are
+unchanged. Boundary-size Unicode/control text, invalid UTF-8, malformed/oversized
+data and escaping links are exercised through the actual CLI; an independent
+reply-size observation rejects the original slower reader. Codec and OS behavior
+remain tested adapters, not new extracted refinement.
+
 The host-selected `meden lake` adapter confines executable Lake code and Lean to
 the prepared offline worker. Portable checks freeze requirement/module/theorem
 names, hash the selected Lean executable, fingerprint bounded Lean sources and
