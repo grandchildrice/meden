@@ -5,7 +5,8 @@ import {
   request as httpRequest,
   type ServerResponse,
 } from "node:http";
-import { spawn, type ChildProcess } from "node:child_process";
+import { execFile, spawn, type ChildProcess } from "node:child_process";
+import { promisify } from "node:util";
 import {
   cp,
   mkdtemp,
@@ -67,10 +68,11 @@ test.describe("native GUI with real offline workers", () => {
     port = 0,
     extraEnv: Record<string, string | undefined> = {},
     extraArgs: string[] = [],
+    binary = process.env.MEDEN_BIN || resolve("target/debug/meden"),
   ) {
     let stderr = "";
     child = spawn(
-      process.env.MEDEN_BIN || resolve("target/debug/meden"),
+      binary,
       [
         "gui",
         "--workspace",
@@ -2234,7 +2236,7 @@ test.describe("native GUI with real offline workers", () => {
     expect(
       timings.data.records.some(
         (row: { name: string; context: { trace: number } }) =>
-          row.name === "atlas.project.prepare" &&
+          row.name === "atlas.project.query" &&
           row.context.trace === extraction.context.trace,
       ),
     ).toBe(true);
@@ -2824,7 +2826,7 @@ theorem slow : True := fast
       exact: true,
     });
     await expect(pane.getByRole("alert")).toContainText(
-      "Building Lean dependencies reached the 10-second time limit",
+      "Building and resolving Lean inputs reached the 10-second time limit",
     );
     await expect(pane.getByRole("log", { name: "Build log" })).toContainText(
       "Built Fast",
@@ -3098,12 +3100,14 @@ theorem slow : True := fast
     let stages = await extractionStages();
     expect(stages).toContain("atlas.lake_configuration.reuse");
     expect(stages).not.toContain("atlas.lake_configuration");
-    expect(stages).toContain("atlas.project.prepare");
+    expect(stages).toContain("atlas.project.query");
     const cachedLog = (
       await nativePreparationLog(page, await nativeState(page), "Entry.lean")
     ).text;
     expect(cachedLog.match(/\$ lake --json query /g)).toHaveLength(1);
-    expect(cachedLog).toContain("Build/setup and input resolution completed");
+    expect(cachedLog).toContain(
+      "Query decoding and input resolution completed",
+    );
     expect(cachedLog).toMatch(/Validated \d+ files \/ \d+ bytes in /);
 
     // A cached successful configuration cannot hide a new parser failure.
@@ -3165,7 +3169,7 @@ theorem slow : True := fast
     );
     stages = await extractionStages();
     expect(stages).not.toContain("atlas.lake_configuration");
-    expect(stages).toContain("atlas.project.prepare");
+    expect(stages).toContain("atlas.project.query");
     expect(stages).toContain("atlas.project.extract");
     await expect
       .poll(async () => (await nativeState(page)).running)
@@ -3184,6 +3188,10 @@ theorem slow : True := fast
     await expect(pane.getByRole("alert")).toContainText(
       "Prepared Lake compilation failed",
     );
+    // A failed real query cannot dispatch the metadata validator, even if
+    // earlier targets emitted complete JSON before this dependency failed.
+    expect(await extractionStages()).toContain("atlas.project.query");
+    expect(await extractionStages()).not.toContain("atlas.project.fingerprint");
     await expect(
       page
         .getByRole("complementary", { name: "Workspace chat", exact: true })
@@ -3209,7 +3217,7 @@ theorem slow : True := fast
     stages = await extractionStages();
     expect(stages).toContain("atlas.lake_configuration.reuse");
     expect(stages).not.toContain("atlas.lake_configuration");
-    expect(stages).toContain("atlas.project.prepare");
+    expect(stages).toContain("atlas.project.query");
     await page.screenshot({
       path: test
         .info()
@@ -3217,6 +3225,167 @@ theorem slow : True := fast
     });
     expect(requests).toHaveLength(0);
     expect((await nativeState(page)).authorized).toBe(false);
+  });
+
+  test("metadata-only updates reuse original compiler and counterexample artifacts in an isolated Lean environment", async ({
+    page,
+  }, info) => {
+    test.setTimeout(300000);
+    const { stdout } = await promisify(execFile)(
+      process.execPath,
+      [resolve("tools/gui/prepare-metadata-variants.mjs")],
+      { timeout: 180000, maxBuffer: 1024 * 1024 },
+    );
+    const variants = JSON.parse(stdout);
+    expect(variants.original.sha256).not.toBe(variants.updated.sha256);
+    expect(variants.original.helper_sha256).not.toBe(
+      variants.updated.helper_sha256,
+    );
+    await writeFile(
+      resolve(project, "lakefile.lean"),
+      `import Lake
+open Lake DSL
+run_cmd do
+  if ← System.FilePath.pathExists "/analysis/library/project-atlas.py" then
+    throwError "Metadata helper leaked into Lake configuration"
+  if ← System.FilePath.pathExists "/meden-worker" then
+    throwError "Generic worker leaked into Lake configuration"
+package isolated
+lean_lib Entry
+`,
+    );
+    await writeFile(
+      resolve(project, "Entry.lean"),
+      `import Lean
+run_cmd do
+  if ← System.FilePath.pathExists "/analysis/library/project-atlas.py" then
+    throwError "Metadata helper leaked into compilation"
+  if ← System.FilePath.pathExists "/meden-worker" then
+    throwError "Generic worker leaked into compilation"
+initialize isolatedLibrary : Unit ← do
+  if ← System.FilePath.pathExists "/analysis/library/project-atlas.py" then
+    throw <| IO.userError "Metadata helper leaked into imported code"
+  if ← System.FilePath.pathExists "/meden-worker" then
+    throw <| IO.userError "Generic worker leaked into imported code"
+theorem stableMeaning : True := by trivial
+theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
+`,
+    );
+    // Begin with an installed/built project, as in the prepared-Lake journey.
+    // Creating a new manifest after a frozen capture must still refuse reuse.
+    const build = await promisify(execFile)(variants.original.binary, [
+      "lake",
+      "--workspace",
+      project,
+      "--lean",
+      process.env.MEDEN_ATLAS_LEAN ||
+        resolve(homedir(), ".elan/toolchains/leanprover--lean4---v4.35.0"),
+      "--timeout",
+      "120",
+      "--",
+      "build",
+      "+Entry",
+    ]);
+    expect(JSON.parse(build.stdout).success, build.stderr).toBe(true);
+    const open = async (binary: string) => {
+      await page.goto(
+        await start(0, { MEDEN_ATLAS_BACKEND: "lake" }, [], binary),
+      );
+      await page
+        .getByRole("button", { name: "File: Entry.lean", exact: true })
+        .click();
+      await expect
+        .poll(
+          async () =>
+            (await nativeState(page)).source_preparation["Entry.lean"]?.outcome
+              .state,
+          { timeout: 120000 },
+        )
+        .toBe("ready");
+      await expect
+        .poll(async () => (await nativeState(page)).running)
+        .toBe(false);
+      return nativeState(page);
+    };
+    const artifacts = async () => {
+      const directory = resolve(
+        root,
+        "data/meden/projects",
+        createHash("sha256").update(project).digest("hex"),
+        "compiled-views",
+      );
+      const files: Record<string, string> = {};
+      const visit = async (path: string) => {
+        for (const entry of await readdir(path, { withFileTypes: true })) {
+          const file = resolve(path, entry.name);
+          if (entry.isDirectory()) await visit(file);
+          else
+            files[file.slice(directory.length + 1)] = createHash("sha256")
+              .update(await readFile(file))
+              .digest("hex");
+        }
+      };
+      await visit(directory);
+      return files;
+    };
+    const first = await open(variants.original.binary);
+    const original = await nativeSource(page, first);
+    expect(
+      original.graph.declarations
+        .find((n: any) => n.id === "counterexample")
+        .semantic.checker.candidates.join(" "),
+    ).toContain("n := 0");
+    expect(first.source_preparation["Entry.lean"].outcome.cache_hit).toBe(
+      false,
+    );
+    const stored = await artifacts();
+    expect(Object.keys(stored).length).toBeGreaterThan(3);
+    await stop();
+    const second = await open(variants.updated.binary);
+    expect(second.source_preparation["Entry.lean"].outcome.cache_hit).toBe(
+      true,
+    );
+    expect(await nativeSource(page, second)).toEqual(original);
+    expect(await artifacts()).toEqual(stored);
+    const metrics = await page.evaluate(async () =>
+      (
+        await fetch("/api/metrics", {
+          headers: {
+            Authorization:
+              "Bearer " + sessionStorage.getItem("meden-native-session"),
+          },
+        })
+      ).json(),
+    );
+    const names = metrics.records.map((r: any) => r.name);
+    expect(names).toContain("atlas.project.query");
+    expect(names).toContain("atlas.project.fingerprint");
+    for (const name of [
+      "atlas.project.extract",
+      "atlas.compile",
+      "atlas.search",
+      "analysis.render",
+    ])
+      expect(names).not.toContain(name);
+    expect(second.authorized).toBe(false);
+    expect(requests).toHaveLength(0);
+    await page.screenshot({
+      path: info.outputPath("metadata-update-reused-original-artifacts.png"),
+    });
+    await info.attach("metadata-update-and-worker-timings", {
+      body: JSON.stringify(
+        {
+          variants,
+          metrics,
+          original_artifacts: stored,
+          scope:
+            "Two actual native builds differing only in embedded metadata helper comment; real offline Lake/Plausible, full-byte validation and unchanged original artifact files. Scripted provider unused; no inference or cold-install claim.",
+        },
+        null,
+        2,
+      ),
+      contentType: "application/json",
+    });
   });
 
   test("versioned map geometry survives host restart, rejects corrupt storage and stays usable without storage", async ({

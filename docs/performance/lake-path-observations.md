@@ -100,3 +100,9 @@ new observations even for EthLib's frozen path. Narrowing those resource sets
 requires an audit of the actual transitive scripts/compiled modules and original
 provenance. It must not relabel old observations or omit executed dependencies.
 That partitioning and broader prepared-snapshot reuse remain open work.
+
+The subsequent [compute/metadata separation](compute-metadata-isolation.md)
+addresses the physically shared helper dependency. Its actual helper-only update
+retains unchanged original artifacts while revalidating current inputs in a
+separate read-only worker. The invalidation and timings above remain observations
+of this earlier implementation; they are not retroactively changed.

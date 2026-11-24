@@ -131,8 +131,11 @@ endpoint or filename is a metric label. No remote export is enabled.
 Lake configuration now distinguishes `atlas.lake_configuration.resolve` (resource
 validation and exact frozen-input lookup), `atlas.lake_configuration.reuse` (a
 validated retained result) and `atlas.lake_configuration` (actual evaluator
-execution). Warm configuration reuse still requires `atlas.project.prepare` and
-the exact compiled-input fingerprint. Compare these stages separately from
+execution). Warm configuration reuse still requires `atlas.project.query` and
+`atlas.project.fingerprint`: the actual offline Lake build/query and a separate
+read-only full-content validator. The latter's Python/script are absent from
+the compute library visible to project code. Older traces combine these stages
+under `atlas.project.prepare`. Compare these stages separately from
 source-view materialization and retained-tab navigation.
 
 `analysis.metadata.validate` measures complete configuration/absence/inventory

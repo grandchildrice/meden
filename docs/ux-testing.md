@@ -163,6 +163,16 @@ completed file/byte validation. The real compiler remains responsible for builds
 dependency edits, rejection and retry; protocol fixtures do not substitute for
 those installed-tool journeys.
 
+The native metadata-update journey builds two actual executables differing only
+in the embedded input-validation helper. Real Lake configuration, compile-time
+project code and imported initialization refuse helper and generic-worker
+visibility. After restart, complete input validation must still run while the
+original source view and all compiler/search/render artifact files remain
+identical, without those workers
+or model requests. A failed real query must not dispatch metadata validation.
+The test builder uses its own target and forces fresh workspace-package builds;
+equal executable hashes or missing embedded helper bytes fail the journey.
+
 Graph interaction regression coverage also requires that wheel input over the
 passive review legend reaches the graph, hover/resize preserves the user's
 camera, reduced motion creates no graph transitions, and selecting a loaded

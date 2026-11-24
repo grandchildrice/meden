@@ -2,7 +2,11 @@
 use super::{Configuration, Execution, Extraction};
 use anyhow::{Context as _, Result};
 use meden_runtime::process::Control;
-use std::{collections::BTreeMap, path::Path, time::Duration};
+use std::{
+    collections::BTreeMap,
+    path::Path,
+    time::{Duration, Instant},
+};
 
 pub(super) fn build_timeout() -> Result<Duration> {
     let seconds = std::env::var("MEDEN_ATLAS_BUILD_TIMEOUT_SECONDS")
@@ -86,7 +90,47 @@ impl Configuration {
         } else {
             Duration::from_secs(600)
         };
-        let output = execution.execute(script, args, control, timeout)?;
+        let output = if script == "project-atlas-prepare.sh" {
+            let [mode, encoded] = args else {
+                anyhow::bail!("Expected preparation mode and original module bindings")
+            };
+            let bindings: Vec<crate::analysis::layout::Module> = serde_json::from_str(encoded)?;
+            anyhow::ensure!(
+                matches!(mode.as_str(), "prepare" | "fingerprint")
+                    && (1..=32).contains(&bindings.len()),
+                "Expected prepare/fingerprint and between 1 and 32 roots"
+            );
+            let mut targets = Vec::new();
+            for binding in bindings {
+                binding.validate()?;
+                for facet in ["", ":lean", ":olean", ":setup"] {
+                    targets.push(format!("+{}{facet}", binding.name));
+                }
+            }
+            let started = Instant::now();
+            // Admit a complete successful query before the metadata-only worker
+            // can inspect its output. Project code never sees the fingerprinter.
+            let resolved = execution
+                .execute("project-atlas-query.sh", &targets, control, timeout)
+                .context("Prepared Lake compilation failed")?;
+            let metadata = tempfile::tempdir()?;
+            super::resources::write_metadata(metadata.path())?;
+            let validation = Execution {
+                library: metadata.path(),
+                ..execution
+            };
+            validation.execute_input(
+                script,
+                args,
+                control,
+                timeout
+                    .checked_sub(started.elapsed())
+                    .context("Prepared input query exhausted its time limit")?,
+                resolved.as_bytes(),
+            )?
+        } else {
+            execution.execute(script, args, control, timeout)?
+        };
         anyhow::ensure!(
             serde_json::to_vec(&before)? == serde_json::to_vec(&Self::validate(&lean, &library)?)?,
             "Atlas resources changed during prepared extraction"

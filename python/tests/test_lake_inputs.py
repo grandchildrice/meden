@@ -2,11 +2,11 @@
 
 import hashlib
 import importlib.util
+import io
 import json
 import os
 import random
 import stat
-import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -49,17 +49,6 @@ def inputs(tmp_path):
     return root, [{"name": "A", "file": "A.lean"}], [str(source), str(compiled), setup]
 
 
-def lake(tmp_path, payload, code=0):
-    path, calls = tmp_path / "lake", tmp_path / "calls.jsonl"
-    path.write_text(
-        f"#!{sys.executable}\nimport json, os, sys\n"
-        f"with open({str(calls)!r}, 'a') as output: output.write(json.dumps(sys.argv[1:])+'\\n')\n"
-        f"os.write(1, {payload!r})\nsys.exit({code})\n"
-    )
-    path.chmod(0o700)
-    return path, calls
-
-
 def encode(values):
     rows = []
     for index, value in enumerate(values):
@@ -69,7 +58,7 @@ def encode(values):
     return b"".join(rows)
 
 
-def test_one_shared_query_builds_roots_and_hashes_all_bytes_and_setup(worker, inputs, tmp_path):
+def test_admitted_shared_query_hashes_all_bytes_and_setup(worker, inputs):
     root, bindings, rows = inputs
     # Two roots share one import: retain both original setup records but hash
     # each physical input path once, in deterministic order.
@@ -78,8 +67,7 @@ def test_one_shared_query_builds_roots_and_hashes_all_bytes_and_setup(worker, in
     setup_c = {**rows[2], "name": "C"}
     rows.extend([str(root / "C.lean"), str(root / "output/C.olean"), setup_c])
     bindings.append({"name": "C", "file": "C.lean"})
-    executable, calls = lake(tmp_path, encode(rows))
-    result = worker.fingerprint(root, executable, bindings, "prepare")
+    result = worker.fingerprint(root, io.BytesIO(encode(rows)), bindings, "prepare")
     expected = hashlib.sha256(b"meden.prepared-inputs.v2\0" + (2).to_bytes(8, "big"))
     for setup in [rows[2], setup_c]:
         data = json.dumps(setup, sort_keys=True, separators=(",", ":")).encode()
@@ -106,68 +94,39 @@ def test_one_shared_query_builds_roots_and_hashes_all_bytes_and_setup(worker, in
         expected.update(hashlib.sha256(data).digest())
         size += len(data)
     assert result == {"fingerprint": expected.hexdigest(), "files": 6, "bytes": size}
-    assert [json.loads(line) for line in calls.read_text().splitlines()] == [
-        [
-            "--no-ansi",
-            "--json",
-            "query",
-            "+A",
-            "+A:lean",
-            "+A:olean",
-            "+A:setup",
-            "+C",
-            "+C:lean",
-            "+C:olean",
-            "+C:setup",
-        ]
-    ]
 
 
 def test_same_size_timestamp_restored_edit_and_setup_change_invalidate(worker, inputs, tmp_path):
     root, bindings, rows = inputs
-    executable, _ = lake(tmp_path, encode(rows))
-    original = worker.fingerprint(root, executable, bindings, "fingerprint")
+    original = worker.fingerprint(root, io.BytesIO(encode(rows)), bindings, "fingerprint")
     path = root / "imports/B.olean"
     before = path.stat()
     path.write_bytes(b"COMPILED_TAMPER")
     assert path.stat().st_size == before.st_size
     os.utime(path, ns=(before.st_atime_ns, before.st_mtime_ns))
-    changed = worker.fingerprint(root, executable, bindings, "fingerprint")
+    changed = worker.fingerprint(root, io.BytesIO(encode(rows)), bindings, "fingerprint")
     assert changed["fingerprint"] != original["fingerprint"]
     rows[2]["future"]["complete"] = False
-    lake(tmp_path, encode(rows))
     assert (
-        worker.fingerprint(root, executable, bindings, "fingerprint")["fingerprint"]
+        worker.fingerprint(root, io.BytesIO(encode(rows)), bindings, "fingerprint")["fingerprint"]
         != changed["fingerprint"]
     )
 
 
-@pytest.mark.parametrize(
-    "fault", ["truncated", "missing", "extra", "nonzero", "nonzero_empty", "oversized"]
-)
-def test_query_never_admits_partial_extra_failed_or_oversized_output(
-    worker, inputs, tmp_path, fault
-):
+@pytest.mark.parametrize("fault", ["truncated", "missing", "extra", "oversized"])
+def test_metadata_never_admits_partial_extra_or_oversized_query(worker, inputs, fault):
     root, bindings, rows = inputs
     payload = encode(rows)
-    code = 0
     if fault == "truncated":
         payload = payload[:-1]
     elif fault == "missing":
         payload = encode(rows[:2])
     elif fault == "extra":
         payload += b"{}\n"
-    elif fault in {"nonzero", "nonzero_empty"}:
-        code = 17
-        if fault == "nonzero_empty":
-            payload = b""
     else:
         worker.RESULT_BYTES = 128
-    executable, _ = lake(tmp_path, payload, code)
-    with pytest.raises(
-        RuntimeError, match="compilation failed" if fault.startswith("nonzero") else ".*"
-    ):
-        worker.fingerprint(root, executable, bindings, "prepare")
+    with pytest.raises(RuntimeError):
+        worker.fingerprint(root, io.BytesIO(payload), bindings, "prepare")
 
 
 @pytest.mark.parametrize(
@@ -193,9 +152,8 @@ def test_original_identity_and_complete_canonical_inputs_remain_required(
             (root / "imports/B.olean").symlink_to(outside)
         else:
             rows[2]["importArts"]["B"] = [[str(outside)]]
-    executable, _ = lake(tmp_path, encode(rows))
     with pytest.raises((RuntimeError, FileNotFoundError)):
-        worker.fingerprint(root, executable, bindings, "prepare")
+        worker.fingerprint(root, io.BytesIO(encode(rows)), bindings, "prepare")
 
 
 def test_parallel_completion_and_batch_boundaries_preserve_exact_order(
@@ -310,20 +268,18 @@ def test_changed_prepared_path_cannot_be_admitted(worker, tmp_path, change):
 
 def test_byte_limit_is_checked_before_scheduling_reads(worker, inputs, tmp_path, monkeypatch):
     root, bindings, rows = inputs
-    executable, _ = lake(tmp_path, encode(rows))
     monkeypatch.setattr(worker, "MAX_INPUT_BYTES", 1)
     monkeypatch.setattr(worker, "file_hash", lambda _: pytest.fail("Read past the byte budget"))
     with pytest.raises(RuntimeError, match="exceed 512 GiB"):
-        worker.fingerprint(root, executable, bindings, "prepare")
+        worker.fingerprint(root, io.BytesIO(encode(rows)), bindings, "prepare")
 
 
 def test_alias_in_setup_cannot_be_deduplicated_into_the_canonical_input(worker, inputs, tmp_path):
     root, bindings, rows = inputs
     (root / "alias").symlink_to(root / "imports", target_is_directory=True)
     rows[2]["importArts"]["Alias"] = [[str(root / "alias/B.olean")]]
-    executable, _ = lake(tmp_path, encode(rows))
     with pytest.raises(RuntimeError, match="symlinks"):
-        worker.fingerprint(root, executable, bindings, "prepare")
+        worker.fingerprint(root, io.BytesIO(encode(rows)), bindings, "prepare")
 
 
 def test_kernel_names_agree_with_independent_strict_path_resolution(worker, tmp_path):
@@ -346,13 +302,19 @@ def test_kernel_names_agree_with_independent_strict_path_resolution(worker, tmp_
         alias.symlink_to(parent, target_is_directory=True)
         link = links / str(index)
         link.symlink_to(path)
-        cases.extend([
-            (root, path), (root, path.relative_to(root)),
-            (root, alias / path.name), (root, link), (root, parent),
-            (root, parent / "missing"), (root, parent / ".." / "c" / path.name),
-            (root, str(path).replace("/a/", "/./a//")),
-            (root_alias, root_alias / path.relative_to(root)),
-        ])
+        cases.extend(
+            [
+                (root, path),
+                (root, path.relative_to(root)),
+                (root, alias / path.name),
+                (root, link),
+                (root, parent),
+                (root, parent / "missing"),
+                (root, parent / ".." / "c" / path.name),
+                (root, str(path).replace("/a/", "/./a//")),
+                (root_alias, root_alias / path.relative_to(root)),
+            ]
+        )
     fifo = root / "pipe"
     os.mkfifo(fifo)
     (links / "cycle").symlink_to("cycle")
@@ -396,6 +358,7 @@ def test_deep_inputs_do_not_repeat_metadata_work_for_every_ancestor(worker, tmp_
         def call(*args, **kwargs):
             counts[name] += 1
             return original(*args, **kwargs)
+
         return call
 
     for name in counts:

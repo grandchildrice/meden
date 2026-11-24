@@ -83,11 +83,7 @@ impl Configuration {
         compiler_resources(&Self::validate(&lean, &library)?)
     }
     pub fn search_resources(&self) -> Result<String> {
-        let (lean, library) = self.selected()?;
-        Ok(digest(&serde_json::to_vec(&(
-            Self::validate(&lean, &library)?,
-            resources::identity(),
-        ))?))
+        self.current_resources()
     }
     pub fn build_timeout(&self) -> Result<Duration> {
         self.build_timeout.clone().map_err(anyhow::Error::msg)
@@ -250,17 +246,11 @@ impl Configuration {
 }
 
 fn compiler_resources(manifest: &Manifest) -> Result<String> {
-    let files = manifest
-        .files
-        .iter()
-        .filter(|(name, _)| {
-            !name.starts_with("MedenSearch") && !name.starts_with("MedenPlausible/")
-        })
-        .collect::<BTreeMap<_, _>>();
     Ok(digest(&serde_json::to_vec(&(
+        "meden.compute-resources.v1",
         &manifest.engine_sha256,
-        files,
-        resources::compiler_identity(),
+        &manifest.files,
+        resources::identity(),
     ))?))
 }
 
@@ -387,9 +377,7 @@ impl Execution<'_> {
         let _timing = meden_runtime::metrics::Span::start(match script {
             "lake.sh" => "atlas.lake_configuration",
             "imports.sh" => "atlas.imports",
-            "project-atlas-prepare.sh" if args.first().is_some_and(|a| a == "prepare") => {
-                "atlas.project.prepare"
-            }
+            "project-atlas-query.sh" => "atlas.project.query",
             "project-atlas-prepare.sh" => "atlas.project.fingerprint",
             "project-atlas-extract.sh" => "atlas.project.extract",
             "compile.sh" => "atlas.compile",
@@ -414,7 +402,9 @@ impl Execution<'_> {
             input,
             &Limits {
                 timeout,
-                capture_bytes: if matches!(
+                capture_bytes: if script == "project-atlas-query.sh" {
+                    134_217_728
+                } else if matches!(
                     script,
                     "extract.sh" | "project-atlas-extract.sh" | "search.sh" | "project-search.sh"
                 ) {
@@ -422,7 +412,11 @@ impl Execution<'_> {
                 } else {
                     32768
                 },
-                output_bytes: 16_777_216,
+                output_bytes: if script == "project-atlas-query.sh" {
+                    268_435_456
+                } else {
+                    16_777_216
+                },
             },
             control,
             self.observer
@@ -452,7 +446,17 @@ impl Execution<'_> {
         control: &Control,
         timeout: Duration,
     ) -> Result<String> {
-        let output = self.observe(script, args, control, timeout)?;
+        self.execute_input(script, args, control, timeout, &[])
+    }
+    fn execute_input(
+        &self,
+        script: &str,
+        args: &[String],
+        control: &Control,
+        timeout: Duration,
+        input: &[u8],
+    ) -> Result<String> {
+        let output = self.observe_input(script, args, control, timeout, input)?;
         anyhow::ensure!(
             matches!(output.termination,Termination::Exited(status) if status.success()),
             "Offline Lean Atlas failed:\n{}\n{}",

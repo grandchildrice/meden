@@ -2008,3 +2008,30 @@ appropriately owned prepared snapshots still need work. This optimization
 keeps the exact-input validation and makes no whole-workflow speedup claim. See
 [the implementation and regression scope](performance/lake-path-observations.md)
 and [the complete record](../results/lake-path-observations-20261125.json).
+
+## Separate Lake execution from input validation (November 25)
+
+The metadata helper is now absent from the analysis environment visible to
+project code. A successful actual Lake query precedes a separate read-only
+validation worker. The static native spans `atlas.project.query` and
+`atlas.project.fingerprint` distinguish these costs. They replace the former
+combined preparation span without weakening full-input validation.
+
+A native helper-only update/restart regression preserves the complete source
+view, counterexample and every original retained compiler/search/render object.
+It revalidates inputs but starts none of those semantic workers. The resource
+inventory refuses unbound additions, rather than silently omitting readable
+files from the cache identity. This removes unnecessary semantic recomputation
+when updating only the helper; it is not a claim that the extra isolated worker
+makes an unchanged-input query faster. See
+[the implementation and validation scope](performance/compute-metadata-isolation.md).
+
+The [November 25 actual-event report](performance/event-observations-20261125.md)
+separates ordinary dispatch, first-detail drawing stalls and prepared-file wait.
+Ordinary file-graph wheel/hover/pan remains below 1.2 ms dispatch p95 in these
+single-project runs. Riemann's first-detail gesture still includes a 115.985 ms
+wheel dispatch and four long tasks. Byte-matched source maps and original trace
+intervals attribute that stall to visibility/appearance work, SVG mutations and
+main-thread Canvas painting; phase-wide reference resolution is recorded
+separately. These observations are a remaining optimization target, not a claim
+that all zoom paths or physical presentation now meet a latency budget.

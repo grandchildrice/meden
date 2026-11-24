@@ -1,15 +1,13 @@
-"""Build and resolve Lake roots once, then fingerprint every exact compiled input."""
+"""Validate an admitted Lake query and fingerprint every exact compiled input."""
 
 import hashlib
 import json
 import os
 import pathlib
 import stat
-import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
-from contextlib import closing
 
 # Lake prints one JSON result per requested facet, in request order. Bound each
 # record before decoding; a protocol error or nonzero exit admits no fingerprint.
@@ -86,43 +84,21 @@ def hash_inputs(root, paths, digest):
     return size
 
 
-def query(lake, bindings):
-    targets = [
-        "+" + binding["name"] + facet
-        for binding in bindings
-        for facet in ["", ":lean", ":olean", ":setup"]
-    ]
-    args = [str(lake), "--no-ansi", "--json", "query", *targets]
-    print("$ lake --json query " + " ".join(targets), file=sys.stderr, flush=True)
-    with subprocess.Popen(
-        args, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=sys.stderr
-    ) as child:
-        try:
-            for binding in bindings:
-                values = []
-                for _ in range(4):
-                    row = child.stdout.readline(RESULT_BYTES + 1)
-                    if len(row) > RESULT_BYTES:
-                        raise RuntimeError(
-                            "Lake query returned an incomplete or oversized result"
-                        )
-                    if not row.endswith(b"\n"):
-                        status = child.wait()
-                        if status:
-                            raise RuntimeError(
-                                f"Prepared Lake compilation failed (exit {status})"
-                            )
-                        raise RuntimeError("Lake query returned an incomplete result")
-                    values.append(json.loads(row))
-                yield binding, *values[1:]
-            if child.stdout.read(1):
-                raise RuntimeError("Lake query returned unexpected additional output")
-            if child.wait():
-                raise RuntimeError("Prepared Lake compilation failed")
-        finally:
-            if child.poll() is None:
-                child.kill()
-            child.wait()
+def query(stream, bindings):
+    # The host admits complete zero-exit output before dispatching this worker.
+    # No project code or subprocess runs in the metadata environment.
+    for binding in bindings:
+        values = []
+        for _ in range(4):
+            row = stream.readline(RESULT_BYTES + 1)
+            if len(row) > RESULT_BYTES or not row.endswith(b"\n"):
+                raise RuntimeError(
+                    "Lake query returned an incomplete or oversized result"
+                )
+            values.append(json.loads(row))
+        yield binding, *values[1:]
+    if stream.read(1):
+        raise RuntimeError("Lake query returned unexpected additional output")
 
 
 def regular(root, value):
@@ -153,56 +129,50 @@ def regular(root, value):
     return path
 
 
-def fingerprint(root, lake, bindings, mode):
+def fingerprint(root, stream, bindings, mode):
     if mode not in {"prepare", "fingerprint"} or not 1 <= len(bindings) <= 32:
         raise ValueError("Expected prepare/fingerprint and between 1 and 32 roots")
 
     started = time.monotonic()
     paths = set()
     digest = hashlib.sha256(FINGERPRINT_DOMAIN + len(bindings).to_bytes(8, "big"))
-    # The anonymous target preserves `lake build +Module`. Lake's one shared
-    # build state also resolves sources and the actual compiler setup;
-    # no separate build, setup-file or per-root query repeats dependency work.
-    with closing(query(lake, bindings)) as records:
-        for binding, resolved, compiled, setup in records:
-            source = regular(root, binding["file"])
-            if regular(root, resolved) != source:
-                raise RuntimeError(
-                    "Lake resolved a different source than the selected root"
-                )
-            paths.add(source)
-            if (
-                setup["name"] != binding["name"]
-                or setup.get("plugins")
-                or setup.get("dynlibs")
-            ):
-                raise RuntimeError(
-                    "Selected module identity or unsupported native plugins"
-                )
-            for artifact in setup.get("importArts", {}).values():
-                for group in artifact:
-                    paths.update(regular(root, path) for path in group)
-            compiled = regular(root, compiled)
-            if compiled.suffix != ".olean":
-                raise RuntimeError("Lake resolved an invalid compiled root")
-            base = compiled.with_suffix("")
-            for suffix in [
-                ".olean",
-                ".olean.private",
-                ".olean.server",
-                ".ir",
-                ".ir.sig",
-            ]:
-                path = pathlib.Path(str(base) + suffix)
-                if suffix == ".olean" or path.exists():
-                    paths.add(regular(root, path))
-            # Include all actual compiler options, resolved paths and future fields.
-            # Stream setups into the aggregate instead of retaining every root's copy.
-            encoded = json.dumps(setup, sort_keys=True, separators=(",", ":")).encode()
-            digest.update(len(encoded).to_bytes(8, "big"))
-            digest.update(encoded)
+    for binding, resolved, compiled, setup in query(stream, bindings):
+        source = regular(root, binding["file"])
+        if regular(root, resolved) != source:
+            raise RuntimeError(
+                "Lake resolved a different source than the selected root"
+            )
+        paths.add(source)
+        if (
+            setup["name"] != binding["name"]
+            or setup.get("plugins")
+            or setup.get("dynlibs")
+        ):
+            raise RuntimeError("Selected module identity or unsupported native plugins")
+        for artifact in setup.get("importArts", {}).values():
+            for group in artifact:
+                paths.update(regular(root, path) for path in group)
+        compiled = regular(root, compiled)
+        if compiled.suffix != ".olean":
+            raise RuntimeError("Lake resolved an invalid compiled root")
+        base = compiled.with_suffix("")
+        for suffix in [
+            ".olean",
+            ".olean.private",
+            ".olean.server",
+            ".ir",
+            ".ir.sig",
+        ]:
+            path = pathlib.Path(str(base) + suffix)
+            if suffix == ".olean" or path.exists():
+                paths.add(regular(root, path))
+        # Include all actual compiler options, resolved paths and future fields.
+        # Stream setups into the aggregate instead of retaining every root's copy.
+        encoded = json.dumps(setup, sort_keys=True, separators=(",", ":")).encode()
+        digest.update(len(encoded).to_bytes(8, "big"))
+        digest.update(encoded)
     print(
-        f"Build/setup and input resolution completed in {time.monotonic() - started:.3f}s.",
+        f"Query decoding and input resolution completed in {time.monotonic() - started:.3f}s.",
         file=sys.stderr,
         flush=True,
     )
@@ -225,7 +195,7 @@ if __name__ == "__main__":
         json.dumps(
             fingerprint(
                 pathlib.Path("/workspace"),
-                pathlib.Path("/analysis/lean/bin/lake"),
+                sys.stdin.buffer,
                 json.loads(encoded),
                 mode,
             )

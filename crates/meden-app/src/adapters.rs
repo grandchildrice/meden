@@ -60,6 +60,8 @@ fn compiler_definition(
         include_bytes!("compiler.rs"),
         include_bytes!("adapters.rs"),
         include_bytes!("atlas/mod.rs"),
+        include_bytes!("atlas/resources.rs"),
+        include_bytes!("../../meden-runtime/src/sandbox.rs"),
         include_bytes!("atlas/project.rs"),
         include_bytes!("atlas/lake.rs"),
         include_bytes!("atlas/graph.rs"),

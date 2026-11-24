@@ -24,7 +24,7 @@ fn main() -> Result<()> {
         anyhow::bail!("Launcher unexpectedly returned");
     }
     if std::env::args().nth(1).as_deref() == Some("--help") {
-        println!("Usage: profile-prepared-inputs WORKSPACE BINDINGS_JSON SAMPLES\nBINDINGS_JSON is an array of original Lake root name/file objects; SAMPLES is 1–16.\nRuns actual offline preparation and complete compiled-input validation. It does not reset project/OS caches, extract a graph, invoke a model or admit evidence.");
+        println!("Usage: profile-prepared-inputs WORKSPACE BINDINGS_JSON SAMPLES\nBINDINGS_JSON is an array of original Lake root name/file/root objects; SAMPLES is 1–16.\nRuns actual offline preparation and complete compiled-input validation. It does not reset project/OS caches, extract a graph, invoke a model or admit evidence.");
         return Ok(());
     }
     let mut arguments = std::env::args().skip(1);

@@ -933,11 +933,16 @@ while changing the actual registered implementation/resource identity. The old
 runtime path is deleted; its functional comparison and rejected resource-budget
 mutation remain test evidence. This is a measured preparation improvement, not
 a completion claim for the remaining typing, navigation or retirement work.
-The actual update/restart probe also exposes coarse compiler/search resource
-fingerprints: a prepared-input helper change currently invalidates the frozen
-path too. Auditing their executed dependency sets and keeping prepared-snapshot
-provenance separate from unchanged computation remains necessary; silently
-relabeling older observations is not a cache optimization.
+That probe exposed a physically shared compiler/search resource set: project
+metaprograms could read the prepared-input helper. The
+[compute/metadata separation](../performance/compute-metadata-isolation.md)
+removes it from the shared analysis library, omits the unneeded generic worker
+in analysis profiles, binds the compute resources, and runs full-input validation
+separately with a read-only workspace.
+An actual helper-only native update now reuses the original checksummed
+compiler/search/render objects without relabeling them. The two worker stages
+have separate timing observations. Prepared-snapshot ownership and broader
+session/job typing still need their own audit.
 Step 3 now executes the second backend through public TUI/GUI, actual offline
 Z3, a real approved-model trial and a separate 256-input Python oracle. Its
 parser/disagreement rejection tests, actual solver-output faults, started-solver

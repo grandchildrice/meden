@@ -35,6 +35,7 @@ pub struct Sandbox {
     store_paths: BTreeSet<PathBuf>,
     tool_bindings: BTreeSet<PathBuf>,
     worker: PathBuf,
+    mount_worker: bool,
     worker_libraries: Vec<PathBuf>,
     worker_loader: Option<PathBuf>,
 }
@@ -512,6 +513,7 @@ impl Sandbox {
             store_paths,
             tool_bindings,
             worker,
+            mount_worker: true,
             worker_libraries,
             worker_loader,
         })
@@ -547,6 +549,7 @@ impl Sandbox {
                     | "lake.sh"
                     | "project.sh"
                     | "project-atlas-prepare.sh"
+                    | "project-atlas-query.sh"
                     | "project-atlas-extract.sh"
                     | "search.sh"
                     | "project-search.sh"
@@ -556,12 +559,15 @@ impl Sandbox {
                 "prepared Lean analysis resources are missing",
             ));
         }
-        let sandbox = Self::configure(
+        let mut sandbox = Self::configure(
             root,
             worker.canonicalize()?,
             &[&lean.join("bin/lean")],
             BTreeSet::new(),
         )?;
+        // Analysis scripts run public tools directly. The generic worker would
+        // also expose its embedded metadata helper to project metaprograms.
+        sandbox.mount_worker = false;
         let mut parameters = vec![
             std::ffi::OsString::from("--noprofile"),
             "--norc".into(),
@@ -577,7 +583,10 @@ impl Sandbox {
         // overlay; only the separate preparation profile may run Lake builds.
         if matches!(
             script,
-            "project-atlas-extract.sh" | "project-search.sh" | "search.sh"
+            "project-atlas-prepare.sh"
+                | "project-atlas-extract.sh"
+                | "project-search.sh"
+                | "search.sh"
         ) {
             bindings.push((sandbox.root.as_path(), "/workspace"));
         }
@@ -750,10 +759,12 @@ impl Sandbox {
             command.args(["--share-net", "--dir", "/etc"]);
         }
         self.mount_toolchains(&mut command);
-        command
-            .arg("--ro-bind")
-            .arg(&self.worker)
-            .arg("/meden-worker");
+        if self.mount_worker {
+            command
+                .arg("--ro-bind")
+                .arg(&self.worker)
+                .arg("/meden-worker");
+        }
         if let Some(loader) = self.worker_loader.as_ref().filter(|_| !self.system_tools) {
             command
                 .args(["--dir", "/lib64", "--symlink"])
