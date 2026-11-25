@@ -1,5 +1,11 @@
 # Graph interaction measurements
 
+The [ordered sibling index](performance/map-sibling-bounds.md) reduces hidden-file
+query work with unchanged world coordinates and pixels. Riemann's actual-data
+query matrix improves by about 90%; two browser captures per version reduce total
+deep-zoom long-task time by 28.7%, while worst stalls remain about 150 ms. EthLib
+does not show a stable overall improvement. Native preparation remains separate.
+
 The [current deployed event measurements](performance/snapshot-events.md) cover
 all 13 interaction windows after snapshot typing. Ordinary graph wheel/hover/drag
 handlers remain small, while first-detail Riemann zoom still has a 109.610 ms

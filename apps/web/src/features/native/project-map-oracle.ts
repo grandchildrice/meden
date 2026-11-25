@@ -50,6 +50,47 @@ export function scan(
   return result;
 }
 
+// Retired sibling walk, retained only as the measured pre-index counterfactual.
+// Keep the independent complete scan above as the correctness oracle.
+export function walkVisibility(
+  scene: MapScene,
+  view: { x: number; y: number; zoom: number },
+  size: { width: number; height: number },
+) {
+  const left = -view.x / view.zoom,
+    top = -view.y / view.zoom,
+    right = left + size.width / view.zoom,
+    bottom = top + size.height / view.zoom,
+    queue = (scene.index.children.get("") || []).map((area) => ({
+      area,
+      opacity: 1,
+    })),
+    visible: Array<(typeof queue)[number]> = [];
+  for (let i = 0; i < queue.length; i++) {
+    const { area: base, opacity } = queue[i]!,
+      area = scene.descriptions.get(base.path) || base;
+    if (
+      opacity < 0.015 ||
+      area.x > right ||
+      area.y > bottom ||
+      area.x + area.width < left ||
+      area.y + area.height < top
+    )
+      continue;
+    if (
+      (area.width * view.zoom >= 2 && area.height * view.zoom >= 2) ||
+      (area.main && declarationDetail(area, view.zoom, size) > 0.01)
+    )
+      visible.push({ area, opacity });
+    const childOpacity =
+      opacity * fade(Math.max(area.width, area.height) * view.zoom, 650, 950);
+    if (childOpacity >= 0.015)
+      for (const child of scene.index.children.get(area.path) || [])
+        queue.push({ area: child, opacity: childOpacity });
+  }
+  return visible;
+}
+
 // Original breadcrumb rules, independently walking the complete flat inventory.
 export function scanLocation(
   scene: MapScene,

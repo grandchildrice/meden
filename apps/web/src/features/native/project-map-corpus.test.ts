@@ -13,7 +13,7 @@ import {
   visibleMapAreas,
 } from "./project-map-model";
 
-import { scan, scanLocation } from "./project-map-oracle";
+import { scan, scanLocation, walkVisibility } from "./project-map-oracle";
 
 function corpus(
   rows: Array<{ folders: number[]; count: number; main: boolean }>,
@@ -163,6 +163,88 @@ test("generated camera traces agree with a full scan and never change world coor
 }, 60000);
 
 if (process.env.MEDEN_PERFORMANCE === "1") {
+  test("dense sibling queries stay below 2% of the retired sibling walk with exact output", async () => {
+    const input = corpus(
+      Array.from({ length: 100000 }, () => ({
+        folders: [0],
+        count: 0,
+        main: false,
+      })),
+    );
+    const started = performance.now(),
+      scene = projectMap(prepareMap(input)),
+      preparation_ms = performance.now() - started,
+      size = { width: 900, height: 700 };
+    const cameras = [100, 20000, 40000, 60000, 80000, 99900].map((i) => {
+      const area = mapArea(scene, input.files[i]!.path)!,
+        zoom =
+          Math.min(size.width / area.width, size.height / area.height) * 0.6;
+      return {
+        x: size.width / 2 - (area.x + area.width / 2) * zoom,
+        y: size.height / 2 - (area.y + area.height / 2) * zoom,
+        zoom,
+      };
+    });
+    const disconnected = {
+      ...scene,
+      index: { ...scene.index, branches: new Map() },
+    };
+    const indexed = () =>
+        cameras.map((view) => visibleMapAreas(scene, view, size)),
+      withoutIndex = () =>
+        cameras.map((view) => visibleMapAreas(disconnected, view, size)),
+      original = () => cameras.map((view) => walkVisibility(scene, view, size));
+    expect(indexed()).toEqual(original());
+    expect(withoutIndex()).toEqual(original());
+    const candidate =
+      process.env.MEDEN_PERF_MUTANT === "linear-siblings"
+        ? original
+        : process.env.MEDEN_PERF_MUTANT === "disconnected-siblings"
+          ? withoutIndex
+          : indexed;
+    const measure = (operation: () => unknown) => {
+      const start = performance.now();
+      for (let n = 0; n < 3; n++) operation();
+      return performance.now() - start;
+    };
+    const fast: number[] = [],
+      slow: number[] = [];
+    for (let i = 0; i < 9; i++) {
+      if (i % 2) {
+        fast.push(measure(candidate));
+        slow.push(measure(original));
+      } else {
+        slow.push(measure(original));
+        fast.push(measure(candidate));
+      }
+    }
+    const median = (values: number[]) =>
+        [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)]!,
+      ratio = median(fast) / median(slow),
+      output = process.env.MEDEN_PERF_OUT || "target/performance";
+    await mkdir(output, { recursive: true });
+    await writeFile(
+      `${output}/map-siblings.json`,
+      JSON.stringify(
+        {
+          files: input.files.length,
+          preparation_ms,
+          cameras,
+          size,
+          indexed_ms: fast,
+          sibling_walk_ms: slow,
+          median_ratio: ratio,
+          maximum_ratio: 0.02,
+          scope:
+            "Nine interleaved same-process algorithm pairs after preparation. Six distinct cameras exceed the two-view cache; complete outputs agree. No browser paint, compilation or field latency claim.",
+        },
+        null,
+        2,
+      ),
+    );
+    expect(ratio).toBeLessThan(0.02);
+  }, 60000);
+
   test("large-map visibility, legend and breadcrumb stay below 35% of the full-scan baseline", async () => {
     const input = corpus(
       Array.from({ length: 175187 }, (_, i) => ({

@@ -979,6 +979,13 @@ An actual helper-only native update now reuses the original checksummed
 compiler/search/render objects without relabeling them. The two worker stages
 have separate timing observations. Prepared-snapshot ownership and broader
 session/job typing still need their own audit.
+The [ordered sibling index](../performance/map-sibling-bounds.md) skips hidden
+contiguous ranges while preserving original painter order, closed boundaries,
+current descriptions and world coordinates. The old sibling walk is test-only.
+Generated detail/target/index-replacement traces and rejected retired/disconnected
+performance controls cover the actual query path. Real-project captures reduce
+Riemann's combined long-task time, while worst stalls and native preparation
+remain. This does not complete generic backend/read-model or retirement work.
 The [Worker-paint comparison](../performance/worker-paint.md) exercises step 5
 against the measured first-detail stall. Transferable drawing buffers reduce
 observed total long-task time, but do not establish lower worst stalls or frame

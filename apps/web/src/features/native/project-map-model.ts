@@ -15,6 +15,7 @@ import type {
 
 import { declarationRole, type DeclarationRole } from "./declaration-role";
 import { ReferenceIndex } from "./project-map-references";
+import { OrderedBounds, type Bounds } from "./ordered-bounds";
 
 export type NavigationFile = InventoryChunk["data"]["files"][number];
 export type IndexedFile = Extract<
@@ -66,6 +67,7 @@ export type MapIndex = {
   geometry: MapGeometry;
   byPath: ReadonlyMap<string, MapArea>;
   children: ReadonlyMap<string, readonly MapArea[]>;
+  branches: ReadonlyMap<string, OrderedBounds<MapArea>>;
   symbolFiles: readonly MapFile[];
   maxZoom: number;
 };
@@ -108,6 +110,11 @@ export function prepareMap(
     geometry,
     byPath: new Map(areas.map((area) => [area.path, area])),
     children,
+    branches: new Map(
+      [...children]
+        .filter(([, siblings]) => siblings.length > 64)
+        .map(([path, siblings]) => [path, new OrderedBounds(siblings)]),
+    ),
     symbolFiles: snapshot.files.filter((file) => headings(file).length),
     maxZoom: areas.reduce(
       (zoom, a) =>
@@ -301,6 +308,25 @@ type Visibility = {
 // previous viewport while those subscriptions catch up. This owns no geometry.
 const visibility = new WeakMap<MapScene, readonly Visibility[]>();
 
+function visitChildren(
+  index: MapIndex,
+  parent: string,
+  bounds: Bounds,
+  emit: (area: MapArea) => void,
+) {
+  const branch = index.branches.get(parent);
+  if (branch) branch.visit(bounds, emit);
+  else
+    for (const area of index.children.get(parent) || [])
+      if (!(
+        area.x > bounds.right ||
+        area.y > bounds.bottom ||
+        area.x + area.width < bounds.left ||
+        area.y + area.height < bounds.top
+      ))
+        emit(area);
+}
+
 /** Rendering and source prefetch share the same semantic-zoom visibility. */
 export function visibleMapAreas(
   scene: MapScene,
@@ -322,10 +348,11 @@ export function visibleMapAreas(
     top = -y / zoom,
     right = left + size.width / zoom,
     bottom = top + size.height / zoom;
-  const queue = (scene.index.children.get("") || []).map((area) => ({
-    area,
-    opacity: 1,
-  }));
+  const bounds = { left, top, right, bottom },
+    queue: Array<{ area: MapArea; opacity: number }> = [];
+  visitChildren(scene.index, "", bounds, (area) =>
+    queue.push({ area, opacity: 1 }),
+  );
   const visible: Array<{ area: MapArea; opacity: number }> = [];
   for (let i = 0; i < queue.length; i++) {
     const { area: base, opacity: alpha } = queue[i]!;
@@ -348,8 +375,9 @@ export function visibleMapAreas(
     const childAlpha =
       alpha * fade(Math.max(area.width, area.height) * zoom, 650, 950);
     if (childAlpha >= 0.015)
-      for (const child of scene.index.children.get(area.path) || [])
-        queue.push({ area: child, opacity: childAlpha });
+      visitChildren(scene.index, area.path, bounds, (child) =>
+        queue.push({ area: child, opacity: childAlpha }),
+      );
   }
   visibility.set(scene, [
     { x, y, zoom, ...size, areas: visible },
@@ -406,10 +434,11 @@ export function mapLocation(
     return "";
   const x = (size.width / 2 - view.x) / view.zoom,
     y = (size.height / 2 - view.y) / view.zoom;
-  const queue = (scene.index.children.get("") || []).map((area) => ({
-    area,
-    opacity: 1,
-  }));
+  const bounds = { left: x, top: y, right: x, bottom: y },
+    queue: Array<{ area: MapArea; opacity: number }> = [];
+  visitChildren(scene.index, "", bounds, (area) =>
+    queue.push({ area, opacity: 1 }),
+  );
   let location = "";
   for (let i = 0; i < queue.length; i++) {
     const { area, opacity } = queue[i]!;
@@ -425,8 +454,9 @@ export function mapLocation(
     const childOpacity =
       opacity * fade(Math.min(area.width, area.height) * view.zoom);
     if (childOpacity > 0.5)
-      for (const child of scene.index.children.get(area.path) || [])
-        queue.push({ area: child, opacity: childOpacity });
+      visitChildren(scene.index, area.path, bounds, (child) =>
+        queue.push({ area: child, opacity: childOpacity }),
+      );
   }
   return location;
 }

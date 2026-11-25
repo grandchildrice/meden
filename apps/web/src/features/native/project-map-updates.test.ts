@@ -62,6 +62,68 @@ function outcome(scene: MapScene) {
   };
 }
 
+test("dense-directory details and tracked targets keep exact visibility through original and replaced indices", () => {
+  fc.assert(
+    fc.property(
+      fc.integer({ min: 65, max: 170 }),
+      fc.array(
+        fc.record({
+          file: fc.nat(300),
+          declarations: fc.integer({ min: 0, max: 5 }),
+          tracked: fc.boolean(),
+          replace: fc.boolean(),
+        }),
+        { minLength: 1, maxLength: 8 },
+      ),
+      (count, changes) => {
+        const input = fixture(count);
+        input.files = input.files.map((file, i) => ({
+          ...file,
+          path: `Flat/F${i}.lean`,
+        }));
+        let index = prepareMap(input),
+          scene = projectMap(index);
+        const world = JSON.stringify(index.geometry);
+        const files = new Map<string, MapFile>(),
+          size = { width: 900, height: 700 };
+        changes.forEach((change, step) => {
+          const before = scene,
+            selected = input.files[change.file % count]!,
+            observation = observe(selected, change.declarations, step),
+            tracked = change.tracked ? new Set(["N.t0"]) : new Set<string>();
+          files.set(selected.path, observation);
+          if (change.replace) index = prepareMap(input);
+          scene = projectMap(index, tracked, files, scene);
+          const area = mapArea(scene, selected.path)!,
+            zoom = Math.min(size.width / area.width, size.height / area.height),
+            cameras = [
+              { x: 0, y: 0, zoom: 0.08 },
+              {
+                x: size.width / 2 - (area.x + area.width / 2) * zoom,
+                y: size.height / 2 - (area.y + area.height / 2) * zoom,
+                zoom,
+              },
+              { x: -area.x * zoom, y: -area.y * zoom, zoom },
+            ];
+          for (const camera of cameras) {
+            expect(visibleMapAreas(scene, camera, size)).toEqual(
+              scan(scene, camera, size),
+            );
+            expect(mapLocation(scene, camera, size)).toBe(
+              scanLocation(scene, camera, size),
+            );
+            expect(visibleMapAreas(before, camera, size)).toEqual(
+              scan(before, camera, size),
+            );
+          }
+          expect(JSON.stringify(index.geometry)).toBe(world);
+        });
+      },
+    ),
+    { seed: 20261125, numRuns: Number(process.env.MEDEN_FUZZ_RUNS || 100) },
+  );
+}, 60000);
+
 test("finite file/target update traces match fresh complete projection without changing earlier scenes", () => {
   fc.assert(
     fc.property(

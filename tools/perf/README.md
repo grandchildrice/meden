@@ -1,5 +1,12 @@
 # Local profiling and regression workloads
 
+The [ordered sibling index](../../docs/performance/map-sibling-bounds.md) keeps
+closed intersections and original order while pruning dense off-screen branches.
+Its 100,000-file/six-camera gate compares nine interleaved pairs with the retired
+sibling walk under a 0.02 ratio budget. `MEDEN_PERF_MUTANT=linear-siblings` and
+`MEDEN_PERF_MUTANT=disconnected-siblings` must fail that budget. Actual inventory
+queries, browser events and startup observations are recorded separately.
+
 The [Worker-paint experiment](../../docs/performance/worker-paint.md) compares
 the same Riemann gestures in current/Worker/Worker/current order. Total long-task
 time falls, but worst stalls do not improve, so the prototype is not promoted.

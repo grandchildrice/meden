@@ -4265,10 +4265,29 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
     const originalCanvas = await map
       .locator(".workspace-overview-canvas")
       .boundingBox();
+    const settledCamera = () =>
+      map.locator(".react-flow__viewport").evaluate(async (element) => {
+        let previous = element.getAttribute("style"),
+          stable = 0;
+        while (stable < 4) {
+          await new Promise(requestAnimationFrame);
+          const current = element.getAttribute("style");
+          stable = current === previous ? stable + 1 : 0;
+          previous = current;
+        }
+        return previous;
+      });
     const zoomFile = async (name: string) => {
       await map
         .getByRole("button", { name: "Category: Many/Group0", exact: true })
         .click();
+      // Wheel input deliberately interrupts an animated focus. Wait for the
+      // selected category's actual camera before using the canvas center as
+      // its anchor, rather than depending on slow rendering to finish the fit.
+      await settledCamera();
+      await expect(
+        map.getByRole("navigation", { name: "Map location" }),
+      ).toContainText("Group0");
       const file = map.locator(`[data-map-path="Many/Group0/${name}.lean"]`);
       // Faded file paint precedes input eligibility. Reveal actual hit targets
       // with ordinary wheel input before using one as a file-level anchor.
@@ -4312,19 +4331,7 @@ theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
     ).toContainText("File0.lean");
     // Normal-motion focus animates deliberately; retain the settled camera,
     // rather than treating an intermediate animation frame as the final view.
-    const camera = await map
-      .locator(".react-flow__viewport")
-      .evaluate(async (element) => {
-        let previous = element.getAttribute("style"),
-          stable = 0;
-        while (stable < 4) {
-          await new Promise(requestAnimationFrame);
-          const current = element.getAttribute("style");
-          stable = current === previous ? stable + 1 : 0;
-          previous = current;
-        }
-        return previous;
-      });
+    const camera = await settledCamera();
     expect(
       (await map.locator(".workspace-overview-canvas").boundingBox())!.height,
     ).toBe(originalCanvas!.height);
