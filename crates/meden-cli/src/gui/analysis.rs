@@ -41,7 +41,7 @@ pub(super) fn run(
 pub(super) fn apply_repair(
     view: &std::sync::Mutex<View>,
     session: &crate::session::Session,
-    queue: &mut crate::analysis::repair::Queue,
+    queue: &mut crate::session::Repairs,
     reference: &crate::analysis::repair::Reference,
 ) -> Result<()> {
     {

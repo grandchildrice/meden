@@ -59,7 +59,7 @@ impl Searcher for Plausible {
                 include_bytes!("plausible.rs").as_slice(),
                 include_bytes!("../search.rs").as_slice(),
                 include_bytes!("lean/search.rs").as_slice(),
-                include_bytes!("lean.rs").as_slice(),
+                include_bytes!("lean/snapshot.rs").as_slice(),
                 include_bytes!("../explanation/cache.rs").as_slice(),
                 include_bytes!("../explanation/cache/artifact.rs").as_slice(),
                 include_bytes!("../identity/snapshots.rs").as_slice(),

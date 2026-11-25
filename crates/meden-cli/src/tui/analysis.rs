@@ -424,7 +424,7 @@ fn work_text(view: crate::handoff::View, selected: Option<&str>) -> Result<Strin
 }
 pub(super) fn execute(
     session: &crate::session::Session,
-    repairs: &mut crate::analysis::repair::Queue,
+    repairs: &mut crate::session::Repairs,
     task: Task,
     tx: &Sender<Update>,
 ) -> bool {

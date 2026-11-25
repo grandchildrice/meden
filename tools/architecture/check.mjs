@@ -186,6 +186,20 @@ export function neutralObservationViolations(source) {
     : [];
 }
 
+// Actual role definitions bind their own execution/validation inputs rather
+// than a facade that also changes when peer integrations are added.
+export function compilerCaptureViolations(source) {
+  const captures = [...source.matchAll(/include_bytes!\("([^"\n]+)"\)/g)].map(
+    (match) => match[1],
+  );
+  return captures
+    .filter((path) => /(^|\/)(?:adapters|lean)\.rs$/.test(path))
+    .map(
+      (path) =>
+        `compiler/search attribution must not capture composition facade ${path}`,
+    );
+}
+
 export function programFor(files, virtual = new Map()) {
   const options = {
     target: ts.ScriptTarget.ES2022,
@@ -246,6 +260,7 @@ export function check() {
     "crates/meden-app/src/explanation/cache.rs",
     "crates/meden-app/src/analysis.rs",
     "crates/meden-app/src/analysis/journal.rs",
+    "crates/meden-app/src/analysis/repair.rs",
     "crates/meden-app/src/semantic.rs",
     "crates/meden-app/src/analysis/sources.rs",
     "crates/meden-app/src/view.rs",
@@ -253,6 +268,15 @@ export function check() {
   ])
     errors.push(
       ...neutralObservationViolations(
+        readFileSync(resolve(root, path), "utf8"),
+      ).map((error) => `${path}: ${error}`),
+    );
+  for (const path of [
+    "crates/meden-app/src/adapters/lean/definition.rs",
+    "crates/meden-app/src/adapters/plausible.rs",
+  ])
+    errors.push(
+      ...compilerCaptureViolations(
         readFileSync(resolve(root, path), "utf8"),
       ).map((error) => `${path}: ${error}`),
     );

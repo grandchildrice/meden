@@ -1052,9 +1052,21 @@ once, while the shared service checks the complete original body and source
 before/after model work. Lean retains its scope/resource/dependency checks, and
 plain text and finite typed conformance use the same service. The retired JSON
 context projection is test-only; complete generated and selected actual-module
-comparisons retain its original output. Native preparation composition, reviewed
-repair, prepared module ownership and remaining performance/retirement work
-still need their own completion audit.
+comparisons retain its original output. Native preparation composition, prepared
+module ownership and remaining performance/retirement work still need their
+own completion audit.
+The [reviewed-repair migration](../performance/generic-repair-contexts.md)
+removes Lean snapshots, dependency records and target relocation from the shared
+repair queue. Backend-owned immutable contexts retain their original freshness
+checks, while the consumed applied patch keeps its reviewed target and requirement
+private through common reassessment. The Lean backend now checks its original
+prepared dependency fingerprint as well as selected sources, configuration and
+resources before applying a reviewed edit. Finite-data conformance exercises the
+same queue with real offline Z3 without granting native project evidence.
+Compiler/search attribution captures their leaf implementation and snapshot data,
+so a repair/composition-only executable update reuses the original validated
+compiler, search and rendering objects. Native heterogeneous selection, prepared
+module ownership, remaining latency and the retirement audit remain open.
 They retain the existing local/offline execution, accepted intent, exact evidence linkage and
 separate local-deployment/R1 obligations in [assurance.md](../assurance.md) and
 [verification.md](../verification.md).

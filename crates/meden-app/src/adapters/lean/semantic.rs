@@ -87,38 +87,49 @@ fn context(graph: &crate::atlas::Extraction, target: &Target) -> Result<Context>
 }
 impl crate::analysis::Observation for Snapshot {
     fn check(&self, context: &crate::adapters::Context<'_>) -> Result<Freshness> {
-        let workspace = context.workspace;
-        let control = context.control;
-        if let Some(collection) = &self.collection {
-            if let Err(error) =
-                crate::analysis::collect::check_metadata(workspace, control, &collection.metadata)
-            {
-                return Ok(Freshness::Stale(error));
-            }
-            if let Some(expected) = &collection.prepared {
-                let observed = crate::atlas::Configuration::host(workspace.path())
-                    .input_fingerprint(
-                        workspace.path(),
-                        &collection.modules,
-                        crate::atlas::InputMode::Fingerprint,
-                        control,
-                    )?;
-                if &observed != expected {
-                    return Ok(Freshness::Stale(anyhow::anyhow!(
-                        "Prepared dependencies changed; reread the file before meaning analysis"
-                    )));
-                }
-            }
-        }
-        if let Some(graph) = &self.atlas {
-            anyhow::ensure!(
-                crate::atlas::Configuration::host(workspace.path()).current_resources()?
-                    == graph.resources_sha256,
-                "Atlas resources changed; reread the graph and run again"
-            );
-        }
-        Ok(Freshness::Current)
+        check_binding(
+            context,
+            self.collection.as_ref(),
+            self.atlas
+                .as_ref()
+                .map(|graph| graph.resources_sha256.as_str()),
+        )
     }
+}
+pub(super) fn check_binding(
+    context: &crate::adapters::Context<'_>,
+    collection: Option<&crate::analysis::collect::Collection>,
+    resources: Option<&str>,
+) -> Result<Freshness> {
+    let workspace = context.workspace;
+    let control = context.control;
+    if let Some(collection) = collection {
+        if let Err(error) =
+            crate::analysis::collect::check_metadata(workspace, control, &collection.metadata)
+        {
+            return Ok(Freshness::Stale(error));
+        }
+        if let Some(expected) = &collection.prepared {
+            let observed = crate::atlas::Configuration::host(workspace.path()).input_fingerprint(
+                workspace.path(),
+                &collection.modules,
+                crate::atlas::InputMode::Fingerprint,
+                control,
+            )?;
+            if &observed != expected {
+                return Ok(Freshness::Stale(anyhow::anyhow!(
+                    "Prepared dependencies changed; reread the file before meaning analysis"
+                )));
+            }
+        }
+    }
+    if let Some(resources) = resources {
+        anyhow::ensure!(
+            crate::atlas::Configuration::host(workspace.path()).current_resources()? == resources,
+            "Atlas resources changed; reread the graph and run again"
+        );
+    }
+    Ok(Freshness::Current)
 }
 #[cfg(test)]
 mod oracle;

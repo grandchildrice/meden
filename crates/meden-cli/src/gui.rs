@@ -654,7 +654,7 @@ fn worker(
     preview: &preview::Preview,
 ) {
     let mut delivery = meden_app::delivery::Delivery::new(project);
-    let mut repairs = crate::analysis::repair::Queue::default();
+    let mut repairs = crate::session::Repairs::default();
     for Task {
         command,
         processes,

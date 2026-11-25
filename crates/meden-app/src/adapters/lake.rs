@@ -26,7 +26,7 @@ pub fn enabled() -> Result<bool> {
 impl Compiler for Lake {
     type Output = super::lean::Snapshot;
     fn descriptor(&self) -> Result<meden_runtime::plugin::Descriptor> {
-        super::compiler_definition(
+        super::lean::definition::compiler(
             "lean.lake",
             include_bytes!("lake.rs"),
             &self.atlas,

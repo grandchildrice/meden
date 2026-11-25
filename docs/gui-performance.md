@@ -13,6 +13,13 @@ wheel dispatch and 156 ms maximum long task. A new cached file inspection still
 takes 12.286 s due to separate native preparation. The record separates those
 costs and retains source-mapped CPU attribution; it claims no new optimization.
 
+The [reviewed-repair/cache separation](performance/generic-repair-contexts.md)
+prevents repair and composition-facade changes from invalidating original
+compiler/search/render objects. Two real native builds exercise this reuse
+while preserving full input validation. New-method preparation and subsequent
+cache-hit waits are recorded separately; this does not establish faster Lean
+execution or remove the remaining native freshness cost.
+
 The [retained-reference comparison](performance/map-reference-updates.md) reduces
 actual EthLib detail-update projection median from 316.544 ms to 42.480 ms over
 the same seven responses, preserving complete scenes and ordered edges. Riemann

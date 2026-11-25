@@ -3227,23 +3227,33 @@ theorem slow : True := fast
     expect((await nativeState(page)).authorized).toBe(false);
   });
 
-  test("metadata-only updates reuse original compiler and counterexample artifacts in an isolated Lean environment", async ({
-    page,
-  }, info) => {
-    test.setTimeout(300000);
-    const { stdout } = await promisify(execFile)(
-      process.execPath,
-      [resolve("tools/gui/prepare-metadata-variants.mjs")],
-      { timeout: 180000, maxBuffer: 1024 * 1024 },
-    );
-    const variants = JSON.parse(stdout);
-    expect(variants.original.sha256).not.toBe(variants.updated.sha256);
-    expect(variants.original.helper_sha256).not.toBe(
-      variants.updated.helper_sha256,
-    );
-    await writeFile(
-      resolve(project, "lakefile.lean"),
-      `import Lake
+  for (const variant of [
+    {
+      kind: "metadata",
+      title:
+        "metadata-only updates reuse original compiler and counterexample artifacts in an isolated Lean environment",
+    },
+    {
+      kind: "repair",
+      title:
+        "repair and composition updates reuse original compiler and counterexample artifacts in an isolated Lean environment",
+    },
+  ]) {
+    test(variant.title, async ({ page }, info) => {
+      test.setTimeout(300000);
+      const { stdout } = await promisify(execFile)(
+        process.execPath,
+        [resolve("tools/gui/prepare-native-variants.mjs"), variant.kind],
+        { timeout: 180000, maxBuffer: 1024 * 1024 },
+      );
+      const variants = JSON.parse(stdout);
+      expect(variants.original.sha256).not.toBe(variants.updated.sha256);
+      expect(variants.original.implementation_sha256).not.toBe(
+        variants.updated.implementation_sha256,
+      );
+      await writeFile(
+        resolve(project, "lakefile.lean"),
+        `import Lake
 open Lake DSL
 run_cmd do
   if ← System.FilePath.pathExists "/analysis/library/project-atlas.py" then
@@ -3253,10 +3263,10 @@ run_cmd do
 package isolated
 lean_lib Entry
 `,
-    );
-    await writeFile(
-      resolve(project, "Entry.lean"),
-      `import Lean
+      );
+      await writeFile(
+        resolve(project, "Entry.lean"),
+        `import Lean
 run_cmd do
   if ← System.FilePath.pathExists "/analysis/library/project-atlas.py" then
     throwError "Metadata helper leaked into compilation"
@@ -3270,123 +3280,126 @@ initialize isolatedLibrary : Unit ← do
 theorem stableMeaning : True := by trivial
 theorem counterexample (n : Nat) : n + 1 ≤ n := by sorry
 `,
-    );
-    // Begin with an installed/built project, as in the prepared-Lake journey.
-    // Creating a new manifest after a frozen capture must still refuse reuse.
-    const build = await promisify(execFile)(variants.original.binary, [
-      "lake",
-      "--workspace",
-      project,
-      "--lean",
-      process.env.MEDEN_ATLAS_LEAN ||
-        resolve(homedir(), ".elan/toolchains/leanprover--lean4---v4.35.0"),
-      "--timeout",
-      "120",
-      "--",
-      "build",
-      "+Entry",
-    ]);
-    expect(JSON.parse(build.stdout).success, build.stderr).toBe(true);
-    const open = async (binary: string) => {
-      await page.goto(
-        await start(0, { MEDEN_ATLAS_BACKEND: "lake" }, [], binary),
       );
-      await page
-        .getByRole("button", { name: "File: Entry.lean", exact: true })
-        .click();
-      await expect
-        .poll(
-          async () =>
-            (await nativeState(page)).source_preparation["Entry.lean"]?.outcome
-              .state,
-          { timeout: 120000 },
-        )
-        .toBe("ready");
-      await expect
-        .poll(async () => (await nativeState(page)).running)
-        .toBe(false);
-      return nativeState(page);
-    };
-    const artifacts = async () => {
-      const directory = resolve(
-        root,
-        "data/meden/projects",
-        createHash("sha256").update(project).digest("hex"),
-        "compiled-views",
-      );
-      const files: Record<string, string> = {};
-      const visit = async (path: string) => {
-        for (const entry of await readdir(path, { withFileTypes: true })) {
-          const file = resolve(path, entry.name);
-          if (entry.isDirectory()) await visit(file);
-          else
-            files[file.slice(directory.length + 1)] = createHash("sha256")
-              .update(await readFile(file))
-              .digest("hex");
-        }
+      // Begin with an installed/built project, as in the prepared-Lake journey.
+      // Creating a new manifest after a frozen capture must still refuse reuse.
+      const build = await promisify(execFile)(variants.original.binary, [
+        "lake",
+        "--workspace",
+        project,
+        "--lean",
+        process.env.MEDEN_ATLAS_LEAN ||
+          resolve(homedir(), ".elan/toolchains/leanprover--lean4---v4.35.0"),
+        "--timeout",
+        "120",
+        "--",
+        "build",
+        "+Entry",
+      ]);
+      expect(JSON.parse(build.stdout).success, build.stderr).toBe(true);
+      const open = async (binary: string) => {
+        await page.goto(
+          await start(0, { MEDEN_ATLAS_BACKEND: "lake" }, [], binary),
+        );
+        await page
+          .getByRole("button", { name: "File: Entry.lean", exact: true })
+          .click();
+        await expect
+          .poll(
+            async () =>
+              (await nativeState(page)).source_preparation["Entry.lean"]
+                ?.outcome.state,
+            { timeout: 120000 },
+          )
+          .toBe("ready");
+        await expect
+          .poll(async () => (await nativeState(page)).running)
+          .toBe(false);
+        return nativeState(page);
       };
-      await visit(directory);
-      return files;
-    };
-    const first = await open(variants.original.binary);
-    const original = await nativeSource(page, first);
-    expect(
-      original.graph.declarations
-        .find((n: any) => n.id === "counterexample")
-        .semantic.checker.candidates.join(" "),
-    ).toContain("n := 0");
-    expect(first.source_preparation["Entry.lean"].outcome.cache_hit).toBe(
-      false,
-    );
-    const stored = await artifacts();
-    expect(Object.keys(stored).length).toBeGreaterThan(3);
-    await stop();
-    const second = await open(variants.updated.binary);
-    expect(second.source_preparation["Entry.lean"].outcome.cache_hit).toBe(
-      true,
-    );
-    expect(await nativeSource(page, second)).toEqual(original);
-    expect(await artifacts()).toEqual(stored);
-    const metrics = await page.evaluate(async () =>
-      (
-        await fetch("/api/metrics", {
-          headers: {
-            Authorization:
-              "Bearer " + sessionStorage.getItem("meden-native-session"),
+      const artifacts = async () => {
+        const directory = resolve(
+          root,
+          "data/meden/projects",
+          createHash("sha256").update(project).digest("hex"),
+          "compiled-views",
+        );
+        const files: Record<string, string> = {};
+        const visit = async (path: string) => {
+          for (const entry of await readdir(path, { withFileTypes: true })) {
+            const file = resolve(path, entry.name);
+            if (entry.isDirectory()) await visit(file);
+            else
+              files[file.slice(directory.length + 1)] = createHash("sha256")
+                .update(await readFile(file))
+                .digest("hex");
+          }
+        };
+        await visit(directory);
+        return files;
+      };
+      const first = await open(variants.original.binary);
+      const original = await nativeSource(page, first);
+      expect(
+        original.graph.declarations
+          .find((n: any) => n.id === "counterexample")
+          .semantic.checker.candidates.join(" "),
+      ).toContain("n := 0");
+      expect(first.source_preparation["Entry.lean"].outcome.cache_hit).toBe(
+        false,
+      );
+      const stored = await artifacts();
+      expect(Object.keys(stored).length).toBeGreaterThan(3);
+      await stop();
+      const second = await open(variants.updated.binary);
+      expect(second.source_preparation["Entry.lean"].outcome.cache_hit).toBe(
+        true,
+      );
+      expect(await nativeSource(page, second)).toEqual(original);
+      expect(await artifacts()).toEqual(stored);
+      const metrics = await page.evaluate(async () =>
+        (
+          await fetch("/api/metrics", {
+            headers: {
+              Authorization:
+                "Bearer " + sessionStorage.getItem("meden-native-session"),
+            },
+          })
+        ).json(),
+      );
+      const names = metrics.records.map((r: any) => r.name);
+      expect(names).toContain("atlas.project.query");
+      expect(names).toContain("atlas.project.fingerprint");
+      for (const name of [
+        "atlas.project.extract",
+        "atlas.compile",
+        "atlas.search",
+        "analysis.render",
+      ])
+        expect(names).not.toContain(name);
+      expect(second.authorized).toBe(false);
+      expect(requests).toHaveLength(0);
+      await page.screenshot({
+        path: info.outputPath(
+          `${variant.kind}-update-reused-original-artifacts.png`,
+        ),
+      });
+      await info.attach(`${variant.kind}-update-and-worker-timings`, {
+        body: JSON.stringify(
+          {
+            variants,
+            metrics,
+            original_artifacts: stored,
+            scope:
+              "Two actual native builds with the fixed metadata or repair/composition-only comment update; real offline Lake/Plausible, full-byte validation and unchanged original artifact files. Scripted provider unused; no inference or cold-install claim.",
           },
-        })
-      ).json(),
-    );
-    const names = metrics.records.map((r: any) => r.name);
-    expect(names).toContain("atlas.project.query");
-    expect(names).toContain("atlas.project.fingerprint");
-    for (const name of [
-      "atlas.project.extract",
-      "atlas.compile",
-      "atlas.search",
-      "analysis.render",
-    ])
-      expect(names).not.toContain(name);
-    expect(second.authorized).toBe(false);
-    expect(requests).toHaveLength(0);
-    await page.screenshot({
-      path: info.outputPath("metadata-update-reused-original-artifacts.png"),
+          null,
+          2,
+        ),
+        contentType: "application/json",
+      });
     });
-    await info.attach("metadata-update-and-worker-timings", {
-      body: JSON.stringify(
-        {
-          variants,
-          metrics,
-          original_artifacts: stored,
-          scope:
-            "Two actual native builds differing only in embedded metadata helper comment; real offline Lake/Plausible, full-byte validation and unchanged original artifact files. Scripted provider unused; no inference or cold-install claim.",
-        },
-        null,
-        2,
-      ),
-      contentType: "application/json",
-    });
-  });
+  }
 
   test("versioned map geometry survives host restart, rejects corrupt storage and stays usable without storage", async ({
     page,

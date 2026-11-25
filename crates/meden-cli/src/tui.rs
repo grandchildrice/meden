@@ -1099,7 +1099,7 @@ fn worker(
     tx: &Sender<Update>,
     inspect: impl Fn() -> Result<crate::project::Summary>,
 ) {
-    let mut repairs = crate::analysis::repair::Queue::default();
+    let mut repairs = crate::session::Repairs::default();
     let observer = |event: Event<'_>| {
         let refresh_project = matches!(&event, Event::ToolResult { call, .. }
             if matches!(call.function.name.as_str(), "verify_project" | "propose_contract" | "project_status" | "write_file" | "edit_file" | "bash"));

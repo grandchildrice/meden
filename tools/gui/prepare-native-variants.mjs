@@ -6,7 +6,30 @@ import { cp, mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
 const exec = promisify(execFile);
-const directory = resolve("target/gui-metadata-variants");
+const kind = process.argv[2];
+const changes =
+  kind === "metadata"
+    ? [
+        [
+          "crates/meden-app/src/atlas/project-atlas.py",
+          "\n# Metadata-only implementation update.\n",
+        ],
+      ]
+    : kind === "repair"
+      ? [
+          [
+            "crates/meden-app/src/adapters/lean/repair.rs",
+            "\n// Repair-only implementation update.\n",
+          ],
+          [
+            "crates/meden-app/src/adapters/lean.rs",
+            "\n// Composition-only implementation update.\n",
+          ],
+        ]
+      : null;
+if (!changes)
+  throw new Error("Choose the fixed metadata or repair test variant");
+const directory = resolve("target/gui-native-variants/" + kind);
 await mkdir(directory, { recursive: true });
 const source = await mkdtemp(resolve(directory, "source-"));
 const { stdout } = await exec("git", [
@@ -32,16 +55,23 @@ for (const file of new Set(stdout.split("\0").filter(Boolean))) {
   await mkdir(dirname(target), { recursive: true });
   await cp(resolve(file), target, { dereference: false });
 }
-const helper = resolve(source, "crates/meden-app/src/atlas/project-atlas.py");
-const original = await readFile(helper, "utf8");
+const helper = resolve(source, changes[0][0]);
+const originals = await Promise.all(
+  changes.map(async ([path, suffix]) => ({
+    path,
+    suffix,
+    text: await readFile(resolve(source, path), "utf8"),
+  })),
+);
 const target = resolve(directory, "build");
 const result = {};
 for (const name of ["original", "updated"]) {
   if (name === "updated")
-    await writeFile(
-      helper,
-      original + "\n# Metadata-only implementation update.\n",
-    );
+    for (const change of originals)
+      await writeFile(
+        resolve(source, change.path),
+        change.text + change.suffix,
+      );
   // Each snapshot has new absolute source paths. Never trust a shared target's
   // prior workspace dep-info to notice those paths or a helper-only edit.
   await exec(
@@ -85,7 +115,7 @@ for (const name of ["original", "updated"]) {
   const bytes = await readFile(resolve(target, "profiling/meden"));
   if (!bytes.includes(await readFile(helper)))
     throw new Error(
-      "Built executable does not embed the selected metadata helper",
+      "Built executable does not embed the selected implementation",
     );
   const digest = createHash("sha256").update(bytes).digest("hex");
   const binary = resolve(directory, digest, "meden");
@@ -99,7 +129,15 @@ for (const name of ["original", "updated"]) {
   result[name] = {
     binary,
     sha256: digest,
-    helper_sha256: createHash("sha256")
+    changed_sources: await Promise.all(
+      changes.map(async ([path]) => ({
+        path,
+        sha256: createHash("sha256")
+          .update(await readFile(resolve(source, path)))
+          .digest("hex"),
+      })),
+    ),
+    implementation_sha256: createHash("sha256")
       .update(await readFile(helper))
       .digest("hex"),
   };
@@ -108,4 +146,4 @@ await writeFile(
   resolve(source, "builds.json"),
   JSON.stringify(result, null, 2),
 );
-console.log(JSON.stringify({ ...result, source }));
+console.log(JSON.stringify({ ...result, source, kind }));

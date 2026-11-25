@@ -6,6 +6,8 @@ pub mod lake;
 pub mod lean;
 pub mod plausible;
 pub mod source;
+#[path = "adapters/source/repair.rs"]
+mod source_repair;
 #[path = "adapters/source/semantic.rs"]
 mod source_semantic;
 #[path = "adapters/source/view.rs"]
@@ -50,45 +52,4 @@ pub fn searchers(
     let mut registry = crate::search::Registry::default();
     registry.register(plausible::Plausible::new(atlas)?)?;
     Ok((registry, "lean.plausible"))
-}
-
-fn compiler_definition(
-    id: &str,
-    implementation: &[u8],
-    atlas: &crate::atlas::Configuration,
-    configuration: &serde_json::Value,
-) -> anyhow::Result<meden_runtime::plugin::Descriptor> {
-    let implementation = [
-        implementation,
-        include_bytes!("analysis/collect.rs"),
-        include_bytes!("analysis/layout.rs"),
-        include_bytes!("analysis/observe.rs"),
-        include_bytes!("analysis/sources.rs"),
-        include_bytes!("identity/snapshots.rs"),
-        include_bytes!("compiler.rs"),
-        include_bytes!("explanation/cache.rs"),
-        include_bytes!("adapters/lean/cache.rs"),
-        include_bytes!("adapters/lean/pipeline.rs"),
-        include_bytes!("adapters.rs"),
-        include_bytes!("atlas/mod.rs"),
-        include_bytes!("atlas/resources.rs"),
-        include_bytes!("../../meden-runtime/src/sandbox.rs"),
-        include_bytes!("atlas/project.rs"),
-        include_bytes!("atlas/lake.rs"),
-        include_bytes!("atlas/graph.rs"),
-        include_bytes!("atlas/frozen.rs"),
-    ]
-    .concat();
-    Ok(meden_runtime::plugin::Descriptor::new(
-        meden_runtime::plugin::Definition {
-            id,
-            role: meden_runtime::plugin::Role::Compiler,
-            version: "1",
-            formats: vec!["lean-module-v1".into()],
-            implementation: &implementation,
-            configuration: serde_json::json!({"method":configuration,"resources_sha256":atlas.current_resources()?}),
-            input: crate::compiler::input_schema()?,
-            output: crate::compiler::output_schema::<crate::adapters::lean::Snapshot>()?,
-        },
-    )?)
 }

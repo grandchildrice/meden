@@ -4,10 +4,31 @@ import { resolve } from "node:path";
 import {
   cargoViolations,
   compilerEntryViolations,
+  compilerCaptureViolations,
   neutralObservationViolations,
   programFor,
   sourceViolations,
 } from "./check.mjs";
+
+test("compiler attribution accepts actual leaf and shared data dependencies", () => {
+  assert.deepEqual(
+    compilerCaptureViolations(
+      'include_bytes!("snapshot.rs"); include_bytes!("compiler.rs"); include_bytes!("../../atlas/mod.rs");',
+    ),
+    [],
+  );
+});
+for (const path of [
+  "lean.rs",
+  "../lean.rs",
+  "../../adapters.rs",
+  "../../adapters/lean.rs",
+])
+  test(`compiler attribution refuses peer facade ${path}`, () =>
+    assert.match(
+      compilerCaptureViolations(`include_bytes!("${path}")`).join(),
+      /must not capture composition facade/,
+    ));
 
 test("common observations accept typed source owners and pure generic projections", () => {
   assert.deepEqual(

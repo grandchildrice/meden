@@ -6,7 +6,7 @@ use std::sync::atomic::Ordering;
 use std::time::{Duration, Instant};
 
 use crate::model::Model;
-use anyhow::{Context, Result};
+use anyhow::{Context as _, Result};
 use meden_agent::conversation::ChatModel;
 use meden_agent::tool::Args;
 use meden_core::{
@@ -19,12 +19,26 @@ use meden_runtime::{
     process::{Control, Limits},
     workspace::Workspace,
 };
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sha2::{Digest, Sha256};
+use std::marker::PhantomData;
 
 use super::{sources, Record};
 use crate::semantic::{self, Input};
+
+/// Backend-owned immutable repair observations, never approval or evidence.
+pub trait Context: Serialize + DeserializeOwned {
+    fn check(&self, context: &crate::adapters::Context<'_>) -> Result<()>;
+    fn paths(&self) -> Option<&[String]>;
+    fn relocatable(&self) -> bool;
+}
+pub trait Observation: super::Observation {
+    type Repair: Context;
+    fn repair_context(&self) -> Result<Self::Repair>;
+    fn refreshed_input(&self, original: &Input) -> Result<Input>;
+}
 
 #[derive(Clone, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -59,7 +73,7 @@ struct Suggestion {
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-struct Frozen {
+struct Frozen<G> {
     id: String,
     model: String,
     processor: String,
@@ -70,9 +84,7 @@ struct Frozen {
     input: Input,
     accepted_reference: Option<crate::project::Reference>,
     files: BTreeMap<String, String>,
-    resources: Option<String>,
-    metadata: super::observe::Metadata,
-    roots: Option<Vec<String>>,
+    context: G,
     request: Request<Args>,
     policy: Policy,
     explanation: String,
@@ -85,18 +97,34 @@ struct Log<'a> {
     error: Option<&'a str>,
     analysis_id: Option<&'a str>,
 }
-pub struct Pending {
+/// Backend context cannot be exchanged at the shared review queue.
+/// ```compile_fail,E0308
+/// use meden_app::analysis::repair::{Context,Queue,Pending,Review};
+/// fn wrong<A:Context,B:Context>(q:&mut Queue<A>,p:Pending<B>,w:&meden_runtime::workspace::Workspace)->anyhow::Result<Review> { q.install(w,p) }
+/// ```
+pub struct Pending<G> {
+    context: PhantomData<fn() -> G>,
     state: State,
     created: Instant,
 }
-#[derive(Default)]
-pub struct Queue {
-    pending: Option<Pending>,
+pub struct Queue<G> {
+    pending: Option<Pending<G>>,
 }
-pub struct Applied {
-    pub input: Input,
-    pub paths: Vec<String>,
-    pub review: Review,
+impl<G> Default for Queue<G> {
+    fn default() -> Self {
+        Self { pending: None }
+    }
+}
+/// Applied patches keep their reviewed intent private through reanalysis.
+/// ```compile_fail,E0616
+/// use meden_app::analysis::repair::Applied;
+/// fn weaken<G>(applied:&mut Applied<G>) { applied.input.requirement.clear(); }
+/// ```
+pub struct Applied<G> {
+    context: G,
+    input: Input,
+    paths: Vec<String>,
+    review: Review,
 }
 
 fn hash(bytes: &[u8]) -> String {
@@ -137,22 +165,19 @@ fn log(
         },
     )
 }
-fn observe(workspace: &Workspace, control: &Control, frozen: &Frozen) -> Result<()> {
-    super::collect::check_metadata(workspace, control, &frozen.metadata)?;
-    observe_sources(
+fn observe<G: Context>(workspace: &Workspace, control: &Control, frozen: &Frozen<G>) -> Result<()> {
+    frozen.context.check(&crate::adapters::Context {
         workspace,
         control,
-        &frozen.input,
-        &frozen.files,
-        frozen.resources.as_deref(),
-    )
+        observer: None,
+    })?;
+    observe_sources(workspace, control, &frozen.input, &frozen.files)
 }
 fn observe_sources(
     workspace: &Workspace,
     control: &Control,
     input: &Input,
     files: &BTreeMap<String, String>,
-    resources: Option<&str>,
 ) -> Result<()> {
     let paths = files.keys().cloned().collect::<Vec<_>>();
     let current = sources::capture(workspace, control, &paths)?;
@@ -160,24 +185,24 @@ fn observe_sources(
         current.revision == input.source_revision,
         "Sources changed since the Finding; reread and analyze again before repairing"
     );
-    if let Some(resources) = resources {
-        anyhow::ensure!(
-            crate::atlas::Configuration::host(workspace.path()).current_resources()? == resources,
-            "Atlas resources changed since the Finding; reread and analyze again"
-        );
-    }
     Ok(())
 }
 
-pub fn prepare(
+pub fn prepare<O: Observation>(
     workspace: &Workspace,
     gateway: &dyn Model,
     control: &Control,
     policy: &Policy,
-    snapshot: &crate::adapters::lean::Snapshot,
+    snapshot: &O,
     record: &Record,
     project: &crate::project::Summary,
-) -> Result<Pending> {
+) -> Result<Pending<O::Repair>> {
+    control.with_active(|| Ok(()))?;
+    anyhow::ensure!(
+        gateway.is_authorized(workspace.session_id()),
+        "Review the configured processor before preparing a repair"
+    );
+    let original_body = serde_json::to_value(snapshot)?;
     let finding = record
         .finding_id
         .as_ref()
@@ -191,38 +216,34 @@ pub fn prepare(
         "The Finding is unavailable or stale; reread and analyze again"
     );
     semantic::Prepared::new(record.input.clone(), snapshot)?;
-    let metadata = snapshot
-        .collection
-        .as_ref()
-        .map(|c| c.metadata.clone())
-        .unwrap_or_default();
-    super::collect::check_metadata(workspace, control, &metadata)?;
-    let resources = snapshot
-        .atlas
-        .as_ref()
-        .map(|atlas| atlas.resources_sha256.clone());
-    observe_sources(
+    let context = snapshot.repair_context()?;
+    let original_context = serde_json::to_vec(&context)?;
+    context.check(&crate::adapters::Context {
         workspace,
         control,
-        &record.input,
-        &snapshot.source.files,
-        resources.as_deref(),
-    )?;
+        observer: None,
+    })?;
+    observe_sources(workspace, control, &record.input, &snapshot.sources().files)?;
     anyhow::ensure!(!control.flag().load(Ordering::SeqCst), "Repair cancelled");
     let caller = crate::model::bind(gateway, workspace.session_id());
     let reply = caller.reply(&[
         json!({"role":"system","content":include_str!("repair.md")}),
-        json!({"role":"user","content":json!({"input":record.input,"finding":record.assessment,"accepted_contract":project.accepted_contract,"files":snapshot.source.files}).to_string()}),
+        json!({"role":"user","content":json!({"input":record.input,"finding":record.assessment,"accepted_contract":project.accepted_contract,"files":snapshot.sources().files}).to_string()}),
     ], &[json!({"type":"function","function":{"name":"propose_repair","description":"Return a single data-only source replacement for host review.","parameters":{"type":"object","properties":{
         "file":{"type":"string"},"old_text":{"type":"string"},"new_text":{"type":"string"},"explanation":{"type":"string"}},"required":["file","old_text","new_text","explanation"],"additionalProperties":false}}})])?;
     let suggestion: Suggestion = semantic::decode(reply, "propose_repair")?;
     anyhow::ensure!(
+        serde_json::to_value(snapshot)? == original_body
+            && serde_json::to_vec(&context)? == original_context,
+        "Repair source context changed during proposal; no proposal admitted"
+    );
+    anyhow::ensure!(
         !control.flag().load(Ordering::SeqCst) && gateway.is_authorized(workspace.session_id()),
         "Repair cancelled or processor permission ended; no proposal admitted"
     );
-    let replacement = replacement(snapshot, &record.input, &suggestion)?;
+    let replacement = replacement(snapshot, &context, &record.input, &suggestion)?;
     let original = snapshot
-        .source
+        .sources()
         .files
         .get(&suggestion.file)
         .context("repair source unavailable")?;
@@ -245,13 +266,8 @@ pub fn prepare(
         requirement_id: record.requirement_id.clone(),
         input: record.input.clone(),
         accepted_reference: project.accepted_reference.clone(),
-        files: snapshot.source.files.clone(),
-        resources,
-        metadata,
-        roots: snapshot
-            .collection
-            .as_ref()
-            .map(|collection| collection.roots.clone()),
+        files: snapshot.sources().files.clone(),
+        context,
         request,
         policy: policy.clone(),
         explanation: suggestion.explanation,
@@ -259,6 +275,7 @@ pub fn prepare(
     observe(workspace, control, &frozen)?;
     control.with_active(|| Ok(()))?;
     Ok(Pending {
+        context: PhantomData,
         state: State::new(
             workspace.session_id().as_bytes().to_vec(),
             format!("/workspace/{}", suggestion.file),
@@ -268,13 +285,14 @@ pub fn prepare(
     })
 }
 
-fn replacement(
-    snapshot: &crate::adapters::lean::Snapshot,
+fn replacement<O: Observation>(
+    snapshot: &O,
+    context: &O::Repair,
     input: &Input,
     suggestion: &Suggestion,
 ) -> Result<String> {
     anyhow::ensure!(
-        snapshot.source.files.contains_key(&suggestion.file)
+        snapshot.sources().files.contains_key(&suggestion.file)
             && !suggestion.old_text.is_empty()
             && suggestion.old_text != suggestion.new_text
             && !suggestion.explanation.trim().is_empty()
@@ -282,7 +300,7 @@ fn replacement(
         "Repair must change one observed file and explain the change"
     );
     let original = snapshot
-        .source
+        .sources()
         .files
         .get(&suggestion.file)
         .context("repair source unavailable")?;
@@ -295,15 +313,15 @@ fn replacement(
         replacement.len() <= 65_536,
         "Repaired source exceeds 64 KiB"
     );
-    if snapshot.atlas.is_none() && suggestion.file == input.target.file {
+    if !context.relocatable() && suggestion.file == input.target.file {
         let before = input.target.line.saturating_sub(1);
         anyhow::ensure!(original.lines().take(before).eq(replacement.lines().take(before))
             && replacement.lines().nth(before).is_some_and(|line|line.contains(input.target.name.rsplit(['.', ':']).next().unwrap_or_default())),
-            "Source-only repair must preserve the declaration's line anchor; use Atlas for relocatable Lean declarations");
+            "Source-only repair must preserve the declaration's line anchor; reread a compiled declaration to relocate it");
     }
     anyhow::ensure!(
         snapshot
-            .source
+            .sources()
             .files
             .values()
             .map(String::len)
@@ -327,9 +345,9 @@ fn diff_lines(prefix: char, source: &str) -> String {
     diff
 }
 
-impl Pending {
+impl<G: Context> Pending<G> {
     fn review(&self) -> Result<Review> {
-        let frozen: Frozen = serde_json::from_slice(self.state.request().body())?;
+        let frozen: Frozen<G> = serde_json::from_slice(self.state.request().body())?;
         let (_, _, args) = frozen.request.into_parts();
         let original = args
             .get("old_text")
@@ -370,8 +388,8 @@ impl Pending {
         })
     }
 }
-impl Queue {
-    pub fn install(&mut self, workspace: &Workspace, mut pending: Pending) -> Result<Review> {
+impl<G: Context> Queue<G> {
+    pub fn install(&mut self, workspace: &Workspace, mut pending: Pending<G>) -> Result<Review> {
         if let Some(old) = self.pending.take() {
             log(workspace.path(), &old.review()?, "superseded", None, None)?;
         }
@@ -428,13 +446,13 @@ impl Queue {
         reference: &Reference,
         accepted_reference: Option<&crate::project::Reference>,
         dirty: &dyn Fn(),
-    ) -> Result<Applied> {
+    ) -> Result<Applied<G>> {
         let mut pending = self
             .pending
             .take()
             .context("Repair already consumed, rejected or unavailable after restart")?;
         let review = pending.review()?;
-        let result = (|| -> Result<Applied> {
+        let result = (|| -> Result<Applied<G>> {
             anyhow::ensure!(
                 review.reference == *reference,
                 "Repair review target changed; no file changed"
@@ -450,7 +468,7 @@ impl Queue {
                 )
                 .effect
                 .context("Repair approval expired or belongs to another session")?;
-            let frozen: Frozen = serde_json::from_slice(effect.into_request().body())?;
+            let frozen: Frozen<G> = serde_json::from_slice(effect.into_request().body())?;
             anyhow::ensure!(
                 frozen.accepted_reference.as_ref() == accepted_reference,
                 "Accepted contract changed since repair preparation; no file changed"
@@ -492,8 +510,10 @@ impl Queue {
             Ok(Applied {
                 input: frozen.input,
                 paths: frozen
-                    .roots
-                    .unwrap_or_else(|| frozen.files.into_keys().collect()),
+                    .context
+                    .paths()
+                    .map_or_else(|| frozen.files.into_keys().collect(), <[String]>::to_vec),
+                context: frozen.context,
                 review: review.clone(),
             })
         })();
@@ -509,7 +529,7 @@ impl Queue {
         result
     }
 }
-pub fn record_reanalysis(root: &Path, applied: &Applied, result: &Result<Record>) -> Result<()> {
+fn record_reanalysis<G>(root: &Path, applied: &Applied<G>, result: &Result<Record>) -> Result<()> {
     match result {
         Ok(record) => log(root, &applied.review, "reanalyzed", None, Some(&record.id)),
         Err(error) => log(
@@ -519,5 +539,41 @@ pub fn record_reanalysis(root: &Path, applied: &Applied, result: &Result<Record>
             Some(&format!("{error:#}")),
             None,
         ),
+    }
+}
+
+impl<G: Context> Applied<G> {
+    /// Consume one applied patch's frozen intent through a backend's source
+    /// preparation, then the same shared assessment and history operation.
+    pub fn reanalyze<O: Observation<Repair = G>>(
+        self,
+        workspace: &Workspace,
+        gateway: &dyn Model,
+        judge: Option<&dyn Model>,
+        control: &Control,
+        prepare: impl FnOnce(&G, &[String], &Input) -> Result<O>,
+        notify: &dyn Fn(&Record),
+    ) -> Result<(O, Record)> {
+        let result = (|| {
+            let snapshot = prepare(&self.context, &self.paths, &self.input)?;
+            let input = snapshot.refreshed_input(&self.input)?;
+            anyhow::ensure!(
+                input.target.file == self.input.target.file
+                    && input.target.name == self.input.target.name
+                    && input.requirement == self.input.requirement
+                    && input.graph_revision.is_some() == self.input.graph_revision.is_some()
+                    && (self.context.relocatable() || input.target.line == self.input.target.line),
+                "Repair applied; reanalysis changed the frozen target, requirement or context mode"
+            );
+            let record = super::run(workspace, gateway, judge, control, &snapshot, input, notify)?;
+            Ok((snapshot, record))
+        })();
+        let record_result = result
+            .as_ref()
+            .map(|(_, record)| record.clone())
+            .map_err(|error| anyhow::anyhow!("{error:#}"));
+        record_reanalysis(workspace.path(),&self,&record_result)
+            .context("Repair was applied; reanalysis linkage could not be saved. Inspect retained files and analysis history")?;
+        result.context("Repair was applied; reanalysis stopped. Files are retained; reread and explicitly rerun")
     }
 }

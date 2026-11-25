@@ -5,7 +5,8 @@ use ratatui::prelude::*;
 use std::sync::mpsc::Sender;
 
 use super::{approval, App, Screen, Task, Update};
-use crate::analysis::repair::{Queue, Review};
+use crate::analysis::repair::Review;
+use crate::session::Repairs;
 
 impl App {
     pub(super) fn repair_applied(
@@ -57,7 +58,7 @@ impl App {
 }
 pub(super) fn execute(
     session: &crate::session::Session,
-    queue: &mut Queue,
+    queue: &mut Repairs,
     task: Task,
     tx: &Sender<Update>,
 ) -> bool {

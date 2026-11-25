@@ -6,7 +6,7 @@ use std::sync::Mutex;
 pub(super) fn perform(
     view: &Mutex<View>,
     session: &crate::session::Session,
-    repairs: &mut crate::analysis::repair::Queue,
+    repairs: &mut crate::session::Repairs,
     command: Command,
 ) -> Result<()> {
     match command {
@@ -59,7 +59,7 @@ pub(super) fn perform(
 pub(super) fn begin(
     view: &std::sync::Mutex<super::View>,
     workspace: &meden_runtime::workspace::Workspace,
-    repairs: &mut crate::analysis::repair::Queue,
+    repairs: &mut crate::session::Repairs,
     command: &super::Command,
 ) -> anyhow::Result<()> {
     if !matches!(
